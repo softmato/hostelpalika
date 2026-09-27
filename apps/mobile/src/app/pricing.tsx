@@ -278,19 +278,36 @@ function PlanCard({
         </View>
 
         <View className="items-start gap-3">
+          {/* Free months lead as the headline price; the plan's own price drops
+              to the "Then" line in the same "NPR x / period" shape. */}
           {plan.freeMonths ? (
-            <Text className="text-sm font-semibold text-primary" variant={null}>
-              First {plan.freeMonths} {plan.freeMonths === 1 ? "month" : "months"} free, then
+            <Text className="text-3xl font-bold text-foreground" variant={null}>
+              <Money className="" currencyClassName="text-lg text-foreground" rupees={0} />
+              <Text className="text-base font-semibold text-muted-foreground" variant={null}>
+                {" "}/ {plan.freeMonths} {plan.freeMonths === 1 ? "month" : "months"}
+              </Text>
             </Text>
           ) : null}
           {/* Annual keeps the monthly figure beside it, struck through, so the
               discount has something to be compared against. */}
-          <View className="flex-row flex-wrap items-baseline gap-2.5">
-            <Money
-              className="text-3xl font-bold text-foreground"
-              currencyClassName="text-lg text-foreground"
-              rupees={monthlyRateFor(plan, cycle)}
-            />
+          <View className={`flex-row flex-wrap items-baseline gap-2 ${plan.freeMonths ? "-mt-2" : ""}`}>
+            {plan.freeMonths ? (
+              <Text className="text-sm font-semibold text-muted-foreground" variant={null}>
+                Then
+              </Text>
+            ) : null}
+            <Text className={`font-bold text-foreground ${plan.freeMonths ? "text-lg" : "text-3xl"}`} variant={null}>
+              <Money
+                className=""
+                currencyClassName={plan.freeMonths ? "text-xs text-foreground" : "text-lg text-foreground"}
+                rupees={monthlyRateFor(plan, cycle)}
+              />
+              {plan.freeMonths ? (
+                <Text className="text-sm font-semibold text-muted-foreground" variant={null}>
+                  {" "}/ month
+                </Text>
+              ) : null}
+            </Text>
             {struck === null ? null : (
               <Money
                 className="text-base font-semibold text-muted-foreground line-through"

@@ -495,20 +495,34 @@ export function PlanCard({
        * does not land the card shows last cycle's price under this cycle's
        * caption.
        */}
+      {/* Free months lead as the headline price; the plan's own price drops to
+          the "Then" line so both figures read in the same "NPR x / period" shape. */}
       {plan.freeMonths ? (
-        <p className="mt-4 text-sm font-semibold text-brand-teal">
-          First {plan.freeMonths} {plan.freeMonths === 1 ? "month" : "months"} free, then
+        <p className="mt-4 font-heading text-3xl font-bold tracking-tight text-foreground">
+          <Money rupees={0} />
+          <span className="ml-1.5 text-base font-semibold text-muted-foreground">
+            / {plan.freeMonths} {plan.freeMonths === 1 ? "month" : "months"}
+          </span>
         </p>
       ) : null}
-      <div className={cn("flex items-baseline gap-2.5", plan.freeMonths ? "mt-1" : "mt-4")}>
+      <div className={cn("flex items-baseline gap-2", plan.freeMonths ? "mt-1" : "mt-4")}>
+        {plan.freeMonths ? (
+          <span className="text-sm font-semibold text-muted-foreground">Then</span>
+        ) : null}
         <motion.span
           animate={{ opacity: 1, y: 0 }}
-          className="font-heading text-3xl font-bold tracking-tight text-foreground"
+          className={cn(
+            "font-heading font-bold tracking-tight text-foreground",
+            plan.freeMonths ? "text-lg" : "text-3xl",
+          )}
           initial={{ opacity: 0, y: reduced ? 0 : -8 }}
           key={cycle}
           transition={{ duration: reduced ? 0.12 : 0.28, ease: EASE }}
         >
           <Money rupees={rate} />
+          {plan.freeMonths ? (
+            <span className="ml-1 text-sm font-semibold text-muted-foreground">/ month</span>
+          ) : null}
         </motion.span>
 
         {struck !== null ? (
