@@ -138,6 +138,8 @@ export async function updateManagedHostel(input: {
     province?: string;
   };
   name?: string;
+  /** Written once — the server ignores it when the hostel already has one. */
+  panNumber?: string;
   pricing?: {
     admissionFee?: number;
     currency?: string;

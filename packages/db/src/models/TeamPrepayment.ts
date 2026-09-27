@@ -35,6 +35,13 @@ const teamPrepaymentSchema = new Schema(
     hostelId: { required: true, type: Schema.Types.ObjectId },
     /** `SUB-0001-4F2A`, from the reserved hostel's own invoice sequence. */
     invoiceNumber: { required: true, trim: true, type: String, unique: true },
+    /**
+     * What the money is for. `SETUP_FEE` since the plan started on free months:
+     * the agent collects the setup fee and the plan fields only record the plan
+     * chosen. `PLAN` is a row from before that, which still publishes the old
+     * way — its payment becomes the plan's first invoice.
+     */
+    kind: { default: "PLAN", enum: ["PLAN", "SETUP_FEE"], type: String },
 
     planId: { required: true, trim: true, type: String },
     planName: { required: true, trim: true, type: String },

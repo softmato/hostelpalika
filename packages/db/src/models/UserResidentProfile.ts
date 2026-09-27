@@ -24,6 +24,12 @@ const userResidentProfileSchema = new Schema(
      * the same email while the blob stays opaque.
      */
     primaryEmailHash: { type: String, default: null },
+    /**
+     * The same for the card's main phone, keyed on `residentPhoneKey` so the
+     * spellings of one number match. Set on save; a card saved before this
+     * existed gains it the next time it is edited.
+     */
+    primaryPhoneHash: { type: String, default: null },
     /*
      * The ID-card photo. Deliberately NOT inside `encryptedData`: the bytes live
      * in R2 as a PRIVATE FileAsset and this is only an opaque handle to them, so
@@ -63,6 +69,7 @@ const userResidentProfileSchema = new Schema(
 
 userResidentProfileSchema.index({ userId: 1 }, { unique: true });
 userResidentProfileSchema.index({ primaryEmailHash: 1 });
+userResidentProfileSchema.index({ primaryPhoneHash: 1 });
 
 export const UserResidentProfileModel =
   models.UserResidentProfile ||

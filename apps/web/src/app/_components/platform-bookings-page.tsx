@@ -450,6 +450,10 @@ const NUMBER_FIELDS: Array<{ key: keyof BookingConfig; label: string; suffix: st
   { key: "noShowRefundPercent", label: "Refund for a no-show", suffix: "%" },
   { key: "strikeLimit", label: "Strikes that pause a hostel", suffix: "strikes" },
   { key: "strikeWindowDays", label: "Counted over", suffix: "days" },
+  { key: "shortStayMinMarkupPercent", label: "Short stay: daily rate at least monthly ÷ 30 +", suffix: "%" },
+  { key: "shortStayHostelSharePercent", label: "Short stay: hostel's share of the nights", suffix: "%" },
+  { key: "shortStayMaxNights", label: "Short stay: longest stay", suffix: "nights" },
+  { key: "shortStayMaxAdvanceDays", label: "Short stay: booked up to", suffix: "days ahead" },
 ];
 
 const hoursList = (values: number[]) => values.join(", ");

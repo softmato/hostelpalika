@@ -22,6 +22,8 @@ const serviceMocks = vi.hoisted(() => ({
   jwtVerify: vi.fn(),
   oauthAccountCreate: vi.fn(),
   oauthAccountFindOne: vi.fn(),
+  otpExists: vi.fn(),
+  otpFindOneAndUpdate: vi.fn(),
   userCreate: vi.fn(),
   userFindOne: vi.fn(),
   userUpdateOne: vi.fn(),
@@ -97,6 +99,13 @@ vi.mock("jose", () => ({
   jwtVerify: serviceMocks.jwtVerify,
 }));
 
+vi.mock("@hostel/db/models/OtpChallenge", () => ({
+  OtpChallengeModel: {
+    exists: serviceMocks.otpExists,
+    findOneAndUpdate: serviceMocks.otpFindOneAndUpdate,
+  },
+}));
+
 vi.mock("@hostel/shared/email/sender", () => ({
   sendEmail: serviceMocks.sendEmail,
 }));
@@ -113,6 +122,7 @@ import {
   logout,
   refreshAccessToken,
   requestPasswordReset,
+  verifyOtpChallenge,
 } from "@/modules/auth/auth.service";
 
 function createUser(overrides: Record<string, unknown> = {}) {
@@ -257,25 +267,63 @@ describe("auth service", () => {
     );
   });
 
-  it("lets a browser reuse a just-rotated token for an access token only", async () => {
-    const session = createSession({ refreshTokenHash: "hash:newer-refresh-token" });
+  function rotatedSession(rotatedMsAgo: number) {
+    return createSession({
+      previousRefreshTokenHash: "hash:old-refresh-token",
+      refreshTokenHash: "hash:newer-refresh-token",
+      refreshTokenRotatedAt: new Date(Date.now() - rotatedMsAgo),
+    });
+  }
 
+  function refreshAs() {
     serviceMocks.verifyRefreshToken.mockResolvedValue({
       role: Role.SUPERADMIN,
       sessionId: "session-1",
       sub: "user-1",
       tokenType: "refresh",
     });
-    serviceMocks.sessionFindOne.mockResolvedValue(session);
     serviceMocks.userFindOne.mockResolvedValue(createUser());
     serviceMocks.signAccessToken.mockResolvedValue("next-access-token");
+  }
+
+  it("lets a browser reuse a just-rotated token for an access token only", async () => {
+    refreshAs();
+    serviceMocks.sessionFindOne.mockResolvedValue(rotatedSession(5_000));
 
     await expect(
-      refreshAccessToken("old-refresh-token", { allowRecentReuse: true }),
+      refreshAccessToken("old-refresh-token", { cookieSession: true }),
     ).resolves.toMatchObject({ accessToken: "next-access-token", refreshToken: null });
-    await expect(refreshAccessToken("old-refresh-token")).rejects.toMatchObject({
-      errorCode: "INVALID_SESSION",
+  });
+
+  it("gives the phone a fresh token when the reply to its rotation was lost", async () => {
+    refreshAs();
+    serviceMocks.sessionFindOne.mockResolvedValue(rotatedSession(5_000));
+
+    await expect(refreshAccessToken("old-refresh-token")).resolves.toMatchObject({
+      refreshToken: "refresh-token",
     });
+    // Re-issued from the token it lost, inside the window it started.
+    expect(serviceMocks.sessionUpdateOne).toHaveBeenCalledWith(
+      expect.objectContaining({
+        previousRefreshTokenHash: "hash:old-refresh-token",
+        refreshTokenRotatedAt: { $gt: expect.any(Date) },
+      }),
+      { $set: expect.objectContaining({ refreshTokenHash: "hash:refresh-token" }) },
+    );
+  });
+
+  it("ends the session when a token rotated away long ago is replayed", async () => {
+    refreshAs();
+    serviceMocks.sessionFindOne.mockResolvedValue(rotatedSession(10 * 60_000));
+
+    await expect(
+      refreshAccessToken("old-refresh-token", { cookieSession: true }),
+    ).rejects.toMatchObject({ errorCode: "INVALID_SESSION" });
+    expect(serviceMocks.sessionUpdateOne).toHaveBeenCalledWith(
+      { _id: "session-1", revokedAt: null },
+      { $set: { revokedAt: expect.any(Date) } },
+    );
+    expect(serviceMocks.signRefreshToken).not.toHaveBeenCalled();
   });
 
   it("does not hand out a rotated token when a concurrent refresh won", async () => {
@@ -292,7 +340,7 @@ describe("auth service", () => {
     serviceMocks.sessionUpdateOne.mockResolvedValue({ modifiedCount: 0 });
 
     await expect(
-      refreshAccessToken("old-refresh-token", { allowRecentReuse: true }),
+      refreshAccessToken("old-refresh-token", { cookieSession: true }),
     ).resolves.toMatchObject({ refreshToken: null });
   });
 
@@ -691,5 +739,22 @@ describe("auth service", () => {
         requestPasswordReset({ email: "owner@example.com" }),
       ).rejects.toMatchObject({ errorCode: "EMAIL_SEND_FAILED", status: 502 });
     });
+  });
+});
+
+describe("verifyOtpChallenge", () => {
+  it("spends the attempt in one atomic write before comparing the code", async () => {
+    serviceMocks.otpExists.mockResolvedValue({ _id: "challenge-1" });
+    // Five already spent: the guarded update matches nothing.
+    serviceMocks.otpFindOneAndUpdate.mockReturnValue({ select: () => Promise.resolve(null) });
+
+    await expect(
+      verifyOtpChallenge({ challengeId: "challenge-1", code: "123456" }),
+    ).rejects.toMatchObject({ errorCode: "OTP_ATTEMPT_LIMIT", status: 429 });
+    expect(serviceMocks.otpFindOneAndUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ _id: "challenge-1", attempts: { $lt: 5 } }),
+      { $inc: { attempts: 1 } },
+      { new: true },
+    );
   });
 });

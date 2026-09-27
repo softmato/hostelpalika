@@ -18,6 +18,7 @@ import { rupeesToPaisa } from "@/modules/billing/softmato/money";
 import { markBookingPaid } from "@/modules/bookings/booking-review.service";
 import { expireUnpaidBooking, loadOwnBooking } from "@/modules/bookings/booking.service";
 import type { BookingRecord } from "@/modules/bookings/booking-views";
+import { amountDue, stayDatesText } from "@/modules/bookings/short-stay";
 import { BookingError } from "@/modules/bookings/booking.errors";
 
 /**
@@ -119,6 +120,15 @@ export async function ensureBookingInvoice(booking: BookingRecord): Promise<stri
         // The fee frozen on the booking, read on the server. Never a client figure.
         unit_price_minor: rupeesToPaisa(booking.fee),
       },
+      ...(booking.stay
+        ? [
+            {
+              description: `Short stay: ${booking.stay.nights} nights, ${stayDatesText(booking.stay)}`,
+              quantity: booking.stay.nights,
+              unit_price_minor: rupeesToPaisa(booking.stay.dailyRate),
+            },
+          ]
+        : []),
     ],
   });
 
@@ -165,7 +175,7 @@ export async function settleBookingFromSoftmato(
     { bookingId: booking._id, softmatoInvoiceNo: booking.softmatoInvoiceNo },
     {
       $setOnInsert: {
-        amount: booking.fee,
+        amount: amountDue(booking),
         hostelId: booking.hostelId,
         reviewedAt: now,
         status: "APPROVED",
@@ -202,7 +212,7 @@ export async function settleBookingFromSoftmato(
     { bookingId: current._id, kind: "REFUND" },
     {
       $setOnInsert: {
-        amount: current.fee,
+        amount: amountDue(current),
         bookingId: current._id,
         hostelId: current.hostelId,
         kind: "REFUND",
@@ -225,7 +235,7 @@ export async function settleBookingFromSoftmato(
     entityId: String(current._id),
     entityType: "Booking",
     hostelId: current.hostelId,
-    metadata: { code: current.code, fee: current.fee, status: current.status },
+    metadata: { code: current.code, fee: current.fee, status: current.status, total: amountDue(current) },
   }).catch(() => undefined);
 
   return "refund_due";

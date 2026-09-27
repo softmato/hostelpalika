@@ -6,7 +6,7 @@ import { memo, useCallback, useId } from "react";
 
 import { SoftBadge } from "@/app/_components/portal-dashboard-ui";
 import { useUploader } from "@/components/uploads";
-import { contentIcon } from "@/lib/site-content";
+import { ContentIcon } from "@/components/content-icon";
 import { cn } from "@/lib/utils";
 
 import { InlineText } from "./inline-text";
@@ -184,7 +184,6 @@ function ServiceHeader({
   service: PlanService;
 }) {
   const serviceModule = catalog.modules.find((entry) => entry.id === service.module);
-  const Icon = contentIcon(serviceModule?.icon ?? "sparkles");
 
   return (
     <section className="overflow-hidden rounded-xl border border-border bg-background shadow-sm">
@@ -199,7 +198,7 @@ function ServiceHeader({
 
       <div className="px-4 py-5 md:px-6">
         <span className="inline-flex items-center gap-2 rounded-full bg-brand-teal/10 px-3 py-1 text-xs font-semibold text-brand-teal">
-          <Icon className="size-3.5" />
+          <ContentIcon className="size-3.5" slug={serviceModule?.icon ?? "sparkles"} />
           {serviceModule?.name ?? service.module}
         </span>
 

@@ -10,6 +10,7 @@ import { emailDateTime, type EmailContent } from "@hostel/shared/email/templates
 
 import { Role } from "@/lib/roles";
 import type { BookingRecord } from "@/modules/bookings/booking-views";
+import { amountDue, stayDatesText } from "@/modules/bookings/short-stay";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { appUrl, resolveHostelAdminContacts } from "@/modules/residents/resident-notify";
 
@@ -51,6 +52,10 @@ export function bookingFacts(booking: BookingRecord) {
     hostelName: booking.hostelSnapshot.name,
     monthlyRent: booking.monthlyRent,
     roomType: booking.roomType,
+    stay: booking.stay
+      ? { amount: booking.stay.amount, dates: stayDatesText(booking.stay), nights: booking.stay.nights }
+      : null,
+    total: amountDue(booking),
   };
 }
 

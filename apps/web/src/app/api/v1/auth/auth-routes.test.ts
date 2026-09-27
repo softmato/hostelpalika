@@ -28,6 +28,14 @@ const routeMocks = vi.hoisted(() => {
 
 vi.mock("@/modules/auth/auth.service", () => routeMocks);
 
+vi.mock("@/lib/db", () => ({ connectToDatabase: vi.fn() }));
+
+vi.mock("@hostel/db/models/AuthAttempt", async () => {
+  const { fakeModel } = await import("../../../../../test/fake-mongo");
+
+  return { AuthAttemptModel: fakeModel() };
+});
+
 import * as googleRoute from "@/app/api/v1/auth/google/route";
 import * as loginRoute from "@/app/api/v1/auth/login/route";
 import * as otpRequestRoute from "@/app/api/v1/auth/otp/request/route";
@@ -134,12 +142,14 @@ describe("phase 1 auth routes", () => {
   });
 
   it("locks an IP out of login after 5 failed attempts in the window", async () => {
-    // PHASES.md §1.1 / §5.2: 5 attempts per 15 minutes per IP. The limiter keys
-    // on IP + user agent, so this address must be unique to this test.
-    const attacker = {
-      "user-agent": "rate-limit-probe",
+    // PHASES.md §1.1 / §5.2: 5 failures per 15 minutes per IP and account
+    // (`lib/auth-attempts.ts`), so this address must be unique to this test.
+    let probe = 0;
+    const attacker = () => ({
+      // A new user-agent every try must not buy a new budget.
+      "user-agent": `rate-limit-probe-${(probe += 1)}`,
       "x-forwarded-for": "203.0.113.77",
-    };
+    });
 
     routeMocks.login.mockRejectedValue(
       new routeMocks.AuthServiceError("Invalid credentials.", "INVALID_CREDENTIALS", 401),
@@ -150,7 +160,7 @@ describe("phase 1 auth routes", () => {
         jsonRequest(
           "/api/v1/auth/login",
           { identifier: "victim@example.com", password: "wrong-password" },
-          attacker,
+          attacker(),
         ),
       );
 
@@ -167,6 +177,44 @@ describe("phase 1 auth routes", () => {
     });
     // The 6th attempt must never reach the credential check.
     expect(routeMocks.login).toHaveBeenCalledTimes(5);
+  });
+
+  it("never counts a sign-in that works, so one hostel's Wi-Fi is not one budget", async () => {
+    routeMocks.login.mockResolvedValue(authSession());
+    const sharedWifi = { "user-agent": "okhttp/4.12.0", "x-forwarded-for": "203.0.113.78" };
+
+    for (let resident = 0; resident < 12; resident += 1) {
+      const response = await loginRoute.POST(
+        jsonRequest(
+          "/api/v1/auth/login",
+          { identifier: `resident${resident}@example.com`, password: "right-password" },
+          sharedWifi,
+        ),
+      );
+
+      expect(response.status).toBe(200);
+    }
+  });
+
+  it("locks out an OTP challenge after 5 wrong codes from one address", async () => {
+    routeMocks.verifyOtpChallenge.mockRejectedValue(
+      new routeMocks.AuthServiceError("OTP code is incorrect.", "OTP_INCORRECT", 400),
+    );
+    const attempt = () =>
+      otpVerifyRoute.POST(
+        jsonRequest(
+          "/api/v1/auth/otp/verify",
+          { challengeId: "64f0f0f0f0f0f0f0f0f0f0f1", code: "000000" },
+          { "x-forwarded-for": "203.0.113.79" },
+        ),
+      );
+
+    for (let i = 0; i < 5; i += 1) {
+      expect((await attempt()).status).toBe(400);
+    }
+
+    expect((await attempt()).status).toBe(429);
+    expect(routeMocks.verifyOtpChallenge).toHaveBeenCalledTimes(5);
   });
 
   it("returns configured service errors from Google auth", async () => {

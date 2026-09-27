@@ -100,3 +100,35 @@ export async function savePayoutAccount(input: RefundAccountInput) {
 
   return unwrap(response).account;
 }
+
+export type ShortStayRoom = {
+  dailyRate: number | null;
+  /** The lowest daily rate allowed. Null until the room type has a monthly rent. */
+  floor: number | null;
+  monthlyRent: number | null;
+  roomType: string;
+};
+
+export type ShortStaySettings = {
+  enabled: boolean;
+  limits: { hostelSharePercent: number; maxNights: number; minMarkupPercent: number };
+  minNights: number;
+  rooms: ShortStayRoom[];
+};
+
+export async function getShortStaySettings() {
+  const response = await api.get<ApiEnvelope<ShortStaySettings>>("/hostel-admin/bookings/short-stays");
+
+  return unwrap(response);
+}
+
+/** A daily rate below its room's floor is refused with the floor in the message. */
+export async function saveShortStaySettings(input: {
+  enabled: boolean;
+  minNights: number;
+  rates: { dailyRate: number; roomType: string }[];
+}) {
+  const response = await api.put<ApiEnvelope<ShortStaySettings>>("/hostel-admin/bookings/short-stays", input);
+
+  return unwrap(response);
+}

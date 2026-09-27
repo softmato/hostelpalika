@@ -1,4 +1,8 @@
 import { isSignatureComplete } from "@/lib/signature";
+import {
+  isResidentPhone,
+  RESIDENT_PHONE_MESSAGE,
+} from "@/modules/users/resident-identity.validation";
 
 export type IdentityStep =
   | "about"
@@ -112,7 +116,9 @@ export function emptyIdentityDraft(): IdentityDraft {
   };
 }
 
-export function draftFromProfile(profile: Record<string, any> | null | undefined): IdentityDraft {
+export function draftFromProfile(
+  profile: Partial<Omit<IdentityDraft, "signatureImageUri">> | null | undefined,
+): IdentityDraft {
   const empty = emptyIdentityDraft();
   if (!profile) return empty;
   return {
@@ -214,7 +220,9 @@ export function validateIdentity(draft: IdentityDraft): IdentityErrors {
     errors.gender = "Pick one.";
   }
 
-  const primaryPhone = phoneError(draft.primaryPhone, "Your phone number");
+  const primaryPhone =
+    phoneError(draft.primaryPhone, "Your phone number") ??
+    (isResidentPhone(draft.primaryPhone) ? null : RESIDENT_PHONE_MESSAGE);
   if (primaryPhone) {
     errors.primaryPhone = primaryPhone;
   }

@@ -14,6 +14,7 @@ import {
 import { isSoftmatoConfigured } from "@/modules/billing/softmato/config";
 import { servicePeriod } from "@/modules/billing/softmato/invoice";
 import { settlePayment } from "@/modules/billing/subscription-payment.service";
+import { getOperationsConfig } from "@/modules/platform-config/operations-config";
 import {
   allocateNumber,
   invoiceDocumentInput,
@@ -50,7 +51,7 @@ export const teamPrepaymentSchema = z.object({
   ownerName: z.string().trim().min(1, "Fill in the owner's name first."),
   phone: z.string().trim().min(1, "Fill in the owner's phone first."),
   planId: z.string().trim().min(1, "Pick a plan first."),
-  /** A part amount the owner pays online now; omitted means the full plan price. */
+  /** The setup fee to take online; omitted means the configured fee, which is also its ceiling. */
   amount: z.number().int("Whole rupees only.").positive("Enter an amount above zero.").optional(),
   /** The row this form already opened, so a retry reuses it. */
   prepaymentId: z.string().trim().optional(),
@@ -70,6 +71,7 @@ type PrepaymentRow = {
   cycleMonths: number;
   hostelId: Types.ObjectId;
   invoiceNumber: string;
+  kind?: "PLAN" | "SETUP_FEE";
   paidAt?: Date | null;
   planId: string;
   planName: string;
@@ -90,6 +92,8 @@ export type TeamPrepaymentView = {
   chargeAmount: number;
   cycle: BillingCycle;
   id: string;
+  /** `PLAN` only on a row taken before setup fees; see the model. */
+  kind: "PLAN" | "SETUP_FEE";
   paidAt: string | null;
   planId: string;
   planName: string;
@@ -115,6 +119,7 @@ function view(row: PrepaymentRow): TeamPrepaymentView {
     chargeAmount: charge(row),
     cycle: row.cycle,
     id: String(row._id),
+    kind: row.kind ?? "PLAN",
     paidAt: row.paidAt?.toISOString() ?? null,
     planId: row.planId,
     planName: row.planName,
@@ -212,20 +217,20 @@ export async function openTeamPrepayment(
   step("invoice");
   await connectToDatabase();
 
-  // Priced here, from the catalogue as it sells today — never from the form.
+  // The plan is only recorded here: what is taken is the setup fee, capped by
+  // the platform's own figure — never the form's.
   const priced = await pricePlan(input.planId, input.cycle);
+  const { teamSetupFee } = await getOperationsConfig();
+  const fee = input.amount ?? teamSetupFee;
 
-  if (input.amount !== undefined && input.amount > priced.cycleTotal) {
+  if (fee > teamSetupFee || fee <= 0) {
     throw new SubscriptionError(
-      `Can't be more than the plan price of Rs ${priced.cycleTotal}.`,
+      `The setup fee is 1 to Rs ${teamSetupFee}. It can't be more than that.`,
       "PREPAYMENT_ABOVE_PRICE",
       422,
     );
   }
 
-  // Only a part amount is stored; the full price stays the default.
-  const chargeAmount =
-    input.amount !== undefined && input.amount < priced.cycleTotal ? input.amount : null;
   const previous = input.prepaymentId
     ? await refresh(await loadOwned(input.prepaymentId, agent))
     : null;
@@ -233,19 +238,16 @@ export async function openTeamPrepayment(
   if (previous?.status === "PAID" || previous?.status === "CLAIMED") {
     throw new SubscriptionError(
       previous.status === "PAID"
-        ? "This plan is already paid. Carry on to Review & publish."
+        ? "The setup fee is already paid. Carry on to Review & publish."
         : "That payment already belongs to a published hostel.",
       "PREPAYMENT_ALREADY_PAID",
       409,
     );
   }
 
+  // The same fee reuses the open row whatever plan is picked: the fee does not depend on it.
   let row =
-    previous?.status === "OPEN" &&
-    previous.planId === priced.planId &&
-    previous.cycle === priced.cycle &&
-    previous.amount === priced.cycleTotal &&
-    (previous.chargeAmount ?? null) === chargeAmount
+    previous?.status === "OPEN" && previous.kind === "SETUP_FEE" && previous.amount === fee
       ? previous
       : null;
 
@@ -266,17 +268,18 @@ export async function openTeamPrepayment(
     const hostelId = previous?.hostelId ?? new Types.ObjectId();
     const created = await TeamPrepaymentModel.create({
       agentId: new Types.ObjectId(agent.userId),
-      amount: priced.cycleTotal,
+      amount: fee,
       billedTo: {
         email: input.email || null,
         hostelName: input.hostelName,
         name: input.ownerName,
       },
-      chargeAmount,
+      chargeAmount: null,
       cycle: priced.cycle,
       cycleMonths: priced.cycleMonths,
       hostelId,
       invoiceNumber: await allocateNumber(hostelId, "SUBSCRIPTION_INVOICE"),
+      kind: "SETUP_FEE",
       planId: priced.planId,
       planName: priced.planName,
       draft: input.draft ?? null,
@@ -313,6 +316,7 @@ export async function openTeamPrepayment(
       hostelId: row.hostelId,
       invoiceNumber: row.invoiceNumber,
       issuedAt,
+      kind: row.kind ?? "PLAN",
       periodEnd: period.endsAt,
       periodStart: period.startsAt,
       planId: row.planId,
@@ -404,6 +408,10 @@ export async function listUnpublishedPrepayments(agent: { role: string; userId: 
 /**
  * Takes this form's payment for the hostel being published.
  *
+ * A setup-fee row is not tied to a plan: the agent may change the plan after
+ * taking the fee, so it is claimed whatever plan is picked. The rules below
+ * are for a `PLAN` row from before setup fees.
+ *
  * - **Paid**, same plan: claimed, and settled once the invoice exists.
  * - **Paid**, other plan: refused. The money was for that plan at that price.
  * - **Unpaid**, same plan: claimed all the same. The owner may still finish on
@@ -431,7 +439,8 @@ export async function claimTeamPrepayment(
     );
   }
 
-  if (row.planId !== plan.planId || row.cycle !== plan.cycle) {
+  // Only a plan-priced row from before setup fees is tied to one plan.
+  if (row.kind !== "SETUP_FEE" && (row.planId !== plan.planId || row.cycle !== plan.cycle)) {
     if (row.status === "PAID") {
       throw new SubscriptionError(
         `The online payment was for ${row.planName}, ${CYCLE_WORDS[row.cycle]}. Pick that plan to publish.`,

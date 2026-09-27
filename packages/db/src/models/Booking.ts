@@ -91,8 +91,29 @@ const reminderSentSchema = new Schema(
   { _id: false },
 );
 
+/**
+ * A short stay's nights, frozen when it is booked (docs/PLANS_BRANCHES_SHORT_STAYS.md).
+ * Paid upfront beside the fee; `fee` is then the booking fee times `holdBlocks`.
+ */
+const staySchema = new Schema(
+  {
+    amount: { ...positiveWholeRupees, required: true },
+    dailyRate: { ...positiveWholeRupees, required: true },
+    holdBlocks: { min: 1, required: true, type: Number },
+    hostelSharePercent: { max: 100, min: 0, required: true, type: Number },
+    /** Nepal days, stored as UTC midnight like `plannedMoveIn`. */
+    moveIn: { required: true, type: Date },
+    moveOut: { required: true, type: Date },
+    nights: { min: 1, required: true, type: Number },
+  },
+  { _id: false },
+);
+
 const bookingSchema = new Schema(
   {
+    /** A monthly resident's bed, or a few nights paid upfront. */
+    kind: { default: "MONTHLY", enum: ["MONTHLY", "SHORT_STAY"], type: String },
+    stay: { default: null, type: staySchema },
     /** `BK-7F3K2Q` — short enough to type into a banking app's remarks. */
     code: { required: true, trim: true, type: String, uppercase: true },
     hostelId: { ref: "Hostel", required: true, type: Schema.Types.ObjectId },
@@ -192,6 +213,9 @@ const bookingSchema = new Schema(
       platformShare: settledRupees,
       refund: settledRupees,
       refundPercent: { default: null, type: Number },
+      /** A short stay's nights kept and handed back, inside the totals above. */
+      stayKept: settledRupees,
+      stayRefund: settledRupees,
     },
   },
   { timestamps: true },

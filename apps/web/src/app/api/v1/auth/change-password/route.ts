@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { errorResponse, handleRouteError, successResponse } from "@/lib/api-response";
-import { rateLimitAuthAttempts } from "@/lib/rate-limit";
+import { recordFailedAttempt, refuseIfTooManyFailures } from "@/lib/auth-attempts";
 import { getBearerToken, readAccessTokenCookie, verifyAccessToken } from "@/lib/auth";
 import { shouldExposeRefreshToken } from "@/lib/mobile-auth";
 import { applySessionCookies } from "@/lib/session-cookies";
@@ -12,13 +12,6 @@ export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
-    // The current password is checked here, so it is a guessing surface.
-    const limited = rateLimitAuthAttempts(request, "auth-change-password");
-
-    if (limited) {
-      return limited;
-    }
-
     const accessToken =
       getBearerToken(request.headers.get("authorization")) ??
       readAccessTokenCookie(request.cookies);
@@ -43,10 +36,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // The current password is checked here, so it is a guessing surface.
+    const userId = payload.sub;
+    const limited = await refuseIfTooManyFailures(request, "auth-change-password", userId);
+
+    if (limited) {
+      return limited;
+    }
+
     const input = changePasswordSchema.parse(await request.json());
-    const result = await changePassword(payload.sub, input, {
+    const result = await changePassword(userId, input, {
       ipAddress: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim(),
       userAgent: request.headers.get("user-agent") ?? undefined,
+    }).catch(async (error: unknown) => {
+      if (error instanceof AuthServiceError && error.errorCode === "INVALID_CREDENTIALS") {
+        await recordFailedAttempt(request, "auth-change-password", userId);
+      }
+
+      throw error;
     });
     const response = successResponse(
       {

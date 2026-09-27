@@ -17,6 +17,8 @@ export type RefundPolicy = {
   customBody: string | null;
   intro: string[];
   sections: PolicySection[];
+  /** The short-stay limits a form needs to show a daily rate's floor before it is sent. */
+  shortStay: { hostelSharePercent: number; maxAdvanceDays: number; maxNights: number; minMarkupPercent: number };
   updatedAt: string;
   /** The same version the checkout sends back, so a screen can tell the policy moved. */
   version: string;
@@ -30,6 +32,12 @@ export async function getRefundPolicy(): Promise<RefundPolicy> {
     customBody: body ? fillPolicyText(body, policyValues(config)) : null,
     intro: refundPolicyIntro(),
     sections: refundPolicySections(config),
+    shortStay: {
+      hostelSharePercent: config.shortStayHostelSharePercent,
+      maxAdvanceDays: config.shortStayMaxAdvanceDays,
+      maxNights: config.shortStayMaxNights,
+      minMarkupPercent: config.shortStayMinMarkupPercent,
+    },
     updatedAt: legal.refund.updatedAt,
     version: bookingPolicyVersion(termsFromConfig(config), legal.refund),
   };

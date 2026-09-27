@@ -43,7 +43,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 
 import { HostelPreviewLink } from "@/components/hostel-preview-link";
 import {
@@ -55,7 +55,7 @@ import { BrandMark } from "@/components/brand-mark";
 import { GetAppDialog } from "@/components/get-app-dialog";
 import { NotificationBell } from "@/components/notification-bell";
 import { PortalAccount } from "@/components/portal-account";
-import { PortalSearch } from "@/components/portal-search";
+import { PortalSearch, revealField } from "@/components/portal-search";
 import { RealtimeProvider } from "@/components/realtime-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
@@ -84,6 +84,8 @@ type PortalShellProps = {
   subtitle: string;
   tone?: PortalTone;
   workspaceName?: string;
+  /** The hostel switcher, for an owner with branches. Rendered in the header. */
+  workspaceSwitcher?: ReactNode;
 };
 
 const iconMap: Record<PortalIconName, LucideIcon> = {
@@ -299,9 +301,12 @@ export function PortalShell({
   subtitle,
   tone = "platform",
   workspaceName,
+  workspaceSwitcher,
 }: PortalShellProps) {
   const pathname = usePathname();
   const prefetchHref = usePrefetchPortalHref();
+  // A pasted `?field=` link; the palette handles the ones it opens itself.
+  useEffect(() => revealField(window.location.href), []);
   const { identity } = useSiteConfig();
   // Admin-configured branding wins; the prop is only an explicit override.
   const portalName = portalNameProp ?? identity.siteName;
@@ -637,6 +642,8 @@ export function PortalShell({
                   <Menu className="size-4" />
                 )}
               </Button>
+
+              {workspaceSwitcher}
 
               <PortalSearch
                 className="hidden max-w-xl md:block"

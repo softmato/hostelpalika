@@ -49,6 +49,14 @@ const subscriptionInvoiceSchema = new Schema(
       required: true,
       type: Schema.Types.ObjectId,
     },
+    /**
+     * `PLAN` buys time on the plan. `SETUP_FEE` is the one-off fee a field
+     * agent collects at registration: it has no period and no due date, and
+     * settling it never starts, extends or changes the plan — it only earns
+     * the agent their commission. Its plan fields name the plan chosen that
+     * day, for the record; `planName` reads "Setup fee".
+     */
+    kind: { default: "PLAN", enum: ["PLAN", "SETUP_FEE"], type: String },
 
     /* ── The plan, snapshotted at issue ────────────────────────────────── */
 

@@ -4,8 +4,13 @@ import { notFound } from "next/navigation";
 import { HostelBookingRequestsReminder } from "@/app/_components/hostel-booking-requests-reminder";
 import { HostelPaymentCredentialsReminder } from "@/app/_components/hostel-payment-credentials-reminder";
 import { HostelPhotoReminder } from "@/app/_components/hostel-photo-reminder";
+import { HostelWorkspaceSwitcher } from "@/app/_components/hostel-workspace-switcher";
 import { PortalShell } from "@/components/portal-shell";
-import { canAccessWorkspace, workspaceHostelName } from "@/lib/hostel-workspace";
+import {
+  canAccessWorkspace,
+  listWorkspaceHostels,
+  workspaceHostelName,
+} from "@/lib/hostel-workspace";
 import { hostelAdminNavForSlug, searchEntriesFromNav } from "@/lib/portal-nav";
 import { PORTAL_ROBOTS } from "@/lib/seo";
 
@@ -39,6 +44,9 @@ export default async function HostelAdminWorkspaceLayout({
       subtitle="Hostel Admin Portal"
       tone="admin"
       workspaceName={(await workspaceHostelName(hostelSlug)) ?? "Hostel Workspace"}
+      workspaceSwitcher={
+        <HostelWorkspaceSwitcher current={hostelSlug} hostels={await listWorkspaceHostels()} />
+      }
     >
       {/* One opaque sticky stack: two separately sticky, tinted bars pinned to
           the same `top-0` and let the page scroll through them. */}

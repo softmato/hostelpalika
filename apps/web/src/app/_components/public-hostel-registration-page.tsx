@@ -79,6 +79,12 @@ import { useSiteConfig } from "@/components/site-config-provider";
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import { useHasResidentIdCard } from "@/lib/use-resident-id-card";
 import { readRenamedStorage } from "@/lib/storage-rename";
+import {
+  EMPTY_SHORT_STAYS,
+  RegistrationShortStays,
+  shortStaysPayload,
+  type ShortStayDraft,
+} from "@/app/_components/registration-short-stays";
 
 type MealInclusion = "Included" | "Not Included" | "Optional";
 
@@ -129,7 +135,9 @@ type DraftData = {
   rulesDoc: UploadedFile[];
   rulesTemplateId: string | null;
   savedAt: string;
+  shortStays?: ShortStayDraft;
   step: number;
+  panNumber: string;
   totalCapacity: string;
   totalFloors: string;
   yearEstablished: string;
@@ -293,6 +301,7 @@ const FIELD_KEY_STEP: Record<string, number> = {
   food: 1,
   hostelType: 1,
   name: 1,
+  panNumber: 1,
   yearEstablished: 1,
   facilities: 2,
   landmark: 2,
@@ -405,6 +414,8 @@ export function PublicHostelRegistrationPage() {
     "CO_LIVING",
   );
   const [yearEstablished, setYearEstablished] = useState("");
+  const [panNumber, setPanNumber] = useState("");
+  const [shortStays, setShortStays] = useState<ShortStayDraft>(EMPTY_SHORT_STAYS);
   const [totalCapacity, setTotalCapacity] = useState("");
   const [description, setDescription] = useState("");
   const [ownerName, setOwnerName] = useState("");
@@ -548,6 +559,8 @@ export function PublicHostelRegistrationPage() {
         if (draft.hostelType !== undefined) setHostelType(draft.hostelType);
         if (draft.yearEstablished !== undefined)
           setYearEstablished(draft.yearEstablished);
+        if (draft.panNumber !== undefined) setPanNumber(draft.panNumber);
+        if (draft.shortStays !== undefined) setShortStays(draft.shortStays);
         if (draft.totalCapacity !== undefined) setTotalCapacity(draft.totalCapacity);
         if (draft.description !== undefined) setDescription(draft.description);
         if (draft.ownerName !== undefined) setOwnerName(draft.ownerName);
@@ -1021,6 +1034,7 @@ export function PublicHostelRegistrationPage() {
       ownerName,
       ownershipDoc,
       panDoc,
+      panNumber,
       phone,
       roomPhotos,
       rooms,
@@ -1028,6 +1042,7 @@ export function PublicHostelRegistrationPage() {
       rulesDoc,
       rulesTemplateId,
       savedAt: new Date().toISOString(),
+      shortStays,
       step,
       totalCapacity,
       totalFloors,
@@ -1163,6 +1178,8 @@ export function PublicHostelRegistrationPage() {
               .map((l) => l.trim())
               .filter(Boolean),
                   totalCapacity: numberValue(totalCapacity),
+            panNumber: panNumber.replace(/\s/g, "") || undefined,
+            shortStays: shortStaysPayload(shortStays, rooms),
             totalFloors: numberValue(totalFloors),
             yearEstablished: yearEstablished.trim() || undefined,
           }),
@@ -1393,6 +1410,16 @@ export function PublicHostelRegistrationPage() {
                         placeholder="e.g. 2020"
                         type="number"
                         value={yearEstablished}
+                      />
+                    </Field>
+                    <Field label="PAN/VAT Number">
+                      <input
+                        className="input-field"
+                        inputMode="numeric"
+                        maxLength={11}
+                        onChange={(e) => setPanNumber(e.target.value)}
+                        placeholder="9 digits (optional)"
+                        value={panNumber}
                       />
                     </Field>
                     <Field label="Total Resident Capacity">
@@ -2011,6 +2038,10 @@ export function PublicHostelRegistrationPage() {
                         value={admissionFee}
                       />
                     </Field>
+                  </div>
+
+                  <div className="mt-5">
+                    <RegistrationShortStays onChange={setShortStays} rooms={rooms} value={shortStays} />
                   </div>
                 </section>
               ) : null}

@@ -100,6 +100,7 @@ export async function endBooking(
           confirmedAt: booking.confirmedAt,
           ending,
           fee: booking.fee,
+          stay: booking.stay,
           terms: booking.terms,
         })
       : null;

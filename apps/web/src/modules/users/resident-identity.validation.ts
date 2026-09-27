@@ -75,6 +75,36 @@ const optionalText = (max: number) =>
 const phone = z.string().trim().min(7).max(24);
 const optionalPhone = z.preprocess(blankToUndefined, phone.optional());
 
+/**
+ * The card's main phone: digits with the separators people type — spaces,
+ * dashes, dots, brackets — and one leading `+`, 7 to 15 digits in all (the
+ * international maximum). Deliberately not a Nepali-carrier pattern: landlines,
+ * `+977` and Indian numbers are all real customers. It is also the number
+ * checked for another account using it, so letters cannot slip past as one.
+ */
+export const RESIDENT_PHONE_MESSAGE =
+  "Enter a phone number — digits only, with + and the country code if it isn't Nepali.";
+
+export function isResidentPhone(value: string) {
+  const digits = value.replace(/\D/g, "");
+
+  return /^\+?[\d\s().-]+$/.test(value.trim()) && digits.length >= 7 && digits.length <= 15;
+}
+
+/**
+ * One key per number however it was typed: digits only, with Nepal's `977`
+ * dropped from a 13-digit number, so `+977 98-1234-5678` and `9812345678` are
+ * the same phone. Other country codes are kept — an Indian `98…` is not a
+ * Nepali one.
+ */
+export function residentPhoneKey(value: string) {
+  const digits = value.replace(/\D/g, "");
+
+  return digits.length === 13 && digits.startsWith("977") ? digits.slice(3) : digits;
+}
+
+const primaryPhone = phone.refine(isResidentPhone, RESIDENT_PHONE_MESSAGE);
+
 const optionalEmail = z.preprocess(
   blankToUndefined,
   z.string().trim().toLowerCase().email().optional(),
@@ -147,7 +177,7 @@ export const residentProfileDataSchema = z
     bloodGroup: enumWithDefault(BLOOD_GROUP_VALUES, "UNKNOWN"),
 
     /* Contact — at most two emails: the account email plus one backup. */
-    primaryPhone: phone,
+    primaryPhone,
     alternatePhone: optionalPhone,
     primaryEmail: z.string().trim().email().toLowerCase(),
     backupEmail: optionalEmail,
@@ -235,6 +265,8 @@ export const residentIdentitySaveSchema = z
 export const residentEmailCheckSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
 });
+
+export const residentPhoneCheckSchema = z.object({ phone: primaryPhone });
 
 export const residentIdentitySharingSchema = z.object({
   sharingEnabled: z.boolean(),

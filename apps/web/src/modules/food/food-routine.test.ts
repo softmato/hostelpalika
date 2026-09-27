@@ -31,6 +31,7 @@ vi.mock("@/modules/food/kitchen-notify", () => ({
 }));
 
 import {
+  dayOfWeekFor,
   getFoodRoutine,
   isMonthEnd,
   mealsOn,
@@ -146,5 +147,13 @@ describe("food routine", () => {
     expect(routine.meals).toEqual([]);
     expect(routine.monthEndSpecial).toBeNull();
     expect(mealsOn(routine, new Date())).toEqual([]);
+  });
+
+  it("reads the weekday in Kathmandu, not UTC", () => {
+    // 00:30 Saturday 1 Aug in Nepal is still 18:45 Friday in UTC.
+    expect(dayOfWeekFor(new Date("2026-07-31T18:45:00Z"))).toBe("SATURDAY");
+    // 05:30 Saturday in Nepal: 23:45 Friday UTC.
+    expect(dayOfWeekFor(new Date("2026-07-31T23:45:00Z"))).toBe("SATURDAY");
+    expect(dayOfWeekFor(new Date("2026-07-31T18:00:00Z"))).toBe("FRIDAY");
   });
 });

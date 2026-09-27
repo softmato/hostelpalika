@@ -4,13 +4,15 @@ import type { BookingStatus } from "@hostel/db/models/Booking";
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 
 import {
-  cancelRefundPercent,
   cancellationSchedule,
   policyRows,
+  settleBooking,
   settlementFor,
+  type BookingEnding,
   type BookingTerms,
   type PolicyRow,
 } from "@/modules/bookings/booking-terms";
+import { amountDue, stayDatesText, type BookingStay } from "@/modules/bookings/short-stay";
 import {
   PAYOUT_METHOD_LABELS,
   maskedPayoutNumber,
@@ -73,8 +75,12 @@ export type BookingRecord = {
     platformShare?: number | null;
     refund?: number | null;
     refundPercent?: number | null;
+    stayKept?: number | null;
+    stayRefund?: number | null;
   } | null;
   status: BookingStatus;
+  kind?: "MONTHLY" | "SHORT_STAY";
+  stay?: BookingStay | null;
   terms: BookingTerms;
   userId: Types.ObjectId;
 };
@@ -143,6 +149,53 @@ export function destinationText(destination: DestinationLike | null | undefined)
     : "";
 }
 
+/** How `ending` at `at` would settle this booking: fee and, for a short stay, its nights. */
+export function settleAs(booking: BookingRecord, ending: BookingEnding, at: Date) {
+  return settleBooking({
+    at,
+    confirmedAt: booking.confirmedAt,
+    ending,
+    fee: booking.fee,
+    stay: booking.stay,
+    terms: booking.terms,
+  });
+}
+
+/** What the hostel is paid once the guest checks in. */
+export function hostelShareIfCheckedIn(booking: BookingRecord) {
+  return settleAs(booking, "CHECKED_IN", new Date()).hostelShare;
+}
+
+/** What a guest who never comes gets back. */
+export function noShowRefund(booking: BookingRecord) {
+  return settleAs(booking, "NO_SHOW", booking.holdEndsAt ? new Date(booking.holdEndsAt) : new Date()).refund;
+}
+
+export type StayView = {
+  amount: number;
+  dailyRate: number;
+  /** `4 Oct 2026 – 7 Oct 2026 (Asoj 18–21)`. */
+  dates: string;
+  holdBlocks: number;
+  moveIn: string;
+  moveOut: string;
+  nights: number;
+};
+
+function stayView(stay: BookingStay | null | undefined): StayView | null {
+  return stay
+    ? {
+        amount: stay.amount,
+        dailyRate: stay.dailyRate,
+        dates: stayDatesText(stay),
+        holdBlocks: stay.holdBlocks,
+        moveIn: new Date(stay.moveIn).toISOString().slice(0, 10),
+        moveOut: new Date(stay.moveOut).toISOString().slice(0, 10),
+        nights: stay.nights,
+      }
+    : null;
+}
+
 export type CancelPreview = {
   allowed: boolean;
   refund: number;
@@ -156,13 +209,9 @@ export function cancelPreview(booking: BookingRecord, now = new Date()): CancelP
   }
 
   if (booking.status === "CONFIRMED" && booking.confirmedAt) {
-    const percent = cancelRefundPercent(booking.terms, booking.confirmedAt, now);
+    const settled = settleAs(booking, "CANCELLED_BY_USER", now);
 
-    return {
-      allowed: true,
-      refund: settlementFor(booking.fee, percent, booking.terms).refund,
-      refundPercent: percent,
-    };
+    return { allowed: true, refund: settled.refund, refundPercent: settled.refundPercent };
   }
 
   // While we are checking a screenshot nobody knows yet whether money arrived,
@@ -176,7 +225,7 @@ export function cancelPreview(booking: BookingRecord, now = new Date()): CancelP
   // nothing because nothing was paid; a paid one gets the whole fee back.
   const paid = booking.status === "AWAITING_HOSTEL";
 
-  return { allowed: true, refund: paid ? booking.fee : 0, refundPercent: paid ? 100 : 0 };
+  return { allowed: true, refund: paid ? amountDue(booking) : 0, refundPercent: paid ? 100 : 0 };
 }
 
 export type PolicySummary = {
@@ -212,6 +261,7 @@ export type GuestBookingView = {
   hostelAnswerBy: string | null;
   id: string;
   invoiceNumber: string;
+  kind: "MONTHLY" | "SHORT_STAY";
   monthlyRent: number;
   paymentDueBy: string;
   paymentRejection: { at: string | null; reason: string | null } | null;
@@ -237,6 +287,9 @@ export type GuestBookingView = {
   settlement: { refund: number; refundPercent: number } | null;
   status: BookingStatus;
   statusLabel: string;
+  stay: StayView | null;
+  /** What the guest pays: the fee, plus a short stay's nights. */
+  total: number;
 };
 
 export function toGuestView(
@@ -270,6 +323,7 @@ export function toGuestView(
     hostelAnswerBy: iso(booking.hostelAnswerBy),
     id: String(booking._id),
     invoiceNumber: booking.invoiceNumber,
+    kind: booking.kind ?? "MONTHLY",
     monthlyRent: booking.monthlyRent,
     paymentDueBy: iso(booking.paymentDueBy) ?? now.toISOString(),
     paymentRejection: booking.paymentRejection?.reason
@@ -312,6 +366,8 @@ export function toGuestView(
         : null,
     status: booking.status,
     statusLabel: BOOKING_STATUS_LABELS[booking.status],
+    stay: stayView(booking.stay),
+    total: amountDue(booking),
   };
 }
 
@@ -328,6 +384,7 @@ export type HostelBookingView = {
   /** What the hostel gets if the booking runs to the end. */
   hostelShareIfKept: number;
   id: string;
+  kind: "MONTHLY" | "SHORT_STAY";
   monthlyRent: number;
   payout: {
     amount: number;
@@ -342,6 +399,7 @@ export type HostelBookingView = {
   settlement: { hostelShare: number } | null;
   status: BookingStatus;
   statusLabel: string;
+  stay: StayView | null;
   strike: boolean;
 };
 
@@ -370,8 +428,9 @@ export function toHostelView(
     },
     holdEndsAt: iso(booking.holdEndsAt),
     hostelAnswerBy: iso(booking.hostelAnswerBy),
-    hostelShareIfKept: settlementFor(booking.fee, 0, booking.terms).hostelShare,
+    hostelShareIfKept: hostelShareIfCheckedIn(booking),
     id: String(booking._id),
+    kind: booking.kind ?? "MONTHLY",
     monthlyRent: booking.monthlyRent,
     payout: payout
       ? {
@@ -390,6 +449,7 @@ export function toHostelView(
         : null,
     status: booking.status,
     statusLabel: BOOKING_STATUS_LABELS[booking.status],
+    stay: stayView(booking.stay),
     strike: Boolean(booking.hostelStrike),
   };
 }
@@ -431,7 +491,7 @@ export function toPlatformView(
       name: booking.guest.name,
       phone: booking.guest.phone ?? "",
     },
-    hostelShareIfKept: settlementFor(booking.fee, 0, booking.terms).hostelShare,
+    hostelShareIfKept: hostelShareIfCheckedIn(booking),
     platformSettlement:
       settlement && typeof settlement.refund === "number"
         ? {

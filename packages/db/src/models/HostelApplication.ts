@@ -27,8 +27,13 @@ const hostelApplicationSchema = new Schema(
      * because "who filed it" and "what rules it plays by" are separate facts —
      * an agent who later loses their role must not retroactively turn a
      * published hostel back into a queued one.
+     *
+     * `BRANCH` is the owner of a Max hostel adding another building under its
+     * plan (`hostel-branch.service.ts`). It queues like `PUBLIC`, but only a
+     * superadmin approves it, after calling the branch — and it has no plan to
+     * pay for, so approval publishes it.
      */
-    source: { type: String, enum: ["PUBLIC", "TEAM"], default: "PUBLIC" },
+    source: { type: String, enum: ["PUBLIC", "TEAM", "BRANCH"], default: "PUBLIC" },
     /** The field-team member who filed it. Null on a public application. */
     submittedByAgentId: { ref: "User", default: null, type: Schema.Types.ObjectId },
     reviewedBy: { ref: "User", type: Schema.Types.ObjectId },

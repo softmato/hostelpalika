@@ -15,6 +15,7 @@ export async function GET(request: NextRequest) {
       params.get("hostel") ?? "",
       params.get("roomType") ?? "",
       await loadApiPrincipal(request),
+      { moveIn: params.get("moveIn"), moveOut: params.get("moveOut") },
     );
 
     return successResponse({ quote }, "Booking quote");

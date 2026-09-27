@@ -23,6 +23,7 @@ import {
   type InternalAxiosRequestConfig,
 } from "axios";
 
+import { getActiveHostelId, loadActiveHostel } from "@/lib/active-hostel";
 import { AUTH_CLIENT_HEADER, MOBILE_AUTH_CLIENT } from "@/lib/api-contract";
 import {
   accessTokenNeedsRefresh,
@@ -135,6 +136,16 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  // The branch the owner is working in. The server ignores an id the account
+  // does not hold, so a stale one is harmless — it answers for the main hostel.
+  await loadActiveHostel();
+
+  const hostelId = getActiveHostelId();
+
+  if (hostelId) {
+    config.headers["x-hostel-id"] = hostelId;
   }
 
   return config;

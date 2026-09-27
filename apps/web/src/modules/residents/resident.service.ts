@@ -55,6 +55,7 @@ import {
   returnHeldBed,
   takeHeldBed,
 } from "@/modules/bookings/booking-checkin.service";
+import { stayEndsAt } from "@/modules/bookings/short-stay";
 import { getHostelPayMethods } from "@/modules/finance/pay-instructions.service";
 import {
   claimBedForRoomType,
@@ -918,6 +919,9 @@ export async function createResident(
 
   // Claim the bed before creating the resident: if the room type is full this
   // throws and no half-registered resident is left behind.
+  // A short stay's guest: nights paid through the booking, no joining or monthly invoice.
+  const shortStay = heldBooking?.stay ?? null;
+
   if (heldBooking) {
     await takeHeldBed(heldBooking, input.roomType);
   } else {
@@ -941,6 +945,7 @@ export async function createResident(
       hostelId,
       isDeleted: false,
       referralCode: quote.referral.code ?? undefined,
+      ...(shortStay ? { admissionFee: null, depositAmount: 0, stayEndsAt: stayEndsAt(shortStay) } : {}),
       updatedBy: principal.userId,
     });
   } catch (error) {
@@ -1010,25 +1015,29 @@ export async function createResident(
   // Last, and never fatally: the resident is registered by this point, so an
   // admission fee that cannot be invoiced is a reason returned to the screen,
   // not an error that tells the hostel their intake failed when it did not.
-  const admission = await raiseAdmissionInvoice({
-    dueDate: input.moveInDate,
-    hostelId,
-    principal,
-    quote,
-    residentId: resident._id,
-  });
+  const admission = shortStay
+    ? { raised: false as const, reason: "A short stay is paid through its booking." }
+    : await raiseAdmissionInvoice({
+        dueDate: input.moveInDate,
+        hostelId,
+        principal,
+        quote,
+        residentId: resident._id,
+      });
 
   /*
    * And the rent for the month they are moving into — prorated from the move-in
    * day, so a 20 August intake owes twelve days rather than a whole month or,
    * as before this, nothing at all. Every month after this one is the cron's.
    */
-  const firstMonth = await raiseFirstMonthInvoice({
-    hostelId,
-    moveInDate: input.moveInDate,
-    principal,
-    residentId: resident._id,
-  });
+  const firstMonth = shortStay
+    ? { raised: false as const, reason: "A short stay is paid through its booking." }
+    : await raiseFirstMonthInvoice({
+        hostelId,
+        moveInDate: input.moveInDate,
+        principal,
+        residentId: resident._id,
+      });
 
   const accountLink = await linkResidentAccount(
     resident as ResidentRecord,

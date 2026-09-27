@@ -37,6 +37,7 @@ import {
   when,
 } from "@/modules/bookings/booking-notify";
 import { cancellationSchedule, holdEndsAt } from "@/modules/bookings/booking-terms";
+import { stayCheckInBy } from "@/modules/bookings/short-stay";
 import {
   BOOKING_STATUS_LABELS,
   cancelPreview,
@@ -393,7 +394,8 @@ export async function confirmBooking(bookingId: string, principal: ApiPrincipal,
     bedHeld: true,
     confirmedAt: now,
     confirmedBy: principal.userId,
-    holdEndsAt: holdEndsAt(booking.terms, now),
+    // A short stay's bed waits for the guest until the day after move-in; a monthly one for the hold.
+    holdEndsAt: booking.stay ? stayCheckInBy(booking.stay) : holdEndsAt(booking.terms, now),
     status: "CONFIRMED",
   });
 

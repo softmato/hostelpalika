@@ -114,34 +114,6 @@ function objectIds(hostelIds: string[]) {
     .map((id) => new Types.ObjectId(id));
 }
 
-/** Of these hostels, the ones whose grace has run out. One `_id $in` read. */
-export async function findSuspendedHostelIds(hostelIds: string[], now = new Date()) {
-  const ids = objectIds(hostelIds);
-
-  if (ids.length === 0) {
-    return new Set<string>();
-  }
-
-  await connectToDatabase();
-
-  const rows = await HostelModel.find({
-    _id: { $in: ids },
-    "suspension.graceEndsAt": { $lte: now },
-    "suspension.startedAt": { $ne: null },
-  })
-    .select("_id suspension")
-    .lean<{ _id: Types.ObjectId; suspension?: SuspensionRecord | null }[]>();
-
-  // The stage is decided by the same rule every other reader uses, not by the
-  // filter alone: a guard that locks people out must not hinge on one query
-  // shape agreeing with `suspensionStage`.
-  return new Set(
-    rows
-      .filter((row) => suspensionStage(row.suspension, now) === "SUSPENDED")
-      .map((row) => row._id.toString()),
-  );
-}
-
 /**
  * The suspension an account lives under, for `/auth/me`.
  *
@@ -219,6 +191,19 @@ export async function liftHostelSuspension(
   if (!before) {
     return false;
   }
+
+  // Branches carry their main hostel's suspension (`startHostelSuspension`).
+  await HostelModel.updateMany(
+    { parentHostelId: objectId },
+    {
+      $set: {
+        "suspension.graceEndsAt": null,
+        "suspension.reason": null,
+        "suspension.startedAt": null,
+        "suspension.startedBy": null,
+      },
+    },
+  );
 
   await AuditLogModel.create({
     action: "HOSTEL_SUSPENSION_LIFTED",

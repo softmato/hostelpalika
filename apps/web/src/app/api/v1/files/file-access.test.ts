@@ -125,6 +125,48 @@ describe("GET /api/v1/files/[assetId]/url", () => {
     expect(response.status).toBe(302);
   });
 
+  it("denies another resident of the same hostel a payment proof", async () => {
+    const response = await readAs(
+      { hostelIds: [HOSTEL_A], role: Role.RESIDENT, userId: "770000000000000000000009" },
+      proofAsset({ kind: "PAYMENT_PROOF" }),
+    );
+
+    expect(response.status).toBe(403);
+    expect(mocks.presignedReadUrl).not.toHaveBeenCalled();
+  });
+
+  it("denies the hostel's cook its bank statement", async () => {
+    const response = await readAs(
+      { hostelIds: [HOSTEL_A], role: Role.COOK, userId: "770000000000000000000008" },
+      proofAsset({ kind: "STATEMENT", ownerId: STAFF_USER }),
+    );
+
+    expect(response.status).toBe(403);
+  });
+
+  it("still lets the owner and hostel staff read a payment proof", async () => {
+    const owner = await readAs(
+      { hostelIds: [HOSTEL_A], role: Role.RESIDENT, userId: RESIDENT_USER },
+      proofAsset({ kind: "PAYMENT_PROOF" }),
+    );
+    const warden = await readAs(
+      { hostelIds: [HOSTEL_A], role: Role.WARDEN, userId: STAFF_USER },
+      proofAsset({ kind: "PAYMENT_PROOF" }),
+    );
+
+    expect(owner.status).toBe(302);
+    expect(warden.status).toBe(302);
+  });
+
+  it("keeps the hostel's collection QR readable by its residents", async () => {
+    const response = await readAs(
+      { hostelIds: [HOSTEL_A], role: Role.RESIDENT, userId: "770000000000000000000009" },
+      proofAsset({ kind: "PAYMENT_QR", ownerId: STAFF_USER }),
+    );
+
+    expect(response.status).toBe(302);
+  });
+
   it("denies staff of another hostel", async () => {
     const response = await readAs(
       { hostelIds: [HOSTEL_B], role: Role.HOSTEL_ADMIN, userId: STAFF_USER },

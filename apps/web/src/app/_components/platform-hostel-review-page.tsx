@@ -91,6 +91,16 @@ type RoomConfiguration = {
 type PlatformHostelDetail = {
   applicant: Contact;
   application: PlatformApplication;
+  /** Set on a branch: the main hostel it must match. */
+  branchOf?: {
+    id: string;
+    name: string;
+    panNumber: string | null;
+    payoutHolder: string | null;
+    payoutVerified: boolean;
+    phone: string;
+    slug: string;
+  } | null;
   documents: PlatformHostelDocument[];
   hostel: Hostel & { roomConfigurations?: RoomConfiguration[] };
   owner: Contact;
@@ -660,6 +670,50 @@ export const PlatformHostelReviewPageContent = memo(
           title={hostel.name}
         />
         <Message value={message} />
+
+        {detail?.branchOf ? (
+          <section className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
+            <p className="font-semibold text-foreground">
+              Branch of {detail.branchOf.name} — free on its Max plan. Approve only after calling
+              the branch.
+            </p>
+            <dl className="mt-2 grid gap-x-6 gap-y-1 text-[12.5px] sm:grid-cols-2">
+              <div>
+                <dt className="inline text-muted-foreground">Call the branch: </dt>
+                <dd className="inline font-semibold">
+                  {hostel.contact?.phone ? (
+                    <a className="underline" href={`tel:${hostel.contact.phone}`}>
+                      {hostel.contact.phone}
+                    </a>
+                  ) : (
+                    "no phone given"
+                  )}
+                </dd>
+              </div>
+              <div>
+                <dt className="inline text-muted-foreground">Main hostel phone: </dt>
+                <dd className="inline font-semibold">{detail.branchOf.phone || "—"}</dd>
+              </div>
+              <div>
+                <dt className="inline text-muted-foreground">PAN/VAT (must match): </dt>
+                <dd className="inline font-mono font-semibold">
+                  {hostel.panNumber ?? "—"} · main {detail.branchOf.panNumber ?? "none on file"}
+                </dd>
+              </div>
+              <div>
+                <dt className="inline text-muted-foreground">Payout holder: </dt>
+                <dd className="inline font-semibold">
+                  {detail.branchOf.payoutHolder ?? "—"}
+                  {detail.branchOf.payoutVerified ? " (verified on the main hostel)" : " (main not verified)"}
+                </dd>
+              </div>
+            </dl>
+            <p className="mt-2 text-[12px] text-muted-foreground">
+              Check the PAN/VAT certificate under Documents against the main hostel&apos;s. Only a
+              superadmin can approve a branch.
+            </p>
+          </section>
+        ) : null}
 
         <div className="flex flex-wrap items-center gap-2">
           <SoftBadge tone={statusToneFromLabel(hostel.status)}>

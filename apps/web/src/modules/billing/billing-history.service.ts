@@ -3,6 +3,7 @@ import "server-only";
 import { Types } from "mongoose";
 
 import { connectToDatabase } from "@/lib/db";
+import { billingHostelId } from "@/modules/billing/billing-hostel";
 import {
   documentDownloadUrl,
   fetchInvoiceDetail,
@@ -210,7 +211,8 @@ export async function getBillingHistory(
 ): Promise<BillingHistory> {
   await connectToDatabase();
 
-  const id = new Types.ObjectId(hostelId);
+  // A branch is billed with its main hostel, so its history is that one's.
+  const id = await billingHostelId(hostelId);
 
   const [subscription, invoices, payments] = await Promise.all([
     HostelSubscriptionModel.findOne({ hostelId: id }).lean<{

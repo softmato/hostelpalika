@@ -90,6 +90,24 @@ describe("the mobile hostel application against publicHostelApplicationCreateSch
     expect(result.success).toBe(true);
   });
 
+  it("keeps the PAN and the short-stay rates through the route's own schema", () => {
+    const parsed = hostelRegistrationSchema.parse(
+      buildHostelPayload(
+        hostelForm({
+          panNumber: "123 456 789",
+          shortStays: { enabled: true, minNights: "2", rates: { "Double Sharing": "450" } },
+        }),
+      ),
+    );
+
+    expect(parsed.panNumber).toBe("123456789");
+    expect(parsed.shortStays).toEqual({
+      enabled: true,
+      minNights: 2,
+      rates: [{ dailyRate: 450, roomType: "Double Sharing" }],
+    });
+  });
+
   it("parses the minimum the wizard will let someone submit", () => {
     // Every optional left empty: no photos, no admission fee, no landmark, no
     // rent on the single room. This is the shape the schema is most likely to

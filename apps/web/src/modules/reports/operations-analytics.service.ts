@@ -7,7 +7,7 @@ import { AttendanceLogModel } from "@hostel/db/models/AttendanceLog";
 import { FoodReadyLogModel } from "@hostel/db/models/FoodReadyLog";
 import { FoodRoutineModel } from "@hostel/db/models/FoodRoutine";
 import { ResidentModel } from "@hostel/db/models/Resident";
-import { parseMealWindow } from "@hostel/shared/food/meal-window";
+import { nepalMinuteOfDay, parseMealWindow } from "@hostel/shared/food/meal-window";
 
 export class OperationsAnalyticsError extends Error {
   constructor(
@@ -103,9 +103,9 @@ export async function getFoodAnalytics(
   const byMeal = MEAL_TYPES.map((mealType) => {
     const mealLogs = logs.filter((log) => log.mealType === mealType);
     const target = scheduledMinutes(routine?.timings?.[mealType]);
-    const announcedMinutes = mealLogs.map(
-      (log) => log.announcedAt.getHours() * 60 + log.announcedAt.getMinutes(),
-    );
+    // Kathmandu's clock, like the target. `getHours()` read UTC on the server,
+    // so every meal looked ~6 hours early and "late" never fired.
+    const announcedMinutes = mealLogs.map((log) => nepalMinuteOfDay(log.announcedAt));
     const delays =
       target === null ? [] : announcedMinutes.map((minutes) => minutes - target);
 

@@ -12,6 +12,12 @@ export type Hostel = {
   hostelCode?: string;
   /** Present on the platform approval queue — see listPlatformHostels. */
   applicationStatus?: string;
+  /** The business's PAN/VAT number, when one was given. */
+  panNumber?: string | null;
+  /** Set on a branch: the main hostel whose plan it runs on. */
+  parentHostelId?: string | null;
+  /** On the platform queue, a branch's main hostel — see listPlatformHostels. */
+  branchOf?: { id: string; name: string; panNumber: string | null; slug: string } | null;
   /** The plan suspension running on this hostel, if any — see `hostel-suspension.ts`. */
   suspension?: {
     graceEndsAt: string;

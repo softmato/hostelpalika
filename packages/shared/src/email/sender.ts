@@ -8,6 +8,9 @@ import {
 import { UNSUBSCRIBE_SLOT } from "./templates/layout";
 
 const RESEND_ENDPOINT = "https://api.resend.com/emails";
+const RESEND_BATCH_ENDPOINT = "https://api.resend.com/emails/batch";
+/** Resend takes at most this many messages per batch request. */
+const BATCH_LIMIT = 100;
 
 /**
  * A file to send alongside the email. `content` is raw bytes; the sender
@@ -50,6 +53,56 @@ export function withUnsubscribeLine(html: string, pageUrl: string) {
     : `${html}<p style="margin-top:24px;font-size:12px;line-height:18px;color:#71717a;">${line}</p>`;
 }
 
+/**
+ * Resend answers 429 past its per-second limit (10 per team by default), which
+ * every send on the platform shares. `sendEmail` never throws, so a 429 used to
+ * be a notice marked sent that nobody received. Waits the `retry-after` it
+ * names, briefly, then gives up as before. Bulk jobs use `sendEmailBatch`, which
+ * stays well under the limit in the first place.
+ */
+async function postToResend(url: string, body: unknown, retries = 2): Promise<Response> {
+  const response = await fetch(url, {
+    body: JSON.stringify(body),
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+
+  if (response.status !== 429 || retries <= 0) {
+    return response;
+  }
+
+  const retryAfter = Number(response.headers.get("retry-after"));
+  const waitMs = (retryAfter > 0 ? Math.min(retryAfter, 2) : 1) * 1000;
+
+  await new Promise((resolve) => setTimeout(resolve, waitMs + Math.random() * 500));
+
+  return postToResend(url, body, retries - 1);
+}
+
+/** One message as Resend's API takes it, attachments aside. */
+function messageBody(input: SendEmailInput, from: string, replyTo: string | null | undefined) {
+  return {
+    from,
+    to: Array.isArray(input.to) ? input.to : [input.to],
+    subject: input.subject,
+    html: input.unsubscribe
+      ? withUnsubscribeLine(input.html, input.unsubscribe.pageUrl)
+      : input.html,
+    ...(input.unsubscribe
+      ? {
+          headers: {
+            "List-Unsubscribe": `<${input.unsubscribe.oneClickUrl}>`,
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          },
+        }
+      : {}),
+    ...(replyTo ? { reply_to: replyTo } : {}),
+  };
+}
+
 export type SendEmailResult =
   | { sent: true; id: string }
   | { sent: false; reason: "not_configured" | "send_failed"; detail?: string };
@@ -88,37 +141,16 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   }
 
   try {
-    const response = await fetch(RESEND_ENDPOINT, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from,
-        to: Array.isArray(input.to) ? input.to : [input.to],
-        subject: input.subject,
-        html: input.unsubscribe
-          ? withUnsubscribeLine(input.html, input.unsubscribe.pageUrl)
-          : input.html,
-        ...(input.unsubscribe
-          ? {
-              headers: {
-                "List-Unsubscribe": `<${input.unsubscribe.oneClickUrl}>`,
-                "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-              },
-            }
-          : {}),
-        ...(input.attachments?.length
-          ? {
-              attachments: input.attachments.map((attachment) => ({
-                content: Buffer.from(attachment.content).toString("base64"),
-                filename: attachment.filename,
-              })),
-            }
-          : {}),
-        ...(replyTo ? { reply_to: replyTo } : {}),
-      }),
+    const response = await postToResend(RESEND_ENDPOINT, {
+      ...messageBody(input, from, replyTo),
+      ...(input.attachments?.length
+        ? {
+            attachments: input.attachments.map((attachment) => ({
+              content: Buffer.from(attachment.content).toString("base64"),
+              filename: attachment.filename,
+            })),
+          }
+        : {}),
     });
 
     if (!response.ok) {
@@ -165,4 +197,97 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
       detail: error instanceof Error ? error.message : undefined,
     };
   }
+}
+
+/**
+ * Up to a hundred emails per Resend call (`/emails/batch`), for a job that mails
+ * a page of people at once — one request per message pushed a run of reminders
+ * past the team's per-second limit. One result per input, in order, like
+ * `sendEmail`, and never throws. No attachments: the batch endpoint takes none.
+ */
+export async function sendEmailBatch(
+  inputs: Array<Omit<SendEmailInput, "attachments">>,
+): Promise<SendEmailResult[]> {
+  if (inputs.length === 0) {
+    return [];
+  }
+
+  const identity = await resolveEmailIdentity();
+  const results: SendEmailResult[] = [];
+
+  for (let start = 0; start < inputs.length; start += BATCH_LIMIT) {
+    const slice = inputs.slice(start, start + BATCH_LIMIT);
+    const messages = slice.map((input) => {
+      const category = input.category ?? DEFAULT_EMAIL_CATEGORY;
+      const from = fromHeaderFor(category, identity);
+
+      return from
+        ? messageBody(input, from, input.replyTo ?? replyToFor(category, identity))
+        : null;
+    });
+
+    if (!process.env.RESEND_API_KEY || messages.some((message) => !message)) {
+      console.info(
+        JSON.stringify({
+          level: "info",
+          action: "email_skipped",
+          count: slice.length,
+          message: "Resend not configured (RESEND_API_KEY / EMAIL_DOMAIN); batch not sent.",
+        }),
+      );
+      results.push(...slice.map(() => ({ sent: false as const, reason: "not_configured" as const })));
+      continue;
+    }
+
+    try {
+      const response = await postToResend(RESEND_BATCH_ENDPOINT, messages);
+
+      if (!response.ok) {
+        const detail = await response.text();
+
+        console.error(
+          JSON.stringify({
+            level: "error",
+            action: "email_batch_failed",
+            count: slice.length,
+            message: `Resend returned ${response.status}`,
+          }),
+        );
+        results.push(
+          ...slice.map(() => ({ sent: false as const, reason: "send_failed" as const, detail })),
+        );
+        continue;
+      }
+
+      const payload = (await response.json()) as { data?: Array<{ id?: string }> };
+
+      console.info(
+        JSON.stringify({
+          level: "info",
+          action: "email_batch_sent",
+          count: slice.length,
+          message: "Email batch dispatched via Resend.",
+        }),
+      );
+      results.push(
+        ...slice.map((_, index) => ({ sent: true as const, id: payload.data?.[index]?.id ?? "" })),
+      );
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : undefined;
+
+      console.error(
+        JSON.stringify({
+          level: "error",
+          action: "email_batch_failed",
+          count: slice.length,
+          message: detail ?? "Unknown email error",
+        }),
+      );
+      results.push(
+        ...slice.map(() => ({ sent: false as const, reason: "send_failed" as const, detail })),
+      );
+    }
+  }
+
+  return results;
 }

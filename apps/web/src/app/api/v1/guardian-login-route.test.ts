@@ -7,6 +7,14 @@ vi.mock("@/modules/guardian/guardian.service", () => ({
   loginGuardian: mocks.loginGuardian,
 }));
 
+vi.mock("@/lib/db", () => ({ connectToDatabase: vi.fn() }));
+
+vi.mock("@hostel/db/models/AuthAttempt", async () => {
+  const { fakeModel } = await import("../../../../test/fake-mongo");
+
+  return { AuthAttemptModel: fakeModel() };
+});
+
 import * as guardianLoginRoute from "@/app/api/v1/guardian/login/route";
 import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/lib/auth-cookies";
 
@@ -41,7 +49,13 @@ describe("POST /api/v1/guardian/login", () => {
    * that is a guessing game whose prize is a session on somebody's guardian
    * view — and it was unthrottled.
    */
-  it("rate limits to five attempts, like /auth/login", async () => {
+  it("rate limits to five wrong codes, like /auth/login", async () => {
+    mocks.loginGuardian.mockRejectedValue(
+      Object.assign(new Error("Invalid guardian access."), {
+        errorCode: "INVALID_GUARDIAN_LOGIN",
+        status: 401,
+      }),
+    );
     const headers = { "x-forwarded-for": "203.0.113.9" };
     const statuses: number[] = [];
 
@@ -50,10 +64,19 @@ describe("POST /api/v1/guardian/login", () => {
       statuses.push(response.status);
     }
 
-    expect(statuses.slice(0, 5)).toEqual([200, 200, 200, 200, 200]);
+    expect(statuses.slice(0, 5)).toEqual([401, 401, 401, 401, 401]);
     expect(statuses[5]).toBe(429);
     // The sixth never reached the service.
     expect(mocks.loginGuardian).toHaveBeenCalledTimes(5);
+  });
+
+  // Guardians of one hostel share its Wi-Fi; signing in must not use anyone's budget.
+  it("does not count sign-ins that work", async () => {
+    const headers = { "x-forwarded-for": "203.0.113.19" };
+
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      expect((await guardianLoginRoute.POST(request(validBody, headers))).status).toBe(200);
+    }
   });
 
   /*

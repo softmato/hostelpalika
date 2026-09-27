@@ -19,6 +19,11 @@ export const createBookingSchema = z.object({
   acceptPolicy: z.literal(true, { error: "Accept the refund policy to book." }),
   /** Slug or id of the hostel. */
   hostel: z.string().trim().min(1).max(200),
+  /** A monthly bed, or a few nights paid upfront. */
+  kind: z.enum(["MONTHLY", "SHORT_STAY"]).default("MONTHLY"),
+  /** A short stay's dates, `YYYY-MM-DD` Nepal days. Required for `SHORT_STAY`, ignored otherwise. */
+  moveIn: z.string().trim().max(10).nullish(),
+  moveOut: z.string().trim().max(10).nullish(),
   /** `YYYY-MM-DD`, Nepal day. Informational: the hold decides. */
   plannedMoveIn: z
     .string()

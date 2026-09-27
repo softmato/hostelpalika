@@ -3,6 +3,7 @@ import type { Types } from "mongoose";
 import { Role } from "@/lib/roles";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { PLAN_DUE_NOTIFICATION_TYPE } from "@/modules/notifications/push-routing";
+import { billingHostelId } from "@/modules/billing/billing-hostel";
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
 import { resolveHostelAdminContacts } from "@/modules/residents/resident-notify";
 import { CookAccountModel } from "@hostel/db/models/CookAccount";
@@ -48,7 +49,8 @@ function countLive(hostelId: Types.ObjectId, seat: PlanSeat) {
 
 /** Throws `PLAN_LIMIT_REACHED` (and tells the admins) when `adding` more would pass the plan's cap. */
 export async function assertPlanRoom(hostelId: Types.ObjectId, seat: PlanSeat, adding = 1) {
-  const subscription = await HostelSubscriptionModel.findOne({ hostelId })
+  // A branch is on its main hostel's plan; its own seats are counted against it.
+  const subscription = await HostelSubscriptionModel.findOne({ hostelId: await billingHostelId(hostelId) })
     .select("planId")
     .lean<{ planId?: string | null } | null>();
 

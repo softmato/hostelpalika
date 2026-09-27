@@ -8,6 +8,7 @@ import { publishResourceChange } from "@/lib/realtime/server";
 import { notifyKitchenOfRoutineChange } from "@/modules/food/kitchen-notify";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { FoodRoutineModel } from "@hostel/db/models/FoodRoutine";
+import { nepalWeekday } from "@hostel/shared/food/meal-window";
 import type { foodRoutineSaveSchema } from "@/modules/food/food.validation";
 
 type FoodRoutineSaveInput = z.infer<typeof foodRoutineSaveSchema>;
@@ -61,9 +62,13 @@ export const EMPTY_ROUTINE: FoodRoutine = {
   updatedAt: "",
 };
 
-/** `getDay()` is Sunday-based, which is the week start Nepal uses. */
+/**
+ * The weekday in Nepal, Sunday-based like the routine. Not `getDay()`: the
+ * server runs in UTC, so from midnight to 05:45 in Kathmandu that read
+ * yesterday and every dashboard served yesterday's menu.
+ */
 export function dayOfWeekFor(date: Date): RoutineDay {
-  return ROUTINE_DAYS[date.getDay()];
+  return ROUTINE_DAYS[nepalWeekday(date)];
 }
 
 function serializeRoutine(routine: FoodRoutineRecord | null): FoodRoutine {

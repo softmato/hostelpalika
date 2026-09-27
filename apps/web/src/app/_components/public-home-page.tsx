@@ -430,7 +430,8 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
     [hostels],
   );
 
-  const featuredHostels = byRating.slice(0, 4);
+  // Memoised so the comparison memo below, which keys on it, can ever hold.
+  const featuredHostels = useMemo(() => byRating.slice(0, 4), [byRating]);
   const cityOptions = useMemo(
     () => [...new Set(hostels.map((hostel) => hostel.city).filter(Boolean))].slice(0, 5),
     [hostels],

@@ -22,9 +22,10 @@ import { Role } from "@hostel/shared/types/roles";
 import type { PlatformIdCardType } from "@/lib/platform-id-card";
 import { UserResidentProfileModel } from "@hostel/db/models/UserResidentProfile";
 import { findLiveResidency } from "@/modules/residents/live-residency";
-import type {
-  ResidentProfileData,
-  residentIdentitySaveSchema,
+import {
+  type ResidentProfileData,
+  type residentIdentitySaveSchema,
+  residentPhoneKey,
 } from "@/modules/users/resident-identity.validation";
 import type { z } from "zod";
 
@@ -322,6 +323,7 @@ export async function getResidentIdentityQr(userId: string) {
 }
 
 export type ResidentEmailStatus = "AVAILABLE" | "TAKEN" | "YOURS";
+export type ResidentPhoneStatus = ResidentEmailStatus;
 
 /**
  * Whether an address is free to go on this account's card.
@@ -361,6 +363,68 @@ export async function checkResidentEmail(userId: string, email: string) {
   await connectToDatabase();
 
   return { email, status: await residentEmailStatus(normalizeUserId(userId), email) };
+}
+
+/** The card's blind index for a main phone. Namespaced so it can never equal an email's. */
+function residentPhoneHash(phone: string) {
+  return personalLookupHash(`phone:${residentPhoneKey(phone)}`);
+}
+
+/**
+ * The ways `User.phone` holds one number: bare, and with Nepal's code in the
+ * forms people type it. Exact matches keep the lookup on the phone index.
+ * ponytail: a spelling not listed here (dots, brackets) is missed until the
+ * account phones are stored normalised.
+ */
+function accountPhoneSpellings(phone: string) {
+  const key = residentPhoneKey(phone);
+
+  return [
+    ...new Set([
+      phone.trim(),
+      key,
+      `+${key}`,
+      `+977${key}`,
+      `977${key}`,
+      `+977 ${key}`,
+      `+977-${key}`,
+    ]),
+  ];
+}
+
+/**
+ * Whether a number is free to be this card's main phone — the email rule, for
+ * phones. TAKEN when another account signs in with it or another card lists it
+ * (by blind index, since the profile is encrypted); YOURS when it is this
+ * account's own phone.
+ */
+async function residentPhoneStatus(
+  userId: Types.ObjectId,
+  phone: string,
+): Promise<ResidentPhoneStatus> {
+  const [accounts, card] = await Promise.all([
+    UserModel.find({ isDeleted: { $ne: true }, phone: { $in: accountPhoneSpellings(phone) } })
+      .select("_id")
+      .limit(2)
+      .lean<{ _id: Types.ObjectId }[]>(),
+    UserResidentProfileModel.exists({
+      isDeleted: { $ne: true },
+      primaryPhoneHash: residentPhoneHash(phone),
+      userId: { $ne: userId },
+    }),
+  ]);
+
+  if (card || accounts.some((account) => !account._id.equals(userId))) {
+    return "TAKEN";
+  }
+
+  return accounts.length > 0 ? "YOURS" : "AVAILABLE";
+}
+
+export async function checkResidentPhone(userId: string, phone: string) {
+  await connectToDatabase();
+
+  return { phone, status: await residentPhoneStatus(normalizeUserId(userId), phone) };
 }
 
 export async function saveResidentIdentity(
@@ -416,13 +480,31 @@ export async function saveResidentIdentity(
     isDeleted: { $ne: true },
     userId: user._id,
   })
-    .select("completedAt photoAssetId signatureAssetId")
+    .select("completedAt photoAssetId primaryPhoneHash signatureAssetId")
     .lean<{
       completedAt?: Date;
       photoAssetId?: Types.ObjectId | null;
+      primaryPhoneHash?: string | null;
       signatureAssetId?: Types.ObjectId | null;
     } | null>();
   const isFirstCard = !existing?.completedAt;
+  const phoneHash = residentPhoneHash(profile.primaryPhone);
+
+  /*
+   * The phone gets the email's rule, checked when it is set or changed: a card
+   * already saved with a number stays editable even if someone else has since
+   * used it, rather than being refused over a field its holder did not touch.
+   */
+  if (
+    existing?.primaryPhoneHash !== phoneHash &&
+    (await residentPhoneStatus(user._id, profile.primaryPhone)) === "TAKEN"
+  ) {
+    throw new ResidentIdentityError(
+      "That phone number is already used by another account. Use your own number.",
+      "RESIDENT_PHONE_TAKEN",
+      409,
+    );
+  }
 
   // Checked before the id is minted, so a refused save leaves no half-card.
   const photo = input.photoAssetId
@@ -476,6 +558,7 @@ export async function saveResidentIdentity(
         isDeleted: false,
         payloadVersion: 1,
         primaryEmailHash: personalLookupHash(profile.primaryEmail),
+        primaryPhoneHash: phoneHash,
         sharingEnabled: input.sharingEnabled,
         updatedBy: user._id,
         ...(photo ? { photoAssetId: photo._id, photoUpdatedAt } : {}),

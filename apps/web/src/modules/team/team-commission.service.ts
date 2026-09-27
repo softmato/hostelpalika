@@ -170,11 +170,19 @@ export async function getAgentWallet(agentId: string) {
       balance: round(earned - paidOut),
       earned: round(earned),
       paidOut: round(paidOut),
-      /** What unpaid registrations will earn once they pay, at today's rate. */
+      /**
+       * What registrations not yet credited will earn once their setup fee
+       * clears, at today's rate. A hostel filed before setup fees earns on its
+       * plan price instead.
+       */
       pending: round(
         registrations
-          .filter((row) => !credited.has(row.hostelId) && row.price > 0)
-          .reduce((sum, row) => sum + commissionFor(row.price, teamCommissionPercent), 0),
+          .filter((row) => !credited.has(row.hostelId))
+          .reduce(
+            (sum, row) =>
+              sum + commissionFor(row.setupFee ? row.setupFee.amount : row.price, teamCommissionPercent),
+            0,
+          ),
       ),
       ratePercent: teamCommissionPercent,
       today: {
@@ -205,7 +213,7 @@ export async function getAgentWallet(agentId: string) {
 export async function listTeamWallets() {
   await connectToDatabase();
 
-  const [{ teamCommissionPercent }, members, totals] = await Promise.all([
+  const [{ teamCommissionPercent, teamSetupFee }, members, totals] = await Promise.all([
     getOperationsConfig(),
     UserModel.find({ isDeleted: { $ne: true }, role: Role.PLATFORM_AGENT })
       .select("name email")
@@ -216,6 +224,7 @@ export async function listTeamWallets() {
 
   return {
     ratePercent: teamCommissionPercent,
+    setupFee: teamSetupFee,
     wallets: members.map((member) => {
       const key = member._id.toString();
       const { earned, lastPayoutAt, paidOut } = totals.get(key) ?? {

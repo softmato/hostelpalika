@@ -5,6 +5,7 @@ import { NotificationCampaignError as ApiError } from "@/modules/notifications/n
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
 import { Role } from "@/lib/roles";
+import { sendFreeMonthWelcomes } from "@/modules/billing/free-month-welcome.service";
 import { sendPlanDueReminders } from "@/modules/billing/plan-due-reminders.service";
 import { sendFeeDueReminders } from "@/modules/finance/fee-due-reminders.service";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
@@ -117,12 +118,21 @@ export const AUTOMATIC_PUSHES = {
     time: "21:00",
     title: "Hostel fee reminder · evening",
   },
+  FREE_MONTH_MORNING: {
+    audience: "HOSTEL_STAFF",
+    body: "Hostel admins on their plan's free months, once in each free month: \"Welcome — enjoy the free <plan> plan this month\", with how many free months are left.",
+    earlyDays: [],
+    email: false,
+    kind: "FREE_MONTH",
+    time: "08:00",
+    title: "Free month welcome",
+  },
 } as const satisfies Record<
   string,
   Omit<PushMessage, "urgency"> & {
     earlyDays: readonly number[];
     email: boolean;
-    kind: "FEE_DUE" | "PLAN_DUE";
+    kind: "FEE_DUE" | "FREE_MONTH" | "PLAN_DUE";
     time: string;
   }
 >;
@@ -263,7 +273,9 @@ async function deliverAutomatic(key: AutomaticPushKey, now: Date) {
   const result =
     kind === "PLAN_DUE"
       ? await sendPlanDueReminders({ earlyDays, email, now })
-      : await sendFeeDueReminders({ earlyDays, now });
+      : kind === "FREE_MONTH"
+        ? await sendFreeMonthWelcomes({ now })
+        : await sendFeeDueReminders({ earlyDays, now });
 
   return { devices: result.devices, recipients: result.recipients };
 }

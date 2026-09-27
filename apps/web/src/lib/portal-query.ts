@@ -3,7 +3,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
 
-import { browserApi } from "@/lib/browser-api";
+import { browserApi, workspaceSlug } from "@/lib/browser-api";
 import type { LoadState } from "@/app/_components/core-portal-shared";
 
 /**
@@ -43,8 +43,14 @@ export type PortalResource<T> = {
 
 /** Query key for a portal endpoint. Keyed by URL so any page hitting the same
  *  endpoint shares one cache entry. */
+/**
+ * Keyed by the workspace too: an owner with branches reads the same URLs in
+ * each (`/api/v1/hostel-admin/complaints`), and the server answers for the
+ * branch the page is in (`x-hostel-id`). Without the slug, switching branch
+ * would paint the last branch's complaints until the refetch landed.
+ */
 export function resourceKey(url: string) {
-  return ["portal-resource", url] as const;
+  return ["portal-resource", url, workspaceSlug() ?? ""] as const;
 }
 
 /**

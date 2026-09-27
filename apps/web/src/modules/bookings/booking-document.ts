@@ -15,6 +15,7 @@ import {
 import { Cursor } from "@/modules/billing/documents/layout";
 import { COLORS, MARGIN, PAGE, SIZE, SPACE } from "@/modules/billing/documents/theme";
 import { policyRows, settlementFor } from "@/modules/bookings/booking-terms";
+import { amountDue, stayDatesText } from "@/modules/bookings/short-stay";
 import {
   BOOKING_STATUS_LABELS,
   destinationText,
@@ -91,7 +92,7 @@ export function bookingDocumentLayout(
 
     return {
       against: { label: "Invoice (Softmato)", value: booking.softmatoInvoiceNo },
-      amount: booking.fee,
+      amount: amountDue(booking),
       amountLabel: paid ? "Booking fee paid" : "Booking fee due",
       currency,
       date: booking.createdAt,
@@ -100,6 +101,9 @@ export function bookingDocumentLayout(
         { label: "Hostel", value: booking.hostelSnapshot.name },
         { label: "Room", value: booking.roomType },
         { label: "Monthly rent", value: money(booking.monthlyRent) },
+        ...(booking.stay
+          ? [{ label: "Stay", value: `${booking.stay.nights} nights, ${stayDatesText(booking.stay)} (${money(booking.stay.amount)})` }]
+          : []),
         {
           label: "Status",
           value: paid
@@ -122,7 +126,7 @@ export function bookingDocumentLayout(
 
     return {
       against: null,
-      amount: booking.fee,
+      amount: amountDue(booking),
       amountLabel: paid ? "Amount paid" : "Amount due",
       currency,
       date: booking.createdAt,
@@ -131,6 +135,9 @@ export function bookingDocumentLayout(
         { label: "For", value: forLine },
         { label: "Booking code", value: booking.code },
         { label: "Monthly rent", value: money(booking.monthlyRent) },
+        ...(booking.stay
+          ? [{ label: "Stay", value: `${booking.stay.nights} nights, ${stayDatesText(booking.stay)} (${money(booking.stay.amount)})` }]
+          : []),
         { label: "Fee rate", value: `${booking.terms.feePercent}% of one month's rent` },
         {
           label: "Status",
@@ -152,7 +159,7 @@ export function bookingDocumentLayout(
   if (kind === "receipt") {
     return {
       against: { label: "Against Invoice", value: booking.invoiceNumber },
-      amount: booking.fee,
+      amount: amountDue(booking),
       amountLabel: "Amount received",
       currency,
       date: booking.paymentVerifiedAt ?? booking.createdAt,
@@ -192,7 +199,7 @@ export function bookingDocumentLayout(
       dateLabel: "Refund Date",
       fields: [
         { label: "Booking code", value: booking.code },
-        { label: "Booking fee paid", value: money(booking.fee) },
+        { label: "Paid", value: money(amountDue(booking)) },
         {
           label: "Refund rate",
           value: typeof settlement?.refundPercent === "number" ? `${settlement.refundPercent}%` : "",
@@ -223,7 +230,12 @@ export function bookingDocumentLayout(
       { label: "Booking fee", value: money(booking.fee) },
       { label: "Refunded to guest", value: money(settlement?.refund ?? 0) },
       { label: "Kept", value: money(settlement?.kept ?? 0) },
-      { label: "Hostel share", value: `${booking.terms.hostelSharePercent}% of kept` },
+      {
+        label: "Hostel share",
+        value: booking.stay
+          ? `${booking.terms.hostelSharePercent}% of the fee kept, ${booking.stay.hostelSharePercent}% of the nights kept`
+          : `${booking.terms.hostelSharePercent}% of kept`,
+      },
       ...shared,
     ],
     footerNote: "Computer-generated payout advice. No signature required.",

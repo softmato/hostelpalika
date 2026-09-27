@@ -374,13 +374,13 @@ export async function requestOtpChallenge(
 export async function verifyOtpChallenge(input: OtpVerifyInput) {
   await connectToDatabase();
 
-  const challenge = await OtpChallengeModel.findOne({
+  const live = {
     _id: input.challengeId,
     consumedAt: null,
     expiresAt: { $gt: new Date() },
-  }).select("+codeHash");
+  };
 
-  if (!challenge) {
+  if (!(await OtpChallengeModel.exists(live))) {
     throw new AuthServiceError(
       "OTP challenge is invalid or expired.",
       "OTP_INVALID",
@@ -388,7 +388,20 @@ export async function verifyOtpChallenge(input: OtpVerifyInput) {
     );
   }
 
-  if (challenge.attempts >= 5) {
+  /*
+   * The attempt is spent before the code is compared, in one atomic write. The
+   * old read-check-then-save let a burst of parallel guesses all read the same
+   * count and each get a try, so "five attempts" was as many as an attacker
+   * could send at once. A correct code ends the flow, so five tries still means
+   * five, right or wrong.
+   */
+  const challenge = await OtpChallengeModel.findOneAndUpdate(
+    { ...live, attempts: { $lt: 5 } },
+    { $inc: { attempts: 1 } },
+    { new: true },
+  ).select("+codeHash");
+
+  if (!challenge) {
     throw new AuthServiceError(
       "Too many OTP verification attempts.",
       "OTP_ATTEMPT_LIMIT",
@@ -397,9 +410,6 @@ export async function verifyOtpChallenge(input: OtpVerifyInput) {
   }
 
   if (challenge.codeHash !== hashOtpCode(challenge.identifier, input.code)) {
-    challenge.attempts += 1;
-    await challenge.save();
-
     throw new AuthServiceError("OTP code is incorrect.", "OTP_INCORRECT", 400);
   }
 
@@ -737,40 +747,59 @@ export async function login(input: LoginInput, context?: RequestContext) {
  * token. A browser fires several refreshes at once — two tabs, the proxy and a
  * page's 401 handler, a burst of link prefetches — and all of them carry the
  * same cookie. Only one can rotate it; without this window every other one
- * failed with INVALID_SESSION and the user landed on /login. A reuse only ever
- * gets a 15-minute access token, never a new refresh token.
+ * failed with INVALID_SESSION and the user landed on /login. A browser reuse
+ * only ever gets a 15-minute access token, never a new refresh token.
+ *
+ * The phone single-flights, so it never races itself — but on a bad connection
+ * the server can rotate and the reply never arrive. It then retries with the
+ * token it still holds, and without the window that was a logout. It gets a
+ * fresh refresh token instead, since it never received the one it lost.
  */
 const REFRESH_REUSE_WINDOW_MS = 60 * 1000;
 
 export async function refreshAccessToken(
   refreshToken: string,
-  options: { allowRecentReuse?: boolean } = {},
+  /**
+   * `cookieSession`: the token came from the browser's cookie, which the
+   * winning request of a concurrent burst has already replaced in the jar.
+   */
+  options: { cookieSession?: boolean } = {},
 ) {
   await connectToDatabase();
 
   const payload = await verifyRefreshToken(refreshToken);
   const refreshTokenHash = hashToken(refreshToken);
   const now = new Date();
+  const reuseWindowStart = new Date(now.getTime() - REFRESH_REUSE_WINDOW_MS);
   const session = await SessionModel.findOne({
     _id: payload.sessionId,
     expiresAt: { $gt: now },
     revokedAt: null,
-    ...(options.allowRecentReuse
-      ? {
-          $or: [
-            { refreshTokenHash },
-            {
-              previousRefreshTokenHash: refreshTokenHash,
-              refreshTokenRotatedAt: {
-                $gt: new Date(now.getTime() - REFRESH_REUSE_WINDOW_MS),
-              },
-            },
-          ],
-        }
-      : { refreshTokenHash }),
   });
 
   if (!session) {
+    throw new AuthServiceError("Refresh session is invalid.", "INVALID_SESSION");
+  }
+
+  const isCurrent = session.refreshTokenHash === refreshTokenHash;
+  const justRotated =
+    session.previousRefreshTokenHash === refreshTokenHash &&
+    session.refreshTokenRotatedAt instanceof Date &&
+    session.refreshTokenRotatedAt.getTime() > reuseWindowStart.getTime();
+
+  if (!isCurrent && !justRotated) {
+    /*
+     * A correctly signed token for this session that is neither its current one
+     * nor the one rotated away moments ago can only be one rotated away earlier.
+     * Somebody is replaying a copy, and there is no telling which holder is the
+     * owner, so the session ends for both (refresh-token reuse detection, OAuth
+     * 2.0 Security BCP). The owner signs in again; the copy is dead.
+     */
+    await SessionModel.updateOne(
+      { _id: session._id, revokedAt: null },
+      { $set: { revokedAt: now } },
+    );
+
     throw new AuthServiceError("Refresh session is invalid.", "INVALID_SESSION");
   }
 
@@ -824,33 +853,48 @@ export async function refreshAccessToken(
   // Compare-and-set on the presented hash: two requests that both read the
   // session before either wrote would otherwise each rotate, and the loser's
   // token — already handed to the client — would be dead on arrival.
-  const rotation =
-    session.refreshTokenHash === refreshTokenHash
-      ? await SessionModel.updateOne(
-          { _id: session._id, refreshTokenHash },
-          {
-            $set: {
-              lastSeenAt: now,
-              previousRefreshTokenHash: refreshTokenHash,
-              refreshTokenHash: hashToken(signedRefreshToken),
-              refreshTokenRotatedAt: now,
-            },
+  const rotation = isCurrent
+    ? await SessionModel.updateOne(
+        { _id: session._id, refreshTokenHash },
+        {
+          $set: {
+            lastSeenAt: now,
+            previousRefreshTokenHash: refreshTokenHash,
+            refreshTokenHash: hashToken(signedRefreshToken),
+            refreshTokenRotatedAt: now,
           },
-        )
-      : null;
-  const rotated = rotation?.modifiedCount === 1;
+        },
+      )
+    : null;
+  let rotated = rotation?.modifiedCount === 1;
 
-  if (!rotated) {
-    if (!options.allowRecentReuse) {
+  // Not rotated: the presented token went moments ago — to a concurrent
+  // request, or to this very client in a reply it never received.
+  if (!rotated && options.cookieSession) {
+    await SessionModel.updateOne({ _id: session._id }, { $set: { lastSeenAt: now } });
+  } else if (!rotated) {
+    // Replaces the token it lost. The window keeps its original start, so
+    // retrying cannot stretch it.
+    const reissue = await SessionModel.updateOne(
+      {
+        _id: session._id,
+        previousRefreshTokenHash: refreshTokenHash,
+        refreshTokenRotatedAt: { $gt: reuseWindowStart },
+        revokedAt: null,
+      },
+      { $set: { lastSeenAt: now, refreshTokenHash: hashToken(signedRefreshToken) } },
+    );
+
+    rotated = reissue.modifiedCount === 1;
+
+    if (!rotated) {
       throw new AuthServiceError("Refresh session is invalid.", "INVALID_SESSION");
     }
-
-    await SessionModel.updateOne({ _id: session._id }, { $set: { lastSeenAt: now } });
   }
 
   return {
     accessToken,
-    // null on a reuse: the client keeps the refresh token the winning request set.
+    // null on a browser reuse: the jar keeps the cookie the winning request set.
     refreshToken: rotated ? signedRefreshToken : null,
     user: {
       ...safeUser,

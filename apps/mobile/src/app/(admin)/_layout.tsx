@@ -1,8 +1,9 @@
-import { useMemo } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 import { AdminAlertsProvider, useAdminAlerts } from "@/components/admin-alerts";
 import { RoleTabs, type TabDef } from "@/components/role-tabs";
 import { usePortalWarmup } from "@/hooks/use-portal-warmup";
+import { getActiveHostelId, subscribeActiveHostel } from "@/lib/active-hostel";
 import { prefetchAdminPortal } from "@/lib/admin-queries";
 
 /**
@@ -95,8 +96,17 @@ export default function RoleLayout() {
    */
   usePortalWarmup(prefetchAdminPortal);
 
+  /*
+   * An owner with branches works in one at a time (`lib/active-hostel.ts`).
+   * Keyed on it, so switching remounts every tab onto the new hostel: a mounted
+   * screen keeps what it last read (a cleared cache key is not propagated, see
+   * `use-resource`), and a tab still showing the other branch's residents would
+   * be worse than a reload.
+   */
+  const activeHostel = useSyncExternalStore(subscribeActiveHostel, getActiveHostelId, getActiveHostelId);
+
   return (
-    <AdminAlertsProvider>
+    <AdminAlertsProvider key={activeHostel ?? "main"}>
       <AdminTabs />
     </AdminAlertsProvider>
   );

@@ -2,6 +2,7 @@
 
 import {
   ArrowLeft,
+  AlertTriangle,
   ArrowRight,
   Banknote,
   Building2,
@@ -51,6 +52,12 @@ import { uploadRegistrationDocument } from "@/lib/uploads/registration-document"
 import { uploadFile } from "@/lib/uploads/uploader";
 import { cn } from "@/lib/utils";
 import { readRenamedStorage } from "@/lib/storage-rename";
+import {
+  EMPTY_SHORT_STAYS,
+  RegistrationShortStays,
+  shortStaysPayload,
+  type ShortStayDraft,
+} from "@/app/_components/registration-short-stays";
 import type { TeamOwnerEmailStatus } from "@/modules/hostels/hostel.service";
 import type { TeamPrepaymentView } from "@/modules/team/team-prepayment.service";
 import { DescriptionSuggestions } from "./description-suggestions";
@@ -412,6 +419,7 @@ const FIELD_STEP: Record<string, number> = {
   routine: 5,
   rules: 6,
   securityDeposit: 3,
+  panNumber: 1,
   totalFloors: 1,
   yearEstablished: 1,
 };
@@ -445,6 +453,7 @@ const FIELD_LABEL: Record<string, string> = {
   routine: "Weekly routine",
   rules: "House rules",
   securityDeposit: "Security deposit",
+  panNumber: "PAN/VAT number",
   totalFloors: "Floors",
   yearEstablished: "Year established",
 };
@@ -725,7 +734,7 @@ function PhotoStrip({
 
 export function TeamRegisterHostelPage() {
   const router = useRouter();
-  const { plans: catalog } = useSiteConfig();
+  const { identity, plans: catalog } = useSiteConfig();
   const { confirm, confirmDialog } = useConfirm();
   const mediaViewer = useMediaViewer();
 
@@ -738,6 +747,8 @@ export function TeamRegisterHostelPage() {
   );
   const [yearEstablished, setYearEstablished] = useState("");
   const [totalFloors, setTotalFloors] = useState("");
+  const [panNumber, setPanNumber] = useState("");
+  const [shortStays, setShortStays] = useState<ShortStayDraft>(EMPTY_SHORT_STAYS);
 
   const [ownerName, setOwnerName] = useState("");
   const [phone, setPhone] = useState("");
@@ -809,9 +820,12 @@ export function TeamRegisterHostelPage() {
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   // Online first: Softmato confirms it on the spot. Cash waits for a second person there.
   const [method, setMethod] = useState<"CASH" | "SOFTMATO">("SOFTMATO");
+  /**
+   * The setup fee to take, online or in cash. Starts at the platform's fee,
+   * which is also the most an agent may take (`/api/v1/team/setup-fee`).
+   */
   const [amount, setAmount] = useState("");
-  // A part amount to take online; `null` takes the full price, which stays the default.
-  const [onlineAmount, setOnlineAmount] = useState<string | null>(null);
+  const [setupFee, setSetupFee] = useState<number | null>(null);
   const [paymentReference, setPaymentReference] = useState("");
   const [payout, setPayout] = useState(EMPTY_PAYOUT_DRAFT);
   const handoff = useCheckoutHandoff();
@@ -824,6 +838,25 @@ export function TeamRegisterHostelPage() {
   const [prepaymentId, setPrepaymentId] = useState("");
   const [prepaymentRow, setPrepayment] = useState<TeamPrepaymentView | null>(null);
   const [prepaymentCheck, setPrepaymentCheck] = useState(0);
+
+  useEffect(() => {
+    let live = true;
+
+    void browserApi<{ setupFee: number }>("/api/v1/team/setup-fee")
+      .then((result) => {
+        if (!live) return;
+        setSetupFee(result.setupFee);
+        // A draft or a paid row already set the amount; only an empty box takes the default.
+        setAmount((current) => (current.trim() ? current : String(result.setupFee)));
+      })
+      .catch(() => {
+        // The box stays empty and the step says so; the server refuses too much either way.
+      });
+
+    return () => {
+      live = false;
+    };
+  }, []);
   // Only the row the form currently points at; a dropped id shows nothing.
   const prepayment = prepaymentRow?.id === prepaymentId ? prepaymentRow : null;
   const paidOnline = prepayment?.status === "PAID" ? prepayment : null;
@@ -948,15 +981,14 @@ export function TeamRegisterHostelPage() {
   const cycles = billingCycles(catalog);
   const priced = catalog.plans.filter((plan) => plan.monthly > 0);
   const plan = priced.find((entry) => entry.id === planId);
-  // Once paid, the price is what was paid: the server invoices that, not today's catalogue.
-  const price = paidOnline ? paidOnline.amount : plan ? cycleTotal(plan, cycle) : 0;
+  // A plan-priced online payment from before setup fees still ties the form to its plan.
+  const planLocked = paidOnline?.kind === "PLAN";
+  // What the owner pays for the plan once its free months end, on this cycle.
+  const price = planLocked && paidOnline ? paidOnline.amount : plan ? cycleTotal(plan, cycle) : 0;
+  const fee = numberValue(amount) ?? 0;
+  const feeValid = Number.isInteger(fee) && fee > 0 && setupFee !== null && fee <= setupFee;
   // Cash is typed in; online is only ever what Softmato confirmed.
-  const collecting =
-    method === "CASH" ? (numberValue(amount) ?? 0) : (paidOnline?.chargeAmount ?? 0);
-  const onlineCharge = onlineAmount === null ? price : (numberValue(onlineAmount) ?? 0);
-  const onlineChargeValid =
-    Number.isInteger(onlineCharge) && onlineCharge > 0 && onlineCharge <= price;
-  const shortfall = Math.max(0, price - collecting);
+  const collecting = method === "CASH" ? fee : (paidOnline?.chargeAmount ?? 0);
   const uploading = documents.some((doc) => doc.uploading) || photos.some((p) => p.uploading);
 
   /** Room rows that have enough on them to be a room type at all. */
@@ -1068,6 +1100,8 @@ export function TeamRegisterHostelPage() {
       read<"BOYS" | "CO_LIVING" | "GIRLS">("hostelType", setHostelType);
       read<string>("yearEstablished", setYearEstablished);
       read<string>("totalFloors", setTotalFloors);
+      read<string>("panNumber", setPanNumber);
+      read<ShortStayDraft>("shortStays", setShortStays);
       read<string>("ownerName", setOwnerName);
       read<string>("phone", setPhone);
       read<string>("alternatePhone", setAlternatePhone);
@@ -1181,14 +1215,17 @@ export function TeamRegisterHostelPage() {
         }
 
         setPrepayment(row);
-        // An open part-payment row keeps its amount, so Take payment reuses it.
-        if (row.chargeAmount < row.amount) setOnlineAmount(String(row.chargeAmount));
+        // An open row keeps its fee, so Take payment reuses it.
+        if (row.kind === "SETUP_FEE") setAmount(String(row.amount));
 
-        // Paid for one plan at one price, so the form is put back on exactly that.
         if (row.status === "PAID") {
           setMethod("SOFTMATO");
-          setPlanId(row.planId);
-          setCycle(row.cycle);
+
+          // Paid for one plan at one price before setup fees: put back on exactly that.
+          if (row.kind === "PLAN") {
+            setPlanId(row.planId);
+            setCycle(row.cycle);
+          }
         }
       })
       .catch(() => {
@@ -1257,6 +1294,8 @@ export function TeamRegisterHostelPage() {
       step,
       timings,
       totalFloors,
+      panNumber,
+      shortStays,
       version: DRAFT_VERSION,
       yearEstablished,
     };
@@ -1304,6 +1343,8 @@ export function TeamRegisterHostelPage() {
     securityDeposit,
     step,
     timings,
+    panNumber,
+    shortStays,
     totalFloors,
     yearEstablished,
   ]);
@@ -1375,6 +1416,11 @@ export function TeamRegisterHostelPage() {
         valid: !yearEstablished.trim() || /^\d{4}$/.test(yearEstablished.trim()),
       },
       {
+        field: "panNumber",
+        message: "Nine digits, from the PAN/VAT certificate.",
+        valid: !panNumber.trim() || /^\d{9}$/.test(panNumber.replace(/\s/g, "")),
+      },
+      {
         field: "area",
         message: area.trim() ? "Needs at least 2 characters." : "Enter the area or locality.",
         valid: area.trim().length >= 2,
@@ -1410,9 +1456,14 @@ export function TeamRegisterHostelPage() {
         field: "amount",
         message:
           method === "SOFTMATO"
-            ? "Take the online payment. A hostel does not publish unpaid."
-            : "Enter the cash collected. A hostel does not publish unpaid.",
+            ? "Take the setup fee online. A hostel does not publish unpaid."
+            : "Enter the setup fee collected. A hostel does not publish unpaid.",
         valid: collecting > 0,
+      },
+      {
+        field: "amount",
+        message: `The setup fee is 1 to ${rupees(setupFee ?? 0)} — never more.`,
+        valid: method !== "CASH" || !amount.trim() || feeValid,
       },
     ];
 
@@ -1961,6 +2012,8 @@ export function TeamRegisterHostelPage() {
         .split(/\r?\n/)
         .map((line) => line.trim())
         .filter(Boolean),
+      panNumber: panNumber.replace(/\s/g, "") || undefined,
+      shortStays: shortStaysPayload(shortStays, rooms),
       totalFloors: numberValue(totalFloors),
       yearEstablished: yearEstablished.trim() || undefined,
     };
@@ -2038,7 +2091,7 @@ export function TeamRegisterHostelPage() {
    * plan. Softmato brings the agent back to `?prepayment=<id>`.
    */
   function takeOnlinePayment() {
-    if (!plan || !onlineChargeValid) return;
+    if (!plan || !feeValid) return;
 
     writeDraft();
     void handoff.start({
@@ -2052,7 +2105,7 @@ export function TeamRegisterHostelPage() {
         ownerName: ownerName.trim(),
         phone: phone.trim(),
         planId: plan.id,
-        ...(onlineAmount !== null ? { amount: onlineCharge } : {}),
+        amount: fee,
         ...(prepaymentId ? { prepaymentId } : {}),
       },
       endpoint: "/api/v1/team/prepayments",
@@ -2076,7 +2129,7 @@ export function TeamRegisterHostelPage() {
           // The return URL still carries it.
         }
       },
-      preparing: "Setting up the plan payment",
+      preparing: "Setting up the setup-fee payment",
     });
   }
 
@@ -2097,8 +2150,8 @@ export function TeamRegisterHostelPage() {
       return;
     }
 
-    if (collecting > price) {
-      setSubmitErrors({ amount: `Can't be more than the plan price of ${rupees(price)}.` });
+    if (method === "CASH" && !feeValid) {
+      setSubmitErrors({ amount: `The setup fee is 1 to ${rupees(setupFee ?? 0)} — never more.` });
       focusField("amount");
 
       return;
@@ -2127,15 +2180,14 @@ export function TeamRegisterHostelPage() {
     const confirmed = await confirm({
       actionLabel: "Publish the hostel",
       description: [
-        `${hostelName.trim()} goes live now, on the ${plan?.name} plan at ${rupees(price)}.`,
+        planLocked
+          ? `${hostelName.trim()} goes live now, on the ${plan?.name} plan at ${rupees(price)}.`
+          : `${hostelName.trim()} goes live now, on the ${plan?.name} plan${plan?.freeMonths ? `, free for ${plan.freeMonths} months if this building has not had them before` : ""}.`,
         // Only reached with money in (`blocking`), so it is one or the other.
         paidOnline
           ? `${rupees(paidOnline.amount)} paid online${paidOnline.reference ? ` (${paidOnline.reference})` : ""} is attached to it.`
-          : `${rupees(collecting)} cash is filed with Softmato; the owner's receipt follows once it is confirmed.`,
-        shortfall > 0
-          ? `${rupees(shortfall)} becomes a due on the owner's dashboard.`
-          : "Nothing left owing.",
-        "The owner will be emailed that their hostel is published.",
+          : `${rupees(collecting)} setup fee in cash is filed with Softmato; the owner's receipt follows once it is confirmed.`,
+        "The owner will be emailed that their hostel is published, with the amount you collected.",
       ].join(" "),
       title: "Publish this hostel?",
     });
@@ -2506,6 +2558,15 @@ export function TeamRegisterHostelPage() {
                       value={totalFloors}
                     />
                   </Field>
+                  <Field hint="Optional. Nine digits." label="PAN/VAT number" name="panNumber">
+                    <input
+                      className="input-field w-full tabular-nums"
+                      inputMode="numeric"
+                      onChange={(event) => setPanNumber(event.target.value)}
+                      placeholder="601234567"
+                      value={panNumber}
+                    />
+                  </Field>
                   <div className="sm:col-span-2">
                     <Field
                       hint="Two or three lines. It is the first thing a resident reads."
@@ -2741,6 +2802,13 @@ export function TeamRegisterHostelPage() {
                     </div>
                   ))}
                 </dl>
+              </Card>
+
+              <Card
+                subtitle="Stays of a few nights, booked and paid through us. Ask the owner."
+                title="Short stays"
+              >
+                <RegistrationShortStays onChange={setShortStays} rooms={rooms} value={shortStays} />
               </Card>
 
               <Card
@@ -3157,7 +3225,10 @@ export function TeamRegisterHostelPage() {
                 <PayoutAccountFields onChange={setPayout} value={payout} />
               </Card>
 
-              <Card subtitle="What they are buying." title="Plan">
+              <Card
+                subtitle="Nothing is paid for the plan today: it starts on its free months."
+                title="Plan"
+              >
                 <div className="mb-4 inline-flex rounded-lg border border-border bg-muted/50 p-1">
                   {cycles.map((option) => {
                     const saving = bestDiscountPercent(catalog, option.id);
@@ -3170,8 +3241,8 @@ export function TeamRegisterHostelPage() {
                             ? "bg-surface text-foreground shadow-sm"
                             : "text-muted-foreground hover:text-foreground disabled:hover:text-muted-foreground",
                         )}
-                        // Paid for one cycle; a different one would be a different price.
-                        disabled={Boolean(paidOnline)}
+                        // Paid for one cycle before setup fees; a different one would be a different price.
+                        disabled={planLocked}
                         key={option.id}
                         onClick={() => setCycle(option.id)}
                         type="button"
@@ -3203,7 +3274,7 @@ export function TeamRegisterHostelPage() {
                               ? "border-brand-teal bg-brand-teal/5 ring-1 ring-brand-teal/30"
                               : "border-border bg-surface hover:border-brand-teal/40",
                           )}
-                          disabled={Boolean(paidOnline) && entry.id !== paidOnline?.planId}
+                          disabled={planLocked && entry.id !== paidOnline?.planId}
                           key={entry.id}
                           onClick={() => setPlanId(entry.id)}
                           type="button"
@@ -3219,7 +3290,17 @@ export function TeamRegisterHostelPage() {
                             ) : null}
                           </div>
 
-                          <p className="mt-2 text-lg font-bold tabular-nums text-foreground">
+                          {entry.freeMonths ? (
+                            <p className="mt-2 text-xs font-semibold text-brand-teal">
+                              {entry.freeMonths} {entry.freeMonths === 1 ? "month" : "months"} free, then
+                            </p>
+                          ) : null}
+                          <p
+                            className={cn(
+                              "text-lg font-bold tabular-nums text-foreground",
+                              entry.freeMonths ? "mt-0.5" : "mt-2",
+                            )}
+                          >
                             {rupees(cycleTotal(entry, cycle))}
                             <span className="ml-1 text-xs font-medium text-muted-foreground">
                               /{" "}
@@ -3240,11 +3321,23 @@ export function TeamRegisterHostelPage() {
                   </div>
                 )}
                 <FieldError name="plan" />
+
+                {plan && !planLocked ? (
+                  <p className="mt-4 rounded-lg border border-border bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground">
+                    Tell the owner:{" "}
+                    {plan.freeMonths
+                      ? `this month is free, and ${plan.freeMonths - 1} more after it — no need to recharge until then.`
+                      : "the plan is billed from today."}{" "}
+                    After that they recharge this hostel themselves from Billing on the
+                    website{identity.supportPhone ? `, or call ${identity.supportPhone}` : ""}. A
+                    building that has had its free months before is billed from today.
+                  </p>
+                ) : null}
               </Card>
 
               <Card
-                subtitle="Full or part. The hostel does not publish until some of it is paid."
-                title="Payment"
+                subtitle={`One-off, collected now. Up to ${rupees(setupFee ?? 0)} — the hostel does not publish until it is paid.`}
+                title="Setup fee"
               >
                 <div className="flex gap-2">
                   {(
@@ -3272,7 +3365,7 @@ export function TeamRegisterHostelPage() {
                 </div>
 
                 {method === "SOFTMATO" && paidOnline ? (
-                  /* Softmato's figures, not the agent's: read-only, and the plan above is locked to them. */
+                  /* Softmato's figures, not the agent's: read-only. */
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     <Field
                       hint={`Paid online${paidOnline.provider ? ` by ${paidOnline.provider}` : ""}${paidOnline.paidAt ? `, ${new Date(paidOnline.paidAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}` : ""}.`}
@@ -3293,54 +3386,50 @@ export function TeamRegisterHostelPage() {
                       />
                     </Field>
                   </div>
-                ) : method === "SOFTMATO" ? (
+                ) : (
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <Field
+                      hint={`Whole rupees, 1 to ${rupees(setupFee ?? 0)}. Lower it if you agreed less; never more.`}
+                      label="Setup fee"
+                      name="amount"
+                    >
+                      <input
+                        className="input-field w-full tabular-nums"
+                        inputMode="numeric"
+                        onChange={(event) => setAmount(event.target.value)}
+                        placeholder={setupFee === null ? "" : String(setupFee)}
+                        value={amount}
+                      />
+                    </Field>
+                    {method === "CASH" ? (
+                      <Field hint="Slip number, if you wrote one." label="Reference" name="paymentReference">
+                        <input
+                          className="input-field w-full"
+                          onChange={(event) => setPaymentReference(event.target.value)}
+                          value={paymentReference}
+                        />
+                      </Field>
+                    ) : null}
+                  </div>
+                )}
+
+                {method === "SOFTMATO" && !paidOnline ? (
                   <div className="mt-4 rounded-lg border border-border bg-muted/30 p-4">
                     <p className="text-xs leading-relaxed text-muted-foreground">
                       {prepayment?.status === "OPEN"
                         ? "Not paid yet. If the owner already paid, check again."
                         : "Checkout opens on this screen with a QR the owner scans from their banking app or wallet. You come back here once it is paid."}
                     </p>
-                    {plan && onlineAmount !== null ? (
-                      <div className="mt-3 max-w-xs">
-                        <Field
-                          hint={`Part of the ${rupees(price)} plan price. The rest becomes the owner's due.`}
-                          label="Amount to take online"
-                          name="onlineAmount"
-                        >
-                          <input
-                            className="input-field w-full tabular-nums"
-                            inputMode="numeric"
-                            onChange={(event) => setOnlineAmount(event.target.value)}
-                            placeholder={String(price)}
-                            value={onlineAmount}
-                          />
-                        </Field>
-                        {onlineAmount && !onlineChargeValid ? (
-                          <p className="mt-1 text-xs font-medium text-destructive">
-                            Whole rupees, from 1 to {rupees(price)}.
-                          </p>
-                        ) : null}
-                      </div>
-                    ) : null}
                     <div className="mt-3 flex flex-wrap gap-2">
                       <button
                         className="inline-flex items-center gap-2 rounded-lg bg-brand-teal px-4 py-2.5 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-60"
-                        disabled={!plan || handoff.busy || !onlineChargeValid}
+                        disabled={!plan || handoff.busy || !feeValid}
                         onClick={takeOnlinePayment}
                         type="button"
                       >
                         <QrCode className="size-4" />
-                        {plan ? `Take payment · ${rupees(onlineCharge)}` : "Pick a plan first"}
+                        {plan ? `Take payment · ${rupees(fee)}` : "Pick a plan first"}
                       </button>
-                      {plan ? (
-                        <button
-                          className="rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:border-brand-teal/40"
-                          onClick={() => setOnlineAmount((current) => (current === null ? "" : null))}
-                          type="button"
-                        >
-                          {onlineAmount === null ? "Custom amount" : "Full price"}
-                        </button>
-                      ) : null}
                       {prepayment?.status === "OPEN" ? (
                         <button
                           className="rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:border-brand-teal/40"
@@ -3352,55 +3441,20 @@ export function TeamRegisterHostelPage() {
                       ) : null}
                     </div>
                   </div>
-                ) : (
-                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                    <Field hint="Whole rupees taken in hand." label="Amount collected" name="amount">
-                      <input
-                        className="input-field w-full"
-                        inputMode="numeric"
-                        onChange={(event) => setAmount(event.target.value)}
-                        placeholder="0"
-                        value={amount}
-                      />
-                    </Field>
-                    <Field hint="Slip number, if you wrote one." label="Reference" name="paymentReference">
-                      <input
-                        className="input-field w-full"
-                        onChange={(event) => setPaymentReference(event.target.value)}
-                        value={paymentReference}
-                      />
-                    </Field>
-                  </div>
-                )}
+                ) : null}
 
-                {plan ? (
-                  <dl className="mt-4 space-y-1.5 rounded-lg border border-border bg-muted/30 p-3 text-sm">
-                    <div className="flex justify-between">
-                      <dt className="text-muted-foreground">{plan.name}</dt>
-                      <dd className="font-semibold tabular-nums text-foreground">
-                        {rupees(price)}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between">
-                      <dt className="text-muted-foreground">Collecting now</dt>
-                      <dd className="font-semibold tabular-nums text-foreground">
-                        {rupees(collecting)}
-                      </dd>
-                    </div>
-                    <div className="flex justify-between border-t border-border pt-1.5">
-                      <dt className="font-semibold text-foreground">
-                        {shortfall > 0 ? "Owner will owe" : "Settled in full"}
-                      </dt>
-                      <dd
-                        className={cn(
-                          "font-bold tabular-nums",
-                          shortfall > 0 ? "text-warning" : "text-success",
-                        )}
-                      >
-                        {shortfall > 0 ? rupees(shortfall) : "—"}
-                      </dd>
-                    </div>
-                  </dl>
+                {method === "CASH" ? (
+                  <div className="mt-4 flex gap-2.5 rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-xs leading-relaxed text-foreground">
+                    <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" />
+                    <p>
+                      <strong className="font-semibold">
+                        Do not take more than {rupees(setupFee ?? 0)} in cash.
+                      </strong>{" "}
+                      We call every hostel after registration to confirm what they paid.
+                      Taking more than the setup fee, or anything for the plan, is fraud and
+                      can lead to legal action.
+                    </p>
+                  </div>
                 ) : null}
               </Card>
             </>
@@ -3441,9 +3495,16 @@ export function TeamRegisterHostelPage() {
                         "Documents",
                         String(documents.filter(isUploadedFile).length),
                       ],
-                      ["Plan", plan ? `${plan.name} · ${rupees(price)}` : "—"],
                       [
-                        "Collected",
+                        "Plan",
+                        plan
+                          ? planLocked
+                            ? `${plan.name} · ${rupees(price)}`
+                            : `${plan.name} · ${plan.freeMonths ? `${plan.freeMonths} months free, then ` : ""}${rupees(price)}`
+                          : "—",
+                      ],
+                      [
+                        planLocked ? "Collected" : "Setup fee",
                         paidOnline
                           ? `${rupees(paidOnline.amount)} · online · ${paidOnline.reference ?? "paid"}`
                           : method === "CASH" && collecting > 0
@@ -3526,12 +3587,6 @@ export function TeamRegisterHostelPage() {
                   )}
                   Review and publish
                 </button>
-
-                {shortfall > 0 && plan ? (
-                  <p className="text-xs text-muted-foreground">
-                    {rupees(shortfall)} will show as a due on their dashboard.
-                  </p>
-                ) : null}
               </div>
             </>
           ) : null}

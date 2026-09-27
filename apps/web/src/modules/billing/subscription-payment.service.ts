@@ -16,6 +16,8 @@ import {
   type InvoiceRecord as SubscriptionInvoiceRecord,
 } from "@/modules/billing/subscription.service";
 import { checkoutDocumentFor } from "@/modules/billing/balance-document";
+import { claimFreeMonths } from "@/modules/billing/free-months";
+import { servicePeriod } from "@/modules/billing/softmato/invoice";
 import { planAfterPayment } from "@/modules/billing/subscription.service";
 import { ensureLocalReceiptNumber } from "@/modules/billing/documents/issue";
 import { isSoftmatoConfigured } from "@/modules/billing/softmato/config";
@@ -362,9 +364,9 @@ export async function settlePayment(
     { $set: { status: balance.outstanding <= 0 ? "PAID" : "PARTIAL" } },
   );
 
-  // A team-registered hostel paying its plan in full earns its agent their
+  // A team-registered hostel's setup fee paid in full earns its agent their
   // commission. Once per hostel, and never able to fail the settlement.
-  if (balance.outstanding <= 0) {
+  if (balance.outstanding <= 0 && (await earnsCommission(invoice))) {
     await creditTeamCommission(invoice);
   }
 
@@ -417,6 +419,27 @@ export async function settlePayment(
   return getSubscriptionState(invoice.hostelId.toString());
 }
 
+/**
+ * Whether paying this invoice in full earns the registering agent commission.
+ *
+ * The setup fee does. A team hostel filed before the setup fee existed earns it
+ * on its first plan invoice instead, as it was promised when it was filed —
+ * recognised by having no setup-fee invoice at all. Any later plan invoice of
+ * a hostel that had a setup fee earns nothing. (`creditTeamCommission` keeps
+ * it to one credit per hostel either way.)
+ */
+async function earnsCommission(invoice: InvoiceRecord) {
+  if (invoice.kind === "SETUP_FEE") return true;
+  if (invoice.source !== "TEAM") return false;
+
+  const setupFee = await SubscriptionInvoiceModel.exists({
+    kind: "SETUP_FEE",
+    subscriptionId: invoice.subscriptionId,
+  });
+
+  return !setupFee;
+}
+
 /** `SRC-0001-4F2A`. Per hostel, lifetime — see `allocateNumber` next door. */
 async function allocateReceiptNumber(hostelId: Types.ObjectId) {
   const counter = await ReceiptCounterModel.findOneAndUpdate(
@@ -453,6 +476,11 @@ async function applySettlement(
 
   if (!subscription) {
     return null;
+  }
+
+  // A setup fee buys no time on the plan and publishes nothing.
+  if (invoice.kind === "SETUP_FEE") {
+    return { dueBy: null };
   }
 
   if (outstanding <= 0) {
@@ -530,6 +558,98 @@ async function applySettlement(
   }
 
   return { dueBy: null };
+}
+
+/**
+ * Starts a hostel's free months, the moment it goes live.
+ *
+ * Called where a hostel goes live without paying for its plan: a public
+ * hostel verified with a plan chosen (either order), and a team filing. The
+ * building is matched against every earlier claim first (`claimFreeMonths`);
+ * a building that has had its free months gets none, returns `null`, and the
+ * caller carries on with the paid flow exactly as before.
+ *
+ * With free months, there is no invoice: the plan simply runs, ACTIVE, until
+ * `freeUntil`, and is published and opened like a hostel that has paid. The
+ * first bill is raised by the renewal sweep as that date comes up.
+ *
+ * Idempotent: a subscription already given its free months is returned as it
+ * is, so an approval retried or a plan re-picked never restarts them.
+ */
+export async function startFreeMonths(hostelId: string, actorId?: string, from = new Date()) {
+  await connectToDatabase();
+
+  const subscription = await HostelSubscriptionModel.findOne({
+    hostelId: new Types.ObjectId(hostelId),
+  }).lean<{
+    _id: Types.ObjectId;
+    freeMonths?: number | null;
+    freeUntil?: Date | null;
+    hostelId: Types.ObjectId;
+    planId?: string | null;
+    source?: string;
+    status?: string;
+  } | null>();
+
+  if (!subscription?.planId) {
+    return null;
+  }
+
+  if (subscription.freeUntil) {
+    return { freeMonths: subscription.freeMonths ?? 0, freeUntil: subscription.freeUntil };
+  }
+
+  // Only a hostel that has not started paying yet. A plan already running or
+  // billed is not given months back on top.
+  if (!["SELECTED", "PENDING_SELECTION"].includes(subscription.status ?? "")) {
+    return null;
+  }
+
+  const claim = await claimFreeMonths(subscription.hostelId, {
+    freeMonths: subscription.freeMonths ?? 0,
+    id: subscription.planId,
+  });
+
+  if (claim.freeMonths <= 0) {
+    await HostelSubscriptionModel.updateOne({ _id: subscription._id }, { $set: { freeMonths: 0 } });
+
+    return null;
+  }
+
+  const period = servicePeriod(claim.freeMonths, null, from);
+
+  await HostelSubscriptionModel.updateOne(
+    { _id: subscription._id },
+    {
+      $set: {
+        activatedAt: period.startsAt,
+        currentPeriodEnd: period.endsAt,
+        dueBy: null,
+        freeMonths: claim.freeMonths,
+        freeUntil: period.endsAt,
+        status: "ACTIVE",
+      },
+    },
+  );
+
+  await publishForSubscription(subscription.hostelId, actorId);
+  await openHostelAfterPayment(subscription.hostelId, subscription.source, actorId);
+
+  await AuditLogModel.create({
+    action: "SUBSCRIPTION_FREE_MONTHS_STARTED",
+    actorId: actorId ?? null,
+    actorType: actorId ? "USER" : "SYSTEM",
+    entityId: subscription._id.toString(),
+    entityType: "HostelSubscription",
+    hostelId: subscription.hostelId,
+    metadata: {
+      freeMonths: claim.freeMonths,
+      freeUntil: period.endsAt.toISOString(),
+      planId: subscription.planId,
+    },
+  });
+
+  return { freeMonths: claim.freeMonths, freeUntil: period.endsAt };
 }
 
 /**

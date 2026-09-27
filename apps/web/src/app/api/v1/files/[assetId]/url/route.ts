@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { loadApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, errorResponse, successResponse } from "@/lib/api-response";
 import { connectToDatabase } from "@/lib/db";
-import { PLATFORM_ROLES } from "@/lib/permissions";
+import { HOSTEL_STAFF_ROLES, PLATFORM_ROLES } from "@/lib/permissions";
 import { getPresignedReadUrl } from "@/lib/r2";
 import { isValidDocumentClaimToken } from "@/lib/registration-documents";
 import { FileAssetModel } from "@hostel/db/models/FileAsset";
@@ -19,6 +19,21 @@ type RouteContext = {
 };
 
 const VALID_VARIANTS = new Set(["ORIGINAL", "THUMBNAIL", "MEDIUM", "LARGE"]);
+
+/*
+ * One person's evidence or the office's own books. They carry a `hostelId` so
+ * the hostel's staff can read them — not so every resident, guardian and the
+ * shared cook login on that hostel can, which is what the same-hostel grant
+ * alone allowed: any of them could open a neighbour's bank screenshot, the
+ * hostel's bank statement or an anonymous complaint recording by id. The
+ * hostel's collection QR stays hostel-wide on purpose: residents pay with it.
+ */
+const STAFF_ONLY_KINDS = new Set([
+  "COMPLAINT_NOTE",
+  "MAINTENANCE_NOTE",
+  "PAYMENT_PROOF",
+  "STATEMENT",
+]);
 
 /**
  * The one grant that reaches outside a hostel, and it is deliberately narrow.
@@ -187,9 +202,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
       // An unlabelled asset is now readable by its owner and the platform only.
       const isOwner = fileAsset.ownerId?.toString() === principal.userId;
       const isPlatform = PLATFORM_ROLES.includes(principal.role);
-      const isSameHostel = fileAsset.hostelId
-        ? principal.hostelIds.includes(fileAsset.hostelId.toString())
-        : false;
+      const isSameHostel =
+        Boolean(fileAsset.hostelId) &&
+        principal.hostelIds.includes(String(fileAsset.hostelId)) &&
+        (!STAFF_ONLY_KINDS.has(fileAsset.kind ?? "") ||
+          HOSTEL_STAFF_ROLES.includes(principal.role));
 
       /*
        * Checked last and only when nothing else already granted access: it is

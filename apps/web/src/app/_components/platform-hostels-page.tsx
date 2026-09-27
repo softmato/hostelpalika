@@ -602,9 +602,10 @@ export const PlatformHostelsPageContent = memo(function PlatformHostelsPageConte
                               {hostel.isDemoData ? (
                                 <DemoDataBadge label={hostel.demoDataLabel} />
                               ) : null}
+                              {hostel.branchOf ? <SoftBadge tone="amber">BRANCH</SoftBadge> : null}
                             </div>
                             <p className="truncate text-[11px] text-muted-foreground">
-                              {hostel.slug}
+                              {hostel.branchOf ? `Branch of ${hostel.branchOf.name}` : hostel.slug}
                             </p>
                           </div>
                         </div>

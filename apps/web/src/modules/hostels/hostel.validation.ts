@@ -352,6 +352,8 @@ export const hostelAdminProfileUpdateSchema = z.object({
     })
     .optional(),
   name: z.string().trim().min(2).max(160).optional(),
+  /** Set once, while the hostel has none — it ties branches to this business. */
+  panNumber: z.string().trim().regex(/^\d{9}$/, "A PAN/VAT number is 9 digits.").optional(),
   pricing: z
     .object({
       admissionFee: z.coerce.number().nonnegative().optional(),

@@ -140,6 +140,8 @@ export async function findBillableResidents(
   const filter: Record<string, unknown> = {
     hostelId,
     isDeleted: { $ne: true },
+    // A short-stay guest paid their nights upfront through the booking.
+    stayEndsAt: null,
     $or: [
       { status: "ACTIVE" },
       { moveOutDate: { $gte: start }, status: "MOVED_OUT" },

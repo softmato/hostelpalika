@@ -410,6 +410,20 @@ function phoneError(value: string, label: string): string | null {
 }
 
 /**
+ * The server's `isResidentPhone`, for the card's main phone: digits with
+ * spaces, dashes, dots or brackets and one leading `+`, 7–15 digits. Not a
+ * Nepali-carrier pattern — landlines, `+977` and Indian numbers are real.
+ */
+export function isResidentPhone(value: string): boolean {
+  const digits = value.replace(/\D/g, "");
+
+  return /^\+?[\d\s().-]+$/.test(value.trim()) && digits.length >= 7 && digits.length <= 15;
+}
+
+export const RESIDENT_PHONE_MESSAGE =
+  "Enter a phone number — digits only, with + and the country code if it isn't Nepali.";
+
+/**
  * Mirrors `residentProfileDataSchema`. Seven fields are required and the rest are
  * validated only when filled, which is exactly what the server's
  * `blankToUndefined` preprocessing does — a blank optional field must never fail
@@ -446,7 +460,9 @@ export function validateIdentity(draft: IdentityDraft): IdentityErrors {
     errors.province = "Pick your province.";
   }
 
-  const primaryPhone = phoneError(draft.primaryPhone, "Your phone number");
+  const primaryPhone =
+    phoneError(draft.primaryPhone, "Your phone number") ??
+    (isResidentPhone(draft.primaryPhone) ? null : RESIDENT_PHONE_MESSAGE);
 
   if (primaryPhone) {
     errors.primaryPhone = primaryPhone;

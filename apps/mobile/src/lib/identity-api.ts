@@ -226,6 +226,15 @@ export async function checkIdentityEmail(email: string) {
   return unwrap(response);
 }
 
+/** The same live check for the card's main phone (`phone-check`). */
+export async function checkIdentityPhone(phone: string) {
+  const response = await api.get<ApiEnvelope<{ phone: string; status: EmailCheckStatus }>>(
+    `/users/resident-identity/phone-check?phone=${encodeURIComponent(phone)}`,
+  );
+
+  return unwrap(response);
+}
+
 /**
  * Turning sharing off makes the id stop resolving for anyone who scans it. It
  * **404s with `RESIDENT_PROFILE_MISSING`** if no profile exists yet.

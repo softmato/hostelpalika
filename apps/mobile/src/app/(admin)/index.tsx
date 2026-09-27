@@ -15,7 +15,8 @@ import {
   ServiceGrid,
   WaitingActions,
 } from "@/components/admin-home";
-import { SubscriptionDueCard } from "@/components/subscription-due";
+import { BranchesCard, HostelSwitcher } from "@/components/hostel-switcher";
+import { FreeMonthCard, SubscriptionDueCard } from "@/components/subscription-due";
 import { SectionHeader } from "@/components/ui/card";
 import { Screen } from "@/components/ui/screen";
 import { ACTION_CARD } from "@/components/ui/action-grid";
@@ -287,6 +288,9 @@ export default function AdminHomeScreen() {
         refreshing={overview.refreshing || alerts.refreshing}
         scroll
       >
+        {/* Only an owner with branches sees it: which hostel every tab is about. */}
+        <HostelSwitcher />
+
         <HostelHero
           delta={delta}
           earnings={earnings}
@@ -342,6 +346,8 @@ export default function AdminHomeScreen() {
 
         <View className="gap-6 px-5 pt-6">
           <SubscriptionDueCard state={due.data ?? null} />
+          <FreeMonthCard state={due.data ?? null} />
+          <BranchesCard />
 
           {sosRows.length > 0 ? (
             <View className="gap-3">

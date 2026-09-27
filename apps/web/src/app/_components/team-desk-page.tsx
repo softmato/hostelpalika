@@ -39,10 +39,13 @@ type Registration = {
   cashCollected: number;
   city: string;
   dueBy: string | null;
+  /** The last free day of the plan; null for a hostel that went live without free months. */
+  freeUntil: string | null;
   hostelId: string;
   hostelName: string;
   hostelStatus: string;
   onlineCollected: number;
+  /** Owed on the plan only. The setup fee is apart. */
   outstanding: number;
   ownerEmail: string;
   ownerPhone: string;
@@ -50,9 +53,18 @@ type Registration = {
   planName: string;
   price: number;
   registeredAt: string | null;
+  /** Null on a hostel filed before setup fees. */
+  setupFee: { amount: number; collected: number } | null;
   slug: string;
   subscriptionStatus: string;
 };
+
+/** "Free until Kartik 12" / "Rs 999" — what the plan line under a hostel says. */
+function planLine(row: Registration) {
+  return row.freeUntil && Date.parse(row.freeUntil) >= Date.now()
+    ? `free until ${formatBsAdDate(new Date(row.freeUntil))}`
+    : rupees(row.price);
+}
 
 type Wallet = {
   balance: number;
@@ -143,7 +155,7 @@ function EarningsRow({ entries, wallet }: { entries: WalletEntry[]; wallet: Wall
           <Figure label="Due" tone="text-warning" value={rupees(wallet?.today.due ?? 0)} />
         </div>
         <p className="mt-3 text-[11px] text-muted-foreground">
-          {rate} of each new hostel&apos;s first plan payment, credited when it is paid in full.
+          {rate} of each new hostel&apos;s setup fee, credited once the fee clears.
         </p>
       </div>
 
@@ -365,7 +377,7 @@ export function TeamDeskPage() {
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-foreground">{row.hostelName}</p>
                       <p className="text-xs text-muted-foreground">
-                        {row.planName || "—"} · {rupees(row.price)}
+                        {row.planName || "—"} · {planLine(row)}
                       </p>
                     </div>
                     <span
@@ -379,7 +391,13 @@ export function TeamDeskPage() {
                   </div>
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">
-                      Paid <strong className="text-foreground">{rupees(row.paid)}</strong>
+                      {row.setupFee ? "Setup fee" : "Paid"}{" "}
+                      <strong className="text-foreground">
+                        {rupees(row.setupFee ? row.setupFee.amount : row.paid)}
+                      </strong>
+                      {row.setupFee && row.setupFee.collected < row.setupFee.amount
+                        ? " · waiting on confirmation"
+                        : ""}
                     </span>
                     {row.outstanding > 0 ? payButton(row) : null}
                   </div>
@@ -453,11 +471,17 @@ export function TeamDeskPage() {
                         {row.planName || "—"}
                       </p>
                       <p className="text-xs tabular-nums text-muted-foreground">
-                        {rupees(row.price)}
+                        {planLine(row)}
                       </p>
                     </td>
                     <td className="px-4 py-3 text-right font-semibold tabular-nums text-foreground">
                       {rupees(row.paid)}
+                      {row.setupFee ? (
+                        <span className="block text-[11px] font-normal text-muted-foreground">
+                          {rupees(row.setupFee.amount)} setup fee
+                          {row.setupFee.collected < row.setupFee.amount ? ", not confirmed yet" : ""}
+                        </span>
+                      ) : null}
                       {row.cashCollected > 0 ? (
                         <span className="block text-[11px] font-normal text-muted-foreground">
                           {rupees(row.cashCollected)} cash

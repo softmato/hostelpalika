@@ -3,6 +3,7 @@ import { useCallback, useState } from "react";
 import { View } from "react-native";
 
 import { PayoutAccountCard } from "@/components/manage/payout-account-card";
+import { ShortStaysCard } from "@/components/manage/short-stays-card";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -209,6 +210,7 @@ export default function ManageBookingsScreen() {
         {tab === "settings" ? (
           <View className="gap-3">
             <PayoutAccountCard />
+            <ShortStaysCard />
             <Button
               label="How booking works"
               onPress={() => router.push("/legal/how-booking-works")}

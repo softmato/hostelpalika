@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { payoutAccountInputSchema } from "@/modules/bookings/payout-account.validation";
+import { shortStaysInputSchema } from "@/modules/bookings/short-stay";
 import { foodRoutineSaveSchema } from "@/modules/food/food.validation";
 import { platformHostelCreateSchema } from "@/modules/hostels/hostel.validation";
 
@@ -90,7 +91,18 @@ const registrationFields = platformHostelCreateSchema
      * owner actually handed us is the honest thing to keep.
      */
     mapLink: z.string().trim().max(500).optional(),
+    /** The business's PAN/VAT number. Nepal issues nine digits. */
+    panNumber: z
+      .string()
+      .trim()
+      .regex(/^\d{9}$/, "A PAN/VAT number is 9 digits.")
+      .optional(),
     plan: registrationPlanChoiceSchema.optional(),
+    /**
+     * "Do you offer short stays?" Each daily rate is checked against its room's
+     * floor on the server before the hostel is created (`registrationShortStays`).
+     */
+    shortStays: shortStaysInputSchema.optional(),
     /*
      * The weekly food routine, seeded at registration.
      *

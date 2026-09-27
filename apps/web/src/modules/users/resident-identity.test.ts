@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { normalizeResidentId } from "@/modules/users/resident-identity.service";
 import {
   residentIdentitySaveSchema,
+  residentPhoneKey,
   residentProfileDataSchema,
 } from "@/modules/users/resident-identity.validation";
 
@@ -113,6 +114,24 @@ describe("residentProfileDataSchema", () => {
         backupEmail: "asha.backup@example.com",
       }).backupEmail,
     ).toBe("asha.backup@example.com");
+  });
+
+  it("wants a number for the main phone, however it is typed", () => {
+    expect(() =>
+      residentProfileDataSchema.parse({ ...validProfile, primaryPhone: "call me maybe" }),
+    ).toThrow();
+
+    for (const primaryPhone of ["+977 981-234-5678", "(01) 4412345", "+91 98123 45678"]) {
+      expect(
+        residentProfileDataSchema.parse({ ...validProfile, primaryPhone }).primaryPhone,
+      ).toBe(primaryPhone);
+    }
+  });
+
+  it("keys one Nepali number the same with or without +977, and no other country", () => {
+    expect(residentPhoneKey("+977 981-234-5678")).toBe("9812345678");
+    expect(residentPhoneKey("9812345678")).toBe("9812345678");
+    expect(residentPhoneKey("+91 98123 45678")).toBe("919812345678");
   });
 
   it("treats blank optional fields as absent", () => {

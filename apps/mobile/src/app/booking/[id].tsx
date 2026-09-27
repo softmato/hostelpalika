@@ -228,6 +228,13 @@ export default function BookingScreen() {
               rows={[
                 ["Monthly rent", formatMoney(data.monthlyRent)],
                 ["Booking fee", formatMoney(data.fee)],
+                ...(data.stay
+                  ? ([
+                      ["Stay", `${data.stay.nights} nights · ${data.stay.dates}`],
+                      ["Nights", formatMoney(data.stay.amount)],
+                      ["Total paid", formatMoney(data.total)],
+                    ] as [string, string][])
+                  : []),
                 ["Refund account", `${data.refundAccount.methodLabel} ${data.refundAccount.maskedNumber}`],
                 ["Hostel phone", data.hostel.phone],
                 ["Address", data.hostel.address],

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { ChoiceChips } from "@/components/ui/choice-chips";
 import { Input } from "@/components/ui/input";
+import { Segmented } from "@/components/ui/segmented";
 import { FactRow } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
@@ -190,15 +191,93 @@ function RoomChooser({ availability, slug }: { availability: BookingAvailability
   );
 }
 
+type StayDates = { moveIn: string; moveOut: string };
+
+const DAY_INPUT = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * Monthly or a short stay. A short stay types its dates (the same YYYY-MM-DD
+ * field the intake uses) and is re-quoted as they change.
+ */
+function StayPicker({
+  dates,
+  onDates,
+  onShortStay,
+  quote,
+  shortStay,
+}: {
+  dates: StayDates;
+  onDates: (next: StayDates) => void;
+  onShortStay: (next: boolean) => void;
+  quote: BookingQuote;
+  shortStay: boolean;
+}) {
+  const offer = quote.shortStay;
+
+  if (!offer?.available || !offer.limits) return null;
+
+  return (
+    <View className="gap-3">
+      <Segmented
+        onChange={(value) => onShortStay(value === "short")}
+        options={[
+          { label: "Monthly", value: "monthly" },
+          { label: `Short stay · ${formatMoney(offer.dailyRate)}/night`, value: "short" },
+        ]}
+        value={shortStay ? "short" : "monthly"}
+      />
+      {shortStay ? (
+        <Card className="gap-3">
+          <Input
+            hint={`Up to ${offer.limits.maxAdvanceDays} days ahead`}
+            keyboardType="numbers-and-punctuation"
+            label="Move in"
+            onChangeText={(moveIn) => onDates({ ...dates, moveIn })}
+            placeholder="YYYY-MM-DD"
+            value={dates.moveIn}
+          />
+          <Input
+            hint={`${offer.limits.minNights}–${offer.limits.maxNights} nights`}
+            keyboardType="numbers-and-punctuation"
+            label="Move out"
+            onChangeText={(moveOut) => onDates({ ...dates, moveOut })}
+            placeholder="YYYY-MM-DD"
+            value={dates.moveOut}
+          />
+          {offer.error ? <Text className="text-sm text-destructive">{offer.error.message}</Text> : null}
+          {offer.quote ? (
+            <Facts
+              rows={[
+                ["Nights", `${offer.quote.nights} × ${formatMoney(offer.dailyRate)} = ${formatMoney(offer.quote.stayAmount)}`],
+                [
+                  "Booking fee",
+                  offer.quote.holdBlocks > 1
+                    ? `${formatMoney(offer.quote.fee)} (${offer.quote.holdBlocks} weeks held)`
+                    : formatMoney(offer.quote.fee),
+                ],
+                ["Total, paid now", formatMoney(offer.quote.total)],
+              ]}
+            />
+          ) : null}
+        </Card>
+      ) : null}
+    </View>
+  );
+}
+
 function BookingForm({
   onBooked,
   onPolicyChanged,
   quote,
+  stay,
 }: {
   onBooked: (booking: BookingDetail) => void;
   onPolicyChanged: () => void;
   quote: BookingQuote;
+  /** A chosen short stay: its priced dates, or "unpriced" until they are. */
+  stay: (StayDates & { total: number }) | null | "unpriced";
 }) {
+  const priced = stay && stay !== "unpriced" ? stay : null;
   const account = useAppSelector((state) => state.auth.account);
   const [method, setMethod] = useState<RefundMethod>("ESEWA");
   const [holderName, setHolderName] = useState(account?.name ?? "");
@@ -221,6 +300,7 @@ function BookingForm({
       onBooked(
         await createBooking({
           hostel: quote.hostel.slug,
+          ...(priced ? { kind: "SHORT_STAY" as const, moveIn: priced.moveIn, moveOut: priced.moveOut } : {}),
           policyVersion: quote.policyVersion,
           refundAccount: { bankName, branch, holderName, method, number },
           roomType: quote.room.roomType,
@@ -296,7 +376,12 @@ function BookingForm({
         </View>
       ) : null}
 
-      <Button label={`Book and pay ${formatMoney(quote.fee)}`} loading={busy} onPress={() => void submit()} />
+      <Button
+        disabled={stay === "unpriced"}
+        label={stay === "unpriced" ? "Pick your dates" : `Book and pay ${formatMoney(priced ? priced.total : quote.fee)}`}
+        loading={busy}
+        onPress={() => void submit()}
+      />
     </View>
   );
 }
@@ -406,6 +491,10 @@ export default function CheckoutScreen() {
   const [booking, setBooking] = useState<BookingDetail | null>(null);
   const room = params.room?.trim() || null;
   const bookingId = booking?.id ?? params.booking ?? null;
+  const [shortStay, setShortStay] = useState(false);
+  const [dates, setDates] = useState<StayDates>({ moveIn: "", moveOut: "" });
+  const priceIn = shortStay && DAY_INPUT.test(dates.moveIn) && DAY_INPUT.test(dates.moveOut) ? dates.moveIn : "";
+  const priceOut = priceIn ? dates.moveOut : "";
 
   const availability = useResource<BookingAvailability>(
     useCallback(() => getBookingAvailability(params.slug), [params.slug]),
@@ -413,10 +502,13 @@ export default function CheckoutScreen() {
   );
   const quote = useResource<BookingQuote | null>(
     useCallback(
-      () => (room ? getBookingQuote(params.slug, room, Boolean(account)) : Promise.resolve(null)),
-      [account, params.slug, room],
+      () =>
+        room
+          ? getBookingQuote(params.slug, room, Boolean(account), priceIn ? { moveIn: priceIn, moveOut: priceOut } : null)
+          : Promise.resolve(null),
+      [account, params.slug, priceIn, priceOut, room],
     ),
-    { cacheKey: `booking-quote:${params.slug}:${room ?? ""}:${account ? "in" : "out"}` },
+    { cacheKey: `booking-quote:${params.slug}:${room ?? ""}:${account ? "in" : "out"}:${priceIn}:${priceOut}` },
   );
   const existing = useResource<BookingDetail | null>(
     useCallback(
@@ -437,7 +529,7 @@ export default function CheckoutScreen() {
     );
   }
 
-  if (quote.loading || (bookingId && existing.loading && !booking)) {
+  if ((quote.loading && !quote.data) || (bookingId && existing.loading && !booking)) {
     return (
       <Screen header={header} scroll>
         <View className="gap-3">
@@ -492,6 +584,13 @@ export default function CheckoutScreen() {
   } else {
     step = (
       <BookingForm
+        stay={
+          !shortStay
+            ? null
+            : data.shortStay?.quote && priceIn && data.shortStay.quote.moveIn === priceIn && data.shortStay.quote.moveOut === priceOut
+              ? { moveIn: priceIn, moveOut: priceOut, total: data.shortStay.quote.total }
+              : "unpriced"
+        }
         onBooked={(created) => {
           setBooking(created);
           router.setParams({ booking: created.id });
@@ -506,6 +605,9 @@ export default function CheckoutScreen() {
     <Screen header={header} scroll>
       <View className="gap-6">
         <PackageCard quote={data} />
+        {!current ? (
+          <StayPicker dates={dates} onDates={setDates} onShortStay={setShortStay} quote={data} shortStay={shortStay} />
+        ) : null}
         {step}
       </View>
     </Screen>

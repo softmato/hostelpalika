@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { HostelAdminAttendancePageContent } from "@/app/_components/hostel-admin-attendance-page";
 import { HostelAdminBillingPageContent } from "@/app/_components/hostel-admin-billing-page";
 import { HostelAdminBookingsPage } from "@/app/_components/hostel-admin-bookings-page";
+import { HostelBranchesPageContent } from "@/app/_components/hostel-branches-page";
 import { HostelAdminCommunityPageContent } from "@/app/_components/hostel-admin-community-page";
 import { HostelAdminComplaintsPage } from "@/app/_components/hostel-admin-complaints-page";
 import { HostelAdminDashboardPageContent } from "@/app/_components/hostel-admin-dashboard-page";
@@ -67,6 +68,7 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   "payment-setup": () => <HostelAdminPaymentProfilePageContent />,
   payments: () => <HostelAdminPaymentsPage />,
   profile: () => <HostelAdminProfilePageContent />,
+  branches: () => <HostelBranchesPageContent />,
   reconcile: () => <HostelAdminReconcilePageContent />,
   referrals: () => <HostelAdminReferralsPageContent />,
   reports: () => <HostelAdminReportsPageContent />,

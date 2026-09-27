@@ -45,7 +45,8 @@ describe("platform moderator navigation", () => {
   // The palette is derived from the same tree, so a hidden tab must not remain
   // searchable — that is the whole point of one nav source of truth.
   it("keeps the command palette in step with the sidebar", () => {
-    expect(PLATFORM_MODERATOR_SEARCH_ENTRIES).toEqual(
+    // Field entries ride on these pages; platform-field-index.test.ts covers them.
+    expect(PLATFORM_MODERATOR_SEARCH_ENTRIES.filter((entry) => !entry.field)).toEqual(
       searchEntriesFromNav(PLATFORM_MODERATOR_NAV),
     );
     expect(

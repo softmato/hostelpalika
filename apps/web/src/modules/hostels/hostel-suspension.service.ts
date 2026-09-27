@@ -76,17 +76,25 @@ export async function startHostelSuspension(
 
   const objectId = hostelObjectId(hostelId);
   const hostel = await HostelModel.findOne({ _id: objectId, isDeleted: { $ne: true } })
-    .select("contact name ownerId slug suspension")
+    .select("contact name ownerId parentHostelId slug suspension")
     .lean<{
       contact?: { email?: string };
       name?: string;
       ownerId?: Types.ObjectId;
+      parentHostelId?: Types.ObjectId | null;
       slug?: string;
       suspension?: SuspensionRecord | null;
     } | null>();
 
   if (!hostel) {
     throw new HostelSuspensionError("Hostel not found.", "HOSTEL_NOT_FOUND", 404);
+  }
+
+  if (hostel.parentHostelId) {
+    throw new HostelSuspensionError(
+      "This is a branch, billed with its main hostel. Suspend the main hostel — its branches follow it.",
+      "BRANCH_FOLLOWS_MAIN",
+    );
   }
 
   const running = serializeSuspension(hostel.suspension);
@@ -158,6 +166,13 @@ export async function startHostelSuspension(
       "ALREADY_SUSPENDED",
     );
   }
+
+  // Its branches are on the same plan, so the same clock runs on them. Every
+  // guard reads `Hostel.suspension`, so copying it is all a branch needs.
+  await HostelModel.updateMany(
+    { isDeleted: { $ne: true }, parentHostelId: objectId },
+    { $set: { suspension: started.suspension } },
+  );
 
   const owner = hostel.ownerId
     ? await UserModel.findOne({ _id: hostel.ownerId, isDeleted: { $ne: true } })

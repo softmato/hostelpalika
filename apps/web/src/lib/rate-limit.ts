@@ -14,6 +14,7 @@ type PublicFormRateLimitOptions = {
 };
 
 const buckets = new Map<string, RateLimitBucket>();
+const MAX_BUCKETS = 10_000;
 
 function positiveInteger(value: string | undefined, fallback: number) {
   const parsed = Number(value);
@@ -52,6 +53,13 @@ export function rateLimitPublicForm(
   const existing = buckets.get(key);
 
   if (!existing || existing.resetAt <= now) {
+    // A warm instance sees every visitor it ever served, so the map is capped:
+    // a Map iterates oldest first, and the oldest bucket goes. O(1) even under
+    // a flood of new keys, where a sweep would rescan every entry each time.
+    if (buckets.size >= MAX_BUCKETS) {
+      buckets.delete(buckets.keys().next().value!);
+    }
+
     buckets.set(key, { count: 1, resetAt: now + windowMs });
     return null;
   }

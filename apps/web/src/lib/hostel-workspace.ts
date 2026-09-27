@@ -9,6 +9,8 @@ import { HostelModel } from "@hostel/db/models/Hostel";
 
 type WorkspaceHostel = {
   id: string;
+  /** A branch of a Max hostel — labelled so in the switcher. */
+  isBranch: boolean;
   name: string;
   slug: string;
 };
@@ -26,6 +28,7 @@ async function previewHostels(): Promise<WorkspaceHostel[]> {
 
   return hostels.map((hostel) => ({
     id: hostel._id.toString(),
+    isBranch: false,
     name: hostel.name,
     slug: hostel.slug,
   }));
@@ -68,14 +71,22 @@ export const listWorkspaceHostels = cache(async (): Promise<WorkspaceHostel[]> =
     _id: { $in: hostelIds },
     isDeleted: { $ne: true },
   })
-    .select("name slug")
-    .lean<Array<{ _id: { toString(): string }; name: string; slug: string }>>();
+    .select("name parentHostelId slug")
+    .lean<
+      Array<{ _id: { toString(): string }; name: string; parentHostelId?: unknown; slug: string }>
+    >();
 
-  return hostels.map((hostel) => ({
-    id: hostel._id.toString(),
-    name: hostel.name,
-    slug: hostel.slug,
-  }));
+  // The token's order: the hostel granted first — the main one — leads.
+  const order = new Map(hostelIds.map((id, index) => [id, index]));
+
+  return hostels
+    .map((hostel) => ({
+      id: hostel._id.toString(),
+      isBranch: Boolean(hostel.parentHostelId),
+      name: hostel.name,
+      slug: hostel.slug,
+    }))
+    .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
 });
 
 /** The slug the portal should open by default for this staff member. */

@@ -26,9 +26,11 @@ import { Screen } from "@/components/ui/screen";
 import { Select } from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
+import { Toggle } from "@/components/ui/toggle";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDraftAutosave } from "@/hooks/use-draft-autosave";
+import { useResource } from "@/hooks/use-resource";
 import { readApiError } from "@/lib/api-contract";
 import type { Coordinates } from "@/lib/geo";
 import {
@@ -46,6 +48,7 @@ import {
   ID_PROOF_TYPES,
   isHostelStepComplete,
   MEAL_INCLUSIONS,
+  numberValue,
   ROOM_TYPE_OPTIONS,
   RULES_TEMPLATES,
   type HostelErrors,
@@ -53,7 +56,9 @@ import {
   type HostelStepKey,
   type IdProofType,
   type RoomRow,
+  type ShortStayForm,
 } from "@/lib/hostel-registration";
+import { getRefundPolicy } from "@/lib/booking-api";
 import { uploadPublicFile, uploadPublicText } from "@/lib/public-uploads";
 import { registerHostelApplication } from "@/lib/registration-api";
 import {
@@ -799,6 +804,15 @@ function HostelWizard({
               variant="line"
             />
             <Input
+              error={errors.panNumber}
+              hint="Optional. Nine digits, from your PAN/VAT certificate."
+              keyboardType="number-pad"
+              label="PAN/VAT number"
+              onChangeText={(value) => patch({ panNumber: value })}
+              value={form.panNumber}
+              variant="line"
+            />
+            <Input
               autoCapitalize="none"
               error={errors.email}
               hint="This becomes your owner login."
@@ -968,6 +982,12 @@ function HostelWizard({
               variant="line"
             />
           </Accordion>
+
+          <ShortStaysSection
+            onChange={(shortStays) => patch({ shortStays })}
+            rooms={form.rooms}
+            value={form.shortStays}
+          />
         </>
       ) : null}
 
@@ -1122,6 +1142,71 @@ function HostelWizard({
 }
 
 /** The faint hairline between one document and the next. */
+/**
+ * "Do you offer short stays?" — a daily rate per room type, each shown against
+ * its floor (monthly ÷ 30 plus the platform's markup). The server checks again.
+ */
+function ShortStaysSection({
+  onChange,
+  rooms,
+  value,
+}: {
+  onChange: (next: ShortStayForm) => void;
+  rooms: HostelForm["rooms"];
+  value: ShortStayForm;
+}) {
+  const policy = useResource(getRefundPolicy, { cacheKey: "booking-policy" });
+  const terms = policy.data?.shortStay;
+
+  return (
+    <Accordion caption="Optional" defaultOpen={value.enabled} title="Short stays">
+      <View className="flex-row items-center justify-between gap-3">
+        <Text className="flex-1" variant="caption">
+          {`Guests book a few nights${terms ? ` (up to ${terms.maxNights})` : ""} and pay us upfront. You get ${terms ? `${terms.hostelSharePercent}%` : "your share"} of the nights once they check in.`}
+        </Text>
+        <Toggle
+          accessibilityLabel="Offers short stays"
+          onChange={(enabled) => onChange({ ...value, enabled })}
+          value={value.enabled}
+        />
+      </View>
+      {value.enabled ? (
+        <>
+          <Input
+            inputMode="numeric"
+            label="Fewest nights"
+            onChangeText={(minNights) => onChange({ ...value, minNights })}
+            value={value.minNights}
+            variant="line"
+          />
+          {rooms
+            .filter((room) => room.roomType.trim())
+            .map((room) => {
+              const name = room.roomType.trim();
+              const monthly = numberValue(room.monthlyRent) ?? 0;
+              const floor =
+                terms && monthly > 0 ? Math.max(1, Math.ceil((monthly * (100 + terms.minMarkupPercent)) / 3000)) : null;
+              const rate = value.rates[name] ?? "";
+
+              return (
+                <Input
+                  error={floor && rate && Number(rate) < floor ? `At least NPR ${floor} a night` : undefined}
+                  hint={floor ? `At least NPR ${floor} a night` : "Enter its monthly rent first"}
+                  inputMode="numeric"
+                  key={room.id}
+                  label={`${name} · a night`}
+                  onChangeText={(next) => onChange({ ...value, rates: { ...value.rates, [name]: next } })}
+                  value={rate}
+                  variant="line"
+                />
+              );
+            })}
+        </>
+      ) : null}
+    </Accordion>
+  );
+}
+
 function SectionRule() {
   return <View className="h-px bg-border opacity-50" />;
 }
@@ -1403,6 +1488,7 @@ function HostelReview({
       ],
       ["Owner", dash(form.ownerName)],
       ["Phone", dash(form.ownerPhone)],
+      ["PAN/VAT", dash(form.panNumber)],
       ["Email", dash(form.email)],
     ],
     documents: [
@@ -1449,6 +1535,15 @@ function HostelReview({
       [
         "Admission fee",
         form.admissionFee ? `NPR ${form.admissionFee}` : "None",
+      ],
+      [
+        "Short stays",
+        form.shortStays.enabled
+          ? Object.entries(form.shortStays.rates)
+              .filter(([, rate]) => Number(rate) > 0)
+              .map(([name, rate]) => `${name} NPR ${rate}/night`)
+              .join(" · ") || "Yes"
+          : "No",
       ],
     ],
   };

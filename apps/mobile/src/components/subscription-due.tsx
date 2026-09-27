@@ -138,3 +138,39 @@ export function SubscriptionDueCard({
     </Card>
   );
 }
+
+/**
+ * "Enjoy the free Go plan this month" — while a hostel is on its free months.
+ *
+ * Facts only, like the due card above: which month this is, how many are left,
+ * and the last free day. The website's copy of this card also says where the
+ * plan is recharged afterwards; the app may not (Play payments rule).
+ */
+export function FreeMonthCard({ state }: { state: AdminSubscription | null }) {
+  const dates = useDates();
+  const now = state?.subscription.freeMonthNow;
+
+  if (!state || !now) {
+    return null;
+  }
+
+  return (
+    <Card className="gap-3">
+      <ListRow
+        icon="gift-outline"
+        subtitle={
+          now.left > 0
+            ? `${now.left} more free ${now.left === 1 ? "month" : "months"} after this one`
+            : "Your last free month"
+        }
+        title={`Enjoy the free ${state.subscription.planName ? `${state.subscription.planName} plan` : "plan"} this month`}
+      />
+      <View className="border-t border-border pt-3">
+        <Text variant="caption">
+          Free month {now.month} of {now.of} · free until{" "}
+          {dates.dateLong(state.subscription.freeUntil ?? now.endsAt)}
+        </Text>
+      </View>
+    </Card>
+  );
+}

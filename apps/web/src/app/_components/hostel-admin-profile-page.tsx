@@ -637,6 +637,10 @@ export const HostelAdminProfilePageContent = memo(
               */
               rules: csvField(form, "rules"),
               totalFloors: numberField(form, "totalFloors"),
+              // Written once: the box only shows while empty, and the server ignores a second.
+              ...(field(form, "panNumber")
+                ? { panNumber: field(form, "panNumber")?.replace(/\s/g, "") }
+                : {}),
             }),
             method: "PATCH",
           });
@@ -745,6 +749,7 @@ export const HostelAdminProfilePageContent = memo(
                     ["Phone", hostel.contact?.phone || "—"],
                     ["Email", hostel.contact?.email || "—"],
                     ["Floors", String(hostel.totalFloors ?? 0)],
+                    ["PAN/VAT", hostel.panNumber || "Not given"],
                     ["Total rooms", String(hostel.capacitySummary?.totalRooms ?? 0)],
                     ["Total beds", String(hostel.capacitySummary?.totalBeds ?? 0)],
                     ["Vacant beds", String(hostel.capacitySummary?.vacantBeds ?? 0)],
@@ -821,6 +826,21 @@ export const HostelAdminProfilePageContent = memo(
                         name="totalFloors"
                         type="number"
                       />
+                    </SettingsRow>
+
+                    <SettingsRow
+                      description={
+                        hostel.panNumber
+                          ? "Set. Branches must match it — ask us to correct a mistake."
+                          : "Nine digits, from your PAN/VAT certificate. Set once; branches must match it."
+                      }
+                      label="PAN/VAT number"
+                    >
+                      {hostel.panNumber ? (
+                        <p className="font-mono text-sm font-semibold text-foreground">{hostel.panNumber}</p>
+                      ) : (
+                        <Input label={null} name="panNumber" placeholder="601234567" />
+                      )}
                     </SettingsRow>
 
                     <SettingsBlock

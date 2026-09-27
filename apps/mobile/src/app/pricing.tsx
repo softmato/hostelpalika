@@ -278,6 +278,11 @@ function PlanCard({
         </View>
 
         <View className="items-start gap-3">
+          {plan.freeMonths ? (
+            <Text className="text-sm font-semibold text-primary" variant={null}>
+              First {plan.freeMonths} {plan.freeMonths === 1 ? "month" : "months"} free, then
+            </Text>
+          ) : null}
           {/* Annual keeps the monthly figure beside it, struck through, so the
               discount has something to be compared against. */}
           <View className="flex-row flex-wrap items-baseline gap-2.5">

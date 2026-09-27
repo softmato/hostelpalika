@@ -103,6 +103,15 @@ vi.mock("@/modules/notifications/notification.service", () => ({
   saveDeviceToken: routeMocks.saveDeviceToken,
 }));
 
+// The guardian sign-in counts failed codes in Mongo.
+vi.mock("@/lib/db", () => ({ connectToDatabase: vi.fn() }));
+
+vi.mock("@hostel/db/models/AuthAttempt", async () => {
+  const { fakeModel } = await import("../../../../test/fake-mongo");
+
+  return { AuthAttemptModel: fakeModel() };
+});
+
 import * as guardianDashboardRoute from "@/app/api/v1/guardian/dashboard/route";
 import * as guardianFoodRoute from "@/app/api/v1/guardian/food/route";
 import * as guardianLoginRoute from "@/app/api/v1/guardian/login/route";

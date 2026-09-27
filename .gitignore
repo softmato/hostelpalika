@@ -12,6 +12,8 @@ ui_inspiration_folder
 
 # Logs
 *.log
+# Crash dumps Git Bash leaves beside the repo.
+*.stackdump
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

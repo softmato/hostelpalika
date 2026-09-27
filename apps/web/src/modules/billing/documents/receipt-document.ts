@@ -80,6 +80,10 @@ export async function renderReceiptDocument(
   pdf.setTitle(`Receipt ${input.documentNumber}`);
   pdf.setProducer(input.issuer.legalName);
   pdf.setCreator(input.issuer.productName || input.issuer.legalName);
+  // The payment's date, not the render's: the same receipt renders to the same
+  // bytes, and the file's metadata agrees with the date printed on it.
+  pdf.setCreationDate(input.paidAt);
+  pdf.setModificationDate(input.paidAt);
 
   const balance = Math.max(0, input.invoiceTotal - input.totalReceived);
   const settled = balance === 0;

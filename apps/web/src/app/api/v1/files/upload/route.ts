@@ -154,7 +154,9 @@ export async function POST(request: NextRequest) {
         await mkdir(uploadDir, { recursive: true });
       }
 
-      const ext = fileName.split(".").pop()?.toLowerCase() ?? "bin";
+      // From the checked type, never the client's name: `public/` is served
+      // from our own origin, and a PDF named `x.html` would be served as a page.
+      const ext = mimeType.split("/")[1];
       const uniqueName = `${crypto.randomUUID()}.${ext}`;
       const filePath = join(uploadDir, uniqueName);
       await writeFile(filePath, buffer);

@@ -81,11 +81,19 @@ export const operationsConfigSchema = z.object({
   collectionQrLabel: z.string().trim().max(120).default(""),
   /**
    * What a field agent earns on a hostel they registered, as a percent of its
-   * first plan payment — credited to their wallet the moment that payment
-   * clears. Each credit copies the rate it used, so changing this only affects
-   * hostels that pay after the change.
+   * setup fee — credited to their wallet the moment that fee clears. Hostels
+   * filed before the setup fee earn it on their first plan payment instead.
+   * Each credit copies the rate it used, so changing this only affects
+   * payments that clear after the change.
    */
-  teamCommissionPercent: z.number().min(0).max(100).default(11.12),
+  teamCommissionPercent: z.number().min(0).max(100).default(40),
+  /**
+   * The setup fee a field agent collects at registration, in rupees. It is
+   * both the default on the form and the ceiling: an agent may take less,
+   * never more. The plan itself is not collected at registration — it starts
+   * on its free months.
+   */
+  teamSetupFee: z.number().int().min(0).max(100_000).default(500),
   sendComplaintEmails: z.boolean().default(true),
   qrActivationExpiryDays: z.number().int().min(1).max(60).default(7),
   receiptNumberPrefix: z.string().trim().min(1).max(10).default("RCP"),

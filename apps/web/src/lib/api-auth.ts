@@ -11,14 +11,21 @@ import { HostelModel } from "@hostel/db/models/Hostel";
 import { HostelMemberModel } from "@hostel/db/models/HostelMember";
 import { isTemporaryCredentialActive } from "@/modules/auth/temporary-credential.service";
 import {
-  findSuspendedHostelIds,
   HOSTEL_SUSPENDED_MESSAGE,
   isOpenWhileSuspended,
   SUSPENDABLE_ROLES,
+  suspensionStage,
+  type SuspensionRecord,
 } from "@/modules/hostels/hostel-suspension";
 import type { WardenPermissionKey } from "@/modules/wardens/warden.validation";
 
 export type ApiPrincipal = {
+  /**
+   * Every live hostel a staff member may open, before `hostelIds` was narrowed
+   * to the one this request is about. Read only by what spans them on purpose:
+   * the branch switcher and the branches summary.
+   */
+  allHostelIds?: string[];
   hostelIds: string[];
   role: Role;
   sessionId?: string;
@@ -137,40 +144,110 @@ function requestPath(request: NextRequest) {
 }
 
 /**
- * Takes hostels whose plan suspension has landed out of the principal.
+ * Takes hostels the caller can no longer act for out of the principal, in one
+ * `_id $in` read: those whose plan suspension has landed, and — for hostel
+ * staff — those deleted since the token was issued.
  *
- * The same trick {@link requireHostelStaffPrincipal} uses for deleted hostels:
- * every service already scopes by `principal.hostelIds`, so narrowing once here
+ * Every service already scopes by `principal.hostelIds`, so narrowing once here
  * shuts a suspended hostel out of every route without any of them knowing
  * suspensions exist — for its admin, wardens, residents, guardians and cooks
  * alike. Routes with nothing hostel-scoped (signing out, releasing a push
  * subscription) keep working, because an empty list is all they ever see.
  *
- * Plan billing is exempt (`isOpenWhileSuspended`): paying is the way out.
+ * Deleted hostels: `hostelIds` is baked into the token at sign-in, and deleting
+ * a hostel does not reach a token somebody already holds. An owner whose hostel
+ * was deleted — or who had a duplicate registration removed — kept arriving
+ * with every id they ever had. `resolveAdminHostelId` reads more than one id as
+ * "which hostel do you mean?", so a one-hostel owner was served the
+ * multi-hostel fallback on every screen, and billing read `hostelIds[0]` — the
+ * *deleted* hostel's invoices. Deleting a hostel also pulls it from
+ * `User.hostelIds`, so the token heals at the next refresh; this covers the gap.
+ * It used to be a second read in the staff guard, which the admin-only and
+ * hostel-scoped guards skipped.
+ *
+ * Plan billing is exempt from the suspension (`isOpenWhileSuspended`): paying is
+ * the way out. Token order is preserved: `hostelIds[0]` is "the" hostel for a
+ * one-hostel reader, and reordering would change which one that is.
  */
-async function withoutSuspendedHostels(
+async function narrowToLiveHostels(
   request: NextRequest,
   principal: ApiPrincipal,
 ): Promise<ApiPrincipal> {
+  const isStaff = HOSTEL_STAFF_ROLES.includes(principal.role);
+  const suspensionApplies = !isOpenWhileSuspended(requestPath(request));
+
   if (
     !SUSPENDABLE_ROLES.has(principal.role) ||
     principal.hostelIds.length === 0 ||
-    isOpenWhileSuspended(requestPath(request))
+    (!isStaff && !suspensionApplies)
   ) {
     return principal;
   }
 
-  const suspended = await findSuspendedHostelIds(principal.hostelIds);
+  const validIds = principal.hostelIds.filter((id) => Types.ObjectId.isValid(id));
+  // Staff keep only hostels found live; everyone else keeps what they carried.
+  const candidates = isStaff ? validIds : principal.hostelIds;
 
-  if (suspended.size === 0) {
-    return principal;
+  if (validIds.length === 0) {
+    return isStaff ? ({ ...principal, hostelIds: [] } satisfies ApiPrincipal) : principal;
   }
+
+  await connectToDatabase();
+
+  const now = new Date();
+  const rows = await HostelModel.find({
+    _id: { $in: validIds.map((id) => new Types.ObjectId(id)) },
+    ...(isStaff ? { isDeleted: { $ne: true } } : {}),
+  })
+    .select("_id slug suspension")
+    .lean<{ _id: Types.ObjectId; slug?: string; suspension?: SuspensionRecord | null }[]>();
+
+  const live = new Set(rows.map((row) => row._id.toString()));
+  const suspended = suspensionApplies
+    ? rows
+        .filter((row) => suspensionStage(row.suspension, now) === "SUSPENDED")
+        .map((row) => row._id.toString())
+    : [];
+  const open = candidates.filter((id) => (!isStaff || live.has(id)) && !suspended.includes(id));
 
   return {
     ...principal,
-    hostelIds: principal.hostelIds.filter((id) => !suspended.has(id)),
-    suspendedHostelIds: [...suspended],
+    ...(isStaff ? { allHostelIds: open } : {}),
+    hostelIds: isStaff ? activeHostel(request, open, rows) : open,
+    ...(suspended.length > 0 ? { suspendedHostelIds: suspended } : {}),
   } satisfies ApiPrincipal;
+}
+
+/**
+ * The hostel a staff request is about — the branch switcher's choice. Its id,
+ * or its slug: the web portal lives at `/{slug}/admin`, so the slug is what a
+ * page already knows.
+ */
+export const ACTIVE_HOSTEL_HEADER = "x-hostel-id";
+
+/**
+ * Staff with more than one hostel — an owner and their branches — work in one
+ * at a time. The client names it in {@link ACTIVE_HOSTEL_HEADER}; without it
+ * (an older app build) it is the first, which the token lists first because it
+ * was granted first: the main hostel.
+ *
+ * Narrowed here, once, so every service that reads `hostelIds` — the
+ * `hostelIds[0]` routes and the `$in` lists alike — works on that one hostel
+ * without knowing branches exist. A header naming a hostel the caller does not
+ * hold is ignored, never trusted.
+ */
+function activeHostel(
+  request: NextRequest,
+  hostelIds: string[],
+  rows: Array<{ _id: Types.ObjectId; slug?: string }>,
+) {
+  if (hostelIds.length <= 1) return hostelIds;
+
+  const requested = request.headers.get(ACTIVE_HOSTEL_HEADER)?.trim();
+  const bySlug = requested ? rows.find((row) => row.slug === requested)?._id.toString() : undefined;
+  const chosen = [requested, bySlug].find((id) => id && hostelIds.includes(id));
+
+  return [chosen ?? hostelIds[0]!];
 }
 
 /** 423 when every hostel the caller belongs to is suspended. */
@@ -187,7 +264,7 @@ export async function requireApiPrincipal(request: NextRequest) {
     throw new ApiAuthError("Authentication is required.");
   }
 
-  return withoutSuspendedHostels(request, principal);
+  return narrowToLiveHostels(request, principal);
 }
 
 export function assertApiRoles(principal: ApiPrincipal, roles: Role[]) {
@@ -252,24 +329,10 @@ export async function requireTeamPrincipal(request: NextRequest) {
 }
 
 /**
- * Hostel staff, scoped to the hostels that still **exist**.
- *
- * `hostelIds` is baked into the access token at sign-in, and deleting a hostel
- * does not reach into a token somebody is already holding. So an owner whose
- * hostel was deleted — or who had two duplicate registrations filed for them
- * and one removed — kept arriving with every id they ever had. That was not
- * cosmetic: `resolveAdminHostelId` treats more than one id as "which hostel do
- * you mean?", so a one-hostel owner was served the multi-hostel fallback on
- * every screen (no name, no photo, no public-page button, claims refused), and
- * the billing screen read `hostelIds[0]` — the *deleted* hostel's invoices.
- *
- * Narrowing here, once, fixes every route downstream without any of them
- * knowing deletion exists — the same trick `requireHostelCapability` uses for
- * warden grants, which inherits this because it starts from this function.
- * One indexed `_id $in` read per request.
- *
- * Deleting a hostel also pulls it from `User.hostelIds`, so the token heals at
- * the next refresh; this is what makes the gap between the two harmless.
+ * Hostel staff, scoped to the hostels that still **exist** and are not
+ * suspended — both narrowed in `requireApiPrincipal`, see
+ * {@link narrowToLiveHostels}. `requireHostelCapability` inherits it because it
+ * starts from this function.
  */
 export async function requireHostelStaffPrincipal(request: NextRequest) {
   const principal = await requireApiPrincipal(request);
@@ -277,29 +340,7 @@ export async function requireHostelStaffPrincipal(request: NextRequest) {
   assertApiRoles(principal, HOSTEL_STAFF_ROLES);
   assertNotSuspended(principal);
 
-  const candidates = principal.hostelIds.filter((id) => Types.ObjectId.isValid(id));
-
-  if (candidates.length === 0) {
-    return principal;
-  }
-
-  await connectToDatabase();
-
-  const live = await HostelModel.find({
-    _id: { $in: candidates.map((id) => new Types.ObjectId(id)) },
-    isDeleted: { $ne: true },
-  })
-    .select("_id")
-    .lean<{ _id: Types.ObjectId }[]>();
-
-  const liveIds = new Set(live.map((hostel) => hostel._id.toString()));
-
-  // Token order preserved: `hostelIds[0]` is "the" hostel for a one-hostel
-  // reader, and reordering would change which one that is.
-  return {
-    ...principal,
-    hostelIds: candidates.filter((id) => liveIds.has(id)),
-  } satisfies ApiPrincipal;
+  return principal;
 }
 
 /**

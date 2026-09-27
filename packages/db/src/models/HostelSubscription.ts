@@ -116,6 +116,17 @@ const hostelSubscriptionSchema = new Schema(
     monthlyRate: { ...nullableWholeRupees, default: null },
     /** What one payment on this cycle was agreed to cost, after any discount. */
     cycleTotal: { ...nullableWholeRupees, default: null },
+    /**
+     * The plan's free months as offered when it was chosen, then — once the
+     * hostel goes live and `freeUntil` is set — what it was actually given:
+     * zero when the building had already claimed its free months
+     * (`FreePlanClaim`).
+     */
+    freeMonths: { ...nullableCount, default: null },
+    /** The last instant of the free months. Null until they start, and on a hostel given none. */
+    freeUntil: { default: null, type: Date },
+    /** Free months already welcomed by bell + push, claimed one number at a time. */
+    freeMonthsWelcomed: { default: [], type: [Number] },
     currency: currencyField,
 
     selectedAt: { default: null, type: Date },

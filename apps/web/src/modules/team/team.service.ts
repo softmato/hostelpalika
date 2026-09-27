@@ -34,37 +34,68 @@ type SubscriptionRow = {
   createdAt?: Date;
   cycleTotal?: number | null;
   dueBy?: Date | null;
+  freeUntil?: Date | null;
   hostelId: Types.ObjectId;
   planName?: string | null;
   status: string;
 };
 
-/** Settled money per subscription, split by who bore the risk of holding it. */
-async function moneyBySubscription(subscriptionIds: Types.ObjectId[]) {
+type Ledger = {
+  cash: number;
+  online: number;
+  /** What is still owed on the plan: open plan invoices minus what settled on them. */
+  outstanding: number;
+  /** The setup fee collected at registration, and how much of it has cleared. Null before setup fees. */
+  setupFee: { amount: number; collected: number } | null;
+  total: number;
+};
+
+/**
+ * What each registration has paid, owes on its plan, and was charged as a setup
+ * fee — in two reads, whatever the number of rows.
+ *
+ * The plan and the setup fee are kept apart: a hostel on its free months paid a
+ * setup fee and owes nothing on its plan, and netting one against the other
+ * would show the fee as part-payment of a plan it is not paying for yet.
+ */
+async function ledgerBySubscription(subscriptionIds: Types.ObjectId[]) {
+  const byId = new Map<string, Ledger>();
+
   if (subscriptionIds.length === 0) {
-    return new Map<string, { cash: number; online: number; total: number }>();
+    return byId;
   }
 
-  const rows = await SubscriptionPaymentModel.aggregate<{
-    _id: { method: string; subscriptionId: Types.ObjectId };
-    total: number;
-  }>([
-    {
-      $match: { status: "SETTLED", subscriptionId: { $in: subscriptionIds } },
-    },
-    {
-      $group: {
-        _id: { method: "$method", subscriptionId: "$subscriptionId" },
-        total: { $sum: "$amount" },
+  const [payments, invoices] = await Promise.all([
+    SubscriptionPaymentModel.aggregate<{
+      _id: { invoiceId: Types.ObjectId; method: string; subscriptionId: Types.ObjectId };
+      total: number;
+    }>([
+      { $match: { status: "SETTLED", subscriptionId: { $in: subscriptionIds } } },
+      {
+        $group: {
+          _id: { invoiceId: "$invoiceId", method: "$method", subscriptionId: "$subscriptionId" },
+          total: { $sum: "$amount" },
+        },
       },
-    },
+    ]),
+    SubscriptionInvoiceModel.find({ subscriptionId: { $in: subscriptionIds } })
+      .select("amount kind status subscriptionId")
+      .lean<
+        {
+          _id: Types.ObjectId;
+          amount: number;
+          kind?: string;
+          status: string;
+          subscriptionId: Types.ObjectId;
+        }[]
+      >(),
   ]);
 
-  const byId = new Map<string, { cash: number; online: number; total: number }>();
+  const settledOn = new Map<string, number>();
 
-  for (const row of rows) {
+  for (const row of payments) {
     const key = row._id.subscriptionId.toString();
-    const entry = byId.get(key) ?? { cash: 0, online: 0, total: 0 };
+    const entry = byId.get(key) ?? { cash: 0, online: 0, outstanding: 0, setupFee: null, total: 0 };
 
     if (row._id.method === "CASH") {
       entry.cash += row.total;
@@ -74,11 +105,29 @@ async function moneyBySubscription(subscriptionIds: Types.ObjectId[]) {
 
     entry.total += row.total;
     byId.set(key, entry);
+
+    const invoiceKey = row._id.invoiceId.toString();
+    settledOn.set(invoiceKey, (settledOn.get(invoiceKey) ?? 0) + row.total);
+  }
+
+  for (const invoice of invoices) {
+    const key = invoice.subscriptionId.toString();
+    const entry = byId.get(key) ?? { cash: 0, online: 0, outstanding: 0, setupFee: null, total: 0 };
+    const settled = settledOn.get(invoice._id.toString()) ?? 0;
+
+    if (invoice.kind === "SETUP_FEE") {
+      entry.setupFee = { amount: invoice.amount, collected: settled };
+    } else if (invoice.status === "OPEN" || invoice.status === "PARTIAL") {
+      entry.outstanding += Math.max(0, invoice.amount - settled);
+    }
+
+    byId.set(key, entry);
   }
 
   return byId;
 }
 
+const EMPTY_LEDGER: Ledger = { cash: 0, online: 0, outstanding: 0, setupFee: null, total: 0 };
 
 /**
  * The hostel an agent may keep working on after filing it — the existing
@@ -163,11 +212,11 @@ export async function listAgentRegistrations(agentId: string, limit = 100) {
     >();
 
   const hostelById = new Map(hostels.map((hostel) => [hostel._id.toString(), hostel]));
-  const money = await moneyBySubscription(subscriptions.map((row) => row._id));
+  const money = await ledgerBySubscription(subscriptions.map((row) => row._id));
 
   const registrations = subscriptions.map((row) => {
     const hostel = hostelById.get(row.hostelId.toString());
-    const paid = money.get(row._id.toString()) ?? { cash: 0, online: 0, total: 0 };
+    const paid = money.get(row._id.toString()) ?? EMPTY_LEDGER;
     const price = row.cycleTotal ?? 0;
 
     return {
@@ -175,17 +224,19 @@ export async function listAgentRegistrations(agentId: string, limit = 100) {
       cashCollected: paid.cash,
       city: hostel?.location?.city ?? "",
       dueBy: row.dueBy?.toISOString() ?? null,
+      freeUntil: row.freeUntil?.toISOString() ?? null,
       hostelId: row.hostelId.toString(),
       hostelName: hostel?.name ?? "Unnamed hostel",
       hostelStatus: hostel?.status ?? "",
       onlineCollected: paid.online,
-      outstanding: Math.max(0, price - paid.total),
+      outstanding: paid.outstanding,
       ownerEmail: hostel?.contact?.email ?? "",
       ownerPhone: hostel?.contact?.phone ?? hostel?.contact?.alternatePhone ?? "",
       paid: paid.total,
       planName: row.planName ?? "",
       price,
       registeredAt: row.createdAt?.toISOString() ?? null,
+      setupFee: paid.setupFee,
       slug: hostel?.slug ?? "",
       subscriptionStatus: row.status,
     };
@@ -409,8 +460,10 @@ export async function listTeamRegistrations(limit = 200) {
     })
       .select("name email")
       .lean<{ _id: Types.ObjectId; email?: string; name?: string }[]>(),
-    moneyBySubscription(subscriptions.map((row) => row._id)),
+    ledgerBySubscription(subscriptions.map((row) => row._id)),
+    // The plan's invoice, not the setup fee's: that is the number a due is asked about.
     SubscriptionInvoiceModel.find({
+      kind: { $ne: "SETUP_FEE" },
       subscriptionId: { $in: subscriptions.map((row) => row._id) },
     })
       .select("invoiceNumber subscriptionId")
@@ -425,7 +478,7 @@ export async function listTeamRegistrations(limit = 200) {
 
   return {
     registrations: subscriptions.map((row) => {
-      const paid = money.get(row._id.toString()) ?? { cash: 0, online: 0, total: 0 };
+      const paid = money.get(row._id.toString()) ?? EMPTY_LEDGER;
       const agent = row.agentId ? agentById.get(row.agentId.toString()) : null;
       const price = row.cycleTotal ?? 0;
 
@@ -439,11 +492,12 @@ export async function listTeamRegistrations(limit = 200) {
         hostelStatus: hostelById.get(row.hostelId.toString())?.status ?? "",
         invoiceNumber: invoiceBySubscription.get(row._id.toString()) ?? "",
         onlineCollected: paid.online,
-        outstanding: Math.max(0, price - paid.total),
+        outstanding: paid.outstanding,
         paid: paid.total,
         planName: row.planName ?? "",
         price,
         registeredAt: row.createdAt?.toISOString() ?? null,
+        setupFee: paid.setupFee,
         subscriptionStatus: row.status,
       };
     }),

@@ -256,17 +256,107 @@ function PolicyRows({ quote }: { quote: BookingQuote }) {
   );
 }
 
+type StayDates = { moveIn: string; moveOut: string };
+
+const dayOffset = (days: number) => new Date(Date.now() + days * 86_400_000).toISOString().slice(0, 10);
+
+/**
+ * Monthly or a short stay. A short stay picks its dates and is re-quoted as they
+ * change: nights, the booking fee (one per started week before move-in) and the
+ * total paid upfront.
+ */
+function StayPicker({
+  dates,
+  onDates,
+  onShortStay,
+  quote,
+  shortStay,
+}: {
+  dates: StayDates;
+  onDates: (next: StayDates) => void;
+  onShortStay: (next: boolean) => void;
+  quote: BookingQuote;
+  shortStay: boolean;
+}) {
+  const offer = quote.shortStay;
+  const limits = offer.limits;
+
+  if (!offer.available || !limits) return null;
+
+  return (
+    <Card title="How long">
+      <div className="grid grid-cols-2 gap-2">
+        {([false, true] as const).map((value) => (
+          <button
+            className={cn(
+              "rounded-lg border px-3 py-2 text-sm font-semibold",
+              shortStay === value ? "border-brand-teal bg-brand-teal/10 text-foreground" : "border-border text-muted-foreground",
+            )}
+            key={String(value)}
+            onClick={() => onShortStay(value)}
+            type="button"
+          >
+            {value ? `Short stay · ${rupees(offer.dailyRate ?? 0)}/night` : "Monthly"}
+          </button>
+        ))}
+      </div>
+
+      {shortStay ? (
+        <div className="mt-4 space-y-3 text-sm">
+          <div className="grid grid-cols-2 gap-3">
+            {(["moveIn", "moveOut"] as const).map((key) => (
+              <label className="text-muted-foreground" key={key}>
+                {key === "moveIn" ? "Move in" : "Move out"}
+                <input
+                  className="input-field mt-1"
+                  max={dayOffset(limits.maxAdvanceDays + (key === "moveOut" ? limits.maxNights : 0))}
+                  min={key === "moveIn" ? dayOffset(0) : dates.moveIn || dayOffset(1)}
+                  onChange={(event) => onDates({ ...dates, [key]: event.target.value })}
+                  type="date"
+                  value={dates[key]}
+                />
+              </label>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {limits.minNights}–{limits.maxNights} nights, moving in up to {limits.maxAdvanceDays} days ahead.
+          </p>
+          {offer.error ? <Notice tone="danger">{offer.error.message}</Notice> : null}
+          {offer.quote ? (
+            <Facts
+              rows={[
+                ["Nights", `${offer.quote.nights} × ${rupees(offer.dailyRate ?? 0)} = ${rupees(offer.quote.stayAmount)}`],
+                [
+                  "Booking fee",
+                  offer.quote.holdBlocks > 1
+                    ? `${rupees(offer.quote.fee)} (${offer.quote.holdBlocks} weeks held before move-in)`
+                    : rupees(offer.quote.fee),
+                ],
+                ["Total, paid now", rupees(offer.quote.total)],
+              ]}
+            />
+          ) : null}
+        </div>
+      ) : null}
+    </Card>
+  );
+}
+
 function BookingForm({
   onBooked,
   onPolicyChanged,
   quote,
+  stay,
   user,
 }: {
   onBooked: (booking: GuestBookingDetail) => void;
   onPolicyChanged: () => void;
   quote: BookingQuote;
+  /** Set when a short stay is chosen: its dates, only once they are priced. */
+  stay: (StayDates & { total: number }) | null | "unpriced";
   user: SessionUser;
 }) {
+  const total = stay && stay !== "unpriced" ? stay.total : quote.fee;
   const [method, setMethod] = useState<Method>("ESEWA");
   const [holderName, setHolderName] = useState(user.name);
   const [number, setNumber] = useState("");
@@ -292,7 +382,10 @@ function BookingForm({
         body: JSON.stringify({
           acceptPolicy: true,
           hostel: quote.hostel.slug,
-          // Bookings start today and hold the bed for `holdDays`; no move-in date for now.
+          ...(stay && stay !== "unpriced"
+            ? { kind: "SHORT_STAY", moveIn: stay.moveIn, moveOut: stay.moveOut }
+            : { kind: "MONTHLY" }),
+          // Monthly bookings start today and hold the bed for `holdDays`; no move-in date.
           plannedMoveIn: null,
           policyVersion: quote.policyVersion,
           refundAccount: { bankName, branch, holderName, method, number },
@@ -322,7 +415,12 @@ function BookingForm({
           rows={[
             ["Name", user.name],
             ["Email", user.email ?? ""],
-            ["Booking", `From today, valid for ${quote.terms.holdDays} days`],
+            [
+              "Booking",
+              stay && stay !== "unpriced"
+                ? `Short stay, ${stay.moveIn} to ${stay.moveOut}`
+                : `From today, valid for ${quote.terms.holdDays} days`,
+            ],
           ]}
         />
       </Card>
@@ -403,9 +501,9 @@ function BookingForm({
 
       {error ? <Notice tone="danger">{error}</Notice> : null}
 
-      <button className={PRIMARY} disabled={submitting} type="submit">
+      <button className={PRIMARY} disabled={submitting || stay === "unpriced"} type="submit">
         <CalendarCheck className="size-4" />
-        {submitting ? "Booking…" : `Book and pay ${rupees(quote.fee)}`}
+        {submitting ? "Booking…" : stay === "unpriced" ? "Pick your dates" : `Book and pay ${rupees(total ?? 0)}`}
       </button>
     </form>
   );
@@ -494,6 +592,13 @@ export function BookingCheckoutPage({
   const [rooms, setRooms] = useState<BookingAvailabilityView | null>(null);
   const [booking, setBooking] = useState<GuestBookingDetail | null>(null);
   const [loadError, setLoadError] = useState("");
+  const [shortStay, setShortStay] = useState(false);
+  const [dates, setDates] = useState<StayDates>({ moveIn: "", moveOut: "" });
+  const priceDates = shortStay && dates.moveIn && dates.moveOut ? dates : null;
+  // A string, not the object: the quote reloads when the dates change, not on every render.
+  const stayQuery = priceDates
+    ? `&moveIn=${encodeURIComponent(priceDates.moveIn)}&moveOut=${encodeURIComponent(priceDates.moveOut)}`
+    : "";
 
   const loadQuote = useCallback(() => {
     if (!roomType) {
@@ -501,11 +606,11 @@ export function BookingCheckoutPage({
     }
 
     browserApi<{ quote: BookingQuote }>(
-      `/api/v1/bookings/quote?hostel=${encodeURIComponent(slug)}&roomType=${encodeURIComponent(roomType)}`,
+      `/api/v1/bookings/quote?hostel=${encodeURIComponent(slug)}&roomType=${encodeURIComponent(roomType)}${stayQuery}`,
     )
       .then((data) => setQuote(data.quote))
       .catch((error: unknown) => setLoadError(errorText(error)));
-  }, [roomType, slug]);
+  }, [roomType, slug, stayQuery]);
 
   const loadBooking = useCallback((id: string) => {
     browserApi<{ booking: GuestBookingDetail }>(`/api/v1/bookings/${encodeURIComponent(id)}`)
@@ -590,8 +695,17 @@ export function BookingCheckoutPage({
       return <SignInCard next={here} />;
     }
 
+    const priced = current.shortStay.quote;
+
     return (
       <BookingForm
+        stay={
+          !shortStay
+            ? null
+            : priced && priceDates && priced.moveIn === priceDates.moveIn && priced.moveOut === priceDates.moveOut
+              ? { ...priceDates, total: priced.total }
+              : "unpriced"
+        }
         onBooked={(created) => {
           setBooking(created);
           router.replace(`${here}&booking=${encodeURIComponent(created.id)}`, { scroll: false });
@@ -626,7 +740,18 @@ export function BookingCheckoutPage({
         ) : (
           <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)]">
             <PackageCard quote={quote} />
-            <div>{right(quote)}</div>
+            <div className="space-y-6">
+              {!booking ? (
+                <StayPicker
+                  dates={dates}
+                  onDates={setDates}
+                  onShortStay={setShortStay}
+                  quote={quote}
+                  shortStay={shortStay}
+                />
+              ) : null}
+              {right(quote)}
+            </div>
           </div>
         )}
       </div>

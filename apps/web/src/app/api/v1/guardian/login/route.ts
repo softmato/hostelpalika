@@ -1,8 +1,8 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { recordFailedAttempt, refuseIfTooManyFailures } from "@/lib/auth-attempts";
 import { shouldExposeRefreshToken } from "@/lib/mobile-auth";
-import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { applySessionCookies } from "@/lib/session-cookies";
 import { loginGuardian } from "@/modules/guardian/guardian.service";
 import { guardianLoginSchema } from "@/modules/guardian/guardian.validation";
@@ -20,7 +20,8 @@ export const runtime = "nodejs";
  * **Rate limited, same 5-per-15-minutes as `/auth/login`.** The access code is
  * six characters and the phone number is not a secret — an unthrottled endpoint
  * is a guessing game whose prize is a session on somebody's guardian account,
- * and it was unthrottled until 2026-08-17.
+ * and it was unthrottled until 2026-08-17. Wrong codes count, per phone and
+ * address (`lib/auth-attempts.ts`); sign-ins that work do not.
  *
  * **The refresh token no longer goes to browsers.** It used to be returned in
  * the JSON body to every caller, which is what `/auth/login` deliberately avoids:
@@ -31,23 +32,22 @@ export const runtime = "nodejs";
  * **Session cookies are set.** Without them a browser sign-in produced tokens
  * with nowhere to live, so the web has never been able to use this route at all.
  */
-const LOGIN_ATTEMPT_LIMIT = 5;
-const LOGIN_WINDOW_MS = 15 * 60 * 1000;
-
 export async function POST(request: NextRequest) {
   try {
-    const limited = rateLimitPublicForm(request, {
-      limit: LOGIN_ATTEMPT_LIMIT,
-      namespace: "guardian-login",
-      windowMs: LOGIN_WINDOW_MS,
-    });
+    const input = guardianLoginSchema.parse(await request.json());
+    const limited = await refuseIfTooManyFailures(request, "guardian-login", input.phone);
 
     if (limited) {
       return limited;
     }
 
-    const input = guardianLoginSchema.parse(await request.json());
-    const result = await loginGuardian(input);
+    const result = await loginGuardian(input).catch(async (error: unknown) => {
+      if ((error as { errorCode?: string } | null)?.errorCode === "INVALID_GUARDIAN_LOGIN") {
+        await recordFailedAttempt(request, "guardian-login", input.phone);
+      }
+
+      throw error;
+    });
     const response = successResponse(
       {
         accessToken: result.accessToken,

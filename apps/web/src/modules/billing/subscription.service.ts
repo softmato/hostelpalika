@@ -11,6 +11,8 @@ import { isSoftmatoDown } from "@/modules/billing/softmato/client";
 import { rememberTask } from "@/modules/billing/softmato/outage";
 import { servicePeriod } from "@/modules/billing/softmato/invoice";
 import { buildPresentation } from "@/modules/billing/softmato/presentation";
+import { assertBranchesFit, billingHostelId } from "@/modules/billing/billing-hostel";
+import { freeMonthOf } from "@/modules/billing/free-months";
 import { onInvoiceIssued } from "@/modules/hostels/hostel-registration.events";
 import { getOperationsConfig } from "@/modules/platform-config/operations-config";
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
@@ -80,6 +82,8 @@ type SubscriptionRecord = {
   cycleMonths?: number | null;
   cycleTotal?: number | null;
   dueBy?: Date | null;
+  freeMonths?: number | null;
+  freeUntil?: Date | null;
   hostelId: Types.ObjectId;
   monthlyRate?: number | null;
   planId?: string | null;
@@ -92,6 +96,8 @@ type SubscriptionRecord = {
 export type InvoiceRecord = {
   _id: Types.ObjectId;
   amount: number;
+  /** `SETUP_FEE` buys no time on the plan. Absent on invoices older than the field: `PLAN`. */
+  kind?: "PLAN" | "SETUP_FEE";
   billedTo?: { email?: string; hostelName?: string; name?: string } | null;
   createdAt?: Date;
   currency?: string;
@@ -207,6 +213,7 @@ export async function pricePlan(
     cycle: months ? cycleForMonths(months) : cycle,
     cycleMonths: bought,
     cycleTotal: total,
+    freeMonths: plan.freeMonths ?? 0,
     monthlyRate: plan.monthly,
     planId: plan.id,
     planName: plan.name,
@@ -218,6 +225,7 @@ export async function pricePlan(
 /** The live invoice for a subscription, if one is outstanding. */
 async function findOpenInvoice(subscriptionId: Types.ObjectId) {
   return SubscriptionInvoiceModel.findOne({
+    kind: { $ne: "SETUP_FEE" },
     status: { $in: ["OPEN", "PARTIAL"] },
     subscriptionId,
   })
@@ -330,8 +338,8 @@ export async function getOrCreateSubscription(
 ) {
   await connectToDatabase();
 
-  const objectId =
-    typeof hostelId === "string" ? new Types.ObjectId(hostelId) : hostelId;
+  // A branch has no subscription of its own: its main hostel's is the one.
+  const objectId = await billingHostelId(hostelId);
 
   const existing = await HostelSubscriptionModel.findOne({
     hostelId: objectId,
@@ -363,7 +371,8 @@ export async function getOrCreateSubscription(
 export async function getSubscriptionState(hostelId: string) {
   await connectToDatabase();
 
-  const objectId = new Types.ObjectId(hostelId);
+  // A branch reads its main hostel's plan.
+  const objectId = await billingHostelId(hostelId);
   const subscription = await HostelSubscriptionModel.findOne({
     hostelId: objectId,
   }).lean<SubscriptionRecord | null>();
@@ -375,7 +384,10 @@ export async function getSubscriptionState(hostelId: string) {
   const invoice = await findOpenInvoice(subscription._id);
   const latestInvoice =
     invoice ??
-    (await SubscriptionInvoiceModel.findOne({ subscriptionId: subscription._id })
+    (await SubscriptionInvoiceModel.findOne({
+      kind: { $ne: "SETUP_FEE" },
+      subscriptionId: subscription._id,
+    })
       .sort({ createdAt: -1 })
       .lean<InvoiceRecord | null>());
 
@@ -395,6 +407,7 @@ export async function getSubscriptionState(hostelId: string) {
 
   const verified = hostel?.verificationStatus === "VERIFIED";
   const planChosen = Boolean(subscription.planId);
+  const freeMonthNow = freeMonthOf(subscription);
 
   return {
     /**
@@ -438,6 +451,12 @@ export async function getSubscriptionState(hostelId: string) {
       cycle: subscription.cycle ?? null,
       cycleTotal: subscription.cycleTotal ?? null,
       dueBy: subscription.dueBy?.toISOString() ?? null,
+      freeMonths: subscription.freeMonths ?? null,
+      freeUntil: subscription.freeUntil?.toISOString() ?? null,
+      /** The free month running today, or null — see `freeMonthOf`. */
+      freeMonthNow: freeMonthNow
+        ? { ...freeMonthNow, endsAt: freeMonthNow.endsAt.toISOString() }
+        : null,
       id: subscription._id.toString(),
       planId: subscription.planId ?? null,
       planName: subscription.planName ?? null,
@@ -466,8 +485,18 @@ export async function getSubscriptionState(hostelId: string) {
 export async function raiseRenewalInvoice(
   hostelId: string,
   input: { cycle: BillingCycle; months?: number; planId: string },
-  actorId: string,
-  options: { deferDocument?: boolean } = {},
+  /** Null when the renewal sweep raised it. */
+  actorId: string | null,
+  options: {
+    /**
+     * The price already agreed, instead of today's catalogue — the first bill
+     * after the free months charges what the owner was quoted when they chose.
+     */
+    agreed?: Awaited<ReturnType<typeof pricePlan>>;
+    deferDocument?: boolean;
+    /** Due on this instant instead of the grace period from today. */
+    dueAt?: Date;
+  } = {},
 ) {
   await connectToDatabase();
 
@@ -494,7 +523,9 @@ export async function raiseRenewalInvoice(
     );
   }
 
-  const priced = await pricePlan(input.planId, input.cycle, input.months);
+  const priced = options.agreed ?? (await pricePlan(input.planId, input.cycle, input.months));
+
+  await assertBranchesFit(subscription.hostelId, priced.planId);
   const operations = await getOperationsConfig();
   const issuedAt = new Date();
   const period = servicePeriod(priced.cycleMonths, subscription.currentPeriodEnd ?? null, issuedAt);
@@ -507,7 +538,7 @@ export async function raiseRenewalInvoice(
     billedTo: { email: owner.email, hostelName: hostel.name, name: owner.name },
     cycle: priced.cycle,
     cycleMonths: priced.cycleMonths,
-    dueAt: graceDeadline(issuedAt, operations.subscriptionDueGraceDays),
+    dueAt: options.dueAt ?? graceDeadline(issuedAt, operations.subscriptionDueGraceDays),
     hostelId: subscription.hostelId,
     invoiceNumber,
     issuedAt,
@@ -542,6 +573,7 @@ export async function raiseRenewalInvoice(
   await AuditLogModel.create({
     action: "SUBSCRIPTION_RENEWAL_INVOICE_ISSUED",
     actorId,
+    actorType: actorId ? "USER" : "SYSTEM",
     entityId: invoice._id.toString(),
     entityType: "SubscriptionInvoice",
     hostelId: subscription.hostelId,
@@ -633,6 +665,8 @@ export async function changeOpenInvoiceMonths(
   }
 
   const priced = await pricePlan(planId ?? open.planId, cycleForMonths(months), months);
+
+  await assertBranchesFit(subscription.hostelId, priced.planId);
   // From where the running plan ends, exactly as it was when the invoice was raised.
   const period = servicePeriod(
     priced.cycleMonths,
@@ -671,7 +705,7 @@ export async function invoiceIdFor(hostelId: string) {
   await connectToDatabase();
 
   const subscription = await HostelSubscriptionModel.findOne({
-    hostelId: new Types.ObjectId(hostelId),
+    hostelId: await billingHostelId(hostelId),
   }).lean<SubscriptionRecord | null>();
 
   if (!subscription) {
@@ -746,6 +780,7 @@ export async function selectPlan(
         cycle: priced.cycle,
         cycleMonths: priced.cycleMonths,
         cycleTotal: priced.cycleTotal,
+        freeMonths: priced.freeMonths,
         monthlyRate: priced.monthlyRate,
         planId: priced.planId,
         planName: priced.planName,
@@ -972,6 +1007,79 @@ export async function issueSubscriptionInvoice(
   return invoice;
 }
 
+/**
+ * The setup fee a field agent collects at registration, as its own invoice.
+ *
+ * Not a plan invoice: no period, no due date, and nothing about the plan moves
+ * when it is paid (`applySettlement` returns early on it). It goes through the
+ * same numbering, Softmato document, cash filing and receipt as any payment to
+ * us, and settling it in full is what earns the agent their commission.
+ *
+ * Sends no email of its own: the owner hears about it in the registration
+ * email, which states the amount the agent reported.
+ */
+export async function issueSetupFeeInvoice(
+  hostelId: string,
+  amount: number,
+  agentId: string,
+  options: {
+    /** The online payment taken before publish, whose document this invoice adopts. */
+    prepaid?: { invoiceNumber: string; softmatoInvoiceId: string; softmatoInvoiceNo: string };
+  } = {},
+) {
+  await connectToDatabase();
+
+  const subscription = await getOrCreateSubscription(hostelId, { agentId, source: "TEAM" });
+  const hostel = await HostelModel.findById(subscription.hostelId)
+    .select("name")
+    .lean<{ name?: string } | null>();
+  const owner = await resolveBillingContact(subscription.hostelId);
+  const { prepaid } = options;
+  const invoiceNumber =
+    prepaid?.invoiceNumber ?? (await allocateNumber(subscription.hostelId, "SUBSCRIPTION_INVOICE"));
+
+  const created = await SubscriptionInvoiceModel.create({
+    agentId,
+    amount,
+    billedTo: { email: owner.email, hostelName: hostel?.name, name: owner.name },
+    // The plan chosen that day, for the record — required by the schema, read by nothing.
+    cycle: subscription.cycle ?? "monthly",
+    cycleMonths: 1,
+    dueAt: null,
+    hostelId: subscription.hostelId,
+    invoiceNumber,
+    issuedAt: new Date(),
+    kind: "SETUP_FEE",
+    planId: subscription.planId ?? "setup-fee",
+    planName: "Setup fee",
+    source: "TEAM",
+    status: "OPEN",
+    subscriptionId: subscription._id,
+    ...(prepaid
+      ? {
+          documentUrl: documentDownloadUrl("invoice", invoiceNumber),
+          softmatoInvoiceId: prepaid.softmatoInvoiceId,
+          softmatoInvoiceNo: prepaid.softmatoInvoiceNo,
+        }
+      : {}),
+  });
+
+  const invoice = await ensureInvoiceRaised(created.toObject() as InvoiceRecord, {
+    required: false,
+  });
+
+  await AuditLogModel.create({
+    action: "SETUP_FEE_INVOICE_ISSUED",
+    actorId: agentId,
+    entityId: invoice._id.toString(),
+    entityType: "SubscriptionInvoice",
+    hostelId: subscription.hostelId,
+    metadata: { amount, invoiceNumber, prepaid: Boolean(prepaid) },
+  });
+
+  return invoice;
+}
+
 /* ── Raising the document on Softmato ───────────────────────────── */
 
 /**
@@ -981,6 +1089,22 @@ export async function issueSubscriptionInvoice(
  * number.
  */
 export async function invoiceDocumentInput(invoice: InvoiceRecord): Promise<EnsureInvoiceInput> {
+  // A setup fee is one line and buys no period, so it prints no service dates
+  // and none of the plan's features.
+  if (invoice.kind === "SETUP_FEE") {
+    return {
+      amount: invoice.amount,
+      customer: {
+        hostelId: invoice.hostelId.toString(),
+        name: invoice.billedTo?.hostelName || invoice.billedTo?.name || "Hostel",
+        ...(invoice.billedTo?.email ? { email: invoice.billedTo.email } : {}),
+      },
+      description: `Setup fee — ${invoice.billedTo?.hostelName || "hostel registration"}`,
+      dueAt: null,
+      invoiceNumber: invoice.invoiceNumber,
+    };
+  }
+
   const subscription = await HostelSubscriptionModel.findById(
     invoice.subscriptionId,
   ).lean<SubscriptionRecord | null>();

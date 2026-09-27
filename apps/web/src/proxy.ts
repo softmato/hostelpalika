@@ -181,7 +181,7 @@ async function refreshFromCookie(request: NextRequest) {
     // of every signed-in navigation.
     const { refreshAccessToken } = await import("@/modules/auth/auth.service");
 
-    return await refreshAccessToken(refreshToken, { allowRecentReuse: true });
+    return await refreshAccessToken(refreshToken, { cookieSession: true });
   } catch {
     return null;
   }

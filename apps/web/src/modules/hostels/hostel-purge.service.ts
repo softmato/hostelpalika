@@ -247,6 +247,8 @@ export const RETAINED_BY_HOSTEL_ID: Record<string, string> = {
     "The proof a person sent for a booking fee paid to HostelPalika, and who checked it. Part of the platform's payment trail.",
   BookingTransfer:
     "A refund or payout HostelPalika sent, with its transaction id and numbered document. Erasing it would leave money that left our account with no record of where it went.",
+  FreePlanClaim:
+    "The fingerprint of a building that has had its free months. Erasing it would let the same building register again and claim them a second time.",
   TeamWalletEntry:
     "A field agent's commission earned on this hostel, in the ledger their wallet balance is summed from. Erasing it would drop what they earned below payouts already sent to them.",
 };

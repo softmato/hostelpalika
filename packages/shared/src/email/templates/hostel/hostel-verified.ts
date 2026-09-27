@@ -34,6 +34,11 @@ export function hostelVerifiedEmail(input: {
    * had none. It opens their public account — enough to pay — not the portal.
    */
   credentials?: { email: string; temporaryPassword: string } | null;
+  /**
+   * The plan went live on its free months at verification: nothing to pay
+   * until `until`. Replaces the "pay for it" wording.
+   */
+  free?: { months: number; supportPhone?: string; until: string } | null;
   hostelName: string;
   ownerName?: string;
   /** A public registration: the hostel portal opens with the payment, not before. */
@@ -54,13 +59,22 @@ export function hostelVerifiedEmail(input: {
         paragraph(
           `We checked the details and documents for <strong>${escapeHtml(input.hostelName)}</strong>. Everything is OK.`,
         ),
-        input.selectedPlanName
-          ? paragraph(
-              `You chose <strong>${escapeHtml(input.selectedPlanName)}</strong>. One step left: pay for it, and your hostel goes online.`,
-            )
-          : paragraph(
-              "One step left: choose a plan and pay. Then your hostel goes online.",
-            ),
+        input.free
+          ? [
+              paragraph(
+                `Your hostel is online now on <strong>${escapeHtml(input.selectedPlanName ?? "your plan")}</strong>, free for ${input.free.months} ${input.free.months === 1 ? "month" : "months"} — until ${escapeHtml(input.free.until)}. There is nothing to pay until then.`,
+              ),
+              paragraph(
+                `After that, recharge this hostel yourself from Billing in your dashboard on the website${input.free.supportPhone ? `, or call us on ${escapeHtml(input.free.supportPhone)}` : ""}.`,
+              ),
+            ].join("\n")
+          : input.selectedPlanName
+            ? paragraph(
+                `You chose <strong>${escapeHtml(input.selectedPlanName)}</strong>. One step left: pay for it, and your hostel goes online.`,
+              )
+            : paragraph(
+                "One step left: choose a plan and pay. Then your hostel goes online.",
+              ),
         input.portalOpensOnPayment
           ? paragraph(
               "Your hostel app opens after you pay. We will email you.",
@@ -78,7 +92,7 @@ export function hostelVerifiedEmail(input: {
           : "",
         ctaButton(
           input.statusUrl,
-          input.selectedPlanName ? "Pay now" : "Choose a plan",
+          input.free ? "See your hostel" : input.selectedPlanName ? "Pay now" : "Choose a plan",
         ),
       ]
         .filter(Boolean)

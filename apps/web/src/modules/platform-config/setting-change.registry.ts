@@ -116,6 +116,26 @@ const bookings: SettingChangeDefinition<BookingConfig> = {
       hoursList(previous.moveInReminderHoursLeft),
       hoursList(next.moveInReminderHoursLeft),
     ),
+    ...row(
+      "Short stay: daily rate above monthly ÷ 30",
+      percent(previous.shortStayMinMarkupPercent),
+      percent(next.shortStayMinMarkupPercent),
+    ),
+    ...row(
+      "Short stay: hostel's share of the nights",
+      percent(previous.shortStayHostelSharePercent),
+      percent(next.shortStayHostelSharePercent),
+    ),
+    ...row(
+      "Short stay: longest stay",
+      `${previous.shortStayMaxNights} nights`,
+      `${next.shortStayMaxNights} nights`,
+    ),
+    ...row(
+      "Short stay: booked up to",
+      `${days(previous.shortStayMaxAdvanceDays)} ahead`,
+      `${days(next.shortStayMaxAdvanceDays)} ahead`,
+    ),
   ],
 };
 

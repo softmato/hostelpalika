@@ -9,6 +9,7 @@ import { connectToDatabase } from "@/lib/db";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { generateFileKey, getR2Client, privateBucket, publicBucket } from "@/lib/r2";
 import { issueDocumentClaimToken } from "@/lib/registration-documents";
+import { contentTypeMismatch } from "@/lib/uploads/sniff";
 import { FileAssetModel } from "@hostel/db/models/FileAsset";
 
 export const runtime = "nodejs";
@@ -94,6 +95,14 @@ export async function POST(request: NextRequest) {
     const fileName = file.name;
     const mimeType = file.type;
     const sizeBytes = file.size;
+
+    // `file.type` is the client's claim. The signed-in upload already checks the
+    // bytes; this anonymous door needs it more.
+    const mismatch = contentTypeMismatch(mimeType, buffer);
+
+    if (mismatch) {
+      return errorResponse(mismatch, "UPLOAD_CONTENT_MISMATCH", 422);
+    }
 
     if (visibility === "private") {
       // No disk fallback: `public/uploads` is served to anyone, which is the
@@ -182,7 +191,9 @@ export async function POST(request: NextRequest) {
         await mkdir(uploadDir, { recursive: true });
       }
 
-      const ext = fileName.split(".").pop()?.toLowerCase() ?? "bin";
+      // From the checked type, never the client's name: `public/` is served
+      // from our own origin, and `x.html` sent as image/png would be a page.
+      const ext = mimeType.split("/")[1];
       const uniqueName = `${crypto.randomUUID()}.${ext}`;
       const filePath = join(uploadDir, uniqueName);
       await writeFile(filePath, buffer);

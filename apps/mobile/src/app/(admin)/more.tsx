@@ -143,6 +143,13 @@ const MANAGE_ROWS: {
     tone: "danger",
   },
   {
+    href: "/manage/branches",
+    icon: "business-outline",
+    subtitle: "Other buildings you run on this plan — add one, switch from Home",
+    title: "Branches",
+    tone: "brand",
+  },
+  {
     href: "/manage/settings",
     icon: "settings-outline",
     subtitle: "Hostel profile, photos, wardens and the hostel-wide switches",

@@ -9,6 +9,7 @@ import { List, ReasonAction, Row, timeLeft, useAction, useNow } from "@/app/_com
 import { at, rupees } from "@/app/_components/booking-ui";
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import { HostelPayoutAccountPanel } from "@/app/_components/hostel-payout-account-panel";
+import { HostelShortStaysPanel } from "@/app/_components/hostel-short-stays-panel";
 import {
   MetricCard,
   PortalPageHeader,
@@ -225,6 +226,7 @@ export function HostelAdminBookingsPage() {
       {tab === "settings" ? (
         <div className="space-y-3">
           <HostelPayoutAccountPanel />
+          <HostelShortStaysPanel />
           <p className="px-1 text-xs text-muted-foreground">
             <Link className="font-semibold text-primary hover:underline" href="/how-booking-works" target="_blank">
               How booking works

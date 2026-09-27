@@ -40,6 +40,7 @@ import {
   idCardTypeForAccount,
   IDENTITY_STEPS,
   identityStepComplete,
+  isResidentPhone,
   type IdentityDraft,
   type IdentityErrors,
   type IdentityStep,
@@ -51,6 +52,7 @@ import {
 import {
   type BloodGroup,
   checkIdentityEmail,
+  checkIdentityPhone,
   type DietaryPreference,
   type EmailCheckStatus,
   type Gender,
@@ -175,37 +177,43 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 type EmailCheck = "idle" | "checking" | EmailCheckStatus;
 
 /**
- * Asks the server whether an address is free once typing pauses. A new
- * keystroke cancels the pending ask, so a slow answer for an older address can
- * never overwrite a newer one. The save re-checks; this makes the refusal early.
+ * Asks the server whether an email or phone is free once typing pauses. A new
+ * keystroke cancels the pending ask, and an answer is kept with the value it
+ * was for, so a slow one for an older value never shows against a newer one.
+ * The save re-checks; this makes the refusal early.
  */
-function useEmailCheck(email: string, enabled: boolean): EmailCheck {
-  const [state, setState] = useState<EmailCheck>("idle");
+function useContactCheck(
+  kind: "email" | "phone",
+  raw: string,
+  enabled: boolean,
+): EmailCheck {
+  const value = kind === "email" ? raw.trim().toLowerCase() : raw.trim();
+  const checkable =
+    enabled &&
+    (kind === "email" ? EMAIL_PATTERN.test(value) : isResidentPhone(value));
+  const [answer, setAnswer] = useState<{
+    status: EmailCheck;
+    value: string;
+  } | null>(null);
 
   useEffect(() => {
-    const value = email.trim().toLowerCase();
-
-    if (!enabled || !EMAIL_PATTERN.test(value)) {
-      setState("idle");
-
+    if (!checkable) {
       return;
     }
 
     let current = true;
 
-    setState("checking");
-
     const timer = setTimeout(() => {
-      checkIdentityEmail(value)
+      (kind === "email" ? checkIdentityEmail(value) : checkIdentityPhone(value))
         .then((result) => {
           if (current) {
-            setState(result.status);
+            setAnswer({ status: result.status, value });
           }
         })
         // Rate limited or offline: say nothing rather than guess.
         .catch(() => {
           if (current) {
-            setState("idle");
+            setAnswer({ status: "idle", value });
           }
         });
     }, 600);
@@ -214,10 +222,16 @@ function useEmailCheck(email: string, enabled: boolean): EmailCheck {
       current = false;
       clearTimeout(timer);
     };
-  }, [email, enabled]);
+  }, [checkable, kind, value]);
 
-  return state;
+  if (!checkable) {
+    return "idle";
+  }
+
+  return answer?.value === value ? answer.status : "checking";
 }
+
+const PHONE_TAKEN = "Already used by another account. Use your own number.";
 
 export default function EditIdentityScreen() {
   const identityQuery = residentQuery.identity();
@@ -441,7 +455,13 @@ function IdentityWizard({
   );
 
   const emailLocked = Boolean(identity.accountEmail);
-  const emailCheck = useEmailCheck(draft.primaryEmail, !emailLocked);
+  const emailCheck = useContactCheck("email", draft.primaryEmail, !emailLocked);
+  // Only a number being set or changed is checked — the save applies the same rule.
+  const phoneCheck = useContactCheck(
+    "phone",
+    draft.primaryPhone,
+    draft.primaryPhone.trim() !== (profile?.primaryPhone ?? "").trim(),
+  );
 
   const set = useCallback(
     <K extends keyof IdentityDraft>(field: K, value: IdentityDraft[K]) => {
@@ -488,6 +508,10 @@ function IdentityWizard({
         "Already used by another account. Use a different one.";
     }
 
+    if (step.key === "contact" && phoneCheck === "TAKEN" && !found.primaryPhone) {
+      found.primaryPhone = PHONE_TAKEN;
+    }
+
     if (step.key === "photo" && !hasPhoto) {
       toastError("Your photo is missing", "It goes on the front of your card.");
 
@@ -501,7 +525,7 @@ function IdentityWizard({
     }
 
     goTo(Math.min(REVIEW_INDEX, index + 1), true);
-  }, [emailCheck, emailLocked, full, goTo, hasPhoto, index, step.key]);
+  }, [emailCheck, emailLocked, full, goTo, hasPhoto, index, phoneCheck, step.key]);
 
   /** Uploads a captured file and remembers its handle for the save. */
   const attach = useCallback(
@@ -578,6 +602,10 @@ function IdentityWizard({
         "Already used by another account. Use a different one.";
     }
 
+    if (phoneCheck === "TAKEN" && !found.primaryPhone) {
+      found.primaryPhone = PHONE_TAKEN;
+    }
+
     setErrors(found);
 
     if (uploading) {
@@ -641,11 +669,11 @@ function IdentityWizard({
     full,
     goTo,
     isFirstSave,
+    phoneCheck,
     photoAssetId,
     sharingEnabled,
     signatureAssetId,
     uploading,
-    full,
   ]);
 
   const control: FormControl = { draft, errors, set };
@@ -746,6 +774,7 @@ function IdentityWizard({
               check={emailCheck}
               control={control}
               locked={emailLocked}
+              phoneCheck={phoneCheck}
             />
           ) : null}
           {step.key === "address" ? <AddressStep control={control} /> : null}
@@ -925,10 +954,12 @@ function ContactStep({
   check,
   control,
   locked,
+  phoneCheck,
 }: {
   check: EmailCheck;
   control: FormControl;
   locked: boolean;
+  phoneCheck: EmailCheck;
 }) {
   const { colors } = useAppTheme();
   const good = !locked && (check === "AVAILABLE" || check === "YOURS");
@@ -941,16 +972,35 @@ function ContactStep({
         : check === "YOURS"
           ? "Your account's email"
           : undefined;
+  const phoneGood = phoneCheck === "AVAILABLE" || phoneCheck === "YOURS";
+  // TAKEN is said the moment it is known, not only when Next is pressed.
+  const phoneError =
+    control.errors.primaryPhone ?? (phoneCheck === "TAKEN" ? PHONE_TAKEN : undefined);
+  const phoneHint =
+    phoneCheck === "checking"
+      ? "Checking…"
+      : phoneCheck === "AVAILABLE"
+        ? "Looks good!"
+        : phoneCheck === "YOURS"
+          ? "Your account's phone"
+          : undefined;
+  const checkMark = (
+    <Ionicons color={colors.primary} name="checkmark-circle" size={18} />
+  );
 
   return (
     <View className="gap-6">
-      <TextField
-        control={control}
+      <Input
+        error={phoneError}
+        hint={phoneHint}
         keyboardType="phone-pad"
-        label="Main phone"
-        name="primaryPhone"
+        label="Main phone *"
+        onChangeText={(value) => control.set("primaryPhone", value)}
         placeholder="98XXXXXXXX"
-        required
+        tone={phoneGood ? "success" : undefined}
+        trailing={phoneGood ? checkMark : null}
+        value={control.draft.primaryPhone}
+        variant="line"
       />
       <TextField
         control={control}
@@ -969,15 +1019,7 @@ function ContactStep({
         label="Main email *"
         onChangeText={(value) => control.set("primaryEmail", value)}
         tone={good ? "success" : undefined}
-        trailing={
-          good ? (
-            <Ionicons
-              color={colors.primary}
-              name="checkmark-circle"
-              size={18}
-            />
-          ) : null
-        }
+        trailing={good ? checkMark : null}
         value={control.draft.primaryEmail}
         variant="line"
       />

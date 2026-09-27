@@ -132,13 +132,18 @@ function PayDialog({
  * member has earned and been paid, and the button that pays them.
  */
 export function TeamCommissionPanel() {
-  const resource = usePortalResource<{ ratePercent: number; wallets: TeamWallet[] }>(
-    "/api/v1/platform/team/wallets",
-  );
+  const resource = usePortalResource<{
+    ratePercent: number;
+    setupFee: number;
+    wallets: TeamWallet[];
+  }>("/api/v1/platform/team/wallets");
   const wallets = resource.data?.wallets ?? [];
   const savedRate = resource.data?.ratePercent ?? null;
+  const savedFee = resource.data?.setupFee ?? null;
   const [rateDraft, setRateDraft] = useState<string | null>(null);
+  const [feeDraft, setFeeDraft] = useState<string | null>(null);
   const rate = rateDraft ?? (savedRate === null ? "" : String(savedRate));
+  const fee = feeDraft ?? (savedFee === null ? "" : String(savedFee));
   const [savingRate, setSavingRate] = useState(false);
   const [paying, setPaying] = useState<TeamWallet | null>(null);
 
@@ -148,12 +153,13 @@ export function TeamCommissionPanel() {
 
     try {
       await browserApi("/api/v1/platform/operations-config", {
-        body: JSON.stringify({ teamCommissionPercent: Number(rate) }),
+        body: JSON.stringify({ teamCommissionPercent: Number(rate), teamSetupFee: Number(fee) }),
         method: "PUT",
       });
       setRateDraft(null);
+      setFeeDraft(null);
       resource.refresh();
-      toast.success({ title: `Commission set to ${rate}%` });
+      toast.success({ title: `Setup fee ${rupees(Number(fee))}, commission ${rate}%` });
     } catch (error) {
       toast.error({ description: errorText(error), title: "Rate not saved" });
     } finally {
@@ -169,10 +175,30 @@ export function TeamCommissionPanel() {
         <div>
           <h2 className="text-sm font-bold text-foreground">Commission</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Credited on a hostel&apos;s first plan payment. {rupees(owed)} waiting to be paid out.
+            The agent gets{" "}
+            <strong className="font-semibold text-foreground">
+              {rupees(Math.round((Number(fee) || 0) * (Number(rate) || 0)) / 100)} of a{" "}
+              {rupees(Number(fee) || 0)} setup fee
+            </strong>{" "}
+            — the rate is a percent, so a fee the agent lowers earns less. Credited when the fee
+            clears. The fee is also the most an agent may collect. {rupees(owed)} waiting to be
+            paid out.
           </p>
         </div>
         <form className="flex items-end gap-2" onSubmit={saveRate}>
+          <label className="text-xs font-semibold text-foreground">
+            Setup fee (Rs)
+            <input
+              className="mt-1 h-9 w-24 rounded-lg border border-border bg-background px-2 text-sm tabular-nums outline-none focus:border-role-platform"
+              max={100000}
+              min={0}
+              onChange={(event) => setFeeDraft(event.target.value)}
+              required
+              step="1"
+              type="number"
+              value={fee}
+            />
+          </label>
           <label className="text-xs font-semibold text-foreground">
             Rate (%)
             <input
@@ -188,7 +214,7 @@ export function TeamCommissionPanel() {
           </label>
           <button
             className="h-9 rounded-lg border border-border px-3 text-xs font-semibold text-foreground transition hover:bg-muted disabled:opacity-50"
-            disabled={savingRate || Number(rate) === savedRate}
+            disabled={savingRate || (Number(rate) === savedRate && Number(fee) === savedFee)}
             type="submit"
           >
             {savingRate ? "Saving…" : "Save"}

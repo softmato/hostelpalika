@@ -1,6 +1,7 @@
 import type { Types } from "mongoose";
 
 import { connectToDatabase } from "@/lib/db";
+import { hostelDaysBetween } from "@/lib/hostel-day";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { getOperationsConfig } from "@/modules/platform-config/operations-config";
 import { withRun } from "@/modules/finance/reconciliation/run-recorder";
@@ -10,6 +11,7 @@ import {
   resolveHostelAdminContacts,
   resolveResidentContact,
   sendNotificationEmail,
+  sendNotificationEmailBatch,
 } from "@/modules/residents/resident-notify";
 import { InvoiceBalanceModel } from "@hostel/db/models/InvoiceBalance";
 import { InvoiceModel } from "@hostel/db/models/Invoice";
@@ -128,15 +130,12 @@ const REMINDER_SOON_DAYS = 3;
 const OVERDUE_FIRST_DAYS = 3;
 const OVERDUE_SECOND_DAYS = 7;
 
-function startOfDay(date: Date) {
-  const copy = new Date(date);
-  copy.setHours(0, 0, 0, 0);
-  return copy;
-}
-
-function daysBetween(from: Date, to: Date) {
-  return Math.round((startOfDay(to).getTime() - startOfDay(from).getTime()) / 86_400_000);
-}
+/**
+ * Whole days in Kathmandu. The local `setHours` this replaced counted UTC days
+ * on the server, right only while the job ran between 05:45 and midnight Nepal
+ * time.
+ */
+const daysBetween = hostelDaysBetween;
 
 export type PaymentReminderRun = {
   escalated: number;
@@ -249,7 +248,6 @@ export async function runPaymentReminders(now = new Date()): Promise<PaymentRemi
   await connectToDatabase();
 
   const config = await getOperationsConfig();
-  const today = startOfDay(now);
 
   const { result } = await withRun(
     // Platform-wide: one row for the whole nightly pass rather than one per
@@ -327,7 +325,7 @@ export async function runPaymentReminders(now = new Date()): Promise<PaymentRemi
             continue;
           }
 
-          const daysUntilDue = daysBetween(today, invoice.dueDate);
+          const daysUntilDue = daysBetween(now, invoice.dueDate);
 
           if (daysUntilDue < 0 && invoice.status !== "OVERDUE") {
             // The status is derived everywhere else; here the derivation is
@@ -342,7 +340,7 @@ export async function runPaymentReminders(now = new Date()): Promise<PaymentRemi
           const action = nextDunningAction({
             chaseCount: invoice.dunning?.chaseCount ?? 0,
             daysSinceLastNotice: invoice.dunning?.lastNotifiedAt
-              ? daysBetween(invoice.dunning.lastNotifiedAt, today)
+              ? daysBetween(invoice.dunning.lastNotifiedAt, now)
               : null,
             daysUntilDue,
             reminderDaysBefore: config.paymentReminderDaysBefore,
@@ -385,6 +383,10 @@ export async function runPaymentReminders(now = new Date()): Promise<PaymentRemi
           (a, b) => Number(a.action.kind === "reminder") - Number(b.action.kind === "reminder"),
         );
 
+        // Residents' emails are collected here and go out as one Resend batch
+        // per page: two hundred single sends at once overran the per-second
+        // limit, and a 429 was a reminder marked sent that nobody received.
+        const emails: ResidentEmail[] = [];
         const outcomes = await Promise.all(
           planned.map((item) => {
             const residentKey = item.resident._id.toString();
@@ -402,6 +404,7 @@ export async function runPaymentReminders(now = new Date()): Promise<PaymentRemi
             return deliver({
               action: item.action,
               email,
+              emails,
               hostelName: hostelNames.get(item.invoice.hostelId.toString()) ?? "",
               invoice: item.invoice,
               outstanding: item.outstanding,
@@ -409,6 +412,8 @@ export async function runPaymentReminders(now = new Date()): Promise<PaymentRemi
             });
           }),
         );
+
+        await sendNotificationEmailBatch(emails);
 
         for (let index = 0; index < planned.length; index += 1) {
           const item = planned[index]!;
@@ -502,10 +507,14 @@ export async function runPaymentReminders(now = new Date()): Promise<PaymentRemi
  * off must still see its own reminders in the app, which is the bug that fix was
  * about.
  */
+type ResidentEmail = Parameters<typeof sendNotificationEmailBatch>[0][number];
+
 async function deliver(input: {
   action: DunningAction;
   /** Whether this rung may email the resident. The run decides — see above. */
   email: boolean;
+  /** Where the resident's email is left for the page's one batch send. */
+  emails: ResidentEmail[];
   hostelName: string;
   invoice: InvoiceRow;
   outstanding: number;
@@ -594,7 +603,7 @@ async function deliver(input: {
           stage: reminderStage,
         });
 
-    await sendNotificationEmail({
+    input.emails.push({
       action: overdue ? "payment_overdue" : "payment_due_reminder",
       html: email.html,
       subject: email.subject,

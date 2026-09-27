@@ -2,6 +2,7 @@
 
 import { ArrowUpRight, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import {
@@ -11,7 +12,8 @@ import {
 } from "@/app/_components/portal-dashboard-ui";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { currentBsPeriod, formatBsPeriod } from "@hostel/shared/calendar/bs";
-import { CONTENT_ICON_SLUGS, contentIcon } from "@/lib/site-content";
+import { ContentIcon } from "@/components/content-icon";
+import { CONTENT_ICON_SLUGS } from "@/lib/site-content";
 import { cn } from "@/lib/utils";
 
 import { InlineText } from "./inline-text";
@@ -82,7 +84,12 @@ export const PlatformConfigPlansPageContent = memo(
 
     const catalog = valueFor("plans");
     const [cycle, setCycle] = useState<BillingCycle>("annual");
-    const [tab, setTab] = useState("catalogue");
+    // In `?tab=` so the palette can deep-link to a field on any tab.
+    const router = useRouter();
+    const pathname = usePathname();
+    const requested = useSearchParams().get("tab") ?? "";
+    const tab = ["pricing", "offer", "links"].includes(requested) ? requested : "catalogue";
+    const setTab = (key: string) => router.replace(`${pathname}?tab=${key}`, { scroll: false });
 
     /*
      * The preview is priced the way a visitor's page is priced — through the
@@ -489,13 +496,12 @@ function ModuleRow({
   services: PlanService[];
   total: number;
 }) {
-  const Icon = contentIcon(module.icon);
 
   return (
     <section className="rounded-lg border border-border/70 bg-muted/10 p-3">
       <header className="flex items-start gap-2.5">
         <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-role-platform-soft text-role-platform">
-          <Icon className="size-4" />
+          <ContentIcon className="size-4" slug={module.icon} />
         </span>
         <div className="min-w-0 flex-1">
           <InlineText
@@ -711,9 +717,11 @@ function PricingTab({
           description: "",
           eventDiscountPercent: 0,
           featured: false,
+          freeMonths: 0,
           halfYearlyDiscountPercent: 0,
           id,
           listingTier: null,
+          maxBranches: 0,
           maxResidents: null,
           monthly: 0,
           name: "New plan",
@@ -827,12 +835,26 @@ function PlanPricingRow({
         </div>
       </header>
 
-      <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
         <NumberField
           label="Monthly price"
           onChange={(monthly) => onPatch({ monthly: monthly ?? 0 })}
           prefix="NPR"
           value={plan.monthly}
+        />
+        <NumberField
+          hint="From the day a hostel goes live. Once per building."
+          label="Free months"
+          max={24}
+          onChange={(freeMonths) => onPatch({ freeMonths: freeMonths ?? 0 })}
+          value={plan.freeMonths}
+        />
+        <NumberField
+          hint="Extra hostels under this plan, at no charge. 0 for none."
+          label="Branches"
+          max={100}
+          onChange={(maxBranches) => onPatch({ maxBranches: maxBranches ?? 0 })}
+          value={plan.maxBranches}
         />
         <NumberField
           hint="Empty means no ceiling."

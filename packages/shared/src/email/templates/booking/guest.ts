@@ -13,6 +13,7 @@ import {
 import {
   bookingFactsTable,
   hoursWord,
+  payable,
   refundLadderTable,
   rupees,
   type BookingFacts,
@@ -48,7 +49,7 @@ export function bookingInvoiceEmail(
 ): EmailContent {
   return {
     category: "billing",
-    subject: `Please pay ${rupees(input.booking.fee)} to book your bed — ${input.booking.hostelName}`,
+    subject: `Please pay ${rupees(payable(input.booking))} to book your bed — ${input.booking.hostelName}`,
     html: emailLayout({
       bodyHtml: [
         greeting(input.name),
@@ -60,7 +61,7 @@ export function bookingInvoiceEmail(
           { label: "Pay by", value: input.payBy },
         ]),
         paragraph(
-          `Open your booking and scan the ${PLATFORM_NAME} QR. Pay <strong>${rupees(input.booking.fee)}</strong> and write <strong>${escapeHtml(input.booking.code)}</strong> in the remarks. Then send us the payment screenshot.`,
+          `Open your booking and scan the ${PLATFORM_NAME} QR. Pay <strong>${rupees(payable(input.booking))}</strong> and write <strong>${escapeHtml(input.booking.code)}</strong> in the remarks. Then send us the payment screenshot.`,
         ),
         ctaButton(input.bookingUrl, "Pay booking fee"),
         paragraph(
@@ -68,7 +69,10 @@ export function bookingInvoiceEmail(
         ),
         paragraph("<strong>Refunds</strong>"),
         refundLadderTable({
-          fee: input.booking.fee,
+          fee: payable(input.booking),
+          stay: input.booking.stay
+            ? { amount: input.booking.stay.amount, oneNight: Math.round(input.booking.stay.amount / input.booking.stay.nights) }
+            : null,
           noShowRefund: input.noShowRefund,
           rows: input.refundRows,
         }),
@@ -76,7 +80,7 @@ export function bookingInvoiceEmail(
       ].join(""),
       eyebrow: "Bill",
       heading: "Please pay your booking fee",
-      preheader: `Pay ${rupees(input.booking.fee)} with code ${input.booking.code} to book ${input.booking.roomType} at ${input.booking.hostelName}.`,
+      preheader: `Pay ${rupees(payable(input.booking))} with code ${input.booking.code} to book ${input.booking.roomType} at ${input.booking.hostelName}.`,
     }),
   };
 }
@@ -101,7 +105,7 @@ export function bookingProofReceivedEmail(
       ].join(""),
       eyebrow: "Payment",
       heading: "We got your screenshot",
-      preheader: `We are checking your ${rupees(input.booking.fee)} payment for booking ${input.booking.code}.`,
+      preheader: `We are checking your ${rupees(payable(input.booking))} payment for booking ${input.booking.code}.`,
     }),
   };
 }
@@ -381,13 +385,13 @@ export function bookingPaymentVerifiedEmail(
           { label: "Hostel answers by", value: input.hostelAnswerBy },
         ]),
         paragraph(
-          `Now ${escapeHtml(input.booking.hostelName)} will say yes or no. If it says no or does not answer by ${escapeHtml(input.hostelAnswerBy)}, you get all ${rupees(input.booking.fee)} back.`,
+          `Now ${escapeHtml(input.booking.hostelName)} will say yes or no. If it says no or does not answer by ${escapeHtml(input.hostelAnswerBy)}, you get all ${rupees(payable(input.booking))} back.`,
         ),
         ctaButton(input.bookingUrl, "View booking"),
       ].join(""),
       eyebrow: "Receipt",
       heading: "We got your booking fee",
-      preheader: `Receipt ${input.receiptNumber}: ${rupees(input.booking.fee)} for booking ${input.booking.code}.`,
+      preheader: `Receipt ${input.receiptNumber}: ${rupees(payable(input.booking))} for booking ${input.booking.code}.`,
     }),
   };
 }

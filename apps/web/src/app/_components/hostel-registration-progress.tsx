@@ -13,6 +13,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 
 import { useSiteConfig } from "@/components/site-config-provider";
+import { formatBsDate } from "@hostel/shared/calendar/bs";
 import { CheckoutHandoffButton } from "@/app/_components/checkout-handoff";
 import { browserApi } from "@/lib/browser-api";
 import { cn } from "@/lib/utils";
@@ -89,6 +90,8 @@ type SubscriptionState = {
     cycle: string | null;
     cycleTotal: number | null;
     dueBy: string | null;
+    freeMonths?: number | null;
+    freeUntil?: string | null;
     id: string;
     planId: string | null;
     planName: string | null;
@@ -269,7 +272,12 @@ function PlanPicker({
                 ) : null}
               </div>
 
-              <p className="mt-2 text-lg font-bold tabular-nums text-foreground">
+              {plan.freeMonths ? (
+                <p className="mt-2 text-xs font-semibold text-brand-teal">
+                  First {plan.freeMonths} {plan.freeMonths === 1 ? "month" : "months"} free, then
+                </p>
+              ) : null}
+              <p className={cn("text-lg font-bold tabular-nums text-foreground", plan.freeMonths ? "mt-0.5" : "mt-2")}>
                 {rupees(total)}
                 <span className="ml-1 text-xs font-medium text-muted-foreground">
                   / {cycles.find((option) => option.id === cycle)?.label.toLowerCase()}
@@ -364,6 +372,7 @@ export function HostelRegistrationProgress({
   documentSlot?: React.ReactNode;
   onRefresh: () => Promise<void> | void;
 }) {
+  const { identity } = useSiteConfig();
   const [state, setState] = useState<SubscriptionState | null>(null);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
@@ -502,13 +511,25 @@ export function HostelRegistrationProgress({
             <Globe className="size-5 text-brand-teal" />
             <h2 className="text-lg font-bold text-foreground">Your listing is live</h2>
           </div>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {state?.subscription.planName} is active
-            {state?.subscription.currentPeriodEnd
-              ? ` until ${new Date(state.subscription.currentPeriodEnd).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
-              : ""}
-            . You can manage everything from your dashboard.
-          </p>
+          {state?.subscription.freeUntil ? (
+            <p className="mt-2 text-sm text-muted-foreground">
+              Your {state.subscription.planName} plan is free for{" "}
+              {state.subscription.freeMonths}{" "}
+              {state.subscription.freeMonths === 1 ? "month" : "months"}, until{" "}
+              {formatBsDate(new Date(state.subscription.freeUntil))} — no need to recharge
+              until then. After that, recharge this hostel yourself from Billing in your
+              dashboard
+              {identity.supportPhone ? `, or call us on ${identity.supportPhone}` : ""}.
+            </p>
+          ) : (
+            <p className="mt-2 text-sm text-muted-foreground">
+              {state?.subscription.planName} is active
+              {state?.subscription.currentPeriodEnd
+                ? ` until ${new Date(state.subscription.currentPeriodEnd).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
+                : ""}
+              . You can manage everything from your dashboard.
+            </p>
+          )}
         </section>
       ) : (
         <section className="animate-step-in rounded-2xl border border-border bg-surface p-5 shadow-sm md:p-6">
@@ -620,7 +641,9 @@ export function HostelRegistrationProgress({
                   <strong className="font-semibold text-foreground">
                     {state.subscription.planName}
                   </strong>{" "}
-                  is saved. Pay now appears here as soon as your details are verified.
+                  {state.subscription.freeMonths
+                    ? `is saved. Its ${state.subscription.freeMonths} free ${state.subscription.freeMonths === 1 ? "month starts" : "months start"} the day your details are verified — nothing to pay now.`
+                    : "is saved. Pay now appears here as soon as your details are verified."}
                 </p>
               ) : null}
             </>

@@ -2,7 +2,6 @@ import { Types } from "mongoose";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
-import { fileFieldCash } from "@/modules/billing/cash-filing.service";
 import { paginationMeta, paginationRange } from "@/lib/pagination";
 import { escapeRegex } from "@/lib/validators";
 import { Role } from "@/lib/roles";
@@ -16,6 +15,7 @@ import { HostelMemberModel } from "@hostel/db/models/HostelMember";
 import { HostelSubscriptionModel } from "@hostel/db/models/HostelSubscription";
 import { HostelDocumentModel } from "@hostel/db/models/HostelDocument";
 import { HostelModel } from "@hostel/db/models/Hostel";
+import { HostelPayoutAccountModel } from "@hostel/db/models/HostelPayoutAccount";
 import { HostelVerificationModel } from "@hostel/db/models/HostelVerification";
 import { InquiryModel } from "@hostel/db/models/Inquiry";
 import { RatingReviewModel } from "@hostel/db/models/RatingReview";
@@ -51,19 +51,17 @@ import {
 import {
   getOrCreateSubscription,
   getSubscriptionState,
-  graceDeadline,
-  issueSubscriptionInvoice,
-  selectPlan,
-  startPlanPeriod,
 } from "@/modules/billing/subscription.service";
+import { startFreeMonths } from "@/modules/billing/subscription-payment.service";
 import {
-} from "@/modules/billing/subscription-payment.service";
-import { reconcileInvoiceFromSoftmato } from "@/modules/billing/subscription-reconcile.service";
+  registrationShortStays,
+  type HostelShortStays,
+} from "@/modules/bookings/short-stay-settings.service";
 import { getOperationsConfig } from "@/modules/platform-config/operations-config";
+import { fileTeamBilling } from "@/modules/team/team-filing-billing";
 import {
   claimTeamPrepayment,
   releaseTeamPrepayment,
-  settleTeamPrepayment,
 } from "@/modules/team/team-prepayment.service";
 import {
   onHostelVerified,
@@ -89,6 +87,10 @@ import type {
 } from "@/modules/hostels/hostel.validation";
 import type { z } from "zod";
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
+
+import { hostelNameKey } from "@/modules/hostels/hostel-name-key";
+
+export { hostelNameKey };
 
 type PlatformHostelCreateInput = z.infer<typeof platformHostelCreateSchema>;
 type PublicHostelApplicationCreateInput = z.infer<
@@ -117,6 +119,8 @@ type PublicInquiryCreateInput = z.infer<typeof publicInquiryCreateSchema>;
 
 export type HostelRecord = {
   _id: Types.ObjectId;
+  panNumber?: string | null;
+  parentHostelId?: Types.ObjectId | null;
   suspension?: SuspensionRecord | null;
   capacitySummary?: {
     totalBeds?: number;
@@ -392,6 +396,9 @@ export function serializeHostel(hostel: HostelRecord) {
     name: hostel.name,
     nameChangeCount: hostel.nameChangeCount ?? 0,
     ownerId: hostel.ownerId.toString(),
+    panNumber: hostel.panNumber ?? null,
+    /** Set on a branch: the main hostel whose plan it runs on. */
+    parentHostelId: hostel.parentHostelId?.toString() ?? null,
     photos: (hostel.photos ?? []).map((photo) => ({
       alt: photo.alt ?? "",
       fileAssetId: photo.fileAssetId?.toString(),
@@ -993,6 +1000,7 @@ function hostelDocumentFrom(
     },
     name: input.name,
     ownerId: lifecycle.ownerId,
+    panNumber: input.panNumber,
     photos: input.photos,
     pricing: input.pricing,
     roomConfigurations: input.roomConfigurations,
@@ -1112,6 +1120,9 @@ export async function registerPublicHostelApplication(
 ) {
   await connectToDatabase();
 
+  // Before any write: a daily rate under its floor refuses the whole form.
+  const shortStays = await registrationShortStays(input);
+
   // An authenticated submission is owned by the signed-in account, full stop;
   // only anonymous submissions fall back to resolving an owner from the typed
   // contact details. This is what guarantees the approval email reaches the
@@ -1133,14 +1144,15 @@ export async function registerPublicHostelApplication(
   const claimedDocuments = await claimRegistrationDocuments(input.documents, ownerId);
   const slug = await uniqueSlug(input.name, input.location.area);
 
-  const hostel = await HostelModel.create(
-    hostelDocumentFrom(input, {
+  const hostel = await HostelModel.create({
+    ...hostelDocumentFrom(input, {
       ownerId,
       slug,
       status: "PENDING_APPROVAL",
       verificationStatus: "PENDING",
     }),
-  );
+    shortStays,
+  });
 
   const application = await HostelApplicationModel.create({
     applicantId: ownerId,
@@ -1261,21 +1273,6 @@ export async function registerPublicHostelApplication(
  * many hostels; if their account were the owner they would end up owning every
  * one of them, and the real owner could never sign in to their own dashboard.
  */
-/**
- * `Study Sanjal Hostel`, `Study Sanjal`, `study-sanjal hostel.` → one key.
- *
- * Case, punctuation, spacing and the generic words a hostel name is padded
- * with are dropped, because those are exactly the ways the same building gets
- * typed twice by two agents — or by one agent on two visits.
- */
-export function hostelNameKey(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9ऀ-ॿ]+/g, " ")
-    .replace(/\b(hostel|hostels|pg|boys|girls|home|house|the)\b/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
 
 /**
  * The two ways a field agent files a hostel that should not be filed.
@@ -1484,6 +1481,18 @@ export async function registerTeamHostelApplication(
   // Before any write: this path publishes on submit, so a duplicate caught
   // after `HostelModel.create` is already a live listing with an invoice.
   await assertTeamRegistrationIsNew(input);
+  const shortStays = await registrationShortStays(input);
+
+  // The setup fee is capped by the platform: an agent may take less, never more.
+  const { teamSetupFee } = await getOperationsConfig();
+
+  if (input.payment.method === "CASH" && input.payment.amount > teamSetupFee) {
+    throw new HostelServiceError(
+      `The setup fee is at most Rs ${teamSetupFee}. Collect no more than that.`,
+      "SETUP_FEE_TOO_HIGH",
+      422,
+    );
+  }
 
   // Taken before the hostel is written, so two publishes cannot both spend it.
   const prepayment = input.payment.prepaymentId
@@ -1501,7 +1510,7 @@ export async function registerTeamHostelApplication(
   }
 
   try {
-    return await fileTeamRegistration(input, agent, prepayment);
+    return await fileTeamRegistration({ ...input, checkedShortStays: shortStays }, agent, prepayment);
   } catch (error) {
     if (prepayment) await releaseTeamPrepayment(prepayment);
     throw error;
@@ -1509,7 +1518,7 @@ export async function registerTeamHostelApplication(
 }
 
 async function fileTeamRegistration(
-  input: TeamHostelRegistrationInput,
+  input: TeamHostelRegistrationInput & { checkedShortStays?: HostelShortStays },
   agent: { name?: string; userId: string },
   prepayment: Awaited<ReturnType<typeof claimTeamPrepayment>> | null,
 ) {
@@ -1524,6 +1533,7 @@ async function fileTeamRegistration(
       status: "PUBLISHED",
       verificationStatus: "VERIFIED",
     }),
+    shortStays: input.checkedShortStays,
     // The id the online payment reserved, so Softmato's customer is this hostel.
     ...(prepayment ? { _id: prepayment.hostelId } : {}),
   });
@@ -1592,85 +1602,7 @@ async function fileTeamRegistration(
     );
   }
 
-  await getOrCreateSubscription(hostel._id, {
-    agentId: agent.userId,
-    source: "TEAM",
-  });
-  await selectPlan(hostel._id.toString(), input.plan, agent.userId);
-
-  /*
-   * `requireVerified` is passed explicitly rather than relying on the hostel
-   * having been written VERIFIED a few statements ago. The guard exists to stop
-   * money being demanded from an unchecked hostel, and on this path the check is
-   * the agent's presence — saying so is clearer than depending on write order.
-   */
-  const invoice = await issueSubscriptionInvoice(hostel._id.toString(), agent.userId, {
-    agentId: agent.userId,
-    ...(prepayment
-      ? {
-          prepaid: {
-            amount: prepayment.amount,
-            invoiceNumber: prepayment.invoiceNumber,
-            softmatoInvoiceId: prepayment.softmatoInvoiceId,
-            softmatoInvoiceNo: prepayment.softmatoInvoiceNo,
-          },
-        }
-      : {}),
-    requireVerified: false,
-    source: "TEAM",
-  });
-
-  /*
-   * The hostel is live from this moment — published before paid is the whole
-   * point of a team registration — so its plan starts today, on the period the
-   * invoice was raised for. It used to start only once the balance cleared, so
-   * a team hostel spent its trial with no plan running at all and every screen
-   * counted down the payment window in its place.
-   */
-  await startPlanPeriod(invoice, invoice.issuedAt ?? new Date());
-
-  if (prepayment?.paid) {
-    // Paid online on the Plan & payment step; settled in full here.
-    await settleTeamPrepayment(prepayment, invoice, agent.userId);
-  } else if (input.payment.amount > 0) {
-    // Cash, filed with Softmato as a claim; it books when their admin confirms it.
-    await fileFieldCash(
-      invoice._id.toString(),
-      { amount: input.payment.amount, reference: input.payment.reference },
-      { name: agent.name ?? "Field agent", userId: agent.userId },
-    );
-  } else {
-    /*
-     * Nothing collected today. The whole price is still owed, so the due is set
-     * here rather than waiting for a settlement that is not coming — otherwise a
-     * hostel filed with no payment would sit in `AWAITING_PAYMENT` with no
-     * deadline and never raise a banner.
-     *
-     * The deadline is the invoice's own — the end of the Nepal day `grace` days
-     * after today, the day the hostel was added — so this path and a later part
-     * payment agree on it to the millisecond.
-     */
-    const dueBy =
-      invoice.dueAt ??
-      graceDeadline(
-        invoice.issuedAt ?? new Date(),
-        (await getOperationsConfig()).subscriptionDueGraceDays,
-      );
-
-    await HostelSubscriptionModel.updateOne(
-      { hostelId: hostel._id },
-      { $set: { dueBy, status: "PAST_DUE" } },
-    );
-
-    /*
-     * An online payment still open at publish: a payment that landed between
-     * the claim and this invoice existing reached no row, so it is read back
-     * now. One that lands later finds this invoice by webhook.
-     */
-    if (prepayment) {
-      await reconcileInvoiceFromSoftmato(invoice._id).catch(() => null);
-    }
-  }
+  const billing = await fileTeamBilling(hostel._id, input, agent, prepayment);
 
   /*
    * The owner has to be able to sign in — to see the due and to pay it — so the
@@ -1706,8 +1638,10 @@ async function fileTeamRegistration(
     hostelId: hostel._id,
     metadata: {
       amountCollected: prepayment?.paid ? (prepayment.chargeAmount ?? prepayment.amount) : input.payment.amount,
+      freeMonths: billing.free?.freeMonths ?? 0,
       method: input.payment.method,
       outstanding: state?.outstanding ?? 0,
+      setupFee: billing.setupFee,
       planId: input.plan.planId,
       submittedFrom: "team-registration",
     },
@@ -1717,12 +1651,14 @@ async function fileTeamRegistration(
     agentName: agent.name,
     amountPaid: prepayment?.paid ? (prepayment.chargeAmount ?? prepayment.amount) : input.payment.amount,
     dueBy: state?.subscription.dueBy ? new Date(state.subscription.dueBy) : null,
+    free: billing.free,
     hostelName: input.name,
     hostelSlug: slug,
     outstanding: state?.outstanding ?? 0,
     ownerEmail: input.applicant.email,
     ownerName: input.applicant.name,
     planName: state?.subscription.planName ?? "",
+    setupFee: billing.setupFee,
   });
 
   // This hostel is published as of a few statements ago, so its map has to
@@ -1822,13 +1758,27 @@ export async function listPlatformHostels(query: PlatformHostelListQuery) {
     }
   }
 
+  // A branch is reviewed against its main hostel: its name and the PAN it must match.
+  const parentIds = hostels.flatMap((hostel) => (hostel.parentHostelId ? [hostel.parentHostelId] : []));
+  const parents =
+    parentIds.length > 0
+      ? await HostelModel.find({ _id: { $in: parentIds } })
+          .select("name panNumber slug")
+          .lean<Array<{ _id: Types.ObjectId; name: string; panNumber?: string; slug: string }>>()
+      : [];
+  const parentById = new Map(parents.map((parent) => [parent._id.toString(), parent]));
+
   return {
     hostels: hostels.map((hostel) => {
       const application = applicationByHostel.get(hostel._id.toString());
+      const parent = hostel.parentHostelId ? parentById.get(hostel.parentHostelId.toString()) : null;
 
       return {
         ...serializeHostel(hostel),
         applicationStatus: application?.status ?? "",
+        branchOf: parent
+          ? { id: parent._id.toString(), name: parent.name, panNumber: parent.panNumber ?? null, slug: parent.slug }
+          : null,
         owner: ownerById.get(hostel.ownerId.toString()) ?? null,
         submittedAt: application?.submittedAt ?? hostel.createdAt?.toISOString() ?? null,
       };
@@ -1912,12 +1862,40 @@ export async function getPlatformHostel(hostelId: string) {
         mimeType: asset?.mimeType ?? "",
       };
     }),
+    branchOf: hostel.parentHostelId ? await branchParentSummary(hostel.parentHostelId) : null,
     hostel: serializeHostel(hostel),
     owner: contactById.get(hostel.ownerId.toString()) ?? null,
     submitter: application
       ? (contactById.get(application.submittedBy.toString()) ?? null)
       : null,
   };
+}
+
+/**
+ * What a superadmin checks a branch against: the main hostel, the PAN it must
+ * share, and the payout holder its money must go to.
+ */
+async function branchParentSummary(parentId: Types.ObjectId) {
+  const [parent, payout] = await Promise.all([
+    HostelModel.findById(parentId)
+      .select("contact.phone name panNumber slug")
+      .lean<{ contact?: { phone?: string }; name: string; panNumber?: string; slug: string } | null>(),
+    HostelPayoutAccountModel.findOne({ hostelId: parentId })
+      .select("holderName status")
+      .lean<{ holderName?: string; status?: string } | null>(),
+  ]);
+
+  return parent
+    ? {
+        id: parentId.toString(),
+        name: parent.name,
+        panNumber: parent.panNumber ?? null,
+        payoutHolder: payout?.holderName ?? null,
+        payoutVerified: payout?.status === "VERIFIED",
+        phone: parent.contact?.phone ?? "",
+        slug: parent.slug,
+      }
+    : null;
 }
 
 async function updateHostelStatus(
@@ -1965,6 +1943,23 @@ async function updateHostelStatus(
 
 export async function approvePlatformHostel(hostelId: string, principal: ApiPrincipal) {
   await connectToDatabase();
+
+  /*
+   * A branch rides a Max plan for free, so it is the one approval a moderator
+   * may not give: only a superadmin, and only after calling the branch — the
+   * third of the three checks in `hostel-branch.service.ts`.
+   */
+  const branch = await HostelModel.findById(normalizeObjectId(hostelId))
+    .select("parentHostelId pricing roomConfigurations")
+    .lean<Pick<HostelRecord, "parentHostelId" | "pricing" | "roomConfigurations"> | null>();
+
+  if (branch?.parentHostelId && principal.role !== Role.SUPERADMIN) {
+    throw new HostelServiceError(
+      "Only a superadmin approves a branch, after calling it.",
+      "BRANCH_NEEDS_SUPERADMIN",
+      403,
+    );
+  }
 
   const result = await updateHostelStatus(
     hostelId,
@@ -2036,6 +2031,36 @@ export async function approvePlatformHostel(hostelId: string, principal: ApiPrin
    * when the plan is paid, and the verified email names the plan if the owner
    * already chose one during the wait.
    */
+  /*
+   * A branch has no plan to choose or pay: it goes live on approval, on its
+   * main hostel's plan. The owner gets it in their portal (the switcher), its
+   * own cook login, and a rate card from the rooms it was filed with.
+   */
+  if (branch?.parentHostelId) {
+    await HostelModel.updateOne(
+      { _id: objectId },
+      { $set: { status: "PUBLISHED", updatedBy: principal.userId } },
+    );
+    await grantHostelOwnerAccess(hostelId, principal.userId);
+    await seedOpeningRateCard(
+      hostelId,
+      {
+        pricing: branch.pricing,
+        roomConfigurations: (branch.roomConfigurations ?? []).map((room) => ({
+          ...room,
+          roomType: room.roomType ?? "",
+        })),
+      } as Parameters<typeof seedOpeningRateCard>[1],
+      principal.userId,
+    );
+
+    return result;
+  }
+
+  // A plan already chosen starts its free months now, which is going live:
+  // published, ACTIVE, and the portal opened by `startFreeMonths` itself.
+  const free = await startFreeMonths(hostelId, principal.userId);
+
   const subscription = await HostelSubscriptionModel.findOne({ hostelId: objectId })
     .select("planName source status")
     .lean<{ planName?: string | null; source?: string; status?: string } | null>();
@@ -2061,6 +2086,7 @@ export async function approvePlatformHostel(hostelId: string, principal: ApiPrin
       credentials: signIn?.temporaryPassword
         ? { email: ownerInfo.owner.email, temporaryPassword: signIn.temporaryPassword }
         : null,
+      free: free ? { months: free.freeMonths, until: free.freeUntil } : null,
       hostelName: ownerInfo.hostelName,
       ownerEmail: ownerInfo.owner.email,
       ownerName: ownerInfo.owner.name,

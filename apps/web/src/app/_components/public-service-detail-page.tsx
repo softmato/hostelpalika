@@ -3,7 +3,7 @@
 import { ArrowLeft, ArrowRight, ArrowUpRight, Check, PlayCircle } from "lucide-react";
 import Link from "next/link";
 
-import { contentIcon } from "@/lib/site-content";
+import { ContentIcon } from "@/components/content-icon";
 import { cn } from "@/lib/utils";
 
 import {
@@ -36,7 +36,6 @@ export function PublicServiceDetailPage({
   service: PlanService;
 }) {
   const serviceModule = getServiceModule(catalog, service.module);
-  const ModuleIcon = contentIcon(serviceModule?.icon ?? "sparkles");
   const plan = getPlan(catalog, service.plan);
   const siblings = catalog.services.filter(
     (other) => other.module === service.module && other.slug !== service.slug,
@@ -56,7 +55,7 @@ export function PublicServiceDetailPage({
         <header className="mt-6">
           {serviceModule ? (
             <span className="inline-flex items-center gap-2 rounded-full bg-brand-teal/10 px-3 py-1 text-xs font-semibold text-brand-teal">
-              <ModuleIcon className="size-3.5" />
+              <ContentIcon className="size-3.5" slug={serviceModule.icon ?? "sparkles"} />
               {serviceModule.name}
             </span>
           ) : null}

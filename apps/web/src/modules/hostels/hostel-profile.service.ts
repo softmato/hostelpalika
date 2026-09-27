@@ -71,6 +71,15 @@ export async function updateHostelAdminProfile(
   const profileUpdate = definedUpdate(input, ["hostelId"]);
 
   /*
+   * The PAN/VAT number is written once. It is what a branch has to match, so
+   * an owner who could change it could re-point their business at anybody's
+   * branch; a correction goes through a superadmin.
+   */
+  if (profileUpdate.panNumber && hostel.panNumber) {
+    delete profileUpdate.panNumber;
+  }
+
+  /*
    * Prices are not editable here once a rate card exists.
    *
    * They used to be, and that was the second half of the platform's worst

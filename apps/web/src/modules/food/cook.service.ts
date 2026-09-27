@@ -6,6 +6,7 @@ import { connectToDatabase } from "@/lib/db";
 import { REALTIME_TOPIC } from "@/lib/realtime/channels";
 import { publishResourceChange } from "@/lib/realtime/server";
 import { Role } from "@/lib/roles";
+import { HOSTEL_UTC_OFFSET_MINUTES, hostelToday } from "@/lib/hostel-day";
 import { assertHostelAccess } from "@/lib/tenant";
 import {
   CookServiceError as CookError,
@@ -361,10 +362,13 @@ async function resolveCookHostelId(principal: ApiPrincipal, requestedHostelId?: 
   return resolveAdminHostelId(principal, requestedHostelId);
 }
 
+/**
+ * The instant today began in Kathmandu — 18:15 UTC the evening before. Local
+ * `setHours` on a UTC server started the day at 05:45, so a breakfast called at
+ * 05:30 dropped off the cook's list and its button lit up again.
+ */
 function startOfToday() {
-  const date = new Date();
-  date.setHours(0, 0, 0, 0);
-  return date;
+  return new Date(hostelToday().getTime() - HOSTEL_UTC_OFFSET_MINUTES * 60_000);
 }
 
 /**
@@ -643,7 +647,7 @@ export async function getCookToday(principal: ApiPrincipal, requestedHostelId?: 
         message: log.message ?? "",
         notifiedCount: log.notifiedCount,
       })),
-      date: today.toISOString().slice(0, 10),
+      date: hostelToday().toISOString().slice(0, 10),
       hostel: hostel
         ? {
             id: hostel._id.toString(),

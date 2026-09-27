@@ -1,6 +1,7 @@
 import type { BookingCancelStep, BookingConfig } from "@/modules/bookings/booking-config";
 import { BookingError } from "@/modules/bookings/booking.errors";
 import { assertWholeRupees, roundToRupee } from "@/modules/finance/money";
+import { stayRefund, type BookingStay } from "@/modules/bookings/short-stay";
 
 /**
  * The money of a booking: the fee, and who gets how much of it back.
@@ -131,6 +132,9 @@ export type BookingSettlement = {
   /** The hostel's part of what is kept. */
   hostelShare: number;
   kept: number;
+  /** A short stay's nights kept and handed back, inside the totals above. */
+  stayKept?: number;
+  stayRefund?: number;
 };
 
 export function splitKept(kept: number, hostelSharePercent: number) {
@@ -157,6 +161,36 @@ export function settlementFor(fee: number, refundPercent: number, terms: Pick<Bo
  * booking — it is the one ending whose answer depends on when it happened.
  */
 export function settleBooking(input: {
+  at: Date;
+  confirmedAt?: Date | null;
+  ending: BookingEnding;
+  fee: number;
+  /** A short stay's nights, settled beside the fee and added into the totals. */
+  stay?: Pick<BookingStay, "amount" | "dailyRate" | "hostelSharePercent" | "moveIn"> | null;
+  terms: BookingTerms;
+}): BookingSettlement {
+  const fee = settleFee(input);
+
+  if (!input.stay) {
+    return fee;
+  }
+
+  const refund = stayRefund(input.stay, input.ending, input.at);
+  const kept = input.stay.amount - refund;
+  const split = splitKept(kept, input.stay.hostelSharePercent);
+
+  return {
+    hostelShare: fee.hostelShare + split.hostelShare,
+    kept: fee.kept + kept,
+    platformShare: fee.platformShare + split.platformShare,
+    refund: fee.refund + refund,
+    refundPercent: fee.refundPercent,
+    stayKept: kept,
+    stayRefund: refund,
+  };
+}
+
+function settleFee(input: {
   at: Date;
   confirmedAt?: Date | null;
   ending: BookingEnding;

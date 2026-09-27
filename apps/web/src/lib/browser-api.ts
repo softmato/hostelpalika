@@ -109,11 +109,29 @@ export function resetRoleHealForTests() {
   roleHealAttempted = false;
 }
 
+/**
+ * The hostel this page is working in, for staff with more than one (an owner
+ * and their branches): the slug in `/{slug}/admin`. The server narrows every
+ * request to it (`x-hostel-id`, see `activeHostel` in `api-auth.ts`); a page
+ * outside a workspace sends nothing and gets the main hostel.
+ */
+export function workspaceSlug() {
+  if (typeof window === "undefined") return null;
+
+  return /^\/([^/]+)\/admin(?:\/|$)/.exec(window.location.pathname)?.[1] ?? null;
+}
+
 function sendRequest(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const headers = new Headers(init?.headers);
 
   if (init?.body && !headers.has("content-type")) {
     headers.set("content-type", "application/json");
+  }
+
+  const slug = workspaceSlug();
+
+  if (slug && !headers.has("x-hostel-id")) {
+    headers.set("x-hostel-id", decodeURIComponent(slug));
   }
 
   return fetch(input, {

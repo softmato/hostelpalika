@@ -79,6 +79,17 @@ export const bookingConfigSchema = z
       .array(z.number().int().min(1).max(719))
       .max(5)
       .default([24]),
+    /**
+     * Short stays: a daily rate may not be below monthly ÷ 30 plus this much,
+     * so a month of nights always costs more than a month's rent.
+     */
+    shortStayMinMarkupPercent: z.number().int().min(0).max(300).default(20),
+    /** The hostel's part of a short stay's nights. HostelPalika keeps the rest. */
+    shortStayHostelSharePercent: percent.default(70),
+    /** Thirty nights or more is a monthly resident, not a short stay. */
+    shortStayMaxNights: z.number().int().min(1).max(29).default(29),
+    /** How far ahead a short stay's move-in may be. */
+    shortStayMaxAdvanceDays: z.number().int().min(1).max(365).default(60),
   })
   .superRefine((config, context) => {
     const steps = config.cancelSteps;

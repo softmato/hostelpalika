@@ -50,6 +50,7 @@ export const PDF_LIB_ROUTES = [
   "/api/v1/files/*/complete/**",
   "/api/v1/files/upload/**",
   "/api/v1/hostel-admin/billing/**",
+  "/api/v1/hostel-admin/branches/**",
   "/api/v1/hostel-admin/bookings/**",
   "/api/v1/hostel-admin/finance/**",
   "/api/v1/hostel-admin/inquiries/**",

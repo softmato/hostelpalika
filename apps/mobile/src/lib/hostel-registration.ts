@@ -240,6 +240,9 @@ export type HostelAttachment = {
   url: string;
 };
 
+/** "Do you offer short stays?" Daily rates keyed by the room type's name as typed. */
+export type ShortStayForm = { enabled: boolean; minNights: string; rates: Record<string, string> };
+
 export type HostelForm = {
   address: string;
   admissionFee: string;
@@ -258,6 +261,8 @@ export type HostelForm = {
   mapLink: string;
   mealsPerDay: string;
   ownerName: string;
+  /** The business's PAN/VAT number — optional, nine digits. */
+  panNumber: string;
   /**
    * Where the pin sits — optional, read from the owner's pasted Maps link. It is
    * their own placement, so it is submitted as `MANUAL`, which is what
@@ -277,6 +282,7 @@ export type HostelForm = {
   selectedPlan: PlanId;
   servesNonVeg: boolean;
   servesVeg: boolean;
+  shortStays: ShortStayForm;
   totalFloors: string;
 };
 
@@ -311,6 +317,7 @@ export function emptyHostelForm(firstRoomId: string): HostelForm {
     mealsPerDay: "2",
     ownerName: "",
     ownerPhone: "",
+    panNumber: "",
     photos: [],
     pin: null,
     rooms: [emptyRoomRow(firstRoomId)],
@@ -319,6 +326,7 @@ export function emptyHostelForm(firstRoomId: string): HostelForm {
     selectedPlan: "pro",
     servesNonVeg: true,
     servesVeg: true,
+    shortStays: { enabled: false, minNights: "1", rates: {} },
     totalFloors: "",
   };
 }
@@ -358,6 +366,10 @@ export function hostelStepErrors(
 
     if (form.ownerPhone.trim().length < 7) {
       errors.ownerPhone = "A phone number we can reach you on.";
+    }
+
+    if (form.panNumber.trim() && !/^\d{9}$/.test(form.panNumber.replace(/\s/g, ""))) {
+      errors.panNumber = "A PAN/VAT number is 9 digits.";
     }
 
     /*
@@ -495,6 +507,7 @@ export type HostelRegisterPayload = {
   mapLink?: string;
   name: string;
   notes: string;
+  panNumber?: string;
   photos: { alt: string; url: string }[];
   pricing: {
     admissionFee?: number;
@@ -513,6 +526,7 @@ export type HostelRegisterPayload = {
   roomTypes: string[];
   rules: string[];
   selectedPlan: string;
+  shortStays?: { enabled: boolean; minNights: number; rates: { dailyRate: number; roomType: string }[] };
   totalFloors?: number;
 };
 
@@ -599,6 +613,7 @@ export function buildHostelPayload(form: HostelForm): HostelRegisterPayload {
     ]
       .filter(Boolean)
       .join(" · "),
+    panNumber: form.panNumber.replace(/\s/g, "") || undefined,
     photos: form.photos.map((photo) => ({ alt: `${name} - Photo`, url: photo.url })),
     pricing: {
       admissionFee: numberValue(form.admissionFee),
@@ -621,6 +636,15 @@ export function buildHostelPayload(form: HostelForm): HostelRegisterPayload {
       .filter(Boolean)
       .slice(0, 40),
     selectedPlan: form.selectedPlan,
+    shortStays: form.shortStays.enabled
+      ? {
+          enabled: true,
+          minNights: numberValue(form.shortStays.minNights) ?? 1,
+          rates: roomConfigurations
+            .map((room) => ({ dailyRate: numberValue(form.shortStays.rates[room.roomType] ?? "") ?? 0, roomType: room.roomType }))
+            .filter((rate) => rate.dailyRate > 0),
+        }
+      : undefined,
     totalFloors: numberValue(form.totalFloors),
   };
 }

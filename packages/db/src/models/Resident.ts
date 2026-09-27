@@ -100,6 +100,12 @@ const residentSchema = new Schema(
       enum: ["STUDENT", "WORKING_PROFESSIONAL", "OTHER"],
       default: "STUDENT",
     },
+    /**
+     * A short-stay guest admitted on a booking: the end of their move-out day.
+     * They paid their nights upfront, so no monthly rent or joining invoice is
+     * ever raised for them, and the booking sweep moves them out at this time.
+     */
+    stayEndsAt: { type: Date, default: null },
     status: {
       type: String,
       enum: ["PENDING", "ACTIVE", "SUSPENDED", "MOVED_OUT"],

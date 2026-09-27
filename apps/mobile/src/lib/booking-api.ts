@@ -68,6 +68,22 @@ export type BookingQuote = {
     photos: string[];
     roomType: string;
   };
+  /** The short-stay side of the same room; `quote` is priced once both dates are valid. */
+  shortStay: {
+    available: boolean;
+    dailyRate: number | null;
+    error: { code: string; message: string } | null;
+    limits: { maxAdvanceDays: number; maxNights: number; minNights: number } | null;
+    quote: {
+      fee: number;
+      holdBlocks: number;
+      moveIn: string;
+      moveOut: string;
+      nights: number;
+      stayAmount: number;
+      total: number;
+    } | null;
+  };
   terms: { feePercent: number; holdDays: number; hostelAnswerHours: number };
 };
 
@@ -117,6 +133,9 @@ export type BookingDetail = {
   settlement: { refund: number; refundPercent: number } | null;
   status: BookingStatus;
   statusLabel: string;
+  stay: { amount: number; dailyRate: number; dates: string; nights: number } | null;
+  /** The fee, plus a short stay's nights. */
+  total: number;
 };
 
 export type BookingSummary = {
@@ -146,6 +165,8 @@ export type RefundPolicy = {
   customBody: string | null;
   intro: string[];
   sections: { body: string[]; icon: string; title: string }[];
+  /** The short-stay limits, for a form that shows a daily rate's floor before sending it. */
+  shortStay: { hostelSharePercent: number; maxAdvanceDays: number; maxNights: number; minMarkupPercent: number };
   updatedAt: string;
   version: string;
 };
@@ -167,10 +188,15 @@ export async function getBookingAvailability(slug: string) {
 }
 
 /** `signedIn` adds the one fact that depends on who is looking: an open booking that would block this one. */
-export async function getBookingQuote(slug: string, roomType: string, signedIn: boolean) {
+export async function getBookingQuote(
+  slug: string,
+  roomType: string,
+  signedIn: boolean,
+  stay?: { moveIn: string; moveOut: string } | null,
+) {
   const response = await (signedIn ? api : publicApi).get<ApiEnvelope<{ quote: BookingQuote }>>(
     "/bookings/quote",
-    { params: { hostel: slug, roomType } },
+    { params: { hostel: slug, roomType, ...(stay ?? {}) } },
   );
 
   return unwrap(response).quote;
@@ -178,6 +204,9 @@ export async function getBookingQuote(slug: string, roomType: string, signedIn: 
 
 export async function createBooking(input: {
   hostel: string;
+  kind?: "MONTHLY" | "SHORT_STAY";
+  moveIn?: string;
+  moveOut?: string;
   plannedMoveIn?: string | null;
   policyVersion: string;
   refundAccount: RefundAccountInput;

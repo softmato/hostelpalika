@@ -1,9 +1,6 @@
 import {
   AlertCircle,
-  ArrowRight,
   Briefcase,
-  Building,
-  Calendar,
   Camera,
   Check,
   CheckCircle2,
@@ -15,10 +12,8 @@ import {
   Edit2,
   FileText,
   GraduationCap,
-  HeartPulse,
   Home,
   Loader2,
-  Mail,
   MapPin,
   PenTool,
   Phone,
@@ -31,7 +26,6 @@ import {
   Trash2,
   Upload,
   User,
-  Utensils,
   X,
   type LucideIcon,
 } from "lucide-react";
@@ -67,9 +61,7 @@ import {
 } from "@/lib/platform-id-card";
 import {
   IDENTITY_STEPS,
-  IDENTITY_STEP_FIELDS,
   draftFromProfile,
-  emptyIdentityDraft,
   firstIncompleteIdentityStep,
   validateIdentity,
   validateIdentityStep,
@@ -78,6 +70,7 @@ import {
   type IdentityStep,
 } from "@/lib/id-card-steps";
 import { isSignatureComplete, SIGNATURE_HEIGHT, SIGNATURE_WIDTH } from "@/lib/signature";
+import { isResidentPhone } from "@/modules/users/resident-identity.validation";
 import { toast } from "@/stores/toast-store";
 import { cn } from "@/lib/utils";
 
@@ -448,38 +441,39 @@ function Field({
 type EmailCheck = "idle" | "checking" | "AVAILABLE" | "TAKEN" | "YOURS";
 
 /**
- * Asks the server whether an address is free once typing pauses. Each new
- * keystroke cancels the pending ask, so only the address the person settled on
- * is ever checked — and a slow answer for an older address cannot overwrite a
- * newer one. The save re-checks; this only makes the refusal arrive early.
+ * Asks the server whether an email or phone is free once typing pauses. Each
+ * new keystroke cancels the pending ask, so only the value the person settled
+ * on is ever checked — and an answer is kept with the value it was for, so a
+ * slow one for an older value can never show against a newer one. The save
+ * re-checks; this only makes the refusal arrive early.
  */
-function useEmailCheck(email: string, enabled: boolean): EmailCheck {
-  const [state, setState] = useState<EmailCheck>("idle");
+function useContactCheck(kind: "email" | "phone", raw: string, enabled: boolean): EmailCheck {
+  const value = kind === "email" ? raw.trim().toLowerCase() : raw.trim();
+  const checkable =
+    enabled &&
+    (kind === "email" ? /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) : isResidentPhone(value));
+  const [answer, setAnswer] = useState<{ status: EmailCheck; value: string } | null>(null);
 
   useEffect(() => {
-    const value = email.trim().toLowerCase();
-
-    if (!enabled || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-      setState("idle");
+    if (!checkable) {
       return;
     }
 
     let current = true;
-    setState("checking");
 
     const timer = window.setTimeout(async () => {
       try {
         const result = await browserApi<{ status: Exclude<EmailCheck, "idle" | "checking"> }>(
-          `/api/v1/users/resident-identity/email-check?email=${encodeURIComponent(value)}`,
+          `/api/v1/users/resident-identity/${kind}-check?${kind}=${encodeURIComponent(value)}`,
         );
 
         if (current) {
-          setState(result.status);
+          setAnswer({ status: result.status, value });
         }
       } catch {
         // Rate limited or offline: say nothing rather than guess. The save decides.
         if (current) {
-          setState("idle");
+          setAnswer({ status: "idle", value });
         }
       }
     }, 600);
@@ -488,17 +482,31 @@ function useEmailCheck(email: string, enabled: boolean): EmailCheck {
       current = false;
       window.clearTimeout(timer);
     };
-  }, [email, enabled]);
+  }, [checkable, kind, value]);
 
-  return state;
+  if (!checkable) {
+    return "idle";
+  }
+
+  return answer?.value === value ? answer.status : "checking";
 }
 
-const EMAIL_CHECK_HINTS: Record<EmailCheck, { text?: string; tone?: "danger" | "success" }> = {
+type CheckHint = { text?: string; tone?: "danger" | "success" };
+
+const EMAIL_CHECK_HINTS: Record<EmailCheck, CheckHint> = {
   AVAILABLE: { text: "✓ Available", tone: "success" },
   checking: { text: "Checking…" },
   idle: {},
   TAKEN: { text: "Already used by another account. Use a different email.", tone: "danger" },
   YOURS: { text: "✓ This is your account's email", tone: "success" },
+};
+
+const PHONE_CHECK_HINTS: Record<EmailCheck, CheckHint> = {
+  AVAILABLE: { text: "✓ Available", tone: "success" },
+  checking: { text: "Checking…" },
+  idle: {},
+  TAKEN: { text: "Already used by another account. Use your own number.", tone: "danger" },
+  YOURS: { text: "✓ This is your account's phone", tone: "success" },
 };
 
 function SelectField({
@@ -665,6 +673,7 @@ function ProfileForm({
   // The terms are agreed once, on the first save — editing later does not re-ask.
   const isFirstSave = !identity.hasProfile;
   const [agreed, setAgreed] = useState(false);
+  const [sharingEnabled, setSharingEnabled] = useState(identity.sharingEnabled);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
   const [showSecondGuardian, setShowSecondGuardian] = useState(
@@ -677,10 +686,17 @@ function ProfileForm({
   const [email, setEmail] = useState(
     identity.accountEmail ?? stored?.email ?? profile?.primaryEmail ?? "",
   );
-  const emailCheck = useEmailCheck(email, !emailLocked);
+  const emailCheck = useContactCheck("email", email, !emailLocked);
   const emailHint = emailLocked
     ? { text: "Your sign-in email — filled in for you.", tone: undefined }
     : EMAIL_CHECK_HINTS[emailCheck];
+  // Only a number being set or changed is checked — the save applies the same rule.
+  const phoneCheck = useContactCheck(
+    "phone",
+    draft.primaryPhone,
+    draft.primaryPhone.trim() !== (profile?.primaryPhone ?? "").trim(),
+  );
+  const phoneHint = PHONE_CHECK_HINTS[phoneCheck];
 
   // Signature state
   const [signatureMode, setSignatureMode] = useState<"draw" | "photo">(
@@ -823,6 +839,13 @@ function ProfileForm({
     }
 
     const currentErrors = validateIdentityStep(stepKey, draft);
+    // A taken email or number is refused here, not after the whole form.
+    if (stepKey === "contact" && emailCheck === "TAKEN" && !currentErrors.primaryEmail) {
+      currentErrors.primaryEmail = EMAIL_CHECK_HINTS.TAKEN.text;
+    }
+    if (stepKey === "contact" && phoneCheck === "TAKEN" && !currentErrors.primaryPhone) {
+      currentErrors.primaryPhone = PHONE_CHECK_HINTS.TAKEN.text;
+    }
     if (Object.keys(currentErrors).length > 0) {
       setStepErrors(currentErrors);
       setError("Please fix the highlighted fields to continue.");
@@ -925,7 +948,7 @@ function ProfileForm({
         body: JSON.stringify({
           profile: profileData,
           ...(photoAssetId ? { photoAssetId } : {}),
-          sharingEnabled: identity.sharingEnabled,
+          sharingEnabled,
         }),
         method: "PUT",
       });
@@ -1122,8 +1145,8 @@ function ProfileForm({
               <div>
                 <Field
                   defaultValue={draft.primaryPhone}
-                  hint={stepErrors.primaryPhone}
-                  hintTone={stepErrors.primaryPhone ? "danger" : undefined}
+                  hint={stepErrors.primaryPhone || phoneHint.text}
+                  hintTone={stepErrors.primaryPhone ? "danger" : phoneHint.tone}
                   label="Phone number"
                   name="primaryPhone"
                   onChange={(val) => updateField("primaryPhone", val)}
@@ -1921,10 +1944,8 @@ function ProfileForm({
             <label className="flex items-start gap-2.5 rounded-xl border border-border bg-muted/20 p-3.5">
               <input
                 className="mt-0.5 size-4 cursor-pointer rounded border-border"
-                defaultChecked={identity.sharingEnabled}
-                onChange={(e) => {
-                  identity.sharingEnabled = e.target.checked;
-                }}
+                checked={sharingEnabled}
+                onChange={(e) => setSharingEnabled(e.target.checked)}
                 type="checkbox"
               />
               <span className="text-xs leading-relaxed text-foreground font-medium">

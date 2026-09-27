@@ -307,6 +307,10 @@ export function fakeModel(options: { unique?: UniqueIndex[] } = {}) {
         : Wrapped;
     },
 
+    async insertMany(input: Doc[]) {
+      return this.create(input);
+    },
+
     find(filter: Doc = {}) {
       return new FakeQuery((sort, limit) => {
         const found = sortDocs(docs.filter((doc) => matches(doc, filter)), sort);

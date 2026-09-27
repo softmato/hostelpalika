@@ -277,6 +277,16 @@ describe("validateIdentity", () => {
       validateIdentity(validDraft({ guardianPhone: "9".repeat(25) })).guardianPhone,
     ).toBeTruthy();
   });
+
+  // The main phone is checked for another account using it, so it has to be a number.
+  it("wants digits for the main phone, in the ways people type them", () => {
+    expect(validateIdentity(validDraft({ primaryPhone: "call me maybe" })).primaryPhone)
+      .toBeTruthy();
+    expect(validateIdentity(validDraft({ primaryPhone: "+977 981-234-5678" })).primaryPhone)
+      .toBeUndefined();
+    expect(validateIdentity(validDraft({ primaryPhone: "01-4412345" })).primaryPhone)
+      .toBeUndefined();
+  });
 });
 
 describe("toProfileInput", () => {

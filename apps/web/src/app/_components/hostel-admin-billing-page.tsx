@@ -14,6 +14,7 @@ import { useEffect, useState } from "react";
 import { formatBsAdDate } from "@hostel/shared/calendar/bs";
 import { billingCycles, cycleTotal, planRank, type BillingCycle } from "@hostel/shared/plans/catalog";
 
+import { HostelFreeMonthCard } from "@/app/_components/hostel-free-month-card";
 import { PayPlanPanel } from "@/app/_components/hostel-admin-pay-plan";
 import { useSiteConfig } from "@/components/site-config-provider";
 import {
@@ -170,6 +171,8 @@ export function HostelAdminBillingPageContent() {
           Loading your billing history.
         </p>
       ) : null}
+
+      <HostelFreeMonthCard showBillingLink={false} />
 
       {history?.plan ? (
         <PlanCard

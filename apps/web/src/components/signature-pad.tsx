@@ -31,7 +31,7 @@ export function SignaturePad({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const strokes = useRef<SignatureStroke[]>(signatureStrokes(value));
   const drawing = useRef(false);
-  const [empty, setEmpty] = useState(strokes.current.length === 0);
+  const [empty, setEmpty] = useState(() => signatureStrokes(value).length === 0);
 
   function paint() {
     const canvas = canvasRef.current;

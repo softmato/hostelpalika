@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     // Only a browser shares one cookie across concurrent refreshes; mobile
     // single-flights and must always get a rotated token back to store.
     const result = await refreshAccessToken(refreshToken, {
-      allowRecentReuse: Boolean(cookieRefreshToken),
+      cookieSession: Boolean(cookieRefreshToken),
     });
     const response = successResponse(
       {

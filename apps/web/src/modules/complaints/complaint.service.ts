@@ -385,6 +385,8 @@ async function attachFiles(
 async function assertComplaintVoiceNote(
   assetId: string | undefined,
   hostelId: Types.ObjectId,
+  /** The resident filing — only their own recording can be attached. */
+  userId: string,
 ): Promise<Types.ObjectId | undefined> {
   if (!assetId) {
     return undefined;
@@ -399,6 +401,7 @@ async function assertComplaintVoiceNote(
     hostelId?: Types.ObjectId;
     kind?: string;
     mimeType?: string;
+    ownerId?: Types.ObjectId;
     uploadCompletedAt?: Date;
   } | null>();
 
@@ -410,9 +413,14 @@ async function assertComplaintVoiceNote(
     );
   }
 
-  if (asset.hostelId?.toString() !== hostelId.toString()) {
+  // Someone else's recording, even from this hostel, is not theirs to file —
+  // naming its id would put another resident's voice on this complaint.
+  if (
+    asset.hostelId?.toString() !== hostelId.toString() ||
+    asset.ownerId?.toString() !== userId
+  ) {
     throw new ComplaintServiceError(
-      "That recording does not belong to this hostel.",
+      "That recording was not found. Record it again.",
       "VOICE_NOTE_NOT_FOUND",
       404,
     );
@@ -440,6 +448,7 @@ export async function createComplaint(
   const voiceNoteAssetId = await assertComplaintVoiceNote(
     input.voiceNoteAssetId,
     resident.hostelId,
+    principal.userId,
   );
   const complaint = (await ComplaintModel.create({
     category: input.category,

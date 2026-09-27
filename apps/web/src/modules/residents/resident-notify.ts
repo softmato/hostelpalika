@@ -11,7 +11,7 @@ import { HostelMemberModel } from "@hostel/db/models/HostelMember";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { UserModel } from "@hostel/db/models/User";
-import { sendEmail } from "@hostel/shared/email/sender";
+import { sendEmail, sendEmailBatch } from "@hostel/shared/email/sender";
 import type { EmailAttachment } from "@hostel/shared/email/sender";
 
 export type Contact = {
@@ -272,5 +272,64 @@ export async function sendNotificationEmail(input: {
     );
 
     return false;
+  }
+}
+
+/**
+ * {@link sendNotificationEmail} for a job that mails many people in one pass —
+ * one Resend request per hundred instead of one per person, which is what kept
+ * a page of fee reminders under the per-second limit. Same opt-out rules; no
+ * attachments. One result per input, in order.
+ */
+export async function sendNotificationEmailBatch(
+  inputs: Array<{ action: string; html: string; subject: string; to: string; topic?: EmailTopic }>,
+): Promise<boolean[]> {
+  try {
+    const muted = await Promise.all(
+      inputs.map((input) =>
+        input.topic ? emailTopicMuted(input.to, input.topic) : Promise.resolve(false),
+      ),
+    );
+    const outgoing = inputs.filter((_, index) => !muted[index]);
+    const deliveries = await sendEmailBatch(
+      outgoing.map((input) => ({
+        html: input.html,
+        subject: input.subject,
+        to: input.to,
+        ...(input.topic ? { unsubscribe: emailPreferenceLinks(input.to, input.topic) } : {}),
+      })),
+    );
+    let next = 0;
+
+    return inputs.map((input, index) => {
+      if (muted[index]) {
+        return false;
+      }
+
+      const delivery = deliveries[next++];
+
+      if (!delivery?.sent) {
+        console.warn(
+          JSON.stringify({
+            level: "warn",
+            action: `${input.action}_email_failed`,
+            message: `Recipient was not notified (${delivery?.reason ?? "unknown"}).`,
+            to: input.to,
+          }),
+        );
+      }
+
+      return Boolean(delivery?.sent);
+    });
+  } catch (error) {
+    console.warn(
+      JSON.stringify({
+        level: "warn",
+        action: "notification_email_batch_error",
+        message: error instanceof Error ? error.message : "Unknown email error",
+      }),
+    );
+
+    return inputs.map(() => false);
   }
 }

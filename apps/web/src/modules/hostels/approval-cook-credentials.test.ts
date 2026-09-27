@@ -7,7 +7,9 @@ const mocks = vi.hoisted(() => ({
   applicationUpdateMany: vi.fn(),
   auditCreate: vi.fn(),
   connectToDatabase: vi.fn(),
+  hostelFindById: vi.fn(),
   hostelFindOne: vi.fn(),
+  hostelUpdateOne: vi.fn(),
   hostelFindOneAndUpdate: vi.fn(),
   issueTemporaryPasswordIfMissing: vi.fn(),
   subscriptionFindOne: vi.fn(),
@@ -28,8 +30,10 @@ vi.mock("@hostel/db/models/AuditLog", () => ({
 
 vi.mock("@hostel/db/models/Hostel", () => ({
   HostelModel: {
+    findById: mocks.hostelFindById,
     findOne: mocks.hostelFindOne,
     findOneAndUpdate: mocks.hostelFindOneAndUpdate,
+    updateOne: mocks.hostelUpdateOne,
   },
 }));
 
@@ -125,6 +129,9 @@ describe("hostel approval issues cook credentials", () => {
     vi.clearAllMocks();
     mocks.hostelFindOneAndUpdate.mockReturnValue(leanResult(hostelRecord()));
     mocks.hostelFindOne.mockReturnValue(queryResult(hostelRecord()));
+    // Not a branch unless a test says so.
+    mocks.hostelFindById.mockReturnValue(queryResult({ parentHostelId: null }));
+    mocks.hostelUpdateOne.mockResolvedValue({});
     // Paid before it was approved, so approval is what opens the portal.
     mocks.subscriptionFindOne.mockReturnValue(
       queryResult({ planName: null, source: "PUBLIC", status: "ACTIVE" }),
@@ -215,5 +222,33 @@ describe("hostel approval issues cook credentials", () => {
     expect(result.hostel.status).toBe("APPROVED");
     expect(mocks.sendEmail).toHaveBeenCalled();
     expect(mocks.sendEmail.mock.calls[0][0].html).not.toContain("Cook login");
+  });
+
+  it("lets only a superadmin approve a branch", async () => {
+    mocks.hostelFindById.mockReturnValue(
+      queryResult({ parentHostelId: new Types.ObjectId(), roomConfigurations: [] }),
+    );
+
+    await expect(
+      approvePlatformHostel(hostelId, { ...platformPrincipal, role: Role.PLATFORM_MODERATOR }),
+    ).rejects.toMatchObject({ errorCode: "BRANCH_NEEDS_SUPERADMIN" });
+    expect(mocks.hostelFindOneAndUpdate).not.toHaveBeenCalled();
+  });
+
+  it("publishes an approved branch and opens it to the owner, with no plan to pay", async () => {
+    mocks.hostelFindById.mockReturnValue(
+      queryResult({ parentHostelId: new Types.ObjectId(), roomConfigurations: [] }),
+    );
+
+    await approvePlatformHostel(hostelId, platformPrincipal);
+
+    expect(mocks.hostelUpdateOne).toHaveBeenCalledWith(
+      { _id: new Types.ObjectId(hostelId) },
+      expect.objectContaining({ $set: expect.objectContaining({ status: "PUBLISHED" }) }),
+    );
+    expect(mocks.registerOrUpgradeUserByEmail).toHaveBeenCalledWith(
+      expect.objectContaining({ hostelId, role: Role.HOSTEL_ADMIN }),
+    );
+    expect(mocks.provisionCookAccount).toHaveBeenCalled();
   });
 });

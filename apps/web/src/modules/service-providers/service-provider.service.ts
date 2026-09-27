@@ -481,7 +481,7 @@ export async function listPlatformServiceProviders(
   };
 
   if (query.area) {
-    filter.area = new RegExp(query.area, "i");
+    filter.area = new RegExp(escapeRegex(query.area), "i");
   }
 
   if (query.category) {

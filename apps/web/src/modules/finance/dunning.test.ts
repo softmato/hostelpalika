@@ -43,6 +43,9 @@ vi.mock("@/modules/residents/resident-notify", () => ({
   resolveHostelAdminContacts: mocks.adminContacts,
   resolveResidentContact: mocks.residentContact,
   sendNotificationEmail: mocks.sendEmail,
+  // One batch per page; forwarded so every assertion reads one email at a time.
+  sendNotificationEmailBatch: (emails: unknown[]) =>
+    Promise.all(emails.map((email) => mocks.sendEmail(email))),
 }));
 
 vi.mock("@hostel/db/models/Invoice", () => ({

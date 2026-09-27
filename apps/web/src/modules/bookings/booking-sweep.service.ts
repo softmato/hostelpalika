@@ -1,6 +1,10 @@
 import "server-only";
 
+import type { Types } from "mongoose";
+
+import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { BookingModel } from "@hostel/db/models/Booking";
+import { ResidentModel } from "@hostel/db/models/Resident";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { bookingMoveInReminderEmail } from "@hostel/shared/email/templates/booking/guest";
 import { bookingAnswerReminderEmail } from "@hostel/shared/email/templates/booking/hostel";
@@ -25,9 +29,10 @@ import {
   notifyHostel,
   when,
 } from "@/modules/bookings/booking-notify";
-import { HOUR_MS, settlementFor } from "@/modules/bookings/booking-terms";
+import { HOUR_MS } from "@/modules/bookings/booking-terms";
+import { releaseBedForRoomType } from "@/modules/hostels/hostel-capacity.service";
 import { settleBookingFromSoftmato } from "@/modules/bookings/booking-softmato.service";
-import type { BookingRecord } from "@/modules/bookings/booking-views";
+import { hostelShareIfCheckedIn, noShowRefund, type BookingRecord } from "@/modules/bookings/booking-views";
 
 /**
  * The booking clock, run on the every-minute `platform-push` tick.
@@ -47,6 +52,8 @@ type Reminder = { at: Date; hoursLeft: number };
 
 export type BookingSweepResult = {
   expired: number;
+  /** Short-stay guests moved out at the end of their stay. */
+  staysEnded: number;
   hostelReminders: number;
   missedAnswers: number;
   moveInReminders: number;
@@ -185,7 +192,7 @@ async function remindHostel(booking: BookingRecord, hoursLeft: number) {
         guestName: booking.guest.name,
         guestPhone: booking.guest.phone || null,
         hostelName: booking.hostelSnapshot.name,
-        hostelShare: settlementFor(booking.fee, 0, booking.terms).hostelShare,
+        hostelShare: hostelShareIfCheckedIn(booking),
         hoursLeft,
         name: contact.name,
         roomType: booking.roomType,
@@ -215,7 +222,7 @@ async function remindMoveIn(booking: BookingRecord, hoursLeft: number) {
       hostelPhone: hostel?.contact?.phone || booking.hostelSnapshot.phone,
       hoursLeft,
       name: booking.guest.name,
-      noShowRefund: settlementFor(booking.fee, booking.terms.noShowRefundPercent, booking.terms).refund,
+      noShowRefund: noShowRefund(booking),
     }),
     title: `Less than ${hoursWord(hoursLeft)} to move in`,
     type: "BOOKING_MOVE_IN_REMINDER",
@@ -268,5 +275,50 @@ export async function sweepBookings(now = new Date()): Promise<BookingSweepResul
     thresholds: config.moveInReminderHoursLeft,
   });
 
-  return { expired, hostelReminders, missedAnswers, moveInReminders, noShows };
+  const staysEnded = await endShortStays(now);
+
+  return { expired, hostelReminders, missedAnswers, moveInReminders, noShows, staysEnded };
+}
+
+/**
+ * Moves out every short-stay guest whose move-out day has ended and hands the
+ * bed back. Conditional on the status, so a hostel that moved them out by hand
+ * first frees no second bed.
+ */
+async function endShortStays(now: Date) {
+  const due = await ResidentModel.find({
+    isDeleted: { $ne: true },
+    status: { $in: ["ACTIVE", "PENDING", "SUSPENDED"] },
+    stayEndsAt: { $lte: now },
+  })
+    .select("_id hostelId roomType stayEndsAt")
+    .limit(100)
+    .lean<Array<{ _id: Types.ObjectId; hostelId: Types.ObjectId; roomType: string; stayEndsAt: Date }>>();
+  let ended = 0;
+
+  for (const resident of due) {
+    try {
+      const moved = await ResidentModel.updateOne(
+        { _id: resident._id, status: { $ne: "MOVED_OUT" } },
+        { $set: { moveOutDate: resident.stayEndsAt, status: "MOVED_OUT" } },
+      );
+
+      if (!moved.modifiedCount) continue;
+
+      await releaseBedForRoomType(resident.hostelId, resident.roomType);
+      await AuditLogModel.create({
+        action: "SHORT_STAY_ENDED",
+        actorType: "SYSTEM",
+        entityId: String(resident._id),
+        entityType: "Resident",
+        hostelId: resident.hostelId,
+        metadata: { stayEndsAt: resident.stayEndsAt },
+      }).catch(() => undefined);
+      ended += 1;
+    } catch (error) {
+      logger.error("A short stay could not be ended.", { error: message(error), residentId: String(resident._id) });
+    }
+  }
+
+  return ended;
 }

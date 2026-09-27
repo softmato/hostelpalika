@@ -6,6 +6,8 @@
  * place and be missing from the other.
  */
 
+import { PLATFORM_FIELDS } from "./platform-field-index.generated";
+
 export type PortalIconName =
   | "activity"
   | "bed"
@@ -64,6 +66,8 @@ export type PortalNavGroup = {
 
 export type PortalSearchEntry = {
   description: string;
+  /** A field inside a page (`?field=`), not the page itself. */
+  field?: boolean;
   group: string;
   href: string;
   id: string;
@@ -532,6 +536,14 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         icon: "building",
         keywords: ["profile", "listing", "photos", "facilities", "rules"],
         label: "Hostel Profile",
+      },
+      {
+        description:
+          "Other buildings you run under this hostel's plan — add one, and switch between them.",
+        href: "/hostel-admin/branches",
+        icon: "building",
+        keywords: ["branch", "branches", "second hostel", "another building", "switch hostel", "pan"],
+        label: "Branches",
       },
       {
         description: "Room and bed map with vacancy and repair status.",
@@ -1010,7 +1022,49 @@ export const TEAM_NAV: PortalNavGroup[] = [
 
 export const TEAM_SEARCH_ENTRIES = searchEntriesFromNav(TEAM_NAV);
 
-export const PLATFORM_SEARCH_ENTRIES = searchEntriesFromNav(PLATFORM_NAV);
+/** Lowercase words joined by dashes: how a field's label travels in `?field=`. */
+export function fieldSlug(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+/**
+ * Every field on the config screens as a palette entry that opens its page on
+ * its tab with the field focused. Built from the page entries it is given, so a
+ * page the viewer cannot open (moderators) takes its fields with it.
+ */
+function withFieldEntries(pages: PortalSearchEntry[]): PortalSearchEntry[] {
+  const pageLabels = new Map(pages.map((page) => [page.href, page.label]));
+  const fields = PLATFORM_FIELDS.flatMap((field) => {
+    const page = pageLabels.get(field.href);
+    if (!page) return [];
+
+    const query = new URLSearchParams();
+    if (field.tab) query.set("tab", field.tab);
+    query.set("field", fieldSlug(field.label));
+    if (field.section) query.set("in", fieldSlug(field.section));
+    const href = `${field.href}?${query}`;
+    const tab = field.tab && field.tab[0].toUpperCase() + field.tab.slice(1);
+
+    return [
+      {
+        description: [tab, field.section].filter(Boolean).join(" › ") || page,
+        field: true,
+        group: page,
+        href,
+        id: toId(href),
+        keywords: [],
+        label: field.label,
+      },
+    ];
+  });
+
+  return [...pages, ...fields];
+}
+
+export const PLATFORM_SEARCH_ENTRIES = withFieldEntries(searchEntriesFromNav(PLATFORM_NAV));
 
 /**
  * Destinations a PLATFORM_MODERATOR ("acting superadmin") may not open, kept in
@@ -1054,8 +1108,9 @@ function withoutSuperadminOnly(groups: PortalNavGroup[]): PortalNavGroup[] {
 }
 
 export const PLATFORM_MODERATOR_NAV = withoutSuperadminOnly(PLATFORM_NAV);
-export const PLATFORM_MODERATOR_SEARCH_ENTRIES =
-  searchEntriesFromNav(PLATFORM_MODERATOR_NAV);
+export const PLATFORM_MODERATOR_SEARCH_ENTRIES = withFieldEntries(
+  searchEntriesFromNav(PLATFORM_MODERATOR_NAV),
+);
 export const HOSTEL_ADMIN_SEARCH_ENTRIES = searchEntriesFromNav(HOSTEL_ADMIN_NAV);
 export const RESIDENT_SEARCH_ENTRIES = searchEntriesFromNav(RESIDENT_NAV);
 export const GUARDIAN_SEARCH_ENTRIES = searchEntriesFromNav(GUARDIAN_NAV);

@@ -29,10 +29,12 @@ import {
   hostelCoverPhotos,
   loadBookableHostel,
   type BookingUnavailableReason,
+  type HostelAvailability,
   type RoomAvailability,
 } from "@/modules/bookings/booking-availability";
 import { bookingPolicyVersion, newBookingCode } from "@/modules/bookings/booking-code";
-import { getBookingConfig } from "@/modules/bookings/booking-config";
+import { amountDue, quoteStay, type BookingStay } from "@/modules/bookings/short-stay";
+import { getBookingConfig, type BookingConfig } from "@/modules/bookings/booking-config";
 import { endBooking, moveBooking } from "@/modules/bookings/booking-lifecycle";
 import {
   appUrl,
@@ -121,7 +123,7 @@ async function payInstructions(booking: BookingRecord): Promise<PayInstructions 
   const [operations, config] = await Promise.all([getOperationsConfig(), getBookingConfig()]);
 
   return {
-    amount: booking.fee,
+    amount: amountDue(booking),
     checkHours: config.paymentCheckHours,
     payBy: new Date(booking.paymentDueBy).toISOString(),
     qr: operations.collectionQrUrl
@@ -172,8 +174,97 @@ export type BookingQuote = {
   reason: BookingUnavailableReason | null;
   reasonMessage: string | null;
   room: RoomAvailability;
+  /**
+   * The short-stay side of the same room. `quote` is priced once both dates are
+   * given and valid; `error` says why dates were refused.
+   */
+  shortStay: {
+    available: boolean;
+    dailyRate: number | null;
+    error: { code: string; message: string } | null;
+    limits: { maxAdvanceDays: number; maxNights: number; minNights: number } | null;
+    quote: {
+      fee: number;
+      holdBlocks: number;
+      moveIn: string;
+      moveOut: string;
+      nights: number;
+      stayAmount: number;
+      total: number;
+    } | null;
+  };
   terms: { feePercent: number; holdDays: number; hostelAnswerHours: number };
 };
+
+/**
+ * Prices a short stay on this room, or throws why it cannot be had. The one
+ * rule the quote and the create call share.
+ */
+function priceShortStay(
+  availability: HostelAvailability,
+  room: RoomAvailability,
+  dates: { moveIn?: string | null; moveOut?: string | null },
+  config: BookingConfig,
+  now: Date,
+): BookingStay {
+  if (!availability.shortStays || !room.dailyRate) {
+    throw new BookingError("This room does not take short stays.", "SHORT_STAYS_OFF", 409);
+  }
+
+  return quoteStay({
+    dailyRate: room.dailyRate,
+    holdDays: config.holdDays,
+    hostelSharePercent: config.shortStayHostelSharePercent,
+    maxAdvanceDays: availability.shortStays.maxAdvanceDays,
+    maxNights: availability.shortStays.maxNights,
+    minNights: availability.shortStays.minNights,
+    moveIn: dates.moveIn ?? "",
+    moveOut: dates.moveOut ?? "",
+    now,
+  });
+}
+
+function shortStayQuote(
+  availability: HostelAvailability,
+  room: RoomAvailability,
+  dates: { moveIn?: string | null; moveOut?: string | null },
+  config: BookingConfig,
+  now: Date,
+): BookingQuote["shortStay"] {
+  const base = {
+    available: Boolean(availability.shortStays && room.dailyRate && room.bookable),
+    dailyRate: room.dailyRate,
+    error: null,
+    limits: availability.shortStays,
+    quote: null,
+  };
+
+  if (!base.available || !room.fee || !dates.moveIn || !dates.moveOut) {
+    return base;
+  }
+
+  try {
+    const stay = priceShortStay(availability, room, dates, config, now);
+    const fee = room.fee * stay.holdBlocks;
+
+    return {
+      ...base,
+      quote: {
+        fee,
+        holdBlocks: stay.holdBlocks,
+        moveIn: dates.moveIn,
+        moveOut: dates.moveOut,
+        nights: stay.nights,
+        stayAmount: stay.amount,
+        total: fee + stay.amount,
+      },
+    };
+  } catch (error) {
+    if (!(error instanceof BookingError)) throw error;
+
+    return { ...base, error: { code: error.errorCode, message: error.message } };
+  }
+}
 
 /**
  * Everything the checkout draws before a booking exists.
@@ -186,6 +277,7 @@ export async function getBookingQuote(
   hostelRef: string,
   roomType: string,
   principal: ApiPrincipal | null,
+  dates: { moveIn?: string | null; moveOut?: string | null } = {},
 ): Promise<BookingQuote> {
   await connectToDatabase();
 
@@ -234,6 +326,7 @@ export async function getBookingQuote(
     reason: room.reason,
     reasonMessage: room.reason ? unavailableMessage(room.reason) : null,
     room,
+    shortStay: shortStayQuote(availability, room, dates, config, now),
     terms: {
       feePercent: terms.feePercent,
       holdDays: terms.holdDays,
@@ -366,7 +459,9 @@ export async function createBooking(
     throw new BookingError("You already live at this hostel.", "ALREADY_RESIDENT", 409);
   }
 
-  const plannedMoveIn = parsePlannedMoveIn(input.plannedMoveIn, now);
+  const stay = input.kind === "SHORT_STAY" ? priceShortStay(availability, room, input, config, now) : null;
+  const fee = stay ? room.fee * stay.holdBlocks : room.fee;
+  const plannedMoveIn = stay ? stay.moveIn : parsePlannedMoveIn(input.plannedMoveIn, now);
   const bookingId = new Types.ObjectId();
   const refundNumber = input.refundAccount.number;
   const invoiceNumber = await allocate("BOOKING_INVOICE", now);
@@ -378,7 +473,7 @@ export async function createBooking(
       const document = await BookingModel.create({
         _id: bookingId,
         code: newBookingCode(),
-        fee: room.fee,
+        fee,
         guest: { email: user.email, name: user.name, phone: user.phone ?? "" },
         hostelId: hostel._id,
         hostelSnapshot: {
@@ -389,6 +484,7 @@ export async function createBooking(
         },
         invoiceNumber,
         isOpen: true,
+        kind: input.kind,
         monthlyRent: room.monthlyRent,
         paymentDueBy: new Date(now.getTime() + config.unpaidWindowHours * HOUR_MS),
         plannedMoveIn,
@@ -403,6 +499,7 @@ export async function createBooking(
         },
         roomType: room.roomType,
         status: "AWAITING_PAYMENT",
+        stay,
         terms,
         userId: principal.userId,
       });
@@ -444,7 +541,14 @@ export async function createBooking(
       entityId: String(created._id),
       entityType: "Booking",
       hostelId: hostel._id,
-      metadata: { code: created.code, fee: created.fee, invoiceNumber, roomType: created.roomType },
+      metadata: {
+        code: created.code,
+        fee: created.fee,
+        invoiceNumber,
+        kind: input.kind,
+        roomType: created.roomType,
+        total: amountDue(created),
+      },
     }).catch(() => undefined),
   ]);
 
@@ -460,7 +564,7 @@ export async function createBooking(
   await notifyGuest(created, {
     action: "booking_invoice",
     attachments: invoicePaper ? [invoicePaper] : undefined,
-    body: `Pay Rs ${created.fee.toLocaleString("en-IN")} with code ${created.code} to book ${created.roomType} at ${created.hostelSnapshot.name}.`,
+    body: `Pay Rs ${amountDue(created).toLocaleString("en-IN")} with code ${created.code} to book ${created.roomType} at ${created.hostelSnapshot.name}.`,
     email: bookingInvoiceEmail({
       booking: bookingFacts(created),
       bookingUrl: appUrl(guestBookingPath(created)),
@@ -591,7 +695,7 @@ export async function submitBookingPayment(
   }
 
   const payment = await BookingPaymentModel.create({
-    amount: booking.fee,
+    amount: amountDue(booking),
     bookingId: booking._id,
     hostelId: booking.hostelId,
     note: input.note || null,
@@ -609,7 +713,7 @@ export async function submitBookingPayment(
     entityId: String(payment._id),
     entityType: "BookingPayment",
     hostelId: booking.hostelId,
-    metadata: { amount: booking.fee, code: booking.code, proofAssetId: String(proof._id) },
+    metadata: { amount: amountDue(booking), code: booking.code, proofAssetId: String(proof._id) },
   }).catch(() => undefined);
 
   const config = await getBookingConfig();
@@ -631,9 +735,9 @@ export async function submitBookingPayment(
     }),
     notifyPlatform(moved, {
       action: "booking_proof_to_check",
-      body: `${moved.guest.name} sent a screenshot for Rs ${moved.fee.toLocaleString("en-IN")} (${moved.code}).`,
+      body: `${moved.guest.name} sent a screenshot for Rs ${amountDue(moved).toLocaleString("en-IN")} (${moved.code}).`,
       email: bookingProofToCheckEmail({
-        amount: moved.fee,
+        amount: amountDue(moved),
         checkBy: when(checkBy),
         code: moved.code,
         guestName: moved.guest.name,

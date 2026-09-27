@@ -94,6 +94,16 @@ export function refundPolicySections(terms: PolicyTerms): PolicySection[] {
     },
     {
       body: [
+        "A short stay is a few nights, paid upfront with the booking fee. The fee is charged once for every started week between booking and move-in.",
+        "Cancelled before the move-in day, declined, or not answered by the hostel: every night is refunded.",
+        "Cancelled on the move-in day, or not checked in by the end of the next day: one night is kept and the rest refunded.",
+        "Leaving before the move-out date: nights not stayed are not refunded.",
+      ],
+      icon: "calendar",
+      title: "Short stays",
+    },
+    {
+      body: [
         "Refunds go to the eSewa, Khalti or bank account you give when you book.",
         "When we send a refund, we email you the amount and the transaction ID.",
         `Whatever is not refunded is shared between the hostel and ${PLATFORM_NAME}.`,

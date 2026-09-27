@@ -16,7 +16,16 @@ export type BookingFacts = {
   hostelName: string;
   monthlyRent: number;
   roomType: string;
+  /** A short stay's nights, paid beside the fee. */
+  stay?: { amount: number; dates: string; nights: number } | null;
+  /** Fee plus nights. Absent on a monthly booking, where it is the fee. */
+  total?: number;
 };
+
+/** What the guest pays: the fee, plus a short stay's nights. */
+export function payable(facts: Pick<BookingFacts, "fee" | "total">) {
+  return facts.total ?? facts.fee;
+}
 
 /** The booking in five rows. `emphasis` picks the one figure the email is about. */
 export function bookingFactsTable(
@@ -28,8 +37,17 @@ export function bookingFactsTable(
     { label: "Booking", value: facts.code },
     { label: "Hostel", value: facts.hostelName },
     { label: "Room type", value: facts.roomType },
-    { label: "Monthly rent", value: rupees(facts.monthlyRent) },
-    { emphasis: emphasis === "fee", label: "Booking fee", value: rupees(facts.fee) },
+    ...(facts.stay
+      ? [
+          { label: "Stay", value: `${facts.stay.nights} nights · ${facts.stay.dates}` },
+          { label: "Nights", value: rupees(facts.stay.amount) },
+          { label: "Booking fee", value: rupees(facts.fee) },
+          { emphasis: emphasis === "fee", label: "Total", value: rupees(payable(facts)) },
+        ]
+      : [
+          { label: "Monthly rent", value: rupees(facts.monthlyRent) },
+          { emphasis: emphasis === "fee", label: "Booking fee", value: rupees(facts.fee) },
+        ]),
     ...extra,
   ]);
 }
@@ -49,10 +67,22 @@ export function refundLadderTable(input: {
   fee: number;
   noShowRefund: number;
   rows: RefundLadderRow[];
+  /** A short stay's nights: all back until the move-in day, less one night after. */
+  stay?: { amount: number; oneNight: number } | null;
 }) {
   return detailsTable([
     { label: "Cancel before the hostel says yes", value: rupees(input.fee) },
     { label: "Hostel says no or does not answer", value: rupees(input.fee) },
+    ...(input.stay
+      ? [
+          { label: "Nights, cancelled before the move-in day", value: `${rupees(input.stay.amount)} (all)` },
+          {
+            label: "Nights, cancelled on the move-in day or never checked in",
+            value: `${rupees(input.stay.amount - input.stay.oneNight)} (one night kept)`,
+          },
+          { label: "Booking fee, after the hostel says yes", value: "As below" },
+        ]
+      : []),
     ...input.rows.map((row) => ({
       label:
         row.fromDay === row.throughDay

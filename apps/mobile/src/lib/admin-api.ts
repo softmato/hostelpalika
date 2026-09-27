@@ -119,6 +119,9 @@ export type AdminSubscription = {
   }[];
   subscription: {
     dueBy: string | null;
+    /** The free month running today — null outside the free months. */
+    freeMonthNow?: { endsAt: string; left: number; month: number; of: number } | null;
+    freeUntil?: string | null;
     planName: string | null;
     status: string;
   };
@@ -129,6 +132,53 @@ export function hasClaimInReview(state: AdminSubscription | null) {
   return Boolean(
     state?.payments?.some((payment) => payment.status === "IN_REVIEW"),
   );
+}
+
+/** One hostel the owner runs, as the dashboard's branches card and the switcher show it. */
+export type AdminBranchRow = {
+  beds: number;
+  collected: number;
+  due: number;
+  id: string;
+  isBranch: boolean;
+  name: string;
+  occupancyPercent: number | null;
+  openComplaints: number;
+  residents: number;
+  slug: string;
+  status: string;
+};
+
+/** The main hostel's branches and how many more its plan allows (`GET /hostel-admin/branches`). */
+export type AdminBranches = {
+  allowance: { active: boolean; cap: number; planName: string | null; used: number };
+  branches: { area: string; city: string; id: string; name: string; slug: string; status: string }[];
+  main: { id: string; name: string; panNumber: string | null };
+};
+
+export async function getBranches() {
+  const response = await api.get<ApiEnvelope<AdminBranches>>("/hostel-admin/branches");
+
+  return unwrap(response);
+}
+
+/** Files a branch; a superadmin calls it before it goes live. The body is `branchRequestSchema`. */
+export async function requestBranch(body: Record<string, unknown>) {
+  const response = await api.post<ApiEnvelope<{ branch: { id: string; name: string; status: string } }>>(
+    "/hostel-admin/branches",
+    body,
+  );
+
+  return unwrap(response);
+}
+
+/** Every hostel the owner runs — empty for an owner with one, so nothing renders. */
+export async function getBranchesSummary() {
+  const response = await api.get<ApiEnvelope<{ hostels: AdminBranchRow[]; period: string }>>(
+    "/hostel-admin/branches/summary",
+  );
+
+  return unwrap(response);
 }
 
 export async function getAdminSubscription() {

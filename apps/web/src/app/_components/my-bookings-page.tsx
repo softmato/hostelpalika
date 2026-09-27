@@ -181,7 +181,7 @@ export function MyBookingsPage() {
 function whatNext(booking: GuestBookingDetail) {
   switch (booking.status) {
     case "AWAITING_PAYMENT":
-      return `Pay ${rupees(booking.fee)} and send the screenshot by ${at(booking.paymentDueBy)}.`;
+      return `Pay ${rupees(booking.total ?? booking.fee)} and send the screenshot by ${at(booking.paymentDueBy)}.`;
     case "PAYMENT_IN_REVIEW":
       return "We are checking your payment screenshot. We email you as soon as it is checked.";
     case "AWAITING_HOSTEL":
@@ -381,6 +381,13 @@ function BookingDetail({ bookingId }: { bookingId: string }) {
           rows={[
             ["Monthly rent", rupees(current.monthlyRent)],
             ["Booking fee", rupees(current.fee)],
+            ...(current.stay
+              ? ([
+                  ["Stay", `${current.stay.nights} nights · ${current.stay.dates}`],
+                  ["Nights", rupees(current.stay.amount)],
+                  ["Total paid", rupees(current.total)],
+                ] as [string, string][])
+              : []),
             ["Planned move-in", current.plannedMoveIn ?? ""],
             ["Refund account", `${current.refundAccount.methodLabel} ${current.refundAccount.maskedNumber}`],
             ["Hostel phone", current.hostel.phone],

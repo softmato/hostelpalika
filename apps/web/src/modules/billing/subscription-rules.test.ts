@@ -22,11 +22,13 @@ const mocks = vi.hoisted(() => ({
   auditCreate: vi.fn(),
   connectToDatabase: vi.fn(),
   counterFindOneAndUpdate: vi.fn(),
+  creditTeamCommission: vi.fn(),
   getOperationsConfig: vi.fn(),
   getSiteConfigSection: vi.fn(),
   hostelFindById: vi.fn(),
   hostelUpdateOne: vi.fn(),
   invoiceCreate: vi.fn(),
+  invoiceExists: vi.fn(),
   invoiceFindById: vi.fn(),
   invoiceFindOneAndUpdate: vi.fn(),
   documentSequenceFindOneAndUpdate: vi.fn(),
@@ -72,6 +74,7 @@ vi.mock("@hostel/db/models/HostelSubscription", () => ({
 vi.mock("@hostel/db/models/SubscriptionInvoice", () => ({
   SubscriptionInvoiceModel: {
     create: mocks.invoiceCreate,
+    exists: mocks.invoiceExists,
     findById: mocks.invoiceFindById,
     findOne: mocks.invoiceFindOne,
     findOneAndUpdate: mocks.invoiceFindOneAndUpdate,
@@ -106,6 +109,10 @@ vi.mock("@/modules/platform-config/operations-config", () => ({
 
 vi.mock("@/modules/platform-config/site-config.service", () => ({
   getSiteConfigSection: mocks.getSiteConfigSection,
+}));
+
+vi.mock("@/modules/team/team-commission.service", () => ({
+  creditTeamCommission: mocks.creditTeamCommission,
 }));
 
 vi.mock("@/modules/hostels/hostel-registration.events", () => ({
@@ -397,6 +404,43 @@ describe("settling", () => {
         $set: expect.objectContaining({ status: "PUBLISHED" }),
       }),
     );
+  });
+
+  it("settles a setup fee without touching the plan, and credits the agent", async () => {
+    arrangeSettlement({ amount: 500, source: "TEAM" });
+    mocks.invoiceFindById.mockReturnValue(
+      query(invoice({ amount: 500, kind: "SETUP_FEE", planName: "Setup fee", source: "TEAM" })),
+    );
+
+    await settlePayment(paymentId.toString(), { actorId });
+
+    expect(mocks.invoiceUpdateOne).toHaveBeenCalledWith(
+      { _id: invoiceId },
+      { $set: { status: "PAID" } },
+    );
+    expect(mocks.subscriptionUpdateOne).not.toHaveBeenCalled();
+    expect(mocks.hostelUpdateOne).not.toHaveBeenCalled();
+    expect(mocks.creditTeamCommission).toHaveBeenCalledTimes(1);
+  });
+
+  it("pays no commission on the plan of a hostel that had a setup fee", async () => {
+    arrangeSettlement({ amount: 5900, source: "TEAM" });
+    mocks.invoiceFindById.mockReturnValue(query(invoice({ source: "TEAM" })));
+    mocks.invoiceExists.mockResolvedValue({ _id: new Types.ObjectId() });
+
+    await settlePayment(paymentId.toString(), { actorId });
+
+    expect(mocks.creditTeamCommission).not.toHaveBeenCalled();
+  });
+
+  it("still pays commission on the plan of a team hostel filed before setup fees", async () => {
+    arrangeSettlement({ amount: 5900, source: "TEAM" });
+    mocks.invoiceFindById.mockReturnValue(query(invoice({ source: "TEAM" })));
+    mocks.invoiceExists.mockResolvedValue(null);
+
+    await settlePayment(paymentId.toString(), { actorId });
+
+    expect(mocks.creditTeamCommission).toHaveBeenCalledTimes(1);
   });
 
   it("leaves a team hostel published and past due when part paid", async () => {

@@ -11,6 +11,7 @@ import {
   resolveInvoiceDocument,
   resolveReceiptDocument,
 } from "@/modules/billing/documents/deliver";
+import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
 
 /**
  * Every email the registration lifecycle sends, in one file.
@@ -140,6 +141,8 @@ export async function onRegisteredByTeam(input: {
   agentName?: string;
   amountPaid: number;
   dueBy?: Date | null;
+  free?: { freeMonths: number; freeUntil: Date } | null;
+  setupFee?: number | null;
   hostelName: string;
   hostelSlug: string;
   outstanding: number;
@@ -159,11 +162,16 @@ export async function onRegisteredByTeam(input: {
       amountPaid: input.amountPaid,
       billingUrl: hostelBillingUrl(input.hostelSlug),
       dueBy: formatEmailDate(input.dueBy),
+      free: input.free
+        ? { months: input.free.freeMonths, until: formatEmailDate(input.free.freeUntil) ?? "" }
+        : null,
       hostelName: input.hostelName,
       listingUrl: hostelListingUrl(input.hostelSlug),
       outstanding: input.outstanding,
       ownerName: input.ownerName,
       planName: input.planName,
+      setupFee: input.setupFee ?? null,
+      supportPhone: (await getSiteConfigSection("identity")).supportPhone,
     }),
   );
 }
@@ -180,6 +188,8 @@ export async function onRegisteredByTeam(input: {
 export async function onHostelVerified(input: {
   /** A temporary password for an owner who had no way to sign in. */
   credentials?: { email: string; temporaryPassword: string } | null;
+  /** Went live on free months at verification. */
+  free?: { months: number; until: Date } | null;
   hostelName: string;
   ownerEmail?: string;
   ownerName?: string;
@@ -196,6 +206,13 @@ export async function onHostelVerified(input: {
     input.ownerEmail,
     hostelVerifiedEmail({
       credentials: input.credentials,
+      free: input.free
+        ? {
+            months: input.free.months,
+            supportPhone: (await getSiteConfigSection("identity")).supportPhone,
+            until: emailDate(input.free.until) ?? "",
+          }
+        : null,
       hostelName: input.hostelName,
       ownerName: input.ownerName,
       portalOpensOnPayment: input.portalOpensOnPayment,

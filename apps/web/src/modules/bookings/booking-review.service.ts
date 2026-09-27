@@ -28,9 +28,10 @@ import {
   when,
 } from "@/modules/bookings/booking-notify";
 import { bookingDocumentAttachment } from "@/modules/bookings/booking-documents.service";
-import { HOUR_MS, hostelAnswerDeadline, settlementFor } from "@/modules/bookings/booking-terms";
+import { HOUR_MS, hostelAnswerDeadline } from "@/modules/bookings/booking-terms";
 import { reviewBookingPaymentSchema } from "@/modules/bookings/booking.validation";
-import type { BookingRecord } from "@/modules/bookings/booking-views";
+import { hostelShareIfCheckedIn, type BookingRecord } from "@/modules/bookings/booking-views";
+import { stayDatesText } from "@/modules/bookings/short-stay";
 import { BookingError } from "@/modules/bookings/booking.errors";
 
 /**
@@ -265,11 +266,11 @@ export async function markBookingPaid(
     });
   }
 
-  const hostelShare = settlementFor(paid.fee, 0, paid.terms).hostelShare;
+  const hostelShare = hostelShareIfCheckedIn(paid);
 
   await notifyHostel(paid, {
     action: "booking_request",
-    body: `${paid.guest.name} booked a ${paid.roomType}. Answer by ${when(hostelAnswerBy)}.`,
+    body: `${paid.guest.name} booked ${paid.stay ? `${paid.stay.nights} nights (${stayDatesText(paid.stay)}) in ` : ""}a ${paid.roomType}. Answer by ${when(hostelAnswerBy)}.`,
     email: (contact) =>
       bookingRequestEmail({
         answerBy: when(hostelAnswerBy),

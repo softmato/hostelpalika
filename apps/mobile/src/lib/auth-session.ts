@@ -27,6 +27,7 @@ import {
   logout as revokeSession,
 } from "@/lib/auth-api";
 import { revokePushToken } from "@/lib/push-notifications";
+import { setActiveHostelId } from "@/lib/active-hostel";
 import { clearQueryCache } from "@/lib/query-cache";
 import { resetUploadNotifications } from "@/lib/upload-notifier";
 import { clearTokens, readTokens, writeTokens } from "@/lib/session";
@@ -300,6 +301,8 @@ export async function endSession(options?: {
    * hand the next person the last one's resident list on their first tab switch.
    */
   clearQueryCache();
+  // The branch the last account was in means nothing to the next one.
+  await setActiveHostelId(null);
 
   if (revoke) {
     const tokens = await readTokens();

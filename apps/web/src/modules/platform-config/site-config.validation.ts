@@ -354,8 +354,15 @@ const planTierSchema = z.object({
   description: trimmed.max(240).default(""),
   /** Percent off `monthly` while the catalogue is in event mode. Ignored in standard mode. */
   eventDiscountPercent: z.number().min(0).max(90).default(0),
+  /** Branches a hostel on this plan may add, at no extra charge. 0 means none. */
+  maxBranches: z.number().int().min(0).max(100).default(0),
   /** The highlighted card. One only — the admin screen enforces it. */
   featured: z.boolean().default(false),
+  /**
+   * Months a hostel runs on this plan free, from the day it goes live. Claimed
+   * once per building (`FreePlanClaim`), never per account.
+   */
+  freeMonths: z.number().int().min(0).max(24).default(0),
   /** Percent off six months bought one month at a time. */
   halfYearlyDiscountPercent: z.number().min(0).max(90).default(0),
   id: trimmed.min(1).max(40),

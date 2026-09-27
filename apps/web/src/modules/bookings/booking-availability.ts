@@ -9,6 +9,7 @@ import { hostelPeriodOf } from "@/lib/hostel-day";
 import { photosOfKind, resolveHostelPhotoUrls, type HostelPhoto } from "@/lib/hostel-photos";
 import { getBookingConfig, type BookingConfig } from "@/modules/bookings/booking-config";
 import { bookingFee } from "@/modules/bookings/booking-terms";
+import { dailyFloor } from "@/modules/bookings/short-stay";
 import { isPayoutAccountVerified } from "@/modules/bookings/payout-account.service";
 import {
   getEffectiveSchedule,
@@ -59,6 +60,11 @@ export type BookableHostel = {
     roomType: string;
     vacantBeds?: number;
   }>;
+  shortStays?: {
+    enabled?: boolean;
+    minNights?: number;
+    rates?: Array<{ dailyRate: number; roomType: string }>;
+  } | null;
   slug: string;
   status?: string;
   suspension?: { graceEndsAt?: Date | null; startedAt?: Date | null } | null;
@@ -68,6 +74,12 @@ export type BookableHostel = {
 export type RoomAvailability = {
   bedsPerRoom: number | null;
   bookable: boolean;
+  /**
+   * A night's price for a short stay: the hostel's rate, never below today's
+   * floor (a rent rise since the rate was set lifts it). Null when this room
+   * type takes no short stays.
+   */
+  dailyRate: number | null;
   fee: number | null;
   mealInclusion: string | null;
   monthlyRent: number | null;
@@ -85,10 +97,12 @@ export type HostelAvailability = {
   /** Set when nothing on the hostel can be booked, whatever the room. */
   hostelReason: BookingUnavailableReason | null;
   rooms: RoomAvailability[];
+  /** Set when the hostel takes short stays: the limits a date picker needs. */
+  shortStays: { maxAdvanceDays: number; maxNights: number; minNights: number } | null;
 };
 
 const HOSTEL_FIELDS =
-  "bookingPause contact hostelType isDeleted location name photos roomConfigurations slug status suspension verificationStatus";
+  "bookingPause contact hostelType isDeleted location name photos roomConfigurations shortStays slug status suspension verificationStatus";
 
 export async function loadBookableHostel(ref: string): Promise<BookableHostel | null> {
   await connectToDatabase();
@@ -179,8 +193,10 @@ export async function hostelAvailability(
   const hostelReason = await hostelUnavailableReason(hostel, config, now);
   const schedule = await getEffectiveSchedule(hostel._id, hostelPeriodOf(now));
 
+  const shortStays = hostel.shortStays?.enabled ? hostel.shortStays : null;
   const rooms = (hostel.roomConfigurations ?? []).map((room): RoomAvailability => {
     const rent = rateForRoomType(schedule, room.roomType)?.monthlyAmount ?? null;
+    const setRate = shortStays?.rates?.find((rate) => sameRoomType(rate.roomType, room.roomType))?.dailyRate;
     const vacantBeds = Math.max(0, room.vacantBeds ?? 0);
     const priced = typeof rent === "number" && rent > 0;
     const reason: BookingUnavailableReason | null =
@@ -189,6 +205,8 @@ export async function hostelAvailability(
     return {
       bedsPerRoom: room.bedsPerRoom ?? null,
       bookable: reason === null,
+      dailyRate:
+        priced && setRate ? Math.max(setRate, dailyFloor(rent, config.shortStayMinMarkupPercent)) : null,
       fee: priced ? bookingFee(rent, config.feePercent) : null,
       mealInclusion: room.mealInclusion ?? null,
       monthlyRent: priced ? rent : null,
@@ -201,7 +219,17 @@ export async function hostelAvailability(
     };
   });
 
-  return { hostelReason, rooms };
+  return {
+    hostelReason,
+    rooms,
+    shortStays: shortStays
+      ? {
+          maxAdvanceDays: config.shortStayMaxAdvanceDays,
+          maxNights: config.shortStayMaxNights,
+          minNights: Math.min(shortStays.minNights ?? 1, config.shortStayMaxNights),
+        }
+      : null,
+  };
 }
 
 export function findRoom(availability: HostelAvailability, roomType: string) {

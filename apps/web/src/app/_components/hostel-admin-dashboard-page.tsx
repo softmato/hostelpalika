@@ -18,6 +18,8 @@ import {
 import Link from "next/link";
 import { memo } from "react";
 
+import { HostelBranchesCard } from "@/app/_components/hostel-branches-card";
+import { HostelFreeMonthCard } from "@/app/_components/hostel-free-month-card";
 import { currency } from "@/app/_components/shared-ui";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -249,6 +251,8 @@ export const HostelAdminDashboardPageContent = memo(
           title="Dashboard"
         />
         <Message value={message} />
+        <HostelFreeMonthCard />
+        <HostelBranchesCard />
         {loading ? <HostelAdminDashboardSkeleton /> : null}
 
         {/* Persistent by design (target §6.4): Tier 0.5 only catches a

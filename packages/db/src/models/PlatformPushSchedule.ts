@@ -44,7 +44,13 @@ const platformPushScheduleSchema = new Schema(
      * superadmin can pause and resume them, never compose or cancel them.
      */
     automatic: {
-      enum: ["PLAN_DUE_MORNING", "PLAN_DUE_EVENING", "FEE_DUE_MORNING", "FEE_DUE_EVENING"],
+      enum: [
+        "PLAN_DUE_MORNING",
+        "PLAN_DUE_EVENING",
+        "FEE_DUE_MORNING",
+        "FEE_DUE_EVENING",
+        "FREE_MONTH_MORNING",
+      ],
       type: String,
     },
     createdBy: {

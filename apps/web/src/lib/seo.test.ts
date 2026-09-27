@@ -95,7 +95,7 @@ describe("shipped SEO copy", () => {
   it("fills the brand and the cheapest plan price", () => {
     const fill = seoFiller(DEFAULT_PLANS);
 
-    expect(fill("{siteName} from {fromPrice}")).toBe("HostelPalika from NPR 3,000");
+    expect(fill("{siteName} from {fromPrice}")).toBe("HostelPalika from NPR 999");
     const cleared = {
       ...DEFAULT_SEO,
       pages: { ...DEFAULT_SEO.pages, map: { description: "", title: "" } },

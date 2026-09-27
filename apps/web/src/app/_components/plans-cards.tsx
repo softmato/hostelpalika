@@ -495,7 +495,12 @@ export function PlanCard({
        * does not land the card shows last cycle's price under this cycle's
        * caption.
        */}
-      <div className="mt-4 flex items-baseline gap-2.5">
+      {plan.freeMonths ? (
+        <p className="mt-4 text-sm font-semibold text-brand-teal">
+          First {plan.freeMonths} {plan.freeMonths === 1 ? "month" : "months"} free, then
+        </p>
+      ) : null}
+      <div className={cn("flex items-baseline gap-2.5", plan.freeMonths ? "mt-1" : "mt-4")}>
         <motion.span
           animate={{ opacity: 1, y: 0 }}
           className="font-heading text-3xl font-bold tracking-tight text-foreground"

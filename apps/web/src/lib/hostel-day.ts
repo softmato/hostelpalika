@@ -50,6 +50,7 @@ export {
   formatBsPeriodYear,
   fromBs,
   hostelCalendarDay,
+  hostelDaysBetween,
   hostelToday,
   isBsPeriod,
   periodParts,

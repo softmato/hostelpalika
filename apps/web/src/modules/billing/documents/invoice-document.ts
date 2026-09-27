@@ -110,6 +110,10 @@ export async function renderInvoiceDocument(
   pdf.setTitle(`Invoice ${input.documentNumber}`);
   pdf.setProducer(input.issuer.legalName);
   pdf.setCreator(input.issuer.productName || input.issuer.legalName);
+  // The document's own date, not the render's: the same invoice renders to the
+  // same bytes, and the file's metadata agrees with the date printed on it.
+  pdf.setCreationDate(input.issuedAt);
+  pdf.setModificationDate(input.issuedAt);
 
   const subtotal = input.lines.reduce((sum, line) => sum + line.amount, 0);
   const due = Math.max(0, subtotal - input.amountPaid);

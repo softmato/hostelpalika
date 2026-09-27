@@ -390,7 +390,11 @@ export async function runPlanCheckout(
       const { hostelId } = await readCheckoutToken(input.token);
       const [hostel, open] = await Promise.all([
         HostelModel.findById(hostelId).select("name").lean<{ name?: string } | null>(),
-        SubscriptionInvoiceModel.findOne({ hostelId, status: { $in: ["OPEN", "PARTIAL"] } })
+        SubscriptionInvoiceModel.findOne({
+          hostelId,
+          kind: { $ne: "SETUP_FEE" },
+          status: { $in: ["OPEN", "PARTIAL"] },
+        })
           .sort({ createdAt: -1 })
           .lean<CheckoutInvoice | null>(),
       ]);

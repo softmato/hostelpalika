@@ -21,6 +21,9 @@ const hostelSchema = new Schema(
     },
     description: String,
     ownerId: { ref: "User", required: true, type: Schema.Types.ObjectId },
+    // Set on a branch: the Max hostel it belongs to. A branch has no plan of
+    // its own — billing, plan limits and suspension are its main hostel's.
+    parentHostelId: { default: null, ref: "Hostel", type: Schema.Types.ObjectId },
     location: {
       area: { type: String, required: true, trim: true },
       city: { type: String, default: "Kathmandu", trim: true },
@@ -53,6 +56,9 @@ const hostelSchema = new Schema(
       /** A second number to try. Both registration forms ask for it. */
       alternatePhone: { type: String, trim: true },
     },
+    // The business's PAN/VAT number, digits only. Optional at registration; it
+    // fingerprints the building for its free months and ties a branch to it.
+    panNumber: { type: String, trim: true },
     hostelType: {
       type: String,
       enum: ["BOYS", "GIRLS", "CO_LIVING"],
@@ -214,6 +220,29 @@ const hostelSchema = new Schema(
      * strike limit, or by a superadmin. Only a superadmin clears it. While
      * `pausedAt` is set the Book button does not show and no booking is taken.
      */
+    /**
+     * Stays of a few nights, booked and paid through us (docs/PLANS_BRANCHES_SHORT_STAYS.md).
+     *
+     * The daily rate lives here rather than on the rate card: the rate card is
+     * versioned by month because it bills residents, while a short stay is sold
+     * once and freezes its own rate on the booking.
+     */
+    shortStays: {
+      enabled: { default: false, type: Boolean },
+      minNights: { default: 1, max: 29, min: 1, type: Number },
+      rates: {
+        default: [],
+        type: [
+          new Schema(
+            {
+              dailyRate: { min: 1, required: true, type: Number },
+              roomType: { required: true, trim: true, type: String },
+            },
+            { _id: false },
+          ),
+        ],
+      },
+    },
     bookingPause: {
       pausedAt: { default: null, type: Date },
       pausedBy: { default: null, ref: "User", type: Schema.Types.ObjectId },
@@ -237,6 +266,10 @@ hostelSchema.index(
 hostelSchema.index({ status: 1, "location.area": 1, hostelType: 1 });
 hostelSchema.index({ verificationStatus: 1, status: 1 });
 hostelSchema.index({ ownerId: 1, status: 1 });
+hostelSchema.index(
+  { parentHostelId: 1 },
+  { partialFilterExpression: { parentHostelId: { $type: "objectId" } } },
+);
 // The only query the purge cron runs.
 hostelSchema.index({ isDeleted: 1, purgeScheduledAt: 1 });
 hostelSchema.index({
