@@ -212,7 +212,10 @@ describe("auth service", () => {
 
     expect(session?.refreshTokenHash).toBe("hash:refresh-token");
     expect(serviceMocks.sessionSave).toHaveBeenCalled();
-    expect(user.save).toHaveBeenCalled();
+    expect(serviceMocks.userUpdateOne).toHaveBeenCalledWith(
+      { _id: expect.anything() },
+      { $set: { lastLoginAt: expect.any(Date) } },
+    );
   });
 
   it("blocks login when the email is not verified", async () => {
@@ -569,7 +572,11 @@ describe("auth service", () => {
        * address must not quietly retire the pair they have written down — and
        * must not revoke the sessions already open on it.
        */
-      expect(serviceMocks.userUpdateOne).not.toHaveBeenCalled();
+      // The only write is the sign-in stamp; no password or session change.
+      for (const [, update] of serviceMocks.userUpdateOne.mock.calls) {
+        expect(Object.keys(update.$set ?? {})).toEqual(["lastLoginAt"]);
+        expect(update.$unset).toBeUndefined();
+      }
       expect(serviceMocks.sessionUpdateMany).not.toHaveBeenCalled();
       expect(cook.mustChangePassword).toBe(true);
     });

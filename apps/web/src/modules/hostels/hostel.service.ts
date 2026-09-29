@@ -1768,6 +1768,7 @@ export async function listPlatformHostels(query: PlatformHostelListQuery) {
           .lean<Array<{ _id: Types.ObjectId; name: string; panNumber?: string; slug: string }>>()
       : [];
   const parentById = new Map(parents.map((parent) => [parent._id.toString(), parent]));
+  const portalsByHostel = await hostelPortalActivity(hostels.map((hostel) => hostel._id));
 
   return {
     hostels: hostels.map((hostel) => {
@@ -1781,6 +1782,7 @@ export async function listPlatformHostels(query: PlatformHostelListQuery) {
           ? { id: parent._id.toString(), name: parent.name, panNumber: parent.panNumber ?? null, slug: parent.slug }
           : null,
         owner: ownerById.get(hostel.ownerId.toString()) ?? null,
+        portals: portalsByHostel.get(hostel._id.toString()) ?? [],
         submittedAt: application?.submittedAt ?? hostel.createdAt?.toISOString() ?? null,
       };
     }),
@@ -1866,10 +1868,58 @@ export async function getPlatformHostel(hostelId: string) {
     branchOf: hostel.parentHostelId ? await branchParentSummary(hostel.parentHostelId) : null,
     hostel: serializeHostel(hostel),
     owner: contactById.get(hostel.ownerId.toString()) ?? null,
+    portals: (await hostelPortalActivity([hostel._id])).get(hostel._id.toString()) ?? [],
     submitter: application
       ? (contactById.get(application.submittedBy.toString()) ?? null)
       : null,
   };
+}
+
+const PORTAL_ROLES = [Role.HOSTEL_ADMIN, Role.WARDEN, Role.COOK, Role.RESIDENT, Role.GUARDIAN];
+
+/**
+ * Per hostel, per portal: how many logins exist and how many have been opened.
+ * "Opened" is `lastLoginAt` (stamped on every sign-in) or any session row,
+ * since `lastLoginAt` was once only written by password sign-in. One query for
+ * a whole list page.
+ */
+async function hostelPortalActivity(hostelIds: Types.ObjectId[]) {
+  const users = await UserModel.find({
+    hostelIds: { $in: hostelIds },
+    isDeleted: { $ne: true },
+    role: { $in: PORTAL_ROLES },
+    status: { $in: ["ACTIVE", "INVITED"] },
+  })
+    .select("hostelIds lastLoginAt role")
+    .lean<Array<{ _id: Types.ObjectId; hostelIds: Types.ObjectId[]; lastLoginAt?: Date; role: string }>>();
+  const sessions = await SessionModel.aggregate<{ _id: Types.ObjectId; at: Date }>([
+    { $match: { userId: { $in: users.map((user) => user._id) } } },
+    { $group: { _id: "$userId", at: { $max: { $ifNull: ["$lastSeenAt", "$createdAt"] } } } },
+  ]);
+  const sessionAt = new Map(sessions.map((row) => [row._id.toString(), row.at.getTime()]));
+  const openedAt = (user: (typeof users)[number]) =>
+    Math.max(user.lastLoginAt?.getTime() ?? 0, sessionAt.get(user._id.toString()) ?? 0) || null;
+
+  return new Map(
+    hostelIds.map((hostelId) => {
+      const members = users.filter((user) => user.hostelIds.some((id) => id.equals(hostelId)));
+
+      return [
+        hostelId.toString(),
+        PORTAL_ROLES.map((role) => {
+          const times = members.filter((user) => user.role === role).map(openedAt);
+          const seen = times.filter((time): time is number => time !== null);
+
+          return {
+            accounts: times.length,
+            lastOpenedAt: seen.length ? new Date(Math.max(...seen)).toISOString() : null,
+            opened: seen.length,
+            role,
+          };
+        }),
+      ];
+    }),
+  );
 }
 
 /**
@@ -1908,18 +1958,16 @@ export async function updateHostelOwnerEmail(
     return { changed: false, email, ownerId: owner._id.toString() };
   }
 
-  const taken = await UserModel.exists({
+  const holder = await UserModel.findOne({
     _id: { $ne: owner._id },
     email,
     isDeleted: { $ne: true },
-  });
+  })
+    .select("role")
+    .lean<{ _id: Types.ObjectId; role: string } | null>();
 
-  if (taken) {
-    throw new HostelServiceError(
-      "Another account already uses this email.",
-      "HOSTEL_OWNER_CONTACT_CONFLICT",
-      409,
-    );
+  if (holder) {
+    return handOwnershipToExistingAccount(hostel._id, owner._id, holder, email, principal);
   }
 
   await UserModel.updateOne(
@@ -1950,6 +1998,118 @@ export async function updateHostelOwnerEmail(
   });
 
   return { changed: true, email, ownerId: owner._id.toString() };
+}
+
+/**
+ * The corrected email already has an account — nearly always the owner's own
+ * public login, made when they browsed or signed in with Google before the team
+ * filed their hostel under a mistyped address.
+ *
+ * Renaming the filed account onto that address would leave two rows on one
+ * email, so the hostels move instead: every hostel the mistyped account owns
+ * goes to the real one, along with its application and documents, and the real
+ * account is given the portal only if the mistyped one already held it (a
+ * public registration still waits for its payment). The mistyped account is
+ * then emptied and signed out; if nobody ever signed into it, it is retired.
+ */
+async function handOwnershipToExistingAccount(
+  hostelId: Types.ObjectId,
+  previousOwnerId: Types.ObjectId,
+  holder: { _id: Types.ObjectId; role: string },
+  email: string,
+  principal: ApiPrincipal,
+) {
+  if (holder.role !== Role.PUBLIC && holder.role !== Role.HOSTEL_ADMIN) {
+    throw new HostelServiceError(
+      `This email already signs in as a ${holder.role.toLowerCase().replaceAll("_", " ")}, so it can't own a hostel. Use another email.`,
+      "HOSTEL_OWNER_CONTACT_CONFLICT",
+      409,
+    );
+  }
+
+  const previous = await UserModel.findById(previousOwnerId)
+    .select("email hostelIds lastLoginAt role")
+    .lean<{ email?: string; hostelIds?: Types.ObjectId[]; lastLoginAt?: Date; role: string }>();
+  const hostels = await HostelModel.find({ ownerId: previousOwnerId })
+    .select("_id name")
+    .lean<Array<{ _id: Types.ObjectId; name: string }>>();
+  const hostelIds = hostels.map((hostel) => hostel._id);
+  const portalHostelIds = previous?.role === Role.HOSTEL_ADMIN ? (previous.hostelIds ?? []) : [];
+
+  if (portalHostelIds.length > 0) {
+    // Runs the PUBLIC -> HOSTEL_ADMIN upgrade with its mailbox-proof password
+    // rotation; "Send login" then mails the right inbox a fresh one.
+    await registerOrUpgradeUserByEmail({
+      email,
+      hostelId: portalHostelIds[0].toString(),
+      performedBy: principal.userId,
+      role: Role.HOSTEL_ADMIN,
+      sendEmailNotification: false,
+      userId: holder._id.toString(),
+    });
+    await UserModel.updateOne(
+      { _id: holder._id },
+      { $addToSet: { hostelIds: { $each: portalHostelIds } } },
+    );
+  }
+
+  await HostelModel.updateMany({ ownerId: previousOwnerId }, { $set: { ownerId: holder._id } });
+  if (previous?.email) {
+    await HostelModel.updateMany(
+      { _id: { $in: hostelIds }, "contact.email": previous.email },
+      { $set: { "contact.email": email } },
+    );
+  }
+  await HostelApplicationModel.updateMany(
+    { applicantId: previousOwnerId, hostelId: { $in: hostelIds } },
+    { $set: { applicantId: holder._id } },
+  );
+  const documents = await HostelDocumentModel.find({
+    hostelId: { $in: hostelIds },
+    ownerId: previousOwnerId,
+  })
+    .select("fileAssetId")
+    .lean<Array<{ fileAssetId?: Types.ObjectId }>>();
+  await HostelDocumentModel.updateMany(
+    { hostelId: { $in: hostelIds }, ownerId: previousOwnerId },
+    { $set: { ownerId: holder._id } },
+  );
+  await FileAssetModel.updateMany(
+    { _id: { $in: documents.flatMap((document) => document.fileAssetId ?? []) }, ownerId: previousOwnerId },
+    { $set: { ownerId: holder._id } },
+  );
+
+  // The mistyped inbox may hold a temporary password; nothing it opens is left.
+  const neverUsed =
+    !previous?.lastLoginAt && !(await SessionModel.exists({ userId: previousOwnerId }));
+  await UserModel.updateOne(
+    { _id: previousOwnerId },
+    {
+      $inc: { tokenVersion: 1 },
+      $set: {
+        hostelIds: [],
+        role: Role.PUBLIC,
+        ...(neverUsed ? { deletedAt: new Date(), deletedBy: principal.userId, isDeleted: true } : {}),
+      },
+      $unset: { googleId: "", mustChangePassword: "", passwordHash: "" },
+    },
+  );
+  await OAuthAccountModel.deleteMany({ userId: previousOwnerId });
+  await SessionModel.updateMany(
+    { revokedAt: null, userId: previousOwnerId },
+    { $set: { revokedAt: new Date() } },
+  );
+
+  await auditHostelAction(principal, hostelId, "HOSTEL_OWNER_EMAIL_CHANGED", {
+    from: previous?.email ?? "",
+    hostels: hostels.map((hostel) => hostel.name),
+    movedToExistingAccount: holder._id.toString(),
+    ownerId: previousOwnerId.toString(),
+    previousAccountRetired: neverUsed,
+    to: email,
+  });
+
+  return { changed: true, email, ownerId: holder._id.toString() };
 }
 
 /**

@@ -7,6 +7,13 @@ import { currency, EmptyState, Panel, StatusBadge } from "@/app/_components/shar
 export type LoadState = "idle" | "loading" | "ready" | "error";
 export type ReportRecord = Record<string, unknown>;
 
+export type HostelPortal = {
+  accounts: number;
+  lastOpenedAt: string | null;
+  opened: number;
+  role: string;
+};
+
 export type Hostel = {
   /** `HH-3F9A1C2E` — only on the hostel's own profile read. */
   hostelCode?: string;
@@ -16,6 +23,8 @@ export type Hostel = {
   panNumber?: string | null;
   /** Set on a branch: the main hostel whose plan it runs on. */
   parentHostelId?: string | null;
+  /** On the platform queue: per portal, logins issued and opened — see hostelPortalActivity. */
+  portals?: HostelPortal[];
   /** On the platform queue, a branch's main hostel — see listPlatformHostels. */
   branchOf?: { id: string; name: string; panNumber: string | null; slug: string } | null;
   /** The plan suspension running on this hostel, if any — see `hostel-suspension.ts`. */

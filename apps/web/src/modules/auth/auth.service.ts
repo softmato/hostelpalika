@@ -314,7 +314,13 @@ export async function issueSessionForUser(
   ]);
 
   session.refreshTokenHash = hashToken(refreshToken);
-  await session.save();
+  // Stamped here rather than in each sign-in path: Google, OTP, guardian and
+  // resident activation all open their sessions through this function, and the
+  // platform's "has this portal been opened" read needs every one of them.
+  await Promise.all([
+    session.save(),
+    UserModel.updateOne({ _id: safeUser.id }, { $set: { lastLoginAt: new Date() } }),
+  ]);
 
   return {
     accessToken,
@@ -762,11 +768,10 @@ export async function login(input: LoginInput, context?: RequestContext) {
     );
   }
 
-  user.lastLoginAt = new Date();
   if (user.status === "INVITED") {
     user.status = "ACTIVE";
+    await user.save();
   }
-  await user.save();
 
   return issueSessionForUser(user, context);
 }

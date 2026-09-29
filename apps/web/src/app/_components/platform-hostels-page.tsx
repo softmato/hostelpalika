@@ -40,6 +40,7 @@ import {
   RoleButton,
   SearchField,
   SoftBadge,
+  type SoftTone,
   statusToneFromLabel,
   TabBar,
   TableBody,
@@ -52,7 +53,7 @@ import { browserApi } from "@/lib/browser-api";
 import { Role } from "@/lib/roles";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
-import { DemoDataBadge, Hostel, Message } from "./core-portal-shared";
+import { DemoDataBadge, Hostel, type HostelPortal, Message } from "./core-portal-shared";
 
 type ActionKey =
   | "approve"
@@ -97,8 +98,29 @@ type HostelDetail = {
   documents: VerificationDocument[];
   hostel: Hostel;
   owner: VerificationContact;
+  portals?: HostelPortal[];
   submitter: VerificationContact;
 };
+
+const PORTAL_LABELS: Record<string, [label: string, letter: string]> = {
+  [Role.COOK]: ["Cook", "C"],
+  [Role.GUARDIAN]: ["Guardian", "G"],
+  [Role.HOSTEL_ADMIN]: ["Hostel admin", "A"],
+  [Role.RESIDENT]: ["Resident", "R"],
+  [Role.WARDEN]: ["Warden", "W"],
+};
+
+function portalTone(portal: HostelPortal): SoftTone {
+  if (portal.accounts === 0) return "slate";
+  return portal.opened === 0 ? "amber" : "green";
+}
+
+function portalSummary(portal: HostelPortal) {
+  if (portal.accounts === 0) return "No login";
+  return portal.opened === 0
+    ? `Not opened · ${portal.accounts}`
+    : `Opened · ${portal.opened}/${portal.accounts}`;
+}
 
 const ACTION_CONFIG: Record<
   ActionKey,
@@ -639,13 +661,14 @@ A new temporary password is issued. Any earlier one stops working.`,
 
           {state === "ready" && filtered.length > 0 ? (
             <>
-              <DataTable className="min-w-[620px]">
+              <DataTable className="min-w-[760px]">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <Th>Hostel</Th>
                     <Th>Location</Th>
                     <Th>Listing</Th>
                     <Th>KYC Status</Th>
+                    <Th>Portals</Th>
                     <Th align="right" />
                   </TableRow>
                 </TableHeader>
@@ -707,6 +730,24 @@ A new temporary password is issued. Any earlier one stops working.`,
                         <SoftBadge tone={statusToneFromLabel(hostel.verificationStatus)}>
                           {hostel.verificationStatus.replaceAll("_", " ")}
                         </SoftBadge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1">
+                          {(hostel.portals ?? []).map((portal) => {
+                            const [label, letter] = PORTAL_LABELS[portal.role] ?? [portal.role, "?"];
+                            return (
+                              <span
+                                aria-label={`${label}: ${portalSummary(portal)}`}
+                                key={portal.role}
+                                title={`${label}: ${portalSummary(portal)}`}
+                              >
+                                <SoftBadge className="px-1.5" tone={portalTone(portal)}>
+                                  {letter}
+                                </SoftBadge>
+                              </span>
+                            );
+                          })}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-end">
@@ -923,6 +964,28 @@ A new temporary password is issued. Any earlier one stops working.`,
                         </button>
                       ) : null}
                     </div>
+                  </DetailSection>
+                ) : null}
+
+                {detail?.portals ? (
+                  <DetailSection title="Portals">
+                    {detail.portals.map((portal) => (
+                      <DetailField
+                        key={portal.role}
+                        label={PORTAL_LABELS[portal.role]?.[0] ?? portal.role}
+                        value={
+                          <span
+                            title={
+                              portal.lastOpenedAt
+                                ? `Last opened ${formatDateTime(portal.lastOpenedAt)}`
+                                : undefined
+                            }
+                          >
+                            <SoftBadge tone={portalTone(portal)}>{portalSummary(portal)}</SoftBadge>
+                          </span>
+                        }
+                      />
+                    ))}
                   </DetailSection>
                 ) : null}
 
