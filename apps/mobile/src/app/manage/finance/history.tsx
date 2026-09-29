@@ -1,3 +1,4 @@
+import { formatBsDate } from "@hostel/calendar/bs";
 import { useMemo } from "react";
 import { View } from "react-native";
 
@@ -9,7 +10,6 @@ import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
-import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import {
   BED_TYPE_LABELS,
@@ -33,7 +33,6 @@ import { humanizeEnum } from "@/lib/format";
  */
 
 export default function ManageRateHistoryScreen() {
-  const dates = useDates();
   // The same key `finance/rates` reads — see there.
   const query = adminQuery.feeSchedules();
   const schedules = useResource<FeeScheduleData>(query.load, {
@@ -92,9 +91,16 @@ export default function ManageRateHistoryScreen() {
         <View className="gap-4 pt-1">
           {past.map((schedule) => (
             <View className="gap-2" key={schedule._id}>
-              <Text variant="subtitle">
-                {`${dates.dateBoth(schedule.effectiveFrom)} – ${dates.dateBoth(schedule.effectiveTo)}`}
-              </Text>
+              <View className="flex-row flex-wrap justify-between gap-x-3 px-0.5">
+                <Text variant="label">
+                  {`Started ${formatBsDate(new Date(schedule.effectiveFrom))}`}
+                </Text>
+                <Text variant="label">
+                  {schedule.effectiveTo
+                    ? `Ended ${formatBsDate(new Date(schedule.effectiveTo))}`
+                    : ""}
+                </Text>
+              </View>
 
               <Card className="gap-1">
                 {schedule.rates.map((rate) => (

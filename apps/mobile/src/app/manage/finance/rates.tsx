@@ -1,31 +1,30 @@
-import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import {
-  BedDouble,
-  CalendarDays,
-  DoorOpen,
-  ShieldCheck,
-  Users,
-} from "lucide-react-native";
+  addBsMonths,
+  bsPeriodBounds,
+  currentBsPeriod,
+  formatBsDate,
+  formatBsPeriod,
+} from "@hostel/calendar/bs";
+import { router } from "expo-router";
+import { BedDouble, DoorOpen, ShieldCheck, Users } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Chip } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { createFeeSchedule, type FeeScheduleData } from "@/lib/admin-manage-api";
 import { adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
 import { formatMoney } from "@/lib/format";
-import { monthStartFromNow, startOfDayIso } from "@/lib/manage-dates";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 /**
@@ -64,7 +63,6 @@ function roomTypeKey(value: string | null | undefined) {
 }
 
 export default function ManageRatesScreen() {
-  const dates = useDates();
   /*
    * The glyphs below are drawn in `mutedForeground`, not in the brand.
    *
@@ -76,6 +74,13 @@ export default function ManageRatesScreen() {
    */
   const { colors } = useAppTheme();
   const [saving, setSaving] = useState(false);
+  /**
+   * Months from now the rates start, in Bikram Sambat — billing runs on BS
+   * months, so a Gregorian 1st landed mid-month and the server snapped it back
+   * into the month already being billed. Next month by default; the first card
+   * a hostel ever sets may also start this month.
+   */
+  const [monthOffset, setMonthOffset] = useState(1);
   const [ratesDraft, setRatesDraft] = useState<Record<string, string> | null>(null);
   const [formDraft, setFormDraft] = useState<Record<string, string> | null>(null);
 
@@ -145,7 +150,6 @@ export default function ManageRatesScreen() {
     () => ({
       admissionFee: open?.admissionFee ? String(open.admissionFee) : "",
       depositAmount: open?.depositAmount ? String(open.depositAmount) : "",
-      effectiveFrom: monthStartFromNow(1),
       referralAdmissionDiscount: open?.referralAdmissionDiscount
         ? String(open.referralAdmissionDiscount)
         : "",
@@ -169,12 +173,9 @@ export default function ManageRatesScreen() {
   );
 
   const submit = useCallback(async () => {
-    const effectiveFrom = startOfDayIso(form.effectiveFrom ?? "");
-
-    if (!effectiveFrom) {
-      toastError("Check the start date", "Write it as YYYY-MM-DD.");
-      return;
-    }
+    const effectiveFrom = bsPeriodBounds(
+      addBsMonths(currentBsPeriod(), monthOffset),
+    ).start.toISOString();
 
     const priced = roomTypes.flatMap((option) => {
       const raw = rates[option.roomType]?.trim();
@@ -214,7 +215,7 @@ export default function ManageRatesScreen() {
     } finally {
       setSaving(false);
     }
-  }, [form, rates, roomTypes]);
+  }, [form, monthOffset, rates, roomTypes]);
 
   if (schedules.loading) {
     return (
@@ -250,7 +251,7 @@ export default function ManageRatesScreen() {
           centerTitle
           showBack
           subtitle={
-            open ? `Replaces the rates from ${dates.dateBoth(open.effectiveFrom)}` : undefined
+            open ? `Replaces the rates from ${formatBsDate(new Date(open.effectiveFrom))}` : undefined
           }
           title={open ? "New rates" : "Set the rates"}
         />
@@ -338,46 +339,43 @@ export default function ManageRatesScreen() {
         </View>
 
         <View>
-          <SectionHeader title="Effective from" />
-          <Card className="gap-3">
-            <Input
-              /*
-               * The box takes a Gregorian date because that is what the API
-               * stores, but an owner reading Bikram Sambat cannot tell which
-               * Nepali month `2026-10-01` lands in — which is how a card meant
-               * for Kartik was set to start in Aswin. The echo below closes that
-               * gap without making them convert anything in their head.
-               */
-              hint={
-                startOfDayIso(form.effectiveFrom ?? "")
-                  ? dates.dateBoth(startOfDayIso(form.effectiveFrom ?? ""))
-                  : undefined
-              }
-              keyboardType="numbers-and-punctuation"
-              leading={<CalendarDays color={colors.mutedForeground} size={18} />}
-              onChangeText={(effectiveFrom) => editForm({ effectiveFrom })}
-              placeholder="YYYY-MM-DD"
-              value={form.effectiveFrom ?? ""}
-            />
-            <View className="flex-row flex-wrap gap-2">
-              {/*
-                Months, not day offsets. A "next month" chip that added thirty
-                days gave a card starting on the 17th — and rates cannot start
-                mid-month, because the billing run gives a whole month to one
-                card. Both chips land on a 1st.
-              */}
-              <Chip
-                label="Next month"
-                onPress={() => editForm({ effectiveFrom: monthStartFromNow(1) })}
-              />
-              <Chip
-                label="Month after"
-                onPress={() => editForm({ effectiveFrom: monthStartFromNow(2) })}
-              />
+          <SectionHeader title="Starts from" />
+          <Card className="gap-2">
+            <View className="flex-row items-center justify-between">
+              <Pressable
+                accessibilityLabel="A month earlier"
+                accessibilityRole="button"
+                className={`h-10 w-10 items-center justify-center rounded-full border border-border active:opacity-70 ${
+                  monthOffset <= (open ? 1 : 0) ? "opacity-30" : ""
+                }`}
+                disabled={monthOffset <= (open ? 1 : 0)}
+                onPress={() => setMonthOffset((value) => value - 1)}
+              >
+                <Ionicons color={colors.foreground} name="chevron-back" size={18} />
+              </Pressable>
+              <View className="items-center">
+                <Text className="text-lg font-bold text-foreground">
+                  {formatBsPeriod(addBsMonths(currentBsPeriod(), monthOffset))}
+                </Text>
+                <Text variant="caption">
+                  {monthOffset === 0
+                    ? "This month"
+                    : monthOffset === 1
+                      ? "Next month"
+                      : `In ${monthOffset} months`}
+                </Text>
+              </View>
+              <Pressable
+                accessibilityLabel="A month later"
+                accessibilityRole="button"
+                className="h-10 w-10 items-center justify-center rounded-full border border-border active:opacity-70"
+                onPress={() => setMonthOffset((value) => value + 1)}
+              >
+                <Ionicons color={colors.foreground} name="chevron-forward" size={18} />
+              </Pressable>
             </View>
-            <Text variant="caption">
-              New rates always start on the 1st of a month. You cannot change this
-              month — those residents are already being billed.
+            <Text className="text-center" variant="caption">
+              Starts on the 1st. This month&apos;s residents keep their current rates.
             </Text>
           </Card>
         </View>
