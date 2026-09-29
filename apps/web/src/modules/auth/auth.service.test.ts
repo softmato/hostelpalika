@@ -13,6 +13,7 @@ const serviceMocks = vi.hoisted(() => ({
   sessionSave: vi.fn(),
   sessionUpdateMany: vi.fn(),
   sessionUpdateOne: vi.fn(),
+  residentExists: vi.fn(),
   serviceProviderExists: vi.fn(),
   signAccessToken: vi.fn(),
   signPurposeToken: vi.fn(),
@@ -78,6 +79,10 @@ vi.mock("@hostel/db/models/User", () => ({
     findOne: serviceMocks.userFindOne,
     updateOne: serviceMocks.userUpdateOne,
   },
+}));
+
+vi.mock("@hostel/db/models/Resident", () => ({
+  ResidentModel: { exists: serviceMocks.residentExists },
 }));
 
 vi.mock("@hostel/db/models/ServiceProvider", () => ({
@@ -180,6 +185,7 @@ describe("auth service", () => {
     // `clearAllMocks` keeps implementations, so an approved listing from one
     // test would otherwise answer the next one's query.
     serviceMocks.serviceProviderExists.mockResolvedValue(null);
+    serviceMocks.residentExists.mockResolvedValue({ _id: "resident-1" });
     serviceMocks.sessionUpdateOne.mockResolvedValue({ modifiedCount: 1 });
   });
 
@@ -675,6 +681,18 @@ describe("auth service", () => {
         user: { isServiceProvider: false },
       });
       expect(serviceMocks.serviceProviderExists).not.toHaveBeenCalled();
+    });
+
+    it("hands a resident who lives nowhere back a public account", async () => {
+      serviceMocks.residentExists.mockResolvedValue(null);
+
+      await expect(signInAs(createUser({ role: Role.RESIDENT }))).resolves.toMatchObject({
+        user: { hostelIds: [], role: Role.PUBLIC },
+      });
+      expect(serviceMocks.userUpdateOne).toHaveBeenCalledWith(
+        { _id: "user-1", role: Role.RESIDENT },
+        { $set: { hostelIds: [], role: Role.PUBLIC } },
+      );
     });
 
     it("answers a refresh and /me the same way a sign-in does", async () => {

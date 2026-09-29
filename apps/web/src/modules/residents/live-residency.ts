@@ -1,7 +1,20 @@
 import type { Types } from "mongoose";
 
+import { demoteToPublicAccount } from "@/modules/auth/auth.service";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { ResidentModel } from "@hostel/db/models/Resident";
+import { UserModel } from "@hostel/db/models/User";
+
+/**
+ * The one address any hostel may register while it lives somewhere else, so a
+ * warden can be shown the intake end to end at any time. Registering it moves
+ * it: `createResident` removes it from wherever it was first.
+ */
+export const DEMO_RESIDENT_EMAIL = "demo.resident@softmato.com";
+
+export function isDemoResidentEmail(email: string | null | undefined) {
+  return email?.trim().toLowerCase() === DEMO_RESIDENT_EMAIL;
+}
 
 /**
  * Where somebody lives right now, if anywhere on the platform.
@@ -70,8 +83,9 @@ export async function findLiveResidency(
   const userIds = handles.userIds.filter((id): id is Types.ObjectId => Boolean(id));
 
   // Nothing to match on — a hand-typed intake with no email. The same-hostel
-  // phone check is the only guard that case has.
-  if (emails.length === 0 && userIds.length === 0) {
+  // phone check is the only guard that case has. The demo resident never
+  // "lives elsewhere": registering it moves it.
+  if ((emails.length === 0 && userIds.length === 0) || emails.some(isDemoResidentEmail)) {
     return null;
   }
 
@@ -112,6 +126,36 @@ export async function findLiveResidency(
     sameHostel: Boolean(own),
     status: row.status,
   };
+}
+
+/**
+ * A resident who left `hostelId` — moved out or removed — keeps their login but
+ * loses that hostel, and once they live nowhere they are a plain public account
+ * again. Left as RESIDENT, the app asks every sign-in for an activation code,
+ * because a moved-out row is not an activated residency.
+ *
+ * Call after the row's own write, so it no longer counts as live.
+ */
+export async function releaseResidentAccount(
+  userId: Types.ObjectId | null | undefined,
+  hostelId: Types.ObjectId,
+) {
+  if (!userId) {
+    return;
+  }
+
+  const [stillLives] = await Promise.all([
+    ResidentModel.exists({
+      isDeleted: { $ne: true },
+      status: { $in: LIVE_STATUSES },
+      userId,
+    }),
+    UserModel.updateOne({ _id: userId }, { $pull: { hostelIds: hostelId } }),
+  ]);
+
+  if (!stillLives) {
+    await demoteToPublicAccount(userId);
+  }
 }
 
 /** The refusal, in the words a warden reads it in. */

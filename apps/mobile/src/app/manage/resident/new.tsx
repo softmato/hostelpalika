@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { currentBsPeriod } from "@hostel/calendar/bs";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -12,12 +13,14 @@ import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Chip, FactRow } from "@/components/ui/layout";
+import { ListRow } from "@/components/ui/list-row";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
 import { Select } from "@/components/ui/select";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
+import { Toggle } from "@/components/ui/toggle";
 import { WalletMark } from "@/components/ui/wallet-mark";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -42,6 +45,8 @@ import { type CardBooking, findCardBooking } from "@/lib/admin-bookings-api";
 import { readApiError, readApiErrorCode } from "@/lib/api-contract";
 import { formatDateIn } from "@/lib/calendar";
 import { openConfirm } from "@/lib/confirm";
+import { monthName, rentStatusOptions, rupeesFrom } from "@/lib/existing-residents";
+import { addScannedExistingResident } from "@/lib/existing-residents-api";
 import { humanizeEnum } from "@/lib/format";
 import { dayInputFromNow, startOfDayIso } from "@/lib/manage-dates";
 import {
@@ -167,6 +172,17 @@ export default function NewResidentScreen() {
   const [moveInDate, setMoveInDate] = useState(() => dayInputFromNow(0));
   const [referralCode, setReferralCode] = useState("");
   const [saving, setSaving] = useState(false);
+
+  /*
+   * "Add as existing resident" — somebody who lived here before the hostel
+   * joined. Same path as the Existing residents list (no joining fee, only the
+   * unpaid months billed), run for this one person.
+   */
+  const [existing, setExisting] = useState(false);
+  const [joined, setJoined] = useState("");
+  const [paidTill, setPaidTill] = useState<string | null>(() => currentBsPeriod());
+  const [depositPaid, setDepositPaid] = useState("");
+  const [oldDues, setOldDues] = useState("");
 
   /*
    * The intake response, kept rather than dropped on the floor. It carries the
@@ -319,6 +335,61 @@ export default function NewResidentScreen() {
       return;
     }
 
+    if (existing) {
+      const joinedDate = joined.trim() ? startOfDayIso(joined.trim()) : null;
+
+      if (joined.trim() && !joinedDate) {
+        toastError("Check the joined date", "Write it as YYYY-MM-DD.");
+        return;
+      }
+
+      if (!paidTill) {
+        toastError("Pick the rent", "Paid this month, or how many months are due.");
+        return;
+      }
+
+      setSaving(true);
+
+      try {
+        const added = await addScannedExistingResident({
+          depositPaid: rupeesFrom(depositPaid) ?? 0,
+          email: person.email,
+          fullName: `${person.firstName} ${person.lastName}`,
+          joinedDate,
+          oldDues: rupeesFrom(oldDues) ?? 0,
+          paidTill,
+          phone: person.phone,
+          roomType,
+          userResidentId: identity?.kind === "card" ? identity.residentId : undefined,
+        });
+
+        if (added.residentId && identity?.kind === "card") {
+          await attachContacts(added.residentId, identity.prefill).catch(() => 0);
+        }
+
+        const bills = added.result.billsRaised;
+
+        toastSuccess(
+          `${person.firstName} is in`,
+          bills > 0
+            ? `${bills} ${bills === 1 ? "bill" : "bills"} raised for what is still due.`
+            : "Nothing billed now. They get their next bill like everyone else.",
+        );
+
+        if (added.residentId) {
+          router.replace(`/manage/resident/${added.residentId}`);
+        } else {
+          router.back();
+        }
+      } catch (error) {
+        toastError("Could not add", readApiError(error, "That did not save."));
+      } finally {
+        setSaving(false);
+      }
+
+      return;
+    }
+
     const iso = startOfDayIso(moveInDate);
 
     if (!iso) {
@@ -429,7 +500,20 @@ export default function NewResidentScreen() {
      */
     setRegistered(result);
     setStep("collect");
-  }, [identity, moveInDate, occupancy, person, referralCode, rescan, roomType]);
+  }, [
+    depositPaid,
+    existing,
+    identity,
+    joined,
+    moveInDate,
+    occupancy,
+    oldDues,
+    paidTill,
+    person,
+    referralCode,
+    rescan,
+    roomType,
+  ]);
 
   if (step === "identify") {
     return (
@@ -531,7 +615,11 @@ export default function NewResidentScreen() {
             <Button label="Next — bed and money" onPress={() => setStep("terms")} />
           )
         ) : (
-          <Button label="Register them" loading={saving} onPress={() => void submit()} />
+          <Button
+            label={existing ? `Add ${person.firstName || "them"}` : "Register them"}
+            loading={saving}
+            onPress={() => void submit()}
+          />
         )
       }
       header={
@@ -564,6 +652,18 @@ export default function NewResidentScreen() {
         />
       ) : (
         <TermsStep
+          existing={{
+            depositPaid,
+            joined,
+            oldDues,
+            on: existing,
+            paidTill,
+            setDepositPaid,
+            setJoined,
+            setOldDues,
+            setOn: setExisting,
+            setPaidTill,
+          }}
           moveInDate={moveInDate}
           onChangeMoveInDate={setMoveInDate}
           onChangeReferralCode={setReferralCode}
@@ -854,7 +954,22 @@ function FactCard({ facts, title }: { facts: IntakeFact[]; title: string }) {
 /* Step 3 — bed, date, money                                                  */
 /* -------------------------------------------------------------------------- */
 
+/** The "Add as existing resident" switch and the fields it swaps in. */
+type ExistingForm = {
+  depositPaid: string;
+  joined: string;
+  oldDues: string;
+  on: boolean;
+  paidTill: string | null;
+  setDepositPaid: (value: string) => void;
+  setJoined: (value: string) => void;
+  setOldDues: (value: string) => void;
+  setOn: (value: boolean) => void;
+  setPaidTill: (value: string) => void;
+};
+
 function TermsStep({
+  existing,
   moveInDate,
   onChangeMoveInDate,
   onChangeReferralCode,
@@ -864,6 +979,7 @@ function TermsStep({
   roomType,
   rooms,
 }: {
+  existing: ExistingForm;
   moveInDate: string;
   onChangeMoveInDate: (value: string) => void;
   onChangeReferralCode: (value: string) => void;
@@ -883,9 +999,32 @@ function TermsStep({
    * always Bikram Sambat, and it moves on every keystroke.
    */
   const moveInHint = nepaliDayLabel(moveInDate);
+  const period = currentBsPeriod();
+  const { colors } = useAppTheme();
+  const rentOptions = rentStatusOptions(period, existing.paidTill);
+  const rentPick = rentOptions.find((option) => option.value === existing.paidTill);
+  const allPaid = !!existing.paidTill && existing.paidTill >= period;
+  // Extras stay folded until wanted — most people are "paid this month, that bed".
+  const [extras, setExtras] = useState(false);
+  const extrasOpen =
+    extras || !!(existing.joined.trim() || existing.depositPaid.trim() || existing.oldDues.trim());
 
   return (
     <View className="gap-5 pt-1">
+      <Card padding="px-4 py-1">
+        <ListRow
+          right={
+            <Toggle
+              accessibilityLabel="Add as existing resident"
+              onChange={existing.setOn}
+              value={existing.on}
+            />
+          }
+          subtitle="Already living here? No joining fee, only what is unpaid."
+          title="Add as existing resident"
+        />
+      </Card>
+
       <View>
         <SectionHeader
           subtitle="Only bed types with a free bed are shown"
@@ -911,17 +1050,115 @@ function TermsStep({
             </View>
           )}
 
-          <Input
-            hint={moveInHint}
-            keyboardType="numbers-and-punctuation"
-            label="Moving in on"
-            onChangeText={onChangeMoveInDate}
-            placeholder="YYYY-MM-DD"
-            value={moveInDate}
-          />
+          {existing.on ? null : (
+            <Input
+              hint={moveInHint}
+              keyboardType="numbers-and-punctuation"
+              label="Moving in on"
+              onChangeText={onChangeMoveInDate}
+              placeholder="YYYY-MM-DD"
+              value={moveInDate}
+            />
+          )}
         </Card>
       </View>
 
+      {existing.on ? (
+        <View>
+          <SectionHeader subtitle="Rent is from the rate card" title={`Is ${monthName(period)} paid?`} />
+          <Card className="gap-3">
+            <View className="flex-row flex-wrap gap-2">
+              {rentOptions.slice(0, 4).map((option, index) => (
+                <Chip
+                  icon={index === 0 ? "checkmark-circle-outline" : "time-outline"}
+                  key={option.value}
+                  label={index === 0 ? "Paid" : option.label}
+                  onPress={() => existing.setPaidTill(option.value)}
+                  tone={existing.paidTill === option.value ? "brand" : "neutral"}
+                />
+              ))}
+            </View>
+
+            {rentPick ? (
+              <View className="flex-row items-center gap-2">
+                <Ionicons
+                  color={allPaid ? colors.success : colors.warning}
+                  name={allPaid ? "checkmark-circle" : "alert-circle"}
+                  size={18}
+                />
+                <Text className="flex-1 text-sm font-semibold">
+                  {allPaid
+                    ? existing.paidTill === period
+                      ? "All paid up · nothing billed now"
+                      : `${rentPick.label} · nothing billed now`
+                    : rentPick.description}
+                </Text>
+              </View>
+            ) : null}
+
+            <Pressable
+              accessibilityRole="button"
+              className="flex-row items-center gap-2 py-1 active:opacity-70"
+              onPress={() => setExtras(!extrasOpen)}
+            >
+              <Ionicons
+                color={colors.mutedForeground}
+                name={extrasOpen ? "chevron-up" : "add-circle-outline"}
+                size={16}
+              />
+              <Text variant="muted">
+                {extrasOpen ? "Fewer details" : "More months, deposit, old dues, joined date"}
+              </Text>
+            </Pressable>
+
+            {extrasOpen ? (
+              <View className="gap-3">
+                <Select
+                  label="Rent"
+                  onChange={existing.setPaidTill}
+                  options={rentOptions}
+                  placeholder="Paid or months due"
+                  sheetTitle="Rent"
+                  value={existing.paidTill}
+                />
+                <View className="flex-row gap-3">
+                  <View className="flex-1">
+                    <Input
+                      keyboardType="number-pad"
+                      label="Deposit paid (Rs)"
+                      onChangeText={existing.setDepositPaid}
+                      value={existing.depositPaid}
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Input
+                      keyboardType="number-pad"
+                      label="Old dues (Rs)"
+                      onChangeText={existing.setOldDues}
+                      value={existing.oldDues}
+                    />
+                  </View>
+                </View>
+                <Input
+                  hint={
+                    existing.joined.trim()
+                      ? nepaliDayLabel(existing.joined.trim())
+                      : "Optional · worked out from the rent if left empty"
+                  }
+                  keyboardType="numbers-and-punctuation"
+                  label="Joined on"
+                  onChangeText={existing.setJoined}
+                  placeholder="YYYY-MM-DD"
+                  value={existing.joined}
+                />
+              </View>
+            ) : null}
+          </Card>
+        </View>
+      ) : null}
+
+      {existing.on ? null : (
+      <>
       <View>
         <SectionHeader
           subtitle="Set by the hostel's rate card — not editable here"
@@ -950,6 +1187,8 @@ function TermsStep({
           />
         </Card>
       </View>
+      </>
+      )}
     </View>
   );
 }

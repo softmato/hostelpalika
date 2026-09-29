@@ -18,6 +18,7 @@ import { HostelModel } from "@hostel/db/models/Hostel";
 import { HostelPayoutAccountModel } from "@hostel/db/models/HostelPayoutAccount";
 import { HostelVerificationModel } from "@hostel/db/models/HostelVerification";
 import { InquiryModel } from "@hostel/db/models/Inquiry";
+import { OAuthAccountModel } from "@hostel/db/models/OAuthAccount";
 import { RatingReviewModel } from "@hostel/db/models/RatingReview";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { SessionModel } from "@hostel/db/models/Session";
@@ -1868,6 +1869,153 @@ export async function getPlatformHostel(hostelId: string) {
     submitter: application
       ? (contactById.get(application.submittedBy.toString()) ?? null)
       : null,
+  };
+}
+
+/**
+ * A superadmin correcting the owner's email on a hostel form — usually a typo
+ * that sent the owner's emails to a stranger's inbox.
+ *
+ * The owner account's login email moves with it, and so does any hostel contact
+ * email that still showed the old address. Links already mailed to the old
+ * address are killed (tokenVersion + sessions), and so is an unused temporary
+ * password, since the old inbox may have it. So is any Google sign-in linked
+ * to the account: Google sign-in matches the link before the email, so a
+ * stranger who signed in from the wrong address would otherwise keep a way
+ * in. The right owner's Google sign-in re-links by the new email. A password
+ * the owner chose is kept. Follow with an invite link so the right inbox can set a password.
+ */
+export async function updateHostelOwnerEmail(
+  hostelId: string,
+  rawEmail: string,
+  principal: ApiPrincipal,
+) {
+  await connectToDatabase();
+
+  const hostel = await findHostelByIdOrThrow(hostelId, { includeArchived: true });
+  const email = rawEmail.trim().toLowerCase();
+  const owner = await UserModel.findOne({ _id: hostel.ownerId, isDeleted: { $ne: true } })
+    .select("email mustChangePassword name")
+    .lean<{ _id: Types.ObjectId; email?: string; mustChangePassword?: boolean; name?: string } | null>();
+
+  if (!owner) {
+    throw new HostelServiceError("This hostel has no owner account.", "HOSTEL_OWNER_NOT_FOUND", 404);
+  }
+
+  const previous = owner.email ?? "";
+
+  if (previous === email) {
+    return { changed: false, email, ownerId: owner._id.toString() };
+  }
+
+  const taken = await UserModel.exists({
+    _id: { $ne: owner._id },
+    email,
+    isDeleted: { $ne: true },
+  });
+
+  if (taken) {
+    throw new HostelServiceError(
+      "Another account already uses this email.",
+      "HOSTEL_OWNER_CONTACT_CONFLICT",
+      409,
+    );
+  }
+
+  await UserModel.updateOne(
+    { _id: owner._id },
+    {
+      $inc: { tokenVersion: 1 },
+      $set: { email, emailVerified: false },
+      $unset: { googleId: "", ...(owner.mustChangePassword ? { passwordHash: "" } : {}) },
+    },
+  );
+  await OAuthAccountModel.deleteMany({ userId: owner._id });
+  await SessionModel.updateMany(
+    { revokedAt: null, userId: owner._id },
+    { $set: { revokedAt: new Date() } },
+  );
+
+  if (previous) {
+    await HostelModel.updateMany(
+      { "contact.email": previous, ownerId: owner._id },
+      { $set: { "contact.email": email } },
+    );
+  }
+
+  await auditHostelAction(principal, hostel._id, "HOSTEL_OWNER_EMAIL_CHANGED", {
+    from: previous,
+    ownerId: owner._id.toString(),
+    to: email,
+  });
+
+  return { changed: true, email, ownerId: owner._id.toString() };
+}
+
+/**
+ * Re-sends the owner's portal login — the same "your hostel is ready" email with
+ * a temporary password that filing sends — to whatever address the owner has
+ * now. Always a fresh password, since the last one may have gone to the wrong
+ * inbox. Refused once the owner has set their own password: that account is
+ * claimed, and Forgot password is theirs to use.
+ */
+export async function sendHostelOwnerInvite(hostelId: string, principal: ApiPrincipal) {
+  await connectToDatabase();
+
+  const hostel = await findHostelByIdOrThrow(hostelId, { includeArchived: true });
+  const owner = await UserModel.findOne({ _id: hostel.ownerId, isDeleted: { $ne: true } })
+    .select("+passwordHash email mustChangePassword")
+    .lean<{
+      _id: Types.ObjectId;
+      email?: string;
+      mustChangePassword?: boolean;
+      passwordHash?: string;
+    } | null>();
+
+  if (!owner?.email) {
+    throw new HostelServiceError(
+      "The owner has no email yet. Add one first.",
+      "HOSTEL_OWNER_NOT_FOUND",
+      404,
+    );
+  }
+
+  if (owner.passwordHash && !owner.mustChangePassword) {
+    throw new HostelServiceError(
+      "The owner has already set their own password. They can sign in, or use Forgot password.",
+      "HOSTEL_OWNER_ALREADY_CLAIMED",
+      409,
+    );
+  }
+
+  await UserModel.updateOne({ _id: owner._id }, { $unset: { passwordHash: "" } });
+  const signIn = await issueTemporaryPasswordIfMissing(owner._id);
+
+  if (!signIn?.temporaryPassword) {
+    throw new HostelServiceError("Could not issue a login.", "HOSTEL_ERROR", 500);
+  }
+
+  const result = await sendEmail({
+    to: owner.email,
+    ...hostelApprovedEmail({
+      credentials: { email: owner.email, temporaryPassword: signIn.temporaryPassword },
+      hostelName: hostel.name,
+      loginUrl: appLoginUrl(),
+    }),
+  });
+
+  await auditHostelAction(principal, hostel._id, "HOSTEL_OWNER_INVITE_SENT", {
+    ownerId: owner._id.toString(),
+    sent: result.sent,
+    to: owner.email,
+  });
+
+  return {
+    notification: {
+      reason: result.sent ? undefined : result.reason,
+      sent: result.sent,
+      to: owner.email,
+    },
   };
 }
 

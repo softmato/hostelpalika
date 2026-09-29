@@ -34,6 +34,7 @@ import type {
 } from "@hostel/shared/schemas/auth.schema";
 import { OAuthAccountModel } from "@hostel/db/models/OAuthAccount";
 import { OtpChallengeModel } from "@hostel/db/models/OtpChallenge";
+import { ResidentModel } from "@hostel/db/models/Resident";
 import { SessionModel } from "@hostel/db/models/Session";
 import { ServiceProviderModel } from "@hostel/db/models/ServiceProvider";
 import { UserModel } from "@hostel/db/models/User";
@@ -242,6 +243,33 @@ async function dispatchOtpChallenge(input: {
   };
 }
 
+/**
+ * A RESIDENT who lives nowhere — moved out before move-outs released the login
+ * — is asked for an activation code on every sign-in. They are a public account
+ * again; this makes it so on their next sign-in or token refresh.
+ */
+async function releaseStrandedResident<T extends { _id: unknown; hostelIds?: unknown[]; role: Role }>(
+  user: T,
+): Promise<T> {
+  if (
+    user.role !== Role.RESIDENT ||
+    (await ResidentModel.exists({
+      isDeleted: { $ne: true },
+      status: { $in: ["ACTIVE", "PENDING", "SUSPENDED"] },
+      userId: user._id,
+    }))
+  ) {
+    return user;
+  }
+
+  await UserModel.updateOne(
+    { _id: user._id, role: Role.RESIDENT },
+    { $set: { hostelIds: [], role: Role.PUBLIC } },
+  );
+
+  return { ...user, hostelIds: [], role: Role.PUBLIC };
+}
+
 export async function issueSessionForUser(
   user: {
     _id: unknown;
@@ -260,7 +288,8 @@ export async function issueSessionForUser(
    */
   options?: { temporaryCredentialId?: string },
 ) {
-  const safeUser = publicUser(user);
+  const account = await releaseStrandedResident(user);
+  const safeUser = publicUser(account);
 
   const session = new SessionModel({
     expiresAt: refreshTokenExpiresAt(),
@@ -281,7 +310,7 @@ export async function issueSessionForUser(
   const [accessToken, refreshToken, isServiceProvider] = await Promise.all([
     signAccessToken(tokenInput),
     signRefreshToken(tokenInput),
-    isApprovedServiceProvider(user),
+    isApprovedServiceProvider(account),
   ]);
 
   session.refreshTokenHash = hashToken(refreshToken);
@@ -836,7 +865,8 @@ export async function refreshAccessToken(
     );
   }
 
-  const safeUser = publicUser(user);
+  const account = await releaseStrandedResident(user);
+  const safeUser = publicUser(account);
   const tokenInput = {
     hostelIds: safeUser.hostelIds,
     role: safeUser.role,
@@ -847,7 +877,7 @@ export async function refreshAccessToken(
   const [accessToken, signedRefreshToken, isServiceProvider] = await Promise.all([
     signAccessToken(tokenInput),
     signRefreshToken(tokenInput),
-    isApprovedServiceProvider(user),
+    isApprovedServiceProvider(account),
   ]);
 
   // Compare-and-set on the presented hash: two requests that both read the

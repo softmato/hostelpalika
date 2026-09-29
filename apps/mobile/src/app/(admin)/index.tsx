@@ -449,6 +449,7 @@ export default function AdminHomeScreen() {
             <ServiceGrid
               onOpen={(href: string) => router.push(href as never)}
               onPrefetch={prefetchAdminRoute}
+              owner={account?.role === ROLE.HOSTEL_ADMIN}
             />
           </View>
         </View>

@@ -598,8 +598,14 @@ export function HostelHero({
 export function ServiceGrid({
   onOpen,
   onPrefetch,
+  owner = false,
 }: {
   onOpen: (href: string) => void;
+  /**
+   * HOSTEL_ADMIN only draws the Wardens tile — its routes are
+   * `requireHostelAdminPrincipal`, so a warden would get a tile that 403s.
+   */
+  owner?: boolean;
   /**
    * Called on touch-down with the href about to be pushed.
    *
@@ -649,6 +655,10 @@ export function ServiceGrid({
       of its own. `manage/food.tsx` keeps a single row pointing here.
     */
     { href: "/manage/cook", icon: "flame-outline", label: "Cooks", tone: "warning" },
+    // Beside Cooks: both are "who else works here".
+    ...(owner
+      ? [{ href: "/manage/wardens", icon: "shield-checkmark-outline", label: "Wardens", tone: "admin" } as const]
+      : []),
     { href: "/manage/maintenance", icon: "construct-outline", label: "Repairs", tone: "danger" },
     { href: "/manage/reports", icon: "bar-chart-outline", label: "Reports", tone: "admin" },
     /*

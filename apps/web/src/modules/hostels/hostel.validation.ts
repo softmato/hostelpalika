@@ -179,6 +179,10 @@ export const publicListingImpressionSchema = z.object({
   hostelIds: z.array(z.string()).min(1).max(60),
 });
 
+export const hostelOwnerEmailSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Enter a valid email address."),
+});
+
 export const hostelRejectSchema = z.object({
   reason: z.string().trim().min(3).max(1000),
 });

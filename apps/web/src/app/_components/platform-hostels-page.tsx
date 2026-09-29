@@ -12,6 +12,8 @@ import {
   FileSearch,
   FileText,
   Fingerprint,
+  Mail,
+  Pencil,
   Globe,
   ScanSearch,
   ShieldCheck,
@@ -47,6 +49,7 @@ import {
   Th,
 } from "@/app/_components/portal-dashboard-ui";
 import { browserApi } from "@/lib/browser-api";
+import { Role } from "@/lib/roles";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { DemoDataBadge, Hostel, Message } from "./core-portal-shared";
@@ -257,6 +260,12 @@ export const PlatformHostelsPageContent = memo(function PlatformHostelsPageConte
     { errorMessage: "Could not load archived hostels." },
   );
   const hostelsResource = showingArchived ? archivedResource : liveResource;
+  const meResource = usePortalResource<{ user: { role: string } }>(
+    platformEndpoints.currentUser,
+    { errorMessage: "Could not load your account." },
+  );
+  // The server refuses anyone else; this only hides buttons that would fail.
+  const isSuperadmin = meResource.data?.user?.role === Role.SUPERADMIN;
   // Keyed by the selected id, so a detail response for a hostel the reviewer has
   // already clicked away from can never overwrite the open one — and clicking
   // back to a hostel seen earlier renders from cache instantly.
@@ -407,6 +416,66 @@ export const PlatformHostelsPageContent = memo(function PlatformHostelsPageConte
     },
     [invalidate],
   );
+
+  /**
+   * Fixes an owner email the team mistyped at filing. The owner's login moves
+   * with it; send the login afterwards so the right inbox can claim the portal.
+   */
+  const editOwnerEmail = useCallback(
+    async (hostelId: string, current: string) => {
+      const email = window
+        .prompt("Owner's email. Their login and every hostel email go here.", current)
+        ?.trim()
+        .toLowerCase();
+      if (!email || email === current) return;
+
+      setBusy(true);
+      try {
+        await browserApi(`${platformEndpoints.hostel(hostelId)}/owner-email`, {
+          body: JSON.stringify({ email }),
+          method: "PATCH",
+        });
+        setActionMessage(`Owner email changed to ${email}. Send the login so they can claim the portal.`);
+        invalidate(platformEndpoints.hostels, platformEndpoints.hostel(hostelId));
+      } catch (error) {
+        setActionMessage(error instanceof Error ? error.message : "Could not change the email.");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [invalidate],
+  );
+
+  const sendOwnerInvite = useCallback(async (hostelId: string, email: string) => {
+    if (
+      !window.confirm(
+        `Send the portal login to ${email}?
+
+A new temporary password is issued. Any earlier one stops working.`,
+      )
+    ) {
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const result = await browserApi<{
+        notification?: { reason?: string; sent: boolean; to?: string };
+      }>(`${platformEndpoints.hostel(hostelId)}/owner-invite`, {
+        body: JSON.stringify({}),
+        method: "PATCH",
+      });
+      setActionMessage(
+        result?.notification?.sent === false
+          ? `Login was NOT emailed (${result.notification.reason ?? "unknown error"}).`
+          : `Login sent to ${email}.`,
+      );
+    } catch (error) {
+      setActionMessage(error instanceof Error ? error.message : "Could not send the login.");
+    } finally {
+      setBusy(false);
+    }
+  }, []);
 
   const runDuplicateCheck = useCallback(async (hostelId: string) => {
     setBusy(true);
@@ -823,6 +892,39 @@ export const PlatformHostelsPageContent = memo(function PlatformHostelsPageConte
                     )}
                   />
                 </DetailSection>
+
+                {isSuperadmin && detail?.owner ? (
+                  <DetailSection title="Owner">
+                    <DetailField label="Name" value={detail.owner.name} />
+                    <DetailField label="Email" value={detail.owner.email || "—"} />
+                    <div className="flex flex-wrap gap-3 py-2 text-[11.5px]">
+                      <button
+                        className="inline-flex items-center gap-1 text-muted-foreground transition hover:text-foreground disabled:opacity-40"
+                        disabled={busy}
+                        onClick={() =>
+                          void editOwnerEmail(selectedHostel.id, detail.owner?.email ?? "")
+                        }
+                        type="button"
+                      >
+                        <Pencil className="size-3" />
+                        Edit email
+                      </button>
+                      {detail.owner.email ? (
+                        <button
+                          className="inline-flex items-center gap-1 text-primary transition hover:underline disabled:opacity-40"
+                          disabled={busy}
+                          onClick={() =>
+                            void sendOwnerInvite(selectedHostel.id, detail.owner?.email ?? "")
+                          }
+                          type="button"
+                        >
+                          <Mail className="size-3" />
+                          Send login
+                        </button>
+                      ) : null}
+                    </div>
+                  </DetailSection>
+                ) : null}
 
                 <DetailSection title="Required Checklist">
                   {REQUIRED_DOCUMENTS.map((requirement) => {

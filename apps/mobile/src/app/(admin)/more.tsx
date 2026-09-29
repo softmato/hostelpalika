@@ -18,7 +18,7 @@ import type { AdminHostel } from "@/lib/admin-api";
 import { adminQuery, prefetchAdminRoute } from "@/lib/admin-queries";
 import { endSession } from "@/lib/auth-session";
 import { prefetchCommunity } from "@/lib/community-queries";
-import { readableRole } from "@/constants/roles";
+import { readableRole, ROLE } from "@/constants/roles";
 import { setThemePreference } from "@/store/slices/uiSlice";
 
 /**
@@ -47,6 +47,8 @@ import { setThemePreference } from "@/store/slices/uiSlice";
 const MANAGE_ROWS: {
   href: string;
   icon: keyof typeof Ionicons.glyphMap;
+  /** Routes are `requireHostelAdminPrincipal` — hidden from wardens. */
+  ownerOnly?: boolean;
   subtitle: string;
   title: string;
   tone?: "brand" | "danger" | "neutral" | "success" | "warning";
@@ -120,6 +122,14 @@ const MANAGE_ROWS: {
     subtitle: "The weekly menu, meal times and the cook's login",
     title: "Food",
     tone: "danger",
+  },
+  {
+    href: "/manage/wardens",
+    icon: "shield-checkmark-outline",
+    ownerOnly: true,
+    subtitle: "Invite staff, suspend them and set what each one may do",
+    title: "Wardens",
+    tone: "brand",
   },
   {
     href: "/manage/maintenance",
@@ -248,7 +258,9 @@ export default function AdminMoreScreen() {
             title="Manage"
           />
           <View className="gap-3">
-            {MANAGE_ROWS.map((row) => (
+            {MANAGE_ROWS.filter(
+              (row) => !row.ownerOnly || account?.role === ROLE.HOSTEL_ADMIN,
+            ).map((row) => (
               <CardRow
                 icon={row.icon}
                 key={row.href}

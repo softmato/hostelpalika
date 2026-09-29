@@ -33,7 +33,13 @@ import {
 import { notifyExistingResidentsAdded } from "@/modules/residents/existing-resident-notify";
 import type { ExistingResidentRowInput } from "@/modules/residents/existing-residents.validation";
 import { getIntakeQuote } from "@/modules/residents/resident-intake.service";
-import { auditResidentAction } from "@/modules/residents/resident.service";
+import {
+  auditResidentAction,
+  findAccountForIntake,
+  linkResidentAccount,
+  type ResidentRecord,
+} from "@/modules/residents/resident.service";
+import { findLiveResidency, liveResidencyMessage } from "@/modules/residents/live-residency";
 import { ExistingResidentListModel } from "@hostel/db/models/ExistingResidentList";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { InvoiceModel } from "@hostel/db/models/Invoice";
@@ -495,6 +501,8 @@ function isDuplicateKey(error: unknown) {
 export async function addExistingResidents(
   hostelId: Types.ObjectId,
   principal: ApiPrincipal,
+  /** Add just this row (the scan desk's one person); the rest of the list is left alone. */
+  onlyRowId?: string,
 ): Promise<{ result: AddResult; view: ExistingResidentsView }> {
   await connectToDatabase();
 
@@ -527,7 +535,7 @@ export async function addExistingResidents(
   const result: AddResult = { added: 0, billsRaised: 0, problems: [] };
 
   try {
-    const rows = list.rows.map(toListRow);
+    const rows = list.rows.map(toListRow).filter((row) => !onlyRowId || row.id === onlyRowId);
     const roomTypes = await roomTypesFor(hostelId, hostel.roomConfigurations ?? []);
     const check = checkExistingResidents(rows, await contextFor(hostelId, rows, roomTypes));
 
@@ -716,7 +724,10 @@ export async function addExistingResidents(
       }
     }
 
-    const remaining = rows.filter((row) => !residentIds.has(row.id)).length;
+    // The whole list, not `rows`: a one-row add must not close a list still holding others.
+    const remaining = list.rows.filter(
+      (row) => !row.residentId && !residentIds.has(row._id.toString()),
+    ).length;
 
     await ExistingResidentListModel.updateOne(
       { _id: list._id },
@@ -751,4 +762,96 @@ export async function addExistingResidents(
   }
 
   return { result, view: await getExistingResidents(hostelId) };
+}
+
+/**
+ * One person scanned at the desk who already lived here before the hostel
+ * joined — the "Add as existing resident" switch on the intake's bed step.
+ *
+ * The same path as "Add all", run on a single row: the row goes onto the open
+ * list, only that row is added, and a row that could not be added is taken back
+ * off so the warden's own list is never left holding it. Unlike a spreadsheet
+ * row, the card resolved an exact account, so it is linked on the spot.
+ */
+export async function addScannedExistingResident(
+  hostelId: Types.ObjectId,
+  row: ExistingResidentRowInput,
+  userResidentId: string | undefined,
+  principal: ApiPrincipal,
+) {
+  await connectToDatabase();
+
+  const account = await findAccountForIntake(row.email || undefined, userResidentId);
+  const residency = await findLiveResidency(
+    { emails: [row.email, account.email], userIds: [account.userId] },
+    hostelId,
+  );
+
+  if (residency) {
+    throw new ExistingResidentsError(
+      liveResidencyMessage(row.fullName, residency),
+      residency.sameHostel ? "RESIDENT_ALREADY_HERE" : "RESIDENT_LIVES_ELSEWHERE",
+      409,
+    );
+  }
+
+  const rowId = new Types.ObjectId();
+
+  await writeRows(hostelId, principal, (current) => [
+    ...current,
+    { ...storedFromInput({ ...row, id: undefined }), _id: rowId },
+  ]);
+
+  const takeBack = () =>
+    ExistingResidentListModel.updateOne(
+      { hostelId, status: "OPEN" },
+      { $pull: { rows: { _id: rowId, residentId: null } } },
+    );
+
+  let result: AddResult;
+
+  try {
+    ({ result } = await addExistingResidents(hostelId, principal, rowId.toString()));
+  } catch (error) {
+    await takeBack();
+
+    const check = (error as ExistingResidentsError).details as { check?: CheckResult } | undefined;
+    const reason = [
+      ...(check?.check?.listProblems ?? []),
+      ...(check?.check?.rows[0]?.problems.map((problem) => problem.message) ?? []),
+    ][0];
+
+    if (reason) throw new ExistingResidentsError(reason, "EXISTING_RESIDENT_NOT_READY", 422);
+
+    throw error;
+  }
+
+  if (result.added === 0) {
+    await takeBack();
+
+    throw new ExistingResidentsError(
+      result.problems[0]?.message ?? "They could not be added.",
+      "EXISTING_RESIDENT_NOT_ADDED",
+      409,
+    );
+  }
+
+  const residentId = (
+    await ExistingResidentListModel.findOne({ hostelId, "rows._id": rowId })
+      .select({ "rows.$": 1 })
+      .lean<{ rows: StoredRow[] } | null>()
+  )?.rows[0]?.residentId;
+
+  const resident = residentId
+    ? await ResidentModel.findById(residentId).lean<ResidentRecord | null>()
+    : null;
+
+  if (resident) {
+    // The "added" notice already tells them; no second welcome mail.
+    await nonFatal("account link", () =>
+      linkResidentAccount(resident, hostelId, principal, userResidentId, false, account),
+    );
+  }
+
+  return { residentId: residentId?.toString() ?? null, result };
 }

@@ -27,6 +27,7 @@ const netinfoShim = path.resolve(__dirname, "src/shims/netinfo.js");
 const webRoot = path.resolve(__dirname, "web");
 const srcRoot = path.resolve(__dirname, "src");
 const WEB_STAND_INS = {
+  "@/components/qr-camera": "qr-camera.tsx",
   "@/lib/documents": "documents.ts",
   "@/lib/google-auth": "google-auth.ts",
   "@/lib/push-notifications": "push-notifications.ts",

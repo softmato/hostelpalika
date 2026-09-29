@@ -44,3 +44,8 @@ export const existingResidentsScopeSchema = z.object({
 });
 
 export type ExistingResidentRowInput = z.infer<typeof existingResidentRowSchema>;
+
+/** One scanned person, added straight off the intake's bed step. */
+export const scannedExistingResidentSchema = existingResidentRowSchema.omit({ id: true }).extend({
+  userResidentId: z.string().trim().min(1).max(200).optional(),
+});

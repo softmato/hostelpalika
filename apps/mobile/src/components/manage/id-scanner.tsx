@@ -1,9 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import {
-  type BarcodeScanningResult,
-  CameraView,
-  useCameraPermissions,
-} from "expo-camera";
+import { useCameraPermissions } from "expo-camera";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect } from "expo-router";
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
@@ -23,6 +19,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { Button } from "@/components/ui/button";
+import { QrCamera } from "@/components/qr-camera";
 import { Input } from "@/components/ui/input";
 import { Sheet } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
@@ -60,8 +57,8 @@ import { APP_NAME } from "@/constants/branding";
  *
  * ## Everything that was load-bearing on the original screen is still here
  *
- * `handled` is a ref, not state: `onBarcodeScanned` fires on every frame, and a
- * flag React has not re-rendered yet would let the same card fire the callback
+ * `handled` is a ref, not state: the camera reports a card held still over and
+ * over, and a flag React has not re-rendered yet would let the same card fire the callback
  * three times. It is lowered on **focus** rather than on mount, because pushing
  * a screen on top leaves this one mounted underneath and an empty-deps effect
  * would never run again — the second scan of a session would do nothing at all.
@@ -128,6 +125,9 @@ export function IdScanner({
   const [manualOpen, setManualOpen] = useState(false);
   const [typed, setTyped] = useState("");
   const [typedError, setTypedError] = useState<string | null>(null);
+  // Off while a pushed screen covers this one: a camera left running underneath
+  // keeps the sensor busy and the torch lit.
+  const [focused, setFocused] = useState(true);
 
   const handled = useRef(false);
 
@@ -135,6 +135,9 @@ export function IdScanner({
     useCallback(() => {
       handled.current = false;
       setLocalHint(null);
+      setFocused(true);
+
+      return () => setFocused(false);
     }, []),
   );
 
@@ -158,7 +161,7 @@ export function IdScanner({
     onResidentId(residentId);
   }
 
-  function onScan({ data }: BarcodeScanningResult) {
+  function onScan(data: string) {
     if (handled.current) {
       return;
     }
@@ -198,12 +201,11 @@ export function IdScanner({
         than as a camera.
       */}
       {permission?.granted ? (
-        <CameraView
-          barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
-          enableTorch={torch}
-          facing="back"
-          onBarcodeScanned={onScan}
+        <QrCamera
+          active={focused}
+          onCode={onScan}
           style={{ bottom: 0, left: 0, position: "absolute", right: 0, top: 0 }}
+          torch={torch}
         />
       ) : null}
 
@@ -413,7 +415,7 @@ const SWEEP_MS = 2200;
 /**
  * The aiming window: four corner brackets and a bar travelling between them.
  *
- * The brackets are a **guide, not a boundary** — `CameraView` reads the whole
+ * The brackets are a **guide, not a boundary** — the camera reads the whole
  * frame, and a viewfinder people believe is a hard edge makes them fight to fit
  * the code inside it. Corners rather than a full square say "roughly here" where
  * an unbroken outline says "exactly here"; the reference apps draw them the same

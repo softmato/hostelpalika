@@ -12,6 +12,7 @@ import { ProvidedItemModel } from "@hostel/db/models/ProvidedItem";
 import { outstandingForResident } from "@/modules/finance/ledger-read.service";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { releaseBedForRoomType } from "@/modules/hostels/hostel-capacity.service";
+import { releaseResidentAccount } from "@/modules/residents/live-residency";
 import { notifyMoveOutCompleted } from "@/modules/move-checklist/move-out-notify";
 import {
   findCurrentResident,
@@ -369,6 +370,7 @@ export async function createMoveOutChecklist(
   // Settling the deposit of somebody already gone must not free a second bed.
   if (resident.status !== "MOVED_OUT") {
     await releaseBedForRoomType(resident.hostelId, resident.roomType);
+    await releaseResidentAccount(resident.userId, resident.hostelId);
   }
   await auditMoveAction(
     principal,

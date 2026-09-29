@@ -107,3 +107,15 @@ export async function clearExistingResidents() {
 export function existingResidentsTemplateUrl() {
   return `${API_BASE_URL}/api/v1${BASE}/template`;
 }
+
+/** One scanned person who already lived here, added off the intake's bed step. */
+export async function addScannedExistingResident(
+  input: Omit<ExistingRowInput, "id" | "monthlyRent"> & { userResidentId?: string },
+) {
+  return unwrap(
+    await api.post<ApiEnvelope<{ residentId: string | null; result: ExistingAddResult }>>(
+      `${BASE}/one`,
+      input,
+    ),
+  );
+}

@@ -1363,7 +1363,8 @@ export function TeamRegisterHostelPage() {
           validRooms.length > 0 && !blocking.some((check) => check.step === 3)
         );
       case 4:
-        return photos.some((photo) => photo.url && !photo.uploading);
+        // Optional — the superadmin can add photos after filing.
+        return !photos.some((photo) => photo.uploading);
       case 5:
         return facilities.length > 0;
       case 6:
@@ -1480,9 +1481,8 @@ export function TeamRegisterHostelPage() {
    * Things a live listing is worse without, but which are not worth refusing a
    * registration over.
    *
-   * A hostel with no photos publishes with a stock image, which is a poorer
-   * listing and not an invalid one — and an agent who cannot get photos today
-   * should still be able to file the hostel and take the money.
+   * Photos are not on this list: they are optional at filing and the
+   * superadmin uploads them later, so nagging the agent about them is noise.
    */
   const recommendations = (() => {
     /*
@@ -1500,12 +1500,6 @@ export function TeamRegisterHostelPage() {
       ) && MEAL_TYPES.every((meal) => (timings[meal] ?? "") === DEFAULT_TIMINGS[meal]);
 
     const checks: { field: string; label: string; step: number; valid: boolean }[] = [
-      {
-        field: "photos",
-        label: "Photos of the building",
-        step: 4,
-        valid: photos.some((p) => p.url),
-      },
       {
         // The server geocodes the address when nobody placed a pin, which puts
         // the hostel somewhere in the right neighbourhood. The agent is in the
@@ -2885,8 +2879,8 @@ export function TeamRegisterHostelPage() {
 
           {step === 4 ? (
             <Card
-              subtitle="The listing leads with an exterior. Room shots attach to the room type they are of."
-              title="Photos"
+              subtitle="Optional — skip if you have none; the superadmin can upload them later. The listing leads with an exterior; room shots attach to their room type."
+              title="Photos (optional)"
             >
               <ErrorRegion className="space-y-5" name="photos">
                 <PhotoStrip

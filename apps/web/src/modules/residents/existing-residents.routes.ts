@@ -11,6 +11,7 @@ import { handleRouteError, successResponse } from "@/lib/api-response";
 import {
   addExistingResidents,
   addExistingResidentsFile,
+  addScannedExistingResident,
   clearExistingResidents,
   existingResidentsTemplate,
   getExistingResidents,
@@ -19,6 +20,7 @@ import {
 import {
   existingResidentRowsSchema,
   existingResidentsFileSchema,
+  scannedExistingResidentSchema,
 } from "@/modules/residents/existing-residents.validation";
 import { assertAgentFiledHostel } from "@/modules/team/team.service";
 
@@ -104,6 +106,21 @@ function handlers(resolve: Resolve) {
           const { hostelId, principal } = await resolve(request, context);
 
           return successResponse(await addExistingResidents(hostelId, principal), "Residents added");
+        } catch (error) {
+          return handleRouteError(error);
+        }
+      },
+    },
+    one: {
+      POST: async (request: NextRequest, context: RouteContext) => {
+        try {
+          const { hostelId, principal } = await resolve(request, context);
+          const { userResidentId, ...row } = scannedExistingResidentSchema.parse(await request.json());
+
+          return successResponse(
+            await addScannedExistingResident(hostelId, row, userResidentId, principal),
+            "Resident added",
+          );
         } catch (error) {
           return handleRouteError(error);
         }

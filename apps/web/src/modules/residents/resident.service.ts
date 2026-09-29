@@ -9,7 +9,6 @@ import { escapeRegex } from "@/lib/validators";
 import { paginationMeta, paginationRange } from "@/lib/pagination";
 import { assertHostelAccess } from "@/lib/tenant";
 import { Role } from "@/lib/roles";
-import { demoteToPublicAccount } from "@/modules/auth/auth.service";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { EmergencyContactModel } from "@hostel/db/models/EmergencyContact";
 import { GuardianModel } from "@hostel/db/models/Guardian";
@@ -26,8 +25,11 @@ import {
 } from "@/modules/residents/resident-changed-notify";
 import { notifyResidentRegistered } from "@/modules/residents/resident-registered-notify";
 import {
+  DEMO_RESIDENT_EMAIL,
   findLiveResidency,
+  isDemoResidentEmail,
   liveResidencyMessage,
+  releaseResidentAccount,
 } from "@/modules/residents/live-residency";
 import { wardRegisteredEmail } from "@hostel/shared/email/templates/guardian/ward-registered";
 import { residentAccessClearedEmail } from "@hostel/shared/email/templates/resident/resident-access-cleared";
@@ -807,6 +809,40 @@ async function nonFatal<T>(work: () => Promise<T>): Promise<T | null> {
   }
 }
 
+/**
+ * Takes the demo resident off every roll it is on — this hostel's included —
+ * so the intake that follows registers it fresh. Soft-deleted like
+ * `deleteResident`: its bed goes back and the account loses that hostel. The
+ * account keeps its RESIDENT role; the new row is about to take it.
+ */
+async function removeDemoResident(principal: ApiPrincipal) {
+  const rows = await ResidentModel.find({ email: DEMO_RESIDENT_EMAIL, isDeleted: { $ne: true } })
+    .select("_id hostelId roomType status userId")
+    .lean<Pick<ResidentRecord, "_id" | "hostelId" | "roomType" | "status" | "userId">[]>();
+
+  for (const row of rows) {
+    await ResidentModel.updateOne(
+      { _id: row._id },
+      {
+        $set: {
+          deletedAt: new Date(),
+          deletedBy: principal.userId,
+          isDeleted: true,
+          updatedBy: principal.userId,
+        },
+      },
+    );
+
+    if (row.status !== "MOVED_OUT") {
+      await releaseBedForRoomType(row.hostelId, row.roomType);
+    }
+
+    if (row.userId) {
+      await UserModel.updateOne({ _id: row.userId }, { $pull: { hostelIds: row.hostelId } });
+    }
+  }
+}
+
 export async function createResident(
   input: ResidentCreateInput,
   principal: ApiPrincipal,
@@ -816,6 +852,10 @@ export async function createResident(
   const hostelId = resolveAdminHostelId(principal, input.hostelId);
 
   const email = normalizedEmail(input.email);
+
+  if (isDemoResidentEmail(email)) {
+    await removeDemoResident(principal);
+  }
 
   /*
    * Checked before the bed is claimed so a duplicate never spends and refunds a
@@ -1387,6 +1427,7 @@ export async function updateResidentStatus(
   // already MOVED_OUT resident does not hand back a second bed.
   if (input.status === "MOVED_OUT" && resident.status !== "MOVED_OUT") {
     await releaseBedForRoomType(resident.hostelId, resident.roomType);
+    await releaseResidentAccount(resident.userId, resident.hostelId);
   }
 
   /*
@@ -1422,9 +1463,25 @@ export async function updateResidentStatus(
   // otherwise the status says ACTIVE while their account is still PUBLIC and
   // signing in drops them on the public home page. Residents created before
   // auto-linking existed reach their portal through exactly this path.
+  // A move-out handed their login back to public; coming back takes it again.
+  const returning =
+    input.status === "ACTIVE" && resident.status === "MOVED_OUT" && resident.userId
+      ? await UserModel.findOne({ _id: resident.userId, isDeleted: { $ne: true } })
+          .select("_id email")
+          .lean<{ _id: Types.ObjectId; email?: string } | null>()
+      : null;
   const accountLink =
-    input.status === "ACTIVE" && !resident.userId
-      ? await linkResidentAccount(updatedResident, resident.hostelId, principal)
+    input.status === "ACTIVE" && (!resident.userId || returning?.email)
+      ? await linkResidentAccount(
+          updatedResident,
+          resident.hostelId,
+          principal,
+          undefined,
+          true,
+          returning?.email
+            ? { email: returning.email.trim().toLowerCase(), userId: returning._id }
+            : undefined,
+        )
       : { emailed: false, linked: Boolean(resident.userId) };
 
   await auditResidentAction(
@@ -1543,28 +1600,9 @@ export async function deleteResident(
   await releaseGuardianAccounts(guardianUserIds, resident.hostelId);
 
   // The account outlives the resident profile: losing your room does not lose
-  // you your login. Drop this hostel from its scope and, once no resident
-  // profile is left anywhere, hand the account back its plain public role — the
-  // state it was in before a hostel took it on. Without this it keeps the
-  // RESIDENT role and keeps landing on a resident dashboard whose every call
-  // now 404s.
-  if (resident.userId) {
-    const stillResidentElsewhere = await ResidentModel.exists({
-      _id: { $ne: resident._id },
-      isDeleted: false,
-      status: { $in: ["ACTIVE", "PENDING"] },
-      userId: resident.userId,
-    });
-
-    await UserModel.updateOne(
-      { _id: resident.userId },
-      { $pull: { hostelIds: resident.hostelId } },
-    );
-
-    if (!stillResidentElsewhere) {
-      await demoteToPublicAccount(resident.userId);
-    }
-  }
+  // you your login, only this hostel — and the RESIDENT role once they live
+  // nowhere.
+  await releaseResidentAccount(resident.userId, resident.hostelId);
 
   await auditResidentAction(
     principal,
