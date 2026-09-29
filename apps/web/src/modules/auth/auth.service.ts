@@ -267,7 +267,9 @@ async function releaseStrandedResident<T extends { _id: unknown; hostelIds?: unk
     { $set: { hostelIds: [], role: Role.PUBLIC } },
   );
 
-  return { ...user, hostelIds: [], role: Role.PUBLIC };
+  // Assigned, not spread: sign-in hands us a hydrated document, and a spread of
+  // one drops `_id`, `name` and every other field — they are prototype getters.
+  return Object.assign(user, { hostelIds: [], role: Role.PUBLIC });
 }
 
 export async function issueSessionForUser(
