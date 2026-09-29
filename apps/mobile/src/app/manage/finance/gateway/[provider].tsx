@@ -1,5 +1,6 @@
+import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
@@ -8,13 +9,16 @@ import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FactRow } from "@/components/ui/layout";
+import { ListRow, RowDivider } from "@/components/ui/list-row";
+import { Meter } from "@/components/ui/meter";
 import { Screen } from "@/components/ui/screen";
-import { Select } from "@/components/ui/select";
+import { Sheet, SheetRow } from "@/components/ui/sheet";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { Toggle } from "@/components/ui/toggle";
 import { WalletMark, walletLabel } from "@/components/ui/wallet-mark";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import {
@@ -31,38 +35,49 @@ import { toastError, toastSuccess } from "@/lib/toast";
 /**
  * One payment provider — eSewa, Fonepay or Khalti.
  *
- * Was a bottom sheet on the Finance screen. A sheet is right for a row's
- * overflow menu; it is wrong for six fields, two of them secrets, on a phone
- * where the keyboard takes half the sheet the moment one is focused.
+ * A summary, like Payment setup: the switch, a readiness bar, and one row per
+ * setting. Each row opens a small sheet that saves only itself.
  *
- * ## Secrets are write-only in both directions
+ * ## Every save re-sends kind and mode
  *
- * There is no field that returns a signing key and no code path that could. What
- * comes back is `{ configured, fingerprint, rotatedAt }` — enough to say "a key
- * is installed and it is this one" without saying what it is. So the inputs
- * start blank and blank means *keep the stored key*: sending an empty string is
- * refused by the server outright, which is why `save` omits them instead.
+ * The server defaults a missing `accountKind` to MERCHANT and `mode` to SANDBOX
+ * rather than keeping what is stored, so a save that changed only the merchant
+ * code would silently flip a live gateway back to sandbox. `persist` always
+ * carries both.
  *
- * ## Why a provider can be stored and still refused
+ * ## Secrets are write-only
  *
- * A personal wallet is not payable, ever — only a merchant account registered
- * with the provider is. The server says so in `blockedReason` rather than the
- * form hiding the option, because "I cannot find eSewa in the list" is a worse
- * problem than being told why the switch will not stay on.
+ * What comes back is `{ configured, fingerprint, rotatedAt }` — never the key.
+ * Blank in the keys sheet means *keep the stored key*, so blank fields are
+ * omitted rather than sent empty (the server refuses an empty string).
+ *
+ * ## Stored but refused
+ *
+ * A personal wallet can never take online payments. The server says why in
+ * `blockedReason` instead of the screen hiding the option.
  */
 
 function isProvider(value: string): value is GatewayProviderName {
   return (GATEWAY_PROVIDERS as readonly string[]).includes(value);
 }
 
+type SheetKind = "code" | "keys" | "kind" | "mode";
+
+type Patch = Omit<Parameters<typeof saveGateway>[0], "provider">;
+
 export default function ManageGatewayScreen() {
   const dates = useDates();
+  const { colors } = useAppTheme();
   const params = useLocalSearchParams<{ provider?: string }>();
   const provider = params.provider && isProvider(params.provider) ? params.provider : null;
 
-  const [draft, setDraft] = useState<Record<string, string> | null>(null);
-  const [enabledDraft, setEnabledDraft] = useState<boolean | null>(null);
+  const [sheet, setSheet] = useState<SheetKind | null>(null);
+  const [code, setCode] = useState("");
+  const [secret, setSecret] = useState("");
+  const [webhookSecret, setWebhookSecret] = useState("");
   const [busy, setBusy] = useState(false);
+  /** The switch's position while its save is in flight. */
+  const [switching, setSwitching] = useState<boolean | null>(null);
 
   const query = adminQuery.gateways();
   const gateways = useResource<GatewayConfig[]>(query.load, {
@@ -75,58 +90,48 @@ export default function ManageGatewayScreen() {
     [gateways.data, provider],
   );
 
-  const seeded = useMemo(
-    () => ({
-      accountKind: entry?.accountKind ?? "MERCHANT",
-      merchantCode: entry?.merchantCode ?? "",
-      mode: entry?.mode ?? "SANDBOX",
-      secret: "",
-      webhookSecret: "",
-    }),
-    [entry],
-  );
-
-  const form = draft ?? seeded;
-  const enabled = enabledDraft ?? entry?.enabled ?? false;
-
-  const edit = useCallback(
-    (patch: Record<string, string>) => setDraft((prev) => ({ ...(prev ?? seeded), ...patch })),
-    [seeded],
-  );
-
-  const save = useCallback(async () => {
+  const persist = async (patch: Patch, done: string) => {
     if (!provider) {
-      return;
+      return false;
     }
 
     setBusy(true);
 
     try {
-      await saveGateway({
-        accountKind: (form.accountKind as "MERCHANT" | "PERSONAL") ?? "MERCHANT",
-        enabled,
-        merchantCode: form.merchantCode?.trim() || undefined,
-        mode: (form.mode as "LIVE" | "SANDBOX") ?? "SANDBOX",
+      const next = await saveGateway({
+        accountKind: (entry?.accountKind as "MERCHANT" | "PERSONAL" | undefined) ?? "MERCHANT",
+        mode: (entry?.mode as "LIVE" | "SANDBOX" | undefined) ?? "SANDBOX",
         provider,
-        // Omitted rather than sent blank — the server reads an absent secret as
-        // "leave the stored one alone" and rejects an empty string outright.
-        secret: form.secret?.trim() || undefined,
-        webhookSecret: form.webhookSecret?.trim() || undefined,
+        ...patch,
       });
-      toastSuccess("Saved");
-      router.back();
+
+      gateways.setData(() => next);
+      toastSuccess(done);
+      setSheet(null);
+
+      return true;
     } catch (error) {
       toastError("Could not save", readApiError(error));
+
+      return false;
     } finally {
       setBusy(false);
     }
-  }, [enabled, form, provider]);
+  };
 
-  /*
-   * `walletLabel`, not `humanizeEnum` — the latter titles this screen "Esewa",
-   * which is not how the provider writes its own name anywhere the owner has
-   * ever seen it. Same table the resident's pay screen reads from.
-   */
+  const toggle = async (value: boolean) => {
+    setSwitching(value);
+    await persist({ enabled: value }, value ? "Switched on" : "Switched off");
+    setSwitching(null);
+  };
+
+  const openSheet = (kind: SheetKind) => {
+    setCode(entry?.merchantCode ?? "");
+    setSecret("");
+    setWebhookSecret("");
+    setSheet(kind);
+  };
+
   const title = provider ? walletLabel(provider) : "Provider";
   const header = <AppBar accent centerTitle showBack title={title} />;
 
@@ -142,8 +147,8 @@ export default function ManageGatewayScreen() {
     return (
       <Screen header={header}>
         <View className="gap-4 pt-1">
-          <SkeletonCard rows={3} />
-          <SkeletonCard rows={3} />
+          <SkeletonCard rows={2} />
+          <SkeletonCard rows={4} />
         </View>
       </Screen>
     );
@@ -157,123 +162,218 @@ export default function ManageGatewayScreen() {
     );
   }
 
+  const merchant = entry?.accountKind !== "PERSONAL";
+  const live = entry?.mode === "LIVE";
+  const keyed = entry?.secret.configured ?? false;
+  const enabled = switching ?? entry?.enabled ?? false;
+  const ready = [merchant, keyed, live, entry?.enabled ?? false].filter(Boolean).length;
+
+  const check = (ok: boolean, label: string) => (
+    <View className="flex-row items-center gap-1.5" key={label}>
+      <Ionicons
+        color={ok ? colors.success : colors.mutedForeground}
+        name={ok ? "checkmark-circle" : "ellipse-outline"}
+        size={16}
+      />
+      <Text variant="caption">{label}</Text>
+    </View>
+  );
+
   return (
-    <Screen
-      footer={<Button label="Save" loading={busy} onPress={() => void save()} />}
-      header={header}
-      scroll
-    >
+    <Screen header={header} onRefresh={gateways.refresh} refreshing={gateways.refreshing} scroll>
       <View className="gap-5 pt-1">
         <Card className="gap-3">
-          <View className="flex-row items-center justify-between gap-3">
-            {/*
-              Whose settings these are, said in their own mark. The bar's title
-              is the only other thing on this screen that names the provider,
-              and it scrolls away under the keyboard the moment a key is being
-              pasted into the fields below.
-            */}
-            <WalletMark name={provider} size={40} />
-            <View className="flex-1">
-              <Text variant="label">Offer this to residents</Text>
-              {entry?.blockedReason ? (
-                <Text variant="caption">{entry.blockedReason}</Text>
-              ) : null}
+          <View className="flex-row items-center gap-3">
+            <WalletMark name={provider} size={48} />
+            <View className="flex-1 items-start gap-1">
+              <Text variant="label">Offer to residents</Text>
+              <Badge
+                label={entry?.payable ? "Taking payments" : "Not taking payments"}
+                tone={entry?.payable ? "success" : "neutral"}
+              />
             </View>
             <Toggle
               accessibilityLabel="Offer this gateway to residents"
-              onChange={setEnabledDraft}
+              onChange={(value) => void toggle(value)}
               value={enabled}
             />
           </View>
 
-          <View className="flex-row flex-wrap gap-2 border-t border-border pt-3">
-            <Badge
-              label={entry?.payable ? "Live for residents" : "Not taking payments"}
-              tone={entry?.payable ? "success" : "neutral"}
-            />
-            <Badge
-              label={entry?.secret.configured ? "Key installed" : "No key"}
-              tone={entry?.secret.configured ? "success" : "warning"}
-            />
+          {entry?.blockedReason ? (
+            <Text className="text-warning" variant="caption">
+              {entry.blockedReason}
+            </Text>
+          ) : null}
+
+          <Meter label={`${ready} of 4 ready`} percent={ready * 25} />
+          <View className="flex-row flex-wrap gap-x-4 gap-y-1.5">
+            {check(merchant, "Merchant account")}
+            {check(keyed, "Key installed")}
+            {check(live, "Live mode")}
+            {check(entry?.enabled ?? false, "Switched on")}
           </View>
         </Card>
 
         <View>
-          <SectionHeader title="Account" />
-          <Card className="gap-3">
-            <Select
-              hint="A personal wallet is stored but can never take online payments — ask your bank for a merchant account."
-              label="Account kind"
-              onChange={(accountKind) => edit({ accountKind })}
-              options={[
-                {
-                  description: "Registered with the provider.",
-                  label: "Merchant",
-                  value: "MERCHANT",
-                },
-                { description: "A personal wallet.", label: "Personal", value: "PERSONAL" },
-              ]}
-              value={form.accountKind}
+          <SectionHeader title="Settings" />
+          <Card padding="px-4 py-1">
+            <ListRow
+              icon="briefcase-outline"
+              iconBgColor="#007AFF"
+              onPress={() => openSheet("kind")}
+              subtitle={merchant ? "Merchant" : "Personal — can't take payments"}
+              title="Account kind"
             />
+            <RowDivider inset />
+            <ListRow
+              icon="barcode-outline"
+              iconBgColor="#FF9500"
+              onPress={() => openSheet("code")}
+              subtitle={entry?.merchantCode || "Not set"}
+              title="Merchant code"
+            />
+            <RowDivider inset />
+            <ListRow
+              icon={live ? "flash-outline" : "flask-outline"}
+              iconBgColor={live ? "#34C759" : "#AF52DE"}
+              onPress={() => openSheet("mode")}
+              subtitle={live ? "Live — real money" : "Sandbox — test only"}
+              title="Mode"
+            />
+            <RowDivider inset />
+            <ListRow
+              icon="key-outline"
+              iconBgColor="#FF3B30"
+              onPress={() => openSheet("keys")}
+              subtitle={
+                keyed
+                  ? `Installed${entry?.secret.fingerprint ? ` · ${entry.secret.fingerprint}` : ""}`
+                  : "No key yet"
+              }
+              title="Keys"
+            />
+          </Card>
+        </View>
+
+        {entry?.health || entry?.lastVerifiedAt || entry?.lastEventAt ? (
+          <Card className="gap-1">
+            {entry.health ? (
+              <FactRow
+                label="Health"
+                value={entry.health.detail ?? humanizeEnum(entry.health.status)}
+              />
+            ) : null}
+            {entry.lastVerifiedAt ? (
+              <FactRow label="Last checked" value={dates.date(entry.lastVerifiedAt)} />
+            ) : null}
+            {entry.lastEventAt ? (
+              <FactRow label="Last payment" value={dates.date(entry.lastEventAt)} />
+            ) : null}
+          </Card>
+        ) : null}
+      </View>
+
+      <Sheet
+        footer={
+          sheet === "code" || sheet === "keys" ? (
+            <Button
+              label="Save"
+              loading={busy}
+              onPress={() =>
+                void (sheet === "code"
+                  ? persist({ merchantCode: code.trim() }, "Merchant code saved")
+                  : persist(
+                      {
+                        secret: secret.trim() || undefined,
+                        webhookSecret: webhookSecret.trim() || undefined,
+                      },
+                      "Keys saved",
+                    ))
+              }
+            />
+          ) : undefined
+        }
+        onClose={() => setSheet(null)}
+        open={sheet !== null}
+        title={
+          sheet === "kind"
+            ? "Account kind"
+            : sheet === "mode"
+              ? "Mode"
+              : sheet === "code"
+                ? "Merchant code"
+                : "Keys"
+        }
+      >
+        <View className="gap-3 pb-2">
+          {sheet === "kind" ? (
+            <Card padding="px-0 py-1">
+              {(
+                [
+                  ["MERCHANT", "Merchant", "Registered with the provider"],
+                  ["PERSONAL", "Personal", "Stored, but can't take online payments"],
+                ] as const
+              ).map(([value, label, hint]) => (
+                <SheetRow
+                  key={value}
+                  label={label}
+                  onPress={() => void persist({ accountKind: value }, `Set to ${label.toLowerCase()}`)}
+                  selected={(entry?.accountKind ?? "MERCHANT") === value}
+                  subtitle={hint}
+                />
+              ))}
+            </Card>
+          ) : null}
+
+          {sheet === "mode" ? (
+            <Card padding="px-0 py-1">
+              {(
+                [
+                  ["SANDBOX", "Sandbox", "Test credentials"],
+                  ["LIVE", "Live", "Real money"],
+                ] as const
+              ).map(([value, label, hint]) => (
+                <SheetRow
+                  key={value}
+                  label={label}
+                  onPress={() => void persist({ mode: value }, `${label} mode`)}
+                  selected={(entry?.mode ?? "SANDBOX") === value}
+                  subtitle={hint}
+                />
+              ))}
+            </Card>
+          ) : null}
+
+          {sheet === "code" ? (
             <Input
               hint="eSewa's product code, Fonepay's merchant code. Khalti leaves it empty."
               label="Merchant code"
-              onChangeText={(merchantCode) => edit({ merchantCode })}
-              value={form.merchantCode}
+              onChangeText={setCode}
+              value={code}
             />
-            <Select
-              label="Mode"
-              onChange={(mode) => edit({ mode })}
-              options={[
-                { description: "Test credentials.", label: "Sandbox", value: "SANDBOX" },
-                { description: "Real money.", label: "Live", value: "LIVE" },
-              ]}
-              value={form.mode}
-            />
-          </Card>
-        </View>
+          ) : null}
 
-        <View>
-          <SectionHeader subtitle="Blank keeps the key already stored" title="Keys" />
-          <Card className="gap-3">
-            <Input
-              label="Signing secret"
-              onChangeText={(secret) => edit({ secret })}
-              placeholder="Unchanged"
-              secure
-              value={form.secret}
-            />
-            <Input
-              hint="Only where the provider issues a second key for callbacks."
-              label="Webhook secret"
-              onChangeText={(webhookSecret) => edit({ webhookSecret })}
-              placeholder="Unchanged"
-              secure
-              value={form.webhookSecret}
-            />
-          </Card>
+          {sheet === "keys" ? (
+            <>
+              <Input
+                label="Signing secret"
+                onChangeText={setSecret}
+                placeholder={keyed ? "Unchanged" : ""}
+                secure
+                value={secret}
+              />
+              <Input
+                hint="Only if the provider gives a second key for callbacks. Blank keeps what is stored."
+                label="Webhook secret"
+                onChangeText={setWebhookSecret}
+                placeholder={entry?.webhookSecret.configured ? "Unchanged" : ""}
+                secure
+                value={webhookSecret}
+              />
+            </>
+          ) : null}
         </View>
-
-        {entry?.health || entry?.lastVerifiedAt ? (
-          <View>
-            <SectionHeader title="Status" />
-            <Card className="gap-1">
-              {entry.health ? (
-                <FactRow
-                  label="Health"
-                  value={entry.health.detail ?? humanizeEnum(entry.health.status)}
-                />
-              ) : null}
-              {entry.lastVerifiedAt ? (
-                <FactRow label="Last checked" value={dates.date(entry.lastVerifiedAt)} />
-              ) : null}
-              {entry.lastEventAt ? (
-                <FactRow label="Last payment" value={dates.date(entry.lastEventAt)} />
-              ) : null}
-            </Card>
-          </View>
-        ) : null}
-      </View>
+      </Sheet>
     </Screen>
   );
 }

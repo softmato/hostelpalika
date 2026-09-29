@@ -264,8 +264,7 @@ export default function ManageRatesScreen() {
           <Card className="gap-3">
             {roomTypes.length === 0 ? (
               <Text variant="caption">
-                Add your room types on the hostel profile first — a rate is set against
-                one.
+                Add room types on the hostel profile first.
               </Text>
             ) : null}
             {roomTypes.map((option) => (
@@ -300,9 +299,7 @@ export default function ManageRatesScreen() {
               />
             ))}
             <Text variant="caption">
-              Leave one blank and it is not priced — those residents are skipped by the
-              billing run rather than charged a guess. Saving writes these rents onto
-              your public listing, so this is the only place a rent is set.
+              Blank means not charged. These rents also show on your public listing.
             </Text>
           </Card>
         </View>
@@ -319,7 +316,7 @@ export default function ManageRatesScreen() {
               value={form.admissionFee ?? ""}
             />
             <Input
-              hint="Comes off the admission fee when someone arrives on a resident's referral code. Never off the rent."
+              hint="Off the admission fee for someone a resident referred."
               keyboardType="number-pad"
               label="Referral discount"
               leading={<Users color={colors.mutedForeground} size={18} />}

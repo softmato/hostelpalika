@@ -1,12 +1,11 @@
-import { router } from "expo-router";
-import { PartyPopper, Percent, Tag } from "lucide-react-native";
+import { Percent, Tag } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, SectionHeader } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
@@ -14,7 +13,7 @@ import { PaymentMonthStrip } from "@/components/payment-months";
 import { Screen } from "@/components/ui/screen";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
 import { SkeletonCard, SkeletonRows } from "@/components/ui/skeleton";
-import { ErrorState } from "@/components/ui/states";
+import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
@@ -34,6 +33,10 @@ import { toastError, toastSuccess } from "@/lib/toast";
 
 /**
  * Festival discounts — a month at reduced rent, on top of the rates.
+ *
+ * The list is the screen; the form is a sheet behind **Add a discount** or a
+ * row's **Change**, so an owner checking which months are discounted is not
+ * scrolling past an empty form to find out.
  *
  * ## It is not a second rate card, and the screen has to make that obvious
  *
@@ -145,6 +148,7 @@ export default function ManageMonthDiscountsScreen() {
   const [reason, setReason] = useState("");
   /** The row whose sheet is open. Null is "no sheet". */
   const [acting, setActing] = useState<RentConcession | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
 
   /*
    * This month, the year ahead and the year behind — the window, not the
@@ -201,7 +205,7 @@ export default function ManageMonthDiscountsScreen() {
         appliedNote(saved.applied, "reduced") ||
           "The billing run will charge the reduced rent.",
       );
-      router.back();
+      setFormOpen(false);
     } catch (error) {
       toastError("Could not save", readApiError(error));
     } finally {
@@ -215,6 +219,14 @@ export default function ManageMonthDiscountsScreen() {
     setPeriod(row.period);
     setPercentOff(String(row.percentOff));
     setReason(row.reason ?? "");
+    setFormOpen(true);
+  }, []);
+
+  const add = useCallback(() => {
+    setPeriod(nepalPeriodKey());
+    setPercentOff("");
+    setReason("");
+    setFormOpen(true);
   }, []);
 
   const remove = useCallback(
@@ -267,7 +279,6 @@ export default function ManageMonthDiscountsScreen() {
       accent
       centerTitle
       showBack
-      subtitle="One month at reduced rent"
       title="Festival discounts"
     />
   );
@@ -293,119 +304,108 @@ export default function ManageMonthDiscountsScreen() {
 
   return (
     <Screen
-      footer={
-        <Button
-          disabled={busy === "delete"}
-          label={existing ? "Replace this month" : "Save discount"}
-          loading={busy === "save"}
-          onPress={() => void save()}
-        />
-      }
+      footer={<Button label="Add a discount" onPress={add} />}
       header={header}
+      onRefresh={finance.refresh}
+      refreshing={finance.refreshing}
       scroll
     >
-      <View className="gap-5 pt-1">
-        <View>
-          <SectionHeader subtitle="Off every resident's rent" title="The month" />
-          <Card className="gap-3">
-            {/*
-              The strip bleeds to the card's edges on purpose: it pads itself with
-              `px-5` so its chips line up with every other strip in the app, and a
-              second padding from the card would inset it by ten points more than
-              the Money tab's.
-            */}
-            <View className="-mx-4">
-              <PaymentMonthStrip
-                months={months}
-                onSelect={setPeriod}
-                value={period}
-              />
-            </View>
-            <Input
-              /*
-               * The rate card is never touched by this, and the hint is where an
-               * owner finds that out — beside the number, not in a paragraph at
-               * the top of the screen they have already scrolled past.
-               */
-              hint="50 charges half rent. Your rates do not change."
-              keyboardType="number-pad"
-              label="Off the rent"
-              leading={<Percent color={colors.mutedForeground} size={18} />}
-              onChangeText={setPercentOff}
-              placeholder="%"
-              value={percentOff}
-            />
-            <View className="flex-row flex-wrap gap-2">
-              {QUICK_PERCENTS.map((value) => (
+      <View className="pt-1">
+        {concessions === null || concessions.length === 0 ? (
+          <EmptyCard
+            description="Take a percentage off one month — Dashain at half rent."
+            title="Every month is at full rent"
+          />
+        ) : (
+          <Card padding="px-4 py-1">
+            {concessions.map((row, index) => (
+              <View key={row._id}>
+                {index > 0 ? <RowDivider inset /> : null}
+                <ListRow
+                  icon="gift-outline"
+                  iconBgColor={row.standing === "past" ? "#8E8E93" : "#FF9500"}
+                  onPress={() => setActing(row)}
+                  right={
+                    <Badge
+                      label={
+                        row.standing === "past"
+                          ? "Billed"
+                          : row.standing === "current"
+                            ? "This month"
+                            : "Upcoming"
+                      }
+                      tone={
+                        row.standing === "past"
+                          ? "neutral"
+                          : row.standing === "current"
+                            ? "success"
+                            : "warning"
+                      }
+                    />
+                  }
+                  subtitle={row.reason ?? undefined}
+                  title={`${row.label} · ${row.percentOff === 100 ? "Free" : `${row.percentOff}% off`}`}
+                />
+              </View>
+            ))}
+          </Card>
+        )}
+      </View>
+
+      <Sheet
+        footer={
+          <Button
+            disabled={busy === "delete"}
+            label={existing ? "Replace this month" : "Save discount"}
+            loading={busy === "save"}
+            onPress={() => void save()}
+          />
+        }
+        onClose={() => setFormOpen(false)}
+        open={formOpen}
+        title="Discount a month"
+      >
+        <View className="gap-3 pb-2">
+          <View className="-mx-5">
+            <PaymentMonthStrip months={months} onSelect={setPeriod} value={period} />
+          </View>
+          <View className="flex-row gap-2">
+            {QUICK_PERCENTS.map((value) => {
+              const active = percentOff === String(value);
+
+              return (
                 <Chip
                   key={value}
                   label={value === 100 ? "Free month" : `${value}% off`}
                   onPress={() => setPercentOff(String(value))}
+                  tone={active ? "brand" : "neutral"}
                 />
-              ))}
-            </View>
-            <Input
-              hint="Printed on the resident's bill beside the amount."
-              label="Reason"
-              leading={<Tag color={colors.mutedForeground} size={18} />}
-              onChangeText={setReason}
-              placeholder="Dashain"
-              value={reason}
-            />
-            {existing ? (
-              <Text variant="caption">
-                {`${existing.label} is already ${existing.percentOff}% off. Saving replaces that.`}
-              </Text>
-            ) : null}
-          </Card>
+              );
+            })}
+          </View>
+          <Input
+            keyboardType="number-pad"
+            label="Or type a percentage"
+            leading={<Percent color={colors.mutedForeground} size={18} />}
+            onChangeText={setPercentOff}
+            placeholder="%"
+            value={percentOff}
+          />
+          <Input
+            hint="Printed on the bill."
+            label="Reason"
+            leading={<Tag color={colors.mutedForeground} size={18} />}
+            onChangeText={setReason}
+            placeholder="Dashain"
+            value={reason}
+          />
+          {existing ? (
+            <Text variant="caption">
+              {`${existing.label} is already ${existing.percentOff}% off — saving replaces it.`}
+            </Text>
+          ) : null}
         </View>
-
-        <View>
-          <SectionHeader title="Discounted months" />
-          {concessions === null || concessions.length === 0 ? (
-            <Card className="gap-2">
-              <View className="flex-row items-center gap-2">
-                <PartyPopper color={colors.mutedForeground} size={18} />
-                <Text variant="label">No month is discounted</Text>
-              </View>
-              <Text variant="caption">
-                Every month is charged at the rates on your rate card.
-              </Text>
-            </Card>
-          ) : (
-            <Card padding="px-4 py-1">
-              {concessions.map((row, index) => (
-                <View key={row._id}>
-                  {index > 0 ? <RowDivider inset /> : null}
-                  <ListRow
-                    onPress={() => setActing(row)}
-                    right={
-                      <Badge
-                        label={
-                          row.standing === "past"
-                            ? "Billed"
-                            : row.standing === "current"
-                              ? "This month"
-                              : "Upcoming"
-                        }
-                        tone={
-                          row.standing === "past"
-                            ? "neutral"
-                            : row.standing === "current"
-                              ? "success"
-                              : "warning"
-                        }
-                      />
-                    }
-                    subtitle={row.reason ?? undefined}
-                    title={`${row.label} · ${row.percentOff}% off`}
-                  />
-                </View>
-              ))}
-            </Card>
-          )}
-        </View>
-      </View>
+      </Sheet>
 
       {/*
         Two actions on one row, so a sheet — an anchored menu is not the vocabulary
