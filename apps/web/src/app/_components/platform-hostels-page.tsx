@@ -441,7 +441,9 @@ export const PlatformHostelsPageContent = memo(function PlatformHostelsPageConte
 
   /**
    * Fixes an owner email the team mistyped at filing. The owner's login moves
-   * with it; send the login afterwards so the right inbox can claim the portal.
+   * with it, and the server mails both inboxes — a Gmail is told to use
+   * Google, anyone else gets a temporary password when they need one. "Send
+   * login" is only for a resend.
    */
   const editOwnerEmail = useCallback(
     async (hostelId: string, current: string) => {
@@ -453,11 +455,20 @@ export const PlatformHostelsPageContent = memo(function PlatformHostelsPageConte
 
       setBusy(true);
       try {
-        await browserApi(`${platformEndpoints.hostel(hostelId)}/owner-email`, {
+        const result = await browserApi<{
+          notification?: { google: boolean; loginIssued: boolean; reason?: string; sent: boolean };
+        }>(`${platformEndpoints.hostel(hostelId)}/owner-email`, {
           body: JSON.stringify({ email }),
           method: "PATCH",
         });
-        setActionMessage(`Owner email changed to ${email}. Send the login so they can claim the portal.`);
+        const note = result?.notification;
+        setActionMessage(
+          !note
+            ? `Owner email is already ${email}.`
+            : note.sent
+              ? `Owner email changed to ${email}. ${note.google ? "They were emailed to log in with Google" : note.loginIssued ? "A temporary password was emailed there" : "A notice was emailed there"}, and ${current || "the old address"} was told.`
+              : `Owner email changed to ${email}, but the email was NOT sent (${note.reason ?? "unknown error"}). Use Send login.`,
+        );
         invalidate(platformEndpoints.hostels, platformEndpoints.hostel(hostelId));
       } catch (error) {
         setActionMessage(error instanceof Error ? error.message : "Could not change the email.");

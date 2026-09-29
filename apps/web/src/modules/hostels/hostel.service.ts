@@ -45,6 +45,7 @@ import { hostelPublishedEmail } from "@hostel/shared/email/templates/hostel/host
 import { hostelUnpublishedEmail } from "@hostel/shared/email/templates/hostel/hostel-unpublished";
 import { hostelDocumentsRequestedEmail } from "@hostel/shared/email/templates/hostel/documents-requested";
 import { hostelRejectedEmail } from "@hostel/shared/email/templates/hostel/hostel-rejected";
+import { ownerEmailChangedEmail } from "@hostel/shared/email/templates/hostel/owner-email-changed";
 import {
   notifyHostelOfInquiry,
   notifyPlatformOfPendingHostel,
@@ -1967,7 +1968,7 @@ export async function updateHostelOwnerEmail(
     .lean<{ _id: Types.ObjectId; role: string } | null>();
 
   if (holder) {
-    return handOwnershipToExistingAccount(hostel._id, owner._id, holder, email, principal);
+    return handOwnershipToExistingAccount(hostel, owner._id, holder, email, principal);
   }
 
   await UserModel.updateOne(
@@ -1997,7 +1998,47 @@ export async function updateHostelOwnerEmail(
     to: email,
   });
 
-  return { changed: true, email, ownerId: owner._id.toString() };
+  const notification = await mailOwnerEmailChange(hostel.name, previous, email, owner._id, null);
+
+  return { changed: true, email, notification, ownerId: owner._id.toString() };
+}
+
+/**
+ * Both inboxes hear about a corrected owner email, each naming the other, so
+ * the superadmin no longer has to press "Send login" after every correction.
+ *
+ * A Gmail address (or an account already linked to Google) is told to use
+ * Continue with Google and gets no password: Google sign-in ignores the
+ * temporary one, and a password in the mail is only one more thing to lose.
+ * Anyone else gets a temporary password when the account has none of its own —
+ * `rotated` is the one an upgrade just set.
+ */
+async function mailOwnerEmailChange(
+  hostelName: string,
+  previousEmail: string,
+  newEmail: string,
+  userId: Types.ObjectId,
+  rotated: string | null,
+) {
+  const account = await UserModel.findById(userId)
+    .select("googleId")
+    .lean<{ googleId?: string } | null>();
+  const google = /@(gmail|googlemail)\.com$/.test(newEmail) || Boolean(account?.googleId);
+  const temporaryPassword = google
+    ? null
+    : (rotated ?? (await issueTemporaryPasswordIfMissing(userId))?.temporaryPassword ?? null);
+  const common = { hostelName, loginUrl: appLoginUrl(), newEmail, previousEmail };
+  const [sent] = await Promise.all([
+    sendEmail({
+      to: newEmail,
+      ...ownerEmailChangedEmail({ ...common, google, recipient: "new", temporaryPassword }),
+    }),
+    previousEmail
+      ? sendEmail({ to: previousEmail, ...ownerEmailChangedEmail({ ...common, recipient: "previous" }) })
+      : null,
+  ]);
+
+  return { google, loginIssued: Boolean(temporaryPassword), reason: sent.sent ? undefined : sent.reason, sent: sent.sent, to: newEmail };
 }
 
 /**
@@ -2013,7 +2054,7 @@ export async function updateHostelOwnerEmail(
  * then emptied and signed out; if nobody ever signed into it, it is retired.
  */
 async function handOwnershipToExistingAccount(
-  hostelId: Types.ObjectId,
+  { _id: hostelId, name: hostelName }: { _id: Types.ObjectId; name: string },
   previousOwnerId: Types.ObjectId,
   holder: { _id: Types.ObjectId; role: string },
   email: string,
@@ -2036,17 +2077,19 @@ async function handOwnershipToExistingAccount(
   const hostelIds = hostels.map((hostel) => hostel._id);
   const portalHostelIds = previous?.role === Role.HOSTEL_ADMIN ? (previous.hostelIds ?? []) : [];
 
+  let temporaryPassword: string | null = null;
+
   if (portalHostelIds.length > 0) {
     // Runs the PUBLIC -> HOSTEL_ADMIN upgrade with its mailbox-proof password
-    // rotation; "Send login" then mails the right inbox a fresh one.
-    await registerOrUpgradeUserByEmail({
+    // rotation; the temporary password it returns is mailed below (not to Gmail).
+    ({ temporaryPassword } = await registerOrUpgradeUserByEmail({
       email,
       hostelId: portalHostelIds[0].toString(),
       performedBy: principal.userId,
       role: Role.HOSTEL_ADMIN,
       sendEmailNotification: false,
       userId: holder._id.toString(),
-    });
+    }));
     await UserModel.updateOne(
       { _id: holder._id },
       { $addToSet: { hostelIds: { $each: portalHostelIds } } },
@@ -2109,7 +2152,15 @@ async function handOwnershipToExistingAccount(
     to: email,
   });
 
-  return { changed: true, email, ownerId: holder._id.toString() };
+  const notification = await mailOwnerEmailChange(
+    hostelName,
+    previous?.email ?? "",
+    email,
+    holder._id,
+    temporaryPassword,
+  );
+
+  return { changed: true, email, notification, ownerId: holder._id.toString() };
 }
 
 /**
