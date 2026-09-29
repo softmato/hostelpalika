@@ -426,7 +426,7 @@ export default function ManageReportsScreen() {
       icon="chatbox-ellipses-outline"
       key="complaints"
       label="Complaints"
-      onPress={() => router.push("/(admin)/today")}
+      onPress={() => router.push("/manage/complaints")}
       tone={operations.complaints.pastSla > 0 ? "danger" : "warning"}
     />,
     <InfoTile
@@ -518,7 +518,7 @@ export default function ManageReportsScreen() {
         </Section>
 
         {/* ------------------------------------------------------- residents */}
-        <Section subtitle="Living here and tonight are as of now" title="Residents">
+        <Section title="Residents">
           <View className="gap-3">
             <DataCard
               footer={{
@@ -705,9 +705,7 @@ export default function ManageReportsScreen() {
               </View>
             ) : null}
 
-            <Text variant="caption">
-              Zones only — a check-in says inside, nearby or outside, never where.
-            </Text>
+            <Text variant="caption">Zones only, never locations.</Text>
           </View>
         ) : null}
       </Sheet>

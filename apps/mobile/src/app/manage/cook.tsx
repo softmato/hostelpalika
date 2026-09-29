@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { useCallback, useMemo, useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Avatar } from "@/components/ui/avatar";
@@ -10,7 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
 import { Input } from "@/components/ui/input";
-import { Chip, FactRow } from "@/components/ui/layout";
+import { FactRow } from "@/components/ui/layout";
+import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
 import { Sheet } from "@/components/ui/sheet";
@@ -29,6 +30,7 @@ import {
 } from "@/lib/admin-manage-api";
 import { adminQuery, type CookRoster } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
+import { openConfirm } from "@/lib/confirm";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 /**
@@ -98,6 +100,8 @@ export default function ManageCookScreen() {
   const [issued, setIssued] = useState<Issued | null>(null);
   const [editing, setEditing] = useState<CookAccount | null>(null);
   const [editedName, setEditedName] = useState("");
+  /** The cook whose actions sheet is open. */
+  const [acting, setActing] = useState<CookAccount | null>(null);
 
   const cooks = useMemo(() => roster.data?.cooks ?? [], [roster.data]);
   const live = cooks.filter((cook) => cook.status !== "REMOVED");
@@ -159,46 +163,32 @@ export default function ManageCookScreen() {
 
   const rotate = useCallback(
     (cook: CookAccount) => {
-      Alert.alert(
-        `New password for ${cook.name}?`,
-        "The current one stops working immediately and they are signed out of every device.",
-        [
-          { style: "cancel", text: "Cancel" },
-          {
-            onPress: () => {
-              void (async () => {
-                try {
-                  const result = await updateCook(cook.id, { rotate: true });
+      setActing(null);
+      openConfirm({
+        confirmLabel: "Issue a new one",
+        message: "The current password stops working and they are signed out everywhere.",
+        onConfirm: async () => {
+          try {
+            const result = await updateCook(cook.id, { rotate: true });
 
-                  if (result.credentials) {
-                    setIssued({
-                      cookName: cook.name,
-                      credentials: result.credentials,
-                      rotated: true,
-                    });
+            if (result.credentials) {
+              setIssued({ cookName: cook.name, credentials: result.credentials, rotated: true });
+            }
+
+            setData((current) =>
+              current
+                ? {
+                    ...current,
+                    cooks: current.cooks.map((row) => (row.id === result.cook.id ? result.cook : row)),
                   }
-
-                  // The rotated cook comes back with the new credentials; the
-                  // roster row is the same object, so no re-read is needed.
-                  setData((current) =>
-                    current
-                      ? {
-                          ...current,
-                          cooks: current.cooks.map((row) =>
-                            row.id === result.cook.id ? result.cook : row,
-                          ),
-                        }
-                      : current,
-                  );
-                } catch (error) {
-                  toastError("Could not rotate", readApiError(error));
-                }
-              })();
-            },
-            text: "Issue a new one",
-          },
-        ],
-      );
+                : current,
+            );
+          } catch (error) {
+            toastError("Could not rotate", readApiError(error));
+          }
+        },
+        title: `New password for ${cook.name}?`,
+      });
     },
     [setData],
   );
@@ -234,36 +224,26 @@ export default function ManageCookScreen() {
 
   const remove = useCallback(
     (cook: CookAccount) => {
-      Alert.alert(
-        `Remove ${cook.name}?`,
-        cook.kind === "CREDENTIAL"
-          ? "This sign-in is deleted and cannot be used again. Everything they already announced stays, under “previous cook”."
-          : "They stop being a cook here. Their own account is untouched. Everything they already announced stays, under “previous cook”.",
-        [
-          { style: "cancel", text: "Keep them" },
-          {
-            onPress: () => {
-              void (async () => {
-                try {
-                  const removed = await removeCook(cook.id);
+      setActing(null);
+      openConfirm({
+        confirmLabel: "Remove",
+        destructive: true,
+        message: "Their past meals and photos stay, under “previous cook”.",
+        onConfirm: async () => {
+          try {
+            const removed = await removeCook(cook.id);
 
-                  toastSuccess(
-                    "Removed",
-                    removed.historicalName
-                      ? `Their past work now reads “${removed.historicalName}”.`
-                      : undefined,
-                  );
-                  await refresh();
-                } catch (error) {
-                  toastError("Could not remove", readApiError(error));
-                }
-              })();
-            },
-            style: "destructive",
-            text: "Remove",
-          },
-        ],
-      );
+            toastSuccess(
+              "Removed",
+              removed.historicalName ? `Past work now reads “${removed.historicalName}”.` : undefined,
+            );
+            await refresh();
+          } catch (error) {
+            toastError("Could not remove", readApiError(error));
+          }
+        },
+        title: `Remove ${cook.name}?`,
+      });
     },
     [refresh],
   );
@@ -304,145 +284,120 @@ export default function ManageCookScreen() {
     >
       <View className="gap-6 pt-1">
         <View>
-          {/* Heading outside the card, the way every list in this app groups. */}
-          <SectionHeader
-            subtitle="They can announce a meal and post photos of it. Nothing else."
-            title="In the kitchen"
-          />
+          <SectionHeader title="In the kitchen" />
 
           {live.length === 0 ? (
             <EmptyCard
-              description="Add one and they get a sign-in of their own — either a short login you hand over, or an invitation to their own email."
+              description="They can announce meals and post food photos."
               title="Nobody has the kitchen"
             />
           ) : (
-            <View className="gap-3">
-              {live.map((cook) => (
-                <Card className="gap-3" key={cook.id}>
-                  <View className="flex-row items-center gap-3">
-                    <Avatar name={cook.name} size="md" />
-
-                    <View className="flex-1">
-                      <Text numberOfLines={1} variant="subtitle">
-                        {cook.name}
-                      </Text>
-                      <Text numberOfLines={1} variant="caption">
-                        {cook.loginEmail}
-                      </Text>
-                    </View>
-
-                    <Pressable
-                      accessibilityLabel={`Copy ${cook.name}'s sign-in`}
-                      hitSlop={10}
-                      onPress={() => void copy(cook.loginEmail, "Sign-in")}
-                    >
-                      <Ionicons color={colors.mutedForeground} name="copy-outline" size={18} />
-                    </Pressable>
-                  </View>
-
-                  <View className="flex-row flex-wrap gap-2">
-                    <Chip
-                      icon={cook.kind === "CREDENTIAL" ? "key-outline" : "mail-outline"}
-                      label={cook.kind === "CREDENTIAL" ? "Sign-in issued" : "Own email"}
-                      tone="brand"
-                    />
-                    {cook.invitationPending ? (
-                      <Badge label="Invitation not accepted" tone="warning" />
-                    ) : null}
-                    {cook.initialPasswordPending ? (
-                      <Badge label="First password unused" tone="warning" />
-                    ) : null}
-                  </View>
-
-                  <View className="gap-2 border-t border-border pt-3">
-                    {cook.addedAt ? (
-                      <FactRow label="Added" value={dates.date(cook.addedAt)} />
-                    ) : null}
-                    {cook.kind === "CREDENTIAL" && cook.credentialIssuedAt ? (
-                      <FactRow
-                        label="Password issued"
-                        value={dates.date(cook.credentialIssuedAt)}
-                      />
-                    ) : null}
-                    {cook.invitationPending && cook.invitationExpiresAt ? (
-                      <FactRow
-                        label="Link expires"
-                        value={dates.date(cook.invitationExpiresAt)}
-                      />
-                    ) : null}
-                  </View>
-
-                  <View className="flex-row flex-wrap gap-2">
-                    <Button
-                      label="Rename"
-                      onPress={() => {
-                        setEditing(cook);
-                        setEditedName(cook.name);
-                      }}
-                      size="sm"
-                      variant="outline"
-                    />
-                    {/*
-                      Only for a generated sign-in. An invited cook signs in with
-                      their own password on their own account — there is nothing
-                      of ours to rotate, and offering the button would promise a
-                      reset we are not allowed to perform.
-                    */}
-                    {cook.kind === "CREDENTIAL" ? (
-                      <Button
-                        label="New password"
-                        onPress={() => rotate(cook)}
-                        size="sm"
-                        variant="outline"
-                      />
-                    ) : null}
-                    <Button
-                      label="Remove"
-                      onPress={() => remove(cook)}
-                      size="sm"
-                      variant="danger"
-                    />
-                  </View>
-                </Card>
+            <Card padding="px-4 py-1">
+              {live.map((cook, index) => (
+                <View key={cook.id}>
+                  {index > 0 ? <RowDivider inset /> : null}
+                  <ListRow
+                    left={<Avatar name={cook.name} size="sm" />}
+                    onPress={() => setActing(cook)}
+                    right={
+                      cook.invitationPending ? (
+                        <Badge label="Invite pending" tone="warning" />
+                      ) : cook.initialPasswordPending ? (
+                        <Badge label="Not signed in" tone="warning" />
+                      ) : (
+                        <Badge label="Active" tone="success" />
+                      )
+                    }
+                    subtitle={cook.loginEmail}
+                    title={cook.name}
+                  />
+                </View>
               ))}
-            </View>
+            </Card>
           )}
         </View>
 
         {past.length > 0 ? (
           <View>
-            <SectionHeader
-              subtitle="No access. Their announcements and photos are kept under these names."
-              title="No longer here"
-            />
-
-            <Card className="gap-3">
-              {past.map((cook) => (
-                <View
-                  className="flex-row items-center gap-3"
-                  key={cook.id}
-                >
-                  <Ionicons
-                    color={colors.mutedForeground}
-                    name="time-outline"
-                    size={18}
-                  />
-                  <View className="flex-1">
-                    <Text numberOfLines={1} variant="label">
-                      {cook.historicalName || cook.name}
-                    </Text>
-                    <Text numberOfLines={1} variant="caption">
-                      {cook.removedAt
+            <SectionHeader title="No longer here" />
+            <Card padding="px-4 py-1">
+              {past.map((cook, index) => (
+                <View key={cook.id}>
+                  {index > 0 ? <RowDivider inset /> : null}
+                  <ListRow
+                    icon="time-outline"
+                    subtitle={
+                      cook.removedAt
                         ? `Was ${cook.name} · removed ${dates.date(cook.removedAt)}`
-                        : `Was ${cook.name}`}
-                    </Text>
-                  </View>
+                        : `Was ${cook.name}`
+                    }
+                    title={cook.historicalName || cook.name}
+                  />
                 </View>
               ))}
             </Card>
           </View>
         ) : null}
       </View>
+
+      <Sheet onClose={() => setActing(null)} open={acting !== null} title={acting?.name ?? ""}>
+        {acting ? (
+          <View className="gap-4 pb-2">
+            <Pressable
+              accessibilityLabel="Copy the sign-in"
+              className="flex-row items-center gap-3 rounded-xl bg-muted p-3 active:opacity-70"
+              onPress={() => void copy(acting.loginEmail, "Sign-in")}
+            >
+              <Text className="flex-1 font-mono" numberOfLines={1} variant="label">
+                {acting.loginEmail}
+              </Text>
+              <Ionicons color={colors.mutedForeground} name="copy-outline" size={18} />
+            </Pressable>
+
+            <Card className="gap-1">
+              {acting.addedAt ? <FactRow label="Added" value={dates.date(acting.addedAt)} /> : null}
+              {acting.kind === "CREDENTIAL" && acting.credentialIssuedAt ? (
+                <FactRow label="Password issued" value={dates.date(acting.credentialIssuedAt)} />
+              ) : null}
+              {acting.invitationPending && acting.invitationExpiresAt ? (
+                <FactRow label="Link expires" value={dates.date(acting.invitationExpiresAt)} />
+              ) : null}
+            </Card>
+
+            <Card padding="px-4 py-1">
+              <ListRow
+                icon="create-outline"
+                iconBgColor="#007AFF"
+                onPress={() => {
+                  setEditing(acting);
+                  setEditedName(acting.name);
+                  setActing(null);
+                }}
+                title="Rename"
+              />
+              {/* Only a generated sign-in has a password of ours to rotate. */}
+              {acting.kind === "CREDENTIAL" ? (
+                <>
+                  <RowDivider inset />
+                  <ListRow
+                    icon="key-outline"
+                    iconBgColor="#FF9500"
+                    onPress={() => rotate(acting)}
+                    title="New password"
+                  />
+                </>
+              ) : null}
+              <RowDivider inset />
+              <ListRow
+                icon="trash-outline"
+                iconBgColor="#FF3B30"
+                onPress={() => remove(acting)}
+                title="Remove"
+              />
+            </Card>
+          </View>
+        ) : null}
+      </Sheet>
 
       <Sheet
         footer={
@@ -464,7 +419,7 @@ export default function ManageCookScreen() {
           />
 
           <Input
-            hint="Shown to residents beside food photos and the ready announcement."
+            hint="Residents see it beside the food."
             label="Cook's name"
             onChangeText={setName}
             placeholder="Who runs the kitchen"
@@ -474,7 +429,7 @@ export default function ManageCookScreen() {
           {mode === "INVITE" ? (
             <Input
               autoCapitalize="none"
-              hint="They open the link and their own account becomes the cook account. The link lasts seven days."
+              hint="The link lasts seven days."
               keyboardType="email-address"
               label="Their email"
               onChangeText={setEmail}
@@ -483,9 +438,7 @@ export default function ManageCookScreen() {
             />
           ) : (
             <Text variant="caption">
-              We make a short sign-in and a password and show them to you once — the
-              cook needs no email at all. Write them down before closing the next
-              screen; they cannot be looked up afterwards.
+              We show a sign-in and password once. No email needed.
             </Text>
           )}
         </View>
@@ -501,7 +454,7 @@ export default function ManageCookScreen() {
           <Text variant="muted">
             {issued?.rotated
               ? `${issued.cookName}'s old password no longer works. Give them these.`
-              : `Give these to ${issued?.cookName}. They will be asked to choose their own password the first time they sign in.`}
+              : `Give these to ${issued?.cookName}.`}
           </Text>
 
           <Card className="gap-3">
@@ -543,8 +496,7 @@ export default function ManageCookScreen() {
           </Card>
 
           <Text variant="caption">
-            A copy has been emailed to you as well. Once this sheet closes the password
-            is gone for good — if it is lost, issue a new one from this screen.
+            Also emailed to you. Lost it later? Issue a new one.
           </Text>
         </View>
       </Sheet>
@@ -559,7 +511,7 @@ export default function ManageCookScreen() {
       >
         <View className="gap-3 pb-2">
           <Input
-            hint="Only the display name. Their sign-in does not change."
+            hint="Their sign-in stays the same."
             label="Cook's name"
             onChangeText={setEditedName}
             value={editedName}

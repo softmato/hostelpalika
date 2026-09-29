@@ -11,6 +11,7 @@ import { Card } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
 import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
+import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
 import { Select } from "@/components/ui/select";
@@ -41,6 +42,7 @@ import {
   startOfDayIso,
   toDayInput,
 } from "@/lib/manage-dates";
+import { groupNotifications } from "@/lib/notification-groups";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 /**
@@ -183,6 +185,17 @@ function hasExtraOptions(draft: Draft): boolean {
   );
 }
 
+/** A tile colour and glyph per category, so the board reads before its titles do. */
+const CATEGORY_LOOK: Record<string, { bg: string; icon: keyof typeof Ionicons.glyphMap }> = {
+  EVENT: { bg: "#AF52DE", icon: "calendar-outline" },
+  FOOD: { bg: "#FF9500", icon: "restaurant-outline" },
+  GENERAL: { bg: "#007AFF", icon: "megaphone-outline" },
+  MAINTENANCE: { bg: "#30B0C7", icon: "construct-outline" },
+  PAYMENT: { bg: "#34C759", icon: "cash-outline" },
+  RULE: { bg: "#5E5CE6", icon: "document-text-outline" },
+  URGENT: { bg: "#FF3B30", icon: "alert-circle-outline" },
+};
+
 /** The way into push notices, with how many are still going out. */
 function PushNoticesEntry() {
   const { colors } = useAppTheme();
@@ -261,6 +274,7 @@ export default function ManageNoticesScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [rows, state],
   );
+  const groups = useMemo(() => groupNotifications(visible), [visible]);
 
   const { refresh } = notices;
 
@@ -433,75 +447,50 @@ export default function ManageNoticesScreen() {
           />
         ) : null}
 
-        {visible.map((notice) => {
-          const current = stateOf(notice, now);
+        {groups.map((group) => (
+          <View className="gap-2" key={group.bucket}>
+            <Text className="px-0.5 font-semibold uppercase tracking-wider" variant="caption">
+              {group.label}
+            </Text>
+            <Card padding="px-4 py-1">
+              {group.rows.map((notice, index) => {
+                const current = stateOf(notice, now);
+                const look = notice.isUrgent
+                  ? CATEGORY_LOOK.URGENT!
+                  : (CATEGORY_LOOK[notice.category] ?? CATEGORY_LOOK.GENERAL!);
 
-          return (
-            <Card className="gap-2" key={notice.id}>
-              <View className="flex-row items-start gap-2">
-                <Text className="flex-1" variant="subtitle">
-                  {notice.title}
-                </Text>
-                <Badge
-                  label={
-                    current === "live" ? "Live" : current === "scheduled" ? "Scheduled" : "Expired"
-                  }
-                  tone={
-                    current === "live" ? "success" : current === "scheduled" ? "info" : "neutral"
-                  }
-                />
-              </View>
-
-              <Text numberOfLines={3} variant="muted">
-                {notice.content}
-              </Text>
-
-              <View className="flex-row flex-wrap gap-2">
-                <Chip icon="pricetag-outline" label={humanizeEnum(notice.category)} />
-                <Chip
-                  icon="people-outline"
-                  label={
-                    notice.targetAudience === "ALL"
-                      ? "Everyone"
-                      : humanizeEnum(notice.targetAudience)
-                  }
-                />
-                {notice.isUrgent ? (
-                  <Chip icon="alert-circle-outline" label="Urgent" tone="brand" />
-                ) : null}
-              </View>
-
-              <Text variant="caption">
-                {current === "scheduled"
-                  ? `Goes out ${dates.dateTime(notice.publishedAt)}`
-                  : `Posted ${dates.dateTime(notice.publishedAt ?? notice.createdAt)}`}
-                {notice.expiresAt
-                  ? ` · ${current === "expired" ? "Expired" : "Expires"} ${dates.dateTime(notice.expiresAt)}`
-                  : " · No expiry"}
-              </Text>
-
-              <View className="flex-row gap-2 pt-1">
-                <Button
-                  className="flex-1"
-                  label="Edit"
-                  onPress={() => open(notice)}
-                  size="sm"
-                  variant="outline"
-                />
-                {current !== "expired" ? (
-                  <Button
-                    className="flex-1"
-                    label="Expire now"
-                    loading={expiring === notice.id}
-                    onPress={() => void expireNow(notice)}
-                    size="sm"
-                    variant="ghost"
-                  />
-                ) : null}
-              </View>
+                return (
+                  <View key={notice.id}>
+                    {index > 0 ? <RowDivider inset /> : null}
+                    <ListRow
+                      icon={look.icon}
+                      iconBgColor={current === "expired" ? "#8E8E93" : look.bg}
+                      onPress={() => open(notice)}
+                      right={
+                        <Badge
+                          label={
+                            current === "live" ? "Live" : current === "scheduled" ? "Scheduled" : "Expired"
+                          }
+                          tone={
+                            current === "live" ? "success" : current === "scheduled" ? "info" : "neutral"
+                          }
+                        />
+                      }
+                      subtitle={`${
+                        notice.targetAudience === "ALL" ? "Everyone" : humanizeEnum(notice.targetAudience)
+                      } · ${
+                        current === "scheduled"
+                          ? `goes out ${dates.dateTime(notice.publishedAt)}`
+                          : dates.ago(notice.publishedAt ?? notice.createdAt)
+                      }`}
+                      title={notice.title}
+                    />
+                  </View>
+                );
+              })}
             </Card>
-          );
-        })}
+          </View>
+        ))}
       </View>
 
       <Sheet
@@ -521,6 +510,16 @@ export default function ManageNoticesScreen() {
         title={editing ? "Edit notice" : "New notice"}
       >
         <View className="gap-4 pb-2">
+          {editing && stateOf(editing, new Date()) !== "expired" ? (
+            <Button
+              label="Expire now"
+              loading={expiring === editing.id}
+              onPress={() => void expireNow(editing)}
+              size="sm"
+              variant="outline"
+            />
+          ) : null}
+
           <Input
             label="Title"
             onChangeText={(title) => setDraft((prev) => ({ ...prev, title }))}

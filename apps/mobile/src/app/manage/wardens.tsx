@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
-import { Alert, Linking, View } from "react-native";
+import { Linking, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Avatar } from "@/components/ui/avatar";
@@ -9,6 +9,8 @@ import { Card } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
 import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
+import { ListRow, RowDivider } from "@/components/ui/list-row";
+import { Meter } from "@/components/ui/meter";
 import { Screen } from "@/components/ui/screen";
 import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -28,6 +30,7 @@ import {
 } from "@/lib/admin-manage-api";
 import { adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
+import { openConfirm } from "@/lib/confirm";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 /**
@@ -118,6 +121,8 @@ export default function ManageWardensScreen() {
   const [inviting, setInviting] = useState(false);
   const [draft, setDraft] = useState<Draft>(BLANK_DRAFT);
   const [editing, setEditing] = useState<ManagedWarden | null>(null);
+  /** The warden whose actions sheet is open. */
+  const [acting, setActing] = useState<ManagedWarden | null>(null);
   const [permissions, setPermissions] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
 
@@ -184,6 +189,7 @@ export default function ManageWardensScreen() {
       try {
         await updateWarden(warden.id, { status });
         toastSuccess(status === "ACTIVE" ? "Reactivated" : "Suspended");
+        setActing(null);
         await refresh();
       } catch (error) {
         toastError("Could not change that", readApiError(error));
@@ -196,33 +202,28 @@ export default function ManageWardensScreen() {
 
   const remove = useCallback(
     (warden: ManagedWarden) => {
-      Alert.alert(
-        `Remove ${warden.name}?`,
-        "They lose access to this hostel. Their account itself survives, so the same person can be invited back.",
-        [
-          { style: "cancel", text: "Keep them" },
-          {
-            onPress: () => {
-              void (async () => {
-                try {
-                  await removeWarden(warden.id);
-                  toastSuccess("Removed");
-                  await refresh();
-                } catch (error) {
-                  toastError("Could not remove", readApiError(error));
-                }
-              })();
-            },
-            style: "destructive",
-            text: "Remove",
-          },
-        ],
-      );
+      setActing(null);
+      openConfirm({
+        confirmLabel: "Remove",
+        destructive: true,
+        message: "They lose access to this hostel. They can be invited back later.",
+        onConfirm: async () => {
+          try {
+            await removeWarden(warden.id);
+            toastSuccess("Removed");
+            await refresh();
+          } catch (error) {
+            toastError("Could not remove", readApiError(error));
+          }
+        },
+        title: `Remove ${warden.name}?`,
+      });
     },
     [refresh],
   );
 
   const openPermissions = useCallback((warden: ManagedWarden) => {
+    setActing(null);
     setEditing(warden);
     // The stored array verbatim, including any retired key. Sending back a
     // filtered copy is how a migration-pending warden loses payment access.
@@ -275,82 +276,91 @@ export default function ManageWardensScreen() {
       <View className="gap-4 pt-1">
         {rows.length === 0 ? (
           <EmptyCard
-            description="Invite one and they get their own login, with only the permissions you tick."
+            description="Each warden gets their own login."
             title="No wardens yet"
           />
         ) : null}
 
-        {rows.map((warden) => (
-          <Card className="gap-3" key={warden.id}>
-            <View className="flex-row items-center gap-3">
-              <Avatar name={warden.name} size="md" />
-
-              <View className="flex-1">
-                <Text numberOfLines={1} variant="subtitle">
-                  {warden.name}
-                </Text>
-                <Text numberOfLines={1} variant="caption">
-                  {warden.email}
-                </Text>
-              </View>
-
-              <StatusPill status={warden.status} />
-            </View>
-
-            <View className="flex-row flex-wrap gap-2">
-              {warden.phone ? (
-                <Chip
-                  icon="call-outline"
-                  label={warden.phone}
-                  onPress={() => void Linking.openURL(`tel:${warden.phone}`)}
-                  tone="brand"
+        {rows.length > 0 ? (
+          <Card padding="px-4 py-1">
+            {rows.map((warden, index) => (
+              <View key={warden.id}>
+                {index > 0 ? <RowDivider inset /> : null}
+                <ListRow
+                  left={<Avatar name={warden.name} size="sm" />}
+                  onPress={() => setActing(warden)}
+                  right={<StatusPill status={warden.status} />}
+                  subtitle={`${countKnown(warden.permissions)} of ${WARDEN_PERMISSIONS.length} permissions${
+                    warden.permissions.some((key) => (SENSITIVE as string[]).includes(key))
+                      ? " · money"
+                      : ""
+                  }`}
+                  title={warden.name}
                 />
-              ) : null}
-              <Chip
-                icon="key-outline"
-                label={`${warden.permissions.length} permission(s)`}
-              />
-              {warden.permissions.some((key) =>
-                (SENSITIVE as string[]).includes(key),
-              ) ? (
-                <Badge label="Money powers" tone="warning" />
-              ) : null}
+              </View>
+            ))}
+          </Card>
+        ) : null}
+      </View>
+
+      {/* ------------------------------------------------------------------ */}
+      <Sheet onClose={() => setActing(null)} open={acting !== null} title={acting?.name ?? ""}>
+        {acting ? (
+          <View className="gap-4 pb-2">
+            <View className="flex-row items-center gap-3">
+              <Avatar name={acting.name} size="md" />
+              <View className="flex-1">
+                <Text numberOfLines={1} variant="caption">
+                  {acting.email}
+                </Text>
+                {acting.status === "INVITED" ? (
+                  <Text variant="caption">{`Invited ${dates.date(acting.createdAt)} · not signed in yet`}</Text>
+                ) : null}
+              </View>
+              <StatusPill status={acting.status} />
             </View>
 
-            {warden.status === "INVITED" ? (
-              <Text variant="caption">
-                Invited {dates.date(warden.createdAt)} — they have not signed in yet.
-              </Text>
-            ) : null}
+            <Meter
+              label={`${countKnown(acting.permissions)} of ${WARDEN_PERMISSIONS.length} permissions`}
+              percent={Math.round((countKnown(acting.permissions) / WARDEN_PERMISSIONS.length) * 100)}
+            />
 
-            <View className="flex-row gap-2">
+            {acting.phone ? (
               <Button
-                className="flex-1"
-                label="Permissions"
-                onPress={() => openPermissions(warden)}
-                size="sm"
+                label={`Call ${acting.phone}`}
+                onPress={() => void Linking.openURL(`tel:${acting.phone}`)}
                 variant="outline"
               />
-              <Button
-                className="flex-1"
-                label={warden.status === "SUSPENDED" ? "Reactivate" : "Suspend"}
-                loading={busy}
+            ) : null}
+
+            <Card padding="px-4 py-1">
+              <ListRow
+                icon="key-outline"
+                iconBgColor="#007AFF"
+                onPress={() => openPermissions(acting)}
+                title="Permissions"
+              />
+              <RowDivider inset />
+              <ListRow
+                busy={busy}
+                icon={acting.status === "SUSPENDED" ? "play-outline" : "pause-outline"}
+                iconBgColor="#FF9500"
                 onPress={() =>
-                  void setStatus(warden, warden.status === "SUSPENDED" ? "ACTIVE" : "SUSPENDED")
+                  void setStatus(acting, acting.status === "SUSPENDED" ? "ACTIVE" : "SUSPENDED")
                 }
-                size="sm"
-                variant="ghost"
+                title={acting.status === "SUSPENDED" ? "Reactivate" : "Suspend"}
               />
-              <Button
-                label="Remove"
-                onPress={() => remove(warden)}
-                size="sm"
-                variant="ghost"
+              <RowDivider inset />
+              <ListRow
+                icon="trash-outline"
+                iconBgColor="#FF3B30"
+                onPress={() => remove(acting)}
+                title="Remove"
               />
-            </View>
-          </Card>
-        ))}
-      </View>
+            </Card>
+          </View>
+        ) : null}
+      </Sheet>
 
       {/* ------------------------------------------------------------------ */}
       <Sheet
@@ -368,7 +378,7 @@ export default function ManageWardensScreen() {
           />
           <Input
             autoCapitalize="none"
-            hint="Their login and the invitation both go here. An address that already has an account is linked to this hostel rather than refused."
+            hint="Their login and the invite go here."
             keyboardType="email-address"
             label="Email"
             onChangeText={(email) => setDraft((prev) => ({ ...prev, email }))}
@@ -382,10 +392,6 @@ export default function ManageWardensScreen() {
           />
 
           <Text variant="label">What they may do</Text>
-          <Text variant="caption">
-            These are the defaults. The three money powers — reversing a payment,
-            fee schedules and payment setup — are deliberately not among them.
-          </Text>
 
           <View className="flex-row flex-wrap gap-2">
             {WARDEN_PERMISSIONS.map((key) => (
@@ -447,4 +453,10 @@ export default function ManageWardensScreen() {
       </Sheet>
     </Screen>
   );
+}
+
+/** Current permissions only — a retired key still stored is not one of the sixteen. */
+function countKnown(permissions: string[]) {
+  return permissions.filter((key) => (WARDEN_PERMISSIONS as readonly string[]).includes(key))
+    .length;
 }

@@ -7,11 +7,13 @@ import { AppBar } from "@/components/ui/app-bar";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { CardRow } from "@/components/ui/list-row";
+import { Chip } from "@/components/ui/layout";
+import { CardRow, ListRow, RowDivider } from "@/components/ui/list-row";
+import { Meter } from "@/components/ui/meter";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
-import { Select } from "@/components/ui/select";
 import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard, SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyCard, ErrorState, PermissionCard } from "@/components/ui/states";
@@ -113,6 +115,7 @@ export default function ManageRollCallScreen() {
   const rows = useMemo(() => roll.data?.night?.statuses ?? [], [roll.data]);
   const counts = useMemo(() => rollCallCounts(rows), [rows]);
   const visible = useMemo(() => filterRollCall(rows, { query, segment }), [query, rows, segment]);
+  const accounted = counts.all - counts.unverified;
 
   const { refresh: refreshRoll } = roll;
 
@@ -209,6 +212,15 @@ export default function ManageRollCallScreen() {
         <View className="gap-4 pt-1">
           <AdminRollCallCard date={dates.dateLong(new Date())} summary={night.summary} />
 
+          {counts.all > 0 ? (
+            <Card>
+              <Meter
+                label={`${accounted} of ${counts.all} accounted for tonight`}
+                percent={Math.round((accounted / counts.all) * 100)}
+              />
+            </Card>
+          ) : null}
+
           {promptSettings.data ? (
             <CardRow
               icon="time-outline"
@@ -267,50 +279,36 @@ export default function ManageRollCallScreen() {
               title={query ? "No match" : segment === "unverified" ? "All in" : "Nothing here"}
             />
           ) : (
-            <View className="gap-3">
-              {/*
-                A card each with the person's own initial circle — the same
-                treatment the roster and the money list get. These are people,
-                and the gap between cards is what lets a thumb land on one of
-                them rather than reading a table of forty.
-              */}
-              {visible.map((row) => (
-                <CardRow
-                  key={row.resident.id}
-                  /* Their own face — the card photo, the same picture the roster
-                     and their own header show. */
-                  left={
-                    <PersonAvatar
-                      image={row.resident.image}
-                      name={row.resident.fullName}
-                      size="md"
-                    />
-                  }
-                  onPress={() => open(row)}
-                  right={
-                    <Badge
-                      label={humanizeEnum(row.status.status)}
-                      tone={rollCallTone(row.status.status)}
-                    />
-                  }
-                  subtitle={[
-                    row.resident.roomType ? humanizeEnum(row.resident.roomType) : null,
-                    /*
-                      What the row is *for* is the second line, and it changes
-                      with the state: an unmarked resident is a job, a marked one
-                      is a record. "Nobody has marked them" reads as an instruction
-                      where a timestamp would read as a fact about nothing.
-                    */
-                    row.status.checkedAt
-                      ? `${humanizeEnum(row.status.source)} · ${dates.dateTime(row.status.checkedAt)}`
-                      : "Nobody has marked them",
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                  title={row.resident.fullName || "Unnamed resident"}
-                />
+            <Card padding="px-4 py-1">
+              {visible.map((row, index) => (
+                <View key={row.resident.id}>
+                  {index > 0 ? <RowDivider inset /> : null}
+                  <ListRow
+                    left={
+                      <PersonAvatar
+                        image={row.resident.image}
+                        name={row.resident.fullName}
+                        size="sm"
+                      />
+                    }
+                    onPress={() => open(row)}
+                    right={
+                      <Badge
+                        label={humanizeEnum(row.status.status)}
+                        tone={rollCallTone(row.status.status)}
+                      />
+                    }
+                    subtitle={[
+                      row.resident.roomType ? humanizeEnum(row.resident.roomType) : null,
+                      row.status.checkedAt ? dates.dateTime(row.status.checkedAt) : "Not marked",
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                    title={row.resident.fullName || "Unnamed resident"}
+                  />
+                </View>
               ))}
-            </View>
+            </Card>
           )}
 
           {night.pagination.totalPages > MAX_ROLL_CALL_PAGES ? (
@@ -340,31 +338,36 @@ export default function ManageRollCallScreen() {
         open={Boolean(marking)}
         title={marking ? marking.resident.fullName : "Mark night status"}
       >
-        <View className="gap-3">
-          <Text variant="muted">
-            This overrides what the resident said about themselves, so it is recorded
-            against your account with the reason you give.
-          </Text>
+        <View className="gap-3 pb-2">
+          {/* Tap a state — the four are the whole choice, so no dropdown. */}
+          <View className="flex-row flex-wrap gap-2">
+            {OVERRIDE_OPTIONS.map((option) => (
+              <Chip
+                key={option.value}
+                label={option.label}
+                onPress={() => setMarkStatus(option.value)}
+                tone={markStatus === option.value ? "brand" : "neutral"}
+              />
+            ))}
+          </View>
 
-          <Select
-            label="Status"
-            onChange={setMarkStatus}
-            options={OVERRIDE_OPTIONS}
-            sheetTitle="Tonight they are"
-            value={markStatus}
-          />
+          <View className="flex-row flex-wrap gap-2">
+            {["Seen in their room", "Called them", "Told us earlier"].map((quick) => (
+              <Chip key={quick} label={quick} onPress={() => setMarkReason(quick)} />
+            ))}
+          </View>
 
           <Input
             label="Reason"
             maxLength={1000}
-            multiline
-            numberOfLines={3}
             onChangeText={setMarkReason}
-            placeholder="e.g. Seen in room 204 at 10pm"
+            placeholder="Seen in room 204 at 10pm"
             value={markReason}
           />
+          <Text variant="caption">Saved with your name.</Text>
         </View>
       </Sheet>
     </>
   );
 }
+

@@ -6,9 +6,11 @@ import { Avatar } from "@/components/ui/avatar";
 import { StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Chip } from "@/components/ui/layout";
+import { ListRow, RowDivider } from "@/components/ui/list-row";
+import { Meter } from "@/components/ui/meter";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
+import { Sheet } from "@/components/ui/sheet";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
@@ -22,6 +24,7 @@ import {
 import { adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
 import { humanizeEnum } from "@/lib/format";
+import { groupNotifications } from "@/lib/notification-groups";
 import {
   type InquiryBucket,
   inquiryActions,
@@ -88,10 +91,12 @@ export default function ManageInquiriesScreen() {
 
   const [bucket, setBucket] = useState<InquiryBucket>("new");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [open, setOpen] = useState<ManagedInquiry | null>(null);
 
   const rows = useMemo(() => inquiries.data ?? [], [inquiries.data]);
   const counts = useMemo(() => inquiryCounts(rows), [rows]);
-  const listed = useMemo(() => inquiriesIn(rows, bucket), [bucket, rows]);
+  const groups = useMemo(() => groupNotifications(inquiriesIn(rows, bucket)), [bucket, rows]);
+  const answered = rows.length - counts.new;
 
   const { refresh } = inquiries;
 
@@ -107,6 +112,7 @@ export default function ManageInquiriesScreen() {
             ? "It has left the new-inquiry count on Home."
             : undefined,
         );
+        setOpen(null);
         await refresh();
       } catch (error) {
         toastError("Could not update", readApiError(error, "That did not save."));
@@ -140,6 +146,15 @@ export default function ManageInquiriesScreen() {
       scroll
     >
       <View className="gap-4 pt-1">
+        {rows.length > 0 ? (
+          <Card>
+            <Meter
+              label={`${answered} of ${rows.length} leads picked up`}
+              percent={Math.round((answered / rows.length) * 100)}
+            />
+          </Card>
+        ) : null}
+
         <Segmented
           onChange={setBucket}
           options={SEGMENTS.map((segment) => ({
@@ -153,124 +168,109 @@ export default function ManageInquiriesScreen() {
         {/* Skeletons, not a spinner — NOTES §9. */}
         {inquiries.loading ? <SkeletonRows rows={4} /> : null}
 
-        {!inquiries.loading && listed.length === 0 ? (
-          <EmptyCard
-            description={
-              bucket === "new"
-                ? "Every enquiry from your listing has been picked up."
-                : bucket === "working"
-                  ? "Nothing is mid-conversation. New leads arrive under New."
-                  : "Nothing has been converted or closed yet."
-            }
-            title={bucket === "new" ? "Nothing waiting" : "Nothing here"}
-          />
+        {!inquiries.loading && groups.length === 0 ? (
+          <EmptyCard title={bucket === "new" ? "Nothing waiting" : "Nothing here"} />
         ) : null}
 
-        {listed.map((inquiry) => (
-          <InquiryCard
-            busy={busyId === inquiry.id}
-            date={inquiry.createdAt ? dates.relativeDay(inquiry.createdAt) : "Undated"}
-            inquiry={inquiry}
-            key={inquiry.id}
-            onMove={move}
-          />
+        {groups.map((group) => (
+          <View className="gap-2" key={group.bucket}>
+            <Text className="px-0.5 font-semibold uppercase tracking-wider" variant="caption">
+              {group.label}
+            </Text>
+            <Card padding="px-4 py-1">
+              {group.rows.map((inquiry, index) => (
+                <View key={inquiry.id}>
+                  {index > 0 ? <RowDivider inset /> : null}
+                  <ListRow
+                    left={<Avatar name={inquiry.name} size="sm" />}
+                    onPress={() => setOpen(inquiry)}
+                    right={<StatusPill status={inquiry.status} />}
+                    subtitle={
+                      [
+                        inquiry.preferredRoomType ? humanizeEnum(inquiry.preferredRoomType) : null,
+                        inquiry.budgetRange || null,
+                        inquiry.createdAt ? dates.ago(inquiry.createdAt) : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ") || undefined
+                    }
+                    title={inquiry.name || "Someone"}
+                  />
+                </View>
+              ))}
+            </Card>
+          </View>
         ))}
       </View>
+
+      <Sheet onClose={() => setOpen(null)} open={open !== null} title={open?.name || "Lead"}>
+        {open ? (
+          <LeadSheet busy={busyId === open.id} inquiry={open} onMove={move} />
+        ) : null}
+      </Sheet>
     </Screen>
   );
 }
 
-/**
- * One lead.
- *
- * Anatomy follows NOTES §5's row: an avatar, the name, a meta line, and the
- * actions underneath — with the message given its own paragraph, because it is
- * the one thing on the card somebody has to *read* rather than scan, and the
- * reason a hostel rings back rather than closing it.
- */
-function InquiryCard({
+/** One lead, opened: what they asked, how to reach them, where it goes next. */
+function LeadSheet({
   busy,
-  date,
   inquiry,
   onMove,
 }: {
   busy: boolean;
-  date: string;
   inquiry: ManagedInquiry;
   onMove: (inquiry: ManagedInquiry, status: InquiryStatus) => Promise<void>;
 }) {
   const actions = inquiryActions(inquiry.status);
 
-  const meta = [
-    inquiry.preferredRoomType ? humanizeEnum(inquiry.preferredRoomType) : null,
-    inquiry.budgetRange || null,
-    date,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-
   return (
-    <Card className="gap-3">
-      <View className="flex-row items-center gap-3">
-        <Avatar name={inquiry.name} size="md" />
-
-        <View className="flex-1">
-          <Text numberOfLines={1} variant="subtitle">
-            {inquiry.name || "Someone"}
-          </Text>
-          <Text numberOfLines={1} variant="caption">
-            {meta}
-          </Text>
-        </View>
-
-        <View className="shrink-0">
-          <StatusPill status={inquiry.status} />
-        </View>
+    <View className="gap-4 pb-2">
+      <View className="flex-row flex-wrap gap-2">
+        <StatusPill status={inquiry.status} />
+        {inquiry.preferredRoomType ? (
+          <Text variant="caption">{humanizeEnum(inquiry.preferredRoomType)}</Text>
+        ) : null}
+        {inquiry.budgetRange ? <Text variant="caption">{inquiry.budgetRange}</Text> : null}
       </View>
 
-      {inquiry.message ? (
-        <Text numberOfLines={4} variant="muted">
-          {inquiry.message}
-        </Text>
-      ) : null}
+      {inquiry.message ? <Text>{inquiry.message}</Text> : null}
 
-      {/*
-        The phone number is the action, so it is a chip carrying the number
-        rather than a button saying "Call" — the same call `wardens.tsx` makes.
-        A lead with no number is the one case where ringing back is impossible,
-        and drawing a dead Call button for it is the trap §11.6 found on Money.
-      */}
-      <View className="flex-row flex-wrap gap-2">
+      {/* The number is the action — no dead Call button for a lead without one. */}
+      <View className="flex-row gap-2">
         {inquiry.phone ? (
-          <Chip
-            icon="call-outline"
-            label={inquiry.phone}
+          <Button
+            className="flex-1"
+            label="Call"
             onPress={() => void Linking.openURL(`tel:${inquiry.phone}`)}
+            variant="outline"
           />
         ) : null}
         {inquiry.email ? (
-          <Chip
-            icon="mail-outline"
-            label={inquiry.email}
+          <Button
+            className="flex-1"
+            label="Email"
             onPress={() => void Linking.openURL(`mailto:${inquiry.email}`)}
+            variant="outline"
           />
         ) : null}
       </View>
 
-      <View className="flex-row gap-2">
-        {actions.map((action, index) => (
-          <Button
-            className="flex-1"
-            disabled={busy}
-            key={action.status}
-            label={action.label}
-            loading={busy && index === 0}
-            onPress={() => void onMove(inquiry, action.status)}
-            size="sm"
-            variant={index === 0 ? "outline" : "ghost"}
-          />
-        ))}
-      </View>
-    </Card>
+      {actions.length > 0 ? (
+        <View className="flex-row gap-2">
+          {actions.map((action, index) => (
+            <Button
+              className="flex-1"
+              disabled={busy}
+              key={action.status}
+              label={action.label}
+              loading={busy && index === 0}
+              onPress={() => void onMove(inquiry, action.status)}
+              variant={index === 0 ? "primary" : "ghost"}
+            />
+          ))}
+        </View>
+      ) : null}
+    </View>
   );
 }

@@ -7,8 +7,8 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Chip } from "@/components/ui/layout";
-import { ListRow } from "@/components/ui/list-row";
+import { ListRow, RowDivider } from "@/components/ui/list-row";
+import { Meter } from "@/components/ui/meter";
 import { Screen } from "@/components/ui/screen";
 import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -120,6 +120,7 @@ export default function ManageFoodScreen() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [editing, setEditing] = useState<MealType | null>(null);
   const [monthEndOpen, setMonthEndOpen] = useState(false);
+  const [timesOpen, setTimesOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const loaded = useMemo(() => draftFrom(food.data?.routine ?? null), [food.data]);
@@ -214,6 +215,16 @@ export default function ManageFoodScreen() {
   }
 
   const today = todayInNepal();
+  const filled = ROUTINE_DAYS.reduce(
+    (sum, routineDay) =>
+      sum +
+      MEAL_TYPES.filter(
+        (mealType) => splitItems(current.meals[cellKey(routineDay, mealType)]?.items ?? "").length > 0,
+      ).length,
+    0,
+  );
+  const cells = ROUTINE_DAYS.length * MEAL_TYPES.length;
+  const monthEnd = splitItems(current.monthEndItems);
   const editingCell = editing ? current.meals[cellKey(day, editing)] : undefined;
 
   return (
@@ -236,7 +247,7 @@ export default function ManageFoodScreen() {
           </View>
         ) : null
       }
-      header={<AppBar accent centerTitle showBack subtitle="Menu, times and the kitchen login" title="Food" />}
+      header={<AppBar accent centerTitle showBack title="Food" />}
       onRefresh={food.refresh}
       refreshing={food.refreshing}
       scroll
@@ -246,11 +257,12 @@ export default function ManageFoodScreen() {
           <PermissionCard capability="food" feature="The weekly menu" />
         ) : (
           <>
+            <Card>
+              <Meter label={`${filled} of ${cells} meals set this week`} percent={Math.round((filled / cells) * 100)} />
+            </Card>
+
             <View>
-              <SectionHeader
-                subtitle="Tap a meal to change what is served"
-                title="The week"
-              />
+              <SectionHeader title="The week" />
               <View className="gap-3">
                 <DayStrip active={day} onChange={setDay} today={today} />
 
@@ -278,112 +290,78 @@ export default function ManageFoodScreen() {
                 })}
               </View>
             </View>
-
-            <View>
-              <SectionHeader
-                subtitle="One clock per meal, the same on every day of the week"
-                title="Meal times"
-              />
-              <Card className="gap-3">
-                {MEAL_TYPES.map((mealType) => (
-                  <Input
-                    key={mealType}
-                    label={humanizeEnum(mealType)}
-                    onChangeText={(value) =>
-                      setDraft((prev) => {
-                        const base = prev ?? loaded;
-
-                        return {
-                          ...base,
-                          timings: { ...base.timings, [mealType]: value },
-                        };
-                      })
-                    }
-                    placeholder={MEAL_HINTS[mealType]}
-                    value={current.timings[mealType] ?? ""}
-                  />
-                ))}
-              </Card>
-            </View>
-
-            <View>
-              <SectionHeader
-                action={
-                  <Button
-                    label="Edit"
-                    onPress={() => setMonthEndOpen(true)}
-                    size="sm"
-                    variant="outline"
-                  />
-                }
-                subtitle="Served on the last day of the Nepali month"
-                title="Month-end special"
-              />
-              <Card className="gap-2">
-                {splitItems(current.monthEndItems).length > 0 ? (
-                  <>
-                    <View className="flex-row flex-wrap gap-2">
-                      {splitItems(current.monthEndItems).map((item) => (
-                        <Chip icon="restaurant-outline" key={item} label={item} tone="brand" />
-                      ))}
-                    </View>
-                    {current.monthEndNote ? (
-                      <Text variant="caption">{current.monthEndNote}</Text>
-                    ) : null}
-                  </>
-                ) : (
-                  <Text variant="muted">
-                    Nothing set. Most hostels serve something better on the last day of
-                    the month — this is where residents find out what.
-                  </Text>
-                )}
-              </Card>
-            </View>
           </>
         )}
 
-        <View>
-          <SectionHeader
-            subtitle="Who is allowed to say the food is ready"
-            title="The kitchen"
-          />
-
-          {/*
-            A door, not a card.
-
-            This section used to be the cook portal itself — a switch, a name
-            field, a login and a password status. That fitted while a hostel had
-            one cook. It now has a roster, two ways of granting access, a
-            password rotation and a removal that renames a departed cook's
-            history, and none of that belongs underneath twenty-eight meal cells
-            on the screen somebody opened to fix Thursday's lunch.
-
-            `PermissionCard` still guards it, because `manageFood` is what the
-            roster routes are gated on and a warden without it should be told so
-            here rather than after the tap.
-          */}
-          {cook === null ? (
-            <PermissionCard capability="food" feature="Cooks" />
-          ) : (
-            <Card className="p-0">
+        <Card padding="px-4 py-1">
+          {food.data?.routine === null ? null : (
+            <>
               <ListRow
-                icon="flame-outline"
-                onPress={() => router.push("/manage/cook")}
-                onPressIn={() => prefetchAdminRoute("/manage/cook")}
+                icon="time-outline"
+                iconBgColor="#007AFF"
+                onPress={() => setTimesOpen(true)}
                 subtitle={
-                  cook.cookPortalEnabled
-                    ? cook.cookName
-                      ? `${cook.cookName} can announce meals and post photos`
-                      : "Somebody can announce meals and post photos"
-                    : "Nobody has the kitchen yet"
+                  MEAL_TYPES.filter((mealType) => current.timings[mealType]?.trim()).length ===
+                  MEAL_TYPES.length
+                    ? "All four set"
+                    : `${MEAL_TYPES.filter((mealType) => current.timings[mealType]?.trim()).length} of 4 set`
                 }
-                title="Cooks"
-                value={cook.cookPortalEnabled ? "Open" : "Set up"}
+                title="Meal times"
               />
-            </Card>
+              <RowDivider inset />
+              <ListRow
+                icon="star-outline"
+                iconBgColor="#FF9500"
+                onPress={() => setMonthEndOpen(true)}
+                subtitle={monthEnd.length > 0 ? monthEnd.join(", ") : "Not set"}
+                title="Month-end special"
+              />
+              <RowDivider inset />
+            </>
           )}
-        </View>
+          {cook === null ? (
+            <ListRow icon="flame-outline" subtitle="No access" title="Cooks" />
+          ) : (
+            <ListRow
+              icon="flame-outline"
+              iconBgColor="#FF3B30"
+              onPress={() => router.push("/manage/cook")}
+              onPressIn={() => prefetchAdminRoute("/manage/cook")}
+              subtitle={
+                cook.cookPortalEnabled
+                  ? (cook.cookName ?? "Kitchen is open")
+                  : "Nobody has the kitchen yet"
+              }
+              title="Cooks"
+            />
+          )}
+        </Card>
       </View>
+
+      <Sheet
+        footer={<Button label="Done" onPress={() => setTimesOpen(false)} />}
+        onClose={() => setTimesOpen(false)}
+        open={timesOpen}
+        title="Meal times"
+      >
+        <View className="gap-3 pb-2">
+          {MEAL_TYPES.map((mealType) => (
+            <Input
+              key={mealType}
+              label={humanizeEnum(mealType)}
+              onChangeText={(value) =>
+                setDraft((prev) => {
+                  const base = prev ?? loaded;
+
+                  return { ...base, timings: { ...base.timings, [mealType]: value } };
+                })
+              }
+              placeholder={MEAL_HINTS[mealType]}
+              value={current.timings[mealType] ?? ""}
+            />
+          ))}
+        </View>
+      </Sheet>
 
       <Sheet
         footer={
@@ -398,7 +376,7 @@ export default function ManageFoodScreen() {
       >
         <View className="gap-3 pb-2">
           <Input
-            hint="Separate them with commas. Clear the field to publish nothing for this meal."
+            hint="Separate with commas. Empty = no meal."
             label="What is served"
             multiline
             onChangeText={(items) =>
@@ -410,7 +388,7 @@ export default function ManageFoodScreen() {
           />
 
           <Input
-            hint="Anything worth saying about it — “paneer for the veg table”, “festival meal”."
+            placeholder="Paneer for the veg table"
             label="Note"
             multiline
             onChangeText={(note) =>
@@ -420,10 +398,7 @@ export default function ManageFoodScreen() {
             value={editingCell?.note ?? ""}
           />
 
-          <Text variant="caption">
-            Nothing is sent until you save the week — the button appears at the bottom
-            of the screen once something has changed.
-          </Text>
+          <Text variant="caption">Saved when you tap Save the week.</Text>
         </View>
       </Sheet>
 
