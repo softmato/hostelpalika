@@ -1,25 +1,18 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { router } from "expo-router";
-import {
-  BadgeCheck,
-  CalendarClock,
-  Hash,
-  Landmark,
-  MessageSquareText,
-  Store,
-  UserRound,
-  Wallet,
-} from "lucide-react-native";
-import { useCallback, useMemo, useState } from "react";
+import { useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ListRow, RowDivider } from "@/components/ui/list-row";
+import { Meter } from "@/components/ui/meter";
 import { Screen } from "@/components/ui/screen";
+import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
@@ -32,50 +25,117 @@ import { adminQuery } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { readApiError } from "@/lib/api-contract";
 import { viewerSourceFor } from "@/lib/asset-viewer";
+import { formatMoney } from "@/lib/format";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { uploadAsset } from "@/lib/uploads";
 
 /**
  * Payment setup — where residents are asked to send money.
  *
- * ## The QR was the missing half
+ * A summary, like Finance: a setup score, the QR, and one row per destination
+ * or rule. Each row opens a small sheet that saves only its own fields, so a
+ * warden changing the eSewa ID never scrolls past the bank form to do it.
  *
- * The web has had a QR upload since the payment profile shipped; the phone had
- * only the two *typed* fields that exist for when the recogniser cannot read
- * one. So an owner could describe their QR poster and never put it in the app,
- * which meant residents paying from the phone had a name and a number and no
- * code to scan. `PAYMENT_QR` is a financial asset kind, so presign scopes it to
- * this hostel — that is what lets the server refuse a QR borrowed from another.
+ * ## The QR saves on its own
  *
- * ## The image saves on its own; the fields save on Save
+ * Uploading patches `staticQrAssetId` immediately. The server reads a **new** QR
+ * and fills the payee name and number from it, so they come back filled before
+ * anything else is touched, and the bytes are never stranded by a back-press.
  *
- * Uploading patches `staticQrAssetId` immediately rather than holding it in the
- * draft, and that is not laziness. The server runs the recogniser on a **new**
- * QR and fills the payee name and number from it, so patching alone lets those
- * two fields come back filled and be seen before anything else is submitted. It
- * also means the bytes are never stranded: an upload followed by a back-press
- * still leaves a hostel with a working QR.
+ * ## The QR's payee fields are sent only when changed
  *
- * The typed payee fields are sent **only when they differ** from what loaded.
- * Sending them unchanged would stamp `qrPayeeSource: "MANUAL"` on every save,
- * which is what stops a later re-read from correcting them — so a save that
- * touched only the cash threshold would quietly freeze the OCR result forever.
+ * Sending them unchanged stamps `qrPayeeSource: "MANUAL"`, which stops a later
+ * re-read from correcting them — see `Field.onlyIfChanged`.
  */
 
 type Draft = Record<string, string>;
 
+type Field = {
+  hint?: string;
+  key: keyof PaymentProfile;
+  keyboard?: "number-pad" | "numbers-and-punctuation";
+  label: string;
+  multiline?: boolean;
+  number?: boolean;
+  onlyIfChanged?: boolean;
+};
+
+type Section = "bank" | "cadence" | "cash" | "esewa" | "khalti" | "name" | "note" | "qr";
+
+const SHEETS: Record<Section, { fields: Field[]; title: string }> = {
+  bank: {
+    fields: [
+      { key: "bankName", label: "Bank" },
+      { key: "bankAccountName", label: "Account name" },
+      { key: "bankAccountNumber", keyboard: "numbers-and-punctuation", label: "Account number" },
+    ],
+    title: "Bank",
+  },
+  cadence: {
+    fields: [
+      {
+        hint: "1–90 days.",
+        key: "statementCadenceDays",
+        keyboard: "number-pad",
+        label: "Remind me every (days)",
+        number: true,
+      },
+    ],
+    title: "Statement reminder",
+  },
+  cash: {
+    fields: [
+      {
+        hint: "0 means every cash entry needs a second approver.",
+        key: "cashApprovalThreshold",
+        keyboard: "number-pad",
+        label: "Second approver above (Rs)",
+        number: true,
+      },
+    ],
+    title: "Cash approval",
+  },
+  esewa: {
+    fields: [{ key: "esewaId", keyboard: "numbers-and-punctuation", label: "eSewa ID" }],
+    title: "eSewa",
+  },
+  khalti: {
+    fields: [{ key: "khaltiId", keyboard: "numbers-and-punctuation", label: "Khalti ID" }],
+    title: "Khalti",
+  },
+  name: {
+    fields: [{ key: "displayName", label: "Hostel or owner name" }],
+    title: "Name residents see",
+  },
+  note: {
+    fields: [{ key: "paymentInstructions", label: "Shown under the pay options", multiline: true }],
+    title: "Note for residents",
+  },
+  qr: {
+    fields: [
+      {
+        hint: "Read from your QR. Fix it only if it came back wrong.",
+        key: "qrPayeeName",
+        label: "Name on the QR",
+        onlyIfChanged: true,
+      },
+      {
+        key: "qrPayeeNumber",
+        keyboard: "numbers-and-punctuation",
+        label: "Number on the QR",
+        onlyIfChanged: true,
+      },
+    ],
+    title: "Name and number on the QR",
+  },
+};
+
 export default function ManagePaymentSetupScreen() {
   const { colors } = useAppTheme();
   const token = useAppSelector((state) => state.auth.accessToken);
-  const [draft, setDraft] = useState<Draft | null>(null);
-  const [busy, setBusy] = useState(false);
-  /*
-   * Which of the two QR actions is at the server, not just "something is".
-   *
-   * One shared boolean put the spinner on Replace while Remove was the button
-   * that had been pressed, which is the reading of progress that is worse than
-   * none: it names the wrong action as the one in flight.
-   */
+  const [section, setSection] = useState<Section | null>(null);
+  const [draft, setDraft] = useState<Draft>({});
+  const [saving, setSaving] = useState(false);
   const [qrBusy, setQrBusy] = useState<"remove" | "upload" | null>(null);
 
   const query = adminQuery.paymentProfile();
@@ -83,39 +143,55 @@ export default function ManagePaymentSetupScreen() {
     cacheKey: query.key,
     topics: query.topics,
   });
-
   const profile = resource.data ?? null;
-
-  const seeded = useMemo<Draft>(
-    () => ({
-      bankAccountName: profile?.bankAccountName ?? "",
-      bankAccountNumber: profile?.bankAccountNumber ?? "",
-      bankName: profile?.bankName ?? "",
-      cashApprovalThreshold: String(profile?.cashApprovalThreshold ?? 0),
-      displayName: profile?.displayName ?? "",
-      esewaId: profile?.esewaId ?? "",
-      khaltiId: profile?.khaltiId ?? "",
-      paymentInstructions: profile?.paymentInstructions ?? "",
-      qrPayeeName: profile?.qrPayeeName ?? "",
-      qrPayeeNumber: profile?.qrPayeeNumber ?? "",
-      statementCadenceDays: String(profile?.statementCadenceDays ?? 7),
-    }),
-    [profile],
-  );
-
-  // A null draft means "nothing typed yet", so the silent refocus revalidate can
-  // still update what is shown — and cannot overwrite a half-typed field once it
-  // is not. Same reasoning as `finance/rates`.
-  const form = draft ?? seeded;
-
-  const edit = useCallback(
-    (patch: Draft) => setDraft((prev) => ({ ...(prev ?? seeded), ...patch })),
-    [seeded],
-  );
-
   const { setData } = resource;
 
-  const pickQr = useCallback(async () => {
+  const stored = (key: keyof PaymentProfile) => {
+    const value = profile?.[key];
+
+    return value === null || value === undefined ? "" : String(value);
+  };
+
+  const openSection = (next: Section) => {
+    setDraft(Object.fromEntries(SHEETS[next].fields.map((field) => [field.key, stored(field.key)])));
+    setSection(next);
+  };
+
+  const save = async () => {
+    if (!section) {
+      return;
+    }
+
+    const input: Record<string, number | string | undefined> = {};
+
+    for (const field of SHEETS[section].fields) {
+      const raw = (draft[field.key] ?? "").trim();
+
+      if (field.onlyIfChanged) {
+        input[field.key] = draft[field.key] === stored(field.key) ? undefined : raw;
+      } else if (field.number) {
+        input[field.key] = raw ? Number(raw) : undefined;
+      } else {
+        input[field.key] = raw || undefined;
+      }
+    }
+
+    setSaving(true);
+
+    try {
+      const next = await updatePaymentProfile(input as Parameters<typeof updatePaymentProfile>[0]);
+
+      setData(() => next);
+      toastSuccess("Saved");
+      setSection(null);
+    } catch (error) {
+      toastError("Could not save", readApiError(error));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const pickQr = async () => {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (!permission.granted) {
@@ -136,71 +212,32 @@ export default function ManagePaymentSetupScreen() {
     setQrBusy("upload");
 
     try {
-      const assetId = await uploadAsset(picked, {
-        kind: "PAYMENT_QR",
-        label: "Payment QR",
-      });
+      const assetId = await uploadAsset(picked, { kind: "PAYMENT_QR", label: "Payment QR" });
+      const next = await updatePaymentProfile({ staticQrAssetId: assetId });
 
-      // The PATCH answers with the profile it wrote, and this resource is that
-      // profile — so the new QR is on screen without asking for it again.
-      const profile = await updatePaymentProfile({ staticQrAssetId: assetId });
-
-      setData(() => profile);
+      setData(() => next);
       toastSuccess("QR saved");
     } catch (error) {
       toastError("That QR did not upload", readApiError(error));
     } finally {
       setQrBusy(null);
     }
-  }, [setData]);
+  };
 
-  const removeQr = useCallback(async () => {
+  const removeQr = async () => {
     setQrBusy("remove");
 
     try {
-      const profile = await updatePaymentProfile({ staticQrAssetId: null });
+      const next = await updatePaymentProfile({ staticQrAssetId: null });
 
-      setData(() => profile);
+      setData(() => next);
       toastSuccess("QR removed");
     } catch (error) {
       toastError("Could not remove it", readApiError(error));
     } finally {
       setQrBusy(null);
     }
-  }, [setData]);
-
-  const save = useCallback(async () => {
-    setBusy(true);
-
-    try {
-      await updatePaymentProfile({
-        bankAccountName: form.bankAccountName?.trim() || undefined,
-        bankAccountNumber: form.bankAccountNumber?.trim() || undefined,
-        bankName: form.bankName?.trim() || undefined,
-        cashApprovalThreshold: form.cashApprovalThreshold?.trim()
-          ? Number(form.cashApprovalThreshold)
-          : undefined,
-        displayName: form.displayName?.trim() || undefined,
-        esewaId: form.esewaId?.trim() || undefined,
-        khaltiId: form.khaltiId?.trim() || undefined,
-        paymentInstructions: form.paymentInstructions?.trim() || undefined,
-        // Only when actually edited — see the header note on `MANUAL`.
-        qrPayeeName:
-          form.qrPayeeName === seeded.qrPayeeName ? undefined : form.qrPayeeName.trim(),
-        qrPayeeNumber:
-          form.qrPayeeNumber === seeded.qrPayeeNumber ? undefined : form.qrPayeeNumber.trim(),
-        statementCadenceDays: form.statementCadenceDays?.trim()
-          ? Number(form.statementCadenceDays)
-          : undefined,
-      });
-      toastSuccess("Payment setup saved");
-      router.back();
-    } catch (error) {
-      toastError("Could not save", readApiError(error));
-    } finally {
-      setBusy(false);
-    }
-  }, [form, seeded]);
+  };
 
   const header = <AppBar accent centerTitle showBack title="Payment setup" />;
 
@@ -208,8 +245,8 @@ export default function ManagePaymentSetupScreen() {
     return (
       <Screen header={header}>
         <View className="gap-4 pt-1">
-          <SkeletonCard rows={3} />
-          <SkeletonCard rows={3} />
+          <SkeletonCard rows={2} />
+          <SkeletonCard rows={4} />
         </View>
       </Screen>
     );
@@ -227,59 +264,63 @@ export default function ManagePaymentSetupScreen() {
     ? viewerSourceFor({ assetId: profile.staticQrAssetId }, { baseUrl: API_BASE_URL, token })
     : null;
 
+  const ways = [
+    profile.staticQrAssetId,
+    profile.bankAccountNumber,
+    profile.esewaId,
+    profile.khaltiId,
+  ].filter(Boolean).length;
+
+  const sheet = section ? SHEETS[section] : null;
+
   return (
-    <Screen
-      footer={<Button label="Save" loading={busy} onPress={() => void save()} />}
-      header={header}
-      scroll
-    >
+    <Screen header={header} onRefresh={resource.refresh} refreshing={resource.refreshing} scroll>
       <View className="gap-5 pt-1">
-        <View>
-          <SectionHeader subtitle="What residents see on the pay screen" title="Paid to" />
-          <Card>
-            <Input
-              leading={<Store color={colors.mutedForeground} size={18} />}
-              onChangeText={(displayName) => edit({ displayName })}
-              placeholder="Hostel or owner name"
-              value={form.displayName}
+        <Card className="gap-3">
+          <View className="flex-row flex-wrap gap-2">
+            <Badge
+              label={profile.usable ? "Residents can pay" : "Not set up"}
+              tone={profile.usable ? "success" : "danger"}
             />
-          </Card>
-        </View>
+            <Badge
+              label={profile.payeeVerifiable ? "Receipts checked" : "Receipts not checked"}
+              tone={profile.payeeVerifiable ? "success" : "warning"}
+            />
+          </View>
+          <Meter label={`${ways} of 4 ways to pay set up`} percent={ways * 25} />
+        </Card>
 
         <View>
-          <SectionHeader subtitle="Scanned, then paid from any wallet" title="QR" />
+          <SectionHeader title="QR" />
           <Card className="gap-3">
-            <View className="flex-row items-center gap-3">
+            <View className="flex-row items-center gap-4">
               {qrSource ? (
+                <Image
+                  contentFit="cover"
+                  source={qrSource}
+                  style={{
+                    borderColor: colors.border,
+                    borderRadius: 14,
+                    borderWidth: 1,
+                    height: 112,
+                    width: 112,
+                  }}
+                />
+              ) : (
                 <Pressable
-                  accessibilityLabel="Replace the QR"
-                  accessibilityRole="imagebutton"
-                  className="active:opacity-70"
-                  disabled={qrBusy !== null}
+                  accessibilityLabel="Upload your QR"
+                  accessibilityRole="button"
+                  className="h-28 w-28 items-center justify-center rounded-2xl border border-dashed border-border active:opacity-70"
                   onPress={() => void pickQr()}
                 >
-                  <Image
-                    contentFit="cover"
-                    source={qrSource}
-                    style={{
-                      borderColor: colors.border,
-                      borderRadius: 12,
-                      borderWidth: 1,
-                      height: 96,
-                      width: 96,
-                    }}
-                  />
+                  <Ionicons color={colors.mutedForeground} name="qr-code-outline" size={36} />
                 </Pressable>
-              ) : (
-                <View className="h-24 w-24 items-center justify-center rounded-xl border border-dashed border-border">
-                  <Ionicons color={colors.mutedForeground} name="qr-code-outline" size={30} />
-                </View>
               )}
 
               <View className="flex-1 gap-2">
                 <Button
                   disabled={qrBusy === "remove"}
-                  label={qrSource ? "Replace" : "Upload a QR"}
+                  label={qrSource ? "Replace" : "Upload QR"}
                   loading={qrBusy === "upload"}
                   onPress={() => void pickQr()}
                   size="sm"
@@ -298,146 +339,125 @@ export default function ManagePaymentSetupScreen() {
               </View>
             </View>
 
-            <View className="gap-3 border-t border-border pt-3">
-              <Input
-                hint="Filled from your QR automatically. Correct it only if it came back wrong."
-                label="Name on the QR"
-                leading={<BadgeCheck color={colors.mutedForeground} size={18} />}
-                onChangeText={(qrPayeeName) => edit({ qrPayeeName })}
-                value={form.qrPayeeName}
-              />
-              <Input
-                keyboardType="numbers-and-punctuation"
-                label="Number on the QR"
-                leading={<Hash color={colors.mutedForeground} size={18} />}
-                onChangeText={(qrPayeeNumber) => edit({ qrPayeeNumber })}
-                value={form.qrPayeeNumber}
-              />
-            </View>
+            {qrSource ? (
+              <View className="border-t border-border">
+                <ListRow
+                  icon="scan-outline"
+                  iconBgColor="#5E5CE6"
+                  onPress={() => openSection("qr")}
+                  subtitle={
+                    [profile.qrPayeeName, profile.qrPayeeNumber].filter(Boolean).join(" · ") ||
+                    "Not read yet"
+                  }
+                  title="Name on the QR"
+                />
+              </View>
+            ) : null}
           </Card>
         </View>
 
         <View>
-          <SectionHeader title="Bank" />
-          <Card className="gap-3">
-            {/*
-              The mark is drawn from what has been *typed*, and that is the
-              point: `bankName` is free text, and the residents' pay screen
-              resolves it to a logo by the same function. An owner who typed
-              "Everst Bank" sees the glyph rather than Everest's mark and has a
-              chance to fix it here — the alternative is finding out on the
-              screen somebody is paying from.
-            */}
-            <View className="flex-row items-end gap-3">
-              <WalletMark name={form.bankName} size={48} />
-              <View className="flex-1">
-                <Input
-                  label="Bank"
-                  onChangeText={(bankName) => edit({ bankName })}
-                  value={form.bankName}
-                />
-              </View>
-            </View>
-            <Input
-              label="Account name"
-              leading={<UserRound color={colors.mutedForeground} size={18} />}
-              onChangeText={(bankAccountName) => edit({ bankAccountName })}
-              value={form.bankAccountName}
-            />
-            <Input
-              keyboardType="numbers-and-punctuation"
-              label="Account number"
-              leading={<Landmark color={colors.mutedForeground} size={18} />}
-              onChangeText={(bankAccountNumber) => edit({ bankAccountNumber })}
-              value={form.bankAccountNumber}
-            />
-          </Card>
-        </View>
-
-        <View>
-          <SectionHeader title="Wallets" />
-          <Card className="gap-3">
-            {/*
-              Two number fields whose labels differ by one word is the pair that
-              gets a Khalti id typed into the eSewa row. The marks are what the
-              eye actually matches against, and they are the same ones the
-              resident sees on the method they pick.
-            */}
-            <View className="flex-row items-end gap-3">
-              <WalletMark name="ESEWA" size={48} />
-              <View className="flex-1">
-                <Input
-                  keyboardType="numbers-and-punctuation"
-                  label="eSewa ID"
-                  onChangeText={(esewaId) => edit({ esewaId })}
-                  value={form.esewaId}
-                />
-              </View>
-            </View>
-            <View className="flex-row items-end gap-3">
-              <WalletMark name="KHALTI" size={48} />
-              <View className="flex-1">
-                <Input
-                  keyboardType="numbers-and-punctuation"
-                  label="Khalti ID"
-                  onChangeText={(khaltiId) => edit({ khaltiId })}
-                  value={form.khaltiId}
-                />
-              </View>
-            </View>
-            <Text variant="caption">
-              A bank account or a wallet ID is what lets us check that a receipt was paid
-              to you. With only a QR, every receipt reads as an unknown payee.
-            </Text>
-          </Card>
-        </View>
-
-        <View>
-          <SectionHeader title="Rules" />
-          <Card className="gap-3">
-            <Input
-              hint="Zero means every cash entry needs a second approver."
-              keyboardType="number-pad"
-              label="Cash approval needed above (NPR)"
-              leading={<Wallet color={colors.mutedForeground} size={18} />}
-              onChangeText={(cashApprovalThreshold) => edit({ cashApprovalThreshold })}
-              value={form.cashApprovalThreshold}
-            />
-            <Input
-              hint="1–90 days."
-              keyboardType="number-pad"
-              label="Remind me to upload a statement every"
-              leading={<CalendarClock color={colors.mutedForeground} size={18} />}
-              onChangeText={(statementCadenceDays) => edit({ statementCadenceDays })}
-              value={form.statementCadenceDays}
-            />
-            <Input
-              hint="Shown under the pay options."
-              label="Note for residents"
-              leading={
-                /*
-                 * Top-aligned, unlike every other glyph here: the field is a
-                 * textarea, so its row stretches and a centred mark would float
-                 * halfway down an empty box.
-                 */
-                <View className="pt-3">
-                  <MessageSquareText color={colors.mutedForeground} size={18} />
-                </View>
+          <SectionHeader title="Where money goes" />
+          <Card padding="px-4 py-1">
+            <ListRow
+              left={<WalletMark name={profile.bankName} size={32} />}
+              onPress={() => openSection("bank")}
+              subtitle={
+                profile.bankAccountNumber
+                  ? `${profile.bankName ?? "Bank"} · ${profile.bankAccountNumber}`
+                  : "Not set"
               }
-              multiline
-              onChangeText={(paymentInstructions) => edit({ paymentInstructions })}
-              style={{ height: 96 }}
-              value={form.paymentInstructions}
+              title="Bank"
+            />
+            <RowDivider inset />
+            <ListRow
+              left={<WalletMark name="ESEWA" size={32} />}
+              onPress={() => openSection("esewa")}
+              subtitle={profile.esewaId || "Not set"}
+              title="eSewa"
+            />
+            <RowDivider inset />
+            <ListRow
+              left={<WalletMark name="KHALTI" size={32} />}
+              onPress={() => openSection("khalti")}
+              subtitle={profile.khaltiId || "Not set"}
+              title="Khalti"
             />
           </Card>
         </View>
 
-        {/* Booking payouts — money moving the other way — are set under
-            Bookings → Settings, beside the bookings they pay for. */}
-        <Text variant="caption">
-          The account we send your share of booking fees to is under Bookings → Settings.
+        <View>
+          <SectionHeader title="Settings" />
+          <Card padding="px-4 py-1">
+            <ListRow
+              icon="storefront-outline"
+              iconBgColor="#007AFF"
+              onPress={() => openSection("name")}
+              subtitle={profile.displayName || "Not set"}
+              title="Name residents see"
+            />
+            <RowDivider inset />
+            <ListRow
+              icon="cash-outline"
+              iconBgColor="#34C759"
+              onPress={() => openSection("cash")}
+              subtitle={
+                profile.cashApprovalThreshold > 0
+                  ? `Second approver above ${formatMoney(profile.cashApprovalThreshold)}`
+                  : "Every cash entry needs a second approver"
+              }
+              title="Cash approval"
+            />
+            <RowDivider inset />
+            <ListRow
+              icon="calendar-outline"
+              iconBgColor="#FF9500"
+              onPress={() => openSection("cadence")}
+              subtitle={`Every ${profile.statementCadenceDays} days`}
+              title="Statement reminder"
+            />
+            <RowDivider inset />
+            <ListRow
+              icon="chatbubble-ellipses-outline"
+              iconBgColor="#AF52DE"
+              onPress={() => openSection("note")}
+              subtitle={profile.paymentInstructions || "None"}
+              title="Note for residents"
+            />
+          </Card>
+        </View>
+
+        <Text className="text-center" variant="caption">
+          Booking payouts are under Bookings → Settings.
         </Text>
       </View>
+
+      <Sheet
+        footer={<Button label="Save" loading={saving} onPress={() => void save()} />}
+        onClose={() => setSection(null)}
+        open={sheet !== null}
+        title={sheet?.title ?? ""}
+      >
+        <View className="gap-3 pb-2">
+          {sheet?.fields.map((field) => (
+            <Input
+              hint={field.hint}
+              key={field.key}
+              keyboardType={field.keyboard}
+              label={field.label}
+              multiline={field.multiline}
+              onChangeText={(value) => setDraft((prev) => ({ ...prev, [field.key]: value }))}
+              style={field.multiline ? { height: 96 } : undefined}
+              value={draft[field.key] ?? ""}
+            />
+          ))}
+          {section === "bank" ? (
+            <View className="items-center pt-1">
+              <WalletMark name={draft.bankName} size={40} />
+            </View>
+          ) : null}
+        </View>
+      </Sheet>
     </Screen>
   );
 }

@@ -661,9 +661,12 @@ function ProfileForm({
   reason: ProfilePromptReason;
 }) {
   const [stored] = useState(() => readIdentityDraft(identity));
-  const [draft, setDraft] = useState<IdentityDraft>(
-    () => stored?.draft ?? draftFromProfile(profile),
-  );
+  const [draft, setDraft] = useState<IdentityDraft>(() => {
+    const initial = stored?.draft ?? draftFromProfile(profile);
+    // The locked sign-in email never fires onChange, so it has to be in the
+    // draft from the start — otherwise every step check sees it empty.
+    return identity.accountEmail ? { ...initial, primaryEmail: identity.accountEmail } : initial;
+  });
 
   const [stepKey, setStepKey] = useState<IdentityStep>(
     () => stored?.stepKey ?? (identity.hasProfile ? "review" : "about"),
