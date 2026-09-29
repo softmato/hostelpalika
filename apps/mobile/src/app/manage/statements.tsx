@@ -4,14 +4,12 @@ import { Pressable, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
+import { Meter } from "@/components/ui/meter";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { IconButton } from "@/components/ui/icon-button";
-import { Grid, StatTile } from "@/components/ui/layout";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
-import { Segmented } from "@/components/ui/segmented";
-import { Select } from "@/components/ui/select";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
@@ -71,45 +69,16 @@ import { uploadAsset } from "@/lib/uploads";
 
 type Bucket = "tied" | "action" | "missing" | "norecord";
 
-/** Which credits inside "needs your action" are on screen. */
-type Guess = "all" | "guessed" | "unknown";
-
 type Buckets = ReconciliationView["buckets"];
 type OrphanRow = Buckets["orphans"][number];
 type Suggestion = OrphanRow["suggestions"][number];
 
 /**
- * Where the file came from.
- *
- * The marks are not decoration: picking the wrong one here parses an eSewa
- * export with Khalti's column map and imports nothing, and the two options
- * were otherwise five letters apart in identical grey. `BANK` has no brand of
- * its own, so `<WalletMark>` gives it the building glyph — see `claim.tsx`,
- * which builds its method picker the same way.
- *
- * 28 points, not 32: the same node is drawn on the `<Select>` trigger, which is
- * `h-12` and would grow past the controls either side of it.
+ * Where the file came from — one tile each, and the tile *is* the import button.
+ * Picking the wrong one parses an eSewa export with Khalti's column map, so the
+ * brand marks carry the choice rather than a word in a dropdown.
  */
-const PROVIDER_OPTIONS = [
-  {
-    description: "A wallet transaction export.",
-    label: "eSewa",
-    leading: <WalletMark name="ESEWA" size={28} />,
-    value: "ESEWA",
-  },
-  {
-    description: "A wallet transaction export.",
-    label: "Khalti",
-    leading: <WalletMark name="KHALTI" size={28} />,
-    value: "KHALTI",
-  },
-  {
-    description: "A bank account statement.",
-    label: "Bank",
-    leading: <WalletMark name="BANK" size={28} />,
-    value: "BANK",
-  },
-] as const;
+const PROVIDERS: StatementProvider[] = ["ESEWA", "KHALTI", "BANK"];
 
 /**
  * The provider's own spelling, not `humanizeEnum`'s.
@@ -154,12 +123,15 @@ const BUCKETS: Record<
     icon: keyof typeof Ionicons.glyphMap;
     label: string;
     lead: string;
+    /** The tile label — two words, so the warden reads a number, not a sentence. */
+    short: string;
     surface: string;
     tone: "brand" | "danger" | "neutral" | "warning";
     why: string;
   }
 > = {
   action: {
+    short: "Who paid?",
     empty: "Every payment in this file found its resident.",
     icon: "help-circle-outline",
     label: "Needs your action",
@@ -169,6 +141,7 @@ const BUCKETS: Record<
     why: "We guessed who each one might be. Check and assign it to the right resident.",
   },
   missing: {
+    short: "Not received",
     empty: "Every approved payment reached your account.",
     icon: "alert-circle-outline",
     label: "Not in your account",
@@ -178,6 +151,7 @@ const BUCKETS: Record<
     why: "Your staff marked these as paid. No bank or wallet file has ever carried them.",
   },
   norecord: {
+    short: "No record",
     empty: "Nothing unaccounted for.",
     icon: "time-outline",
     label: "No record yet",
@@ -187,6 +161,7 @@ const BUCKETS: Record<
     why: "Nothing anywhere confirms it yet — not this file, not your own records.",
   },
   tied: {
+    short: "Matched",
     empty: "Nothing in this file could be tied to a bill.",
     icon: "shield-checkmark-outline",
     label: "Tied to bills",
@@ -273,14 +248,13 @@ export default function ManageStatementsScreen() {
     topics: query.topics,
   });
 
-  const [provider, setProvider] = useState<StatementProvider>("ESEWA");
-  const [uploading, setUploading] = useState(false);
+  /** Which tile's file is going up, so only that tile says so. */
+  const [uploading, setUploading] = useState<StatementProvider | null>(null);
   // Once per mount: whether the module is linked cannot change while running.
   const [canPick] = useState(() => pickerAvailable());
   const [openId, setOpenId] = useState<string | null>(null);
   const [openEntry, setOpenEntry] = useState<StatementImport | null>(null);
   const [bucket, setBucket] = useState<Bucket>("tied");
-  const [guess, setGuess] = useState<Guess>("all");
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [pending, setPending] = useState<OrphanRow | null>(null);
   const [choice, setChoice] = useState<string | null>(null);
@@ -333,7 +307,7 @@ export default function ManageStatementsScreen() {
         return;
       }
 
-      setUploading(true);
+      setUploading(as);
 
       try {
         const assetId = await uploadAsset(
@@ -357,20 +331,14 @@ export default function ManageStatementsScreen() {
       } catch (error) {
         toastError("Could not read that", readApiError(error, "The file did not import."));
       } finally {
-        setUploading(false);
+        setUploading(null);
       }
     },
     [refresh],
   );
 
   /** Re-pick the same file against the type the server said it looked like. */
-  const retryAs = useCallback(
-    (as: StatementProvider) => {
-      setProvider(as);
-      void upload(as);
-    },
-    [upload],
-  );
+  const retryAs = useCallback((as: StatementProvider) => void upload(as), [upload]);
 
   const approveAll = useCallback(async () => {
     if (!openId) {
@@ -436,7 +404,6 @@ export default function ManageStatementsScreen() {
     (statementImportId: string, entry: StatementImport) => {
       setOpenId(statementImportId);
       setOpenEntry(entry);
-      setGuess("all");
       setCollapsed({});
       setBucket(entry.matchedCount > 0 || entry.orphanCount === 0 ? "tied" : "action");
     },
@@ -445,19 +412,7 @@ export default function ManageStatementsScreen() {
 
   const settleCount = buckets?.matched.filter((row) => row.status !== "SETTLED").length ?? 0;
 
-  const orphans = useMemo(() => {
-    const all = buckets?.orphans ?? [];
-
-    if (guess === "guessed") {
-      return all.filter((row) => row.suggestions.length > 0);
-    }
-
-    if (guess === "unknown") {
-      return all.filter((row) => row.suggestions.length === 0);
-    }
-
-    return all;
-  }, [buckets, guess]);
+  const orphans = buckets?.orphans ?? [];
 
   const settled = buckets?.matched.filter((row) => row.status === "SETTLED") ?? [];
   const waiting = buckets?.matched.filter((row) => row.status !== "SETTLED") ?? [];
@@ -479,7 +434,6 @@ export default function ManageStatementsScreen() {
           }
           centerTitle
           showBack
-          subtitle="Did the money reach your account?"
           title="Reconcile"
         />
       }
@@ -489,71 +443,35 @@ export default function ManageStatementsScreen() {
       scroll
     >
       <View className="gap-6 px-5 pt-4">
-        {/* ---------------------------------------------------------------- */}
-        {/*
-          Not straddling the bar, though NOTES §1 wants it to.
-          `Screen`'s body is a ScrollView, and a ScrollView clips its content to
-          its own bounds — a negative `marginTop` here does not ride up onto the
-          painted edge, it has its top 22 points cut off, border and rounded
-          corners with it. The straddle only works from the `header` slot (see
-          `finance/statement.tsx`), and this card is far too tall to sit there
-          and never scroll.
-        */}
-        <Card className="gap-3">
-          <View>
-            <Text variant="subtitle">1. Import your statement</Text>
-            <Text variant="caption">Upload a file from your bank or wallet.</Text>
+        <View>
+          <SectionHeader subtitle="Tap where the file is from" title="Import a statement" />
+          <View className="flex-row gap-3">
+            {PROVIDERS.map((as) => (
+              <Pressable
+                accessibilityLabel={`Import a ${providerLabel(as)} statement`}
+                accessibilityRole="button"
+                className={`flex-1 items-center gap-2 rounded-2xl border border-border bg-card py-4 active:opacity-70 ${
+                  canPick && uploading === null ? "" : "opacity-50"
+                }`}
+                disabled={!canPick || uploading !== null}
+                key={as}
+                onPress={() => void upload(as)}
+              >
+                <WalletMark name={as} size={44} />
+                <Text variant="label">
+                  {uploading === as ? "Reading…" : providerLabel(as)}
+                </Text>
+              </Pressable>
+            ))}
           </View>
-
-          <Select
-            label="From"
-            onChange={setProvider}
-            options={PROVIDER_OPTIONS}
-            value={provider}
-          />
-
-          <Button
-            disabled={!canPick}
-            label="Choose a file"
-            loading={uploading}
-            onPress={() => void upload(provider)}
-          />
-
-          <Text className="text-center" variant="caption">
-            CSV or XLSX only
+          <Text className="mt-2 text-center" variant="caption">
+            {canPick ? "CSV or XLSX" : "Importing needs a newer app build"}
           </Text>
-
-          {canPick ? null : (
-            /*
-             * Said up front rather than after a tap. The file picker is native
-             * and this build predates it; the rest of the screen — past
-             * imports, the four buckets, recording and assigning — is plain
-             * HTTP and works exactly as it will after a rebuild.
-             */
-            <View className="gap-1 rounded-xl border border-warning/40 bg-warning-soft p-3">
-              <Text variant="label">Importing needs a newer build</Text>
-              <Text variant="caption">
-                Files already imported can still be checked here.
-              </Text>
-            </View>
-          )}
-        </Card>
+        </View>
 
         {/* ---------------------------------------------------------------- */}
         <View>
-          <SectionHeader
-            action={
-              <Button
-                label="Refresh"
-                loading={imports.refreshing}
-                onPress={() => void imports.refresh()}
-                size="sm"
-                variant="ghost"
-              />
-            }
-            subtitle="Newest first"
-            title="2. Recent imports"
-          />
+          <SectionHeader title="Imports" />
 
           {imports.loading ? <SkeletonCard rows={2} /> : null}
 
@@ -563,7 +481,7 @@ export default function ManageStatementsScreen() {
 
           {!imports.loading && (imports.data ?? []).length === 0 ? (
             <EmptyCard
-              description="Import one and every payment in it is checked against what residents said they paid."
+              description="Tap eSewa, Khalti or Bank above."
               title="Nothing imported yet"
             />
           ) : null}
@@ -573,85 +491,64 @@ export default function ManageStatementsScreen() {
               const failure =
                 entry.status === "FAILED" ? readFailure(entry.errorDetail) : null;
 
-              return (
-                <Card className="gap-3" key={entry.statementImportId}>
-                  <View className="flex-row items-start gap-3">
+              const matched =
+                entry.rowCount > 0 ? Math.round((entry.matchedCount / entry.rowCount) * 100) : 0;
+              const card = (
+                <Card className="gap-3">
+                  <View className="flex-row items-center gap-3">
                     <WalletMark name={entry.provider} size={40} />
-
                     <View className="flex-1">
-                      <Text variant="label">
-                        {`${providerLabel(entry.provider)} · ${dates.dateTime(entry.uploadedAt)}`}
-                      </Text>
-                      {/*
-                        The filename, demoted. It used to be the heading — sixty
-                        characters of `TransactionHistory-2026-08-10-1357…`
-                        wrapping over two lines and telling the owner nothing.
-                        It still identifies the file they picked, so it stays,
-                        one line, in caption grey.
-                      */}
-                      <Text numberOfLines={1} variant="caption">
-                        {entry.fileName || "Untitled file"}
-                      </Text>
+                      <Text variant="label">{providerLabel(entry.provider)}</Text>
+                      <Text variant="caption">{dates.ago(entry.uploadedAt)}</Text>
                     </View>
-
-                    <Badge
-                      label={
-                        entry.status === "READY"
-                          ? "Ready"
-                          : (failure?.label ?? humanizeEnum(entry.status))
-                      }
-                      tone={
-                        entry.status === "READY"
-                          ? "success"
-                          : failure?.suggested
-                            ? "warning"
-                            : entry.status === "FAILED"
-                              ? "danger"
-                              : "warning"
-                      }
-                    />
+                    {entry.status === "READY" ? (
+                      entry.orphanCount > 0 ? (
+                        <Badge label={`${entry.orphanCount} need you`} tone="warning" />
+                      ) : (
+                        <Badge label="All matched" tone="success" />
+                      )
+                    ) : (
+                      <Badge
+                        label={failure?.label ?? humanizeEnum(entry.status)}
+                        tone={entry.status === "FAILED" && !failure?.suggested ? "danger" : "warning"}
+                      />
+                    )}
                   </View>
 
-                  {entry.status === "FAILED" ? (
+                  {entry.status === "READY" ? (
+                    <Meter
+                      label={`${entry.matchedCount} of ${entry.rowCount} payments matched`}
+                      percent={matched}
+                    />
+                  ) : entry.status === "FAILED" ? (
                     <View className="gap-3">
-                      <Text variant="caption">
-                        {entry.errorDetail ?? "We couldn't read this file. Please try again."}
+                      <Text numberOfLines={2} variant="caption">
+                        {entry.errorDetail ?? "We couldn't read this file."}
                       </Text>
-
                       <RetryAs
-                        busy={uploading}
+                        busy={uploading !== null}
                         onRetry={retryAs}
                         provider={failure?.suggested ?? null}
                       />
                     </View>
-                  ) : entry.status === "READY" ? (
-                    <>
-                      <View className="flex-row">
-                        {[
-                          { label: "Payments", value: entry.rowCount },
-                          { label: "Tied to bills", value: entry.matchedCount },
-                          { label: "Need you", value: entry.orphanCount },
-                        ].map((stat) => (
-                          <View className="flex-1" key={stat.label}>
-                            <Text className="text-lg font-semibold tracking-tight text-foreground">
-                              {stat.value}
-                            </Text>
-                            <Text variant="caption">{stat.label}</Text>
-                          </View>
-                        ))}
-                      </View>
-
-                      <Button
-                        label="View results"
-                        onPress={() => openSheet(entry.statementImportId, entry)}
-                        size="sm"
-                        variant="outline"
-                      />
-                    </>
                   ) : (
-                    <Text variant="caption">Still reading this file.</Text>
+                    <Text variant="caption">Still reading…</Text>
                   )}
                 </Card>
+              );
+
+              return entry.status === "READY" ? (
+                <Pressable
+                  accessibilityLabel={`${providerLabel(entry.provider)} import results`}
+                  accessibilityRole="button"
+                  className="active:opacity-70"
+                  key={entry.statementImportId}
+                  onPress={() => openSheet(entry.statementImportId, entry)}
+                >
+                  {card}
+                </Pressable>
+              ) : (
+                <View key={entry.statementImportId}>{card}</View>
               );
             })}
           </View>
@@ -704,72 +601,51 @@ export default function ManageStatementsScreen() {
 
         {reconciliation && buckets ? (
           <View className="gap-4 pb-2">
-            <Grid gap={10} maxColumns={2} minCellWidth={140}>
-              {[
-                <StatTile
-                  icon="list-outline"
-                  key="rows"
-                  label="Payments read"
-                  value={String(reconciliation.rowCount)}
-                />,
-                <StatTile
-                  icon="shield-checkmark-outline"
-                  key="tied"
-                  label="Tied to bills"
-                  tone="success"
-                  value={String(counts.tied)}
-                />,
-                <StatTile
-                  icon="help-circle-outline"
-                  key="action"
-                  label="Needs your action"
-                  tone="warning"
-                  value={String(counts.action)}
-                />,
-                <StatTile
-                  icon="alert-circle-outline"
-                  key="missing"
-                  label="Not in your account"
-                  tone="danger"
-                  value={String(counts.missing)}
-                />,
-              ]}
-            </Grid>
-
-            <Segmented
-              onChange={setBucket}
-              options={BUCKET_ORDER.map((value) => ({
-                count: counts[value],
-                label: BUCKETS[value].label,
-                value,
-              }))}
-              value={bucket}
+            <Meter
+              label={`${counts.tied} of ${reconciliation.rowCount} payments matched`}
+              percent={
+                reconciliation.rowCount > 0
+                  ? Math.round((counts.tied / reconciliation.rowCount) * 100)
+                  : 0
+              }
             />
 
-            {/*
-              One tinted sentence per bucket, above the list. The four buckets
-              are only meaningful against each other, and an owner who has never
-              met the word "reconciliation" needs to be told which one they are
-              looking at in words, not by the colour of a chip.
-            */}
-            <View className={`flex-row gap-3 rounded-2xl border p-3 ${meta.surface}`}>
-              <Ionicons
-                color={
-                  meta.tone === "brand"
+            {/* The four buckets as tiles: tap one to see it. Numbers, not sentences. */}
+            <View className="flex-row flex-wrap gap-2">
+              {BUCKET_ORDER.map((value) => {
+                const look = BUCKETS[value];
+                const active = bucket === value;
+                const ink =
+                  look.tone === "brand"
                     ? colors.primary
-                    : meta.tone === "danger"
+                    : look.tone === "danger"
                       ? colors.destructive
-                      : meta.tone === "warning"
+                      : look.tone === "warning"
                         ? colors.warning
-                        : colors.mutedForeground
-                }
-                name={meta.icon}
-                size={20}
-              />
-              <View className="flex-1">
-                <Text variant="label">{meta.lead}</Text>
-                <Text variant="caption">{meta.why}</Text>
-              </View>
+                        : colors.mutedForeground;
+
+                return (
+                  <Pressable
+                    accessibilityLabel={`${look.short}: ${counts[value]}`}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
+                    className={`flex-row items-center gap-3 rounded-2xl border p-3 active:opacity-70 ${
+                      active ? look.surface : "border-border bg-card"
+                    }`}
+                    key={value}
+                    onPress={() => setBucket(value)}
+                    style={{ flexBasis: "46%", flexGrow: 1 }}
+                  >
+                    <Ionicons color={ink} name={look.icon} size={22} />
+                    <View className="flex-1">
+                      <Text className="text-xl font-bold text-foreground">{counts[value]}</Text>
+                      <Text numberOfLines={1} variant="caption">
+                        {look.short}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
             </View>
 
             {counts[bucket] === 0 ? (
@@ -830,34 +706,6 @@ export default function ManageStatementsScreen() {
             {/* -------------------------------------------------------------- */}
             {bucket === "action" && counts.action > 0 ? (
               <View className="gap-3">
-                <Segmented
-                  onChange={setGuess}
-                  options={[
-                    { count: counts.action, label: "All", value: "all" },
-                    {
-                      count: (buckets.orphans ?? []).filter(
-                        (row) => row.suggestions.length > 0,
-                      ).length,
-                      label: "We guessed",
-                      value: "guessed",
-                    },
-                    {
-                      count: (buckets.orphans ?? []).filter(
-                        (row) => row.suggestions.length === 0,
-                      ).length,
-                      label: "No guess",
-                      value: "unknown",
-                    },
-                  ]}
-                  value={guess}
-                />
-
-                {orphans.length === 0 ? (
-                  <Text className="py-6 text-center" variant="muted">
-                    Nothing in this group.
-                  </Text>
-                ) : null}
-
                 {orphans.map((row) => {
                   const best = row.suggestions[0] ?? null;
 
