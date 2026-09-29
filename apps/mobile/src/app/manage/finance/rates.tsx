@@ -7,7 +7,7 @@ import {
   Users,
 } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
@@ -21,11 +21,7 @@ import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
-import {
-  createFeeSchedule,
-  deleteFeeSchedule,
-  type FeeScheduleData,
-} from "@/lib/admin-manage-api";
+import { createFeeSchedule, type FeeScheduleData } from "@/lib/admin-manage-api";
 import { adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
 import { formatMoney } from "@/lib/format";
@@ -55,12 +51,11 @@ import { toastError, toastSuccess } from "@/lib/toast";
  * a misconfigured resident billed a number no human chose), so the hint says so
  * where the fields are rather than after the failure.
  *
- * ## Stopping the rates lives here, not on the overview
+ * ## Deleting not-started rates is not here
  *
- * "Close this card" sat under the rates on the Finance screen, one tap from a
- * state where nothing is priced and the next run fails everybody. It is a rare,
- * destructive action, so it is at the bottom of the screen that owns rates,
- * behind a confirm — not beside the numbers an owner opens Finance to read.
+ * It used to be a ghost button at the foot of this form, so dropping next
+ * month's rates meant opening the screen for making new ones. It is now on the
+ * not-started card itself in `finance/room-rates`.
  */
 
 /** Matching is case- and punctuation-insensitive, as it is on the server. */
@@ -80,12 +75,7 @@ export default function ManageRatesScreen() {
    * that is actually the accent, which is the footer's Save.
    */
   const { colors } = useAppTheme();
-  /*
-   * Saving and deleting are both on screen at once — the footer's "Save rates"
-   * and the ghost "Delete these upcoming rates" under the card — so the flag has
-   * to say which one is running or the spinner appears on both.
-   */
-  const [busy, setBusy] = useState<"delete" | "save" | null>(null);
+  const [saving, setSaving] = useState(false);
   const [ratesDraft, setRatesDraft] = useState<Record<string, string> | null>(null);
   const [formDraft, setFormDraft] = useState<Record<string, string> | null>(null);
 
@@ -115,20 +105,6 @@ export default function ManageRatesScreen() {
    */
   const roomTypes = useMemo(() => schedules.data?.roomTypes ?? [], [schedules.data]);
 
-  /**
-   * Rates booked for a future month, if any.
-   *
-   * Not the same as `open`. The open row is an upcoming card for the whole month
-   * between saving it and its month arriving, and only an upcoming card may be
-   * changed or dropped — one that has started is billing residents.
-   */
-  const upcoming = useMemo(
-    () =>
-      (schedules.data?.schedules ?? []).find(
-        (schedule) => schedule.standing === "upcoming",
-      ) ?? null,
-    [schedules.data],
-  );
 
   /*
    * Seeded from the open card, and the draft wins the moment anything is typed.
@@ -219,7 +195,7 @@ export default function ManageRatesScreen() {
       return;
     }
 
-    setBusy("save");
+    setSaving(true);
 
     try {
       await createFeeSchedule({
@@ -236,42 +212,9 @@ export default function ManageRatesScreen() {
     } catch (error) {
       toastError("Could not save", readApiError(error));
     } finally {
-      setBusy(null);
+      setSaving(false);
     }
   }, [form, rates, roomTypes]);
-
-  const stop = useCallback(() => {
-    if (!upcoming) {
-      return;
-    }
-
-    Alert.alert(
-      "Delete these upcoming rates?",
-      "They have not started, so nothing has been billed from them. Your current rates carry on.",
-      [
-        { style: "cancel", text: "Keep them" },
-        {
-          onPress: () => {
-            void (async () => {
-              setBusy("delete");
-
-              try {
-                await deleteFeeSchedule(upcoming._id);
-                toastSuccess("Deleted", "Your current rates carry on.");
-                router.back();
-              } catch (error) {
-                toastError("Could not delete them", readApiError(error));
-              } finally {
-                setBusy(null);
-              }
-            })();
-          },
-          style: "destructive",
-          text: "Delete",
-        },
-      ],
-    );
-  }, [upcoming]);
 
   if (schedules.loading) {
     return (
@@ -296,9 +239,8 @@ export default function ManageRatesScreen() {
     <Screen
       footer={
         <Button
-          disabled={busy === "delete"}
           label="Save rates"
-          loading={busy === "save"}
+          loading={saving}
           onPress={() => void submit()}
         />
       }
@@ -439,24 +381,6 @@ export default function ManageRatesScreen() {
             </Text>
           </Card>
         </View>
-
-        {/*
-          Only rates that have not started can be dropped. One that is billing
-          residents is history — an invoice may already carry its id, and
-          deleting it would make "what was this resident's rent in March?"
-          unanswerable. The server refuses it either way; the button simply does
-          not offer what cannot be done.
-        */}
-        {upcoming ? (
-          <Button
-            disabled={busy === "save"}
-            label="Delete these upcoming rates"
-            loading={busy === "delete"}
-            onPress={stop}
-            size="sm"
-            variant="ghost"
-          />
-        ) : null}
       </View>
     </Screen>
   );

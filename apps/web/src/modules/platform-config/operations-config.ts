@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { connectToDatabase } from "@/lib/db";
+import { maintenanceCategorySchema } from "@/modules/maintenance/maintenance.validation";
 import { PlatformSettingModel } from "@hostel/db/models/PlatformSetting";
 
 /**
@@ -10,6 +11,11 @@ import { PlatformSettingModel } from "@hostel/db/models/PlatformSetting";
  * activation/payment machinery behaves.
  */
 export const OPERATIONS_CONFIG_KEY = "operations";
+
+/** A trade's call-out minimum until the platform sets its own (owner's call, 2026-09-24). */
+export const DEFAULT_MINIMUM_CHARGE = 200;
+
+const MAINTENANCE_TRADES = maintenanceCategorySchema.options;
 
 export const operationsConfigSchema = z.object({
   /**
@@ -94,6 +100,27 @@ export const operationsConfigSchema = z.object({
    * on its free months.
    */
   teamSetupFee: z.number().int().min(0).max(100_000).default(500),
+  /**
+   * The minimum call-out fee per maintenance trade, in whole rupees.
+   *
+   * Fixed by the platform, not by the hostel: it is shown to a warden before
+   * they raise a job and to the provider who accepts it, and a hostel that could
+   * edit it could make any job look cheap before approving it. Every trade is
+   * always present — a missing one reads as the default, never as free.
+   */
+  maintenanceMinimumCharges: z
+    .object(
+      Object.fromEntries(
+        MAINTENANCE_TRADES.map((trade) => [
+          trade,
+          z.number().int().min(0).max(100_000).default(DEFAULT_MINIMUM_CHARGE),
+        ]),
+      ),
+    )
+    // Zod 4 hands a default back unparsed, so it has to be the full object.
+    .default(() =>
+      Object.fromEntries(MAINTENANCE_TRADES.map((trade) => [trade, DEFAULT_MINIMUM_CHARGE])),
+    ),
   sendComplaintEmails: z.boolean().default(true),
   qrActivationExpiryDays: z.number().int().min(1).max(60).default(7),
   receiptNumberPrefix: z.string().trim().min(1).max(10).default("RCP"),

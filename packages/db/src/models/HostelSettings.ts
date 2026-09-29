@@ -112,39 +112,6 @@ const hostelSettingsSchema = new Schema(
       },
       default: () => ({}),
     },
-    /**
-     * What a call-out of each trade costs before anybody turns up.
-     *
-     * The figure a hostel quotes when it raises a maintenance request, so the
-     * person approving it knows what they are committing to before the plumber
-     * is on the phone rather than after the invoice arrives.
-     *
-     * **A minimum, not a price.** The real cost is whatever the job turns out to
-     * be and is recorded on the request as `costNote`; this is the floor the
-     * hostel has agreed with its providers. Whole rupees — every other amount in
-     * the product is, and a call-out charge in paisa is not a thing anybody
-     * quotes.
-     *
-     * An array rather than a Map keyed by category: `roomConfigurations` on the
-     * hostel is already shaped this way, a Map does not survive `.lean()` as a
-     * plain object, and a category with no agreed charge must be *absent* rather
-     * than present at zero — zero would render as "this trade is free".
-     */
-    maintenance: {
-      type: {
-        minimumCharges: {
-          default: () => [],
-          type: [
-            {
-              _id: false,
-              amount: { min: 0, required: true, type: Number },
-              category: { required: true, trim: true, type: String },
-            },
-          ],
-        },
-      },
-      default: () => ({}),
-    },
     createdBy: { ref: "User", type: Schema.Types.ObjectId },
     updatedBy: { ref: "User", type: Schema.Types.ObjectId },
   },

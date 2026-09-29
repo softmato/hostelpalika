@@ -34,12 +34,15 @@ export function IconButton({
   label,
   name,
   onPress,
+  size = "md",
   tone = "default",
 }: {
   badge?: number;
   label: string;
   name: keyof typeof Ionicons.glyphMap;
   onPress: () => void;
+  /** `sm` for a secondary action beside a primary one in the bar. */
+  size?: "md" | "sm";
   /** `onAccent` for a painted surface — see the note above. */
   tone?: "default" | "onAccent";
 }) {
@@ -50,13 +53,13 @@ export function IconButton({
     <Pressable
       accessibilityLabel={label}
       accessibilityRole="button"
-      className={`h-10 w-10 items-center justify-center rounded-full border active:opacity-70 ${
+      className={`${size === "sm" ? "h-8 w-8" : "h-10 w-10"} items-center justify-center rounded-full border active:opacity-70 ${
         onAccent ? "border-white/25 bg-white/15" : "border-border"
       }`}
       hitSlop={6}
       onPress={onPress}
     >
-      <Ionicons color={onAccent ? "#ffffff" : colors.foreground} name={name} size={19} />
+      <Ionicons color={onAccent ? "#ffffff" : colors.foreground} name={name} size={size === "sm" ? 15 : 19} />
 
       {badge > 0 ? (
         <View

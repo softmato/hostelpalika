@@ -17,16 +17,18 @@ import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { MaintenanceCommentModel } from "@hostel/db/models/MaintenanceComment";
 import { MaintenanceHistoryModel } from "@hostel/db/models/MaintenanceHistory";
 import { FileAssetModel } from "@hostel/db/models/FileAsset";
-import { HostelSettingsModel } from "@hostel/db/models/HostelSettings";
 import { MaintenanceRequestModel } from "@hostel/db/models/MaintenanceRequest";
 import { ServiceProviderModel } from "@hostel/db/models/ServiceProvider";
 import { maintenanceCategorySchema } from "@/modules/maintenance/maintenance.validation";
+import {
+  DEFAULT_MINIMUM_CHARGE,
+  getOperationsConfig,
+} from "@/modules/platform-config/operations-config";
 import type {
   maintenanceCommentCreateSchema,
   maintenanceRequestCreateSchema,
   maintenanceProviderAssignSchema,
   maintenanceRequestListQuerySchema,
-  maintenanceSettingsSchema,
   maintenanceStatusUpdateSchema,
 } from "@/modules/maintenance/maintenance.validation";
 
@@ -34,7 +36,6 @@ type MaintenanceRequestCreateInput = z.infer<typeof maintenanceRequestCreateSche
 type MaintenanceRequestListQuery = z.infer<typeof maintenanceRequestListQuerySchema>;
 type MaintenanceStatusUpdateInput = z.infer<typeof maintenanceStatusUpdateSchema>;
 type MaintenanceCommentCreateInput = z.infer<typeof maintenanceCommentCreateSchema>;
-type MaintenanceSettingsInput = z.infer<typeof maintenanceSettingsSchema>;
 type MaintenanceProviderAssignInput = z.infer<typeof maintenanceProviderAssignSchema>;
 
 type MaintenanceStatus =
@@ -416,7 +417,7 @@ export async function createMaintenanceRequest(
   const hostelId = resolveAdminHostelId(principal, input.hostelId);
   const providerId = await assertProviderApproved(input.providerId);
   const voiceNoteAssetId = await assertVoiceNoteUsable(input.voiceNoteAssetId, hostelId);
-  const minimumCharge = await minimumChargeFor(hostelId, input.category);
+  const minimumCharge = await minimumChargeFor(input.category);
   const request = (await MaintenanceRequestModel.create({
     category: input.category,
     costNote: input.costNote,
@@ -739,28 +740,22 @@ export async function addMaintenanceComment(
 export type MinimumCharge = { amount: number; category: string };
 
 /**
- * Every trade's minimum fee until the hostel sets its own (owner's call,
- * 2026-09-24). A stored row overrides it; clearing a row falls back to this.
+ * All eleven trades at the platform's call-out minimum.
+ *
+ * Set by the superadmin in operations config, not per hostel — see
+ * `maintenanceMinimumCharges` there for why a hostel cannot edit its own.
  */
-export const DEFAULT_MINIMUM_CHARGE = 200;
-
-/** All eleven trades, each with the hostel's own rate or the default. */
-async function resolveMinimumCharges(hostelId: Types.ObjectId): Promise<MinimumCharge[]> {
-  const settings = await HostelSettingsModel.findOne({ hostelId })
-    .select("maintenance")
-    .lean<{ maintenance?: { minimumCharges?: MinimumCharge[] } } | null>();
-  const stored = new Map(
-    (settings?.maintenance?.minimumCharges ?? []).map((row) => [row.category, row.amount]),
-  );
+async function resolveMinimumCharges(): Promise<MinimumCharge[]> {
+  const { maintenanceMinimumCharges } = await getOperationsConfig();
 
   return maintenanceCategorySchema.options.map((category) => ({
-    amount: stored.get(category) ?? DEFAULT_MINIMUM_CHARGE,
+    amount: maintenanceMinimumCharges[category] ?? DEFAULT_MINIMUM_CHARGE,
     category,
   }));
 }
 
-async function minimumChargeFor(hostelId: Types.ObjectId, category: string) {
-  const charges = await resolveMinimumCharges(hostelId);
+async function minimumChargeFor(category: string) {
+  const charges = await resolveMinimumCharges();
 
   return charges.find((row) => row.category === category)?.amount ?? DEFAULT_MINIMUM_CHARGE;
 }
@@ -776,48 +771,7 @@ export async function getMaintenanceSettings(
 
   return {
     hostelId: hostelId.toString(),
-    minimumCharges: await resolveMinimumCharges(hostelId),
+    minimumCharges: await resolveMinimumCharges(),
   };
 }
 
-/**
- * Replaces the whole list — see `maintenanceSettingsSchema` for why it is not a
- * patch.
- *
- * `upsert`, because a hostel that has never touched a setting has no
- * `HostelSettings` document at all and the first charge it agrees must not 404.
- */
-export async function updateMaintenanceSettings(
-  input: MaintenanceSettingsInput,
-  principal: ApiPrincipal,
-) {
-  await connectToDatabase();
-
-  const hostelId = resolveAdminHostelId(principal, input.hostelId);
-
-  await HostelSettingsModel.updateOne(
-    { hostelId },
-    {
-      $set: {
-        "maintenance.minimumCharges": input.minimumCharges,
-        updatedBy: principal.userId,
-      },
-      $setOnInsert: { createdBy: principal.userId, hostelId },
-    },
-    { upsert: true },
-  );
-
-  await AuditLogModel.create({
-    action: "MAINTENANCE_SETTINGS_UPDATED",
-    actorId: principal.userId,
-    entityId: hostelId.toString(),
-    entityType: "HostelSettings",
-    hostelId,
-    metadata: { count: input.minimumCharges.length },
-  });
-
-  return {
-    hostelId: hostelId.toString(),
-    minimumCharges: input.minimumCharges,
-  };
-}

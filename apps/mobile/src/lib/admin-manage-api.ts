@@ -500,14 +500,9 @@ export async function updateMaintenanceStatus(
  * What a call-out of each trade costs before anybody turns up —
  * `GET /hostel-admin/maintenance/settings`.
  *
- * **A category missing from the list has no agreed rate**, and callers must show
- * that as "not set" rather than as free. Returning all eleven categories at zero
- * would put `NPR 0` on the confirm step for every trade a hostel has not priced,
- * which is the app telling a warden the electrician is free.
- *
- * Readable by any staff member; only the owner may write. A warden about to
- * commit the hostel to a call-out has to see the figure, and a warden who could
- * edit it could approve any job by first lowering it.
+ * All eleven trades, always. Read-only: the figures are the platform's, set by
+ * the superadmin, and there is no hostel write route — a hostel that could edit
+ * them could approve any job by first lowering its charge.
  */
 export type MaintenanceCharge = { amount: number; category: MaintenanceCategory };
 
@@ -515,21 +510,6 @@ export async function getMaintenanceSettings() {
   const response = await api.get<
     ApiEnvelope<{ hostelId: string; minimumCharges: MaintenanceCharge[] }>
   >("/hostel-admin/maintenance/settings");
-
-  return unwrap(response).minimumCharges;
-}
-
-/**
- * `PATCH /hostel-admin/maintenance/settings` — owner only.
- *
- * The **whole** list, every time. A rate is removed by leaving its category out,
- * which is the only way to say "we no longer have one" without a sentinel amount
- * that every reader would have to know about.
- */
-export async function updateMaintenanceSettings(minimumCharges: MaintenanceCharge[]) {
-  const response = await api.patch<
-    ApiEnvelope<{ hostelId: string; minimumCharges: MaintenanceCharge[] }>
-  >("/hostel-admin/maintenance/settings", { minimumCharges });
 
   return unwrap(response).minimumCharges;
 }

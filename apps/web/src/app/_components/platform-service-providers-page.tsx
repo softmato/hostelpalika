@@ -19,6 +19,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
 
+import { MaintenanceChargesPanel } from "@/app/_components/platform-maintenance-charges";
 import { EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import {
   DataTable,
@@ -848,6 +849,8 @@ export const PlatformServiceProvidersPageContent = React.memo(
             )}
           </div>
         </div>
+
+        <MaintenanceChargesPanel />
       </div>
     );
   },

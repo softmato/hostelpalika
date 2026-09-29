@@ -340,18 +340,19 @@ export function PublicHeader({ active }: PublicHeaderProps) {
                       <CalendarCheck className="size-4" />
                       My bookings
                     </Link>
-                    {user.userResidentId ? (
-                      <button
-                        onClick={() => {
-                          setMenuOpen(false);
-                          requestResidentQr();
-                        }}
-                        className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
-                      >
-                        <QrCode className="size-4" />
-                        {user.isServiceProvider ? "Provider ID card" : "Resident ID card"}
-                      </button>
-                    ) : (
+                    {/* Shown to everyone: with no profile yet, the QR modal
+                        opens the create form instead. */}
+                    <button
+                      onClick={() => {
+                        setMenuOpen(false);
+                        requestResidentQr();
+                      }}
+                      className="flex w-full items-center gap-2 rounded-md px-3 py-2 text-sm text-foreground transition hover:bg-muted"
+                    >
+                      <QrCode className="size-4" />
+                      {user.isServiceProvider ? "Provider ID card" : "Resident ID card"}
+                    </button>
+                    {!user.userResidentId && (
                       <button
                         onClick={() => {
                           setMenuOpen(false);

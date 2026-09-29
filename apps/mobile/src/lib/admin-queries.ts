@@ -808,11 +808,12 @@ export function prefetchAdminRoute(href: string) {
       prefetchAdminQuery(adminQuery.finance());
       return;
     /*
-     * The rate card, not the finance summary: `finance/rates` and
-     * `finance/history` are two views of one list and share the key, so warming
-     * either warms both.
+     * The rate card, not the finance summary: `finance/room-rates`,
+     * `finance/rates` and `finance/history` are three views of one list and
+     * share the key, so warming any warms all.
      */
     case "/manage/finance/history":
+    case "/manage/finance/room-rates":
     case "/manage/finance/rates":
       prefetchAdminQuery(adminQuery.feeSchedules());
       return;

@@ -229,19 +229,20 @@ export function PortalAccount({ tone = "platform" }: { tone?: PortalTone }) {
               </p>
             </div>
           ) : null}
-          {user?.userResidentId ? (
-            <button
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
-              onClick={() => {
-                setMenuOpen(false);
-                requestResidentQr();
-              }}
-              type="button"
-            >
-              <QrCode className="size-4" />
-              Resident ID card
-            </button>
-          ) : (
+          {/* Shown to everyone: with no profile yet, the QR modal opens the
+              create form instead. */}
+          <button
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+            onClick={() => {
+              setMenuOpen(false);
+              requestResidentQr();
+            }}
+            type="button"
+          >
+            <QrCode className="size-4" />
+            Resident ID card
+          </button>
+          {!user?.userResidentId && (
             <button
               className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-brand-teal transition hover:bg-brand-teal/10"
               onClick={() => {

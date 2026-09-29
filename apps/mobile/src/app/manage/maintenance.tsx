@@ -20,6 +20,7 @@ import { FloatingButton } from "@/components/ui/floating-button";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
+import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
 import { Select } from "@/components/ui/select";
@@ -36,11 +37,9 @@ import {
   createMaintenanceRequest,
   MAINTENANCE_CATEGORIES,
   type MaintenanceCategory,
-  type MaintenanceCharge,
   type MaintenancePriority,
   type MaintenanceStatus,
   type ManagedMaintenanceRequest,
-  updateMaintenanceSettings,
   updateMaintenanceStatus,
 } from "@/lib/admin-manage-api";
 import { type AdminMaintenanceData, adminQuery } from "@/lib/admin-queries";
@@ -59,6 +58,7 @@ import {
   suggestProviderRoles,
 } from "@/lib/maintenance-suggest";
 import { dayInputFromNow, startOfDayIso, toDayInput } from "@/lib/manage-dates";
+import { groupNotifications } from "@/lib/notification-groups";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { tradeArtUri } from "@/lib/trade-art";
 import { uploadAsset } from "@/lib/uploads";
@@ -174,15 +174,6 @@ export default function ManageMaintenanceScreen() {
   const [confirming, setConfirming] = useState(false);
   const [chargesOpen, setChargesOpen] = useState(false);
   /**
-   * The charge editor's working copy, keyed by category and held as **text**.
-   *
-   * Text rather than numbers because a half-typed amount is a real state: a
-   * field parsed to a number on every keystroke cannot hold `""` while somebody
-   * clears it, so the box refills itself with `0` under the cursor. Parsing
-   * happens once, on save.
-   */
-  const [chargeDraft, setChargeDraft] = useState<Record<string, string>>({});
-  /**
    * The recording in hand, still on this phone.
    *
    * It is uploaded on the confirm step, not while it is being made — recording
@@ -249,6 +240,19 @@ export default function ManageMaintenanceScreen() {
         ? requests
         : requests.filter((request) => FILTER_STATUSES[filter].includes(request.status)),
     [filter, requests],
+  );
+
+  /*
+   * Newest first, then under day headings. The server sorts by status before
+   * date, which inside a "Today" heading would put a cancelled job above the
+   * one raised a minute ago.
+   */
+  const groups = useMemo(
+    () =>
+      groupNotifications(
+        [...visible].sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? "")),
+      ),
+    [visible],
   );
 
   const charges = useMemo(() => data.data?.charges ?? [], [data.data]);
@@ -389,60 +393,6 @@ export default function ManageMaintenanceScreen() {
     }
   }, [draft, refresh, suggestedCategory, suggestedPriority, voiceNote]);
 
-  const openCharges = useCallback(() => {
-    setChargeDraft(
-      Object.fromEntries(charges.map((charge) => [charge.category, String(charge.amount)])),
-    );
-    setChargesOpen(true);
-  }, [charges]);
-
-  const saveCharges = useCallback(async () => {
-    /*
-     * A blank box means "no agreed rate", and is how one is removed — there is
-     * no delete route, and the server takes the whole list every time. A typed
-     * `0` is kept and is a different statement: some hostels employ their own
-     * handyman and want the card to say the call-out is free.
-     */
-    const rows = MAINTENANCE_CATEGORIES.flatMap((category) => {
-      const raw = (chargeDraft[category] ?? "").trim();
-
-      if (!raw) {
-        return [];
-      }
-
-      const amount = Number(raw);
-
-      if (!Number.isInteger(amount) || amount < 0) {
-        return [{ amount: Number.NaN, category }];
-      }
-
-      return [{ amount, category }];
-    });
-
-    const bad = rows.find((row) => Number.isNaN(row.amount));
-
-    if (bad) {
-      toastError(
-        `Check the ${humanizeEnum(bad.category).toLowerCase()} charge`,
-        "Whole rupees, and no minus sign.",
-      );
-      return;
-    }
-
-    setBusy(true);
-
-    try {
-      await updateMaintenanceSettings(rows as MaintenanceCharge[]);
-      toastSuccess("Charges saved", "They show on the confirm step when you raise a job.");
-      setChargesOpen(false);
-      await refresh();
-    } catch (error) {
-      toastError("Could not save", readApiError(error, "Only the hostel owner may set these."));
-    } finally {
-      setBusy(false);
-    }
-  }, [chargeDraft, refresh]);
-
   const applyStatus = useCallback(async () => {
     if (!open) {
       return;
@@ -575,15 +525,15 @@ export default function ManageMaintenanceScreen() {
           actions={
             <View className="flex-row items-center">
               {/*
-                The charge editor is a glyph and the directory is a word, because
-                one of them is opened once a year and the other is opened
-                whenever somebody needs a number. Two ghost buttons side by side
-                would have made the bar a sentence.
+                The charge list is a small glyph and the directory is a word:
+                the prices are fixed by the platform and only ever looked at,
+                so they get the quieter control.
               */}
               <IconButton
                 label="Call-out charges"
                 name="pricetag-outline"
-                onPress={openCharges}
+                onPress={() => setChargesOpen(true)}
+                size="sm"
                 tone="onAccent"
               />
               <Button
@@ -630,70 +580,22 @@ export default function ManageMaintenanceScreen() {
           />
         ) : null}
 
-        {visible.map((request) => {
-          const provider = providerFor(request.providerId);
-
-          return (
-            <Card className="gap-2" key={request.id}>
-              <View className="flex-row items-start gap-2">
-                <Text className="flex-1" variant="subtitle">
-                  {request.title}
-                </Text>
-                <StatusPill status={request.status} />
-              </View>
-
-              {request.description && request.description !== request.title ? (
-                <Text numberOfLines={2} variant="muted">
-                  {request.description}
-                </Text>
-              ) : null}
-
-              <View className="flex-row flex-wrap gap-2">
-                <Badge
-                  label={humanizeEnum(request.priority)}
-                  tone={PRIORITY_TONE[request.priority] ?? "neutral"}
-                />
-                <Chip icon="construct-outline" label={humanizeEnum(request.category)} />
-                {request.location ? (
-                  <Chip icon="location-outline" label={request.location} />
-                ) : null}
-                {request.comments.length > 0 ? (
-                  <Chip
-                    icon="chatbubble-ellipses-outline"
-                    label={`${request.comments.length} note(s)`}
-                  />
-                ) : null}
-              </View>
-
-              {provider ? (
-                <View className="flex-row flex-wrap gap-2">
-                  <Chip icon="person-outline" label={provider.fullName} />
-                  {provider.phone ? (
-                    <Chip
-                      icon="call-outline"
-                      label={provider.phone}
-                      onPress={() => void Linking.openURL(`tel:${provider.phone}`)}
-                      tone="brand"
-                    />
-                  ) : null}
-                </View>
-              ) : null}
-
-              <Text variant="caption">
-                Raised {dates.date(request.createdAt)}
-                {request.scheduledFor ? ` · Booked for ${dates.date(request.scheduledFor)}` : ""}
-                {request.completedAt ? ` · Done ${dates.date(request.completedAt)}` : ""}
-              </Text>
-
-              <Button
-                label="Open"
-                onPress={() => openRequest(request)}
-                size="sm"
-                variant="outline"
+        {groups.map((group) => (
+          <View className="gap-2" key={group.bucket}>
+            {/* On the page, not in a card: the day is said once for the rows under it. */}
+            <Text className="px-0.5 font-semibold uppercase tracking-wider" variant="caption">
+              {group.label}
+            </Text>
+            {group.rows.map((request) => (
+              <RequestRow
+                key={request.id}
+                onOpen={() => openRequest(request)}
+                provider={providerFor(request.providerId)}
+                request={request}
               />
-            </Card>
-          );
-        })}
+            ))}
+          </View>
+        ))}
       </View>
 
       {/* ------------------------------------------------------------------ */}
@@ -921,46 +823,49 @@ export default function ManageMaintenanceScreen() {
       {/* Call-out charges                                                   */}
       {/* ------------------------------------------------------------------ */}
       {/*
-        The owner's side of the confirm step.
-
-        Eleven boxes, one per trade, every one filled: the server answers the
-        default (NPR 200) for any trade the hostel has not set, and a box left
-        blank on save goes back to that default. The list is short and fixed, so it is a plain stack rather
-        than an add-a-row builder: there is no twelfth trade to invent, and a
-        builder would make removing a rate a different gesture from leaving one
-        unset when they are the same statement.
-
-        A warden gets a 403 from the save. The route is readable by staff and
-        writable by the owner on purpose — see the route's own note — and the
-        error message says so rather than reading as a network failure.
+        Read-only. The minimum fee per trade is fixed by the platform, not by the
+        hostel — a warden or owner who could lower it could approve any job by
+        first making it look cheap. The server still answers all eleven trades.
       */}
       <Sheet
-        footer={
-          <Button label="Save charges" loading={busy} onPress={() => void saveCharges()} />
-        }
         onClose={() => setChargesOpen(false)}
         open={chargesOpen}
         title="Call-out charges"
       >
         <View className="gap-3 pb-2">
           <Text variant="caption">
-            The minimum fee for each trade. It is shown before a request is
-            raised and to the provider who accepts it — it never reaches an
-            invoice. Leave a box empty to use the default of Rs 200.
+            Minimum fee per trade, set by HostelPalika. Shown before a job is
+            raised — never added to an invoice.
           </Text>
 
-          {MAINTENANCE_CATEGORIES.map((category) => (
-            <Input
-              key={category}
-              keyboardType="number-pad"
-              label={humanizeEnum(category)}
-              onChangeText={(value) =>
-                setChargeDraft((prev) => ({ ...prev, [category]: value }))
-              }
-              placeholder="200"
-              value={chargeDraft[category] ?? ""}
-            />
-          ))}
+          <Card padding="px-4 py-1">
+            {MAINTENANCE_CATEGORIES.map((category, index) => {
+              const amount = minimumChargeFor(charges, category);
+
+              return (
+                <View key={category}>
+                  {index > 0 ? <RowDivider inset /> : null}
+                  <ListRow
+                    left={
+                      <Image
+                        accessibilityIgnoresInvertColors
+                        contentFit="contain"
+                        source={{ uri: tradeArtUri(category) }}
+                        style={{ height: 32, width: 32 }}
+                        transition={0}
+                      />
+                    }
+                    right={
+                      <Text className="font-semibold text-foreground">
+                        {amount === null ? "—" : formatMoney(amount)}
+                      </Text>
+                    }
+                    title={humanizeEnum(category)}
+                  />
+                </View>
+              );
+            })}
+          </Card>
         </View>
       </Sheet>
 
@@ -975,8 +880,7 @@ export default function ManageMaintenanceScreen() {
         Two things it deliberately does **not** do:
 
         - It does not send the figure to the server. `minimumCharges` is the
-          hostel's own agreement with its trades, not a price the platform sets
-          and not a line on an invoice; what the job actually costs is recorded
+          platform's floor for the trade, not a line on an invoice; what the job actually costs is recorded
           on the request as a cost note when somebody knows it. Posting a quote
           here would be inventing a number nobody has agreed to yet.
         - It does not block a hostel that has priced nothing. The unpriced case
@@ -1027,11 +931,7 @@ export default function ManageMaintenanceScreen() {
             {quotedCharge === null ? (
               <>
                 <Text className="text-center" variant="muted">
-                  No call-out charge has been agreed for this trade.
-                </Text>
-                <Text className="text-center" variant="caption">
-                  Set one on this screen&apos;s Charges sheet and it will show here
-                  next time.
+                  No call-out charge is set for this trade.
                 </Text>
               </>
             ) : (
@@ -1320,5 +1220,114 @@ export default function ManageMaintenanceScreen() {
         </View>
       </Sheet>
     </Screen>
+  );
+}
+
+/**
+ * One request in the queue: the trade's drawing, what and where, who is on it.
+ *
+ * The whole card opens the request sheet. It used to end in a full-width Open
+ * button and carry five chips, so every card was the same height of controls
+ * and the title was the smallest thing on it. Low and medium priority are the
+ * normal case and are not drawn; only High and Urgent earn a badge.
+ */
+function RequestRow({
+  onOpen,
+  provider,
+  request,
+}: {
+  onOpen: () => void;
+  provider: { fullName: string; phone?: string | null } | null;
+  request: ManagedMaintenanceRequest;
+}) {
+  const dates = useDates();
+  const { colors } = useAppTheme();
+  const loud = request.priority === "HIGH" || request.priority === "URGENT";
+  const when = request.completedAt
+    ? `Done ${dates.date(request.completedAt)}`
+    : request.scheduledFor
+      ? `Booked for ${dates.date(request.scheduledFor)}`
+      : `Raised ${dates.ago(request.createdAt)}`;
+
+  return (
+    <Pressable
+      accessibilityLabel={`${request.title}. ${humanizeEnum(request.status)}`}
+      accessibilityRole="button"
+      className="active:opacity-70"
+      onPress={onOpen}
+    >
+      <Card className="gap-3" padding="p-3">
+        <View className="flex-row items-start gap-3">
+          <Image
+            accessibilityIgnoresInvertColors
+            contentFit="contain"
+            source={{ uri: tradeArtUri(request.category) }}
+            style={{ height: 44, width: 44 }}
+            transition={0}
+          />
+          <View className="flex-1 gap-0.5">
+            <View className="flex-row items-start gap-2">
+              <Text
+                className="flex-1 font-semibold text-foreground"
+                numberOfLines={1}
+                style={{ fontSize: 15 }}
+              >
+                {request.title}
+              </Text>
+              <StatusPill status={request.status} />
+            </View>
+            <Text numberOfLines={1} variant="caption">
+              {[humanizeEnum(request.category), request.location].filter(Boolean).join(" · ")}
+            </Text>
+            {request.description && request.description !== request.title ? (
+              <Text className="mt-1" numberOfLines={2} variant="muted">
+                {request.description}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+
+        {provider ? (
+          <View className="flex-row items-center gap-2 rounded-xl bg-muted px-3 py-2">
+            <Ionicons color={colors.mutedForeground} name="person-circle-outline" size={18} />
+            <Text className="flex-1" numberOfLines={1} variant="label">
+              {provider.fullName}
+            </Text>
+            {provider.phone ? (
+              <Pressable
+                accessibilityLabel={`Call ${provider.fullName}`}
+                accessibilityRole="button"
+                className="h-8 w-8 items-center justify-center rounded-full bg-brand-soft active:opacity-70"
+                hitSlop={6}
+                onPress={() => void Linking.openURL(`tel:${provider.phone}`)}
+              >
+                <Ionicons color={colors.primary} name="call" size={15} />
+              </Pressable>
+            ) : null}
+          </View>
+        ) : null}
+
+        <View className="flex-row items-center gap-3 border-t border-border pt-2.5">
+          {loud ? (
+            <Badge
+              label={humanizeEnum(request.priority)}
+              tone={PRIORITY_TONE[request.priority] ?? "warning"}
+            />
+          ) : null}
+          {request.voiceNoteAssetId ? (
+            <Ionicons color={colors.primary} name="mic" size={14} />
+          ) : null}
+          {request.comments.length > 0 ? (
+            <View className="flex-row items-center gap-1">
+              <Ionicons color={colors.mutedForeground} name="chatbubble-outline" size={13} />
+              <Text variant="caption">{request.comments.length}</Text>
+            </View>
+          ) : null}
+          <Text className="flex-1 text-right" numberOfLines={1} variant="caption">
+            {when}
+          </Text>
+        </View>
+      </Card>
+    </Pressable>
   );
 }

@@ -451,6 +451,7 @@ function RootShell() {
         <Stack.Screen name="manage/referrals" />
         <Stack.Screen name="manage/finance/index" />
         <Stack.Screen name="manage/finance/history" />
+        <Stack.Screen name="manage/finance/room-rates" />
         <Stack.Screen name="manage/finance/rates" />
         <Stack.Screen name="manage/finance/payment-setup" />
         <Stack.Screen name="manage/finance/gateway/[provider]" />

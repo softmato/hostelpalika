@@ -187,7 +187,7 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
       },
       {
         description:
-          "Approve service provider applications and manage the verified provider network.",
+          "Approve service provider applications, manage the verified provider network, and set the call-out charge per trade.",
         href: "/platform/service-providers",
         icon: "wrench",
         keywords: [
@@ -197,6 +197,9 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
           "electrician",
           "plumber",
           "verify",
+          "call-out charges",
+          "minimum fee",
+          "maintenance charges",
         ],
         label: "Service Providers",
       },
