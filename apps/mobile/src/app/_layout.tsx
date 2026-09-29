@@ -445,6 +445,7 @@ function RootShell() {
         <Stack.Screen name="manage/roll-call" />
         <Stack.Screen name="manage/food" />
         <Stack.Screen name="manage/maintenance" />
+        <Stack.Screen name="manage/complaints" />
         <Stack.Screen name="manage/reports" />
         <Stack.Screen name="manage/settings" />
         <Stack.Screen name="manage/wardens" />

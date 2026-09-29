@@ -836,6 +836,28 @@ export async function rejectClaim(eventId: string, rejectionReason: string) {
   await api.post(`/hostel-admin/finance/events/${eventId}/reject`, { rejectionReason });
 }
 
+/**
+ * Every complaint, not just the overdue ones — `GET /hostel-admin/complaints`.
+ * One page at the route's ceiling; the complaints screen filters on the phone.
+ */
+export async function listAllComplaints() {
+  const response = await api.get<ApiEnvelope<{ complaints: AdminComplaint[] }>>(
+    "/hostel-admin/complaints",
+    { params: { pageSize: 100 } },
+  );
+
+  return unwrap(response).complaints;
+}
+
+/** `PATCH /hostel-admin/complaints/{id}/status` — the reply, if any, goes with it. */
+export async function setComplaintStatus(
+  complaintId: string,
+  status: "IN_PROGRESS" | "REJECTED" | "RESOLVED",
+  response?: string,
+) {
+  await api.patch(`/hostel-admin/complaints/${complaintId}/status`, { response, status });
+}
+
 /** `POST /hostel-admin/complaints/{id}/reply` — 2–2000 chars. */
 export async function replyToComplaint(complaintId: string, message: string) {
   await api.post(`/hostel-admin/complaints/${complaintId}/reply`, { message });

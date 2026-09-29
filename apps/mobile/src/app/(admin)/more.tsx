@@ -89,7 +89,7 @@ const MANAGE_ROWS: {
     tone: "brand",
   },
   {
-    href: "/(admin)/today",
+    href: "/manage/complaints",
     icon: "chatbox-ellipses-outline",
     subtitle: "What residents have raised, and what is still unanswered",
     title: "Complaints",

@@ -41,6 +41,7 @@ import type { AxiosError } from "axios";
 import { REALTIME_TOPIC } from "@/constants/topics";
 import {
   type AdminAlerts,
+  type AdminComplaint,
   type AdminHostel,
   type AdminSubscription,
   type AdminInvoiceMatrix,
@@ -66,6 +67,7 @@ import {
   getAdminReport,
   listAdminNotices,
   listAdminResidents,
+  listAllComplaints,
 } from "@/lib/admin-api";
 import {
   type AttendanceAnalytics,
@@ -598,6 +600,9 @@ export const adminQuery = {
   finance: (): AdminQuery<AdminFinanceData> =>
     define("admin:finance", [REALTIME_TOPIC.PAYMENTS], loadFinance),
 
+  complaints: (): AdminQuery<AdminComplaint[]> =>
+    define("admin:complaints", [REALTIME_TOPIC.COMPLAINTS], listAllComplaints),
+
   food: (): AdminQuery<AdminFoodData> =>
     define("admin:food", [REALTIME_TOPIC.FOOD], loadFood),
 
@@ -835,6 +840,9 @@ export function prefetchAdminRoute(href: string) {
       return;
     case "/manage/maintenance":
       prefetchAdminQuery(adminQuery.maintenance(""));
+      return;
+    case "/manage/complaints":
+      prefetchAdminQuery(adminQuery.complaints());
       return;
     case "/manage/notices":
       prefetchAdminQuery(adminQuery.notices(""));
