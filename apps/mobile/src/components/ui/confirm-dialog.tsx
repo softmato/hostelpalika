@@ -180,6 +180,7 @@ export function ConfirmDialog({
   confirmLabel,
   destructive = false,
   message,
+  onCancel,
   onClose,
   onConfirm,
   open,
@@ -252,6 +253,15 @@ export function ConfirmDialog({
     onClose();
   }, [onClose, pending]);
 
+  const cancel = useCallback(() => {
+    if (pending) {
+      return;
+    }
+
+    onClose();
+    onCancel?.();
+  }, [onCancel, onClose, pending]);
+
   /*
    * A one-button alert has no "walk away" answer. A stray tap on the frost
    * would otherwise close it and leave the reader on a screen the alert was
@@ -272,7 +282,7 @@ export function ConfirmDialog({
       destructive={destructive}
       message={message}
       onBackdrop={single ? undefined : dismiss}
-      onCancel={dismiss}
+      onCancel={cancel}
       onConfirm={confirm}
       onHardwareBack={single ? confirm : dismiss}
       pending={pending}

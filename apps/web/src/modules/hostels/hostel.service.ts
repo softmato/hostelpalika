@@ -57,6 +57,10 @@ import {
 } from "@/modules/billing/subscription.service";
 import { startFreeMonths } from "@/modules/billing/subscription-payment.service";
 import {
+  recordHostelReferral,
+  resolveHostelReferralCode,
+} from "@/modules/hostel-referrals/hostel-referral.service";
+import {
   registrationShortStays,
   type HostelShortStays,
 } from "@/modules/bookings/short-stay-settings.service";
@@ -1140,8 +1144,23 @@ export async function registerPublicHostelApplication(
     ? { ...input.applicant, email: authenticatedOwner.email }
     : input.applicant;
 
+  // Before any write too: a mistyped code refuses the form rather than filing
+  // a registration that silently lost its reward.
+  const referral = input.referralCode?.trim()
+    ? await resolveHostelReferralCode(input.referralCode)
+    : null;
+
   const ownerId =
     authenticatedOwner?._id ?? (await findOrCreatePublicHostelOwner(applicant));
+
+  if (referral?.referrerOwnerId && String(referral.referrerOwnerId) === String(ownerId)) {
+    throw new HostelServiceError(
+      "That is your own hostel's referral code. Share it with other hostels instead.",
+      "REFERRAL_OWN_CODE",
+      422,
+    );
+  }
+
   // Before the hostel exists: a document that fails its claim must not leave a
   // half-registered listing behind.
   const claimedDocuments = await claimRegistrationDocuments(input.documents, ownerId);
@@ -1188,6 +1207,10 @@ export async function registerPublicHostelApplication(
    */
   await getOrCreateSubscription(hostel._id, { source: "PUBLIC" });
 
+  if (referral) {
+    await recordHostelReferral(referral, hostel._id);
+  }
+
   await HostelVerificationModel.create({
     createdBy: ownerId,
     hostelId: hostel._id,
@@ -1216,6 +1239,7 @@ export async function registerPublicHostelApplication(
     entityType: "Hostel",
     hostelId: hostel._id,
     metadata: {
+      referralCode: referral?.code ?? null,
       selectedPlan: input.plan?.planId ?? null,
       submittedFrom: "public-registration",
     },

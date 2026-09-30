@@ -1,5 +1,5 @@
-import { router } from "expo-router";
-import { useCallback } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useCallback, useState } from "react";
 import { View } from "react-native";
 
 import { DocumentScreen } from "@/components/document-screen";
@@ -7,13 +7,22 @@ import { MockupCarousel } from "@/components/mockup-carousel";
 import { MockupImage } from "@/components/mockup-image";
 import { IconPoint } from "@/components/step-flow";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Sheet } from "@/components/ui/sheet";
 import { Lottie } from "@/components/ui/lottie";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
 import { useResource } from "@/hooks/use-resource";
+import { readApiError } from "@/lib/api-contract";
+import { openConfirm } from "@/lib/confirm";
 import { MOCKUPS, type Mockup } from "@/lib/portal-mockups";
-import { listOwnHostelApplications, type OwnHostelApplication } from "@/lib/registration-api";
+import {
+  type HostelReferralPreview,
+  listOwnHostelApplications,
+  type OwnHostelApplication,
+  previewHostelReferralCode,
+} from "@/lib/registration-api";
 
 /**
  * "Register your hostel" — the app's version of the website's owner landing page.
@@ -50,6 +59,50 @@ import { listOwnHostelApplications, type OwnHostelApplication } from "@/lib/regi
  */
 export default function RegisterHostelScreen() {
   const account = useAppSelector((state) => state.auth.account);
+  const params = useLocalSearchParams<{ ref?: string }>();
+
+  /*
+   * "Start" asks one question in the app's custom alert: a normal
+   * registration, or one with a referral code. The code is checked in the sheet
+   * before the form opens, so the owner sees what it gives up front; the form
+   * sends it and the server checks it again.
+   */
+  const [codeOpen, setCodeOpen] = useState(false);
+  const [code, setCode] = useState((params.ref ?? "").toUpperCase());
+  const [preview, setPreview] = useState<HostelReferralPreview | null>(null);
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [checking, setChecking] = useState(false);
+
+  const start = useCallback(() => {
+    if (params.ref) {
+      setCodeOpen(true);
+      return;
+    }
+
+    openConfirm({
+      cancelLabel: "Normal registration",
+      confirmLabel: "I have a code",
+      message:
+        "A code from another hostel or one of our partners adds free time to your plan.",
+      onCancel: () => router.push("/register-hostel/apply"),
+      onConfirm: () => setCodeOpen(true),
+      title: "Do you have a referral code?",
+    });
+  }, [params.ref]);
+
+  const check = useCallback(async () => {
+    setChecking(true);
+    setCodeError(null);
+
+    try {
+      setPreview(await previewHostelReferralCode(code));
+    } catch (error) {
+      setPreview(null);
+      setCodeError(readApiError(error, "That code could not be checked."));
+    } finally {
+      setChecking(false);
+    }
+  }, [code]);
 
   const applications = useResource<OwnHostelApplication[]>(
     useCallback(
@@ -67,11 +120,76 @@ export default function RegisterHostelScreen() {
   return (
     <DocumentScreen
       action={
-        <ApplyBlock
-          isSignedIn={Boolean(account)}
-          latest={latest}
-          loading={Boolean(account) && applications.loading}
-        />
+        <>
+          <ApplyBlock
+            isSignedIn={Boolean(account)}
+            latest={latest}
+            loading={Boolean(account) && applications.loading}
+            onStart={start}
+          />
+          <Sheet
+            footer={
+              preview ? (
+                <Button
+                  label="Continue with this code"
+                  onPress={() => {
+                    setCodeOpen(false);
+                    router.push({
+                      params: { ref: preview.code },
+                      pathname: "/register-hostel/apply",
+                    });
+                  }}
+                />
+              ) : (
+                <View className="gap-2">
+                  <Button
+                    disabled={code.trim().length < 4}
+                    label="Check code"
+                    loading={checking}
+                    onPress={() => void check()}
+                  />
+                  <Button
+                    label="Skip, register normally"
+                    onPress={() => {
+                      setCodeOpen(false);
+                      router.push("/register-hostel/apply");
+                    }}
+                    variant="ghost"
+                  />
+                </View>
+              )
+            }
+            onClose={() => setCodeOpen(false)}
+            open={codeOpen}
+            title="Referral code"
+          >
+            <View className="gap-3 pb-2">
+              <Input
+                autoCapitalize="characters"
+                autoCorrect={false}
+                error={codeError}
+                label="Code"
+                onChangeText={(next) => {
+                  setCode(next.toUpperCase());
+                  setPreview(null);
+                  setCodeError(null);
+                }}
+                placeholder="EDUC9C0D1"
+                value={code}
+              />
+              {preview ? (
+                <View className="gap-1 rounded-2xl bg-primary/10 p-4">
+                  <Text variant="label">From {preview.from}</Text>
+                  <Text variant="muted">
+                    {preview.rewardText
+                      ? `Your plan gets ${preview.rewardText} extra, free, once your hostel goes live.`
+                      : "The code is valid."}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          </Sheet>
+        </>
       }
       comingSoon="More about hosting with us is being designed — it arrives in an upcoming update."
       media={<MockupCarousel slides={SLIDES} title="See it before you sign up" />}
@@ -128,10 +246,12 @@ function ApplyBlock({
   isSignedIn,
   latest,
   loading,
+  onStart,
 }: {
   isSignedIn: boolean;
   latest: OwnHostelApplication | null;
   loading: boolean;
+  onStart: () => void;
 }) {
   if (loading) {
     // The block's own shape, so the page does not shift when the lookup lands.
@@ -189,11 +309,7 @@ function ApplyBlock({
 
       <View className="gap-2">
         {pending ? (
-          <Button
-            label="Register another hostel"
-            onPress={() => router.push("/register-hostel/apply")}
-            variant="outline"
-          />
+          <Button label="Register another hostel" onPress={onStart} variant="outline" />
         ) : (
           <>
             <Button
@@ -202,7 +318,7 @@ function ApplyBlock({
                   ? "Start your registration"
                   : "Sign in and start your registration"
               }
-              onPress={() => router.push("/register-hostel/apply")}
+              onPress={onStart}
             />
             <Button
               label="Browse hostels first"

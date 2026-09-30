@@ -660,8 +660,10 @@ export async function startFreeMonths(hostelId: string, actorId?: string, from =
  * - **A public owner gets the portal.** Approval kept it back until now
  *   (`approvePlatformHostel`); a renewal finds the owner already holding it and
  *   changes nothing.
+ * - **Referral time lands** (`settleHostelReferrals`), on this hostel and on the
+ *   one whose code it registered with.
  *
- * Neither may fail the settlement: the money is confirmed and the receipt is
+ * None may fail the settlement: the money is confirmed and the receipt is
  * out. A failure is logged for a person to finish, never thrown back at a
  * gateway that would retry a payment that already landed.
  *
@@ -680,6 +682,18 @@ async function openHostelAfterPayment(
     await liftHostelSuspension(hostelId, { actorId: actorId ?? null, cause: "PAID" });
   } catch (error) {
     logAccessFailure("hostel_suspension_lift_failed", hostelId, error);
+  }
+
+  // Live now: its referral (if it registered with a code) pays out, and any
+  // referral time owed to it lands on the period that is now running.
+  try {
+    const { settleHostelReferrals } = await import(
+      "@/modules/hostel-referrals/hostel-referral.service"
+    );
+
+    await settleHostelReferrals(hostelId);
+  } catch (error) {
+    logAccessFailure("hostel_referral_settle_failed", hostelId, error);
   }
 
   if (source === "TEAM") {

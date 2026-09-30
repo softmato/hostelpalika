@@ -43,6 +43,12 @@ export type ConfirmRequest = {
   id?: number;
   message?: string;
   /**
+   * Runs when the cancel *button* is pressed — not the backdrop or back —
+   * for a question whose second answer is itself a path ("Normal
+   * registration"), not just walking away.
+   */
+  onCancel?: () => void;
+  /**
    * The work itself. While the promise is pending the dialog stays up, the
    * confirm button spins and neither action can be pressed; when it settles the
    * dialog closes.

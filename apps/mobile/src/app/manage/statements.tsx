@@ -26,6 +26,7 @@ import {
   type StatementImport,
   type StatementProvider,
 } from "@/lib/admin-manage-api";
+import { approveClaim, askResidentAboutClaim, rejectClaim } from "@/lib/admin-api";
 import { adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
 import { humanizeEnum } from "@/lib/format";
@@ -335,6 +336,37 @@ export default function ManageStatementsScreen() {
       }
     },
     [refresh],
+  );
+
+  /**
+   * The three answers to "a resident says they paid, the statement disagrees".
+   * Approving anyway must exist: statements lag by days, and the server records
+   * who pressed it.
+   */
+  const decideClaim = useCallback(
+    async (action: "approve" | "ask" | "reject", eventId: string) => {
+      setBusy(true);
+
+      try {
+        if (action === "approve") {
+          await approveClaim(eventId);
+          toastSuccess("Approved", "Recorded against your name.");
+        } else if (action === "reject") {
+          await rejectClaim(eventId, "We have not received this payment yet.");
+          toastSuccess("Rejected", "The resident has been told why.");
+        } else {
+          await askResidentAboutClaim(eventId);
+          toastSuccess("Asked", "The resident was asked for clearer details.");
+        }
+
+        await view.refresh();
+      } catch (error) {
+        toastError("Could not do that", readApiError(error));
+      } finally {
+        setBusy(false);
+      }
+    },
+    [view],
   );
 
   /** Re-pick the same file against the type the server said it looked like. */
@@ -809,6 +841,32 @@ export default function ManageStatementsScreen() {
                       <Money value={row.amount} />
                     </View>
                     {row.why ? <Text variant="caption">{row.why}</Text> : null}
+                    <View className="mt-1 flex-row gap-2">
+                      <Button
+                        className="flex-1"
+                        disabled={busy}
+                        label="Reject"
+                        onPress={() => void decideClaim("reject", row.claimEventId)}
+                        size="sm"
+                        variant="outline"
+                      />
+                      <Button
+                        className="flex-1"
+                        disabled={busy}
+                        label="Approve anyway"
+                        onPress={() => void decideClaim("approve", row.claimEventId)}
+                        size="sm"
+                        variant="outline"
+                      />
+                      <Button
+                        className="flex-1"
+                        disabled={busy}
+                        label="Ask"
+                        onPress={() => void decideClaim("ask", row.claimEventId)}
+                        size="sm"
+                        variant="outline"
+                      />
+                    </View>
                   </View>
                 ))
               : null}

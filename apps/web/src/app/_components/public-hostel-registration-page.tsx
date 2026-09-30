@@ -41,6 +41,7 @@ import {
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
+import { useReferralCodeFromUrl } from "@/app/_components/register-hostel-start";
 import { checkAuthWithRefresh } from "@/lib/auth-check";
 import {
   EMPTY_PAYOUT_DRAFT,
@@ -398,6 +399,10 @@ export function PublicHostelRegistrationPage() {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  // From the landing page's referral step (`?ref=`). Checked again on submit.
+  const referralFromUrl = useReferralCodeFromUrl();
+  const [referralRemoved, setReferralRemoved] = useState(false);
+  const referralCode = referralRemoved ? "" : referralFromUrl;
   const [message, setMessage] = useState("");
   const [attemptedSubmit, setAttemptedSubmit] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
@@ -1179,6 +1184,7 @@ export function PublicHostelRegistrationPage() {
               .filter(Boolean),
                   totalCapacity: numberValue(totalCapacity),
             panNumber: panNumber.replace(/\s/g, "") || undefined,
+            referralCode: referralCode || undefined,
             shortStays: shortStaysPayload(shortStays, rooms),
             totalFloors: numberValue(totalFloors),
             yearEstablished: yearEstablished.trim() || undefined,
@@ -1287,6 +1293,19 @@ export function PublicHostelRegistrationPage() {
                 ? "Your application has been submitted for review."
                 : `Step ${step} of 5 — add your hostel details to get listed on ${siteName}.`}
             </p>
+            {referralCode && !submitted ? (
+              <p className="mt-2 inline-flex items-center gap-2 rounded-full bg-brand-teal/10 px-3 py-1 text-xs font-semibold text-brand-teal">
+                Referral code {referralCode}
+                <button
+                  aria-label="Remove referral code"
+                  className="text-muted-foreground hover:text-foreground"
+                  onClick={() => setReferralRemoved(true)}
+                  type="button"
+                >
+                  ×
+                </button>
+              </p>
+            ) : null}
           </div>
           {!submitted ? (
             <button

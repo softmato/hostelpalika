@@ -49,6 +49,9 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/db", () => ({ connectToDatabase: mocks.connectToDatabase }));
+vi.mock("@/modules/hostel-referrals/hostel-referral.service", () => ({
+  settleHostelReferrals: vi.fn(),
+}));
 
 vi.mock("@hostel/db/models/AuditLog", () => ({
   AuditLogModel: { create: mocks.auditCreate },

@@ -100,6 +100,22 @@ export async function lookupRegistrationLocation(
   return unwrap(response).results;
 }
 
+/** What a hostel referral code gives — `GET /public/hostel-referral-codes/:code`. */
+export type HostelReferralPreview = {
+  code: string;
+  from: string;
+  kind: "HOSTEL" | "PARTNER";
+  rewardText: string;
+};
+
+export async function previewHostelReferralCode(code: string) {
+  const response = await api.get<ApiEnvelope<HostelReferralPreview>>(
+    `/public/hostel-referral-codes/${encodeURIComponent(code.trim())}`,
+  );
+
+  return unwrap(response);
+}
+
 export async function registerHostelApplication(payload: HostelRegisterPayload) {
   const response = await api.post<
     ApiEnvelope<{ hostel: { id: string; name?: string } }>

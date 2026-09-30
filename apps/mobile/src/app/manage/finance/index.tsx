@@ -8,6 +8,7 @@ import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
+import { payoutAccountSummary, usePayoutAccount } from "@/components/manage/payout-account-card";
 import { WalletMark, walletLabel } from "@/components/ui/wallet-mark";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
@@ -56,6 +57,8 @@ export default function ManageFinanceScreen() {
   const profile = finance.data?.profile ?? null;
   const gateways = finance.data?.gateways ?? null;
   const concessions = finance.data?.concessions ?? null;
+  // Owner-only on the server: a warden's read is refused, and the row says so.
+  const payout = usePayoutAccount();
 
   const header = <AppBar accent centerTitle showBack title="Finance" />;
 
@@ -156,6 +159,20 @@ export default function ManageFinanceScreen() {
               onPress={() => router.push("/manage/statements")}
               subtitle="Match payments to your bank and wallet"
               title="Bank and wallet statements"
+            />
+            <RowDivider inset />
+            <ListRow
+              icon="wallet-outline"
+              iconBgColor="#34C759"
+              onPress={payout.error ? undefined : () => router.push("/manage/finance/payouts")}
+              subtitle={
+                payout.error
+                  ? NO_ACCESS
+                  : payout.loading
+                    ? "…"
+                    : payoutAccountSummary(payout.data ?? null)
+              }
+              title="Booking payouts"
             />
           </Card>
         </View>

@@ -105,6 +105,16 @@ import {
   listManagedNotices,
   listManagedProviders,
   listNoticePushes,
+  getHostelAttendance,
+  listMoveEvents,
+  type MoveEvent,
+  listNotificationCampaigns,
+  type NotificationCampaign,
+  getHostelInvites,
+  type HostelAttendance,
+  listAttendanceAlerts,
+  type AttendanceAlert,
+  type HostelInviteOverview,
   listReferrals,
   listResidentContacts,
   listStatementImports,
@@ -628,6 +638,26 @@ export const adminQuery = {
   referrals: (filter: string): AdminQuery<ReferralsPayload> =>
     define(`admin:referrals:${filter}`, [], () => listReferrals(filter)),
 
+  /** Every move-in and move-out, newest first. */
+  moveHistory: (): AdminQuery<MoveEvent[]> =>
+    define("admin:move-history", [REALTIME_TOPIC.RESIDENTS], () => listMoveEvents()),
+
+  /** Sent and scheduled notification campaigns, newest first. */
+  campaigns: (): AdminQuery<NotificationCampaign[]> =>
+    define("admin:campaigns", [], () => listNotificationCampaigns()),
+
+  /** Location attendance: today's zones and the open absence alerts, one read. */
+  attendance: (): AdminQuery<{ alerts: AttendanceAlert[]; attendance: HostelAttendance }> =>
+    define("admin:attendance", [], async () => {
+      const [attendance, alerts] = await Promise.all([getHostelAttendance(), listAttendanceAlerts()]);
+
+      return { alerts, attendance };
+    }),
+
+  /** Invite hostels: this hostel's code, its link, and who used it. */
+  hostelInvites: (): AdminQuery<HostelInviteOverview> =>
+    define("admin:hostel-invites", [], () => getHostelInvites()),
+
   /**
    * The month is in the key, and the month is the only thing the screen varies.
    * `""` is its default — whatever the server calls the current one.
@@ -852,6 +882,15 @@ export function prefetchAdminRoute(href: string) {
       return;
     case "/manage/referrals":
       prefetchAdminQuery(adminQuery.referrals(""));
+      return;
+    case "/manage/announcements":
+      prefetchAdminQuery(adminQuery.campaigns());
+      return;
+    case "/manage/attendance":
+      prefetchAdminQuery(adminQuery.attendance());
+      return;
+    case "/manage/invite-hostels":
+      prefetchAdminQuery(adminQuery.hostelInvites());
       return;
     case "/manage/roll-call":
       prefetchAdminQuery(adminQuery.rollCall());

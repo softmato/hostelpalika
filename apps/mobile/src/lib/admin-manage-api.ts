@@ -88,6 +88,8 @@ export type ManagedHostel = {
    * letting someone find out by typing.
    */
   nameChangeCount: number;
+  /** Written once; a correction goes through a superadmin (`hostel-profile.service`). */
+  panNumber?: string | null;
   photos: HostelPhoto[];
   pricing: {
     admissionFee?: number;
@@ -1189,6 +1191,158 @@ export async function updateReferralReward(
   },
 ) {
   await api.patch(`/hostel-admin/referrals/${id}/reward`, input);
+}
+
+/* -------------------------------------------------------------------------- */
+/* Move history — the web portal's Move-in / move-out record                 */
+/* -------------------------------------------------------------------------- */
+
+export type MoveEvent = {
+  date: string;
+  residentId: string;
+  residentName: string;
+  residentStatus: string;
+  roomType: string;
+  type: "MOVE_IN" | "MOVE_OUT";
+};
+
+export async function listMoveEvents() {
+  const response = await api.get<ApiEnvelope<{ events: MoveEvent[] }>>("/hostel-admin/move-events");
+
+  return unwrap(response).events;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Notification campaigns — the web portal's Notifications composer          */
+/* -------------------------------------------------------------------------- */
+
+export type NotificationCampaign = {
+  audience: string;
+  body: string;
+  createdAt?: string;
+  id: string;
+  priority: string;
+  recipientCount: number;
+  scheduledFor?: string;
+  sentAt?: string;
+  stats: { delivered: number; read: number; sent: number };
+  status: string;
+  title: string;
+};
+
+export async function listNotificationCampaigns() {
+  const response = await api.get<ApiEnvelope<{ campaigns: NotificationCampaign[] }>>(
+    "/hostel-admin/notifications",
+  );
+
+  return unwrap(response).campaigns;
+}
+
+/** Bell + push to residents, guardians or picked residents; `scheduledFor` absent sends now. */
+export async function sendNotificationCampaign(input: {
+  audience: "ALL" | "GUARDIANS" | "SPECIFIC";
+  body: string;
+  priority: "LOW" | "NORMAL" | "HIGH" | "URGENT";
+  residentIds: string[];
+  scheduledFor?: string;
+  title: string;
+}) {
+  const response = await api.post<ApiEnvelope<{ campaign: NotificationCampaign }>>(
+    "/hostel-admin/notifications",
+    { ...input, category: "ANNOUNCEMENT" },
+  );
+
+  return unwrap(response).campaign;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Location attendance — the web portal's Attendance screen                  */
+/* -------------------------------------------------------------------------- */
+
+export type AttendanceZone = "INSIDE" | "NEARBY" | "OUTSIDE" | "UNKNOWN";
+
+export type HostelAttendance = {
+  summary: Record<AttendanceZone | "total", number>;
+  today: { resident: { fullName: string; id: string; roomType?: string }; zone: AttendanceZone }[];
+};
+
+export type AttendanceAlert = {
+  consecutiveDays: number;
+  id: string;
+  lastSeenAt?: string;
+  residentName: string;
+  resolutionNote?: string;
+  status: string;
+};
+
+/** `GET /hostel-admin/attendance` — today's zone per active resident. Coordinates are never stored. */
+export async function getHostelAttendance() {
+  const response = await api.get<ApiEnvelope<HostelAttendance>>("/hostel-admin/attendance");
+
+  return unwrap(response);
+}
+
+/** One resident's last 60 days, for the history grid. */
+export async function getResidentAttendanceHistory(residentId: string) {
+  const from = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
+  const response = await api.get<ApiEnvelope<{ history: { day: string; zone: AttendanceZone }[] }>>(
+    "/hostel-admin/attendance",
+    { params: { from, residentId } },
+  );
+
+  return unwrap(response).history;
+}
+
+/** Sets today's zone by hand — the phone-was-off case. The reason is required and audited. */
+export async function overrideAttendance(residentId: string, input: { reason: string; zone: AttendanceZone }) {
+  await api.patch(`/hostel-admin/attendance/${residentId}/override`, {
+    ...input,
+    day: new Date().toISOString(),
+  });
+}
+
+export async function listAttendanceAlerts() {
+  const response = await api.get<ApiEnvelope<{ alerts: AttendanceAlert[] }>>(
+    "/hostel-admin/attendance/alerts",
+  );
+
+  return unwrap(response).alerts;
+}
+
+export async function resolveAttendanceAlert(alertId: string, note?: string) {
+  await api.patch(`/hostel-admin/attendance/alerts/${alertId}/resolve`, note ? { note } : {});
+}
+
+/* -------------------------------------------------------------------------- */
+/* Invite hostels — this hostel's code for other hostels                     */
+/* -------------------------------------------------------------------------- */
+
+/** `GET /hostel-admin/hostel-referrals` — `getHostelInviteOverview` on the server. */
+export type HostelInviteOverview = {
+  code: string;
+  enabled: boolean;
+  link: string;
+  referrals: {
+    createdAt: string;
+    hostelName: string;
+    id: string;
+    rewardAdded: boolean;
+    rewardText: string;
+    status: "PENDING" | "LIVE";
+  }[];
+  theyGet: { days: number; months: number; text: string };
+  youGet: { days: number; months: number; text: string };
+};
+
+export async function getHostelInvites() {
+  const response = await api.get<ApiEnvelope<HostelInviteOverview>>("/hostel-admin/hostel-referrals");
+
+  return unwrap(response);
+}
+
+/** Emails the hostel's link. The server caps it at 20 a day per hostel. */
+export async function sendHostelInvite(input: { email: string; name?: string }) {
+  await api.post("/hostel-admin/hostel-referrals/invite", input);
 }
 
 /* -------------------------------------------------------------------------- */

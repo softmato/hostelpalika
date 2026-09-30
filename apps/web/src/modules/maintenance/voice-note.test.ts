@@ -55,6 +55,12 @@ vi.mock("@hostel/db/models/ServiceProvider", () => ({
   ServiceProviderModel: { findOne: mocks.providerFindOne },
 }));
 
+// Call-out minimums are platform config; unmocked, the read waits on Mongo.
+vi.mock("@/modules/platform-config/operations-config", () => ({
+  DEFAULT_MINIMUM_CHARGE: 200,
+  getOperationsConfig: vi.fn(async () => ({ maintenanceMinimumCharges: {} })),
+}));
+
 // This file is about the voice note, not about who is told a job was raised.
 vi.mock("@/modules/maintenance/maintenance-notify", () => ({
   notifyProviderOfAssignment: vi.fn(),

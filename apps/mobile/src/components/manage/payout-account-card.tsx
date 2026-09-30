@@ -122,10 +122,22 @@ export function PayoutAccountFields({
   );
 }
 
-export function PayoutAccountCard() {
-  const account = useResource<PayoutAccount | null>(useCallback(() => getPayoutAccount(), []), {
+/** One read, one cache entry — Finance's row and this card share it. */
+export function usePayoutAccount() {
+  return useResource<PayoutAccount | null>(useCallback(() => getPayoutAccount(), []), {
     cacheKey: "hostel-payout-account",
   });
+}
+
+/** The row subtitle: where the money goes and whether it can go yet. */
+export function payoutAccountSummary(account: PayoutAccount | null) {
+  return account
+    ? `${account.methodLabel} ${account.maskedNumber} · ${STATUS[account.status].label.toLowerCase()}`
+    : "Not added — the Book button stays off";
+}
+
+export function PayoutAccountCard() {
+  const account = usePayoutAccount();
   const [editing, setEditing] = useState(false);
 
   if (account.loading || account.error) {

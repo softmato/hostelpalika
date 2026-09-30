@@ -837,6 +837,26 @@ export async function rejectClaim(eventId: string, rejectionReason: string) {
 }
 
 /**
+ * `POST /hostel-admin/finance/events/{id}/ask-resident` — a templated "we
+ * could not find this payment, send clearer details" message. Decides nothing.
+ */
+export async function askResidentAboutClaim(eventId: string) {
+  await api.post(`/hostel-admin/finance/events/${eventId}/ask-resident`, {});
+}
+
+/**
+ * `POST /hostel-admin/finance/events/bulk-approve` — explicit ids only. The
+ * server re-checks each one and skips any that is no longer all-green.
+ */
+export async function bulkApproveClaims(eventIds: string[]) {
+  const response = await api.post<
+    ApiEnvelope<{ approved: string[]; skipped: { reason: string }[] }>
+  >("/hostel-admin/finance/events/bulk-approve", { eventIds });
+
+  return unwrap(response);
+}
+
+/**
  * Every complaint, not just the overdue ones — `GET /hostel-admin/complaints`.
  * One page at the route's ceiling; the complaints screen filters on the phone.
  */

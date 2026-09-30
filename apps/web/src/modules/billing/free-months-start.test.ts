@@ -29,6 +29,9 @@ vi.mock("@hostel/db/models/Hostel", fake("HostelModel"));
 vi.mock("@hostel/db/models/HostelSubscription", fake("HostelSubscriptionModel"));
 vi.mock("@hostel/db/models/User", fake("UserModel"));
 vi.mock("@/modules/hostels/hostel-suspension", () => ({ liftHostelSuspension: vi.fn() }));
+vi.mock("@/modules/hostel-referrals/hostel-referral.service", () => ({
+  settleHostelReferrals: vi.fn(),
+}));
 vi.mock("@/modules/hostels/hostel.service", () => ({
   grantHostelOwnerAccess: vi.fn(async (hostelId: string) => {
     granted.push(hostelId);

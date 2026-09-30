@@ -1,9 +1,6 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
-import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { useCallback, useState } from "react";
+import { Pressable, View } from "react-native";
 
 import { CalendarPreferenceCard } from "@/components/calendar-preference";
 import { NightStatusPromptCard } from "@/components/night-status-prompt-card";
@@ -23,10 +20,8 @@ import { Text } from "@/components/ui/text";
 import { Toggle } from "@/components/ui/toggle";
 import { useResource } from "@/hooks/use-resource";
 import {
-  addHostelPhoto,
   type AttendanceSettings,
   type CommunitySettings,
-  deleteHostelPhoto,
   geocodeHostelLocation,
   type GeocodeHit,
   requestHostelChange,
@@ -35,13 +30,9 @@ import {
   updateManagedHostel,
 } from "@/lib/admin-manage-api";
 import { type AdminSettingsData, adminQuery } from "@/lib/admin-queries";
-import { API_BASE_URL } from "@/lib/api";
 import { readApiError } from "@/lib/api-contract";
-import { openAssetViewer } from "@/lib/asset-viewer";
 import { formatMoney, humanizeEnum } from "@/lib/format";
-import { absoluteMediaUrl } from "@/lib/media";
 import { toastError, toastSuccess } from "@/lib/toast";
-import { uploadAsset } from "@/lib/uploads";
 
 /**
  * Settings — the hostel itself, and the switches that change how it behaves.
@@ -91,18 +82,6 @@ const CHANGE_TYPES = [
   },
 ] as const;
 
-/** Mirrors `PHOTO_LIMITS` for the two gallery kinds in `hostel-profile.service`. */
-const GALLERY_LIMIT = 20;
-
-/**
- * Which of the three "add a photo" buttons started an upload.
- *
- * Not the photo's `kind`: the section header's Add and the strip's "Add outside
- * shot" both file an `EXTERIOR` shot, and keying on the kind would spin the two
- * of them for one tap.
- */
-type PhotoSlot = "header" | "inside" | "outside";
-
 type Panel =
   | "about"
   | "attendance"
@@ -134,14 +113,6 @@ export default function ManageSettingsScreen() {
 
   const [panel, setPanel] = useState<Panel>(null);
   const [saving, setSaving] = useState(false);
-  /*
-   * Which photo button was pressed, not merely that a photo is going up. Three
-   * of them are on screen together — the section header's "Add" and the pair
-   * under the strip — and one shared boolean spun all three at whichever was
-   * tapped, so none of them reported the upload that was actually running.
-   */
-  const [uploading, setUploading] = useState<PhotoSlot | null>(null);
-
   // One draft object rather than a state per field: every panel below edits a
   // slice of the same hostel record, and a save sends only the keys it touched.
   const [form, setForm] = useState<Record<string, string>>({});
@@ -159,11 +130,6 @@ export default function ManageSettingsScreen() {
   const community = settings.data?.community ?? null;
   const attendance = settings.data?.attendance ?? null;
 
-  const gallery = useMemo(
-    () => (hostel?.photos ?? []).filter((photo) => photo.kind !== "ROOM"),
-    [hostel],
-  );
-
   const { refresh, setData } = settings;
 
   /*
@@ -174,10 +140,6 @@ export default function ManageSettingsScreen() {
    * straight into the resource is the authoritative value arriving one round
    * trip earlier — `use-resource`'s `setData` files it to the cache too, so the
    * next screen reading `admin:settings` gets it as well.
-   *
-   * The photo handlers below still call `refresh()`, because `addHostelPhoto`
-   * and `deleteHostelPhoto` answer with nothing: the gallery is only knowable
-   * by re-reading the hostel.
    */
 
   const patch = useCallback(
@@ -210,6 +172,7 @@ export default function ManageSettingsScreen() {
           description: hostel.description,
           hostelType: hostel.hostelType,
           name: hostel.name,
+          panNumber: hostel.panNumber ?? "",
           totalFloors: String(hostel.totalFloors ?? 0),
         });
       }
@@ -284,79 +247,6 @@ export default function ManageSettingsScreen() {
       setGeoBusy(false);
     }
   }, [geoQuery]);
-
-  const addGalleryPhoto = useCallback(
-    async (kind: "EXTERIOR" | "INTERIOR", slot: PhotoSlot) => {
-      if (gallery.length >= GALLERY_LIMIT) {
-        toastError("Gallery full", `The listing holds at most ${GALLERY_LIMIT} photos.`);
-        return;
-      }
-
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (!permission.granted) {
-        toastError("Permission needed", "Allow photo access to add listing photos.");
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        allowsMultipleSelection: true,
-        mediaTypes: ["images"],
-        quality: 0.85,
-        selectionLimit: GALLERY_LIMIT - gallery.length,
-      });
-
-      if (result.canceled || result.assets.length === 0) {
-        return;
-      }
-
-      setUploading(slot);
-
-      try {
-        for (const asset of result.assets) {
-          // PUBLIC: these are the photographs a stranger comparing hostels sees,
-          // and a PRIVATE asset is readable only through the authorising route.
-          const assetId = await uploadAsset(asset, {
-            accessLevel: "PUBLIC",
-            label: `${humanizeEnum(kind)} photo`,
-          });
-
-          await addHostelPhoto({ alt: hostel?.name, fileAssetId: assetId, kind });
-        }
-
-        toastSuccess("Photos added");
-      } catch (error) {
-        toastError("Upload failed", readApiError(error));
-      } finally {
-        setUploading(null);
-        await refresh();
-      }
-    },
-    [gallery.length, hostel?.name, refresh],
-  );
-
-  const removePhoto = useCallback(
-    (photoId: string) => {
-      Alert.alert("Remove this photo?", "It disappears from the public listing.", [
-        { style: "cancel", text: "Keep it" },
-        {
-          onPress: () => {
-            void (async () => {
-              try {
-                await deleteHostelPhoto(photoId);
-                await refresh();
-              } catch (error) {
-                toastError("Could not remove", readApiError(error));
-              }
-            })();
-          },
-          style: "destructive",
-          text: "Remove",
-        },
-      ]);
-    },
-    [refresh],
-  );
 
   const saveCommunity = useCallback(
     async (input: Partial<CommunitySettings>) => {
@@ -542,110 +432,9 @@ export default function ManageSettingsScreen() {
               icon="bed-outline"
               iconBgColor="#5E5CE6"
               onPress={() => router.push("/manage/rooms")}
-              subtitle={`${hostel.roomConfigurations.length} room type(s)`}
-              title="Rooms and beds"
+              subtitle={`${hostel.roomConfigurations.length} room type(s) · ${hostel.photos.length} photo(s)`}
+              title="Rooms, beds and photos"
             />
-          </Card>
-        </View>
-
-        <View>
-          <SectionHeader
-            action={
-              <Button
-                disabled={uploading !== null}
-                label="Add"
-                loading={uploading === "header"}
-                onPress={() => void addGalleryPhoto("EXTERIOR", "header")}
-                size="sm"
-                variant="outline"
-              />
-            }
-            subtitle={`${gallery.length}/${GALLERY_LIMIT} — room photos live on the Rooms screen`}
-            title="Photos"
-          />
-          <Card className="gap-3">
-            {gallery.length === 0 ? (
-              <Text variant="muted">
-                No photos yet. A listing without one is skipped by most people
-                comparing hostels.
-              </Text>
-            ) : (
-              <ScrollView
-                contentContainerClassName="gap-2"
-                horizontal
-                showsHorizontalScrollIndicator={false}
-              >
-                {gallery.map((photo, index) => {
-                  const uri = absoluteMediaUrl(photo.url, API_BASE_URL);
-
-                  if (!uri) {
-                    return null;
-                  }
-
-                  return (
-                    <View className="relative" key={photo.id ?? uri}>
-                      <Pressable
-                        accessibilityLabel={`Listing photo ${index + 1}`}
-                        accessibilityRole="imagebutton"
-                        onPress={() =>
-                          openAssetViewer(
-                            gallery.map((item) => ({
-                              title: item.alt || hostel.name,
-                              url: item.url,
-                            })),
-                            index,
-                          )
-                        }
-                      >
-                        <Image
-                          contentFit="cover"
-                          source={{ uri }}
-                          style={{ borderRadius: 12, height: 96, width: 132 }}
-                        />
-                      </Pressable>
-
-                      <Badge
-                        className="absolute bottom-1 left-1"
-                        label={humanizeEnum(photo.kind)}
-                      />
-
-                      {photo.id ? (
-                        <Pressable
-                          accessibilityLabel="Remove photo"
-                          accessibilityRole="button"
-                          className="absolute right-1 top-1 rounded-full bg-black/60 p-1"
-                          hitSlop={8}
-                          onPress={() => removePhoto(photo.id as string)}
-                        >
-                          <Ionicons color="#ffffff" name="close" size={13} />
-                        </Pressable>
-                      ) : null}
-                    </View>
-                  );
-                })}
-              </ScrollView>
-            )}
-
-            <View className="flex-row gap-2">
-              <Button
-                className="flex-1"
-                disabled={uploading !== null}
-                label="Add outside shot"
-                loading={uploading === "outside"}
-                onPress={() => void addGalleryPhoto("EXTERIOR", "outside")}
-                size="sm"
-                variant="outline"
-              />
-              <Button
-                className="flex-1"
-                disabled={uploading !== null}
-                label="Add inside shot"
-                loading={uploading === "inside"}
-                onPress={() => void addGalleryPhoto("INTERIOR", "inside")}
-                size="sm"
-                variant="outline"
-              />
-            </View>
           </Card>
         </View>
 
@@ -666,6 +455,14 @@ export default function ManageSettingsScreen() {
               onPress={() => router.push("/manage/referrals")}
               subtitle="Confirm who joined, and record the reward"
               title="Referrals"
+            />
+            <RowDivider inset />
+            <ListRow
+              icon="megaphone-outline"
+              iconBgColor="#34C759"
+              onPress={() => router.push("/manage/invite-hostels")}
+              subtitle="Your hostel's code for other hostels"
+              title="Invite hostels"
             />
           </Card>
         </View>
@@ -824,6 +621,9 @@ export default function ManageSettingsScreen() {
                   hostelType: form.hostelType,
                   name: form.name?.trim(),
                   totalFloors: toNumber(form.totalFloors ?? "0"),
+                  ...(!hostel?.panNumber && form.panNumber?.trim()
+                    ? { panNumber: form.panNumber.replace(/\s/g, "") }
+                    : {}),
                 },
                 "Saved",
               )
@@ -865,6 +665,19 @@ export default function ManageSettingsScreen() {
             label="Floors"
             onChangeText={(totalFloors) => setForm((prev) => ({ ...prev, totalFloors }))}
             value={form.totalFloors ?? ""}
+          />
+          <Input
+            editable={!hostel?.panNumber}
+            hint={
+              hostel?.panNumber
+                ? "Set once. To correct it, send a change request below."
+                : "9 digits. It can be set once — branches have to match it."
+            }
+            keyboardType="number-pad"
+            label="PAN/VAT number"
+            maxLength={9}
+            onChangeText={(panNumber) => setForm((prev) => ({ ...prev, panNumber }))}
+            value={form.panNumber ?? ""}
           />
         </View>
       </Sheet>

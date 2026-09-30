@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { Camera, FileCheck, Images, Paperclip, Plus } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -295,6 +295,8 @@ function HostelWizard({
   /** The autosaved application from last time. */
   stored: RegistrationDrafts["hostel"] | null;
 }) {
+  // Checked on `register-hostel/index` before the form opened; the server checks it again.
+  const referralCode = useLocalSearchParams<{ ref?: string }>().ref?.trim().toUpperCase() || undefined;
   const [form, setForm] = useState<HostelForm>(() =>
     stored
       ? // Consent is given for what is on screen now, not for last session's form.
@@ -659,6 +661,7 @@ function HostelWizard({
       const hostel = await registerHostelApplication({
         ...buildHostelPayload(form),
         payoutAccount: payout.number.trim() ? payout : undefined,
+        referralCode,
       });
 
       markSaved();
@@ -672,7 +675,7 @@ function HostelWizard({
     } finally {
       setSubmitting(false);
     }
-  }, [accountId, busy, form, goTo, markSaved, payout]);
+  }, [accountId, busy, form, goTo, markSaved, payout, referralCode]);
 
   if (submittedName) {
     return <SubmittedView hostelName={submittedName} />;
@@ -1110,6 +1113,12 @@ function HostelWizard({
             </View>
           </Accordion>
         </>
+      ) : null}
+
+      {onReview && referralCode ? (
+        <Text className="text-center" variant="muted">
+          Referral code {referralCode} — the extra plan time is added once your hostel goes live.
+        </Text>
       ) : null}
 
       {onReview ? (

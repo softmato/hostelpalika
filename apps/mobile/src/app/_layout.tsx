@@ -450,11 +450,16 @@ function RootShell() {
         <Stack.Screen name="manage/settings" />
         <Stack.Screen name="manage/wardens" />
         <Stack.Screen name="manage/referrals" />
+        <Stack.Screen name="manage/invite-hostels" />
+        <Stack.Screen name="manage/attendance" />
+        <Stack.Screen name="manage/announcements" />
+        <Stack.Screen name="manage/move-history" />
         <Stack.Screen name="manage/finance/index" />
         <Stack.Screen name="manage/finance/history" />
         <Stack.Screen name="manage/finance/room-rates" />
         <Stack.Screen name="manage/finance/rates" />
         <Stack.Screen name="manage/finance/payment-setup" />
+        <Stack.Screen name="manage/finance/payouts" />
         <Stack.Screen name="manage/finance/gateway/[provider]" />
         <Stack.Screen name="manage/statements" />
         <Stack.Screen name="manage/existing-residents" />

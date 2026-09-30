@@ -515,6 +515,8 @@ export type HostelRegisterPayload = {
     monthlyRentMax?: number;
     monthlyRentMin?: number;
   };
+  /** Another hostel's or a partner's code, checked on `register-hostel/index`. */
+  referralCode?: string;
   roomConfigurations: {
     bedsPerRoom: number;
     mealInclusion: MealInclusion;

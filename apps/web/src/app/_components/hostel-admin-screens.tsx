@@ -11,6 +11,7 @@ import { HostelAdminExistingResidentsPage } from "@/app/_components/hostel-admin
 import { HostelAdminFeeSchedulePageContent } from "@/app/_components/hostel-admin-fee-schedule-page";
 import { HostelAdminFoodPage } from "@/app/_components/hostel-admin-food-page";
 import { HostelAdminInquiriesPageContent } from "@/app/_components/hostel-admin-inquiries-page";
+import { HostelAdminInviteHostelsPageContent } from "@/app/_components/hostel-admin-invite-hostels-page";
 import { HostelAdminMaintenancePageContent } from "@/app/_components/hostel-admin-maintenance-page";
 import { HostelAdminMoveChecklistPage } from "@/app/_components/hostel-admin-move-checklist-page";
 import { HostelAdminNightStatusPage } from "@/app/_components/hostel-admin-night-status-page";
@@ -56,6 +57,7 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   // word, which is why the bell points here instead.
   inbox: () => <NotificationsPageContent />,
   inquiries: () => <HostelAdminInquiriesPageContent />,
+  "invite-hostels": () => <HostelAdminInviteHostelsPageContent />,
   maintenance: () => <HostelAdminMaintenancePageContent />,
   "move-in-out": () => <HostelAdminMoveChecklistPage />,
   "night-status": () => <HostelAdminNightStatusPage />,

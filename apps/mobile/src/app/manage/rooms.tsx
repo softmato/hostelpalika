@@ -64,6 +64,13 @@ import { uploadAsset } from "@/lib/uploads";
  * by someone who was never registered in the app. The form only refuses the one
  * impossible case — more vacant beds than the type has — and otherwise trusts
  * the person standing in the building.
+ *
+ * ## Building photos live here too
+ *
+ * The outside and inside shots used to sit at the bottom of Settings, under a
+ * single 20-photo count that ignored the server's 3-photo cap on outside shots.
+ * They are the listing's photographs just as the room ones are, so all three
+ * kinds share one strip and one upload path on this screen.
  */
 
 /** The five the web offers, as a starting point rather than a closed list. */
@@ -93,8 +100,30 @@ const MEAL_OPTIONS = [
   },
 ] as const;
 
-/** Mirrors `PHOTO_LIMITS.ROOM` in `hostel-profile.service` — counted per type. */
-const ROOM_PHOTO_LIMIT = 10;
+/** Mirrors `PHOTO_LIMITS` in `hostel-profile.service` — ROOM is counted per type. */
+const PHOTO_LIMITS = { EXTERIOR: 3, INTERIOR: 20, ROOM: 10 } as const;
+
+type PhotoTarget =
+  | { kind: "EXTERIOR" | "INTERIOR"; roomType?: undefined }
+  | { kind: "ROOM"; roomType: string };
+
+const BUILDING_SHOTS = [
+  { kind: "EXTERIOR", name: "Outside", note: "Leads the public listing" },
+  { kind: "INTERIOR", name: "Inside", note: "Common room, kitchen, study, washrooms" },
+] as const;
+
+function targetName(target: PhotoTarget) {
+  return target.kind === "ROOM"
+    ? target.roomType
+    : target.kind === "EXTERIOR"
+      ? "Outside"
+      : "Inside";
+}
+
+/** Keyed apart so a room type called "Inside" cannot spin the building strip. */
+function targetKey(target: PhotoTarget) {
+  return target.kind === "ROOM" ? `ROOM:${target.roomType}` : target.kind;
+}
 
 type Draft = {
   bedsPerRoom: string;
@@ -151,6 +180,7 @@ export default function ManageRoomsScreen() {
     [hostel.data],
   );
   const photos = useMemo(() => hostel.data?.photos ?? [], [hostel.data]);
+  const hostelName = hostel.data?.name;
 
   const { refresh, setData } = hostel;
 
@@ -182,7 +212,7 @@ export default function ManageRoomsScreen() {
         setSaving(false);
       }
     },
-    [refresh],
+    [setData],
   );
 
   const submit = useCallback(async () => {
@@ -286,14 +316,13 @@ export default function ManageRoomsScreen() {
    * only its uploader can see.
    */
   const addPhotos = useCallback(
-    async (roomType: string, used: number) => {
-      const free = ROOM_PHOTO_LIMIT - used;
+    async (target: PhotoTarget, used: number) => {
+      const name = targetName(target);
+      const limit = PHOTO_LIMITS[target.kind];
+      const free = limit - used;
 
       if (free <= 0) {
-        toastError(
-          "Full",
-          `${roomType} already holds ${ROOM_PHOTO_LIMIT} photos.`,
-        );
+        toastError("Full", `${name} already holds ${limit} photos.`);
         return;
       }
 
@@ -303,7 +332,7 @@ export default function ManageRoomsScreen() {
       if (!permission.granted) {
         toastError(
           "Permission needed",
-          "Allow photo access to add room photos.",
+          "Allow photo access to add listing photos.",
         );
         return;
       }
@@ -319,7 +348,7 @@ export default function ManageRoomsScreen() {
         return;
       }
 
-      setUploadingFor(roomType);
+      setUploadingFor(targetKey(target));
 
       let added = 0;
 
@@ -330,19 +359,19 @@ export default function ManageRoomsScreen() {
         for (const asset of result.assets) {
           const assetId = await uploadAsset(asset, {
             accessLevel: "PUBLIC",
-            label: `${roomType} photo`,
+            label: `${name} photo`,
           });
 
           await addHostelPhoto({
-            alt: roomType,
+            alt: target.roomType ?? hostelName,
             fileAssetId: assetId,
-            kind: "ROOM",
-            roomType,
+            kind: target.kind,
+            roomType: target.roomType,
           });
           added += 1;
         }
 
-        toastSuccess(`Added ${added} photo(s)`, roomType);
+        toastSuccess(`Added ${added} photo(s)`, name);
       } catch (error) {
         toastError(
           added > 0 ? `Only ${added} went up` : "Upload failed",
@@ -353,7 +382,7 @@ export default function ManageRoomsScreen() {
         await refresh();
       }
     },
-    [refresh],
+    [hostelName, refresh],
   );
 
   /**
@@ -441,6 +470,36 @@ export default function ManageRoomsScreen() {
       scroll
     >
       <View className="gap-5 pt-1">
+        <View>
+          <SectionHeader
+            subtitle="Shown before any room on the public listing"
+            title="Building photos"
+          />
+          <Card className="gap-4">
+            {BUILDING_SHOTS.map((shot) => {
+              const shots = photos.filter((photo) => photo.kind === shot.kind);
+              const target: PhotoTarget = { kind: shot.kind };
+
+              return (
+                <View className="gap-2" key={shot.kind}>
+                  <View className="flex-row items-baseline justify-between">
+                    <Text variant="label">{shot.name}</Text>
+                    <Text variant="caption">{shot.note}</Text>
+                  </View>
+                  <PhotoStrip
+                    busy={uploadingFor === targetKey(target)}
+                    limit={PHOTO_LIMITS[shot.kind]}
+                    name={`${shot.name} of ${hostel.data?.name ?? "the hostel"}`}
+                    onAdd={() => void addPhotos(target, shots.length)}
+                    onRemove={removePhoto}
+                    photos={shots}
+                  />
+                </View>
+              );
+            })}
+          </Card>
+        </View>
+
         {/*
           The three figures the server derives from the list below, shown above
           it rather than under it: they are what the edits are *for*, and an
@@ -474,8 +533,7 @@ export default function ManageRoomsScreen() {
                 photo.kind === "ROOM" && photo.roomType === config.roomType,
             );
             const capacity = (config.rooms ?? 0) * (config.bedsPerRoom ?? 0);
-            const uploading = uploadingFor === config.roomType;
-            const full = roomPhotos.length >= ROOM_PHOTO_LIMIT;
+            const target: PhotoTarget = { kind: "ROOM", roomType: config.roomType };
 
             return (
               <View key={config.roomType}>
@@ -507,96 +565,14 @@ export default function ManageRoomsScreen() {
                     />
                   </View>
 
-                  {/*
-                    The strip leads with the add tile instead of ending with
-                    it. On a horizontal list the tail scrolls out of sight, so
-                    an "add" placed there is one the owner has to swipe to
-                    find — and it has to be here rather than in a button under
-                    the card, because "Photos" next to "Edit" reads as somewhere
-                    to go and look, not somewhere to put a photograph.
-                  */}
-                  <ScrollView
-                    contentContainerClassName="gap-2"
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                  >
-                    <Pressable
-                      accessibilityLabel={`Add photos of ${config.roomType}`}
-                      accessibilityRole="button"
-                      accessibilityState={{ busy: uploading, disabled: full }}
-                      className="h-[88px] w-[120px] items-center justify-center gap-1 rounded-xl border border-dashed border-border active:opacity-70"
-                      disabled={uploading || full}
-                      onPress={() =>
-                        void addPhotos(config.roomType, roomPhotos.length)
-                      }
-                    >
-                      <Ionicons
-                        color={full ? colors.mutedForeground : colors.primary}
-                        name={
-                          uploading ? "hourglass-outline" : "camera-outline"
-                        }
-                        size={20}
-                      />
-                      <Text variant="caption">
-                        {uploading ? "Adding" : full ? "Full" : "Add photos"}
-                      </Text>
-                      <Text variant="caption">
-                        {roomPhotos.length}/{ROOM_PHOTO_LIMIT}
-                      </Text>
-                    </Pressable>
-
-                    {roomPhotos.map((photo, index) => {
-                      const uri = absoluteMediaUrl(photo.url, API_BASE_URL);
-
-                      if (!uri) {
-                        return null;
-                      }
-
-                      return (
-                        <View className="relative" key={photo.id ?? uri}>
-                          <Pressable
-                            accessibilityLabel={`${config.roomType} photo ${index + 1}`}
-                            accessibilityRole="imagebutton"
-                            onPress={() =>
-                              openAssetViewer(
-                                roomPhotos.map((item) => ({
-                                  title: item.alt || config.roomType,
-                                  url: item.url,
-                                })),
-                                index,
-                              )
-                            }
-                          >
-                            <Image
-                              contentFit="cover"
-                              source={{ uri }}
-                              style={{
-                                borderRadius: 12,
-                                height: 88,
-                                width: 120,
-                              }}
-                            />
-                          </Pressable>
-
-                          {photo.id ? (
-                            <Pressable
-                              accessibilityLabel="Remove photo"
-                              accessibilityRole="button"
-                              className="absolute right-1 top-1 rounded-full bg-black/60 p-1"
-                              hitSlop={8}
-                              onPress={() => removePhoto(photo.id as string)}
-                            >
-                              <Ionicons
-                                color="#ffffff"
-                                name="close"
-                                size={13}
-                              />
-                            </Pressable>
-                          ) : null}
-                        </View>
-                      );
-                    })}
-                  </ScrollView>
+                  <PhotoStrip
+                    busy={uploadingFor === targetKey(target)}
+                    limit={PHOTO_LIMITS.ROOM}
+                    name={config.roomType}
+                    onAdd={() => void addPhotos(target, roomPhotos.length)}
+                    onRemove={removePhoto}
+                    photos={roomPhotos}
+                  />
 
                   <View className="flex-row gap-2">
                     <Button
@@ -731,5 +707,101 @@ export default function ManageRoomsScreen() {
         </View>
       </Sheet>
     </Screen>
+  );
+}
+
+/**
+ * One kind's photos, add tile first.
+ *
+ * The strip leads with the add tile instead of ending with it. On a horizontal
+ * list the tail scrolls out of sight, so an "add" placed there is one the owner
+ * has to swipe to find — and it has to be here rather than in a button under the
+ * card, because "Photos" next to "Edit" reads as somewhere to go and look, not
+ * somewhere to put a photograph.
+ */
+function PhotoStrip({
+  busy,
+  limit,
+  name,
+  onAdd,
+  onRemove,
+  photos,
+}: {
+  busy: boolean;
+  limit: number;
+  name: string;
+  onAdd: () => void;
+  onRemove: (photoId: string) => void;
+  photos: ManagedHostel["photos"];
+}) {
+  const { colors } = useAppTheme();
+  const full = photos.length >= limit;
+
+  return (
+    <ScrollView
+      contentContainerClassName="gap-2"
+      horizontal
+      showsHorizontalScrollIndicator={false}
+    >
+      <Pressable
+        accessibilityLabel={`Add photos of ${name}`}
+        accessibilityRole="button"
+        accessibilityState={{ busy, disabled: full }}
+        className="h-[88px] w-[120px] items-center justify-center gap-1 rounded-xl border border-dashed border-border active:opacity-70"
+        disabled={busy || full}
+        onPress={onAdd}
+      >
+        <Ionicons
+          color={full ? colors.mutedForeground : colors.primary}
+          name={busy ? "hourglass-outline" : "camera-outline"}
+          size={20}
+        />
+        <Text variant="caption">{busy ? "Adding" : full ? "Full" : "Add photos"}</Text>
+        <Text variant="caption">
+          {photos.length}/{limit}
+        </Text>
+      </Pressable>
+
+      {photos.map((photo, index) => {
+        const uri = absoluteMediaUrl(photo.url, API_BASE_URL);
+
+        if (!uri) {
+          return null;
+        }
+
+        return (
+          <View className="relative" key={photo.id ?? uri}>
+            <Pressable
+              accessibilityLabel={`${name} photo ${index + 1}`}
+              accessibilityRole="imagebutton"
+              onPress={() =>
+                openAssetViewer(
+                  photos.map((item) => ({ title: item.alt || name, url: item.url })),
+                  index,
+                )
+              }
+            >
+              <Image
+                contentFit="cover"
+                source={{ uri }}
+                style={{ borderRadius: 12, height: 88, width: 120 }}
+              />
+            </Pressable>
+
+            {photo.id ? (
+              <Pressable
+                accessibilityLabel="Remove photo"
+                accessibilityRole="button"
+                className="absolute right-1 top-1 rounded-full bg-black/60 p-1"
+                hitSlop={8}
+                onPress={() => onRemove(photo.id as string)}
+              >
+                <Ionicons color="#ffffff" name="close" size={13} />
+              </Pressable>
+            ) : null}
+          </View>
+        );
+      })}
+    </ScrollView>
   );
 }

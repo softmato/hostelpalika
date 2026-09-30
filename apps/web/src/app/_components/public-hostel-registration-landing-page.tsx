@@ -24,6 +24,7 @@ import {
   type OwnerApplication,
 } from "@/app/_components/public-hostel-registration-page";
 import { MOCKUPS, type Mockup } from "@/app/_components/portal-mockups";
+import { RegisterHostelStart } from "@/app/_components/register-hostel-start";
 import { PublicShell } from "@/app/_components/shared";
 import {
   Tooltip,
@@ -350,13 +351,12 @@ export function PublicHostelRegistrationLandingPage() {
               variants={fadeUp}
               custom={3}
             >
-              <Link
-                href="/register-hostel/form"
+              <RegisterHostelStart
                 className="inline-flex h-13 items-center justify-center gap-2 rounded-full bg-brand-teal px-7 text-sm font-bold text-white shadow-lg shadow-brand-teal/25 transition hover:brightness-110 md:h-14 md:text-base md:px-8"
               >
                 Get Started Free
                 <ArrowRight className="size-4" />
-              </Link>
+              </RegisterHostelStart>
               <Link
                 href="#hostel-product-tour"
                 className="inline-flex h-13 items-center justify-center gap-2 rounded-full border border-border bg-background/75 px-7 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted md:h-14 md:text-base md:px-8"
@@ -606,13 +606,12 @@ export function PublicHostelRegistrationLandingPage() {
                 variants={fadeUp}
                 custom={2}
               >
-                <Link
-                  href="/register-hostel/form"
+                <RegisterHostelStart
                   className="inline-flex h-13 items-center gap-2 rounded-xl bg-brand-teal px-7 text-sm font-bold text-white shadow-lg shadow-brand-teal/25 transition hover:brightness-110 md:h-14 md:text-base md:px-8"
                 >
                   Register Your Hostel
                   <ArrowRight className="size-4" />
-                </Link>
+                </RegisterHostelStart>
                 <Link
                   href="/service-providers"
                   className="inline-flex h-13 items-center gap-1 rounded-xl border border-border px-7 text-sm font-semibold text-foreground transition hover:bg-muted md:h-14 md:text-base md:px-8"
@@ -634,13 +633,12 @@ export function PublicHostelRegistrationLandingPage() {
           pointerEvents: showBottomCta ? "auto" : ("none" as const),
         }}
       >
-        <Link
-          href="/register-hostel/form"
+        <RegisterHostelStart
           className="inline-flex h-12 items-center gap-2 rounded-2xl bg-brand-teal px-6 text-sm font-bold text-white shadow-xl shadow-brand-teal/30 transition hover:brightness-110 md:h-14 md:px-8 md:text-base"
         >
           Register Your Hostel Now
           <ArrowRight className="size-4" />
-        </Link>
+        </RegisterHostelStart>
       </motion.div>
     </PublicShell>
   );

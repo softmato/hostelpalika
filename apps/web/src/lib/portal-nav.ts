@@ -311,6 +311,14 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
         keywords: ["offer", "program", "perks", "rewards", "gift", "fee off", "certified", "quarter"],
         label: "Offer Program",
       },
+      {
+        description:
+          "Hostels that registered with a code, partner codes for marketing with their commission, and the extra plan time each side gets.",
+        href: "/platform/referrals",
+        icon: "users",
+        keywords: ["referral", "refer", "invite", "partner", "marketing", "commission", "code", "link"],
+        label: "Referral settings",
+      },
     ],
     label: "Finance",
   },
@@ -767,6 +775,14 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
       },
       {
         description:
+          "Your hostel's referral code and link. Another hostel that registers with it gets extra plan time, and so do you.",
+        href: "/hostel-admin/invite-hostels",
+        icon: "megaphone",
+        keywords: ["invite", "hostel", "refer", "referral", "friend", "whatsapp", "share", "free month"],
+        label: "Invite hostels",
+      },
+      {
+        description:
           "Compose targeted or scheduled notifications and track delivery and read counts.",
         href: "/hostel-admin/notifications",
         icon: "bell",
@@ -1080,6 +1096,7 @@ const SUPERADMIN_ONLY_PREFIXES = [
   "/platform/config",
   "/platform/offer-program",
   "/platform/push",
+  "/platform/referrals",
   "/platform/settings",
 ];
 

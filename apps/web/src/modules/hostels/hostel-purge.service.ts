@@ -77,6 +77,7 @@ import { ReceiptModel } from "@hostel/db/models/Receipt";
 import { ReceiptCounterModel } from "@hostel/db/models/ReceiptCounter";
 import { ReconciliationRunModel } from "@hostel/db/models/ReconciliationRun";
 import { ReferralModel } from "@hostel/db/models/Referral";
+import { HostelReferralCodeModel } from "@hostel/db/models/HostelReferralCode";
 import { ReferralCodeModel } from "@hostel/db/models/ReferralCode";
 import { ReferralRewardModel } from "@hostel/db/models/ReferralReward";
 import { RentConcessionModel } from "@hostel/db/models/RentConcession";
@@ -215,6 +216,8 @@ const ERASED_BY_HOSTEL_ID: Array<{ model: PurgeableModel; name: string }> = (
     ["ReconciliationRun", ReconciliationRunModel],
     ["Referral", ReferralModel],
     ["ReferralCode", ReferralCodeModel],
+    // The hostel's own invite code. `HostelReferral` rows stay: a partner's commission is money.
+    ["HostelReferralCode", HostelReferralCodeModel],
     ["ReferralReward", ReferralRewardModel],
     ["RentConcession", RentConcessionModel],
     ["Resident", ResidentModel],

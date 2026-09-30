@@ -70,6 +70,11 @@ export const protectedRouteRules: ProtectedRouteRule[] = [
     roles: [Role.SUPERADMIN],
   },
   {
+    // Free plan time and partner commission are HostelPalika's money too.
+    prefix: "/platform/referrals",
+    roles: [Role.SUPERADMIN],
+  },
+  {
     prefix: "/platform",
     roles: [Role.SUPERADMIN, Role.PLATFORM_MODERATOR],
   },

@@ -214,8 +214,15 @@ function refineRegistration(
   });
 }
 
-export const hostelRegistrationSchema =
-  registrationFields.superRefine(refineRegistration);
+export const hostelRegistrationSchema = registrationFields
+  .extend({
+    /**
+     * Another hostel's or a partner's code (`HostelReferralCode`). Public desk
+     * only: checked before anything is written, rewarded at go-live.
+     */
+    referralCode: z.string().trim().max(32).optional(),
+  })
+  .superRefine(refineRegistration);
 
 export type HostelRegistrationInput = z.infer<typeof hostelRegistrationSchema>;
 export type RegistrationPlanChoice = z.infer<typeof registrationPlanChoiceSchema>;

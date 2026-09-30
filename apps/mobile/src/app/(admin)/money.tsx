@@ -27,7 +27,7 @@ import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
-import type { AdminInvoiceRow } from "@/lib/admin-api";
+import { type AdminInvoiceRow, bulkApproveClaims } from "@/lib/admin-api";
 import { buildAlertFeed } from "@/lib/admin-alerts";
 import {
   type AdminMoneyData,
@@ -47,6 +47,7 @@ import {
 } from "@/lib/admin-money";
 import { readApiError } from "@/lib/api-contract";
 import { claimsForPeriod, paymentMonths } from "@/lib/payment-months";
+import { openConfirm } from "@/lib/confirm";
 import { formatMoney, humanizeEnum, nepalPeriodKey } from "@/lib/format";
 import { toastError, toastSuccess } from "@/lib/toast";
 
@@ -194,6 +195,37 @@ export default function AdminMoneyScreen() {
     () => new Map(monthClaims.map((claim) => [claim.eventId, claim])),
     [monthClaims],
   );
+
+  /*
+   * `Approve all` — only the claims that passed every server check, confirmed
+   * with the count and the total first. The server re-checks each id and skips
+   * any that went amber since this rendered.
+   */
+  const greenClaims = useMemo(() => monthClaims.filter((claim) => claim.allGreen), [monthClaims]);
+
+  const approveAllGreen = useCallback(() => {
+    const total = greenClaims.reduce((sum, claim) => sum + claim.amount, 0);
+
+    openConfirm({
+      confirmLabel: "Approve all",
+      message: `${greenClaims.length} payments, ${formatMoney(total)} in all. Each resident gets a receipt.`,
+      onConfirm: async () => {
+        try {
+          const result = await bulkApproveClaims(greenClaims.map((claim) => claim.eventId));
+
+          toastSuccess(
+            `${result.approved.length} approved`,
+            result.skipped.length > 0 ? `${result.skipped.length} left for you to check.` : undefined,
+          );
+          money.refresh();
+          alerts.refresh();
+        } catch (error) {
+          toastError("Could not approve", readApiError(error));
+        }
+      },
+      title: "Approve every payment that passed?",
+    });
+  }, [alerts, greenClaims, money]);
 
   const rows = useMemo(() => money.data?.invoices.rows ?? [], [money.data]);
 
@@ -572,6 +604,16 @@ export default function AdminMoneyScreen() {
           {claimRows.length > 0 ? (
             <View className="px-5">
               <SectionHeader
+                action={
+                  greenClaims.length > 1 ? (
+                    <Button
+                      label={`Approve ${greenClaims.length}`}
+                      onPress={approveAllGreen}
+                      size="sm"
+                      variant="outline"
+                    />
+                  ) : undefined
+                }
                 subtitle="Their money is in limbo until one of these is decided"
                 title={
                   claimRows.length === 1
