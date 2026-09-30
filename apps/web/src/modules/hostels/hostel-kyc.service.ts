@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 
 import { connectToDatabase } from "@/lib/db";
 import { claimRegistrationDocuments } from "@/lib/registration-documents";
+import { FileAssetModel } from "@hostel/db/models/FileAsset";
 import { FoodRoutineModel } from "@hostel/db/models/FoodRoutine";
 import { HostelDocumentModel } from "@hostel/db/models/HostelDocument";
 import { HostelModel } from "@hostel/db/models/Hostel";
@@ -46,8 +47,17 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId) {
       rules?: string[];
     } | null>(),
     HostelDocumentModel.find({ hostelId: id, isDeleted: false })
-      .select("documentType status")
-      .lean<{ documentType: string; status: string }[]>(),
+      .sort({ createdAt: -1 })
+      .select("documentType status fileAssetId rejectionReason")
+      .lean<
+        {
+          _id: Types.ObjectId;
+          documentType: string;
+          fileAssetId?: Types.ObjectId;
+          rejectionReason?: string;
+          status: string;
+        }[]
+      >(),
     HostelPayoutAccountModel.exists({ hostelId: id }),
     HostelPaymentProfileModel.findOne({ hostelId: id })
       .select("staticQrAssetId esewaId khaltiId bankAccountNumber")
@@ -58,6 +68,15 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId) {
   if (!hostel) {
     throw new HostelServiceError("Hostel was not found.", "HOSTEL_NOT_FOUND", 404);
   }
+
+  // The app previews each document through `files/[assetId]/url`, which does its
+  // own authorising — this only says which file and whether it is an image.
+  const files = await FileAssetModel.find({
+    _id: { $in: documents.flatMap((doc) => (doc.fileAssetId ? [doc.fileAssetId] : [])) },
+  })
+    .select("fileName mimeType")
+    .lean<{ _id: Types.ObjectId; fileName?: string; mimeType?: string }[]>();
+  const fileById = new Map(files.map((file) => [String(file._id), file]));
 
   const done: Record<KycStep, boolean> = {
     documents: documents.length > 0,
@@ -75,7 +94,19 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId) {
   };
 
   return {
-    documents: documents.map((doc) => ({ status: doc.status, type: doc.documentType })),
+    documents: documents.map((doc) => {
+      const file = doc.fileAssetId ? fileById.get(String(doc.fileAssetId)) : undefined;
+
+      return {
+        fileAssetId: doc.fileAssetId ? String(doc.fileAssetId) : null,
+        fileName: file?.fileName ?? null,
+        id: String(doc._id),
+        mimeType: file?.mimeType ?? null,
+        rejectionReason: doc.rejectionReason ?? null,
+        status: doc.status,
+        type: doc.documentType,
+      };
+    }),
     // What the inline steps pre-fill from.
     facilities: hostel.facilities ?? [],
     minPhotos: MIN_PHOTOS,

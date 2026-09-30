@@ -137,6 +137,16 @@ export function payoutAccountSummary(account: PayoutAccount | null) {
 }
 
 export function PayoutAccountCard() {
+  return (
+    <View>
+      <SectionHeader subtitle="Where we send your share when someone books a bed" title="Booking payouts" />
+      <PayoutAccountPanel />
+    </View>
+  );
+}
+
+/** The card alone — Hostel KYC titles the step itself. */
+export function PayoutAccountPanel({ onSaved }: { onSaved?: () => void }) {
   const account = usePayoutAccount();
   const [editing, setEditing] = useState(false);
 
@@ -148,35 +158,33 @@ export function PayoutAccountCard() {
   const status = data ? STATUS[data.status] : null;
 
   return (
-    <View>
-      <SectionHeader subtitle="Where we send your share when someone books a bed" title="Booking payouts" />
-      <Card className="gap-3">
-        {data && !editing ? (
-          <>
-            {status ? (
-              <View className="flex-row">
-                <Badge label={status.label} tone={status.tone} />
-              </View>
-            ) : null}
-            <Text className="text-base font-semibold text-foreground">
-              {data.methodLabel} {data.bankName} {data.maskedNumber}
-            </Text>
-            <Text variant="caption">{data.holderName}</Text>
-            {data.status === "REJECTED" && data.reviewNote ? (
-              <Text className="text-sm text-destructive">{data.reviewNote}</Text>
-            ) : null}
-            <Button label="Change account" onPress={() => setEditing(true)} variant="outline" />
-          </>
-        ) : (
-          <PayoutAccountFields
-            onSaved={() => {
-              setEditing(false);
-              account.refresh();
-            }}
-            value={data}
-          />
-        )}
-      </Card>
-    </View>
+    <Card className="gap-3">
+      {data && !editing ? (
+        <>
+          {status ? (
+            <View className="flex-row">
+              <Badge label={status.label} tone={status.tone} />
+            </View>
+          ) : null}
+          <Text className="text-base font-semibold text-foreground">
+            {data.methodLabel} {data.bankName} {data.maskedNumber}
+          </Text>
+          <Text variant="caption">{data.holderName}</Text>
+          {data.status === "REJECTED" && data.reviewNote ? (
+            <Text className="text-sm text-destructive">{data.reviewNote}</Text>
+          ) : null}
+          <Button label="Change account" onPress={() => setEditing(true)} variant="outline" />
+        </>
+      ) : (
+        <PayoutAccountFields
+          onSaved={() => {
+            setEditing(false);
+            account.refresh();
+            onSaved?.();
+          }}
+          value={data}
+        />
+      )}
+    </Card>
   );
 }

@@ -1005,7 +1005,16 @@ export async function postHostelAnnouncement(body: string) {
 
 /** Hostel KYC — what a hostel still has to finish after it goes live. */
 export type HostelKyc = {
-  documents: { status: string; type: string }[];
+  /** Newest first. The file is read through `files/[assetId]/url`. */
+  documents: {
+    fileAssetId: string | null;
+    fileName: string | null;
+    id: string;
+    mimeType: string | null;
+    rejectionReason: string | null;
+    status: "APPROVED" | "PENDING" | "REJECTED";
+    type: string;
+  }[];
   facilities: string[];
   minPhotos: number;
   percent: number;

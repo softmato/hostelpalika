@@ -134,7 +134,7 @@ export function MapLinkField({
  * A still map with the pin on it. Not pannable: it sits inside a scrolling step,
  * where a draggable map steals the page's scroll (see `HostelMap`'s `preview`).
  */
-function PinPreview({ pin }: { pin: Coordinates }) {
+export function PinPreview({ pin }: { pin: Coordinates }) {
   const { colors } = useAppTheme();
   const { height } = useWindowDimensions();
   const [ready, setReady] = useState(false);

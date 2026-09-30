@@ -1,8 +1,8 @@
 import { router } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useState } from "react";
 import { View } from "react-native";
 
-import { DayStrip, MealCard } from "@/components/food-routine";
+import { FoodWeekDays, MealSheet, splitItems, useFoodWeek } from "@/components/manage/food-week";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
@@ -13,19 +13,9 @@ import { Screen } from "@/components/ui/screen";
 import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState, PermissionCard } from "@/components/ui/states";
-import { Text } from "@/components/ui/text";
-import { useResource } from "@/hooks/use-resource";
-import { saveFoodRoutine } from "@/lib/admin-manage-api";
-import {
-  type AdminFoodData,
-  adminQuery,
-  prefetchAdminRoute,
-} from "@/lib/admin-queries";
-import { readApiError } from "@/lib/api-contract";
+import { prefetchAdminRoute } from "@/lib/admin-queries";
 import { humanizeEnum } from "@/lib/format";
-import { MEAL_TYPES, type MealType, ROUTINE_DAYS, type RoutineDay, todayInNepal } from "@/lib/food-week";
-import type { FoodRoutine } from "@/lib/resident-api";
-import { toastError, toastSuccess } from "@/lib/toast";
+import { MEAL_TYPES, type MealType } from "@/lib/food-week";
 
 /**
  * Food — editing the week, which is the half the app did not have.
@@ -68,132 +58,14 @@ const MEAL_HINTS: Record<MealType, string> = {
   SNACKS: "3:00 PM - 5:00 PM",
 };
 
-type MealDraft = { items: string; note: string };
-
-type Draft = {
-  /** Keyed `DAY:MEAL`. Absent means the hostel publishes nothing then. */
-  meals: Record<string, MealDraft>;
-  monthEndItems: string;
-  monthEndNote: string;
-  timings: Record<string, string>;
-};
-
-const cellKey = (day: RoutineDay, mealType: MealType) => `${day}:${mealType}`;
-
-/** Items are edited as one comma-separated line — that is how a menu is spoken. */
-function splitItems(value: string) {
-  return value
-    .split(/[,\n]/)
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .slice(0, 20);
-}
-
-function draftFrom(routine: FoodRoutine | null): Draft {
-  const meals: Record<string, MealDraft> = {};
-
-  for (const meal of routine?.meals ?? []) {
-    meals[`${meal.dayOfWeek}:${meal.mealType}`] = {
-      items: meal.items.join(", "),
-      note: meal.note ?? "",
-    };
-  }
-
-  return {
-    meals,
-    monthEndItems: routine?.monthEndSpecial?.items.join(", ") ?? "",
-    monthEndNote: routine?.monthEndSpecial?.note ?? "",
-    timings: { ...(routine?.timings ?? {}) } as Record<string, string>,
-  };
-}
-
-/* `FoodData` and its loader are `adminQuery.food()` — see `lib/admin-queries.ts`. */
-
 export default function ManageFoodScreen() {
-  const query = adminQuery.food();
-  const food = useResource<AdminFoodData>(query.load, {
-    cacheKey: query.key,
-    topics: query.topics,
-  });
+  const week = useFoodWeek();
+  const { cells, current, dirty, filled, food, loaded, save, saving, setDraft } = week;
 
-  const [day, setDay] = useState<RoutineDay>(() => todayInNepal());
-  const [draft, setDraft] = useState<Draft | null>(null);
-  const [editing, setEditing] = useState<MealType | null>(null);
   const [monthEndOpen, setMonthEndOpen] = useState(false);
   const [timesOpen, setTimesOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
-
-  const loaded = useMemo(() => draftFrom(food.data?.routine ?? null), [food.data]);
-  const current = draft ?? loaded;
-  const dirty = draft !== null && JSON.stringify(draft) !== JSON.stringify(loaded);
 
   const cook = food.data?.cook ?? null;
-
-  const setCell = useCallback(
-    (mealType: MealType, next: MealDraft) => {
-      setDraft((prev) => {
-        const base = prev ?? loaded;
-
-        return { ...base, meals: { ...base.meals, [cellKey(day, mealType)]: next } };
-      });
-    },
-    [day, loaded],
-  );
-
-  const save = useCallback(async () => {
-    setSaving(true);
-
-    try {
-      /*
-       * A cell with no items is *omitted*, not sent empty: the server's schema
-       * requires `items` to hold at least one entry, so an emptied meal has to
-       * disappear from the payload rather than be sent as `[]`. That is also how
-       * a meal is cleared — there is no delete call.
-       */
-      const meals = ROUTINE_DAYS.flatMap((routineDay) =>
-        MEAL_TYPES.flatMap((mealType) => {
-          const cell = current.meals[cellKey(routineDay, mealType)];
-          const items = splitItems(cell?.items ?? "");
-
-          if (items.length === 0) {
-            return [];
-          }
-
-          return [
-            {
-              dayOfWeek: routineDay,
-              items,
-              mealType,
-              note: cell?.note?.trim() || undefined,
-            },
-          ];
-        }),
-      );
-
-      const monthEndItems = splitItems(current.monthEndItems);
-
-      await saveFoodRoutine({
-        meals,
-        monthEndSpecial: {
-          items: monthEndItems,
-          note: current.monthEndNote.trim() || undefined,
-        },
-        timings: Object.fromEntries(
-          MEAL_TYPES.map((mealType) => [mealType, current.timings[mealType]?.trim() ?? ""]).filter(
-            ([, value]) => value,
-          ),
-        ) as Partial<Record<MealType, string>>,
-      });
-
-      toastSuccess("Menu saved", "Residents and the cook see it immediately.");
-      setDraft(null);
-      await food.refresh();
-    } catch (error) {
-      toastError("Could not save", readApiError(error, "The menu did not save."));
-    } finally {
-      setSaving(false);
-    }
-  }, [current, food]);
 
   if (food.loading) {
     return (
@@ -214,18 +86,7 @@ export default function ManageFoodScreen() {
     );
   }
 
-  const today = todayInNepal();
-  const filled = ROUTINE_DAYS.reduce(
-    (sum, routineDay) =>
-      sum +
-      MEAL_TYPES.filter(
-        (mealType) => splitItems(current.meals[cellKey(routineDay, mealType)]?.items ?? "").length > 0,
-      ).length,
-    0,
-  );
-  const cells = ROUTINE_DAYS.length * MEAL_TYPES.length;
   const monthEnd = splitItems(current.monthEndItems);
-  const editingCell = editing ? current.meals[cellKey(day, editing)] : undefined;
 
   return (
     <Screen
@@ -263,32 +124,7 @@ export default function ManageFoodScreen() {
 
             <View>
               <SectionHeader title="The week" />
-              <View className="gap-3">
-                <DayStrip active={day} onChange={setDay} today={today} />
-
-                {MEAL_TYPES.map((mealType) => {
-                  const cell = current.meals[cellKey(day, mealType)];
-                  const items = splitItems(cell?.items ?? "");
-
-                  return (
-                    <MealCard
-                      footer={() => (
-                        <Button
-                          label={items.length > 0 ? "Edit" : "Add a meal"}
-                          onPress={() => setEditing(mealType)}
-                          size="sm"
-                          variant="outline"
-                        />
-                      )}
-                      items={items}
-                      key={mealType}
-                      mealType={mealType}
-                      note={cell?.note ?? ""}
-                      timing={current.timings[mealType] ?? ""}
-                    />
-                  );
-                })}
-              </View>
+              <FoodWeekDays week={week} />
             </View>
           </>
         )}
@@ -363,44 +199,7 @@ export default function ManageFoodScreen() {
         </View>
       </Sheet>
 
-      <Sheet
-        footer={
-          <Button
-            label="Done"
-            onPress={() => setEditing(null)}
-          />
-        }
-        onClose={() => setEditing(null)}
-        open={editing !== null}
-        title={editing ? `${humanizeEnum(day)} — ${humanizeEnum(editing)}` : ""}
-      >
-        <View className="gap-3 pb-2">
-          <Input
-            hint="Separate with commas. Empty = no meal."
-            label="What is served"
-            multiline
-            onChangeText={(items) =>
-              editing ? setCell(editing, { items, note: editingCell?.note ?? "" }) : undefined
-            }
-            placeholder="Dal, bhat, tarkari, achar"
-            style={{ height: 96 }}
-            value={editingCell?.items ?? ""}
-          />
-
-          <Input
-            placeholder="Paneer for the veg table"
-            label="Note"
-            multiline
-            onChangeText={(note) =>
-              editing ? setCell(editing, { items: editingCell?.items ?? "", note }) : undefined
-            }
-            style={{ height: 80 }}
-            value={editingCell?.note ?? ""}
-          />
-
-          <Text variant="caption">Saved when you tap Save the week.</Text>
-        </View>
-      </Sheet>
+      <MealSheet week={week} />
 
       <Sheet
         footer={<Button label="Done" onPress={() => setMonthEndOpen(false)} />}
