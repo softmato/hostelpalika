@@ -333,6 +333,17 @@ export default function ResidentNoticesScreen() {
   );
 }
 
+/** A tile colour and glyph per category — the same set the office's board uses. */
+const CATEGORY_LOOK: Record<string, { bg: string; icon: keyof typeof Ionicons.glyphMap }> = {
+  EVENT: { bg: "#AF52DE", icon: "calendar-outline" },
+  FOOD: { bg: "#FF9500", icon: "restaurant-outline" },
+  GENERAL: { bg: "#007AFF", icon: "megaphone-outline" },
+  MAINTENANCE: { bg: "#30B0C7", icon: "construct-outline" },
+  PAYMENT: { bg: "#34C759", icon: "cash-outline" },
+  RULE: { bg: "#5E5CE6", icon: "document-text-outline" },
+  URGENT: { bg: "#FF3B30", icon: "alert-circle-outline" },
+};
+
 /**
  * One notice, collapsed to two lines until it is opened.
  *
@@ -350,6 +361,9 @@ function NoticeCard({
 }) {
   const { colors } = useAppTheme();
   const [expanded, setExpanded] = useState(false);
+  const look = notice.isUrgent
+    ? CATEGORY_LOOK.URGENT!
+    : (CATEGORY_LOOK[notice.category ?? ""] ?? CATEGORY_LOOK.GENERAL!);
 
   return (
     <Pressable
@@ -377,15 +391,10 @@ function NoticeCard({
             notices scannable without reading any of them.
           */}
           <View
-            className={`h-9 w-9 items-center justify-center rounded-lg ${
-              notice.isUrgent ? "bg-destructive/10" : "bg-brand-soft"
-            }`}
+            className="h-9 w-9 items-center justify-center rounded-[10px]"
+            style={{ backgroundColor: look.bg }}
           >
-            <Ionicons
-              color={notice.isUrgent ? colors.destructive : colors.primary}
-              name={notice.isUrgent ? "alert-circle-outline" : "megaphone-outline"}
-              size={18}
-            />
+            <Ionicons color="#FFFFFF" name={look.icon} size={18} />
           </View>
 
           <View className="flex-1 gap-2">

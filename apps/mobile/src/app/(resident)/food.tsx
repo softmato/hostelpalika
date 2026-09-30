@@ -439,16 +439,12 @@ function PhotoGallery({
             }}
           />
         }
-        subtitle="What meals actually look like"
         title="Photos"
       />
 
       {photos.length === 0 ? (
         <Card>
-          <Text variant="muted">
-            No photos yet. Be the first — it is the fastest way to show your hostel
-            what is working and what is not.
-          </Text>
+          <Text variant="muted">No photos yet. Add the first.</Text>
         </Card>
       ) : (
         /*

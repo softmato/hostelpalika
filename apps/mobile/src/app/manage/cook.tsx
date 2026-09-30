@@ -283,6 +283,26 @@ export default function ManageCookScreen() {
       scroll
     >
       <View className="gap-6 pt-1">
+        {/*
+          What the cook presses, shown to the office but never pressable here —
+          only a cook's own login may announce a meal (the route is cook-only).
+        */}
+        <Card className="gap-3">
+          <View className="flex-row items-center gap-3">
+            <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
+              <Ionicons color={colors.primary} name="restaurant-outline" size={19} />
+            </View>
+            <View className="flex-1">
+              <Text variant="label">What your cook sees</Text>
+              <Text variant="caption">Tapping it tells every resident the food is ready.</Text>
+            </View>
+          </View>
+          <Button disabled label="Food ready" onPress={() => undefined} size="lg" />
+          <Text className="text-center" variant="caption">
+            Only a cook can press this.
+          </Text>
+        </Card>
+
         <View>
           <SectionHeader title="In the kitchen" />
 

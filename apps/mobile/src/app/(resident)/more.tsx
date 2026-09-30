@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, Linking, View } from "react-native";
+import { Linking, View } from "react-native";
 
 import { NotificationBell } from "@/components/notification-bell";
 import { AppBar } from "@/components/ui/app-bar";
@@ -9,7 +9,7 @@ import { PersonAvatar } from "@/components/ui/avatar";
 import { StatusPill } from "@/components/ui/badge";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Chip } from "@/components/ui/layout";
-import { CardRow, ListRow, RowDivider } from "@/components/ui/list-row";
+import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
@@ -22,6 +22,7 @@ import {
   residentQuery,
 } from "@/lib/resident-queries";
 import { endSession } from "@/lib/auth-session";
+import { openConfirm } from "@/lib/confirm";
 import { prefetchCommunity } from "@/lib/community-queries";
 import { humanizeEnum } from "@/lib/format";
 import { stayPill } from "@/lib/resident-home";
@@ -97,7 +98,7 @@ const STAY_ROWS: {
   {
     href: "/profile",
     icon: "person-outline",
-    subtitle: "Personal details, guardians, emergency contacts",
+    subtitle: "Details and emergency contacts",
     title: "Profile",
   },
   {
@@ -118,7 +119,7 @@ const STAY_ROWS: {
     */
     href: "/attendance",
     icon: "location-outline",
-    subtitle: "What has been recorded, and switching it off",
+    subtitle: "What is recorded",
     title: "Location & attendance",
   },
   {
@@ -137,13 +138,13 @@ const STAY_ROWS: {
     */
     href: "/guardians",
     icon: "shield-outline",
-    subtitle: "Who can see your record, and exactly what they see",
+    subtitle: "Who can see your record",
     title: "Guardians",
   },
   {
     href: "/complaints",
     icon: "chatbox-ellipses-outline",
-    subtitle: "Raise an issue and follow it to resolution",
+    subtitle: "Raise and follow an issue",
     title: "Complaints",
   },
   {
@@ -161,10 +162,26 @@ const STAY_ROWS: {
     */
     href: "/offer-program/mine",
     icon: "ribbon-outline",
-    subtitle: "Your reference codes and certified receipts",
+    subtitle: "Codes and certified receipts",
     title: "Offer Program",
   },
 ];
+
+/** The tile colour for each row, iOS-settings style. */
+const ROW_COLOR: Record<string, string> = {
+  "/attendance": "#30B0C7",
+  "/community": "#34C759",
+  "/complaints": "#FF9500",
+  "/guardians": "#34C759",
+  "/hostels": "#007AFF",
+  "/id-card": "#FF2D55",
+  "/night-status": "#5E5CE6",
+  "/night-status-history": "#AF52DE",
+  "/offer-program/mine": "#FF9500",
+  "/profile": "#007AFF",
+  "/referrals": "#FF2D55",
+  "/review": "#FFCC00",
+};
 
 const DISCOVER_ROWS: {
   href: string;
@@ -190,7 +207,7 @@ const DISCOVER_ROWS: {
     */
     href: "/community",
     icon: "people-outline",
-    subtitle: "Ask, answer and see what other residents are saying",
+    subtitle: "What other residents are saying",
     title: "Community",
   },
   {
@@ -231,17 +248,16 @@ export default function ResidentMoreScreen() {
   const resident = profile?.resident;
 
   const signOut = useCallback(() => {
-    Alert.alert("Sign out?", "You'll need your password to get back in.", [
-      { style: "cancel", text: "Cancel" },
-      {
-        onPress: () => {
-          setSigningOut(true);
-          void endSession().finally(() => router.replace("/(browse)"));
-        },
-        style: "destructive",
-        text: "Sign out",
+    openConfirm({
+      confirmLabel: "Sign out",
+      destructive: true,
+      message: "You'll need your password to get back in.",
+      onConfirm: () => {
+        setSigningOut(true);
+        void endSession().finally(() => router.replace("/(browse)"));
       },
-    ]);
+      title: "Sign out?",
+    });
   }, []);
 
   const nextTheme = preference === "dark" ? "light" : "dark";
@@ -345,59 +361,48 @@ export default function ResidentMoreScreen() {
         </Card>
 
         <View>
-          <SectionHeader
-            subtitle="Your record, and who else can see it"
-            title="Your stay"
-          />
-          <View className="gap-3">
-            {STAY_ROWS.map((row) => (
-              <CardRow
-                icon={row.icon}
-                key={row.href}
-                onPress={() => router.push(row.href)}
-                // Same trigger as Home's `Your stay` grid, pointed at the same
-                // registry — see `prefetchResidentRoute`. A row it does not know
-                // simply loads the way it always did.
-                onPressIn={() => prefetchResidentRoute(row.href)}
-                subtitle={
-                  row.href === "/night-status"
-                    ? (nightSubtitle ?? row.subtitle)
-                    : row.subtitle
-                }
-                title={row.title}
-              />
+          <SectionHeader title="Your stay" />
+          <Card padding="px-4 py-1">
+            {STAY_ROWS.map((row, index) => (
+              <View key={row.href}>
+                {index > 0 ? <RowDivider inset /> : null}
+                <ListRow
+                  icon={row.icon}
+                  iconBgColor={ROW_COLOR[row.href]}
+                  onPress={() => router.push(row.href)}
+                  onPressIn={() => prefetchResidentRoute(row.href)}
+                  subtitle={
+                    row.href === "/night-status" ? (nightSubtitle ?? row.subtitle) : row.subtitle
+                  }
+                  title={row.title}
+                />
+              </View>
             ))}
-          </View>
+          </Card>
         </View>
 
         <View>
-          <SectionHeader
-            subtitle="The rest of the platform, from inside your stay"
-            title="Discover"
-          />
-          <View className="gap-3">
-            {DISCOVER_ROWS.map((row) => (
-              <CardRow
-                icon={row.icon}
-                key={row.href}
-                onPress={() => router.push(row.href)}
-                /*
-                  Community is the one destination here with a warm-up, and it is
-                  deliberately not in `prefetchResidentRoute`: the board is
-                  platform-wide, so it belongs to `lib/community-queries.ts`
-                  rather than to any one role's registry. Same divergence
-                  `(admin)/more.tsx` carries.
-                */
-                onPressIn={
-                  row.href === "/community"
-                    ? prefetchCommunity
-                    : () => prefetchResidentRoute(row.href)
-                }
-                subtitle={row.subtitle}
-                title={row.title}
-              />
+          <SectionHeader title="Discover" />
+          <Card padding="px-4 py-1">
+            {DISCOVER_ROWS.map((row, index) => (
+              <View key={row.href}>
+                {index > 0 ? <RowDivider inset /> : null}
+                <ListRow
+                  icon={row.icon}
+                  iconBgColor={ROW_COLOR[row.href]}
+                  onPress={() => router.push(row.href)}
+                  // Community warms its own platform-wide query, not the resident registry.
+                  onPressIn={
+                    row.href === "/community"
+                      ? prefetchCommunity
+                      : () => prefetchResidentRoute(row.href)
+                  }
+                  subtitle={row.subtitle}
+                  title={row.title}
+                />
+              </View>
             ))}
-          </View>
+          </Card>
         </View>
 
         <View>
@@ -413,6 +418,7 @@ export default function ResidentMoreScreen() {
           <Card padding="px-4 py-1">
             <ListRow
               icon={preference === "dark" ? "moon-outline" : "sunny-outline"}
+              iconBgColor={preference === "dark" ? "#5E5CE6" : "#FF9500"}
               onPress={() => dispatch(setThemePreference(nextTheme))}
               subtitle={`Currently ${preference}`}
               title="Theme"
@@ -435,13 +441,15 @@ export default function ResidentMoreScreen() {
             */}
             <ListRow
               icon="notifications-outline"
+              iconBgColor="#FF3B30"
               onPress={() => router.push("/notifications")}
-              subtitle="Everything your hostel and the platform have sent you"
+              subtitle="Everything sent to you"
               title="Notifications"
             />
             <RowDivider inset />
             <ListRow
               icon="options-outline"
+              iconBgColor="#8E8E93"
               onPress={() =>
                 router.push({
                   params: { section: "notifications" },
@@ -451,19 +459,20 @@ export default function ResidentMoreScreen() {
               // Was "…and why you cannot pick yet", which stopped being true
               // when the preference model shipped (§3.2). A row that describes
               // a screen it no longer matches is worse than no subtitle.
-              subtitle="Choose what reaches you, and set quiet hours"
+              subtitle="What reaches you, quiet hours"
               title="Notification settings"
             />
             <RowDivider inset />
             <ListRow
               icon="shield-checkmark-outline"
+              iconBgColor="#34C759"
               onPress={() =>
                 router.push({
                   params: { section: "privacy" },
                   pathname: "/settings",
                 })
               }
-              subtitle="Your data, and closing your account"
+              subtitle="Your data and account"
               title="Privacy & your data"
             />
           </Card>
@@ -472,6 +481,7 @@ export default function ResidentMoreScreen() {
         <Card padding="px-4 py-1">
           <ListRow
             icon="log-out-outline"
+            iconBgColor="#FF3B30"
             onPress={signOut}
             right={
               <Ionicons

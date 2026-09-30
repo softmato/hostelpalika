@@ -1,5 +1,6 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +13,7 @@ import { SkeletonCard, SkeletonTiles } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { Toggle } from "@/components/ui/toggle";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { readApiError } from "@/lib/api-contract";
@@ -28,6 +30,7 @@ import {
   deleteLocationHistory,
   setLocationConsent,
 } from "@/lib/attendance-api";
+import { openConfirm } from "@/lib/confirm";
 import { residentQuery } from "@/lib/resident-queries";
 import { toastError, toastSuccess } from "@/lib/toast";
 
@@ -69,6 +72,7 @@ import { toastError, toastSuccess } from "@/lib/toast";
  */
 export default function AttendanceScreen() {
   const dates = useDates();
+  const { colors } = useAppTheme();
   const query = residentQuery.attendance();
   const attendance = useResource<ResidentAttendance>(query.load, {
     cacheKey: query.key,
@@ -110,28 +114,21 @@ export default function AttendanceScreen() {
   );
 
   const erase = useCallback(() => {
-    Alert.alert(
-      "Delete your location history?",
-      "Every stored day is erased, including your hostel's copy on their attendance board. This cannot be undone.",
-      [
-        { style: "cancel", text: "Cancel" },
-        {
-          onPress: () => {
-            void (async () => {
-              try {
-                await deleteLocationHistory();
-                toastSuccess("Your location history was deleted.");
-                await attendance.refresh();
-              } catch (caught) {
-                toastError("Could not delete that", readApiError(caught));
-              }
-            })();
-          },
-          style: "destructive",
-          text: "Delete history",
-        },
-      ],
-    );
+    openConfirm({
+      confirmLabel: "Delete history",
+      destructive: true,
+      message: "Every stored day is erased, including your hostel's copy. This cannot be undone.",
+      onConfirm: async () => {
+        try {
+          await deleteLocationHistory();
+          toastSuccess("Your location history was deleted.");
+          await attendance.refresh();
+        } catch (caught) {
+          toastError("Could not delete that", readApiError(caught));
+        }
+      },
+      title: "Delete your location history?",
+    });
   }, [attendance]);
 
   if (attendance.loading) {
@@ -179,11 +176,7 @@ export default function AttendanceScreen() {
                 value={consentGranted}
               />
             }
-            subtitle={
-              consentGranted
-                ? "Your hostel can see whether you were at the hostel each day."
-                : "Nothing new is being recorded."
-            }
+            subtitle={consentGranted ? "On" : "Off — nothing new is recorded"}
             title="Record my location"
           />
 
@@ -192,21 +185,19 @@ export default function AttendanceScreen() {
             not buried in a policy nobody opens. Each line answers a question a
             resident actually asks, in the order they ask it.
           */}
-          <View className="gap-1.5 border-t border-border pt-3">
-            <Text variant="label">What is stored</Text>
-            <Text variant="muted">
-              One line a day saying whether your phone was at the hostel, nearby, or
-              away. Your actual location is never saved — not by the app, and not by
-              your hostel.
-            </Text>
-            <Text variant="muted">
-              It records where your <Text variant="label">phone</Text> is, so leaving
-              it behind changes what your hostel sees.
-            </Text>
-            <Text variant="muted">
-              Being away is not a problem and is not reported as one. Your hostel uses
-              this to know who is in at night, not to check up on where you go.
-            </Text>
+          <View className="gap-2 border-t border-border pt-3">
+            {[
+              "Only in, nearby or away — never your location",
+              "Follows your phone, not you",
+              "Being away is fine and never flagged",
+            ].map((line) => (
+              <View className="flex-row items-center gap-2" key={line}>
+                <Ionicons color={colors.success} name="checkmark-circle" size={16} />
+                <Text className="flex-1" variant="muted">
+                  {line}
+                </Text>
+              </View>
+            ))}
           </View>
         </Card>
 
@@ -233,11 +224,7 @@ export default function AttendanceScreen() {
           <Card>
             <EmptyState
               compact
-              description={
-                consentGranted
-                  ? "Nothing has been recorded yet. Readings appear here once your hostel has attendance switched on."
-                  : "Nothing has been recorded. Switch recording on above if you want your hostel to know when you are in."
-              }
+              description={consentGranted ? "Days appear here as they are recorded." : undefined}
               title="No days recorded"
             />
           </Card>
@@ -261,9 +248,8 @@ export default function AttendanceScreen() {
         {days.length > 0 ? (
           <View className="gap-2">
             <Button label="Delete my location history" onPress={erase} variant="danger" />
-            <Text variant="caption">
-              Deleting is separate from switching recording off — one stops new days
-              being added, the other erases the days already there.
+            <Text className="text-center" variant="caption">
+              Turning recording off keeps these days. This erases them.
             </Text>
           </View>
         ) : null}

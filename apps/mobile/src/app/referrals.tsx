@@ -4,8 +4,10 @@ import { useCallback } from "react";
 import { Pressable, Share, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
+import { Avatar } from "@/components/ui/avatar";
 import { Badge, StatusPill } from "@/components/ui/badge";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
@@ -13,8 +15,7 @@ import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
-import { API_BASE_URL } from "@/lib/api";
-import { formatMoney, humanizeEnum } from "@/lib/format";
+import { formatMoney } from "@/lib/format";
 import {
   type Referral,
   type ResidentReferral,
@@ -22,12 +23,11 @@ import {
 import {
   buildReferralShare,
   describeRewards,
-  referralShareUrl,
   referralStatusLabel,
   referralTiles,
 } from "@/lib/referrals";
 import { residentQuery } from "@/lib/resident-queries";
-import { toastError, toastSuccess } from "@/lib/toast";
+import { toastSuccess } from "@/lib/toast";
 
 /**
  * Refer a friend.
@@ -44,9 +44,8 @@ import { toastError, toastSuccess } from "@/lib/toast";
  * opens ignores `ref` — so following it credits nobody. Rather than reproduce a
  * control that silently costs the resident a reward, the share sends the **code**,
  * which works both in this app (`app/ref/[code].tsx`) and at the hostel desk
- * (`linkReferralOnRegistration`). The link is still shown, labelled as needing the
- * website, so the resident is not misled about which is which. Reasoning and the
- * unwind condition are in `lib/referrals.ts`.
+ * (`linkReferralOnRegistration`). The link is not shown at all until the website
+ * honours it. Reasoning and the unwind condition are in `lib/referrals.ts`.
  *
  * ## Opening this screen is what mints the code
  *
@@ -101,8 +100,6 @@ function ReferralBody({
   const { colors } = useAppTheme();
   const { referralCode, referrals, summary } = data;
 
-  const shareUrl = referralShareUrl(referralCode.link, API_BASE_URL);
-
   const copyCode = useCallback(async () => {
     await Clipboard.setStringAsync(referralCode.code);
     toastSuccess("Code copied");
@@ -118,14 +115,6 @@ function ReferralBody({
       // so there is nothing worth interrupting anybody about.
     }
   }, [referralCode.code]);
-
-  const copyLink = useCallback(async () => {
-    await Clipboard.setStringAsync(shareUrl);
-    toastError(
-      "Link copied — but read this",
-      "This link only works once the website supports referral links. Share the code instead.",
-    );
-  }, [shareUrl]);
 
   return (
     <Screen
@@ -162,8 +151,7 @@ function ReferralBody({
           </Pressable>
 
           <Text className="text-center" variant="caption">
-            Tap to copy. Give it to a friend when they register, or they can enter
-            it in the app.
+            Tap to copy
           </Text>
 
           <Pressable
@@ -196,8 +184,7 @@ function ReferralBody({
               >
                 {tile.label}
               </Text>
-              <Text variant="subtitle">{tile.value}</Text>
-              <Text variant="caption">{tile.hint}</Text>
+              <Text className="text-2xl font-bold text-foreground">{tile.value}</Text>
             </Card>
           ))}
         </View>
@@ -210,49 +197,23 @@ function ReferralBody({
         </Card>
 
         {/*
-          Shown, but honestly labelled. The web copies this link as the primary
-          action; the page it opens ignores `ref`, so presenting it the same way
-          here would cost the resident the reward they are on this screen to earn.
+          No "copy link" here: the page the link opens ignores `ref` and credits
+          nobody, so the code is the only thing worth sharing.
         */}
         <View>
-          <SectionHeader
-            subtitle="Needs a website change before it credits anyone"
-            title="Your link"
-          />
-          <Card className="gap-2">
-            <Text numberOfLines={1} variant="caption">
-              {shareUrl}
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              className="flex-row items-center gap-1.5 self-start active:opacity-70"
-              onPress={() => void copyLink()}
-            >
-              <Ionicons color={colors.mutedForeground} name="copy-outline" size={14} />
-              <Text variant="caption">Copy anyway</Text>
-            </Pressable>
-          </Card>
-        </View>
-
-        <View>
-          <SectionHeader
-            subtitle={
-              referrals.length === 1 ? "1 referral" : `${referrals.length} referrals`
-            }
-            title="Who you have referred"
-          />
+          <SectionHeader title="Who you have referred" />
 
           {referrals.length === 0 ? (
-            <EmptyState
-              description="Share your code and anyone who inquires with it shows up here."
-              title="No referrals yet"
-            />
+            <EmptyState title="No referrals yet" />
           ) : (
-            <View className="gap-3">
-              {referrals.map((referral) => (
-                <ReferralRow key={referral.id} referral={referral} />
+            <Card padding="px-4 py-1">
+              {referrals.map((referral, index) => (
+                <View key={referral.id}>
+                  {index > 0 ? <RowDivider inset /> : null}
+                  <ReferralRow referral={referral} />
+                </View>
               ))}
-            </View>
+            </Card>
           )}
         </View>
       </View>
@@ -266,37 +227,23 @@ function ReferralRow({ referral }: { referral: Referral }) {
   const reward = referral.reward;
 
   return (
-    <Card className="gap-2">
-      <View className="flex-row items-start gap-2">
-        <View className="flex-1">
-          <Text variant="subtitle">{referral.name}</Text>
-          <Text variant="caption">{referral.phone}</Text>
-        </View>
-
-        <View className="items-end gap-1">
+    <ListRow
+      left={<Avatar name={referral.name} size="sm" />}
+      right={
+        reward && reward.amount > 0 ? (
+          <View className="items-end gap-0.5">
+            <Text variant="label">{formatMoney(reward.amount)}</Text>
+            <StatusPill status={reward.status} />
+          </View>
+        ) : referral.converted ? (
+          // `converted` is its own field — a JOINED referral may not have paid yet.
+          <Badge label="Converted" tone="success" />
+        ) : (
           <StatusPill status={referral.status} />
-          {/*
-            `converted` is a separate field, not a later stage of `status` — a
-            JOINED referral may or may not have a verified first payment, and this
-            is the one that means money.
-          */}
-          {referral.converted ? <Badge label="Converted" tone="success" /> : null}
-        </View>
-      </View>
-
-      <View className="flex-row items-center gap-2">
-        <Text variant="caption">{referralStatusLabel(referral.status)}</Text>
-        <View className="flex-1" />
-        <Text variant="caption">{dates.relativeDay(referral.createdAt)}</Text>
-      </View>
-
-      {reward && reward.amount > 0 ? (
-        <View className="flex-row items-center gap-2 border-t border-border pt-2">
-          <Text variant="label">{formatMoney(reward.amount)}</Text>
-          <Badge label={humanizeEnum(reward.rewardType)} />
-          <StatusPill status={reward.status} />
-        </View>
-      ) : null}
-    </Card>
+        )
+      }
+      subtitle={`${referralStatusLabel(referral.status)} · ${dates.relativeDay(referral.createdAt)}`}
+      title={referral.name}
+    />
   );
 }

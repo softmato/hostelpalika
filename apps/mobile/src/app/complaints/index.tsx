@@ -7,11 +7,11 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge, StatusPill } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
+import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
-import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { complaintCategoryLabel, complaintStanding } from "@/lib/complaints";
@@ -121,10 +121,7 @@ export default function ComplaintsScreen() {
     >
       <View className="gap-4 pt-1">
         {rows.length === 0 ? (
-          <EmptyState
-            description="Raise one and you can follow it here until it is fixed."
-            title="No complaints yet"
-          />
+          <EmptyState title="No complaints yet" />
         ) : (
           <>
             {/* Only worth a control once there is something it would hide. */}
@@ -148,16 +145,16 @@ export default function ComplaintsScreen() {
             ) : null}
 
             {visible.length === 0 ? (
-              <EmptyState
-                description="Everything you raised has been closed out."
-                title="Nothing needs you"
-              />
+              <EmptyState title="Nothing needs you" />
             ) : (
-              <View className="gap-3">
-                {visible.map((complaint) => (
-                  <ComplaintCard complaint={complaint} key={complaint.id} />
+              <Card padding="px-4 py-1">
+                {visible.map((complaint, index) => (
+                  <View key={complaint.id}>
+                    {index > 0 ? <RowDivider inset /> : null}
+                    <ComplaintRow complaint={complaint} />
+                  </View>
                 ))}
-              </View>
+              </Card>
             )}
           </>
         )}
@@ -195,73 +192,43 @@ function FilterChip({
   );
 }
 
-function ComplaintCard({ complaint }: { complaint: Complaint }) {
-  const dates = useDates();
+const CATEGORY_LOOK: Record<string, { bg: string; icon: keyof typeof Ionicons.glyphMap }> = {
+  FOOD: { bg: "#FF9500", icon: "restaurant-outline" },
+  MAINTENANCE: { bg: "#30B0C7", icon: "construct-outline" },
+  NOISE: { bg: "#AF52DE", icon: "volume-high-outline" },
+  OTHER: { bg: "#8E8E93", icon: "chatbox-ellipses-outline" },
+  PAYMENT: { bg: "#34C759", icon: "cash-outline" },
+  ROOM: { bg: "#5E5CE6", icon: "bed-outline" },
+  SAFETY: { bg: "#FF3B30", icon: "shield-outline" },
+  STAFF: { bg: "#007AFF", icon: "people-outline" },
+};
 
-  const { colors } = useAppTheme();
+/**
+ * One complaint: its category's tile, the title, one line of where it stands.
+ * A resolution waiting on the resident gets the badge — the one thing this list
+ * can ask *them* to do.
+ */
+function ComplaintRow({ complaint }: { complaint: Complaint }) {
+  const dates = useDates();
   const standing = complaintStanding(complaint);
+  const look = CATEGORY_LOOK[complaint.category] ?? CATEGORY_LOOK.OTHER!;
 
   return (
-    <Pressable
-      accessibilityRole="button"
+    <ListRow
+      icon={look.icon}
+      iconBgColor={OPEN_STATUSES.has(complaint.status) || standing.action ? look.bg : "#8E8E93"}
       onPress={() => router.push(`/complaints/${complaint.id}`)}
-    >
-      {/*
-        The left border marks a row waiting on the resident, not one that is
-        merely overdue: overdue is the hostel's problem to fix and already says
-        so in words, while an unconfirmed resolution is the one thing this screen
-        can ask *them* to do.
-      */}
-      <Card
-        className={`gap-2 active:opacity-80 ${
-          standing.action ? "border-l-4 border-l-primary" : ""
-        }`}
-      >
-        <View className="flex-row items-start gap-2">
-          <Text className="flex-1" variant="subtitle">
-            {complaint.title}
-          </Text>
+      right={
+        standing.action ? (
+          <Badge label="Confirm fix" tone="warning" />
+        ) : complaint.isOverdue ? (
+          <Badge label="Overdue" tone="danger" />
+        ) : (
           <StatusPill status={complaint.status} />
-        </View>
-
-        {complaint.description ? (
-          <Text numberOfLines={2} variant="muted">
-            {complaint.description}
-          </Text>
-        ) : null}
-
-        <Text variant="caption">{standing.headline}</Text>
-
-        <View className="flex-row items-center gap-2">
-          <Badge label={complaintCategoryLabel(complaint.category)} />
-          {complaint.isOverdue ? <Badge label="Overdue" tone="danger" /> : null}
-          {complaint.isAnonymous ? <Badge label="Anonymous" /> : null}
-
-          {/*
-            A complaint raised by speaking has no line of prose above, so this
-            glyph is the row's only tell that there is something to listen to.
-            It sits with the photo count rather than replacing it — a resident
-            who photographed the leak *and* described it has both.
-          */}
-          {complaint.voiceNoteAssetId ? (
-            <Ionicons color={colors.mutedForeground} name="mic-outline" size={14} />
-          ) : null}
-
-          {complaint.attachments.length > 0 ? (
-            <View className="flex-row items-center gap-1">
-              <Ionicons
-                color={colors.mutedForeground}
-                name="image-outline"
-                size={14}
-              />
-              <Text variant="caption">{complaint.attachments.length}</Text>
-            </View>
-          ) : null}
-
-          <View className="flex-1" />
-          <Text variant="caption">{dates.relativeDay(complaint.createdAt)}</Text>
-        </View>
-      </Card>
-    </Pressable>
+        )
+      }
+      subtitle={`${complaintCategoryLabel(complaint.category)} · ${dates.relativeDay(complaint.createdAt)}`}
+      title={complaint.title}
+    />
   );
 }

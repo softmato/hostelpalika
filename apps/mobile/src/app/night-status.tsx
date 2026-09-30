@@ -260,48 +260,38 @@ function NightStatusForm({
         <View className="gap-2">
           <Text variant="label">Where are you tonight?</Text>
 
-          {NIGHT_STATUS_OPTIONS.map((option) => {
-            const selected = option.value === choice;
+          {/* Three big tiles — one tap is the whole answer. */}
+          <View className="flex-row gap-2">
+            {NIGHT_STATUS_OPTIONS.map((option) => {
+              const selected = option.value === choice;
 
-            return (
-              <Pressable
-                accessibilityRole="radio"
-                accessibilityState={{ checked: selected }}
-                key={option.value}
-                onPress={() => setChoice(option.value)}
-              >
-                <Card
-                  className={`flex-row items-center gap-3 active:opacity-80 ${
-                    selected ? "border-primary" : ""
-                  }`}
+              return (
+                <Pressable
+                  accessibilityLabel={option.label}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: selected }}
+                  className="flex-1 items-center gap-2 rounded-2xl border-2 bg-card px-2 py-4 active:opacity-80"
+                  key={option.value}
+                  onPress={() => setChoice(option.value)}
+                  style={{ borderColor: selected ? colors.primary : colors.border }}
                 >
                   <View
-                    className="h-10 w-10 items-center justify-center rounded-full"
-                    style={{
-                      backgroundColor: selected ? colors.brandSoft : colors.muted,
-                    }}
+                    className="h-12 w-12 items-center justify-center rounded-full"
+                    style={{ backgroundColor: selected ? colors.primary : colors.muted }}
                   >
                     <Ionicons
-                      color={selected ? colors.primary : colors.mutedForeground}
+                      color={selected ? colors.primaryForeground : colors.mutedForeground}
                       name={option.icon}
-                      size={19}
+                      size={22}
                     />
                   </View>
-
-                  <View className="flex-1">
-                    <Text variant="label">{option.label}</Text>
-                    <Text variant="caption">{option.description}</Text>
-                  </View>
-
-                  <Ionicons
-                    color={selected ? colors.primary : colors.border}
-                    name={selected ? "radio-button-on" : "radio-button-off"}
-                    size={20}
-                  />
-                </Card>
-              </Pressable>
-            );
-          })}
+                  <Text className="text-center" numberOfLines={2} variant="label">
+                    {option.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
         </View>
 
         {/*
@@ -354,8 +344,8 @@ function NightStatusForm({
 
         <Input
           error={error}
-          hint="Only your hostel's staff see this."
-          label="Anything they should know? (optional)"
+          hint="Only staff see this."
+          label="Note (optional)"
           maxLength={1000}
           multiline
           onChangeText={setNote}
