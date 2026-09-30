@@ -17,5 +17,6 @@ import "./file-system";
 import "./alert";
 import "./nativewind";
 import "./push-open";
+import "./focus-ring";
 
 import "expo-router/entry";

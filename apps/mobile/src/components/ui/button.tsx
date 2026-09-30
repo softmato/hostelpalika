@@ -7,7 +7,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 const VARIANTS = {
   danger: {
     base: "bg-destructive",
-    disabled: "bg-destructive/40",
+    disabled: "bg-destructive opacity-40",
     label: "text-destructive-foreground",
   },
   ghost: {
@@ -22,7 +22,7 @@ const VARIANTS = {
   },
   primary: {
     base: "bg-primary",
-    disabled: "bg-primary/40",
+    disabled: "bg-primary opacity-40",
     label: "text-primary-foreground",
   },
   secondary: {
@@ -115,7 +115,8 @@ export function Button({
       } ${className}`}
       disabled={isBlocked}
       onPress={(event) => {
-        if (haptic) {        }
+        if (haptic) {
+        }
 
         onPress?.(event);
       }}

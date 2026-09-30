@@ -71,7 +71,7 @@ export default function KycScreen() {
   const kyc = useResource(getHostelKyc, { cacheKey: KYC_CACHE_KEY });
   const [index, setIndex] = useState<number | null>(null);
   const [finished, setFinished] = useState(false);
-  const header = <AppBar accent centerTitle showBack straddle={56} title="Hostel KYC" />;
+  const header = <AppBar centerTitle showBack title="Hostel KYC" />;
 
   // Back from the menu or map editor: re-read, so the tick lands.
   const mounted = useRef(false);
@@ -86,7 +86,7 @@ export default function KycScreen() {
   if (kyc.loading) {
     return (
       <Screen header={header}>
-        <View className="gap-4" style={{ marginTop: -56 }}>
+        <View className="gap-4">
           <Skeleton height={88} radius={24} />
           <Skeleton height={320} radius={24} />
         </View>
@@ -119,7 +119,7 @@ export default function KycScreen() {
         <Animated.View
           className="items-center gap-4 rounded-3xl border border-border bg-card p-6"
           entering={FadeInRight.duration(260)}
-          style={{ marginTop: -56 }}
+         
         >
           {data.percent >= 100 ? (
             <Lottie loop={false} size={180} source={SUCCESS_ANIMATION} />
@@ -133,15 +133,14 @@ export default function KycScreen() {
             {data.percent >= 100 ? "Every feature is unlocked" : "Finish the rest anytime"}
           </Text>
           <View className="w-full gap-2 pt-2">
-            {data.percent < 100 ? (
-              <Button
-                label="Continue"
-                onPress={() => {
-                  setFinished(false);
-                  setIndex(Math.max(0, firstOpen));
-                }}
-              />
-            ) : null}
+            <Button
+              label={data.percent < 100 ? "Continue" : "Review steps"}
+              onPress={() => {
+                setFinished(false);
+                setIndex(Math.max(0, firstOpen));
+              }}
+              variant={data.percent < 100 ? "primary" : "outline"}
+            />
             <Button label="Back to home" onPress={() => router.back()} variant={data.percent < 100 ? "ghost" : "primary"} />
           </View>
         </Animated.View>
@@ -151,7 +150,7 @@ export default function KycScreen() {
 
   return (
     <Screen header={header} onRefresh={kyc.refresh} refreshing={kyc.refreshing} scroll>
-      <View className="gap-4" style={{ marginTop: -56 }}>
+      <View className="gap-4">
         <View className="flex-row items-center gap-4 rounded-3xl border border-border bg-card p-4">
           <KycRing percent={data.percent} size={56} />
           <View className="flex-1 gap-2">
@@ -163,7 +162,7 @@ export default function KycScreen() {
                 <Pressable
                   accessibilityLabel={`${STEPS[item.key]?.title ?? item.key}${item.done ? ", done" : ""}`}
                   className={`h-2 flex-1 rounded-full ${
-                    item.done ? "bg-primary" : at === current ? "bg-primary/40" : "bg-muted"
+                    item.done ? "bg-primary" : at === current ? "bg-primary opacity-40" : "bg-muted"
                   }`}
                   hitSlop={8}
                   key={item.key}

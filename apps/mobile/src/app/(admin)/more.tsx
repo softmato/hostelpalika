@@ -138,6 +138,14 @@ const MANAGE_ROWS: {
     tone: "danger",
   },
   {
+    href: "/manage/kyc",
+    icon: "ribbon-outline",
+    ownerOnly: true,
+    subtitle: "Photos, documents, payouts and food, step by step",
+    title: "Hostel KYC",
+    tone: "brand",
+  },
+  {
     href: "/manage/wardens",
     icon: "shield-checkmark-outline",
     ownerOnly: true,

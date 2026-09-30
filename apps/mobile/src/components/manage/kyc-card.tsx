@@ -55,7 +55,7 @@ export function KycCard() {
     <Pressable
       accessibilityLabel={`Complete hostel KYC, ${kyc.data.percent}% done`}
       accessibilityRole="button"
-      className="flex-row items-center gap-4 rounded-3xl border border-primary/30 bg-brand-soft p-4 active:opacity-70"
+      className="flex-row items-center gap-4 rounded-3xl border border-border bg-brand-soft p-4 active:opacity-70"
       onPress={() => router.push("/manage/kyc")}
     >
       <KycRing percent={kyc.data.percent} size={52} />

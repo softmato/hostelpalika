@@ -189,18 +189,16 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
             {kyc.percent >= 100 ? "Every feature is unlocked" : "Finish the rest anytime"}
           </p>
           <div className="grid w-full gap-2 pt-2">
-            {kyc.percent < 100 ? (
-              <button
-                className={PRIMARY}
-                onClick={() => {
-                  setFinished(false);
-                  setIndex(Math.max(0, firstOpen));
-                }}
-                type="button"
-              >
-                Continue
-              </button>
-            ) : null}
+            <button
+              className={kyc.percent < 100 ? PRIMARY : OUTLINE}
+              onClick={() => {
+                setFinished(false);
+                setIndex(Math.max(0, firstOpen));
+              }}
+              type="button"
+            >
+              {kyc.percent < 100 ? "Continue" : "Review steps"}
+            </button>
             <button className={kyc.percent < 100 ? GHOST : PRIMARY} onClick={() => open("/hostel-admin/dashboard")} type="button">
               Back to dashboard
             </button>
