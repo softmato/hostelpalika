@@ -174,6 +174,10 @@ function SectionHeading({
  * One row of hostel cards. Every row on this page is a slice of the same
  * server-rendered set, so they share one empty treatment — a row that simply
  * renders nothing reads as a broken page.
+ *
+ * Scrolls sideways and snaps to a card edge, like the app's home rows. Four
+ * cards fill the width on desktop, where arrows stand in for the swipe a mouse
+ * cannot make; the bleed past the page gutter shows the next card peeking.
  */
 function HostelRow({
   emptyLabel,
@@ -182,15 +186,54 @@ function HostelRow({
   emptyLabel: string;
   hostels: HostelSummary[];
 }) {
+  const scroller = useRef<HTMLDivElement>(null);
+
+  if (hostels.length === 0) {
+    return (
+      <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
+        {emptyLabel}
+      </div>
+    );
+  }
+
+  const scroll = (direction: 1 | -1) => {
+    const row = scroller.current;
+    if (!row) return;
+
+    row.scrollBy({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
+      left: direction * row.clientWidth * 0.9,
+    });
+  };
+
+  const arrow = "absolute top-[5.5rem] z-10 hidden size-9 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-surface/95 text-foreground shadow-md transition hover:text-brand-teal lg:flex";
+
   return (
-    <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-      {hostels.length === 0 ? (
-        <div className="col-span-full rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          {emptyLabel}
-        </div>
-      ) : (
-        hostels.map((hostel) => <HostelCard hostel={hostel} key={hostel.id} />)
-      )}
+    <div className="relative">
+      {/* py-2 keeps the card's hover lift and shadow inside the scroll box. */}
+      <div
+        className="no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-5 overflow-x-auto px-4 py-2 sm:-mx-6 sm:scroll-px-6 sm:px-6"
+        ref={scroller}
+      >
+        {hostels.map((hostel) => (
+          <div
+            className="w-[82%] shrink-0 snap-start sm:w-[calc((100%-1.25rem)/2)] lg:w-[calc((100%-3.75rem)/4)]"
+            key={hostel.id}
+          >
+            <HostelCard hostel={hostel} />
+          </div>
+        ))}
+      </div>
+      {hostels.length > 4 ? (
+        <>
+          <button aria-label="Previous hostels" className={`${arrow} -left-3`} onClick={() => scroll(-1)} type="button">
+            <ChevronLeft className="size-4" />
+          </button>
+          <button aria-label="More hostels" className={`${arrow} -right-3`} onClick={() => scroll(1)} type="button">
+            <ChevronRight className="size-4" />
+          </button>
+        </>
+      ) : null}
     </div>
   );
 }
@@ -432,6 +475,8 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
 
   // Memoised so the comparison memo below, which keys on it, can ever hold.
   const featuredHostels = useMemo(() => byRating.slice(0, 4), [byRating]);
+  // The scrolling rows carry more than the four the comparison and snapshots use.
+  const featuredRow = useMemo(() => byRating.slice(0, 12), [byRating]);
   const cityOptions = useMemo(
     () => [...new Set(hostels.map((hostel) => hostel.city).filter(Boolean))].slice(0, 5),
     [hostels],
@@ -439,7 +484,7 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
   const activeCity =
     selectedCity ?? (cityOptions.includes("Kathmandu") ? "Kathmandu" : cityOptions[0]);
   const cityHostels = useMemo(
-    () => byRating.filter((hostel) => hostel.city === activeCity).slice(0, 4),
+    () => byRating.filter((hostel) => hostel.city === activeCity).slice(0, 12),
     [activeCity, byRating],
   );
   const heroHostel = featuredHostels[0];
@@ -618,7 +663,7 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
           />
           <HostelRow
             emptyLabel="No hostels are published yet. Check back soon."
-            hostels={featuredHostels}
+            hostels={featuredRow}
           />
         </section>
 
@@ -660,6 +705,8 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
             ) : null}
             <div className="mt-7">
               <HostelRow
+                // A new city starts from its first card, not where the last one was scrolled.
+                key={activeCity}
                 emptyLabel={
                   activeCity
                     ? `No verified hostels are listed in ${activeCity} yet.`
