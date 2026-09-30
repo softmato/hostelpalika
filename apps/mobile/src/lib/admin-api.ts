@@ -1002,3 +1002,33 @@ export async function postHostelAnnouncement(body: string) {
  * Kept out of this file because it is pure string work and this one imports the
  * axios client, which reaches React Native and cannot be loaded by Vitest.
  */
+
+/** Hostel KYC — what a hostel still has to finish after it goes live. */
+export type HostelKyc = {
+  documents: { status: string; type: string }[];
+  facilities: string[];
+  minPhotos: number;
+  percent: number;
+  photoCount: number;
+  rules: string[];
+  steps: { done: boolean; key: string }[];
+};
+
+export async function getHostelKyc() {
+  const response = await api.get<ApiEnvelope<{ kyc: HostelKyc }>>("/hostel-admin/kyc");
+
+  return unwrap(response).kyc;
+}
+
+/** Attaches a privately uploaded document (see `uploadPublicFile`). */
+export async function addKycDocument(document: {
+  claimToken: string;
+  documentType: string;
+  fileAssetId: string;
+}) {
+  const response = await api.post<ApiEnvelope<{ kyc: HostelKyc }>>("/hostel-admin/kyc", {
+    documents: [document],
+  });
+
+  return unwrap(response).kyc;
+}

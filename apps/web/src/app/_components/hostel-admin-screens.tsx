@@ -22,6 +22,7 @@ import { HostelAdminPaymentProfilePageContent } from "@/app/_components/hostel-a
 import { HostelAdminPaymentsPage } from "@/app/_components/hostel-admin-payments-page";
 import { HostelAdminProfilePageContent } from "@/app/_components/hostel-admin-profile-page";
 import { HostelAdminReconcilePageContent } from "@/app/_components/hostel-admin-reconcile-page";
+import { HostelAdminKycPageContent } from "@/app/_components/hostel-admin-kyc-page";
 import { HostelAdminReferralsPageContent } from "@/app/_components/hostel-admin-referrals-page";
 import { HostelAdminReportsPageContent } from "@/app/_components/hostel-admin-reports-page";
 import { HostelAdminResidentsPage } from "@/app/_components/hostel-admin-residents-page";
@@ -58,6 +59,7 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   inbox: () => <NotificationsPageContent />,
   inquiries: () => <HostelAdminInquiriesPageContent />,
   "invite-hostels": () => <HostelAdminInviteHostelsPageContent />,
+  kyc: () => <HostelAdminKycPageContent />,
   maintenance: () => <HostelAdminMaintenancePageContent />,
   "move-in-out": () => <HostelAdminMoveChecklistPage />,
   "night-status": () => <HostelAdminNightStatusPage />,

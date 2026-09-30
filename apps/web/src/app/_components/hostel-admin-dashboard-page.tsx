@@ -20,6 +20,7 @@ import { memo } from "react";
 
 import { HostelBranchesCard } from "@/app/_components/hostel-branches-card";
 import { HostelFreeMonthCard } from "@/app/_components/hostel-free-month-card";
+import { HostelKycBanner } from "@/app/_components/hostel-admin-kyc-page";
 import { currency } from "@/app/_components/shared-ui";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -251,6 +252,7 @@ export const HostelAdminDashboardPageContent = memo(
           title="Dashboard"
         />
         <Message value={message} />
+        <HostelKycBanner />
         <HostelFreeMonthCard />
         <HostelBranchesCard />
         {loading ? <HostelAdminDashboardSkeleton /> : null}

@@ -1,5 +1,5 @@
-import { router } from "expo-router";
-import { useCallback, useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { CalendarPreferenceCard } from "@/components/calendar-preference";
@@ -112,6 +112,9 @@ export default function ManageSettingsScreen() {
   });
 
   const [panel, setPanel] = useState<Panel>(null);
+  // `?panel=rules` — Hostel KYC opens the exact panel it is asking for.
+  const { panel: linkedPanel } = useLocalSearchParams<{ panel?: Exclude<Panel, null> }>();
+  const linkedOpened = useRef(false);
   const [saving, setSaving] = useState(false);
   // One draft object rather than a state per field: every panel below edits a
   // slice of the same hostel record, and a save sends only the keys it touched.
@@ -231,6 +234,13 @@ export default function ManageSettingsScreen() {
     },
     [attendance, hostel],
   );
+
+  useEffect(() => {
+    if (hostel && linkedPanel && !linkedOpened.current) {
+      linkedOpened.current = true;
+      openPanel(linkedPanel);
+    }
+  }, [hostel, linkedPanel, openPanel]);
 
   const searchPlaces = useCallback(async () => {
     if (geoQuery.trim().length < 2) {

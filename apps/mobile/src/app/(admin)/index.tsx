@@ -16,6 +16,7 @@ import {
   WaitingActions,
 } from "@/components/admin-home";
 import { BranchesCard, HostelSwitcher } from "@/components/hostel-switcher";
+import { KycCard } from "@/components/manage/kyc-card";
 import { FreeMonthCard, SubscriptionDueCard } from "@/components/subscription-due";
 import { SectionHeader } from "@/components/ui/card";
 import { Screen } from "@/components/ui/screen";
@@ -345,6 +346,7 @@ export default function AdminHomeScreen() {
         </View>
 
         <View className="gap-6 px-5 pt-6">
+          <KycCard />
           <SubscriptionDueCard state={due.data ?? null} />
           <FreeMonthCard state={due.data ?? null} />
           <BranchesCard />

@@ -323,7 +323,7 @@ const STEPS: RegistrationStep[] = [
     label: "Facilities & food",
   },
   {
-    description: "Owner ID, house rules, and whatever else they handed you.",
+    description: "House rules. Documents only if they have them.",
     key: 6,
     label: "Documents & rules",
   },
@@ -813,9 +813,6 @@ export function TeamRegisterHostelPage() {
     ((ID_PROOF_TYPES as readonly string[]).includes(idDocuments[0]?.type ?? "")
       ? (idDocuments[0]!.type as IdProofType)
       : "");
-  const idProofReady =
-    Boolean(idProofType) && idDocuments.some(isUploadedFile);
-
   const [planId, setPlanId] = useState("");
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   // Online first: Softmato confirms it on the spot. Cash waits for a second person there.
@@ -1368,7 +1365,8 @@ export function TeamRegisterHostelPage() {
       case 5:
         return facilities.length > 0;
       case 6:
-        return idProofReady;
+        // Optional — the owner uploads them later from Hostel KYC.
+        return !documents.some((doc) => doc.uploading);
       case 7:
         return Boolean(plan) && collecting > 0;
       default:
@@ -1481,24 +1479,10 @@ export function TeamRegisterHostelPage() {
    * Things a live listing is worse without, but which are not worth refusing a
    * registration over.
    *
-   * Photos are not on this list: they are optional at filing and the
-   * superadmin uploads them later, so nagging the agent about them is noise.
+   * Photos, documents, the payout account and the food routine are not on this
+   * list: the owner finishes them from Hostel KYC after publishing.
    */
   const recommendations = (() => {
-    /*
-     * The routine ships pre-filled with a typical week, which is a head start
-     * and a trap: an agent who never opened step 5 would publish a menu the
-     * hostel never agreed to. Untouched is therefore called out here by name
-     * rather than passing silently as "filled in".
-     */
-    const sample = defaultRoutine();
-    const routineUntouched =
-      ROUTINE_DAYS.every((day) =>
-        MEAL_TYPES.every(
-          (meal) => (routine[`${day}:${meal}`] ?? "") === sample[`${day}:${meal}`],
-        ),
-      ) && MEAL_TYPES.every((meal) => (timings[meal] ?? "") === DEFAULT_TIMINGS[meal]);
-
     const checks: { field: string; label: string; step: number; valid: boolean }[] = [
       {
         // The server geocodes the address when nobody placed a pin, which puts
@@ -1511,18 +1495,6 @@ export function TeamRegisterHostelPage() {
       },
       { field: "facilities", label: "Facilities", step: 5, valid: facilities.length > 0 },
       { field: "rules", label: "House rules", step: 6, valid: Boolean(rules.trim()) },
-      {
-        field: "routine",
-        label: "The food routine is still the sample week — check it with the owner",
-        step: 5,
-        valid: !routineUntouched,
-      },
-      {
-        field: "documents",
-        label: "The owner's government ID — pick its type and upload it",
-        step: 6,
-        valid: idProofReady,
-      },
       { field: "email", label: "The owner's email", step: 1, valid: Boolean(email.trim()) },
       {
         // Not blocking: a hostel is allowed to take no deposit. But an unstated
@@ -1532,14 +1504,6 @@ export function TeamRegisterHostelPage() {
         label: "The security deposit — a joining invoice without one is short",
         step: 3,
         valid: Boolean(securityDeposit.trim()),
-      },
-      {
-        // Bookings stay switched off until a payout account is verified, so a
-        // hostel filed without one publishes unable to take a booking.
-        field: "payout",
-        label: "Where booking payouts go — bookings stay off until it is set",
-        step: 7,
-        valid: Boolean(payoutAccountPayload(payout)),
       },
     ];
 
@@ -1893,6 +1857,21 @@ export function TeamRegisterHostelPage() {
     return FIELD_LABEL[field] ?? field;
   }
 
+  /*
+   * The routine ships pre-filled with a sample week. A sample nobody edited is
+   * not the hostel's menu, so it is not saved — the owner fills it in from
+   * Hostel KYC. Meals and timings are judged separately: editing one saves one.
+   */
+  const sampleWeek = defaultRoutine();
+  const mealsUntouched = ROUTINE_DAYS.every((day) =>
+    MEAL_TYPES.every(
+      (meal) => (routine[`${day}:${meal}`] ?? "") === sampleWeek[`${day}:${meal}`],
+    ),
+  );
+  const timingsUntouched = MEAL_TYPES.every(
+    (meal) => (timings[meal] ?? "") === DEFAULT_TIMINGS[meal],
+  );
+
   function buildPayload() {
     const roomConfigurations = validRooms.map((room) => ({
       bedsPerRoom: numberValue(room.bedsPerRoom) ?? 0,
@@ -1903,7 +1882,7 @@ export function TeamRegisterHostelPage() {
       vacantBeds: numberValue(room.vacantBeds) ?? 0,
     }));
 
-    const meals = ROUTINE_DAYS.flatMap((day) =>
+    const meals = mealsUntouched ? [] : ROUTINE_DAYS.flatMap((day) =>
       MEAL_TYPES.flatMap((meal) => {
         const items = (routine[`${day}:${meal}`] ?? "")
           .split(",")
@@ -1916,7 +1895,7 @@ export function TeamRegisterHostelPage() {
       }),
     );
 
-    const cleanTimings = Object.fromEntries(
+    const cleanTimings = timingsUntouched ? {} : Object.fromEntries(
       MEAL_TYPES.map((meal) => [meal, (timings[meal] ?? "").trim()]).filter(
         ([, value]) => value,
       ),
@@ -3052,6 +3031,22 @@ export function TeamRegisterHostelPage() {
                 subtitle="Timings apply to the whole week. Items are per day — fill one day and copy it across."
                 title="Weekly routine"
               >
+                <p
+                  className={cn(
+                    "mb-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold",
+                    mealsUntouched && timingsUntouched
+                      ? "bg-warning/10 text-warning"
+                      : "bg-brand-teal/10 text-brand-teal",
+                  )}
+                >
+                  {mealsUntouched && timingsUntouched ? (
+                    <>Sample week · not saved · owner fills it in KYC</>
+                  ) : (
+                    <>
+                      <Check className="size-3.5" /> Will be saved
+                    </>
+                  )}
+                </p>
                 <div className="grid gap-3 sm:grid-cols-4">
                   {MEAL_TYPES.map((meal) => (
                     <Field key={meal} label={`${titleCase(meal)} time`} name={`timing:${meal}`}>
@@ -3114,7 +3109,7 @@ export function TeamRegisterHostelPage() {
 
           {step === 6 ? (
             <>
-            <Card subtitle="The owner's ID is required. The rest if they have it." title="Documents">
+            <Card subtitle="Optional — the owner can upload these later from Hostel KYC." title="Documents">
               <FieldError name="documents" />
               <div className="space-y-4" data-field="documents">
                 <div className="grid gap-4 rounded-xl border-2 border-brand-teal/40 bg-brand-teal/[0.03] p-4 md:grid-cols-[1fr_1.2fr] md:items-start">
@@ -3124,7 +3119,7 @@ export function TeamRegisterHostelPage() {
                     </span>
                     <div>
                       <p className="text-sm font-bold text-foreground">
-                        Government ID Proof <span className="text-destructive">*</span>
+                        Government ID Proof
                       </p>
                       <p className="text-xs text-muted-foreground">
                         The owner&apos;s citizenship, NID or passport. Front and back if it
@@ -3134,7 +3129,7 @@ export function TeamRegisterHostelPage() {
                   </div>
                   <div className="space-y-2.5">
                     <label className="block text-xs font-semibold text-foreground">
-                      ID document type <span className="text-destructive">*</span>
+                      ID document type
                       <select
                         className="input-field mt-1"
                         onChange={(event) => chooseIdProofType(event.target.value as IdProofType)}

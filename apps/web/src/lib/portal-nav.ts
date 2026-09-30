@@ -549,6 +549,13 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         label: "Hostel Profile",
       },
       {
+        description: "Photos, documents, payouts, payments and food — finish them to unlock everything.",
+        href: "/hostel-admin/kyc",
+        icon: "shield",
+        keywords: ["kyc", "verify", "documents", "complete", "setup", "progress"],
+        label: "Hostel KYC",
+      },
+      {
         description:
           "Other buildings you run under this hostel's plan — add one, and switch between them.",
         href: "/hostel-admin/branches",
