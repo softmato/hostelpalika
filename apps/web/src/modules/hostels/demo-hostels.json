@@ -1,0 +1,2843 @@
+[
+  {
+    "_id": "de4000000000000000000001",
+    "slug": "saathi-ghar-boys-hostel-new-baneshwor",
+    "name": "Saathi Ghar Boys Hostel",
+    "hostelType": "BOYS",
+    "description": "A five-storey boys hostel two minutes from the Baneshwor bus stop. Rooms are cleaned daily, meals are home-style dal bhat, and the rooftop has a study corner with Wi-Fi.",
+    "location": {
+      "address": "Shantinagar Marg, New Baneshwor",
+      "area": "New Baneshwor",
+      "city": "Kathmandu",
+      "lat": 27.6908,
+      "lng": 85.3395,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Hot Water",
+      "Meals",
+      "Laundry",
+      "CCTV",
+      "Study Room",
+      "Power Backup",
+      "RO Water",
+      "Bedding & Mattress"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Single",
+      "Double",
+      "Triple"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Included",
+        "monthlyRent": 14500,
+        "roomType": "Single",
+        "rooms": 6,
+        "vacantBeds": 1
+      },
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Included",
+        "monthlyRent": 11500,
+        "roomType": "Double",
+        "rooms": 10,
+        "vacantBeds": 3
+      },
+      {
+        "bedsPerRoom": 3,
+        "mealInclusion": "Included",
+        "monthlyRent": 9500,
+        "roomType": "Triple",
+        "rooms": 6,
+        "vacantBeds": 4
+      }
+    ],
+    "pricing": {
+      "admissionFee": 3000,
+      "currency": "NPR",
+      "monthlyRentMax": 14500,
+      "monthlyRentMin": 9500
+    },
+    "capacitySummary": {
+      "totalBeds": 44,
+      "totalRooms": 22,
+      "vacantBeds": 8
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/31533419/pexels-photo-31533419.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Saathi Ghar Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/20988035/pexels-photo-20988035.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Saathi Ghar Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/31944365/pexels-photo-31944365.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Saathi Ghar Boys Hostel — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/4504004/pexels-photo-4504004.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Saathi Ghar Boys Hostel — dining hall"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/7351635/pexels-photo-7351635.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Saathi Ghar Boys Hostel — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/39338470/pexels-photo-39338470.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Saathi Ghar Boys Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/11062931/pexels-photo-11062931.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Saathi Ghar Boys Hostel — double room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Triple",
+        "url": "https://images.pexels.com/photos/5137980/pexels-photo-5137980.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Saathi Ghar Boys Hostel — triple room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 10:00 PM",
+      "No smoking or alcohol inside the hostel",
+      "Visitors in the common room only",
+      "Inform the warden before staying out overnight"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 4.4,
+      "cleanlinessRating": 4.5,
+      "foodRating": 4.2,
+      "safetyRating": 4.6,
+      "total": 38
+    }
+  },
+  {
+    "_id": "de4000000000000000000002",
+    "slug": "pathshala-girls-hostel-putalisadak",
+    "name": "Pathshala Girls Hostel",
+    "hostelType": "GIRLS",
+    "description": "A girls hostel on a quiet lane behind Putalisadak, walking distance from the colleges on the main road. Warden on site day and night, CCTV at every entrance.",
+    "location": {
+      "address": "Kamalpokhari Road, Putalisadak",
+      "area": "Putalisadak",
+      "city": "Kathmandu",
+      "lat": 27.7036,
+      "lng": 85.3229,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Hot Water",
+      "Meals",
+      "CCTV",
+      "Laundry",
+      "Housekeeping",
+      "Personal Cupboard (Daraz)",
+      "Personal Table & Chair",
+      "First Aid"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Single",
+      "Double"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Included",
+        "monthlyRent": 15500,
+        "roomType": "Single",
+        "rooms": 5,
+        "vacantBeds": 1
+      },
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Included",
+        "monthlyRent": 12500,
+        "roomType": "Double",
+        "rooms": 12,
+        "vacantBeds": 2
+      }
+    ],
+    "pricing": {
+      "admissionFee": 4000,
+      "currency": "NPR",
+      "monthlyRentMax": 15500,
+      "monthlyRentMin": 12500
+    },
+    "capacitySummary": {
+      "totalBeds": 29,
+      "totalRooms": 17,
+      "vacantBeds": 3
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/36293969/pexels-photo-36293969.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Pathshala Girls Hostel — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/37411522/pexels-photo-37411522.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Pathshala Girls Hostel — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/6375553/pexels-photo-6375553.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Pathshala Girls Hostel — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/16504586/pexels-photo-16504586.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Pathshala Girls Hostel — study room"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/36885763/pexels-photo-36885763.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Pathshala Girls Hostel — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/19836795/pexels-photo-19836795.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Pathshala Girls Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/11295759/pexels-photo-11295759.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Pathshala Girls Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/11062799/pexels-photo-11062799.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Pathshala Girls Hostel — double room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 8:30 PM",
+      "Visitors in the reception area only, 9 AM to 6 PM",
+      "Inform the warden before staying out overnight",
+      "No cooking in the rooms"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 4.7,
+      "cleanlinessRating": 4.8,
+      "foodRating": 4.5,
+      "safetyRating": 4.9,
+      "total": 52
+    }
+  },
+  {
+    "_id": "de4000000000000000000003",
+    "slug": "naya-basti-boys-hostel-kirtipur",
+    "name": "Naya Basti Boys Hostel",
+    "hostelType": "BOYS",
+    "description": "Close to the Tribhuvan University gate, built for students on a budget. Large dormitory and double rooms, a big dining hall and a garden for evenings.",
+    "location": {
+      "address": "Naya Bazar, Kirtipur",
+      "area": "Kirtipur",
+      "city": "Kathmandu",
+      "lat": 27.6781,
+      "lng": 85.2787,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Meals",
+      "Hot Water",
+      "Garden",
+      "Study Room",
+      "Parking",
+      "Solar Water Heater"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Double",
+      "Dormitory"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Included",
+        "monthlyRent": 9000,
+        "roomType": "Double",
+        "rooms": 8,
+        "vacantBeds": 2
+      },
+      {
+        "bedsPerRoom": 6,
+        "mealInclusion": "Included",
+        "monthlyRent": 7000,
+        "roomType": "Dormitory",
+        "rooms": 4,
+        "vacantBeds": 5
+      }
+    ],
+    "pricing": {
+      "admissionFee": 2000,
+      "currency": "NPR",
+      "monthlyRentMax": 9000,
+      "monthlyRentMin": 7000
+    },
+    "capacitySummary": {
+      "totalBeds": 40,
+      "totalRooms": 12,
+      "vacantBeds": 7
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/37662361/pexels-photo-37662361.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Naya Basti Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/37662352/pexels-photo-37662352.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Naya Basti Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/31944361/pexels-photo-31944361.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Naya Basti Boys Hostel — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/13871340/pexels-photo-13871340.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Naya Basti Boys Hostel — dining hall"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/35008222/pexels-photo-35008222.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Naya Basti Boys Hostel — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/4044793/pexels-photo-4044793.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Naya Basti Boys Hostel — double room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Dormitory",
+        "url": "https://images.pexels.com/photos/5137986/pexels-photo-5137986.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Naya Basti Boys Hostel — dormitory room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Dormitory",
+        "url": "https://images.pexels.com/photos/5158497/pexels-photo-5158497.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Naya Basti Boys Hostel — dormitory room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 10:00 PM",
+      "No smoking or alcohol inside the hostel",
+      "Visitors in the common room only",
+      "Inform the warden before staying out overnight"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 4.1,
+      "cleanlinessRating": 4,
+      "foodRating": 4.3,
+      "safetyRating": 4.2,
+      "total": 27
+    }
+  },
+  {
+    "_id": "de4000000000000000000004",
+    "slug": "himal-chhaya-co-living-chabahil",
+    "name": "Himal Chhaya Co-living",
+    "hostelType": "CO_LIVING",
+    "description": "Co-living for working professionals and students near the Chabahil chowk. Private and shared rooms, a common lounge, fast Wi-Fi and a shared kitchen. Takes short stays.",
+    "location": {
+      "address": "Chuchepati, Chabahil",
+      "area": "Chabahil",
+      "city": "Kathmandu",
+      "lat": 27.7178,
+      "lng": 85.3464,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Hot Water",
+      "Common Room",
+      "Laundry",
+      "Power Backup",
+      "Refrigerator",
+      "Attached Bathroom",
+      "Housekeeping"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 2
+    },
+    "roomTypes": [
+      "Single",
+      "Double"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Optional",
+        "monthlyRent": 16000,
+        "roomType": "Single",
+        "rooms": 8,
+        "vacantBeds": 2
+      },
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Optional",
+        "monthlyRent": 12000,
+        "roomType": "Double",
+        "rooms": 6,
+        "vacantBeds": 3
+      }
+    ],
+    "pricing": {
+      "admissionFee": 5000,
+      "currency": "NPR",
+      "monthlyRentMax": 16000,
+      "monthlyRentMin": 12000
+    },
+    "capacitySummary": {
+      "totalBeds": 20,
+      "totalRooms": 14,
+      "vacantBeds": 5
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/32329121/pexels-photo-32329121.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Himal Chhaya Co-living — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/35157543/pexels-photo-35157543.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Himal Chhaya Co-living — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/36881138/pexels-photo-36881138.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Himal Chhaya Co-living — shared kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/7347375/pexels-photo-7347375.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Himal Chhaya Co-living — common lounge"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/12737917/pexels-photo-12737917.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Himal Chhaya Co-living — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/35236646/pexels-photo-35236646.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Himal Chhaya Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/7746573/pexels-photo-7746573.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Himal Chhaya Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/11062799/pexels-photo-11062799.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Himal Chhaya Co-living — double room"
+      }
+    ],
+    "rules": [
+      "Quiet hours 10:00 PM to 6:00 AM",
+      "No smoking or alcohol inside the hostel",
+      "Guests must sign in at reception",
+      "Keep the kitchen and common room clean after use"
+    ],
+    "shortStays": {
+      "enabled": true,
+      "minNights": 2,
+      "rates": [
+        {
+          "dailyRate": 750,
+          "roomType": "Single"
+        },
+        {
+          "dailyRate": 560,
+          "roomType": "Double"
+        }
+      ]
+    },
+    "rating": {
+      "averageRating": 4.5,
+      "cleanlinessRating": 4.6,
+      "foodRating": 4.1,
+      "safetyRating": 4.5,
+      "total": 31
+    }
+  },
+  {
+    "_id": "de4000000000000000000005",
+    "slug": "aangan-girls-hostel-koteshwor",
+    "name": "Aangan Girls Hostel",
+    "hostelType": "GIRLS",
+    "description": "A family-run girls hostel near Koteshwor chowk with easy buses to Baneshwor and Bhaktapur. Vegetarian and non-vegetarian meals, laundry twice a week.",
+    "location": {
+      "address": "Jadibuti Road, Koteshwor",
+      "area": "Koteshwor",
+      "city": "Kathmandu",
+      "lat": 27.6772,
+      "lng": 85.3502,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Meals",
+      "Hot Water",
+      "Laundry",
+      "CCTV",
+      "RO Water",
+      "Shoe Rack",
+      "Iron & Laundry Board"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Single",
+      "Triple"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Included",
+        "monthlyRent": 13500,
+        "roomType": "Single",
+        "rooms": 4,
+        "vacantBeds": 0
+      },
+      {
+        "bedsPerRoom": 3,
+        "mealInclusion": "Included",
+        "monthlyRent": 9500,
+        "roomType": "Triple",
+        "rooms": 8,
+        "vacantBeds": 5
+      }
+    ],
+    "pricing": {
+      "admissionFee": 3000,
+      "currency": "NPR",
+      "monthlyRentMax": 13500,
+      "monthlyRentMin": 9500
+    },
+    "capacitySummary": {
+      "totalBeds": 28,
+      "totalRooms": 12,
+      "vacantBeds": 5
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/17136827/pexels-photo-17136827.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Aangan Girls Hostel — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/35157557/pexels-photo-35157557.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Aangan Girls Hostel — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/31944364/pexels-photo-31944364.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Aangan Girls Hostel — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/15477394/pexels-photo-15477394.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Aangan Girls Hostel — laundry"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/8996219/pexels-photo-8996219.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Aangan Girls Hostel — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/11295825/pexels-photo-11295825.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Aangan Girls Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/4115551/pexels-photo-4115551.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Aangan Girls Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Triple",
+        "url": "https://images.pexels.com/photos/5158497/pexels-photo-5158497.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Aangan Girls Hostel — triple room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 8:30 PM",
+      "Visitors in the reception area only, 9 AM to 6 PM",
+      "Inform the warden before staying out overnight",
+      "No cooking in the rooms"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 4.2,
+      "cleanlinessRating": 4.3,
+      "foodRating": 4.4,
+      "safetyRating": 4.6,
+      "total": 19
+    }
+  },
+  {
+    "_id": "de4000000000000000000006",
+    "slug": "kupondole-student-residence-lalitpur",
+    "name": "Kupondole Student Residence",
+    "hostelType": "CO_LIVING",
+    "description": "Student residence a short walk from the Thapathali bridge. Single rooms with a desk, a quiet dormitory floor, and a shared kitchen. Short stays available.",
+    "location": {
+      "address": "Kupondole Height, Lalitpur",
+      "area": "Kupondole",
+      "city": "Lalitpur",
+      "lat": 27.6874,
+      "lng": 85.3163,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Study Room",
+      "Hot Water",
+      "Laundry",
+      "Common Room",
+      "Personal Table & Chair",
+      "Power Backup",
+      "Elevator"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 2
+    },
+    "roomTypes": [
+      "Single",
+      "Dormitory"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Optional",
+        "monthlyRent": 15000,
+        "roomType": "Single",
+        "rooms": 10,
+        "vacantBeds": 3
+      },
+      {
+        "bedsPerRoom": 4,
+        "mealInclusion": "Optional",
+        "monthlyRent": 8500,
+        "roomType": "Dormitory",
+        "rooms": 5,
+        "vacantBeds": 6
+      }
+    ],
+    "pricing": {
+      "admissionFee": 4000,
+      "currency": "NPR",
+      "monthlyRentMax": 15000,
+      "monthlyRentMin": 8500
+    },
+    "capacitySummary": {
+      "totalBeds": 30,
+      "totalRooms": 15,
+      "vacantBeds": 9
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/33557085/pexels-photo-33557085.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Kupondole Student Residence — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/36404578/pexels-photo-36404578.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Kupondole Student Residence — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/32048482/pexels-photo-32048482.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Kupondole Student Residence — shared kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/9490420/pexels-photo-9490420.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Kupondole Student Residence — study room"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/7804406/pexels-photo-7804406.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Kupondole Student Residence — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/35110643/pexels-photo-35110643.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Kupondole Student Residence — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/13871317/pexels-photo-13871317.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Kupondole Student Residence — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Dormitory",
+        "url": "https://images.pexels.com/photos/5137981/pexels-photo-5137981.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Kupondole Student Residence — dormitory room"
+      }
+    ],
+    "rules": [
+      "Quiet hours 10:00 PM to 6:00 AM",
+      "No smoking or alcohol inside the hostel",
+      "Guests must sign in at reception",
+      "Keep the kitchen and common room clean after use"
+    ],
+    "shortStays": {
+      "enabled": true,
+      "minNights": 1,
+      "rates": [
+        {
+          "dailyRate": 700,
+          "roomType": "Single"
+        },
+        {
+          "dailyRate": 400,
+          "roomType": "Dormitory"
+        }
+      ]
+    },
+    "rating": {
+      "averageRating": 4.6,
+      "cleanlinessRating": 4.7,
+      "foodRating": 4,
+      "safetyRating": 4.5,
+      "total": 44
+    }
+  },
+  {
+    "_id": "de4000000000000000000007",
+    "slug": "patan-nest-girls-hostel-jawalakhel",
+    "name": "Patan Nest Girls Hostel",
+    "hostelType": "GIRLS",
+    "description": "Girls hostel near Jawalakhel chowk, close to the zoo and several colleges. Bright rooms, CCTV, and a warden who lives on the ground floor.",
+    "location": {
+      "address": "Ekantakuna Road, Jawalakhel",
+      "area": "Jawalakhel",
+      "city": "Lalitpur",
+      "lat": 27.6718,
+      "lng": 85.3129,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Meals",
+      "Hot Water",
+      "CCTV",
+      "Housekeeping",
+      "Balcony",
+      "First Aid",
+      "Fire Extinguisher"
+    ],
+    "food": {
+      "hasNonVeg": false,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Single",
+      "Double"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Included",
+        "monthlyRent": 14000,
+        "roomType": "Single",
+        "rooms": 6,
+        "vacantBeds": 2
+      },
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Included",
+        "monthlyRent": 11000,
+        "roomType": "Double",
+        "rooms": 9,
+        "vacantBeds": 2
+      }
+    ],
+    "pricing": {
+      "admissionFee": 3500,
+      "currency": "NPR",
+      "monthlyRentMax": 14000,
+      "monthlyRentMin": 11000
+    },
+    "capacitySummary": {
+      "totalBeds": 24,
+      "totalRooms": 15,
+      "vacantBeds": 4
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/11443895/pexels-photo-11443895.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Patan Nest Girls Hostel — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/23833980/pexels-photo-23833980.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Patan Nest Girls Hostel — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/33375679/pexels-photo-33375679.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Patan Nest Girls Hostel — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/5825561/pexels-photo-5825561.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Patan Nest Girls Hostel — bathroom"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/14882284/pexels-photo-14882284.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Patan Nest Girls Hostel — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/35618218/pexels-photo-35618218.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Patan Nest Girls Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/19836795/pexels-photo-19836795.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Patan Nest Girls Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/4044793/pexels-photo-4044793.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Patan Nest Girls Hostel — double room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 8:30 PM",
+      "Visitors in the reception area only, 9 AM to 6 PM",
+      "Inform the warden before staying out overnight",
+      "No cooking in the rooms"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 4.8,
+      "cleanlinessRating": 4.9,
+      "foodRating": 4.6,
+      "safetyRating": 4.9,
+      "total": 64
+    }
+  },
+  {
+    "_id": "de4000000000000000000008",
+    "slug": "bhaktapur-chowk-boys-hostel-sallaghari",
+    "name": "Bhaktapur Chowk Boys Hostel",
+    "hostelType": "BOYS",
+    "description": "Boys hostel on the Araniko highway with direct buses to Kathmandu. Simple rooms, three meals a day and a large terrace facing the old city.",
+    "location": {
+      "address": "Araniko Highway, Sallaghari",
+      "area": "Sallaghari",
+      "city": "Bhaktapur",
+      "lat": 27.6729,
+      "lng": 85.4139,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Meals",
+      "Hot Water",
+      "Parking",
+      "Solar Water Heater",
+      "Bedding & Mattress",
+      "Shoe Rack"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Single",
+      "Triple"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Included",
+        "monthlyRent": 11000,
+        "roomType": "Single",
+        "rooms": 4,
+        "vacantBeds": 1
+      },
+      {
+        "bedsPerRoom": 3,
+        "mealInclusion": "Included",
+        "monthlyRent": 8000,
+        "roomType": "Triple",
+        "rooms": 7,
+        "vacantBeds": 4
+      }
+    ],
+    "pricing": {
+      "admissionFee": 2500,
+      "currency": "NPR",
+      "monthlyRentMax": 11000,
+      "monthlyRentMin": 8000
+    },
+    "capacitySummary": {
+      "totalBeds": 25,
+      "totalRooms": 11,
+      "vacantBeds": 5
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/11429504/pexels-photo-11429504.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bhaktapur Chowk Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/34436808/pexels-photo-34436808.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bhaktapur Chowk Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/31944361/pexels-photo-31944361.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bhaktapur Chowk Boys Hostel — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/16648471/pexels-photo-16648471.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bhaktapur Chowk Boys Hostel — dining hall"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/7351635/pexels-photo-7351635.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bhaktapur Chowk Boys Hostel — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/11295759/pexels-photo-11295759.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bhaktapur Chowk Boys Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Triple",
+        "url": "https://images.pexels.com/photos/5137980/pexels-photo-5137980.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bhaktapur Chowk Boys Hostel — triple room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Triple",
+        "url": "https://images.pexels.com/photos/11062931/pexels-photo-11062931.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bhaktapur Chowk Boys Hostel — triple room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 10:00 PM",
+      "No smoking or alcohol inside the hostel",
+      "Visitors in the common room only",
+      "Inform the warden before staying out overnight"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 3.9,
+      "cleanlinessRating": 3.8,
+      "foodRating": 4.2,
+      "safetyRating": 4.1,
+      "total": 14
+    }
+  },
+  {
+    "_id": "de4000000000000000000009",
+    "slug": "phewa-view-co-living-lakeside",
+    "name": "Phewa View Co-living",
+    "hostelType": "CO_LIVING",
+    "description": "Co-living one street back from Phewa Lake. Private rooms and a dormitory, a shared kitchen and a rooftop with a view of Machhapuchhre. Short stays welcome.",
+    "location": {
+      "address": "Street 13, Lakeside",
+      "area": "Lakeside",
+      "city": "Pokhara",
+      "lat": 28.2106,
+      "lng": 83.9582,
+      "province": "Gandaki"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Hot Water",
+      "Common Room",
+      "Laundry",
+      "Garden",
+      "Refrigerator",
+      "Balcony",
+      "Housekeeping"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 2
+    },
+    "roomTypes": [
+      "Single",
+      "Dormitory"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Optional",
+        "monthlyRent": 13000,
+        "roomType": "Single",
+        "rooms": 8,
+        "vacantBeds": 3
+      },
+      {
+        "bedsPerRoom": 6,
+        "mealInclusion": "Optional",
+        "monthlyRent": 7500,
+        "roomType": "Dormitory",
+        "rooms": 3,
+        "vacantBeds": 7
+      }
+    ],
+    "pricing": {
+      "admissionFee": 3000,
+      "currency": "NPR",
+      "monthlyRentMax": 13000,
+      "monthlyRentMin": 7500
+    },
+    "capacitySummary": {
+      "totalBeds": 26,
+      "totalRooms": 11,
+      "vacantBeds": 10
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/27582015/pexels-photo-27582015.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Phewa View Co-living — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/13319068/pexels-photo-13319068.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Phewa View Co-living — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/36881138/pexels-photo-36881138.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Phewa View Co-living — shared kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/28957822/pexels-photo-28957822.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Phewa View Co-living — rooftop terrace"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/32825914/pexels-photo-32825914.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Phewa View Co-living — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/35618218/pexels-photo-35618218.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Phewa View Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/7746573/pexels-photo-7746573.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Phewa View Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Dormitory",
+        "url": "https://images.pexels.com/photos/5137986/pexels-photo-5137986.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Phewa View Co-living — dormitory room"
+      }
+    ],
+    "rules": [
+      "Quiet hours 10:00 PM to 6:00 AM",
+      "No smoking or alcohol inside the hostel",
+      "Guests must sign in at reception",
+      "Keep the kitchen and common room clean after use"
+    ],
+    "shortStays": {
+      "enabled": true,
+      "minNights": 1,
+      "rates": [
+        {
+          "dailyRate": 650,
+          "roomType": "Single"
+        },
+        {
+          "dailyRate": 350,
+          "roomType": "Dormitory"
+        }
+      ]
+    },
+    "rating": {
+      "averageRating": 4.6,
+      "cleanlinessRating": 4.5,
+      "foodRating": 4.2,
+      "safetyRating": 4.7,
+      "total": 41
+    }
+  },
+  {
+    "_id": "de4000000000000000000010",
+    "slug": "machhapuchhre-boys-hostel-prithvi-chowk",
+    "name": "Machhapuchhre Boys Hostel",
+    "hostelType": "BOYS",
+    "description": "Boys hostel next to the Prithvi Chowk bus park, handy for students of the colleges around Nadipur and Bagar. Dal bhat twice a day and snacks in the evening.",
+    "location": {
+      "address": "Prithvi Chowk, Pokhara",
+      "area": "Prithvi Chowk",
+      "city": "Pokhara",
+      "lat": 28.2098,
+      "lng": 83.9861,
+      "province": "Gandaki"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Meals",
+      "Hot Water",
+      "Laundry",
+      "Parking",
+      "Power Backup",
+      "CCTV"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Double",
+      "Triple"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Included",
+        "monthlyRent": 9500,
+        "roomType": "Double",
+        "rooms": 10,
+        "vacantBeds": 4
+      },
+      {
+        "bedsPerRoom": 3,
+        "mealInclusion": "Included",
+        "monthlyRent": 8000,
+        "roomType": "Triple",
+        "rooms": 6,
+        "vacantBeds": 3
+      }
+    ],
+    "pricing": {
+      "admissionFee": 2500,
+      "currency": "NPR",
+      "monthlyRentMax": 9500,
+      "monthlyRentMin": 8000
+    },
+    "capacitySummary": {
+      "totalBeds": 38,
+      "totalRooms": 16,
+      "vacantBeds": 7
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/7718485/pexels-photo-7718485.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Machhapuchhre Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/18084655/pexels-photo-18084655.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Machhapuchhre Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/6375553/pexels-photo-6375553.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Machhapuchhre Boys Hostel — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/4504004/pexels-photo-4504004.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Machhapuchhre Boys Hostel — dining hall"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/12737917/pexels-photo-12737917.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Machhapuchhre Boys Hostel — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/11062931/pexels-photo-11062931.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Machhapuchhre Boys Hostel — double room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Triple",
+        "url": "https://images.pexels.com/photos/5158497/pexels-photo-5158497.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Machhapuchhre Boys Hostel — triple room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Triple",
+        "url": "https://images.pexels.com/photos/4044793/pexels-photo-4044793.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Machhapuchhre Boys Hostel — triple room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 10:00 PM",
+      "No smoking or alcohol inside the hostel",
+      "Visitors in the common room only",
+      "Inform the warden before staying out overnight"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 4.3,
+      "cleanlinessRating": 4.2,
+      "foodRating": 4.5,
+      "safetyRating": 4.4,
+      "total": 23
+    }
+  },
+  {
+    "_id": "de4000000000000000000011",
+    "slug": "annapurna-aawas-girls-hostel-bagar",
+    "name": "Annapurna Aawas Girls Hostel",
+    "hostelType": "GIRLS",
+    "description": "Girls hostel in Bagar, close to Prithvi Narayan Campus. Clean rooms, a warden on site and a small garden at the back.",
+    "location": {
+      "address": "Bagar Road, Pokhara",
+      "area": "Bagar",
+      "city": "Pokhara",
+      "lat": 28.2372,
+      "lng": 83.9951,
+      "province": "Gandaki"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Meals",
+      "Hot Water",
+      "CCTV",
+      "Garden",
+      "RO Water",
+      "Personal Cupboard (Daraz)"
+    ],
+    "food": {
+      "hasNonVeg": false,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Single",
+      "Double"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Included",
+        "monthlyRent": 12000,
+        "roomType": "Single",
+        "rooms": 5,
+        "vacantBeds": 1
+      },
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Included",
+        "monthlyRent": 9500,
+        "roomType": "Double",
+        "rooms": 8,
+        "vacantBeds": 3
+      }
+    ],
+    "pricing": {
+      "admissionFee": 3000,
+      "currency": "NPR",
+      "monthlyRentMax": 12000,
+      "monthlyRentMin": 9500
+    },
+    "capacitySummary": {
+      "totalBeds": 21,
+      "totalRooms": 13,
+      "vacantBeds": 4
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/36040078/pexels-photo-36040078.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Annapurna Aawas Girls Hostel — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/15534873/pexels-photo-15534873.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Annapurna Aawas Girls Hostel — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/31944365/pexels-photo-31944365.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Annapurna Aawas Girls Hostel — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/19980200/pexels-photo-19980200.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Annapurna Aawas Girls Hostel — laundry"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/8996219/pexels-photo-8996219.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Annapurna Aawas Girls Hostel — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/39338470/pexels-photo-39338470.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Annapurna Aawas Girls Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/11295825/pexels-photo-11295825.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Annapurna Aawas Girls Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/11062799/pexels-photo-11062799.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Annapurna Aawas Girls Hostel — double room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 8:30 PM",
+      "Visitors in the reception area only, 9 AM to 6 PM",
+      "Inform the warden before staying out overnight",
+      "No cooking in the rooms"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 4.5,
+      "cleanlinessRating": 4.6,
+      "foodRating": 4.4,
+      "safetyRating": 4.8,
+      "total": 29
+    }
+  },
+  {
+    "_id": "de4000000000000000000012",
+    "slug": "seti-kinara-co-living-mahendrapul",
+    "name": "Seti Kinara Co-living",
+    "hostelType": "CO_LIVING",
+    "description": "Co-living in the middle of Pokhara's market, near the Seti river gorge. Single rooms and a dormitory, a study room, and short stays by the night.",
+    "location": {
+      "address": "New Road, Mahendrapul",
+      "area": "Mahendrapul",
+      "city": "Pokhara",
+      "lat": 28.2185,
+      "lng": 83.9887,
+      "province": "Gandaki"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Study Room",
+      "Hot Water",
+      "Common Room",
+      "Laundry",
+      "Power Backup",
+      "Attached Bathroom"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 2
+    },
+    "roomTypes": [
+      "Single",
+      "Dormitory"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Optional",
+        "monthlyRent": 12500,
+        "roomType": "Single",
+        "rooms": 7,
+        "vacantBeds": 2
+      },
+      {
+        "bedsPerRoom": 4,
+        "mealInclusion": "Optional",
+        "monthlyRent": 7000,
+        "roomType": "Dormitory",
+        "rooms": 4,
+        "vacantBeds": 5
+      }
+    ],
+    "pricing": {
+      "admissionFee": 2500,
+      "currency": "NPR",
+      "monthlyRentMax": 12500,
+      "monthlyRentMin": 7000
+    },
+    "capacitySummary": {
+      "totalBeds": 23,
+      "totalRooms": 11,
+      "vacantBeds": 7
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/14224231/pexels-photo-14224231.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Seti Kinara Co-living — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/33982324/pexels-photo-33982324.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Seti Kinara Co-living — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/31944364/pexels-photo-31944364.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Seti Kinara Co-living — shared kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/4778621/pexels-photo-4778621.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Seti Kinara Co-living — study room"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/36885763/pexels-photo-36885763.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Seti Kinara Co-living — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/19836795/pexels-photo-19836795.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Seti Kinara Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/35236646/pexels-photo-35236646.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Seti Kinara Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Dormitory",
+        "url": "https://images.pexels.com/photos/5137981/pexels-photo-5137981.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Seti Kinara Co-living — dormitory room"
+      }
+    ],
+    "rules": [
+      "Quiet hours 10:00 PM to 6:00 AM",
+      "No smoking or alcohol inside the hostel",
+      "Guests must sign in at reception",
+      "Keep the kitchen and common room clean after use"
+    ],
+    "shortStays": {
+      "enabled": true,
+      "minNights": 1,
+      "rates": [
+        {
+          "dailyRate": 600,
+          "roomType": "Single"
+        },
+        {
+          "dailyRate": 340,
+          "roomType": "Dormitory"
+        }
+      ]
+    },
+    "rating": {
+      "averageRating": 4.2,
+      "cleanlinessRating": 4.1,
+      "foodRating": 3.9,
+      "safetyRating": 4.3,
+      "total": 17
+    }
+  },
+  {
+    "_id": "de4000000000000000000013",
+    "slug": "koshi-boys-hostel-biratnagar",
+    "name": "Koshi Boys Hostel",
+    "hostelType": "BOYS",
+    "description": "Boys hostel on Biratnagar's main road, near Mahendra Morang campus. Fans and mosquito nets in every room, three meals a day and a generator for load-shedding.",
+    "location": {
+      "address": "Main Road, Traffic Chowk",
+      "area": "Traffic Chowk",
+      "city": "Biratnagar",
+      "lat": 26.4551,
+      "lng": 87.2797,
+      "province": "Koshi"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Meals",
+      "Generator",
+      "Hot Water",
+      "Laundry",
+      "Parking",
+      "RO Water"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Single",
+      "Triple"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Included",
+        "monthlyRent": 10000,
+        "roomType": "Single",
+        "rooms": 5,
+        "vacantBeds": 1
+      },
+      {
+        "bedsPerRoom": 3,
+        "mealInclusion": "Included",
+        "monthlyRent": 7000,
+        "roomType": "Triple",
+        "rooms": 8,
+        "vacantBeds": 6
+      }
+    ],
+    "pricing": {
+      "admissionFee": 2000,
+      "currency": "NPR",
+      "monthlyRentMax": 10000,
+      "monthlyRentMin": 7000
+    },
+    "capacitySummary": {
+      "totalBeds": 29,
+      "totalRooms": 13,
+      "vacantBeds": 7
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/31820499/pexels-photo-31820499.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Koshi Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/11779974/pexels-photo-11779974.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Koshi Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/31944361/pexels-photo-31944361.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Koshi Boys Hostel — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/13871340/pexels-photo-13871340.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Koshi Boys Hostel — dining hall"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/35008222/pexels-photo-35008222.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Koshi Boys Hostel — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/35236646/pexels-photo-35236646.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Koshi Boys Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Triple",
+        "url": "https://images.pexels.com/photos/5137980/pexels-photo-5137980.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Koshi Boys Hostel — triple room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Triple",
+        "url": "https://images.pexels.com/photos/5158497/pexels-photo-5158497.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Koshi Boys Hostel — triple room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 10:00 PM",
+      "No smoking or alcohol inside the hostel",
+      "Visitors in the common room only",
+      "Inform the warden before staying out overnight"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 4.1,
+      "cleanlinessRating": 4,
+      "foodRating": 4.4,
+      "safetyRating": 4.2,
+      "total": 21
+    }
+  },
+  {
+    "_id": "de4000000000000000000014",
+    "slug": "morang-girls-hostel-tinpaini",
+    "name": "Morang Girls Hostel",
+    "hostelType": "GIRLS",
+    "description": "Girls hostel near Tinpaini chowk with a warden on site, CCTV, and a quiet study room. Vegetarian meals cooked in-house.",
+    "location": {
+      "address": "Tinpaini Chowk, Biratnagar",
+      "area": "Tinpaini",
+      "city": "Biratnagar",
+      "lat": 26.4712,
+      "lng": 87.2743,
+      "province": "Koshi"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Meals",
+      "CCTV",
+      "Study Room",
+      "Generator",
+      "First Aid",
+      "Personal Table & Chair"
+    ],
+    "food": {
+      "hasNonVeg": false,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Single",
+      "Double"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Included",
+        "monthlyRent": 10500,
+        "roomType": "Single",
+        "rooms": 4,
+        "vacantBeds": 1
+      },
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Included",
+        "monthlyRent": 8500,
+        "roomType": "Double",
+        "rooms": 8,
+        "vacantBeds": 2
+      }
+    ],
+    "pricing": {
+      "admissionFee": 2500,
+      "currency": "NPR",
+      "monthlyRentMax": 10500,
+      "monthlyRentMin": 8500
+    },
+    "capacitySummary": {
+      "totalBeds": 20,
+      "totalRooms": 12,
+      "vacantBeds": 3
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/11439224/pexels-photo-11439224.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Morang Girls Hostel — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/33981155/pexels-photo-33981155.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Morang Girls Hostel — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/32048482/pexels-photo-32048482.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Morang Girls Hostel — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/16504586/pexels-photo-16504586.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Morang Girls Hostel — study room"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/7804406/pexels-photo-7804406.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Morang Girls Hostel — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/11295825/pexels-photo-11295825.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Morang Girls Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/35110643/pexels-photo-35110643.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Morang Girls Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/4044793/pexels-photo-4044793.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Morang Girls Hostel — double room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 8:30 PM",
+      "Visitors in the reception area only, 9 AM to 6 PM",
+      "Inform the warden before staying out overnight",
+      "No cooking in the rooms"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 4.4,
+      "cleanlinessRating": 4.5,
+      "foodRating": 4.3,
+      "safetyRating": 4.7,
+      "total": 16
+    }
+  },
+  {
+    "_id": "de4000000000000000000015",
+    "slug": "bargachhi-co-living-biratnagar",
+    "name": "Bargachhi Co-living",
+    "hostelType": "CO_LIVING",
+    "description": "Co-living for students and young professionals near Bargachhi chowk. Private rooms, a shared kitchen and a common room with a TV. Takes short stays.",
+    "location": {
+      "address": "Bargachhi Chowk, Biratnagar",
+      "area": "Bargachhi",
+      "city": "Biratnagar",
+      "lat": 26.4627,
+      "lng": 87.2688,
+      "province": "Koshi"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Common Room",
+      "Hot Water",
+      "Refrigerator",
+      "Laundry",
+      "Generator",
+      "Parking"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 2
+    },
+    "roomTypes": [
+      "Single",
+      "Double"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Optional",
+        "monthlyRent": 11000,
+        "roomType": "Single",
+        "rooms": 6,
+        "vacantBeds": 2
+      },
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Optional",
+        "monthlyRent": 8000,
+        "roomType": "Double",
+        "rooms": 6,
+        "vacantBeds": 4
+      }
+    ],
+    "pricing": {
+      "admissionFee": 2000,
+      "currency": "NPR",
+      "monthlyRentMax": 11000,
+      "monthlyRentMin": 8000
+    },
+    "capacitySummary": {
+      "totalBeds": 18,
+      "totalRooms": 12,
+      "vacantBeds": 6
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/32622736/pexels-photo-32622736.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bargachhi Co-living — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/33982322/pexels-photo-33982322.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bargachhi Co-living — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/36881138/pexels-photo-36881138.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bargachhi Co-living — shared kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/8477454/pexels-photo-8477454.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bargachhi Co-living — common room"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/14882284/pexels-photo-14882284.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bargachhi Co-living — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/35618218/pexels-photo-35618218.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bargachhi Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/13871317/pexels-photo-13871317.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bargachhi Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/11062799/pexels-photo-11062799.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Bargachhi Co-living — double room"
+      }
+    ],
+    "rules": [
+      "Quiet hours 10:00 PM to 6:00 AM",
+      "No smoking or alcohol inside the hostel",
+      "Guests must sign in at reception",
+      "Keep the kitchen and common room clean after use"
+    ],
+    "shortStays": {
+      "enabled": true,
+      "minNights": 1,
+      "rates": [
+        {
+          "dailyRate": 550,
+          "roomType": "Single"
+        },
+        {
+          "dailyRate": 400,
+          "roomType": "Double"
+        }
+      ]
+    },
+    "rating": {
+      "averageRating": 4,
+      "cleanlinessRating": 4.1,
+      "foodRating": 3.8,
+      "safetyRating": 4.2,
+      "total": 9
+    }
+  },
+  {
+    "_id": "de4000000000000000000016",
+    "slug": "jyatha-co-living-thamel",
+    "name": "Jyatha Co-living",
+    "hostelType": "CO_LIVING",
+    "description": "Co-living on the quieter Jyatha side of Thamel, five minutes from Ratna Park. Private rooms and a dormitory, a rooftop with prayer flags, and nightly stays for visitors.",
+    "location": {
+      "address": "Jyatha Marg, Thamel",
+      "area": "Thamel",
+      "city": "Kathmandu",
+      "lat": 27.7109,
+      "lng": 85.3118,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Hot Water",
+      "Common Room",
+      "Laundry",
+      "Housekeeping",
+      "Power Backup",
+      "Refrigerator"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 2
+    },
+    "roomTypes": [
+      "Single",
+      "Dormitory"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Optional",
+        "monthlyRent": 15000,
+        "roomType": "Single",
+        "rooms": 8,
+        "vacantBeds": 2
+      },
+      {
+        "bedsPerRoom": 6,
+        "mealInclusion": "Optional",
+        "monthlyRent": 8000,
+        "roomType": "Dormitory",
+        "rooms": 3,
+        "vacantBeds": 6
+      }
+    ],
+    "pricing": {
+      "admissionFee": 4000,
+      "currency": "NPR",
+      "monthlyRentMax": 15000,
+      "monthlyRentMin": 8000
+    },
+    "capacitySummary": {
+      "totalBeds": 26,
+      "totalRooms": 11,
+      "vacantBeds": 8
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/4715245/pexels-photo-4715245.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Jyatha Co-living — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/11404908/pexels-photo-11404908.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Jyatha Co-living — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/31944365/pexels-photo-31944365.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Jyatha Co-living — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/28962508/pexels-photo-28962508.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Jyatha Co-living — rooftop terrace"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/7351635/pexels-photo-7351635.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Jyatha Co-living — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/7746573/pexels-photo-7746573.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Jyatha Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/39338470/pexels-photo-39338470.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Jyatha Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Dormitory",
+        "url": "https://images.pexels.com/photos/5137986/pexels-photo-5137986.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Jyatha Co-living — dormitory room"
+      }
+    ],
+    "rules": [
+      "Quiet hours 10:00 PM to 6:00 AM",
+      "No smoking or alcohol inside the hostel",
+      "Guests must sign in at reception",
+      "Keep the kitchen and common room clean after use"
+    ],
+    "shortStays": {
+      "enabled": true,
+      "minNights": 1,
+      "rates": [
+        {
+          "dailyRate": 700,
+          "roomType": "Single"
+        },
+        {
+          "dailyRate": 400,
+          "roomType": "Dormitory"
+        }
+      ]
+    },
+    "rating": {
+      "averageRating": 4.5,
+      "cleanlinessRating": 4.4,
+      "foodRating": 4.1,
+      "safetyRating": 4.6,
+      "total": 47
+    }
+  },
+  {
+    "_id": "de4000000000000000000017",
+    "slug": "chaksibari-boys-hostel-thamel",
+    "name": "Chaksibari Boys Hostel",
+    "hostelType": "BOYS",
+    "description": "Boys hostel off Chaksibari Marg, walking distance from the Thamel and Lainchaur colleges. Three meals a day and a warden on every floor.",
+    "location": {
+      "address": "Chaksibari Marg, Thamel",
+      "area": "Thamel",
+      "city": "Kathmandu",
+      "lat": 27.7168,
+      "lng": 85.3104,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Meals",
+      "Hot Water",
+      "Laundry",
+      "CCTV",
+      "RO Water",
+      "Bedding & Mattress"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Double",
+      "Triple"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Included",
+        "monthlyRent": 11500,
+        "roomType": "Double",
+        "rooms": 9,
+        "vacantBeds": 3
+      },
+      {
+        "bedsPerRoom": 3,
+        "mealInclusion": "Included",
+        "monthlyRent": 9500,
+        "roomType": "Triple",
+        "rooms": 6,
+        "vacantBeds": 4
+      }
+    ],
+    "pricing": {
+      "admissionFee": 3000,
+      "currency": "NPR",
+      "monthlyRentMax": 11500,
+      "monthlyRentMin": 9500
+    },
+    "capacitySummary": {
+      "totalBeds": 36,
+      "totalRooms": 15,
+      "vacantBeds": 7
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/37227721/pexels-photo-37227721.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Chaksibari Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/37710833/pexels-photo-37710833.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Chaksibari Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/6375553/pexels-photo-6375553.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Chaksibari Boys Hostel — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/4504004/pexels-photo-4504004.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Chaksibari Boys Hostel — dining hall"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/35008222/pexels-photo-35008222.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Chaksibari Boys Hostel — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/11062931/pexels-photo-11062931.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Chaksibari Boys Hostel — double room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Triple",
+        "url": "https://images.pexels.com/photos/5158497/pexels-photo-5158497.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Chaksibari Boys Hostel — triple room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Triple",
+        "url": "https://images.pexels.com/photos/5137980/pexels-photo-5137980.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Chaksibari Boys Hostel — triple room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 10:00 PM",
+      "No smoking or alcohol inside the hostel",
+      "Visitors in the common room only",
+      "Inform the warden before staying out overnight"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 4,
+      "cleanlinessRating": 3.9,
+      "foodRating": 4.3,
+      "safetyRating": 4.1,
+      "total": 18
+    }
+  },
+  {
+    "_id": "de4000000000000000000018",
+    "slug": "boudha-shanti-girls-hostel",
+    "name": "Boudha Shanti Girls Hostel",
+    "hostelType": "GIRLS",
+    "description": "A calm girls hostel a short walk from the Boudhanath stupa. Vegetarian meals, a study room with desks, and a warden who lives on site.",
+    "location": {
+      "address": "Pipalbot, Boudha",
+      "area": "Boudha",
+      "city": "Kathmandu",
+      "lat": 27.7208,
+      "lng": 85.3611,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Meals",
+      "Hot Water",
+      "CCTV",
+      "Study Room",
+      "Housekeeping",
+      "Personal Table & Chair"
+    ],
+    "food": {
+      "hasNonVeg": false,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Single",
+      "Double"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Included",
+        "monthlyRent": 13000,
+        "roomType": "Single",
+        "rooms": 6,
+        "vacantBeds": 2
+      },
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Included",
+        "monthlyRent": 10500,
+        "roomType": "Double",
+        "rooms": 8,
+        "vacantBeds": 3
+      }
+    ],
+    "pricing": {
+      "admissionFee": 3000,
+      "currency": "NPR",
+      "monthlyRentMax": 13000,
+      "monthlyRentMin": 10500
+    },
+    "capacitySummary": {
+      "totalBeds": 22,
+      "totalRooms": 14,
+      "vacantBeds": 5
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/6428786/pexels-photo-6428786.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Boudha Shanti Girls Hostel — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/35739391/pexels-photo-35739391.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Boudha Shanti Girls Hostel — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/36881138/pexels-photo-36881138.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Boudha Shanti Girls Hostel — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/16504586/pexels-photo-16504586.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Boudha Shanti Girls Hostel — study room"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/36885763/pexels-photo-36885763.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Boudha Shanti Girls Hostel — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/11295825/pexels-photo-11295825.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Boudha Shanti Girls Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/19836795/pexels-photo-19836795.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Boudha Shanti Girls Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/11062799/pexels-photo-11062799.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Boudha Shanti Girls Hostel — double room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 8:30 PM",
+      "Visitors in the reception area only, 9 AM to 6 PM",
+      "Inform the warden before staying out overnight",
+      "No cooking in the rooms"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 4.7,
+      "cleanlinessRating": 4.8,
+      "foodRating": 4.6,
+      "safetyRating": 4.9,
+      "total": 36
+    }
+  },
+  {
+    "_id": "de4000000000000000000019",
+    "slug": "tusal-co-living-boudha",
+    "name": "Tusal Co-living",
+    "hostelType": "CO_LIVING",
+    "description": "Co-living in the lanes south of the stupa. Private rooms and a small dormitory, a shared kitchen and lounge, and nightly stays for visitors.",
+    "location": {
+      "address": "Tusal Marg, Boudha",
+      "area": "Boudha",
+      "city": "Kathmandu",
+      "lat": 27.7187,
+      "lng": 85.3592,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Hot Water",
+      "Common Room",
+      "Laundry",
+      "Refrigerator",
+      "Garden",
+      "Power Backup"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 2
+    },
+    "roomTypes": [
+      "Single",
+      "Dormitory"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Optional",
+        "monthlyRent": 13500,
+        "roomType": "Single",
+        "rooms": 7,
+        "vacantBeds": 2
+      },
+      {
+        "bedsPerRoom": 4,
+        "mealInclusion": "Optional",
+        "monthlyRent": 7500,
+        "roomType": "Dormitory",
+        "rooms": 4,
+        "vacantBeds": 5
+      }
+    ],
+    "pricing": {
+      "admissionFee": 3000,
+      "currency": "NPR",
+      "monthlyRentMax": 13500,
+      "monthlyRentMin": 7500
+    },
+    "capacitySummary": {
+      "totalBeds": 23,
+      "totalRooms": 11,
+      "vacantBeds": 7
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/38914366/pexels-photo-38914366.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Tusal Co-living — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/29651627/pexels-photo-29651627.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Tusal Co-living — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/32048482/pexels-photo-32048482.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Tusal Co-living — shared kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/7347375/pexels-photo-7347375.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Tusal Co-living — common lounge"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/12737917/pexels-photo-12737917.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Tusal Co-living — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/35618218/pexels-photo-35618218.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Tusal Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/13871317/pexels-photo-13871317.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Tusal Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Dormitory",
+        "url": "https://images.pexels.com/photos/5137981/pexels-photo-5137981.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Tusal Co-living — dormitory room"
+      }
+    ],
+    "rules": [
+      "Quiet hours 10:00 PM to 6:00 AM",
+      "No smoking or alcohol inside the hostel",
+      "Guests must sign in at reception",
+      "Keep the kitchen and common room clean after use"
+    ],
+    "shortStays": {
+      "enabled": true,
+      "minNights": 1,
+      "rates": [
+        {
+          "dailyRate": 650,
+          "roomType": "Single"
+        },
+        {
+          "dailyRate": 350,
+          "roomType": "Dormitory"
+        }
+      ]
+    },
+    "rating": {
+      "averageRating": 4.4,
+      "cleanlinessRating": 4.5,
+      "foodRating": 4,
+      "safetyRating": 4.6,
+      "total": 22
+    }
+  },
+  {
+    "_id": "de4000000000000000000020",
+    "slug": "lazimpat-scholars-boys-hostel",
+    "name": "Lazimpat Scholars Boys Hostel",
+    "hostelType": "BOYS",
+    "description": "Boys hostel on a leafy lane off Lazimpat Road, close to Durbar Marg and the colleges around Lainchaur. Quiet study room, daily cleaning, three meals.",
+    "location": {
+      "address": "Lazimpat Road, Lazimpat",
+      "area": "Lazimpat",
+      "city": "Kathmandu",
+      "lat": 27.7219,
+      "lng": 85.3208,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Meals",
+      "Study Room",
+      "Hot Water",
+      "Laundry",
+      "Parking",
+      "CCTV"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Single",
+      "Double"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Included",
+        "monthlyRent": 16000,
+        "roomType": "Single",
+        "rooms": 6,
+        "vacantBeds": 2
+      },
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Included",
+        "monthlyRent": 12500,
+        "roomType": "Double",
+        "rooms": 8,
+        "vacantBeds": 2
+      }
+    ],
+    "pricing": {
+      "admissionFee": 4000,
+      "currency": "NPR",
+      "monthlyRentMax": 16000,
+      "monthlyRentMin": 12500
+    },
+    "capacitySummary": {
+      "totalBeds": 22,
+      "totalRooms": 14,
+      "vacantBeds": 4
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/5147364/pexels-photo-5147364.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Lazimpat Scholars Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/28159677/pexels-photo-28159677.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Lazimpat Scholars Boys Hostel — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/31944361/pexels-photo-31944361.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Lazimpat Scholars Boys Hostel — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/9490420/pexels-photo-9490420.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Lazimpat Scholars Boys Hostel — study room"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/8996219/pexels-photo-8996219.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Lazimpat Scholars Boys Hostel — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/35236646/pexels-photo-35236646.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Lazimpat Scholars Boys Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/11295759/pexels-photo-11295759.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Lazimpat Scholars Boys Hostel — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/4044793/pexels-photo-4044793.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Lazimpat Scholars Boys Hostel — double room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 10:00 PM",
+      "No smoking or alcohol inside the hostel",
+      "Visitors in the common room only",
+      "Inform the warden before staying out overnight"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 4.3,
+      "cleanlinessRating": 4.4,
+      "foodRating": 4.2,
+      "safetyRating": 4.5,
+      "total": 26
+    }
+  },
+  {
+    "_id": "de4000000000000000000021",
+    "slug": "panipokhari-girls-residence-lazimpat",
+    "name": "Panipokhari Girls Residence",
+    "hostelType": "GIRLS",
+    "description": "Girls residence near Panipokhari, in one of the city's greenest neighbourhoods. Bright rooms with attached bathrooms, CCTV and a warden on site.",
+    "location": {
+      "address": "Panipokhari, Lazimpat",
+      "area": "Lazimpat",
+      "city": "Kathmandu",
+      "lat": 27.7296,
+      "lng": 85.3232,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Meals",
+      "Attached Bathroom",
+      "Hot Water",
+      "CCTV",
+      "Housekeeping",
+      "Balcony",
+      "First Aid"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 3
+    },
+    "roomTypes": [
+      "Single",
+      "Double"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Included",
+        "monthlyRent": 16500,
+        "roomType": "Single",
+        "rooms": 5,
+        "vacantBeds": 1
+      },
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Included",
+        "monthlyRent": 13000,
+        "roomType": "Double",
+        "rooms": 7,
+        "vacantBeds": 2
+      }
+    ],
+    "pricing": {
+      "admissionFee": 4000,
+      "currency": "NPR",
+      "monthlyRentMax": 16500,
+      "monthlyRentMin": 13000
+    },
+    "capacitySummary": {
+      "totalBeds": 19,
+      "totalRooms": 12,
+      "vacantBeds": 3
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/37371756/pexels-photo-37371756.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Panipokhari Girls Residence — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/31520637/pexels-photo-31520637.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Panipokhari Girls Residence — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/33375679/pexels-photo-33375679.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Panipokhari Girls Residence — kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/12870169/pexels-photo-12870169.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Panipokhari Girls Residence — bathroom"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/14882284/pexels-photo-14882284.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Panipokhari Girls Residence — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/35110643/pexels-photo-35110643.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Panipokhari Girls Residence — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/4115551/pexels-photo-4115551.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Panipokhari Girls Residence — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/11062799/pexels-photo-11062799.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Panipokhari Girls Residence — double room"
+      }
+    ],
+    "rules": [
+      "Gate closes at 8:30 PM",
+      "Visitors in the reception area only, 9 AM to 6 PM",
+      "Inform the warden before staying out overnight",
+      "No cooking in the rooms"
+    ],
+    "shortStays": {
+      "enabled": false,
+      "minNights": 1,
+      "rates": []
+    },
+    "rating": {
+      "averageRating": 4.8,
+      "cleanlinessRating": 4.9,
+      "foodRating": 4.5,
+      "safetyRating": 4.9,
+      "total": 58
+    }
+  },
+  {
+    "_id": "de4000000000000000000022",
+    "slug": "thapagaun-co-living-new-baneshwor",
+    "name": "Thapagaun Co-living",
+    "hostelType": "CO_LIVING",
+    "description": "Co-living behind the Baneshwor chowk, close to the bus stops for every part of the valley. Private rooms, a laundry room and nightly stays.",
+    "location": {
+      "address": "Thapagaun, New Baneshwor",
+      "area": "New Baneshwor",
+      "city": "Kathmandu",
+      "lat": 27.6932,
+      "lng": 85.3372,
+      "province": "Bagmati"
+    },
+    "facilities": [
+      "Wi-Fi",
+      "Hot Water",
+      "Laundry",
+      "Common Room",
+      "Refrigerator",
+      "Power Backup",
+      "Iron & Laundry Board"
+    ],
+    "food": {
+      "hasNonVeg": true,
+      "hasVeg": true,
+      "mealsPerDay": 2
+    },
+    "roomTypes": [
+      "Single",
+      "Double"
+    ],
+    "roomConfigurations": [
+      {
+        "bedsPerRoom": 1,
+        "mealInclusion": "Optional",
+        "monthlyRent": 14500,
+        "roomType": "Single",
+        "rooms": 6,
+        "vacantBeds": 2
+      },
+      {
+        "bedsPerRoom": 2,
+        "mealInclusion": "Optional",
+        "monthlyRent": 11000,
+        "roomType": "Double",
+        "rooms": 6,
+        "vacantBeds": 3
+      }
+    ],
+    "pricing": {
+      "admissionFee": 3000,
+      "currency": "NPR",
+      "monthlyRentMax": 14500,
+      "monthlyRentMin": 11000
+    },
+    "capacitySummary": {
+      "totalBeds": 18,
+      "totalRooms": 12,
+      "vacantBeds": 5
+    },
+    "photos": [
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/36019261/pexels-photo-36019261.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Thapagaun Co-living — hostel exterior"
+      },
+      {
+        "kind": "EXTERIOR",
+        "url": "https://images.pexels.com/photos/35156954/pexels-photo-35156954.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Thapagaun Co-living — hostel exterior"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/31944364/pexels-photo-31944364.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Thapagaun Co-living — shared kitchen"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/19980200/pexels-photo-19980200.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Thapagaun Co-living — laundry"
+      },
+      {
+        "kind": "INTERIOR",
+        "url": "https://images.pexels.com/photos/32825914/pexels-photo-32825914.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Thapagaun Co-living — daily meal"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/39338470/pexels-photo-39338470.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Thapagaun Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Single",
+        "url": "https://images.pexels.com/photos/35618218/pexels-photo-35618218.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Thapagaun Co-living — single room"
+      },
+      {
+        "kind": "ROOM",
+        "roomType": "Double",
+        "url": "https://images.pexels.com/photos/4044793/pexels-photo-4044793.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
+        "alt": "Thapagaun Co-living — double room"
+      }
+    ],
+    "rules": [
+      "Quiet hours 10:00 PM to 6:00 AM",
+      "No smoking or alcohol inside the hostel",
+      "Guests must sign in at reception",
+      "Keep the kitchen and common room clean after use"
+    ],
+    "shortStays": {
+      "enabled": true,
+      "minNights": 1,
+      "rates": [
+        {
+          "dailyRate": 650,
+          "roomType": "Single"
+        },
+        {
+          "dailyRate": 500,
+          "roomType": "Double"
+        }
+      ]
+    },
+    "rating": {
+      "averageRating": 4.2,
+      "cleanlinessRating": 4.3,
+      "foodRating": 3.9,
+      "safetyRating": 4.4,
+      "total": 12
+    }
+  }
+]

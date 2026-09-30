@@ -48,6 +48,10 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
     return { robots: NOINDEX, title: "Hostel not found" };
   }
 
+  if (hostel.isDemoData) {
+    return { robots: NOINDEX, title: hostel.name };
+  }
+
   const type = hostelTypeLabel(hostel.hostelType);
   const place = placeOf(hostel);
   const rating = ratingOf(hostel);
@@ -82,6 +86,11 @@ export default async function HostelDetailPage({ params }: PageParams) {
   const city = hostel.location.city;
   const path = `/hostels/${hostel.slug}`;
   const photos = await loadSearchPhotos(slug);
+
+  // No structured data (and so no review stars) for a sample listing.
+  if (hostel.isDemoData) {
+    return <PublicHostelDetailPage initialHostel={hostel} />;
+  }
 
   return (
     <>

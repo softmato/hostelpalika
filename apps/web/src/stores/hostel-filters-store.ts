@@ -19,6 +19,8 @@ export type HostelFiltersState = {
   query: string;
   room: string;
   sortBy: string;
+  /** "Any" | "Short stays" — the latter only lists hostels taking nightly stays. */
+  stay: string;
   type: string;
   viewMode: "grid" | "list";
 };
@@ -33,6 +35,7 @@ export const initialHostelFilters: HostelFiltersState = {
   query: "",
   room: "All Room Types",
   sortBy: "Recommended",
+  stay: "Any",
   type: "All Types",
   viewMode: "grid",
 };

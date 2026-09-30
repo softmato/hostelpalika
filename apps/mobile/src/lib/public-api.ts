@@ -192,6 +192,8 @@ export type HostelFilters = {
   minPrice?: number;
   q?: string;
   roomType?: string;
+  /** `short` = only hostels that take nightly stays. */
+  stay?: "short";
   type?: HostelType;
 };
 

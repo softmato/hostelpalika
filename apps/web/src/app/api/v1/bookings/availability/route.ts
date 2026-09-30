@@ -5,6 +5,7 @@ import {
   hostelAvailability,
   loadBookableHostel,
 } from "@/modules/bookings/booking-availability";
+import { findDemoHostel } from "@/modules/hostels/demo-hostels";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -17,6 +18,12 @@ export const dynamic = "force-dynamic";
 export async function GET(request: NextRequest) {
   try {
     const ref = request.nextUrl.searchParams.get("hostel") ?? "";
+
+    // Sample listings draw the disabled "Not taking bookings" state on web and app.
+    if (findDemoHostel(ref)) {
+      return successResponse({ availability: { hostelReason: "BOOKINGS_PAUSED", rooms: [] } }, "Booking availability");
+    }
+
     const hostel = ref ? await loadBookableHostel(ref) : null;
 
     if (!hostel || hostel.isDeleted) {

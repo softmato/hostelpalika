@@ -100,6 +100,7 @@ function PublicHostelListingPageContent() {
     reset,
     room: selectedRoom,
     sortBy,
+    stay: selectedStay,
     type: selectedType,
     update,
     viewMode,
@@ -151,6 +152,8 @@ function PublicHostelListingPageContent() {
     const diet = dietLabel(params.get("food"));
     if (diet) patch.diet = diet;
 
+    if (params.get("stay") === "short") patch.stay = "Short stays";
+
     if (Object.keys(patch).length > 0) {
       update(patch);
     }
@@ -176,6 +179,7 @@ function PublicHostelListingPageContent() {
       minPrice: budget.minPrice,
       q: debouncedQuery.trim() || undefined,
       roomType: selectedRoom !== "All Room Types" ? selectedRoom : undefined,
+      stay: selectedStay === "Short stays" ? ("short" as const) : undefined,
       type: type || undefined,
     };
   }, [
@@ -185,6 +189,7 @@ function PublicHostelListingPageContent() {
     selectedDiet,
     selectedFacilities,
     selectedRoom,
+    selectedStay,
     selectedType,
   ]);
 
@@ -402,6 +407,30 @@ function PublicHostelListingPageContent() {
                       </label>
                     );
                   })}
+                </div>
+              </div>
+
+              {/* Stay length — filtered server-side on the hostel's short-stay switch. */}
+              <div className="space-y-2 pt-2 border-t border-border/60">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                  Stay Length
+                </p>
+                <div className="space-y-2">
+                  {["Any", "Short stays"].map((stayVal) => (
+                    <label
+                      key={stayVal}
+                      className="flex items-center gap-2.5 cursor-pointer text-xs font-semibold text-foreground"
+                    >
+                      <input
+                        type="radio"
+                        name="stay"
+                        checked={selectedStay === stayVal}
+                        onChange={() => update({ stay: stayVal })}
+                        className="size-3.5 text-brand-teal border-border focus:ring-brand-teal"
+                      />
+                      <span>{stayVal === "Any" ? "Any length" : "Short stays (nightly)"}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 

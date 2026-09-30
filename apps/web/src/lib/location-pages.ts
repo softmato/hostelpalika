@@ -98,8 +98,10 @@ export const loadLocationPage = cache(
 
     // The area query matches by substring ("Baneshwor" finds "New Baneshwor");
     // the page lists exactly the area it is named after.
+    // Sample listings stay off these indexed pages: their counts and answers are what Google reads.
     const rows = (JSON.parse(JSON.stringify(hostels)) as PublicHostel[]).filter(
-      (hostel) => !area || locationSlug(hostel.location.area ?? "") === area.slug,
+      (hostel) =>
+        !hostel.isDemoData && (!area || locationSlug(hostel.location.area ?? "") === area.slug),
     );
     const summaries = rows.map(mapPublicHostelToSummary);
 

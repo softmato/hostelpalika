@@ -236,6 +236,8 @@ export const publicHostelListQuerySchema = z.object({
   minPrice: z.coerce.number().nonnegative().optional(),
   q: z.string().trim().min(1).max(160).optional(),
   roomType: z.string().trim().min(1).max(80).optional(),
+  /** `short` = only hostels that take nightly stays (Bookings → Settings). */
+  stay: z.enum(["short"]).optional(),
   type: hostelTypeSchema.optional(),
 });
 

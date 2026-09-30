@@ -619,6 +619,10 @@ function ActiveFilterChips({
     });
   }
 
+  if (filters.stay) {
+    chips.push({ clear: () => drop("stay"), key: "stay", label: "Short stays" });
+  }
+
   if (filters.roomType) {
     chips.push({ clear: () => drop("roomType"), key: "roomType", label: filters.roomType });
   }
@@ -735,6 +739,15 @@ function FilterSheet({
                 selected={draft.type === type}
               />
             ))}
+          </FilterGroup>
+
+          <FilterGroup title="Stay length">
+            <Choice label="Any" onPress={() => patch({ stay: undefined })} selected={!draft.stay} />
+            <Choice
+              label="Short stays (nightly)"
+              onPress={() => patch({ stay: "short" })}
+              selected={draft.stay === "short"}
+            />
           </FilterGroup>
 
           <FilterGroup title="Budget (monthly)">

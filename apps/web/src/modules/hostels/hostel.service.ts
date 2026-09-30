@@ -24,6 +24,7 @@ import { ResidentModel } from "@hostel/db/models/Resident";
 import { SessionModel } from "@hostel/db/models/Session";
 import { UserModel } from "@hostel/db/models/User";
 import { provisionCookAccount } from "@/modules/food/cook.service";
+import { demoHostelsMatching, demoRating, findDemoHostel } from "@/modules/hostels/demo-hostels";
 import { geocodeAndCacheHostel } from "@/modules/hostels/hostel-geo.service";
 import {
   EMPTY_ROUTINE,
@@ -3217,6 +3218,7 @@ export async function listPublicHostels(query: PublicHostelListQuery) {
     "pricing.monthlyRentMax"?: { $gte: number };
     "pricing.monthlyRentMin"?: { $lte: number };
     roomTypes?: string;
+    "shortStays.enabled"?: true;
     hostelType?: PublicHostelListQuery["type"];
     isDeleted: false;
     status: "PUBLISHED";
@@ -3279,12 +3281,20 @@ export async function listPublicHostels(query: PublicHostelListQuery) {
     filter["pricing.monthlyRentMin"] = { $lte: query.maxPrice };
   }
 
-  const hostels = await HostelModel.find(filter)
+  if (query.stay === "short") {
+    filter["shortStays.enabled"] = true;
+  }
+
+  const found = await HostelModel.find(filter)
     .sort({ "pricing.monthlyRentMin": 1, createdAt: -1 })
     .limit(60)
     .lean<HostelRecord[]>();
 
-  const ratings = await ratingSummariesFor(hostels.map((hostel) => hostel._id));
+  const ratings = await ratingSummariesFor(found.map((hostel) => hostel._id));
+  // Sample listings from demo-hostels.json, slotted into the same cheapest-first order.
+  const hostels = [...found, ...demoHostelsMatching(query)].sort(
+    (a, b) => (a.pricing?.monthlyRentMin ?? 0) - (b.pricing?.monthlyRentMin ?? 0),
+  );
 
   return {
     hostels: hostels.map((hostel) => ({
@@ -3292,9 +3302,13 @@ export async function listPublicHostels(query: PublicHostelListQuery) {
       // On the card, not only on the detail page: a rating is how somebody
       // decides which of twelve results to open, so withholding it until they
       // have opened one is withholding it from the decision it is for.
-      ratingSummary: ratings.get(hostel._id.toString()) ?? EMPTY_RATING_SUMMARY,
+      ratingSummary: publicRating(hostel._id.toString(), ratings),
     })),
   };
+}
+
+function publicRating(id: string, ratings: Map<string, PublicRatingSummary>) {
+  return ratings.get(id) ?? demoRating(id) ?? EMPTY_RATING_SUMMARY;
 }
 
 /**
@@ -3369,6 +3383,18 @@ export async function getPublicHostelBySlug(slug: string) {
   }).lean<HostelRecord | null>();
 
   if (!hostel) {
+    const demo = findDemoHostel(slug);
+
+    if (demo) {
+      return {
+        hostel: {
+          ...serializePublicHostel(demo),
+          foodRoutine: EMPTY_ROUTINE,
+          ratingSummary: publicRating(demo._id.toString(), new Map()),
+        },
+      };
+    }
+
     throw new HostelServiceError("Hostel was not found.", "HOSTEL_NOT_FOUND", 404);
   }
 
@@ -3390,12 +3416,15 @@ export async function comparePublicHostels(query: PublicHostelCompareQuery) {
   await connectToDatabase();
 
   const hostelIds = normalizeObjectIds(query.ids);
-  const hostels = await HostelModel.find({
-    _id: { $in: hostelIds },
-    isDeleted: false,
-    status: "PUBLISHED",
-    verificationStatus: "VERIFIED",
-  }).lean<HostelRecord[]>();
+  const hostels: HostelRecord[] = [
+    ...(await HostelModel.find({
+      _id: { $in: hostelIds },
+      isDeleted: false,
+      status: "PUBLISHED",
+      verificationStatus: "VERIFIED",
+    }).lean<HostelRecord[]>()),
+    ...query.ids.flatMap((id) => findDemoHostel(id) ?? []),
+  ];
 
   if (hostels.length !== hostelIds.length) {
     throw new HostelServiceError(
@@ -3421,8 +3450,7 @@ export async function comparePublicHostels(query: PublicHostelCompareQuery) {
       .map((id) => byRequestedOrder.get(id))
       .filter((hostel): hostel is HostelRecord => Boolean(hostel))
       .map((hostel) => {
-        const rating =
-          ratingByHostelId.get(hostel._id.toString()) ?? EMPTY_RATING_SUMMARY;
+        const rating = publicRating(hostel._id.toString(), ratingByHostelId);
 
         return {
           ...serializePublicHostel(hostel),
@@ -3480,6 +3508,14 @@ export async function createPublicHostelInquiry(
   }).lean<HostelRecord | null>();
 
   if (!hostel) {
+    if (findDemoHostel(hostelRef)) {
+      throw new HostelServiceError(
+        "This hostel is not taking enquiries right now.",
+        "HOSTEL_NOT_TAKING_INQUIRIES",
+        409,
+      );
+    }
+
     throw new HostelServiceError("Hostel was not found.", "HOSTEL_NOT_FOUND", 404);
   }
 

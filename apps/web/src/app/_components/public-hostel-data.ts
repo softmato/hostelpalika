@@ -58,6 +58,8 @@ export type PublicHostel = {
   };
   hostelType: "BOYS" | "GIRLS" | "CO_LIVING";
   id: string;
+  /** A sample listing from `demo-hostels.json` — shown, never indexed or booked. */
+  isDemoData?: boolean;
   location: {
     address?: string;
     area: string;
@@ -98,6 +100,11 @@ export type PublicHostel = {
     roomType: string;
     vacantBeds: number;
   }>;
+  /** The listing and detail endpoints send it here; compare also nests it in `comparison`. */
+  ratingSummary?: {
+    averageRating?: number;
+    total?: number;
+  };
   roomTypes: string[];
   rules: string[];
   slug: string;
@@ -152,8 +159,13 @@ export function mapPublicHostelToSummary(hostel: PublicHostel): HostelSummary {
       hostel.pricing?.monthlyRentMin ??
       hostel.pricing?.monthlyRentMax ??
       0,
-    rating: hostel.comparison?.ratingSummary?.averageRating ?? 0,
-    reviews: hostel.comparison?.ratingSummary?.total ?? 0,
+    rating:
+      Math.round(
+        (hostel.comparison?.ratingSummary?.averageRating ??
+          hostel.ratingSummary?.averageRating ??
+          0) * 10,
+      ) / 10,
+    reviews: hostel.comparison?.ratingSummary?.total ?? hostel.ratingSummary?.total ?? 0,
     roomTypes: hostel.roomTypes,
     slug: hostel.slug,
     status: "published",

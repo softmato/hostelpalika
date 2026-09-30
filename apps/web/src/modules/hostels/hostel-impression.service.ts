@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 import { connectToDatabase } from "@/lib/db";
+import { isDemoHostelId } from "@/modules/hostels/demo-hostels";
 import { nepalDayKey } from "@hostel/shared/food/meal-window";
 import { HostelListingImpressionModel } from "@hostel/db/models/HostelListingImpression";
 
@@ -22,7 +23,7 @@ export async function recordListingAppearances(
   hostelIds: string[],
   now: Date = new Date(),
 ): Promise<void> {
-  const ids = [...new Set(hostelIds)].filter((id) => Types.ObjectId.isValid(id));
+  const ids = [...new Set(hostelIds)].filter((id) => Types.ObjectId.isValid(id) && !isDemoHostelId(id));
 
   if (ids.length === 0) {
     return;

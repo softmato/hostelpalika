@@ -49,6 +49,7 @@ export type PublicHostelQueryParams = {
   minPrice?: string;
   q?: string;
   roomType?: string;
+  stay?: "short";
   type?: string;
 };
 
