@@ -3,8 +3,11 @@
 import {
   QueryClient,
   QueryClientProvider,
+  defaultShouldDehydrateQuery,
   dehydrate,
   hydrate,
+  type DehydratedState,
+  type QueryKey,
 } from "@tanstack/react-query";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -18,6 +21,8 @@ import { useEffect, useState, type ReactNode } from "react";
  * the way out for the case where the same tab is reused.
  */
 const PERSIST_KEY = "hostelpalika:query-cache";
+
+const isPublicKey = (key: QueryKey) => String(key[0]).startsWith("public-");
 
 /** Drops the parked cache. Called on sign-out; see `lib/sign-out.ts`. */
 export function clearPersistedQueryCache() {
@@ -58,7 +63,10 @@ export function QueryProvider({ children }: { children: ReactNode }) {
       const saved = window.sessionStorage.getItem(PERSIST_KEY);
 
       if (saved) {
-        hydrate(client, JSON.parse(saved));
+        const state = JSON.parse(saved) as DehydratedState;
+
+        // Also filters caches parked before public reads were excluded (see `save`).
+        hydrate(client, { ...state, queries: state.queries.filter((query) => !isPublicKey(query.queryKey)) });
       }
     } catch {
       // Unreadable or from an older shape — start cold rather than guess.
@@ -67,9 +75,17 @@ export function QueryProvider({ children }: { children: ReactNode }) {
 
     // `pagehide` rather than `beforeunload`: it is the one that fires on mobile
     // and on bfcache entry, which is most of how a tab actually leaves.
+    // Public reads (`public-*`) are not parked: their pages render on the server
+    // inside streamed Suspense boundaries that hydrate *after* this effect, so a
+    // restored hostel list is a hydration mismatch. They are CDN-cached anyway.
     const save = () => {
       try {
-        window.sessionStorage.setItem(PERSIST_KEY, JSON.stringify(dehydrate(client)));
+        const snapshot = dehydrate(client, {
+          shouldDehydrateQuery: (query) =>
+            defaultShouldDehydrateQuery(query) && !isPublicKey(query.queryKey),
+        });
+
+        window.sessionStorage.setItem(PERSIST_KEY, JSON.stringify(snapshot));
       } catch {
         // Over quota, or storage blocked. The cache is an optimisation.
       }
