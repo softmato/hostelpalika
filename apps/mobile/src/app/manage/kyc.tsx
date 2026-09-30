@@ -162,7 +162,7 @@ export default function KycScreen() {
                 <Pressable
                   accessibilityLabel={`${STEPS[item.key]?.title ?? item.key}${item.done ? ", done" : ""}`}
                   className={`h-2 flex-1 rounded-full ${
-                    item.done ? "bg-primary" : at === current ? "bg-primary opacity-40" : "bg-muted"
+                    item.done ? "bg-primary" : at === current ? "bg-primary/40" : "bg-muted"
                   }`}
                   hitSlop={8}
                   key={item.key}

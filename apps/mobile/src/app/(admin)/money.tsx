@@ -1,6 +1,8 @@
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { Linking, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Banknote } from "lucide-react-native";
+import { Linking, Pressable, View } from "react-native";
 
 import {
   DeniedNotice,
@@ -16,6 +18,8 @@ import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
+import { Lottie } from "@/components/ui/lottie";
+import { Meter } from "@/components/ui/meter";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { CardRow, ListRow } from "@/components/ui/list-row";
 import { Money as Amount } from "@/components/ui/money";
@@ -25,6 +29,9 @@ import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard, SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
+import { readableRole } from "@/constants/roles";
+import { useAppSelector } from "@/hooks/redux";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { type AdminInvoiceRow, bulkApproveClaims } from "@/lib/admin-api";
@@ -50,6 +57,8 @@ import { claimsForPeriod, paymentMonths } from "@/lib/payment-months";
 import { openConfirm } from "@/lib/confirm";
 import { formatMoney, humanizeEnum, nepalPeriodKey } from "@/lib/format";
 import { toastError, toastSuccess } from "@/lib/toast";
+
+const SUCCESS_ANIMATION = require("../../../assets/lottie/success.lottie");
 
 /**
  * Money — a statement, and shaped like one.
@@ -147,6 +156,7 @@ export default function AdminMoneyScreen() {
    */
   const [period, setPeriod] = useState(nepalPeriodKey());
   const dates = useDates();
+  const { colors } = useAppTheme();
 
   const moneyQuery = adminQuery.money(period);
   const money = useResource<AdminMoneyData>(moneyQuery.load, {
@@ -372,9 +382,23 @@ export default function AdminMoneyScreen() {
    * is the case the browser hand-off served worst: money changed hands at the
    * desk and the record waited until whenever a laptop was next opened.
    */
+  const account = useAppSelector((state) => state.auth.account);
+  const me = account?.name?.trim() || account?.email || "";
   const [open, setOpen] = useState<AdminInvoiceRow | null>(null);
-  const [cash, setCash] = useState<Record<string, string>>({});
+  /*
+   * `slip` is the idempotency key the server wants as a paper receipt number.
+   * Minted once per opening, so a double tap or a retry after a dropped
+   * connection lands on the same payment instead of banking it twice.
+   */
+  const [cash, setCash] = useState({ amount: "", collectedBy: "", note: "", slip: "" });
+  const [editCollector, setEditCollector] = useState(false);
+  const [showNote, setShowNote] = useState(false);
+  /* Said beside the button it is about, not in a toast at the top of the screen. */
+  const [cashError, setCashError] = useState<string | null>(null);
+  const [done, setDone] = useState<{ amount: number; pending: boolean } | null>(null);
+  const [voidOpen, setVoidOpen] = useState(false);
   const [voidReason, setVoidReason] = useState("");
+  const [voidError, setVoidError] = useState<string | null>(null);
   /*
    * Which of the sheet's two actions is at the server. They are stacked in the
    * same sheet — take the cash, or void the invoice — and one boolean spun both
@@ -393,55 +417,55 @@ export default function AdminMoneyScreen() {
      */
     prefetchAdminResident(row.resident.id);
     setCash({
-      amount: row.payment
-        ? String(Math.max(0, row.payment.dueAmount - row.payment.paidAmount))
-        : "",
-      cashReceiptNumber: "",
-      collectedBy: "",
+      amount:
+        row.payment && row.payment.dueAmount > row.payment.paidAmount
+          ? String(row.payment.dueAmount - row.payment.paidAmount)
+          : "",
+      collectedBy: me,
       note: "",
+      slip: `APP-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`.toUpperCase(),
     });
+    setEditCollector(!me);
+    setShowNote(false);
+    setCashError(null);
+    setDone(null);
+    setVoidOpen(false);
     setVoidReason("");
-  }, []);
+    setVoidError(null);
+  }, [me]);
 
   const takeCash = useCallback(async () => {
     if (!open?.payment) {
       return;
     }
 
-    const amount = Number(cash.amount ?? "");
+    const amount = Number(cash.amount);
 
     if (!Number.isInteger(amount) || amount <= 0) {
-      toastError("Check the amount", "Whole rupees, and more than zero.");
+      setCashError("Enter the amount in whole rupees.");
       return;
     }
 
-    if (!cash.cashReceiptNumber?.trim()) {
-      toastError(
-        "Which paper receipt?",
-        "It is also the idempotency key, so the same slip cannot be banked twice.",
-      );
+    if (cash.collectedBy.trim().length < 2) {
+      setCashError("Add who took the cash.");
+      setEditCollector(true);
       return;
     }
 
-    if ((cash.collectedBy?.trim().length ?? 0) < 2) {
-      toastError("Who took the money?", "Frequently not the person typing.");
-      return;
-    }
-
+    setCashError(null);
     setBusy("cash");
 
     try {
-      await recordCashPayment(open.payment.id, {
+      const { pendingApproval } = await recordCashPayment(open.payment.id, {
         amount,
-        cashReceiptNumber: cash.cashReceiptNumber.trim(),
+        cashReceiptNumber: cash.slip,
         collectedBy: cash.collectedBy.trim(),
-        note: cash.note?.trim() || undefined,
+        note: cash.note.trim() || undefined,
       });
-      toastSuccess("Cash recorded", formatMoney(amount));
-      setOpen(null);
+      setDone({ amount, pending: pendingApproval });
       money.refresh();
     } catch (error) {
-      toastError("Could not record it", readApiError(error));
+      setCashError(readApiError(error));
     } finally {
       setBusy(null);
     }
@@ -453,22 +477,20 @@ export default function AdminMoneyScreen() {
     }
 
     if (voidReason.trim().length < 3) {
-      toastError(
-        "Say why",
-        "The reason is shown to the resident word for word — a reversal they cannot explain is the same problem as one nobody told them about.",
-      );
+      setVoidError("Write a short reason — the resident sees it.");
       return;
     }
 
+    setVoidError(null);
     setBusy("void");
 
     try {
       await voidInvoice(open.payment.id, voidReason.trim());
-      toastSuccess("Voided", "The resident has been told, with your reason.");
+      toastSuccess("Invoice voided", "The resident has been told why.");
       setOpen(null);
       money.refresh();
     } catch (error) {
-      toastError("Could not void it", readApiError(error));
+      setVoidError(readApiError(error));
     } finally {
       setBusy(null);
     }
@@ -871,7 +893,24 @@ export default function AdminMoneyScreen() {
         open={open !== null}
         title={open?.resident.fullName || "Resident"}
       >
-        {open ? (
+        {open && done ? (
+          <View className="items-center gap-3 pb-2 pt-2">
+            {done.pending ? (
+              <Ionicons color={colors.warning} name="hourglass-outline" size={72} />
+            ) : (
+              <Lottie loop={false} size={140} source={SUCCESS_ANIMATION} />
+            )}
+            <Amount size="display" value={done.amount} />
+            <Text className="text-center" variant="muted">
+              {done.pending
+                ? "Saved. Another staff member has to approve it."
+                : "Cash collected"}
+            </Text>
+            <View className="self-stretch pt-2">
+              <Button label="Done" onPress={() => setOpen(null)} size="lg" />
+            </View>
+          </View>
+        ) : open ? (
           <View className="gap-4 pb-2">
             <View className="gap-2">
               <View className="flex-row items-center justify-between gap-2">
@@ -899,22 +938,25 @@ export default function AdminMoneyScreen() {
               </View>
 
               {open.payment ? (
-                <View className="flex-row flex-wrap gap-2">
-                  <Chip
-                    icon="pricetag-outline"
-                    label={`Billed ${formatMoney(open.payment.dueAmount)}`}
+                <View className="gap-2 rounded-2xl bg-muted p-4">
+                  <View className="flex-row items-end justify-between gap-2">
+                    <View>
+                      <Text variant="caption">Owing</Text>
+                      <Amount owed size="large" value={amountOwed(open)} />
+                    </View>
+                    <Text variant="caption">
+                      {`${formatMoney(open.payment.paidAmount)} of ${formatMoney(open.payment.dueAmount)} paid`}
+                    </Text>
+                  </View>
+                  <Meter
+                    animated
+                    label={null}
+                    percent={
+                      open.payment.dueAmount > 0
+                        ? Math.round((open.payment.paidAmount / open.payment.dueAmount) * 100)
+                        : 100
+                    }
                   />
-                  <Chip
-                    icon="checkmark-circle-outline"
-                    label={`Paid ${formatMoney(open.payment.paidAmount)}`}
-                  />
-                  {amountOwed(open) > 0 ? (
-                    <Chip
-                      icon="alert-circle-outline"
-                      label={`Owing ${formatMoney(amountOwed(open))}`}
-                      tone="brand"
-                    />
-                  ) : null}
                 </View>
               ) : projectedAmount(open) ? (
                 /*
@@ -980,65 +1022,148 @@ export default function AdminMoneyScreen() {
 
             {open.payment ? (
               <>
-                <View className="gap-3 border-t border-border pt-3">
-                  <Text variant="label">Take cash</Text>
+                <View className="gap-3 border-t border-border pt-4">
                   <Input
                     keyboardType="number-pad"
-                    label="Amount (NPR)"
-                    onChangeText={(amount) =>
-                      setCash((prev) => ({ ...prev, amount }))
-                    }
-                    value={cash.amount ?? ""}
+                    label="Cash received"
+                    leading={<Text variant="subtitle">Rs</Text>}
+                    onChangeText={(amount) => {
+                      setCash((prev) => ({ ...prev, amount: amount.replace(/\D/g, "") }));
+                      setCashError(null);
+                    }}
+                    placeholder="0"
+                    style={{ fontSize: 22, fontWeight: "700" }}
+                    value={cash.amount}
                   />
-                  <Input
-                    hint="Your own paper receipt. It is also the key that stops the same slip being banked twice."
-                    label="Receipt number"
-                    onChangeText={(cashReceiptNumber) =>
-                      setCash((prev) => ({ ...prev, cashReceiptNumber }))
-                    }
-                    value={cash.cashReceiptNumber ?? ""}
-                  />
-                  <Input
-                    hint="Who physically took the money — frequently not whoever is typing."
-                    label="Collected by"
-                    onChangeText={(collectedBy) =>
-                      setCash((prev) => ({ ...prev, collectedBy }))
-                    }
-                    value={cash.collectedBy ?? ""}
-                  />
-                  <Input
-                    label="Note"
-                    onChangeText={(note) =>
-                      setCash((prev) => ({ ...prev, note }))
-                    }
-                    value={cash.note ?? ""}
-                  />
+                  {amountOwed(open) > 1 ? (
+                    <View className="flex-row flex-wrap gap-2">
+                      {[
+                        { label: "Full", value: amountOwed(open) },
+                        { label: "Half", value: Math.round(amountOwed(open) / 2) },
+                      ].map((pick) => (
+                        <Chip
+                          key={pick.label}
+                          label={`${pick.label} · ${formatMoney(pick.value)}`}
+                          onPress={() => {
+                            setCash((prev) => ({ ...prev, amount: String(pick.value) }));
+                            setCashError(null);
+                          }}
+                          tone={cash.amount === String(pick.value) ? "brand" : "neutral"}
+                        />
+                      ))}
+                    </View>
+                  ) : null}
+
+                  {editCollector ? (
+                    <Input
+                      label="Collected by"
+                      onChangeText={(collectedBy) =>
+                        setCash((prev) => ({ ...prev, collectedBy }))
+                      }
+                      placeholder="Name of who took the cash"
+                      value={cash.collectedBy}
+                    />
+                  ) : (
+                    <Card padding="px-4 py-1">
+                      <CardRow
+                        left={
+                          <PersonAvatar
+                            image={cash.collectedBy === me ? account?.image : null}
+                            name={cash.collectedBy}
+                            size="sm"
+                          />
+                        }
+                        onPress={() => setEditCollector(true)}
+                        right={
+                          <Text className="text-primary" variant="label">
+                            Change
+                          </Text>
+                        }
+                        subtitle={
+                          cash.collectedBy === me && account
+                            ? `Collected by · ${readableRole(account.role)}`
+                            : "Collected by"
+                        }
+                        title={cash.collectedBy}
+                      />
+                    </Card>
+                  )}
+
+                  {showNote ? (
+                    <Input
+                      label="Note"
+                      onChangeText={(note) => setCash((prev) => ({ ...prev, note }))}
+                      placeholder="Optional"
+                      value={cash.note}
+                    />
+                  ) : (
+                    <View className="flex-row">
+                      <Chip
+                        icon="create-outline"
+                        label="Add a note"
+                        onPress={() => setShowNote(true)}
+                      />
+                    </View>
+                  )}
+
+                  {cashError ? (
+                    <Text className="text-destructive" variant="label">
+                      {cashError}
+                    </Text>
+                  ) : null}
                   <Button
                     disabled={busy === "void"}
-                    label="Record the cash"
+                    icon={Banknote}
+                    label={
+                      Number(cash.amount) > 0
+                        ? `Collect ${formatMoney(Number(cash.amount))}`
+                        : "Collect cash"
+                    }
                     loading={busy === "cash"}
                     onPress={() => void takeCash()}
+                    size="lg"
                   />
                 </View>
 
-                <View className="gap-3 border-t border-border pt-3">
-                  <Text variant="label">Void this invoice</Text>
-                  <Input
-                    hint="Shown to the resident word for word."
-                    label="Reason"
-                    multiline
-                    onChangeText={setVoidReason}
-                    placeholder="Billed in error — they moved out in June"
-                    style={{ height: 72 }}
-                    value={voidReason}
-                  />
-                  <Button
-                    disabled={busy === "cash"}
-                    label="Void it"
-                    loading={busy === "void"}
-                    onPress={() => void voidIt()}
-                    variant="danger"
-                  />
+                {/* Rare and irreversible, so it stays folded away. */}
+                <View className="border-t border-border pt-1">
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityState={{ expanded: voidOpen }}
+                    className="flex-row items-center justify-between py-3"
+                    onPress={() => setVoidOpen((value) => !value)}
+                  >
+                    <Text variant="muted">Void this invoice</Text>
+                    <Ionicons
+                      color={colors.mutedForeground}
+                      name={voidOpen ? "chevron-up" : "chevron-down"}
+                      size={18}
+                    />
+                  </Pressable>
+                  {voidOpen ? (
+                    <View className="gap-3">
+                      <Input
+                        error={voidError}
+                        hint="The resident sees this reason."
+                        label="Reason"
+                        multiline
+                        onChangeText={(reason) => {
+                          setVoidReason(reason);
+                          setVoidError(null);
+                        }}
+                        placeholder="Billed by mistake"
+                        style={{ height: 72 }}
+                        value={voidReason}
+                      />
+                      <Button
+                        disabled={busy === "cash"}
+                        label="Void invoice"
+                        loading={busy === "void"}
+                        onPress={() => void voidIt()}
+                        variant="danger"
+                      />
+                    </View>
+                  ) : null}
                 </View>
               </>
             ) : (

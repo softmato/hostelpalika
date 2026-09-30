@@ -2528,7 +2528,11 @@ export async function deleteGateway(provider: GatewayProviderName) {
  * only number the caller supplies, and it arrives with the two facts that make
  * it answerable months later: **who physically took the money** (frequently not
  * the person typing) and **which paper receipt it is on**. That receipt number
- * is also the idempotency key, which is why it cannot be blank.
+ * is also the idempotency key, which is why it cannot be blank — the app mints
+ * one per sheet opening, so a double tap or a retry is the same payment.
+ *
+ * `pendingApproval` is true above the hostel's cash threshold: the money is
+ * recorded but a different staff member has to confirm it.
  */
 export async function recordCashPayment(
   invoiceId: string,
@@ -2540,7 +2544,12 @@ export async function recordCashPayment(
     receivedAt?: string;
   },
 ) {
-  await api.post(`/hostel-admin/finance/invoices/${invoiceId}/cash`, input);
+  const response = await api.post<ApiEnvelope<{ pendingApproval: boolean }>>(
+    `/hostel-admin/finance/invoices/${invoiceId}/cash`,
+    input,
+  );
+
+  return unwrap(response);
 }
 
 /**

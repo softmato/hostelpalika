@@ -6,7 +6,11 @@
  * Ported from apps/web/src/app/globals.css.
  *
  * The web defines these in oklch; React Native has no oklch parser, so they are
- * the hex equivalents here. The *names* are identical on purpose — a token
+ * sRGB here, stored as bare channels (`10 138 75`, hex in the trailing comment)
+ * and wrapped as `rgb(var(--x) / <alpha-value>)` in tailwind.config.js. A hex
+ * value cannot take an alpha, so `bg-primary/40` and every other opacity
+ * modifier silently dropped out. Never read one of these as `var(--x)` on its
+ * own — it is not a colour; write `rgb(var(--x))`. The *names* are identical on purpose — a token
  * renamed on the web must be renamed here, and a colour should never be written
  * literally in a component.
  *
@@ -16,40 +20,40 @@
 
 @layer base {
   :root {
-    --background: #ffffff;
-    --foreground: #1c1917;
-    --card: #ffffff;
-    --card-foreground: #1c1917;
-    --popover: #ffffff;
-    --popover-foreground: #1c1917;
-    --primary: #0a8a4b;
-    --primary-foreground: #ffffff;
-    --secondary: #f4f4f5;
-    --secondary-foreground: #18181b;
-    --muted: #f5f5f4;
-    --muted-foreground: #78716c;
-    --accent: #f5f5f4;
-    --accent-foreground: #1c1917;
-    --destructive: #dc2626;
-    --destructive-foreground: #ffffff;
+    --background: 255 255 255; /* #ffffff */
+    --foreground: 28 25 23; /* #1c1917 */
+    --card: 255 255 255; /* #ffffff */
+    --card-foreground: 28 25 23; /* #1c1917 */
+    --popover: 255 255 255; /* #ffffff */
+    --popover-foreground: 28 25 23; /* #1c1917 */
+    --primary: 10 138 75; /* #0a8a4b */
+    --primary-foreground: 255 255 255; /* #ffffff */
+    --secondary: 244 244 245; /* #f4f4f5 */
+    --secondary-foreground: 24 24 27; /* #18181b */
+    --muted: 245 245 244; /* #f5f5f4 */
+    --muted-foreground: 120 113 108; /* #78716c */
+    --accent: 245 245 244; /* #f5f5f4 */
+    --accent-foreground: 28 25 23; /* #1c1917 */
+    --destructive: 220 38 38; /* #dc2626 */
+    --destructive-foreground: 255 255 255; /* #ffffff */
     /*
       The tinted square a destructive glyph sits on. Every other tone had one —
       `--warning-soft`, `--success-soft`, `--brand-soft` — and this one did not,
-      so the tiles that needed it were written `bg-destructive/10`, which
-      NativeWind does not compose from a CSS variable: the "Late complaints"
+      so the tiles that needed it were written `bg-destructive/10`, which back
+      when these tokens were hex came out as nothing: the "Late complaints"
       glyph shipped with no square behind it at all while its neighbours had one.
     */
-    --destructive-soft: #fee2e2;
-    --border: #e7e5e4;
-    --input: #e7e5e4;
-    --ring: #0a8a4b;
+    --destructive-soft: 254 226 226; /* #fee2e2 */
+    --border: 231 229 228; /* #e7e5e4 */
+    --input: 231 229 228; /* #e7e5e4 */
+    --ring: 10 138 75; /* #0a8a4b */
 
-    --surface: #fffaf4;
-    --surface-strong: #fff8ef;
-    --warning: #d97706;
-    --warning-soft: #fffbeb;
-    --success: #16a34a;
-    --success-soft: #dcfce7;
+    --surface: 255 250 244; /* #fffaf4 */
+    --surface-strong: 255 248 239; /* #fff8ef */
+    --warning: 217 119 6; /* #d97706 */
+    --warning-soft: 255 251 235; /* #fffbeb */
+    --success: 22 163 74; /* #16a34a */
+    --success-soft: 220 252 231; /* #dcfce7 */
     /*
       Blue, in a black-white-and-green app, and only ever for "explain this".
       It joins `--warning` / `--destructive` / `--success` as a *semantic* tone
@@ -58,25 +62,25 @@
       glyph's own tile, and never on a control that performs an action — those
       stay green.
     */
-    --info: #2563eb;
-    --info-soft: #e8effd;
+    --info: 37 99 235; /* #2563eb */
+    --info-soft: 232 239 253; /* #e8effd */
 
-    --brand: #0a8a4b;
-    --brand-soft: #e6f4ec;
+    --brand: 10 138 75; /* #0a8a4b */
+    --brand-soft: 230 244 236; /* #e6f4ec */
 
     /* Portal chrome. One per audience — see docs/DESIGN.md. */
-    --role-platform: #0d9488;
-    --role-platform-soft: #ccfbf1;
-    --role-admin: #0a8a4b;
-    --role-admin-soft: #e6f4ec;
-    --role-resident: #16a34a;
-    --role-resident-soft: #dcfce7;
-    --role-guardian: #d97706;
-    --role-guardian-soft: #fffbeb;
-    --role-cook: #ea580c;
-    --role-cook-soft: #fff7ed;
-    --role-provider: #7c3aed;
-    --role-provider-soft: #f5f3ff;
+    --role-platform: 13 148 136; /* #0d9488 */
+    --role-platform-soft: 204 251 241; /* #ccfbf1 */
+    --role-admin: 10 138 75; /* #0a8a4b */
+    --role-admin-soft: 230 244 236; /* #e6f4ec */
+    --role-resident: 22 163 74; /* #16a34a */
+    --role-resident-soft: 220 252 231; /* #dcfce7 */
+    --role-guardian: 217 119 6; /* #d97706 */
+    --role-guardian-soft: 255 251 235; /* #fffbeb */
+    --role-cook: 234 88 12; /* #ea580c */
+    --role-cook-soft: 255 247 237; /* #fff7ed */
+    --role-provider: 124 58 237; /* #7c3aed */
+    --role-provider-soft: 245 243 255; /* #f5f3ff */
   }
 
   /*
@@ -90,50 +94,50 @@
   */
   .dark:root,
   .dark {
-    --background: #0c0a09;
-    --foreground: #fafaf9;
-    --card: #1c1917;
-    --card-foreground: #fafaf9;
-    --popover: #1c1917;
-    --popover-foreground: #fafaf9;
-    --primary: #12a95d;
-    --primary-foreground: #04140c;
-    --secondary: #27272a;
-    --secondary-foreground: #fafafa;
-    --muted: #292524;
-    --muted-foreground: #a8a29e;
-    --accent: #27272a;
-    --accent-foreground: #fafafa;
-    --destructive: #ef4444;
-    --destructive-foreground: #ffffff;
-    --destructive-soft: #2b0f0f;
-    --border: #292524;
-    --input: #292524;
-    --ring: #12a95d;
+    --background: 12 10 9; /* #0c0a09 */
+    --foreground: 250 250 249; /* #fafaf9 */
+    --card: 28 25 23; /* #1c1917 */
+    --card-foreground: 250 250 249; /* #fafaf9 */
+    --popover: 28 25 23; /* #1c1917 */
+    --popover-foreground: 250 250 249; /* #fafaf9 */
+    --primary: 18 169 93; /* #12a95d */
+    --primary-foreground: 4 20 12; /* #04140c */
+    --secondary: 39 39 42; /* #27272a */
+    --secondary-foreground: 250 250 250; /* #fafafa */
+    --muted: 41 37 36; /* #292524 */
+    --muted-foreground: 168 162 158; /* #a8a29e */
+    --accent: 39 39 42; /* #27272a */
+    --accent-foreground: 250 250 250; /* #fafafa */
+    --destructive: 239 68 68; /* #ef4444 */
+    --destructive-foreground: 255 255 255; /* #ffffff */
+    --destructive-soft: 43 15 15; /* #2b0f0f */
+    --border: 41 37 36; /* #292524 */
+    --input: 41 37 36; /* #292524 */
+    --ring: 18 169 93; /* #12a95d */
 
-    --surface: #1c1917;
-    --surface-strong: #232020;
-    --warning: #f59e0b;
-    --warning-soft: #2a1f07;
-    --success: #22c55e;
-    --success-soft: #06240f;
-    --info: #60a5fa;
-    --info-soft: #0e1c33;
+    --surface: 28 25 23; /* #1c1917 */
+    --surface-strong: 35 32 32; /* #232020 */
+    --warning: 245 158 11; /* #f59e0b */
+    --warning-soft: 42 31 7; /* #2a1f07 */
+    --success: 34 197 94; /* #22c55e */
+    --success-soft: 6 36 15; /* #06240f */
+    --info: 96 165 250; /* #60a5fa */
+    --info-soft: 14 28 51; /* #0e1c33 */
 
-    --brand: #12a95d;
-    --brand-soft: #07301f;
+    --brand: 18 169 93; /* #12a95d */
+    --brand-soft: 7 48 31; /* #07301f */
 
-    --role-platform: #2dd4bf;
-    --role-platform-soft: #0a2b28;
-    --role-admin: #12a95d;
-    --role-admin-soft: #07301f;
-    --role-resident: #22c55e;
-    --role-resident-soft: #06240f;
-    --role-guardian: #f59e0b;
-    --role-guardian-soft: #2a1f07;
-    --role-cook: #fb923c;
-    --role-cook-soft: #2b1607;
-    --role-provider: #a78bfa;
-    --role-provider-soft: #1d1436;
+    --role-platform: 45 212 191; /* #2dd4bf */
+    --role-platform-soft: 10 43 40; /* #0a2b28 */
+    --role-admin: 18 169 93; /* #12a95d */
+    --role-admin-soft: 7 48 31; /* #07301f */
+    --role-resident: 34 197 94; /* #22c55e */
+    --role-resident-soft: 6 36 15; /* #06240f */
+    --role-guardian: 245 158 11; /* #f59e0b */
+    --role-guardian-soft: 42 31 7; /* #2a1f07 */
+    --role-cook: 251 146 60; /* #fb923c */
+    --role-cook-soft: 43 22 7; /* #2b1607 */
+    --role-provider: 167 139 250; /* #a78bfa */
+    --role-provider-soft: 29 20 54; /* #1d1436 */
   }
 }

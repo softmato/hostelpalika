@@ -44,7 +44,6 @@ void SplashScreen.preventAutoHideAsync();
 function RootShell() {
   const dispatch = useAppDispatch();
   const { colors, isDark } = useAppTheme();
-  const uploads = useUploads();
 
   /*
    * The route this launch started on, read through a ref so the boot effect can
@@ -551,14 +550,23 @@ function RootShell() {
       <HostelSuspensionHost />
       <ConfirmDialogHost />
 
-      {/*
-        Transient toasts move down to clear the upload cards rather than
-        stacking on top of them — 88px is one card plus its gap, which is the
-        only case that overlaps in practice.
-      */}
-      <Toast topOffset={uploads.length > 0 ? 60 + 88 * uploads.length : 60} />
     </>
   );
+}
+
+/**
+ * Transient toasts move down to clear the upload cards rather than stacking on
+ * top of them — 88px is one card plus its gap, which is the only case that
+ * overlaps in practice.
+ *
+ * Mounted after `BottomSheetModalProvider`, not inside it: the provider draws
+ * every sheet in a portal after its children, so a toast inside it rendered
+ * *under* an open sheet — an error from a sheet's own button was invisible.
+ */
+function ToastHost() {
+  const uploads = useUploads();
+
+  return <Toast topOffset={uploads.length > 0 ? 60 + 88 * uploads.length : 60} />;
 }
 
 export default function RootLayout() {
@@ -590,6 +598,7 @@ export default function RootLayout() {
                   <RootShell />
                 </BottomChromeProvider>
               </BottomSheetModalProvider>
+              <ToastHost />
             </KeyboardProvider>
           </SafeAreaProvider>
         </PersistGate>
