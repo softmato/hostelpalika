@@ -155,13 +155,35 @@ export async function updateHostelAdminProfile(
     }
   }
 
+  /*
+   * `location` is merged field by field, never replaced. A `$set` of the whole
+   * object dropped every field the form did not send: the stored MANUAL flag
+   * (so KYC's map-pin step unticked and the re-geocode below could pull the
+   * pin back to the area centroid), the `landmark` and the pasted `mapLink`.
+   * A field left out keeps its value; an empty string clears it.
+   */
+  const locationSet: Record<string, unknown> = {};
+  const locationUnset: Record<string, ""> = {};
+
+  for (const [key, value] of Object.entries(input.location ?? {})) {
+    if (value === "") {
+      locationUnset[`location.${key}`] = "";
+    } else if (value !== undefined) {
+      locationSet[`location.${key}`] = value;
+    }
+  }
+
+  delete profileUpdate.location;
+
   const updatedHostel = await HostelModel.findOneAndUpdate(
     { _id: hostel._id, isDeleted: false },
     {
       $set: {
         ...profileUpdate,
+        ...locationSet,
         updatedBy: principal.userId,
       },
+      ...(Object.keys(locationUnset).length > 0 ? { $unset: locationUnset } : {}),
       ...(isRename && renameIsLocked ? { $inc: { nameChangeCount: 1 } } : {}),
     },
     { new: true },

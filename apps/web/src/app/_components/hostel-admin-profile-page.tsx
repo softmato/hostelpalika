@@ -611,10 +611,12 @@ export const HostelAdminProfilePageContent = memo(
               facilities: csvField(form, "facilities"),
               hostelType: field(form, "hostelType"),
               location: {
-                address: optionalField(form, "address"),
+                // Sent even when empty: the server merges location field by
+                // field, and an empty string is how a cleared one reaches it.
+                address: field(form, "address"),
                 area: field(form, "area"),
                 city: field(form, "city"),
-                province: optionalField(form, "province"),
+                province: field(form, "province"),
                 // Sending the pin with locationSource=MANUAL is what stops the
                 // server re-geocoding it back to the area centroid.
                 ...(location.coordinates

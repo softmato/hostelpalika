@@ -194,6 +194,8 @@ export default function ManageSettingsScreen() {
           city: hostel.location.city ?? "",
           lat: hostel.location.lat ? String(hostel.location.lat) : "",
           lng: hostel.location.lng ? String(hostel.location.lng) : "",
+          // Set to "MANUAL" only when a search hit is picked in this sheet.
+          pinSource: "",
           province: hostel.location.province ?? "",
         });
         setGeoHits([]);
@@ -744,12 +746,19 @@ export default function ManageSettingsScreen() {
               void patch(
                 {
                   location: {
-                    address: form.address?.trim() || undefined,
+                    // Sent even when empty: the server merges location field by
+                    // field, and an empty string is how a cleared one reaches it.
+                    address: form.address?.trim() ?? "",
                     area: form.area?.trim() || undefined,
                     city: form.city?.trim() || undefined,
                     lat: form.lat ? Number(form.lat) : undefined,
                     lng: form.lng ? Number(form.lng) : undefined,
-                    province: form.province?.trim() || undefined,
+                    // A picked pin is the owner's choice: KYC counts only MANUAL
+                    // pins, and the re-geocode after save leaves them in place.
+                    ...(form.pinSource === "MANUAL" && form.lat && form.lng
+                      ? { locationSource: "MANUAL" as const }
+                      : {}),
+                    province: form.province?.trim() ?? "",
                   },
                 },
                 "Location saved",
@@ -793,6 +802,7 @@ export default function ManageSettingsScreen() {
                   city: hit.city ?? prev.city,
                   lat: String(hit.lat),
                   lng: String(hit.lng),
+                  pinSource: "MANUAL",
                   province: hit.province ?? prev.province,
                 }));
                 setGeoHits([]);

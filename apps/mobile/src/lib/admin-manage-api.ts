@@ -137,6 +137,11 @@ export async function updateManagedHostel(input: {
     city?: string;
     lat?: number;
     lng?: number;
+    /**
+     * "MANUAL" when the owner picked the pin. Hostel KYC only counts a MANUAL
+     * pin, and the re-geocode after save keeps a MANUAL pin where it is.
+     */
+    locationSource?: "GEOCODED" | "MANUAL";
     province?: string;
   };
   name?: string;

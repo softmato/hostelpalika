@@ -134,6 +134,43 @@ describe("hostel profile service", () => {
     expect(update).not.toHaveProperty("$inc");
   });
 
+  it("writes a picked pin field by field, with its MANUAL source", async () => {
+    profileMocks.hostelFindOne.mockReturnValueOnce(leanResult(hostelRecord()));
+    profileMocks.hostelFindOneAndUpdate.mockReturnValueOnce(leanResult(hostelRecord()));
+
+    await updateHostelAdminProfile(
+      { location: { area: "Baluwatar", lat: 27.72, lng: 85.33, locationSource: "MANUAL" } },
+      staffPrincipal,
+    );
+
+    const [, update] = profileMocks.hostelFindOneAndUpdate.mock.calls[0];
+    expect(update.$set).not.toHaveProperty("location");
+    expect(update.$set).toMatchObject({
+      "location.area": "Baluwatar",
+      "location.lat": 27.72,
+      "location.lng": 85.33,
+      "location.locationSource": "MANUAL",
+    });
+    expect(update).not.toHaveProperty("$unset");
+  });
+
+  it("leaves unsent location fields alone and clears an emptied one", async () => {
+    profileMocks.hostelFindOne.mockReturnValueOnce(leanResult(hostelRecord()));
+    profileMocks.hostelFindOneAndUpdate.mockReturnValueOnce(leanResult(hostelRecord()));
+
+    await updateHostelAdminProfile(
+      { location: { address: "", area: "Baneshwor", city: "Kathmandu" } },
+      staffPrincipal,
+    );
+
+    const [, update] = profileMocks.hostelFindOneAndUpdate.mock.calls[0];
+    // Not sent, so a stored MANUAL flag, landmark and map link survive the save.
+    expect(update.$set).not.toHaveProperty("location");
+    expect(update.$set).not.toHaveProperty(["location.locationSource"]);
+    expect(update.$set).not.toHaveProperty(["location.landmark"]);
+    expect(update.$unset).toEqual({ "location.address": "" });
+  });
+
   it("caps exterior photos at three", async () => {
     profileMocks.hostelFindOne.mockReturnValueOnce(
       leanResult(
