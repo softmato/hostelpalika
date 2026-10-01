@@ -8,6 +8,7 @@ import { HostelAdminCommunityPageContent } from "@/app/_components/hostel-admin-
 import { HostelAdminComplaintsPage } from "@/app/_components/hostel-admin-complaints-page";
 import { HostelAdminDashboardPageContent } from "@/app/_components/hostel-admin-dashboard-page";
 import { HostelAdminExistingResidentsPage } from "@/app/_components/hostel-admin-existing-residents-page";
+import { HostelAdminExpensesPageContent } from "@/app/_components/hostel-admin-expenses-page";
 import { HostelAdminFeeSchedulePageContent } from "@/app/_components/hostel-admin-fee-schedule-page";
 import { HostelAdminFoodPage } from "@/app/_components/hostel-admin-food-page";
 import { HostelAdminInquiriesPageContent } from "@/app/_components/hostel-admin-inquiries-page";
@@ -57,6 +58,9 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   // outbound campaign composer — a different thing that happens to share a
   // word, which is why the bell points here instead.
   inbox: () => <NotificationsPageContent />,
+  // Money Out (docs/EXPENSES_PLAN.md). A warden with `recordExpenses` sees
+  // their own rows here; the server keeps the totals for the owner.
+  expenses: () => <HostelAdminExpensesPageContent />,
   inquiries: () => <HostelAdminInquiriesPageContent />,
   "invite-hostels": () => <HostelAdminInviteHostelsPageContent />,
   kyc: () => <HostelAdminKycPageContent />,

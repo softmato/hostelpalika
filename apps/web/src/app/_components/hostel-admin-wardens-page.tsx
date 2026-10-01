@@ -50,6 +50,7 @@ const PERMISSION_LABELS: Record<WardenPermissionKey, string> = {
   managePaymentProfile: "Edit payment details",
   manageRooms: "Manage rooms & beds",
   recordCash: "Record cash payments",
+  recordExpenses: "Add expenses",
   registerResidents: "Register residents",
   reversePayments: "Reverse & void payments",
   updateComplaints: "Update complaints",
@@ -78,6 +79,11 @@ function PermissionGrid({
             onCheckedChange={(value) => onToggle(key, value === true)}
           />
           {PERMISSION_LABELS[key]}
+          {key === "recordExpenses" ? (
+            <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
+              Recommended
+            </span>
+          ) : null}
         </label>
       ))}
     </div>

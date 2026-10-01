@@ -9,7 +9,8 @@
       "@hostel/plans/*": ["../../packages/shared/src/plans/*"],
       "@hostel/food/*": ["../../packages/shared/src/food/*"],
       "@hostel/night/*": ["../../packages/shared/src/night/*"],
-      "@hostel/brand/*": ["../../packages/shared/src/brand/*"]
+      "@hostel/brand/*": ["../../packages/shared/src/brand/*"],
+      "@hostel/expenses/*": ["../../packages/shared/src/expenses/*"]
     }
   },
   "include": [

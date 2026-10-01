@@ -59,6 +59,7 @@ const fileAssetSchema = new Schema(
         "STATEMENT",
         "BOOKING_PAYMENT_PROOF",
         "BOOKING_TRANSFER_PROOF",
+        "EXPENSE_RECEIPT",
       ],
       type: String,
     },

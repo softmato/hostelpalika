@@ -20,7 +20,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { endSession } from "@/lib/auth-session";
-import type { FoodReadyAnnouncement } from "@/lib/cook-api";
+import type { CookToday, FoodReadyAnnouncement } from "@/lib/cook-api";
 import { cookQuery } from "@/lib/cook-queries";
 import { collectDeviceInfo } from "@/lib/device-info";
 import { humanizeEnum } from "@/lib/format";
@@ -82,6 +82,12 @@ export default function CookMoreScreen() {
    * kitchen whose log errors must still be able to read its device details and
    * sign out.
    */
+  // Cached by Today; read here only for whether the owner turned expenses on.
+  const kitchenQuery = cookQuery.today();
+  const kitchen = useResource<CookToday>(kitchenQuery.load, {
+    cacheKey: kitchenQuery.key,
+    topics: kitchenQuery.topics,
+  });
   const query = cookQuery.announcements();
   const logs = useResource<FoodReadyAnnouncement[]>(query.load, {
     cacheKey: query.key,
@@ -238,6 +244,27 @@ export default function CookMoreScreen() {
             </Card>
           )}
         </View>
+
+        {kitchen.data?.expensesEnabled ? (
+          <View>
+            <SectionHeader title="Money" />
+            <Card padding="px-4 py-1">
+              <ListRow
+                icon="add-circle-outline"
+                onPress={() => router.push("/expenses/new")}
+                subtitle="What the kitchen paid for"
+                title="Add expense"
+              />
+              <RowDivider inset />
+              <ListRow
+                icon="wallet-outline"
+                onPress={() => router.push("/expenses")}
+                subtitle="Everything added from this phone"
+                title="My expenses"
+              />
+            </Card>
+          </View>
+        ) : null}
 
         <View>
           <SectionHeader title="App" />

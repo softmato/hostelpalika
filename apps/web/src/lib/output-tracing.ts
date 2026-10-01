@@ -35,6 +35,8 @@ export const XLSX_PACKAGE = [
 export const PDF_LIB_ROUTES = [
   "/api/v1/account/residency-invite/**",
   "/api/v1/bookings/**",
+  // Expenses resolve the hostel through `hostel.service`, which reaches it.
+  "/api/v1/cook/expenses/**",
   "/api/v1/cron/billing-cycle/**",
   "/api/v1/cron/gateway-expiry-sweep/**",
   "/api/v1/cron/gateway-health/**",
@@ -52,6 +54,7 @@ export const PDF_LIB_ROUTES = [
   "/api/v1/hostel-admin/billing/**",
   "/api/v1/hostel-admin/branches/**",
   "/api/v1/hostel-admin/bookings/**",
+  "/api/v1/hostel-admin/expenses/**",
   "/api/v1/hostel-admin/finance/**",
   "/api/v1/hostel-admin/inquiries/**",
   "/api/v1/hostel-admin/kyc/**",

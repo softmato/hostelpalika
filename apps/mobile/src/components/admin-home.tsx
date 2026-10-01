@@ -621,6 +621,12 @@ export function ServiceGrid({
 
   const services = [
     { href: "/manage/finance", icon: "cash-outline", label: "Finance", tone: "success" },
+    /*
+      Money Out, beside the money that comes in. A warden without
+      `recordExpenses` who taps it is told so on the screen, the way every
+      other permission-gated tile here behaves.
+    */
+    { href: "/expenses", icon: "wallet-outline", label: "Expenses", tone: "success" },
     { href: "/(admin)/residents", icon: "people-outline", label: "Residents", tone: "admin" },
     /*
       Roll call came down from the shortcut row when the Store took its cell.
@@ -791,11 +797,20 @@ export function ServiceGrid({
  * These are shortcuts: their job is to be reachable, not to report.
  */
 export function QuickActions({
+  onAddExpense,
   onNewResident,
   onRollCall,
   onScan,
   onStore,
 }: {
+  /**
+   * Money Out's add screen (docs/EXPENSES_PLAN.md). It passes this row's own
+   * test better than anything else on it: it happens standing at a shop
+   * counter, it is not a bottom tab, and it is the one action the whole
+   * feature is built around. Omitted for a warden without `recordExpenses` —
+   * the caller knows, this component does not read permissions.
+   */
+  onAddExpense?: () => void;
   onNewResident: () => void;
   /** The fallback for the lead cell when `onStore` is absent. */
   onRollCall: () => void;
@@ -839,6 +854,15 @@ export function QuickActions({
           onPress={onScan}
           tone="warning"
         />
+        {onAddExpense ? (
+          <ActionCell
+            glyph={colors.success}
+            icon="wallet-outline"
+            label="Add expense"
+            onPress={onAddExpense}
+            tone="success"
+          />
+        ) : null}
       </ActionCard>
     </View>
   );

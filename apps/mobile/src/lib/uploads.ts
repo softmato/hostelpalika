@@ -48,6 +48,11 @@ export type FileAssetKind =
    * rule reaches outside the hostel at all.
    */
   | "COMPLAINT_NOTE"
+  /**
+   * A shop bill or payment screenshot on a hostel expense. The hostel's own
+   * books: scoped to the hostel at presign and readable by its staff only.
+   */
+  | "EXPENSE_RECEIPT"
   | "GENERIC"
   /**
    * A spoken description of a maintenance problem. Its own kind because it is

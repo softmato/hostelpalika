@@ -134,7 +134,8 @@ Verified absent from the entire codebase — no model, no collection, no route:
 - `Transaction` / `LedgerEntry` / `JournalEntry` — no immutable event log of money.
 - `Invoice` — no invoice document, number, or tax representation.
 - `Subscription` / `BillingCycle` — the platform never bills hostels.
-- `Expense` — no hostel-side cost tracking (salaries, groceries, utilities).
+- ~~`Expense` — no hostel-side cost tracking (salaries, groceries, utilities).~~
+  Built: see `docs/EXPENSES_PLAN.md` (2026-10-01).
 - `Refund` (of fees) — a resident overpayment or wrong approval has no reversal path.
 - `Payout` / `Settlement` — no money ever routes to a hostel through the platform.
 - Any payment-gateway integration. `grep -i "khalti|esewa|stripe|razorpay|webhook|gateway"`

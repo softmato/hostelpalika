@@ -34,6 +34,7 @@ import {
   prefetchAdminRoute,
 } from "@/lib/admin-queries";
 import { openConfirm } from "@/lib/confirm";
+import { expenseQuery } from "@/lib/expenses-api";
 import { STORE_OPEN } from "@/lib/store-api";
 
 /**
@@ -157,6 +158,19 @@ export default function AdminHomeScreen() {
   // Read for one decision only: whether the shortcut row's lead cell is the
   // Store or roll call. See the `onStore` note on `<QuickActions>` below.
   const account = useAppSelector((state) => state.auth.account);
+  /*
+   * Whether this person may add expenses. The owner always may; a warden only
+   * with `recordExpenses`, which the app learns the way it learns every other
+   * grant — by asking. Same key the add screen reads, so the answer is already
+   * in the cache when the cell is tapped.
+   */
+  const expenseAccess = expenseQuery("staff", null);
+  const expenses = useResource(expenseAccess.load, {
+    cacheKey: expenseAccess.key,
+    topics: expenseAccess.topics,
+  });
+  const canAddExpense =
+    account?.role === ROLE.HOSTEL_ADMIN || expenses.data?.kind === "ok";
   /*
    * The descriptor, not a local loader: the same object the portal's warm-up
    * prefetched into the cache under `query.key`, so a Home that was warmed paints
@@ -311,6 +325,7 @@ export default function AdminHomeScreen() {
         */}
         <View className="pt-3">
           <QuickActions
+            onAddExpense={canAddExpense ? () => router.push("/expenses/new") : undefined}
             onNewResident={() => router.push("/manage/resident/new")}
             /*
              * The camera, not a search box. Everything about this action happens

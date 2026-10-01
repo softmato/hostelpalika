@@ -480,7 +480,12 @@ async function loadFinance(): Promise<AdminFinanceData> {
  * between a screen and a prefetch.
  */
 /** `GET /hostel-admin/cooks` — the roster plus the portal switch it drives. */
-export type CookRoster = { cooks: CookAccount[]; portalEnabled: boolean };
+export type CookRoster = {
+  cooks: CookAccount[];
+  /** The cook may add expenses — owner's switch, off by default. */
+  expensesEnabled?: boolean;
+  portalEnabled: boolean;
+};
 
 export const adminQuery = {
   /**

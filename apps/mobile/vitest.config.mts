@@ -37,6 +37,7 @@ export default defineConfig({
        */
       "@hostel/night": resolve(root, "../../packages/shared/src/night"),
       "@hostel/brand": resolve(root, "../../packages/shared/src/brand"),
+      "@hostel/expenses": resolve(root, "../../packages/shared/src/expenses"),
     },
   },
   test: {

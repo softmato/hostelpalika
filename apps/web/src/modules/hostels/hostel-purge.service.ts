@@ -25,6 +25,7 @@ import { DuplicateCheckResultModel } from "@hostel/db/models/DuplicateCheckResul
 import { EmergencyContactModel } from "@hostel/db/models/EmergencyContact";
 import { EncryptedSecretModel } from "@hostel/db/models/EncryptedSecret";
 import { ExistingResidentListModel } from "@hostel/db/models/ExistingResidentList";
+import { ExpenseModel } from "@hostel/db/models/Expense";
 import { ResidentApplicationModel } from "@hostel/db/models/ResidentApplication";
 import { ResidentJoinLinkModel } from "@hostel/db/models/ResidentJoinLink";
 import { FeeScheduleModel } from "@hostel/db/models/FeeSchedule";
@@ -38,6 +39,7 @@ import { GuardianAccessModel } from "@hostel/db/models/GuardianAccess";
 import { GuardianPermissionModel } from "@hostel/db/models/GuardianPermission";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { HostelApplicationModel } from "@hostel/db/models/HostelApplication";
+import { HostelExpenseCategoryModel } from "@hostel/db/models/HostelExpenseCategory";
 import { HostelDocumentModel } from "@hostel/db/models/HostelDocument";
 import { HostelListingImpressionModel } from "@hostel/db/models/HostelListingImpression";
 import { HostelMemberModel } from "@hostel/db/models/HostelMember";
@@ -167,6 +169,7 @@ const ERASED_BY_HOSTEL_ID: Array<{ model: PurgeableModel; name: string }> = (
     ["EmergencyContact", EmergencyContactModel],
     ["EncryptedSecret", EncryptedSecretModel],
     ["ExistingResidentList", ExistingResidentListModel],
+    ["Expense", ExpenseModel],
     ["ResidentApplication", ResidentApplicationModel],
     ["ResidentJoinLink", ResidentJoinLinkModel],
     ["FeeSchedule", FeeScheduleModel],
@@ -180,6 +183,7 @@ const ERASED_BY_HOSTEL_ID: Array<{ model: PurgeableModel; name: string }> = (
     ["GuardianPermission", GuardianPermissionModel],
     ["HostelApplication", HostelApplicationModel],
     ["HostelDocument", HostelDocumentModel],
+    ["HostelExpenseCategory", HostelExpenseCategoryModel],
     ["HostelListingImpression", HostelListingImpressionModel],
     ["HostelMember", HostelMemberModel],
     ["HostelPageView", HostelPageViewModel],

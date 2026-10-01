@@ -598,7 +598,7 @@ export async function getCookToday(principal: ApiPrincipal, requestedHostelId?: 
   const hostelId = await resolveCookHostelId(principal, requestedHostelId);
   const today = startOfToday();
 
-  const [hostel, routine, residentCount, announcements] = await Promise.all([
+  const [hostel, routine, residentCount, announcements, settings] = await Promise.all([
     HostelModel.findOne({ _id: hostelId, isDeleted: false })
       /*
        * The listing fields as well as the name, so the kitchen's header can
@@ -636,6 +636,10 @@ export async function getCookToday(principal: ApiPrincipal, requestedHostelId?: 
           notifiedCount: number;
         }[]
       >(),
+    // Whether the owner let the kitchen add what it spends (docs/EXPENSES_PLAN.md).
+    HostelSettingsModel.findOne({ hostelId })
+      .select("cookCanRecordExpenses")
+      .lean<{ cookCanRecordExpenses?: boolean } | null>(),
   ]);
 
   return {
@@ -671,6 +675,8 @@ export async function getCookToday(principal: ApiPrincipal, requestedHostelId?: 
       /** The whole week, so the menu screen needs no second request. */
       routine,
       residentCount,
+      /** Shows the kitchen's *Add expense* entry. The API checks it again. */
+      expensesEnabled: Boolean(settings?.cookCanRecordExpenses),
     },
   };
 }

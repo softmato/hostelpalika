@@ -69,6 +69,13 @@ const MANAGE_ROWS: {
     tone: "success",
   },
   {
+    href: "/expenses",
+    icon: "wallet-outline",
+    subtitle: "Money spent for the hostel: add it, see where it went",
+    title: "Expenses",
+    tone: "success",
+  },
+  {
     href: "/manage/bookings",
     icon: "calendar-outline",
     subtitle: "Confirm or decline booked beds, and your share",

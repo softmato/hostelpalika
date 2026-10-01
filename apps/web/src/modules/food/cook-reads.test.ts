@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   foodReadyFind: vi.fn(),
   getFoodRoutine: vi.fn(),
   hostelFindOne: vi.fn(),
+  hostelSettingsFindOne: vi.fn(),
   residentCountDocuments: vi.fn(),
   residentFind: vi.fn(),
   uploadFoodPhoto: vi.fn(),
@@ -26,7 +27,7 @@ vi.mock("@hostel/db/models/Hostel", () => ({
 }));
 
 vi.mock("@hostel/db/models/HostelSettings", () => ({
-  HostelSettingsModel: { findOne: vi.fn(), findOneAndUpdate: vi.fn() },
+  HostelSettingsModel: { findOne: mocks.hostelSettingsFindOne, findOneAndUpdate: vi.fn() },
 }));
 
 vi.mock("@hostel/db/models/Resident", () => ({
@@ -106,6 +107,7 @@ describe("the cook's own reads", () => {
       timings: {},
     });
     mocks.residentCountDocuments.mockResolvedValue(38);
+    mocks.hostelSettingsFindOne.mockReturnValue(leanResult({ cookCanRecordExpenses: true }));
     mocks.foodReadyFind.mockReturnValue(listResult([]));
     mocks.residentFind.mockReturnValue(
       listResult([
@@ -131,6 +133,15 @@ describe("the cook's own reads", () => {
     expect(today.meals).toEqual([{ items: ["Dal bhat"], mealType: "LUNCH" }]);
     expect(today.residentCount).toBe(38);
     expect(today.hostel.name).toBe("Sunrise");
+  });
+
+  it("tells the kitchen whether the owner let it add expenses", async () => {
+    expect((await getCookToday(cookPrincipal)).today.expensesEnabled).toBe(true);
+
+    mocks.hostelSettingsFindOne.mockReturnValue(leanResult(null));
+
+    // No settings row yet is the default: off.
+    expect((await getCookToday(cookPrincipal)).today.expensesEnabled).toBe(false);
   });
 
   it("counts plates, which is every active resident and not only the notifiable ones", async () => {

@@ -77,6 +77,11 @@ export type CookToday = {
   residentCount: number;
   /** The whole week, so the Menu tab needs no second request. */
   routine: FoodRoutine;
+  /**
+   * The owner let the kitchen add what it spends (docs/EXPENSES_PLAN.md).
+   * Optional: an older server does not send it, and absent reads as off.
+   */
+  expensesEnabled?: boolean;
 };
 
 export async function getCookToday() {

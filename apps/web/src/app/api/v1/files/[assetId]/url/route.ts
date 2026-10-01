@@ -33,6 +33,7 @@ const STAFF_ONLY_KINDS = new Set([
   "MAINTENANCE_NOTE",
   "PAYMENT_PROOF",
   "STATEMENT",
+  "EXPENSE_RECEIPT",
 ]);
 
 /**

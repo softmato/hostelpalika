@@ -9,6 +9,7 @@ import { PortalBrandHeader } from "@/components/portal-shared";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { CardRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
@@ -273,6 +274,23 @@ export default function CookTodayScreen() {
         nextTiming={next?.timing ?? ""}
         residentCount={today.data.residentCount}
       />
+
+      {/*
+        Only when the owner switched it on. Above the meal buttons because the
+        kitchen's spending happens at the market in the morning, before any
+        food is out — and one row, because it is a door, not a report.
+      */}
+      {today.data.expensesEnabled ? (
+        <View className="px-5 pt-5">
+          <CardRow
+            icon="wallet-outline"
+            onPress={() => router.push("/expenses/new")}
+            subtitle="Vegetables, gas, anything you paid for"
+            title="Add expense"
+            tone="success"
+          />
+        </View>
+      ) : null}
 
       <View className="gap-3 px-5 pt-6">
         <SectionHeader

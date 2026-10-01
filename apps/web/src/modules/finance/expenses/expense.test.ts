@@ -1,0 +1,391 @@
+/**
+ * Money Out — docs/EXPENSES_PLAN.md step 1.
+ *
+ * What these lock in is the line the whole feature is built around: the owner
+ * sees the hostel's totals, and a warden or the cook adds and sees only their
+ * own rows. The rest is the arithmetic that line protects — *Out* counts only
+ * rows that still stand, *In* is binned by the Nepal day the money settled, and
+ * a retried Save never adds a second row.
+ */
+import { Types } from "mongoose";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { ApiPrincipal } from "@/lib/api-auth";
+import { fromBs } from "@/lib/hostel-day";
+import { Role } from "@/lib/roles";
+
+const hostelId = new Types.ObjectId("64f0f0f0f0f0f0f0f0f0f0a1");
+const ownerId = new Types.ObjectId("64f0f0f0f0f0f0f0f0f0f0b1");
+const wardenId = new Types.ObjectId("64f0f0f0f0f0f0f0f0f0f0b2");
+const cookId = new Types.ObjectId("64f0f0f0f0f0f0f0f0f0f0b3");
+const assetId = new Types.ObjectId("64f0f0f0f0f0f0f0f0f0f0c1");
+
+const mocks = vi.hoisted(() => ({
+  aggregate: vi.fn(),
+  assetFindOne: vi.fn(),
+  audit: vi.fn(),
+  categoryCount: vi.fn(),
+  categoryCreate: vi.fn(),
+  categoryExists: vi.fn(),
+  categoryFind: vi.fn(),
+  categoryFindById: vi.fn(),
+  categoryFindOne: vi.fn(),
+  cookFind: vi.fn(),
+  cookFindOne: vi.fn(),
+  eventFind: vi.fn(),
+  expenseCreate: vi.fn(),
+  expenseFind: vi.fn(),
+  expenseFindOne: vi.fn(),
+  expenseFindOneAndUpdate: vi.fn(),
+  memberFind: vi.fn(),
+  settingsFindOne: vi.fn(),
+  userFind: vi.fn(),
+  userFindById: vi.fn(),
+}));
+
+/** A Mongoose query stand-in: every builder returns itself, `lean()` resolves. */
+function query<T>(result: T) {
+  const chain = {
+    lean: () => Promise.resolve(result),
+    limit: () => chain,
+    select: () => chain,
+    sort: () => chain,
+  };
+
+  return chain;
+}
+
+vi.mock("@/lib/db", () => ({ connectToDatabase: vi.fn() }));
+vi.mock("@/modules/finance/audit-finance", () => ({ auditFinanceAction: mocks.audit }));
+vi.mock("@hostel/db/models/Expense", () => ({
+  ExpenseModel: {
+    aggregate: mocks.aggregate,
+    create: mocks.expenseCreate,
+    find: mocks.expenseFind,
+    findOne: mocks.expenseFindOne,
+    findOneAndUpdate: mocks.expenseFindOneAndUpdate,
+  },
+}));
+vi.mock("@hostel/db/models/HostelExpenseCategory", () => ({
+  HostelExpenseCategoryModel: {
+    countDocuments: mocks.categoryCount,
+    create: mocks.categoryCreate,
+    exists: mocks.categoryExists,
+    find: mocks.categoryFind,
+    findById: mocks.categoryFindById,
+    findOne: mocks.categoryFindOne,
+  },
+}));
+vi.mock("@hostel/db/models/FileAsset", () => ({ FileAssetModel: { findOne: mocks.assetFindOne } }));
+vi.mock("@hostel/db/models/HostelSettings", () => ({
+  HostelSettingsModel: { findOne: mocks.settingsFindOne },
+}));
+vi.mock("@hostel/db/models/HostelMember", () => ({ HostelMemberModel: { find: mocks.memberFind } }));
+vi.mock("@hostel/db/models/CookAccount", () => ({
+  CookAccountModel: { find: mocks.cookFind, findOne: mocks.cookFindOne },
+}));
+vi.mock("@hostel/db/models/User", () => ({
+  UserModel: { find: mocks.userFind, findById: mocks.userFindById },
+}));
+vi.mock("@hostel/db/models/PaymentEvent", () => ({ PaymentEventModel: { find: mocks.eventFind } }));
+
+import {
+  createExpense,
+  getExpenseHome,
+  parseSpentOn,
+  resolveExpenseActor,
+  voidExpense,
+} from "@/modules/finance/expenses/expense.service";
+
+const principal = (role: Role, userId: Types.ObjectId): ApiPrincipal => ({
+  hostelIds: [hostelId.toString()],
+  role,
+  userId: userId.toString(),
+});
+
+const owner = principal(Role.HOSTEL_ADMIN, ownerId);
+const warden = principal(Role.WARDEN, wardenId);
+const cook = principal(Role.COOK, cookId);
+
+function expense(overrides: Record<string, unknown> = {}) {
+  return {
+    _id: new Types.ObjectId(),
+    amount: 1000,
+    category: "GROCERIES",
+    createdAt: new Date("2026-10-01T05:00:00Z"),
+    customCategoryId: null,
+    paidBy: "CASH",
+    payer: "HOSTEL",
+    photoAssetId: null,
+    recordedBy: ownerId,
+    recordedByName: "Owner",
+    recordedByRole: "HOSTEL_ADMIN",
+    salaryFor: null,
+    spentOn: new Date("2026-10-01T00:00:00Z"),
+    status: "RECORDED",
+    what: "",
+    ...overrides,
+  };
+}
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mocks.categoryFind.mockReturnValue(query([]));
+  mocks.memberFind.mockReturnValue(query([]));
+  mocks.cookFind.mockReturnValue(query([]));
+  mocks.userFind.mockReturnValue(query([]));
+  mocks.userFindById.mockReturnValue(query({ name: "Hari" }));
+  mocks.cookFindOne.mockReturnValue(query(null));
+  mocks.eventFind.mockReturnValue(query([]));
+  mocks.aggregate.mockResolvedValue([]);
+  mocks.expenseFind.mockReturnValue(query([]));
+  mocks.expenseFindOne.mockReturnValue(query(null));
+});
+
+describe("the day the money went", () => {
+  const now = new Date("2026-10-01T10:00:00Z");
+
+  it("is today in Nepal when the user does not change it", () => {
+    expect(parseSpentOn(undefined, now).toISOString()).toBe("2026-10-01T00:00:00.000Z");
+  });
+
+  it("follows Nepal's day, not UTC's, late in the evening", () => {
+    // 19:00 UTC is already the next morning in Kathmandu.
+    expect(parseSpentOn(undefined, new Date("2026-10-01T19:00:00Z")).toISOString()).toBe(
+      "2026-10-02T00:00:00.000Z",
+    );
+  });
+
+  it("refuses a day that has not happened yet", () => {
+    expect(() => parseSpentOn("2026-10-02", now)).toThrow(/future/);
+  });
+
+  it("refuses a date that does not exist rather than rolling it over", () => {
+    expect(() => parseSpentOn("2026-02-30", now)).toThrow(/does not exist/);
+  });
+
+  it("refuses a year that is almost certainly a typo", () => {
+    expect(() => parseSpentOn("2024-10-01", now)).toThrow(/too long ago/);
+  });
+});
+
+describe("who may add", () => {
+  it("gives the owner the whole hostel", async () => {
+    const actor = await resolveExpenseActor(owner);
+
+    expect(actor.canSeeAll).toBe(true);
+    expect(actor.role).toBe("HOSTEL_ADMIN");
+  });
+
+  it("gives a warden their own rows only", async () => {
+    const actor = await resolveExpenseActor(warden);
+
+    expect(actor.canSeeAll).toBe(false);
+    expect(actor.role).toBe("WARDEN");
+  });
+
+  it("refuses the cook until the owner turns it on", async () => {
+    mocks.settingsFindOne.mockReturnValue(query({ cookCanRecordExpenses: false }));
+
+    await expect(resolveExpenseActor(cook)).rejects.toMatchObject({
+      errorCode: "EXPENSES_OFF_FOR_COOK",
+      status: 403,
+    });
+  });
+
+  it("lets the cook add once the owner has turned it on", async () => {
+    mocks.settingsFindOne.mockReturnValue(query({ cookCanRecordExpenses: true }));
+
+    const actor = await resolveExpenseActor(cook);
+
+    expect(actor).toMatchObject({ canSeeAll: false, role: "COOK" });
+  });
+
+  it("refuses anyone else", async () => {
+    await expect(resolveExpenseActor(principal(Role.RESIDENT, ownerId))).rejects.toMatchObject({
+      status: 403,
+    });
+  });
+});
+
+describe("the month", () => {
+  const period = "2083-06";
+  const asojFirst = fromBs({ day: 1, month: 6, year: 2083 });
+
+  it("never shows a warden the hostel's totals, and reads only their rows", async () => {
+    mocks.expenseFind.mockReturnValue(
+      query([expense({ amount: 400, recordedBy: wardenId, recordedByRole: "WARDEN" })]),
+    );
+
+    const home = await getExpenseHome(await resolveExpenseActor(warden), period);
+
+    expect(home.totals).toBeNull();
+    expect(home.canSeeTotals).toBe(false);
+    expect(home.mine).toEqual({ count: 1, out: 400 });
+    expect(mocks.expenseFind.mock.calls[0]?.[0]).toMatchObject({ recordedBy: wardenId });
+    expect(mocks.eventFind).not.toHaveBeenCalled();
+  });
+
+  it("gives the owner In, Out and Left, counting only rows that still stand", async () => {
+    mocks.expenseFind.mockReturnValue(
+      query([
+        expense({ amount: 3000, category: "GROCERIES", spentOn: asojFirst }),
+        expense({ amount: 1200, category: "GAS", recordedBy: wardenId, recordedByRole: "WARDEN", spentOn: asojFirst }),
+        expense({ amount: 900, category: "GROCERIES", spentOn: asojFirst, status: "VOID" }),
+        expense({ amount: 500, category: "GROCERIES", spentOn: asojFirst }),
+      ]),
+    );
+    mocks.eventFind.mockReturnValue(
+      query([
+        { amount: 12000, direction: "CREDIT", settledAt: new Date(asojFirst.getTime() + 6 * 3600_000) },
+        { amount: 2000, direction: "DEBIT", settledAt: new Date(asojFirst.getTime() + 8 * 3600_000) },
+        // 18:20 UTC the evening *before* 1 Asoj is already 1 Asoj in Kathmandu.
+        { amount: 5000, direction: "CREDIT", settledAt: new Date(asojFirst.getTime() - 5 * 3600_000 + 300_000) },
+        // A full day earlier is Bhadra's money.
+        { amount: 7000, direction: "CREDIT", settledAt: new Date(asojFirst.getTime() - 20 * 3600_000) },
+      ]),
+    );
+    mocks.aggregate.mockResolvedValue([{ total: 4000 }]);
+
+    const home = await getExpenseHome(await resolveExpenseActor(owner), period);
+
+    expect(home.totals).toMatchObject({
+      in: 15000,
+      lastMonthOut: 4000,
+      left: 15000 - 4700,
+      out: 4700,
+      staffCount: 1,
+    });
+    expect(home.totals?.byCategory.map((row) => [row.category, row.amount])).toEqual([
+      ["GROCERIES", 3500],
+      ["GAS", 1200],
+    ]);
+    // The void row is still listed — the owner sees the mistake and its fix.
+    expect(home.expenses).toHaveLength(4);
+  });
+
+  it("answers a month before the calendar floor with a sentence, not a crash", async () => {
+    await expect(getExpenseHome(await resolveExpenseActor(owner), "2001-01")).rejects.toMatchObject({
+      errorCode: "INVALID_PERIOD",
+      status: 422,
+    });
+  });
+
+  it("pulls a month that has not started back to this one", async () => {
+    const home = await getExpenseHome(await resolveExpenseActor(owner), "2199-01");
+
+    expect(home.period).toBe(home.currentPeriod);
+  });
+});
+
+describe("adding an expense", () => {
+  const input = { amount: 2400, category: "GROCERIES" as const, paidBy: "CASH" as const };
+
+  beforeEach(() => {
+    mocks.expenseCreate.mockImplementation(async (doc: Record<string, unknown>) => ({
+      toObject: () => ({ _id: new Types.ObjectId(), createdAt: new Date(), ...doc }),
+    }));
+  });
+
+  it("records a warden's spending as paid by staff, under their name", async () => {
+    const row = await createExpense(await resolveExpenseActor(warden), input);
+
+    expect(mocks.expenseCreate.mock.calls[0]?.[0]).toMatchObject({
+      payer: "STAFF",
+      recordedByName: "Hari",
+      recordedByRole: "WARDEN",
+    });
+    expect(row.expense).toMatchObject({ amount: 2400, mine: true, status: "RECORDED" });
+    expect(mocks.audit).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ action: "EXPENSE_RECORDED", amountAfter: 2400 }),
+    );
+  });
+
+  it("records the owner's spending as the hostel's", async () => {
+    await createExpense(await resolveExpenseActor(owner), input);
+
+    expect(mocks.expenseCreate.mock.calls[0]?.[0]).toMatchObject({ payer: "HOSTEL" });
+  });
+
+  it("returns the saved row when the same Save arrives twice", async () => {
+    const saved = expense({ amount: 2400, clientRequestId: "save-123456" });
+    mocks.expenseFindOne.mockReturnValue(query(saved));
+
+    const result = await createExpense(await resolveExpenseActor(owner), {
+      ...input,
+      clientRequestId: "save-123456",
+    });
+
+    expect(result.duplicate).toBe(true);
+    expect(result.expense.id).toBe(saved._id.toString());
+    expect(mocks.expenseCreate).not.toHaveBeenCalled();
+  });
+
+  it("refuses a photo somebody else uploaded", async () => {
+    mocks.assetFindOne.mockReturnValue(
+      query({ hostelId, kind: "EXPENSE_RECEIPT", ownerId, uploadCompletedAt: new Date() }),
+    );
+
+    await expect(
+      createExpense(await resolveExpenseActor(warden), { ...input, photoAssetId: assetId.toString() }),
+    ).rejects.toMatchObject({ errorCode: "ASSET_NOT_OWNED" });
+  });
+
+  it("refuses a photo that was not uploaded as an expense photo", async () => {
+    mocks.assetFindOne.mockReturnValue(
+      query({ hostelId, kind: "GENERIC", ownerId: wardenId, uploadCompletedAt: new Date() }),
+    );
+
+    await expect(
+      createExpense(await resolveExpenseActor(warden), { ...input, photoAssetId: assetId.toString() }),
+    ).rejects.toMatchObject({ errorCode: "ASSET_NOT_OWNED" });
+  });
+
+  it("refuses one of the hostel's own categories that is hidden or gone", async () => {
+    mocks.categoryFindOne.mockReturnValue(query(null));
+
+    await expect(
+      createExpense(await resolveExpenseActor(owner), {
+        ...input,
+        category: "CUSTOM",
+        customCategoryId: new Types.ObjectId().toString(),
+      }),
+    ).rejects.toMatchObject({ errorCode: "CATEGORY_NOT_FOUND" });
+  });
+});
+
+describe("cancelling an expense", () => {
+  it("lets a warden cancel only their own rows", async () => {
+    const id = new Types.ObjectId().toString();
+
+    await expect(voidExpense(await resolveExpenseActor(warden), id, "Wrong amount")).rejects.toMatchObject({
+      errorCode: "EXPENSE_NOT_FOUND",
+    });
+    expect(mocks.expenseFindOne.mock.calls[0]?.[0]).toMatchObject({ recordedBy: wardenId });
+  });
+
+  it("refuses to cancel twice", async () => {
+    mocks.expenseFindOne.mockReturnValue(query(expense({ status: "VOID" })));
+
+    await expect(
+      voidExpense(await resolveExpenseActor(owner), new Types.ObjectId().toString(), "Wrong amount"),
+    ).rejects.toMatchObject({ errorCode: "EXPENSE_ALREADY_VOID", status: 409 });
+  });
+
+  it("keeps the row and the reason, and audits the change", async () => {
+    const row = expense({ amount: 750 });
+    mocks.expenseFindOne.mockReturnValue(query(row));
+    mocks.expenseFindOneAndUpdate.mockReturnValue(
+      query({ ...row, status: "VOID", voidReason: "Wrong amount", voidedAt: new Date() }),
+    );
+
+    const result = await voidExpense(await resolveExpenseActor(owner), row._id.toString(), "Wrong amount");
+
+    expect(result).toMatchObject({ status: "VOID", voidReason: "Wrong amount" });
+    expect(mocks.audit).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ action: "EXPENSE_VOIDED", amountAfter: 0, amountBefore: 750 }),
+    );
+  });
+});
