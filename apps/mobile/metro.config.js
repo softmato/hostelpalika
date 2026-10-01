@@ -92,6 +92,12 @@ const foodRoot = path.resolve(__dirname, "../../packages/shared/src/food");
 const nightRoot = path.resolve(__dirname, "../../packages/shared/src/night");
 /** `@hostel/brand/*` — the platform name, shared with the web and the emails. */
 const brandRoot = path.resolve(__dirname, "../../packages/shared/src/brand");
+/**
+ * `@hostel/expenses/*` — the spending categories and payment methods. The add
+ * screen's tiles and the API's accepted values are one list, so a tile can never
+ * offer a category the server refuses. No imports at all.
+ */
+const expensesRoot = path.resolve(__dirname, "../../packages/shared/src/expenses");
 const baseResolveRequest = config.resolver.resolveRequest;
 
 // `.lottie` is a zip Metro doesn't know; without this `require()` of one fails to resolve.
@@ -104,6 +110,7 @@ config.watchFolders = [
   foodRoot,
   nightRoot,
   brandRoot,
+  expensesRoot,
 ];
 
 /*
@@ -160,6 +167,13 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName.startsWith("@hostel/brand/")) {
     return {
       filePath: path.join(brandRoot, `${moduleName.slice("@hostel/brand/".length)}.ts`),
+      type: "sourceFile",
+    };
+  }
+
+  if (moduleName.startsWith("@hostel/expenses/")) {
+    return {
+      filePath: path.join(expensesRoot, `${moduleName.slice("@hostel/expenses/".length)}.ts`),
       type: "sourceFile",
     };
   }

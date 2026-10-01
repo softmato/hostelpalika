@@ -219,13 +219,15 @@ Owner-added categories (name + icon). Built-in categories live in
 Each step is usable on its own. A step starts only when the one before it works.
 
 ### Step 1: record and see [server] [app] [web]
-- [ ] `Expense`, `CashBox`, `CashMovement`, `HostelExpenseCategory` models; built-in categories in `packages/shared`
-- [ ] `recordExpenses` warden key + default; `cookCanRecordExpenses` setting
-- [ ] API: create, list (own vs all by role), void, month summary, categories
-- [ ] Add expense screen (3.3), owner home (3.1), staff home (3.2)
-- [ ] Warden create/edit form: the toggle with *Recommended*
-- [ ] Web page (3.5) without export
-- [ ] Money In from the existing ledger feeds the In/Out/Left card
+- [x] `Expense` and `HostelExpenseCategory` models; built-in categories and input parsing in `packages/shared/src/expenses/` (2026-10-01, `expense.test.ts`). `CashBox`/`CashMovement` move to step 2 with the screens that use them.
+- [x] `recordExpenses` warden key, pre-ticked for new wardens only; `HostelSettings.cookCanRecordExpenses` + owner-only `PUT /hostel-admin/expenses/cook` (2026-10-01)
+- [x] API: `GET/POST /hostel-admin/expenses`, `POST …/[id]/void`, `POST/PATCH …/categories`, cook mirror at `/cook/expenses` (2026-10-01, 23 tests)
+- [x] Money In = settled credits − settled debits by the Nepal day they settled, binned to the BS month (2026-10-01, tested across the 18:15 UTC day edge)
+- [ ] **[device]** Add expense screen (3.3), owner home (3.1), staff home (3.2) — built in `apps/mobile/src/app/expenses/`, typecheck/lint/tests clean, not yet seen on a handset
+- [ ] **[device]** Entry points — owner Home shortcut row + Manage grid + More row; cook Today row + More section (only when switched on); owner switch on Cooks — built, not yet seen
+- [ ] **[device]** Warden create form: *Add expenses* row with *Recommended*, on by default; edit sheet badge — built, not yet seen
+- [ ] **[browser]** Web page (3.5) at `/{slug}/admin/expenses`, nav under Finance — built, not yet seen in a browser
+- Not built in step 1: owner push when staff add something; monthly export (step 3)
 
 ### Step 2: cash boxes [server] [app] [web]
 - [ ] Give / take back cash, cash box screen (3.4), *Hostel owes* state
@@ -254,7 +256,8 @@ Each step is usable on its own. A step starts only when the one before it works.
 
 1. **Staff entries count straight away.** The owner gets a *New from staff* list
    and can mark one *Not right* (void with reason), which also returns cash to
-   the box.
+   the box. A warden or the cook may also cancel **their own** row (a typo), with
+   a reason the owner sees; never anyone else's.
 2. **Rent cash a warden collects goes into the warden's cash box.** Flow:
    Payments → tap the resident → **Got cash**. The amount still owed is already
    filled in, so it is one tap to Save. That records the resident's payment

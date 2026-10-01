@@ -678,6 +678,22 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
           },
           {
             description:
+              "Money spent for the hostel — add it, and see Money In, Money Out and what is left.",
+            href: "/hostel-admin/expenses",
+            keywords: [
+              "expense",
+              "expenses",
+              "spending",
+              "money out",
+              "groceries",
+              "salary",
+              "petty cash",
+              "bill",
+            ],
+            label: "Expenses",
+          },
+          {
+            description:
               "Full payment ledger with method, reference, and reconciliation status.",
             href: "/hostel-admin/transactions",
             keywords: ["ledger", "transaction", "history", "reconcile", "refund"],

@@ -82,6 +82,10 @@ const PERMISSION_LABELS: Record<WardenPermission, { hint: string; label: string 
   },
   manageRooms: { hint: "Change room types, beds and vacancies.", label: "Rooms" },
   recordCash: { hint: "Mark an invoice settled in cash.", label: "Record cash" },
+  recordExpenses: {
+    hint: "Add money they spend for the hostel. They never see the hostel's totals.",
+    label: "Add expenses",
+  },
   registerResidents: { hint: "Admit and move out residents.", label: "Residents" },
   reversePayments: {
     hint: "Undo a settled payment. Off by default.",
@@ -93,6 +97,14 @@ const PERMISSION_LABELS: Record<WardenPermission, { hint: string; label: string 
   viewNightStatus: { hint: "See who is accounted for tonight.", label: "See roll call" },
   viewPayments: { hint: "Read invoices and the ledger.", label: "See payments" },
 };
+
+/**
+ * Offered on its own row with a *Recommended* mark, pre-ticked, rather than as
+ * one more chip: the warden who does the shopping is the usual case, and an
+ * owner skimming the chips should not have to find it
+ * (docs/EXPENSES_PLAN.md §1).
+ */
+const RECOMMENDED: WardenPermission = "recordExpenses";
 
 /** The three that change what is owed or who gets paid. */
 const SENSITIVE: WardenPermission[] = [
@@ -391,10 +403,32 @@ export default function ManageWardensScreen() {
             value={draft.phone}
           />
 
+          <View className="flex-row items-center justify-between gap-3 rounded-xl border border-brand/30 bg-brand-soft p-3">
+            <View className="flex-1 gap-1">
+              <View className="flex-row items-center gap-2">
+                <Text variant="label">{PERMISSION_LABELS[RECOMMENDED].label}</Text>
+                <Badge label="Recommended" tone="success" />
+              </View>
+              <Text variant="caption">Turn on if this warden buys things for the hostel.</Text>
+            </View>
+            <Toggle
+              accessibilityLabel={PERMISSION_LABELS[RECOMMENDED].label}
+              onChange={(on) =>
+                setDraft((prev) => ({
+                  ...prev,
+                  permissions: on
+                    ? [...prev.permissions.filter((entry) => entry !== RECOMMENDED), RECOMMENDED]
+                    : prev.permissions.filter((entry) => entry !== RECOMMENDED),
+                }))
+              }
+              value={draft.permissions.includes(RECOMMENDED)}
+            />
+          </View>
+
           <Text variant="label">What they may do</Text>
 
           <View className="flex-row flex-wrap gap-2">
-            {WARDEN_PERMISSIONS.map((key) => (
+            {WARDEN_PERMISSIONS.filter((key) => key !== RECOMMENDED).map((key) => (
               <Chip
                 key={key}
                 label={PERMISSION_LABELS[key].label}
@@ -439,6 +473,7 @@ export default function ManageWardensScreen() {
                 <View className="flex-row items-center gap-2">
                   <Text variant="label">{PERMISSION_LABELS[key].label}</Text>
                   {SENSITIVE.includes(key) ? <Badge label="Money" tone="warning" /> : null}
+                  {key === RECOMMENDED ? <Badge label="Recommended" tone="success" /> : null}
                 </View>
                 <Text variant="caption">{PERMISSION_LABELS[key].hint}</Text>
               </View>
@@ -455,7 +490,7 @@ export default function ManageWardensScreen() {
   );
 }
 
-/** Current permissions only — a retired key still stored is not one of the sixteen. */
+/** Current permissions only — a retired key still stored is not one of them. */
 function countKnown(permissions: string[]) {
   return permissions.filter((key) => (WARDEN_PERMISSIONS as readonly string[]).includes(key))
     .length;

@@ -365,8 +365,8 @@ export async function listCookAccounts(
     .sort({ createdAt: 1 })
     .lean<CookAccountRecord[]>();
   const settings = await HostelSettingsModel.findOne({ hostelId })
-    .select("cookPortalEnabled")
-    .lean<{ cookPortalEnabled?: boolean } | null>();
+    .select("cookCanRecordExpenses cookPortalEnabled")
+    .lean<{ cookCanRecordExpenses?: boolean; cookPortalEnabled?: boolean } | null>();
 
   // One query for every live cook's account rather than one per row: the flag
   // being read is `mustChangePassword`, which only exists on the User.
@@ -392,6 +392,8 @@ export async function listCookAccounts(
       ...serialized.filter((cook) => cook.status !== "REMOVED"),
       ...serialized.filter((cook) => cook.status === "REMOVED").reverse(),
     ],
+    /** Whether the cook may add expenses. Only the owner can change it. */
+    expensesEnabled: Boolean(settings?.cookCanRecordExpenses),
     portalEnabled: Boolean(settings?.cookPortalEnabled),
   };
 }

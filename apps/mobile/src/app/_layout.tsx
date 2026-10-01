@@ -461,6 +461,9 @@ function RootShell() {
         <Stack.Screen name="manage/finance/payouts" />
         <Stack.Screen name="manage/finance/gateway/[provider]" />
         <Stack.Screen name="manage/statements" />
+        {/* Money Out — owner, warden and cook share these two (docs/EXPENSES_PLAN.md). */}
+        <Stack.Screen name="expenses/index" />
+        <Stack.Screen name="expenses/new" />
         <Stack.Screen name="manage/existing-residents" />
         <Stack.Screen name="manage/resident/[id]" />
         {/* Bottom, like every other "fill this in and finish" form in the app. */}

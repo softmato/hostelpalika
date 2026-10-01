@@ -64,9 +64,18 @@ const TONES = {
   warning: "bg-warning",
 } as const;
 
-type Reading = "collected" | "elapsed" | "remaining";
+/**
+ * `share` is a slice of a whole — one category's part of a month's spending —
+ * where no fill level is good or bad, so it is always the brand colour. Without
+ * it the biggest category would turn amber or red for being big.
+ */
+type Reading = "collected" | "elapsed" | "remaining" | "share";
 
 function toneFor(percent: number, reading: Reading): keyof typeof TONES {
+  if (reading === "share") {
+    return "brand";
+  }
+
   if (reading === "elapsed") {
     return percent >= 60 ? "warning" : "brand";
   }

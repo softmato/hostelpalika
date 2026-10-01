@@ -10,10 +10,11 @@
  *
  * The wallet apps our users already read — see
  * `ui_inspiration_folder/app_recordings/NOTES.md` — put debits and credits in
- * one list and sign them by colour. A hostel's statement is not that list. A
- * hostel does not *spend* through this product, so a debit column would be a
- * column of nothing; what an owner opens this screen for is "what has come in,
- * from whom, and when". So an entry earns a row here when `paidAmount > 0` and
+ * one list and sign them by colour. A hostel's statement is not that list.
+ * What an owner opens this screen for is "what has come in, from whom, and
+ * when". Money the hostel *spends* is recorded since docs/EXPENSES_PLAN.md, and
+ * it lives on its own screen (`app/expenses/`) with its own *In · Out · Left*,
+ * rather than as a debit column here. So an entry earns a row here when `paidAmount > 0` and
  * for no other reason, every amount is a credit, and the direction marker is
  * green in every row rather than being a thing to read.
  *

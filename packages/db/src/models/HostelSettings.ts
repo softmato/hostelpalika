@@ -13,6 +13,12 @@ const hostelSettingsSchema = new Schema(
       unique: true,
     },
     cookPortalEnabled: { default: false, type: Boolean },
+    /**
+     * Whether the cook account may add what it spends (docs/EXPENSES_PLAN.md §1).
+     * Off until the owner turns it on: the cook login can be a shared phone, and
+     * money is not part of the cook portal by default.
+     */
+    cookCanRecordExpenses: { default: false, type: Boolean },
     cookName: { trim: true, type: String },
     cookUserId: { ref: "User", type: Schema.Types.ObjectId },
     /**

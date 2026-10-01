@@ -670,7 +670,7 @@ export type CookCredentials = { email: string; temporaryPassword: string };
 
 export async function getCookRoster() {
   const response = await api.get<
-    ApiEnvelope<{ cooks: CookAccount[]; portalEnabled: boolean }>
+    ApiEnvelope<{ cooks: CookAccount[]; expensesEnabled?: boolean; portalEnabled: boolean }>
   >("/hostel-admin/cooks");
 
   return unwrap(response);
@@ -912,6 +912,7 @@ export const WARDEN_PERMISSIONS = [
   "viewNightStatus",
   "updateNightStatus",
   "manageMaintenance",
+  "recordExpenses",
 ] as const;
 
 export type WardenPermission = (typeof WARDEN_PERMISSIONS)[number];
@@ -929,6 +930,7 @@ export const DEFAULT_WARDEN_PERMISSIONS: WardenPermission[] = [
   "viewNightStatus",
   "updateNightStatus",
   "manageMaintenance",
+  "recordExpenses",
 ];
 
 export type ManagedWarden = {

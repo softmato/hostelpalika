@@ -53,6 +53,13 @@ export const FILE_ASSET_KINDS = [
    * money record, so the same rule: never hostel-scoped, platform staff only.
    */
   "BOOKING_TRANSFER_PROOF",
+  /**
+   * A photo of a shop bill or a payment screenshot attached to a hostel
+   * expense (docs/EXPENSES_PLAN.md). The hostel's own books, so financial —
+   * tenant-scoped at presign — and staff-only to read: never a resident, a
+   * guardian or anyone else holding the same `hostelId`.
+   */
+  "EXPENSE_RECEIPT",
 ] as const;
 
 /** Kinds that must never be scoped to a hostel, whoever uploads them. */
@@ -72,6 +79,7 @@ const FINANCIAL_KINDS = new Set<FileAssetKind>([
   "PAYMENT_PROOF",
   "PAYMENT_QR",
   "STATEMENT",
+  "EXPENSE_RECEIPT",
 ]);
 
 export function isFileAssetKind(value: unknown): value is FileAssetKind {

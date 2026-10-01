@@ -4,6 +4,7 @@ import { Pressable, View } from "react-native";
 
 import { FLOAT_SHADOW } from "@/components/portal-shared";
 import { Text } from "@/components/ui/text";
+import { useAppTheme } from "@/hooks/use-app-theme";
 
 /**
  * The four-up card of tinted glyph cells, and the only shape a menu of
@@ -101,6 +102,7 @@ export function ActionCell({
   label,
   onPress,
   onPressIn,
+  selected,
   tone,
 }: {
   /**
@@ -127,8 +129,17 @@ export function ActionCell({
    * would happen without the user ever having chosen it.
    */
   onPressIn?: () => void;
+  /**
+   * Turns the cell from a door into a choice: the glyph fills with the brand
+   * colour and the label goes bold. For a grid that *picks* one of several —
+   * the spending categories on Add expense — where the alternative was a second
+   * tile component with the same glyph, label and pitch. Omit it for a menu:
+   * `undefined` draws exactly what this cell always drew.
+   */
+  selected?: boolean;
   tone: ActionTone;
 }) {
+  const { colors } = useAppTheme();
   const quiet = badge === 0;
 
   return (
@@ -137,14 +148,19 @@ export function ActionCell({
         .filter(Boolean)
         .join(", ")}
       accessibilityRole="button"
+      accessibilityState={selected === undefined ? undefined : { selected }}
       className="flex-1 items-center gap-2 active:opacity-70"
       onPress={() => {
         onPress();
       }}
       onPressIn={onPressIn}
     >
-      <View className={`h-12 w-12 items-center justify-center rounded-2xl ${ACTION_TONES[tone]}`}>
-        <Ionicons color={glyph} name={icon} size={21} />
+      <View
+        className={`h-12 w-12 items-center justify-center rounded-2xl ${
+          selected ? "bg-primary" : ACTION_TONES[tone]
+        }`}
+      >
+        <Ionicons color={selected ? colors.primaryForeground : glyph} name={icon} size={21} />
 
         {/*
           On the glyph's shoulder, where every phone home screen has trained
@@ -178,7 +194,7 @@ export function ActionCell({
         every cell in the row the same height.
       */}
       <Text
-        className="text-center font-medium text-foreground"
+        className={`text-center ${selected ? "font-bold text-primary" : "font-medium text-foreground"}`}
         numberOfLines={2}
         style={{ fontSize: 11, lineHeight: 14 }}
       >
@@ -197,6 +213,8 @@ export type ActionTile = {
   label: string;
   onPress: () => void;
   onPressIn?: () => void;
+  /** See `<ActionCell selected>`. */
+  selected?: boolean;
   tone: ActionTone;
 };
 
@@ -233,6 +251,7 @@ export function ActionTiles({ tiles }: { tiles: readonly ActionTile[] }) {
               label={tile.label}
               onPress={tile.onPress}
               onPressIn={tile.onPressIn}
+              selected={tile.selected}
               tone={tile.tone}
             />
           ))}

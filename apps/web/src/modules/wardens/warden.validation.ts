@@ -34,6 +34,9 @@ export const WARDEN_PERMISSION_KEYS = [
   "viewNightStatus",
   "updateNightStatus",
   "manageMaintenance",
+  // Add what they spent for the hostel (docs/EXPENSES_PLAN.md). Add only: the
+  // hostel's totals stay with the owner by role, never by grant.
+  "recordExpenses",
 ] as const;
 
 export type WardenPermissionKey = (typeof WARDEN_PERMISSION_KEYS)[number];
@@ -72,6 +75,9 @@ export const DEFAULT_WARDEN_PERMISSIONS: WardenPermissionKey[] = [
   "viewNightStatus",
   "updateNightStatus",
   "manageMaintenance",
+  // Pre-ticked in the create form, marked "Recommended". Existing wardens do
+  // not get it: this list is read only when a warden is created.
+  "recordExpenses",
 ];
 
 const permissionsSchema = z

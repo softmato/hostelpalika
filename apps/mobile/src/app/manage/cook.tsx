@@ -18,6 +18,9 @@ import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
+import { Toggle } from "@/components/ui/toggle";
+import { ROLE } from "@/constants/roles";
+import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
@@ -31,6 +34,7 @@ import {
 import { adminQuery, type CookRoster } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
 import { openConfirm } from "@/lib/confirm";
+import { setCookExpenses } from "@/lib/expenses-api";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 /**
@@ -107,6 +111,32 @@ export default function ManageCookScreen() {
   const live = cooks.filter((cook) => cook.status !== "REMOVED");
   const past = cooks.filter((cook) => cook.status === "REMOVED");
   const { refresh, setData } = roster;
+
+  /*
+   * The kitchen's *Add expense*. Owner only on the server — a warden who runs
+   * the menu does not decide whether the shared kitchen login can put money on
+   * the books — so it is drawn for the owner only.
+   */
+  const isOwner = useAppSelector((state) => state.auth.account?.role) === ROLE.HOSTEL_ADMIN;
+  const [savingExpenses, setSavingExpenses] = useState(false);
+
+  const toggleCookExpenses = useCallback(
+    async (enabled: boolean) => {
+      setSavingExpenses(true);
+      setData((current) => (current ? { ...current, expensesEnabled: enabled } : current));
+
+      try {
+        await setCookExpenses(enabled);
+        toastSuccess(enabled ? "The cook can add expenses" : "The cook can no longer add expenses");
+      } catch (error) {
+        setData((current) => (current ? { ...current, expensesEnabled: !enabled } : current));
+        toastError("Could not change it", readApiError(error));
+      } finally {
+        setSavingExpenses(false);
+      }
+    },
+    [setData],
+  );
 
   const openAdd = useCallback(() => {
     setMode("CREDENTIAL");
@@ -302,6 +332,26 @@ export default function ManageCookScreen() {
             Only a cook can press this.
           </Text>
         </Card>
+
+        {isOwner ? (
+          <Card className="flex-row items-center gap-3">
+            <View className="h-11 w-11 items-center justify-center rounded-xl bg-success-soft">
+              <Ionicons color={colors.success} name="wallet-outline" size={19} />
+            </View>
+            <View className="flex-1">
+              <Text variant="label">Cook can add expenses</Text>
+              <Text variant="caption">
+                For vegetables, gas and market shopping. The cook sees only what they added.
+              </Text>
+            </View>
+            <Toggle
+              accessibilityLabel="Cook can add expenses"
+              disabled={savingExpenses}
+              onChange={(on) => void toggleCookExpenses(on)}
+              value={Boolean(roster.data?.expensesEnabled)}
+            />
+          </Card>
+        ) : null}
 
         <View>
           <SectionHeader title="In the kitchen" />
