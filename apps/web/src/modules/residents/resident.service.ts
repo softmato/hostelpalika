@@ -815,7 +815,7 @@ async function nonFatal<T>(work: () => Promise<T>): Promise<T | null> {
  * `deleteResident`: its bed goes back and the account loses that hostel. The
  * account keeps its RESIDENT role; the new row is about to take it.
  */
-async function removeDemoResident(principal: ApiPrincipal) {
+export async function removeDemoResident(principal: ApiPrincipal) {
   const rows = await ResidentModel.find({ email: DEMO_RESIDENT_EMAIL, isDeleted: { $ne: true } })
     .select("_id hostelId roomType status userId")
     .lean<Pick<ResidentRecord, "_id" | "hostelId" | "roomType" | "status" | "userId">[]>();

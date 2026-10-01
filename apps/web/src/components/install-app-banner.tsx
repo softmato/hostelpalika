@@ -2,6 +2,7 @@
 
 import { Download, X } from "lucide-react";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { useSiteConfig } from "@/components/site-config-provider";
@@ -35,6 +36,14 @@ function readDismissed() {
  */
 export function InstallAppBanner() {
   const { identity } = useSiteConfig();
+  /*
+   * A join link opens here, in the browser, because `/join/` is outside the
+   * app's `/app` scope. Sending its "Install" to `/app` dropped the token: an
+   * installed app opened on its home with nothing to do. So on a join link the
+   * button opens the same link inside the app, installed or not.
+   */
+  const pathname = usePathname();
+  const appHref = pathname?.startsWith("/join/") ? `/app${pathname}` : null;
   const [platform, setPlatform] = useState<Platform>(null);
   const [visible, setVisible] = useState(false);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
@@ -82,6 +91,11 @@ export function InstallAppBanner() {
   }
 
   async function install() {
+    if (appHref) {
+      window.location.href = appHref;
+      return;
+    }
+
     if (!installPrompt) {
       window.location.href = APP_INSTALL_HREF;
       return;
@@ -97,10 +111,10 @@ export function InstallAppBanner() {
       <Image alt="" className="size-10 shrink-0 rounded-xl" height={40} src="/icon.png" width={40} />
       <span className="min-w-0 flex-1 leading-tight">
         <span className="block truncate text-sm font-bold text-foreground">
-          Install {identity.siteName}
+          {appHref ? `Open in ${identity.siteName}` : `Install ${identity.siteName}`}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
-          Add the app to your home screen
+          {appHref ? "Send your details from the app" : "Add the app to your home screen"}
         </span>
       </span>
       <button
@@ -108,7 +122,7 @@ export function InstallAppBanner() {
         onClick={() => void install()}
         type="button"
       >
-        <Download className="size-3.5" /> Install
+        <Download className="size-3.5" /> {appHref ? "Open" : "Install"}
       </button>
       <button
         aria-label="Dismiss"

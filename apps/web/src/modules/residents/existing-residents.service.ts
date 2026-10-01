@@ -37,9 +37,15 @@ import {
   auditResidentAction,
   findAccountForIntake,
   linkResidentAccount,
+  removeDemoResident,
   type ResidentRecord,
 } from "@/modules/residents/resident.service";
-import { findLiveResidency, liveResidencyMessage } from "@/modules/residents/live-residency";
+import {
+  DEMO_RESIDENT_EMAIL,
+  findLiveResidency,
+  isDemoResidentEmail,
+  liveResidencyMessage,
+} from "@/modules/residents/live-residency";
 import { ExistingResidentListModel } from "@hostel/db/models/ExistingResidentList";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { InvoiceModel } from "@hostel/db/models/Invoice";
@@ -213,10 +219,13 @@ export async function contextFor(
     ...new Set(pending.map((row) => row.email.trim().toLowerCase()).filter(Boolean)),
   ];
 
+  // The demo resident's old rows never count: adding it moves it
+  // (`removeDemoResident`), wherever it was and whatever its status.
   const [own, elsewhere] = await Promise.all([
     phones.length || emails.length
       ? ResidentModel.find({
           hostelId,
+          email: { $ne: DEMO_RESIDENT_EMAIL },
           isDeleted: { $ne: true },
           $or: [
             ...(phones.length ? [{ phone: { $in: phones } }] : []),
@@ -228,7 +237,7 @@ export async function contextFor(
       : Promise.resolve([]),
     emails.length
       ? ResidentModel.find({
-          email: { $in: emails },
+          email: { $in: emails, $ne: DEMO_RESIDENT_EMAIL },
           hostelId: { $ne: hostelId },
           isDeleted: { $ne: true },
           status: { $in: ["ACTIVE", "PENDING", "SUSPENDED"] },
@@ -580,6 +589,8 @@ export async function addExistingResidents(
       let resident: { _id: Types.ObjectId };
 
       try {
+        if (isDemoResidentEmail(row.email)) await removeDemoResident(principal);
+
         resident = (await ResidentModel.create({
           admissionFee: null,
           bedType: normalizeBedType(room.roomType),
