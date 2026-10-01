@@ -250,11 +250,30 @@ Each step is usable on its own. A step starts only when the one before it works.
 
 ---
 
-## 7. Open questions
+## 7. Decided after the first draft
 
-1. **Staff entries: count straight away, or wait for owner OK?** Recommendation:
-   count straight away. The owner gets a *New from staff* list and can mark one
-   *Not right* (void with reason), which also returns cash to the box.
-2. **Rent cash a warden collects:** should it go into the warden's cash box
-   (they collect, spend some, hand over the rest)? Recommendation: yes. It is
-   how cash actually moves in a hostel.
+1. **Staff entries count straight away.** The owner gets a *New from staff* list
+   and can mark one *Not right* (void with reason), which also returns cash to
+   the box.
+2. **Rent cash a warden collects goes into the warden's cash box.** Flow:
+   Payments → tap the resident → **Got cash**. The amount still owed is already
+   filled in, so it is one tap to Save. That records the resident's payment
+   (existing `recordCash` path) **and** adds the same amount to the warden's box.
+   The owner then sees it under the warden's *Cash left*, and **Hand over cash**
+   moves it to the owner.
+3. **Online payments are added by sharing the receipt.** From the eSewa /
+   Khalti / bank success screen: *Share* → HostelPalika → Add expense, filled in
+   by the existing receipt reader (amount, date, paid to, transaction ID, app).
+   - Android app: share intent. iPhone app: share extension (native target).
+     Android PWA: Web Share Target in the manifest (Chrome, installed PWA).
+     iPhone PWA and desktop web cannot receive shares, so they pick or drop
+     the screenshot on the Add expense photo field, which runs the same reader.
+   - The reader must see **money going out** (`evidence-direction.ts`). A
+     receipt for money coming in is refused, as it is for resident claims.
+   - The transaction ID blocks the same receipt being added twice.
+   - **Who shared it decides how it is recorded.** Owner/admin: a hostel
+     expense paid online. Warden/cook: their expense paid from their own wallet,
+     so their balance shows **Hostel owes Hari Rs X** until the owner pays it back.
+   - The category is suggested from the payee (Ram Kirana → Groceries, learned
+     from earlier entries). The user checks it and taps Save. Nothing is saved
+     without that tap.
