@@ -27,6 +27,11 @@ const existingResidentRowSchema = new Schema(
     /** BS month key, `2083-05`. Null until somebody fills it in. */
     paidTill: { default: null, trim: true, type: String },
     oldDues: { default: 0, min: 0, type: Number },
+    /**
+     * Rent already handed over for the oldest month still due — "1 month due,
+     * Rs 3,000 of it paid". Comes off that month's bill as its own line.
+     */
+    partPaid: { default: 0, min: 0, type: Number },
     /** Only for the resident's profile. Never used to bill. */
     joinedDate: { default: null, type: Date },
     /**

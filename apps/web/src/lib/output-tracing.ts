@@ -54,6 +54,7 @@ export const PDF_LIB_ROUTES = [
   "/api/v1/hostel-admin/bookings/**",
   "/api/v1/hostel-admin/finance/**",
   "/api/v1/hostel-admin/inquiries/**",
+  "/api/v1/hostel-admin/kyc/**",
   "/api/v1/hostel-admin/payout-account/**",
   "/api/v1/hostel-admin/profile/**",
   "/api/v1/hostel-admin/reports/**",
@@ -73,6 +74,8 @@ export const PDF_LIB_ROUTES = [
   "/api/v1/platform/subscriptions/documents/**",
   "/api/v1/public/hostel-applications/**",
   "/api/v1/public/hostels/**",
+  // A resident's join request reaches the existing-residents add path.
+  "/api/v1/public/join/**",
   "/api/v1/public/plan-checkout/**",
   "/api/v1/resident/finance/checkout/**",
   "/api/v1/resident/finance/evidence/**",
@@ -90,5 +93,9 @@ export const PDF_LIB_ROUTES = [
 export const XLSX_ROUTES = [
   "/api/v1/hostel-admin/finance/statements/**",
   "/api/v1/hostel-admin/residents/existing/**",
+  // The join link adds through the same service, which carries the sheet reader.
+  "/api/v1/hostel-admin/residents/join-link/**",
+  "/api/v1/hostel-admin/residents/join-requests/**",
+  "/api/v1/public/join/**",
   "/api/v1/team/hostels/*/existing-residents/**",
 ] as const;

@@ -482,3 +482,16 @@ Per PRD.md §5, the following are explicitly OUT OF SCOPE for v1:
 ---
 
 _End of MEMORY.md — Update this file continuously as work progresses_
+
+## 2026-10-01 — KYC visual design review
+- User requested simpler, minimal-text KYC mockups before implementation. Twelve generated design images and a review gallery are in docs/kyc-redesign/screens/simple-v2/. Eight main steps plus payout edit, food edit/copy, and finish. Implementation remains paused pending design approval; no application source changed in this design pass. Preserve the existing user modification in apps/mobile/src/lib/admin-manage-api.ts.
+
+
+## 2026-10-01 — App Hostel KYC built to the simple-v2 mockups (uncommitted)
+- `apps/mobile/src/app/manage/kyc.tsx` is the approved simple-v2 wizard: step dots joined by connector lines, an "All steps" sheet, one footer (Next / Save & next / Save & finish + Skip), and a finish screen with a step-icon grid that plays `success.lottie` once, only when the last step is actually finished.
+- **Steps hold drafts; the wizard saves them.** A step calls `useKycDraft({ dirty, busy, save })` (`components/manage/kyc-draft.tsx`). The footer saves every dirty draft, and leaving a dirty step (Back, Skip, a dot, All steps, Android back, header back) opens Save & go / Keep editing / Discard. `busy` means an upload or save is running and is the only thing that locks navigation; loading a step's data does not. Exits go through `allowLeave`, otherwise a discarded draft that still reads dirty gets stopped again by `usePreventRemove`.
+- Browser close in the PWA uses `useUnloadGuard` (`src/lib/unload-guard.ts`, a no-op on the phone; `web/unload-guard.ts` is the stand-in). No `Platform.OS` branch in `src/`.
+- Food: `FoodWeekEditor` (`components/manage/food-week-editor.tsx`) is now the only week editor, shared by KYC and `manage/food.tsx`. It has a Day/Week view, a meal row that opens in place, dish chips, copy a day or one meal to picked days, meal times and the month-end meal. Draft maths is in `lib/food-draft.ts` and tested in `food-draft.test.ts`. `dirty` compares the payload that would be sent. The old `FoodWeekDays`/`MealSheet` are gone.
+- `geocodeHostelLocation` now flattens the server's `{ coordinates, label, address }` into `GeocodeHit`. Before this, Settings → Location and the KYC map search read `hit.lat` off a shape the server never sent.
+- `useResource().refresh()` returns void, so `await refresh()` does not wait. The food save writes the routine locally first so the menu does not flash back to the old one.
+- Device pass still to do. Web `/hostel-admin/kyc` still links out to the full editors.

@@ -59,6 +59,7 @@ function toPayload(rows: SheetOutRow[]) {
     joinedDate: row.joinedDate,
     monthlyRent: row.monthlyRent,
     oldDues: row.oldDues,
+    partPaid: row.partPaid,
     paidTill: row.paidTill,
     phone: row.phone,
     roomType: row.roomType,

@@ -222,6 +222,8 @@ export function readSheet(rows: SheetRow[]): { errors: CellError[]; rows: SheetO
       monthlyRent: null,
       oldDues: amount("oldDues") ?? 0,
       paidTill: paidTill || null,
+      // No column for it: part paid is taken at the scan desk and on join requests.
+      partPaid: 0,
       phone: cells.phone.trim(),
       roomType: cells.roomType.trim(),
     });
@@ -328,5 +330,5 @@ export function rentStatusLabel(currentPeriod: string, value: string | null) {
 
 /** Which sheet column a checked problem belongs to — the names are the same. */
 export function columnOfProblem(field: RowField): SheetColumn {
-  return field;
+  return field === "partPaid" ? "paidTill" : field;
 }

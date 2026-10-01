@@ -20,6 +20,8 @@ const mocks = vi.hoisted(() => ({
   hostelFindOne: vi.fn(),
   invoiceCreate: vi.fn(),
   invoiceExists: vi.fn(),
+  invoiceFindOne: vi.fn(),
+  invoiceUpdateOne: vi.fn(),
   notify: vi.fn(),
   listFindOne: vi.fn(),
   listFindOneAndUpdate: vi.fn(),
@@ -69,7 +71,12 @@ vi.mock("@hostel/db/models/Hostel", () => ({
   },
 }));
 vi.mock("@hostel/db/models/Invoice", () => ({
-  InvoiceModel: { create: mocks.invoiceCreate, exists: mocks.invoiceExists },
+  InvoiceModel: {
+    create: mocks.invoiceCreate,
+    exists: mocks.invoiceExists,
+    findOne: mocks.invoiceFindOne,
+    updateOne: mocks.invoiceUpdateOne,
+  },
 }));
 vi.mock("@hostel/db/models/Resident", () => ({
   ResidentModel: { create: mocks.residentCreate, find: mocks.residentFind },
@@ -78,6 +85,7 @@ vi.mock("@hostel/db/models/Resident", () => ({
 import {
   addExistingResidents,
   OLD_DUES_LINE,
+  PART_PAID_LINE,
 } from "@/modules/residents/existing-residents.service";
 
 const hostelId = new Types.ObjectId("64f0f0f0f0f0f0f0f0f0f0a1");
@@ -213,6 +221,29 @@ describe("adding the list", () => {
       }),
     );
     expect(result.billsRaised).toBe(1);
+  });
+
+  it("takes a part payment off the oldest month's bill, once", async () => {
+    const invoiceId = new Types.ObjectId();
+
+    withList([stored({ paidTill: "2083-05", partPaid: 3000 })]);
+    mocks.invoiceFindOne.mockReturnValue(chain({ _id: invoiceId }));
+
+    const { result } = await addExistingResidents(hostelId, principal);
+
+    expect(result.problems).toEqual([]);
+    expect(mocks.invoiceUpdateOne).toHaveBeenCalledWith(
+      {
+        _id: invoiceId,
+        "lines.description": { $ne: PART_PAID_LINE },
+        status: "OPEN",
+        totalAmount: { $gt: 3000 },
+      },
+      {
+        $inc: { totalAmount: -3000 },
+        $push: { lines: { amount: -3000, basis: "CREDIT", description: PART_PAID_LINE } },
+      },
+    );
   });
 
   it("tells each resident added in this press, with the bills made", async () => {

@@ -129,14 +129,28 @@ async function tellOne(
     : "";
   const paidTill = resident.paidTill ? monthLabel(resident.paidTill) : "";
   const nextBillMonth = resident.paidTill ? monthLabel(addBsMonths(resident.paidTill, 1)) : "";
-  const account = resident.email
+  // Linked already — scanned at the desk, or their own join request — so there is nothing to confirm.
+  const account = resident.userId
+    ? { _id: resident.userId }
+    : resident.email
     ? await UserModel.findOne({ email: resident.email.toLowerCase(), isDeleted: { $ne: true } })
         .select("_id")
         .lean<{ _id: Types.ObjectId } | null>()
     : null;
   const userId = account?._id.toString() ?? null;
 
-  if (userId) {
+  if (resident.userId) {
+    await createInAppNotification({
+      actionUrl: "/resident/payments",
+      body: `${context.hostelName} added you as a resident. Your rent and bills are in the app.`,
+      category: "ACCOUNT",
+      // The account just became a resident's: the app rotates its session on this (`push-link.ts`).
+      data: { type: "RESIDENT_REGISTERED" },
+      priority: "NORMAL",
+      title: `Welcome to ${context.hostelName}`,
+      userId: resident.userId.toString(),
+    });
+  } else if (userId) {
     await createInAppNotification({
       body: `${context.hostelName} added you as a resident. Open to confirm it is you.`,
       category: "ACCOUNT",

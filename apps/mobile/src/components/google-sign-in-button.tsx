@@ -28,10 +28,13 @@ import { isGoogleSignInAvailable, requestGoogleIdToken } from "@/lib/google-auth
 export function GoogleSignInButton({
   disabled = false,
   label = "Continue with Google",
+  next,
   onError,
 }: {
   disabled?: boolean;
   label?: string;
+  /** Where to land instead of home — a join link the person was on. */
+  next?: string | null;
   onError: (message: string | null) => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -42,7 +45,8 @@ export function GoogleSignInButton({
     return null;
   }
 
-  async function onPress() {    onError(null);
+  async function onPress() {
+    onError(null);
     setBusy(true);
 
     try {
@@ -59,6 +63,7 @@ export function GoogleSignInButton({
       const auth = await startSession(result);
 
       router.replace(
+        next ??
         resolveHome({
           isApprovedProvider: result.user.isServiceProvider,
           isResidentActivated: auth.isResidentActivated ?? true,

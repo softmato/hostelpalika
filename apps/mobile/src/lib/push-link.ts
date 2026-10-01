@@ -207,6 +207,9 @@ const COMMUNITY_POST = /^\/community\/([A-Za-z0-9_-]+)$/;
 /** `/booking/<id>` — a booking bell sent to the person who booked (`push-routing.ts`, audience GUEST). */
 const BOOKING_DETAIL = /^\/booking\/([A-Za-z0-9_-]+)$/;
 
+/** `/join/<token>` — "your request was sent back", landing on the join form to fix it. */
+const JOIN_LINK = /^\/join\/([A-Za-z0-9_-]+)$/;
+
 /**
  * Resolves a server-supplied path to something routable.
  *
@@ -256,6 +259,12 @@ export function resolvePushPath(path: unknown): string {
 
   if (booking) {
     return `/booking/${booking[1]}`;
+  }
+
+  const join = JOIN_LINK.exec(normalized);
+
+  if (join) {
+    return `/join/${join[1]}`;
   }
 
   if (KNOWN_PATHS.has(normalized)) {

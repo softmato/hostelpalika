@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { currentBsPeriod } from "@hostel/calendar/bs";
+import { addBsMonths, currentBsPeriod } from "@hostel/calendar/bs";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -183,6 +183,8 @@ export default function NewResidentScreen() {
   const [paidTill, setPaidTill] = useState<string | null>(() => currentBsPeriod());
   const [depositPaid, setDepositPaid] = useState("");
   const [oldDues, setOldDues] = useState("");
+  /** Rent already handed over for the oldest month due — comes off that bill. */
+  const [partPaid, setPartPaid] = useState("");
 
   /*
    * The intake response, kept rather than dropped on the floor. It carries the
@@ -358,6 +360,8 @@ export default function NewResidentScreen() {
           joinedDate,
           oldDues: rupeesFrom(oldDues) ?? 0,
           paidTill,
+          // Only when a month is due — a stale amount left from an earlier pick means nothing.
+          partPaid: paidTill < currentBsPeriod() ? (rupeesFrom(partPaid) ?? 0) : 0,
           phone: person.phone,
           roomType,
           userResidentId: identity?.kind === "card" ? identity.residentId : undefined,
@@ -509,6 +513,7 @@ export default function NewResidentScreen() {
     occupancy,
     oldDues,
     paidTill,
+    partPaid,
     person,
     referralCode,
     rescan,
@@ -658,9 +663,11 @@ export default function NewResidentScreen() {
             oldDues,
             on: existing,
             paidTill,
+            partPaid,
             setDepositPaid,
             setJoined,
             setOldDues,
+            setPartPaid,
             setOn: setExisting,
             setPaidTill,
           }}
@@ -961,9 +968,11 @@ type ExistingForm = {
   oldDues: string;
   on: boolean;
   paidTill: string | null;
+  partPaid: string;
   setDepositPaid: (value: string) => void;
   setJoined: (value: string) => void;
   setOldDues: (value: string) => void;
+  setPartPaid: (value: string) => void;
   setOn: (value: boolean) => void;
   setPaidTill: (value: string) => void;
 };
@@ -1068,7 +1077,7 @@ function TermsStep({
           <SectionHeader subtitle="Rent is from the rate card" title={`Is ${monthName(period)} paid?`} />
           <Card className="gap-3">
             <View className="flex-row flex-wrap gap-2">
-              {rentOptions.slice(0, 4).map((option, index) => (
+              {rentOptions.slice(0, 7).map((option, index) => (
                 <Chip
                   icon={index === 0 ? "checkmark-circle-outline" : "time-outline"}
                   key={option.value}
@@ -1078,6 +1087,15 @@ function TermsStep({
                 />
               ))}
             </View>
+
+            <Select
+              label="More months, or paid ahead"
+              onChange={existing.setPaidTill}
+              options={rentOptions}
+              placeholder="Paid or months due"
+              sheetTitle="Rent"
+              value={existing.paidTill}
+            />
 
             {rentPick ? (
               <View className="flex-row items-center gap-2">
@@ -1096,6 +1114,20 @@ function TermsStep({
               </View>
             ) : null}
 
+            {/*
+              Somebody who owes this month has often handed over part of it.
+              Typed here, it comes off the oldest month's bill as its own line.
+            */}
+            {existing.paidTill && !allPaid ? (
+              <Input
+                hint="Optional · taken off that month's bill"
+                keyboardType="number-pad"
+                label={`Paid part of ${monthName(addBsMonths(existing.paidTill, 1)).replace(/\s+\d{4}$/, "")} already? (Rs)`}
+                onChangeText={existing.setPartPaid}
+                value={existing.partPaid}
+              />
+            ) : null}
+
             <Pressable
               accessibilityRole="button"
               className="flex-row items-center gap-2 py-1 active:opacity-70"
@@ -1107,20 +1139,12 @@ function TermsStep({
                 size={16}
               />
               <Text variant="muted">
-                {extrasOpen ? "Fewer details" : "More months, deposit, old dues, joined date"}
+                {extrasOpen ? "Fewer details" : "Deposit, old dues, joined date"}
               </Text>
             </Pressable>
 
             {extrasOpen ? (
               <View className="gap-3">
-                <Select
-                  label="Rent"
-                  onChange={existing.setPaidTill}
-                  options={rentOptions}
-                  placeholder="Paid or months due"
-                  sheetTitle="Rent"
-                  value={existing.paidTill}
-                />
                 <View className="flex-row gap-3">
                   <View className="flex-1">
                     <Input

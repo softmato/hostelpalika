@@ -27,7 +27,9 @@ export default function LoginScreen() {
    * issues no session. Typing an address back in that the app just told you is
    * busywork, and the password is still required either way.
    */
-  const params = useLocalSearchParams<{ identifier?: string }>();
+  const params = useLocalSearchParams<{ identifier?: string; next?: string }>();
+  // Only a join link may ask to be returned to — anything else goes home as before.
+  const next = params.next?.startsWith("/join/") ? params.next : null;
 
   const [identifier, setIdentifier] = useState(params.identifier?.trim() ?? "");
   const [password, setPassword] = useState("");
@@ -64,6 +66,7 @@ export default function LoginScreen() {
       const auth = await startSession(result);
 
       router.replace(
+        next ??
         resolveHome({
           isApprovedProvider: result.user.isServiceProvider,
           isResidentActivated: auth.isResidentActivated ?? true,
@@ -142,6 +145,7 @@ export default function LoginScreen() {
              */}
             <GoogleSignInButton
               disabled={submitting}
+              next={next}
               onError={(message) => {
                 dispatch(setSessionEndReason(null));
                 setError(message);

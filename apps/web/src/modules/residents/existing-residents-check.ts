@@ -25,6 +25,8 @@ export type ListRow = {
   monthlyRent: number | null;
   oldDues: number;
   paidTill: string | null;
+  /** Rent already paid towards the oldest month due. */
+  partPaid: number;
   phone: string;
   /** Set once this row has been added as a resident. */
   residentId: string | null;
@@ -55,6 +57,7 @@ export type RowField =
   | "joinedDate"
   | "monthlyRent"
   | "paidTill"
+  | "partPaid"
   | "phone"
   | "roomType";
 
@@ -64,6 +67,8 @@ export type BillPreview = {
   /** Rent months that will be billed when the list is added, oldest first. */
   months: { amount: number; label: string; period: string }[];
   oldDues: number;
+  /** Comes off the first month in `months`. */
+  partPaid: number;
   total: number;
 };
 
@@ -250,10 +255,22 @@ export function checkExistingResidents(rows: ListRow[], context: CheckContext): 
         }))
         .filter((month) => month.amount > 0);
 
+      const first = months[0];
+
+      if (row.partPaid > 0 && !first) {
+        add("partPaid", "Nothing is due, so nothing can be part paid.");
+      } else if (first && row.partPaid >= first.amount) {
+        add(
+          "partPaid",
+          `Part paid must be less than ${first.label} rent (Rs ${first.amount}). If it is all paid, choose one month fewer.`,
+        );
+      }
+
       bills = {
         months,
         oldDues: row.oldDues,
-        total: months.reduce((sum, month) => sum + month.amount, 0) + row.oldDues,
+        partPaid: row.partPaid,
+        total: months.reduce((sum, month) => sum + month.amount, 0) + row.oldDues - row.partPaid,
       };
     }
 

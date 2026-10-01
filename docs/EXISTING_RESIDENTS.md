@@ -137,6 +137,69 @@ Plain English that eSewa, Khalti and Nepali banks already use. No US finance wor
     sheet offer "Paid this month", "1–12 months due", "Paid ahead till …". Built and
     tested; left: the device pass, same as item 9.
 
+## Join link — residents add themselves
+
+The list and the scan desk both need staff to type or scan every person. The join
+link turns it round: staff share one link (WhatsApp group, one person, a printed QR),
+each resident opens it with their **ID card**, picks their room and says what rent is
+paid, and staff only check and press **Add**.
+
+| On screen | Means |
+|---|---|
+| Join link | The hostel's one link + QR |
+| Allow up to | How many requests the link takes (default: free beds + 6) |
+| Pause link / Turn link on | Stop or start new requests |
+| New link | New address; every copy of the old one stops working |
+| Join requests · 3 waiting | Requests for staff to check |
+| Add as existing resident | Adds them — asks "are you sure" first |
+| Send back | Returns it with what to fix; they fix it on the same link |
+| Paid part of Aswin rent already? | Part paid — comes off the oldest month due as its own bill line |
+
+Rules:
+
+- **Name, phone and photo are the ID card's**, read when the request is sent. The
+  person types only room type, rent paid / months due, part paid, deposit paid,
+  moved-in day and a note. A private card must be shared first; no card, make one.
+- **One request per person per hostel.** A new request uses one place on the link
+  (atomically, so the last place cannot be taken twice). An edit while waiting, or a
+  fix after "Send back", is the same request and never uses another place.
+- **Staff are told** (bell + push) when a request arrives and when a sent-back one
+  is fixed — never for an edit to one they have not opened.
+- **The person is told** when it is sent back (bell + push + email, linking to the
+  same form) and when they are added (the existing "added" email with what is due,
+  plus a "Welcome to {hostel}" bell that moves the app into the resident home).
+- **Add is the scan desk's path** (`addScannedExistingResident`): same bills, same
+  part-paid line, same check (a full room type stops Add until Rooms is changed),
+  and the card's account is linked at once.
+- Someone living in another hostel cannot send; someone already added sees "You are
+  a resident here".
+
+## Join link items
+
+14. ☑ **Part paid at the scan desk.** `partPaid` on the list row, checked (must be
+    below the first month due, and only when one is due), billed as a negative
+    `CREDIT` line "Already paid at the hostel (before HostelPalika)" on the oldest
+    month's bill. Scan desk shows Paid + 1–6 months due as chips and the full list
+    (12 months, paid ahead) as a select. Not in the Excel file or the web sheet.
+15. ☑ **Data.** `ResidentJoinLink` (one per hostel: token, enabled, cap, used) and
+    `ResidentApplication` (one per person per hostel: PENDING / REJECTED / ADDED).
+    Both on the hostel purge list. Indexes built on prod with `db:indexes`
+    2026-10-01 (only these two collections were missing any).
+16. ☑ **API.** Staff `join-link` (GET/PATCH), `join-requests` (GET), `join-requests/{id}`
+    (POST add / reject); public `/api/v1/public/join/{token}` (GET/POST). Tests.
+17. ☑ **Web.** Public page `/join/{token}` (sign in → ID card → room and rent → status
+    / fix); Residents page "Join link" dialog (QR, WhatsApp, copy, download, cap,
+    pause, new link) and "Join requests" panel (card photo, bill preview, Add with
+    confirm, Send back with reason).
+18. ◐ **App.** `manage/join-link`, `manage/join-requests`, the waiting banner and
+    "Join link" row on the Residents tab, resident-side `join/[token]`, login returns
+    to a join link, "sent back" bell opens the form. Typecheck, lint, tests clean.
+    `/join/` app link added 2026-10-01: Android `intentFilters` in `app.json` (moves the
+    fingerprint — takes effect from the next native build; OTAs after this commit
+    reach only that build) and `/join/*` in the iOS association file. Until that
+    build is installed, WhatsApp links open the web page, which has an "Open in the
+    app" link. Left: the device pass.
+
 ## Later (not in this pass — needs a yes)
 
 - Resident sees "Rent paid till / Old dues / Deposit paid" on first sign-in and can
@@ -150,6 +213,7 @@ Plain English that eSewa, Khalti and Nepali banks already use. No US finance wor
 
 | Date | Item | Note |
 |---|---|---|
+| 2026-10-01 | 14–18 | Join link and part paid. Web 3151 tests, mobile lib 1444, typecheck and lint clean on both. Not run live or on a device. Also put `/api/v1/hostel-admin/kyc/**` on the pdf-lib tracing list (the guard test was failing on main). |
 | 2026-09-14 | 3 | Excel that is not activated opens the template read-only. Web: "Fill in sheet" opens a full-screen Excel-style grid (`existing-residents-sheet.tsx`, logic in `existing-residents-sheet-model.ts`) — arrow keys/Enter move, rows paste from any sheet, joined date typed as a Nepali date, saves straight to the list. The page list is now read-only: problems on one line under the row, click a line to fix it in the sheet. Cell readers moved to `existing-residents-cells.ts` so the browser uses the same reading as the file. Tests. |
 | 2026-09-14 | 13 | Confirm step on web and app; congratulations email with certified receipts and the Resident Offer Program. Web 1591 + 70 route tests, app 35, typecheck and lint clean. Not run live. |
 | 2026-09-14 | 11–12 | Residents are told on add; rent asked as paid / months due. Web 1547 tests, app 7 helper tests, typecheck and lint clean on both. |

@@ -76,6 +76,11 @@ describe("resolvePushPath", () => {
 
   // The resident's own guardian list is a real route, so it passes through
   // rather than being rewritten.
+  it("opens a join link to fix a request that was sent back", () => {
+    expect(resolvePushPath("/join/aB3_x-9Qz0Kp")).toBe("/join/aB3_x-9Qz0Kp");
+    expect(resolvePushPath("/join/../admin")).toBe(PUSH_FALLBACK_PATH);
+  });
+
   it("passes the guardians list through untouched", () => {
     expect(resolvePushPath("/guardians")).toBe("/guardians");
   });

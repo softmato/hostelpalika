@@ -47,6 +47,7 @@ const APP_LINK_COMPONENTS = [
   { "/": "/guardian-invite", comment: "Guardian invitation" },
   { "/": "/cook-invite", comment: "Cook invitation" },
   { "/": "/community/*", comment: "Shared community post" },
+  { "/": "/join/*", comment: "Hostel join link — residents add themselves" },
 ];
 
 export function GET() {

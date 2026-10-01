@@ -25,6 +25,8 @@ import { DuplicateCheckResultModel } from "@hostel/db/models/DuplicateCheckResul
 import { EmergencyContactModel } from "@hostel/db/models/EmergencyContact";
 import { EncryptedSecretModel } from "@hostel/db/models/EncryptedSecret";
 import { ExistingResidentListModel } from "@hostel/db/models/ExistingResidentList";
+import { ResidentApplicationModel } from "@hostel/db/models/ResidentApplication";
+import { ResidentJoinLinkModel } from "@hostel/db/models/ResidentJoinLink";
 import { FeeScheduleModel } from "@hostel/db/models/FeeSchedule";
 import { FileAssetModel } from "@hostel/db/models/FileAsset";
 import { FoodFeedbackModel } from "@hostel/db/models/FoodFeedback";
@@ -165,6 +167,8 @@ const ERASED_BY_HOSTEL_ID: Array<{ model: PurgeableModel; name: string }> = (
     ["EmergencyContact", EmergencyContactModel],
     ["EncryptedSecret", EncryptedSecretModel],
     ["ExistingResidentList", ExistingResidentListModel],
+    ["ResidentApplication", ResidentApplicationModel],
+    ["ResidentJoinLink", ResidentJoinLinkModel],
     ["FeeSchedule", FeeScheduleModel],
     ["FileAsset", FileAssetModel],
     ["FoodFeedback", FoodFeedbackModel],

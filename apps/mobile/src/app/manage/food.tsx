@@ -1,21 +1,17 @@
 import { router } from "expo-router";
-import { useState } from "react";
 import { View } from "react-native";
 
-import { FoodWeekDays, MealSheet, splitItems, useFoodWeek } from "@/components/manage/food-week";
+import { useFoodWeek } from "@/components/manage/food-week";
+import { FoodWeekEditor } from "@/components/manage/food-week-editor";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
-import { Card, SectionHeader } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { ListRow, RowDivider } from "@/components/ui/list-row";
+import { Card } from "@/components/ui/card";
+import { ListRow } from "@/components/ui/list-row";
 import { Meter } from "@/components/ui/meter";
 import { Screen } from "@/components/ui/screen";
-import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState, PermissionCard } from "@/components/ui/states";
 import { prefetchAdminRoute } from "@/lib/admin-queries";
-import { humanizeEnum } from "@/lib/format";
-import { MEAL_TYPES, type MealType } from "@/lib/food-week";
 
 /**
  * Food — editing the week, which is the half the app did not have.
@@ -51,20 +47,9 @@ import { MEAL_TYPES, type MealType } from "@/lib/food-week";
  * points at it.
  */
 
-const MEAL_HINTS: Record<MealType, string> = {
-  BREAKFAST: "6:00 AM - 7:00 AM",
-  DINNER: "7:00 PM - 8:45 PM",
-  LUNCH: "8:45 AM - 12:00 PM",
-  SNACKS: "3:00 PM - 5:00 PM",
-};
-
 export default function ManageFoodScreen() {
   const week = useFoodWeek();
-  const { cells, current, dirty, filled, food, loaded, save, saving, setDraft } = week;
-
-  const [monthEndOpen, setMonthEndOpen] = useState(false);
-  const [timesOpen, setTimesOpen] = useState(false);
-
+  const { cells, dirty, filled, food, save, saving, setDraft } = week;
   const cook = food.data?.cook ?? null;
 
   if (food.loading) {
@@ -85,8 +70,6 @@ export default function ManageFoodScreen() {
       </Screen>
     );
   }
-
-  const monthEnd = splitItems(current.monthEndItems);
 
   return (
     <Screen
@@ -122,39 +105,11 @@ export default function ManageFoodScreen() {
               <Meter label={`${filled} of ${cells} meals set this week`} percent={Math.round((filled / cells) * 100)} />
             </Card>
 
-            <View>
-              <SectionHeader title="The week" />
-              <FoodWeekDays week={week} />
-            </View>
+            <FoodWeekEditor week={week} />
           </>
         )}
 
         <Card padding="px-4 py-1">
-          {food.data?.routine === null ? null : (
-            <>
-              <ListRow
-                icon="time-outline"
-                iconBgColor="#007AFF"
-                onPress={() => setTimesOpen(true)}
-                subtitle={
-                  MEAL_TYPES.filter((mealType) => current.timings[mealType]?.trim()).length ===
-                  MEAL_TYPES.length
-                    ? "All four set"
-                    : `${MEAL_TYPES.filter((mealType) => current.timings[mealType]?.trim()).length} of 4 set`
-                }
-                title="Meal times"
-              />
-              <RowDivider inset />
-              <ListRow
-                icon="star-outline"
-                iconBgColor="#FF9500"
-                onPress={() => setMonthEndOpen(true)}
-                subtitle={monthEnd.length > 0 ? monthEnd.join(", ") : "Not set"}
-                title="Month-end special"
-              />
-              <RowDivider inset />
-            </>
-          )}
           {cook === null ? (
             <ListRow icon="flame-outline" subtitle="No access" title="Cooks" />
           ) : (
@@ -173,64 +128,6 @@ export default function ManageFoodScreen() {
           )}
         </Card>
       </View>
-
-      <Sheet
-        footer={<Button label="Done" onPress={() => setTimesOpen(false)} />}
-        onClose={() => setTimesOpen(false)}
-        open={timesOpen}
-        title="Meal times"
-      >
-        <View className="gap-3 pb-2">
-          {MEAL_TYPES.map((mealType) => (
-            <Input
-              key={mealType}
-              label={humanizeEnum(mealType)}
-              onChangeText={(value) =>
-                setDraft((prev) => {
-                  const base = prev ?? loaded;
-
-                  return { ...base, timings: { ...base.timings, [mealType]: value } };
-                })
-              }
-              placeholder={MEAL_HINTS[mealType]}
-              value={current.timings[mealType] ?? ""}
-            />
-          ))}
-        </View>
-      </Sheet>
-
-      <MealSheet week={week} />
-
-      <Sheet
-        footer={<Button label="Done" onPress={() => setMonthEndOpen(false)} />}
-        onClose={() => setMonthEndOpen(false)}
-        open={monthEndOpen}
-        title="Month-end special"
-      >
-        <View className="gap-3 pb-2">
-          <Input
-            hint="Separate them with commas."
-            label="What is served"
-            multiline
-            onChangeText={(monthEndItems) =>
-              setDraft((prev) => ({ ...(prev ?? loaded), monthEndItems }))
-            }
-            placeholder="Chicken curry, sel roti, kheer"
-            style={{ height: 96 }}
-            value={current.monthEndItems}
-          />
-
-          <Input
-            label="Note"
-            multiline
-            onChangeText={(monthEndNote) =>
-              setDraft((prev) => ({ ...(prev ?? loaded), monthEndNote }))
-            }
-            style={{ height: 80 }}
-            value={current.monthEndNote}
-          />
-        </View>
-      </Sheet>
     </Screen>
   );
 }

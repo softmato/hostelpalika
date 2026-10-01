@@ -2,6 +2,9 @@
 node_modules/
 website_mock_desing_for_portals
 
+# KYC redesign screenshots and drafts — local only; the repo is public and some
+# screens show payout and bank details.
+kyc-redesign/
 # Next.js / React build output
 .next/
 out/

@@ -1,13 +1,19 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { router } from "expo-router";
-import { useCallback, useState } from "react";
-import { Pressable, View } from "react-native";
-import Animated, { FadeInRight } from "react-native-reanimated";
+import { usePreventRemove } from "expo-router/react-navigation";
+import { router, useNavigation } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { List } from "lucide-react-native";
+import { BackHandler, Pressable, View } from "react-native";
+import Animated, { FadeIn, FadeInLeft, FadeInRight, ReduceMotion, ZoomIn, useReducedMotion } from "react-native-reanimated";
 
 import { PinPreview } from "@/components/hostel-pin-picker";
-import { FoodWeekDays, MealSheet, useFoodWeek } from "@/components/manage/food-week";
+import { FoodWeekEditor } from "@/components/manage/food-week-editor";
+import { KycDraftContext, useKycDraft, type KycDraft } from "@/components/manage/kyc-draft";
+import { KycPayments } from "@/components/manage/kyc-payments";
+import { Sheet } from "@/components/ui/sheet";
+import { useFoodWeek } from "@/components/manage/food-week";
 import {
   BUILDING_SHOTS,
   PHOTO_LIMITS,
@@ -16,23 +22,14 @@ import {
   useHostelPhotoActions,
 } from "@/components/manage/hostel-photos";
 import { KYC_CACHE_KEY, KycRing } from "@/components/manage/kyc-card";
-import {
-  PaymentDestinations,
-  PaymentQrCard,
-  PaymentSheet,
-  PaymentStatusCard,
-  usePaymentSetup,
-} from "@/components/manage/payment-setup";
 import { PayoutAccountPanel } from "@/components/manage/payout-account-card";
-import { StepFrame, StepSection, StepSkeleton } from "@/components/step-flow";
+import { StepSection, StepSkeleton } from "@/components/step-flow";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ChoiceChips } from "@/components/ui/choice-chips";
 import { Input } from "@/components/ui/input";
 import { Lottie } from "@/components/ui/lottie";
-import { Meter } from "@/components/ui/meter";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState, PermissionCard } from "@/components/ui/states";
@@ -55,29 +52,30 @@ import { FACILITY_OPTIONS } from "@/lib/hostel-registration";
 import type { BadgeTone } from "@/lib/status";
 import { uploadPublicFile } from "@/lib/public-uploads";
 import { toastError, toastSuccess } from "@/lib/toast";
+import { useUnloadGuard } from "@/lib/unload-guard";
 
 const SUCCESS_ANIMATION = require("../../../assets/lottie/success.lottie");
 
-const STEPS: Record<string, { hint: string; title: string }> = {
-  documents: { hint: "Owner ID and PAN / VAT", title: "Documents" },
-  facilities: { hint: "Tap what you offer", title: "Facilities" },
-  food: { hint: "Your weekly menu", title: "Weekly food" },
-  location: { hint: "Drop the pin on your door", title: "Map pin" },
-  payments: { hint: "Where residents pay rent", title: "Rent payments" },
-  payout: { hint: "Where booking money lands", title: "Booking payout" },
-  photos: { hint: "Outside, inside and your rooms", title: "Photos" },
-  rules: { hint: "One rule per line", title: "House rules" },
+const STEPS: Record<string, { hint: string; icon: keyof typeof Ionicons.glyphMap; short: string; title: string }> = {
+  documents: { hint: "Add your ID", icon: "document-text-outline", short: "Documents", title: "Documents" },
+  facilities: { hint: "Tap what you have", icon: "bed-outline", short: "Facilities", title: "Facilities" },
+  food: { hint: "", icon: "restaurant-outline", short: "Food", title: "Food menu" },
+  location: { hint: "Is this your door?", icon: "location-outline", short: "Map", title: "Map pin" },
+  payments: { hint: "", icon: "home-outline", short: "Rent", title: "Rent payments" },
+  payout: { hint: "Where we send your money", icon: "card-outline", short: "Booking money", title: "Booking money" },
+  photos: { hint: "", icon: "image-outline", short: "Photos", title: "Photos" },
+  rules: { hint: "", icon: "reader-outline", short: "Rules", title: "House rules" },
 };
 
 const DOCUMENTS = [
   {
     caption: "Citizenship, passport or licence",
-    label: "Owner ID",
+    label: "Your ID",
     match: (type: string) => !/pan|vat/i.test(type),
     type: "Owner ID proof",
   },
   {
-    caption: "The business registration",
+    caption: "",
     label: "PAN / VAT",
     match: (type: string) => /pan|vat/i.test(type),
     type: "PAN / VAT document",
@@ -87,7 +85,7 @@ const DOCUMENTS = [
 const DOCUMENT_STATUS: Record<HostelKyc["documents"][number]["status"], { label: string; tone: BadgeTone }> = {
   APPROVED: { label: "Verified", tone: "success" },
   PENDING: { label: "In review", tone: "warning" },
-  REJECTED: { label: "Sent back", tone: "danger" },
+  REJECTED: { label: "Add again", tone: "danger" },
 };
 
 /**
@@ -102,134 +100,133 @@ const DOCUMENT_STATUS: Record<HostelKyc["documents"][number]["status"], { label:
  */
 export default function KycScreen() {
   const kyc = useResource(getHostelKyc, { cacheKey: KYC_CACHE_KEY });
+  return <KycFlow resource={kyc} />;
+}
+
+function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<HostelKyc>> }) {
+  const navigation = useNavigation();
+  const { colors } = useAppTheme();
+  const reduced = useReducedMotion();
   const [index, setIndex] = useState<number | null>(null);
   const [forward, setForward] = useState(true);
   const [finished, setFinished] = useState(false);
+  const [overview, setOverview] = useState(false);
+  const [pending, setPending] = useState<(() => void) | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [allowLeave, setAllowLeave] = useState(false);
+  const leaving = useRef<(() => void) | null>(null);
+  const lock = useRef(false);
+  const entries = useRef(new Map<string, KycDraft>());
+  const [status, setStatus] = useState({ dirty: false, busy: false });
+  const register = useCallback((id: string, draft: KycDraft | null) => {
+    if (draft) entries.current.set(id, draft);
+    else entries.current.delete(id);
+    const values = [...entries.current.values()];
+    const dirty = values.some(value => value.dirty);
+    const busy = values.some(value => value.busy);
+    setStatus(previous => previous.dirty === dirty && previous.busy === busy ? previous : { dirty, busy });
+  }, []);
   const { refresh } = kyc;
   const reload = useCallback(() => refresh(), [refresh]);
+  const blocked = saving || status.busy;
+  // Leaving waits a render for `allowLeave`: a discarded or just-saved draft
+  // still reads dirty until its step unmounts, and would be stopped again.
+  const leave = (action: () => void) => { leaving.current = action; setAllowLeave(true); };
+  usePreventRemove(!allowLeave && (status.dirty || blocked), ({ data }) => {
+    if (lock.current || status.busy) { toastError("Please wait", "Your changes are being saved."); return; }
+    setPending(() => () => leave(() => navigation.dispatch(data.action)));
+  });
+  useEffect(() => {
+    if (allowLeave) leaving.current?.();
+  }, [allowLeave]);
+  useUnloadGuard(status.dirty || blocked);
 
-  if (kyc.loading) {
-    return (
-      <StepSkeleton
-        subtitle={STEPS.photos.hint}
-        title={STEPS.photos.title}
-        total={Object.keys(STEPS).length}
-      />
-    );
-  }
-
-  if (kyc.error || !kyc.data) {
-    return (
-      <Screen header={<AppBar centerTitle showBack title="Hostel KYC" />}>
-        <ErrorState message={kyc.error ?? "Could not load hostel KYC."} onRetry={kyc.reload} />
-      </Screen>
-    );
-  }
-
-  const data = kyc.data;
-  const steps = data.steps;
-  const firstOpen = steps.findIndex((step) => !step.done);
-  const current = index ?? Math.max(0, firstOpen);
-  const step = steps[current];
-  const meta = STEPS[step.key] ?? { hint: "", title: step.key };
-  const last = current >= steps.length - 1;
-
-  const go = (next: number) => {
-    setForward(next > current);
-    setIndex(next);
+  const steps = kyc.data?.steps ?? [];
+  const firstOpen = steps.findIndex(step => !step.done);
+  const current = Math.max(0, Math.min(index ?? firstOpen, steps.length - 1));
+  const finish = finished || (index === null && firstOpen === -1);
+  const go = (next: number) => { setForward(next > current); setIndex(next); setFinished(false); };
+  const move = (action: () => void) => {
+    if (lock.current || status.busy) return;
+    if (status.dirty) setPending(() => action);
+    else action();
   };
+  // Android's back walks the steps like the header arrow; on the first step or
+  // the finish screen it leaves, and `usePreventRemove` guards that exit.
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
+      if (overview) { setOverview(false); return true; }
+      if (pending) { if (!saving) setPending(null); return true; }
+      if (!steps.length || finish || current === 0) return false;
+      move(() => go(current - 1));
+      return true;
+    });
+    return () => subscription.remove();
+  });
 
-  if (finished || (index === null && firstOpen === -1)) {
-    return (
-      <Screen header={<AppBar centerTitle showBack title="Hostel KYC" />} scroll>
-        <Animated.View
-          className="items-center gap-4 rounded-3xl border border-border bg-card p-6"
-          entering={FadeInRight.duration(260)}
-        >
-          {data.percent >= 100 ? (
-            <Lottie loop={false} size={180} source={SUCCESS_ANIMATION} />
-          ) : (
-            <KycRing percent={data.percent} size={140} />
-          )}
-          <Text className="text-center" variant="title">
-            {data.percent >= 100 ? "KYC complete" : `${data.percent}% done`}
-          </Text>
-          <Text className="text-center text-muted-foreground" variant="caption">
-            {data.percent >= 100 ? "Every feature is unlocked" : "Finish the rest anytime"}
-          </Text>
-          <View className="w-full gap-2 pt-2">
-            <Button
-              label={data.percent < 100 ? "Continue" : "Review steps"}
-              onPress={() => {
-                setFinished(false);
-                go(Math.max(0, firstOpen));
-              }}
-              variant={data.percent < 100 ? "primary" : "outline"}
-            />
-            <Button label="Back to home" onPress={() => router.back()} variant={data.percent < 100 ? "ghost" : "primary"} />
-          </View>
-        </Animated.View>
-      </Screen>
-    );
-  }
-
-  return (
-    <StepFrame
-      footer={
-        <View className="gap-3">
-          <StepDots current={current} onJump={go} percent={data.percent} steps={steps} />
-          <Button
-            label={last ? "Finish" : step.done ? "Next" : "Skip for now"}
-            onPress={() => (last ? setFinished(true) : go(current + 1))}
-            variant={step.done || last ? "primary" : "outline"}
-          />
-        </View>
+  if (kyc.loading) return <StepSkeleton subtitle="" title="Hostel setup" total={8} />;
+  if (kyc.error || !kyc.data || !steps.length) return <Screen header={<AppBar showBack title="Hostel setup" />}><ErrorState message={kyc.error ?? "Could not load setup."} onRetry={kyc.reload} /></Screen>;
+  const data = kyc.data;
+  if (index === null && firstOpen >= 0) setIndex(current);
+  const step = steps[current];
+  const meta = STEPS[step.key];
+  const last = current === steps.length - 1;
+  const done = steps.filter(item => item.done).length;
+  const reached = (at: number) => Boolean(steps[at]?.done) || at === current;
+  const saveAndGo = async (action: () => void) => {
+    if (lock.current || status.busy) return;
+    // Pin the initial step before its completion changes the first-open index.
+    setIndex(current);
+    lock.current = true;
+    setSaving(true);
+    try {
+      for (const draft of [...entries.current.values()]) {
+        if (draft.dirty && !(await draft.save())) return;
       }
-      forward={forward}
-      onBack={() => (current > 0 ? go(current - 1) : router.back())}
-      position={current + 1}
-      stepKey={step.key}
-      subtitle={step.done ? "Done. Change anything below." : meta.hint}
-      title={meta.title}
-      total={steps.length}
-    >
-      <StepBody data={data} onSaved={reload} stepKey={step.key} />
-    </StepFrame>
-  );
-}
+      await reload();
+      setPending(null);
+      action();
+    } catch (error) { toastError("Not saved", readApiError(error)); }
+    finally { lock.current = false; setSaving(false); }
+  };
+  const next = () => last ? setFinished(true) : go(current + 1);
 
-/** Where you are, what is done, and a tap to any step — beside the button that moves on. */
-function StepDots({
-  current,
-  onJump,
-  percent,
-  steps,
-}: {
-  current: number;
-  onJump: (index: number) => void;
-  percent: number;
-  steps: HostelKyc["steps"];
-}) {
-  return (
-    <View className="flex-row items-center gap-3">
-      <View className="flex-1 flex-row gap-1.5">
-        {steps.map((item, at) => (
-          <Pressable
-            accessibilityLabel={`${STEPS[item.key]?.title ?? item.key}${item.done ? ", done" : ""}`}
-            accessibilityRole="button"
-            accessibilityState={{ selected: at === current }}
-            className={`h-2 flex-1 rounded-full ${
-              item.done ? "bg-primary" : at === current ? "bg-primary/40" : "bg-muted"
-            }`}
-            hitSlop={8}
-            key={item.key}
-            onPress={() => onJump(at)}
-          />
-        ))}
-      </View>
-      <Text variant="caption">{percent}% done</Text>
-    </View>
-  );
+  return <KycDraftContext.Provider value={register}>
+    <Screen scroll header={<AppBar title="Hostel setup" showBack onBack={() => move(() => finish || current === 0 ? leave(() => router.back()) : go(current - 1))} actions={<Button icon={List} label="All steps" size="sm" variant="secondary" disabled={blocked} onPress={() => setOverview(true)} />} />}
+      footer={finish ? <View className="gap-1"><Button label={data.percent >= 100 ? "Go home" : "Continue"} onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /><Button label={data.percent >= 100 ? "View steps" : "Go home"} variant="ghost" onPress={() => data.percent >= 100 ? setOverview(true) : router.back()} /></View> : <View className="gap-1"><Button disabled={blocked} label={saving ? "Saving…" : status.busy ? "Please wait…" : status.dirty ? last ? "Save & finish" : "Save & next" : last ? "Finish" : "Next"} onPress={() => void saveAndGo(next)} /><Button label="Skip" variant="ghost" disabled={blocked} onPress={() => move(next)} /></View>}>
+      {finish ? <Animated.View entering={FadeIn.duration(220).reduceMotion(ReduceMotion.System)} className="items-center gap-5 py-6">
+        {data.percent >= 100 ? <View className="items-center">{!reduced && finished ? <Lottie loop={false} size={140} source={SUCCESS_ANIMATION} /> : <Ionicons name="checkmark-circle-outline" color={colors.primary} size={112} />}<Text variant="muted">{done} of {steps.length}</Text></View> : <KycRing percent={data.percent} size={120} />}
+        <Text variant="title">{data.percent >= 100 ? "All done!" : `${data.percent}% done`}</Text>
+        <Text variant="muted">{data.percent >= 100 ? "Your hostel is ready" : "Finish the rest any time"}</Text>
+        <View className="w-full flex-row flex-wrap justify-between gap-y-3">{steps.map((item, at) => <Pressable key={item.key} accessibilityRole="button" accessibilityLabel={`${STEPS[item.key]?.title}, ${item.done ? "done" : "to do"}`} onPress={() => go(at)} className={`min-h-16 w-[48.5%] flex-row items-center gap-2 rounded-2xl p-2.5 active:opacity-70 ${item.done ? "bg-brand-soft" : "border border-border"}`}>
+          <View className="h-10 w-10 items-center justify-center rounded-xl bg-background"><Ionicons name={STEPS[item.key]?.icon ?? "ellipse-outline"} color={colors.primary} size={20} /></View>
+          <Text className="flex-1" numberOfLines={2} variant="label">{STEPS[item.key]?.short}</Text>
+          <Ionicons name={item.done ? "checkmark-circle" : "ellipse-outline"} color={item.done ? colors.primary : colors.mutedForeground} size={22} />
+        </Pressable>)}</View>
+        {data.percent >= 100 ? <View className="flex-row items-center gap-2"><Ionicons name="time-outline" color={colors.warning} size={18} /><Text variant="muted">Some checks may take time</Text></View> : null}
+      </Animated.View> : <View className="gap-5 pb-4 pt-2">
+        <View className="flex-row items-center" accessibilityLabel={`${done} of ${steps.length} complete`}>
+          {steps.map((item, at) => <Pressable accessibilityRole="button" accessibilityLabel={`${at + 1}. ${STEPS[item.key]?.title}, ${item.done ? "done" : "to do"}`} accessibilityState={{ selected: at === current, disabled: blocked }} disabled={blocked} key={item.key} onPress={() => { if (at !== current) move(() => go(at)); }} className="min-h-11 flex-1 items-center justify-center">
+            {at > 0 ? <View className={`absolute left-0 right-1/2 top-1/2 -mt-px h-0.5 ${reached(at - 1) && reached(at) ? "bg-primary" : "bg-border"}`} /> : null}
+            {at < steps.length - 1 ? <View className={`absolute left-1/2 right-0 top-1/2 -mt-px h-0.5 ${reached(at) && reached(at + 1) ? "bg-primary" : "bg-border"}`} /> : null}
+            <View className={`h-8 w-8 items-center justify-center rounded-full border-2 ${item.done ? "border-primary bg-primary" : at === current ? "border-primary bg-background" : "border-border bg-background"}`}>
+              {item.done ? <Animated.View key="done" entering={ZoomIn.duration(180).reduceMotion(ReduceMotion.System)}><Ionicons name="checkmark" size={18} color={colors.primaryForeground} /></Animated.View> : <Text variant="label" className={at === current ? "text-primary" : "text-muted-foreground"}>{at + 1}</Text>}
+            </View>
+          </Pressable>)}
+        </View>
+        <Animated.View key={step.key} entering={(forward ? FadeInRight : FadeInLeft).duration(220).reduceMotion(ReduceMotion.System)} className="gap-5">
+          <View className="gap-1"><Text variant="title">{meta?.title ?? step.key}</Text>{meta?.hint ? <Text variant="muted">{meta.hint}</Text> : null}</View>
+          <View pointerEvents={saving ? "none" : "auto"}><StepBody data={data} onSaved={reload} stepKey={step.key} /></View>
+        </Animated.View>
+      </View>}
+    </Screen>
+    <Sheet open={overview} onClose={() => setOverview(false)} title={`${done} of ${steps.length} done`}>
+      <View className="gap-2">{steps.map((item, at) => <Pressable key={item.key} accessibilityRole="button" onPress={() => { setOverview(false); if (at !== current || finish) move(() => go(at)); }} className="min-h-16 flex-row items-center gap-3 rounded-2xl border border-border p-3"><Ionicons name={item.done ? "checkmark-circle" : "ellipse-outline"} size={24} color={item.done ? colors.primary : colors.mutedForeground} /><Text className="flex-1" variant="subtitle">{STEPS[item.key]?.title}</Text><Text variant="muted">{item.done ? "Done" : at === current ? "Here" : "To do"}</Text></Pressable>)}</View>
+    </Sheet>
+    <Sheet open={pending !== null} onClose={() => { if (!saving) setPending(null); }} title="Save changes?" footer={<Button disabled={blocked} label={saving ? "Saving…" : "Save & go"} onPress={() => pending && void saveAndGo(pending)} />}>
+      <View className="gap-3"><Text variant="muted">Your changes are not saved.</Text><Button label="Keep editing" variant="outline" disabled={blocked} onPress={() => setPending(null)} /><Button label="Discard changes" variant="ghost" disabled={blocked} onPress={() => { const action = pending; setPending(null); action?.(); }} /></View>
+    </Sheet>
+  </KycDraftContext.Provider>;
 }
 
 function StepBody({
@@ -249,7 +246,7 @@ function StepBody({
     case "payout":
       return <PayoutAccountPanel onSaved={() => void onSaved()} />;
     case "payments":
-      return <PaymentsStep onSaved={onSaved} />;
+      return <KycPayments onSaved={onSaved} />;
     case "food":
       return <FoodStep onSaved={onSaved} />;
     case "rules":
@@ -279,6 +276,7 @@ function PhotosStep({
   onSaved: () => Promise<void> | void;
   photoCount: number;
 }) {
+  const { colors } = useAppTheme();
   const hostel = useManagedHostel();
   const { refresh } = hostel;
   const reread = useCallback(async () => {
@@ -288,6 +286,8 @@ function PhotosStep({
     hostelName: hostel.data?.name,
     refresh: reread,
   });
+
+  useKycDraft({ dirty: false, busy: Boolean(uploadingFor), save: async () => true });
 
   if (hostel.loading) {
     return <SkeletonCard rows={3} />;
@@ -302,19 +302,23 @@ function PhotosStep({
 
   return (
     <View className="gap-4">
-      {photoCount < minPhotos ? (
-        <Meter
-          label={`${photoCount} of ${minPhotos} photos needed`}
-          percent={Math.round((photoCount / minPhotos) * 100)}
-        />
-      ) : null}
+      <View className="flex-row items-center gap-3 rounded-2xl bg-brand-soft p-4">
+        <Ionicons color={colors.foreground} name="camera-outline" size={28} />
+        <View className="flex-1 gap-2">
+          <Text variant="subtitle">{photoCount >= minPhotos ? "Photos added" : `${photoCount} of ${minPhotos} added`}</Text>
+          <View className="flex-row gap-1">{Array.from({ length: minPhotos }, (_, at) => <View key={at} className={`h-2 flex-1 rounded-full ${at < photoCount ? "bg-primary" : "bg-muted"}`} />)}</View>
+        </View>
+        {photoCount < minPhotos ? <Text className="text-primary" variant="label">Add {minPhotos - photoCount} more</Text> : <Ionicons color={colors.primary} name="checkmark-circle" size={24} />}
+      </View>
 
       {BUILDING_SHOTS.map((shot) => {
         const shots = photos.filter((photo) => photo.kind === shot.kind);
 
         return (
-          <StepSection caption={shot.note} key={shot.kind} title={shot.name}>
+          <StepSection caption={shot.kind === "EXTERIOR" ? "Listing cover" : undefined} key={shot.kind} title={shot.name}>
             <PhotoStrip
+              large
+              disabled={Boolean(uploadingFor)}
               busy={uploadingFor === targetKey({ kind: shot.kind })}
               limit={PHOTO_LIMITS[shot.kind]}
               name={`${shot.name} of ${hostel.data?.name ?? "the hostel"}`}
@@ -326,7 +330,7 @@ function PhotosStep({
         );
       })}
 
-      <StepSection caption="Each room type's own photos" title="Rooms">
+      <StepSection title="Rooms">
         {rooms.length === 0 ? (
           <Text variant="caption">No room types on the listing yet.</Text>
         ) : (
@@ -340,6 +344,8 @@ function PhotosStep({
               <View className="gap-2" key={config.roomType}>
                 <Text variant="label">{config.roomType}</Text>
                 <PhotoStrip
+              large
+              disabled={Boolean(uploadingFor)}
                   busy={uploadingFor === targetKey(target)}
                   limit={PHOTO_LIMITS.ROOM}
                   name={config.roomType}
@@ -352,12 +358,19 @@ function PhotosStep({
           })
         )}
       </StepSection>
+
+      <View className="flex-row items-center gap-2">
+        <Ionicons color={colors.primary} name="checkmark-circle" size={18} />
+        <Text variant="muted">Photos save as soon as they upload</Text>
+      </View>
     </View>
   );
 }
 
 function DocumentsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Promise<void> | void }) {
+  const { colors } = useAppTheme();
   const [busy, setBusy] = useState("");
+  useKycDraft({ dirty: false, busy: Boolean(busy), save: async () => true });
 
   async function upload(type: string, label: string) {
     const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.8 });
@@ -423,7 +436,10 @@ function DocumentsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Prom
         );
       })}
 
-      <Text variant="caption">Only you and the HostelPalika team can open these.</Text>
+      <View className="flex-row items-center gap-2">
+        <Ionicons color={colors.mutedForeground} name="lock-closed-outline" size={18} />
+        <Text variant="muted">Only you and our team see these</Text>
+      </View>
     </View>
   );
 }
@@ -510,35 +526,10 @@ function AddDocumentTile({
   );
 }
 
-function PaymentsStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
-  const setup = usePaymentSetup({ onSaved: () => void onSaved() });
-
-  if (setup.resource.loading) {
-    return <SkeletonCard rows={3} />;
-  }
-
-  if (setup.resource.error || !setup.profile) {
-    return (
-      <ErrorState
-        message={setup.resource.error ?? "Could not load your payment setup."}
-        onRetry={setup.resource.reload}
-      />
-    );
-  }
-
-  return (
-    <View className="gap-5">
-      <PaymentStatusCard profile={setup.profile} />
-      <PaymentQrCard setup={setup} />
-      <PaymentDestinations setup={setup} />
-      <PaymentSheet setup={setup} />
-    </View>
-  );
-}
-
 function FoodStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
   const week = useFoodWeek({ onSaved: () => void onSaved() });
-  const { cells, dirty, filled, food, save, saving, setDraft } = week;
+  const { cells, dirty, filled, food, save, saving } = week;
+  useKycDraft({ dirty, busy: saving, save });
 
   if (food.loading) {
     return <SkeletonCard rows={3} />;
@@ -554,126 +545,73 @@ function FoodStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
 
   return (
     <View className="gap-4">
-      <Meter label={`${filled} of ${cells} meals set this week`} percent={Math.round((filled / cells) * 100)} />
-      <FoodWeekDays week={week} />
-      {dirty ? (
-        <View className="flex-row gap-2">
-          <Button className="flex-1" label="Discard" onPress={() => setDraft(null)} variant="outline" />
-          <Button className="flex-[2]" label="Save the week" loading={saving} onPress={() => void save()} />
-        </View>
-      ) : null}
-      <MealSheet week={week} />
+      <View className="gap-2"><Text variant="label">{filled} of {cells} meals</Text><View className="h-2 overflow-hidden rounded-full bg-muted"><View className="h-full bg-primary" style={{ width: `${filled / cells * 100}%` }} /></View></View>
+      <FoodWeekEditor week={week} />
+      {dirty ? <Text className="text-warning" variant="muted">Not saved</Text> : null}
     </View>
   );
 }
 
+const SUGGESTED_RULES = ["No smoking", "Gate closes at 9 PM", "Keep rooms clean", "No loud music", "Pay rent on time", "No food in rooms"];
 function RulesStep({ onSaved, saved }: { onSaved: () => Promise<void> | void; saved: string[] }) {
-  const [editing, setEditing] = useState(saved.length === 0);
-  const [text, setText] = useState(saved.join("\n"));
+  const { colors } = useAppTheme();
+  const [draft, setDraft] = useState<string[] | null>(null);
+  const [editing, setEditing] = useState<number | null>(null);
+  const [menu, setMenu] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
-  const rules = text
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  async function save() {
+  const rules = draft ?? saved;
+  const dirty = draft !== null && JSON.stringify(draft) !== JSON.stringify(saved);
+  const save = async () => {
+    const next = rules.map(rule => rule.trim()).filter(Boolean);
     setSaving(true);
-
-    try {
-      await updateManagedHostel({ rules });
-      await onSaved();
-      toastSuccess("Rules saved");
-      setEditing(false);
-    } catch (error) {
-      toastError("Could not save", readApiError(error));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  if (!editing) {
-    return (
-      <View className="gap-3">
-        <Card padding="px-4 py-1">
-          {saved.map((rule, at) => (
-            <View
-              className={`flex-row gap-3 py-3 ${at > 0 ? "border-t border-border" : ""}`}
-              key={`${at}-${rule}`}
-            >
-              <Text className="w-5 text-muted-foreground">{at + 1}</Text>
-              <Text className="flex-1 text-foreground">{rule}</Text>
-            </View>
-          ))}
-        </Card>
-        <Button
-          label="Edit rules"
-          onPress={() => {
-            setText(saved.join("\n"));
-            setEditing(true);
-          }}
-          variant="outline"
-        />
-      </View>
-    );
-  }
-
-  return (
-    <View className="gap-3">
-      <Input
-        multiline
-        onChangeText={setText}
-        placeholder={"Gate closes at 10 PM\nNo smoking indoors"}
-        style={{ minHeight: 140, textAlignVertical: "top" }}
-        value={text}
-      />
-      <Button disabled={rules.length === 0} label="Save rules" loading={saving} onPress={() => void save()} />
-      {saved.length > 0 ? <Button label="Cancel" onPress={() => setEditing(false)} variant="ghost" /> : null}
-    </View>
-  );
+    try { await updateManagedHostel({ rules: next }); await onSaved(); setDraft(null); setEditing(null); return true; }
+    catch (error) { toastError("Not saved", readApiError(error)); return false; }
+    finally { setSaving(false); }
+  };
+  useKycDraft({ dirty, busy: saving, save });
+  const shift = (direction: number) => {
+    if (menu === null || menu + direction < 0 || menu + direction >= rules.length) return;
+    const next = [...rules];
+    [next[menu], next[menu + direction]] = [next[menu + direction], next[menu]];
+    setDraft(next); setEditing(null); setMenu(null);
+  };
+  return <View className="gap-4">
+    <Text variant="muted">{rules.filter(rule => rule.trim()).length} rules</Text>
+    {rules.length ? <Card padding="p-0">{rules.map((rule, at) => <View key={at} className={`flex-row items-center gap-3 p-4 ${at ? "border-t border-border" : ""}`}>
+      <View className="h-8 w-8 items-center justify-center rounded-full bg-muted"><Text variant="label">{at + 1}</Text></View>
+      {editing === at ? <View className="flex-1"><Input accessibilityLabel={`Rule ${at + 1}`} multiline autoFocus value={rule} placeholder="Add a rule" onChangeText={text => setDraft(rules.map((value, index) => index === at ? text : value))} /></View> : <Pressable accessibilityRole="button" accessibilityLabel={`Edit rule ${at + 1}`} onPress={() => setEditing(at)} className="min-h-11 flex-1 justify-center"><Text>{rule || "Add a rule"}</Text></Pressable>}
+      <Pressable accessibilityRole="button" accessibilityLabel={`Rule ${at + 1} options`} onPress={() => setMenu(at)} className="h-11 w-11 items-center justify-center"><Ionicons name="ellipsis-vertical" color={colors.foreground} size={20} /></Pressable>
+    </View>)}</Card> : null}
+    <Button label="+ Add rule" variant="outline" onPress={() => { setDraft([...rules, ""]); setEditing(rules.length); }} />
+    <Text variant="subtitle">Tap to add</Text>
+    <View className="flex-row flex-wrap gap-2">{SUGGESTED_RULES.filter(rule => !rules.includes(rule)).map(rule => <Pressable key={rule} accessibilityRole="button" onPress={() => setDraft([...rules, rule])} className="min-h-12 justify-center rounded-xl border border-border px-3"><Text variant="label">+ {rule}</Text></Pressable>)}</View>
+    <Sheet open={menu !== null} onClose={() => setMenu(null)} title="Rule options"><View className="gap-2"><Button label="Edit" variant="outline" onPress={() => { setEditing(menu); setMenu(null); }} /><Button label="Move up" variant="outline" disabled={menu === 0} onPress={() => shift(-1)} /><Button label="Move down" variant="outline" disabled={menu === rules.length - 1} onPress={() => shift(1)} /><Button label="Remove" variant="ghost" onPress={() => { setDraft(rules.filter((_, at) => at !== menu)); setEditing(null); setMenu(null); }} /></View></Sheet>
+  </View>;
 }
 
+const FACILITY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
+  WiFi: "wifi-outline", "Hot water": "water-outline", Parking: "car-outline", Laundry: "shirt-outline", Gym: "barbell-outline", "Study table": "reader-outline", "Attached bathroom": "water-outline", AC: "snow-outline", CCTV: "videocam-outline", "Power backup": "battery-charging-outline", Kitchen: "restaurant-outline", "Common room": "people-outline",
+};
 function FacilitiesStep({ onSaved, saved }: { onSaved: () => Promise<void> | void; saved: string[] }) {
-  const [picked, setPicked] = useState<string[]>(saved);
+  const { colors } = useAppTheme();
+  const [draft, setDraft] = useState<string[] | null>(null);
   const [saving, setSaving] = useState(false);
-  const options = [...new Set([...FACILITY_OPTIONS, ...saved])].map((value) => ({ label: value, value }));
-  const changed = [...picked].sort().join("|") !== [...saved].sort().join("|");
-
-  async function save() {
+  const picked = draft ?? saved;
+  const options = [...new Set([...FACILITY_OPTIONS, ...saved])];
+  const dirty = [...picked].sort().join("|") !== [...saved].sort().join("|");
+  const save = async () => {
     setSaving(true);
-
-    try {
-      await updateManagedHostel({ facilities: picked });
-      await onSaved();
-      toastSuccess("Facilities saved");
-    } catch (error) {
-      toastError("Could not save", readApiError(error));
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  return (
-    <View className="gap-4">
-      <Text variant="caption">
-        {picked.length > 0 ? `${picked.length} selected` : "Nothing selected yet"}
-      </Text>
-      <ChoiceChips
-        onToggle={(value) =>
-          setPicked((current) =>
-            current.includes(value) ? current.filter((item) => item !== value) : [...current, value],
-          )
-        }
-        options={options}
-        value={picked}
-      />
-      <Button
-        disabled={!changed || picked.length === 0}
-        label={changed || saved.length === 0 ? "Save facilities" : "Saved"}
-        loading={saving}
-        onPress={() => void save()}
-      />
-    </View>
-  );
+    try { await updateManagedHostel({ facilities: picked }); await onSaved(); setDraft(null); return true; }
+    catch (error) { toastError("Not saved", readApiError(error)); return false; }
+    finally { setSaving(false); }
+  };
+  useKycDraft({ dirty, busy: saving, save });
+  return <View className="gap-4"><Text variant="muted">{picked.length} picked</Text><View className="flex-row flex-wrap gap-3">{options.map(option => {
+    const selected = picked.includes(option);
+    return <Pressable key={option} accessibilityRole="checkbox" accessibilityState={{ checked: selected }} onPress={() => setDraft(selected ? picked.filter(item => item !== option) : [...picked, option])} className={`min-h-20 w-[48%] flex-row items-center gap-2 rounded-2xl border p-3 ${selected ? "border-primary/30 bg-brand-soft" : "border-border"}`}>
+      <Ionicons name={FACILITY_ICONS[option] ?? "checkmark-circle-outline"} color={selected ? colors.primary : colors.foreground} size={24} /><Text className="flex-1" variant="label">{option === "WiFi" ? "Wi-Fi" : option}</Text>{selected ? <Ionicons name="checkmark-circle" color={colors.primary} size={16} /> : null}
+    </Pressable>;
+  })}</View></View>;
 }
 
 /**
@@ -688,141 +626,54 @@ function LocationStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
   const [query, setQuery] = useState("");
   const [hits, setHits] = useState<GeocodeHit[]>([]);
   const [searching, setSearching] = useState(false);
-  const [saving, setSaving] = useState("");
-
-  if (hostel.loading) {
-    return <SkeletonCard rows={3} />;
-  }
-
-  if (hostel.error || !hostel.data) {
-    return <ErrorState message={hostel.error ?? "Could not load your location."} onRetry={hostel.reload} />;
-  }
-
-  const location = hostel.data.location;
-  const pin = location.lat != null && location.lng != null ? { lat: location.lat, lng: location.lng } : null;
-  const placed = location.locationSource === "MANUAL";
-
-  async function search() {
-    if (query.trim().length < 2) return;
-
-    setSearching(true);
-
+  const [saving, setSaving] = useState(false);
+  const [moving, setMoving] = useState(false);
+  const [selected, setSelected] = useState<{ lat: number; lng: number; hit?: GeocodeHit } | null>(null);
+  const location = hostel.data?.location;
+  const savedPin = location?.lat != null && location.lng != null ? { lat: location.lat, lng: location.lng } : null;
+  const pin = selected ?? savedPin;
+  const placed = location?.locationSource === "MANUAL";
+  const save = async () => {
+    if (!selected || !location) return false;
+    setSaving(true);
+    try {
+      const next = await updateManagedHostel({ location: {
+        address: location.address ? undefined : selected.hit?.address,
+        area: location.area ? undefined : selected.hit?.area,
+        city: location.city ? undefined : selected.hit?.city,
+        province: location.province ? undefined : selected.hit?.province,
+        lat: selected.lat, lng: selected.lng, locationSource: "MANUAL",
+      } });
+      hostel.setData(() => next);
+      await onSaved(); setSelected(null); return true;
+    } catch (error) { toastError("Not saved", readApiError(error)); return false; }
+    finally { setSaving(false); }
+  };
+  useKycDraft({ dirty: selected !== null, busy: saving, save });
+  const search = async () => {
+    if (query.trim().length < 2 || searching) return;
+    setSearching(true); setHits([]);
     try {
       const results = await geocodeHostelLocation(query.trim());
-
-      setHits(results);
-
-      if (results.length === 0) {
-        toastError("Nothing found", "Try the area name, or paste the Google Maps link.");
-      }
-    } catch (error) {
-      toastError("Could not look that up", readApiError(error));
-    } finally {
-      setSearching(false);
-    }
-  }
-
-  async function place(at: { lat: number; lng: number }, key: string, hit?: GeocodeHit) {
-    setSaving(key);
-
-    try {
-      // The server merges `location` field by field: send the pin, and fill only
-      // the address parts that are still blank from the picked place.
-      const next = await updateManagedHostel({
-        location: {
-          address: location.address ? undefined : hit?.address,
-          area: location.area ? undefined : hit?.area,
-          city: location.city ? undefined : hit?.city,
-          lat: at.lat,
-          lng: at.lng,
-          locationSource: "MANUAL",
-          province: location.province ? undefined : hit?.province,
-        },
-      });
-
-      hostel.setData(() => next);
-      setHits([]);
-      setQuery("");
-      await onSaved();
-      toastSuccess("Pin saved");
-    } catch (error) {
-      toastError("Could not save the pin", readApiError(error));
-    } finally {
-      setSaving("");
-    }
-  }
-
-  return (
-    <View className="gap-4">
-      {pin ? (
-        <View className="gap-2">
-          <View className="h-48 overflow-hidden rounded-2xl border border-border">
-            <PinPreview key={`${pin.lat},${pin.lng}`} pin={pin} />
-          </View>
-          <View className="flex-row items-center gap-2">
-            <Badge label={placed ? "Placed by you" : "Guessed from the address"} tone={placed ? "success" : "warning"} />
-            <Text className="flex-1" numberOfLines={1} variant="caption">
-              {[location.area, location.city].filter(Boolean).join(", ")}
-            </Text>
-          </View>
-          {placed ? null : (
-            <Button
-              label="The pin is on my door"
-              loading={saving === "confirm"}
-              onPress={() => void place(pin, "confirm")}
-              variant="outline"
-            />
-          )}
-        </View>
-      ) : (
-        <Card className="items-center gap-2 py-6">
-          <Ionicons color={colors.mutedForeground} name="location-outline" size={28} />
-          <Text variant="caption">No pin yet. Find your hostel below.</Text>
-        </Card>
-      )}
-
-      <StepSection
-        caption="A place name, or paste your Google Maps link"
-        title={pin ? "Move the pin" : "Find your hostel"}
-      >
-        <Input
-          autoCapitalize="none"
-          autoCorrect={false}
-          onChangeText={setQuery}
-          onSubmitEditing={() => void search()}
-          placeholder="Baluwatar, Kathmandu"
-          returnKeyType="search"
-          value={query}
-        />
-        <Button
-          disabled={query.trim().length < 2}
-          label="Search"
-          loading={searching}
-          onPress={() => void search()}
-          variant="outline"
-        />
-        {hits.map((hit) => {
-          const key = `${hit.lat},${hit.lng}`;
-
-          return (
-            <Pressable
-              accessibilityRole="button"
-              className="flex-row items-center gap-3 rounded-xl border border-border p-3 active:opacity-70"
-              disabled={Boolean(saving)}
-              key={key}
-              onPress={() => void place(hit, key, hit)}
-            >
-              <View className="flex-1">
-                <Text numberOfLines={2}>{hit.displayName ?? key}</Text>
-                <Text variant="caption">{`${hit.lat.toFixed(5)}, ${hit.lng.toFixed(5)}`}</Text>
-              </View>
-              <Text className="text-primary" variant="label">
-                {saving === key ? "Saving" : "Pin here"}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </StepSection>
-    </View>
-  );
+      setHits(results.filter(hit => Number.isFinite(hit.lat) && Number.isFinite(hit.lng)));
+      if (!results.length) toastError("No place found", "Try a place name or map link.");
+    } catch (error) { toastError("Could not search", readApiError(error)); }
+    finally { setSearching(false); }
+  };
+  if (hostel.loading) return <SkeletonCard rows={3} />;
+  if (hostel.error || !location) return <ErrorState message={hostel.error ?? "Could not load map."} onRetry={hostel.reload} />;
+  return <View className="gap-4">
+    {pin ? <>
+      <View className="h-64 overflow-hidden rounded-2xl border border-border"><PinPreview key={`${pin.lat},${pin.lng}`} pin={pin} /></View>
+      <Text variant="subtitle">{[location.area, location.city].filter(Boolean).join(", ")}</Text>
+      <View className="flex-row"><Badge label={selected ? "Not saved" : placed ? "Placed by you" : "Check this pin"} tone={placed && !selected ? "success" : "warning"} /></View>
+      {!placed || selected ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: selected !== null }} onPress={() => setSelected(selected ? null : pin)} className={`min-h-14 flex-row items-center gap-3 rounded-xl border p-4 ${selected ? "border-primary bg-brand-soft" : "border-border"}`}><Ionicons name={selected ? "checkbox" : "square-outline"} color={colors.primary} size={24} /><Text className="flex-1" variant="label">Yes, this is my door</Text></Pressable> : null}
+    </> : <Card className="items-center gap-2 py-8"><Ionicons name="location-outline" size={36} color={colors.primary} /><Text variant="muted">Find your hostel</Text></Card>}
+    <Button label={pin ? "Move pin" : "Find on map"} variant="outline" onPress={() => setMoving(!moving)} />
+    {moving || !pin ? <View className="gap-3">
+      <Input label="Place or map link" hint="You can also enter lat, lng." value={query} onChangeText={setQuery} placeholder="Koteshwar, Kathmandu" autoCapitalize="none" autoCorrect={false} returnKeyType="search" onSubmitEditing={() => void search()} />
+      <Button label={searching ? "Searching…" : "Search"} disabled={searching || query.trim().length < 2} variant="outline" onPress={() => void search()} />
+      {searching ? <SkeletonCard rows={2} /> : hits.map(hit => <Pressable key={`${hit.lat},${hit.lng}`} accessibilityRole="button" onPress={() => { setSelected({ lat: hit.lat, lng: hit.lng, hit }); setHits([]); setMoving(false); }} className="min-h-16 flex-row items-center gap-3 rounded-xl border border-border p-3"><View className="flex-1"><Text>{hit.displayName}</Text><Text variant="caption">{hit.lat.toFixed(5)}, {hit.lng.toFixed(5)}</Text></View><Text className="text-primary" variant="label">Pick</Text></Pressable>)}
+    </View> : null}
+  </View>;
 }

@@ -19,6 +19,7 @@ import { Text } from "@/components/ui/text";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import type { AdminResident } from "@/lib/admin-api";
+import type { JoinRequests } from "@/lib/join-api";
 import { adminQuery, prefetchAdminResident } from "@/lib/admin-queries";
 import {
   type RosterSegment,
@@ -103,6 +104,13 @@ export default function AdminResidentsScreen() {
     topics: rosterQuery.topics,
   });
 
+  const joinQuery = adminQuery.joinRequests();
+  const join = useResource<JoinRequests>(joinQuery.load, {
+    cacheKey: joinQuery.key,
+    topics: joinQuery.topics,
+  });
+  const waiting = join.data?.waiting ?? 0;
+
   const [query, setQuery] = useState("");
   const [segment, setSegment] = useState<RosterSegment>("active");
 
@@ -153,13 +161,41 @@ export default function AdminResidentsScreen() {
   );
 
   const existingEntry = (
-    <CardRow
-      icon="document-text-outline"
-      onPress={() => router.push("/manage/existing-residents")}
-      subtitle="Upload an Excel file or add them one by one"
-      title="Add existing residents"
-    />
+    <View className="gap-3">
+      <CardRow
+        icon="link-outline"
+        onPress={() =>
+          router.push(join.data?.requests.length ? "/manage/join-requests" : "/manage/join-link")
+        }
+        subtitle={
+          join.data?.requests.length
+            ? "Requests sent through your link"
+            : "Send it on WhatsApp — residents add themselves"
+        }
+        title="Join link"
+      />
+      <CardRow
+        icon="document-text-outline"
+        onPress={() => router.push("/manage/existing-residents")}
+        subtitle="Upload an Excel file or add them one by one"
+        title="Add existing residents"
+      />
+    </View>
   );
+
+  /*
+    Somebody waiting to be added is a decision, and it goes above the list it
+    will change — the same tint the reference apps give a pending request.
+  */
+  const waitingEntry = waiting ? (
+    <CardRow
+      icon="person-add-outline"
+      onPress={() => router.push("/manage/join-requests")}
+      subtitle="Sent through your join link · check and add"
+      title={waiting === 1 ? "1 resident wants to join" : `${waiting} residents want to join`}
+      tone="warning"
+    />
+  ) : null;
 
   if (residents.loading) {
     return (
@@ -192,11 +228,15 @@ export default function AdminResidentsScreen() {
       }
       header={header}
       insideTabs
-      onRefresh={residents.refresh}
+      onRefresh={() => {
+        residents.refresh();
+        join.refresh();
+      }}
       refreshing={residents.refreshing}
       scroll
     >
       <View className="gap-4 pt-1">
+        {waitingEntry}
         {roster.total === 0 ? existingEntry : null}
 
         <Segmented

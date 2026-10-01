@@ -31,6 +31,7 @@ const WEB_STAND_INS = {
   "@/lib/documents": "documents.ts",
   "@/lib/google-auth": "google-auth.ts",
   "@/lib/push-notifications": "push-notifications.ts",
+  "@/lib/unload-guard": "unload-guard.ts",
   "expo-file-system": "file-system.ts",
   "expo-secure-store": "secure-store.ts",
   "react-native-webview": "webview.tsx",

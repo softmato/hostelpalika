@@ -578,7 +578,7 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         description: "Resident directory, activation codes, guardians, and fee status.",
         href: "/hostel-admin/residents",
         icon: "users",
-        keywords: ["residents", "tenants", "students", "activation", "guardian", "existing residents", "excel", "upload list"],
+        keywords: ["residents", "tenants", "students", "activation", "guardian", "existing residents", "excel", "upload list", "join link", "join requests", "whatsapp link"],
         label: "Residents",
       },
       {

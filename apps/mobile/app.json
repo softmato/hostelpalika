@@ -76,6 +76,11 @@
               "scheme": "https",
               "host": "hostelpalika.com",
               "pathPrefix": "/community/"
+            },
+            {
+              "scheme": "https",
+              "host": "hostelpalika.com",
+              "pathPrefix": "/join/"
             }
           ]
         }

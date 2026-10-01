@@ -28,6 +28,7 @@ import { api } from "@/lib/api";
 import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
 import type { PayMethod } from "@/lib/finance-api";
 import type { MealType, RoutineDay } from "@/lib/food-week";
+import type { LocationMatch } from "@/lib/registration-api";
 
 /* -------------------------------------------------------------------------- */
 /* Hostel profile — Rooms and Settings both read it                           */
@@ -1090,6 +1091,9 @@ export async function requestHostelChange(input: {
  * a raw `lat,lng`; `lat` and `lng` answer with the address that pin sits on. It
  * is server-side because the map key must not ship in a client, and because
  * following a `maps.app.goo.gl` redirect is impossible from a browser.
+ *
+ * The server answers with `GeocodeResult` (`{ coordinates, label, address }`);
+ * it is flattened here, once, so the pickers read `hit.lat` directly.
  */
 export type GeocodeHit = {
   address?: string;
@@ -1101,13 +1105,18 @@ export type GeocodeHit = {
   province?: string;
 };
 
-export async function geocodeHostelLocation(query: string) {
-  const response = await api.get<ApiEnvelope<{ results: GeocodeHit[] }>>(
+export async function geocodeHostelLocation(query: string): Promise<GeocodeHit[]> {
+  const response = await api.get<ApiEnvelope<{ results: LocationMatch[] }>>(
     "/hostel-admin/profile/geocode",
     { params: { limit: 6, q: query } },
   );
 
-  return unwrap(response).results;
+  return unwrap(response).results.map(({ address, coordinates, label }) => ({
+    ...address,
+    displayName: label,
+    lat: coordinates.lat,
+    lng: coordinates.lng,
+  }));
 }
 
 /* -------------------------------------------------------------------------- */

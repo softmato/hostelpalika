@@ -20,8 +20,17 @@ import {
 import {
   existingResidentRowsSchema,
   existingResidentsFileSchema,
+  joinDecisionSchema,
+  joinLinkUpdateSchema,
   scannedExistingResidentSchema,
 } from "@/modules/residents/existing-residents.validation";
+import {
+  addJoinRequest,
+  getJoinLink,
+  listJoinRequests,
+  returnJoinRequest,
+  updateJoinLink,
+} from "@/modules/residents/resident-join.service";
 import { assertAgentFiledHostel } from "@/modules/team/team.service";
 
 /**
@@ -165,3 +174,60 @@ function handlers(resolve: Resolve) {
 
 export const hostelStaffExistingResidents = handlers(hostelStaff);
 export const fieldTeamExistingResidents = handlers(fieldTeam);
+
+/**
+ * The join link and the requests it brings in — hostel staff only. The field
+ * team files the hostel; the people living there are the hostel's to check.
+ */
+export const hostelStaffJoin = {
+  link: {
+    GET: async (request: NextRequest, context: RouteContext) => {
+      try {
+        const { hostelId, principal } = await hostelStaff(request, context);
+
+        return successResponse(await getJoinLink(hostelId, principal), "Join link loaded");
+      } catch (error) {
+        return handleRouteError(error);
+      }
+    },
+    PATCH: async (request: NextRequest, context: RouteContext) => {
+      try {
+        const { hostelId, principal } = await hostelStaff(request, context);
+        const input = joinLinkUpdateSchema.parse(await request.json());
+
+        return successResponse(await updateJoinLink(hostelId, input, principal), "Join link saved");
+      } catch (error) {
+        return handleRouteError(error);
+      }
+    },
+  },
+  list: {
+    GET: async (request: NextRequest, context: RouteContext) => {
+      try {
+        const { hostelId } = await hostelStaff(request, context);
+
+        return successResponse(await listJoinRequests(hostelId), "Requests loaded");
+      } catch (error) {
+        return handleRouteError(error);
+      }
+    },
+  },
+  one: {
+    POST: async (request: NextRequest, context: RouteContext) => {
+      try {
+        const { hostelId, principal } = await hostelStaff(request, context);
+        const { requestId } = await context.params;
+        const decision = joinDecisionSchema.parse(await request.json());
+
+        return decision.action === "add"
+          ? successResponse(await addJoinRequest(hostelId, requestId ?? "", principal), "Resident added")
+          : successResponse(
+              await returnJoinRequest(hostelId, requestId ?? "", decision.reason, principal),
+              "Request sent back",
+            );
+      } catch (error) {
+        return handleRouteError(error);
+      }
+    },
+  },
+};

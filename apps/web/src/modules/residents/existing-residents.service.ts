@@ -100,6 +100,7 @@ export class ExistingResidentsError extends Error {
 const LOCK_STALE_MS = 6 * 60 * 1000;
 
 export const OLD_DUES_LINE = `Old dues (before ${PLATFORM_NAME})`;
+export const PART_PAID_LINE = `Already paid at the hostel (before ${PLATFORM_NAME})`;
 
 type StoredRow = {
   _id: Types.ObjectId;
@@ -110,6 +111,7 @@ type StoredRow = {
   monthlyRent?: number | null;
   oldDues?: number;
   paidTill?: string | null;
+  partPaid?: number;
   phone?: string;
   residentId?: Types.ObjectId | null;
   roomType?: string;
@@ -155,6 +157,7 @@ function toListRow(row: StoredRow): ListRow {
     monthlyRent: row.monthlyRent ?? null,
     oldDues: row.oldDues ?? 0,
     paidTill: row.paidTill ?? null,
+    partPaid: row.partPaid ?? 0,
     phone: row.phone ?? "",
     residentId: row.residentId ? row.residentId.toString() : null,
     roomType: row.roomType ?? "",
@@ -178,7 +181,7 @@ async function loadHostel(hostelId: Types.ObjectId) {
   return hostel;
 }
 
-async function roomTypesFor(
+export async function roomTypesFor(
   hostelId: Types.ObjectId,
   configurations: { roomType: string; vacantBeds?: number }[],
 ): Promise<RoomTypeContext[]> {
@@ -199,7 +202,7 @@ async function roomTypesFor(
   );
 }
 
-async function contextFor(
+export async function contextFor(
   hostelId: Types.ObjectId,
   rows: ListRow[],
   roomTypes: RoomTypeContext[],
@@ -336,6 +339,7 @@ function storedFromInput(row: ExistingResidentRowInput) {
     monthlyRent: null,
     oldDues: row.oldDues,
     paidTill: row.paidTill,
+    partPaid: row.partPaid,
     phone: row.phone,
     residentId: null,
     roomType: row.roomType,
@@ -438,7 +442,7 @@ export async function addExistingResidentsFile(
 
   await writeRows(hostelId, principal, (current) => [
     ...current,
-    ...rows.map((row) => storedFromInput({ ...row, id: undefined })),
+    ...rows.map((row) => storedFromInput({ ...row, id: undefined, partPaid: 0 })),
   ]);
 
   return { notes, read: rows.length, view: await getExistingResidents(hostelId) };
@@ -719,6 +723,47 @@ export async function addExistingResidents(
       } catch (error) {
         result.problems.push({
           message: `Old dues were not billed: ${error instanceof Error ? error.message : "failed"}`,
+          name: row.fullName,
+        });
+      }
+    }
+
+    /*
+     * Part of the oldest month already paid at the counter: its own negative
+     * line on that month's bill, the way a referral discount sits on a joining
+     * bill. Looked for before it is written, so a retry never takes it off twice.
+     */
+    for (const row of addedRows.filter((candidate) => candidate.partPaid > 0)) {
+      const residentId = residentIds.get(row.id)!;
+
+      try {
+        const oldest = await InvoiceModel.findOne({
+          hostelId,
+          kind: "MONTHLY_RENT",
+          residentId,
+          status: { $ne: "VOID" },
+        })
+          .sort({ period: 1 })
+          .select("_id")
+          .lean<{ _id: Types.ObjectId } | null>();
+
+        if (!oldest) continue;
+
+        await InvoiceModel.updateOne(
+          {
+            _id: oldest._id,
+            "lines.description": { $ne: PART_PAID_LINE },
+            status: "OPEN",
+            totalAmount: { $gt: row.partPaid },
+          },
+          {
+            $inc: { totalAmount: -row.partPaid },
+            $push: { lines: { amount: -row.partPaid, basis: "CREDIT", description: PART_PAID_LINE } },
+          },
+        );
+      } catch (error) {
+        result.problems.push({
+          message: `Part paid was not taken off: ${error instanceof Error ? error.message : "failed"}`,
           name: row.fullName,
         });
       }

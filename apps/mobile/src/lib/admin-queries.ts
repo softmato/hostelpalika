@@ -141,6 +141,12 @@ import {
 } from "@/lib/admin-manage-api";
 import { type ResidentScan, scanResident } from "@/lib/admin-scan-api";
 import {
+  getJoinLink,
+  type JoinLink,
+  type JoinRequests,
+  listJoinRequests,
+} from "@/lib/join-api";
+import {
   type ExistingResidentsView,
   getExistingResidents,
 } from "@/lib/existing-residents-api";
@@ -514,6 +520,13 @@ export const adminQuery = {
     define("admin:existing-residents", [REALTIME_TOPIC.RESIDENTS], () =>
       getExistingResidents(),
     ),
+
+  /** Residents asking to be added through the join link, and the link itself. */
+  joinRequests: (): AdminQuery<JoinRequests> =>
+    define("admin:join-requests", [REALTIME_TOPIC.RESIDENTS], () => listJoinRequests()),
+
+  joinLink: (): AdminQuery<JoinLink> =>
+    define("admin:join-link", [REALTIME_TOPIC.RESIDENTS], () => getJoinLink()),
 
   /** The gateway list behind each provider's setup screen. */
   gateways: (): AdminQuery<GatewayConfig[]> =>

@@ -110,7 +110,11 @@ export function existingResidentsTemplateUrl() {
 
 /** One scanned person who already lived here, added off the intake's bed step. */
 export async function addScannedExistingResident(
-  input: Omit<ExistingRowInput, "id" | "monthlyRent"> & { userResidentId?: string },
+  input: Omit<ExistingRowInput, "id" | "monthlyRent"> & {
+    /** Rent already paid towards the oldest month due; comes off that bill. */
+    partPaid?: number;
+    userResidentId?: string;
+  },
 ) {
   return unwrap(
     await api.post<ApiEnvelope<{ residentId: string | null; result: ExistingAddResult }>>(

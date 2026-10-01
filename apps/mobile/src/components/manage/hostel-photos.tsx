@@ -180,6 +180,8 @@ export function useHostelPhotoActions({
  */
 export function PhotoStrip({
   busy,
+  disabled = false,
+  large = false,
   limit,
   name,
   onAdd,
@@ -187,6 +189,8 @@ export function PhotoStrip({
   photos,
 }: {
   busy: boolean;
+  disabled?: boolean;
+  large?: boolean;
   limit: number;
   name: string;
   onAdd: () => void;
@@ -206,8 +210,9 @@ export function PhotoStrip({
         accessibilityLabel={`Add photos of ${name}`}
         accessibilityRole="button"
         accessibilityState={{ busy, disabled: full }}
-        className="h-[88px] w-[120px] items-center justify-center gap-1 rounded-xl border border-dashed border-border active:opacity-70"
-        disabled={busy || full}
+        className="items-center justify-center gap-1 rounded-xl border border-dashed border-border active:opacity-70"
+        style={{ height: large ? 120 : 88, width: large ? 148 : 120 }}
+        disabled={disabled || busy || full}
         onPress={onAdd}
       >
         <Ionicons
@@ -215,7 +220,7 @@ export function PhotoStrip({
           name={busy ? "hourglass-outline" : "camera-outline"}
           size={20}
         />
-        <Text variant="caption">{busy ? "Adding" : full ? "Full" : "Add photos"}</Text>
+        <Text variant="label">{busy ? "Adding…" : full ? "Full" : "+ Add"}</Text>
         <Text variant="caption">
           {photos.length}/{limit}
         </Text>
@@ -243,7 +248,7 @@ export function PhotoStrip({
               <Image
                 contentFit="cover"
                 source={{ uri }}
-                style={{ borderRadius: 12, height: 88, width: 120 }}
+                style={{ borderRadius: 12, height: large ? 120 : 88, width: large ? 148 : 120 }}
               />
             </Pressable>
 
@@ -253,6 +258,7 @@ export function PhotoStrip({
                 accessibilityRole="button"
                 className="absolute right-1 top-1 rounded-full bg-black/60 p-1"
                 hitSlop={8}
+                disabled={disabled || busy}
                 onPress={() => onRemove(photo.id as string)}
               >
                 <Ionicons color="#ffffff" name="close" size={13} />

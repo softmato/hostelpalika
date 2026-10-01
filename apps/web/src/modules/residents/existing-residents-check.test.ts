@@ -23,6 +23,7 @@ function row(overrides: Partial<ListRow> = {}): ListRow {
     joinedDate: null,
     monthlyRent: null,
     oldDues: 0,
+    partPaid: 0,
     paidTill: ASWIN,
     phone: "9841234567",
     residentId: null,
@@ -54,7 +55,7 @@ describe("a clean list", () => {
 
     expect(result.ready).toBe(true);
     expect(result.toAdd).toBe(1);
-    expect(result.rows[0]!.bills).toEqual({ months: [], oldDues: 0, total: 0 });
+    expect(result.rows[0]!.bills).toEqual({ months: [], oldDues: 0, partPaid: 0, total: 0 });
     expect(result.rows[0]!.rent).toBe(12000);
   });
 
@@ -70,8 +71,16 @@ describe("a clean list", () => {
         { amount: 12000, label: "Aswin 2083", period: "2083-06" },
       ],
       oldDues: 2500,
+      partPaid: 0,
       total: 26500,
     });
+  });
+
+  it("takes a part payment off what is due", () => {
+    const result = checkExistingResidents([row({ paidTill: "2083-05", partPaid: 3000 })], context());
+
+    expect(result.ready).toBe(true);
+    expect(result.rows[0]!.bills!.total).toBe(9000);
   });
 
   it("charges only the days after a joined date inside an unpaid month", () => {
@@ -200,6 +209,17 @@ describe("problems, in plain words", () => {
 
     expect(messages(result, 0)).toEqual(["More than 12 months due. Put the older money in Old dues."]);
     expect(messages(result, 1)).toEqual(["Paid more than 12 months ahead. Check the month."]);
+  });
+
+  it("keeps part paid below the first month due, and only when one is due", () => {
+    const paid = checkExistingResidents([row({ partPaid: 1000 })], context());
+    const whole = checkExistingResidents([row({ paidTill: "2083-05", partPaid: 12000 })], context());
+
+    expect(paid.rows[0]!.problems).toEqual([
+      { field: "partPaid", message: "Nothing is due, so nothing can be part paid." },
+    ]);
+    expect(whole.rows[0]!.problems[0]!.field).toBe("partPaid");
+    expect(whole.ready).toBe(false);
   });
 
   it("refuses a joined date in the future", () => {

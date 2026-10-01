@@ -75,6 +75,7 @@ import {
   ResidentRegisteredSummary,
 } from "./resident-registered-summary";
 import { ResidentMoveOutDialog } from "./resident-move-out-dialog";
+import { JoinLinkButton, JoinRequestsPanel } from "./resident-join-panel";
 import {
   DataTable,
   EmptyInline,
@@ -861,6 +862,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
       <PortalPageHeader
         actions={
           <>
+            <JoinLinkButton />
             <RoleButton asChild tone="admin" variant="outline">
               <Link href={workspaceHref("/hostel-admin/existing-residents")}>
                 <FileSpreadsheet className="size-4" />
@@ -901,6 +903,8 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
           {message}
         </div>
       ) : null}
+
+      <JoinRequestsPanel />
 
       {showAddForm ? (
         <SectionCard
