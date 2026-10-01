@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  BANK_NAMES,
   normalisePaymentName,
   PAYMENT_LOGO_KEYS,
   resolvePaymentLogoKey,
@@ -124,5 +125,13 @@ describe("resolvePaymentLogoKey", () => {
     for (const key of bySlug) {
       expect(reached.has(key)).toBe(true);
     }
+  });
+});
+
+describe("BANK_NAMES", () => {
+  it("draws a logo for every bank the picker offers, bar the one we hold no mark for", () => {
+    const unmarked = BANK_NAMES.filter((name) => resolvePaymentLogoKey(name) === null);
+
+    expect(unmarked).toEqual(["Rastriya Banijya Bank"]);
   });
 });

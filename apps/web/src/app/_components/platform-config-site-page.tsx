@@ -3,6 +3,7 @@
 import { Loader2, Upload } from "lucide-react";
 import { memo, useState } from "react";
 
+import { ToggleSwitch } from "@/app/_components/portal-dashboard-ui";
 import { browserApi } from "@/lib/browser-api";
 import { sendWithProgress } from "@/lib/uploads/transport";
 
@@ -96,6 +97,7 @@ export const PlatformConfigSitePageContent = memo(
     const stats = valueFor("stats");
     const trustPoints = valueFor("trustPoints");
     const apps = valueFor("apps");
+    const questionCall = valueFor("questionCall");
     const [apkError, setApkError] = useState("");
 
     return (
@@ -420,6 +422,33 @@ export const PlatformConfigSitePageContent = memo(
               </p>
               {apkError ? <p className="mt-1 text-xs text-destructive">{apkError}</p> : null}
             </div>
+          </ConfigCard>
+
+          <ConfigCard
+            description="A row on the home of every student resident, on the website and in the app. It opens QuestionCall's installed app, or its install page."
+            dirty={isDirty("questionCall")}
+            onReset={() => reset("questionCall")}
+            onSave={() => save("questionCall")}
+            saving={savingSection === "questionCall"}
+            title="QuestionCall"
+          >
+            <ToggleSwitch
+              checked={questionCall.enabled}
+              description="When off, the row is removed for every resident."
+              label="Show the row"
+              onChange={(enabled) => setValue("questionCall", { ...questionCall, enabled })}
+            />
+            <TextField
+              label="Label"
+              onChange={(label) => setValue("questionCall", { ...questionCall, label })}
+              value={questionCall.label}
+            />
+            <TextField
+              hint="Keep it under questioncall.com/app — links there open the installed app. ?install shows its install sheet."
+              label="Link"
+              onChange={(url) => setValue("questionCall", { ...questionCall, url })}
+              value={questionCall.url}
+            />
           </ConfigCard>
         </div>
       </ConfigPage>

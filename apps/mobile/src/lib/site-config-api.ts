@@ -144,6 +144,16 @@ export type SitePlans = PlansCatalog & {
   };
 };
 
+/**
+ * Website Config → Site Content → QuestionCall: the student resident's row on
+ * Home. `url` is https and sits in QuestionCall's `/app` web-app scope.
+ */
+export type SiteQuestionCall = {
+  enabled: boolean;
+  label: string;
+  url: string;
+};
+
 export type MobileSiteConfig = {
   content: SiteContent;
   features: SiteFeatures;
@@ -151,6 +161,7 @@ export type MobileSiteConfig = {
   legal: SiteLegal;
   locations: SiteLocation[];
   plans: SitePlans;
+  questionCall: SiteQuestionCall;
   social: SiteSocial;
 };
 
@@ -239,6 +250,12 @@ export const FALLBACK_SITE_CONFIG: MobileSiteConfig = {
     plans: [],
     services: [],
   },
+  /* The shipped defaults from `site-config.defaults.ts`. */
+  questionCall: {
+    enabled: true,
+    label: "QuestionCall",
+    url: "https://questioncall.com/app?install&from=hostelpalika",
+  },
   social: {
     facebook: "",
     instagram: "",
@@ -274,6 +291,7 @@ function withDefaults(config: SiteConfigResponse): MobileSiteConfig {
     },
     locations: config.locations ?? [],
     plans: config.plans ?? FALLBACK_SITE_CONFIG.plans,
+    questionCall: { ...FALLBACK_SITE_CONFIG.questionCall, ...config.questionCall },
     social: { ...FALLBACK_SITE_CONFIG.social, ...config.social },
   };
 }

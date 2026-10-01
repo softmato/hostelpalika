@@ -7,6 +7,9 @@ import { WebView } from "react-native-webview";
 
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { api, API_BASE_URL } from "@/lib/api";
+import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
+import { absoluteMediaUrl } from "@/lib/media";
 
 /**
  * The file the resident just attached, drawn as itself.
@@ -107,29 +110,84 @@ export function ReceiptPreview({
     );
   }
 
-  return <PdfPreview onPress={onPress} uri={uri} />;
+  // Keyed: a re-picked file must be read again, not the first one kept.
+  return <PdfPreview key={uri} onPress={onPress} read={() => readLocalPdf(uri)} />;
 }
 
-function PdfPreview({ onPress, uri }: { onPress?: () => void; uri: string }) {
+/** The picked file, as base64 — or null when it is gone or too big to inline. */
+async function readLocalPdf(uri: string) {
+  const file = new File(uri);
+
+  return !file.exists || (file.size ?? 0) > INLINE_PDF_LIMIT ? null : file.base64();
+}
+
+/**
+ * An uploaded PDF, as base64. A private asset's signed address comes from the
+ * authorising route as JSON and is fetched with no token: R2 reads any
+ * `Authorization` header as a signature and refuses it (see `viewerSourceFor`).
+ */
+export async function readRemotePdf(item: { assetId?: string; url?: string }): Promise<string | null> {
+  const address = item.assetId
+    ? unwrap(
+        await api.get<ApiEnvelope<{ url: string }>>(`/files/${item.assetId}/url`, {
+          params: { format: "json" },
+        }),
+      ).url
+    : absoluteMediaUrl(item.url, API_BASE_URL);
+
+  if (!address) return null;
+
+  const response = await fetch(address);
+
+  if (!response.ok) return null;
+
+  const blob = await response.blob();
+
+  if (blob.size > INLINE_PDF_LIMIT) return null;
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => resolve(String(reader.result).split(",")[1] ?? null);
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
+ * A PDF drawn by pdf.js: page one in a card, or with `allPages` every page in a
+ * scrolling column on black — the asset viewer's page for a document.
+ */
+export function PdfPreview({
+  allPages = false,
+  height = PREVIEW_HEIGHT,
+  label = "View the PDF receipt you uploaded",
+  onPress,
+  read,
+}: {
+  allPages?: boolean;
+  height?: number;
+  label?: string;
+  onPress?: () => void;
+  /** Base64 of the document, or null when it cannot be drawn here. */
+  read: () => Promise<string | null>;
+}) {
   const { colors } = useAppTheme();
   const [html, setHtml] = useState<string | null>(null);
   const [failed, setFailed] = useState(false);
+  // Read once per mount: callers pass a fresh arrow every render.
+  const [reader] = useState(() => read);
 
   useEffect(() => {
     let live = true;
 
     void (async () => {
       try {
-        const file = new File(uri);
+        const base64 = await reader();
 
-        if (!file.exists || (file.size ?? 0) > INLINE_PDF_LIMIT) {
-          if (live) setFailed(true);
-          return;
-        }
-
-        const base64 = await file.base64();
-
-        if (live) setHtml(pageFor(base64));
+        if (!live) return;
+        if (base64) setHtml(pageFor(base64, allPages));
+        else setFailed(true);
       } catch {
         if (live) setFailed(true);
       }
@@ -138,21 +196,29 @@ function PdfPreview({ onPress, uri }: { onPress?: () => void; uri: string }) {
     return () => {
       live = false;
     };
-  }, [uri]);
+  }, [allPages, reader]);
 
   if (failed) {
-    return <DocumentCard onPress={onPress} />;
+    return allPages ? (
+      <View className="flex-1 items-center justify-center px-8">
+        <Text className="text-center text-sm text-white/70" variant={null}>
+          This file could not be shown here. Use Save to open it.
+        </Text>
+      </View>
+    ) : (
+      <DocumentCard onPress={onPress} />
+    );
   }
 
   return (
     <Pressable
       accessibilityHint="Opens it full screen"
-      accessibilityLabel="View the PDF receipt you uploaded"
+      accessibilityLabel={label}
       accessibilityRole="button"
-      className="self-stretch overflow-hidden rounded-xl active:opacity-80"
+      className={allPages ? "flex-1" : "self-stretch overflow-hidden rounded-xl active:opacity-80"}
       disabled={!onPress}
       onPress={onPress}
-      style={{ backgroundColor: colors.muted, height: PREVIEW_HEIGHT }}
+      style={{ backgroundColor: allPages ? "#000000" : colors.muted, height }}
     >
       {html ? (
         <WebView
@@ -170,15 +236,15 @@ function PdfPreview({ onPress, uri }: { onPress?: () => void; uri: string }) {
           }}
           originWhitelist={["*"]}
           renderError={() => <DocumentCard onPress={onPress} />}
-          scrollEnabled={false}
+          scrollEnabled={allPages}
           setSupportMultipleWindows={false}
           source={{ html }}
-          style={{ backgroundColor: colors.muted, flex: 1 }}
+          style={{ backgroundColor: allPages ? "#000000" : colors.muted, flex: 1 }}
         />
       ) : (
         <View className="flex-1 items-center justify-center gap-2">
-          <ActivityIndicator color={colors.primary} size="small" />
-          <Text variant="caption">Opening your receipt…</Text>
+          <ActivityIndicator color={allPages ? "#ffffff" : colors.primary} size="small" />
+          {allPages ? null : <Text variant="caption">Opening…</Text>}
         </View>
       )}
 
@@ -186,7 +252,7 @@ function PdfPreview({ onPress, uri }: { onPress?: () => void; uri: string }) {
           target is drawn over it rather than under it. */}
       {onPress ? (
         <Pressable
-          accessibilityLabel="View the PDF receipt you uploaded"
+          accessibilityLabel={label}
           accessibilityRole="button"
           className="absolute inset-0"
           onPress={onPress}
@@ -229,14 +295,15 @@ function DocumentCard({ onPress }: { onPress?: () => void }) {
  * top of the page at a readable size beats showing all of it at an unreadable
  * one.
  */
-function pageFor(base64: string) {
+function pageFor(base64: string, allPages = false) {
   return `<!doctype html>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1${allPages ? ",maximum-scale=5" : ""}">
 <style>
-  html,body{margin:0;padding:0;background:#fff;overflow:hidden}
-  canvas{display:block;width:100%}
+  html,body{margin:0;padding:0;background:${allPages ? "#000" : "#fff"};overflow:${allPages ? "auto" : "hidden"}}
+  canvas{display:block;width:100%;background:#fff}
+  canvas+canvas{margin-top:8px}
 </style>
-<canvas id="page"></canvas>
+<div id="pages"></div>
 <script src="${PDFJS}/pdf.min.js"></script>
 <script>
   var fail = function () {
@@ -251,18 +318,30 @@ function pageFor(base64: string) {
 
     for (var i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
 
-    pdfjsLib.getDocument({ data: bytes }).promise.then(function (doc) {
-      return doc.getPage(1).then(function (page) {
-        var canvas = document.getElementById("page");
+    var draw = function (doc, number) {
+      return doc.getPage(number).then(function (page) {
+        var canvas = document.createElement("canvas");
         var context = canvas.getContext("2d");
         var natural = page.getViewport({ scale: 1 });
         var viewport = page.getViewport({ scale: (window.innerWidth * 2) / natural.width });
 
         canvas.width = viewport.width;
         canvas.height = viewport.height;
+        document.getElementById("pages").appendChild(canvas);
 
         return page.render({ canvasContext: context, viewport: viewport }).promise;
       });
+    };
+
+    pdfjsLib.getDocument({ data: bytes }).promise.then(function (doc) {
+      var last = ${allPages ? "doc.numPages" : "1"};
+      var chain = Promise.resolve();
+
+      for (var n = 1; n <= last; n++) {
+        chain = chain.then(draw.bind(null, doc, n));
+      }
+
+      return chain;
     }).catch(fail);
   } catch (error) {
     fail();

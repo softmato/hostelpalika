@@ -1,8 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import * as WebBrowser from "expo-web-browser";
-import { useCallback, useMemo, useState } from "react";
-import { Linking, Platform, Pressable, View } from "react-native";
+import { useMemo } from "react";
+import { Linking, Pressable, View } from "react-native";
 
 import { MealRow } from "@/components/meal-row";
 import {
@@ -12,8 +11,8 @@ import {
   ResidentStayHero,
 } from "@/components/resident-home";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { CardRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
@@ -21,16 +20,12 @@ import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
+import { useSiteConfig } from "@/hooks/use-site-config";
 import { API_BASE_URL } from "@/lib/api";
-import { readApiError } from "@/lib/api-contract";
 import { formatDueLabel, humanizeEnum } from "@/lib/format";
 import { absoluteMediaUrl } from "@/lib/media";
-import {
-  markNoticeRead,
-  openQuestionCall,
-  type ResidentDashboard,
-  type RoutineMeal,
-} from "@/lib/resident-api";
+import { openQuestionCall } from "@/lib/questioncall";
+import { markNoticeRead, type ResidentDashboard, type RoutineMeal } from "@/lib/resident-api";
 import { duesLine, stayPill } from "@/lib/resident-home";
 import { prefetchResidentRoute, residentQuery } from "@/lib/resident-queries";
 import { toastError } from "@/lib/toast";
@@ -314,11 +309,11 @@ export default function ResidentHomeScreen() {
 
         {/*
           Students only — a working professional has no use for it, and the API
-          repeats the check (403 `QUESTIONCALL_NOT_ELIGIBLE`), so hiding the card
+          repeats the check (403 `QUESTIONCALL_NOT_ELIGIBLE`), so hiding the row
           is presentation rather than the gate.
         */}
         {(dashboard.resident.residentType ?? "STUDENT") === "STUDENT" ? (
-          <QuestionCallCard />
+          <QuestionCallRow />
         ) : null}
       </View>
     </Screen>
@@ -442,59 +437,33 @@ function NoticesCard({ notices }: { notices: ResidentDashboard["notices"] }) {
 }
 
 /**
- * The study-partner hand-off, which existed on the web and nowhere on mobile.
+ * The study-partner door, as a tinted row like every other door on this screen
+ * rather than a paragraph and a button. Label, link and the on/off switch are
+ * Website Config → Site Content → QuestionCall, so they change without a
+ * release; the web resident dashboard draws the same row.
  *
- * Opened in an in-app browser rather than the system one: the resident is two
- * taps from a tutor and should come back to the app with the back gesture, not
- * find themselves in Chrome with the app dropped from the recents stack.
+ * The trailing glyph is `open-outline`, not a chevron: this leaves the app.
  */
-function QuestionCallCard() {
+function QuestionCallRow() {
   const { colors } = useAppTheme();
-  const [busy, setBusy] = useState(false);
+  const { questionCall } = useSiteConfig().config;
 
-  const open = useCallback(async () => {
-    setBusy(true);
-
-    try {
-      // Not "web": the server validates the enum, and a wrong value is a 400 on
-      // a card that otherwise looks like it worked.
-      const { redirectUrl } = await openQuestionCall(
-        Platform.OS === "ios" ? "ios" : "android",
-      );
-
-      await WebBrowser.openBrowserAsync(redirectUrl);
-    } catch (caught) {
-      toastError("Could not open QuestionCall", readApiError(caught, ""));
-    } finally {
-      setBusy(false);
-    }
-  }, []);
+  if (!questionCall.enabled) {
+    return null;
+  }
 
   return (
-    <Card className="gap-3">
-      <View className="flex-row items-start gap-3">
-        <View
-          className="h-10 w-10 items-center justify-center rounded-xl"
-          style={{ backgroundColor: colors.brandSoft }}
-        >
-          <Ionicons color={colors.primary} name="school-outline" size={20} />
-        </View>
-
-        <View className="flex-1 gap-1">
-          <Text variant="label">Ask questions, get answers</Text>
-          <Text variant="muted">
-            QuestionCall connects students with tutors. Your name and hostel are shared
-            so you can sign in without filling another form.
-          </Text>
-        </View>
-      </View>
-
-      <Button
-        label="Open QuestionCall"
-        loading={busy}
-        onPress={() => void open()}
-        variant="outline"
-      />
-    </Card>
+    <CardRow
+      icon="school-outline"
+      onPress={() =>
+        void openQuestionCall(questionCall.url).catch(() =>
+          toastError("Could not open QuestionCall"),
+        )
+      }
+      right={<Ionicons color={colors.mutedForeground} name="open-outline" size={18} />}
+      subtitle="Ask a tutor your study questions"
+      title={questionCall.label}
+      tone="brand"
+    />
   );
 }

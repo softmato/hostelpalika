@@ -129,6 +129,26 @@ export const appsSchema = z.object({
   androidPlayUrl: optionalUrl,
 });
 
+/**
+ * The QuestionCall row on a student resident's home, web and app alike.
+ *
+ * `url` is where the row sends people: QuestionCall's installable web app. It
+ * must stay inside that app's `/app` scope, because on Android a link into an
+ * installed web app's scope opens the installed app rather than a tab. `?install`
+ * is what makes QuestionCall's page offer its install sheet at once. Https only:
+ * residents open this link, so the editor must not be able to hand them a
+ * `javascript:` one.
+ */
+export const questionCallSchema = z.object({
+  enabled: z.boolean().default(true),
+  label: trimmed.min(1).max(40).default("QuestionCall"),
+  url: trimmed
+    .max(300)
+    .url()
+    .refine((value) => value.startsWith("https://"), "Use an https:// link.")
+    .default("https://questioncall.com/app?install&from=hostelpalika"),
+});
+
 export const socialSchema = z.object({
   facebook: optionalUrl,
   instagram: optionalUrl,
@@ -649,6 +669,7 @@ export const siteConfigSectionSchemas = {
   legal: legalSchema,
   locations: locationsSchema,
   plans: plansSchema,
+  questionCall: questionCallSchema,
   seo: seoSchema,
   social: socialSchema,
   stats: statsSchema,

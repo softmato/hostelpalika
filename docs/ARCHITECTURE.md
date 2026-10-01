@@ -876,22 +876,24 @@ async function getEffectiveSetting(hostelId: ObjectId, key: string) {
 ### 12.1 Redirect Flow
 
 ```
-Resident (STUDENT) clicks button
+Resident (STUDENT) taps the QuestionCall row (site config `questionCall`)
          ↓
-POST /api/resident/questioncall/click
-         ↓
-Create QuestionCallClick record
-         ↓
-Generate signed JWT with user context
-         ↓
-Return redirect URL: https://questioncall.com/sso?token=<jwt>
-         ↓
-QuestionCall validates JWT, creates/logs in user
+Open at once, in the tap:
+  phone app → questioncall:// (QuestionCall's native app), else the link
+  web       → the link, in a new window
+  the link defaults to https://questioncall.com/app?install&from=hostelpalika
+         ↓  (alongside, not before)
+POST /api/v1/resident/questioncall/click → QuestionCallClick record
          ↓
 (Optional) QuestionCall pings back when user signs up
          ↓
 Update QuestionCallClick.converted = true
 ```
+
+The link sits in QuestionCall's web-app scope (`/app`), so on Android an
+installed QuestionCall web app takes it instead of a browser tab; `?install`
+makes the page open its install sheet (iPhone: Share → Add to Home Screen).
+There is no sign-in hand-off: QuestionCall has no endpoint for one.
 
 ### 12.2 Analytics Tracking
 

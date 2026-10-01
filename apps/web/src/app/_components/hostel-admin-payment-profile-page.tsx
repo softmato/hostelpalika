@@ -31,6 +31,7 @@ import {
   QrMark,
 } from "@/app/_components/payment-brand-marks";
 import {
+  type ExtraAccount,
   PaymentProfileResidentPreview,
   type ProfileDraft,
 } from "@/app/_components/payment-profile-resident-preview";
@@ -70,6 +71,7 @@ type PaymentProfile = {
   displayName: string | null;
   enabledProviders: string[];
   esewaId: string | null;
+  extraAccounts: ExtraAccount[];
   khaltiId: string | null;
   payeeVerifiable: boolean;
   paymentInstructions: string | null;
@@ -126,6 +128,110 @@ const SECTION_FIELDS: Record<SectionId, (keyof ProfileDraft)[]> = {
   KHALTI: ["khaltiId"],
   QR: ["qrPayeeName", "qrPayeeNumber"],
 };
+
+const EXTRA_KINDS: { label: string; value: ExtraAccount["kind"] }[] = [
+  { label: "Bank", value: "BANK" },
+  { label: "eSewa", value: "ESEWA" },
+  { label: "Khalti", value: "KHALTI" },
+];
+
+/** The whole list is one PATCH — rows are added and removed locally, then saved. */
+function ExtraAccountsForm({
+  initial,
+  onCancel,
+  onSave,
+}: {
+  initial: ExtraAccount[];
+  onCancel: () => void;
+  onSave: (accounts: ExtraAccount[]) => Promise<void>;
+}) {
+  const [rows, setRows] = useState<ExtraAccount[]>(initial);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+  const update = (index: number, patch: Partial<ExtraAccount>) =>
+    setRows((current) => current.map((row, at) => (at === index ? { ...row, ...patch } : row)));
+
+  return (
+    <form
+      className="grid gap-4"
+      onSubmit={async (event) => {
+        event.preventDefault();
+        setSaving(true);
+        setError("");
+
+        try {
+          await onSave(rows.filter((row) => row.number.trim()));
+        } catch (caught) {
+          setError(caught instanceof Error ? caught.message : "Could not save the accounts.");
+        } finally {
+          setSaving(false);
+        }
+      }}
+    >
+      {rows.map((row, index) => (
+        <div className="grid gap-3 rounded-lg border border-border p-3 sm:grid-cols-2" key={index}>
+          <label className="grid gap-1 text-sm font-medium">
+            Type
+            <select
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+              onChange={(event) => update(index, { kind: event.target.value as ExtraAccount["kind"] })}
+              value={row.kind}
+            >
+              {EXTRA_KINDS.map((kind) => (
+                <option key={kind.value} value={kind.value}>
+                  {kind.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          {row.kind === "BANK" ? (
+            <Input
+              label="Bank name"
+              name={`extraBankName${index}`}
+              onChange={(event) => update(index, { bankName: event.target.value })}
+              value={row.bankName ?? ""}
+            />
+          ) : null}
+          <Input
+            label="Account name"
+            name={`extraAccountName${index}`}
+            onChange={(event) => update(index, { accountName: event.target.value })}
+            value={row.accountName ?? ""}
+          />
+          <Input
+            label={row.kind === "BANK" ? "Account number" : "Wallet ID"}
+            name={`extraNumber${index}`}
+            onChange={(event) => update(index, { number: event.target.value })}
+            value={row.number}
+          />
+          <button
+            className="justify-self-start text-sm font-semibold text-destructive"
+            onClick={() => setRows((current) => current.filter((_, at) => at !== index))}
+            type="button"
+          >
+            Remove
+          </button>
+        </div>
+      ))}
+      {rows.length < 6 ? (
+        <button
+          className="justify-self-start rounded-md border border-border px-3 py-2 text-sm font-semibold transition hover:bg-muted"
+          onClick={() =>
+            setRows((current) => [
+              ...current,
+              { accountName: null, bankName: null, kind: "BANK", number: "" },
+            ])
+          }
+          type="button"
+        >
+          Add an account
+        </button>
+      ) : null}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      <SaveRow onCancel={onCancel} saving={saving} />
+    </form>
+  );
+}
 
 function SaveRow({
   onCancel,
@@ -284,6 +390,7 @@ function ResidentModePreview({
           <PaymentProfileResidentPreview
             draft={draft}
             enabledProviders={profile.enabledProviders}
+            extraAccounts={profile.extraAccounts ?? []}
             staticQrAssetId={profile.staticQrAssetId}
           />
         </div>
@@ -299,6 +406,7 @@ export const HostelAdminPaymentProfilePageContent = memo(
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
     const [open, setOpen] = useState<SectionId | null>(null);
+    const [extraOpen, setExtraOpen] = useState(false);
     const [residentMode, setResidentMode] = useState(false);
     const [draft, setDraft] = useState<ProfileDraft>(EMPTY_DRAFT);
     const qrInputRef = useRef<HTMLInputElement>(null);
@@ -706,6 +814,24 @@ export const HostelAdminPaymentProfilePageContent = memo(
                     </div>
                     <SaveRow onCancel={cancel} saving={saving} />
                   </form>
+                </MethodCard>
+
+                <MethodCard
+                  configured={(profile.extraAccounts ?? []).length > 0}
+                  description="A second bank, eSewa or Khalti account"
+                  mark={<BankMark className="size-10" />}
+                  onToggle={() => setExtraOpen((value) => !value)}
+                  open={extraOpen}
+                  title="More accounts"
+                >
+                  <ExtraAccountsForm
+                    initial={profile.extraAccounts ?? []}
+                    onCancel={() => setExtraOpen(false)}
+                    onSave={async (extraAccounts) => {
+                      await patch({ extraAccounts }, "Saved. Residents see every account.");
+                      setExtraOpen(false);
+                    }}
+                  />
                 </MethodCard>
 
                 <MethodCard

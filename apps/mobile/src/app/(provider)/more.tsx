@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, View } from "react-native";
 
+import { SupportContact } from "@/components/support-contact";
 import { AppBar } from "@/components/ui/app-bar";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
@@ -101,6 +102,8 @@ export default function ProviderMoreScreen() {
             />
           </Card>
         </View>
+
+        <SupportContact />
 
         <Card>
           <ListRow

@@ -112,13 +112,23 @@ function WalletRow({
   );
 }
 
+export type ExtraAccount = {
+  accountName: string | null;
+  bankName: string | null;
+  kind: "BANK" | "ESEWA" | "KHALTI";
+  number: string;
+};
+
 export const PaymentProfileResidentPreview = memo(
   function PaymentProfileResidentPreview({
     draft,
     enabledProviders,
+    extraAccounts = [],
     staticQrAssetId,
   }: {
     draft: ProfileDraft;
+    /** A second bank or wallet — shown after the profile's own ones, as the pay screen does. */
+    extraAccounts?: ExtraAccount[];
     /** Providers with live checkout — these suppress the matching wallet id. */
     enabledProviders: string[];
     staticQrAssetId: string | null;
@@ -128,7 +138,12 @@ export const PaymentProfileResidentPreview = memo(
     const showEsewa = Boolean(draft.esewaId) && !live.has("ESEWA");
     const showKhalti = Boolean(draft.khaltiId) && !live.has("KHALTI");
     const showBank = Boolean(draft.bankAccountNumber);
-    const hasManual = Boolean(staticQrAssetId) || showEsewa || showKhalti || showBank;
+    const extraWallets = extraAccounts.filter(
+      (account) => account.kind !== "BANK" && !live.has(account.kind),
+    );
+    const extraBanks = extraAccounts.filter((account) => account.kind === "BANK");
+    const hasManual =
+      Boolean(staticQrAssetId) || showEsewa || showKhalti || showBank || extraAccounts.length > 0;
     const usable = hasManual || live.size > 0;
 
     return (
@@ -221,6 +236,21 @@ export const PaymentProfileResidentPreview = memo(
                 />
               ) : null}
 
+              {extraWallets.map((account, index) => (
+                <WalletRow
+                  id={account.number}
+                  key={`${account.kind}:${index}`}
+                  label={account.kind === "ESEWA" ? "eSewa" : "Khalti"}
+                  mark={
+                    account.kind === "ESEWA" ? (
+                      <EsewaMark className="size-4" />
+                    ) : (
+                      <KhaltiMark className="size-4" />
+                    )
+                  }
+                />
+              ))}
+
               {showBank ? (
                 <MethodShell>
                   <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
@@ -241,6 +271,25 @@ export const PaymentProfileResidentPreview = memo(
                   </div>
                 </MethodShell>
               ) : null}
+
+              {extraBanks.map((account, index) => (
+                <MethodShell key={`BANK:${index}`}>
+                  <p className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                    <Building2 aria-hidden="true" className="size-3" />
+                    Bank transfer
+                  </p>
+                  <div className="mt-1.5 space-y-0.5 text-xs">
+                    {account.bankName ? <p className="font-semibold">{account.bankName}</p> : null}
+                    {account.accountName ? (
+                      <p className="text-muted-foreground">{account.accountName}</p>
+                    ) : null}
+                    <p className="flex flex-wrap items-center gap-2 font-mono font-semibold">
+                      {account.number}
+                      <FakeCopyButton />
+                    </p>
+                  </div>
+                </MethodShell>
+              ))}
             </div>
 
             {draft.paymentInstructions ? (

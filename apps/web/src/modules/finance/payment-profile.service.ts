@@ -11,6 +11,7 @@ import { FinanceServiceError } from "@/modules/finance/finance.errors";
 import { FileAssetModel } from "@hostel/db/models/FileAsset";
 import {
   enabledGateways,
+  type ExtraPaymentAccount,
   type GatewayConfig,
   HostelPaymentProfileModel,
   isPaymentProfileUsable,
@@ -38,6 +39,8 @@ export type PaymentProfileView = {
   cashApprovalThreshold: number;
   displayName: string | null;
   esewaId: string | null;
+  /** Accounts beyond the one bank, eSewa and Khalti above. */
+  extraAccounts: ExtraPaymentAccount[];
   /**
    * Which providers currently take online payments for this hostel. Derived
    * from the gateway entries, never stored — see `resolvePaymentTier`. The
@@ -80,6 +83,7 @@ type ProfileDocument = {
   cashApprovalThreshold?: number;
   displayName?: string | null;
   esewaId?: string | null;
+  extraAccounts?: ExtraPaymentAccount[] | null;
   gateways?: GatewayConfig[] | null;
   khaltiId?: string | null;
   lastStatementUploadAt?: Date | null;
@@ -105,6 +109,12 @@ function toView(profile: ProfileDocument | null): PaymentProfileView {
     displayName: source.displayName ?? null,
     enabledProviders: enabledGateways(source).map((entry) => entry.provider),
     esewaId: source.esewaId ?? null,
+    extraAccounts: (source.extraAccounts ?? []).map((account) => ({
+      accountName: account.accountName ?? null,
+      bankName: account.bankName ?? null,
+      kind: account.kind,
+      number: account.number,
+    })),
     khaltiId: source.khaltiId ?? null,
     lastStatementUploadAt: source.lastStatementUploadAt
       ? new Date(source.lastStatementUploadAt).toISOString()
@@ -263,6 +273,15 @@ export async function updatePaymentProfile(
 
   if (input.statementCadenceDays !== undefined) {
     update.statementCadenceDays = input.statementCadenceDays;
+  }
+
+  if (input.extraAccounts !== undefined) {
+    update.extraAccounts = input.extraAccounts.map((account) => ({
+      accountName: account.accountName || undefined,
+      bankName: account.kind === "BANK" ? account.bankName || undefined : undefined,
+      kind: account.kind,
+      number: account.number,
+    }));
   }
 
   // Typed by an admin who was looking at the poster, so it outranks any read of

@@ -40,6 +40,9 @@ function targetName(target: PhotoTarget) {
       : "Inside";
 }
 
+/** Where a new photo comes from: taken now, or picked from the gallery. */
+export type PhotoSource = "camera" | "library";
+
 /** Keyed apart so a room type called "Inside" cannot spin the building strip. */
 export function targetKey(target: PhotoTarget) {
   return target.kind === "ROOM" ? `ROOM:${target.roomType}` : target.kind;
@@ -64,7 +67,7 @@ export function useHostelPhotoActions({
    * only its uploader can see.
    */
   const addPhotos = useCallback(
-    async (target: PhotoTarget, used: number) => {
+    async (target: PhotoTarget, used: number, source: PhotoSource = "library") => {
       const name = targetName(target);
       const limit = PHOTO_LIMITS[target.kind];
       const free = limit - used;
@@ -75,22 +78,29 @@ export function useHostelPhotoActions({
       }
 
       const permission =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
+        source === "camera"
+          ? await ImagePicker.requestCameraPermissionsAsync()
+          : await ImagePicker.requestMediaLibraryPermissionsAsync();
 
       if (!permission.granted) {
         toastError(
           "Permission needed",
-          "Allow photo access to add listing photos.",
+          source === "camera"
+            ? "Allow the camera to take listing photos."
+            : "Allow photo access to add listing photos.",
         );
         return;
       }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        allowsMultipleSelection: true,
-        mediaTypes: ["images"],
-        quality: 0.8,
-        selectionLimit: free,
-      });
+      const result =
+        source === "camera"
+          ? await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 0.8 })
+          : await ImagePicker.launchImageLibraryAsync({
+              allowsMultipleSelection: true,
+              mediaTypes: ["images"],
+              quality: 0.8,
+              selectionLimit: free,
+            });
 
       if (result.canceled || result.assets.length === 0) {
         return;
@@ -193,12 +203,13 @@ export function PhotoStrip({
   large?: boolean;
   limit: number;
   name: string;
-  onAdd: () => void;
+  onAdd: (source: PhotoSource) => void;
   onRemove: (photoId: string) => void;
   photos: ManagedHostel["photos"];
 }) {
   const { colors } = useAppTheme();
   const full = photos.length >= limit;
+  const height = large ? 120 : 88;
 
   return (
     <ScrollView
@@ -206,25 +217,34 @@ export function PhotoStrip({
       horizontal
       showsHorizontalScrollIndicator={false}
     >
-      <Pressable
-        accessibilityLabel={`Add photos of ${name}`}
-        accessibilityRole="button"
-        accessibilityState={{ busy, disabled: full }}
-        className="items-center justify-center gap-1 rounded-xl border border-dashed border-border active:opacity-70"
-        style={{ height: large ? 120 : 88, width: large ? 148 : 120 }}
-        disabled={disabled || busy || full}
-        onPress={onAdd}
+      {/* Two ways in, side by side in the tile: a camera for the owner standing
+          in the room, the gallery for photos already taken. */}
+      <View
+        className="overflow-hidden rounded-xl border border-dashed border-border"
+        style={{ height, width: large ? 148 : 120 }}
       >
-        <Ionicons
-          color={full ? colors.mutedForeground : colors.primary}
-          name={busy ? "hourglass-outline" : "camera-outline"}
-          size={20}
-        />
-        <Text variant="label">{busy ? "Adding…" : full ? "Full" : "+ Add"}</Text>
-        <Text variant="caption">
-          {photos.length}/{limit}
-        </Text>
-      </Pressable>
+        {busy || full ? (
+          <View className="flex-1 items-center justify-center gap-1">
+            <Ionicons color={colors.mutedForeground} name={busy ? "hourglass-outline" : "checkmark-circle-outline"} size={20} />
+            <Text variant="label">{busy ? "Adding…" : "Full"}</Text>
+            <Text variant="caption">{photos.length}/{limit}</Text>
+          </View>
+        ) : (
+          (["camera", "library"] as const).map((source) => (
+            <Pressable
+              accessibilityLabel={source === "camera" ? `Take a photo of ${name}` : `Upload photos of ${name}`}
+              accessibilityRole="button"
+              className={`flex-1 flex-row items-center justify-center gap-1.5 active:bg-muted ${source === "library" ? "border-t border-dashed border-border" : ""}`}
+              disabled={disabled}
+              key={source}
+              onPress={() => onAdd(source)}
+            >
+              <Ionicons color={colors.primary} name={source === "camera" ? "camera-outline" : "images-outline"} size={18} />
+              <Text className="text-primary" variant="label">{source === "camera" ? "Camera" : "Upload"}</Text>
+            </Pressable>
+          ))
+        )}
+      </View>
 
       {photos.map((photo, index) => {
         const uri = absoluteMediaUrl(photo.url, API_BASE_URL);
@@ -248,7 +268,7 @@ export function PhotoStrip({
               <Image
                 contentFit="cover"
                 source={{ uri }}
-                style={{ borderRadius: 12, height: large ? 120 : 88, width: large ? 148 : 120 }}
+                style={{ borderRadius: 12, height, width: large ? 148 : 120 }}
               />
             </Pressable>
 

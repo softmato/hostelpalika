@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { Alert, View } from "react-native";
 
 import { NotificationBell } from "@/components/notification-bell";
+import { SupportContact } from "@/components/support-contact";
 import { AppBar } from "@/components/ui/app-bar";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -368,6 +369,8 @@ export default function AdminMoreScreen() {
             />
           </Card>
         </View>
+
+        <SupportContact />
 
         <Card padding="px-4 py-1">
           <ListRow

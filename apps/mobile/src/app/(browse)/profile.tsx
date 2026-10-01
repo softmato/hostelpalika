@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { Alert, Linking, View } from "react-native";
 
 import { ProviderStatusCard } from "@/components/provider-status-card";
+import { SupportContact } from "@/components/support-contact";
 import { AppBar } from "@/components/ui/app-bar";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -463,44 +464,7 @@ export default function BrowseProfileScreen() {
           </Card>
         </View>
 
-        {/*
-          The website's footer contact column. Tappable rather than printed: on a
-          phone a support number is a call, not a string to memorise.
-        */}
-        {identity.supportPhone || identity.supportEmail || identity.address ? (
-          <View>
-            <SectionHeader title="Get in touch" />
-            <Card>
-              {identity.supportPhone ? (
-                <ListRow
-                  icon="call-outline"
-                  onPress={() =>
-                    void Linking.openURL(
-                      `tel:${identity.supportPhone.replace(/\s/g, "")}`,
-                    )
-                  }
-                  title={identity.supportPhone}
-                />
-              ) : null}
-              {identity.supportPhone && identity.supportEmail ? (
-                <RowDivider inset />
-              ) : null}
-              {identity.supportEmail ? (
-                <ListRow
-                  icon="mail-outline"
-                  onPress={() => void Linking.openURL(`mailto:${identity.supportEmail}`)}
-                  title={identity.supportEmail}
-                />
-              ) : null}
-              {identity.address && (identity.supportPhone || identity.supportEmail) ? (
-                <RowDivider inset />
-              ) : null}
-              {identity.address ? (
-                <ListRow icon="location-outline" title={identity.address} />
-              ) : null}
-            </Card>
-          </View>
-        ) : null}
+        <SupportContact />
 
         {socialLinks.length > 0 ? (
           <View>

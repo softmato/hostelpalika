@@ -55,6 +55,7 @@ export type PayeeRead = {
 
 type ProfileLike = {
   bankAccountName?: string | null;
+  extraAccounts?: Array<{ accountName?: string | null; number?: string | null }> | null;
   bankAccountNumber?: string | null;
   bankName?: string | null;
   displayName?: string | null;
@@ -82,6 +83,7 @@ export function hostelPayeeIdentity(
   const names = [
     profile?.displayName,
     profile?.bankAccountName,
+    ...(profile?.extraAccounts ?? []).map((account) => account.accountName),
     profile?.qrPayeeName,
     hostelName,
   ]
@@ -92,6 +94,7 @@ export function hostelPayeeIdentity(
     profile?.esewaId,
     profile?.khaltiId,
     profile?.bankAccountNumber,
+    ...(profile?.extraAccounts ?? []).map((account) => account.number),
     profile?.qrPayeeNumber,
   ]
     .map((value) => digitsOnly(value ?? ""))

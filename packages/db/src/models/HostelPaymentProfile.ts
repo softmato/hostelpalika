@@ -100,6 +100,21 @@ const gatewayConfigSchema = new Schema(
   { timestamps: true },
 );
 
+/**
+ * A second bank, a second wallet — accounts beyond the one of each kind the
+ * profile's own fields hold. Residents see every one on the pay screen, and a
+ * receipt paid into any of them matches the hostel as payee.
+ */
+const extraAccountSchema = new Schema(
+  {
+    kind: { type: String, enum: ["BANK", "ESEWA", "KHALTI"], required: true },
+    bankName: { type: String, trim: true },
+    accountName: { type: String, trim: true },
+    number: { type: String, trim: true, required: true },
+  },
+  { _id: false },
+);
+
 const hostelPaymentProfileSchema = new Schema(
   {
     hostelId: {
@@ -118,6 +133,7 @@ const hostelPaymentProfileSchema = new Schema(
     bankName: { type: String, trim: true },
     bankAccountName: { type: String, trim: true },
     bankAccountNumber: { type: String, trim: true },
+    extraAccounts: { type: [extraAccountSchema], default: [] },
     /**
      * Who the QR poster says it pays, read off the image at upload.
      *
@@ -160,6 +176,13 @@ const hostelPaymentProfileSchema = new Schema(
 );
 
 export type PaymentTier = "TIER_0" | "TIER_1";
+
+export type ExtraPaymentAccount = {
+  accountName?: string | null;
+  bankName?: string | null;
+  kind: "BANK" | "ESEWA" | "KHALTI";
+  number: string;
+};
 export type GatewayProviderName = "ESEWA" | "FONEPAY" | "KHALTI";
 export type GatewayAccountKind = "MERCHANT" | "PERSONAL";
 export type GatewayMode = "LIVE" | "SANDBOX";
@@ -264,6 +287,7 @@ export function isPaymentProfileUsable(
     | ({
         bankAccountNumber?: string | null;
         esewaId?: string | null;
+        extraAccounts?: ExtraPaymentAccount[] | null;
         khaltiId?: string | null;
         staticQrAssetId?: unknown;
       } & { gateways?: GatewayConfig[] | null })
@@ -275,6 +299,7 @@ export function isPaymentProfileUsable(
         profile.esewaId ||
         profile.khaltiId ||
         profile.bankAccountNumber ||
+        (profile.extraAccounts?.length ?? 0) > 0 ||
         enabledGateways(profile).length > 0),
   );
 }

@@ -646,7 +646,7 @@ Requires `role = RESIDENT` AND `residentType = STUDENT`.
 
 | Method | Path | Body/Query | Notes |
 |---|---|---|---|
-| POST | `/api/v1/resident/questioncall/click` | `{ deviceType?: web\|android\|ios }` | Creates a `QuestionCallClick` and returns `{ clickId, redirectUrl, ssoEnabled }`. With `QUESTIONCALL_SSO_SECRET` set the URL carries a 10-minute signed JWT; without it, a plain link. A non-STUDENT resident gets `403 QUESTIONCALL_NOT_ELIGIBLE` — the hidden button is not the gate. |
+| POST | `/api/v1/resident/questioncall/click` | `{ deviceType?: web\|android\|ios }` | Creates a `QuestionCallClick` and returns `{ clickId, redirectUrl }`. Current clients open the `questionCall` site-config link themselves, in the tap, and post this alongside; `redirectUrl` is that same link, kept for older app builds that open what this returns. A non-STUDENT resident gets `403 QUESTIONCALL_NOT_ELIGIBLE` — the hidden button is not the gate. |
 | GET | `/api/v1/resident/questioncall/status` | — | `{ clickCount, converted, eligible, lastClickedAt }` |
 ### 13.2 Superadmin QuestionCall Analytics
 

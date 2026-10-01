@@ -4,18 +4,20 @@ import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
+import { BankNameField } from "@/components/manage/bank-name-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Meter } from "@/components/ui/meter";
+import { Segmented } from "@/components/ui/segmented";
 import { Sheet } from "@/components/ui/sheet";
-import { WalletMark } from "@/components/ui/wallet-mark";
+import { WalletMark, walletLabel } from "@/components/ui/wallet-mark";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
-import { type PaymentProfile, updatePaymentProfile } from "@/lib/admin-manage-api";
+import { type ExtraPaymentAccount, type PaymentProfile, updatePaymentProfile } from "@/lib/admin-manage-api";
 import { adminQuery } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { readApiError } from "@/lib/api-contract";
@@ -217,6 +219,31 @@ export function usePaymentSetup({ onSaved }: { onSaved?: () => void } = {}) {
     }
   };
 
+  /** The extra-accounts list is one field on the server, so a change sends the whole list. */
+  const saveExtraAccounts = async (next: ExtraPaymentAccount[]) => {
+    setSaving(true);
+
+    try {
+      written(
+        await updatePaymentProfile({
+          extraAccounts: next.map((account) => ({
+            accountName: account.accountName?.trim() || undefined,
+            bankName: account.bankName?.trim() || undefined,
+            kind: account.kind,
+            number: account.number.trim(),
+          })),
+        }),
+      );
+      toastSuccess("Saved");
+      return true;
+    } catch (error) {
+      toastError("Could not save", readApiError(error));
+      return false;
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const removeQr = async () => {
     setQrBusy("remove");
 
@@ -245,6 +272,7 @@ export function usePaymentSetup({ onSaved }: { onSaved?: () => void } = {}) {
     removeQr,
     resource,
     save,
+    saveExtraAccounts,
     saving,
     section,
     setDraft,
@@ -255,12 +283,11 @@ export type PaymentSetup = ReturnType<typeof usePaymentSetup>;
 
 /** Whether residents can pay at all, and how many of the four ways are set. */
 export function PaymentStatusCard({ profile }: { profile: PaymentProfile }) {
-  const ways = [
-    profile.staticQrAssetId,
-    profile.bankAccountNumber,
-    profile.esewaId,
-    profile.khaltiId,
-  ].filter(Boolean).length;
+  const ways = Math.min(
+    4,
+    [profile.staticQrAssetId, profile.bankAccountNumber, profile.esewaId, profile.khaltiId].filter(Boolean)
+      .length + (profile.extraAccounts?.length ?? 0),
+  );
 
   return (
     <Card className="gap-3">
@@ -354,6 +381,8 @@ export function PaymentQrCard({ setup }: { setup: PaymentSetup }) {
 
 export function PaymentDestinations({ setup }: { setup: PaymentSetup }) {
   const { openSection, profile } = setup;
+  const [account, setAccount] = useState<number | "new" | null>(null);
+  const extra = profile?.extraAccounts ?? [];
 
   return (
     <View>
@@ -383,8 +412,125 @@ export function PaymentDestinations({ setup }: { setup: PaymentSetup }) {
           subtitle={profile?.khaltiId || "Not set"}
           title="Khalti"
         />
+        <ExtraAccountRows accounts={extra} onOpen={setAccount} />
       </Card>
+      <ExtraAccountSheet editing={account} onClose={() => setAccount(null)} setup={setup} />
     </View>
+  );
+}
+
+const ACCOUNT_KINDS = [
+  { label: "Bank", value: "BANK" },
+  { label: "eSewa", value: "ESEWA" },
+  { label: "Khalti", value: "KHALTI" },
+] as const;
+
+/** One row per extra account, then "Add another account". */
+export function ExtraAccountRows({
+  accounts,
+  onOpen,
+}: {
+  accounts: ExtraPaymentAccount[];
+  onOpen: (index: number | "new") => void;
+}) {
+  return (
+    <>
+      {accounts.map((account, index) => (
+        <View key={`${account.kind}:${account.number}`}>
+          <RowDivider inset />
+          <ListRow
+            left={<WalletMark name={account.kind === "BANK" ? account.bankName : account.kind} size={32} />}
+            onPress={() => onOpen(index)}
+            subtitle={account.number}
+            title={account.kind === "BANK" ? account.bankName || "Bank" : walletLabel(account.kind)}
+          />
+        </View>
+      ))}
+      {accounts.length < 6 ? (
+        <>
+          <RowDivider inset />
+          <ListRow icon="add" onPress={() => onOpen("new")} title="Add another account" />
+        </>
+      ) : null}
+    </>
+  );
+}
+
+/** Add or change one extra account. It saves on its own, like the QR. */
+export function ExtraAccountSheet({
+  editing,
+  onClose,
+  setup,
+}: {
+  editing: number | "new" | null;
+  onClose: () => void;
+  setup: PaymentSetup;
+}) {
+  const accounts = setup.profile?.extraAccounts ?? [];
+  const blank: ExtraPaymentAccount = { accountName: "", bankName: "", kind: "BANK", number: "" };
+  const [draft, setDraft] = useState<ExtraPaymentAccount>(blank);
+  const [openFor, setOpenFor] = useState<number | "new" | null>(null);
+
+  // Seeded once per open, so a refetch behind the sheet does not wipe the typing.
+  if (editing !== openFor) {
+    setOpenFor(editing);
+    setDraft(typeof editing === "number" ? { ...blank, ...accounts[editing] } : blank);
+  }
+
+  const save = async () => {
+    if (!draft.number.trim()) {
+      toastError("Add the number", draft.kind === "BANK" ? "Enter the account number." : "Enter the wallet ID.");
+      return;
+    }
+
+    const next =
+      typeof editing === "number"
+        ? accounts.map((account, index) => (index === editing ? draft : account))
+        : [...accounts, draft];
+
+    if (await setup.saveExtraAccounts(next)) onClose();
+  };
+
+  const remove = async () => {
+    if (typeof editing !== "number") return;
+    if (await setup.saveExtraAccounts(accounts.filter((_, index) => index !== editing))) onClose();
+  };
+
+  return (
+    <Sheet
+      footer={<Button label="Save" loading={setup.saving} onPress={() => void save()} />}
+      onClose={onClose}
+      open={editing !== null}
+      title={editing === "new" ? "Add an account" : "Account"}
+    >
+      <View className="gap-3 pb-2">
+        <Segmented
+          onChange={(kind) => setDraft((current) => ({ ...current, kind }))}
+          options={ACCOUNT_KINDS}
+          value={draft.kind}
+        />
+        {draft.kind === "BANK" ? (
+          <BankNameField
+            onChange={(bankName) => setDraft((current) => ({ ...current, bankName }))}
+            value={draft.bankName ?? ""}
+          />
+        ) : null}
+        <Input
+          label="Name on the account"
+          onChangeText={(accountName) => setDraft((current) => ({ ...current, accountName }))}
+          value={draft.accountName ?? ""}
+        />
+        <Input
+          keyboardType="numbers-and-punctuation"
+          label={draft.kind === "BANK" ? "Account number" : `${walletLabel(draft.kind)} ID`}
+          onChangeText={(number) => setDraft((current) => ({ ...current, number }))}
+          value={draft.number}
+        />
+        {typeof editing === "number" ? (
+          <Button disabled={setup.saving} label="Remove this account" onPress={() => void remove()} variant="ghost" />
+        ) : null}
+      </View>
+    </Sheet>
   );
 }
 
@@ -400,7 +546,13 @@ export function PaymentSheet({ setup }: { setup: PaymentSetup }) {
       title={sheet?.title ?? ""}
     >
       <View className="gap-3 pb-2">
-        {sheet?.fields.map((field) => (
+        {sheet?.fields.map((field) => field.key === "bankName" ? (
+          <BankNameField
+            key={field.key}
+            onChange={(value) => setDraft((prev) => ({ ...prev, bankName: value }))}
+            value={draft.bankName ?? ""}
+          />
+        ) : (
           <Input
             hint={field.hint}
             key={field.key}
@@ -412,11 +564,6 @@ export function PaymentSheet({ setup }: { setup: PaymentSetup }) {
             value={draft[field.key] ?? ""}
           />
         ))}
-        {section === "bank" ? (
-          <View className="items-center pt-1">
-            <WalletMark name={draft.bankName} size={40} />
-          </View>
-        ) : null}
       </View>
     </Sheet>
   );

@@ -224,10 +224,10 @@ just stops handling freeform sentences.
 
 ### QuestionCall (optional)
 
-`QUESTIONCALL_URL`, `QUESTIONCALL_SSO_SECRET`, `QUESTIONCALL_WEBHOOK_SECRET`.
-With no SSO secret the study button opens a plain link instead of a signed
-hand-off. With no webhook secret the conversion callback answers `503` rather
-than trusting an unauthenticated caller.
+`QUESTIONCALL_WEBHOOK_SECRET`. With none set the conversion callback answers
+`503` rather than trusting an unauthenticated caller. The study row's label,
+link and on/off switch are site config (Website Config → Site Content →
+QuestionCall), not env.
 
 ### Cookies, limits, logging
 

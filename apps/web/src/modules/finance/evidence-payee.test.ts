@@ -258,3 +258,15 @@ describe("extractPayee — the label forms receipts actually use", () => {
     );
   });
 });
+
+describe("hostelPayeeIdentity — extra accounts", () => {
+  it("counts a second bank's number and holder as the hostel's own", () => {
+    const withSecondBank = hostelPayeeIdentity({
+      bankAccountNumber: "08010017894471",
+      extraAccounts: [{ accountName: "Ram Bahadur Karki", number: "0123-4567-8901" }],
+    });
+
+    expect(withSecondBank.accountIds).toContain("012345678901");
+    expect(withSecondBank.names).toContain("Ram Bahadur Karki");
+  });
+});
