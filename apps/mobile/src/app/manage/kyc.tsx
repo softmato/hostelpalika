@@ -4,7 +4,7 @@ import * as ImagePicker from "expo-image-picker";
 import { usePreventRemove } from "expo-router/react-navigation";
 import { router, useNavigation } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, FileUp, List, MapPin } from "lucide-react-native";
+import { Camera, FileUp, List, LocateFixed, MapPin } from "lucide-react-native";
 import { BackHandler, Pressable, View } from "react-native";
 import Animated, { FadeIn, FadeInLeft, FadeInRight, ReduceMotion, useReducedMotion } from "react-native-reanimated";
 
@@ -48,6 +48,7 @@ import {
 import { adminQuery } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { readApiError } from "@/lib/api-contract";
+import { requestDeviceLocation } from "@/lib/location";
 import { openAssetViewer, viewerSourceFor } from "@/lib/asset-viewer";
 import { pickDocument, type PickedDocument } from "@/lib/document-picker";
 import { FACILITY_OPTIONS } from "@/lib/hostel-registration";
@@ -592,6 +593,7 @@ function LocationStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
   const hostel = useManagedHostel();
   const [saving, setSaving] = useState(false);
   const [picking, setPicking] = useState(false);
+  const [locating, setLocating] = useState(false);
   const [selected, setSelected] = useState<{ lat: number; lng: number; hit?: GeocodeHit } | null>(null);
   const location = hostel.data?.location;
   const savedPin = location?.lat != null && location.lng != null ? { lat: location.lat, lng: location.lng } : null;
@@ -613,7 +615,21 @@ function LocationStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
     } catch (error) { toastError("Not saved", readApiError(error)); return false; }
     finally { setSaving(false); }
   };
-  useKycDraft({ dirty: selected !== null, busy: saving, save });
+  useKycDraft({ dirty: selected !== null, busy: saving || locating, save });
+  // The team portal's "Use my location": the phone's fix becomes the pin, and the
+  // address it sits on fills only the fields the listing does not have yet.
+  const locateMe = async () => {
+    setLocating(true);
+    try {
+      const outcome = await requestDeviceLocation();
+      if (outcome.kind !== "granted") {
+        toastError("Location is off", outcome.kind === "denied" ? "Allow location for the app, or move the pin." : "Could not get a fix. Try again outside, or move the pin.");
+        return;
+      }
+      const [hit] = await geocodeHostelLocation(outcome.coordinates).catch(() => []);
+      setSelected({ ...outcome.coordinates, hit });
+    } finally { setLocating(false); }
+  };
   if (hostel.loading) return <SkeletonCard rows={3} />;
   if (hostel.error || !location) return <ErrorState message={hostel.error ?? "Could not load map."} onRetry={hostel.reload} />;
   return <View className="gap-4">
@@ -628,6 +644,7 @@ function LocationStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
       </View>
       {!placed || selected ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: selected !== null }} onPress={() => setSelected(selected ? null : pin)} className={`min-h-14 flex-row items-center gap-3 rounded-xl border p-4 ${selected ? "border-primary bg-brand-soft" : "border-border"}`}><Ionicons name={selected ? "checkbox" : "square-outline"} color={colors.primary} size={24} /><Text className="flex-1" variant="label">Yes, this is my door</Text></Pressable> : null}
     </> : <Card className="items-center gap-2 py-8"><Ionicons name="location-outline" size={36} color={colors.primary} /><Text variant="muted">Find your hostel on the map</Text></Card>}
+    <Button icon={LocateFixed} label={locating ? "Finding you…" : "Use my location"} disabled={locating} onPress={() => void locateMe()} />
     <Button icon={MapPin} label={pin ? "Move pin" : "Find on map"} variant="outline" onPress={() => setPicking(true)} />
     <PinPickerModal
       initial={pin}

@@ -1105,10 +1105,11 @@ export type GeocodeHit = {
   province?: string;
 };
 
-export async function geocodeHostelLocation(query: string): Promise<GeocodeHit[]> {
+export async function geocodeHostelLocation(query: string | { lat: number; lng: number }): Promise<GeocodeHit[]> {
   const response = await api.get<ApiEnvelope<{ results: LocationMatch[] }>>(
     "/hostel-admin/profile/geocode",
-    { params: { limit: 6, q: query } },
+    // A pair asks the other way round: which address this pin sits on.
+    { params: typeof query === "string" ? { limit: 6, q: query } : query },
   );
 
   return unwrap(response).results.map(({ address, coordinates, label }) => ({
