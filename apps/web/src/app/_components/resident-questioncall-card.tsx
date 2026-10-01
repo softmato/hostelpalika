@@ -1,72 +1,54 @@
 "use client";
 
 import { ExternalLink, GraduationCap } from "lucide-react";
-import { useCallback, useState } from "react";
 
+import { useSiteConfig } from "@/components/site-config-provider";
 import { browserApi } from "@/lib/browser-api";
-import { SectionCard } from "./portal-dashboard-ui";
 
 /**
- * Study-partner entry point, shown only to STUDENT residents (PHASES.md §5.1).
+ * The QuestionCall row, shown only to STUDENT residents (PHASES.md §5.1); the
+ * app's resident home draws the same row.
  *
- * The click is recorded server-side and the server answers with where to go, so
- * the destination and the SSO handshake stay out of the client bundle.
+ * A plain link, not a button that fetches and then opens: a window opened after
+ * a round trip is a popup the browser blocks. The click is recorded alongside.
+ * On Android, a link into QuestionCall's `/app` scope opens its installed web
+ * app instead of a tab; otherwise the page offers to install it.
+ *
+ * Label, link and switch are Website Config → Site Content → QuestionCall.
  */
 export function ResidentQuestionCallCard() {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const { questionCall } = useSiteConfig();
 
-  const handleClick = useCallback(async () => {
-    setBusy(true);
-    setError("");
-
-    try {
-      const result = await browserApi<{ redirectUrl: string }>(
-        "/api/v1/resident/questioncall/click",
-        { body: JSON.stringify({ deviceType: "web" }), method: "POST" },
-      );
-
-      // noopener/noreferrer: the partner tab must not get a handle on ours.
-      window.open(result.redirectUrl, "_blank", "noopener,noreferrer");
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : "Could not open QuestionCall.");
-    } finally {
-      setBusy(false);
-    }
-  }, []);
+  if (!questionCall.enabled) {
+    return null;
+  }
 
   return (
-    <SectionCard title="Study with QuestionCall">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-start gap-3">
-          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-violet-50 text-violet-600">
-            <GraduationCap aria-hidden="true" className="size-5" />
-          </span>
-          <div>
-            <p className="text-sm font-semibold text-foreground">
-              Ask questions, get answers
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              QuestionCall connects students with tutors. Your name and hostel are shared
-              so you can sign in without filling another form.
-            </p>
-          </div>
-        </div>
-        <button
-          className="inline-flex shrink-0 items-center gap-2 rounded-lg bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:opacity-60"
-          disabled={busy}
-          onClick={handleClick}
-          type="button"
-        >
-          {busy ? "Opening…" : "Open QuestionCall"}
-          <ExternalLink aria-hidden="true" className="size-4" />
-        </button>
-      </div>
-      {error ? (
-        <p className="mt-3 text-sm text-rose-600" role="alert">
-          {error}
-        </p>
-      ) : null}
-    </SectionCard>
+    <a
+      className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm transition hover:border-primary/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      href={questionCall.url}
+      onClick={() => {
+        void browserApi("/api/v1/resident/questioncall/click", {
+          body: JSON.stringify({ deviceType: "web" }),
+          method: "POST",
+        }).catch(() => undefined);
+      }}
+      // noopener/noreferrer: the partner tab must not get a handle on ours.
+      rel="noopener noreferrer"
+      target="_blank"
+    >
+      <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+        <GraduationCap aria-hidden="true" className="size-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block truncate text-sm font-semibold text-foreground">
+          {questionCall.label}
+        </span>
+        <span className="block text-xs text-muted-foreground">
+          Ask a tutor your study questions
+        </span>
+      </span>
+      <ExternalLink aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+    </a>
   );
 }

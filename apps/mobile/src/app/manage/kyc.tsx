@@ -4,11 +4,11 @@ import * as ImagePicker from "expo-image-picker";
 import { usePreventRemove } from "expo-router/react-navigation";
 import { router, useNavigation } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { List } from "lucide-react-native";
+import { Camera, FileUp, List, MapPin } from "lucide-react-native";
 import { BackHandler, Pressable, View } from "react-native";
-import Animated, { FadeIn, FadeInLeft, FadeInRight, ReduceMotion, ZoomIn, useReducedMotion } from "react-native-reanimated";
+import Animated, { FadeIn, FadeInLeft, FadeInRight, ReduceMotion, useReducedMotion } from "react-native-reanimated";
 
-import { PinPreview } from "@/components/hostel-pin-picker";
+import { PinPickerModal, PinPreview } from "@/components/hostel-pin-picker";
 import { FoodWeekEditor } from "@/components/manage/food-week-editor";
 import { KycDraftContext, useKycDraft, type KycDraft } from "@/components/manage/kyc-draft";
 import { KycPayments } from "@/components/manage/kyc-payments";
@@ -23,6 +23,7 @@ import {
 } from "@/components/manage/hostel-photos";
 import { KYC_CACHE_KEY, KycRing } from "@/components/manage/kyc-card";
 import { PayoutAccountPanel } from "@/components/manage/payout-account-card";
+import { isPdfReceipt, PdfPreview, readRemotePdf } from "@/components/receipt-preview";
 import { StepSection, StepSkeleton } from "@/components/step-flow";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
@@ -48,6 +49,7 @@ import { adminQuery } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { readApiError } from "@/lib/api-contract";
 import { openAssetViewer, viewerSourceFor } from "@/lib/asset-viewer";
+import { pickDocument, type PickedDocument } from "@/lib/document-picker";
 import { FACILITY_OPTIONS } from "@/lib/hostel-registration";
 import type { BadgeTone } from "@/lib/status";
 import { uploadPublicFile } from "@/lib/public-uploads";
@@ -172,7 +174,6 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
   const meta = STEPS[step.key];
   const last = current === steps.length - 1;
   const done = steps.filter(item => item.done).length;
-  const reached = (at: number) => Boolean(steps[at]?.done) || at === current;
   const saveAndGo = async (action: () => void) => {
     if (lock.current || status.busy) return;
     // Pin the initial step before its completion changes the first-open index.
@@ -204,15 +205,15 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
           <Ionicons name={item.done ? "checkmark-circle" : "ellipse-outline"} color={item.done ? colors.primary : colors.mutedForeground} size={22} />
         </Pressable>)}</View>
         {data.percent >= 100 ? <View className="flex-row items-center gap-2"><Ionicons name="time-outline" color={colors.warning} size={18} /><Text variant="muted">Some checks may take time</Text></View> : null}
-      </Animated.View> : <View className="gap-5 pb-4 pt-2">
-        <View className="flex-row items-center" accessibilityLabel={`${done} of ${steps.length} complete`}>
-          {steps.map((item, at) => <Pressable accessibilityRole="button" accessibilityLabel={`${at + 1}. ${STEPS[item.key]?.title}, ${item.done ? "done" : "to do"}`} accessibilityState={{ selected: at === current, disabled: blocked }} disabled={blocked} key={item.key} onPress={() => { if (at !== current) move(() => go(at)); }} className="min-h-11 flex-1 items-center justify-center">
-            {at > 0 ? <View className={`absolute left-0 right-1/2 top-1/2 -mt-px h-0.5 ${reached(at - 1) && reached(at) ? "bg-primary" : "bg-border"}`} /> : null}
-            {at < steps.length - 1 ? <View className={`absolute left-1/2 right-0 top-1/2 -mt-px h-0.5 ${reached(at) && reached(at + 1) ? "bg-primary" : "bg-border"}`} /> : null}
-            <View className={`h-8 w-8 items-center justify-center rounded-full border-2 ${item.done ? "border-primary bg-primary" : at === current ? "border-primary bg-background" : "border-border bg-background"}`}>
-              {item.done ? <Animated.View key="done" entering={ZoomIn.duration(180).reduceMotion(ReduceMotion.System)}><Ionicons name="checkmark" size={18} color={colors.primaryForeground} /></Animated.View> : <Text variant="label" className={at === current ? "text-primary" : "text-muted-foreground"}>{at + 1}</Text>}
-            </View>
-          </Pressable>)}
+      </Animated.View> : <View className="gap-4 pb-4 pt-1">
+        <View accessibilityLabel={`Step ${current + 1} of ${steps.length}, ${done} done`} className="gap-1.5">
+          <View className="flex-row items-center justify-between">
+            <Text className="text-primary" variant="label">Step {current + 1} of {steps.length}</Text>
+            <Text variant="caption">{done} done</Text>
+          </View>
+          <View className="flex-row gap-1">
+            {steps.map((item, at) => <View key={item.key} className={`h-1 flex-1 rounded-full ${item.done ? "bg-primary" : at === current ? "bg-primary/40" : "bg-muted"}`} />)}
+          </View>
         </View>
         <Animated.View key={step.key} entering={(forward ? FadeInRight : FadeInLeft).duration(220).reduceMotion(ReduceMotion.System)} className="gap-5">
           <View className="gap-1"><Text variant="title">{meta?.title ?? step.key}</Text>{meta?.hint ? <Text variant="muted">{meta.hint}</Text> : null}</View>
@@ -240,7 +241,7 @@ function StepBody({
 }) {
   switch (stepKey) {
     case "photos":
-      return <PhotosStep minPhotos={data.minPhotos} onSaved={onSaved} photoCount={data.photoCount} />;
+      return <PhotosStep onSaved={onSaved} />;
     case "documents":
       return <DocumentsStep data={data} onSaved={onSaved} />;
     case "payout":
@@ -267,15 +268,7 @@ function useManagedHostel() {
   return useResource<ManagedHostel>(query.load, { cacheKey: query.key, topics: query.topics });
 }
 
-function PhotosStep({
-  minPhotos,
-  onSaved,
-  photoCount,
-}: {
-  minPhotos: number;
-  onSaved: () => Promise<void> | void;
-  photoCount: number;
-}) {
+function PhotosStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
   const { colors } = useAppTheme();
   const hostel = useManagedHostel();
   const { refresh } = hostel;
@@ -302,14 +295,20 @@ function PhotosStep({
 
   return (
     <View className="gap-4">
-      <View className="flex-row items-center gap-3 rounded-2xl bg-brand-soft p-4">
-        <Ionicons color={colors.foreground} name="camera-outline" size={28} />
-        <View className="flex-1 gap-2">
-          <Text variant="subtitle">{photoCount >= minPhotos ? "Photos added" : `${photoCount} of ${minPhotos} added`}</Text>
-          <View className="flex-row gap-1">{Array.from({ length: minPhotos }, (_, at) => <View key={at} className={`h-2 flex-1 rounded-full ${at < photoCount ? "bg-primary" : "bg-muted"}`} />)}</View>
-        </View>
-        {photoCount < minPhotos ? <Text className="text-primary" variant="label">Add {minPhotos - photoCount} more</Text> : <Ionicons color={colors.primary} name="checkmark-circle" size={24} />}
-      </View>
+      {/* How full each kind is, at a glance — the add tiles below fill it. */}
+      <Card className="gap-2.5">
+        {[
+          ...BUILDING_SHOTS.map((shot) => ({ count: photos.filter((photo) => photo.kind === shot.kind).length, limit: PHOTO_LIMITS[shot.kind], name: shot.name })),
+          ...rooms.map((config) => ({ count: photos.filter((photo) => photo.kind === "ROOM" && photo.roomType === config.roomType).length, limit: PHOTO_LIMITS.ROOM, name: config.roomType })),
+        ].map((group) => {
+          const full = group.count >= group.limit;
+          return <View className="flex-row items-center gap-3" key={group.name}>
+            <Text className="w-24" numberOfLines={1} variant="label">{group.name}</Text>
+            <View className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"><View className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, (group.count / group.limit) * 100)}%` }} /></View>
+            {full ? <Ionicons color={colors.primary} name="checkmark-circle" size={18} /> : <Text className="w-12 text-right" variant="caption">{group.count}/{group.limit}</Text>}
+          </View>;
+        })}
+      </Card>
 
       {BUILDING_SHOTS.map((shot) => {
         const shots = photos.filter((photo) => photo.kind === shot.kind);
@@ -322,7 +321,7 @@ function PhotosStep({
               busy={uploadingFor === targetKey({ kind: shot.kind })}
               limit={PHOTO_LIMITS[shot.kind]}
               name={`${shot.name} of ${hostel.data?.name ?? "the hostel"}`}
-              onAdd={() => void addPhotos({ kind: shot.kind }, shots.length)}
+              onAdd={(source) => void addPhotos({ kind: shot.kind }, shots.length, source)}
               onRemove={removePhoto}
               photos={shots}
             />
@@ -349,7 +348,7 @@ function PhotosStep({
                   busy={uploadingFor === targetKey(target)}
                   limit={PHOTO_LIMITS.ROOM}
                   name={config.roomType}
-                  onAdd={() => void addPhotos(target, shots.length)}
+                  onAdd={(source) => void addPhotos(target, shots.length, source)}
                   onRemove={removePhoto}
                   photos={shots}
                 />
@@ -358,11 +357,6 @@ function PhotosStep({
           })
         )}
       </StepSection>
-
-      <View className="flex-row items-center gap-2">
-        <Ionicons color={colors.primary} name="checkmark-circle" size={18} />
-        <Text variant="muted">Photos save as soon as they upload</Text>
-      </View>
     </View>
   );
 }
@@ -372,9 +366,22 @@ function DocumentsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Prom
   const [busy, setBusy] = useState("");
   useKycDraft({ dirty: false, busy: Boolean(busy), save: async () => true });
 
-  async function upload(type: string, label: string) {
-    const picked = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.8 });
-    const asset = picked.canceled ? null : picked.assets[0];
+  async function upload(type: string, label: string, source: "camera" | "file") {
+    let asset: PickedDocument | null = null;
+
+    try {
+      if (source === "camera") {
+        const permission = await ImagePicker.requestCameraPermissionsAsync();
+        if (!permission.granted) { toastError("Permission needed", "Allow the camera to photograph the document."); return; }
+        const picked = await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], quality: 0.8 });
+        asset = picked.canceled ? null : picked.assets[0];
+      } else {
+        asset = await pickDocument();
+      }
+    } catch (error) {
+      toastError("Could not open that", readApiError(error));
+      return;
+    }
 
     if (!asset) return;
 
@@ -407,9 +414,9 @@ function DocumentsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Prom
 
         return (
           <StepSection caption={doc.caption} key={doc.type} title={doc.label}>
-            <View className="flex-row flex-wrap gap-3">
+            <View className="gap-3">
               {rows.map((row, at) => (
-                <DocumentTile
+                <DocumentRow
                   key={`${row.type}-${at}`}
                   onOpen={() =>
                     openAssetViewer(
@@ -425,12 +432,10 @@ function DocumentsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Prom
                   row={row}
                 />
               ))}
-              <AddDocumentTile
-                busy={busy === doc.type}
-                disabled={Boolean(busy)}
-                label={rows.length > 0 ? "Add another" : `Upload ${doc.label}`}
-                onPress={() => void upload(doc.type, doc.label)}
-              />
+              <View className="flex-row gap-2">
+                <Button className="flex-1" disabled={Boolean(busy)} icon={Camera} label={busy === doc.type ? "Uploading…" : "Camera"} onPress={() => void upload(doc.type, doc.label, "camera")} variant="outline" />
+                <Button className="flex-1" disabled={Boolean(busy)} icon={FileUp} label="Upload file" onPress={() => void upload(doc.type, doc.label, "file")} variant="outline" />
+              </View>
             </View>
           </StepSection>
         );
@@ -444,85 +449,48 @@ function DocumentsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Prom
   );
 }
 
-/** Half the row: the file itself, then where it stands. */
-function DocumentTile({ onOpen, row }: { onOpen: () => void; row: HostelKyc["documents"][number] }) {
+/** One file across the whole row: the page itself, big enough to read, then where it stands. */
+function DocumentRow({ onOpen, row }: { onOpen: () => void; row: HostelKyc["documents"][number] }) {
   const { colors } = useAppTheme();
   const token = useAppSelector((state) => state.auth.accessToken);
   const status = DOCUMENT_STATUS[row.status] ?? DOCUMENT_STATUS.PENDING;
-  const image = !row.mimeType || row.mimeType.startsWith("image/");
+  const pdf = isPdfReceipt(row.mimeType ?? undefined);
   const source =
-    row.fileAssetId && image
+    row.fileAssetId && !pdf
       ? viewerSourceFor({ assetId: row.fileAssetId }, { baseUrl: API_BASE_URL, token })
       : null;
 
   return (
-    <View className="w-[48%] gap-1.5">
-      <Pressable
-        accessibilityLabel={`Open ${row.type}`}
-        accessibilityRole="imagebutton"
-        className="aspect-[1.4] items-center justify-center overflow-hidden rounded-2xl border border-border bg-muted active:opacity-70"
-        disabled={!row.fileAssetId}
-        onPress={onOpen}
-      >
-        {/* Under the image, so a file that will not load still reads as a document. */}
-        <Ionicons color={colors.mutedForeground} name={image ? "image-outline" : "document-text-outline"} size={28} />
-        {image ? null : (
-          <Text className="mt-1" variant="caption">
-            {row.mimeType?.split("/")[1]?.toUpperCase() ?? "FILE"}
-          </Text>
-        )}
-        {source ? (
-          <Image
-            contentFit="cover"
-            source={source}
-            style={{ height: "100%", left: 0, position: "absolute", top: 0, width: "100%" }}
-            transition={150}
-          />
-        ) : null}
-      </Pressable>
-      <View className="flex-row">
-        <Badge label={status.label} tone={status.tone} />
-      </View>
-      {row.status === "REJECTED" && row.rejectionReason ? (
-        <Text className="text-destructive" numberOfLines={3} variant="caption">
-          {row.rejectionReason}
-        </Text>
+    <View className="gap-2">
+      {pdf && row.fileAssetId ? (
+        <PdfPreview height={200} label={`Open ${row.fileName ?? row.type}`} onPress={onOpen} read={() => readRemotePdf({ assetId: row.fileAssetId ?? undefined })} />
       ) : (
-        <Text numberOfLines={1} variant="caption">
-          {row.fileName ?? row.type}
-        </Text>
+        <Pressable
+          accessibilityLabel={`Open ${row.fileName ?? row.type}`}
+          accessibilityRole="imagebutton"
+          className="h-[200px] items-center justify-center overflow-hidden rounded-xl bg-muted active:opacity-80"
+          disabled={!row.fileAssetId}
+          onPress={onOpen}
+        >
+          {/* Under the image, so a file that will not load still reads as a document. */}
+          <Ionicons color={colors.mutedForeground} name="document-text-outline" size={32} />
+          {source ? (
+            <Image
+              contentFit="contain"
+              source={source}
+              style={{ height: "100%", left: 0, position: "absolute", top: 0, width: "100%" }}
+              transition={150}
+            />
+          ) : null}
+        </Pressable>
       )}
+      <View className="flex-row items-center gap-2">
+        <Badge label={status.label} tone={status.tone} />
+        <Text className={`flex-1 ${row.status === "REJECTED" ? "text-destructive" : ""}`} numberOfLines={2} variant="caption">
+          {row.status === "REJECTED" && row.rejectionReason ? row.rejectionReason : row.fileName ?? row.type}
+        </Text>
+      </View>
     </View>
-  );
-}
-
-function AddDocumentTile({
-  busy,
-  disabled,
-  label,
-  onPress,
-}: {
-  busy: boolean;
-  disabled: boolean;
-  label: string;
-  onPress: () => void;
-}) {
-  const { colors } = useAppTheme();
-
-  return (
-    <Pressable
-      accessibilityLabel={label}
-      accessibilityRole="button"
-      accessibilityState={{ busy, disabled }}
-      className="aspect-[1.4] w-[48%] items-center justify-center gap-1 rounded-2xl border border-dashed border-border active:opacity-70"
-      disabled={disabled}
-      onPress={onPress}
-    >
-      <Ionicons color={colors.primary} name={busy ? "hourglass-outline" : "cloud-upload-outline"} size={24} />
-      <Text className="text-center" variant="caption">
-        {busy ? "Uploading" : label}
-      </Text>
-    </Pressable>
   );
 }
 
@@ -545,9 +513,8 @@ function FoodStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
 
   return (
     <View className="gap-4">
-      <View className="gap-2"><Text variant="label">{filled} of {cells} meals</Text><View className="h-2 overflow-hidden rounded-full bg-muted"><View className="h-full bg-primary" style={{ width: `${filled / cells * 100}%` }} /></View></View>
       <FoodWeekEditor week={week} />
-      {dirty ? <Text className="text-warning" variant="muted">Not saved</Text> : null}
+      <Text variant="caption">{filled} of {cells} meals filled{dirty ? " · not saved yet" : ""}</Text>
     </View>
   );
 }
@@ -623,11 +590,8 @@ function FacilitiesStep({ onSaved, saved }: { onSaved: () => Promise<void> | voi
 function LocationStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
   const { colors } = useAppTheme();
   const hostel = useManagedHostel();
-  const [query, setQuery] = useState("");
-  const [hits, setHits] = useState<GeocodeHit[]>([]);
-  const [searching, setSearching] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [moving, setMoving] = useState(false);
+  const [picking, setPicking] = useState(false);
   const [selected, setSelected] = useState<{ lat: number; lng: number; hit?: GeocodeHit } | null>(null);
   const location = hostel.data?.location;
   const savedPin = location?.lat != null && location.lng != null ? { lat: location.lat, lng: location.lng } : null;
@@ -650,30 +614,27 @@ function LocationStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
     finally { setSaving(false); }
   };
   useKycDraft({ dirty: selected !== null, busy: saving, save });
-  const search = async () => {
-    if (query.trim().length < 2 || searching) return;
-    setSearching(true); setHits([]);
-    try {
-      const results = await geocodeHostelLocation(query.trim());
-      setHits(results.filter(hit => Number.isFinite(hit.lat) && Number.isFinite(hit.lng)));
-      if (!results.length) toastError("No place found", "Try a place name or map link.");
-    } catch (error) { toastError("Could not search", readApiError(error)); }
-    finally { setSearching(false); }
-  };
   if (hostel.loading) return <SkeletonCard rows={3} />;
   if (hostel.error || !location) return <ErrorState message={hostel.error ?? "Could not load map."} onRetry={hostel.reload} />;
   return <View className="gap-4">
     {pin ? <>
-      <View className="h-64 overflow-hidden rounded-2xl border border-border"><PinPreview key={`${pin.lat},${pin.lng}`} pin={pin} /></View>
-      <Text variant="subtitle">{[location.area, location.city].filter(Boolean).join(", ")}</Text>
-      <View className="flex-row"><Badge label={selected ? "Not saved" : placed ? "Placed by you" : "Check this pin"} tone={placed && !selected ? "success" : "warning"} /></View>
+      <Pressable accessibilityLabel="Move the pin" accessibilityRole="button" className="h-64 overflow-hidden rounded-2xl border border-border" onPress={() => setPicking(true)}>
+        <PinPreview key={`${pin.lat},${pin.lng}`} pin={pin} />
+      </Pressable>
+      <View className="flex-row items-center gap-2">
+        <Ionicons color={colors.foreground} name="location-outline" size={20} />
+        <Text className="flex-1" numberOfLines={1} variant="subtitle">{[location.area, location.city].filter(Boolean).join(", ") || "Your hostel"}</Text>
+        <Badge label={selected ? "Not saved" : placed ? "Placed by you" : "Check this pin"} tone={placed && !selected ? "success" : "warning"} />
+      </View>
       {!placed || selected ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: selected !== null }} onPress={() => setSelected(selected ? null : pin)} className={`min-h-14 flex-row items-center gap-3 rounded-xl border p-4 ${selected ? "border-primary bg-brand-soft" : "border-border"}`}><Ionicons name={selected ? "checkbox" : "square-outline"} color={colors.primary} size={24} /><Text className="flex-1" variant="label">Yes, this is my door</Text></Pressable> : null}
-    </> : <Card className="items-center gap-2 py-8"><Ionicons name="location-outline" size={36} color={colors.primary} /><Text variant="muted">Find your hostel</Text></Card>}
-    <Button label={pin ? "Move pin" : "Find on map"} variant="outline" onPress={() => setMoving(!moving)} />
-    {moving || !pin ? <View className="gap-3">
-      <Input label="Place or map link" hint="You can also enter lat, lng." value={query} onChangeText={setQuery} placeholder="Koteshwar, Kathmandu" autoCapitalize="none" autoCorrect={false} returnKeyType="search" onSubmitEditing={() => void search()} />
-      <Button label={searching ? "Searching…" : "Search"} disabled={searching || query.trim().length < 2} variant="outline" onPress={() => void search()} />
-      {searching ? <SkeletonCard rows={2} /> : hits.map(hit => <Pressable key={`${hit.lat},${hit.lng}`} accessibilityRole="button" onPress={() => { setSelected({ lat: hit.lat, lng: hit.lng, hit }); setHits([]); setMoving(false); }} className="min-h-16 flex-row items-center gap-3 rounded-xl border border-border p-3"><View className="flex-1"><Text>{hit.displayName}</Text><Text variant="caption">{hit.lat.toFixed(5)}, {hit.lng.toFixed(5)}</Text></View><Text className="text-primary" variant="label">Pick</Text></Pressable>)}
-    </View> : null}
+    </> : <Card className="items-center gap-2 py-8"><Ionicons name="location-outline" size={36} color={colors.primary} /><Text variant="muted">Find your hostel on the map</Text></Card>}
+    <Button icon={MapPin} label={pin ? "Move pin" : "Find on map"} variant="outline" onPress={() => setPicking(true)} />
+    <PinPickerModal
+      initial={pin}
+      onClose={() => setPicking(false)}
+      onPick={(next) => { setSelected(next); setPicking(false); }}
+      open={picking}
+      search={geocodeHostelLocation}
+    />
   </View>;
 }

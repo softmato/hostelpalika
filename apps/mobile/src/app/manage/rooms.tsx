@@ -353,7 +353,7 @@ export default function ManageRoomsScreen() {
                     busy={uploadingFor === targetKey(target)}
                     limit={PHOTO_LIMITS[shot.kind]}
                     name={`${shot.name} of ${hostel.data?.name ?? "the hostel"}`}
-                    onAdd={() => void addPhotos(target, shots.length)}
+                    onAdd={(source) => void addPhotos(target, shots.length, source)}
                     onRemove={removePhoto}
                     photos={shots}
                   />
@@ -432,7 +432,7 @@ export default function ManageRoomsScreen() {
                     busy={uploadingFor === targetKey(target)}
                     limit={PHOTO_LIMITS.ROOM}
                     name={config.roomType}
-                    onAdd={() => void addPhotos(target, roomPhotos.length)}
+                    onAdd={(source) => void addPhotos(target, roomPhotos.length, source)}
                     onRemove={removePhoto}
                     photos={roomPhotos}
                   />

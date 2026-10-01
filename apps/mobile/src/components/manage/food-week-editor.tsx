@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { Clock, Copy, Plus } from "lucide-react-native";
+import { Copy } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -7,6 +7,7 @@ import type { FoodWeek } from "@/components/manage/food-week";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Segmented } from "@/components/ui/segmented";
 import { Sheet } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -18,64 +19,336 @@ const ICONS: Record<MealType, keyof typeof Ionicons.glyphMap> = {
   BREAKFAST: "cafe-outline", LUNCH: "restaurant-outline", SNACKS: "fast-food-outline", DINNER: "moon-outline",
 };
 const DISHES = ["Dal", "Bhat", "Tarkari", "Achar", "Chiura", "Tea", "Paratha", "Roti", "Anda curry", "Chicken curry", "Momo", "Khir"];
-const TIMES = { BREAKFAST: "6:00 AM – 7:00 AM", LUNCH: "11:00 AM – 12:00 PM", SNACKS: "3:00 PM – 4:00 PM", DINNER: "7:00 PM – 8:00 PM" };
+/** One tap for the usual slots; anything else is typed. */
+const TIME_PRESETS: Record<MealType, string[]> = {
+  BREAKFAST: ["6:00 – 7:00 AM", "7:00 – 8:00 AM", "7:30 – 9:00 AM"],
+  LUNCH: ["9:00 – 10:00 AM", "11:00 AM – 12:00 PM", "12:00 – 1:00 PM"],
+  SNACKS: ["3:00 – 4:00 PM", "4:00 – 5:00 PM", "5:00 – 6:00 PM"],
+  DINNER: ["7:00 – 8:00 PM", "8:00 – 9:00 PM", "8:30 – 9:30 PM"],
+};
+const short = (day: RoutineDay) => humanizeEnum(day).slice(0, 3);
 
-/** Shared native/PWA editor. A meal expands into inputs in its own row. */
+/**
+ * The week's menu, shared by Hostel KYC and Food.
+ *
+ * Meal times come first and are set once — they are the same every day, so the
+ * day view does not repeat them on every meal. Then a day at a time: each meal
+ * is one line of food, and tapping it opens the editor right there in the row
+ * (never a sheet: filling four meals should not mean opening four sheets).
+ */
 export function FoodWeekEditor({ week }: { week: FoodWeek }) {
-  const { colors } = useAppTheme();
-  const { current, day, setDay, editing, setEditing, setCell, setDraft, saving } = week;
+  const { saving } = week;
   const [view, setView] = useState<"day" | "week">("day");
-  const [times, setTimes] = useState(false);
-  const [special, setSpecial] = useState(false);
-  const [copy, setCopy] = useState<"day" | MealType | null>(null);
-  const [targets, setTargets] = useState<RoutineDay[]>([]);
-  const changeDay = (next: RoutineDay) => { setDay(next); setEditing(null); };
-  const openCopy = (meal: "day" | MealType) => {
-    setTargets(ROUTINE_DAYS.filter(item => item !== day));
-    setCopy(meal);
-  };
 
-  return <View className="gap-4" pointerEvents={saving ? "none" : "auto"}>
-    <View className="flex-row rounded-xl border border-border p-1">
-      {(["day", "week"] as const).map(item => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item }} key={item} onPress={() => setView(item)} className={`min-h-11 flex-1 items-center justify-center rounded-lg ${view === item ? "bg-primary" : ""}`}><Text className={view === item ? "text-primary-foreground" : "text-foreground"} variant="label">{item === "day" ? "Day" : "Week"}</Text></Pressable>)}
+  return (
+    <View className="gap-4" pointerEvents={saving ? "none" : "auto"}>
+      <MealTimes week={week} />
+      <Segmented
+        onChange={setView}
+        options={[{ label: "Day", value: "day" }, { label: "Week", value: "week" }]}
+        value={view}
+      />
+      {view === "week" ? <WeekGrid onOpen={() => setView("day")} week={week} /> : <DayMeals week={week} />}
+      <MonthEnd week={week} />
     </View>
-    {view === "week" ? <Card padding="p-2" className="gap-1">
-      <View className="flex-row items-center"><View className="w-12" />{MEAL_TYPES.map(meal => <View key={meal} className="flex-1 items-center py-2"><Ionicons accessibilityLabel={humanizeEnum(meal)} name={ICONS[meal]} color={colors.foreground} size={20} /><Text style={{ fontSize: 10 }} variant="caption">{humanizeEnum(meal)}</Text></View>)}</View>
-      {ROUTINE_DAYS.map(item => <View key={item} className="flex-row items-center gap-1"><Text className="w-11" variant="label">{humanizeEnum(item).slice(0, 3)}</Text>{MEAL_TYPES.map(meal => {
-        const filled = splitItems(current.meals[cellKey(item, meal)]?.items ?? "").length > 0;
-        return <Pressable key={meal} accessibilityRole="button" accessibilityLabel={`${humanizeEnum(item)} ${humanizeEnum(meal)}, ${filled ? "edit" : "add"}`} onPress={() => { changeDay(item); setEditing(meal); setView("day"); }} className={`min-h-11 flex-1 items-center justify-center rounded-lg ${filled ? "bg-brand-soft" : "border border-dashed border-border"}`}><Ionicons name={filled ? "checkmark" : "add"} color={filled ? colors.primary : colors.mutedForeground} size={20} /></Pressable>;
-      })}</View>)}
-    </Card> : <>
-      <View className="flex-row gap-1">{ROUTINE_DAYS.map(item => <Pressable key={item} accessibilityRole="tab" accessibilityState={{ selected: day === item }} onPress={() => changeDay(item)} className={`min-h-11 flex-1 items-center justify-center rounded-lg ${day === item ? "bg-brand-soft" : "border border-border"}`}><Text variant="label" className={day === item ? "text-primary" : ""}>{humanizeEnum(item).slice(0, 3)}</Text></Pressable>)}</View>
-      <View className="flex-row items-center justify-between"><Text variant="subtitle">{humanizeEnum(day)}</Text><Button icon={Copy} label="Copy day" variant="ghost" onPress={() => openCopy("day")} /></View>
+  );
+}
+
+function MealTimes({ week }: { week: FoodWeek }) {
+  const { colors } = useAppTheme();
+  const { current, setDraft } = week;
+  const [open, setOpen] = useState<MealType | null>(null);
+  const setTime = (meal: MealType, value: string) =>
+    setDraft({ ...current, timings: { ...current.timings, [meal]: value } });
+
+  return (
+    <Card padding="p-0" className="overflow-hidden">
+      <View className="flex-row items-center justify-between px-4 pb-1 pt-3">
+        <Text variant="subtitle">Meal times</Text>
+        <Text variant="caption">Same every day</Text>
+      </View>
+      {MEAL_TYPES.map((meal) => {
+        const time = current.timings[meal]?.trim() ?? "";
+        const expanded = open === meal;
+
+        return (
+          <View key={meal}>
+            <Pressable
+              accessibilityLabel={`${humanizeEnum(meal)} time, ${time || "not set"}`}
+              accessibilityRole="button"
+              accessibilityState={{ expanded }}
+              className="min-h-12 flex-row items-center gap-3 px-4 active:opacity-70"
+              onPress={() => setOpen(expanded ? null : meal)}
+            >
+              <Ionicons color={colors.foreground} name={ICONS[meal]} size={20} />
+              <Text className="flex-1" variant="label">{humanizeEnum(meal)}</Text>
+              <Text className={time ? "" : "text-primary"} variant={time ? "body" : "label"}>{time || "Set time"}</Text>
+              <Ionicons color={colors.mutedForeground} name={expanded ? "chevron-up" : "chevron-down"} size={18} />
+            </Pressable>
+            {expanded ? (
+              <View className="gap-3 px-4 pb-4">
+                <View className="flex-row flex-wrap gap-2">
+                  {TIME_PRESETS[meal].map((preset) => (
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: time === preset }}
+                      className={`min-h-11 justify-center rounded-xl border px-3 ${time === preset ? "border-primary bg-brand-soft" : "border-border"}`}
+                      key={preset}
+                      onPress={() => { setTime(meal, preset); setOpen(null); }}
+                    >
+                      <Text className={time === preset ? "text-primary" : ""} variant="label">{preset}</Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <Input
+                  accessibilityLabel={`${humanizeEnum(meal)} time`}
+                  onChangeText={(value) => setTime(meal, value)}
+                  placeholder="Or type a time"
+                  returnKeyType="done"
+                  onSubmitEditing={() => setOpen(null)}
+                  value={current.timings[meal] ?? ""}
+                />
+              </View>
+            ) : null}
+          </View>
+        );
+      })}
+    </Card>
+  );
+}
+
+function DayMeals({ week }: { week: FoodWeek }) {
+  const { colors } = useAppTheme();
+  const { current, day, setDay, editing, setEditing, setCell } = week;
+  const [copy, setCopy] = useState<"day" | MealType | null>(null);
+
+  return (
+    <>
+      <View className="flex-row gap-1">
+        {ROUTINE_DAYS.map((item) => {
+          const count = MEAL_TYPES.filter((meal) => splitItems(current.meals[cellKey(item, meal)]?.items ?? "").length).length;
+
+          return (
+            <Pressable
+              accessibilityLabel={`${humanizeEnum(item)}, ${count} of 4 meals`}
+              accessibilityRole="tab"
+              accessibilityState={{ selected: day === item }}
+              className={`min-h-12 flex-1 items-center justify-center gap-1 rounded-lg ${day === item ? "bg-primary" : "border border-border"}`}
+              key={item}
+              onPress={() => { setDay(item); setEditing(null); }}
+            >
+              <Text className={day === item ? "text-primary-foreground" : ""} variant="label">{short(item)}</Text>
+              {/* A dot per day that still has an empty meal. */}
+              <View className={`h-1 w-1 rounded-full ${count === 4 ? "bg-transparent" : day === item ? "bg-primary-foreground" : "bg-warning"}`} />
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <View className="flex-row items-center justify-between">
+        <Text variant="subtitle">{humanizeEnum(day)}</Text>
+        <Button icon={Copy} label="Copy day" onPress={() => setCopy("day")} size="sm" variant="ghost" />
+      </View>
+
       <Card padding="p-0" className="overflow-hidden">
         {MEAL_TYPES.map((meal, at) => {
           const cell = current.meals[cellKey(day, meal)] ?? { items: "", note: "" };
+          const items = splitItems(cell.items);
           const open = editing === meal;
-          return <View key={meal} className={at ? "border-t border-border" : ""}>
-            <Pressable accessibilityRole="button" accessibilityLabel={`Edit ${humanizeEnum(meal)}`} accessibilityState={{ expanded: open }} onPress={() => setEditing(open ? null : meal)} className="min-h-24 flex-row items-start gap-3 p-4">
-              <Ionicons name={ICONS[meal]} color={colors.foreground} size={24} />
-              <View className="flex-1 gap-1"><Text variant="subtitle">{humanizeEnum(meal)}</Text>{!open && <><Text variant="muted">{splitItems(cell.items).join(", ") || "Add food"}</Text>{cell.note ? <Text variant="muted">{cell.note}</Text> : null}</>}{current.timings[meal] ? <Text variant="caption">{current.timings[meal]}</Text> : null}</View>
-              <Ionicons name={open ? "chevron-up" : "pencil-outline"} size={20} color={colors.foreground} />
-            </Pressable>
-            {open ? <View className="gap-3 px-4 pb-4">
-              <Input accessibilityLabel={`${humanizeEnum(meal)} food`} label="Food" multiline value={cell.items} placeholder="Dal, bhat, tarkari" onChangeText={items => setCell(meal, { ...cell, items })} style={{ minHeight: 80, textAlignVertical: "top" }} />
-              <View className="flex-row flex-wrap gap-2">{DISHES.map(dish => {
-                const added = splitItems(cell.items).some(item => item.toLowerCase() === dish.toLowerCase());
-                return <Pressable key={dish} accessibilityRole="button" accessibilityLabel={`Add ${dish}`} disabled={added || splitItems(cell.items).length >= 20} onPress={() => setCell(meal, { ...cell, items: [...splitItems(cell.items), dish].join(", ") })} className={`min-h-11 justify-center rounded-xl border px-3 ${added ? "border-primary/20 bg-brand-soft" : "border-border"}`}><Text variant="label" className={added ? "text-primary" : ""}>{added ? "✓" : "+"} {dish}</Text></Pressable>;
-              })}</View>
-              <Input label="Note (optional)" value={cell.note} onChangeText={note => setCell(meal, { ...cell, note })} placeholder="Add a note" multiline />
-              <View className="flex-row gap-2"><Button className="flex-1" label="Same every day" variant="outline" onPress={() => openCopy(meal)} /><Button label="Done" variant="outline" onPress={() => setEditing(null)} /></View>
-            </View> : null}
-          </View>;
+
+          return (
+            <View className={at ? "border-t border-border" : ""} key={meal}>
+              <Pressable
+                accessibilityLabel={`${humanizeEnum(meal)}: ${items.join(", ") || "no food yet"}`}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: open }}
+                className="min-h-16 flex-row items-center gap-3 px-4 py-3 active:opacity-70"
+                onPress={() => setEditing(open ? null : meal)}
+              >
+                <View className="h-10 w-10 items-center justify-center rounded-xl bg-brand-soft">
+                  <Ionicons color={colors.primary} name={ICONS[meal]} size={20} />
+                </View>
+                <View className="flex-1">
+                  <Text variant="label">{humanizeEnum(meal)}</Text>
+                  {open ? null : (
+                    <Text className={items.length ? "" : "text-muted-foreground"} numberOfLines={2} variant="body">
+                      {items.join(", ") || "Add food"}
+                    </Text>
+                  )}
+                </View>
+                <Ionicons color={items.length ? colors.mutedForeground : colors.primary} name={open ? "chevron-up" : items.length ? "pencil-outline" : "add"} size={20} />
+              </Pressable>
+
+              {open ? (
+                <View className="gap-3 px-4 pb-4">
+                  <Input
+                    accessibilityLabel={`${humanizeEnum(meal)} food`}
+                    autoFocus={!items.length}
+                    multiline
+                    onChangeText={(value) => setCell(meal, { ...cell, items: value })}
+                    placeholder="Dal, bhat, tarkari"
+                    style={{ minHeight: 64, textAlignVertical: "top" }}
+                    value={cell.items}
+                  />
+                  <View className="flex-row flex-wrap gap-2">
+                    {DISHES.filter((dish) => !items.some((item) => item.toLowerCase() === dish.toLowerCase())).map((dish) => (
+                      <Pressable
+                        accessibilityLabel={`Add ${dish}`}
+                        accessibilityRole="button"
+                        className="min-h-10 justify-center rounded-full border border-border px-3 active:opacity-70"
+                        disabled={items.length >= 20}
+                        key={dish}
+                        onPress={() => setCell(meal, { ...cell, items: [...items, dish].join(", ") })}
+                      >
+                        <Text variant="label">+ {dish}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <Input onChangeText={(note) => setCell(meal, { ...cell, note })} placeholder="Note (optional)" value={cell.note} />
+                  <View className="flex-row gap-2">
+                    <Button className="flex-1" label="Same every day" onPress={() => setCopy(meal)} size="sm" variant="outline" />
+                    <Button className="flex-1" label="Done" onPress={() => setEditing(null)} size="sm" />
+                  </View>
+                </View>
+              ) : null}
+            </View>
+          );
         })}
       </Card>
-    </>}
-    <View className="flex-row gap-2"><Button className="flex-1" icon={Clock} label="Meal times" variant="outline" onPress={() => setTimes(!times)} /><Button className="flex-1" icon={Plus} label="Month-end meal" variant="outline" onPress={() => setSpecial(!special)} /></View>
-    {times ? <Card className="gap-3"><Text variant="subtitle">Meal times</Text><Text variant="muted">Same time each day</Text>{MEAL_TYPES.map(meal => <Input key={meal} label={humanizeEnum(meal)} value={current.timings[meal] ?? ""} placeholder={TIMES[meal]} onChangeText={value => setDraft({ ...current, timings: { ...current.timings, [meal]: value } })} />)}</Card> : null}
-    {special ? <Card className="gap-3"><Text variant="subtitle">Month-end meal</Text><Input label="Food" multiline value={current.monthEndItems} placeholder="Khir, puri" onChangeText={monthEndItems => setDraft({ ...current, monthEndItems })} /><Input label="Note (optional)" value={current.monthEndNote} onChangeText={monthEndNote => setDraft({ ...current, monthEndNote })} /></Card> : current.monthEndItems ? <Text variant="muted">Month-end: {current.monthEndItems}</Text> : null}
-    <Sheet open={copy !== null} onClose={() => setCopy(null)} title={copy === "day" ? `Copy ${humanizeEnum(day)}` : `${humanizeEnum(copy ?? "")} each day`} footer={<Button disabled={!targets.length || saving} label={`Copy to ${targets.length} ${targets.length === 1 ? "day" : "days"}`} onPress={() => { setDraft(copyMeals(current, day, targets, copy === "day" ? undefined : copy ?? undefined)); setCopy(null); }} />}>
-      <View className="gap-4"><Text variant="subtitle">Pick days</Text><View className="flex-row flex-wrap gap-2">{ROUTINE_DAYS.filter(item => item !== day).map(item => <Pressable key={item} accessibilityRole="checkbox" accessibilityState={{ checked: targets.includes(item) }} onPress={() => setTargets(previous => previous.includes(item) ? previous.filter(target => target !== item) : [...previous, item])} className={`min-h-14 w-[30%] items-center justify-center rounded-xl border ${targets.includes(item) ? "border-primary/20 bg-brand-soft" : "border-border"}`}><Text variant="label">{targets.includes(item) ? "✓ " : ""}{humanizeEnum(item).slice(0, 3)}</Text></Pressable>)}</View><Button label={targets.length === ROUTINE_DAYS.length - 1 ? "Clear all" : "Pick all"} variant="outline" onPress={() => setTargets(targets.length === ROUTINE_DAYS.length - 1 ? [] : ROUTINE_DAYS.filter(item => item !== day))} /><Text className="text-warning" variant="muted">Meals on these days will change.</Text></View>
+
+      <CopySheet onClose={() => setCopy(null)} target={copy} week={week} />
+    </>
+  );
+}
+
+/** The whole week at a glance; a cell opens that meal in the day view. */
+function WeekGrid({ onOpen, week }: { onOpen: () => void; week: FoodWeek }) {
+  const { colors } = useAppTheme();
+  const { current, setDay, setEditing } = week;
+
+  return (
+    <Card padding="p-2" className="gap-1">
+      <View className="flex-row items-end">
+        <View className="w-11" />
+        {MEAL_TYPES.map((meal) => (
+          <View className="flex-1 items-center gap-0.5 py-2" key={meal}>
+            <Ionicons accessibilityLabel={humanizeEnum(meal)} color={colors.foreground} name={ICONS[meal]} size={20} />
+            <Text style={{ fontSize: 10 }} variant="caption">{humanizeEnum(meal)}</Text>
+            <Text className="text-center" numberOfLines={2} style={{ fontSize: 9 }} variant="caption">
+              {current.timings[meal]?.trim() || "—"}
+            </Text>
+          </View>
+        ))}
+      </View>
+      {ROUTINE_DAYS.map((item) => (
+        <View className="flex-row items-center gap-1" key={item}>
+          <Text className="w-11" variant="label">{short(item)}</Text>
+          {MEAL_TYPES.map((meal) => {
+            const filled = splitItems(current.meals[cellKey(item, meal)]?.items ?? "").length > 0;
+
+            return (
+              <Pressable
+                accessibilityLabel={`${humanizeEnum(item)} ${humanizeEnum(meal)}, ${filled ? "edit" : "add"}`}
+                accessibilityRole="button"
+                className={`min-h-11 flex-1 items-center justify-center rounded-lg ${filled ? "bg-brand-soft" : "border border-dashed border-border"}`}
+                key={meal}
+                onPress={() => { setDay(item); setEditing(meal); onOpen(); }}
+              >
+                <Ionicons color={filled ? colors.primary : colors.mutedForeground} name={filled ? "checkmark" : "add"} size={20} />
+              </Pressable>
+            );
+          })}
+        </View>
+      ))}
+    </Card>
+  );
+}
+
+function MonthEnd({ week }: { week: FoodWeek }) {
+  const { colors } = useAppTheme();
+  const { current, setDraft } = week;
+  const [open, setOpen] = useState(false);
+  const items = splitItems(current.monthEndItems);
+
+  return (
+    <Card padding="p-0" className="overflow-hidden">
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        className="min-h-14 flex-row items-center gap-3 px-4 active:opacity-70"
+        onPress={() => setOpen(!open)}
+      >
+        <Ionicons color={colors.foreground} name="star-outline" size={20} />
+        <View className="flex-1">
+          <Text variant="label">Month-end meal</Text>
+          {open ? null : <Text className={items.length ? "" : "text-muted-foreground"} numberOfLines={1}>{items.join(", ") || "Optional"}</Text>}
+        </View>
+        <Ionicons color={colors.mutedForeground} name={open ? "chevron-up" : items.length ? "pencil-outline" : "add"} size={20} />
+      </Pressable>
+      {open ? (
+        <View className="gap-3 px-4 pb-4">
+          <Input multiline onChangeText={(monthEndItems) => setDraft({ ...current, monthEndItems })} placeholder="Khir, puri" value={current.monthEndItems} />
+          <Input onChangeText={(monthEndNote) => setDraft({ ...current, monthEndNote })} placeholder="Note (optional)" value={current.monthEndNote} />
+        </View>
+      ) : null}
+    </Card>
+  );
+}
+
+/** Copies the open day — or one meal of it — onto the picked days, in the draft only. */
+function CopySheet({ onClose, target, week }: { onClose: () => void; target: "day" | MealType | null; week: FoodWeek }) {
+  const { colors } = useAppTheme();
+  const { current, day, saving, setDraft } = week;
+  const others = ROUTINE_DAYS.filter((item) => item !== day);
+  const [targets, setTargets] = useState<RoutineDay[]>(others);
+  const [openFor, setOpenFor] = useState(target);
+
+  // Every open starts with all the other days picked.
+  if (target !== openFor) {
+    setOpenFor(target);
+    setTargets(others);
+  }
+
+  const all = targets.length === others.length;
+
+  return (
+    <Sheet
+      footer={
+        <Button
+          disabled={!targets.length || saving}
+          label={`Copy to ${targets.length} ${targets.length === 1 ? "day" : "days"}`}
+          onPress={() => {
+            setDraft(copyMeals(current, day, targets, target === "day" ? undefined : target ?? undefined));
+            onClose();
+          }}
+        />
+      }
+      onClose={onClose}
+      open={target !== null}
+      title={target === "day" ? `Copy ${humanizeEnum(day)}` : `${humanizeEnum(target ?? "")} every day`}
+    >
+      <View className="gap-4">
+        <View className="flex-row flex-wrap gap-2">
+          {others.map((item) => {
+            const picked = targets.includes(item);
+
+            return (
+              <Pressable
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: picked }}
+                className={`min-h-14 w-[31%] flex-row items-center justify-center gap-2 rounded-xl border ${picked ? "border-primary/20 bg-brand-soft" : "border-border"}`}
+                key={item}
+                onPress={() => setTargets((previous) => (picked ? previous.filter((day) => day !== item) : [...previous, item]))}
+              >
+                <Ionicons color={picked ? colors.primary : colors.mutedForeground} name={picked ? "checkmark-circle" : "ellipse-outline"} size={20} />
+                <Text variant="label">{short(item)}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        <Button label={all ? "Clear all" : "Pick all"} onPress={() => setTargets(all ? [] : others)} variant="outline" />
+        <Text className="text-warning" variant="muted">Meals on these days will change.</Text>
+      </View>
     </Sheet>
-  </View>;
+  );
 }

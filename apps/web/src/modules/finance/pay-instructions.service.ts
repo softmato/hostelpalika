@@ -11,6 +11,7 @@ import { InvoiceModel } from "@hostel/db/models/Invoice";
 import { hasProvider } from "@/modules/finance/gateway/registry";
 import { isGatewayPayable } from "@/modules/finance/gateway/secret-store";
 import {
+  type ExtraPaymentAccount,
   findGateway,
   FONEPAY_PERSONAL_DAILY_LIMIT,
   type GatewayConfig,
@@ -117,6 +118,7 @@ function methodsFrom(
     bankAccountNumber?: string | null;
     bankName?: string | null;
     esewaId?: string | null;
+    extraAccounts?: ExtraPaymentAccount[] | null;
     gateways?: GatewayConfig[] | null;
     khaltiId?: string | null;
     staticQrAssetId?: Types.ObjectId | null;
@@ -164,6 +166,13 @@ function methodsFrom(
     methods.push({ kind: "KHALTI", id: profile.khaltiId });
   }
 
+  const extra = profile.extraAccounts ?? [];
+
+  for (const account of extra) {
+    if (account.kind === "ESEWA" && !live.has("ESEWA")) methods.push({ kind: "ESEWA", id: account.number });
+    if (account.kind === "KHALTI" && !live.has("KHALTI")) methods.push({ kind: "KHALTI", id: account.number });
+  }
+
   if (profile.bankAccountNumber) {
     methods.push({
       kind: "BANK",
@@ -171,6 +180,17 @@ function methodsFrom(
       accountNumber: profile.bankAccountNumber,
       bankName: profile.bankName ?? null,
     });
+  }
+
+  for (const account of extra) {
+    if (account.kind === "BANK") {
+      methods.push({
+        kind: "BANK",
+        accountName: account.accountName ?? null,
+        accountNumber: account.number,
+        bankName: account.bankName ?? null,
+      });
+    }
   }
 
   return methods;
@@ -242,6 +262,7 @@ export async function getHostelPayMethods(
     bankName?: string | null;
     displayName?: string | null;
     esewaId?: string | null;
+    extraAccounts?: ExtraPaymentAccount[] | null;
     gateways?: GatewayConfig[] | null;
     khaltiId?: string | null;
     paymentInstructions?: string | null;
@@ -287,6 +308,7 @@ export async function getPayInstructions(
       bankName?: string | null;
       displayName?: string | null;
       esewaId?: string | null;
+      extraAccounts?: ExtraPaymentAccount[] | null;
       gateways?: GatewayConfig[] | null;
       khaltiId?: string | null;
       paymentInstructions?: string | null;

@@ -250,13 +250,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
         // identifiers it has, read off the poster at upload. Projecting them
         // away leaves such a hostel `UNKNOWN` on every claim.
         .select(
-          "bankAccountName bankAccountNumber displayName esewaId khaltiId qrPayeeName qrPayeeNumber",
+          "bankAccountName bankAccountNumber displayName esewaId extraAccounts khaltiId qrPayeeName qrPayeeNumber",
         )
         .lean<{
           bankAccountName?: string | null;
           bankAccountNumber?: string | null;
           displayName?: string | null;
           esewaId?: string | null;
+          extraAccounts?: Array<{ accountName?: string | null; number?: string | null }> | null;
           khaltiId?: string | null;
           qrPayeeName?: string | null;
           qrPayeeNumber?: string | null;

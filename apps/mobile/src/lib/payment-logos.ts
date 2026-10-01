@@ -118,6 +118,41 @@ export const PAYMENT_LOGO_KEYS = [
 export type PaymentLogoKey = (typeof PAYMENT_LOGO_KEYS)[number];
 
 /**
+ * Banks an owner picks from when they add an account — Nepal's commercial
+ * banks, then the development banks we hold a mark for. Picking one spells the
+ * name the way `resolvePaymentLogoKey` already reads, so the logo follows it;
+ * the field still takes free text for anyone else.
+ */
+export const BANK_NAMES = [
+  "Nabil Bank",
+  "NIC Asia Bank",
+  "Global IME Bank",
+  "Nepal Investment Mega Bank",
+  "Himalayan Bank",
+  "Everest Bank",
+  "Kumari Bank",
+  "Laxmi Sunrise Bank",
+  "Machhapuchchhre Bank",
+  "NMB Bank",
+  "Prabhu Bank",
+  "Prime Commercial Bank",
+  "Sanima Bank",
+  "Siddhartha Bank",
+  "Citizens Bank International",
+  "Nepal SBI Bank",
+  "Standard Chartered Bank Nepal",
+  "Nepal Bank",
+  "Agricultural Development Bank",
+  "Rastriya Banijya Bank",
+  "Garima Bikas Bank",
+  "Jyoti Bikas Bank",
+  "Kamana Sewa Bikas Bank",
+  "Lumbini Bikas Bank",
+  "Muktinath Bikas Bank",
+  "Shangri-la Development Bank",
+] as const;
+
+/**
  * The words a bank's name is recognised by, per key.
  *
  * Deliberately *not* the full registered name. "Everest Bank Limited" and

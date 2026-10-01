@@ -19,6 +19,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { isPdfReceipt, PdfPreview, readRemotePdf } from "@/components/receipt-preview";
 import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
 import { useSystemInsets } from "@/hooks/use-system-insets";
@@ -562,6 +563,15 @@ function ViewerPage({
       { scale: scale.value },
     ],
   }));
+
+  // A PDF is drawn page by page with pdf.js rather than handed to Save.
+  if (source && isPdfReceipt(item.mimeType)) {
+    return (
+      <View style={{ height, width }}>
+        <PdfPreview allPages height={height} label={item.title ?? "Document"} read={() => readRemotePdf(item)} />
+      </View>
+    );
+  }
 
   if (!source || !isPreviewable(item)) {
     return (

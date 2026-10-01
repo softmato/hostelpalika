@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
 
+import { BankNameField } from "@/components/manage/bank-name-field";
 import { useKycDraft } from "@/components/manage/kyc-draft";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
-import { useAppTheme } from "@/hooks/use-app-theme";
+import { WalletMark } from "@/components/ui/wallet-mark";
 import { useResource } from "@/hooks/use-resource";
 import { getPayoutAccount, type PayoutAccount, savePayoutAccount } from "@/lib/admin-bookings-api";
 import { readApiError } from "@/lib/api-contract";
@@ -123,7 +123,7 @@ export function PayoutAccountFields({
       <Input label="Name on the account" onChangeText={setHolderName} value={holderName} />
       {method === "BANK" ? (
         <>
-          <Input label="Bank" onChangeText={setBankName} value={bankName} />
+          <BankNameField onChange={setBankName} value={bankName} />
           <Input label="Branch (optional)" onChangeText={setBranch} value={branch} />
         </>
       ) : null}
@@ -167,7 +167,6 @@ export function PayoutAccountCard() {
 export function PayoutAccountPanel({ onSaved }: { onSaved?: () => void }) {
   const account = usePayoutAccount();
   const [editing, setEditing] = useState(false);
-  const { colors } = useAppTheme();
   if (account.loading) return <SkeletonCard rows={3} />;
   if (account.error) return <ErrorState message={account.error} onRetry={account.reload} />;
 
@@ -183,7 +182,7 @@ export function PayoutAccountPanel({ onSaved }: { onSaved?: () => void }) {
               <Badge label={status.label} tone={status.tone} />
             </View>
           ) : null}
-          <View className="flex-row items-center gap-3"><Ionicons name={data.method === "BANK" ? "business-outline" : "wallet-outline"} color={colors.primary} size={28} /><Text variant="subtitle">{data.bankName || data.methodLabel}</Text></View>
+          <View className="flex-row items-center gap-3"><WalletMark name={data.method === "BANK" ? data.bankName || "BANK" : data.method} size={44} square /><Text variant="subtitle">{data.bankName || data.methodLabel}</Text></View>
           <Text variant="title" style={{ fontVariant: ["tabular-nums"] }}>{data.maskedNumber}</Text>
           <Text variant="caption">{data.holderName}</Text>
           {data.status === "REJECTED" && data.reviewNote ? (

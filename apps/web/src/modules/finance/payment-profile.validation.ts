@@ -38,6 +38,18 @@ export const paymentProfileUpdateSchema = z
     cashApprovalThreshold: z.number().int().min(0).optional(),
     displayName: optionalText(120),
     esewaId: optionalText(64),
+    /** The whole list of extra accounts, replaced as one — an empty list clears it. */
+    extraAccounts: z
+      .array(
+        z.object({
+          accountName: z.string().trim().max(120).optional(),
+          bankName: z.string().trim().max(120).optional(),
+          kind: z.enum(["BANK", "ESEWA", "KHALTI"]),
+          number: z.string().trim().min(1).max(64),
+        }),
+      )
+      .max(6)
+      .optional(),
     hostelId: z.string().optional(),
     khaltiId: optionalText(64),
     paymentInstructions: optionalText(600),

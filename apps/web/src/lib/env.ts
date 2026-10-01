@@ -49,13 +49,10 @@ export const serverEnvSchema = z.object({
    */
   PERSONAL_DATA_ENCRYPTION_KEY: z.string().optional(),
   /**
-   * QuestionCall partner integration (ARCHITECTURE.md §12). All optional: with
-   * no SSO secret the study link still works as a plain outbound link, and with
-   * no webhook secret the conversion callback returns 503 instead of trusting
-   * an unauthenticated caller.
+   * QuestionCall's sign-up callback (ARCHITECTURE.md §12). Optional: without it
+   * the conversion callback returns 503 instead of trusting an unauthenticated
+   * caller. The link residents open is site config, not env.
    */
-  QUESTIONCALL_URL: z.string().url().optional(),
-  QUESTIONCALL_SSO_SECRET: z.string().optional(),
   QUESTIONCALL_WEBHOOK_SECRET: z.string().optional(),
   /**
    * Pusher Channels, for real-time notifications and live portal panels. All

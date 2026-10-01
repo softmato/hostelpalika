@@ -6,7 +6,7 @@ import { FileAssetModel } from "@hostel/db/models/FileAsset";
 import { FoodRoutineModel } from "@hostel/db/models/FoodRoutine";
 import { HostelDocumentModel } from "@hostel/db/models/HostelDocument";
 import { HostelModel } from "@hostel/db/models/Hostel";
-import { HostelPaymentProfileModel } from "@hostel/db/models/HostelPaymentProfile";
+import { HostelPaymentProfileModel, isPaymentProfileUsable } from "@hostel/db/models/HostelPaymentProfile";
 import { HostelPayoutAccountModel } from "@hostel/db/models/HostelPayoutAccount";
 import { HostelServiceError } from "@/modules/hostels/hostel.service";
 
@@ -60,8 +60,8 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId) {
       >(),
     HostelPayoutAccountModel.exists({ hostelId: id }),
     HostelPaymentProfileModel.findOne({ hostelId: id })
-      .select("staticQrAssetId esewaId khaltiId bankAccountNumber")
-      .lean<Record<string, unknown> | null>(),
+      .select("staticQrAssetId esewaId khaltiId bankAccountNumber extraAccounts gateways")
+      .lean<Parameters<typeof isPaymentProfileUsable>[0]>(),
     FoodRoutineModel.findOne({ hostelId: id }).select("meals").lean<{ meals?: unknown[] } | null>(),
   ]);
 
@@ -84,10 +84,8 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId) {
     food: (routine?.meals ?? []).length > 0,
     // A geocoded point is a guess at the neighbourhood; only a placed pin counts.
     location: hostel.location?.lat != null && hostel.location.locationSource === "MANUAL",
-    payments: Boolean(
-      profile &&
-        (profile.staticQrAssetId || profile.esewaId || profile.khaltiId || profile.bankAccountNumber),
-    ),
+    // The same test the resident pay screen uses, so the tick and "can pay" agree.
+    payments: isPaymentProfileUsable(profile),
     payout: Boolean(payout),
     photos: (hostel.photos ?? []).filter((photo) => photo.url).length >= MIN_PHOTOS,
     rules: (hostel.rules ?? []).length > 0,

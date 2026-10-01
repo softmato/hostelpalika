@@ -192,6 +192,8 @@ export async function getPublicSiteConfig() {
     // beside it. Public by definition — it is the page — and read by the
     // website's pricing, service and badge routes, and by the phone.
     plans: sellingCatalog(config.plans, currentBsPeriod()),
+    // The student resident row's switch, label and link — read by both homes.
+    questionCall: config.questionCall,
     // Titles, descriptions, verification tags and the search landing pages.
     // Nothing private: every field ends up in a page head or on a public page.
     seo: config.seo,

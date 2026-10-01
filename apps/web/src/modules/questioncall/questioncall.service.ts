@@ -1,4 +1,3 @@
-import { SignJWT } from "jose";
 import { Types } from "mongoose";
 import type { z } from "zod";
 
@@ -6,6 +5,7 @@ import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { QuestionCallClickModel } from "@hostel/db/models/QuestionCallClick";
+import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
 import { findCurrentResident } from "@/modules/residents/resident-access";
 import type {
   questionCallAnalyticsQuerySchema,
@@ -16,9 +16,6 @@ import type {
 type QuestionCallClickInput = z.infer<typeof questionCallClickSchema>;
 type QuestionCallAnalyticsQuery = z.infer<typeof questionCallAnalyticsQuerySchema>;
 type QuestionCallConversionInput = z.infer<typeof questionCallConversionSchema>;
-
-/** Where a resident lands when no SSO handshake is configured. */
-const DEFAULT_QUESTIONCALL_URL = "https://questioncall.com";
 
 export class QuestionCallServiceError extends Error {
   constructor(
@@ -40,47 +37,12 @@ type ClickRecord = {
   userId: Types.ObjectId;
 };
 
-function questionCallBaseUrl() {
-  return process.env.QUESTIONCALL_URL?.trim() || DEFAULT_QUESTIONCALL_URL;
-}
-
 /**
- * Signs the SSO token QuestionCall exchanges for a session.
- *
- * Returns `null` when `QUESTIONCALL_SSO_SECRET` is unset — the integration then
- * degrades to a plain outbound link instead of failing the click, because the
- * secret is a partner credential this deployment may simply not have yet.
- */
-async function signSsoToken(payload: {
-  email?: string;
-  hostelId: string;
-  name?: string;
-  residentId: string;
-  userId: string;
-}) {
-  const secret = process.env.QUESTIONCALL_SSO_SECRET?.trim();
-
-  if (!secret || secret.length < 32) {
-    return null;
-  }
-
-  return new SignJWT({
-    email: payload.email,
-    hostelId: payload.hostelId,
-    name: payload.name,
-    residentId: payload.residentId,
-    source: "hostelhub",
-    tokenType: "questioncall_sso",
-  })
-    .setProtectedHeader({ alg: "HS256" })
-    .setSubject(payload.userId)
-    .setIssuedAt()
-    .setExpirationTime("10m")
-    .sign(new TextEncoder().encode(secret));
-}
-
-/**
- * Records the click and hands back where to send the resident.
+ * Records the click. Where the resident goes is the `questionCall` site-config
+ * link, which both clients open straight from the tap — a window opened after a
+ * round trip is a popup the browser blocks. `redirectUrl` is that same link,
+ * kept for app builds older than the 2026-10-01 row, which open what this
+ * returns.
  *
  * Only STUDENT residents see the entry point (PHASES.md §5.1), and the check is
  * repeated here — a hidden button is not access control.
@@ -110,22 +72,9 @@ export async function trackQuestionCallClick(
     userId: resident.userId ?? principal.userId,
   });
 
-  const token = await signSsoToken({
-    email: resident.email,
-    hostelId: resident.hostelId.toString(),
-    name: `${resident.firstName} ${resident.lastName}`.trim(),
-    residentId: resident._id.toString(),
-    userId: (resident.userId ?? principal.userId).toString(),
-  });
-  const base = questionCallBaseUrl();
+  const { url } = await getSiteConfigSection("questionCall");
 
-  return {
-    clickId: click._id.toString(),
-    redirectUrl: token
-      ? `${base}/sso?token=${encodeURIComponent(token)}`
-      : `${base}?utm_source=hostelhub`,
-    ssoEnabled: Boolean(token),
-  };
+  return { clickId: click._id.toString(), redirectUrl: url };
 }
 
 export async function getQuestionCallStatus(principal: ApiPrincipal) {

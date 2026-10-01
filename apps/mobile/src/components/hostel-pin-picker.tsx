@@ -1,13 +1,18 @@
+import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useRef, useState } from "react";
-import { StyleSheet, useWindowDimensions, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useSystemInsets } from "@/hooks/use-system-insets";
 import { readApiError } from "@/lib/api-contract";
 import type { Coordinates } from "@/lib/geo";
+import { requestDeviceLocation } from "@/lib/location";
+import { toastError } from "@/lib/toast";
 import {
   ATTRIBUTION,
   inlineJson,
@@ -218,6 +223,234 @@ function buildPage(pin: Coordinates, accent: string, background: string): string
     map.invalidateSize();
     window.ReactNativeWebView.postMessage('ready');
   }, 60);
+})();
+</script>
+</body>
+</html>`;
+}
+
+/** Where an empty picker opens: Kathmandu, zoomed out enough to find a ward. */
+const KATHMANDU = { lat: 27.7172, lng: 85.324 };
+
+export type PinSearchHit = Coordinates & { displayName?: string };
+
+/**
+ * Placing the pin by hand: the map pans under a pin fixed at the centre, the
+ * way every ride app does it, so a thumb never has to land on a 20-point
+ * marker. Search (a place, a pasted map link, `lat,lng`) and the phone's own
+ * position both just move the map; "Use this spot" returns wherever the centre
+ * is. Full screen, because a pannable map inside a scrolling step steals the
+ * page's scroll.
+ */
+export function PinPickerModal<Hit extends PinSearchHit>({
+  initial,
+  onClose,
+  onPick,
+  open,
+  search,
+}: {
+  initial: Coordinates | null;
+  onClose: () => void;
+  /** The centre, and the search hit it came from while the map has not moved since. */
+  onPick: (pick: Coordinates & { hit?: Hit }) => void;
+  open: boolean;
+  search: (query: string) => Promise<Hit[]>;
+}) {
+  const { colors } = useAppTheme();
+  const insets = useSystemInsets();
+  const map = useRef<WebView>(null);
+  const [center, setCenter] = useState<Coordinates | null>(initial);
+  const [query, setQuery] = useState("");
+  const [hits, setHits] = useState<Hit[]>([]);
+  const [busy, setBusy] = useState<"locate" | "search" | null>(null);
+  const [fromHit, setFromHit] = useState<Hit | null>(null);
+  // Built once per open, so moving the map never reloads it.
+  const [html, setHtml] = useState<string | null>(null);
+
+  if (open && html === null) {
+    setHtml(pickerPage(initial ?? KATHMANDU, initial ? 17 : 13, colors.muted));
+  } else if (!open && html !== null) {
+    setHtml(null);
+  }
+
+  const flyTo = (to: Coordinates) => {
+    map.current?.injectJavaScript(`window.flyTo(${to.lat}, ${to.lng}); true;`);
+    setCenter(to);
+  };
+
+  const runSearch = async () => {
+    if (query.trim().length < 2 || busy) return;
+    setBusy("search");
+    setHits([]);
+
+    try {
+      const results = (await search(query.trim())).filter((hit) => Number.isFinite(hit.lat) && Number.isFinite(hit.lng));
+
+      if (results.length === 1) {
+        flyTo(results[0]);
+        setFromHit(results[0]);
+      } else {
+        setHits(results);
+      }
+
+      if (!results.length) toastError("No place found", "Try a nearby landmark, or move the map.");
+    } catch (error) {
+      toastError("Could not search", readApiError(error));
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const locate = async () => {
+    setBusy("locate");
+    const outcome = await requestDeviceLocation();
+    setBusy(null);
+
+    if (outcome.kind === "granted") {
+      flyTo(outcome.coordinates);
+      setFromHit(null);
+    } else {
+      toastError("Location is off", "Search for the place instead, or move the map.");
+    }
+  };
+
+  return (
+    <Modal animationType="slide" onRequestClose={onClose} statusBarTranslucent visible={open}>
+      <View className="flex-1 bg-background" style={{ paddingBottom: insets.bottom, paddingTop: insets.top }}>
+        <View className="flex-row items-center gap-2 px-3 py-2">
+          <Pressable accessibilityLabel="Close" accessibilityRole="button" className="h-11 w-11 items-center justify-center" onPress={onClose}>
+            <Ionicons color={colors.foreground} name="close" size={24} />
+          </Pressable>
+          <View className="flex-1">
+            <Input
+              autoCapitalize="none"
+              autoCorrect={false}
+              leading={<Ionicons color={colors.mutedForeground} name="search" size={18} />}
+              onChangeText={setQuery}
+              onSubmitEditing={() => void runSearch()}
+              placeholder="Place, map link or lat, lng"
+              returnKeyType="search"
+              value={query}
+            />
+          </View>
+        </View>
+
+        <View className="flex-1">
+          {html ? (
+            <WebView
+              allowFileAccess={false}
+              androidLayerType="hardware"
+              domStorageEnabled={false}
+              javaScriptEnabled
+              onMessage={(event: WebViewMessageEvent) => {
+                try {
+                  const next = JSON.parse(event.nativeEvent.data) as Coordinates & { moved?: boolean };
+                  setCenter({ lat: next.lat, lng: next.lng });
+                  if (next.moved) setFromHit(null);
+                } catch {
+                  // Not ours.
+                }
+              }}
+              originWhitelist={["*"]}
+              ref={map}
+              setSupportMultipleWindows={false}
+              source={{ html }}
+              style={{ backgroundColor: colors.muted, flex: 1 }}
+            />
+          ) : null}
+
+          {/* The pin is ours, not the map's: its tip sits on the centre. */}
+          <View className="absolute inset-0 items-center justify-center" style={{ pointerEvents: "none" }}>
+            <View style={{ marginTop: -40 }}>
+              <Ionicons color={colors.primary} name="location" size={44} />
+            </View>
+          </View>
+
+          <Pressable
+            accessibilityLabel="Go to my location"
+            accessibilityRole="button"
+            className="absolute bottom-4 right-4 h-12 w-12 items-center justify-center rounded-full border border-border bg-card active:opacity-70"
+            disabled={busy !== null}
+            onPress={() => void locate()}
+          >
+            <Ionicons color={colors.primary} name={busy === "locate" ? "hourglass-outline" : "locate"} size={22} />
+          </Pressable>
+
+          <View className="absolute bottom-1 left-1 rounded bg-card px-1.5 py-0.5" style={{ pointerEvents: "none" }}>
+            <Text className="text-[9px] text-muted-foreground" variant={null}>
+              {ATTRIBUTION}
+            </Text>
+          </View>
+
+          {busy === "search" || hits.length ? (
+            <View className="absolute left-3 right-3 top-2 max-h-72 overflow-hidden rounded-2xl border border-border bg-card">
+              {busy === "search" ? (
+                <View className="p-3"><Skeleton height={48} /></View>
+              ) : (
+                <ScrollView keyboardShouldPersistTaps="handled">
+                  {hits.map((hit) => (
+                    <Pressable
+                      accessibilityRole="button"
+                      className="min-h-14 flex-row items-center gap-3 border-b border-border px-4 py-2 active:opacity-70"
+                      key={`${hit.lat},${hit.lng}`}
+                      onPress={() => {
+                        flyTo(hit);
+                        setFromHit(hit);
+                        setHits([]);
+                      }}
+                    >
+                      <Ionicons color={colors.mutedForeground} name="location-outline" size={20} />
+                      <Text className="flex-1" numberOfLines={2}>{hit.displayName ?? `${hit.lat.toFixed(5)}, ${hit.lng.toFixed(5)}`}</Text>
+                    </Pressable>
+                  ))}
+                </ScrollView>
+              )}
+            </View>
+          ) : null}
+        </View>
+
+        <View className="gap-2 px-4 pt-3">
+          <Text className="text-center" variant="caption">Move the map until the pin sits on your door</Text>
+          <Button
+            disabled={!center}
+            label="Use this spot"
+            onPress={() => {
+              if (center) onPick({ ...center, hit: fromHit ?? undefined });
+            }}
+          />
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+function pickerPage(start: Coordinates, zoom: number, background: string): string {
+  const payload = inlineJson({ lat: start.lat, lng: start.lng, zoom });
+
+  return `<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+<link rel="stylesheet" href="${LEAFLET_CSS}" integrity="${LEAFLET_CSS_SRI}" crossorigin="anonymous" />
+<style>html, body, #map { height: 100%; margin: 0; padding: 0; background: ${background}; }</style>
+</head>
+<body>
+<div id="map"></div>
+<script src="${LEAFLET_JS}" integrity="${LEAFLET_JS_SRI}" crossorigin="anonymous"></script>
+<script>
+(function () {
+  var start = ${payload};
+  var flying = false;
+  var map = L.map('map', { attributionControl: false, zoomControl: false }).setView([start.lat, start.lng], start.zoom);
+  L.tileLayer(${JSON.stringify(TILE_URL)}, { maxZoom: 19 }).addTo(map);
+  var post = function (moved) {
+    var c = map.getCenter();
+    window.ReactNativeWebView.postMessage(JSON.stringify({ lat: c.lat, lng: c.lng, moved: moved }));
+  };
+  map.on('moveend', function () { post(!flying); flying = false; });
+  window.flyTo = function (lat, lng) { flying = true; map.setView([lat, lng], 17); };
+  setTimeout(function () { map.invalidateSize(); post(false); }, 60);
 })();
 </script>
 </body>

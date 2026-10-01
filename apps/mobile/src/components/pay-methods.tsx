@@ -33,8 +33,18 @@ export const PROVIDER_LABEL: Record<GatewayProvider, string> = {
   KHALTI: "Khalti",
 };
 
+/** Unique per account: a hostel can list two banks or two eSewa ids. */
 export function methodKey(method: PayMethod) {
-  return method.kind === "GATEWAY" ? `GATEWAY:${method.provider}` : method.kind;
+  switch (method.kind) {
+    case "GATEWAY":
+      return `GATEWAY:${method.provider}`;
+    case "BANK":
+      return `BANK:${method.accountNumber}`;
+    case "QR":
+      return `QR:${method.assetId}`;
+    default:
+      return `${method.kind}:${method.id}`;
+  }
 }
 
 export function methodLabel(method: PayMethod) {

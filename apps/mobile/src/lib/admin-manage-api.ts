@@ -2415,6 +2415,8 @@ export type PaymentProfile = {
   displayName: string | null;
   enabledProviders: string[];
   esewaId: string | null;
+  /** A second bank or wallet. Saved as one list — see `updatePaymentProfile`. */
+  extraAccounts: ExtraPaymentAccount[];
   khaltiId: string | null;
   lastStatementUploadAt: string | null;
   payeeVerifiable: boolean;
@@ -2426,6 +2428,13 @@ export type PaymentProfile = {
   statementCadenceDays: number;
   tier: string;
   usable: boolean;
+};
+
+export type ExtraPaymentAccount = {
+  accountName: string | null;
+  bankName: string | null;
+  kind: "BANK" | "ESEWA" | "KHALTI";
+  number: string;
 };
 
 export async function getPaymentProfile() {
@@ -2443,6 +2452,8 @@ export async function updatePaymentProfile(input: {
   cashApprovalThreshold?: number;
   displayName?: string;
   esewaId?: string;
+  /** Replaces the whole list; an empty list clears it. */
+  extraAccounts?: { accountName?: string; bankName?: string; kind: ExtraPaymentAccount["kind"]; number: string }[];
   khaltiId?: string;
   paymentInstructions?: string;
   qrPayeeName?: string;
