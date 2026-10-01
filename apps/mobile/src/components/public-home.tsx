@@ -9,10 +9,12 @@ import { HostelCard } from "@/components/hostel-card";
 import { HostelShowcase } from "@/components/hostel-showcase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { CardRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
+import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useNearby } from "@/hooks/use-nearby";
 import { useResource } from "@/hooks/use-resource";
@@ -29,6 +31,7 @@ import {
 } from "@/lib/home-sections";
 import { locationLabel } from "@/lib/hostel-display";
 import { absoluteMediaUrl } from "@/lib/media";
+import type { MyJoinRequest } from "@/lib/join-api";
 import type { PublicHostel } from "@/lib/public-api";
 import { publicQuery } from "@/lib/public-queries";
 import type { SavedHostel } from "@/lib/saved-hostels";
@@ -125,6 +128,45 @@ export type PublicHomeProps = {
   insideTabs?: boolean;
 };
 
+/**
+ * A join request this person sent and the hostel has not added yet. Without
+ * it, checking on the request — or fixing one that was sent back — meant
+ * finding the WhatsApp link again. Signed out, or nothing open: nothing drawn.
+ */
+function MyJoinRequestRow() {
+  const account = useAppSelector((state) => state.auth.account);
+
+  return account ? <MyJoinRequestFor userId={account.id} /> : null;
+}
+
+function MyJoinRequestFor({ userId }: { userId: string }) {
+  const query = publicQuery.myJoinRequest(userId);
+  const mine = useResource<MyJoinRequest>(query.load, { cacheKey: query.key, topics: query.topics });
+  const request = mine.data?.request;
+
+  if (!request) return null;
+
+  const returned = request.status === "REJECTED";
+
+  return (
+    <CardRow
+      icon={returned ? "alert-circle-outline" : "time-outline"}
+      onPress={() => router.push(`/join/${request.token}`)}
+      subtitle={
+        returned
+          ? `${request.reason || "Something needs fixing"} · Fix it and send again`
+          : "Waiting for the hostel to check it"
+      }
+      title={
+        returned
+          ? `${request.hostelName} sent your request back`
+          : `Request sent to ${request.hostelName}`
+      }
+      tone={returned ? "warning" : "neutral"}
+    />
+  );
+}
+
 export function PublicHome({ browseHref, insideTabs = false }: PublicHomeProps) {
   const [query, setQuery] = useState("");
   /*
@@ -204,6 +246,8 @@ export function PublicHome({ browseHref, insideTabs = false }: PublicHomeProps) 
       scroll
     >
       <View className="gap-7 pt-1">
+        <MyJoinRequestRow />
+
         {hostels.error && all.length === 0 ? (
           <ErrorState message={hostels.error} onRetry={hostels.reload} />
         ) : (

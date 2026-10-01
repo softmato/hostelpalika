@@ -49,6 +49,8 @@ const residentApplicationSchema = new Schema(
 
 residentApplicationSchema.index({ hostelId: 1, userId: 1 }, { unique: true });
 residentApplicationSchema.index({ hostelId: 1, status: 1, sentAt: -1 });
+// The person's own open request, on their app home (`getMyJoinRequest`).
+residentApplicationSchema.index({ userId: 1, status: 1 });
 
 export const ResidentApplicationModel =
   models.ResidentApplication || model("ResidentApplication", residentApplicationSchema);

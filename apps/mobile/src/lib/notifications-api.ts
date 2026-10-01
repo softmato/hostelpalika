@@ -36,7 +36,7 @@ export type AppNotification = {
   actionState?: "COMPLETED" | "DISMISSED" | "PENDING";
   /** Which action was taken — the night status, for the night question. */
   actionTakenKey?: string;
-  /** A **web** path (`/kathmandu-boys/admin/…`), not an app route. Not navigated. */
+  /** A **web** path, not an app route — `notificationRoute` maps it onto one. */
   actionUrl?: string;
   body: string;
   /** `FINANCE`, `COMPLAINT`, `SAFETY`, … — free text server-side. */

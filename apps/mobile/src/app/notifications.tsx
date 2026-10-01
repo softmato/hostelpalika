@@ -31,7 +31,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "@/lib/notifications-api";
-import { opensPlanBilling } from "@/lib/push-link";
+import { notificationRoute } from "@/lib/push-link";
 import { setBadgeCount } from "@/lib/push-notifications";
 import { invalidateQuery, readQuery, writeQuery } from "@/lib/query-cache";
 import { setResidentNightStatus } from "@/lib/resident-api";
@@ -97,15 +97,12 @@ import {
  * the server: once opening has marked everything read, the server's unread
  * filter is always empty, while what the reader means by unread is the tint.
  *
- * ## `actionUrl` is not a link
+ * ## A tap opens what the push would
  *
- * The field holds a **web** path (`/<slug>/admin/finance/…`). Pushing it into
- * `router.push` would hit expo-router's not-found screen, and opening a browser
- * would ask someone to sign in again on a surface this app does not own. So rows
- * that need a decision say so and stop there — see `lib/notifications-api.ts`.
- *
- * The one row that does open a screen is a plan payment reminder: the app has
- * its own Billing screen for it, recognised from `data` (`opensPlanBilling`).
+ * `actionUrl` holds a **web** path, so it is never pushed as-is: it goes through
+ * `notificationRoute`, the same mapping a tapped push uses, onto the app's own
+ * screen for it. A row it cannot place (a platform page, a tenant URL) expands
+ * in place instead of opening a browser or `+not-found`.
  */
 
 const FILTERS: { label: string; value: NotificationFilter }[] = [
@@ -551,9 +548,10 @@ function NotificationRow({
       onPress={() => {
         onOpen(notification);
 
-        // A plan payment reminder opens the bill it is about.
-        if (opensPlanBilling(notification)) {
-          router.push("/manage/billing");
+        const route = notificationRoute(notification);
+
+        if (route) {
+          router.push(route as never);
           return;
         }
 

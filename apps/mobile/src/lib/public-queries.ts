@@ -5,6 +5,7 @@ import {
   listPublicHostels,
   type PublicHostel,
 } from "@/lib/public-api";
+import { getMyJoinRequest, type MyJoinRequest } from "@/lib/join-api";
 import { defineQuery, prefetchQuery, type Query } from "@/lib/query-cache";
 import { getSiteConfig, type MobileSiteConfig } from "@/lib/site-config-api";
 
@@ -71,6 +72,16 @@ export const publicQuery = {
   hostels: (filters: HostelFilters = {}): PublicQuery<PublicHostel[]> =>
     defineQuery(`public:hostels${filterKey(filters)}`, [REALTIME_TOPIC.HOSTELS], () =>
       listPublicHostels(filters),
+    ),
+
+  /**
+   * The signed-in person's own join request, keyed by account so a sign-out
+   * never paints the last person's. On the notifications topic: "sent back"
+   * arrives as a notification, and the row should change with it.
+   */
+  myJoinRequest: (userId: string): PublicQuery<MyJoinRequest> =>
+    defineQuery(`public:my-join-request:${userId}`, [REALTIME_TOPIC.NOTIFICATIONS], () =>
+      getMyJoinRequest(),
     ),
 
   /**

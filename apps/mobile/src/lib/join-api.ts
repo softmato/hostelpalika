@@ -115,6 +115,20 @@ export async function sendBackJoinRequest(id: string, reason: string) {
 
 /* The person opening the link */
 
+/** Their own request still open — waiting, or sent back — and the link it came from. */
+export type MyJoinRequest = {
+  request: {
+    hostelName: string;
+    reason: string;
+    status: "PENDING" | "REJECTED";
+    token: string;
+  } | null;
+};
+
+export async function getMyJoinRequest() {
+  return unwrap(await api.get<ApiEnvelope<MyJoinRequest>>("/public/join-requests/me"));
+}
+
 export async function getJoinPage(token: string) {
   return unwrap(await api.get<ApiEnvelope<JoinPage>>(`/public/join/${encodeURIComponent(token)}`));
 }

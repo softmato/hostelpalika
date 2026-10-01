@@ -89,6 +89,8 @@ const KNOWN_PATHS = new Set([
   "/manage/billing",
   /* A hostel's booking requests. Where a booking bell sent to the hostel lands (`push-routing.ts`, audience HOSTEL). */
   "/manage/bookings",
+  /* Join-link requests waiting on staff (`push-routing.ts`, `JOIN_REQUEST`). */
+  "/manage/join-requests",
   /*
    * The night-status screen, on the root stack. Reached by a plain tap on the
    * nightly prompt — the notification's own buttons answer it without opening
@@ -137,6 +139,19 @@ const REWRITES: { prefix: string; to: string }[] = [
    * the app has `manage/reports.tsx`, which is the same screen.
    */
   { prefix: "/hostel-admin/reports", to: "/manage/reports" },
+  /*
+   * The rest of the portal pages the server names in an `actionUrl`, each to
+   * the app's own screen for it — so a row in the bell opens what the website's
+   * bell would, instead of only expanding.
+   */
+  { prefix: "/hostel-admin/inquiries", to: "/manage/inquiries" },
+  { prefix: "/hostel-admin/complaints", to: "/manage/complaints" },
+  { prefix: "/hostel-admin/food", to: "/manage/food" },
+  { prefix: "/hostel-admin/bookings", to: "/manage/bookings" },
+  { prefix: "/hostel-admin/payments", to: "/(admin)/money" },
+  { prefix: "/hostel-admin/sos-alerts", to: "/(admin)/alerts" },
+  { prefix: "/resident/payments", to: "/(resident)/payments" },
+  { prefix: "/resident/notices", to: "/(resident)/notices" },
   /*
    * The resident's own guardian list, carried by "your guardian accepted".
    */
@@ -204,8 +219,14 @@ const COMPLAINT_PATH = /^\/\(resident\)\/more\/complaints(?:\/([A-Za-z0-9_-]+))?
  */
 const COMMUNITY_POST = /^\/community\/([A-Za-z0-9_-]+)$/;
 
-/** `/booking/<id>` — a booking bell sent to the person who booked (`push-routing.ts`, audience GUEST). */
-const BOOKING_DETAIL = /^\/booking\/([A-Za-z0-9_-]+)$/;
+/**
+ * `/booking/<id>` — a booking bell sent to the person who booked (`push-routing.ts`, audience GUEST).
+ * The website's own `/bookings/<id>`, carried as that bell's `actionUrl`, is the same booking.
+ */
+const BOOKING_DETAIL = /^\/bookings?\/([A-Za-z0-9_-]+)$/;
+
+/** `/store/order/<id>` — a store order the hostel placed; the same path on both surfaces. */
+const STORE_ORDER = /^\/store\/order\/([A-Za-z0-9_-]+)$/;
 
 /** `/join/<token>` — "your request was sent back", landing on the join form to fix it. */
 const JOIN_LINK = /^\/join\/([A-Za-z0-9_-]+)$/;
@@ -259,6 +280,12 @@ export function resolvePushPath(path: unknown): string {
 
   if (booking) {
     return `/booking/${booking[1]}`;
+  }
+
+  const order = STORE_ORDER.exec(normalized);
+
+  if (order) {
+    return `/store/order/${order[1]}`;
   }
 
   const join = JOIN_LINK.exec(normalized);
@@ -342,6 +369,34 @@ export function opensPlanBilling(notification: { category?: unknown; data?: unkn
     typeof data === "object" &&
     (data as { type?: unknown }).type === "PLAN_DUE"
   );
+}
+
+/**
+ * Where tapping a row in the notification list goes, or `null` to expand it.
+ *
+ * The same answer its push gives (`deepLinkForNotification` on the server, then
+ * `resolvePushPath`), read from the row: the two typed rows first, because their
+ * `actionUrl` is the website's page; then the `actionUrl` itself. A row nothing
+ * here can place expands in place — the list it is in is not a destination.
+ */
+export function notificationRoute(notification: {
+  actionUrl?: unknown;
+  category?: unknown;
+  data?: unknown;
+}): string | null {
+  if (opensPlanBilling(notification)) {
+    return "/manage/billing";
+  }
+
+  const data = notification.data;
+
+  if (data && typeof data === "object" && (data as { type?: unknown }).type === "JOIN_REQUEST") {
+    return "/manage/join-requests";
+  }
+
+  const path = resolvePushPath(notification.actionUrl);
+
+  return path === PUSH_FALLBACK_PATH ? null : path;
 }
 
 /**

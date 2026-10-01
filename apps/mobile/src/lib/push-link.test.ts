@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   marksRoleChange,
+  notificationRoute,
   opensPlanBilling,
   PUSH_FALLBACK_PATH,
   resolvePushPath,
@@ -221,5 +222,34 @@ describe("marksRoleChange", () => {
     expect(marksRoleChange({})).toBe(false);
     expect(marksRoleChange("RESIDENT_REGISTERED")).toBe(false);
     expect(marksRoleChange({ type: 42 })).toBe(false);
+  });
+});
+
+describe("notificationRoute", () => {
+  it("opens the screen a row's push would", () => {
+    expect(notificationRoute({ actionUrl: "/hostel-admin/inquiries" })).toBe("/manage/inquiries");
+    expect(notificationRoute({ actionUrl: "/hostel-admin/payments" })).toBe("/(admin)/money");
+    expect(notificationRoute({ actionUrl: "/resident/payments" })).toBe("/(resident)/payments");
+    expect(notificationRoute({ actionUrl: "/bookings/b1" })).toBe("/booking/b1");
+    expect(notificationRoute({ actionUrl: "/store/order/o1" })).toBe("/store/order/o1");
+    expect(notificationRoute({ actionUrl: "/join/abc_12" })).toBe("/join/abc_12");
+  });
+
+  it("sends a join request to the requests screen, not the roster its actionUrl names", () => {
+    expect(
+      notificationRoute({ actionUrl: "/hostel-admin/residents", data: { type: "JOIN_REQUEST" } }),
+    ).toBe("/manage/join-requests");
+  });
+
+  it("keeps the plan reminder on Billing", () => {
+    expect(
+      notificationRoute({ actionUrl: "/rupa-hostel/admin/billing", category: "PAYMENT", data: { type: "PLAN_DUE" } }),
+    ).toBe("/manage/billing");
+  });
+
+  it("expands a row nothing in the app can open", () => {
+    expect(notificationRoute({ actionUrl: "/platform/hostels" })).toBeNull();
+    expect(notificationRoute({ actionUrl: "https://evil.example" })).toBeNull();
+    expect(notificationRoute({})).toBeNull();
   });
 });

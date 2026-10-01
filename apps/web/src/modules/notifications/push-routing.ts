@@ -60,6 +60,13 @@ const FALLBACK_PATH = "/notifications";
  */
 export const PLAN_DUE_NOTIFICATION_TYPE = "PLAN_DUE";
 
+/**
+ * A resident asked (or re-asked) to join through the hostel's join link. The
+ * website's bell opens its Residents page, which holds the requests panel; the
+ * app has a screen of its own for them, `app/manage/join-requests.tsx`.
+ */
+export const JOIN_REQUEST_NOTIFICATION_TYPE = "JOIN_REQUEST";
+
 /** The admin app's plan Billing screen, `app/manage/billing.tsx`. */
 const PLAN_BILLING_PATH = "/manage/billing";
 
@@ -85,6 +92,11 @@ export function deepLinkForNotification(input: DeepLinkInput): string {
    */
   if (isPlanDueNotification(input)) {
     return PLAN_BILLING_PATH;
+  }
+
+  // Ahead of `actionUrl` (`/hostel-admin/residents`) for the same reason.
+  if (input.data?.type === JOIN_REQUEST_NOTIFICATION_TYPE) {
+    return "/manage/join-requests";
   }
 
   /*
