@@ -6,19 +6,22 @@
  * kept out of the screen. `app/manage/finance/statement.tsx` is a renderer over
  * these functions.
  *
- * ## Credits only, and that is the product decision
+ * ## Credits and debits, in one list
  *
  * The wallet apps our users already read — see
  * `ui_inspiration_folder/app_recordings/NOTES.md` — put debits and credits in
- * one list and sign them by colour. A hostel's statement is not that list.
- * What an owner opens this screen for is "what has come in, from whom, and
- * when". Money the hostel *spends* is recorded since docs/EXPENSES_PLAN.md, and
- * it lives on its own screen (`app/expenses/`) with its own *In · Out · Left*,
- * rather than as a debit column here. So an entry earns a row here when `paidAmount > 0` and
- * for no other reason, every amount is a credit, and the direction marker is
- * green in every row rather than being a thing to read.
+ * one list and sign them by colour, and since docs/EXPENSES_PLAN.md the hostel
+ * spends through this product too. So the owner's statement is that list: a
+ * settled invoice (`paidAmount > 0`) is a **credit**, a recorded expense is a
+ * **debit** ({@link StatementRow.debit}), and the running figure on each row is
+ * the net balance. Voided expenses are not on the wire — the server leaves them
+ * out — because a cancelled expense never moved any money.
  *
- * An invoice that is merely *raised* is therefore absent. That is deliberate and
+ * Expenses arrive only for the owner (`AdminLedger.expenses` is `null` for a
+ * warden), the same line the expenses screen draws, so a warden's statement is
+ * still credits only.
+ *
+ * An invoice that is merely *raised* is absent. That is deliberate and
  * it is the difference between this screen and the Money tab: Money answers "who
  * still owes", this answers "what was received". Neither is a filter over the
  * other.
@@ -61,6 +64,7 @@
 import { bsPeriodBounds } from "@hostel/calendar/bs";
 
 import type { AdminLedger, AdminLedgerEntry } from "@/lib/admin-api";
+import { type ExpenseRow, expenseTitle } from "@/lib/expenses";
 import {
   type CalendarSystem,
   formatDateIn,
@@ -105,14 +109,17 @@ export const UNKNOWN_METHOD = "OTHER";
  * functions, rather than a second copy of the filter sheet's logic that would
  * drift from this one the first time a range was fixed in only one place.
  *
- * The direction is not a field. It is a property of the *statement*, not of the
- * row — a hostel does not spend through this product and a resident does not
- * collect, so neither list is ever mixed, and a per-row sign would be a constant
- * every reader had to check anyway.
+ * The direction is {@link StatementRow.debit}, read only on the hostel's side:
+ * the resident's list is never mixed, so it never sets it.
  */
 export type StatementRow = {
   /** What moved. Always `> 0` — that is what makes it a settled row. */
   amount: number;
+  /**
+   * Money **out** — a hostel expense on the owner's statement. Absent on every
+   * credit and on every resident row, so the resident side sums as before.
+   */
+  debit?: boolean;
   /** What the invoice asked for. Larger than `amount` on a part payment. */
   billed: number;
   dueDate: string | null;
@@ -153,12 +160,26 @@ export type StatementRow = {
   status: string;
 };
 
-/** One credit on the hostel's statement — a settled row, read by the payee. */
+/**
+ * One row on the hostel's statement: a settled invoice (a credit), or — when
+ * `expense` is set — a recorded expense (a debit). The name predates debits.
+ */
 export type StatementCredit = StatementRow & {
+  /** The expense behind a debit row; `null` on every credit. */
+  expense: ExpenseRow | null;
   remarks: string;
+  /** `""` on a debit — an expense has no resident. */
   residentId: string;
   residentName: string;
 };
+
+/** What a row adds to a running balance: money in up, money out down. */
+export function signedAmount(row: StatementRow): number {
+  return row.debit ? -row.amount : row.amount;
+}
+
+/** The status every debit carries — expenses have no invoice status. */
+export const SPENT_STATUS = "SPENT";
 
 /**
  * Every credit in the ledger, newest first, with the running total attached.
@@ -172,10 +193,12 @@ export type StatementCredit = StatementRow & {
  */
 export function statementCredits(ledger: AdminLedger | null | undefined): StatementCredit[] {
   const entries = ledger?.entries ?? [];
-  const credits = entries
-    .filter((entry) => entry.paidAmount > 0)
-    .map(toCredit)
-    .sort(byNewestFirst);
+  const credits = [
+    ...entries.filter((entry) => entry.paidAmount > 0).map(toCredit),
+    ...(ledger?.expenses ?? [])
+      .filter((expense) => expense.status === "RECORDED" && expense.amount > 0)
+      .map(toDebit),
+  ].sort(byNewestFirst);
 
   return ledger?.truncated ? credits : withRunningTotals(credits);
 }
@@ -191,8 +214,9 @@ export function withRunningTotals<T extends StatementRow>(rows: T[]): T[] {
   let total = 0;
 
   // Oldest first, so each row's total includes itself and everything under it.
+  // Debits subtract, so on the owner's mixed list this is the net balance.
   for (let index = rows.length - 1; index >= 0; index -= 1) {
-    total += rows[index].amount;
+    total += signedAmount(rows[index]);
     rows[index].runningTotal = total;
   }
 
@@ -204,6 +228,7 @@ function toCredit(entry: AdminLedgerEntry): StatementCredit {
     amount: entry.paidAmount,
     billed: entry.dueAmount,
     dueDate: entry.dueDate ?? null,
+    expense: null,
     id: entry.id,
     method: (entry.paymentMethod ?? entry.method ?? UNKNOWN_METHOD).trim() || UNKNOWN_METHOD,
     period: entry.month,
@@ -221,6 +246,54 @@ function toCredit(entry: AdminLedgerEntry): StatementCredit {
     runningTotal: null,
     searchTerms: [entry.residentName.trim(), entry.remarks?.trim() ?? ""],
     status: entry.status,
+  };
+}
+
+/** Nepal is UTC+5:45 year-round — no DST to account for. */
+const NEPAL_OFFSET_MS = (5 * 60 + 45) * 60 * 1000;
+
+/**
+ * When an expense left. `spentOn` is a day, not an instant, so it is placed at
+ * the moment it was recorded when that falls on the same Nepal day — which
+ * orders it truthfully among that day's payments — and at noon Nepal time
+ * otherwise (an expense back-dated to yesterday has no clock time).
+ */
+function spentAt(expense: ExpenseRow): string {
+  if (expense.createdAt) {
+    const created = new Date(expense.createdAt);
+
+    if (
+      !Number.isNaN(created.getTime()) &&
+      new Date(created.getTime() + NEPAL_OFFSET_MS).toISOString().slice(0, 10) === expense.spentOn
+    ) {
+      return created.toISOString();
+    }
+  }
+
+  return new Date(`${expense.spentOn}T12:00:00+05:45`).toISOString();
+}
+
+function toDebit(expense: ExpenseRow): StatementCredit {
+  const who = expense.salaryFor?.name ?? "";
+
+  return {
+    amount: expense.amount,
+    billed: expense.amount,
+    debit: true,
+    dueDate: null,
+    expense,
+    // Prefixed: an expense id and an invoice id are both ObjectIds, and the
+    // list keys and tiebreak need them distinct.
+    id: `expense:${expense.id}`,
+    method: expense.paidBy || UNKNOWN_METHOD,
+    period: null,
+    receivedAt: spentAt(expense),
+    remarks: expense.what.trim(),
+    residentId: "",
+    residentName: "",
+    runningTotal: null,
+    searchTerms: ["expense", "spent", expense.categoryLabel, expense.what, who, expense.recordedBy.name],
+    status: SPENT_STATUS,
   };
 }
 
@@ -261,6 +334,8 @@ export type StatementFilter = {
   /** `YYYY-MM-DD`, inclusive. */
   from: string;
   method: string;
+  /** `"IN"` for credits only, `"OUT"` for debits only, `""` for both. */
+  direction: string;
   /**
    * Hide anything under this many rupees. `""` for no floor.
    *
@@ -279,6 +354,7 @@ export type StatementFilter = {
 };
 
 export const NO_FILTER: StatementFilter = {
+  direction: "",
   from: "",
   method: "",
   minAmount: "",
@@ -505,6 +581,7 @@ export function monthRangeLabel(
 export function activeFilterCount(filter: StatementFilter): number {
   return (
     Number(filter.method !== "") +
+    Number(filter.direction !== "") +
     Number(filter.status !== "") +
     Number(filter.query.trim() !== "") +
     Number(amountFloor(filter.minAmount) !== null) +
@@ -548,6 +625,10 @@ export function filterCredits<T extends StatementRow>(
   const to = filter.to ? endOfDayIso(filter.to) : null;
 
   return credits.filter((credit) => {
+    if (filter.direction && (filter.direction === "OUT") !== Boolean(credit.debit)) {
+      return false;
+    }
+
     if (filter.method && credit.method !== filter.method) {
       return false;
     }
@@ -603,9 +684,20 @@ export function methodOptions(credits: readonly StatementRow[]): string[] {
   );
 }
 
-/** The status chips, on the same argument as {@link methodOptions}. */
+/** The direction chips: offered only when the list actually has both kinds. */
+export function directionOptions(rows: readonly StatementRow[]): string[] {
+  const out = rows.some((row) => row.debit);
+  const into = rows.some((row) => !row.debit);
+
+  return out && into ? ["IN", "OUT"] : [];
+}
+
+/**
+ * The status chips, on the same argument as {@link methodOptions}. Invoice
+ * statuses only — every debit is `SPENT`, which the direction chips cover.
+ */
 export function statusOptions(credits: readonly StatementRow[]): string[] {
-  return [...new Set(credits.map((credit) => credit.status))].sort((left, right) =>
+  return [...new Set(credits.filter((credit) => !credit.debit).map((credit) => credit.status))].sort((left, right) =>
     humanizeEnum(left).localeCompare(humanizeEnum(right)),
   );
 }
@@ -620,7 +712,10 @@ export type StatementDay<T extends StatementRow = StatementCredit> = {
   label: string;
   /** The day's rows, in the order they were given. */
   rows: T[];
-  /** What moved that day — taken on the hostel's side, paid on the resident's. */
+  /**
+   * What moved that day — taken on the hostel's side (net of anything spent),
+   * paid on the resident's.
+   */
   total: number;
 };
 
@@ -680,7 +775,7 @@ export function groupByDay<T extends StatementRow>(credits: readonly T[]): State
     }
 
     day.rows.push(credit);
-    day.total += credit.amount;
+    day.total += signedAmount(credit);
   }
 
   return days;
@@ -693,6 +788,10 @@ export function groupByDay<T extends StatementRow>(credits: readonly T[]): State
 export type StatementSummary = {
   /** How many credits are in scope. */
   count: number;
+  /** What the hostel spent over the same months — the debits. */
+  out: number;
+  /** How many debits are in scope. */
+  outCount: number;
   /** `August 2026` — the month {@link StatementSummary.total} covers. */
   periodLabel: string;
   /** What this hostel took that month. */
@@ -748,16 +847,45 @@ export function statementSummary(
     return month !== null && month >= months.from && month <= months.to;
   });
 
+  const totals = splitTotals(inScope);
+
   return {
-    count: inScope.length,
+    count: totals.inCount,
+    out: totals.out,
+    outCount: totals.outCount,
     periodLabel: monthRangeLabel(months, calendar),
-    total: inScope.reduce((sum, credit) => sum + credit.amount, 0),
+    total: totals.in,
   };
 }
 
-/** What a filtered list adds up to — the line under the search field. */
+/** Money in and money out over a set of rows, kept apart. */
+export function splitTotals(rows: readonly StatementRow[]): {
+  in: number;
+  inCount: number;
+  out: number;
+  outCount: number;
+} {
+  const totals = { in: 0, inCount: 0, out: 0, outCount: 0 };
+
+  for (const row of rows) {
+    if (row.debit) {
+      totals.out += row.amount;
+      totals.outCount += 1;
+    } else {
+      totals.in += row.amount;
+      totals.inCount += 1;
+    }
+  }
+
+  return totals;
+}
+
+/**
+ * What a filtered list adds up to — the line under the search field. Net:
+ * debits subtract, so a credits-only list sums exactly as it always did.
+ */
 export function visibleTotal(credits: readonly StatementRow[]): number {
-  return credits.reduce((sum, credit) => sum + credit.amount, 0);
+  return credits.reduce((sum, credit) => sum + signedAmount(credit), 0);
 }
 
 /**
@@ -776,6 +904,10 @@ export function creditTitle(
   credit: StatementCredit,
   calendar: CalendarSystem,
 ): string {
+  if (credit.expense) {
+    return expenseTitle(credit.expense);
+  }
+
   const what = credit.period
     ? `${formatPeriodIn(calendar, credit.period)} rent`
     : "One-off charge";
@@ -856,11 +988,19 @@ export function statementShareText({
   /** Blank when the caller is a warden scoped to more than one hostel. */
   hostelName: string;
 }): string {
-  const count = credits.length;
-
-  return [
+  const totals = splitTotals(credits);
+  const lines = [
     hostelName ? `${hostelName} — statement` : "Hostel statement",
     rangeLabel(filter, calendar),
-    `${count} ${count === 1 ? "payment" : "payments"} · ${formatMoney(visibleTotal(credits))} received`,
-  ].join("\n");
+    `${totals.inCount} ${totals.inCount === 1 ? "payment" : "payments"} · ${formatMoney(totals.in)} received`,
+  ];
+
+  if (totals.outCount > 0) {
+    lines.push(
+      `${totals.outCount} ${totals.outCount === 1 ? "expense" : "expenses"} · ${formatMoney(totals.out)} spent`,
+      `Net ${formatMoney(totals.in - totals.out)}`,
+    );
+  }
+
+  return lines.join("\n");
 }

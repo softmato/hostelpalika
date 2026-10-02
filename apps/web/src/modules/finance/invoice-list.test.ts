@@ -53,6 +53,10 @@ vi.mock("@/modules/finance/ledger-read.service", () => ({
   listResidentInvoices: mocks.listResidentInvoices,
 }));
 
+vi.mock("@/modules/finance/expenses/expense.service", () => ({
+  listLedgerExpenses: vi.fn(async () => ({ expenses: [], truncated: false })),
+}));
+
 vi.mock("@/modules/finance/review.service", () => ({
   listReviewQueue: mocks.listReviewQueue,
 }));

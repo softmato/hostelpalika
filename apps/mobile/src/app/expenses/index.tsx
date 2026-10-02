@@ -41,6 +41,7 @@ import {
 } from "@/lib/expenses";
 import { cancelExpense, expenseQuery, type ExpenseLoad } from "@/lib/expenses-api";
 import { formatMoney } from "@/lib/format";
+import { adminQuery } from "@/lib/admin-queries";
 import { invalidateQuery } from "@/lib/query-cache";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { privateAssetSource } from "@/lib/uploads";
@@ -127,6 +128,8 @@ export default function ExpensesScreen() {
       toastSuccess("Expense cancelled", `${formatMoney(open.amount)} · ${expenseTitle(open)}`);
       closeSheet();
       invalidateQuery(expenseQuery(audience, null).key);
+      // The owner's statement lists expenses as debits.
+      invalidateQuery(adminQuery.ledger().key);
       resource.refresh();
     } catch (error) {
       toastError("Could not cancel", readApiError(error));

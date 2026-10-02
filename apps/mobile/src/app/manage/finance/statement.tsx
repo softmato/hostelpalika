@@ -35,6 +35,7 @@ import {
   activeMonthRange,
   activeQuickRange,
   creditTitle,
+  directionOptions,
   filterCredits,
   groupByDay,
   isPartial,
@@ -50,6 +51,7 @@ import {
   type StatementFilter,
   statementShareText,
   statementSummary,
+  splitTotals,
   statusOptions,
   visibleTotal,
 } from "@/lib/hostel-statement";
@@ -60,20 +62,22 @@ import { toastError } from "@/lib/toast";
  *
  * ## What this screen is, and what it is not
  *
- * It is the ledger of **credits**: every rupee that has actually arrived, newest
- * first, grouped by the day it landed. It is deliberately not the Money tab,
+ * It is the hostel's ledger: every rupee that has actually arrived (credits)
+ * and, for the owner, every rupee recorded as spent (debits), newest first,
+ * grouped by the day it moved. It is deliberately not the Money tab,
  * which answers the opposite question — who still owes — and it is deliberately
  * not `manage/statements`, which is the *reconciliation* screen where a bank or
  * wallet export is imported and matched. Three screens, three questions; the
  * near-identical names are unfortunate and the routes are not interchangeable.
  *
- * ## Credit only, on purpose
+ * ## Credits and debits, signed by colour
  *
  * The wallet apps this layout comes from list debits and credits together and
- * sign them by colour. A hostel does not spend through this product, so the
- * debit half would be a permanently empty column. Every row here is money in,
- * every amount is green, and the direction marker is a constant rather than
- * something to read. See the head of `lib/hostel-statement.ts`.
+ * sign them by colour, and since expenses (docs/EXPENSES_PLAN.md) this one does
+ * too: money in is green with an up caret, money out is `<Money tone="debit">`
+ * with a down caret, and the running figure is the net balance. A warden gets
+ * no expenses on the wire, so their statement stays credits only. See the head
+ * of `lib/hostel-statement.ts`.
  *
  * ## The shape is the reference's, the colour is ours
  *
@@ -253,6 +257,7 @@ function MicroLabel({ children }: { children: string }) {
 function CreditRow({
   calendar,
   credit,
+  mixed,
   onOpen,
   onResident,
 }: {
@@ -264,14 +269,18 @@ function CreditRow({
    */
   calendar: CalendarSystem;
   credit: StatementCredit;
+  /** The list holds debits too, so the running figure is a balance. */
+  mixed: boolean;
   onOpen: () => void;
+  /** The footer pill: the resident on a credit, the expenses screen on a debit. */
   onResident: () => void;
 }) {
   const { colors } = useAppTheme();
+  const debit = Boolean(credit.debit);
 
   return (
     <Pressable
-      accessibilityLabel={`${creditTitle(credit, calendar)}, ${formatMoney(credit.amount)}`}
+      accessibilityLabel={`${creditTitle(credit, calendar)}, ${debit ? "spent" : "received"} ${formatMoney(credit.amount)}`}
       accessibilityRole="button"
       className="active:opacity-80"
       onPress={onOpen}
@@ -280,7 +289,7 @@ function CreditRow({
         <View className="flex-row items-start gap-3">
           {/* See the resident statement's note: eSewa and Khalti drew the
               same glyph until the real marks arrived. */}
-          <WalletMark name={credit.method} size={40} square tone="success" />
+          <WalletMark name={credit.method} size={40} square tone={debit ? "danger" : "success"} />
 
           <View className="flex-1 gap-1">
             <Text numberOfLines={2} variant="label">
@@ -288,26 +297,31 @@ function CreditRow({
             </Text>
             <View className="flex-row flex-wrap items-center gap-2">
               <Text variant="caption">{formatTime(credit.receivedAt)}</Text>
+              {credit.expense ? (
+                <Badge label={credit.expense.categoryLabel} tone="neutral" />
+              ) : null}
               {isPartial(credit) ? <Badge label="Part payment" tone="warning" /> : null}
             </View>
           </View>
 
           {/*
-            The direction marker is a constant on this screen, and it is still
-            drawn. It is what makes a row legible as *money in* at a glance
-            without reading the label — the same job the red triangle does in the
-            reference — and it costs nothing to keep the vocabulary complete for
-            the day something other than a credit belongs here.
+            The direction marker — what makes a row legible as money in or out
+            at a glance without reading the label, the same job the triangle
+            does in the reference.
           */}
           <View className="flex-row items-center gap-1 pt-0.5">
-            <Ionicons color={colors.success} name="caret-up" size={12} />
-            <Money tone="credit" value={credit.amount} />
+            <Ionicons
+              color={debit ? colors.destructive : colors.success}
+              name={debit ? "caret-down" : "caret-up"}
+              size={12}
+            />
+            <Money tone={debit ? "debit" : "credit"} value={credit.amount} />
           </View>
         </View>
 
         <View className="flex-row items-end justify-between gap-3 border-t border-border pt-3">
           <View className="shrink gap-0.5">
-            <MicroLabel>Total received</MicroLabel>
+            <MicroLabel>{mixed ? "Balance" : "Total received"}</MicroLabel>
             {credit.runningTotal === null ? (
               /*
                 The ledger was truncated, so every cumulative figure over it is
@@ -322,14 +336,14 @@ function CreditRow({
           </View>
 
           <Pressable
-            accessibilityLabel={`Open ${credit.residentName || "this resident"}`}
+            accessibilityLabel={debit ? "Open expenses" : `Open ${credit.residentName || "this resident"}`}
             accessibilityRole="button"
             className="rounded-lg bg-brand-soft px-3 py-2 active:opacity-70"
             hitSlop={6}
             onPress={onResident}
           >
             <Text className="text-xs font-bold uppercase tracking-wide text-primary">
-              Resident
+              {debit ? "Expenses" : "Resident"}
             </Text>
           </Pressable>
         </View>
@@ -403,6 +417,9 @@ export default function ManageStatementScreen() {
   );
   const methods = useMemo(() => methodOptions(credits), [credits]);
   const statuses = useMemo(() => statusOptions(credits), [credits]);
+  const directions = useMemo(() => directionOptions(credits), [credits]);
+  /** Whether the owner's expenses are on the list — debits beside credits. */
+  const mixed = ledger.data?.expenses != null;
   /**
    * The months the sheet offers, and which of them the draft currently is.
    *
@@ -536,7 +553,7 @@ export default function ManageStatementScreen() {
           on the back arrow, the title and both actions.
         */
         straddle={STRADDLE}
-        subtitle="Money received"
+        subtitle={mixed ? "Money in and out" : "Money received"}
         title="Statement"
       />
 
@@ -549,7 +566,11 @@ export default function ManageStatementScreen() {
       <View className="px-5" style={{ marginTop: -STRADDLE }}>
         <Pressable
           accessibilityHint="Opens the money overview"
-          accessibilityLabel={`${formatMoney(summary.total)} received in ${summary.periodLabel}`}
+          accessibilityLabel={
+            mixed
+              ? `${formatMoney(summary.total)} received and ${formatMoney(summary.out)} spent in ${summary.periodLabel}`
+              : `${formatMoney(summary.total)} received in ${summary.periodLabel}`
+          }
           accessibilityRole="button"
           className="flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3 active:opacity-80"
           onPress={() => router.push("/(admin)/money")}
@@ -582,14 +603,27 @@ export default function ManageStatementScreen() {
               </>
             ) : (
               <>
-                <Text numberOfLines={1} variant="label">
-                  {`${formatMoney(summary.total)} received in ${summary.periodLabel}`}
-                </Text>
-                <Text numberOfLines={1} variant="caption">
-                  {summary.count === 1
-                    ? "1 payment · Money overview"
-                    : `${summary.count} payments · Money overview`}
-                </Text>
+                {mixed ? (
+                  <>
+                    <Text numberOfLines={1} variant="label">
+                      {`${formatMoney(summary.total)} in · ${formatMoney(summary.out)} out`}
+                    </Text>
+                    <Text numberOfLines={1} variant="caption">
+                      {`${summary.periodLabel} · Net ${formatMoney(summary.total - summary.out)}`}
+                    </Text>
+                  </>
+                ) : (
+                  <>
+                    <Text numberOfLines={1} variant="label">
+                      {`${formatMoney(summary.total)} received in ${summary.periodLabel}`}
+                    </Text>
+                    <Text numberOfLines={1} variant="caption">
+                      {summary.count === 1
+                        ? "1 payment · Money overview"
+                        : `${summary.count} payments · Money overview`}
+                    </Text>
+                  </>
+                )}
               </>
             )}
           </View>
@@ -769,9 +803,17 @@ export default function ManageStatementScreen() {
 
           {!ledger.loading && filterCount > 0 && visible.length > 0 ? (
             <Text variant="muted">
-              {`${visible.length === 1 ? "1 payment" : `${visible.length} payments`} · ${formatMoney(
-                visibleTotal(visible),
-              )} · ${rangeLabel(filter, dates.calendar)}`}
+              {mixed
+                ? (() => {
+                    const totals = splitTotals(visible);
+
+                    return `${formatMoney(totals.in)} in · ${formatMoney(totals.out)} out · Net ${formatMoney(
+                      totals.in - totals.out,
+                    )} · ${rangeLabel(filter, dates.calendar)}`;
+                  })()
+                : `${visible.length === 1 ? "1 payment" : `${visible.length} payments`} · ${formatMoney(
+                    visibleTotal(visible),
+                  )} · ${rangeLabel(filter, dates.calendar)}`}
             </Text>
           ) : null}
 
@@ -780,12 +822,16 @@ export default function ManageStatementScreen() {
               <EmptyCard
                 action={<Button label="Clear filters" onPress={() => setFilter(NO_FILTER)} size="sm" variant="outline" />}
                 description="Nothing in the statement matches what you asked for."
-                title="No payments here"
+                title={mixed ? "Nothing here" : "No payments here"}
               />
             ) : (
               <EmptyCard
-                description="Every payment a resident makes lands here the moment it is recorded or verified."
-                title="Nothing has come in yet"
+                description={
+                  mixed
+                    ? "Every payment a resident makes, and every expense you record, lands here."
+                    : "Every payment a resident makes lands here the moment it is recorded or verified."
+                }
+                title={mixed ? "Nothing has moved yet" : "Nothing has come in yet"}
               />
             )
           ) : null}
@@ -816,8 +862,11 @@ export default function ManageStatementScreen() {
                   calendar={dates.calendar}
                   credit={credit}
                   key={credit.id}
+                  mixed={mixed}
                   onOpen={() => setOpen(credit)}
-                  onResident={() => router.push(`/manage/resident/${credit.residentId}`)}
+                  onResident={() =>
+                    router.push(credit.debit ? "/expenses" : `/manage/resident/${credit.residentId}`)
+                  }
                 />
               ))}
             </View>
@@ -872,12 +921,13 @@ export default function ManageStatementScreen() {
             <View className="flex-row gap-3">
               <View className="flex-1">
                 <Button
-                  label="Open resident"
+                  label={open.debit ? "Open expenses" : "Open resident"}
                   onPress={() => {
                     const residentId = open.residentId;
+                    const debit = open.debit;
 
                     setOpen(null);
-                    router.push(`/manage/resident/${residentId}`);
+                    router.push(debit ? "/expenses" : `/manage/resident/${residentId}`);
                   }}
                   variant="outline"
                 />
@@ -890,12 +940,17 @@ export default function ManageStatementScreen() {
         }
         onClose={() => setOpen(null)}
         open={open !== null}
-        title="Payment details"
+        title={open?.debit ? "Expense details" : "Payment details"}
       >
         {open ? (
           <View className="gap-4 pb-2">
             <View className="flex-row items-start gap-3">
-              <WalletMark name={open.method} size={44} square tone="success" />
+              <WalletMark
+                name={open.method}
+                size={44}
+                square
+                tone={open.debit ? "danger" : "success"}
+              />
 
               <View className="flex-1 gap-1">
                 <Text variant="subtitle">{creditTitle(open, dates.calendar)}</Text>
@@ -904,15 +959,37 @@ export default function ManageStatementScreen() {
             </View>
 
             <View className="flex-row items-center justify-between gap-3">
-              <Money size="large" tone="credit" value={open.amount} />
-              <StatusPill status={open.status} />
+              <Money size="large" tone={open.debit ? "debit" : "credit"} value={open.amount} />
+              {open.expense ? (
+                <Badge label="Spent" tone="danger" />
+              ) : (
+                <StatusPill status={open.status} />
+              )}
             </View>
 
-            {/*
+            {open.expense ? (
+              <View className="gap-0 border-t border-border pt-1">
+                <FactRow label="Spent" value={formatMoney(open.amount)} />
+                <FactRow label="Spent on" value={dates.date(open.receivedAt)} />
+                <FactRow label="Category" value={open.expense.categoryLabel} />
+                {open.expense.what.trim() ? (
+                  <FactRow label="For" value={open.expense.what.trim()} />
+                ) : null}
+                {open.expense.salaryFor ? (
+                  <FactRow label="Salary for" value={open.expense.salaryFor.name} />
+                ) : null}
+                <FactRow label="Paid by" value={humanizeEnum(open.method)} />
+                <FactRow label="Recorded by" value={open.expense.recordedBy.name || "Staff"} />
+                {open.runningTotal === null ? null : (
+                  <FactRow label="Balance" value={formatMoney(open.runningTotal)} />
+                )}
+              </View>
+            ) : (
+            /*
               A label/value grid, not a table — NOTES §8. The pairs are ordered
               the way somebody checks a payment: what arrived against what was
               asked, then when, then how, then what it was for.
-            */}
+            */
             <View className="gap-0 border-t border-border pt-1">
               <FactRow label="Received" value={formatMoney(open.amount)} />
               <FactRow label="Billed" value={formatMoney(open.billed)} />
@@ -931,7 +1008,10 @@ export default function ManageStatementScreen() {
               <FactRow label="Resident" value={open.residentName || "Not recorded"} />
               {open.remarks ? <FactRow label="Remarks" value={open.remarks} /> : null}
               {open.runningTotal === null ? null : (
-                <FactRow label="Total received" value={formatMoney(open.runningTotal)} />
+                <FactRow
+                  label={mixed ? "Balance" : "Total received"}
+                  value={formatMoney(open.runningTotal)}
+                />
               )}
               {/*
                 The reference's "Transaction Code". Ours is the invoice id — the
@@ -941,6 +1021,7 @@ export default function ManageStatementScreen() {
               */}
               <FactRow label="Invoice" value={open.id} />
             </View>
+            )}
           </View>
         ) : null}
       </Sheet>
@@ -984,6 +1065,15 @@ export default function ManageStatementScreen() {
             filter to nothing, and a control whose options are mostly dead
             teaches people not to open it. See `methodOptions`.
           */}
+          {directions.length > 0 ? (
+            <ChipGroup
+              onChange={(direction) => setDraft((current) => ({ ...current, direction }))}
+              options={directions}
+              title="Money"
+              value={draft.direction}
+            />
+          ) : null}
+
           <ChipGroup
             onChange={(status) => setDraft((current) => ({ ...current, status }))}
             options={statuses}

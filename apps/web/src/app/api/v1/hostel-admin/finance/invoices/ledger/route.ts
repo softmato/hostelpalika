@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { Role } from "@/lib/roles";
 import { getHostelLedger } from "@/modules/finance/invoice-list.service";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
 
@@ -23,6 +24,9 @@ const querySchema = z.object({
  * never returned, which is why the table was permanently empty.
  *
  * **Reads never bill.** Same rule as the matrix.
+ *
+ * For the owner it also carries the hostel's recorded expenses, so the
+ * statement shows money out (debits) beside money in.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -32,7 +36,11 @@ export async function GET(request: NextRequest) {
     );
     const hostelId = resolveAdminHostelId(principal, query.hostelId);
 
-    return successResponse(await getHostelLedger(hostelId), "Transactions");
+    // Expenses ride along for the owner only — the same line the expenses
+    // screen draws, where a warden sees just the rows they added themselves.
+    const expensesFor = principal.role === Role.HOSTEL_ADMIN ? principal.userId : undefined;
+
+    return successResponse(await getHostelLedger(hostelId, { expensesFor }), "Transactions");
   } catch (error) {
     return handleRouteError(error);
   }

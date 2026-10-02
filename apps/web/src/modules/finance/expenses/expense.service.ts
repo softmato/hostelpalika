@@ -308,6 +308,38 @@ async function loadCustomCategories(hostelId: Types.ObjectId) {
   return rows.map((row) => ({ hidden: Boolean(row.hidden), id: row._id.toString(), name: row.name }));
 }
 
+/**
+ * Every recorded expense, newest first — the debit half of the hostel
+ * statement (`GET /finance/invoices/ledger`). Voided rows are left out: the
+ * statement is what actually moved, and a cancelled expense never did.
+ *
+ * Owner-only by construction: the caller passes the owner's id, and the ledger
+ * route only asks when the principal is `HOSTEL_ADMIN` — the same line
+ * `canSeeAll` draws on the expenses screen.
+ */
+export async function listLedgerExpenses(
+  hostelId: Types.ObjectId | string,
+  askerId: string,
+  limit: number,
+): Promise<{ expenses: ExpenseRow[]; truncated: boolean }> {
+  await connectToDatabase();
+
+  const id = typeof hostelId === "string" ? new Types.ObjectId(hostelId) : hostelId;
+  const [docs, categories] = await Promise.all([
+    ExpenseModel.find({ hostelId: id, status: "RECORDED" })
+      .sort({ spentOn: -1, createdAt: -1 })
+      .limit(limit)
+      .lean<ExpenseDoc[]>(),
+    loadCustomCategories(id),
+  ]);
+  const customNames = new Map(categories.map((category) => [category.id, category.name]));
+
+  return {
+    expenses: docs.map((doc) => serializeExpense(doc, askerId, customNames)),
+    truncated: docs.length >= limit,
+  };
+}
+
 /** The salary picker: this hostel's wardens and cooks, by name. */
 async function loadPeople(hostelId: Types.ObjectId): Promise<ExpensePerson[]> {
   const [members, cooks] = await Promise.all([

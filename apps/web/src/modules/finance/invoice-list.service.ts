@@ -22,6 +22,7 @@ import {
 } from "@/modules/finance/ledger-read.service";
 import type { LedgerInvoice } from "@/modules/finance/ledger-read.service";
 import { paidBeforeJoining } from "@/modules/finance/paid-till";
+import { type ExpenseRow, listLedgerExpenses } from "@/modules/finance/expenses/expense.service";
 import { countableResidentIds } from "@/modules/finance/resident-scope";
 import { listReviewQueue } from "@/modules/finance/review.service";
 import {
@@ -673,6 +674,12 @@ export type HostelLedgerEntry = PortalInvoice & {
 
 export type HostelLedger = {
   entries: HostelLedgerEntry[];
+  /**
+   * Money out — the hostel's recorded expenses, newest first, so the statement
+   * can show debits beside credits. `null` when the reader may not see the
+   * hostel's spending (anyone but the owner), which is not the same as `[]`.
+   */
+  expenses: ExpenseRow[] | null;
   /** True when the ledger hit {@link LEDGER_LIMIT} and older rows were dropped. */
   truncated: boolean;
 };
@@ -705,11 +712,17 @@ const LEDGER_LIMIT = 5000;
  */
 export async function getHostelLedger(
   hostelId: Types.ObjectId | string,
+  options: { expensesFor?: string } = {},
 ): Promise<HostelLedger> {
   await connectToDatabase();
 
   const residentIds = await countableResidentIds(hostelId);
-  const invoices = await listRecentInvoices({ hostelId, residentIds }, LEDGER_LIMIT);
+  const [invoices, spent] = await Promise.all([
+    listRecentInvoices({ hostelId, residentIds }, LEDGER_LIMIT),
+    options.expensesFor
+      ? listLedgerExpenses(hostelId, options.expensesFor, LEDGER_LIMIT)
+      : Promise.resolve(null),
+  ]);
 
   const residents = await ResidentModel.find({ _id: { $in: residentIds } })
     .select("firstName lastName")
@@ -731,6 +744,7 @@ export async function getHostelLedger(
       residentId: invoice.residentId,
       residentName: nameById.get(invoice.residentId) ?? "",
     })),
-    truncated: invoices.length >= LEDGER_LIMIT,
+    expenses: spent?.expenses ?? null,
+    truncated: invoices.length >= LEDGER_LIMIT || Boolean(spent?.truncated),
   };
 }

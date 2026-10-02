@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import type { AdminLedger, AdminLedgerEntry } from "@/lib/admin-api";
+import type { ExpenseRow } from "@/lib/expenses";
 import {
   activeFilterCount,
   activeMonthRange,
   activeQuickRange,
   creditTitle,
+  directionOptions,
   filterCredits,
   groupByDay,
   isPartial,
@@ -274,6 +276,8 @@ describe("month filter", () => {
 
     expect(statementSummary(credits, "BS", now, filter(monthRange("2083-04")))).toEqual({
       count: 1,
+      out: 0,
+      outCount: 0,
       periodLabel: "Shrawan 2083 BS",
       total: 9000,
     });
@@ -281,6 +285,8 @@ describe("month filter", () => {
       statementSummary(credits, "BS", now, filter(monthRange("2083-04", "2083-05"))),
     ).toEqual({
       count: 2,
+      out: 0,
+      outCount: 0,
       periodLabel: "Shrawan 2083 to Bhadra 2083 BS",
       total: 14_000,
     });
@@ -405,6 +411,8 @@ describe("statementSummary", () => {
      */
     expect(statementSummary(credits, "AD", now)).toEqual({
       count: 2,
+      out: 0,
+      outCount: 0,
       periodLabel: "September 2026",
       total: 9000,
     });
@@ -561,5 +569,100 @@ describe("the amount floor", () => {
     expect(filterCredits(credits, filter({ minAmount: "0" }))).toHaveLength(2);
     expect(activeFilterCount(filter({ minAmount: "abc" }))).toBe(0);
     expect(activeFilterCount(filter({ minAmount: "1000" }))).toBe(1);
+  });
+});
+
+describe("debits — the owner's expenses on the same statement", () => {
+  function expense(overrides: Partial<ExpenseRow> = {}): ExpenseRow {
+    return {
+      amount: 1200,
+      category: "GROCERIES",
+      categoryLabel: "Groceries",
+      createdAt: "2026-08-24T09:00:00.000Z",
+      customCategoryId: null,
+      id: "exp-1",
+      mine: true,
+      paidBy: "CASH",
+      payer: "HOSTEL",
+      photoAssetId: null,
+      recordedBy: { id: "owner", name: "Owner", role: "HOSTEL_ADMIN" },
+      salaryFor: null,
+      spentOn: "2026-08-24",
+      status: "RECORDED",
+      voidReason: null,
+      voidedAt: null,
+      what: "Vegetables",
+      ...overrides,
+    };
+  }
+
+  const mixed: AdminLedger = {
+    entries: [entry({ id: "rent", paidAmount: 5000, paidDate: "2026-08-24T07:53:00.000Z" })],
+    expenses: [
+      expense(),
+      expense({ id: "void", status: "VOID" }),
+      expense({ amount: 800, createdAt: "2026-08-30T03:00:00.000Z", id: "late", spentOn: "2026-08-23" }),
+    ],
+    truncated: false,
+  };
+
+  it("lists recorded expenses as debits beside the credits, leaving voided ones out", () => {
+    const rows = statementCredits(mixed);
+
+    expect(rows.map((row) => [row.id, Boolean(row.debit)])).toEqual([
+      ["expense:exp-1", true],
+      ["rent", false],
+      ["expense:late", true],
+    ]);
+  });
+
+  it("runs a net balance, so money out takes away from it", () => {
+    const rows = statementCredits(mixed);
+
+    expect(rows.map((row) => row.runningTotal)).toEqual([3000, 4200, -800]);
+    expect(visibleTotal(rows)).toBe(3000);
+    expect(groupByDay(rows).map((day) => day.total)).toEqual([3800, -800]);
+  });
+
+  it("places a back-dated expense on its own day, not the day it was typed", () => {
+    const late = statementCredits(mixed).find((row) => row.id === "expense:late");
+
+    expect(late?.receivedAt).toBe("2026-08-23T06:15:00.000Z");
+  });
+
+  it("titles a debit by what it was for and filters it by direction", () => {
+    const rows = statementCredits(mixed);
+
+    expect(creditTitle(rows[0], "AD")).toBe("Vegetables");
+    expect(directionOptions(rows)).toEqual(["IN", "OUT"]);
+    expect(filterCredits(rows, filter({ direction: "OUT" })).map((row) => row.id)).toEqual([
+      "expense:exp-1",
+      "expense:late",
+    ]);
+    expect(filterCredits(rows, filter({ direction: "IN" })).map((row) => row.id)).toEqual(["rent"]);
+    expect(statusOptions(rows)).toEqual(["PAID"]);
+  });
+
+  it("keeps money in and money out apart in the summary and the shared text", () => {
+    const rows = statementCredits(mixed);
+
+    expect(statementSummary(rows, "AD", new Date("2026-08-25T00:00:00.000Z"), filter(monthRange("2083-05")))).toMatchObject({
+      count: 1,
+      out: 2000,
+      outCount: 2,
+      total: 5000,
+    });
+    expect(
+      statementShareText({ calendar: "AD", credits: rows, filter: NO_FILTER, hostelName: "" }),
+    ).toBe(
+      "Hostel statement\nAll time\n1 payment · Rs 5,000 received\n2 expenses · Rs 2,000 spent\nNet Rs 3,000",
+    );
+  });
+
+  it("leaves a warden's statement — no expenses on the wire — credits only", () => {
+    const rows = statementCredits({ ...mixed, expenses: null });
+
+    expect(rows.every((row) => !row.debit)).toBe(true);
+    expect(directionOptions(rows)).toEqual([]);
   });
 });

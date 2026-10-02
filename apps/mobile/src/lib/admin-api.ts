@@ -33,6 +33,7 @@ import { api } from "@/lib/api";
 import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
 import type { ResidentAccount } from "@/lib/admin-manage-api";
 import type { CommunityMedia } from "@/lib/community-api";
+import type { ExpenseRow } from "@/lib/expenses";
 import type { FoodRoutine } from "@/lib/resident-api";
 
 /* -------------------------------------------------------------------------- */
@@ -600,6 +601,12 @@ export type AdminLedgerEntry = {
 
 export type AdminLedger = {
   entries: AdminLedgerEntry[];
+  /**
+   * The hostel's recorded expenses — the debit half of the statement. `null`
+   * for anyone but the owner (a warden sees only their own spending, on the
+   * expenses screen), and absent from a server that predates it.
+   */
+  expenses?: ExpenseRow[] | null;
   /**
    * The server capped the read at 5000 rows and dropped older ones. Anything
    * cumulative computed over these entries is therefore incomplete — see the

@@ -51,6 +51,7 @@ import {
   type ExpenseLoad,
 } from "@/lib/expenses-api";
 import { formatMoney } from "@/lib/format";
+import { adminQuery } from "@/lib/admin-queries";
 import { invalidateQuery } from "@/lib/query-cache";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { uploadAsset } from "@/lib/uploads";
@@ -334,6 +335,8 @@ export default function AddExpenseScreen() {
 
       toastSuccess("Expense added", `${formatMoney(saved.amount)} · ${saved.categoryLabel}`);
       invalidateQuery(expenseQuery(audience, null).key);
+      // The owner's statement lists expenses as debits.
+      invalidateQuery(adminQuery.ledger().key);
       router.back();
     } catch (error) {
       toastError("Not saved", readApiError(error, "Check your internet and tap Save again."));
