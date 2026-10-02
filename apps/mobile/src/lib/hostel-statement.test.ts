@@ -12,6 +12,7 @@ import {
   groupByDay,
   isPartial,
   methodOptions,
+  monthlyTotals,
   monthOptions,
   monthRange,
   monthRangeLabel,
@@ -657,6 +658,12 @@ describe("debits — the owner's expenses on the same statement", () => {
     ).toBe(
       "Hostel statement\nAll time\n1 payment · Rs 5,000 received\n2 expenses · Rs 2,000 spent\nNet Rs 3,000",
     );
+  });
+
+  it("totals money in and out per BS month, newest month first", () => {
+    expect(monthlyTotals(statementCredits(mixed))).toEqual([
+      { in: 5000, month: "2083-05", out: 2000 },
+    ]);
   });
 
   it("leaves a warden's statement — no expenses on the wire — credits only", () => {

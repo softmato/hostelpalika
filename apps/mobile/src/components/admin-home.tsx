@@ -663,6 +663,8 @@ export function ServiceGrid({
       : []),
     { href: "/manage/maintenance", icon: "construct-outline", label: "Repairs", tone: "danger" },
     { href: "/manage/reports", icon: "bar-chart-outline", label: "Reports", tone: "admin" },
+    // Moved here from the Reports screen: inviting a hostel is a job, not a figure.
+    { href: "/manage/referrals", icon: "gift-outline", label: "Referrals", tone: "brand" },
     /*
       The hostel paying *us*, which is the one kind of money on this grid that
       does not belong to Finance.

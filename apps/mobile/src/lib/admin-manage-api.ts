@@ -882,6 +882,11 @@ export function performanceReportPdfPath(month: string) {
   return `/api/v1/hostel-admin/reports/performance/pdf?month=${encodeURIComponent(month)}`;
 }
 
+/** The bank-style statement PDF — credits and debits between two BS months, inclusive. */
+export function statementPdfPath(from: string, to: string) {
+  return `/api/v1/hostel-admin/reports/statement/pdf?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Wardens                                                                    */
 /* -------------------------------------------------------------------------- */

@@ -880,6 +880,37 @@ export function splitTotals(rows: readonly StatementRow[]): {
   return totals;
 }
 
+/** One BS month on the Reports screen's month-by-month list. */
+export type MonthTotals = { in: number; month: string; out: number };
+
+/**
+ * Money in and out per BS month (by the day it moved, in Nepal time), newest
+ * month first. Undated rows belong to no month and are left out.
+ */
+export function monthlyTotals(rows: readonly StatementRow[]): MonthTotals[] {
+  const byMonth = new Map<string, MonthTotals>();
+
+  for (const row of rows) {
+    const month = receivedMonth(row);
+
+    if (!month) {
+      continue;
+    }
+
+    const entry = byMonth.get(month) ?? { in: 0, month, out: 0 };
+
+    if (row.debit) {
+      entry.out += row.amount;
+    } else {
+      entry.in += row.amount;
+    }
+
+    byMonth.set(month, entry);
+  }
+
+  return [...byMonth.values()].sort((left, right) => right.month.localeCompare(left.month));
+}
+
 /**
  * What a filtered list adds up to — the line under the search field. Net:
  * debits subtract, so a credits-only list sums exactly as it always did.

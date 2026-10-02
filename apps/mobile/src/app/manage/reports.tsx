@@ -1,7 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Download } from "lucide-react-native";
-import { type ReactNode, useCallback, useState } from "react";
+import { type ReactNode, useCallback, useMemo, useState } from "react";
+
+import { addBsMonths } from "@hostel/calendar/bs";
 import { Pressable, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
@@ -26,12 +28,15 @@ import {
   REPORT_EXPORTS,
   type ReportExport,
   performanceReportPdfPath,
+  statementPdfPath,
 } from "@/lib/admin-manage-api";
+import type { AdminLedger } from "@/lib/admin-api";
 import { type AdminReportsData, adminQuery } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { readApiError } from "@/lib/api-contract";
 import { downloadToDevice } from "@/lib/documents";
 import { formatMoney, humanizeEnum } from "@/lib/format";
+import { monthlyTotals, splitTotals, statementCredits } from "@/lib/hostel-statement";
 import { toastError } from "@/lib/toast";
 
 /**
@@ -77,7 +82,10 @@ const LIFT = {
   shadowRadius: 16,
 } as const;
 
-type SheetName = "exports" | "food" | "month" | "night" | null;
+type SheetName = "exports" | "food" | "month" | "night" | "pdf" | null;
+
+/** How many months the month-by-month list shows before "Show all". */
+const MONTHS_SHOWN = 6;
 
 function rateTone(rate: number | null): "danger" | "neutral" | "success" | "warning" {
   if (rate === null) {
@@ -283,6 +291,66 @@ function TrendBars({ trend }: { trend: PerformanceReport["finance"]["trend"] }) 
 }
 
 /* -------------------------------------------------------------------------- */
+/* Month by month                                                             */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * One month on the month-by-month list: the month on the left, money in and
+ * money out under it, the net hard right. Tapping it opens that month's
+ * detail below when the report covers it.
+ */
+function MonthRow({
+  label,
+  mixed,
+  money,
+  onPress,
+  selected,
+}: {
+  label: string;
+  /** Whether expenses are on the ledger — a warden's has credits only. */
+  mixed: boolean;
+  money: { in: number; out: number };
+  onPress?: () => void;
+  selected: boolean;
+}) {
+  const { colors } = useAppTheme();
+  const net = money.in - money.out;
+
+  return (
+    <Pressable
+      accessibilityLabel={`${label}: ${formatMoney(money.in)} in${mixed ? `, ${formatMoney(money.out)} out` : ""}`}
+      accessibilityRole={onPress ? "button" : undefined}
+      className="flex-row items-center gap-3 py-3 active:opacity-70"
+      disabled={!onPress}
+      onPress={onPress}
+    >
+      <View
+        className={`h-9 w-9 items-center justify-center rounded-xl ${selected ? "bg-primary" : "bg-brand-soft"}`}
+      >
+        <Ionicons
+          color={selected ? colors.primaryForeground : colors.primary}
+          name="calendar-outline"
+          size={16}
+        />
+      </View>
+      <View className="flex-1 gap-0.5">
+        <Text numberOfLines={1} variant="label">
+          {label}
+        </Text>
+        <View className="flex-row flex-wrap items-center gap-x-3">
+          <Text className="text-xs font-semibold text-success">{`↑ ${formatMoney(money.in)}`}</Text>
+          {mixed ? (
+            <Text className="text-xs font-semibold text-destructive">{`↓ ${formatMoney(money.out)}`}</Text>
+          ) : null}
+        </View>
+      </View>
+      {mixed ? <Money tone={net < 0 ? "debit" : "default"} value={Math.abs(net)} /> : null}
+      {onPress ? <Ionicons color={colors.mutedForeground} name="chevron-forward" size={16} /> : null}
+    </Pressable>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
 /* Loading                                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -332,6 +400,23 @@ export default function ManageReportsScreen() {
     topics: query.topics,
   });
 
+  /*
+    The ledger behind the Overall and month-by-month sections — the same read
+    the statement screen uses, so the two agree. Expenses ride along for the
+    owner only; a warden without `viewPayments` gets an error here and the
+    two sections simply do not draw.
+  */
+  const ledgerQuery = adminQuery.ledger();
+  const ledger = useResource<AdminLedger>(ledgerQuery.load, {
+    cacheKey: ledgerQuery.key,
+    topics: ledgerQuery.topics,
+  });
+  const [allMonths, setAllMonths] = useState(false);
+  const ledgerRows = useMemo(() => statementCredits(ledger.data), [ledger.data]);
+  const overall = useMemo(() => splitTotals(ledgerRows), [ledgerRows]);
+  const byMonth = useMemo(() => monthlyTotals(ledgerRows), [ledgerRows]);
+  const mixed = ledger.data?.expenses != null;
+
   const report = reports.data?.report ?? null;
   const attendance = reports.data?.attendance ?? null;
   const foodTiming = reports.data?.food ?? null;
@@ -360,6 +445,28 @@ export default function ManageReportsScreen() {
     }
   }, [dates, report]);
 
+  /** The bank-style statement between two BS months, inclusive. */
+  const downloadStatement = useCallback(
+    async (from: string, to: string) => {
+      setDownloading(true);
+
+      try {
+        await downloadToDevice({
+          extension: "pdf",
+          fileName: from === to ? `statement-${from}` : `statement-${from}-to-${to}`,
+          label: from === to ? `${dates.period(from)} statement` : `${dates.period(from)} to ${dates.period(to)} statement`,
+          mimeType: "application/pdf",
+          url: `${API_BASE_URL}${statementPdfPath(from, to)}`,
+        });
+      } catch (error) {
+        toastError("Could not download", readApiError(error, "The statement did not download."));
+      } finally {
+        setDownloading(false);
+      }
+    },
+    [dates],
+  );
+
   const exportCsv = useCallback(async (entry: ReportExport) => {
     setExporting(entry);
 
@@ -385,7 +492,7 @@ export default function ManageReportsScreen() {
         caption={report?.period.isCurrent ? "This month so far" : "Whole month"}
         downloading={downloading}
         label={report ? dates.period(report.period.month) : null}
-        onDownload={() => void downloadPdf()}
+        onDownload={() => setSheet("pdf")}
         onPick={() => setSheet("month")}
       />
     </View>
@@ -458,13 +565,6 @@ export default function ManageReportsScreen() {
       />
     ) : null,
     <InfoTile
-      icon="gift-outline"
-      key="referrals"
-      label="Referrals"
-      onPress={() => router.push("/manage/referrals")}
-      tone="brand"
-    />,
-    <InfoTile
       caption="CSV"
       icon="grid-outline"
       key="exports"
@@ -475,10 +575,95 @@ export default function ManageReportsScreen() {
   ].filter((tile): tile is NonNullable<typeof tile> => tile !== null);
 
   return (
-    <Screen header={header} onRefresh={reports.refresh} refreshing={reports.refreshing} scroll>
+    <Screen
+      header={header}
+      onRefresh={() => {
+        reports.refresh();
+        ledger.refresh();
+      }}
+      refreshing={reports.refreshing}
+      scroll
+    >
       <View className="gap-6 pt-2">
+        {/* --------------------------------------------------------- overall */}
+        {ledger.loading ? (
+          <SkeletonCard rows={3} />
+        ) : ledger.data ? (
+          <Section subtitle="Everything recorded so far" title="Overall">
+            <DataCard
+              footer={{
+                left: `${plural(overall.inCount, "payment")}${mixed ? ` · ${plural(overall.outCount, "expense")}` : ""}`,
+                pill: mixed ? `Net ${formatMoney(overall.in - overall.out)}` : undefined,
+                right: finance.outstandingAllTime > 0 ? `${formatMoney(finance.outstandingAllTime)} still owed` : "",
+              }}
+              meta={mixed ? "Money in and out" : "Money received"}
+              onPress={() => router.push("/manage/finance/statement")}
+              segments={
+                mixed
+                  ? [
+                      { label: "Money in", tone: "brand", value: overall.in },
+                      { label: "Money out", tone: "danger", value: overall.out },
+                    ]
+                  : undefined
+              }
+              stats={
+                mixed
+                  ? [
+                      { label: "Money in", value: formatMoney(overall.in) },
+                      { label: "Money out", value: formatMoney(overall.out) },
+                      { label: "Net", value: formatMoney(overall.in - overall.out) },
+                    ]
+                  : [
+                      { label: "Received", value: formatMoney(overall.in) },
+                      { label: "Still owed", value: formatMoney(finance.outstandingAllTime) },
+                    ]
+              }
+              title="All time"
+              total={mixed ? overall.in + overall.out : undefined}
+            />
+          </Section>
+        ) : null}
+
+        {/* --------------------------------------------------- month by month */}
+        {ledger.data && byMonth.length > 0 ? (
+          <Section subtitle="Tap a month to see it in detail below" title="Month by month">
+            <Card className="py-1">
+              {(allMonths ? byMonth : byMonth.slice(0, MONTHS_SHOWN)).map((entry, index) => {
+                const reportIndex = report.period.months.indexOf(entry.month);
+
+                return (
+                  <View className={index > 0 ? "border-t border-border" : undefined} key={entry.month}>
+                    <MonthRow
+                      label={dates.period(entry.month)}
+                      mixed={mixed}
+                      money={entry}
+                      onPress={
+                        reportIndex < 0
+                          ? undefined
+                          : () => setMonth(reportIndex === 0 ? "" : entry.month)
+                      }
+                      selected={entry.month === report.period.month}
+                    />
+                  </View>
+                );
+              })}
+              {byMonth.length > MONTHS_SHOWN ? (
+                <Pressable
+                  accessibilityRole="button"
+                  className="items-center border-t border-border py-3 active:opacity-70"
+                  onPress={() => setAllMonths((current) => !current)}
+                >
+                  <Text className="text-xs font-bold uppercase tracking-wide text-primary">
+                    {allMonths ? "Show fewer" : `Show all ${byMonth.length} months`}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </Card>
+          </Section>
+        ) : null}
+
         {/* ------------------------------------------------------------ rent */}
-        <Section title="Rent">
+        <Section subtitle={dates.period(report.period.month)} title="Rent">
           <View className="gap-3">
             <DataCard
               footer={{
@@ -651,6 +836,55 @@ export default function ManageReportsScreen() {
             />
           );
         })}
+      </Sheet>
+
+      <Sheet bare onClose={() => setSheet(null)} open={sheet === "pdf"} title="Download PDF">
+        {(() => {
+          const selected = report.period.month;
+          const yearStart = `${selected.slice(0, 4)}-01`;
+          const options = [
+            { from: selected, label: `Statement · ${dates.period(selected)}`, to: selected },
+            {
+              from: addBsMonths(selected, -2),
+              label: `Statement · ${dates.period(addBsMonths(selected, -2))} to ${dates.period(selected)}`,
+              to: selected,
+            },
+            {
+              from: addBsMonths(selected, -5),
+              label: `Statement · last 6 months`,
+              to: selected,
+            },
+            ...(yearStart !== selected
+              ? [{ from: yearStart, label: `Statement · ${dates.period(yearStart)} to ${dates.period(selected)}`, to: selected }]
+              : []),
+          ];
+
+          return (
+            <>
+              {options.map((option) => (
+                <SheetRow
+                  key={option.label}
+                  label={option.label}
+                  onPress={() => {
+                    setSheet(null);
+                    void downloadStatement(option.from, option.to);
+                  }}
+                  subtitle={mixed ? "Bank-style · every credit and debit" : "Bank-style · every payment received"}
+                  trailing={<Ionicons color={colors.mutedForeground} name="document-text-outline" size={20} />}
+                />
+              ))}
+              <SheetRow
+                label={`Performance report · ${dates.period(selected)}`}
+                onPress={() => {
+                  setSheet(null);
+                  void downloadPdf();
+                }}
+                subtitle="Rent, residents and listing for the month"
+                trailing={<Ionicons color={colors.mutedForeground} name="bar-chart-outline" size={20} />}
+              />
+            </>
+          );
+        })()}
       </Sheet>
 
       <Sheet bare onClose={() => setSheet(null)} open={sheet === "exports"} title="Spreadsheets">
