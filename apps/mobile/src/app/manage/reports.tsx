@@ -1,22 +1,31 @@
+import { addBsMonths } from "@hostel/calendar/bs";
+import type { AdminLedger } from "@/lib/admin-api";
+import {
+  monthlyTotals,
+  splitTotals,
+  statementCredits,
+} from "@/lib/hostel-statement";
+import { ListingArt } from "@/components/listing-art";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Download } from "lucide-react-native";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
-
-import { addBsMonths } from "@hostel/calendar/bs";
 import { Pressable, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
-import { DataCard } from "@/components/ui/data-card";
-import { Chip, FactRow, Grid, InfoTile, StatTile } from "@/components/ui/layout";
+import { Chip, FactRow, StatTile } from "@/components/ui/layout";
 import { Meter } from "@/components/ui/meter";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
-import { Skeleton, SkeletonCard, SkeletonTiles } from "@/components/ui/skeleton";
+import {
+  Skeleton,
+  SkeletonCard,
+  SkeletonTiles,
+} from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -30,46 +39,14 @@ import {
   performanceReportPdfPath,
   statementPdfPath,
 } from "@/lib/admin-manage-api";
-import type { AdminLedger } from "@/lib/admin-api";
 import { type AdminReportsData, adminQuery } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { readApiError } from "@/lib/api-contract";
 import { downloadToDevice } from "@/lib/documents";
 import { formatMoney, humanizeEnum } from "@/lib/format";
-import { monthlyTotals, splitTotals, statementCredits } from "@/lib/hostel-statement";
 import { toastError } from "@/lib/toast";
 
-/**
- * Reports — the hostel's month, and the PDF of it.
- *
- * ## What changed, and why
- *
- * This screen used to be the portal's Reports page squeezed onto a phone: four
- * headline tiles, an export row, three tabs, and under them every breakdown the
- * overview endpoint returns — payment statuses, complaint categories, referral
- * rewards, zone chips — as chips and meters. All true, and an owner opening it
- * could not tell what mattered. It now answers four questions, in order: how
- * much rent came in, who lives here and who is in tonight, how many people saw
- * the listing, and what is still open. Everything else is one tile away.
- *
- * ## The screen and the PDF are one payload
- *
- * Both read `reports/performance` for the chosen BS month. Download fetches
- * the same figures as a two-page PDF, so what the owner sends on is what they
- * were looking at when they pressed the button.
- *
- * ## A month, or right now
- *
- * Rent, move-ins, page views and complaints raised are counted inside the
- * month. Who lives here, who is in tonight and how many beds are free have no
- * history, so they are always *now* — the section says so rather than letting
- * an earlier month's report imply otherwise.
- *
- * ## Attendance can say when, never where
- *
- * The night check-ins sheet is built from zone rows. Coordinates are discarded
- * as each ping lands and a test enforces it.
- */
+/** Monthly performance with exports beside the reporting period. */
 
 /** How far the month card rides up onto the painted bar. */
 const STRADDLE = 26;
@@ -82,12 +59,32 @@ const LIFT = {
   shadowRadius: 16,
 } as const;
 
-type SheetName = "exports" | "food" | "month" | "night" | "pdf" | null;
+type SheetName = "exports" | "month" | "food" | "night" | "pdf" | null;
 
-/** How many months the month-by-month list shows before "Show all". */
-const MONTHS_SHOWN = 6;
+/** `1110` → `18:30`. The analytics service reports minutes since midnight. */
+function clockTime(minutes: number | null) {
+  if (minutes === null) {
+    return "—";
+  }
 
-function rateTone(rate: number | null): "danger" | "neutral" | "success" | "warning" {
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
+function delayLabel(minutes: number | null) {
+  if (minutes === null) {
+    return "No timing set";
+  }
+
+  if (minutes === 0) {
+    return "On time";
+  }
+
+  return minutes > 0 ? `${minutes} min late` : `${Math.abs(minutes)} min early`;
+}
+
+function rateTone(
+  rate: number | null,
+): "danger" | "neutral" | "success" | "warning" {
   if (rate === null) {
     return "neutral";
   }
@@ -111,7 +108,9 @@ function percent(rate: number | null) {
 /** `+20% vs Shrawan` — the line under a listing figure. */
 function changeLine({ current, previous }: MonthCompare, previousName: string) {
   if (previous === 0) {
-    return current === 0 ? `None in ${previousName} either` : `None in ${previousName}`;
+    return current === 0
+      ? `None in ${previousName} either`
+      : `None in ${previousName}`;
   }
 
   const delta = Math.round(((current - previous) / previous) * 100);
@@ -119,27 +118,6 @@ function changeLine({ current, previous }: MonthCompare, previousName: string) {
   return delta === 0
     ? `Same as ${previousName}`
     : `${delta > 0 ? "+" : ""}${delta}% vs ${previousName}`;
-}
-
-/** `1110` → `18:30`. The analytics service reports minutes since midnight. */
-function clockTime(minutes: number | null) {
-  if (minutes === null) {
-    return "—";
-  }
-
-  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
-}
-
-function delayLabel(minutes: number | null) {
-  if (minutes === null) {
-    return "No timing set";
-  }
-
-  if (minutes === 0) {
-    return "On time";
-  }
-
-  return minutes > 0 ? `${minutes} min late` : `${Math.abs(minutes)} min early`;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -185,7 +163,11 @@ function MonthCard({
           onPress={onPick}
         >
           <View className="h-10 w-10 items-center justify-center rounded-2xl bg-brand-soft">
-            <Ionicons color={colors.primary} name="calendar-outline" size={18} />
+            <Ionicons
+              color={colors.primary}
+              name="calendar-outline"
+              size={18}
+            />
           </View>
 
           {label === null ? (
@@ -199,7 +181,11 @@ function MonthCard({
                 <Text className="shrink" numberOfLines={1} variant="subtitle">
                   {label}
                 </Text>
-                <Ionicons color={colors.mutedForeground} name="chevron-down" size={14} />
+                <Ionicons
+                  color={colors.mutedForeground}
+                  name="chevron-down"
+                  size={14}
+                />
               </View>
               <Text numberOfLines={1} variant="caption">
                 {caption}
@@ -232,9 +218,16 @@ function MonthCard({
  * a strip that scrolls sideways hides the month the owner picked off the edge.
  * Plain `View`s with percentage heights — twelve bars is layout, not charting.
  */
-function TrendBars({ trend }: { trend: PerformanceReport["finance"]["trend"] }) {
+function TrendBars({
+  trend,
+}: {
+  trend: PerformanceReport["finance"]["trend"];
+}) {
   const dates = useDates();
-  const peak = Math.max(0, ...trend.map((point) => Math.max(point.billed, point.collected)));
+  const peak = Math.max(
+    0,
+    ...trend.map((point) => Math.max(point.billed, point.collected)),
+  );
 
   if (peak === 0) {
     return <Text variant="muted">Nothing was billed in these six months.</Text>;
@@ -255,7 +248,9 @@ function TrendBars({ trend }: { trend: PerformanceReport["finance"]["trend"] }) 
               <View className="h-24 flex-row items-end gap-1">
                 <View
                   className="w-2.5 rounded-t bg-muted"
-                  style={{ height: `${Math.max(2, (point.billed / peak) * 100)}%` }}
+                  style={{
+                    height: `${Math.max(2, (point.billed / peak) * 100)}%`,
+                  }}
                 />
                 <View
                   className={`w-2.5 rounded-t ${selected ? "bg-primary" : "bg-primary/50"}`}
@@ -291,14 +286,11 @@ function TrendBars({ trend }: { trend: PerformanceReport["finance"]["trend"] }) 
 }
 
 /* -------------------------------------------------------------------------- */
-/* Month by month                                                             */
+/* Loading                                                                    */
 /* -------------------------------------------------------------------------- */
 
-/**
- * One month on the month-by-month list: the month on the left, money in and
- * money out under it, the net hard right. Tapping it opens that month's
- * detail below when the report covers it.
- */
+const MONTHS_SHOWN = 6;
+
 function MonthRow({
   label,
   mixed,
@@ -344,15 +336,19 @@ function MonthRow({
           ) : null}
         </View>
       </View>
-      {mixed ? <Money tone={net < 0 ? "debit" : "default"} value={Math.abs(net)} /> : null}
-      {onPress ? <Ionicons color={colors.mutedForeground} name="chevron-forward" size={16} /> : null}
+      {mixed ? (
+        <Money tone={net < 0 ? "debit" : "default"} value={Math.abs(net)} />
+      ) : null}
+      {onPress ? (
+        <Ionicons
+          color={colors.mutedForeground}
+          name="chevron-forward"
+          size={16}
+        />
+      ) : null}
     </Pressable>
   );
 }
-
-/* -------------------------------------------------------------------------- */
-/* Loading                                                                    */
-/* -------------------------------------------------------------------------- */
 
 function ReportsSkeleton() {
   return (
@@ -400,19 +396,16 @@ export default function ManageReportsScreen() {
     topics: query.topics,
   });
 
-  /*
-    The ledger behind the Overall and month-by-month sections — the same read
-    the statement screen uses, so the two agree. Expenses ride along for the
-    owner only; a warden without `viewPayments` gets an error here and the
-    two sections simply do not draw.
-  */
   const ledgerQuery = adminQuery.ledger();
   const ledger = useResource<AdminLedger>(ledgerQuery.load, {
     cacheKey: ledgerQuery.key,
     topics: ledgerQuery.topics,
   });
   const [allMonths, setAllMonths] = useState(false);
-  const ledgerRows = useMemo(() => statementCredits(ledger.data), [ledger.data]);
+  const ledgerRows = useMemo(
+    () => statementCredits(ledger.data),
+    [ledger.data],
+  );
   const overall = useMemo(() => splitTotals(ledgerRows), [ledgerRows]);
   const byMonth = useMemo(() => monthlyTotals(ledgerRows), [ledgerRows]);
   const mixed = ledger.data?.expenses != null;
@@ -439,7 +432,10 @@ export default function ManageReportsScreen() {
         url: `${API_BASE_URL}${performanceReportPdfPath(report.period.month)}`,
       });
     } catch (error) {
-      toastError("Could not download", readApiError(error, "The report did not download."));
+      toastError(
+        "Could not download",
+        readApiError(error, "The report did not download."),
+      );
     } finally {
       setDownloading(false);
     }
@@ -453,13 +449,20 @@ export default function ManageReportsScreen() {
       try {
         await downloadToDevice({
           extension: "pdf",
-          fileName: from === to ? `statement-${from}` : `statement-${from}-to-${to}`,
-          label: from === to ? `${dates.period(from)} statement` : `${dates.period(from)} to ${dates.period(to)} statement`,
+          fileName:
+            from === to ? `statement-${from}` : `statement-${from}-to-${to}`,
+          label:
+            from === to
+              ? `${dates.period(from)} statement`
+              : `${dates.period(from)} to ${dates.period(to)} statement`,
           mimeType: "application/pdf",
           url: `${API_BASE_URL}${statementPdfPath(from, to)}`,
         });
       } catch (error) {
-        toastError("Could not download", readApiError(error, "The statement did not download."));
+        toastError(
+          "Could not download",
+          readApiError(error, "The statement did not download."),
+        );
       } finally {
         setDownloading(false);
       }
@@ -479,7 +482,10 @@ export default function ManageReportsScreen() {
         url: `${API_BASE_URL}/api/v1/hostel-admin/reports/export?report=${entry}`,
       });
     } catch (error) {
-      toastError("Could not export", readApiError(error, "The export did not download."));
+      toastError(
+        "Could not export",
+        readApiError(error, "The export did not download."),
+      );
     } finally {
       setExporting("");
     }
@@ -495,6 +501,14 @@ export default function ManageReportsScreen() {
         onDownload={() => setSheet("pdf")}
         onPick={() => setSheet("month")}
       />
+      <View className="items-end px-5 pt-3">
+        <Button
+          label="Report tools"
+          size="sm"
+          variant="ghost"
+          onPress={() => setSheet("exports")}
+        />
+      </View>
     </View>
   );
 
@@ -517,62 +531,9 @@ export default function ManageReportsScreen() {
     );
   }
 
-  const { beds, finance, listing, operations, residents } = report;
+  const { beds, finance, listing, residents } = report;
   const monthName = dates.periodMonth(report.period.month);
   const previousName = dates.periodMonth(report.period.previousMonth);
-  const { now, tonight } = residents;
-
-  const detailTiles = [
-    <InfoTile
-      badge={operations.complaints.open}
-      caption={
-        operations.complaints.pastSla > 0
-          ? `${operations.complaints.pastSla} past due`
-          : `${operations.complaints.raised} raised in ${monthName}`
-      }
-      icon="chatbox-ellipses-outline"
-      key="complaints"
-      label="Complaints"
-      onPress={() => router.push("/manage/complaints")}
-      tone={operations.complaints.pastSla > 0 ? "danger" : "warning"}
-    />,
-    <InfoTile
-      badge={operations.repairs.open}
-      caption={`${operations.repairs.completed} done in ${monthName}`}
-      icon="construct-outline"
-      key="repairs"
-      label="Repairs"
-      onPress={() => router.push("/manage/maintenance")}
-      tone="neutral"
-    />,
-    attendance ? (
-      <InfoTile
-        caption="Last 30 days"
-        icon="moon-outline"
-        key="night"
-        label="Night check-ins"
-        onPress={() => setSheet("night")}
-      />
-    ) : null,
-    foodTiming ? (
-      <InfoTile
-        caption="Last 30 days"
-        icon="restaurant-outline"
-        key="food"
-        label="Meal timing"
-        onPress={() => setSheet("food")}
-        tone="success"
-      />
-    ) : null,
-    <InfoTile
-      caption="CSV"
-      icon="grid-outline"
-      key="exports"
-      label="Spreadsheets"
-      onPress={() => setSheet("exports")}
-      tone="neutral"
-    />,
-  ].filter((tile): tile is NonNullable<typeof tile> => tile !== null);
 
   return (
     <Screen
@@ -585,151 +546,67 @@ export default function ManageReportsScreen() {
       scroll
     >
       <View className="gap-6 pt-2">
-        {/* --------------------------------------------------------- overall */}
-        {ledger.loading ? (
-          <SkeletonCard rows={3} />
-        ) : ledger.data ? (
-          <Section subtitle="Everything recorded so far" title="Overall">
-            <DataCard
-              footer={{
-                left: `${plural(overall.inCount, "payment")}${mixed ? ` · ${plural(overall.outCount, "expense")}` : ""}`,
-                pill: mixed ? `Net ${formatMoney(overall.in - overall.out)}` : undefined,
-                right: finance.outstandingAllTime > 0 ? `${formatMoney(finance.outstandingAllTime)} still owed` : "",
-              }}
-              meta={mixed ? "Money in and out" : "Money received"}
-              onPress={() => router.push("/manage/finance/statement")}
-              segments={
-                mixed
-                  ? [
-                      { label: "Money in", tone: "brand", value: overall.in },
-                      { label: "Money out", tone: "danger", value: overall.out },
-                    ]
-                  : undefined
-              }
-              stats={
-                mixed
-                  ? [
-                      { label: "Money in", value: formatMoney(overall.in) },
-                      { label: "Money out", value: formatMoney(overall.out) },
-                      { label: "Net", value: formatMoney(overall.in - overall.out) },
-                    ]
-                  : [
-                      { label: "Received", value: formatMoney(overall.in) },
-                      { label: "Still owed", value: formatMoney(finance.outstandingAllTime) },
-                    ]
-              }
-              title="All time"
-              total={mixed ? overall.in + overall.out : undefined}
-            />
-          </Section>
-        ) : null}
-
-        {/* --------------------------------------------------- month by month */}
-        {ledger.data && byMonth.length > 0 ? (
-          <Section subtitle="Tap a month to see it in detail below" title="Month by month">
-            <Card className="py-1">
-              {(allMonths ? byMonth : byMonth.slice(0, MONTHS_SHOWN)).map((entry, index) => {
-                const reportIndex = report.period.months.indexOf(entry.month);
-
-                return (
-                  <View className={index > 0 ? "border-t border-border" : undefined} key={entry.month}>
-                    <MonthRow
-                      label={dates.period(entry.month)}
-                      mixed={mixed}
-                      money={entry}
-                      onPress={
-                        reportIndex < 0
-                          ? undefined
-                          : () => setMonth(reportIndex === 0 ? "" : entry.month)
-                      }
-                      selected={entry.month === report.period.month}
-                    />
-                  </View>
-                );
-              })}
-              {byMonth.length > MONTHS_SHOWN ? (
-                <Pressable
-                  accessibilityRole="button"
-                  className="items-center border-t border-border py-3 active:opacity-70"
-                  onPress={() => setAllMonths((current) => !current)}
-                >
-                  <Text className="text-xs font-bold uppercase tracking-wide text-primary">
-                    {allMonths ? "Show fewer" : `Show all ${byMonth.length} months`}
-                  </Text>
-                </Pressable>
-              ) : null}
-            </Card>
-          </Section>
-        ) : null}
-
         {/* ------------------------------------------------------------ rent */}
-        <Section subtitle={dates.period(report.period.month)} title="Rent">
+        <Section title="Rent">
           <View className="gap-3">
-            <DataCard
-              footer={{
-                left:
-                  finance.previous.collectionRate === null
-                    ? `${previousName}: nothing billed`
-                    : `${previousName}: ${percent(finance.previous.collectionRate)}`,
-                pill:
-                  finance.collectionRate === null
-                    ? "Nothing billed"
-                    : `${percent(finance.collectionRate)} collected`,
-                right:
-                  finance.pendingProofs > 0 ? `${plural(finance.pendingProofs, "proof")} to check` : "",
-              }}
-              meta={`Billed for ${monthName}`}
-              onPress={() => router.push("/(admin)/money")}
-              segments={[{ label: "Collected", tone: "brand", value: finance.collected }]}
-              stats={[
-                { label: "Billed", value: formatMoney(finance.billed) },
-                { label: "Collected", value: formatMoney(finance.collected) },
-                { label: "Still owed", value: formatMoney(finance.outstanding) },
-              ]}
-              title={`Rent for ${monthName}`}
-              total={finance.billed}
-            />
-
-            <Card className="gap-4">
-              <TrendBars trend={finance.trend} />
-              <View className="border-t border-border">
-                <FactRow
-                  label="Owed across all months"
-                  value={<Money owed={finance.outstandingAllTime > 0} value={finance.outstandingAllTime} />}
+            <Card padding="p-5" className="gap-5">
+              <View className="flex-row flex-wrap items-center justify-between gap-3">
+                <Text variant="label">Collected in {monthName}</Text>
+                <Badge
+                  label={
+                    finance.collectionRate === null
+                      ? "Nothing billed"
+                      : `${percent(finance.collectionRate)} collected`
+                  }
+                  tone={rateTone(finance.collectionRate)}
                 />
               </View>
+              <Text variant="display">{formatMoney(finance.collected)}</Text>
+              <Meter
+                percent={finance.collectionRate}
+                label={`of ${formatMoney(finance.billed)} billed`}
+              />
+              <View className="gap-2 rounded-2xl bg-muted p-4">
+                <FactRow
+                  label="Still to collect"
+                  value={
+                    <Money
+                      owed={finance.outstanding > 0}
+                      value={finance.outstanding}
+                    />
+                  }
+                />
+                <Text variant="caption">
+                  {previousName}:{" "}
+                  {finance.previous.collectionRate === null
+                    ? "nothing billed"
+                    : `${percent(finance.previous.collectionRate)} collected`}
+                </Text>
+              </View>
+              <Button
+                label={
+                  finance.pendingProofs > 0
+                    ? `Review ${plural(finance.pendingProofs, "payment")}`
+                    : "Open finances"
+                }
+                onPress={() => router.push("/(admin)/money")}
+                variant="outline"
+              />
+            </Card>
+
+            <Card padding="p-5" className="gap-5">
+              <Text variant="subtitle">Collection trend</Text>
+              <TrendBars trend={finance.trend} />
             </Card>
           </View>
         </Section>
 
         {/* ------------------------------------------------------- residents */}
-        <Section title="Residents">
+        <Section
+          subtitle="Movement this month · occupancy now"
+          title="Residents"
+        >
           <View className="gap-3">
-            <DataCard
-              footer={{
-                left: `${now.active} active`,
-                right: [
-                  now.pending > 0 ? `${now.pending} pending` : "",
-                  now.suspended > 0 ? `${now.suspended} suspended` : "",
-                ]
-                  .filter(Boolean)
-                  .join(" · "),
-              }}
-              meta={`${now.total} living here`}
-              onPress={() => router.push("/manage/roll-call")}
-              segments={[
-                { label: `${tonight.inside} inside`, tone: "success", value: tonight.inside },
-                { label: `${tonight.outside} outside`, tone: "neutral", value: tonight.outside },
-              ]}
-              stats={[
-                { label: "Inside", value: String(tonight.inside) },
-                { label: "Outside", value: String(tonight.outside) },
-                { label: "No answer", value: String(tonight.notAnswered) },
-              ]}
-              title="Tonight"
-              total={now.total}
-            />
-
             <View className="flex-row gap-3">
               <StatTile
                 icon="log-in-outline"
@@ -745,21 +622,64 @@ export default function ManageReportsScreen() {
                 trend={`in ${monthName}`}
                 value={String(residents.movedOut)}
               />
-              <StatTile
-                icon="bed-outline"
-                label="Occupancy"
-                onPress={() => router.push("/manage/rooms")}
-                tone={rateTone(beds.occupancyRate)}
-                trend={`${plural(beds.vacant, "bed")} free`}
-                value={percent(beds.occupancyRate)}
-              />
             </View>
+            <Card padding="px-5 py-2">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="View rooms and occupancy"
+                onPress={() => router.push("/manage/rooms")}
+                className="py-3"
+              >
+                <View className="flex-row items-center justify-between gap-3">
+                  <View className="flex-1 gap-1">
+                    <Text variant="subtitle">Room occupancy</Text>
+                    <Text variant="caption">
+                      {plural(beds.vacant, "bed")} available now
+                    </Text>
+                  </View>
+                  <Text variant="title">{percent(beds.occupancyRate)}</Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={18}
+                    color={colors.mutedForeground}
+                  />
+                </View>
+              </Pressable>
+            </Card>
           </View>
         </Section>
 
         {/* --------------------------------------------------------- listing */}
-        <Section subtitle={`${monthName} against ${previousName}`} title="Public listing">
-          <View className="gap-3">
+        <Section
+          subtitle={`${monthName} against ${previousName}`}
+          title="Public listing"
+        >
+          <View className="gap-4">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="View listing inquiries"
+              onPress={() => router.push("/manage/inquiries")}
+              className="active:opacity-80"
+            >
+              <Card padding="p-5" className="flex-row items-center gap-4">
+                <ListingArt />
+                <View className="flex-1 gap-2">
+                  <Text variant="subtitle">Turn visits into move-ins</Text>
+                  <Text variant="caption">
+                    {listing.inquiries.current} inquiries ·{" "}
+                    {listing.inquiriesConverted} moved in
+                  </Text>
+                  <Text className="text-primary" variant="label">
+                    View inquiries
+                  </Text>
+                </View>
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={colors.primary}
+                />
+              </Card>
+            </Pressable>
             <View className="flex-row gap-3">
               <StatTile
                 icon="search-outline"
@@ -803,10 +723,102 @@ export default function ManageReportsScreen() {
           </View>
         </Section>
 
-        {/* --------------------------------------------------------- details */}
-        <Section title="Details">
-          <Grid maxColumns={3}>{detailTiles}</Grid>
-        </Section>
+        {ledger.loading ? (
+          <SkeletonCard rows={3} />
+        ) : ledger.data ? (
+          <Section title="Overall" subtitle="All-time recorded activity">
+            <Card padding="p-5" className="gap-5">
+              <View className="gap-1">
+                <Text variant="caption">
+                  {mixed ? "Net received" : "Money received"}
+                </Text>
+                <Text variant="display">
+                  {formatMoney(mixed ? overall.in - overall.out : overall.in)}
+                </Text>
+              </View>
+              <View className="gap-1 border-t border-border pt-3">
+                {mixed ? (
+                  <>
+                    <FactRow label="Money in" value={formatMoney(overall.in)} />
+                    <FactRow
+                      label="Money out"
+                      value={formatMoney(overall.out)}
+                    />
+                  </>
+                ) : null}
+                <FactRow
+                  label="Rent still owed"
+                  value={
+                    <Money
+                      owed={finance.outstandingAllTime > 0}
+                      value={finance.outstandingAllTime}
+                    />
+                  }
+                />
+              </View>
+              <Text variant="caption">
+                {plural(overall.inCount, "payment")}
+                {mixed ? ` · ${plural(overall.outCount, "expense")}` : ""}
+              </Text>
+              <Button
+                label="View statement"
+                variant="outline"
+                onPress={() => router.push("/manage/finance/statement")}
+              />
+            </Card>
+          </Section>
+        ) : null}
+
+        {/* --------------------------------------------------- month by month */}
+        {ledger.data && byMonth.length > 0 ? (
+          <Section
+            subtitle="Tap a month to see it in detail below"
+            title="Month by month"
+          >
+            <Card padding="px-5 py-1">
+              {(allMonths ? byMonth : byMonth.slice(0, MONTHS_SHOWN)).map(
+                (entry, index) => {
+                  const reportIndex = report.period.months.indexOf(entry.month);
+
+                  return (
+                    <View
+                      className={
+                        index > 0 ? "border-t border-border" : undefined
+                      }
+                      key={entry.month}
+                    >
+                      <MonthRow
+                        label={dates.period(entry.month)}
+                        mixed={mixed}
+                        money={entry}
+                        onPress={
+                          reportIndex < 0
+                            ? undefined
+                            : () =>
+                                setMonth(reportIndex === 0 ? "" : entry.month)
+                        }
+                        selected={entry.month === report.period.month}
+                      />
+                    </View>
+                  );
+                },
+              )}
+              {byMonth.length > MONTHS_SHOWN ? (
+                <Pressable
+                  accessibilityRole="button"
+                  className="items-center border-t border-border py-3 active:opacity-70"
+                  onPress={() => setAllMonths((current) => !current)}
+                >
+                  <Text className="text-primary" variant="label">
+                    {allMonths
+                      ? "Show fewer"
+                      : `Show all ${byMonth.length} months`}
+                  </Text>
+                </Pressable>
+              ) : null}
+            </Card>
+          </Section>
+        ) : null}
 
         <Text className="text-center" variant="caption">
           {`Figures as of ${dates.dateTime(report.generatedAt)}`}
@@ -814,7 +826,12 @@ export default function ManageReportsScreen() {
       </View>
 
       {/* ----------------------------------------------------------- sheets */}
-      <Sheet bare onClose={() => setSheet(null)} open={sheet === "month"} title="Report month">
+      <Sheet
+        bare
+        onClose={() => setSheet(null)}
+        open={sheet === "month"}
+        title="Report month"
+      >
         {report.period.months.map((option, index) => {
           const selected = option === report.period.month;
 
@@ -831,19 +848,30 @@ export default function ManageReportsScreen() {
               selected={selected}
               subtitle={index === 0 ? "This month so far" : undefined}
               trailing={
-                selected ? <Ionicons color={colors.primary} name="checkmark" size={20} /> : undefined
+                selected ? (
+                  <Ionicons color={colors.primary} name="checkmark" size={20} />
+                ) : undefined
               }
             />
           );
         })}
       </Sheet>
 
-      <Sheet bare onClose={() => setSheet(null)} open={sheet === "pdf"} title="Download PDF">
+      <Sheet
+        bare
+        onClose={() => setSheet(null)}
+        open={sheet === "pdf"}
+        title="Download PDF"
+      >
         {(() => {
           const selected = report.period.month;
           const yearStart = `${selected.slice(0, 4)}-01`;
           const options = [
-            { from: selected, label: `Statement · ${dates.period(selected)}`, to: selected },
+            {
+              from: selected,
+              label: `Statement · ${dates.period(selected)}`,
+              to: selected,
+            },
             {
               from: addBsMonths(selected, -2),
               label: `Statement · ${dates.period(addBsMonths(selected, -2))} to ${dates.period(selected)}`,
@@ -855,7 +883,13 @@ export default function ManageReportsScreen() {
               to: selected,
             },
             ...(yearStart !== selected
-              ? [{ from: yearStart, label: `Statement · ${dates.period(yearStart)} to ${dates.period(selected)}`, to: selected }]
+              ? [
+                  {
+                    from: yearStart,
+                    label: `Statement · ${dates.period(yearStart)} to ${dates.period(selected)}`,
+                    to: selected,
+                  },
+                ]
               : []),
           ];
 
@@ -869,8 +903,18 @@ export default function ManageReportsScreen() {
                     setSheet(null);
                     void downloadStatement(option.from, option.to);
                   }}
-                  subtitle={mixed ? "Bank-style · every credit and debit" : "Bank-style · every payment received"}
-                  trailing={<Ionicons color={colors.mutedForeground} name="document-text-outline" size={20} />}
+                  subtitle={
+                    mixed
+                      ? "Bank-style · every credit and debit"
+                      : "Bank-style · every payment received"
+                  }
+                  trailing={
+                    <Ionicons
+                      color={colors.mutedForeground}
+                      name="document-text-outline"
+                      size={20}
+                    />
+                  }
                 />
               ))}
               <SheetRow
@@ -880,14 +924,42 @@ export default function ManageReportsScreen() {
                   void downloadPdf();
                 }}
                 subtitle="Rent, residents and listing for the month"
-                trailing={<Ionicons color={colors.mutedForeground} name="bar-chart-outline" size={20} />}
+                trailing={
+                  <Ionicons
+                    color={colors.mutedForeground}
+                    name="bar-chart-outline"
+                    size={20}
+                  />
+                }
               />
             </>
           );
         })()}
       </Sheet>
 
-      <Sheet bare onClose={() => setSheet(null)} open={sheet === "exports"} title="Spreadsheets">
+      <Sheet
+        bare
+        onClose={() => setSheet(null)}
+        open={sheet === "exports"}
+        title="Report tools"
+      >
+        {attendance ? (
+          <SheetRow
+            label="Night check-ins"
+            subtitle="Last 30 days"
+            onPress={() => setSheet("night")}
+          />
+        ) : null}
+        {foodTiming ? (
+          <SheetRow
+            label="Meal timing"
+            subtitle="Last 30 days"
+            onPress={() => setSheet("food")}
+          />
+        ) : null}
+        <View className="px-5 pb-2 pt-4">
+          <Text variant="label">Spreadsheets</Text>
+        </View>
         {REPORT_EXPORTS.map((entry) => (
           <SheetRow
             key={entry.report}
@@ -898,12 +970,21 @@ export default function ManageReportsScreen() {
               }
             }}
             subtitle="CSV, all months. No phone numbers or addresses"
-            trailing={<Ionicons color={colors.mutedForeground} name="download-outline" size={20} />}
+            trailing={
+              <Ionicons
+                color={colors.mutedForeground}
+                name="download-outline"
+                size={20}
+              />
+            }
           />
         ))}
       </Sheet>
-
-      <Sheet onClose={() => setSheet(null)} open={sheet === "night"} title="Night check-ins">
+      <Sheet
+        onClose={() => setSheet(null)}
+        open={sheet === "night"}
+        title="Night check-ins"
+      >
         {attendance ? (
           <View className="gap-4 pb-2">
             <Text variant="caption">
@@ -914,7 +995,10 @@ export default function ManageReportsScreen() {
               percent={attendance.summary.averageAttendanceRate * 100}
             />
             <View className="flex-row flex-wrap gap-2">
-              <Chip label={`Inside · ${attendance.summary.zones.inside}`} tone="brand" />
+              <Chip
+                label={`Inside · ${attendance.summary.zones.inside}`}
+                tone="brand"
+              />
               <Chip label={`Nearby · ${attendance.summary.zones.nearby}`} />
               <Chip label={`Outside · ${attendance.summary.zones.outside}`} />
             </View>
@@ -923,7 +1007,10 @@ export default function ManageReportsScreen() {
               <View className="gap-3 border-t border-border pt-3">
                 <Text variant="label">Most often away</Text>
                 {attendance.frequentlyAbsent.slice(0, 5).map((resident) => (
-                  <View className="flex-row items-center justify-between gap-3" key={resident.residentId}>
+                  <View
+                    className="flex-row items-center justify-between gap-3"
+                    key={resident.residentId}
+                  >
                     <View className="flex-1">
                       <Text numberOfLines={1}>{resident.name}</Text>
                       <Text variant="caption">
@@ -932,7 +1019,9 @@ export default function ManageReportsScreen() {
                     </View>
                     <Badge
                       label={`${Math.round(resident.attendanceRate * 100)}%`}
-                      tone={resident.attendanceRate < 0.5 ? "warning" : "neutral"}
+                      tone={
+                        resident.attendanceRate < 0.5 ? "warning" : "neutral"
+                      }
                     />
                   </View>
                 ))}
@@ -944,7 +1033,11 @@ export default function ManageReportsScreen() {
         ) : null}
       </Sheet>
 
-      <Sheet onClose={() => setSheet(null)} open={sheet === "food"} title="Meal timing">
+      <Sheet
+        onClose={() => setSheet(null)}
+        open={sheet === "food"}
+        title="Meal timing"
+      >
         {foodTiming ? (
           <View className="gap-4 pb-2">
             <View className="flex-row gap-3">
@@ -962,13 +1055,20 @@ export default function ManageReportsScreen() {
               <StatTile
                 icon="time-outline"
                 label="Late"
-                tone={foodTiming.summary.lateAnnouncements > 0 ? "warning" : "neutral"}
+                tone={
+                  foodTiming.summary.lateAnnouncements > 0
+                    ? "warning"
+                    : "neutral"
+                }
                 value={String(foodTiming.summary.lateAnnouncements)}
               />
             </View>
 
             {foodTiming.byMeal.map((meal) => (
-              <View className="flex-row items-center justify-between gap-3" key={meal.mealType}>
+              <View
+                className="flex-row items-center justify-between gap-3"
+                key={meal.mealType}
+              >
                 <View className="flex-1">
                   <Text variant="label">{humanizeEnum(meal.mealType)}</Text>
                   <Text variant="caption">

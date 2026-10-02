@@ -16,15 +16,11 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { formatMoney } from "@/lib/format";
-import {
-  type Referral,
-  type ResidentReferral,
-} from "@/lib/referral-api";
+import { type Referral, type ResidentReferral } from "@/lib/referral-api";
 import {
   buildReferralShare,
   describeRewards,
   referralStatusLabel,
-  referralTiles,
 } from "@/lib/referrals";
 import { residentQuery } from "@/lib/resident-queries";
 import { toastSuccess } from "@/lib/toast";
@@ -61,7 +57,7 @@ export default function ReferralsScreen() {
     topics: query.topics,
   });
 
-  const header = <AppBar showBack title="Refer a friend" />;
+  const header = <AppBar accent centerTitle showBack title="Refer a friend" />;
 
   if (referral.loading) {
     return (
@@ -85,7 +81,9 @@ export default function ReferralsScreen() {
     );
   }
 
-  return <ReferralBody data={referral.data} header={header} resource={referral} />;
+  return (
+    <ReferralBody data={referral.data} header={header} resource={referral} />
+  );
 }
 
 function ReferralBody({
@@ -124,21 +122,29 @@ function ReferralBody({
       scroll
     >
       <View className="gap-5 pt-1">
-        <Card className="items-center gap-3">
-          <View className="flex-row items-center gap-2">
-            <Ionicons color={colors.primary} name="gift-outline" size={18} />
-            <Text variant="label">Your referral code</Text>
+        <Card padding="p-6" className="items-center gap-4">
+          <View className="h-16 w-16 items-center justify-center rounded-2xl bg-brand-soft">
+            <Ionicons color={colors.primary} name="gift-outline" size={32} />
+          </View>
+          <View className="items-center gap-1">
+            <Text variant="title">Invite a friend</Text>
+            <Text className="text-center" variant="muted">
+              Share your code when they enquire.
+            </Text>
           </View>
 
           <Pressable
             accessibilityHint="Copies the code"
             accessibilityLabel={`Referral code ${referralCode.code}`}
             accessibilityRole="button"
-            className="active:opacity-70"
+            className="w-full items-center rounded-2xl border border-dashed border-border bg-muted px-3 py-4 active:opacity-70"
             onPress={() => void copyCode()}
           >
             <Text
               className="text-center"
+              adjustsFontSizeToFit
+              numberOfLines={1}
+              minimumFontScale={0.65}
               style={{
                 color: colors.primary,
                 fontSize: 34,
@@ -160,7 +166,11 @@ function ReferralBody({
             onPress={() => void share()}
             style={{ backgroundColor: colors.primary }}
           >
-            <Ionicons color={colors.primaryForeground} name="share-social" size={17} />
+            <Ionicons
+              color={colors.primaryForeground}
+              name="share-social"
+              size={17}
+            />
             <Text
               className="font-semibold"
               style={{ color: colors.primaryForeground }}
@@ -170,26 +180,27 @@ function ReferralBody({
           </Pressable>
         </Card>
 
-        <View className="flex-row gap-2">
-          {referralTiles(summary).map((tile) => (
-            <Card className="flex-1 gap-0.5 p-3" key={tile.label}>
-              <Text
-                style={{
-                  color: colors.mutedForeground,
-                  fontSize: 10,
-                  fontWeight: "600",
-                  letterSpacing: 0.8,
-                  textTransform: "uppercase",
-                }}
+        <Card padding="p-5" className="gap-4">
+          <Text variant="subtitle">Your referrals</Text>
+          <View className="flex-row flex-wrap gap-y-3">
+            {[
+              { label: "Referred", value: summary.sent },
+              { label: "Joined", value: summary.joined },
+              { label: "First payment", value: summary.converted },
+            ].map((item) => (
+              <View
+                key={item.label}
+                className="flex-1 gap-1 pr-2"
+                style={{ minWidth: 72 }}
               >
-                {tile.label}
-              </Text>
-              <Text className="text-2xl font-bold text-foreground">{tile.value}</Text>
-            </Card>
-          ))}
-        </View>
+                <Text variant="title">{item.value}</Text>
+                <Text variant="caption">{item.label}</Text>
+              </View>
+            ))}
+          </View>
+        </Card>
 
-        <Card className="gap-1">
+        <Card padding="p-5" className="gap-2">
           <Text variant="label">Rewards</Text>
           <Text variant="muted">
             {describeRewards(summary, referralCode.rewardCount)}

@@ -144,16 +144,19 @@ function ComplaintDetail({
     <Screen
       footer={
         standing.action === "confirm" ? (
-          <Button label="Confirm it is fixed" onPress={() => setConfirming(true)} />
+          <Button
+            label="Confirm it is fixed"
+            onPress={() => setConfirming(true)}
+          />
         ) : undefined
       }
-      header={<AppBar showBack title={complaint.title} />}
+      header={<AppBar accent centerTitle showBack title="Complaint" />}
       onRefresh={onRefresh}
       refreshing={refreshing}
       scroll
     >
       <View className="gap-5 pt-1">
-        <Card className="gap-3">
+        <Card padding="p-5" className="gap-5">
           <View className="flex-row items-start gap-2">
             <Text className="flex-1" variant="subtitle">
               {complaint.title}
@@ -162,7 +165,7 @@ function ComplaintDetail({
           </View>
 
           {complaint.description ? (
-            <Text variant="muted">{complaint.description}</Text>
+            <Text style={{ lineHeight: 26 }}>{complaint.description}</Text>
           ) : null}
 
           {/*
@@ -178,7 +181,9 @@ function ComplaintDetail({
 
           <View className="flex-row flex-wrap items-center gap-2">
             <Badge label={complaintCategoryLabel(complaint.category)} />
-            {complaint.isOverdue ? <Badge label="Overdue" tone="danger" /> : null}
+            {complaint.isOverdue ? (
+              <Badge label="Overdue" tone="danger" />
+            ) : null}
             {complaint.isAnonymous ? <Badge label="Anonymous" /> : null}
           </View>
 
@@ -196,14 +201,11 @@ function ComplaintDetail({
         ) : null}
 
         <View>
-          <SectionHeader
-            subtitle="Everything that has happened, oldest first"
-            title="History"
-          />
+          <SectionHeader subtitle="Updates from your hostel" title="History" />
 
           <View className="gap-2">
             {entries.map((entry) => (
-              <Card className="gap-1" key={entry.id}>
+              <Card padding="p-5" className="gap-3" key={entry.id}>
                 <View className="flex-row items-center gap-2">
                   <Text
                     className={entry.mine ? "text-primary" : undefined}
@@ -215,7 +217,7 @@ function ComplaintDetail({
                   <Text variant="caption">{dates.dateTime(entry.at)}</Text>
                 </View>
 
-                <Text>{entry.body}</Text>
+                <Text style={{ lineHeight: 24 }}>{entry.body}</Text>
                 {entry.note ? <Text variant="muted">{entry.note}</Text> : null}
               </Card>
             ))}
@@ -282,7 +284,11 @@ function AttachmentGallery({ complaint }: { complaint: Complaint }) {
               // THUMBNAIL, which the route serves when a variant exists and
               // silently falls back to the original when it does not — so this
               // is free rather than a bet on the optimizer having run.
-              source={privateAssetSource(attachment.fileAssetId, token, "THUMBNAIL")}
+              source={privateAssetSource(
+                attachment.fileAssetId,
+                token,
+                "THUMBNAIL",
+              )}
               style={{
                 backgroundColor: colors.muted,
                 borderRadius: 12,
@@ -293,7 +299,6 @@ function AttachmentGallery({ complaint }: { complaint: Complaint }) {
           </Pressable>
         ))}
       </View>
-
     </View>
   );
 }
@@ -338,12 +343,17 @@ function ConfirmSheet({
       const complaint = await confirmComplaintResolution(complaintId, parsed);
 
       onConfirmed(complaint);
-      toastSuccess("Thanks — closed out", "Your hostel can see you confirmed it.");
+      toastSuccess(
+        "Thanks — closed out",
+        "Your hostel can see you confirmed it.",
+      );
       setNote("");
       onClose();
     } catch (caught) {
       if (readApiErrorCode(caught) === "COMPLAINT_NOT_RESOLVED") {
-        setError("Your hostel has re-opened this, so there is nothing to confirm yet.");
+        setError(
+          "Your hostel has re-opened this, so there is nothing to confirm yet.",
+        );
       } else {
         setError(readApiError(caught));
       }
@@ -363,8 +373,8 @@ function ConfirmSheet({
     >
       <View className="gap-3">
         <Text variant="muted">
-          This tells your hostel the fix worked. If it did not, leave this and say
-          so — they can re-open it.
+          This tells your hostel the fix worked. If it did not, leave this and
+          say so — they can re-open it.
         </Text>
 
         <Input

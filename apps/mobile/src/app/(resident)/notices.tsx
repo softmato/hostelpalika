@@ -1,3 +1,5 @@
+import { NoticeReader } from "@/components/notice-reader";
+import { Sheet } from "@/components/ui/sheet";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -242,8 +244,16 @@ export default function ResidentNoticesScreen() {
           onChange={setStatus}
           options={[
             { label: "All", value: "all" },
-            { count: unread > 0 ? unread : undefined, label: "Unread", value: "unread" },
-            { count: urgent > 0 ? urgent : undefined, label: "Urgent", value: "urgent" },
+            {
+              count: unread > 0 ? unread : undefined,
+              label: "Unread",
+              value: "unread",
+            },
+            {
+              count: urgent > 0 ? urgent : undefined,
+              label: "Urgent",
+              value: "urgent",
+            },
           ]}
           value={status}
         />
@@ -306,7 +316,11 @@ export default function ResidentNoticesScreen() {
 
                 <View className="gap-3">
                   {day.notices.map((notice) => (
-                    <NoticeCard key={notice.id} notice={notice} onOpen={markRead} />
+                    <NoticeCard
+                      key={notice.id}
+                      notice={notice}
+                      onOpen={markRead}
+                    />
                   ))}
                 </View>
               </View>
@@ -334,7 +348,10 @@ export default function ResidentNoticesScreen() {
 }
 
 /** A tile colour and glyph per category — the same set the office's board uses. */
-const CATEGORY_LOOK: Record<string, { bg: string; icon: keyof typeof Ionicons.glyphMap }> = {
+const CATEGORY_LOOK: Record<
+  string,
+  { bg: string; icon: keyof typeof Ionicons.glyphMap }
+> = {
   EVENT: { bg: "#AF52DE", icon: "calendar-outline" },
   FOOD: { bg: "#FF9500", icon: "restaurant-outline" },
   GENERAL: { bg: "#007AFF", icon: "megaphone-outline" },
@@ -366,74 +383,88 @@ function NoticeCard({
     : (CATEGORY_LOOK[notice.category ?? ""] ?? CATEGORY_LOOK.GENERAL!);
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ expanded }}
-      onPress={() => {
-        setExpanded((value) => !value);
-        onOpen(notice);
-      }}
-    >
-      {/*
+    <>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded }}
+        onPress={() => {
+          setExpanded((value) => !value);
+          onOpen(notice);
+        }}
+      >
+        {/*
         Urgent gets a left border rather than a red card. A whole notice in
         alarm colours is unreadable, and once two of them are on screen neither
         reads as urgent any more.
       */}
-      <Card
-        className={`gap-2 active:opacity-80 ${
-          notice.isUrgent ? "border-l-4 border-l-destructive" : ""
-        }`}
-      >
-        <View className="flex-row items-start gap-3">
-          {/*
+        <Card
+          className={`gap-2 active:opacity-80 ${
+            notice.isUrgent ? "border-l-4 border-l-destructive" : ""
+          }`}
+        >
+          <View className="flex-row items-start gap-3">
+            {/*
             The web's icon square, ported. It carries the urgency — red for an
             alert, brand for an announcement — which is what makes a list of ten
             notices scannable without reading any of them.
           */}
-          <View
-            className="h-9 w-9 items-center justify-center rounded-[10px]"
-            style={{ backgroundColor: look.bg }}
-          >
-            <Ionicons color="#FFFFFF" name={look.icon} size={18} />
-          </View>
-
-          <View className="flex-1 gap-2">
-            <View className="flex-row items-start gap-2">
-              {!notice.isRead ? (
-                <View
-                  accessibilityLabel="Unread"
-                  className="mt-1.5 h-2 w-2 rounded-full"
-                  style={{ backgroundColor: colors.primary }}
-                />
-              ) : null}
-
-              <Text
-                className={`flex-1 ${notice.isRead ? "" : "font-semibold"}`}
-                variant="subtitle"
-              >
-                {notice.title}
-              </Text>
-
-              <Ionicons
-                color={colors.mutedForeground}
-                name={expanded ? "chevron-up" : "chevron-down"}
-                size={18}
-              />
+            <View
+              className="h-9 w-9 items-center justify-center rounded-[10px]"
+              style={{ backgroundColor: look.bg }}
+            >
+              <Ionicons color="#FFFFFF" name={look.icon} size={18} />
             </View>
 
-            <Text numberOfLines={expanded ? undefined : 2} variant="muted">
-              {notice.content}
-            </Text>
+            <View className="flex-1 gap-2">
+              <View className="flex-row items-start gap-2">
+                {!notice.isRead ? (
+                  <View
+                    accessibilityLabel="Unread"
+                    className="mt-1.5 h-2 w-2 rounded-full"
+                    style={{ backgroundColor: colors.primary }}
+                  />
+                ) : null}
 
-            {notice.isUrgent || notice.category ? (
-              <View className="flex-row flex-wrap items-center gap-2">
-                {notice.isUrgent ? <Badge label="Urgent" tone="danger" /> : null}
-                {notice.category ? <Badge label={humanizeEnum(notice.category)} /> : null}
+                <Text
+                  className={`flex-1 ${notice.isRead ? "" : "font-semibold"}`}
+                  variant="subtitle"
+                >
+                  {notice.title}
+                </Text>
+
+                <Ionicons
+                  color={colors.mutedForeground}
+                  name="chevron-forward"
+                  size={18}
+                />
               </View>
-            ) : null}
+
+              <Text numberOfLines={2} variant="muted">
+                {notice.content}
+              </Text>
+
+              {notice.isUrgent || notice.category ? (
+                <View className="flex-row flex-wrap items-center gap-2">
+                  {notice.isUrgent ? (
+                    <Badge label="Urgent" tone="danger" />
+                  ) : null}
+                  {notice.category ? (
+                    <Badge label={humanizeEnum(notice.category)} />
+                  ) : null}
+                </View>
+              ) : null}
+            </View>
           </View>
-        </View>
-      </Card>
-    </Pressable>
+        </Card>
+      </Pressable>
+      <Sheet open={expanded} onClose={() => setExpanded(false)} title="Notice">
+        <NoticeReader
+          title={notice.title}
+          content={notice.content}
+          category={notice.category ? humanizeEnum(notice.category) : undefined}
+          urgent={notice.isUrgent}
+        />
+      </Sheet>
+    </>
   );
 }

@@ -41,7 +41,10 @@ type Filter = "all" | "closed" | "late" | "open";
 
 const OPEN = ["PENDING", "IN_PROGRESS"];
 
-const CATEGORY_ICON: Record<string, { bg: string; icon: keyof typeof Ionicons.glyphMap }> = {
+const CATEGORY_ICON: Record<
+  string,
+  { bg: string; icon: keyof typeof Ionicons.glyphMap }
+> = {
   FOOD: { bg: "#FF9500", icon: "restaurant-outline" },
   MAINTENANCE: { bg: "#30B0C7", icon: "construct-outline" },
   NOISE: { bg: "#AF52DE", icon: "volume-high-outline" },
@@ -89,7 +92,9 @@ export default function ManageComplaintsScreen() {
 
     // The server sorts by status before date; headings want newest first.
     return groupNotifications(
-      [...visible].sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? "")),
+      [...visible].sort((a, b) =>
+        (b.createdAt ?? "").localeCompare(a.createdAt ?? ""),
+      ),
     );
   }, [all, filter]);
 
@@ -121,7 +126,11 @@ export default function ManageComplaintsScreen() {
     try {
       await (kind === "reply"
         ? replyToComplaint(open.id, text)
-        : setComplaintStatus(open.id, kind, text.length >= 2 ? text : undefined));
+        : setComplaintStatus(
+            open.id,
+            kind,
+            text.length >= 2 ? text : undefined,
+          ));
       toastSuccess(success);
       setOpen(null);
       list.refresh();
@@ -136,7 +145,12 @@ export default function ManageComplaintsScreen() {
   const isOpen = open ? OPEN.includes(open.status) : false;
 
   return (
-    <Screen header={header} onRefresh={list.refresh} refreshing={list.refreshing} scroll>
+    <Screen
+      header={header}
+      onRefresh={list.refresh}
+      refreshing={list.refreshing}
+      scroll
+    >
       <View className="gap-4 pt-1">
         <Segmented
           onChange={setFilter}
@@ -150,23 +164,33 @@ export default function ManageComplaintsScreen() {
         />
 
         {list.loading ? <SkeletonRows rows={5} /> : null}
-        {list.error ? <ErrorState message={list.error} onRetry={list.reload} /> : null}
+        {list.error ? (
+          <ErrorState message={list.error} onRetry={list.reload} />
+        ) : null}
 
         {!list.loading && !list.error && groups.length === 0 ? (
           <EmptyCard
-            description={filter === "late" ? "Everything has been answered in time." : undefined}
+            description={
+              filter === "late"
+                ? "Everything has been answered in time."
+                : undefined
+            }
             title="No complaints here"
           />
         ) : null}
 
         {groups.map((group) => (
           <View className="gap-2" key={group.bucket}>
-            <Text className="px-0.5 font-semibold uppercase tracking-wider" variant="caption">
+            <Text
+              className="px-0.5 font-semibold uppercase tracking-wider"
+              variant="caption"
+            >
               {group.label}
             </Text>
             <Card padding="px-4 py-1">
               {group.rows.map((row, index) => {
-                const look = CATEGORY_ICON[row.category] ?? CATEGORY_ICON.OTHER!;
+                const look =
+                  CATEGORY_ICON[row.category] ?? CATEGORY_ICON.OTHER!;
 
                 return (
                   <View key={row.id}>
@@ -224,16 +248,23 @@ export default function ManageComplaintsScreen() {
             <View className="flex-row flex-wrap gap-2">
               <StatusPill status={open.status} />
               {open.isOverdue ? <Badge label="Late" tone="danger" /> : null}
-              {open.isAnonymous ? <Badge label="Anonymous" tone="neutral" /> : null}
+              {open.isAnonymous ? (
+                <Badge label="Anonymous" tone="neutral" />
+              ) : null}
             </View>
 
             <Card className="gap-1">
               <FactRow label="About" value={humanizeEnum(open.category)} />
               <FactRow label="Raised" value={dates.dateTime(open.createdAt)} />
-              <FactRow label="Reply due" value={dates.dateTime(open.slaDueAt)} />
+              <FactRow
+                label="Reply due"
+                value={dates.dateTime(open.slaDueAt)}
+              />
             </Card>
 
-            {open.description ? <Text>{open.description}</Text> : null}
+            {open.description ? (
+              <Text style={{ lineHeight: 26 }}>{open.description}</Text>
+            ) : null}
 
             {open.adminResponse ? (
               <View className="gap-1 rounded-xl bg-muted p-3">
@@ -258,7 +289,9 @@ export default function ManageComplaintsScreen() {
                       busy={busy === "IN_PROGRESS"}
                       icon="time-outline"
                       label="Mark in progress"
-                      onPress={() => void act("IN_PROGRESS", "Marked in progress")}
+                      onPress={() =>
+                        void act("IN_PROGRESS", "Marked in progress")
+                      }
                     />
                   ) : null}
                   <Chip

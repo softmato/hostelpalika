@@ -6,7 +6,7 @@ import { Badge, StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Chip, StatTile } from "@/components/ui/layout";
+import { Chip } from "@/components/ui/layout";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
@@ -59,14 +59,30 @@ import { toastError, toastSuccess } from "@/lib/toast";
 type Filter = "" | "INQUIRY_CREATED" | "JOINED" | "REWARDED" | "CANCELLED";
 
 const REWARD_TYPES = [
-  { description: "Taken off their next invoice.", label: "Rent discount", value: "DISCOUNT" },
+  {
+    description: "Taken off their next invoice.",
+    label: "Rent discount",
+    value: "DISCOUNT",
+  },
   { description: "Handed over directly.", label: "Cash", value: "CASH" },
-  { description: "Laundry, meals, something in kind.", label: "Service credit", value: "SERVICE_CREDIT" },
-  { description: "Anything else — say what in the note.", label: "Other", value: "OTHER" },
+  {
+    description: "Laundry, meals, something in kind.",
+    label: "Service credit",
+    value: "SERVICE_CREDIT",
+  },
+  {
+    description: "Anything else — say what in the note.",
+    label: "Other",
+    value: "OTHER",
+  },
 ] as const;
 
 const REWARD_STATUSES = [
-  { description: "Agreed, not yet approved.", label: "Pending", value: "PENDING" },
+  {
+    description: "Agreed, not yet approved.",
+    label: "Pending",
+    value: "PENDING",
+  },
   { description: "Approved for payout.", label: "Approved", value: "APPROVED" },
   {
     description: "Handed over. This also marks the referral rewarded.",
@@ -121,7 +137,10 @@ export default function ManageReferralsScreen() {
         rewardNotes: notes.trim() || undefined,
         rewardType,
       });
-      toastSuccess("Confirmed", "The reward is now recorded against the referrer.");
+      toastSuccess(
+        "Confirmed",
+        "The reward is now recorded against the referrer.",
+      );
       setOpen(null);
       await refresh();
     } catch (error) {
@@ -146,7 +165,9 @@ export default function ManageReferralsScreen() {
         status: rewardStatus,
       });
       toastSuccess(
-        rewardStatus === "PAID" ? "Marked paid" : `Reward ${humanizeEnum(rewardStatus).toLowerCase()}`,
+        rewardStatus === "PAID"
+          ? "Marked paid"
+          : `Reward ${humanizeEnum(rewardStatus).toLowerCase()}`,
       );
       setOpen(null);
       await refresh();
@@ -186,28 +207,28 @@ export default function ManageReferralsScreen() {
     >
       <View className="gap-5 pt-1">
         {summary ? (
-          <View className="gap-3">
-            <View className="flex-row gap-3">
-              <StatTile
-                icon="people-outline"
-                label="Referred"
-                value={String(summary.total)}
-              />
-              <StatTile
-                icon="log-in-outline"
-                label="Joined"
-                tone="success"
-                value={String(summary.joined)}
-              />
-              <StatTile
-                icon="hourglass-outline"
-                label="To confirm"
-                tone={summary.pendingConfirmation > 0 ? "warning" : "neutral"}
-                value={String(summary.pendingConfirmation)}
-              />
-            </View>
+          <View className="gap-4">
+            <Card padding="p-5" className="gap-4">
+              <Text variant="subtitle">Referral overview</Text>
+              <View className="flex-row flex-wrap gap-y-3">
+                {[
+                  { label: "Referred", value: summary.total },
+                  { label: "Joined", value: summary.joined },
+                  { label: "To confirm", value: summary.pendingConfirmation },
+                ].map((item) => (
+                  <View
+                    key={item.label}
+                    className="flex-1 gap-1 pr-2"
+                    style={{ minWidth: 72 }}
+                  >
+                    <Text variant="title">{item.value}</Text>
+                    <Text variant="caption">{item.label}</Text>
+                  </View>
+                ))}
+              </View>
+            </Card>
 
-            <Card className="gap-2">
+            <Card padding="p-5" className="gap-4">
               <View className="flex-row items-center justify-between">
                 <Text variant="label">Rewards waiting</Text>
                 <Money value={summary.rewardPendingAmount} />
@@ -221,8 +242,7 @@ export default function ManageReferralsScreen() {
                 <Money value={summary.rewardPaidAmount} />
               </View>
               <Text variant="caption">
-                These cover every referral in the hostel — the filter below changes
-                the list, not the figures.
+                All-time rewards across your hostel.
               </Text>
             </Card>
           </View>
@@ -247,7 +267,7 @@ export default function ManageReferralsScreen() {
         ) : null}
 
         {rows.map((referral) => (
-          <Card className="gap-2" key={referral.id}>
+          <Card padding="p-5" className="gap-4" key={referral.id}>
             <View className="flex-row items-start gap-2">
               <View className="flex-1">
                 <Text variant="subtitle">{referral.name}</Text>
@@ -270,7 +290,9 @@ export default function ManageReferralsScreen() {
               {referral.reward ? (
                 <Badge
                   label={`${humanizeEnum(referral.reward.rewardType)} · ${humanizeEnum(referral.reward.status)}`}
-                  tone={referral.reward.status === "PAID" ? "success" : "warning"}
+                  tone={
+                    referral.reward.status === "PAID" ? "success" : "warning"
+                  }
                 />
               ) : null}
             </View>
@@ -286,7 +308,11 @@ export default function ManageReferralsScreen() {
             </Text>
 
             <Button
-              label={referral.status === "INQUIRY_CREATED" ? "Confirm they joined" : "Reward"}
+              label={
+                referral.status === "INQUIRY_CREATED"
+                  ? "Confirm they joined"
+                  : "Reward"
+              }
               onPress={() => openReferral(referral)}
               size="sm"
               variant="outline"
@@ -314,7 +340,10 @@ export default function ManageReferralsScreen() {
                       {`${leader.code}${leader.roomType ? ` · ${leader.roomType}` : ""}`}
                     </Text>
                   </View>
-                  <Badge label={`${leader.joinedCount} joined`} tone="success" />
+                  <Badge
+                    label={`${leader.joinedCount} joined`}
+                    tone="success"
+                  />
                 </View>
               ))}
             </Card>
@@ -326,9 +355,17 @@ export default function ManageReferralsScreen() {
       <Sheet
         footer={
           open?.status === "INQUIRY_CREATED" ? (
-            <Button label="They joined" loading={busy} onPress={() => void confirm()} />
+            <Button
+              label="They joined"
+              loading={busy}
+              onPress={() => void confirm()}
+            />
           ) : (
-            <Button label="Save the reward" loading={busy} onPress={() => void saveReward()} />
+            <Button
+              label="Save the reward"
+              loading={busy}
+              onPress={() => void saveReward()}
+            />
           )
         }
         onClose={() => setOpen(null)}
@@ -380,7 +417,9 @@ export default function ManageReferralsScreen() {
               <Chip
                 icon="call-outline"
                 label={`Call ${open.referrerName || "the referrer"}`}
-                onPress={() => void Linking.openURL(`tel:${open.referrerPhone}`)}
+                onPress={() =>
+                  void Linking.openURL(`tel:${open.referrerPhone}`)
+                }
                 tone="brand"
               />
             ) : null}

@@ -69,11 +69,14 @@ export default function ComplaintsScreen() {
   const visible = showClosed
     ? rows
     : rows.filter(
-        (complaint) => OPEN_STATUSES.has(complaint.status) || needsResident(complaint),
+        (complaint) =>
+          OPEN_STATUSES.has(complaint.status) || needsResident(complaint),
       );
 
   const header = (
     <AppBar
+      accent
+      centerTitle
       showBack
       subtitle={
         complaints.data
@@ -192,7 +195,10 @@ function FilterChip({
   );
 }
 
-const CATEGORY_LOOK: Record<string, { bg: string; icon: keyof typeof Ionicons.glyphMap }> = {
+const CATEGORY_LOOK: Record<
+  string,
+  { bg: string; icon: keyof typeof Ionicons.glyphMap }
+> = {
   FOOD: { bg: "#FF9500", icon: "restaurant-outline" },
   MAINTENANCE: { bg: "#30B0C7", icon: "construct-outline" },
   NOISE: { bg: "#AF52DE", icon: "volume-high-outline" },
@@ -216,7 +222,11 @@ function ComplaintRow({ complaint }: { complaint: Complaint }) {
   return (
     <ListRow
       icon={look.icon}
-      iconBgColor={OPEN_STATUSES.has(complaint.status) || standing.action ? look.bg : "#8E8E93"}
+      iconBgColor={
+        OPEN_STATUSES.has(complaint.status) || standing.action
+          ? look.bg
+          : "#8E8E93"
+      }
       onPress={() => router.push(`/complaints/${complaint.id}`)}
       right={
         standing.action ? (

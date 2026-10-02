@@ -1,3 +1,4 @@
+import { NoticeReader } from "@/components/notice-reader";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -100,7 +101,11 @@ const CATEGORY_OPTIONS = NOTICE_CATEGORIES.map((value) => ({
   value,
 }));
 
-const AUDIENCE_OPTIONS: { description: string; label: string; value: NoticeAudience }[] = [
+const AUDIENCE_OPTIONS: {
+  description: string;
+  label: string;
+  value: NoticeAudience;
+}[] = [
   {
     description: "Residents and their guardians.",
     label: "Everyone",
@@ -117,7 +122,8 @@ const AUDIENCE_OPTIONS: { description: string; label: string; value: NoticeAudie
      * for this audience. Guardians read notices by opening their dashboard, so a
      * guardians-only notice sends no push and no email — it appears, silently.
      */
-    description: "Guardians only. Sends no push — they see it on their dashboard.",
+    description:
+      "Guardians only. Sends no push — they see it on their dashboard.",
     label: "Guardians",
     value: "GUARDIANS",
   },
@@ -168,8 +174,8 @@ function draftFrom(notice: ManagedNotice): Draft {
 function draftSummary(draft: Draft): string {
   return [
     humanizeEnum(draft.category),
-    AUDIENCE_OPTIONS.find((option) => option.value === draft.targetAudience)?.label ??
-      "Everyone",
+    AUDIENCE_OPTIONS.find((option) => option.value === draft.targetAudience)
+      ?.label ?? "Everyone",
     draft.publishOn ? `From ${draft.publishOn}` : "Now",
     draft.expiresOn ? `Until ${draft.expiresOn}` : "No expiry",
   ].join(" · ");
@@ -186,7 +192,10 @@ function hasExtraOptions(draft: Draft): boolean {
 }
 
 /** A tile colour and glyph per category, so the board reads before its titles do. */
-const CATEGORY_LOOK: Record<string, { bg: string; icon: keyof typeof Ionicons.glyphMap }> = {
+const CATEGORY_LOOK: Record<
+  string,
+  { bg: string; icon: keyof typeof Ionicons.glyphMap }
+> = {
   EVENT: { bg: "#AF52DE", icon: "calendar-outline" },
   FOOD: { bg: "#FF9500", icon: "restaurant-outline" },
   GENERAL: { bg: "#007AFF", icon: "megaphone-outline" },
@@ -204,7 +213,9 @@ function PushNoticesEntry() {
     cacheKey: query.key,
     topics: query.topics,
   });
-  const running = (pushes.data ?? []).filter((push) => push.status === "ACTIVE").length;
+  const running = (pushes.data ?? []).filter(
+    (push) => push.status === "ACTIVE",
+  ).length;
 
   return (
     <Pressable
@@ -220,7 +231,11 @@ function PushNoticesEntry() {
           {pushes.data ? `${running} running` : "Now, later, daily or weekly"}
         </Text>
       </View>
-      <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} />
+      <Ionicons
+        color={colors.mutedForeground}
+        name="chevron-forward"
+        size={18}
+      />
     </Pressable>
   );
 }
@@ -270,7 +285,10 @@ export default function ManageNoticesScreen() {
   }, [rows]);
 
   const visible = useMemo(
-    () => (state === "all" ? rows : rows.filter((notice) => stateOf(notice, now) === state)),
+    () =>
+      state === "all"
+        ? rows
+        : rows.filter((notice) => stateOf(notice, now) === state),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [rows, state],
   );
@@ -283,7 +301,10 @@ export default function ManageNoticesScreen() {
     const content = draft.content.trim();
 
     if (title.length < 2) {
-      toastError("Give it a title", "Two characters at least — residents scan these.");
+      toastError(
+        "Give it a title",
+        "Two characters at least — residents scan these.",
+      );
       return;
     }
 
@@ -308,9 +329,13 @@ export default function ManageNoticesScreen() {
       const payload = {
         category: draft.category,
         content,
-        expiresAt: draft.expiresOn ? (endOfDayIso(draft.expiresOn) ?? undefined) : undefined,
+        expiresAt: draft.expiresOn
+          ? (endOfDayIso(draft.expiresOn) ?? undefined)
+          : undefined,
         isUrgent: draft.isUrgent,
-        publishedAt: draft.publishOn ? (startOfDayIso(draft.publishOn) ?? undefined) : undefined,
+        publishedAt: draft.publishOn
+          ? (startOfDayIso(draft.publishOn) ?? undefined)
+          : undefined,
         targetAudience: draft.targetAudience,
         title,
       };
@@ -321,7 +346,9 @@ export default function ManageNoticesScreen() {
       } else {
         await createManagedNotice(payload);
         toastSuccess(
-          isFuture(payload.publishedAt, new Date()) ? "Notice scheduled" : "Notice published",
+          isFuture(payload.publishedAt, new Date())
+            ? "Notice scheduled"
+            : "Notice published",
           draft.targetAudience === "GUARDIANS"
             ? "Guardians will see it on their dashboard."
             : "Residents have been notified.",
@@ -332,7 +359,10 @@ export default function ManageNoticesScreen() {
       setEditing(null);
       await refresh();
     } catch (error) {
-      toastError("Could not save", readApiError(error, "The notice did not save."));
+      toastError(
+        "Could not save",
+        readApiError(error, "The notice did not save."),
+      );
     } finally {
       setSaving(false);
     }
@@ -367,6 +397,8 @@ export default function ManageNoticesScreen() {
    * `More options` row would be the sheet hiding the thing the person opened it
    * to change; a plain new notice still starts shut, which is the whole point.
    */
+  const [reading, setReading] = useState<ManagedNotice | null>(null);
+
   const open = useCallback((notice: ManagedNotice) => {
     const next = draftFrom(notice);
 
@@ -384,7 +416,13 @@ export default function ManageNoticesScreen() {
 
   return (
     <Screen
-      floating={<FloatingButton icon="create-outline" label="Write a notice" onPress={compose} />}
+      floating={
+        <FloatingButton
+          icon="create-outline"
+          label="Write a notice"
+          onPress={compose}
+        />
+      }
       header={<AppBar accent centerTitle showBack title="Notices" />}
       onRefresh={notices.refresh}
       refreshing={notices.refreshing}
@@ -449,7 +487,10 @@ export default function ManageNoticesScreen() {
 
         {groups.map((group) => (
           <View className="gap-2" key={group.bucket}>
-            <Text className="px-0.5 font-semibold uppercase tracking-wider" variant="caption">
+            <Text
+              className="px-0.5 font-semibold uppercase tracking-wider"
+              variant="caption"
+            >
               {group.label}
             </Text>
             <Card padding="px-4 py-1">
@@ -465,19 +506,29 @@ export default function ManageNoticesScreen() {
                     <ListRow
                       icon={look.icon}
                       iconBgColor={current === "expired" ? "#8E8E93" : look.bg}
-                      onPress={() => open(notice)}
+                      onPress={() => setReading(notice)}
                       right={
                         <Badge
                           label={
-                            current === "live" ? "Live" : current === "scheduled" ? "Scheduled" : "Expired"
+                            current === "live"
+                              ? "Live"
+                              : current === "scheduled"
+                                ? "Scheduled"
+                                : "Expired"
                           }
                           tone={
-                            current === "live" ? "success" : current === "scheduled" ? "info" : "neutral"
+                            current === "live"
+                              ? "success"
+                              : current === "scheduled"
+                                ? "info"
+                                : "neutral"
                           }
                         />
                       }
                       subtitle={`${
-                        notice.targetAudience === "ALL" ? "Everyone" : humanizeEnum(notice.targetAudience)
+                        notice.targetAudience === "ALL"
+                          ? "Everyone"
+                          : humanizeEnum(notice.targetAudience)
                       } · ${
                         current === "scheduled"
                           ? `goes out ${dates.dateTime(notice.publishedAt)}`
@@ -492,6 +543,34 @@ export default function ManageNoticesScreen() {
           </View>
         ))}
       </View>
+
+      <Sheet
+        open={reading !== null}
+        onClose={() => setReading(null)}
+        title="Notice"
+        footer={
+          <Button
+            label="Edit notice"
+            variant="outline"
+            onPress={() => {
+              if (reading) {
+                open(reading);
+                setReading(null);
+              }
+            }}
+          />
+        }
+      >
+        {reading ? (
+          <NoticeReader
+            title={reading.title}
+            content={reading.content}
+            category={humanizeEnum(reading.category)}
+            urgent={reading.isUrgent}
+            date={dates.date(reading.publishedAt ?? reading.createdAt)}
+          />
+        ) : null}
+      </Sheet>
 
       <Sheet
         footer={
@@ -530,7 +609,9 @@ export default function ManageNoticesScreen() {
           <Input
             label="Notice"
             multiline
-            onChangeText={(content) => setDraft((prev) => ({ ...prev, content }))}
+            onChangeText={(content) =>
+              setDraft((prev) => ({ ...prev, content }))
+            }
             placeholder="What is happening, and what should people do about it."
             style={{ height: 132 }}
             value={draft.content}
@@ -594,7 +675,9 @@ export default function ManageNoticesScreen() {
               <View className="gap-3 border-t border-border px-3 py-3">
                 <Select
                   label="Category"
-                  onChange={(value) => setDraft((prev) => ({ ...prev, category: value }))}
+                  onChange={(value) =>
+                    setDraft((prev) => ({ ...prev, category: value }))
+                  }
                   options={CATEGORY_OPTIONS}
                   value={draft.category}
                 />
@@ -613,25 +696,35 @@ export default function ManageNoticesScreen() {
                     hint="Leave blank to publish immediately."
                     keyboardType="numbers-and-punctuation"
                     label="Publish on"
-                    onChangeText={(publishOn) => setDraft((prev) => ({ ...prev, publishOn }))}
+                    onChangeText={(publishOn) =>
+                      setDraft((prev) => ({ ...prev, publishOn }))
+                    }
                     placeholder="YYYY-MM-DD"
                     value={draft.publishOn}
                   />
                   <View className="flex-row flex-wrap gap-2">
                     <Chip
                       label="Now"
-                      onPress={() => setDraft((prev) => ({ ...prev, publishOn: "" }))}
+                      onPress={() =>
+                        setDraft((prev) => ({ ...prev, publishOn: "" }))
+                      }
                     />
                     <Chip
                       label="Tomorrow"
                       onPress={() =>
-                        setDraft((prev) => ({ ...prev, publishOn: dayInputFromNow(1) }))
+                        setDraft((prev) => ({
+                          ...prev,
+                          publishOn: dayInputFromNow(1),
+                        }))
                       }
                     />
                     <Chip
                       label="In a week"
                       onPress={() =>
-                        setDraft((prev) => ({ ...prev, publishOn: dayInputFromNow(7) }))
+                        setDraft((prev) => ({
+                          ...prev,
+                          publishOn: dayInputFromNow(7),
+                        }))
                       }
                     />
                   </View>
@@ -642,31 +735,44 @@ export default function ManageNoticesScreen() {
                     hint="The last day it applies. Leave blank and it stays up until you expire it."
                     keyboardType="numbers-and-punctuation"
                     label="Expires on"
-                    onChangeText={(expiresOn) => setDraft((prev) => ({ ...prev, expiresOn }))}
+                    onChangeText={(expiresOn) =>
+                      setDraft((prev) => ({ ...prev, expiresOn }))
+                    }
                     placeholder="YYYY-MM-DD"
                     value={draft.expiresOn}
                   />
                   <View className="flex-row flex-wrap gap-2">
                     <Chip
                       label="Never"
-                      onPress={() => setDraft((prev) => ({ ...prev, expiresOn: "" }))}
+                      onPress={() =>
+                        setDraft((prev) => ({ ...prev, expiresOn: "" }))
+                      }
                     />
                     <Chip
                       label="In 3 days"
                       onPress={() =>
-                        setDraft((prev) => ({ ...prev, expiresOn: dayInputFromNow(3) }))
+                        setDraft((prev) => ({
+                          ...prev,
+                          expiresOn: dayInputFromNow(3),
+                        }))
                       }
                     />
                     <Chip
                       label="In a week"
                       onPress={() =>
-                        setDraft((prev) => ({ ...prev, expiresOn: dayInputFromNow(7) }))
+                        setDraft((prev) => ({
+                          ...prev,
+                          expiresOn: dayInputFromNow(7),
+                        }))
                       }
                     />
                     <Chip
                       label="In a month"
                       onPress={() =>
-                        setDraft((prev) => ({ ...prev, expiresOn: dayInputFromNow(30) }))
+                        setDraft((prev) => ({
+                          ...prev,
+                          expiresOn: dayInputFromNow(30),
+                        }))
                       }
                     />
                   </View>
