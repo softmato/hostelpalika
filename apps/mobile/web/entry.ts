@@ -20,3 +20,7 @@ import "./push-open";
 import "./focus-ring";
 
 import "expo-router/entry";
+
+if ("serviceWorker" in navigator) {
+  void navigator.serviceWorker.register("/sw.js", { scope: "/app" }).catch(() => undefined);
+}

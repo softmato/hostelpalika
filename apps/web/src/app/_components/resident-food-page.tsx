@@ -161,7 +161,7 @@ export const ResidentFoodPageContent = memo(function ResidentFoodPageContent() {
   return (
     <div className="mx-auto max-w-[1448px] space-y-5">
       <PortalPageHeader
-        breadcrumb={[{ href: "/resident", label: "Home" }, "Food Menu"]}
+        breadcrumb={[{ href: "/resident/dashboard", label: "Home" }, "Food Menu"]}
         description="Browse the current menu, view food photos, and share your feedback."
         title="Food Menu"
       />

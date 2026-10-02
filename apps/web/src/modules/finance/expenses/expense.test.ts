@@ -90,6 +90,7 @@ vi.mock("@hostel/db/models/User", () => ({
 vi.mock("@hostel/db/models/PaymentEvent", () => ({ PaymentEventModel: { find: mocks.eventFind } }));
 
 import {
+  readExpenseReceipt,
   createExpense,
   getExpenseHome,
   parseSpentOn,
@@ -387,5 +388,19 @@ describe("cancelling an expense", () => {
       expect.anything(),
       expect.objectContaining({ action: "EXPENSE_VOIDED", amountAfter: 0, amountBefore: 750 }),
     );
+  });
+});
+
+
+describe("shared expense receipt read", () => {
+  it("refuses another hostel's receipt before reading its bytes", async () => {
+    mocks.assetFindOne.mockReturnValue(query({ hostelId: new Types.ObjectId(), ownerId, kind: "EXPENSE_RECEIPT", uploadCompletedAt: new Date() }));
+    const actor = await resolveExpenseActor(owner);
+    await expect(readExpenseReceipt(actor, assetId.toString())).rejects.toMatchObject({ errorCode: "ASSET_NOT_OWNED" });
+  });
+  it("refuses another user's receipt in the same hostel", async () => {
+    mocks.assetFindOne.mockReturnValue(query({ hostelId, ownerId: wardenId, kind: "EXPENSE_RECEIPT", uploadCompletedAt: new Date() }));
+    const actor = await resolveExpenseActor(owner);
+    await expect(readExpenseReceipt(actor, assetId.toString())).rejects.toMatchObject({ errorCode: "ASSET_NOT_OWNED" });
   });
 });

@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, Linking, View } from "react-native";
+import { Linking, View } from "react-native";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { Text } from "@/components/ui/text";
 import { Toggle } from "@/components/ui/toggle";
 import { useResource } from "@/hooks/use-resource";
 import { readApiError } from "@/lib/api-contract";
+import { openConfirm } from "@/lib/confirm";
 import {
   describeInvitation,
   GUARDIAN_PERMISSIONS,
@@ -278,28 +279,22 @@ function PermissionSheet({
       return;
     }
 
-    Alert.alert(
-      `Revoke ${link.name}'s access?`,
-      "They lose their sign-in immediately, and the link in their invitation email stops working. Inviting them again sends a new one.",
-      [
-        { style: "cancel", text: "Cancel" },
-        {
-          onPress: () => {
-            void (async () => {
-              try {
-                await revokeGuardian(link.accessId);
-                toastSuccess(`${link.name} no longer has access.`);
-                onRevoked();
-              } catch (caught) {
-                toastError("Could not revoke that", readApiError(caught));
-              }
-            })();
-          },
-          style: "destructive",
-          text: "Revoke access",
-        },
-      ],
-    );
+    openConfirm({
+      confirmLabel: "Revoke access",
+      destructive: true,
+      message:
+        "They lose their sign-in immediately, and the link in their invitation email stops working. Inviting them again sends a new one.",
+      onConfirm: async () => {
+        try {
+          await revokeGuardian(link.accessId);
+          toastSuccess(`${link.name} no longer has access.`);
+          onRevoked();
+        } catch (caught) {
+          toastError("Could not revoke that", readApiError(caught));
+        }
+      },
+      title: `Revoke ${link.name}'s access?`,
+    });
   }, [link, onRevoked]);
 
   const pending = link ? describeInvitation(link) : null;

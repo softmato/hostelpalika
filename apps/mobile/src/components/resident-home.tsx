@@ -167,8 +167,7 @@ function UrgentNoticeStrip({ count, onPress }: { count: number; onPress: () => v
       accessibilityLabel={`${count} urgent notices. Open notices.`}
       accessibilityRole="button"
       className="flex-row items-center gap-3 rounded-2xl bg-white px-3.5 py-3 active:opacity-80"
-      onPress={() => {        onPress();
-      }}
+      onPress={onPress}
       style={FLOAT_SHADOW}
     >
       <View className="h-9 w-9 items-center justify-center rounded-full bg-[#fef3c7]">
@@ -213,8 +212,7 @@ function HeroAction({ onPress, owes }: { onPress: () => void; owes: boolean }) {
         owes ? "bg-primary" : "border border-border bg-card"
       }`}
       hitSlop={6}
-      onPress={() => {        onPress();
-      }}
+      onPress={onPress}
     >
       <Ionicons
         color={owes ? "#ffffff" : colors.mutedForeground}

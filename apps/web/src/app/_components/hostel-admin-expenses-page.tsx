@@ -565,6 +565,8 @@ function AddExpenseDialog({
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  /** One id per expense, kept across retries: a Save that timed out but landed is not saved twice. */
+  const [requestId, setRequestId] = useState(newRequestId);
 
   const amount = parseAmountInput(amountText);
   const day = parseBsDayInput(bsDate);
@@ -579,6 +581,13 @@ function AddExpenseDialog({
     setSalaryFor("");
     setPhotoAssetId(null);
     setError("");
+    setRequestId(newRequestId());
+  };
+
+  // A draft reopened later may be edited into a different expense, so it gets a new id.
+  const close = () => {
+    setRequestId(newRequestId());
+    onClose();
   };
 
   const save = async () => {
@@ -588,7 +597,9 @@ function AddExpenseDialog({
     if (!day) return setError("Write the Nepali date like 2083-06-15.");
     if (day > today) return setError("This day has not come yet.");
 
-    const person = people.find((entry) => entry.userId === salaryFor);
+    // The list fills in a name, so a picked person is found by name.
+    const typed = salaryFor.trim();
+    const person = people.find((entry) => entry.name.toLowerCase() === typed.toLowerCase());
 
     setSaving(true);
     setError("");
@@ -598,15 +609,15 @@ function AddExpenseDialog({
         body: JSON.stringify({
           amount,
           category: choice.category,
-          clientRequestId: newRequestId(),
+          clientRequestId: requestId,
           customCategoryId: choice.customCategoryId,
           paidBy,
           photoAssetId: photoAssetId ?? undefined,
           salaryFor:
-            choice.category === "SALARY" && salaryFor
+            choice.category === "SALARY" && typed
               ? person
                 ? { name: person.name, userId: person.userId }
-                : { name: salaryFor }
+                : { name: typed }
               : undefined,
           spentOn: day,
           what: what.trim() || undefined,
@@ -638,7 +649,7 @@ function AddExpenseDialog({
   ];
 
   return (
-    <Dialog onOpenChange={(next) => (next ? undefined : onClose())} open={open}>
+    <Dialog onOpenChange={(next) => (next ? undefined : close())} open={open}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add expense</DialogTitle>
@@ -697,7 +708,7 @@ function AddExpenseDialog({
                 list="expense-people"
                 onChange={(event) => setSalaryFor(event.target.value)}
                 placeholder="Pick or type a name"
-                value={people.find((entry) => entry.userId === salaryFor)?.name ?? salaryFor}
+                value={salaryFor}
               />
               <datalist id="expense-people">
                 {people.map((person) => (
@@ -794,7 +805,7 @@ function AddExpenseDialog({
         </div>
 
         <DialogFooter>
-          <Button onClick={onClose} variant="outline">
+          <Button onClick={close} variant="outline">
             Close
           </Button>
           <Button disabled={saving || uploading} onClick={() => void save()}>

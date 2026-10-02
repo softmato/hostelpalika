@@ -51,7 +51,7 @@ export function WebCameraModal({
         if (videoRef.current) {
           videoRef.current.srcObject = s;
         }
-      } catch (err) {
+      } catch {
         if (active) {
           setError(
             "Could not access camera. Please allow camera permissions or upload an image file.",

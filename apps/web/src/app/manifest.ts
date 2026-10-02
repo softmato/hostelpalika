@@ -35,6 +35,12 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     lang: "en-NP",
     name: PLATFORM_NAME,
     scope: "/app",
+    share_target: {
+      action: "/app/share-payment",
+      method: "POST",
+      enctype: "multipart/form-data",
+      params: { files: [{ name: "receipt", accept: ["image/*", "application/pdf"] }] },
+    },
     short_name: PLATFORM_NAME,
     start_url: "/app",
     // The app's own background, not the brand green: Android paints the status

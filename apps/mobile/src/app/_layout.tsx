@@ -23,6 +23,7 @@ import { BootSplashCover, BrandSplash } from "@/components/brand-splash";
 import { HostelSuspensionHost } from "@/components/hostel-suspension-host";
 import { ConfirmDialogHost } from "@/components/ui/confirm-dialog";
 import { UploadToaster } from "@/components/upload-toaster";
+import { SharedPaymentResume } from "@/components/shared-payment-resume";
 import { ResidencyInviteHost } from "@/components/residency-invite-host";
 import { useAppDispatch } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -539,6 +540,7 @@ function RootShell() {
         signed-in public account on any screen, and on the way back from a push.
       */}
       <ResidencyInviteHost />
+      <SharedPaymentResume />
       </BlurTargetView>
 
       {/*

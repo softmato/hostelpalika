@@ -1,18 +1,8 @@
 /*
  * The service worker that receives browser push notifications.
  *
- * ## What it deliberately does NOT do
- *
- * No `fetch` handler, and no caching. A service worker that caches is an
- * offline strategy, and an offline strategy layered over a Next app that
- * already does its own routing, revalidation and streaming is a way to serve
- * somebody yesterday's dashboard — with no error and no obvious cause, because
- * the stale page renders perfectly. This worker exists for one reason: a push
- * message has to be delivered to a process, and only a service worker is
- * running when the tab is closed. Everything else is out of scope on purpose.
- *
- * If offline support is ever wanted it belongs in a separate, explicit piece of
- * work — not smuggled in behind push.
+ * Pages and API responses are never cached. The share-target handler below
+ * stages private receipt files locally for handoff to the app, with expiry.
  *
  * ## The payload
  *
@@ -261,5 +251,39 @@ async function resubscribe(event) {
   } catch {
     // Nothing to report to and nobody to report it to. The next page load
     // re-subscribes through `web-push-client.ts`.
+  }
+}
+
+// A share POST is handled locally: financial files never enter a public URL.
+const SHARE_CACHE = "hostelpalika-shared-payments-v1";
+self.addEventListener("fetch", (event) => {
+  const url = new URL(event.request.url);
+  if (url.origin === self.location.origin && url.pathname === "/app/share-payment" && event.request.method === "POST") {
+    event.respondWith(receivePaymentShare(event.request));
+  }
+});
+async function receivePaymentShare(request) {
+  try {
+    const form = await request.formData();
+    const files = form.getAll("receipt");
+    const file = files[0];
+    if (files.length !== 1 || !(file instanceof File) || !file.size || file.size > 20 * 1024 * 1024 ||
+        !(file.type.startsWith("image/") || file.type === "application/pdf")) {
+      return Response.redirect(new URL("/app/share-payment?error=unsupported", self.location.origin), 303);
+    }
+    const cache = await caches.open(SHARE_CACHE);
+    for (const key of await cache.keys()) {
+      const stored = await cache.match(key);
+      if (Number(stored.headers.get("x-shared-at")) < Date.now() - 3600000) await cache.delete(key);
+    }
+    const outstanding = await cache.keys();
+    for (const key of outstanding.slice(0, Math.max(0, outstanding.length - 4))) await cache.delete(key);
+    const id = crypto.randomUUID();
+    await cache.put(new URL("/app/_shared-payment/" + id, self.location.origin), new Response(file, {
+      headers: { "content-type": file.type, "x-shared-at": String(Date.now()), "x-file-name": encodeURIComponent(file.name) },
+    }));
+    return Response.redirect(new URL("/app/share-payment?share=" + id, self.location.origin), 303);
+  } catch {
+    return Response.redirect(new URL("/app/share-payment?error=unavailable", self.location.origin), 303);
   }
 }

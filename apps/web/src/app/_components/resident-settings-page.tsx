@@ -17,7 +17,7 @@ export const ResidentSettingsPageContent = memo(function ResidentSettingsPageCon
   return (
     <div className="mx-auto max-w-[1100px] space-y-5">
       <PortalPageHeader
-        breadcrumb={[{ href: "/resident", label: "Home" }, "Settings"]}
+        breadcrumb={[{ href: "/resident/dashboard", label: "Home" }, "Settings"]}
         description="Account access controls for your resident login."
         title="Settings"
       />

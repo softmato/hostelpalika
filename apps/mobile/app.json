@@ -142,10 +142,29 @@
       [
         "expo-audio",
         {
-          "microphonePermission": "Allow HostelPalika to use the microphone so you can say what is wrong out loud instead of typing it — when you raise an issue, and when a warden reports a repair.",
+          "microphonePermission": "Allow HostelPalika to use the microphone so you can say what is wrong out loud instead of typing it \u00e2\u20ac\u201d when you raise an issue, and when a warden reports a repair.",
           "recordAudioAndroid": true,
           "enableBackgroundPlayback": false,
           "enableBackgroundRecording": false
+        }
+      ],
+      [
+        "expo-sharing",
+        {
+          "android": {
+            "enabled": true,
+            "singleShareMimeTypes": [
+              "image/*",
+              "application/pdf"
+            ]
+          },
+          "ios": {
+            "enabled": true,
+            "activationRule": {
+              "supportsImageWithMaxCount": 1,
+              "supportsFileWithMaxCount": 1
+            }
+          }
         }
       ]
     ],

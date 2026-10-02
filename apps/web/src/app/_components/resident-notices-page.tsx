@@ -88,7 +88,7 @@ export const ResidentNoticesPageContent = memo(function ResidentNoticesPageConte
   return (
     <div className="mx-auto max-w-[1100px] space-y-5">
       <PortalPageHeader
-        breadcrumb={[{ href: "/resident", label: "Home" }, "Notices"]}
+        breadcrumb={[{ href: "/resident/dashboard", label: "Home" }, "Notices"]}
         description="Stay up to date with announcements from your hostel."
         title="Notices"
       />

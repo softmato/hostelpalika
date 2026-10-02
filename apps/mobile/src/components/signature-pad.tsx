@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PanResponder, Pressable, View } from "react-native";
 
 import { Text } from "@/components/ui/text";
@@ -123,9 +123,14 @@ export function SignaturePad({
   const live = useRef(strokes);
   const widthRef = useRef(0);
   const handlers = useRef({ onActiveChange, onChange });
-  handlers.current = { onActiveChange, onChange };
 
-  const responder = useMemo(() => {
+  useEffect(() => {
+    handlers.current = { onActiveChange, onChange };
+  });
+
+  // Built once; every callback reads the refs at gesture time, never in render.
+  // eslint-disable-next-line react-hooks/refs -- PanResponder.create stores the callbacks, it does not call them
+  const [responder] = useState(() => {
     const toPoint = (x: number, y: number): [number, number] => {
       const padWidth = widthRef.current || 1;
       const scale = SIGNATURE_WIDTH / padWidth;
@@ -170,7 +175,7 @@ export function SignaturePad({
       onShouldBlockNativeResponder: () => true,
       onStartShouldSetPanResponder: () => true,
     });
-  }, []);
+  });
 
   const clear = () => {
     live.current = [];

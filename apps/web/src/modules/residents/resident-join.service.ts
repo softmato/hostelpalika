@@ -75,7 +75,6 @@ type RequestDoc = {
   fullName: string;
   hostelId: Types.ObjectId;
   joinedDate?: Date | null;
-  linkId?: Types.ObjectId;
   note?: string;
   paidTill: string;
   partPaid: number;
@@ -576,43 +575,6 @@ export async function sendJoinRequest(token: string, input: JoinRequestInput, us
   }
 
   return getJoinPage(token, userId);
-}
-
-/**
- * The signed-in person's own open request — waiting, or sent back to fix — so
- * the app can show it on their home instead of making them find the link again.
- * Added requests drop out: by then they are a resident and the app has moved on.
- */
-export async function getMyJoinRequest(userId: string) {
-  await connectToDatabase();
-
-  const request = await ResidentApplicationModel.findOne({
-    status: { $in: ["PENDING", "REJECTED"] },
-    userId: new Types.ObjectId(userId),
-  })
-    .sort({ updatedAt: -1 })
-    .select("hostelId linkId rejectReason status")
-    .lean<Pick<RequestDoc, "hostelId" | "linkId" | "rejectReason" | "status"> | null>();
-
-  if (!request) return { request: null };
-
-  const [link, hostel] = await Promise.all([
-    ResidentJoinLinkModel.findById(request.linkId).select("token").lean<{ token: string } | null>(),
-    HostelModel.findOne({ _id: request.hostelId, isDeleted: { $ne: true } })
-      .select("name")
-      .lean<{ name?: string } | null>(),
-  ]);
-
-  if (!link || !hostel) return { request: null };
-
-  return {
-    request: {
-      hostelName: hostel.name?.trim() || "Your hostel",
-      reason: request.rejectReason ?? "",
-      status: request.status as "PENDING" | "REJECTED",
-      token: link.token,
-    },
-  };
 }
 
 async function tellStaff(

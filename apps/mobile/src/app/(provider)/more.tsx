@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 
 import { SupportContact } from "@/components/support-contact";
 import { AppBar } from "@/components/ui/app-bar";
@@ -13,6 +13,7 @@ import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { endSession } from "@/lib/auth-session";
 import { prefetchCommunity } from "@/lib/community-queries";
+import { openConfirm } from "@/lib/confirm";
 import { setThemePreference } from "@/store/slices/uiSlice";
 
 /**
@@ -31,17 +32,16 @@ export default function ProviderMoreScreen() {
   const [signingOut, setSigningOut] = useState(false);
 
   const signOut = useCallback(() => {
-    Alert.alert("Sign out?", "You'll need your password to get back in.", [
-      { style: "cancel", text: "Cancel" },
-      {
-        onPress: () => {
-          setSigningOut(true);
-          void endSession().finally(() => router.replace("/(browse)"));
-        },
-        style: "destructive",
-        text: "Sign out",
+    openConfirm({
+      confirmLabel: "Sign out",
+      destructive: true,
+      message: "You'll need your password to get back in.",
+      onConfirm: () => {
+        setSigningOut(true);
+        void endSession().finally(() => router.replace("/(browse)"));
       },
-    ]);
+      title: "Sign out?",
+    });
   }, []);
 
   const nextTheme = preference === "dark" ? "light" : "dark";

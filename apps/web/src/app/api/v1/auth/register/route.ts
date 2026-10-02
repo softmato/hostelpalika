@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     // Was hand-rolled here, and wrote the refresh cookie to "/api/v1/auth"
     // while every other sign-in path wrote it to "/api" — two shapes of session
     // depending on which door you came through. One helper now.
-    return applySessionCookies(response, result);
+    return shouldExposeRefreshToken(request.headers) ? response : applySessionCookies(response, result);
   } catch (error) {
     if (error instanceof AuthServiceError) {
       return errorResponse(error.message, error.errorCode, error.status);

@@ -47,6 +47,12 @@ function redirectHome(request: NextRequest) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  // App/PWA API requests authorize their explicit bearer token, independently
+  // of any website cookie. Do not rotate an unrelated cookie in front of them.
+  if (pathname.startsWith("/api/") &&
+      (request.headers.has("authorization") || request.headers.get("x-hostelhub-client") === "mobile")) {
+    return NextResponse.next();
+  }
 
   /* 1. Skip auth in development / UI-preview mode (never in production) */
   if (isAuthBypassEnabled()) {
@@ -72,7 +78,13 @@ export async function proxy(request: NextRequest) {
    * cookie, so an idle tab or a fresh navigation keeps the session.
    */
   if (!role) {
-    refreshed = await refreshFromCookie(request);
+    try {
+      refreshed = await refreshFromCookie(request);
+    } catch {
+      return new NextResponse("We could not refresh your session. Please reload to try again.", {
+        status: 503, headers: { "Retry-After": "5", "Cache-Control": "no-store" },
+      });
+    }
     role = refreshed ? await roleFromAccessToken(refreshed.accessToken) : null;
   }
 
@@ -137,7 +149,7 @@ async function keepSessionAlive(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const refreshed = await refreshFromCookie(request);
+  const refreshed = await refreshFromCookie(request).catch(() => null);
 
   if (!refreshed) {
     return NextResponse.next();
@@ -182,8 +194,10 @@ async function refreshFromCookie(request: NextRequest) {
     const { refreshAccessToken } = await import("@/modules/auth/auth.service");
 
     return await refreshAccessToken(refreshToken, { cookieSession: true });
-  } catch {
-    return null;
+  } catch (error) {
+    if (error && typeof error === "object" && "status" in error &&
+        (error.status === 401 || error.status === 403)) return null;
+    throw error;
   }
 }
 

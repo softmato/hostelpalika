@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
-import { getMyJoinRequest } from "@/modules/residents/resident-join.service";
+import { getMyJoinRequest } from "@/modules/residents/my-join-request";
 
 export const runtime = "nodejs";
 

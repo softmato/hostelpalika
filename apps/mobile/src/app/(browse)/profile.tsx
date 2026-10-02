@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, Linking, View } from "react-native";
+import { Linking, View } from "react-native";
 
 import { ProviderStatusCard } from "@/components/provider-status-card";
 import { SupportContact } from "@/components/support-contact";
@@ -19,6 +19,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
 import { useSiteConfig } from "@/hooks/use-site-config";
 import { endSession } from "@/lib/auth-session";
+import { openConfirm } from "@/lib/confirm";
 import type { ProviderApplication } from "@/lib/provider-api";
 import { providerQuery } from "@/lib/provider-queries";
 import { isApplicationInFlight } from "@/lib/provider-status";
@@ -105,10 +106,11 @@ export default function BrowseProfileScreen() {
   }, []);
 
   const signOut = useCallback(() => {
-    Alert.alert("Sign out?", "You'll need your password to get back in.", [
-      { style: "cancel", text: "Cancel" },
-      {
-        onPress: () => {
+    openConfirm({
+      confirmLabel: "Sign out",
+      destructive: true,
+      message: "You'll need your password to get back in.",
+      onConfirm: () => {
           setSigningOut(true);
           /*
            * Back to these same tabs, signed out — this screen simply redraws its
@@ -119,11 +121,9 @@ export default function BrowseProfileScreen() {
            * (`onSessionEnded`), not on a deliberate sign-out.
            */
           void endSession().finally(() => router.replace("/(browse)"));
-        },
-        style: "destructive",
-        text: "Sign out",
       },
-    ]);
+      title: "Sign out?",
+    });
   }, []);
 
   const nextTheme = preference === "dark" ? "light" : "dark";

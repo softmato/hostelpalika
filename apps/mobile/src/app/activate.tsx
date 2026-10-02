@@ -7,7 +7,7 @@ import {
 import * as Haptics from "expo-haptics";
 import { router } from "expo-router";
 import { useRef, useState } from "react";
-import { Alert, Linking, Pressable, View } from "react-native";
+import { Linking, Pressable, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
@@ -25,6 +25,7 @@ import {
 import { readApiError } from "@/lib/api-contract";
 import { activateResident } from "@/lib/auth-api";
 import { endSession, startSession } from "@/lib/auth-session";
+import { openConfirm } from "@/lib/confirm";
 import { collectDeviceInfo, collectSessionInfo } from "@/lib/device-info";
 import { toastSuccess } from "@/lib/toast";
 import { setResidentActivated } from "@/store/slices/authSlice";
@@ -155,20 +156,15 @@ export default function ActivateScreen() {
   }
 
   function signOut() {
-    Alert.alert(
-      "Sign out?",
-      "You can activate later — ask your hostel to send the code again.",
-      [
-        { style: "cancel", text: "Cancel" },
-        {
-          onPress: () => {
-            void endSession().finally(() => router.replace("/(browse)"));
-          },
-          style: "destructive",
-          text: "Sign out",
-        },
-      ],
-    );
+    openConfirm({
+      confirmLabel: "Sign out",
+      destructive: true,
+      message: "You can activate later — ask your hostel to send the code again.",
+      onConfirm: () => {
+        void endSession().finally(() => router.replace("/(browse)"));
+      },
+      title: "Sign out?",
+    });
   }
 
   // Reachable directly, and the endpoint needs a principal. Better to say so

@@ -906,3 +906,10 @@ copying and **discloses no personal data**. Marked `noindex, nofollow`.
 ---
 
 _End of API.md_
+
+
+### Shared expense receipt autofill (2026-10-02)
+
+`POST /api/v1/hostel-admin/expenses/receipt/read` accepts `{ assetId }`, requires `recordExpenses`, and reads only the caller's completed `EXPENSE_RECEIPT` in their authorized hostel. Returns `{ fields: { amount?, method?, transactionCode?, referenceCode? } }` in the standard envelope. Suggestions only; does not create an expense or settle a payment. Limited to 30 reads/hour/client.
+
+Auth calls with `x-hostelhub-client: mobile` use the body refresh token and return token pairs without setting website session cookies. This also applies to the installed PWA. Browser callers retain the HTTP-only cookie contract.

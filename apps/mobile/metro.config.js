@@ -27,6 +27,9 @@ const netinfoShim = path.resolve(__dirname, "src/shims/netinfo.js");
 const webRoot = path.resolve(__dirname, "web");
 const srcRoot = path.resolve(__dirname, "src");
 const WEB_STAND_INS = {
+  "@/lib/session": "session.ts",
+  "@/lib/session-refresh-lock": "session-refresh-lock.ts",
+  "@/lib/receive-payment-share": "receive-payment-share.ts",
   "@/components/qr-camera": "qr-camera.tsx",
   "@/lib/documents": "documents.ts",
   "@/lib/google-auth": "google-auth.ts",
@@ -142,7 +145,7 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
       return { filePath: path.join(webRoot, "entry.ts"), type: "sourceFile" };
     }
 
-    if (WEB_STAND_INS[moduleName] && origin.startsWith(srcRoot)) {
+    if (WEB_STAND_INS[moduleName] && (origin.startsWith(srcRoot) || (moduleName === "@/lib/session" && origin.startsWith(webRoot)))) {
       return { filePath: path.join(webRoot, WEB_STAND_INS[moduleName]), type: "sourceFile" };
     }
   }

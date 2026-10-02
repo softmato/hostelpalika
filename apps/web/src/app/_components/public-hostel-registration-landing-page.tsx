@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Building2, ChevronRight, type LucideIcon } from "lucide-react";
+import { ArrowRight, ChevronRight, type LucideIcon } from "lucide-react";
 import {
   AnimatePresence,
   animate,

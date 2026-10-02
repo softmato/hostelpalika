@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, Image, Pressable, View } from "react-native";
+import { Image, Pressable, View } from "react-native";
 
 import { useStoreCart } from "@/components/store/store-cart";
 import {
@@ -21,6 +21,7 @@ import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
 import { readApiError } from "@/lib/api-contract";
+import { openConfirm } from "@/lib/confirm";
 import {
   removeFromCart,
   setCartQuantity,
@@ -205,15 +206,14 @@ export default function StoreCartScreen() {
               void apply(line.product.id, () => setCartQuantity(line.product.id, next))
             }
             onRemove={() =>
-              Alert.alert("Remove this item?", line.product.name, [
-                { style: "cancel", text: "Keep" },
-                {
-                  onPress: () =>
-                    void apply(line.product.id, () => removeFromCart(line.product.id)),
-                  style: "destructive",
-                  text: "Remove",
-                },
-              ])
+              openConfirm({
+                cancelLabel: "Keep",
+                confirmLabel: "Remove",
+                destructive: true,
+                message: line.product.name,
+                onConfirm: () => apply(line.product.id, () => removeFromCart(line.product.id)),
+                title: "Remove this item?",
+              })
             }
           />
         ))}

@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       "Password changed",
     );
 
-    return applySessionCookies(response, result);
+    return shouldExposeRefreshToken(request.headers) ? response : applySessionCookies(response, result);
   } catch (error) {
     if (error instanceof AuthServiceError) {
       return errorResponse(error.message, error.errorCode, error.status);

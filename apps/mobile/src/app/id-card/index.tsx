@@ -3,7 +3,7 @@ import * as Clipboard from "expo-clipboard";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import { Alert, Pressable, Share, Switch, View } from "react-native";
+import { Pressable, Share, Switch, View } from "react-native";
 
 import { captureRef } from "react-native-view-shot";
 
@@ -22,6 +22,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { readApiError } from "@/lib/api-contract";
+import { openConfirm } from "@/lib/confirm";
 import { saveDataUrlToDevice, saveToDevice } from "@/lib/documents";
 import { buildIdCard, hasIdCard, idCardNoun } from "@/lib/id-card";
 import {
@@ -386,18 +387,17 @@ function IdCardDetail({
   }, [onChanged]);
 
   const removePhoto = useCallback(() => {
-    Alert.alert("Remove your photo?", "Your card will show your initial instead.", [
-      { style: "cancel", text: "Cancel" },
-      {
-        onPress: () =>
-          void run("remove", clearIdentityPhoto, {
-            failure: "Could not remove that photo",
-            success: "Photo removed",
-          }),
-        style: "destructive",
-        text: "Remove",
-      },
-    ]);
+    openConfirm({
+      confirmLabel: "Remove",
+      destructive: true,
+      message: "Your card will show your initial instead.",
+      onConfirm: () =>
+        run("remove", clearIdentityPhoto, {
+          failure: "Could not remove that photo",
+          success: "Photo removed",
+        }),
+      title: "Remove your photo?",
+    });
   }, [run]);
 
   return (

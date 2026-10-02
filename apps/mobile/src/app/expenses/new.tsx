@@ -1,8 +1,11 @@
+import { takeSharedPayment } from "@/lib/shared-payment";
+import { api } from "@/lib/api";
+import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, TextInput, View } from "react-native";
 
 import { useExpenseAudience } from "@/components/expenses/expense-parts";
@@ -90,6 +93,7 @@ export default function AddExpenseScreen() {
   const [otherDay, setOtherDay] = useState(false);
   const [bsInput, setBsInput] = useState(() => toBsDayInput(todayKey()));
   const [paidBy, setPaidBy] = useState<ExpensePaidBy>("CASH");
+  const paidByEdited = useRef(false);
   const [salaryPick, setSalaryPick] = useState<string | null>(null);
   const [salaryName, setSalaryName] = useState("");
 
@@ -228,6 +232,38 @@ export default function AddExpenseScreen() {
       if (pickTicket.current === ticket) setUploading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (!home) return;
+    void takeSharedPayment().then(async (file) => {
+      if (!file) return;
+      const ticket = ++pickTicket.current;
+      setUploading(true);
+      setPhoto({ assetId: null, uri: file.uri });
+      try {
+        const prepared = await prepareEvidenceForUpload(file);
+        const assetId = await uploadAsset(prepared, { kind: "EXPENSE_RECEIPT", label: "Shared receipt" });
+        if (pickTicket.current !== ticket) return;
+        setPhoto({ assetId, uri: file.uri });
+        const result = unwrap(await api.post<ApiEnvelope<{ fields: { amount?: number; method?: string } }>>(
+          "/hostel-admin/expenses/receipt/read", { assetId }, { timeout: 45000 }));
+        if (pickTicket.current !== ticket) return;
+        if (result.fields.amount) setAmountText((value) => value || String(result.fields.amount));
+        if (!paidByEdited.current && result.fields.method) {
+          const method = result.fields.method;
+          setPaidBy(method === "ESEWA" || method === "KHALTI" ? method : "BANK");
+        }
+        toastSuccess("Receipt added", "Check the amount and payment method before saving.");
+      } catch (error) {
+        if (pickTicket.current === ticket) {
+          setPhoto((current) => current?.assetId ? current : null);
+          toastError("Check your receipt", readApiError(error, "Enter the amount yourself, or try adding the receipt again."));
+        }
+      } finally {
+        if (pickTicket.current === ticket) setUploading(false);
+      }
+    });
+  }, [home]);
 
   const removePhoto = useCallback(() => {
     pickTicket.current += 1;
@@ -530,7 +566,7 @@ export default function AddExpenseScreen() {
           <View className="gap-2.5">
             <FieldLabel>Paid by</FieldLabel>
             <Segmented
-              onChange={setPaidBy}
+              onChange={(value) => { paidByEdited.current = true; setPaidBy(value); }}
               options={EXPENSE_PAID_BY.map((value) => ({ label: EXPENSE_PAID_BY_LABELS[value], value }))}
               value={paidBy}
             />

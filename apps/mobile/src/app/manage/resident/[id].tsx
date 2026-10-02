@@ -1,7 +1,7 @@
 import { useLocalSearchParams } from "expo-router";
 import { LogOut } from "lucide-react-native";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
-import { Alert, Linking, View } from "react-native";
+import { Linking, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { PersonAvatar } from "@/components/ui/avatar";
@@ -36,6 +36,7 @@ import {
 } from "@/lib/admin-manage-api";
 import { type AdminResidentRecord, adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
+import { openConfirm } from "@/lib/confirm";
 import { humanizeEnum } from "@/lib/format";
 import { toastError, toastSuccess } from "@/lib/toast";
 
@@ -556,10 +557,13 @@ export default function ManageResidentScreen() {
                             });
 
                             if (result.accessCode) {
-                              Alert.alert(
-                                "Guardian access code",
-                                `${result.accessCode}\n\nThey sign in with their phone number and this code. It lasts 30 days.`,
-                              );
+                              openConfirm({
+                                cancelLabel: null,
+                                confirmLabel: "Done",
+                                message: `${result.accessCode}\n\nThey sign in with their phone number and this code. It lasts 30 days.`,
+                                onConfirm: () => {},
+                                title: "Guardian access code",
+                              });
                             }
                           },
                           "Access issued",

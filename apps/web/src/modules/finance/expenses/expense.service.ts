@@ -819,3 +819,18 @@ export async function setCookExpensesEnabled(actor: ExpenseActor, enabled: boole
 
   return { expensesEnabled: enabled };
 }
+
+/** Reads suggestions only; creating an expense still requires an explicit Save. */
+export async function readExpenseReceipt(actor: ExpenseActor, assetId: string) {
+  await connectToDatabase();
+  await assertPhotoUsable(actor, assetId);
+  const asset = await FileAssetModel.findOne({ _id: assetId, hostelId: actor.hostelId, ownerId: actor.principal.userId, kind: "EXPENSE_RECEIPT", isDeleted: false, status: "ACTIVE" })
+    .select("bucket key mimeType").lean<{ bucket: string; key: string; mimeType?: string } | null>();
+  if (!asset) throw new ExpenseError("File not found", "NOT_FOUND", 404);
+  const { readStoredObject } = await import("@/lib/uploads/verify");
+  const { readEvidence, extractClaimFields } = await import("@/modules/finance/evidence-ocr");
+  const bytes = await readStoredObject(asset);
+  if (!bytes) throw new ExpenseError("Receipt could not be opened. Try again.", "READ_UNAVAILABLE", 503);
+  const read = await readEvidence(bytes, asset.mimeType);
+  return { fields: read.result?.text ? extractClaimFields(read.result.text) : {} };
+}

@@ -8,6 +8,8 @@ import {
   EXPENSE_WHAT_MAX,
 } from "@hostel/shared/expenses/categories";
 
+export const expenseReceiptReadSchema = z.object({ assetId: z.string().regex(/^[a-f\d]{24}$/i) });
+
 const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, "Invalid id.");
 
 /** `2083-06` — a Bikram Sambat month, the only month this product speaks. */

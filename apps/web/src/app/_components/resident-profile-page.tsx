@@ -75,7 +75,7 @@ export const ResidentProfilePageContent = memo(function ResidentProfilePageConte
   return (
     <div className="mx-auto max-w-[1100px] space-y-5">
       <PortalPageHeader
-        breadcrumb={[{ href: "/resident", label: "Home" }, "My Profile"]}
+        breadcrumb={[{ href: "/resident/dashboard", label: "Home" }, "My Profile"]}
         description="Your resident record and hostel contact information."
         title="My Profile"
       />

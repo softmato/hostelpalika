@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 
 import { NotificationBell } from "@/components/notification-bell";
 import { SupportContact } from "@/components/support-contact";
@@ -20,6 +20,7 @@ import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { endSession } from "@/lib/auth-session";
 import { prefetchCommunity } from "@/lib/community-queries";
+import { openConfirm } from "@/lib/confirm";
 import {
   GUARDIAN_PERMISSION_LABELS,
   permissionsOf,
@@ -76,17 +77,16 @@ export default function GuardianMoreScreen() {
   const keys = Object.keys(GUARDIAN_PERMISSION_LABELS) as (keyof typeof permissions)[];
 
   const signOut = useCallback(() => {
-    Alert.alert("Sign out?", "You'll need your password to get back in.", [
-      { style: "cancel", text: "Cancel" },
-      {
-        onPress: () => {
-          setSigningOut(true);
-          void endSession().finally(() => router.replace("/(browse)"));
-        },
-        style: "destructive",
-        text: "Sign out",
+    openConfirm({
+      confirmLabel: "Sign out",
+      destructive: true,
+      message: "You'll need your password to get back in.",
+      onConfirm: () => {
+        setSigningOut(true);
+        void endSession().finally(() => router.replace("/(browse)"));
       },
-    ]);
+      title: "Sign out?",
+    });
   }, []);
 
   const nextTheme = preference === "dark" ? "light" : "dark";

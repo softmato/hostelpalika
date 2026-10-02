@@ -13,6 +13,7 @@ vi.mock("@/lib/public-api", () => ({
 }));
 
 vi.mock("@/lib/site-config-api", () => ({ getSiteConfig: vi.fn() }));
+vi.mock("@/lib/join-api", () => ({ getMyJoinRequest: vi.fn() }));
 
 describe("publicQuery.hostels", () => {
   it("gives the unfiltered catalogue a bare key, so four screens share it", () => {

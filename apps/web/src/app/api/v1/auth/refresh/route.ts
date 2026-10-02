@@ -1,15 +1,19 @@
 import type { NextRequest } from "next/server";
 
 import { errorResponse, handleRouteError, successResponse } from "@/lib/api-response";
-import { readBodyRefreshToken, shouldExposeRefreshToken } from "@/lib/mobile-auth";
-import { applySessionCookies, readRefreshTokenCookie } from "@/lib/session-cookies";
+import { isMobileAuthClient, readBodyRefreshToken, shouldExposeRefreshToken } from "@/lib/mobile-auth";
+import { applySessionCookies, clearSessionCookies, readRefreshTokenCookie } from "@/lib/session-cookies";
 import { AuthServiceError, refreshAccessToken } from "@/modules/auth/auth.service";
 
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieRefreshToken = readRefreshTokenCookie(request);
+    // The PWA uses the mobile token contract but shares the website's origin.
+    // Never replace its explicit session with an unrelated website cookie.
+    const cookieRefreshToken = isMobileAuthClient(request.headers)
+      ? null
+      : readRefreshTokenCookie(request);
     const bodyRefreshToken = cookieRefreshToken
       ? null
       : await readBodyRefreshToken(request);
@@ -39,6 +43,9 @@ export async function POST(request: NextRequest) {
     // only a cookie-based session gets the rotated pair written back.
     if (cookieRefreshToken) {
       applySessionCookies(response, result);
+    } else if (readRefreshTokenCookie(request) === bodyRefreshToken) {
+      // Retire the duplicate cookie created by older app logins.
+      clearSessionCookies(response);
     }
 
     return response;

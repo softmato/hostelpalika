@@ -1,3 +1,4 @@
+import { takeSharedPayment } from "@/lib/shared-payment";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
@@ -196,7 +197,7 @@ type Outcome =
   | { kind: "submitted" };
 
 export default function SubmitClaimScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, shared } = useLocalSearchParams<{ id: string; shared?: string }>();
   const { colors } = useAppTheme();
   const dates = useDates();
 
@@ -326,6 +327,7 @@ export default function SubmitClaimScreen() {
   useEffect(() => {
     let cancelled = false;
 
+    if (shared) return;
     void readClaimDraft(id).then((draft) => {
       if (cancelled || !draft) {
         return;
@@ -359,7 +361,7 @@ export default function SubmitClaimScreen() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, shared]);
 
   const amount =
     edits.amount ??
@@ -600,6 +602,11 @@ export default function SubmitClaimScreen() {
     },
     [id, resetEvidence],
   );
+
+  useEffect(() => {
+    if (!shared) return;
+    void takeSharedPayment().then((file) => { if (file) void attach(file); });
+  }, [attach, shared]);
 
   /** The ✕ on the attached row. Puts the picker back with nothing carried over. */
   const detach = useCallback(() => {

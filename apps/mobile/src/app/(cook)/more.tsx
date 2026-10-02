@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 
 import { NotificationBell } from "@/components/notification-bell";
 import { SupportContact } from "@/components/support-contact";
@@ -20,6 +20,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { endSession } from "@/lib/auth-session";
+import { openConfirm } from "@/lib/confirm";
 import type { CookToday, FoodReadyAnnouncement } from "@/lib/cook-api";
 import { cookQuery } from "@/lib/cook-queries";
 import { collectDeviceInfo } from "@/lib/device-info";
@@ -109,21 +110,17 @@ export default function CookMoreScreen() {
   }, []);
 
   const signOut = useCallback(() => {
-    Alert.alert(
-      "Sign out?",
-      "You'll need your cook sign-in to get back in — the hostel office can issue a new password if it has been lost.",
-      [
-        { style: "cancel", text: "Cancel" },
-        {
-          onPress: () => {
-            setSigningOut(true);
-            void endSession().finally(() => router.replace("/(browse)"));
-          },
-          style: "destructive",
-          text: "Sign out",
-        },
-      ],
-    );
+    openConfirm({
+      confirmLabel: "Sign out",
+      destructive: true,
+      message:
+        "You'll need your cook sign-in to get back in — the hostel office can issue a new password if it has been lost.",
+      onConfirm: () => {
+        setSigningOut(true);
+        void endSession().finally(() => router.replace("/(browse)"));
+      },
+      title: "Sign out?",
+    });
   }, []);
 
   const nextTheme = preference === "dark" ? "light" : "dark";

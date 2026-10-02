@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
-import { readBodyRefreshToken } from "@/lib/mobile-auth";
+import { isMobileAuthClient, readBodyRefreshToken } from "@/lib/mobile-auth";
 import { clearSessionCookies, readRefreshTokenCookie } from "@/lib/session-cookies";
 import { logout } from "@/modules/auth/auth.service";
 
@@ -9,7 +9,8 @@ export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
-    const cookieRefreshToken = readRefreshTokenCookie(request);
+    const mobile = isMobileAuthClient(request.headers);
+    const cookieRefreshToken = mobile ? null : readRefreshTokenCookie(request);
     const bodyRefreshToken = cookieRefreshToken
       ? null
       : await readBodyRefreshToken(request);
@@ -19,7 +20,8 @@ export async function POST(request: NextRequest) {
       await logout(refreshToken);
     }
 
-    return clearSessionCookies(successResponse(null, "Logged out"));
+    const response = successResponse(null, "Logged out");
+    return mobile ? response : clearSessionCookies(response);
   } catch (error) {
     return handleRouteError(error);
   }

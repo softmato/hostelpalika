@@ -1,3 +1,4 @@
+import { withSessionRefreshLock } from "@/lib/session-refresh-lock";
 /**
  * The single HTTP client.
  *
@@ -192,35 +193,7 @@ export async function rotateAccessToken(): Promise<string | null> {
   refreshing = true;
 
   try {
-    const tokens = await readTokens();
-
-    if (!tokens?.refreshToken) {
-      releaseWaiters(null);
-      return null;
-    }
-
-    const response = await publicApi.post<RefreshResponseBody>("/auth/refresh", {
-      refreshToken: tokens.refreshToken,
-    });
-
-    const outcome = readRefreshOutcome(response.data);
-
-    if (!outcome.ok) {
-      releaseWaiters(null);
-      return null;
-    }
-
-    const { accessToken, refreshToken } = outcome;
-
-    // Both tokens, for the reason the interceptor spells out below: the server
-    // invalidates the refresh token it was handed.
-    if (refreshToken) {
-      await writeTokens({ accessToken, refreshToken });
-    } else {
-      await writeAccessToken(accessToken);
-    }
-
-    handlers?.onAccessToken(accessToken);
+    const accessToken = await refreshStoredSession();
     releaseWaiters(accessToken);
 
     return accessToken;
@@ -231,6 +204,31 @@ export async function rotateAccessToken(): Promise<string | null> {
   } finally {
     refreshing = false;
   }
+}
+
+async function refreshStoredSession(): Promise<string | null> {
+  const before = await readTokens();
+  return withSessionRefreshLock(async () => {
+    const tokens = await readTokens();
+    if (!tokens) return null;
+    // Another PWA window has already rotated while this one waited.
+    if (before && tokens.refreshToken !== before.refreshToken) {
+      handlers?.onAccessToken(tokens.accessToken);
+      return tokens.accessToken;
+    }
+    const response = await publicApi.post<RefreshResponseBody>("/auth/refresh", {
+      refreshToken: tokens.refreshToken,
+    });
+    const outcome = readRefreshOutcome(response.data);
+    if (!outcome.ok) throw new Error("Invalid refresh response");
+    if (outcome.refreshToken) {
+      await writeTokens({ accessToken: outcome.accessToken, refreshToken: outcome.refreshToken });
+    } else {
+      await writeAccessToken(outcome.accessToken);
+    }
+    handlers?.onAccessToken(outcome.accessToken);
+    return outcome.accessToken;
+  });
 }
 
 api.interceptors.response.use(
@@ -266,50 +264,21 @@ api.interceptors.response.use(
     refreshing = true;
 
     try {
-      const tokens = await readTokens();
-
-      if (!tokens?.refreshToken) {
-        throw error;
-      }
-
-      const response = await publicApi.post<RefreshResponseBody>("/auth/refresh", {
-        refreshToken: tokens.refreshToken,
-      });
-
-      const outcome = readRefreshOutcome(response.data);
-
-      if (!outcome.ok) {
-        throw error;
-      }
-
-      const { accessToken, refreshToken } = outcome;
-
-      /*
-       * Both tokens, not just the access one.
-       *
-       * The server rotates on every refresh and invalidates the token it was
-       * handed (`refreshAccessToken` overwrites `session.refreshTokenHash`), so
-       * keeping the old one on disk buys exactly one more refresh before the
-       * session dies for good. See `lib/refresh-tokens.ts` — a missing
-       * `refreshToken` in the response means "unchanged", not "cleared".
-       */
-      if (refreshToken) {
-        await writeTokens({ accessToken, refreshToken });
-      } else {
-        await writeAccessToken(accessToken);
-      }
-
-      handlers?.onAccessToken(accessToken);
+      const accessToken = await refreshStoredSession();
+      if (!accessToken) throw new Error("No saved session");
       releaseWaiters(accessToken);
 
       request.headers.Authorization = `Bearer ${accessToken}`;
-      return await api(request);
+      return api(request);
     } catch (refreshError) {
       releaseWaiters(null);
-      await clearTokens();
-
       const status = (refreshError as AxiosError)?.response?.status;
-      await handlers?.onSessionEnded(status === 403 ? "SUSPENDED" : "EXPIRED");
+      // Offline, timeout, rate limiting and server failures are not revocations.
+      // Keep the saved credentials so the next request can recover.
+      if (status === 401 || status === 403) {
+        await clearTokens();
+        await handlers?.onSessionEnded(status === 403 ? "SUSPENDED" : "EXPIRED");
+      }
 
       return Promise.reject(error);
     } finally {

@@ -504,3 +504,13 @@ _End of MEMORY.md — Update this file continuously as work progresses_
 - **Logos:** bank/eSewa/Khalti rows use `WalletMark`. `BankNameField` (`components/manage/bank-name-field.tsx`) lets the owner type a bank or tap one from `BANK_NAMES` (with logos). It is used in payout, payment setup and KYC.
 - **Food:** meal times are set first, once, with one-tap preset slots or typed text. The day view drops the per-meal times and shows a dot on days that still have an empty meal. The week grid shows each meal's time under its icon. Month-end is its own row. Editing stays inline (user decision).
 - **Map:** `PinPickerModal` in `hostel-pin-picker.tsx` is a full-screen Leaflet map that you pan under a fixed centre pin. It also has search (place, map link, lat,lng) and "my location". The old inline search crashed because of the geocode shape mismatch; that was fixed earlier the same day.
+
+
+## 2026-10-02 — Shared receipts and session recovery
+
+- PWA share target stages one image/PDF locally (20 MB limit, one-hour expiry, at most five pending files); the app routes hostel staff to an expense draft and residents to invoice selection and the existing proof/OCR flow. No automatic expense save or payment settlement. Android SEND handling and Expo sharing plugin configured; native receipt receiving requires a new binary. iOS share extension requires its normal native build/signing validation. Browser share-target support varies.
+- Expense receipt read endpoint uses recordExpenses permission and existing owner/hostel/kind/completed-upload validation, with a 30/hour rate limit. OCR only suggests fields; user reviews and saves.
+- App/PWA auth uses explicit body refresh tokens independent of website cookies. Mobile login/register/Google/change-password responses no longer create competing cookie copies. Logout targets the explicit app session. Proxy skips bearer/mobile API calls. PWA rotations serialize across windows with Web Locks; token pairs are stored atomically with migration of previous storage keys.
+- Network errors, timeouts and server refresh failures preserve credentials; definitive refresh rejection still ends the session. Website guard offers retry; protected navigation answers temporary 503 rather than redirecting to login on refresh infrastructure failures.
+
+Validation: focused session/refresh, auth-route, expense-tenant and share-worker tests pass; web and mobile TypeScript checks pass; targeted lint passes; Expo PWA export succeeds. Real-device share sheets and native iOS extension signing were not exercised, and no deployment was made.

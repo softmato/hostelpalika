@@ -1,5 +1,5 @@
 import { randomInt } from "node:crypto";
-import { createRemoteJWKSet, jwtVerify } from "jose";
+import { createRemoteJWKSet, errors as joseErrors, jwtVerify } from "jose";
 
 import {
   hashToken,
@@ -803,7 +803,13 @@ export async function refreshAccessToken(
 ) {
   await connectToDatabase();
 
-  const payload = await verifyRefreshToken(refreshToken);
+  const payload = await verifyRefreshToken(refreshToken).catch((error: unknown) => {
+    if (error instanceof joseErrors.JOSEError ||
+        (error instanceof Error && error.message === "Invalid authentication token.")) {
+      throw new AuthServiceError("Refresh session is invalid.", "INVALID_SESSION");
+    }
+    throw error;
+  });
   const refreshTokenHash = hashToken(refreshToken);
   const now = new Date();
   const reuseWindowStart = new Date(now.getTime() - REFRESH_REUSE_WINDOW_MS);
