@@ -306,7 +306,12 @@ const nextConfig: NextConfig = {
           source: "/.well-known/apple-app-site-association",
         },
       ],
-      beforeFiles: [{ source: "/app/receipt-sheet.html", destination: "/receipt-sheet.html" }],
+      beforeFiles: [
+        // Cold/uncontrolled share navigations must not fall through to the Expo
+        // shell: rendering index.html loses the multipart receipt body.
+        { source: "/app/share-payment", has: [{ type: "header", key: "content-type", value: "multipart/form-data.*" }], destination: "/api/receipt-share" },
+        { source: "/app/receipt-sheet.html", destination: "/receipt-sheet.html" },
+      ],
       /*
        * The installable web app: the phone app exported into `public/app` at
        * deploy time (`apps/mobile/scripts/export-pwa.mjs`). It is a single-page

@@ -25,7 +25,10 @@ export default function SharePaymentScreen() {
   useEffect(() => {
     if (!isReady || !account) return;
     if (Platform.OS === "web" && ["HOSTEL_ADMIN", "WARDEN"].includes(account.role)) {
-      window.location.replace("/app/receipt-sheet.html" + (share ? "?share=" + encodeURIComponent(share) : ""));
+      const query = new URLSearchParams();
+      if (share) query.set("share", share);
+      if (error) query.set("error", error);
+      window.location.replace("/app/receipt-sheet.html" + (query.size ? "?" + query.toString() : ""));
       return;
     }
     let active = true;

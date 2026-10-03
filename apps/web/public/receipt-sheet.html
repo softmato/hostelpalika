@@ -1,32 +1,37 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https:; img-src data:; base-uri 'none'; form-action 'none'">
-<meta name="color-scheme" content="light dark"><title>Add receipt · HostelPalika</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self' https:; worker-src 'self'; img-src data:; base-uri 'none'; form-action 'none'">
+<meta name="color-scheme" content="light"><title>Add receipt · HostelPalika</title>
 <style>
-:root{font-family:system-ui,sans-serif;color:#172923;background:#ffffff;--line:#dde8e1;--muted:#60736a;--brand:#087f46}*{box-sizing:border-box}body{margin:0}main{max-width:520px;margin:auto;padding:18px 22px max(22px,env(safe-area-inset-bottom));animation:enter .18s ease-out}header{display:flex;align-items:center;gap:12px;margin-bottom:20px}.mark{background:#e7f7ed;color:var(--brand);border-radius:14px;padding:12px;font-weight:800}h1{font-size:20px;margin:0}p{color:var(--muted);line-height:1.45;margin:5px 0;font-size:14px}button,input,select{font:inherit}button{cursor:pointer;min-height:48px;border-radius:14px;border:1px solid var(--line);background:transparent;color:inherit;padding:10px 18px}button:disabled{opacity:.55;cursor:default}.primary{background:var(--brand);color:white;border:0;font-weight:650}.actions{display:flex;gap:10px;margin-top:18px}.actions>*{flex:1}label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}input,select{width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px;background:transparent;color:inherit}#amount{font-size:32px;font-weight:700}.row{display:flex;gap:12px}.row>div{flex:1;min-width:0}.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4}.check input{width:20px;min-height:20px;margin:0;accent-color:var(--brand)}.scan{height:88px;display:grid;place-content:center;background:#f1f8f4;border-radius:16px;position:relative;overflow:hidden;margin:12px 0}.scan:after{content:"";height:2px;background:#11aa61;position:absolute;left:15%;right:15%;top:20%;animation:scan 1.6s ease-in-out infinite alternate}.scan b{font-size:30px;color:var(--brand)}#status{min-height:22px}#error{color:#b53425}#done{text-align:center;padding:35px 0}#done b{font-size:42px;color:var(--brand)}[hidden]{display:none!important}small{display:block;color:var(--muted);line-height:1.4;margin:8px 0}.file{overflow-wrap:anywhere;font-size:12px}#pick{margin-top:14px;width:100%}a{color:var(--brand)}@keyframes scan{to{top:80%}}@keyframes enter{from{opacity:.5;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}@media(prefers-color-scheme:dark){:root{background:#14201b;color:#eef7f0;--line:#34473c;--muted:#abc0b3;--brand:#12874d}.scan,.mark{background:#20392b}.scan b{color:#5bdd94}}:focus-visible{outline:3px solid #75d8a3;outline-offset:2px}
+:root{font-family:system-ui,sans-serif;color:#172923;background:#ffffff;--line:#dde8e1;--muted:#60736a;--brand:#087f46}*{box-sizing:border-box}body{margin:0}main{max-width:440px;margin:auto;padding:18px 22px max(22px,env(safe-area-inset-bottom));animation:enter .18s ease-out}header{display:flex;align-items:center;gap:10px;margin-bottom:26px}.mark{background:#e7f7ed;color:var(--brand);border-radius:14px;padding:12px;font-weight:800}h1{font-size:20px;margin:0}p{color:var(--muted);line-height:1.45;margin:5px 0;font-size:14px}button,input,select{font:inherit}button{cursor:pointer;min-height:48px;border-radius:14px;border:1px solid var(--line);background:transparent;color:inherit;padding:10px 18px}button:disabled{opacity:.55;cursor:default}.primary{background:var(--brand);color:white;border:0;font-weight:650}.actions{display:flex;gap:10px;margin-top:18px}.actions>*{flex:1}label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}input,select{width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px;background:transparent;color:inherit}#amount{font-size:40px;font-weight:650;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:6px 0 12px}.row{display:flex;gap:12px}.row>div{flex:1;min-width:0}.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4}.check input{width:20px;min-height:20px;margin:0;accent-color:var(--brand)}.scan{height:88px;display:grid;place-content:center;background:#f1f8f4;border-radius:16px;position:relative;overflow:hidden;margin:12px 0}.scan:after{content:"";height:2px;background:#11aa61;position:absolute;left:15%;right:15%;top:20%;animation:scan 1.6s ease-in-out infinite alternate}.scan b{font-size:30px;color:var(--brand)}#status{min-height:22px;font-size:14px}details{margin:18px 0}summary{cursor:pointer;font-size:14px;color:var(--muted);padding:8px 0}.check{margin-top:20px}.actions{margin-top:24px}input,select{color-scheme:light}#error{color:#b53425}#done{text-align:center;padding:35px 0}#done b{font-size:42px;color:var(--brand)}[hidden]{display:none!important}small{display:block;color:var(--muted);line-height:1.4;margin:8px 0}.file{overflow-wrap:anywhere;font-size:12px}#pick{margin-top:14px;width:100%}a{color:var(--brand)}@keyframes scan{to{top:80%}}@keyframes enter{from{opacity:.5;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}:focus-visible{outline:3px solid #75d8a3;outline-offset:2px}
 </style></head><body><main>
-<header><span class="mark" aria-hidden="true">HP</span><div><h1>Save payment receipt</h1><p>HostelPalika · Expenses</p></div></header>
+<header><span class="mark" aria-hidden="true">HP</span><div><h1>Add expense</h1></div></header>
 <div id="scan" class="scan" aria-hidden="true"><b>▤</b></div>
-<p id="status" role="status" aria-live="polite">Opening your receipt…</p>
-<p id="file" class="file"></p><p id="error" role="alert" hidden></p>
+<p id="status" role="status" aria-live="polite">Reading receipt…</p>
+<p id="file" class="file" hidden></p><p id="error" role="alert" hidden></p>
 <form id="form" hidden>
 <label for="amount">Amount · Rs.</label><input id="amount" inputmode="numeric" type="number" min="1" max="100000000" step="1" required>
-<div class="row"><div><label for="category">What for?</label><select id="category"><option value="OTHER">Other</option><option value="GROCERIES">Groceries</option><option value="VEGETABLES_MEAT">Vegetables &amp; meat</option><option value="GAS">Gas</option><option value="ELECTRICITY">Electricity</option><option value="WATER">Water</option><option value="INTERNET">Internet</option><option value="SALARY">Salary</option><option value="RENT">Building rent</option><option value="REPAIR">Repair</option><option value="CLEANING">Cleaning</option></select></div>
+<div class="row"><div><label for="category">Category</label><select id="category"><option value="OTHER">Other</option><option value="GROCERIES">Groceries</option><option value="VEGETABLES_MEAT">Vegetables &amp; meat</option><option value="GAS">Gas</option><option value="ELECTRICITY">Electricity</option><option value="WATER">Water</option><option value="INTERNET">Internet</option><option value="SALARY">Salary</option><option value="RENT">Building rent</option><option value="REPAIR">Repair</option><option value="CLEANING">Cleaning</option></select></div>
 <div><label for="method">Paid by</label><select id="method"><option value="BANK">Bank</option><option value="ESEWA">eSewa</option><option value="KHALTI">Khalti</option><option value="CASH">Cash</option></select></div></div>
-<label for="what">Description</label><input id="what" maxlength="160" required>
-<small>Recorded for today. Change the details before saving if needed.</small>
-<label class="check"><input type="checkbox" id="auto"><span>Auto-save next time<small>Clear outgoing receipts save under Other. You can turn this off in Expenses.</small></span></label>
+<details id="details"><summary>Details</summary><label for="what">Description</label><input id="what" maxlength="160" required>
+</details>
+<label class="check"><input type="checkbox" id="auto"><span>Auto-save clear receipts</span></label>
 </form>
-<div id="done" hidden><b>✓</b><h1>Expense saved</h1><p>You can return to your payment app.</p></div>
+<div id="done" hidden><b>✓</b><h1>Saved</h1></div>
 <input id="picker" type="file" accept="image/*,application/pdf,.pdf" hidden>
-<button id="pick" hidden>Choose receipt</button>
+<button id="pick" hidden>Select receipt</button>
 <a id="login" hidden href="/app/share-payment">Sign in to HostelPalika</a>
-<div class="actions"><button id="cancel">Cancel</button><button id="retry" hidden>Try again</button><button id="save" class="primary" form="form" type="submit" disabled>Save expense</button></div>
+<div class="actions"><button id="cancel">Cancel</button><button id="retry" hidden>Try again</button><button id="save" class="primary" form="form" type="submit" disabled hidden>Save</button></div>
 <script>
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
   const native = Boolean(window.ReceiptBridge || window.webkit?.messageHandlers?.receipt);
+  // The standalone page bypasses Expo's entry point. Keep receiving future
+  // shares locally even when this is the first page the browser opens.
+  if (!native && typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
+    void navigator.serviceWorker.register('/sw.js', {scope:'/app', updateViaCache:'none'}).catch(() => {});
+  }
   const replies = new Map(); let sequence = 0, cancelled = false, saving = false;
   window.receiptReply = ({id, value, error}) => { const reply = replies.get(id); if (!reply) return; replies.delete(id); error ? reply.reject(new Error(error)) : reply.resolve(value); };
   function bridge(action, data = {}) {
@@ -92,7 +97,8 @@
     opening = true;
     $('pick').disabled = true;
     $('error').hidden = true; $('retry').hidden = true; $('scan').hidden = false; $('save').disabled = true;
-    $('status').textContent = 'Opening your receipt…';
+    $('status').textContent = 'Reading receipt…';
+    $('pick').hidden = true;
     try {
       if (!loaded) {
         if (native) { const info = await bridge('init'); fileName = info.fileName; requestId = info.requestId; }
@@ -102,7 +108,11 @@
           if (!response || Number(response.headers.get('x-shared-at')) < Date.now() - 3600000) throw new Error('This share expired. Choose the receipt again.');
           blob = await response.blob(); fileName = decodeURIComponent(response.headers.get('x-file-name') || 'receipt');
         }
-        if (!native && !blob) { $('status').textContent = 'Choose a payment screenshot or PDF.'; $('pick').hidden = false; return; }
+        if (!native && !blob) {
+          const messages = {unsupported:'Share one image or PDF.', unavailable:'Receipt didn’t arrive. Share it again.', large:'Open the app, then share again.'};
+          $('status').textContent = messages[params.get('error')] || 'Select an image or PDF.';
+          $('pick').hidden = false; return;
+        }
         if (!native) {
           const hash = await crypto.subtle.digest('SHA-256', await blob.arrayBuffer());
           requestId = 'receipt-' + Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2,'0')).join('').slice(0,56);
@@ -119,7 +129,7 @@
         loaded = true;
       }
       $('file').textContent = fileName;
-      $('status').textContent = 'Reading your receipt…';
+      $('status').textContent = 'Reading receipt…';
       if (!assetId) assetId = await upload();
       if (cancelled || !assetId) return;
       const result = await api('/hostel-admin/expenses/receipt/read','POST',{assetId});
@@ -127,10 +137,10 @@
       $('amount').value = result.fields.amount || '';
       $('method').value = ['ESEWA','KHALTI'].includes(result.fields.method) ? result.fields.method : 'BANK';
       $('what').value = result.description || 'Shared payment receipt';
-      $('form').hidden = false; $('save').disabled = false;
-      $('status').textContent = result.fields.amount ? 'Receipt filled in. Check the details.' : 'Could not read the amount. Enter it to save.';
+      $('form').hidden = false; $('save').hidden = false; $('save').disabled = false;
+      $('status').textContent = result.fields.amount ? 'Ready to save' : 'Enter amount';
       if ($('auto').checked && result.autoSaveEligible === true && $('form').checkValidity()) await save(true);
-    } catch (e) { if (!cancelled) { error(e.message || 'Could not read this receipt. Try again.'); $('retry').hidden = false; if (!native) $('pick').hidden = false; if (assetId) { $('form').hidden = false; $('save').disabled = false; $('what').value ||= 'Shared payment receipt'; } } }
+    } catch (e) { if (!cancelled) { $('status').textContent = 'Couldn’t read receipt'; error(e.message || 'Try again.'); $('retry').hidden = false; if (!native) $('pick').hidden = false; if (assetId) { $('form').hidden = false; $('save').hidden = false; $('save').disabled = false; $('what').value ||= 'Shared payment receipt'; } } }
     finally { opening = false; $('pick').disabled = false; $('scan').hidden = true; }
   }
   async function save(automatic = false) {
@@ -147,7 +157,7 @@
         } catch { error('Expense saved. Auto-save setting could not be changed.'); }
       }
       await cleanup().catch(() => {});
-      $('form').hidden = true; $('done').hidden = false; $('status').textContent = ''; $('save').hidden = true; $('scan').hidden = true;
+      $('form').hidden = true; $('pick').hidden = true; $('done').hidden = false; $('status').textContent = ''; $('save').hidden = true; $('scan').hidden = true;
       $('cancel').textContent = 'Done'; $('cancel').disabled = false;
       if (automatic) setTimeout(() => { void close(); }, 650);
     } catch (e) { error(e.message || 'Not saved. Try again.'); $('status').textContent = 'Your receipt is ready to save.'; $('save').disabled = false; $('cancel').disabled = false; }
