@@ -306,7 +306,7 @@ const nextConfig: NextConfig = {
           source: "/.well-known/apple-app-site-association",
         },
       ],
-      beforeFiles: [],
+      beforeFiles: [{ source: "/app/receipt-sheet.html", destination: "/receipt-sheet.html" }],
       /*
        * The installable web app: the phone app exported into `public/app` at
        * deploy time (`apps/mobile/scripts/export-pwa.mjs`). It is a single-page

@@ -514,3 +514,15 @@ _End of MEMORY.md — Update this file continuously as work progresses_
 - Network errors, timeouts and server refresh failures preserve credentials; definitive refresh rejection still ends the session. Website guard offers retry; protected navigation answers temporary 503 rather than redirecting to login on refresh infrastructure failures.
 
 Validation: focused session/refresh, auth-route, expense-tenant and share-worker tests pass; web and mobile TypeScript checks pass; targeted lint passes; Expo PWA export succeeds. Real-device share sheets and native iOS extension signing were not exercised, and no deployment was made.
+
+## 2026-10-03 — Standalone shared expense receipt sheets
+
+- Fixed generic/absent PDF MIME handling, provider size metadata, and retry reuse of a failed promise; removed duplicate Expo sharing plugin configuration.
+- Added standalone Android share activity and iOS share extension UI with receipt-reading animation, editable fields, Save/Cancel, and opt-in auto-save reversible from Expenses. Native processing does not load the main React Native app. Auto-save requires a complete successful outgoing receipt and is scoped per user/hostel/device.
+- Added lightweight PWA share page, generic-PDF service-worker support, and an Import payment receipt fallback for iOS PWA. PWA cannot show its sheet inside the banking app. Native expense sheets are staff-only; existing PWA resident shares still route to invoice selection.
+- Shared native session vault (Android Keystore / iOS shared Keychain), serialized refresh, bounded streamed uploads, and receipt-hash idempotency keys protect retries/repeated shares. Details: `docs/RECEIPT_SHARE.md`.
+- Validation: 48 focused tests; web/mobile TypeScript; targeted lint; Android receipt Kotlin compilation, bundled assets and application manifest merge; PWA production export. iOS extension generation/entitlements tested, but Swift compilation/signing and real-device behavior/performance still require macOS/Xcode/devices. No deployment or store build submitted; a new native binary is required.
+
+
+### Receipt save notifications (2026-10-03)
+Shared receipt saves now create a recorder-only confirmation in the existing bell/native/Web Push pipeline, linking to Expenses. Manual and automatic saves both opt in through sharedReceipt; ordinary expenses stay quiet. Idempotent retries return before notification creation. Delivery failures do not fail a committed Save; push delivery runs after the response through the existing dispatcher and respects permissions/preferences. Receipt/expense regression tests passed (33). Native binaries must be rebuilt to bundle the updated sheet. iOS PWA direct incoming sharing remains unsupported; a separately implemented, securely paired Apple Shortcut could receive files and upload them without opening the PWA. That Shortcut is not implemented.

@@ -1,4 +1,5 @@
 import { Types } from "mongoose";
+import { createInAppNotification } from "@/modules/notifications/notification.service";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
@@ -662,6 +663,24 @@ export async function createExpense(actor: ExpenseActor, input: CreateExpenseInp
     source: "EXPENSE_MANUAL",
   });
 
+  if (input.sharedReceipt && photoAssetId) {
+    try {
+      await createInAppNotification({
+        actionUrl: "/app/expenses",
+        body: `Your shared receipt was saved as an expense of NPR ${doc.amount.toLocaleString("en-US")}.`,
+        category: "PAYMENT",
+        data: { expenseId: doc._id.toString(), type: "SHARED_RECEIPT_SAVED" },
+        hostelId: actor.hostelId.toString(),
+        kind: "NORMAL",
+        title: "Receipt saved",
+        userId: actor.principal.userId,
+      });
+    } catch (error) {
+      // Delivery must never turn a committed expense into a failed Save.
+      console.warn("receipt_saved_notification_failed", doc._id.toString(), error);
+    }
+  }
+
   return { duplicate: false, expense: await serializeOne(actor, doc) };
 }
 
@@ -852,7 +871,7 @@ export async function setCookExpensesEnabled(actor: ExpenseActor, enabled: boole
   return { expensesEnabled: enabled };
 }
 
-/** Reads suggestions only; creating an expense still requires an explicit Save. */
+/** Suggestions only; the share client applies the user's opt-in auto-save preference. */
 export async function readExpenseReceipt(actor: ExpenseActor, assetId: string) {
   await connectToDatabase();
   await assertPhotoUsable(actor, assetId);
@@ -860,9 +879,10 @@ export async function readExpenseReceipt(actor: ExpenseActor, assetId: string) {
     .select("bucket key mimeType").lean<{ bucket: string; key: string; mimeType?: string } | null>();
   if (!asset) throw new ExpenseError("File not found", "NOT_FOUND", 404);
   const { readStoredObject } = await import("@/lib/uploads/verify");
-  const { readEvidence, extractClaimFields } = await import("@/modules/finance/evidence-ocr");
+  const { readEvidence } = await import("@/modules/finance/evidence-ocr");
   const bytes = await readStoredObject(asset);
   if (!bytes) throw new ExpenseError("Receipt could not be opened. Try again.", "READ_UNAVAILABLE", 503);
   const read = await readEvidence(bytes, asset.mimeType);
-  return { fields: read.result?.text ? extractClaimFields(read.result.text) : {} };
+  const { expenseReceiptSuggestions } = await import("./receipt-suggestions");
+  return expenseReceiptSuggestions(read.result?.text ?? null);
 }

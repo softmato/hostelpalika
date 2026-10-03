@@ -1,8 +1,9 @@
+import { ReceiptShareSettings } from "@/components/receipt-share-settings";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Platform, Pressable, View } from "react-native";
 
 import {
   CategoryBars,
@@ -325,6 +326,8 @@ export default function ExpensesScreen() {
             </View>
           ))}
         </View>
+        {Platform.OS === "web" ? <View className="mx-5 my-2"><Button label="Import payment receipt" variant="outline" onPress={() => window.location.assign("/app/receipt-sheet.html")} /></View> : null}
+        <ReceiptShareSettings />
       </Screen>
 
       {/* --------------------------------------------------------- one row */}

@@ -138,7 +138,6 @@
           "faceIDPermission": "Allow HostelPalika to use Face ID to unlock the app."
         }
       ],
-      "expo-sharing",
       [
         "expo-audio",
         {
@@ -166,7 +165,8 @@
             }
           }
         }
-      ]
+      ],
+      "./plugins/withReceiptSheet"
     ],
     "experiments": {
       "typedRoutes": false,

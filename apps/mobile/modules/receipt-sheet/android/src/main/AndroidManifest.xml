@@ -1,0 +1,14 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <application>
+    <activity android:name="com.softmato.receipts.ReceiptSheetActivity" android:exported="true"
+      android:theme="@style/ReceiptSheetTheme" android:excludeFromRecents="true"
+      android:taskAffinity="" android:windowSoftInputMode="adjustResize">
+      <intent-filter>
+        <action android:name="android.intent.action.SEND" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data android:mimeType="image/*" /><data android:mimeType="application/pdf" />
+        <data android:mimeType="application/octet-stream" />
+      </intent-filter>
+    </activity>
+  </application>
+</manifest>

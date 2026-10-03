@@ -23,6 +23,7 @@ import { BootSplashCover, BrandSplash } from "@/components/brand-splash";
 import { HostelSuspensionHost } from "@/components/hostel-suspension-host";
 import { ConfirmDialogHost } from "@/components/ui/confirm-dialog";
 import { UploadToaster } from "@/components/upload-toaster";
+import { ReceiptNativeSync } from "@/components/receipt-native-sync";
 import { SharedPaymentResume } from "@/components/shared-payment-resume";
 import { ResidencyInviteHost } from "@/components/residency-invite-host";
 import { useAppDispatch } from "@/hooks/redux";
@@ -541,6 +542,7 @@ function RootShell() {
       */}
       <ResidencyInviteHost />
       <SharedPaymentResume />
+      <ReceiptNativeSync />
       </BlurTargetView>
 
       {/*

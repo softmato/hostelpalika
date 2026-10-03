@@ -43,6 +43,7 @@ export const createExpenseSchema = z
         userId: objectIdSchema.optional(),
       })
       .optional(),
+    sharedReceipt: z.boolean().optional(),
     spentOn: calendarDaySchema.optional(),
     what: z.string().trim().max(EXPENSE_WHAT_MAX).optional(),
   })

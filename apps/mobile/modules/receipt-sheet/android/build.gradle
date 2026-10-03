@@ -1,0 +1,17 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+group = 'com.softmato.receipts'
+version = '1.0.0'
+android {
+  namespace "com.softmato.receipts"
+  defaultConfig { versionCode 1; versionName '1.0.0' }
+  sourceSets.main.assets.srcDir "$buildDir/generated/receiptAssets"
+}
+tasks.register('copyReceiptMarkup', Copy) {
+  from('../../../../../apps/web/public') { include 'receipt-sheet.html' }
+  into "$buildDir/generated/receiptAssets"
+}
+tasks.named('preBuild').configure { dependsOn 'copyReceiptMarkup' }
+

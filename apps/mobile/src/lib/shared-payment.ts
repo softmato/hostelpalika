@@ -11,7 +11,20 @@ export async function takeSharedPayment() {
   pending = null;
   return file;
 }
-export function acceptsSharedPayment(file: SharedPaymentFile) {
-  return Boolean(file.uri) && (file.mimeType?.startsWith("image/") || file.mimeType === "application/pdf")
-    && (file.fileSize === undefined || file.fileSize > 0 && file.fileSize <= 20 * 1024 * 1024);
+const EXTENSIONS: Record<string, string> = {
+  pdf: "application/pdf", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
+  webp: "image/webp", heic: "image/heic", heif: "image/heif",
+};
+// Providers may report application/octet-stream, */*, or a null/zero size.
+// Use the name only for generic MIME types; never reinterpret a known executable.
+export function normalizeSharedPayment(file: SharedPaymentFile): SharedPaymentFile {
+  const type = file.mimeType?.split(";")[0].trim().toLowerCase();
+  const ext = (file.fileName || file.uri).split(/[?#]/)[0].split(".").pop()?.toLowerCase() ?? "";
+  return { ...file, mimeType: !type || ["application/octet-stream", "binary/octet-stream", "*/*", "application/x-pdf"].includes(type)
+    ? type === "application/x-pdf" ? "application/pdf" : EXTENSIONS[ext] : type };
+}
+export function acceptsSharedPayment(input: SharedPaymentFile) {
+  const file = normalizeSharedPayment(input);
+  return Boolean(file.uri) && Boolean(file.mimeType?.startsWith("image/") || file.mimeType === "application/pdf")
+    && (file.fileSize === undefined || Number.isFinite(file.fileSize) && file.fileSize > 0 && file.fileSize <= 20 * 1024 * 1024);
 }

@@ -21,6 +21,7 @@ const cookId = new Types.ObjectId("64f0f0f0f0f0f0f0f0f0f0b3");
 const assetId = new Types.ObjectId("64f0f0f0f0f0f0f0f0f0f0c1");
 
 const mocks = vi.hoisted(() => ({
+  notify: vi.fn(),
   aggregate: vi.fn(),
   assetFindOne: vi.fn(),
   audit: vi.fn(),
@@ -55,6 +56,7 @@ function query<T>(result: T) {
   return chain;
 }
 
+vi.mock("@/modules/notifications/notification.service", () => ({ createInAppNotification: mocks.notify }));
 vi.mock("@/lib/db", () => ({ connectToDatabase: vi.fn() }));
 vi.mock("@/modules/finance/audit-finance", () => ({ auditFinanceAction: mocks.audit }));
 vi.mock("@hostel/db/models/Expense", () => ({
@@ -301,6 +303,35 @@ describe("adding an expense", () => {
       expect.anything(),
       expect.objectContaining({ action: "EXPENSE_RECORDED", amountAfter: 2400 }),
     );
+  });
+
+  it("notifies only the receipt recorder and never repeats on retry", async () => {
+    mocks.assetFindOne.mockReturnValue(query({ hostelId, kind: "EXPENSE_RECEIPT", ownerId, uploadCompletedAt: new Date() }));
+    const actor = await resolveExpenseActor(owner);
+    const shared = { ...input, sharedReceipt: true, photoAssetId: assetId.toString(), clientRequestId: "receipt-123456" };
+    const result = await createExpense(actor, shared);
+    expect(mocks.notify).toHaveBeenCalledWith(expect.objectContaining({
+      userId: ownerId.toString(), hostelId: hostelId.toString(), kind: "NORMAL",
+      data: { expenseId: result.expense.id, type: "SHARED_RECEIPT_SAVED" },
+    }));
+    mocks.expenseFindOne.mockReturnValue(query(expense()));
+    await createExpense(actor, shared);
+    expect(mocks.notify).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps Save successful if notifications fail", async () => {
+    mocks.assetFindOne.mockReturnValue(query({ hostelId, kind: "EXPENSE_RECEIPT", ownerId, uploadCompletedAt: new Date() }));
+    mocks.notify.mockRejectedValueOnce(new Error("offline"));
+    const warning = vi.spyOn(console, "warn").mockImplementation(() => {});
+    try {
+      const result = await createExpense(await resolveExpenseActor(owner), { ...input, sharedReceipt: true, photoAssetId: assetId.toString() });
+      expect(result.duplicate).toBe(false);
+    } finally { warning.mockRestore(); }
+  });
+
+  it("does not notify for ordinary manual expenses", async () => {
+    await createExpense(await resolveExpenseActor(owner), input);
+    expect(mocks.notify).not.toHaveBeenCalled();
   });
 
   it("records the owner's spending as the hostel's", async () => {

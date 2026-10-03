@@ -1,0 +1,16 @@
+{
+  "platforms": [
+    "android",
+    "apple"
+  ],
+  "android": {
+    "modules": [
+      "com.softmato.receipts.ReceiptSheetModule"
+    ]
+  },
+  "apple": {
+    "modules": [
+      "ReceiptSheetModule"
+    ]
+  }
+}

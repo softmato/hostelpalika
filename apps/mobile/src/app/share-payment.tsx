@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import { rememberPaymentShare } from "@/lib/shared-payment-resume";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -23,6 +24,10 @@ export default function SharePaymentScreen() {
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     if (!isReady || !account) return;
+    if (Platform.OS === "web" && ["HOSTEL_ADMIN", "WARDEN"].includes(account.role)) {
+      window.location.replace("/app/receipt-sheet.html" + (share ? "?share=" + encodeURIComponent(share) : ""));
+      return;
+    }
     let active = true;
     async function open() {
       try {
@@ -50,6 +55,6 @@ export default function SharePaymentScreen() {
     {!account ? <Button label="Sign in" onPress={() => { rememberPaymentShare({ share, error }); router.push("/(auth)/login"); }} /> : null}
     {invoices.map((invoice) => <Button key={invoice.id} label={`${invoice.month ?? "Invoice"} · ${formatMoney(invoice.dueAmount)}`}
       onPress={() => { if (file.current) setSharedPayment(file.current); router.replace({ pathname: "/invoice/[id]/claim", params: { id: invoice.id, shared: "1" } }); }} />)}
-    {account ? <Button label="Try again" onPress={() => setRetry((value) => value + 1)} /> : null}
+    {account ? <Button label="Try again" onPress={() => { incoming.current = null; setRetry((value) => value + 1); }} /> : null}
   </Screen>;
 }

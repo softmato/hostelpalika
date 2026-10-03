@@ -18,7 +18,7 @@ it("stages a private receipt and redirects to an opaque share id", async () => {
  const { receive, saved } = worker();
  const response = await receive(request([new File(["receipt"], "bank.png", { type: "image/png" })]));
  expect(response.status).toBe(303);
- expect(response.headers.get("location")).toMatch(/share-payment\?share=[a-f0-9-]+$/);
+ expect(response.headers.get("location")).toMatch(/receipt-sheet\.html\?share=[a-f0-9-]+$/);
  expect(saved.size).toBe(1);
  expect(await [...saved.values()][0].text()).toBe("receipt");
 });
@@ -28,4 +28,14 @@ it("rejects unsupported files and multiple receipts", async () => {
    expect((await receive(request(files))).headers.get("location")).toContain("error=unsupported");
  }
  expect(saved.size).toBe(0);
+});
+
+it("accepts bank PDFs with generic MIME metadata", async () => {
+ for (const type of ["", "application/octet-stream"]) {
+  const { receive, saved } = worker();
+  const response = await receive(request([new File(["%PDF-receipt"], "Send_Money.pdf", { type })]));
+  expect(response.status).toBe(303);
+  expect(response.headers.get("location")).toContain("receipt-sheet.html?share=");
+  expect([...saved.values()][0].headers.get("content-type")).toBe("application/pdf");
+ }
 });

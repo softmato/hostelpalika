@@ -84,6 +84,8 @@ function readId(data: Record<string, unknown> | undefined, key: string) {
 }
 
 export function deepLinkForNotification(input: DeepLinkInput): string {
+  if (input.data?.type === "SHARED_RECEIPT_SAVED") return "/expenses";
+
   /*
    * Ahead of `actionUrl`, because that row's `actionUrl` is the website's
    * `/{slug}/admin/billing` — what the web bell links to, and not a route in

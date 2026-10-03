@@ -267,9 +267,13 @@ async function receivePaymentShare(request) {
     const form = await request.formData();
     const files = form.getAll("receipt");
     const file = files[0];
+    const extension = file instanceof File ? file.name.split(".").pop().toLowerCase() : "";
+    const aliases = { pdf: "application/pdf", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", heif: "image/heif" };
+    const suppliedType = file instanceof File ? file.type.toLowerCase().split(";")[0] : "";
+    const mimeType = !suppliedType || ["application/octet-stream", "binary/octet-stream", "*/*"].includes(suppliedType) ? aliases[extension] || "" : suppliedType;
     if (files.length !== 1 || !(file instanceof File) || !file.size || file.size > 20 * 1024 * 1024 ||
-        !(file.type.startsWith("image/") || file.type === "application/pdf")) {
-      return Response.redirect(new URL("/app/share-payment?error=unsupported", self.location.origin), 303);
+        !(mimeType.startsWith("image/") || mimeType === "application/pdf")) {
+      return Response.redirect(new URL("/app/receipt-sheet.html?error=unsupported", self.location.origin), 303);
     }
     const cache = await caches.open(SHARE_CACHE);
     for (const key of await cache.keys()) {
@@ -280,10 +284,10 @@ async function receivePaymentShare(request) {
     for (const key of outstanding.slice(0, Math.max(0, outstanding.length - 4))) await cache.delete(key);
     const id = crypto.randomUUID();
     await cache.put(new URL("/app/_shared-payment/" + id, self.location.origin), new Response(file, {
-      headers: { "content-type": file.type, "x-shared-at": String(Date.now()), "x-file-name": encodeURIComponent(file.name) },
+      headers: { "content-type": mimeType, "x-shared-at": String(Date.now()), "x-file-name": encodeURIComponent(file.name) },
     }));
-    return Response.redirect(new URL("/app/share-payment?share=" + id, self.location.origin), 303);
+    return Response.redirect(new URL("/app/receipt-sheet.html?share=" + id, self.location.origin), 303);
   } catch {
-    return Response.redirect(new URL("/app/share-payment?error=unavailable", self.location.origin), 303);
+    return Response.redirect(new URL("/app/receipt-sheet.html?error=unavailable", self.location.origin), 303);
   }
 }

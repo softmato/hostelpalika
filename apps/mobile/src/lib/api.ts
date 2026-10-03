@@ -1,3 +1,4 @@
+import { receiptNative } from "./receipt-native";
 import { withSessionRefreshLock } from "@/lib/session-refresh-lock";
 /**
  * The single HTTP client.
@@ -115,7 +116,10 @@ export function bindSessionHandlers(next: SessionHandlers) {
 let skewedToken: string | null = null;
 
 api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
-  let token = handlers?.getAccessToken() ?? (await readTokens())?.accessToken;
+  // The share extension may rotate while the main app is suspended.
+  const stored = receiptNative ? await readTokens() : null;
+  let token = receiptNative ? stored?.accessToken : handlers?.getAccessToken() ?? (await readTokens())?.accessToken;
+  if (receiptNative && token && token !== handlers?.getAccessToken()) handlers?.onAccessToken(token);
 
   /*
    * Refresh *before* sending, not after a 401. An expired token on an
@@ -207,6 +211,12 @@ export async function rotateAccessToken(): Promise<string | null> {
 }
 
 async function refreshStoredSession(): Promise<string | null> {
+  if (receiptNative) {
+    const token = await receiptNative.refreshSession(API_BASE_URL);
+    if (token) handlers?.onAccessToken(token);
+    else await handlers?.onSessionEnded("EXPIRED");
+    return token;
+  }
   const before = await readTokens();
   return withSessionRefreshLock(async () => {
     const tokens = await readTokens();
