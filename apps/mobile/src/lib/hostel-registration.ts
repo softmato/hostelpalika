@@ -59,7 +59,7 @@ export const CITY_OPTIONS = [
   "Nepalgunj",
 ] as const;
 
-export { ROOM_TYPE_OPTIONS } from "@hostel/shared/constants/room-types";
+export { ROOM_TYPE_OPTIONS } from "@hostel/constants/room-types";
 
 export const MEAL_INCLUSIONS = ["Included", "Not Included", "Optional"] as const;
 

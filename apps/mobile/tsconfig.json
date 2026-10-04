@@ -10,7 +10,8 @@
       "@hostel/food/*": ["../../packages/shared/src/food/*"],
       "@hostel/night/*": ["../../packages/shared/src/night/*"],
       "@hostel/brand/*": ["../../packages/shared/src/brand/*"],
-      "@hostel/expenses/*": ["../../packages/shared/src/expenses/*"]
+      "@hostel/expenses/*": ["../../packages/shared/src/expenses/*"],
+      "@hostel/constants/*": ["../../packages/shared/src/constants/*"]
     }
   },
   "include": [

@@ -1,4 +1,4 @@
-import { ROOM_TYPE_OPTIONS, BEDS_BY_ROOM_TYPE } from "@hostel/shared/constants/room-types";
+import { ROOM_TYPE_OPTIONS, BEDS_BY_ROOM_TYPE } from "@hostel/constants/room-types";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";

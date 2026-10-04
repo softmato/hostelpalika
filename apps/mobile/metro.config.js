@@ -102,6 +102,8 @@ const brandRoot = path.resolve(__dirname, "../../packages/shared/src/brand");
  * offer a category the server refuses. No imports at all.
  */
 const expensesRoot = path.resolve(__dirname, "../../packages/shared/src/expenses");
+/** Dependency-free room-type options shared by registration and room editors. */
+const constantsRoot = path.resolve(__dirname, "../../packages/shared/src/constants");
 const baseResolveRequest = config.resolver.resolveRequest;
 
 // `.lottie` is a zip Metro doesn't know; without this `require()` of one fails to resolve.
@@ -115,6 +117,7 @@ config.watchFolders = [
   nightRoot,
   brandRoot,
   expensesRoot,
+  constantsRoot,
 ];
 
 /*
@@ -157,6 +160,13 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName.startsWith("@hostel/plans/")) {
     return {
       filePath: path.join(plansRoot, `${moduleName.slice("@hostel/plans/".length)}.ts`),
+      type: "sourceFile",
+    };
+  }
+
+  if (moduleName.startsWith("@hostel/constants/")) {
+    return {
+      filePath: path.join(constantsRoot, `${moduleName.slice("@hostel/constants/".length)}.ts`),
       type: "sourceFile",
     };
   }

@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { ROOM_TYPE_OPTIONS } from "@hostel/shared/constants/room-types";
+import { ROOM_TYPE_OPTIONS } from "@hostel/constants/room-types";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 
