@@ -2,6 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'self' https:; worker-src 'self'; img-src data:; base-uri 'none'; form-action 'none'">
 <meta name="color-scheme" content="light"><title>Add receipt · HostelPalika</title>
+<link rel="manifest" href="/manifest.webmanifest"><meta name="theme-color" content="#ffffff">
 <style>
 :root{font-family:system-ui,sans-serif;color:#172923;background:#ffffff;--line:#dde8e1;--muted:#60736a;--brand:#087f46}*{box-sizing:border-box}body{margin:0}main{max-width:440px;margin:auto;padding:18px 22px max(22px,env(safe-area-inset-bottom));animation:enter .18s ease-out}header{display:flex;align-items:center;gap:10px;margin-bottom:26px}.mark{background:#e7f7ed;color:var(--brand);border-radius:14px;padding:12px;font-weight:800}h1{font-size:20px;margin:0}p{color:var(--muted);line-height:1.45;margin:5px 0;font-size:14px}button,input,select{font:inherit}button{cursor:pointer;min-height:48px;border-radius:14px;border:1px solid var(--line);background:transparent;color:inherit;padding:10px 18px}button:disabled{opacity:.55;cursor:default}.primary{background:var(--brand);color:white;border:0;font-weight:650}.actions{display:flex;gap:10px;margin-top:18px}.actions>*{flex:1}label{display:block;font-size:13px;color:var(--muted);margin:12px 0 6px}input,select{width:100%;min-height:46px;border:1px solid var(--line);border-radius:12px;padding:10px;background:transparent;color:inherit}#amount{font-size:40px;font-weight:650;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:6px 0 12px}.row{display:flex;gap:12px}.row>div{flex:1;min-width:0}.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.4}.check input{width:20px;min-height:20px;margin:0;accent-color:var(--brand)}.scan{height:88px;display:grid;place-content:center;background:#f1f8f4;border-radius:16px;position:relative;overflow:hidden;margin:12px 0}.scan:after{content:"";height:2px;background:#11aa61;position:absolute;left:15%;right:15%;top:20%;animation:scan 1.6s ease-in-out infinite alternate}.scan b{font-size:30px;color:var(--brand)}#status{min-height:22px;font-size:14px}details{margin:18px 0}summary{cursor:pointer;font-size:14px;color:var(--muted);padding:8px 0}.check{margin-top:20px}.actions{margin-top:24px}input,select{color-scheme:light}#error{color:#b53425}#done{text-align:center;padding:35px 0}#done b{font-size:42px;color:var(--brand)}[hidden]{display:none!important}small{display:block;color:var(--muted);line-height:1.4;margin:8px 0}.file{overflow-wrap:anywhere;font-size:12px}#pick{margin-top:14px;width:100%}a{color:var(--brand)}@keyframes scan{to{top:80%}}@keyframes enter{from{opacity:.5;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}@media(prefers-reduced-motion:reduce){*{animation:none!important}}:focus-visible{outline:3px solid #75d8a3;outline-offset:2px}
 </style></head><body><main>
@@ -83,7 +84,9 @@
   function error(message) { $('error').textContent = message; $('error').hidden = false; }
   async function upload() {
     if (native) return bridge('upload');
-    const normalized = fileName.toLowerCase().endsWith('.pdf') && (!blob.type || blob.type === 'application/octet-stream') ? 'application/pdf' : blob.type;
+    const type = blob.type.toLowerCase().split(';')[0].trim();
+    const aliases = {pdf:'application/pdf',jpg:'image/jpeg',jpeg:'image/jpeg',png:'image/png',webp:'image/webp',heic:'image/heic',heif:'image/heif'};
+    const normalized = type === 'application/x-pdf' ? 'application/pdf' : !type || ['application/octet-stream','binary/octet-stream','*/*'].includes(type) ? aliases[fileName.split('.').pop().toLowerCase()] || '' : type;
     if (!blob.size || blob.size > 20 * 1024 * 1024 || !(normalized === 'application/pdf' || normalized.startsWith('image/'))) throw new Error('Choose one image or PDF, up to 20 MB.');
     const signed = await api('/files/presign', 'POST', {accessLevel:'PRIVATE',fileName,kind:'EXPENSE_RECEIPT',mimeType:normalized,sizeBytes:blob.size});
     if (cancelled) return null;
@@ -109,7 +112,7 @@
           blob = await response.blob(); fileName = decodeURIComponent(response.headers.get('x-file-name') || 'receipt');
         }
         if (!native && !blob) {
-          const messages = {unsupported:'Share one image or PDF.', unavailable:'Receipt didn’t arrive. Share it again.', large:'Open the app, then share again.'};
+          const messages = {missing:'No file received. Update the installed app, then share again.', multiple:'Share one receipt at a time.', empty:'The shared file is empty.', oversized:'Choose a receipt under 20 MB.', unsupported:'This file type isn’t supported.', unavailable:'Receipt didn’t arrive. Share it again.', large:'Open the app, then share again.'};
           $('status').textContent = messages[params.get('error')] || 'Select an image or PDF.';
           $('pick').hidden = false; return;
         }

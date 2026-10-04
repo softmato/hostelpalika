@@ -10,8 +10,8 @@ function worker() {
  const receive = runInNewContext(readFileSync("public/sw.js", "utf8") + "\nreceivePaymentShare", scope);
  return { receive, saved };
 }
-function request(files: File[]) {
- const form = new FormData(); files.forEach((file) => form.append("receipt", file));
+function request(files: File[], field = "receipt") {
+ const form = new FormData(); files.forEach((file) => form.append(field, file));
  return { formData: async () => form };
 }
 it("stages a private receipt and redirects to an opaque share id", async () => {
@@ -25,17 +25,29 @@ it("stages a private receipt and redirects to an opaque share id", async () => {
 it("rejects unsupported files and multiple receipts", async () => {
  const { receive, saved } = worker();
  for (const files of [[new File(["code"], "file.html", { type: "text/html" })], [new File(["a"], "a.png", { type: "image/png" }), new File(["b"], "b.png", { type: "image/png" })]]) {
-   expect((await receive(request(files))).headers.get("location")).toContain("error=unsupported");
+   expect((await receive(request(files))).headers.get("location")).toMatch(/error=(unsupported|multiple)/);
  }
  expect(saved.size).toBe(0);
 });
 
 it("accepts bank PDFs with generic MIME metadata", async () => {
- for (const type of ["", "application/octet-stream"]) {
+ for (const type of ["", "application/octet-stream", "binary/octet-stream", "application/x-pdf", "application/pdf; charset=binary"]) {
   const { receive, saved } = worker();
   const response = await receive(request([new File(["%PDF-receipt"], "Send_Money.pdf", { type })]));
   expect(response.status).toBe(303);
   expect(response.headers.get("location")).toContain("receipt-sheet.html?share=");
   expect([...saved.values()][0].headers.get("content-type")).toBe("application/pdf");
  }
+});
+
+it("receives an older manifest file field", async () => {
+ const { receive, saved } = worker();
+ const response = await receive(request([new File(["%PDF-test"], "Send_Money.pdf", {type:"application/x-pdf"})], "files"));
+ expect(response.headers.get("location")).toContain("?share=");
+ expect(saved.size).toBe(1);
+});
+it("distinguishes a missing attachment from an empty file", async () => {
+ const { receive } = worker();
+ expect((await receive(request([]))).headers.get("location")).toContain("error=missing");
+ expect((await receive(request([new File([], "receipt.pdf")]))).headers.get("location")).toContain("error=empty");
 });

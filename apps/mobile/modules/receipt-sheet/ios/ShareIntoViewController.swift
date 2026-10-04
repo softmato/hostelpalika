@@ -24,26 +24,42 @@ private final class ReceiptImportJob {
     let copyLock = NSLock()
     var abandoned = false
     var outcome: Result<(URL, String, String), Error>?
-    let progress = provider.loadFileRepresentation(forTypeIdentifier: type) { source, error in
+    let receive: (URL?, Error?) -> Void = { source, error in
       defer { done.signal() }
       do {
         if let error = error { throw error }
         guard let source = source else { throw ReceiptFailure.message("Could not read the shared file.") }
+        let scoped = source.startAccessingSecurityScopedResource()
+        defer { if scoped { source.stopAccessingSecurityScopedResource() } }
         let size = try source.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
         guard size > 0 && size <= 20 * 1024 * 1024 else { throw ReceiptFailure.message("Choose a receipt under 20 MB.") }
-        let mime = UTType(filenameExtension: source.pathExtension)?.preferredMIMEType ?? UTType(type)?.preferredMIMEType ?? ""
+        let suggestedName = provider.suggestedName ?? source.lastPathComponent
+        let mime = [UTType(filenameExtension: source.pathExtension)?.preferredMIMEType,
+          UTType(filenameExtension: (suggestedName as NSString).pathExtension)?.preferredMIMEType,
+          UTType(type)?.preferredMIMEType].compactMap { $0 }
+          .first { $0 == "application/pdf" || $0.hasPrefix("image/") } ?? ""
         guard mime == "application/pdf" || mime.hasPrefix("image/") else { throw ReceiptFailure.message("Choose a payment screenshot or PDF.") }
         let copy = FileManager.default.temporaryDirectory.appendingPathComponent("receipt-" + UUID().uuidString)
         try FileManager.default.copyItem(at: source, to: copy)
         copyLock.lock(); defer { copyLock.unlock() }
         if abandoned { try? FileManager.default.removeItem(at:copy); return }
-        outcome = .success((copy, source.lastPathComponent, mime))
+        outcome = .success((copy, suggestedName, mime))
       } catch { outcome = .failure(error) }
+    }
+    // A file-URL provider supplies the receipt URL, not a public.data file
+    // representation. Asking it for data can lose the incoming attachment.
+    var progress: Progress?
+    if type == UTType.data.identifier && provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
+      provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, error in
+        receive(item as? URL, error)
+      }
+    } else {
+      progress = provider.loadFileRepresentation(forTypeIdentifier: type, completionHandler: receive)
     }
     if done.wait(timeout:.now() + 30) == .timedOut {
       copyLock.lock(); abandoned = true
       if case .success(let value) = outcome { try? FileManager.default.removeItem(at:value.0) }
-      copyLock.unlock(); progress.cancel()
+      copyLock.unlock(); progress?.cancel()
       throw ReceiptFailure.message("The payment app did not provide its receipt. Share it again.")
     }
     let value = try outcome!.get(); file = value.0; fileName = value.1; mime = value.2

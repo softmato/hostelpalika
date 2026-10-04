@@ -265,16 +265,20 @@ self.addEventListener("fetch", (event) => {
 async function receivePaymentShare(request) {
   try {
     const form = await request.formData();
-    const files = form.getAll("receipt");
+    // Older installed manifests may use a different field name. Inspect file
+    // parts, never text/URLs, and still require exactly one attachment.
+    const files = [...form.values()].filter(value => value instanceof File);
     const file = files[0];
-    const extension = file instanceof File ? file.name.split(".").pop().toLowerCase() : "";
+    const reject = reason => Response.redirect(new URL("/app/receipt-sheet.html?error=" + reason, self.location.origin), 303);
+    if (!files.length) return reject("missing");
+    if (files.length > 1) return reject("multiple");
+    if (!file.size) return reject("empty");
+    if (file.size > 20 * 1024 * 1024) return reject("oversized");
+    const extension = file.name.split(".").pop().toLowerCase();
     const aliases = { pdf: "application/pdf", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", heif: "image/heif" };
-    const suppliedType = file instanceof File ? file.type.toLowerCase().split(";")[0] : "";
-    const mimeType = !suppliedType || ["application/octet-stream", "binary/octet-stream", "*/*"].includes(suppliedType) ? aliases[extension] || "" : suppliedType;
-    if (files.length !== 1 || !(file instanceof File) || !file.size || file.size > 20 * 1024 * 1024 ||
-        !(mimeType.startsWith("image/") || mimeType === "application/pdf")) {
-      return Response.redirect(new URL("/app/receipt-sheet.html?error=unsupported", self.location.origin), 303);
-    }
+    const suppliedType = file.type.toLowerCase().split(";")[0].trim();
+    const mimeType = suppliedType === "application/x-pdf" ? "application/pdf" : !suppliedType || ["application/octet-stream", "binary/octet-stream", "*/*"].includes(suppliedType) ? aliases[extension] || "" : suppliedType;
+    if (!(mimeType.startsWith("image/") || mimeType === "application/pdf")) return reject("unsupported");
     const cache = await caches.open(SHARE_CACHE);
     for (const key of await cache.keys()) {
       const stored = await cache.match(key);

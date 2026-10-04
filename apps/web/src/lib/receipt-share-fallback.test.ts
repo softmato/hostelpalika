@@ -3,14 +3,14 @@ import { runInNewContext } from "node:vm";
 import { expect, it, vi } from "vitest";
 import { POST } from "@/app/api/receipt-share/route";
 
-function request(files: File[]) {
+function request(files: File[], field = "receipt") {
   const body = new FormData();
-  files.forEach(file => body.append("receipt", file));
+  files.forEach(file => body.append(field, file));
   return new Request("https://example.com/app/share-payment", { method: "POST", body });
 }
 
-it("cold shares preserve the actual file through the fallback and auto-fill without a picker", async () => {
-  const response = await POST(request([new File(["%PDF-bank-receipt"], "Send_Money.pdf", { type: "application/octet-stream" })]));
+it.each(["application/octet-stream", "application/x-pdf", "binary/octet-stream"])("cold %s shares preserve the file and auto-fill without a picker", async (type) => {
+  const response = await POST(request([new File(["%PDF-bank-receipt"], "Send_Money.pdf", { type })]));
   expect(response.status).toBe(200);
   expect(response.headers.get("cache-control")).toContain("no-store");
   const html = await response.text();
@@ -58,7 +58,7 @@ it("rejects empty, multiple, unsupported and oversized fallback shares", async (
     [new File([new Uint8Array(3 * 1024 * 1024 + 1)], "large.pdf")]]) {
     const response = await POST(request(files));
     expect(response.status).toBe(303);
-    expect(response.headers.get("location")).toMatch(/error=(unsupported|large)/);
+    expect(response.headers.get("location")).toMatch(/error=(unsupported|large|missing|multiple|empty)/);
   }
 });
 
@@ -68,4 +68,9 @@ it("cannot inject HTML through a receipt filename", async () => {
   expect(html).not.toContain("<script>alert(1)");
   expect(html.match(/<script/g)).toHaveLength(1);
   expect(response.headers.get("content-security-policy")).toContain("script-src 'nonce-");
+});
+
+it("accepts the file field used by an older installed manifest", async () => {
+ const response = await POST(request([new File(["%PDF-test"], "bank.pdf", {type:"application/pdf"})], "files"));
+ expect(response.status).toBe(200);
 });

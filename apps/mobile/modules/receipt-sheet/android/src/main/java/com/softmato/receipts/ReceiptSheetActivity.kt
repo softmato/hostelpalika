@@ -61,7 +61,8 @@ class ReceiptSheetActivity : Activity() {
     }
     name = name.substringAfterLast('/').substringAfterLast('\\').take(180)
     mime = (contentResolver.getType(uri) ?: intent.type ?: "").substringBefore(';').lowercase()
-    if (mime in listOf("", "application/octet-stream", "binary/octet-stream", "*/*", "application/x-pdf")) {
+    if (mime == "application/x-pdf") mime = "application/pdf"
+    if (mime in listOf("", "application/octet-stream", "binary/octet-stream", "*/*")) {
       mime = when (name.substringAfterLast('.').lowercase()) { "pdf" -> "application/pdf"; "png" -> "image/png"; "jpg", "jpeg" -> "image/jpeg"; "webp" -> "image/webp"; "heic" -> "image/heic"; "heif" -> "image/heif"; else -> "" }
     }
     require(mime == "application/pdf" || mime.startsWith("image/")) { "Choose a payment screenshot or PDF." }

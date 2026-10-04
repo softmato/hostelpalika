@@ -39,7 +39,9 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
       action: "/app/share-payment",
       method: "POST",
       enctype: "multipart/form-data",
-      params: { files: [{ name: "receipt", accept: ["image/*", "application/pdf"] }] },
+      // Android can advertise a banking PDF as generic binary or x-pdf.
+      // Include extensions too, otherwise Chrome can omit the attachment.
+      params: { files: [{ name: "receipt", accept: ["image/*", "application/pdf", "application/x-pdf", "application/octet-stream", "binary/octet-stream", ".pdf", ".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"] }] },
     },
     short_name: PLATFORM_NAME,
     start_url: "/app",

@@ -14,13 +14,15 @@ export async function POST(request: Request) {
     // Keep the HTML/base64 response below the hosting platform's 4.5 MB limit.
     if (Number(request.headers.get("content-length")) > 3 * 1024 * 1024) return fail("large");
     const form = await request.formData();
-    const files = form.getAll("receipt");
+    const files = [...form.values()].filter((value): value is File => value instanceof File);
     const file = files[0];
-    if (files.length !== 1 || !(file instanceof File) || !file.size) return fail("unsupported");
+    if (!files.length) return fail("missing");
+    if (files.length > 1) return fail("multiple");
+    if (!file.size) return fail("empty");
     if (file.size > 3 * 1024 * 1024) return fail("large");
     const aliases: Record<string, string> = { pdf: "application/pdf", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", heif: "image/heif" };
-    const supplied = file.type.toLowerCase().split(";")[0];
-    const type = !supplied || ["application/octet-stream", "binary/octet-stream", "*/*"].includes(supplied)
+    const supplied = file.type.toLowerCase().split(";")[0].trim();
+    const type = supplied === "application/x-pdf" ? "application/pdf" : !supplied || ["application/octet-stream", "binary/octet-stream", "*/*"].includes(supplied)
       ? aliases[file.name.split(".").pop()!.toLowerCase()] || "" : supplied;
     if (!(type.startsWith("image/") || type === "application/pdf")) return fail("unsupported");
     const id = randomUUID(), nonce = randomUUID();
