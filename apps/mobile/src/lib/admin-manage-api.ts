@@ -94,6 +94,7 @@ export type ManagedHostel = {
   photos: HostelPhoto[];
   pricing: {
     admissionFee?: number;
+    formFee?: number;
     currency?: string;
     monthlyRentMax?: number;
     monthlyRentMin?: number;
@@ -150,6 +151,7 @@ export async function updateManagedHostel(input: {
   panNumber?: string;
   pricing?: {
     admissionFee?: number;
+    formFee?: number;
     currency?: string;
     monthlyRentMax?: number;
     monthlyRentMin?: number;
@@ -1680,6 +1682,7 @@ export type IntakeQuote = {
   admissionFee: number;
   /** Fee less discount — what is actually collected at the door. */
   admissionPayable: number;
+  formFee?: number;
   bedType: string | null;
   currency: string;
   depositAmount: number;
@@ -2176,6 +2179,7 @@ export type FeeScheduleData = {
 export type FeeSchedule = {
   _id: string;
   admissionFee?: number;
+  formFee?: number;
   createdAt?: string;
   depositAmount?: number;
   effectiveFrom: string;
@@ -2249,6 +2253,7 @@ export async function listFeeSchedules() {
  */
 export async function createFeeSchedule(input: {
   admissionFee?: number;
+  formFee?: number;
   depositAmount?: number;
   /** ISO. */
   effectiveFrom: string;

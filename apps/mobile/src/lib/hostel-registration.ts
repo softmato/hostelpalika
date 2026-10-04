@@ -59,13 +59,7 @@ export const CITY_OPTIONS = [
   "Nepalgunj",
 ] as const;
 
-export const ROOM_TYPE_OPTIONS = [
-  "Single Room",
-  "Double Sharing",
-  "Triple Sharing",
-  "Four Sharing",
-  "Dormitory",
-] as const;
+export { ROOM_TYPE_OPTIONS } from "@hostel/shared/constants/room-types";
 
 export const MEAL_INCLUSIONS = ["Included", "Not Included", "Optional"] as const;
 
@@ -246,6 +240,7 @@ export type ShortStayForm = { enabled: boolean; minNights: string; rates: Record
 export type HostelForm = {
   address: string;
   admissionFee: string;
+  formFee: string;
   agreed: boolean;
   area: string;
   city: string;
@@ -302,6 +297,7 @@ export function emptyHostelForm(firstRoomId: string): HostelForm {
   return {
     address: "",
     admissionFee: "",
+    formFee: "",
     agreed: false,
     area: "",
     city: "Kathmandu",
@@ -394,6 +390,10 @@ export function hostelStepErrors(
     if (form.city.trim().length < 2) {
       errors.city = "Which city?";
     }  }
+
+  if (step === "rooms" && form.formFee?.trim() && (!Number.isInteger(Number(form.formFee)) || Number(form.formFee) < 0)) {
+    errors.formFee = "Enter a non-negative form fee in whole rupees.";
+  }
 
   if (step === "rooms" && !hasUsableRooms(form.rooms)) {
     errors.rooms = "Add at least one room type with a room count and beds per room.";
@@ -511,6 +511,7 @@ export type HostelRegisterPayload = {
   photos: { alt: string; url: string }[];
   pricing: {
     admissionFee?: number;
+    formFee?: number;
     currency: string;
     monthlyRentMax?: number;
     monthlyRentMin?: number;
@@ -619,6 +620,7 @@ export function buildHostelPayload(form: HostelForm): HostelRegisterPayload {
     photos: form.photos.map((photo) => ({ alt: `${name} - Photo`, url: photo.url })),
     pricing: {
       admissionFee: numberValue(form.admissionFee),
+      formFee: numberValue(form.formFee),
       currency: "NPR",
       monthlyRentMax: rents.length > 0 ? Math.max(...rents) : undefined,
       monthlyRentMin: rents.length > 0 ? Math.min(...rents) : undefined,

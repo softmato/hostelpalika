@@ -188,6 +188,7 @@ export type HostelRecord = {
   }>;
   pricing?: {
     admissionFee?: number;
+    formFee?: number;
     currency?: string;
     monthlyRentMax?: number;
     monthlyRentMin?: number;
@@ -1103,6 +1104,7 @@ async function seedOpeningRateCard(
       hostelId,
       {
         admissionFee: Math.round(input.pricing?.admissionFee ?? 0),
+        formFee: Math.round(input.pricing?.formFee ?? 0),
         depositAmount: Math.round(input.securityDeposit ?? 0),
         effectiveFrom: new Date(),
         rates,

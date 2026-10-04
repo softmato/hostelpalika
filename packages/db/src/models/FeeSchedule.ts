@@ -84,6 +84,7 @@ const feeScheduleSchema = new Schema(
     rates: { type: [rateSchema], default: [] },
     /** One-time charge at move-in. Optional — many hostels do not levy one. */
     admissionFee: { ...wholeRupees },
+    formFee: { ...wholeRupees },
     /**
      * What comes off the admission fee when the new resident arrives on another
      * resident's referral code.

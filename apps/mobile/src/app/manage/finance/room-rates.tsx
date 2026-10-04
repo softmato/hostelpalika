@@ -59,6 +59,7 @@ function RateFacts({ schedule }: { schedule: FeeSchedule }) {
           value={<Money value={rate.monthlyAmount} />}
         />
       ))}
+      {schedule.formFee ? <FactRow label="Form fee" value={<Money value={schedule.formFee} />} /> : null}
       {schedule.admissionFee ? (
         <FactRow label="Admission" value={<Money value={schedule.admissionFee} />} />
       ) : null}

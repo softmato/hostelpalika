@@ -2248,3 +2248,13 @@ _End of DATABASE.md_
 ## Independent branch details (2026-10-04)
 
 No migration required. Every branch remains a full Hostel with the existing ownerId; parentHostelId links shared plan billing. Branches keep separate residents, rooms, payments, settings, optional PAN and HostelPayoutAccount. PAN and payout-holder equality with the billing hostel are no longer creation requirements. Branch capacitySummary is derived from submitted roomConfigurations when present. Payout secrets remain encrypted and scoped to the individual hostel.
+
+### Branch registration completeness (2026-10-04)
+
+No migration: branch creation now persists existing Hostel.totalFloors, yearEstablished and shortStays fields; totalCapacity supplies capacitySummary.totalBeds when no room mix is provided. Cook count and declared building details remain in the application snapshot. Explicit document reuse creates separate HostelDocument records pointing at the same private FileAsset, scoped to the new branch and reset to PENDING. Source documents are restricted to approved, non-deleted records of the resolved main hostel and owner.
+
+Room configurations now retain the optional per-room-type securityDeposit collected during registration. This is descriptive setup data; resident invoices continue to use the hostel fee schedule. Existing documents need no backfill.
+
+### Form fee (2026-10-04)
+
+Added optional non-negative `Hostel.pricing.formFee` and whole-NPR `FeeSchedule.formFee`. Missing legacy values mean no form charge. Joining invoices retain kind ADMISSION_FEE for idempotency and use a separate Form fee line; existing invoices remain unchanged. Attached-bathroom variants use existing free-text room-type keys, requiring no migration.

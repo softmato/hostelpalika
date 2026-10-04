@@ -528,6 +528,7 @@ function KeyFacts({ hostel }: { hostel: PublicHostelDetail }) {
       <View style={{ flexBasis: 0, flexGrow: 1.6, gap: 12, minWidth: 0, paddingRight: 16 }}>
         <Fact accent label="Monthly rent" value={priceRange(hostel.pricing)} />
         {admission ? <Fact label="Admission fee" value={formatMoney(admission)} /> : null}
+        {hostel.pricing.formFee ? <Fact label="Form fee" value={formatMoney(hostel.pricing.formFee)} /> : null}
       </View>
 
       <View
@@ -663,9 +664,7 @@ function RoomTypes({
     <View>
       <SectionHeader
         subtitle={
-          hostel.pricing.admissionFee
-            ? `Admission fee ${formatMoney(hostel.pricing.admissionFee)}, once`
-            : undefined
+          [hostel.pricing.admissionFee ? `Admission fee ${formatMoney(hostel.pricing.admissionFee)}, once` : "", hostel.pricing.formFee ? `Form fee ${formatMoney(hostel.pricing.formFee)}, once` : ""].filter(Boolean).join(" · ") || undefined
         }
         title="Rooms & pricing"
       />

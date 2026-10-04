@@ -69,6 +69,7 @@ const hostelSchema = new Schema(
       monthlyRentMin: { min: 0, type: Number },
       monthlyRentMax: { min: 0, type: Number },
       admissionFee: { min: 0, type: Number },
+      formFee: { min: 0, type: Number },
     },
     facilities: [{ type: String, trim: true }],
     roomTypes: [{ type: String, trim: true }],
@@ -80,6 +81,7 @@ const hostelSchema = new Schema(
       {
         roomType: { type: String, required: true, trim: true },
         monthlyRent: { min: 0, type: Number },
+        securityDeposit: { min: 0, type: Number },
         bedsPerRoom: { min: 0, type: Number },
         rooms: { min: 0, type: Number },
         vacantBeds: { min: 0, type: Number, default: 0 },

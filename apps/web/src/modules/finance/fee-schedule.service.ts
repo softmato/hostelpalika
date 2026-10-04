@@ -46,6 +46,7 @@ export type FeeScheduleRate = {
 export type FeeScheduleRecord = {
   _id: Types.ObjectId;
   admissionFee?: number;
+  formFee?: number;
   depositAmount?: number;
   effectiveFrom: Date;
   effectiveTo?: Date | null;
@@ -609,7 +610,7 @@ export async function createFeeSchedule(
   }));
 
   const created = (await FeeScheduleModel.create({
-    admissionFee: input.admissionFee,
+    admissionFee: input.admissionFee, formFee: input.formFee ?? 0,
     createdBy: principal.userId,
     depositAmount: input.depositAmount,
     effectiveFrom,
@@ -625,7 +626,7 @@ export async function createFeeSchedule(
    * fail it: the rate card is the record that matters, and a stale listing is a
    * smaller problem than a rate change reported as failed after it succeeded.
    */
-  await projectScheduleOntoListing(hostelId, { admissionFee: input.admissionFee, rates });
+  await projectScheduleOntoListing(hostelId, { admissionFee: input.admissionFee, formFee: input.formFee ?? 0, rates });
 
   /*
    * And the residents whose rent this just changed.
@@ -800,6 +801,7 @@ export async function deleteFeeSchedule(
     // The listing follows whichever card is now current.
     await projectScheduleOntoListing(hostelId, {
       admissionFee: previous.admissionFee,
+      formFee: previous.formFee,
       rates: previous.rates,
     });
   }

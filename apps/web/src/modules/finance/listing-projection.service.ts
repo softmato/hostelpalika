@@ -47,7 +47,7 @@ type RoomConfiguration = {
 };
 
 type ListingHostel = {
-  pricing?: { admissionFee?: number; currency?: string };
+  pricing?: { admissionFee?: number; formFee?: number; currency?: string };
   roomConfigurations?: RoomConfiguration[];
 };
 
@@ -57,7 +57,7 @@ function key(value: string | null | undefined) {
 }
 
 export type ListingProjection = {
-  admissionFee?: number;
+  admissionFee?: number; formFee?: number;
   monthlyRentMax?: number;
   monthlyRentMin?: number;
   roomConfigurations: RoomConfiguration[];
@@ -79,7 +79,7 @@ export type ListingProjection = {
  */
 export function projectSchedule(
   hostel: ListingHostel | null,
-  schedule: Pick<FeeScheduleRecord, "admissionFee" | "rates">,
+  schedule: Pick<FeeScheduleRecord, "admissionFee" | "formFee" | "rates">,
 ): ListingProjection {
   const configurations = hostel?.roomConfigurations ?? [];
   const rateByKey = new Map<string, number>();
@@ -115,6 +115,7 @@ export function projectSchedule(
     .filter((rent): rent is number => typeof rent === "number" && rent > 0);
 
   return {
+    ...(schedule.formFee === undefined ? {} : { formFee: schedule.formFee }),
     ...(schedule.admissionFee === undefined
       ? {}
       : { admissionFee: schedule.admissionFee }),
@@ -138,7 +139,7 @@ export function projectSchedule(
 /** Writes {@link projectSchedule}'s result onto the hostel. Never throws. */
 export async function projectScheduleOntoListing(
   hostelId: Types.ObjectId | string,
-  schedule: Pick<FeeScheduleRecord, "admissionFee" | "rates">,
+  schedule: Pick<FeeScheduleRecord, "admissionFee" | "formFee" | "rates">,
 ): Promise<ListingProjection | null> {
   try {
     const hostel = await HostelModel.findById(hostelId)
@@ -156,6 +157,7 @@ export async function projectScheduleOntoListing(
       {
         $set: {
           roomConfigurations: projection.roomConfigurations,
+          ...(projection.formFee === undefined ? {} : { "pricing.formFee": projection.formFee }),
           ...(projection.admissionFee === undefined
             ? {}
             : { "pricing.admissionFee": projection.admissionFee }),

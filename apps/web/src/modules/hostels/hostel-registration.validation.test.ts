@@ -34,6 +34,16 @@ const base = {
 };
 
 describe("hostelRegistrationSchema — the rate card figures", () => {
+  it("retains form fees and separate attached-bathroom inventory", () => {
+    const parsed = hostelRegistrationSchema.parse({ ...base, pricing: { formFee: 300 }, roomConfigurations: [...base.roomConfigurations, { ...base.roomConfigurations[0], roomType: "Double Sharing — Attached Bathroom", rooms: 2, monthlyRent: 11000 }] });
+    expect(parsed.pricing?.formFee).toBe(300);
+    expect(parsed.roomConfigurations).toHaveLength(2);
+    expect(parsed.roomConfigurations[1]).toMatchObject({ roomType: "Double Sharing — Attached Bathroom", rooms: 2, monthlyRent: 11000 });
+  });
+
+  it.each([-1, 0.5])("rejects invalid form fee %s", (formFee) => {
+    expect(hostelRegistrationSchema.safeParse({ ...base, pricing: { formFee } }).success).toBe(false);
+  });
   it("keeps the deposit and the referral discount a form sends", () => {
     const parsed = hostelRegistrationSchema.parse({
       ...base,

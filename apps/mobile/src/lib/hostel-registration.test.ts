@@ -310,3 +310,10 @@ describe("isHostelStepComplete", () => {
     expect(isHostelStepComplete("basics", form({ hostelName: "" }))).toBe(false);
   });
 });
+
+
+it("keeps a separately stated form fee in the registration payload", () => {
+  const draft = form({ formFee: "300" });
+  expect(buildHostelPayload(draft).pricing?.formFee).toBe(300);
+  expect(hostelStepErrors("rooms", form({ formFee: "-1" })).formFee).toBeTruthy();
+});

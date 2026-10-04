@@ -46,6 +46,12 @@ describe("projectSchedule", () => {
     expect(result).toMatchObject({ monthlyRentMax: 20000, monthlyRentMin: 11000 });
   });
 
+  it("projects form fees including zero, so removing one updates the listing", () => {
+    for (const formFee of [300, 0]) {
+      expect(projectSchedule(hostel, { formFee, rates: [] }).formFee).toBe(formFee);
+    }
+  });
+
   it("carries the admission fee across, so the listing cannot quote a different one", () => {
     const result = projectSchedule(hostel, {
       admissionFee: 2000,

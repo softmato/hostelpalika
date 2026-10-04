@@ -379,6 +379,15 @@ describe("computeInvoiceAmount — proration, target §3.5", () => {
  * the two drifted until one hostel advertised 18,000 and invoiced 174,000.
  */
 describe("rateForRoomType", () => {
+  it("keeps attached bathrooms separately priced and does not borrow the standard room rate", () => {
+    const rates = { ...schedule, rates: [
+      { roomType: "Double Sharing", monthlyAmount: 8000 },
+      { roomType: "Double Sharing — Attached Bathroom", monthlyAmount: 11000 },
+    ] };
+    expect(rateForRoomType(rates, "Double Sharing")?.monthlyAmount).toBe(8000);
+    expect(rateForRoomType(rates, "Double Sharing — Attached Bathroom")?.monthlyAmount).toBe(11000);
+    expect(rateForRoomType({ ...rates, rates: rates.rates.slice(0, 1) }, "Double Sharing — Attached Bathroom")).toBeNull();
+  });
   const byRoomType: FeeScheduleRecord = {
     ...schedule,
     rates: [

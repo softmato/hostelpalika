@@ -1,5 +1,7 @@
 "use client";
 
+import { BEDS_BY_ROOM_TYPE } from "@hostel/shared/constants/room-types";
+
 import {
   ExternalLink,
   FileText,
@@ -79,13 +81,7 @@ export const cityOptions = [
   "Nepalgunj",
 ];
 
-export const roomTypeOptions = [
-  "Single Room",
-  "Double Sharing",
-  "Triple Sharing",
-  "Four Sharing",
-  "Dormitory",
-];
+export { ROOM_TYPE_OPTIONS as roomTypeOptions } from "@hostel/shared/constants/room-types";
 
 export const ID_PROOF_TYPES = [
   "Citizenship",
@@ -266,12 +262,7 @@ export function numberValue(value: string) {
 }
 
 /** Beds a room of this kind has. A dormitory varies, so it has no default. */
-export const BEDS_BY_ROOM_TYPE: Record<string, number> = {
-  "Double Sharing": 2,
-  "Four Sharing": 4,
-  "Single Room": 1,
-  "Triple Sharing": 3,
-};
+export { BEDS_BY_ROOM_TYPE } from "@hostel/shared/constants/room-types";
 
 type RoomCounts = {
   bedsPerRoom: string;

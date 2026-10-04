@@ -540,6 +540,7 @@ const MARK = 26;
  */
 export function PortalBrandHeader({
   actions,
+  compactBrand = false,
   hostelPageLabel = "Open the hostel's page",
   onHostelPage,
 }: {
@@ -553,6 +554,8 @@ export function PortalBrandHeader({
    * problem in a smaller form.
    */
   actions?: ReactNode;
+  /** Leave room for the branch control on narrow admin screens. */
+  compactBrand?: boolean;
   /** What a screen reader says for the eye. See the note above. */
   hostelPageLabel?: string;
   /** Omitted, and the eye hidden, when there is no live listing to open. */
@@ -566,8 +569,8 @@ export function PortalBrandHeader({
       <View className="min-h-14 flex-row items-center gap-2.5 px-5 pb-2 pt-1">
         <Image contentFit="contain" source={logo.mark} style={{ height: MARK, width: MARK }} />
 
-        <View accessibilityLabel={APP_NAME} accessibilityRole="header" className="flex-1">
-          <Text style={{ fontSize: WORDMARK, fontWeight: "800", letterSpacing: -0.4 }}>
+        <View accessibilityLabel={APP_NAME} accessibilityRole="header" className="min-w-0 flex-1">
+          <Text numberOfLines={1} adjustsFontSizeToFit={compactBrand} minimumFontScale={0.6} style={{ fontSize: compactBrand ? 18 : WORDMARK, fontWeight: "800", letterSpacing: -0.4 }}>
             <Text style={{ color: colors.foreground }}>{APP_NAME_PARTS.head}</Text>
             <Text style={{ color: colors.primary }}>{APP_NAME_PARTS.tail}</Text>
           </Text>

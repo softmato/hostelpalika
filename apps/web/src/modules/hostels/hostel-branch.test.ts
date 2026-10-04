@@ -68,6 +68,8 @@ const { HostelModel } = await import("@hostel/db/models/Hostel");
 const { HostelPayoutAccountModel } =
   await import("@hostel/db/models/HostelPayoutAccount");
 const { UserModel } = await import("@hostel/db/models/User");
+const { HostelDocumentModel } = await import("@hostel/db/models/HostelDocument");
+const documents = HostelDocumentModel as unknown as FakeModel;
 
 const hostels = HostelModel as unknown as FakeModel;
 const payouts = HostelPayoutAccountModel as unknown as FakeModel;
@@ -110,6 +112,7 @@ function input(overrides: Record<string, unknown> = {}) {
 }
 
 beforeEach(() => {
+  documents.reset([]);
   state.bells.length = 0;
   state.savedPayout.length = 0;
   state.plan = { maxBranches: 3, name: "Max", status: "ACTIVE" };
@@ -132,6 +135,185 @@ beforeEach(() => {
 });
 
 describe("requestBranch", () => {
+  it("allows the same hostel name and area label in another city", async () => {
+    hostels.docs[0].location = { area: "Lazimpat", city: "Kathmandu" };
+    const result = await requestBranch(
+      mainId.toString(),
+      input({ name: "Study Sanjal", location: { area: "Lazimpat", city: "Pokhara" } }),
+      principal,
+    );
+    expect(result.branch.name).toBe("Study Sanjal");
+  });
+
+  it("persists the new location, building and independent living details", async () => {
+    const details = branchRequestSchema.parse(
+      input({
+        name: "Study Sanjal",
+        totalFloors: 4,
+        totalCapacity: 30,
+        yearEstablished: "2026",
+        cookCount: 2,
+        location: {
+          area: "Lazimpat",
+          city: "Kathmandu",
+          lat: 27.72,
+          lng: 85.32,
+          locationSource: "MANUAL",
+        },
+        food: { hasVeg: true, hasNonVeg: false, mealsPerDay: 3 },
+        facilities: ["Wi-Fi", "Study Room"],
+        rules: ["Quiet after 10 pm"],
+      }),
+    );
+    const result = await requestBranch(mainId.toString(), details, principal);
+    expect(
+      hostels.docs.find((doc) => String(doc._id) === result.branch.id),
+    ).toMatchObject({
+      name: "Study Sanjal",
+      totalFloors: 4,
+      yearEstablished: "2026",
+      capacitySummary: { totalBeds: 30 },
+      location: { lat: 27.72, lng: 85.32, locationSource: "MANUAL" },
+      facilities: ["Wi-Fi", "Study Room"],
+      food: { hasVeg: true, hasNonVeg: false, mealsPerDay: 3 },
+      rules: ["Quiet after 10 pm"],
+    });
+  });
+
+  it("reuses only approved documents from the owned main hostel and reviews them again", async () => {
+    const approvedFile = new Types.ObjectId();
+    documents.reset([
+      {
+        hostelId: mainId,
+        ownerId,
+        status: "APPROVED",
+        documentType: "PAN / VAT document",
+        fileAssetId: approvedFile,
+      },
+      {
+        hostelId: mainId,
+        ownerId,
+        status: "REJECTED",
+        documentType: "Rejected proof",
+        fileAssetId: new Types.ObjectId(),
+      },
+      {
+        hostelId: mainId,
+        ownerId,
+        status: "APPROVED",
+        isDeleted: true,
+        documentType: "Deleted proof",
+        fileAssetId: new Types.ObjectId(),
+      },
+      {
+        hostelId: new Types.ObjectId(),
+        ownerId,
+        status: "APPROVED",
+        documentType: "Other hostel",
+        fileAssetId: new Types.ObjectId(),
+      },
+      {
+        hostelId: mainId,
+        ownerId: new Types.ObjectId(),
+        status: "APPROVED",
+        documentType: "Other owner",
+        fileAssetId: new Types.ObjectId(),
+      },
+    ]);
+    const result = await requestBranch(
+      mainId.toString(),
+      branchRequestSchema.parse(
+        input({ documents: [], reuseDocuments: true, panNumber: undefined }),
+      ),
+      principal,
+    );
+    const copied = documents.docs.filter(
+      (doc) => String(doc.hostelId) === result.branch.id,
+    );
+    expect(copied).toHaveLength(1);
+    expect(copied[0]).toMatchObject({
+      fileAssetId: approvedFile,
+      status: "PENDING",
+      ownerId,
+    });
+    expect(
+      hostels.docs.find((doc) => String(doc._id) === result.branch.id)?.panNumber,
+    ).toBe("601234567");
+  });
+
+  it("lets an uploaded replacement override an approved shared document", async () => {
+    const oldFile = new Types.ObjectId();
+    documents.reset([
+      {
+        hostelId: mainId,
+        ownerId,
+        status: "APPROVED",
+        documentType: "PAN / VAT document",
+        fileAssetId: oldFile,
+      },
+    ]);
+    const result = await requestBranch(
+      mainId.toString(),
+      input({ reuseDocuments: true }),
+      principal,
+    );
+    const copied = documents.docs.filter(
+      (doc) => String(doc.hostelId) === result.branch.id,
+    );
+    expect(copied).toHaveLength(1);
+    expect(String(copied[0].fileAssetId)).not.toBe(String(oldFile));
+  });
+
+  it("rejects impossible vacancy, mismatched capacity and duplicate room types", () => {
+    const room = {
+      roomType: "Twin",
+      rooms: 3,
+      bedsPerRoom: 2,
+      vacantBeds: 6,
+      mealInclusion: "Included",
+    };
+    expect(
+      branchRequestSchema.safeParse(
+        input({ roomConfigurations: [{ ...room, vacantBeds: 7 }] }),
+      ).success,
+    ).toBe(false);
+    expect(
+      branchRequestSchema.safeParse(
+        input({ roomConfigurations: [room], totalCapacity: 7 }),
+      ).success,
+    ).toBe(false);
+    expect(
+      branchRequestSchema.safeParse(
+        input({ roomConfigurations: [room, { ...room, roomType: "twin" }] }),
+      ).success,
+    ).toBe(false);
+    expect(
+      branchRequestSchema.safeParse(
+        input({ roomConfigurations: [room], totalCapacity: 6, totalFloors: 2 }),
+      ).success,
+    ).toBe(true);
+  });
+
+  it("retains the optional room security deposit and rejects fractional amounts", () => {
+    const room = {
+      roomType: "Single",
+      rooms: 2,
+      bedsPerRoom: 1,
+      vacantBeds: 2,
+      mealInclusion: "Included",
+      securityDeposit: 5000,
+    };
+    expect(
+      branchRequestSchema.parse(input({ roomConfigurations: [room] }))
+        .roomConfigurations[0].securityDeposit,
+    ).toBe(5000);
+    expect(
+      branchRequestSchema.safeParse(
+        input({ roomConfigurations: [{ ...room, securityDeposit: 1.5 }] }),
+      ).success,
+    ).toBe(false);
+  });
+
   it("files a matching branch as pending, under the main hostel, and rings the superadmins", async () => {
     const result = await requestBranch(mainId.toString(), input(), principal);
 
@@ -224,8 +406,24 @@ describe("requestBranch", () => {
   });
 
   it("derives branch capacity from its own room setup", async () => {
-    const result = await requestBranch(mainId.toString(), input({ roomConfigurations: [{ roomType: "Twin", rooms: 3, bedsPerRoom: 2, vacantBeds: 6, mealInclusion: "Included" }] }), principal);
-    expect(hostels.docs.find((doc) => String(doc._id) === result.branch.id)?.capacitySummary).toEqual({ totalRooms: 3, totalBeds: 6, vacantBeds: 6 });
+    const result = await requestBranch(
+      mainId.toString(),
+      input({
+        roomConfigurations: [
+          {
+            roomType: "Twin",
+            rooms: 3,
+            bedsPerRoom: 2,
+            vacantBeds: 6,
+            mealInclusion: "Included",
+          },
+        ],
+      }),
+      principal,
+    );
+    expect(
+      hostels.docs.find((doc) => String(doc._id) === result.branch.id)?.capacitySummary,
+    ).toEqual({ totalRooms: 3, totalBeds: 6, vacantBeds: 6 });
   });
 
   it("stops at the plan's cap, counting branches still pending", async () => {

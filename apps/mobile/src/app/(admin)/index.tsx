@@ -15,7 +15,7 @@ import {
   ServiceGrid,
   WaitingActions,
 } from "@/components/admin-home";
-import { BranchesCard, HostelSwitcher } from "@/components/hostel-switcher";
+import { BranchesCard } from "@/components/hostel-switcher";
 import { KycCard } from "@/components/manage/kyc-card";
 import { FreeMonthCard, SubscriptionDueCard } from "@/components/subscription-due";
 import { SectionHeader } from "@/components/ui/card";
@@ -303,9 +303,6 @@ export default function AdminHomeScreen() {
         refreshing={overview.refreshing || alerts.refreshing}
         scroll
       >
-        {/* Only an owner with branches sees it: which hostel every tab is about. */}
-        <HostelSwitcher />
-
         <HostelHero
           delta={delta}
           earnings={earnings}

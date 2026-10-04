@@ -1,5 +1,6 @@
 "use client";
 
+import { ROOM_TYPE_OPTIONS } from "@hostel/shared/constants/room-types";
 import { BedDouble, ImagePlus, Loader2, Trash2 } from "lucide-react";
 import {
   memo,
@@ -39,13 +40,7 @@ import {
   RoomConfiguration,
 } from "./core-portal-shared";
 
-const ROOM_TYPES = [
-  "Single Room",
-  "Two Sharing",
-  "Three Sharing",
-  "Four Sharing",
-  "Dormitory",
-];
+const ROOM_TYPES = ROOM_TYPE_OPTIONS;
 
 /** Mirrors PHOTO_LIMITS.ROOM in hostel-profile.service — counted per room type. */
 const ROOM_PHOTO_LIMIT = 10;

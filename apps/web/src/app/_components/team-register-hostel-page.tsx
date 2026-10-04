@@ -393,6 +393,7 @@ type RoomKey = keyof typeof ROOM_KEY_LABEL;
 const FIELD_STEP: Record<string, number> = {
   address: 2,
   admissionFee: 3,
+  formFee: 3,
   alternatePhone: 1,
   amount: 7,
   area: 2,
@@ -427,6 +428,7 @@ const FIELD_STEP: Record<string, number> = {
 const FIELD_LABEL: Record<string, string> = {
   address: "Address line",
   admissionFee: "Admission fee",
+  formFee: "Form fee",
   alternatePhone: "Alternate phone",
   amount: "Amount collected",
   area: "Area",
@@ -780,6 +782,7 @@ export function TeamRegisterHostelPage() {
    * `pricing` on the payload.
    */
   const [admissionFee, setAdmissionFee] = useState("");
+  const [formFee, setFormFee] = useState("");
   const [securityDeposit, setSecurityDeposit] = useState("");
   const [referralDiscount, setReferralDiscount] = useState("");
 
@@ -1111,6 +1114,7 @@ export function TeamRegisterHostelPage() {
       read<LocationPickerValue>("pin", setPin);
       read<RoomRow[]>("rooms", setRooms);
       read<string>("admissionFee", setAdmissionFee);
+      read<string>("formFee", setFormFee);
       read<string>("securityDeposit", setSecurityDeposit);
       read<string>("referralDiscount", setReferralDiscount);
       read<PhotoRow[]>("photos", setPhotos);
@@ -1259,6 +1263,7 @@ export function TeamRegisterHostelPage() {
     return {
       address,
       admissionFee,
+      formFee,
       alternatePhone,
       area,
       city,
@@ -1309,6 +1314,7 @@ export function TeamRegisterHostelPage() {
   }, [
     address,
     admissionFee,
+    formFee,
     alternatePhone,
     area,
     city,
@@ -1444,6 +1450,7 @@ export function TeamRegisterHostelPage() {
           message: "Enter the monthly rent — residents are billed from it.",
           valid: false,
         })),
+      { field: "formFee", message: "Enter a non-negative form fee in whole rupees.", valid: !formFee.trim() || (Number.isInteger(Number(formFee)) && Number(formFee) >= 0) },
       {
         field: "referralDiscount",
         message: "A referral discount cannot be more than the admission fee.",
@@ -1968,6 +1975,7 @@ export function TeamRegisterHostelPage() {
       plan: { cycle, planId: plan?.id ?? "" },
       pricing: {
         admissionFee: numberValue(admissionFee),
+              formFee: formFee.trim() ? Number(formFee) : undefined,
         currency: "NPR",
         monthlyRentMax: rentRange?.max,
         monthlyRentMin: rentRange?.min,
@@ -2029,7 +2037,7 @@ export function TeamRegisterHostelPage() {
       case "totalCapacity":
         return { field: "rooms" };
       case "pricing":
-        return { field: second === "admissionFee" ? "admissionFee" : "rooms" };
+        return { field: second === "formFee" ? "formFee" : second === "admissionFee" ? "admissionFee" : "rooms" };
       case "securityDeposit":
         return { field: "securityDeposit" };
       case "referralAdmissionDiscount":
@@ -2801,6 +2809,18 @@ export function TeamRegisterHostelPage() {
                       value={admissionFee}
                     />
                   </Field>
+<Field
+                    hint="One-time application/form charge, separate from admission."
+                    label="Form fee"
+                    name="formFee"
+                  >
+                    <input
+                      className="input-field w-full"
+                      inputMode="numeric"
+                      onChange={(event) => setFormFee(event.target.value)}
+                      value={formFee}
+                    />
+                  </Field>
                   <Field
                     hint="Refundable. On the same joining invoice as the admission fee."
                     label="Security deposit"
@@ -2846,7 +2866,7 @@ export function TeamRegisterHostelPage() {
                     </dt>
                     <dd className="font-bold tabular-nums text-foreground">
                       {rupees(
-                        (numberValue(admissionFee) ?? 0) +
+                        (numberValue(admissionFee) ?? 0) + (numberValue(formFee) ?? 0) +
                           (numberValue(securityDeposit) ?? 0),
                       )}
                     </dd>

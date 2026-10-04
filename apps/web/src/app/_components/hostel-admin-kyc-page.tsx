@@ -171,9 +171,12 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
   };
   const open = (href: string) => router.push(workspaceHref(href));
 
+  const setupLinks = <div className="mb-4 flex flex-wrap gap-3 rounded-xl border border-border p-3 text-sm font-semibold text-brand-teal"><Link href={workspaceHref("/hostel-admin/rooms")}>Room types & attached bathrooms</Link><Link href={workspaceHref("/hostel-admin/fee-schedule")}>Rent & form fees</Link></div>;
+
   if (showFinish) {
     return (
       <div className="mx-auto max-w-xl">
+        {setupLinks}
         <StepFlow className="flex flex-col items-center gap-4 rounded-3xl border border-border bg-card p-8 text-center" stepKey={99}>
           {kyc.percent >= 100 ? (
             <span className="flex size-28 animate-in zoom-in-50 items-center justify-center rounded-full bg-brand-teal/10 text-brand-teal duration-500">
@@ -212,6 +215,7 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
 
   return (
     <div className="mx-auto max-w-xl space-y-4">
+      {setupLinks}
       <section className="flex items-center gap-4 rounded-b-3xl rounded-t-xl bg-brand-teal p-5 text-white">
         <div className="rounded-full bg-white p-1">
           <Ring percent={kyc.percent} size={60} />

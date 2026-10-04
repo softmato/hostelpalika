@@ -925,3 +925,19 @@ GET includes the first hostel via `main` (id, name, slug, status, area, city, pa
 ## Public branch discovery (2026-10-04)
 
 `GET /api/v1/public/hostels/:slug` includes `hostel.otherBranches`: an array of { id, slug, name, area, city, photoUrl }. It excludes the current hostel and returns published, verified, non-deleted members of the same explicit parentHostelId family with the same ownerId. The first hostel and sibling branches are peers in discovery. Private owner details, KYC files, PANs and payment accounts are never included. Each branch already appears independently in public search and location lists when published and verified. Demo details return an empty array.
+
+### Full branch setup (2026-10-04)
+
+Branch POST also accepts the normal registration fields `alternatePhone`, `description`, `yearEstablished`, `totalFloors`, `totalCapacity`, `cookCount`, map coordinates/source, facilities, food, rules, photos, room pricing, and `shortStays`. Room counts determine capacity when present; explicit totalCapacity must agree, vacancies cannot exceed beds, and room types must be unique. Short-stay prices use the existing registration policy checks.
+
+`reuseDocuments` is optional (default false for existing clients). When true, the server resolves the owned billing hostel, reuses its PAN and approved, non-deleted documents belonging to that owner, and creates new PENDING document records for this branch. Uploaded documents override reused documents with the same type. No source hostel or shared asset IDs are accepted from the client. The new web form defaults this option on and asks the owner to confirm applicability; the branch payout remains independent.
+
+The branch summary includes `area` and `city` for location labels in the mobile switcher. Same-name duplicate detection compares both city and area.
+
+Registration room configurations accept an optional non-negative whole-rupee `securityDeposit` alongside monthlyRent.
+
+### Attached bathrooms and form fees (2026-10-04)
+
+Room-type suggestions are shared between web and mobile. Each standard type has an `— Attached Bathroom` variant; these remain distinct roomConfigurations and fee-schedule rates with independent inventory, vacancy, photos, and rent. Existing room names remain valid.
+
+Public/team/branch registration and profile pricing accept optional `formFee` (non-negative whole NPR). Fee schedules store and project formFee onto listing pricing; new schedules default omitted formFee to zero. Intake quotes include formFee separately, and joining invoices add a distinct Form fee line. Referral discounts apply only to admission fees. KYC provides links to room and rate-card editors in the selected hostel workspace.

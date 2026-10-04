@@ -44,6 +44,7 @@ const rateSchema = z
 export const feeScheduleCreateSchema = z
   .object({
     admissionFee: wholeRupeeSchema.optional(),
+    formFee: wholeRupeeSchema.optional(),
     depositAmount: wholeRupeeSchema.optional(),
     effectiveFrom: z.coerce.date(),
     hostelId: objectIdSchema.optional(),

@@ -1272,6 +1272,7 @@ function MoneyCard({
   const {
     admissionFee,
     admissionPayable,
+    formFee = 0,
     depositAmount,
     firstMonth,
     monthlyRent,
@@ -1325,6 +1326,7 @@ function MoneyCard({
             )
           }
         />
+        {formFee > 0 ? <FactRow label="Form fee" value={<Money value={formFee} />} /> : null}
         {referral.applied ? (
           <FactRow
             label={`Referral discount · ${referral.code}`}
@@ -1335,11 +1337,11 @@ function MoneyCard({
             }
           />
         ) : null}
-        {admissionFee > 0 ? (
+        {admissionPayable + depositAmount + formFee > 0 ? (
           <View className="border-t border-border">
             <FactRow
               label="Due at move-in"
-              value={<Money size="large" value={admissionPayable} />}
+              value={<Money size="large" value={admissionPayable + depositAmount + formFee} />}
             />
           </View>
         ) : null}

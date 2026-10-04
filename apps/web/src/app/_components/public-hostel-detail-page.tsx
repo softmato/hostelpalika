@@ -807,6 +807,7 @@ export function PublicHostelDetailPage({
                     and a visitor comparing two hostels on rent alone is
                     comparing the wrong number.
                   */}
+                  {hostel.pricing?.formFee ? <span>Form fee <span className="text-foreground">{formatMoney(hostel.pricing.formFee)}</span> once</span> : null}
                   {hostel.pricing?.admissionFee ? (
                     <span>
                       Admission fee{" "}
@@ -1453,6 +1454,7 @@ export function PublicHostelDetailPage({
                         openRoom.rooms ? String(openRoom.rooms) : "",
                       ],
                       ["Meals", openRoom.mealInclusion ?? ""],
+                      ["Form fee", hostel.pricing?.formFee ? `${formatMoney(hostel.pricing.formFee)} once` : ""],
                       [
                         "Admission fee",
                         hostel.pricing?.admissionFee

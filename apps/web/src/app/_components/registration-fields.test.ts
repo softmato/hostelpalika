@@ -5,6 +5,12 @@ import { editRoomRow } from "./registration-fields";
 const row = { bedsPerRoom: "", rooms: "", roomType: "Single Room", vacantBeds: "" };
 
 describe("editRoomRow", () => {
+  it("counts attached-bathroom rooms independently with the same occupancy defaults", () => {
+    const attached = editRoomRow(row, { roomType: "Double Sharing — Attached Bathroom" });
+    expect(attached.bedsPerRoom).toBe("2");
+    expect(editRoomRow(attached, { rooms: "3" })).toMatchObject({ roomType: "Double Sharing — Attached Bathroom", vacantBeds: "6" });
+    expect(row.roomType).toBe("Single Room");
+  });
   it("fills beds each from the room type and vacant from every bed", () => {
     const double = editRoomRow(row, { roomType: "Double Sharing" });
     expect(double.bedsPerRoom).toBe("2");

@@ -1,5 +1,4 @@
 import { Types } from "mongoose";
-import { z } from "zod";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
@@ -9,9 +8,10 @@ import { countBranches } from "@/modules/billing/billing-hostel";
 import { panKey } from "@/modules/billing/free-months";
 import { resolveOwnedHostel } from "@/modules/billing/subscription-access";
 import { getSubscriptionState } from "@/modules/billing/subscription.service";
-import { payoutAccountInputSchema } from "@/modules/bookings/payout-account.validation";
+import { registrationShortStays } from "@/modules/bookings/short-stay-settings.service";
 import { hostelNameKey } from "@/modules/hostels/hostel-name-key";
-import { platformHostelCreateSchema } from "@/modules/hostels/hostel.validation";
+import type { BranchRequestInput } from "./hostel-branch.validation";
+export { branchRequestSchema, type BranchRequestInput } from "./hostel-branch.validation";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { collectionTotals } from "@/modules/finance/ledger-read.service";
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
@@ -37,27 +37,6 @@ export class BranchError extends Error {
     super(message);
   }
 }
-
-export const branchRequestSchema = platformHostelCreateSchema
-  .omit({ documents: true, ownerId: true })
-  .extend({
-    contact: z.object({
-      phone: z.string().trim().min(7).max(24),
-      email: z.string().trim().email().optional(),
-    }),
-    alternatePhone: z.string().trim().min(7).max(24).optional(),
-    documents: platformHostelCreateSchema.shape.documents,
-    landmark: z.string().trim().max(240).optional(),
-    mapLink: z.string().trim().max(500).optional(),
-    panNumber: z
-      .string()
-      .trim()
-      .regex(/^\d{9}$/, "A PAN/VAT number is 9 digits.")
-      .optional(),
-    payoutAccount: payoutAccountInputSchema.optional(),
-  });
-
-export type BranchRequestInput = z.infer<typeof branchRequestSchema>;
 
 async function uniqueBranchSlug(name: string, area: string) {
   const base =
@@ -202,6 +181,10 @@ export async function requestBranch(
       `^${input.location.area.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
       "i",
     ),
+    "location.city": new RegExp(
+      `^${input.location.city.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+      "i",
+    ),
   })
     .select("name")
     .lean<Array<{ name?: string }>>();
@@ -213,7 +196,31 @@ export async function requestBranch(
     );
   }
 
-  const documents = await claimRegistrationDocuments(input.documents, main.ownerId);
+  const shortStays = await registrationShortStays(input);
+  const uploadedDocuments = await claimRegistrationDocuments(
+    input.documents,
+    main.ownerId,
+  );
+  // Reuse only this owner's approved documents, never a client-supplied hostel or asset ID.
+  const sharedDocuments = input.reuseDocuments
+    ? await HostelDocumentModel.find({
+        hostelId: main._id,
+        ownerId: main.ownerId,
+        isDeleted: { $ne: true },
+        status: "APPROVED",
+      })
+        .select("documentType fileAssetId")
+        .lean<Array<{ documentType: string; fileAssetId: Types.ObjectId }>>()
+    : [];
+  const documents = [
+    ...sharedDocuments.filter(
+      (document) =>
+        !uploadedDocuments.some(
+          (uploaded) => uploaded.documentType === document.documentType,
+        ),
+    ),
+    ...uploadedDocuments,
+  ];
   const branch = await HostelModel.create({
     capacitySummary: input.roomConfigurations.length
       ? {
@@ -227,7 +234,12 @@ export async function requestBranch(
             0,
           ),
         }
-      : input.capacitySummary,
+      : {
+          ...input.capacitySummary,
+          ...(input.totalCapacity !== undefined
+            ? { totalBeds: input.totalCapacity }
+            : {}),
+        },
     contact: { ...input.contact, alternatePhone: input.alternatePhone },
     createdBy: principal.userId,
     description: input.description,
@@ -237,13 +249,16 @@ export async function requestBranch(
     location: { ...input.location, landmark: input.landmark, mapLink: input.mapLink },
     name: input.name,
     ownerId: main.ownerId,
-    panNumber: panKey(input.panNumber),
+    panNumber: panKey(input.reuseDocuments ? main.panNumber : input.panNumber),
     parentHostelId: main._id,
     photos: input.photos,
     pricing: input.pricing,
     roomConfigurations: input.roomConfigurations,
     roomTypes: input.roomTypes,
     rules: input.rules,
+    shortStays,
+    totalFloors: input.totalFloors,
+    yearEstablished: input.yearEstablished,
     slug: await uniqueBranchSlug(input.name, input.location.area),
     status: "PENDING_APPROVAL",
     updatedBy: principal.userId,
@@ -255,6 +270,11 @@ export async function requestBranch(
     hostelId: branch._id,
     notes: input.notes,
     snapshot: {
+      cookCount: input.cookCount,
+      totalCapacity: input.totalCapacity,
+      totalFloors: input.totalFloors,
+      yearEstablished: input.yearEstablished,
+      reuseDocuments: input.reuseDocuments,
       contact: input.contact,
       documents,
       location: input.location,
@@ -372,11 +392,12 @@ export async function getBranchesSummary(principal: ApiPrincipal) {
     _id: { $in: ids.map((id) => new Types.ObjectId(id)) },
     isDeleted: { $ne: true },
   })
-    .select("capacitySummary name parentHostelId slug status")
+    .select("capacitySummary location.area location.city name parentHostelId slug status")
     .lean<
       Array<{
         _id: Types.ObjectId;
         capacitySummary?: { totalBeds?: number; vacantBeds?: number };
+        location?: { area?: string; city?: string };
         name: string;
         parentHostelId?: Types.ObjectId | null;
         slug: string;
@@ -402,6 +423,8 @@ export async function getBranchesSummary(principal: ApiPrincipal) {
       const vacant = hostel.capacitySummary?.vacantBeds ?? 0;
 
       return {
+        area: hostel.location?.area ?? "",
+        city: hostel.location?.city ?? "",
         beds,
         collected: money.paidAmount,
         due: Math.max(0, money.dueAmount - money.paidAmount),

@@ -1,3 +1,4 @@
+import { ROOM_TYPE_OPTIONS, BEDS_BY_ROOM_TYPE } from "@hostel/shared/constants/room-types";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -153,6 +154,7 @@ function BranchForm({
 }) {
   const { colors } = useAppTheme();
   const [step, setStep] = useState(0);
+  const [formFee, setFormFee] = useState("");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [area, setArea] = useState("");
@@ -285,6 +287,7 @@ function BranchForm({
 
     try {
       await requestBranch({
+        pricing: { currency: "NPR", formFee: formFee.trim() ? Number(formFee) : undefined },
         contact: { phone: phone.trim() },
         documents: certificate
           ? [
@@ -359,12 +362,14 @@ function BranchForm({
 
       {step === 1 ? (
         <Card className="gap-3">
+          <Input label="Form fee (NPR, optional)" keyboardType="number-pad" value={formFee} onChangeText={setFormFee} />
           <Text variant="label">Rooms</Text>
           <Text variant="caption">
             Add room types now, or continue and complete them later.
           </Text>
           {rooms.map((row, index) => (
             <View className="gap-2" key={index}>
+              <ChoiceChips label="Suggested room types" options={ROOM_TYPE_OPTIONS.map((type) => ({ label: type, value: type }))} value={row.type} onToggle={(type) => setRoom(index, { type, beds: BEDS_BY_ROOM_TYPE[type] ? String(BEDS_BY_ROOM_TYPE[type]) : row.beds })} />
               <Input
                 label="Room type"
                 onChangeText={(type) => setRoom(index, { type })}

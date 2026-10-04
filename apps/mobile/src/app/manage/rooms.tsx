@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { ROOM_TYPE_OPTIONS } from "@hostel/shared/constants/room-types";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 
@@ -73,13 +74,7 @@ import { toastError, toastSuccess } from "@/lib/toast";
  */
 
 /** The five the web offers, as a starting point rather than a closed list. */
-const SUGGESTED_TYPES = [
-  "Single Room",
-  "Two Sharing",
-  "Three Sharing",
-  "Four Sharing",
-  "Dormitory",
-];
+const SUGGESTED_TYPES = ROOM_TYPE_OPTIONS;
 
 const MEAL_OPTIONS = [
   {

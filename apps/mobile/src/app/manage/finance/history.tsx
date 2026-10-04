@@ -123,7 +123,8 @@ export default function ManageRateHistoryScreen() {
                     value={<Money value={rate.monthlyAmount} />}
                   />
                 ))}
-                {schedule.admissionFee ? (
+                {schedule.formFee ? <FactRow label="Form fee" value={<Money value={schedule.formFee} />} /> : null}
+      {schedule.admissionFee ? (
                   <FactRow label="Admission" value={<Money value={schedule.admissionFee} />} />
                 ) : null}
                 {schedule.depositAmount ? (

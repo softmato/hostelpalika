@@ -104,6 +104,7 @@ type RoomConfig = {
 type DraftData = {
   address: string;
   admissionFee: string;
+  formFee: string;
   agreed: boolean;
   alternatePhone: string;
   area: string;
@@ -458,6 +459,7 @@ export function PublicHostelRegistrationPage() {
   const [totalFloors, setTotalFloors] = useState("1");
   const [rooms, setRooms] = useState<RoomConfig[]>([createRoom("Single Room")]);
   const [admissionFee, setAdmissionFee] = useState("");
+  const [formFee, setFormFee] = useState("");
 
   // Step 4 — Documents & Verification
   const [ownershipDoc, setOwnershipDoc] = useState<UploadedFile[]>([]);
@@ -595,6 +597,7 @@ export function PublicHostelRegistrationPage() {
         if (draft.totalFloors !== undefined) setTotalFloors(draft.totalFloors);
         if (draft.rooms !== undefined) setRooms(draft.rooms);
         if (draft.admissionFee !== undefined) setAdmissionFee(draft.admissionFee);
+        if (draft.formFee !== undefined) setFormFee(draft.formFee);
         if (draft.ownershipDoc !== undefined) setOwnershipDoc(draft.ownershipDoc);
         if (draft.ownerIdDoc !== undefined) setOwnerIdDoc(draft.ownerIdDoc);
         if (draft.panDoc !== undefined) setPanDoc(draft.panDoc);
@@ -1017,6 +1020,7 @@ export function PublicHostelRegistrationPage() {
     const draft: DraftData = {
       address,
       admissionFee,
+      formFee,
       agreed,
       alternatePhone,
       area,
@@ -1182,6 +1186,7 @@ export function PublicHostelRegistrationPage() {
             photos,
             pricing: {
               admissionFee: numberValue(admissionFee),
+              formFee: formFee.trim() ? Number(formFee) : undefined,
               currency: "NPR",
               monthlyRentMax: rentValues.length > 0 ? Math.max(...rentValues) : undefined,
               monthlyRentMin: rentValues.length > 0 ? Math.min(...rentValues) : undefined,
@@ -2052,6 +2057,15 @@ export function PublicHostelRegistrationPage() {
                         onChange={(e) => setAdmissionFee(e.target.value)}
                         type="number"
                         value={admissionFee}
+                      />
+                    </Field>
+<Field label="Form Fee (NPR)">
+                      <input
+                        className="input-field"
+                        min={0}
+                        onChange={(e) => setFormFee(e.target.value)}
+                        type="number"
+                        value={formFee}
                       />
                     </Field>
                   </div>

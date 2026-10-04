@@ -33,6 +33,7 @@ import {
   trendTickLabel,
   type TrendBar,
 } from "@/lib/admin-home";
+import { HostelSwitcher } from "@/components/hostel-switcher";
 import { API_BASE_URL } from "@/lib/api";
 import { formatMoney, heroAmountSize, maskMoney } from "@/lib/format";
 import { absoluteMediaUrl } from "@/lib/media";
@@ -107,6 +108,8 @@ export function AdminHomeHeader({
 }: { onPreview?: () => void } = {}) {
   return (
     <PortalBrandHeader
+      compactBrand
+      actions={<HostelSwitcher compact />}
       hostelPageLabel="See your listing as visitors do"
       onHostelPage={onPreview}
     />

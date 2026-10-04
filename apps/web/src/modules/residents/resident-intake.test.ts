@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import type { FeeScheduleRecord } from "@/modules/finance/fee-schedule.service";
 import { fromBs } from "@hostel/shared/calendar/bs";
-import { periodOfDate, quoteIntake } from "@/modules/residents/resident-intake.service";
+import { joiningPayable, periodOfDate, quoteIntake } from "@/modules/residents/resident-intake.service";
 
 /**
  * Bhadra 2083 — 17 August to 16 September 2026, 31 days.
@@ -46,6 +46,18 @@ const hostel = {
 };
 
 describe("intake quote", () => {
+  it("adds form fees separately without discounting them for referrals", () => {
+    const result = quoteIntake({ hostel, roomType: "Four Sharing", referralCode: "FRIEND", referralCodeActive: true, schedule: schedule({ formFee: 500 }) });
+    expect(result.formFee).toBe(500);
+    expect(result.admissionPayable).toBe(3500);
+    expect(joiningPayable(result)).toBe(12000);
+  });
+
+  it("uses the listed form fee before a rate card exists, and allows a card to remove it", () => {
+    const input = { hostel: { ...hostel, pricing: { ...hostel.pricing, formFee: 250 } }, roomType: "Four Sharing", referralCodeActive: false };
+    expect(quoteIntake({ ...input, schedule: null }).formFee).toBe(250);
+    expect(quoteIntake({ ...input, schedule: schedule({ formFee: 0 }) }).formFee).toBe(0);
+  });
   it("prices the rent from the rate card, not the room's listed rent", () => {
     const result = quoteIntake({
       hostel,

@@ -65,6 +65,7 @@ type Rate = {
 type FeeSchedule = {
   _id: string;
   admissionFee?: number;
+  formFee?: number;
   referralAdmissionDiscount?: number;
   depositAmount?: number;
   effectiveFrom: string;
@@ -591,6 +592,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
         try {
           await browserApi(SCHEDULES_ENDPOINT, {
             body: JSON.stringify({
+              formFee: field(form, "formFee") ? Number(field(form, "formFee")) : 0,
               admissionFee: field(form, "admissionFee")
                 ? Number(field(form, "admissionFee"))
                 : undefined,
@@ -731,6 +733,14 @@ export const HostelAdminFeeSchedulePageContent = memo(
                     label="Admission fee (NPR)"
                     min="0"
                     name="admissionFee"
+                    type="number"
+                  />
+<Input
+                    defaultValue={open?.formFee ?? ""}
+                    hint="One-time form charge, separate from admission. Blank means no fee."
+                    label="Form fee (NPR)"
+                    min="0"
+                    name="formFee"
                     type="number"
                   />
                   <Input

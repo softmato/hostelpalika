@@ -149,6 +149,7 @@ export default function ManageRatesScreen() {
   const seededForm = useMemo(
     () => ({
       admissionFee: open?.admissionFee ? String(open.admissionFee) : "",
+      formFee: open?.formFee ? String(open.formFee) : "",
       depositAmount: open?.depositAmount ? String(open.depositAmount) : "",
       referralAdmissionDiscount: open?.referralAdmissionDiscount
         ? String(open.referralAdmissionDiscount)
@@ -201,6 +202,7 @@ export default function ManageRatesScreen() {
     try {
       await createFeeSchedule({
         admissionFee: form.admissionFee?.trim() ? Number(form.admissionFee) : undefined,
+        formFee: form.formFee?.trim() ? Number(form.formFee) : undefined,
         depositAmount: form.depositAmount?.trim() ? Number(form.depositAmount) : undefined,
         effectiveFrom,
         rates: priced,
@@ -314,6 +316,14 @@ export default function ManageRatesScreen() {
               onChangeText={(admissionFee) => editForm({ admissionFee })}
               placeholder="NPR"
               value={form.admissionFee ?? ""}
+            />
+<Input
+              keyboardType="number-pad"
+              label="Form fee"
+              leading={<DoorOpen color={colors.mutedForeground} size={18} />}
+              onChangeText={(formFee) => editForm({ formFee })}
+              placeholder="NPR"
+              value={form.formFee ?? ""}
             />
             <Input
               hint="Off the admission fee for someone a resident referred."

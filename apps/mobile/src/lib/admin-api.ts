@@ -137,6 +137,8 @@ export function hasClaimInReview(state: AdminSubscription | null) {
 
 /** One hostel the owner runs, as the dashboard's branches card and the switcher show it. */
 export type AdminBranchRow = {
+  area?: string;
+  city?: string;
   beds: number;
   collected: number;
   due: number;

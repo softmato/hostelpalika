@@ -985,6 +985,20 @@ function HostelWizard({
               variant="line"
             />
           </Accordion>
+<Accordion
+            caption="Optional"
+            defaultOpen={Boolean(form.formFee)}
+            title="Form fee"
+          >
+            <Input
+              inputMode="numeric"
+              label="Form fee (NPR)"
+              onChangeText={(value) => patch({ formFee: value })}
+              error={errors.formFee}
+              value={form.formFee}
+              variant="line"
+            />
+          </Accordion>
 
           <ShortStaysSection
             onChange={(shortStays) => patch({ shortStays })}
@@ -1541,6 +1555,7 @@ function HostelReview({
           .filter(Boolean)
           .join(" · ") || "—",
       ],
+      ["Form fee", form.formFee ? `NPR ${form.formFee}` : "None"],
       [
         "Admission fee",
         form.admissionFee ? `NPR ${form.admissionFee}` : "None",

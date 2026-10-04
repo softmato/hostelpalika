@@ -64,6 +64,7 @@ export function HostelWorkspaceSwitcher({
             <Building2 className="size-4 shrink-0" />
             <span className="min-w-0 flex-1">
               <span className="block truncate font-semibold">{hostel.name}</span>
+              <span className="block truncate text-xs text-muted-foreground">{hostel.slug}</span>
               {hostel.slug === current ? (
                 <span className="text-xs text-muted-foreground">Active branch</span>
               ) : null}

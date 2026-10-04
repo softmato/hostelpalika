@@ -415,7 +415,7 @@ export default function ManageSettingsScreen() {
             <ListRow
               icon="cash-outline"
               iconBgColor="#30D158"
-              onPress={() => openPanel("pricing")}
+              onPress={() => router.push("/manage/finance/rates")}
               subtitle={
                 hostel.pricing.monthlyRentMin
                   ? `${formatMoney(hostel.pricing.monthlyRentMin)} – ${formatMoney(hostel.pricing.monthlyRentMax)}`
@@ -893,6 +893,7 @@ export default function ManageSettingsScreen() {
             onChangeText={(admissionFee) => setForm((prev) => ({ ...prev, admissionFee }))}
             value={form.admissionFee ?? ""}
           />
+
         </View>
       </Sheet>
 

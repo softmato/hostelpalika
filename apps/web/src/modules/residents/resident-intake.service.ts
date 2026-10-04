@@ -109,6 +109,7 @@ export type FirstMonthCharge = {
 };
 
 export type IntakeQuote = {
+  formFee?: number;
   /** Before the referral discount. */
   admissionFee: number;
   /** What is actually collected at the door: fee less discount, never below 0. */
@@ -143,7 +144,7 @@ export type QuoteInput = {
 type RoomConfiguration = { monthlyRent?: number; roomType: string };
 
 type HostelPricing = {
-  pricing?: { admissionFee?: number; currency?: string };
+  pricing?: { formFee?: number; admissionFee?: number; currency?: string };
   referencePrefix?: string;
   roomConfigurations?: RoomConfiguration[];
 };
@@ -237,6 +238,7 @@ export function quoteIntake(input: {
   return {
     admissionFee,
     admissionPayable: admissionFee - discount,
+    formFee: input.schedule ? (input.schedule.formFee ?? 0) : (input.hostel?.pricing?.formFee ?? 0),
     bedType,
     currency: input.hostel?.pricing?.currency ?? "NPR",
     depositAmount: input.schedule?.depositAmount ?? 0,
@@ -497,6 +499,10 @@ export async function raiseAdmissionInvoice(input: {
       feeScheduleId?: string;
     }[] = [];
 
+    if ((input.quote.formFee ?? 0) > 0) {
+      lines.push({ amount: input.quote.formFee!, basis, description: "Form fee", feeScheduleId: input.quote.feeScheduleId ?? undefined });
+    }
+
     if (input.quote.admissionFee > 0) {
       lines.push({
         amount: input.quote.admissionFee,
@@ -567,5 +573,5 @@ export async function raiseAdmissionInvoice(input: {
  * deposit came to be quoted everywhere and invoiced nowhere.
  */
 export function joiningPayable(quote: IntakeQuote): number {
-  return Math.max(quote.admissionPayable, 0) + Math.max(quote.depositAmount, 0);
+  return Math.max(quote.admissionPayable, 0) + Math.max(quote.depositAmount, 0) + Math.max(quote.formFee ?? 0, 0);
 }

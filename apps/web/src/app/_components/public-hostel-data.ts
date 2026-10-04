@@ -89,6 +89,7 @@ export type PublicHostel = {
   }>;
   pricing?: {
     admissionFee?: number;
+    formFee?: number;
     currency?: string;
     monthlyRentMax?: number;
     monthlyRentMin?: number;

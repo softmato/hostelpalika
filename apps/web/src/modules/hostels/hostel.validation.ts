@@ -45,6 +45,7 @@ const roomConfigurationSchema = z.object({
   bedsPerRoom: z.coerce.number().int().nonnegative(),
   mealInclusion: z.enum(["Included", "Not Included", "Optional"]),
   monthlyRent: z.coerce.number().nonnegative().optional(),
+  securityDeposit: z.coerce.number().int().nonnegative().optional(),
   rooms: z.coerce.number().int().nonnegative(),
   roomType: z.string().trim().min(1).max(80),
   vacantBeds: z.coerce.number().int().nonnegative().default(0),
@@ -127,6 +128,7 @@ export const platformHostelCreateSchema = z.object({
   pricing: z
     .object({
       admissionFee: z.coerce.number().nonnegative().optional(),
+      formFee: z.coerce.number().int().nonnegative().optional(),
       currency: z.string().trim().min(2).max(8).default("NPR"),
       monthlyRentMax: z.coerce.number().nonnegative().optional(),
       monthlyRentMin: z.coerce.number().nonnegative().optional(),
@@ -363,6 +365,7 @@ export const hostelAdminProfileUpdateSchema = z.object({
   pricing: z
     .object({
       admissionFee: z.coerce.number().nonnegative().optional(),
+      formFee: z.coerce.number().int().nonnegative().optional(),
       currency: z.string().trim().min(2).max(8).optional(),
       monthlyRentMax: z.coerce.number().nonnegative().optional(),
       monthlyRentMin: z.coerce.number().nonnegative().optional(),

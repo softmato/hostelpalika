@@ -42,7 +42,9 @@ function useActiveHostel() {
  * Switching remounts screens with the selected branch's cached answers.
  */
 async function switchTo(row: AdminBranchRow, rows: AdminBranchRow[]) {
-  await setActiveHostelId(row.id === rows[0]?.id && !row.isBranch ? null : row.id);
+  await setActiveHostelId(
+    row.id === rows[0]?.id && !row.isBranch ? null : row.id,
+  );
 }
 
 function currentRow(rows: AdminBranchRow[], active: string | null) {
@@ -53,7 +55,7 @@ function currentRow(rows: AdminBranchRow[], active: string | null) {
   );
 }
 
-export function HostelSwitcher() {
+export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
   const { colors } = useAppTheme();
   const branches = useBranches();
   const active = useActiveHostel();
@@ -65,21 +67,29 @@ export function HostelSwitcher() {
   const current = currentRow(rows, active);
 
   return (
-    <View className="px-5 pt-3">
+    <View className={compact ? "shrink-0" : "px-5 pt-3"}>
       <Pressable
         accessibilityLabel={`Working in ${current?.name}. Switch branch`}
         accessibilityRole="button"
-        className="flex-row items-center gap-2 self-start rounded-full border border-border bg-card px-3.5 py-2 active:bg-muted"
+        accessibilityHint="Choose a hostel or manage your branches"
+        accessibilityState={{ expanded: open }}
+        className={
+          compact
+            ? "min-h-11 min-w-11 flex-row items-center justify-center gap-1 rounded-full border border-border bg-card px-2 active:bg-muted"
+            : "flex-row items-center gap-2 self-start rounded-full border border-border bg-card px-3.5 py-2 active:bg-muted"
+        }
         onPress={() => setOpen(true)}
       >
         <Ionicons color={colors.primary} name="business-outline" size={16} />
-        <Text
-          className="max-w-[220px] font-semibold text-foreground"
-          numberOfLines={1}
-          variant={null}
-        >
-          {current?.name}
-        </Text>
+        {compact ? null : (
+          <Text
+            className="max-w-[220px] font-semibold text-foreground"
+            numberOfLines={1}
+            variant={null}
+          >
+            {current?.name}
+          </Text>
+        )}
         <Ionicons
           color={colors.mutedForeground}
           name="chevron-down"
@@ -102,7 +112,7 @@ export function HostelSwitcher() {
               void switchTo(row, rows);
             }}
             selected={row.id === current?.id}
-            subtitle={`${row.residents} residents${row.id === current?.id ? " / Active branch" : ""}`}
+            subtitle={`${[row.area, row.city].filter(Boolean).join(", ") || row.slug}${row.id === current?.id ? " / Active branch" : ""}`}
           />
         ))}
         <SheetRow
@@ -136,7 +146,9 @@ export function BranchesCard() {
             icon="business-outline"
             key={row.id}
             onPress={
-              row.id === current?.id ? undefined : () => void switchTo(row, rows)
+              row.id === current?.id
+                ? undefined
+                : () => void switchTo(row, rows)
             }
             right={<Money size="inline" value={row.collected} />}
             subtitle={`${row.residents} residents · ${row.occupancyPercent ?? 0}% full · ${row.openComplaints} open complaints`}

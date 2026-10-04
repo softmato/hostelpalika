@@ -281,7 +281,7 @@ type IntakeBills = {
     reason?: string;
     referenceCode?: string;
   } | null;
-  quote?: { admissionFee?: number; depositAmount?: number } | null;
+  quote?: { formFee?: number; admissionFee?: number; depositAmount?: number } | null;
 };
 
 export function collectableBills(
@@ -325,9 +325,5 @@ function joiningLabel(quote: IntakeBills["quote"]): string {
   const fee = (quote?.admissionFee ?? 0) > 0;
   const deposit = (quote?.depositAmount ?? 0) > 0;
 
-  if (fee && deposit) {
-    return "Admission fee + Security deposit";
-  }
-
-  return deposit ? "Security deposit" : "Admission fee";
+  return [fee ? "Admission fee" : "", (quote?.formFee ?? 0) > 0 ? "Form fee" : "", deposit ? "Security deposit" : ""].filter(Boolean).join(" + ") || "Admission fee";
 }
