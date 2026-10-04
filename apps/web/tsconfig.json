@@ -23,7 +23,8 @@
       "@hostel/db": ["../../packages/db/src/index.ts"],
       "@hostel/db/*": ["../../packages/db/src/*"],
       "@hostel/shared": ["../../packages/shared/src/index.ts"],
-      "@hostel/shared/*": ["../../packages/shared/src/*"]
+      "@hostel/shared/*": ["../../packages/shared/src/*"],
+      "@hostel/constants/*": ["../../packages/shared/src/constants/*"]
     }
   },
   "include": [
