@@ -1,3 +1,4 @@
+import { listPublicSiblingBranches } from "@/modules/hostels/public-branches.service";
 import { Types } from "mongoose";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
@@ -3413,6 +3414,7 @@ export async function getPublicHostelBySlug(slug: string) {
       return {
         hostel: {
           ...serializePublicHostel(demo),
+          otherBranches: [],
           foodRoutine: EMPTY_ROUTINE,
           ratingSummary: publicRating(demo._id.toString(), new Map()),
         },
@@ -3422,14 +3424,16 @@ export async function getPublicHostelBySlug(slug: string) {
     throw new HostelServiceError("Hostel was not found.", "HOSTEL_NOT_FOUND", 404);
   }
 
-  const [foodRoutine, ratings] = await Promise.all([
+  const [foodRoutine, ratings, otherBranches] = await Promise.all([
     getFoodRoutine(hostel._id),
     ratingSummariesFor([hostel._id]),
+    listPublicSiblingBranches(hostel),
   ]);
 
   return {
     hostel: {
       ...serializePublicHostel(hostel),
+      otherBranches,
       foodRoutine,
       ratingSummary: ratings.get(hostel._id.toString()) ?? EMPTY_RATING_SUMMARY,
     },

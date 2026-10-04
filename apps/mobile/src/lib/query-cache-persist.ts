@@ -1,3 +1,5 @@
+import { loadActiveHostel } from "@/lib/active-hostel";
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import {
@@ -58,6 +60,7 @@ function flush() {
 
 /** Awaited by `PersistGate`'s `onBeforeLift`, so the first screen can seed from it. */
 export async function hydrateQueryCache() {
+  await loadActiveHostel();
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
 

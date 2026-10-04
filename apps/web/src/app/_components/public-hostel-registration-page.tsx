@@ -42,6 +42,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
 import { useReferralCodeFromUrl } from "@/app/_components/register-hostel-start";
+import { LocationPicker, type LocationPickerValue } from "@/components/maps/location-picker";
 import { checkAuthWithRefresh } from "@/lib/auth-check";
 import {
   EMPTY_PAYOUT_DRAFT,
@@ -122,6 +123,7 @@ type DraftData = {
   landmark: string;
   licenseDoc: UploadedFile[];
   mapLink: string;
+  mapLocation?: LocationPickerValue;
   mealsPerDay: string;
   ownerAge: string;
   ownerGender: "" | "Female" | "Male" | "Other";
@@ -441,6 +443,7 @@ export function PublicHostelRegistrationPage() {
   const [address, setAddress] = useState("");
   const [landmark, setLandmark] = useState("");
   const [mapLink, setMapLink] = useState("");
+  const [mapLocation, setMapLocation] = useState<LocationPickerValue>({ coordinates: null, source: "GEOCODED" });
   // Deliberately not part of the saved draft: an account number stays out of localStorage.
   const [payout, setPayout] = useState(EMPTY_PAYOUT_DRAFT);
   const [facilities, setFacilities] = useState<string[]>(["Wi-Fi", "CCTV", "Hot Water"]);
@@ -584,6 +587,7 @@ export function PublicHostelRegistrationPage() {
         if (draft.address !== undefined) setAddress(draft.address);
         if (draft.landmark !== undefined) setLandmark(draft.landmark);
         if (draft.mapLink !== undefined) setMapLink(draft.mapLink);
+        if (draft.mapLocation) setMapLocation(draft.mapLocation);
         if (draft.facilities !== undefined) setFacilities(draft.facilities);
         if (draft.foodAvailability !== undefined)
           setFoodAvailability(draft.foodAvailability);
@@ -1032,6 +1036,7 @@ export function PublicHostelRegistrationPage() {
       landmark,
       licenseDoc,
       mapLink,
+      mapLocation,
       mealsPerDay,
       ownerAge,
       ownerGender,
@@ -1164,6 +1169,11 @@ export function PublicHostelRegistrationPage() {
               area: area.trim(),
               city: city.trim(),
               country,
+              ...(mapLocation.coordinates ? {
+                lat: mapLocation.coordinates.lat,
+                lng: mapLocation.coordinates.lng,
+                locationSource: mapLocation.source,
+              } : {}),
             },
             mapLink: mapLink.trim() || undefined,
             name: hostelName.trim(),
@@ -1637,6 +1647,7 @@ export function PublicHostelRegistrationPage() {
                           onChange={(e) => setCity(e.target.value)}
                           value={city}
                         >
+                          {city && !cityOptions.includes(city) ? <option value={city}>{city}</option> : null}
                           {cityOptions.map((c) => (
                             <option key={c}>{c}</option>
                           ))}
@@ -1662,39 +1673,25 @@ export function PublicHostelRegistrationPage() {
                       />
                     </Field>
 
-                    <div className="grid gap-5 md:grid-cols-2">
-                      <div>
-                        <p className="mb-1.5 text-sm font-semibold text-foreground">
-                          Location Preview
-                        </p>
-                        <div className="flex h-[140px] items-center justify-center rounded-lg border border-border bg-muted/40 bg-[linear-gradient(90deg,transparent_23px,var(--color-border)_24px),linear-gradient(transparent_23px,var(--color-border)_24px)] bg-[length:24px_24px]">
-                          <MapPin className="size-8 text-brand-teal" />
-                        </div>
-                      </div>
-                      <div>
-                        <p className="mb-1.5 text-sm font-semibold text-foreground">
-                          Google Maps Link (Optional)
-                        </p>
-                        <input
-                          className="input-field w-full"
-                          onChange={(e) => setMapLink(e.target.value)}
-                          placeholder="https://maps.google.com/..."
-                          value={mapLink}
-                        />
-                        <p className="mt-1.5 text-xs text-muted-foreground">
-                          Paste your Google Maps location link
-                        </p>
-                        {mapLink ? (
-                          <a
-                            className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-teal hover:underline"
-                            href={mapLink}
-                            rel="noreferrer"
-                            target="_blank"
-                          >
-                            <MapPin className="size-3.5" /> Open in Google Maps
-                          </a>
-                        ) : null}
-                      </div>
+                    <div>
+                      <p className="mb-2 text-sm font-semibold text-foreground">Location Preview / Google Maps Link</p>
+                      <LocationPicker
+                        addressHint={[address, area, city, country].filter(Boolean).join(", ")}
+                        initialQuery={mapLink || undefined}
+                        lookupPath="/api/v1/public/hostels/register/geocode"
+                        onChange={(next) => {
+                          setMapLocation(next);
+                          if (next.coordinates) {
+                            setMapLink(`https://www.google.com/maps?q=${next.coordinates.lat},${next.coordinates.lng}`);
+                          }
+                        }}
+                        onResolvedAddress={(parts) => {
+                          if (parts.address) setAddress(parts.address);
+                          if (parts.area) setArea(parts.area);
+                          if (parts.city) setCity(parts.city);
+                        }}
+                        value={mapLocation}
+                      />
                     </div>
                   </div>
 

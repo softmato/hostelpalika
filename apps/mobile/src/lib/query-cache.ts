@@ -27,7 +27,7 @@
  *
  * Restored entries are always stale (asked again on mount) and showable for
  * `RESTORED_MAX_AGE_MS` rather than `maxAgeMs` — a relaunch is usually more than
- * five minutes after the last read. `clearQueryCache()` on sign-out wipes the
+ * fifteen minutes after the last read. `clearQueryCache()` on sign-out wipes the
  * disk copy too, so a shared handset does not hand one account's roster to the
  * next.
  *
@@ -54,6 +54,15 @@
 import type { RealtimeTopic } from "@/constants/topics";
 import { subscribeAllTopics } from "@/lib/resource-bus";
 
+// Scope is set before branch screens mount. Persisted keys include this scope.
+let activeScope: string | null = null;
+export function setQueryCacheScope(hostelId: string | null) {
+  activeScope = hostelId;
+}
+function scopedKey(key: string) {
+  return JSON.stringify([activeScope, key]);
+}
+
 type Entry = {
   data: unknown;
   /** Came off disk at launch and has not been re-fetched this session. */
@@ -68,23 +77,23 @@ type Entry = {
 type Listener = () => void;
 
 /** How old an answer may be before it is re-asked behind the data. */
-export const DEFAULT_STALE_MS = 30_000;
+export const DEFAULT_STALE_MS = 2 * 60_000;
 
 /** How old an answer may be before it is not shown at all. */
-export const DEFAULT_MAX_AGE_MS = 5 * 60_000;
+export const DEFAULT_MAX_AGE_MS = 15 * 60_000;
 
 /**
  * The cap, and why there is one.
  *
  * Keys are bounded in practice — the warden portal's entry wave alone is about
- * thirty, since it warms every tab and door at once — and the ones that
+ * thirty per branch, since it warms every tab and door at once — and the ones that
  * multiply are the per-period money reads and per-resident records. An owner
  * scrubbing the month strip is the case that would otherwise grow this without
  * limit, so the oldest write is evicted past the cap. The cap sits well above
  * the wave so warming never evicts what it just warmed. Nothing held here is
  * large; this is a guard, not a budget.
  */
-const MAX_ENTRIES = 120;
+const MAX_ENTRIES = 600;
 
 /** How long an answer restored from disk may still be painted while it revalidates. */
 export const RESTORED_MAX_AGE_MS = 3 * 24 * 60 * 60_000;
@@ -108,14 +117,12 @@ export function setQueryCachePersister(next: typeof persister) {
 
 /** Newest first, so a size-capped writer keeps the most recent answers. */
 export function snapshotQueryCache(): PersistedEntry[] {
-  return [...entries.entries()]
-    .reverse()
-    .map(([key, entry]) => ({
-      data: entry.data,
-      key,
-      storedAt: entry.storedAt,
-      topics: entry.topics,
-    }));
+  return [...entries.entries()].reverse().map(([key, entry]) => ({
+    data: entry.data,
+    key,
+    storedAt: entry.storedAt,
+    topics: entry.topics,
+  }));
 }
 
 /** Seeds the cache from disk. Never overwrites an answer fetched this session. */
@@ -124,6 +131,7 @@ export function restoreQueryCache(list: readonly PersistedEntry[]) {
 
   // Oldest first, so insertion order (and eviction) matches the original.
   for (const item of [...list].reverse()) {
+    if (!item.key.startsWith("[")) continue;
     if (entries.has(item.key) || now - item.storedAt > RESTORED_MAX_AGE_MS) {
       continue;
     }
@@ -184,6 +192,7 @@ export function readQuery<T>(
   key: string,
   { maxAgeMs = DEFAULT_MAX_AGE_MS, staleMs = DEFAULT_STALE_MS } = {},
 ): CachedQuery<T> | null {
+  key = scopedKey(key);
   const entry = entries.get(key);
 
   if (!entry) {
@@ -192,7 +201,9 @@ export function readQuery<T>(
 
   const age = Date.now() - entry.storedAt;
 
-  if (age > (entry.restored ? Math.max(maxAgeMs, RESTORED_MAX_AGE_MS) : maxAgeMs)) {
+  if (
+    age > (entry.restored ? Math.max(maxAgeMs, RESTORED_MAX_AGE_MS) : maxAgeMs)
+  ) {
     // Dropped rather than handed back stale. Past `maxAgeMs` the screen is
     // better off with its own spinner than with a figure it must later un-tell.
     entries.delete(key);
@@ -207,6 +218,10 @@ export function writeQuery<T>(
   data: T,
   topics: readonly RealtimeTopic[] = [],
 ) {
+  writeEntry(scopedKey(key), data, topics);
+}
+
+function writeEntry(key: string, data: unknown, topics: readonly RealtimeTopic[]) {
   if (entries.size >= MAX_ENTRIES && !entries.has(key)) {
     // Map iterates in insertion order and a re-write re-inserts below, so the
     // first key is the least recently written.
@@ -234,6 +249,7 @@ export function writeQuery<T>(
  * because something unrelated moved on the server.
  */
 export function invalidateQuery(key: string) {
+  key = scopedKey(key);
   const entry = entries.get(key);
 
   if (entry) {
@@ -308,6 +324,7 @@ export function defineQuery<T>(
 
 /** Fires when this key is *written*. Invalidation is not a change to render. */
 export function subscribeQuery(key: string, listener: Listener): () => void {
+  key = scopedKey(key);
   const watching = listeners.get(key) ?? new Set<Listener>();
   watching.add(listener);
   listeners.set(key, watching);
@@ -334,19 +351,21 @@ export function fetchQuery<T>(
   load: () => Promise<T>,
   topics: readonly RealtimeTopic[] = [],
 ): Promise<T> {
+  key = scopedKey(key);
   const existing = inflight.get(key) as Promise<T> | undefined;
 
   if (existing) {
     return existing;
   }
 
+  const generation = cacheGeneration;
   const request = load()
     .then((data) => {
-      writeQuery(key, data, topics);
+      if (generation === cacheGeneration) writeEntry(key, data, topics);
       return data;
     })
     .finally(() => {
-      inflight.delete(key);
+      if (generation === cacheGeneration) inflight.delete(key);
     });
 
   inflight.set(key, request);
@@ -375,7 +394,7 @@ export function prefetchQuery<T>(
     topics = [] as readonly RealtimeTopic[],
   } = {},
 ): void {
-  if (inflight.has(key)) {
+  if (inflight.has(scopedKey(key))) {
     return;
   }
 
@@ -396,7 +415,10 @@ export function prefetchQuery<T>(
  * the next account on a shared handset. This is the in-memory half of what the
  * purge does on disk.
  */
+let cacheGeneration = 0;
+
 export function clearQueryCache() {
+  cacheGeneration += 1;
   entries.clear();
   inflight.clear();
   persister?.("clear");
@@ -418,6 +440,8 @@ let unsubscribeBus = subscribeAllTopics(invalidateQueriesForTopics);
 
 /** Test seam. Nothing in the app calls this. */
 export function resetQueryCache() {
+  activeScope = null;
+  cacheGeneration += 1;
   entries.clear();
   inflight.clear();
   listeners.clear();

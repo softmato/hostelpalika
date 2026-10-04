@@ -2,6 +2,8 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect } from "react";
+import { usePathname } from "next/navigation";
+import { branchSlug, branchRequestOptions, portalResourceKey, BRANCH_STALE_MS, BRANCH_GC_MS } from "@/lib/branch-cache";
 
 import { browserApi, workspaceSlug } from "@/lib/browser-api";
 import type { LoadState } from "@/app/_components/core-portal-shared";
@@ -49,8 +51,8 @@ export type PortalResource<T> = {
  * branch the page is in (`x-hostel-id`). Without the slug, switching branch
  * would paint the last branch's complaints until the refetch landed.
  */
-export function resourceKey(url: string) {
-  return ["portal-resource", url, workspaceSlug() ?? ""] as const;
+export function resourceKey(url: string, slug = workspaceSlug() ?? "") {
+  return portalResourceKey(url, slug);
 }
 
 /**
@@ -86,6 +88,7 @@ function rememberEndpoint(url: string) {
  */
 export function usePrefetchPortalHref() {
   const client = useQueryClient();
+  const slug = branchSlug(usePathname() ?? "");
 
   return useCallback(
     (href: string) => {
@@ -93,13 +96,14 @@ export function usePrefetchPortalHref() {
 
       for (const url of pageEndpoints.get(path) ?? []) {
         void client.prefetchQuery({
-          queryFn: () => browserApi(url),
-          queryKey: resourceKey(url),
-          staleTime: 30_000,
+          queryFn: () => browserApi(url, branchRequestOptions(slug)),
+          queryKey: resourceKey(url, slug),
+          staleTime: BRANCH_STALE_MS,
+          gcTime: BRANCH_GC_MS,
         });
       }
     },
-    [client],
+    [client, slug],
   );
 }
 
@@ -119,11 +123,14 @@ export function usePortalResource<T>(
 ): PortalResource<T> {
   const fallback = options?.errorMessage ?? "Could not load this data.";
   const enabled = Boolean(url);
+  const slug = branchSlug(usePathname() ?? "");
 
   const query = useQuery({
     enabled,
-    queryFn: () => browserApi<T>(url as string),
-    queryKey: resourceKey(url ?? "idle"),
+    queryFn: () => browserApi<T>(url as string, branchRequestOptions(slug)),
+    queryKey: resourceKey(url ?? "idle", slug),
+    staleTime: BRANCH_STALE_MS,
+    gcTime: BRANCH_GC_MS,
   });
 
   useEffect(() => {
@@ -194,14 +201,15 @@ export function combineResources(
  */
 export function useUpdateResource() {
   const client = useQueryClient();
+  const slug = branchSlug(usePathname() ?? "");
 
   return useCallback(
     <T>(url: string, update: (current: T) => T) => {
-      client.setQueryData<T>(resourceKey(url), (current) =>
+      client.setQueryData<T>(resourceKey(url, slug), (current) =>
         current === undefined ? current : update(current),
       );
     },
-    [client],
+    [client, slug],
   );
 }
 
@@ -227,7 +235,8 @@ export function useInvalidateResources() {
           continue;
         }
 
-        void client.invalidateQueries({ queryKey: resourceKey(url) });
+        // Events can originate in a different branch; inactive matches are marked stale, not fetched.
+        void client.invalidateQueries({ queryKey: ["portal-resource", url] });
       }
     },
     [client],

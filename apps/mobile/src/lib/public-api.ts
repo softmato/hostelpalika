@@ -1,3 +1,4 @@
+import type { PublicBranch } from "@hostel/shared/types/public-branch";
 /**
  * The public, no-account surface: browse, filter, compare, enquire.
  *
@@ -154,6 +155,7 @@ export type PublicFoodRoutine = {
 
 /** The listing endpoint drops the routine; the detail endpoint carries it. */
 export type PublicHostelDetail = PublicHostel & {
+  otherBranches?: PublicBranch[];
   foodRoutine: PublicFoodRoutine;
 };
 

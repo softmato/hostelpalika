@@ -129,6 +129,7 @@ function queryResult<T>(value: T) {
     lean: vi.fn().mockResolvedValue(value),
     limit: vi.fn().mockReturnThis(),
     skip: vi.fn().mockReturnThis(),
+    select: vi.fn().mockReturnThis(),
     sort: vi.fn().mockReturnThis(),
   };
 }
@@ -157,6 +158,7 @@ function hostelRecord(overrides: Record<string, unknown> = {}) {
 describe("hostel service phase 2 behavior", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    serviceMocks.hostelFind.mockReturnValue(queryResult([]));
     // Public hostel detail also reads the published routine; default to none.
     serviceMocks.foodMenuFind.mockReturnValue(queryResult([]));
     serviceMocks.foodMenuFindOne.mockReturnValue(queryResult(null));
@@ -196,6 +198,18 @@ describe("hostel service phase 2 behavior", () => {
         verificationStatus: "VERIFIED",
       }),
     );
+  });
+
+  it("lists the first hostel and its branch independently with their own photos", async () => {
+    const branchId = new Types.ObjectId();
+    serviceMocks.hostelFind.mockReturnValueOnce(queryResult([
+      hostelRecord({ photos: [{ url: "/first.jpg", kind: "EXTERIOR" }] }),
+      hostelRecord({ _id: branchId, parentHostelId: new Types.ObjectId(hostelId), slug: "sunrise-patan", name: "Sunrise Patan", photos: [{ url: "/patan.jpg", kind: "EXTERIOR" }] }),
+    ]));
+    const result = await listPublicHostels({});
+    expect(result.hostels.find((hostel) => hostel.id === hostelId)?.photos[0].url).toBe("/first.jpg");
+    expect(result.hostels.find((hostel) => hostel.id === String(branchId))?.photos[0].url).toBe("/patan.jpg");
+    expect(serviceMocks.hostelFind.mock.calls[0][0]).not.toHaveProperty("parentHostelId");
   });
 
   it("serializes public hostel detail without owner or contact fields", async () => {

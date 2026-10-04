@@ -1,3 +1,5 @@
+import { setQueryCacheScope } from "@/lib/query-cache";
+
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
@@ -8,8 +10,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
  * `api-auth.ts`) — so every screen works on the branch chosen in the switcher
  * without knowing branches exist. Unset means the main hostel.
  *
- * Imports nothing of the app on purpose: `api.ts` reads it, and the query
- * cache (which the switcher clears) reads `api.ts`.
+ * The cache follows the selected branch; switching preserves other branches.
  */
 
 const KEY = "hostelpalika.activeHostelId";
@@ -23,6 +24,7 @@ export function loadActiveHostel() {
   loaded ??= AsyncStorage.getItem(KEY)
     .then((value) => {
       active = value;
+      setQueryCacheScope(value);
     })
     .catch(() => undefined);
 
@@ -42,13 +44,18 @@ export function subscribeActiveHostel(listener: () => void) {
 }
 
 /** Pass `null` to go back to the main hostel — and on sign-out, so the next account starts clean. */
-export async function setActiveHostelId(id: string | null) {
+export async function setActiveHostelId(
+  id: string | null,
+) {
   await loadActiveHostel();
 
   if (id === active) return;
 
   active = id;
+  setQueryCacheScope(id);
   listeners.forEach((listener) => listener());
 
-  await (id ? AsyncStorage.setItem(KEY, id) : AsyncStorage.removeItem(KEY)).catch(() => undefined);
+  await (
+    id ? AsyncStorage.setItem(KEY, id) : AsyncStorage.removeItem(KEY)
+  ).catch(() => undefined);
 }

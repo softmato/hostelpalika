@@ -913,3 +913,15 @@ _End of API.md_
 `POST /api/v1/hostel-admin/expenses/receipt/read` accepts `{ assetId }`, requires `recordExpenses`, and reads only the caller's completed `EXPENSE_RECEIPT` in their authorized hostel. Returns `{ fields: { amount?, method?, transactionCode?, referenceCode? } }` in the standard envelope. Suggestions only; does not create an expense or settle a payment. Limited to 30 reads/hour/client.
 
 Auth calls with `x-hostelhub-client: mobile` use the body refresh token and return token pairs without setting website session cookies. This also applies to the installed PWA. Browser callers retain the HTTP-only cookie contract.
+
+
+## Branch creation and switching (2026-10-04)
+
+GET/POST `/api/v1/hostel-admin/branches` require a signed-in hostel admin and ownership. The selected branch resolves to the shared billing hostel; the plan gates active status and branch allowance. No new email or login is requested. POST requires name, location and contact phone. PAN (nine digits when supplied), private document claims and payout account are optional. PAN and payout holder need not match another branch. The billing hostel need not have a PAN or verified payout account. Supplied payout accounts undergo independent verification. Branches remain PENDING_APPROVAL until existing platform review grants access under the same owner account.
+
+GET includes the first hostel via `main` (id, name, slug, status, area, city, panNumber), displayed alongside the additional branches. The summary endpoint includes single-hostel accounts so the switcher can offer branch management. Operational APIs retain the active hostel scope; branch summary intentionally spans accessible hostels.
+
+
+## Public branch discovery (2026-10-04)
+
+`GET /api/v1/public/hostels/:slug` includes `hostel.otherBranches`: an array of { id, slug, name, area, city, photoUrl }. It excludes the current hostel and returns published, verified, non-deleted members of the same explicit parentHostelId family with the same ownerId. The first hostel and sibling branches are peers in discovery. Private owner details, KYC files, PANs and payment accounts are never included. Each branch already appears independently in public search and location lists when published and verified. Demo details return an empty array.

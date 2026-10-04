@@ -11,7 +11,7 @@ import {
   WalletCards,
   Wrench,
 } from "lucide-react";
-import { memo } from "react";
+import { memo, useState } from "react";
 
 import { LoadingRows } from "@/app/_components/shared-ui";
 import { Button } from "@/components/ui/button";
@@ -66,17 +66,16 @@ type PlatformDashboardReport = {
 };
 
 type PlatformPayment = {
-  dueAmount: number;
-  dueDate: string | null;
+  paidAt: string | null;
+  provider: string;
   hostelName: string;
   id: string;
-  month: string;
   paidAmount: number;
   status: string;
 };
 
 type PlatformPaymentsResponse = {
-  overview: { outstanding: number; totalDue: number; totalPaid: number };
+  pagination: { total: number };
   recent: PlatformPayment[];
 };
 
@@ -157,17 +156,18 @@ function windowRangeLabel(windowDays: number) {
 }
 
 export const PlatformDashboardPageContent = memo(function PlatformDashboardPageContent() {
+  const [hostelPage, setHostelPage] = useState(1);
+  const [paymentPage, setPaymentPage] = useState(1);
   const reportResource = usePortalResource<{ report: PlatformDashboardReport }>(
     platformEndpoints.dashboardReport,
     { errorMessage: "Could not load dashboard." },
   );
-  // Shares its cache entry with the Hostels and Listings screens.
-  const hostelsResource = usePortalResource<{ hostels: Hostel[] }>(
-    platformEndpoints.hostels,
+  const hostelsResource = usePortalResource<{ hostels: Hostel[]; pagination: { total: number } }>(
+    `/api/v1/platform/hostels?page=${hostelPage}&pageSize=${RECENT_ROW_LIMIT}`,
     { errorMessage: "Could not load dashboard." },
   );
   const paymentsResource = usePortalResource<PlatformPaymentsResponse>(
-    platformEndpoints.payments,
+    `${platformEndpoints.payments}?view=recent&page=${paymentPage}&pageSize=${RECENT_ROW_LIMIT}`,
     { errorMessage: "Could not load payments." },
   );
   const auditResource = usePortalResource<{ logs: AuditLog[] }>(
@@ -183,7 +183,7 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
   );
   const report = reportResource.data?.report ?? null;
   const allHostels = hostelsResource.data?.hostels ?? [];
-  const totalHostelCount = allHostels.length;
+  const totalHostelCount = hostelsResource.data?.pagination.total ?? 0;
   const hostels = allHostels.slice(0, RECENT_ROW_LIMIT);
   const allPayments = paymentsResource.data?.recent ?? [];
   const payments = allPayments.slice(0, RECENT_ROW_LIMIT);
@@ -292,10 +292,10 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
           <div className="grid gap-5 xl:grid-cols-2">
             <SectionCard
               actions={<ViewAllLink href="/platform/hostels" tone="platform" />}
-              title="Recent Hostel Approvals"
+              title="Recent Hostel Applications"
             >
               {hostels.length === 0 ? (
-                <EmptyInline label="No hostels awaiting review." />
+                <EmptyInline label="No hostel applications yet." />
               ) : (
                 <>
                   <DataTable className="min-w-[560px]">
@@ -351,7 +351,7 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
                       ))}
                     </TableBody>
                   </DataTable>
-                  <ListPager pageSize={RECENT_ROW_LIMIT} total={totalHostelCount} />
+                  <ListPager page={hostelPage} onPageChange={setHostelPage} pageSize={RECENT_ROW_LIMIT} total={totalHostelCount} />
                 </>
               )}
             </SectionCard>
@@ -371,7 +371,7 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
                           Hostel / Organization
                         </TableHead>
                         <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          Month
+                          Method
                         </TableHead>
                         <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                           Amount
@@ -380,7 +380,7 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
                           Status
                         </TableHead>
                         <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          Due Date
+                          Paid Date
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -400,10 +400,10 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
                             </div>
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {payment.month}
+                            {payment.provider.replaceAll("_", " ")}
                           </TableCell>
                           <TableCell className="font-semibold text-foreground">
-                            {npr(payment.paidAmount || payment.dueAmount)}
+                            {npr(payment.paidAmount)}
                           </TableCell>
                           <TableCell>
                             <SoftBadge tone={statusToneFromLabel(payment.status)}>
@@ -411,13 +411,13 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
                             </SoftBadge>
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {shortDate(payment.dueDate)}
+                            {shortDate(payment.paidAt)}
                           </TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </DataTable>
-                  <ListPager pageSize={RECENT_ROW_LIMIT} total={allPayments.length} />
+                  <ListPager page={paymentPage} onPageChange={setPaymentPage} pageSize={RECENT_ROW_LIMIT} total={paymentsResource.data?.pagination.total ?? 0} />
                 </>
               )}
             </SectionCard>

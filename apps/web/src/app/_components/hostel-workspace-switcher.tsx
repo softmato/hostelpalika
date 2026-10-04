@@ -1,18 +1,19 @@
 "use client";
 
-import { Building2 } from "lucide-react";
+import { Building2, Check, ChevronDown, Loader2, Plus } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useTransition } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-/**
- * "Which hostel am I working in?" — for an owner with branches.
- *
- * Every tab below it works on the one hostel chosen here: the URL carries its
- * slug, and every request says so (`x-hostel-id`, see `browser-api.ts`). The
- * dashboard's Branches card is the only view across all of them.
- *
- * A full navigation rather than a client route change, keeping the screen the
- * owner is on: a fresh page means nothing from the last hostel is left in any
- * component's state.
- */
+/** Client navigation retains each branch cache; the workspace key resets local forms. */
 export function HostelWorkspaceSwitcher({
   current,
   hostels,
@@ -20,30 +21,69 @@ export function HostelWorkspaceSwitcher({
   current: string;
   hostels: Array<{ isBranch: boolean; name: string; slug: string }>;
 }) {
-  if (hostels.length < 2) return null;
-
+  const router = useRouter();
+  const [switching, startTransition] = useTransition();
+  if (!hostels.length) return null;
+  const selected = hostels.find((hostel) => hostel.slug === current);
   function open(slug: string) {
-    const rest = window.location.pathname.replace(/^\/[^/]+\/admin/, "");
-
-    window.location.assign(`/${encodeURIComponent(slug)}/admin${rest}${window.location.search}`);
+    if (slug === current || switching) return;
+    startTransition(() => router.push(`/${encodeURIComponent(slug)}/admin/dashboard`));
   }
-
   return (
-    <label className="relative inline-flex min-w-0 items-center">
-      <span className="sr-only">Switch hostel</span>
-      <Building2 aria-hidden="true" className="pointer-events-none absolute left-2.5 size-4 text-muted-foreground" />
-      <select
-        className="h-8 max-w-[14rem] truncate rounded-lg border border-border bg-background py-0 pl-8 pr-7 text-[12.5px] font-semibold text-foreground shadow-sm outline-none focus:border-brand-teal"
-        onChange={(event) => open(event.target.value)}
-        value={current}
-      >
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          aria-label={`Switch branch. Current branch: ${selected?.name ?? current}`}
+          disabled={switching}
+          className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-left shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-brand-teal"
+        >
+          {switching ? (
+            <Loader2 className="size-4 shrink-0 animate-spin" />
+          ) : (
+            <Building2 className="size-4 shrink-0 text-brand-teal" />
+          )}
+          <span className="min-w-0">
+            <span className="block text-[10px] font-medium text-muted-foreground">
+              {switching ? "Switching branch..." : "Switch branch"}
+            </span>
+            <span className="block max-w-[7rem] truncate text-xs font-semibold md:max-w-[11rem]">
+              {selected?.name ?? current}
+            </span>
+          </span>
+          <ChevronDown className="size-3 shrink-0 text-muted-foreground" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" className="w-72 max-w-[calc(100vw-2rem)] p-2">
+        <DropdownMenuLabel>Your branches</DropdownMenuLabel>
         {hostels.map((hostel) => (
-          <option key={hostel.slug} value={hostel.slug}>
-            {hostel.name}
-            {hostel.isBranch ? " (branch)" : ""}
-          </option>
+          <DropdownMenuItem
+            key={hostel.slug}
+            onSelect={() => open(hostel.slug)}
+            className="gap-3 rounded-lg py-3"
+          >
+            <Building2 className="size-4 shrink-0" />
+            <span className="min-w-0 flex-1">
+              <span className="block truncate font-semibold">{hostel.name}</span>
+              {hostel.slug === current ? (
+                <span className="text-xs text-muted-foreground">Active branch</span>
+              ) : null}
+            </span>
+            {hostel.slug === current ? (
+              <Check className="size-4 text-brand-teal" />
+            ) : null}
+          </DropdownMenuItem>
         ))}
-      </select>
-    </label>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link
+            href={`/${encodeURIComponent(current)}/admin/branches`}
+            className="gap-3 py-3"
+          >
+            <Plus className="size-4" />
+            Manage branches
+          </Link>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

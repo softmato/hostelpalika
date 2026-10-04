@@ -89,7 +89,7 @@ export default async function HostelDetailPage({ params }: PageParams) {
 
   // No structured data (and so no review stars) for a sample listing.
   if (hostel.isDemoData) {
-    return <PublicHostelDetailPage initialHostel={hostel} />;
+    return <PublicHostelDetailPage key={hostel.id} initialHostel={hostel} />;
   }
 
   return (
@@ -117,7 +117,7 @@ export default async function HostelDetailPage({ params }: PageParams) {
           ]),
         ]}
       />
-      <PublicHostelDetailPage initialHostel={hostel} />
+      <PublicHostelDetailPage key={hostel.id} initialHostel={hostel} />
     </>
   );
 }

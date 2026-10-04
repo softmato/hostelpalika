@@ -20,28 +20,13 @@ import { ComplaintModel } from "@hostel/db/models/Complaint";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { HostelApplicationModel } from "@hostel/db/models/HostelApplication";
 import { HostelDocumentModel } from "@hostel/db/models/HostelDocument";
-import { HostelPayoutAccountModel } from "@hostel/db/models/HostelPayoutAccount";
 import { HostelVerificationModel } from "@hostel/db/models/HostelVerification";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { UserModel } from "@hostel/db/models/User";
 import { currentBsPeriod } from "@hostel/shared/calendar/bs";
 import { getPlan } from "@hostel/shared/plans/catalog";
 
-/**
- * Branches: more hostels under one Max plan, with no bill of their own.
- *
- * A branch is free to run, which is exactly what makes a fake one worth
- * creating — register one hostel on Max, then sell "branches" to strangers.
- * So a branch must prove it is the same business before anyone sees it:
- *
- * 1. **the same PAN/VAT number** as the main hostel, with its certificate;
- * 2. **a payout account in the main hostel's holder name**, the main account
- *    already verified — a stranger's bookings would pay the main owner;
- * 3. **a superadmin's approval**, after calling the branch. Until then it is
- *    `PENDING_APPROVAL`: not listed, no portal, no plan.
- *
- * The first two are checked here; the third is `approvePlatformHostel`.
- */
+/** Branches share an owner and plan; business details and accounts belong to each hostel. */
 
 export class BranchError extends Error {
   constructor(
@@ -56,23 +41,23 @@ export class BranchError extends Error {
 export const branchRequestSchema = platformHostelCreateSchema
   .omit({ documents: true, ownerId: true })
   .extend({
+    contact: z.object({
+      phone: z.string().trim().min(7).max(24),
+      email: z.string().trim().email().optional(),
+    }),
     alternatePhone: z.string().trim().min(7).max(24).optional(),
-    documents: platformHostelCreateSchema.shape.documents.refine(
-      (documents) => documents.length > 0,
-      "Upload the branch's PAN/VAT certificate.",
-    ),
+    documents: platformHostelCreateSchema.shape.documents,
     landmark: z.string().trim().max(240).optional(),
     mapLink: z.string().trim().max(500).optional(),
-    panNumber: z.string().trim().regex(/^\d{9}$/, "A PAN/VAT number is 9 digits."),
-    payoutAccount: payoutAccountInputSchema,
+    panNumber: z
+      .string()
+      .trim()
+      .regex(/^\d{9}$/, "A PAN/VAT number is 9 digits.")
+      .optional(),
+    payoutAccount: payoutAccountInputSchema.optional(),
   });
 
 export type BranchRequestInput = z.infer<typeof branchRequestSchema>;
-
-/** Case and spacing do not make a different person. */
-function holderKey(name?: string | null) {
-  return (name ?? "").toLowerCase().replace(/[^a-z0-9ऀ-ॿ]+/g, " ").trim();
-}
 
 async function uniqueBranchSlug(name: string, area: string) {
   const base =
@@ -127,7 +112,9 @@ export async function listBranches(mainHostelId: string, principal: ApiPrincipal
         }>
       >(),
     getBranchAllowance(mainHostelId),
-    HostelModel.findById(main._id).select("panNumber").lean<{ panNumber?: string } | null>(),
+    HostelModel.findById(main._id)
+      .select("panNumber location")
+      .lean<{ panNumber?: string; location?: { area?: string; city?: string } } | null>(),
   ]);
 
   return {
@@ -141,7 +128,15 @@ export async function listBranches(mainHostelId: string, principal: ApiPrincipal
       slug: branch.slug,
       status: branch.status,
     })),
-    main: { id: main._id.toString(), name: main.name ?? "", panNumber: mainPan?.panNumber ?? null },
+    main: {
+      id: main._id.toString(),
+      name: main.name ?? "",
+      slug: main.slug ?? "",
+      status: main.status ?? "",
+      area: mainPan?.location?.area ?? "",
+      city: mainPan?.location?.city ?? "",
+      panNumber: mainPan?.panNumber ?? null,
+    },
   };
 }
 
@@ -200,46 +195,13 @@ export async function requestBranch(
     );
   }
 
-  // 1. Same business: the PAN/VAT on file for the main hostel.
-  if (!panKey(main.panNumber)) {
-    throw new BranchError(
-      "Your main hostel has no PAN/VAT number on file. Add it in the hostel profile first.",
-      "MAIN_HAS_NO_PAN",
-    );
-  }
-
-  if (panKey(input.panNumber) !== panKey(main.panNumber)) {
-    throw new BranchError(
-      "A branch has to be under the same PAN/VAT number as the main hostel.",
-      "PAN_MISMATCH",
-      422,
-    );
-  }
-
-  // 2. Same money: a payout account in the main hostel's verified holder name.
-  const mainPayout = await HostelPayoutAccountModel.findOne({ hostelId: main._id })
-    .select("holderName status")
-    .lean<{ holderName?: string; status?: string } | null>();
-
-  if (mainPayout?.status !== "VERIFIED") {
-    throw new BranchError(
-      "The main hostel's payout account has to be verified before it can have branches.",
-      "MAIN_PAYOUT_NOT_VERIFIED",
-    );
-  }
-
-  if (holderKey(input.payoutAccount.holderName) !== holderKey(mainPayout.holderName)) {
-    throw new BranchError(
-      `A branch's payout account has to be in the same name as the main hostel's (${mainPayout.holderName}).`,
-      "PAYOUT_HOLDER_MISMATCH",
-      422,
-    );
-  }
-
   const key = hostelNameKey(input.name);
   const neighbours = await HostelModel.find({
     isDeleted: { $ne: true },
-    "location.area": new RegExp(`^${input.location.area.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"),
+    "location.area": new RegExp(
+      `^${input.location.area.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+      "i",
+    ),
   })
     .select("name")
     .lean<Array<{ name?: string }>>();
@@ -253,7 +215,19 @@ export async function requestBranch(
 
   const documents = await claimRegistrationDocuments(input.documents, main.ownerId);
   const branch = await HostelModel.create({
-    capacitySummary: input.capacitySummary,
+    capacitySummary: input.roomConfigurations.length
+      ? {
+          totalRooms: input.roomConfigurations.reduce((sum, room) => sum + room.rooms, 0),
+          totalBeds: input.roomConfigurations.reduce(
+            (sum, room) => sum + room.rooms * room.bedsPerRoom,
+            0,
+          ),
+          vacantBeds: input.roomConfigurations.reduce(
+            (sum, room) => sum + room.vacantBeds,
+            0,
+          ),
+        }
+      : input.capacitySummary,
     contact: { ...input.contact, alternatePhone: input.alternatePhone },
     createdBy: principal.userId,
     description: input.description,
@@ -315,12 +289,14 @@ export async function requestBranch(
     );
   }
 
-  const { setHostelPayoutAccount } = await import("@/modules/bookings/payout-account.service");
+  const { setHostelPayoutAccount } =
+    await import("@/modules/bookings/payout-account.service");
 
-  await setHostelPayoutAccount(branch._id.toString(), input.payoutAccount, {
-    source: "REGISTRATION",
-    userId: principal.userId,
-  });
+  if (input.payoutAccount)
+    await setHostelPayoutAccount(branch._id.toString(), input.payoutAccount, {
+      source: "REGISTRATION",
+      userId: principal.userId,
+    });
 
   await AuditLogModel.create({
     action: "HOSTEL_BRANCH_REQUESTED",
@@ -337,7 +313,9 @@ export async function requestBranch(
     mainName: main.name,
   });
 
-  return { branch: { id: branch._id.toString(), name: input.name, status: "PENDING_APPROVAL" } };
+  return {
+    branch: { id: branch._id.toString(), name: input.name, status: "PENDING_APPROVAL" },
+  };
 }
 
 /**
@@ -350,7 +328,11 @@ async function notifyPlatformOfBranch(input: {
   branchPhone: string;
   mainName: string;
 }) {
-  const staff = await UserModel.find({ isDeleted: { $ne: true }, role: Role.SUPERADMIN, status: "ACTIVE" })
+  const staff = await UserModel.find({
+    isDeleted: { $ne: true },
+    role: Role.SUPERADMIN,
+    status: "ACTIVE",
+  })
     .select("_id")
     .lean<Array<{ _id: Types.ObjectId }>>();
 
@@ -372,14 +354,16 @@ async function notifyPlatformOfBranch(input: {
  * for the dashboard. The only read that spans them: every other screen works
  * on the one hostel the switcher chose (`allHostelIds` vs `hostelIds`).
  *
- * Empty for an owner with one hostel, so the card does not render.
+ * Includes a single hostel so the switcher can offer branch creation.
  */
 export async function getBranchesSummary(principal: ApiPrincipal) {
   await connectToDatabase();
 
-  const ids = (principal.allHostelIds ?? principal.hostelIds).filter((id) => Types.ObjectId.isValid(id));
+  const ids = (principal.allHostelIds ?? principal.hostelIds).filter((id) =>
+    Types.ObjectId.isValid(id),
+  );
 
-  if (ids.length < 2) {
+  if (ids.length === 0) {
     return { hostels: [], period: currentBsPeriod() };
   }
 
@@ -403,8 +387,15 @@ export async function getBranchesSummary(principal: ApiPrincipal) {
   const rows = await Promise.all(
     hostels.map(async (hostel) => {
       const [residents, openComplaints, money] = await Promise.all([
-        ResidentModel.countDocuments({ hostelId: hostel._id, isDeleted: false, status: { $ne: "MOVED_OUT" } }),
-        ComplaintModel.countDocuments({ hostelId: hostel._id, status: { $in: ["PENDING", "IN_PROGRESS"] } }),
+        ResidentModel.countDocuments({
+          hostelId: hostel._id,
+          isDeleted: false,
+          status: { $ne: "MOVED_OUT" },
+        }),
+        ComplaintModel.countDocuments({
+          hostelId: hostel._id,
+          status: { $in: ["PENDING", "IN_PROGRESS"] },
+        }),
         collectionTotals({ hostelId: hostel._id, period }),
       ]);
       const beds = hostel.capacitySummary?.totalBeds ?? 0;
@@ -428,7 +419,11 @@ export async function getBranchesSummary(principal: ApiPrincipal) {
 
   // Main hostel first, then branches in the order they were added.
   const order = new Map(ids.map((id, index) => [id, index]));
-  rows.sort((a, b) => Number(a.isBranch) - Number(b.isBranch) || (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+  rows.sort(
+    (a, b) =>
+      Number(a.isBranch) - Number(b.isBranch) ||
+      (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0),
+  );
 
   return { hostels: rows, period };
 }

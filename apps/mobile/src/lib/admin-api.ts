@@ -154,7 +154,7 @@ export type AdminBranchRow = {
 export type AdminBranches = {
   allowance: { active: boolean; cap: number; planName: string | null; used: number };
   branches: { area: string; city: string; id: string; name: string; slug: string; status: string }[];
-  main: { id: string; name: string; panNumber: string | null };
+  main: { id: string; name: string; slug: string; status: string; area: string; city: string; panNumber: string | null };
 };
 
 export async function getBranches() {

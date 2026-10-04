@@ -3,6 +3,7 @@ import type { z } from "zod";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
+import { paginationMeta, paginationRange, type PaginationQuery } from "@/lib/pagination";
 import { addBsMonths, bsPeriodBounds, hostelPeriodOf, isBsPeriod } from "@/lib/hostel-day";
 import { assertHostelAccess } from "@/lib/tenant";
 import { ComplaintModel } from "@hostel/db/models/Complaint";
@@ -383,6 +384,38 @@ type PlatformPaymentProofRecord = {
 
 /** Claims waiting on a human, in whatever scope the caller is reporting on. */
 export const PENDING_CLAIM_FILTER = { source: "RESIDENT_CLAIM", status: "PENDING" };
+
+/** Actual receipts, rather than invoices that may never have been paid. */
+export async function getRecentPlatformPayments(query: PaginationQuery = {}) {
+  await connectToDatabase();
+  const hostels = await HostelModel.find({ isDeleted: false })
+    .select("_id name")
+    .lean<Array<{ _id: Types.ObjectId; name: string }>>();
+  const filter = {
+    hostelId: { $in: hostels.map((hostel) => hostel._id) },
+    status: "SETTLED",
+    direction: "CREDIT",
+  };
+  const { skip, limit } = paginationRange(query);
+  const [events, total] = await Promise.all([
+    PaymentEventModel.find(filter).sort({ settledAt: -1, _id: -1 })
+      .skip(skip).limit(limit)
+      .lean<Array<{ _id: Types.ObjectId; hostelId: Types.ObjectId; amount: number; provider: string; settledAt?: Date; occurredAt?: Date }>>(),
+    PaymentEventModel.countDocuments(filter),
+  ]);
+  const names = new Map(hostels.map((hostel) => [String(hostel._id), hostel.name]));
+  return {
+    pagination: paginationMeta(query, total),
+    recent: events.map((event) => ({
+      id: String(event._id),
+      hostelName: names.get(String(event.hostelId)) ?? "—",
+      paidAmount: event.amount,
+      provider: event.provider,
+      status: "SETTLED",
+      paidAt: (event.settledAt ?? event.occurredAt)?.toISOString() ?? null,
+    })),
+  };
+}
 
 // Read-only, platform-wide roll-up of resident payment records (no hostel
 // scoping) for the Platform Owner "Payments" tab. Manual/gateway billing stays

@@ -29,6 +29,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { PublicHostelBranches } from "./public-hostel-branches";
 import { BookButton } from "@/components/bookings/book-button";
 import { HostelMap } from "@/components/maps/hostel-map";
 import { MediaLightbox, type LightboxItem } from "@/components/media-lightbox";
@@ -671,6 +672,11 @@ export function PublicHostelDetailPage({
                 <MapPin className="size-4 text-brand-teal" />
                 <span>{address}</span>
               </div>
+              {hostel.otherBranches?.length ? (
+                <a href="#hostel-branches" className="mt-3 inline-flex items-center gap-1 rounded-full bg-brand-teal-soft px-3 py-1.5 text-xs font-bold text-brand-teal">
+                  {hostel.otherBranches.length} other {hostel.otherBranches.length === 1 ? "branch" : "branches"} <ArrowRight className="size-3.5" />
+                </a>
+              ) : null}
               <p className="mt-4 max-w-2xl text-sm leading-6 text-muted-foreground">
                 {hostelSummary.description ||
                   `This verified hostel is published on ${siteName}.`}
@@ -888,6 +894,8 @@ export function PublicHostelDetailPage({
               </div>
             </section>
           ) : null}
+
+          <PublicHostelBranches branches={hostel.otherBranches ?? []} />
 
           <section
             className="rounded-lg border border-border bg-surface p-4 shadow-sm md:p-5"

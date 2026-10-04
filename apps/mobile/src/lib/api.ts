@@ -149,12 +149,21 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
 
   const hostelId = getActiveHostelId();
 
-  if (hostelId) {
+  if (!config.headers.has("x-hostel-id") && hostelId) {
     config.headers["x-hostel-id"] = hostelId;
   }
 
   return config;
 });
+
+// Axios runs request interceptors in reverse order. Capture the branch first,
+// before token refresh can yield and the owner can switch to another branch.
+api.interceptors.request.use((config) => {
+  if (!config.headers.has("x-hostel-id")) {
+    config.headers.set("x-hostel-id", getActiveHostelId() ?? "");
+  }
+  return config;
+}, undefined, { synchronous: true });
 
 let refreshing = false;
 let waiters: ((token: string | null) => void)[] = [];

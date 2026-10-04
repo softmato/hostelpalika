@@ -125,8 +125,8 @@ import { toastError } from "@/lib/toast";
  * is a screen showing another month's invoices, which is a worse bug than the
  * inert-filter one above because it looks right.
  *
- * `staleMs` is when to re-ask behind the data (default 30s) and `maxAgeMs` is
- * when to stop showing it at all (default 5min) — `query-cache.ts` has the
+ * `staleMs` is when to re-ask behind the data (default 2min) and `maxAgeMs` is
+ * when to stop showing it at all (default 15min) — `query-cache.ts` has the
  * reasoning for two numbers rather than one.
  */
 
@@ -442,10 +442,10 @@ export function useResource<T>(
         return;
       }
 
-      if (refetchOnFocus) {
+      if (refetchOnFocus && !(cacheKey && readQuery(cacheKey, { maxAgeMs, staleMs })?.fresh)) {
         void run("silent");
       }
-    }, [refetchOnFocus, run]),
+    }, [cacheKey, maxAgeMs, refetchOnFocus, run, staleMs]),
   );
 
   /*

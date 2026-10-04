@@ -1105,6 +1105,9 @@ export function ToggleSwitch({
 
 export function statusToneFromLabel(status: string): SoftTone {
   const value = status.toLowerCase();
+  if (["unpaid", "overdue", "inactive", "unverified", "unavailable"].includes(value)) return "rose";
+  if (value === "partial" || value === "partially_paid") return "amber";
+  if (value === "settled") return "green";
   if (
     value.includes("paid") ||
     value.includes("active") ||

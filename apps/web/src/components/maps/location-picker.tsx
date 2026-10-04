@@ -53,6 +53,7 @@ function describeParts(parts: AddressParts): string {
  */
 export function LocationPicker({
   addressHint,
+  initialQuery,
   lookupPath = "/api/v1/hostel-admin/profile/geocode",
   onChange,
   onResolvedAddress,
@@ -60,6 +61,7 @@ export function LocationPicker({
 }: {
   /** Current address fields — seeds the box and disambiguates bare names. */
   addressHint: string;
+  initialQuery?: string;
   /**
    * The geocode endpoint to search through. Two desks place this same pin — a
    * hostel admin on their own listing, and a team agent registering a hostel
@@ -76,7 +78,7 @@ export function LocationPicker({
   // fields. Derived rather than synced in an effect — the hint arrives after
   // the profile loads, and copying it into state would fight the admin's typing.
   const [typedQuery, setTypedQuery] = useState<string | null>(null);
-  const query = typedQuery ?? addressHint;
+  const query = typedQuery ?? initialQuery ?? addressHint;
   const [results, setResults] = useState<GeocodeResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [locating, setLocating] = useState(false);

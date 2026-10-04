@@ -38,6 +38,7 @@ export default async function HostelAdminWorkspaceLayout({
 
   return (
     <PortalShell
+      key={hostelSlug}
       navGroups={navGroups}
       searchEntries={searchEntriesFromNav(navGroups)}
       searchPlaceholder="Search residents, rooms, payments..."
@@ -50,7 +51,7 @@ export default async function HostelAdminWorkspaceLayout({
     >
       {/* One opaque sticky stack: two separately sticky, tinted bars pinned to
           the same `top-0` and let the page scroll through them. */}
-      <div className="sticky -top-4 z-30 -mt-4 mb-4 flex flex-col gap-2 bg-background pt-4 empty:hidden">
+      <div className="sticky -top-4 z-20 -mt-4 mb-4 flex flex-col gap-2 bg-background pt-4 empty:hidden">
         <HostelPaymentCredentialsReminder
           paymentProfileHref={`/${hostelSlug}/admin/payment-setup`}
         />

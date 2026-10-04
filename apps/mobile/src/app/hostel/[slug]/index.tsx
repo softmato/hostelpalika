@@ -214,6 +214,8 @@ export default function HostelDetailScreen() {
               </Text>
             </View>
 
+            {data.otherBranches?.length ? <Badge label={`${data.otherBranches.length} other ${data.otherBranches.length === 1 ? "branch" : "branches"}`} /> : null}
+
             {campus ? (
               <View className="flex-row items-center gap-1.5">
                 <Ionicons
@@ -291,6 +293,23 @@ export default function HostelDetailScreen() {
                 </View>
               ))}
             </Card>
+          </View>
+        ) : null}
+
+        {data.otherBranches?.length ? (
+          <View className="gap-3">
+            <SectionHeader title="Other branches" subtitle="More locations from the same hostel owner" />
+            {data.otherBranches.map((branch) => (
+              <Pressable key={branch.id} accessibilityRole="link" accessibilityLabel={`View ${branch.name}`} onPress={() => router.push({ pathname: "/hostel/[slug]", params: { slug: branch.slug } })} className="flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3 active:bg-muted">
+                {branch.photoUrl ? <Image source={{ uri: branch.photoUrl.startsWith("/") ? `${API_BASE_URL}${branch.photoUrl}` : branch.photoUrl }} style={{ width: 72, height: 72, borderRadius: 12 }} contentFit="cover" accessibilityLabel={branch.name} /> : <View className="h-[72px] w-[72px] items-center justify-center rounded-xl bg-muted"><Ionicons name="business-outline" size={26} color={colors.mutedForeground} /></View>}
+                <View className="flex-1 gap-1">
+                  <Text variant="label">{branch.name}</Text>
+                  <Text variant="caption">{[branch.area, branch.city].filter(Boolean).join(", ")}</Text>
+                  <Text className="font-semibold text-primary" variant="caption">View branch</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
+              </Pressable>
+            ))}
           </View>
         ) : null}
 

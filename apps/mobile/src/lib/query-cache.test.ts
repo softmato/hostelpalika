@@ -2,6 +2,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   clearQueryCache,
+  DEFAULT_STALE_MS,
+  DEFAULT_MAX_AGE_MS,
+  setQueryCacheScope,
+  restoreQueryCache,
+  snapshotQueryCache,
   defineQuery,
   fetchQuery,
   invalidateQuery,
@@ -45,9 +50,12 @@ describe("freshness", () => {
     vi.useFakeTimers();
     writeQuery("admin:today", { notices: [] });
 
-    vi.advanceTimersByTime(45_000);
+    vi.advanceTimersByTime(DEFAULT_STALE_MS + 1);
 
-    expect(readQuery("admin:today")).toEqual({ data: { notices: [] }, fresh: false });
+    expect(readQuery("admin:today")).toEqual({
+      data: { notices: [] },
+      fresh: false,
+    });
   });
 
   /*
@@ -59,7 +67,7 @@ describe("freshness", () => {
     vi.useFakeTimers();
     writeQuery("admin:money:2082-05", { invoices: [] });
 
-    vi.advanceTimersByTime(6 * 60_000);
+    vi.advanceTimersByTime(DEFAULT_MAX_AGE_MS + 1);
 
     expect(readQuery("admin:money:2082-05")).toBeNull();
   });
@@ -67,7 +75,7 @@ describe("freshness", () => {
   it("treats a re-write as a new answer", () => {
     vi.useFakeTimers();
     writeQuery("admin:today", { notices: [] });
-    vi.advanceTimersByTime(45_000);
+    vi.advanceTimersByTime(DEFAULT_STALE_MS + 1);
     writeQuery("admin:today", { notices: ["n1"] });
 
     expect(readQuery("admin:today")?.fresh).toBe(true);
@@ -79,7 +87,10 @@ describe("invalidation", () => {
     writeQuery("admin:residents", [{ id: "r1" }]);
     invalidateQuery("admin:residents");
 
-    expect(readQuery("admin:residents")).toEqual({ data: [{ id: "r1" }], fresh: false });
+    expect(readQuery("admin:residents")).toEqual({
+      data: [{ id: "r1" }],
+      fresh: false,
+    });
   });
 
   /*
@@ -163,7 +174,9 @@ describe("subscriptions", () => {
 
 describe("fetchQuery", () => {
   it("files the result under the key", async () => {
-    await fetchQuery("admin:residents", async () => [{ id: "r1" }], ["residents"]);
+    await fetchQuery("admin:residents", async () => [{ id: "r1" }], [
+      "residents",
+    ]);
 
     expect(readQuery("admin:residents")?.data).toEqual([{ id: "r1" }]);
   });
@@ -224,7 +237,7 @@ describe("prefetchQuery", () => {
   it("does re-ask once the answer has gone stale", () => {
     vi.useFakeTimers();
     writeQuery("admin:roll-call", { night: null });
-    vi.advanceTimersByTime(45_000);
+    vi.advanceTimersByTime(DEFAULT_STALE_MS + 1);
     const load = vi.fn(async () => ({ night: null }));
 
     prefetchQuery("admin:roll-call", load);
@@ -275,7 +288,11 @@ describe("defineQuery", () => {
    */
   it("hands back the same object for the same key", () => {
     const first = defineQuery("admin:residents", ["residents"], async () => []);
-    const second = defineQuery("admin:residents", ["residents"], async () => []);
+    const second = defineQuery(
+      "admin:residents",
+      ["residents"],
+      async () => [],
+    );
 
     expect(second).toBe(first);
     expect(second.load).toBe(first.load);
@@ -298,5 +315,97 @@ describe("defineQuery", () => {
     const again = defineQuery("admin:money:2082-01", [], async () => "second");
 
     await expect(again.load()).resolves.toBe("first");
+  });
+});
+
+describe("branch switching", () => {
+  it("ignores an old branch response and preserves the new branch's in-flight request", async () => {
+    let finishOld!: (value: string) => void;
+    let finishNew!: (value: string) => void;
+    const old = fetchQuery(
+      "admin:residents",
+      () =>
+        new Promise<string>((resolve) => {
+          finishOld = resolve;
+        }),
+    );
+    clearQueryCache();
+    const current = fetchQuery(
+      "admin:residents",
+      () =>
+        new Promise<string>((resolve) => {
+          finishNew = resolve;
+        }),
+    );
+    finishOld("old branch");
+    await old;
+    expect(readQuery("admin:residents")).toBeNull();
+    const duplicate = vi.fn(async () => "unexpected");
+    const joined = fetchQuery("admin:residents", duplicate);
+    expect(duplicate).not.toHaveBeenCalled();
+    finishNew("new branch");
+    await Promise.all([current, joined]);
+    expect(readQuery("admin:residents")?.data).toBe("new branch");
+  });
+});
+
+
+describe("per-branch cache", () => {
+  it("reuses A after A -> B -> A without fetching again", async () => {
+    const loadA = vi.fn(async () => "A residents");
+    const loadB = vi.fn(async () => "B residents");
+    setQueryCacheScope("A");
+    await fetchQuery("admin:residents", loadA);
+    setQueryCacheScope("B");
+    expect(readQuery("admin:residents")).toBeNull();
+    await fetchQuery("admin:residents", loadB);
+    setQueryCacheScope("A");
+    expect(readQuery("admin:residents")?.data).toBe("A residents");
+    prefetchQuery("admin:residents", loadA);
+    expect(loadA).toHaveBeenCalledTimes(1);
+    setQueryCacheScope("B");
+    prefetchQuery("admin:residents", loadB);
+    expect(loadB).toHaveBeenCalledTimes(1);
+  });
+
+  it("files late results under the initiating branch and deduplicates only within it", async () => {
+    let finishA!: (value: string) => void;
+    setQueryCacheScope("A");
+    const a = fetchQuery("admin:money", () => new Promise<string>((resolve) => { finishA = resolve; }));
+    setQueryCacheScope("B");
+    await fetchQuery("admin:money", async () => "B");
+    finishA("A");
+    await a;
+    expect(readQuery("admin:money")?.data).toBe("B");
+    setQueryCacheScope("A");
+    expect(readQuery("admin:money")?.data).toBe("A");
+  });
+
+  it("keeps subscriptions and direct invalidation inside their branch", () => {
+    setQueryCacheScope("A");
+    writeQuery("admin:residents", "A", ["residents"]);
+    const changedA = vi.fn();
+    subscribeQuery("admin:residents", changedA);
+    setQueryCacheScope("B");
+    writeQuery("admin:residents", "B", ["residents"]);
+    invalidateQuery("admin:residents");
+    expect(readQuery("admin:residents")?.fresh).toBe(false);
+    expect(changedA).not.toHaveBeenCalled();
+    setQueryCacheScope("A");
+    expect(readQuery("admin:residents")?.fresh).toBe(true);
+    publishTopics(["residents"]);
+    expect(readQuery("admin:residents")?.fresh).toBe(false);
+  });
+
+  it("restores separate branch snapshots and clears every branch on sign-out", () => {
+    setQueryCacheScope("A"); writeQuery("admin:residents", "A");
+    setQueryCacheScope("B"); writeQuery("admin:residents", "B");
+    const saved = snapshotQueryCache();
+    clearQueryCache(); restoreQueryCache(saved);
+    expect(readQuery("admin:residents")?.data).toBe("B");
+    setQueryCacheScope("A"); expect(readQuery("admin:residents")?.data).toBe("A");
+    clearQueryCache();
+    expect(readQuery("admin:residents")).toBeNull();
+    setQueryCacheScope("B"); expect(readQuery("admin:residents")).toBeNull();
   });
 });

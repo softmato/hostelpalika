@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { Building2 } from "lucide-react";
 
 import { usePortalResource } from "@/lib/portal-query";
@@ -62,27 +64,32 @@ export function HostelBranchesCard() {
             {rows.map((row) => (
               <tr key={row.id}>
                 <td className="py-2.5 pr-3">
-                  <a
+                  <Link
                     className="inline-flex items-center gap-2 font-semibold text-foreground hover:text-brand-teal"
                     href={`/${encodeURIComponent(row.slug)}/admin/dashboard`}
                   >
                     <Building2 className="size-4 text-muted-foreground" />
                     {row.name}
-                    {row.isBranch ? (
-                      <span className="text-[11px] font-medium text-muted-foreground">branch</span>
-                    ) : null}
-                  </a>
+                  </Link>
                 </td>
                 <td className="py-2.5 pr-3 text-right tabular-nums">{row.residents}</td>
                 <td className="py-2.5 pr-3 text-right tabular-nums">
                   {row.occupancyPercent === null ? "—" : `${row.occupancyPercent}%`}
-                  <span className="block text-[11px] text-muted-foreground">{row.beds} beds</span>
+                  <span className="block text-[11px] text-muted-foreground">
+                    {row.beds} beds
+                  </span>
                 </td>
-                <td className="py-2.5 pr-3 text-right tabular-nums">{rupees(row.collected)}</td>
-                <td className={`py-2.5 pr-3 text-right tabular-nums ${row.due > 0 ? "text-warning" : ""}`}>
+                <td className="py-2.5 pr-3 text-right tabular-nums">
+                  {rupees(row.collected)}
+                </td>
+                <td
+                  className={`py-2.5 pr-3 text-right tabular-nums ${row.due > 0 ? "text-warning" : ""}`}
+                >
                   {row.due > 0 ? rupees(row.due) : "—"}
                 </td>
-                <td className="py-2.5 pr-3 text-right tabular-nums">{row.openComplaints}</td>
+                <td className="py-2.5 pr-3 text-right tabular-nums">
+                  {row.openComplaints}
+                </td>
               </tr>
             ))}
           </tbody>

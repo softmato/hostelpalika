@@ -2243,3 +2243,8 @@ Run migrations manually during deployment or via a migration runner script.
 
 _End of DATABASE.md_
 
+
+
+## Independent branch details (2026-10-04)
+
+No migration required. Every branch remains a full Hostel with the existing ownerId; parentHostelId links shared plan billing. Branches keep separate residents, rooms, payments, settings, optional PAN and HostelPayoutAccount. PAN and payout-holder equality with the billing hostel are no longer creation requirements. Branch capacitySummary is derived from submitted roomConfigurations when present. Payout secrets remain encrypted and scoped to the individual hostel.

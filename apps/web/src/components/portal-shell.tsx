@@ -643,7 +643,7 @@ export function PortalShell({
                 )}
               </Button>
 
-              {workspaceSwitcher}
+              <div className="hidden min-w-0 md:block">{workspaceSwitcher}</div>
 
               <PortalSearch
                 className="hidden max-w-xl md:block"
@@ -696,6 +696,7 @@ export function PortalShell({
             </div>
 
             <div className="border-t border-slate-100 px-3 py-2 md:hidden dark:border-border">
+              {workspaceSwitcher ? <div className="mb-2">{workspaceSwitcher}</div> : null}
               <PortalSearch
                 entries={searchEntries}
                 placeholder={searchPlaceholder}

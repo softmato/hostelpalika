@@ -526,3 +526,24 @@ Validation: focused session/refresh, auth-route, expense-tenant and share-worker
 
 ### Receipt save notifications (2026-10-03)
 Shared receipt saves now create a recorder-only confirmation in the existing bell/native/Web Push pipeline, linking to Expenses. Manual and automatic saves both opt in through sharedReceipt; ordinary expenses stay quiet. Idempotent retries return before notification creation. Delivery failures do not fail a committed Save; push delivery runs after the response through the existing dispatcher and respects permissions/preferences. Receipt/expense regression tests passed (33). Native binaries must be rebuilt to bundle the updated sheet. iOS PWA direct incoming sharing remains unsupported; a separately implemented, securely paired Apple Shortcut could receive files and upload them without opening the PWA. That Shortcut is not implemented.
+
+
+## 2026-10-04 - Branch creation and switching
+
+Signed-in owners can submit additional branches under their existing Max allowance without another email registration. Removed matching-PAN, matching-payout-holder and first-hostel payout-verification prerequisites; documents/PAN/payout can be added later. Web/PWA and native forms use three steps, and the first hostel appears alongside additional branches with equal labels. Web header switcher supports single-hostel accounts and links to branch management; switching opens the selected dashboard. Native switcher offers branch management and clears cache before remounting; stale in-flight responses cannot refill the new branch cache. Existing platform approval, owner authorization, independent payout verification and tenant isolation remain in force. Tests cover different PAN/accounts, multiple branches under one owner, optional-input validation, ownership/plan denial, and stale cache responses. No deployment or live-data migration performed.
+
+Validation: 26 focused web tests and 28 mobile cache tests passed; web and mobile TypeScript checks passed. Targeted ESLint checks passed. Device/browser interaction and live approval/payment flows were not exercised in this session.
+
+
+## 2026-10-04 - Preserve caches across branch switches
+
+Follow-up replaces cache-clearing switches with branch-scoped caches. Native read/write/subscription/in-flight keys include the selected branch, and late responses are stored only under the initiating branch. Cache scope is restored before screens mount; sign-out still clears all branches. Legacy snapshots without branch scope are ignored. Web/PWA uses client navigation and slug-keyed workspace remounts under the existing app-wide QueryClient; query headers capture the same slug as their cache keys. Fresh resources are reused for two minutes, with fifteen-minute in-memory retention, manual refresh and event invalidation. The native disk cache retains its existing restore policy (restored data is stale and revalidated). Branch switches reset component/form state without discarding server data.
+
+Cache follow-up validation: 32 native cache tests, 7 native API/session tests (including delayed requests retaining their original branch), and 2 web cache tests passed. No live browser/device interaction was performed.
+
+
+## 2026-10-04 - Per-branch KYC and public branch links
+
+Confirmed KYC and photos are already hostel-scoped: documents, payout, resident payment setup and photo completion are read for the selected hostel only. Added a regression test proving one branch's completed steps do not complete another's. Public discovery already lists branches independently. Added public-only otherBranches detail data and reciprocal branch cards on web/PWA and native hostel pages, plus a count near the listing title. Cards show each branch's own cover image and location; unverified, unpublished, suspended, deleted and unrelated hostels are excluded. No live listings were published or changed.
+
+Public-branch validation: 15 focused tests passed; web and native TypeScript checks passed. Browser/device visual testing and live publication were not performed.

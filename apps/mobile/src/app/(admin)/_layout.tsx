@@ -99,9 +99,8 @@ export default function RoleLayout() {
   /*
    * An owner with branches works in one at a time (`lib/active-hostel.ts`).
    * Keyed on it, so switching remounts every tab onto the new hostel: a mounted
-   * screen keeps what it last read (a cleared cache key is not propagated, see
-   * `use-resource`), and a tab still showing the other branch's residents would
-   * be worse than a reload.
+   * screen resets its local state and seeds from that branch's cache. Other
+   * branches remain cached for a return visit.
    */
   const activeHostel = useSyncExternalStore(subscribeActiveHostel, getActiveHostelId, getActiveHostelId);
 
