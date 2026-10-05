@@ -5,13 +5,10 @@ import {
   ArrowRight,
   BedDouble,
   Building2,
-  Check,
   CheckCircle2,
   MapPin,
-  Plus,
   ShieldCheck,
   Sparkles,
-  Trash2,
 } from "lucide-react";
 import { useRef, useState, type FormEvent, type InputHTMLAttributes } from "react";
 
@@ -32,11 +29,11 @@ import { branchRequestSchema } from "@/modules/hostels/hostel-branch.validation"
 import { toast } from "@/stores/toast-store";
 
 import {
+  BEDS_BY_ROOM_TYPE,
   cityOptions,
   editRoomRow,
   facilityOptions,
   FileUploadArea,
-  roomTypeOptions,
   submittedDocuments,
   type UploadedFile,
 } from "./registration-fields";
@@ -46,8 +43,12 @@ import {
   shortStaysPayload,
 } from "./registration-short-stays";
 
-const FIELD =
-  "mt-1.5 min-h-11 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground outline-none transition focus:border-brand-teal focus:ring-2 focus:ring-brand-teal/20";
+import { RegistrationRooms } from "./registration-rooms";
+import { nextAvailableRoomType } from "./room-type-picker";
+import { StepFlow, StepRail } from "./registration-step-shell";
+import { DescriptionSuggestions } from "./description-suggestions";
+
+const FIELD = "input-field mt-2 block w-full min-w-0";
 const STEPS = [
   { title: "Your hostel", hint: "A familiar name, a fresh start", icon: Building2 },
   { title: "Location", hint: "Put this branch on the map", icon: MapPin },
@@ -67,9 +68,9 @@ type Room = {
 };
 const newRoom = (): Room => ({
   id: crypto.randomUUID(),
-  roomType: "Double Sharing",
+  roomType: "Single Room",
   rooms: "",
-  bedsPerRoom: "2",
+  bedsPerRoom: "1",
   vacantBeds: "",
   monthlyRent: "",
   securityDeposit: "",
@@ -118,12 +119,13 @@ export function BranchForm({
     totalCapacity: "",
     admissionFee: "",
     formFee: "",
+    securityDeposit: "",
     cookCount: "",
     mealsPerDay: "3",
     rules: "",
     panNumber: "",
   });
-  const [hostelType, setHostelType] = useState("CO_LIVING");
+  const [hostelType, setHostelType] = useState<"BOYS" | "GIRLS" | "CO_LIVING">("CO_LIVING");
   const [location, setLocation] = useState<LocationPickerValue>({
     coordinates: null,
     source: "GEOCODED",
@@ -182,7 +184,7 @@ export function BranchForm({
       landmark: details.landmark.trim() || undefined,
       mapLink: details.mapLink.trim() || undefined,
       totalFloors: optionalNumber(details.totalFloors),
-      totalCapacity: optionalNumber(details.totalCapacity),
+      totalCapacity: rooms.length ? beds : optionalNumber(details.totalCapacity),
       capacitySummary: rooms.length
         ? { totalBeds: beds, totalRooms: roomCount, vacantBeds: vacant }
         : { totalBeds: optionalNumber(details.totalCapacity) },
@@ -192,9 +194,11 @@ export function BranchForm({
         bedsPerRoom: Number(room.bedsPerRoom),
         vacantBeds: Number(room.vacantBeds),
         monthlyRent: optionalNumber(room.monthlyRent),
-        securityDeposit: optionalNumber(room.securityDeposit),
+        securityDeposit:
+          optionalNumber(room.securityDeposit) ?? optionalNumber(details.securityDeposit),
         mealInclusion: room.mealInclusion,
       })),
+      securityDeposit: optionalNumber(details.securityDeposit),
       roomTypes: rooms.map((room) => room.roomType),
       pricing: {
         currency: "NPR",
@@ -257,7 +261,28 @@ export function BranchForm({
       : undefined;
     if (issue) {
       setStep(stepFor(String(issue.path[0])));
-      setError(issue.message);
+      const row =
+        issue.path[0] === "roomConfigurations" ? Number(issue.path[1]) : undefined;
+      const labels: Record<string, string> = {
+        rooms: "Number of rooms",
+        bedsPerRoom: "Beds per room",
+        vacantBeds: "Vacant beds",
+        monthlyRent: "Monthly rent",
+        securityDeposit: "Security deposit",
+        phone: "Phone",
+        totalCapacity: "Total capacity",
+        totalFloors: "Total floors",
+        roomType: "Room type",
+      };
+      const field = String(issue.path.at(-1));
+      setError(
+        `${row !== undefined ? `Room type ${row + 1} (${rooms[row]?.roomType}): ` : ""}${labels[field] ?? field}: ${issue.message}`,
+      );
+      requestAnimationFrame(() =>
+        document
+          .getElementById("branch-form-error")
+          ?.scrollIntoView({ block: "center", behavior: "smooth" }),
+      );
       return;
     }
     if (step < 4) {
@@ -402,615 +427,541 @@ export function BranchForm({
             style={{ width: `${(step / 5) * 100}%` }}
           />
         </div>
-        <ol className="mt-4 grid grid-cols-5 gap-1 sm:gap-3">
-          {STEPS.map((item, index) => (
-            <li key={item.title} aria-current={step === index ? "step" : undefined}>
-              <button
-                type="button"
-                disabled={index >= step || saving || uploading}
-                onClick={() => move(index)}
-                className={`flex w-full flex-col items-center gap-2 rounded-xl p-2 text-center text-[10px] font-semibold sm:flex-row sm:text-left sm:text-xs ${step === index ? "bg-background text-brand-teal shadow-sm" : "text-muted-foreground"}`}
-              >
-                <span
-                  className={`flex size-7 shrink-0 items-center justify-center rounded-full ${index < step ? "bg-brand-teal text-white" : "border border-border"}`}
-                >
-                  {index < step ? <Check className="size-4" /> : index + 1}
-                </span>
-                {item.title}
-              </button>
-            </li>
-          ))}
-        </ol>
       </div>
-      <form onSubmit={submit} className="p-5 sm:p-7">
-        <div className="mb-6 flex items-center gap-3">
-          <span className="rounded-xl bg-brand-teal/10 p-3 text-brand-teal">
-            <Icon className="size-5" />
-          </span>
-          <div>
-            <h3
-              ref={heading}
-              tabIndex={-1}
-              className="scroll-mt-24 text-lg font-bold text-foreground outline-none"
-            >
-              {STEPS[step].title}
-            </h3>
-            <p className="text-sm text-muted-foreground">{STEPS[step].hint}</p>
-          </div>
-        </div>
-        <fieldset disabled={saving || uploading} className="space-y-5">
-          {step === 0 && (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field
-                  label="Hostel name"
-                  required
-                  minLength={2}
-                  maxLength={160}
-                  value={details.name}
-                  onChange={(e) => set("name", e.target.value)}
-                />
-                <Field
-                  label="Branch phone"
-                  required
-                  type="tel"
-                  minLength={7}
-                  maxLength={24}
-                  value={details.phone}
-                  onChange={(e) => set("phone", e.target.value)}
-                />
-                <Field
-                  label="Alternate phone (optional)"
-                  type="tel"
-                  value={details.alternatePhone}
-                  onChange={(e) => set("alternatePhone", e.target.value)}
-                />
-                <Field
-                  label="Contact email (optional)"
-                  type="email"
-                  value={details.email}
-                  onChange={(e) => set("email", e.target.value)}
-                />
-                <Field
-                  label="Year established (optional)"
-                  placeholder="e.g. 2026"
-                  pattern="[0-9]{4}"
-                  maxLength={4}
-                  value={details.yearEstablished}
-                  onChange={(e) => set("yearEstablished", e.target.value)}
-                />
-              </div>
-              <fieldset>
-                <legend className="mb-2 text-sm font-medium">
-                  Who is this hostel for?
-                </legend>
-                <div className="grid grid-cols-3 gap-3">
-                  {[
-                    ["BOYS", "Boys"],
-                    ["GIRLS", "Girls"],
-                    ["CO_LIVING", "Co-living"],
-                  ].map(([value, label]) => (
-                    <label
-                      key={value}
-                      className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border p-4 text-sm font-semibold ${hostelType === value ? "border-brand-teal bg-brand-teal/5 text-brand-teal" : "border-border"}`}
-                    >
-                      <input
-                        type="radio"
-                        name="hostelType"
-                        checked={hostelType === value}
-                        onChange={() => setHostelType(value)}
-                      />
-                      {label}
-                    </label>
-                  ))}
-                </div>
-              </fieldset>
-              <label className="block text-sm font-medium">
-                About this branch (optional)
-                <textarea
-                  rows={3}
-                  maxLength={2000}
-                  className={FIELD}
-                  placeholder="Tell future residents about the space, neighbourhood and atmosphere."
-                  value={details.description}
-                  onChange={(e) => set("description", e.target.value)}
-                />
-              </label>
-            </>
-          )}
-          {step === 1 && (
-            <>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field
-                  label="Area / neighbourhood"
-                  required
-                  minLength={2}
-                  maxLength={120}
-                  value={details.area}
-                  onChange={(e) => set("area", e.target.value)}
-                />
-                <Field
-                  label="City"
-                  required
-                  list="branch-cities"
-                  minLength={2}
-                  maxLength={120}
-                  value={details.city}
-                  onChange={(e) => set("city", e.target.value)}
-                />
-                <datalist id="branch-cities">
-                  {cityOptions.map((city) => (
-                    <option key={city} value={city} />
-                  ))}
-                </datalist>
-                <Field
-                  label="Street address"
-                  maxLength={240}
-                  value={details.address}
-                  onChange={(e) => set("address", e.target.value)}
-                />
-                <Field
-                  label="Nearby landmark"
-                  maxLength={240}
-                  value={details.landmark}
-                  onChange={(e) => set("landmark", e.target.value)}
-                />
-                <Field
-                  label="Province (optional)"
-                  maxLength={120}
-                  value={details.province}
-                  onChange={(e) => set("province", e.target.value)}
-                />
-                <Field
-                  label="Google Maps link (optional)"
-                  maxLength={500}
-                  value={details.mapLink}
-                  onChange={(e) => set("mapLink", e.target.value)}
-                />
-              </div>
-              <div className="rounded-xl border border-border p-4">
-                <p className="mb-3 text-sm text-muted-foreground">
-                  Search for this branch, use your current location, or drag the pin to
-                  its entrance.
-                </p>
-                <LocationPicker
-                  addressHint={[details.address, details.area, details.city, "Nepal"]
-                    .filter(Boolean)
-                    .join(", ")}
-                  initialQuery={details.mapLink || undefined}
-                  value={location}
-                  onChange={setLocation}
-                  onResolvedAddress={(parts) =>
-                    setDetails((current) => ({
-                      ...current,
-                      address: parts.address || current.address,
-                      area: parts.area || current.area,
-                      city: parts.city || current.city,
-                      province: parts.province || current.province,
-                    }))
-                  }
-                />
-              </div>
-            </>
-          )}
-          {step === 2 && (
-            <>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <Field
-                  label="Total floors"
-                  required
-                  type="number"
-                  min={0}
-                  max={50}
-                  value={details.totalFloors}
-                  onChange={(e) => set("totalFloors", e.target.value)}
-                />
-                <Field
-                  label="Total capacity (beds)"
-                  required
-                  type="number"
-                  min={1}
-                  max={10000}
-                  value={details.totalCapacity}
-                  onChange={(e) => set("totalCapacity", e.target.value)}
-                />
-                <Field
-                  label="Admission fee (NPR, optional)"
-                  type="number"
-                  min={0}
-                  value={details.admissionFee}
-                  onChange={(e) => set("admissionFee", e.target.value)}
-                />
-<Field
-                  label="Form fee (NPR, optional)"
-                  type="number"
-                  min={0}
-                  value={details.formFee}
-                  onChange={(e) => set("formFee", e.target.value)}
-                />
-              </div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h4 className="text-sm font-semibold">Room types & monthly prices</h4>
-                  <p className="text-xs text-muted-foreground">
-                    Add your room mix now, or set it up after review.
-                  </p>
-                </div>
-                <span className="rounded-full bg-brand-teal/10 px-3 py-1.5 text-xs font-bold text-brand-teal">
-                  {roomCount} rooms · {beds} beds · {vacant} vacant
-                </span>
-              </div>
-              {rooms.map((room, index) => (
-                <div
-                  key={room.id}
-                  className="space-y-4 rounded-xl border border-border bg-muted/20 p-4"
+      <div className="grid min-w-0 items-start gap-6 p-4 sm:p-6 lg:grid-cols-[180px_minmax(0,1fr)]">
+        <StepRail
+          currentStep={step + 1}
+          steps={STEPS.map((item, index) => ({
+            key: index + 1,
+            label: item.title,
+            description: item.hint,
+          }))}
+          stepComplete={(key) => key <= step}
+          onStepSelect={(key) => {
+            if (!saving && !uploading && key <= step + 1) move(key - 1);
+          }}
+        />
+        <StepFlow className="min-w-0" stepKey={step}>
+          <form onSubmit={submit} className="min-w-0 rounded-2xl border border-border bg-card p-4 sm:p-6">
+            <div className="mb-6 flex items-center gap-3">
+              <span className="rounded-xl bg-brand-teal/10 p-3 text-brand-teal">
+                <Icon className="size-5" />
+              </span>
+              <div>
+                <h3
+                  ref={heading}
+                  tabIndex={-1}
+                  className="scroll-mt-24 text-lg font-bold text-foreground outline-none"
                 >
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold">Room type {index + 1}</p>
-                    <button
-                      type="button"
-                      aria-label={`Remove room type ${index + 1}`}
-                      onClick={() =>
-                        setRooms((current) =>
-                          current.filter((item) => item.id !== room.id),
-                        )
-                      }
-                      className="rounded-lg p-2 text-muted-foreground hover:text-destructive"
-                    >
-                      <Trash2 className="size-4" />
-                    </button>
+                  {STEPS[step].title}
+                </h3>
+                <p className="text-sm text-muted-foreground">{STEPS[step].hint}</p>
+              </div>
+            </div>
+            <fieldset disabled={saving || uploading} className="min-w-0 space-y-5">
+              {step === 0 && (
+                <>
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <Field
+                      label="Hostel name"
+                      required
+                      minLength={2}
+                      maxLength={160}
+                      value={details.name}
+                      onChange={(e) => set("name", e.target.value)}
+                    />
+                    <Field
+                      label="Branch phone"
+                      required
+                      type="tel"
+                      minLength={7}
+                      maxLength={24}
+                      value={details.phone}
+                      onChange={(e) => set("phone", e.target.value)}
+                    />
+                    <Field
+                      label="Alternate phone (optional)"
+                      type="tel"
+                      value={details.alternatePhone}
+                      onChange={(e) => set("alternatePhone", e.target.value)}
+                    />
+                    <Field
+                      label="Contact email (optional)"
+                      type="email"
+                      value={details.email}
+                      onChange={(e) => set("email", e.target.value)}
+                    />
+                    <Field
+                      label="Year established (optional)"
+                      placeholder="e.g. 2026"
+                      pattern="[0-9]{4}"
+                      maxLength={4}
+                      value={details.yearEstablished}
+                      onChange={(e) => set("yearEstablished", e.target.value)}
+                    />
                   </div>
+                  <fieldset>
+                    <legend className="mb-2 text-sm font-medium">
+                      Who is this hostel for?
+                    </legend>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        ["BOYS", "Boys"],
+                        ["GIRLS", "Girls"],
+                        ["CO_LIVING", "Co-living"],
+                      ].map(([value, label]) => (
+                        <label
+                          key={value}
+                          className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border p-4 text-sm font-semibold ${hostelType === value ? "border-brand-teal bg-brand-teal/5 text-brand-teal" : "border-border"}`}
+                        >
+                          <input
+                            type="radio"
+                            name="hostelType"
+                            checked={hostelType === value}
+                            onChange={() => setHostelType(value as typeof hostelType)}
+                          />
+                          {label}
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                  <label className="block text-sm font-medium">
+                    About this branch (optional)
+                    <textarea
+                      rows={3}
+                      maxLength={2000}
+                      className={`${FIELD} h-auto min-h-32 resize-y py-3`}
+                      placeholder="Tell future residents about the space, neighbourhood and atmosphere."
+                      value={details.description}
+                      onChange={(e) => set("description", e.target.value)}
+                    />
+                  </label>
+                  <DescriptionSuggestions
+                    facts={{ hostelName: details.name, hostelType, area: details.area, city: details.city, yearEstablished: details.yearEstablished }}
+                    value={details.description}
+                    onChange={(description) => set("description", description)}
+                  />
+                </>
+              )}
+              {step === 1 && (
+                <>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field
+                      label="Area / neighbourhood"
+                      required
+                      minLength={2}
+                      maxLength={120}
+                      value={details.area}
+                      onChange={(e) => set("area", e.target.value)}
+                    />
+                    <Field
+                      label="City"
+                      required
+                      list="branch-cities"
+                      minLength={2}
+                      maxLength={120}
+                      value={details.city}
+                      onChange={(e) => set("city", e.target.value)}
+                    />
+                    <datalist id="branch-cities">
+                      {cityOptions.map((city) => (
+                        <option key={city} value={city} />
+                      ))}
+                    </datalist>
+                    <Field
+                      label="Street address"
+                      maxLength={240}
+                      value={details.address}
+                      onChange={(e) => set("address", e.target.value)}
+                    />
+                    <Field
+                      label="Nearby landmark"
+                      maxLength={240}
+                      value={details.landmark}
+                      onChange={(e) => set("landmark", e.target.value)}
+                    />
+                    <Field
+                      label="Province (optional)"
+                      maxLength={120}
+                      value={details.province}
+                      onChange={(e) => set("province", e.target.value)}
+                    />
+                    <Field
+                      label="Google Maps link (optional)"
+                      maxLength={500}
+                      value={details.mapLink}
+                      onChange={(e) => set("mapLink", e.target.value)}
+                    />
+                  </div>
+                  <div className="rounded-xl border border-border p-4">
+                    <p className="mb-3 text-sm text-muted-foreground">
+                      Search for this branch, use your current location, or drag the pin
+                      to its entrance.
+                    </p>
+                    <LocationPicker
+                      addressHint={[details.address, details.area, details.city, "Nepal"]
+                        .filter(Boolean)
+                        .join(", ")}
+                      initialQuery={details.mapLink || undefined}
+                      value={location}
+                      onChange={setLocation}
+                      onResolvedAddress={(parts) =>
+                        setDetails((current) => ({
+                          ...current,
+                          address: parts.address || current.address,
+                          area: parts.area || current.area,
+                          city: parts.city || current.city,
+                          province: parts.province || current.province,
+                        }))
+                      }
+                    />
+                  </div>
+                </>
+              )}
+              {step === 2 && (
+                <>
                   <div className="grid gap-4 sm:grid-cols-3">
-                    {(
-                      [
-                        ["roomType", "Room type"],
-                        ["rooms", "Number of rooms"],
-                        ["bedsPerRoom", "Beds per room"],
-                        ["vacantBeds", "Vacant beds"],
-                        ["monthlyRent", "Monthly rent / bed (NPR)"],
-                        ["securityDeposit", "Security deposit (NPR, optional)"],
-                      ] as const
-                    ).map(([key, label]) => (
-                      <Field
-                        key={key}
-                        label={label}
-                          required={key !== "securityDeposit"}
-                        list={key === "roomType" ? "branch-room-types" : undefined}
-                        type={key === "roomType" ? "text" : "number"}
-                        min={key === "rooms" || key === "bedsPerRoom" ? 1 : 0}
-                        max={
-                          key === "vacantBeds"
-                            ? Number(room.rooms) * Number(room.bedsPerRoom)
-                            : undefined
-                        }
-                        value={room[key]}
-                        onChange={(e) =>
-                          setRooms((current) =>
-                            current.map((item) =>
-                              item.id === room.id
-                                ? editRoomRow(item, { [key]: e.target.value })
-                                : item,
-                            ),
-                          )
-                        }
-                      />
-                    ))}
+                    <Field
+                      label="Total floors"
+                      required
+                      type="number"
+                      min={0}
+                      max={50}
+                      value={details.totalFloors}
+                      onChange={(e) => set("totalFloors", e.target.value)}
+                    />
+                    <Field
+                      label="Total capacity (beds)"
+                      required
+                      type="number"
+                      min={1}
+                      max={10000}
+                      readOnly={rooms.length > 0}
+                      value={rooms.length ? beds : details.totalCapacity}
+                      onChange={(e) => set("totalCapacity", e.target.value)}
+                    />
+                    <Field
+                      label="Admission fee (NPR, optional)"
+                      type="number"
+                      min={0}
+                      value={details.admissionFee}
+                      onChange={(e) => set("admissionFee", e.target.value)}
+                    />
+                    <Field
+                      label="Form fee (NPR, optional)"
+                      type="number"
+                      min={0}
+                      value={details.formFee}
+                      onChange={(e) => set("formFee", e.target.value)}
+                    />
+                  </div>
+                  <p className="rounded-lg bg-brand-teal/5 p-3 text-sm text-brand-teal">
+                    {roomCount} rooms × their beds per room = <strong>{beds} beds</strong>{" "}
+                    · {vacant} vacant. Total capacity updates automatically as you edit
+                    rooms.
+                  </p>
+                  <RegistrationRooms
+                    rooms={rooms}
+                    globalDeposit={details.securityDeposit}
+                    onDepositChange={(value) => set("securityDeposit", value)}
+                    updateRoom={(id, patch) =>
+                      setRooms((current) =>
+                        current.map((room) =>
+                          room.id === id ? editRoomRow(room, patch) : room,
+                        ),
+                      )
+                    }
+                    onAdd={() => setRooms((current) => {
+                      const roomType = nextAvailableRoomType(current.map((room) => room.roomType));
+                      return roomType ? [...current, { ...newRoom(), roomType, bedsPerRoom: String(BEDS_BY_ROOM_TYPE[roomType] ?? "") }] : current;
+                    })}
+                    onRemove={(id) =>
+                      setRooms((current) => current.filter((room) => room.id !== id))
+                    }
+                  />
+                  <RegistrationShortStays
+                    value={shortStays}
+                    onChange={setShortStays}
+                    rooms={rooms}
+                  />
+                </>
+              )}
+              {step === 3 && (
+                <>
+                  <fieldset>
+                    <legend className="mb-3 text-sm font-semibold">
+                      What is available at this branch?
+                    </legend>
+                    <div className="flex flex-wrap gap-2">
+                      {facilityOptions.map((facility) => (
+                        <label
+                          key={facility}
+                          className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-2 text-xs font-medium transition-colors ${facilities.includes(facility) ? "border-brand-teal bg-brand-teal/10 text-brand-teal" : "border-border"}`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={facilities.includes(facility)}
+                            onChange={(e) =>
+                              setFacilities((current) =>
+                                e.target.checked
+                                  ? [...current, facility]
+                                  : current.filter((item) => item !== facility),
+                              )
+                            }
+                          />
+                          {facility}
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                  <div className="grid gap-4 sm:grid-cols-3">
                     <label className="text-sm font-medium">
-                      Meals
+                      Food availability
                       <select
                         className={FIELD}
-                        value={room.mealInclusion}
-                        onChange={(e) =>
-                          setRooms((current) =>
-                            current.map((item) =>
-                              item.id === room.id
-                                ? {
-                                    ...item,
-                                    mealInclusion: e.target
-                                      .value as Room["mealInclusion"],
-                                  }
-                                : item,
-                            ),
-                          )
-                        }
+                        value={foodAvailability}
+                        onChange={(e) => setFoodAvailability(e.target.value)}
                       >
-                        {["Included", "Not Included", "Optional"].map((value) => (
-                          <option key={value}>{value}</option>
-                        ))}
+                        <option value="included">Included in rent</option>
+                        <option value="extra">Available at extra charge</option>
+                        <option value="none">No meals</option>
                       </select>
                     </label>
+                    {foodAvailability !== "none" && (
+                      <Field
+                        label="Meals per day"
+                        type="number"
+                        min={0}
+                        max={6}
+                        value={details.mealsPerDay}
+                        onChange={(e) => set("mealsPerDay", e.target.value)}
+                      />
+                    )}
+                    <Field
+                      label="Number of cooks (optional)"
+                      type="number"
+                      min={0}
+                      max={100}
+                      value={details.cookCount}
+                      onChange={(e) => set("cookCount", e.target.value)}
+                    />
                   </div>
-                </div>
-              ))}
-              <datalist id="branch-room-types">
-                {roomTypeOptions.map((type) => (
-                  <option key={type} value={type} />
-                ))}
-              </datalist>
-              <button
-                type="button"
-                disabled={rooms.length >= 30}
-                onClick={() => setRooms((current) => [...current, newRoom()])}
-                className="flex w-full items-center justify-center gap-2 rounded-xl border border-dashed border-brand-teal/40 p-3 text-sm font-semibold text-brand-teal"
-              >
-                <Plus className="size-4" /> Add a room type
-              </button>
-              <RegistrationShortStays
-                value={shortStays}
-                onChange={setShortStays}
-                rooms={rooms}
-              />
-            </>
-          )}
-          {step === 3 && (
-            <>
-              <fieldset>
-                <legend className="mb-3 text-sm font-semibold">
-                  What is available at this branch?
-                </legend>
-                <div className="flex flex-wrap gap-2">
-                  {facilityOptions.map((facility) => (
-                    <label
-                      key={facility}
-                      className={`flex cursor-pointer items-center gap-2 rounded-full border px-3 py-2 text-xs font-medium transition-colors ${facilities.includes(facility) ? "border-brand-teal bg-brand-teal/10 text-brand-teal" : "border-border"}`}
-                    >
+                  {foodAvailability !== "none" && (
+                    <div className="flex gap-6 text-sm">
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={hasVeg}
+                          onChange={(e) => setHasVeg(e.target.checked)}
+                        />
+                        Vegetarian
+                      </label>
+                      <label className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={hasNonVeg}
+                          onChange={(e) => setHasNonVeg(e.target.checked)}
+                        />
+                        Non-vegetarian
+                      </label>
+                    </div>
+                  )}
+                  <label className="block text-sm font-medium">
+                    House rules (optional, one per line)
+                    <textarea
+                      rows={4}
+                      className={`${FIELD} h-auto min-h-32 resize-y py-3`}
+                      value={details.rules}
+                      onChange={(e) => set("rules", e.target.value)}
+                      placeholder="Quiet hours, visitors, meal timings…"
+                    />
+                  </label>
+                  <div className="grid gap-5 sm:grid-cols-2">
+                    <div>
+                      <h4 className="mb-2 text-sm font-semibold">Exterior photos</h4>
+                      {uploader("EXTERIOR", true)}
+                    </div>
+                    <div>
+                      <h4 className="mb-2 text-sm font-semibold">
+                        Rooms & interior photos
+                      </h4>
+                      {uploader("INTERIOR", true)}
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Use photos of this location. You can add more photos after
+                    registration.
+                  </p>
+                </>
+              )}
+              {step === 4 && (
+                <>
+                  <div className="rounded-xl border border-brand-teal/20 bg-brand-teal/5 p-5">
+                    <h4 className="text-lg font-bold">{details.name}</h4>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {[details.address, details.area, details.city]
+                        .filter(Boolean)
+                        .join(", ")}
+                    </p>
+                    <div className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+                      <span>
+                        <strong className="block">{rooms.length ? beds : details.totalCapacity}</strong>Beds
+                      </span>
+                      <span>
+                        <strong className="block">{details.totalFloors}</strong>Floors
+                      </span>
+                      <span>
+                        <strong className="block">{roomCount || "Add later"}</strong>Rooms
+                      </span>
+                      <span>
+                        <strong className="block">{facilities.length}</strong>Facilities
+                      </span>
+                    </div>
+                    <p className="mt-4 text-sm">
+                      We will call {details.phone} before this branch goes live.
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-3">
+                      {STEPS.slice(0, 4).map((item, index) => (
+                        <button
+                          key={item.title}
+                          type="button"
+                          className="text-xs font-semibold text-brand-teal underline"
+                          onClick={() => move(index)}
+                        >
+                          Edit {item.title.toLowerCase()}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="space-y-4 rounded-xl border border-border p-4">
+                    <label className="flex items-start gap-3 text-sm font-semibold">
                       <input
                         type="checkbox"
-                        checked={facilities.includes(facility)}
-                        onChange={(e) =>
-                          setFacilities((current) =>
-                            e.target.checked
-                              ? [...current, facility]
-                              : current.filter((item) => item !== facility),
-                          )
-                        }
+                        className="mt-1"
+                        checked={reuseDocuments}
+                        onChange={(e) => setReuseDocuments(e.target.checked)}
                       />
-                      {facility}
+                      <span>
+                        Use the same business documents
+                        <span className="mt-1 block text-xs font-normal text-muted-foreground">
+                          Reuse approved documents and PAN/VAT from {main.name}. Each
+                          copied document will be reviewed for this location.
+                        </span>
+                      </span>
                     </label>
-                  ))}
-                </div>
-              </fieldset>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <label className="text-sm font-medium">
-                  Food availability
-                  <select
-                    className={FIELD}
-                    value={foodAvailability}
-                    onChange={(e) => setFoodAvailability(e.target.value)}
-                  >
-                    <option value="included">Included in rent</option>
-                    <option value="extra">Available at extra charge</option>
-                    <option value="none">No meals</option>
-                  </select>
-                </label>
-                {foodAvailability !== "none" && (
-                  <Field
-                    label="Meals per day"
-                    type="number"
-                    min={0}
-                    max={6}
-                    value={details.mealsPerDay}
-                    onChange={(e) => set("mealsPerDay", e.target.value)}
-                  />
-                )}
-                <Field
-                  label="Number of cooks (optional)"
-                  type="number"
-                  min={0}
-                  max={100}
-                  value={details.cookCount}
-                  onChange={(e) => set("cookCount", e.target.value)}
-                />
-              </div>
-              {foodAvailability !== "none" && (
-                <div className="flex gap-6 text-sm">
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={hasVeg}
-                      onChange={(e) => setHasVeg(e.target.checked)}
-                    />
-                    Vegetarian
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      checked={hasNonVeg}
-                      onChange={(e) => setHasNonVeg(e.target.checked)}
-                    />
-                    Non-vegetarian
-                  </label>
-                </div>
-              )}
-              <label className="block text-sm font-medium">
-                House rules (optional, one per line)
-                <textarea
-                  rows={4}
-                  className={FIELD}
-                  value={details.rules}
-                  onChange={(e) => set("rules", e.target.value)}
-                  placeholder="Quiet hours, visitors, meal timings…"
-                />
-              </label>
-              <div className="grid gap-5 sm:grid-cols-2">
-                <div>
-                  <h4 className="mb-2 text-sm font-semibold">Exterior photos</h4>
-                  {uploader("EXTERIOR", true)}
-                </div>
-                <div>
-                  <h4 className="mb-2 text-sm font-semibold">Rooms & interior photos</h4>
-                  {uploader("INTERIOR", true)}
-                </div>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Use photos of this location. You can add more photos after registration.
-              </p>
-            </>
-          )}
-          {step === 4 && (
-            <>
-              <div className="rounded-xl border border-brand-teal/20 bg-brand-teal/5 p-5">
-                <h4 className="text-lg font-bold">{details.name}</h4>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {[details.address, details.area, details.city]
-                    .filter(Boolean)
-                    .join(", ")}
-                </p>
-                <div className="mt-4 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-                  <span>
-                    <strong className="block">{details.totalCapacity}</strong>Beds
-                  </span>
-                  <span>
-                    <strong className="block">{details.totalFloors}</strong>Floors
-                  </span>
-                  <span>
-                    <strong className="block">{roomCount || "Add later"}</strong>Rooms
-                  </span>
-                  <span>
-                    <strong className="block">{facilities.length}</strong>Facilities
-                  </span>
-                </div>
-                <p className="mt-4 text-sm">
-                  We will call {details.phone} before this branch goes live.
-                </p>
-                <div className="mt-3 flex flex-wrap gap-3">
-                  {STEPS.slice(0, 4).map((item, index) => (
-                    <button
-                      key={item.title}
-                      type="button"
-                      className="text-xs font-semibold text-brand-teal underline"
-                      onClick={() => move(index)}
-                    >
-                      Edit {item.title.toLowerCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div className="space-y-4 rounded-xl border border-border p-4">
-                <label className="flex items-start gap-3 text-sm font-semibold">
-                  <input
-                    type="checkbox"
-                    className="mt-1"
-                    checked={reuseDocuments}
-                    onChange={(e) => setReuseDocuments(e.target.checked)}
-                  />
-                  <span>
-                    Use the same business documents
-                    <span className="mt-1 block text-xs font-normal text-muted-foreground">
-                      Reuse approved documents and PAN/VAT from {main.name}. Each copied
-                      document will be reviewed for this location.
-                    </span>
-                  </span>
-                </label>
-                {reuseDocuments ? (
-                  <p className="text-xs text-muted-foreground">
-                    PAN/VAT: {main.panNumber ?? "Not added yet"}. Any missing or
-                    location-specific proof can be added below or requested during review.
-                  </p>
-                ) : (
-                  <Field
-                    label="Branch PAN/VAT (optional)"
-                    pattern="[0-9]{9}"
-                    maxLength={9}
-                    value={details.panNumber}
-                    onChange={(e) => set("panNumber", e.target.value)}
-                  />
-                )}
-                <details>
-                  <summary className="cursor-pointer text-sm font-semibold text-brand-teal">
-                    Add or replace documents (optional)
-                  </summary>
-                  <div className="mt-4 grid gap-5 sm:grid-cols-2">
-                    {[
-                      "Ownership proof",
-                      "Owner ID proof",
-                      "PAN / VAT document",
-                      "Hostel license",
-                      "Bank account details",
-                      "Rules & policies",
-                    ].map((kind) => (
-                      <div key={kind}>
-                        <h4 className="mb-2 text-sm font-medium">{kind}</h4>
-                        {uploader(kind)}
+                    {reuseDocuments ? (
+                      <p className="text-xs text-muted-foreground">
+                        PAN/VAT: {main.panNumber ?? "Not added yet"}. Any missing or
+                        location-specific proof can be added below or requested during
+                        review.
+                      </p>
+                    ) : (
+                      <Field
+                        label="Branch PAN/VAT (optional)"
+                        pattern="[0-9]{9}"
+                        maxLength={9}
+                        value={details.panNumber}
+                        onChange={(e) => set("panNumber", e.target.value)}
+                      />
+                    )}
+                    <details>
+                      <summary className="cursor-pointer text-sm font-semibold text-brand-teal">
+                        Add or replace documents (optional)
+                      </summary>
+                      <div className="mt-4 grid gap-5 sm:grid-cols-2">
+                        {[
+                          "Ownership proof",
+                          "Owner ID proof",
+                          "PAN / VAT document",
+                          "Hostel license",
+                          "Bank account details",
+                          "Rules & policies",
+                        ].map((kind) => (
+                          <div key={kind}>
+                            <h4 className="mb-2 text-sm font-medium">{kind}</h4>
+                            {uploader(kind)}
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    </details>
                   </div>
-                </details>
-              </div>
-              <div className="space-y-3">
-                <h4 className="text-sm font-semibold">
-                  Branch payout account (optional)
-                </h4>
-                <p className="text-xs text-muted-foreground">
-                  Add the bank account or wallet that should receive this branch’s
-                  payments. You can complete this later.
-                </p>
-                <PayoutAccountFields onChange={setPayout} value={payout} />
-              </div>
-              <label className="flex items-start gap-3 rounded-xl bg-muted/40 p-4 text-sm">
-                <input
-                  type="checkbox"
-                  required
-                  className="mt-1"
-                  checked={confirmed}
-                  onChange={(e) => setConfirmed(e.target.checked)}
-                />
-                I confirm these details and any reused documents apply to this branch.
-              </label>
-            </>
-          )}
-        </fieldset>
-        {uploading && (
-          <p role="status" className="mt-4 text-sm text-brand-teal">
-            Uploading your files…
-          </p>
-        )}
-        {error && (
-          <p
-            role="alert"
-            className="mt-4 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive"
-          >
-            {error}
-          </p>
-        )}
-        <div className="mt-7 flex flex-wrap items-center gap-3 border-t border-border pt-5">
-          <button
-            type="button"
-            disabled={saving || uploading}
-            onClick={onCancel}
-            className="mr-auto rounded-xl px-3 py-2.5 text-sm text-muted-foreground"
-          >
-            Cancel
-          </button>
-          {step > 0 && (
-            <button
-              type="button"
-              disabled={saving || uploading}
-              onClick={() => move(step - 1)}
-              className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-semibold"
-            >
-              <ArrowLeft className="size-4" />
-              Back
-            </button>
-          )}
-          <button
-            type="submit"
-            disabled={saving || uploading}
-            className="inline-flex items-center gap-2 rounded-xl bg-brand-teal px-5 py-3 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-50"
-          >
-            {saving
-              ? "Submitting…"
-              : step === 4
-                ? "Submit branch for review"
-                : "Continue"}
-            {step === 4 ? (
-              <CheckCircle2 className="size-4" />
-            ) : (
-              <ArrowRight className="size-4" />
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold">
+                      Branch payout account (optional)
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Add the bank account or wallet that should receive this branch’s
+                      payments. You can complete this later.
+                    </p>
+                    <PayoutAccountFields onChange={setPayout} value={payout} />
+                  </div>
+                  <label className="flex items-start gap-3 rounded-xl bg-muted/40 p-4 text-sm">
+                    <input
+                      type="checkbox"
+                      required
+                      className="mt-1"
+                      checked={confirmed}
+                      onChange={(e) => setConfirmed(e.target.checked)}
+                    />
+                    I confirm these details and any reused documents apply to this branch.
+                  </label>
+                </>
+              )}
+            </fieldset>
+            {uploading && (
+              <p role="status" className="mt-4 text-sm text-brand-teal">
+                Uploading your files…
+              </p>
             )}
-          </button>
-        </div>
-      </form>
+            {error && (
+              <p
+                id="branch-form-error"
+                role="alert"
+                className="mt-4 rounded-xl border border-destructive/20 bg-destructive/5 p-3 text-sm text-destructive"
+              >
+                {error}
+              </p>
+            )}
+            <div className="mt-7 flex flex-wrap items-center gap-3 border-t border-border pt-5">
+              <button
+                type="button"
+                disabled={saving || uploading}
+                onClick={onCancel}
+                className="mr-auto rounded-xl px-3 py-2.5 text-sm text-muted-foreground"
+              >
+                Cancel
+              </button>
+              {step > 0 && (
+                <button
+                  type="button"
+                  disabled={saving || uploading}
+                  onClick={() => move(step - 1)}
+                  className="inline-flex items-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-semibold"
+                >
+                  <ArrowLeft className="size-4" />
+                  Back
+                </button>
+              )}
+              <button
+                type="submit"
+                disabled={saving || uploading}
+                className="inline-flex items-center gap-2 rounded-xl bg-brand-teal px-5 py-3 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-50"
+              >
+                {saving
+                  ? "Submitting…"
+                  : step === 4
+                    ? "Submit branch for review"
+                    : "Continue"}
+                {step === 4 ? (
+                  <CheckCircle2 className="size-4" />
+                ) : (
+                  <ArrowRight className="size-4" />
+                )}
+              </button>
+            </div>
+          </form>
+        </StepFlow>
+      </div>
     </section>
   );
 }

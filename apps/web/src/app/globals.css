@@ -577,6 +577,51 @@ body {
   }
 }
 
+.free-plan-card {
+  background: linear-gradient(115deg, #fff8e7 0%, #fffdf6 52%, #edf9f2 100%);
+}
+
+.dark .free-plan-card {
+  background: linear-gradient(115deg, #352816 0%, #29291f 52%, #19332c 100%);
+}
+
+.free-plan-card-welcome::before {
+  position: absolute;
+  inset: -80% -35%;
+  z-index: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 38%,
+    rgb(255 255 255 / 75%) 50%,
+    transparent 62%
+  );
+  content: "";
+  pointer-events: none;
+  transform: translateX(-85%) rotate(-8deg);
+  animation: free-plan-shine 1.4s ease-out 1 both;
+}
+
+.dark .free-plan-card-welcome::before {
+  background: linear-gradient(
+    100deg,
+    transparent 38%,
+    rgb(255 221 137 / 12%) 50%,
+    transparent 62%
+  );
+}
+
+@keyframes free-plan-shine {
+  to {
+    transform: translateX(85%) rotate(-8deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .free-plan-card-welcome::before {
+    animation: none;
+  }
+}
+
 /* Force Google Identity Services button iframe and wrapper to be full 100% width */
 .google-auth-button-container,
 .google-auth-button-container > div,

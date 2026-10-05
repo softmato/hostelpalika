@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { Building2 } from "lucide-react";
+import { ArrowUpRight, Building2 } from "lucide-react";
 
 import { usePortalResource } from "@/lib/portal-query";
 import { bsMonthName } from "@hostel/shared/calendar/bs";
@@ -48,53 +48,72 @@ export function HostelBranchesCard() {
       description={`Residents, beds, ${month}'s collection and open complaints — open one to work in it.`}
       title="Your hostels"
     >
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] text-sm">
-          <thead>
-            <tr className="text-left text-[11px] uppercase tracking-wide text-muted-foreground">
-              <th className="py-2 pr-3 font-semibold">Hostel</th>
-              <th className="py-2 pr-3 text-right font-semibold">Residents</th>
-              <th className="py-2 pr-3 text-right font-semibold">Occupancy</th>
-              <th className="py-2 pr-3 text-right font-semibold">Collected</th>
-              <th className="py-2 pr-3 text-right font-semibold">Due</th>
-              <th className="py-2 pr-3 text-right font-semibold">Complaints</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {rows.map((row) => (
-              <tr key={row.id}>
-                <td className="py-2.5 pr-3">
-                  <Link
-                    className="inline-flex items-center gap-2 font-semibold text-foreground hover:text-brand-teal"
-                    href={`/${encodeURIComponent(row.slug)}/admin/dashboard`}
-                  >
-                    <Building2 className="size-4 text-muted-foreground" />
-                    {row.name}
-                  </Link>
-                </td>
-                <td className="py-2.5 pr-3 text-right tabular-nums">{row.residents}</td>
-                <td className="py-2.5 pr-3 text-right tabular-nums">
-                  {row.occupancyPercent === null ? "—" : `${row.occupancyPercent}%`}
-                  <span className="block text-[11px] text-muted-foreground">
-                    {row.beds} beds
-                  </span>
-                </td>
-                <td className="py-2.5 pr-3 text-right tabular-nums">
-                  {rupees(row.collected)}
-                </td>
-                <td
-                  className={`py-2.5 pr-3 text-right tabular-nums ${row.due > 0 ? "text-warning" : ""}`}
-                >
-                  {row.due > 0 ? rupees(row.due) : "—"}
-                </td>
-                <td className="py-2.5 pr-3 text-right tabular-nums">
-                  {row.openComplaints}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="grid gap-3">
+        {rows.map((row) => (
+          <Link
+            className="group flex flex-col gap-4 rounded-xl border border-border/80 bg-background/70 p-4 transition-colors hover:border-brand-teal/40 hover:bg-brand-teal/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-teal sm:p-5"
+            href={`/${encodeURIComponent(row.slug)}/admin/dashboard`}
+            key={row.id}
+          >
+            <span className="flex items-center gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-brand-teal/10 text-brand-teal">
+                <Building2 aria-hidden="true" className="size-5" />
+              </span>
+              <span className="min-w-0 flex-1 truncate font-semibold text-foreground">
+                {row.name}
+              </span>
+              <ArrowUpRight
+                aria-hidden="true"
+                className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-brand-teal"
+              />
+            </span>
+            <span className="grid grid-cols-2 gap-x-4 gap-y-3 border-t border-border/70 pt-4 text-sm sm:grid-cols-3 lg:grid-cols-5">
+              <HostelStat label="Residents" value={row.residents.toLocaleString()} />
+              <HostelStat
+                label="Occupancy"
+                value={row.occupancyPercent === null ? "—" : `${row.occupancyPercent}%`}
+                detail={`${row.beds} beds`}
+              />
+              <HostelStat label="Collected" value={rupees(row.collected)} />
+              <HostelStat
+                label="Due"
+                value={row.due > 0 ? rupees(row.due) : "—"}
+                warning={row.due > 0}
+              />
+              <HostelStat
+                label="Complaints"
+                value={row.openComplaints.toLocaleString()}
+              />
+            </span>
+          </Link>
+        ))}
       </div>
     </SectionCard>
+  );
+}
+
+function HostelStat({
+  detail,
+  label,
+  value,
+  warning = false,
+}: {
+  detail?: string;
+  label: string;
+  value: string;
+  warning?: boolean;
+}) {
+  return (
+    <span className="min-w-0">
+      <span className="block text-xs text-muted-foreground">{label}</span>
+      <span
+        className={`mt-1 block font-semibold tabular-nums ${warning ? "text-warning" : "text-foreground"}`}
+      >
+        {value}
+      </span>
+      {detail ? (
+        <span className="block text-[11px] text-muted-foreground">{detail}</span>
+      ) : null}
+    </span>
   );
 }

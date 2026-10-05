@@ -29,7 +29,6 @@ import {
   ShieldCheck,
   Smartphone,
   Star,
-  Trash2,
   Upload,
   UserRound,
   Users,
@@ -42,7 +41,10 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
 import { useReferralCodeFromUrl } from "@/app/_components/register-hostel-start";
-import { LocationPicker, type LocationPickerValue } from "@/components/maps/location-picker";
+import {
+  LocationPicker,
+  type LocationPickerValue,
+} from "@/components/maps/location-picker";
 import { checkAuthWithRefresh } from "@/lib/auth-check";
 import {
   EMPTY_PAYOUT_DRAFT,
@@ -52,6 +54,8 @@ import {
 import { ApiRequestError, browserApi } from "@/lib/browser-api";
 import { DescriptionSuggestions } from "./description-suggestions";
 import { HostelRegistrationProgress } from "./hostel-registration-progress";
+import { RegistrationRooms } from "./registration-rooms";
+import { nextAvailableRoomType } from "./room-type-picker";
 import { StepFlow, StepRail } from "./registration-step-shell";
 import {
   cityOptions,
@@ -63,7 +67,6 @@ import {
   editRoomRow,
   numberValue,
   RULES_TEMPLATES,
-  roomTypeOptions,
   isUploadedFile,
   submittedDocuments,
   type IdProofType,
@@ -105,6 +108,7 @@ type DraftData = {
   address: string;
   admissionFee: string;
   formFee: string;
+  securityDeposit?: string;
   agreed: boolean;
   alternatePhone: string;
   area: string;
@@ -217,14 +221,6 @@ function markerToApplication(marker: SubmittedMarker): OwnerApplication {
     verificationStatus: "PENDING",
   };
 }
-
-const ROOM_TYPE_META: Record<string, { icon: LucideIcon; tone: string }> = {
-  "Double Sharing": { icon: Users, tone: "bg-blue-50 text-blue-600" },
-  Dormitory: { icon: Building2, tone: "bg-amber-50 text-amber-600" },
-  "Four Sharing": { icon: Users, tone: "bg-rose-50 text-rose-600" },
-  "Single Room": { icon: Bed, tone: "bg-emerald-50 text-emerald-600" },
-  "Triple Sharing": { icon: Users, tone: "bg-violet-50 text-violet-600" },
-};
 
 const PORTALS: {
   app: boolean;
@@ -444,7 +440,10 @@ export function PublicHostelRegistrationPage() {
   const [address, setAddress] = useState("");
   const [landmark, setLandmark] = useState("");
   const [mapLink, setMapLink] = useState("");
-  const [mapLocation, setMapLocation] = useState<LocationPickerValue>({ coordinates: null, source: "GEOCODED" });
+  const [mapLocation, setMapLocation] = useState<LocationPickerValue>({
+    coordinates: null,
+    source: "GEOCODED",
+  });
   // Deliberately not part of the saved draft: an account number stays out of localStorage.
   const [payout, setPayout] = useState(EMPTY_PAYOUT_DRAFT);
   const [facilities, setFacilities] = useState<string[]>(["Wi-Fi", "CCTV", "Hot Water"]);
@@ -459,6 +458,7 @@ export function PublicHostelRegistrationPage() {
   const [totalFloors, setTotalFloors] = useState("1");
   const [rooms, setRooms] = useState<RoomConfig[]>([createRoom("Single Room")]);
   const [admissionFee, setAdmissionFee] = useState("");
+  const [securityDeposit, setSecurityDeposit] = useState("");
   const [formFee, setFormFee] = useState("");
 
   // Step 4 — Documents & Verification
@@ -597,6 +597,8 @@ export function PublicHostelRegistrationPage() {
         if (draft.totalFloors !== undefined) setTotalFloors(draft.totalFloors);
         if (draft.rooms !== undefined) setRooms(draft.rooms);
         if (draft.admissionFee !== undefined) setAdmissionFee(draft.admissionFee);
+        if (draft.securityDeposit !== undefined)
+          setSecurityDeposit(draft.securityDeposit);
         if (draft.formFee !== undefined) setFormFee(draft.formFee);
         if (draft.ownershipDoc !== undefined) setOwnershipDoc(draft.ownershipDoc);
         if (draft.ownerIdDoc !== undefined) setOwnerIdDoc(draft.ownerIdDoc);
@@ -661,7 +663,6 @@ export function PublicHostelRegistrationPage() {
     }
     setRestoredDraftAt(null);
   }
-
 
   const summary = useMemo(() => {
     return rooms.reduce(
@@ -1021,6 +1022,7 @@ export function PublicHostelRegistrationPage() {
       address,
       admissionFee,
       formFee,
+      securityDeposit,
       agreed,
       alternatePhone,
       area,
@@ -1110,7 +1112,7 @@ export function PublicHostelRegistrationPage() {
         monthlyRent: numberValue(r.monthlyRent),
         rooms: numberValue(r.rooms) ?? 0,
         roomType: r.roomType.trim(),
-        securityDeposit: numberValue(r.securityDeposit),
+        securityDeposit: numberValue(r.securityDeposit) ?? numberValue(securityDeposit),
         vacantBeds: numberValue(r.vacantBeds) ?? 0,
       }));
 
@@ -1173,11 +1175,13 @@ export function PublicHostelRegistrationPage() {
               area: area.trim(),
               city: city.trim(),
               country,
-              ...(mapLocation.coordinates ? {
-                lat: mapLocation.coordinates.lat,
-                lng: mapLocation.coordinates.lng,
-                locationSource: mapLocation.source,
-              } : {}),
+              ...(mapLocation.coordinates
+                ? {
+                    lat: mapLocation.coordinates.lat,
+                    lng: mapLocation.coordinates.lng,
+                    locationSource: mapLocation.source,
+                  }
+                : {}),
             },
             mapLink: mapLink.trim() || undefined,
             name: hostelName.trim(),
@@ -1191,13 +1195,14 @@ export function PublicHostelRegistrationPage() {
               monthlyRentMax: rentValues.length > 0 ? Math.max(...rentValues) : undefined,
               monthlyRentMin: rentValues.length > 0 ? Math.min(...rentValues) : undefined,
             },
+            securityDeposit: numberValue(securityDeposit),
             roomConfigurations,
             roomTypes: roomConfigurations.map((r) => r.roomType),
             rules: rules
               .split(/\r?\n|,/)
               .map((l) => l.trim())
               .filter(Boolean),
-                  totalCapacity: numberValue(totalCapacity),
+            totalCapacity: numberValue(totalCapacity),
             panNumber: panNumber.replace(/\s/g, "") || undefined,
             referralCode: referralCode || undefined,
             shortStays: shortStaysPayload(shortStays, rooms),
@@ -1227,8 +1232,7 @@ export function PublicHostelRegistrationPage() {
     } catch (error) {
       if (error instanceof ApiRequestError) {
         const details = error.details as
-          | { fieldErrors?: Record<string, string[]> }
-          | undefined;
+          { fieldErrors?: Record<string, string[]> } | undefined;
         const firstEntry = details?.fieldErrors
           ? Object.entries(details.fieldErrors)[0]
           : undefined;
@@ -1652,7 +1656,9 @@ export function PublicHostelRegistrationPage() {
                           onChange={(e) => setCity(e.target.value)}
                           value={city}
                         >
-                          {city && !cityOptions.includes(city) ? <option value={city}>{city}</option> : null}
+                          {city && !cityOptions.includes(city) ? (
+                            <option value={city}>{city}</option>
+                          ) : null}
                           {cityOptions.map((c) => (
                             <option key={c}>{c}</option>
                           ))}
@@ -1679,15 +1685,21 @@ export function PublicHostelRegistrationPage() {
                     </Field>
 
                     <div>
-                      <p className="mb-2 text-sm font-semibold text-foreground">Location Preview / Google Maps Link</p>
+                      <p className="mb-2 text-sm font-semibold text-foreground">
+                        Location Preview / Google Maps Link
+                      </p>
                       <LocationPicker
-                        addressHint={[address, area, city, country].filter(Boolean).join(", ")}
+                        addressHint={[address, area, city, country]
+                          .filter(Boolean)
+                          .join(", ")}
                         initialQuery={mapLink || undefined}
                         lookupPath="/api/v1/public/hostels/register/geocode"
                         onChange={(next) => {
                           setMapLocation(next);
                           if (next.coordinates) {
-                            setMapLink(`https://www.google.com/maps?q=${next.coordinates.lat},${next.coordinates.lng}`);
+                            setMapLink(
+                              `https://www.google.com/maps?q=${next.coordinates.lat},${next.coordinates.lng}`,
+                            );
                           }
                         }}
                         onResolvedAddress={(parts) => {
@@ -1877,177 +1889,19 @@ export function PublicHostelRegistrationPage() {
                     </Field>
                   </div>
 
-                  <div className="mt-6 rounded-xl border border-border">
-                    <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                      <div>
-                        <h3 className="text-sm font-bold text-foreground">Room Types</h3>
-                        <p className="text-xs text-muted-foreground">
-                          Add each room type available across your hostel.
-                        </p>
-                      </div>
-                      <button
-                        className="inline-flex items-center gap-1.5 rounded-lg border border-brand-teal px-3 py-1.5 text-xs font-bold text-brand-teal transition hover:bg-brand-teal/5"
-                        onClick={() =>
-                          setRooms((prev) => [...prev, createRoom("Single Room")])
-                        }
-                        type="button"
-                      >
-                        <Plus className="size-3.5" /> Add Room Type
-                      </button>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                      <table className="w-full min-w-[820px] text-sm">
-                        <thead>
-                          <tr className="border-b border-border text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-                            <th className="px-4 py-2.5">Room Type</th>
-                            <th className="px-2 py-2.5">No. of Rooms</th>
-                            <th className="px-2 py-2.5">Beds / Room</th>
-                            <th className="px-2 py-2.5">Vacancy</th>
-                            <th className="px-2 py-2.5">Monthly Rent</th>
-                            <th className="px-2 py-2.5">Security Deposit</th>
-                            <th className="px-2 py-2.5">Meal Inclusion</th>
-                            <th className="px-2 py-2.5" />
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {rooms.map((room) => {
-                            const meta =
-                              ROOM_TYPE_META[room.roomType] ??
-                              ROOM_TYPE_META["Single Room"];
-                            const Icon = meta.icon;
-                            return (
-                              <tr
-                                className="border-b border-border last:border-0"
-                                key={room.id}
-                              >
-                                <td className="px-4 py-3">
-                                  <div className="flex items-center gap-2.5">
-                                    <span
-                                      className={cn(
-                                        "flex size-9 shrink-0 items-center justify-center rounded-lg",
-                                        meta.tone,
-                                      )}
-                                    >
-                                      <Icon className="size-4.5" />
-                                    </span>
-                                    <select
-                                      className="input-field h-9 w-full min-w-[120px] px-2 text-xs"
-                                      onChange={(e) =>
-                                        updateRoom(room.id, { roomType: e.target.value })
-                                      }
-                                      value={room.roomType}
-                                    >
-                                      {roomTypeOptions.map((t) => (
-                                        <option key={t}>{t}</option>
-                                      ))}
-                                    </select>
-                                  </div>
-                                </td>
-                                <td className="px-2 py-3">
-                                  <input
-                                    className="input-field h-9 w-16 px-2 text-xs"
-                                    min={0}
-                                    onChange={(e) =>
-                                      updateRoom(room.id, { rooms: e.target.value })
-                                    }
-                                    placeholder="0"
-                                    type="number"
-                                    value={room.rooms}
-                                  />
-                                </td>
-                                <td className="px-2 py-3">
-                                  <input
-                                    className="input-field h-9 w-16 px-2 text-xs"
-                                    min={0}
-                                    onChange={(e) =>
-                                      updateRoom(room.id, { bedsPerRoom: e.target.value })
-                                    }
-                                    placeholder="0"
-                                    type="number"
-                                    value={room.bedsPerRoom}
-                                  />
-                                </td>
-                                <td className="px-2 py-3">
-                                  <input
-                                    className="input-field h-9 w-16 px-2 text-xs font-bold text-brand-teal"
-                                    min={0}
-                                    onChange={(e) =>
-                                      updateRoom(room.id, { vacantBeds: e.target.value })
-                                    }
-                                    placeholder="0"
-                                    type="number"
-                                    value={room.vacantBeds}
-                                  />
-                                </td>
-                                <td className="px-2 py-3">
-                                  <input
-                                    className="input-field h-9 w-24 px-2 text-xs"
-                                    min={0}
-                                    onChange={(e) =>
-                                      updateRoom(room.id, { monthlyRent: e.target.value })
-                                    }
-                                    placeholder="NPR"
-                                    type="number"
-                                    value={room.monthlyRent}
-                                  />
-                                </td>
-                                <td className="px-2 py-3">
-                                  <input
-                                    className="input-field h-9 w-24 px-2 text-xs"
-                                    min={0}
-                                    onChange={(e) =>
-                                      updateRoom(room.id, {
-                                        securityDeposit: e.target.value,
-                                      })
-                                    }
-                                    placeholder="NPR"
-                                    type="number"
-                                    value={room.securityDeposit}
-                                  />
-                                </td>
-                                <td className="px-2 py-3">
-                                  <select
-                                    className="input-field h-9 w-28 px-2 text-xs"
-                                    onChange={(e) =>
-                                      updateRoom(room.id, {
-                                        mealInclusion: e.target.value as MealInclusion,
-                                      })
-                                    }
-                                    value={room.mealInclusion}
-                                  >
-                                    <option value="Included">Included</option>
-                                    <option value="Optional">Optional</option>
-                                    <option value="Not Included">Not Included</option>
-                                  </select>
-                                </td>
-                                <td className="px-2 py-3">
-                                  <button
-                                    className="rounded-md p-1.5 text-muted-foreground transition hover:bg-red-50 hover:text-red-600 disabled:opacity-30"
-                                    disabled={rooms.length === 1}
-                                    onClick={() =>
-                                      setRooms((prev) =>
-                                        prev.filter((r) => r.id !== room.id),
-                                      )
-                                    }
-                                    type="button"
-                                  >
-                                    <Trash2 className="size-4" />
-                                  </button>
-                                </td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    <div className="flex items-start gap-2 border-t border-border bg-muted/30 px-4 py-3 text-xs text-muted-foreground">
-                      <Info className="mt-0.5 size-3.5 shrink-0 text-role-platform" />
-                      Prices are monthly per bed. You can update pricing anytime from your
-                      hostel dashboard.
-                    </div>
-                  </div>
+                  <RegistrationRooms
+                    rooms={rooms}
+                    globalDeposit={securityDeposit}
+                    onDepositChange={setSecurityDeposit}
+                    updateRoom={updateRoom}
+                    onAdd={() => setRooms((prev) => {
+                      const roomType = nextAvailableRoomType(prev.map((room) => room.roomType));
+                      return roomType ? [...prev, createRoom(roomType)] : prev;
+                    })}
+                    onRemove={(id) =>
+                      setRooms((prev) => prev.filter((room) => room.id !== id))
+                    }
+                  />
 
                   <div className="mt-5 max-w-xs">
                     <Field label="Admission Fee (NPR)">
@@ -2059,7 +1913,7 @@ export function PublicHostelRegistrationPage() {
                         value={admissionFee}
                       />
                     </Field>
-<Field label="Form Fee (NPR)">
+                    <Field label="Form Fee (NPR)">
                       <input
                         className="input-field"
                         min={0}
@@ -2071,7 +1925,11 @@ export function PublicHostelRegistrationPage() {
                   </div>
 
                   <div className="mt-5">
-                    <RegistrationShortStays onChange={setShortStays} rooms={rooms} value={shortStays} />
+                    <RegistrationShortStays
+                      onChange={setShortStays}
+                      rooms={rooms}
+                      value={shortStays}
+                    />
                   </div>
                 </section>
               ) : null}
@@ -2337,12 +2195,15 @@ export function PublicHostelRegistrationPage() {
 
                   <div className="mt-6 rounded-lg border border-border p-4">
                     <h3 className="text-sm font-bold text-foreground">
-                      Booking payouts <span className="font-normal text-muted-foreground">(optional)</span>
+                      Booking payouts{" "}
+                      <span className="font-normal text-muted-foreground">
+                        (optional)
+                      </span>
                     </h3>
                     <p className="mb-3 mt-1 text-xs text-muted-foreground">
-                      Where we send your share when someone books a bed here. People can book your
-                      hostel only once we have checked this account. You can add it later from
-                      Payment Setup.
+                      Where we send your share when someone books a bed here. People can
+                      book your hostel only once we have checked this account. You can add
+                      it later from Payment Setup.
                     </p>
                     <PayoutAccountFields onChange={setPayout} value={payout} />
                   </div>
@@ -2418,7 +2279,8 @@ export function PublicHostelRegistrationPage() {
                     />
                     <span className="text-sm text-foreground">
                       I confirm that all the information provided is accurate and
-                      complete. I agree to <SiteName />&apos;s{" "}
+                      complete. I agree to <SiteName />
+                      &apos;s{" "}
                       <Link
                         className="font-semibold text-brand-teal hover:underline"
                         href="/terms"
@@ -2569,9 +2431,7 @@ export function PublicHostelRegistrationPage() {
                     </div>
 
                     <div className="flex items-baseline justify-between gap-3">
-                      <dt className="min-w-0 text-xs text-muted-foreground">
-                        Capacity
-                      </dt>
+                      <dt className="min-w-0 text-xs text-muted-foreground">Capacity</dt>
                       <dd className="shrink-0 text-base font-bold tabular-nums text-foreground">
                         {summary.totalBeds}{" "}
                         <span className="text-xs font-medium text-muted-foreground">
@@ -2677,21 +2537,21 @@ export function PublicHostelRegistrationPage() {
               {step === 5 ? (
                 <>
                   {/*
-                    * The plan picker and its billing estimate used to sit here.
-                    *
-                    * Both are gone, and neither is coming back to this step. The
-                    * picker offered three plans hardcoded in this file, at prices
-                    * that had already drifted from what /plans-pricing quoted; the
-                    * estimate added a "Platform Fee (10%)" that exists nowhere in
-                    * the pricing model at all. An owner was being shown a total
-                    * they would never be charged.
-                    *
-                    * Choosing now also asked for a decision at the wrong moment —
-                    * before anyone had confirmed the hostel would be accepted. The
-                    * choice moves to the progress page, against the live
-                    * catalogue, where it can be made during the wait and changed
-                    * right up until the invoice is raised.
-                    */}
+                   * The plan picker and its billing estimate used to sit here.
+                   *
+                   * Both are gone, and neither is coming back to this step. The
+                   * picker offered three plans hardcoded in this file, at prices
+                   * that had already drifted from what /plans-pricing quoted; the
+                   * estimate added a "Platform Fee (10%)" that exists nowhere in
+                   * the pricing model at all. An owner was being shown a total
+                   * they would never be charged.
+                   *
+                   * Choosing now also asked for a decision at the wrong moment —
+                   * before anyone had confirmed the hostel would be accepted. The
+                   * choice moves to the progress page, against the live
+                   * catalogue, where it can be made during the wait and changed
+                   * right up until the invoice is raised.
+                   */}
                   <div className="app-card p-5">
                     <h3 className="text-sm font-bold text-foreground">
                       What happens next
@@ -2714,8 +2574,8 @@ export function PublicHostelRegistrationPage() {
                       ))}
                     </ol>
                     <p className="mt-4 flex items-start gap-1.5 text-[11px] text-muted-foreground">
-                      <Info className="mt-0.5 size-3 shrink-0" /> Nothing is charged
-                      until your hostel is verified.
+                      <Info className="mt-0.5 size-3 shrink-0" /> Nothing is charged until
+                      your hostel is verified.
                     </p>
                   </div>
 
@@ -3158,20 +3018,18 @@ function SubmittedView() {
         <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-emerald-100 text-success">
           <Check className="size-10" />
         </div>
-        <h2 className="mt-5 text-2xl font-bold text-foreground">
-          Registration received
-        </h2>
+        <h2 className="mt-5 text-2xl font-bold text-foreground">Registration received</h2>
         {/*
-          * Says what actually happens next, and only through channels we
-          * actually use. The old copy promised a reply "via email and WhatsApp"
-          * — there is no WhatsApp integration anywhere in this product — and
-          * named the plan the owner had supposedly chosen, at a point where
-          * choosing one is no longer part of this form.
-          */}
+         * Says what actually happens next, and only through channels we
+         * actually use. The old copy promised a reply "via email and WhatsApp"
+         * — there is no WhatsApp integration anywhere in this product — and
+         * named the plan the owner had supposedly chosen, at a point where
+         * choosing one is no longer part of this form.
+         */}
         <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-          We have your details and have emailed you to confirm. Our team checks
-          everything within 1–2 business days, and this page will show you where
-          it has got to — you can choose your plan here in the meantime.
+          We have your details and have emailed you to confirm. Our team checks everything
+          within 1–2 business days, and this page will show you where it has got to — you
+          can choose your plan here in the meantime.
         </p>
         <Link
           className="mt-6 inline-flex rounded-lg bg-brand-teal px-6 py-2.5 text-sm font-semibold text-white shadow transition hover:brightness-105"

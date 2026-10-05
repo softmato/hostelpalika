@@ -288,12 +288,14 @@ export function MetricCard({
 
 export function SectionCard({
   actions,
+  icon: Icon,
   children,
   className,
   description,
   title,
 }: {
   actions?: ReactNode;
+  icon?: LucideIcon;
   children: ReactNode;
   className?: string;
   description?: string;
@@ -304,7 +306,8 @@ export function SectionCard({
       {title || actions || description ? (
         <CardHeader className="border-b border-border/60 pb-3">
           {title ? (
-            <CardTitle className="font-heading text-[13.5px] font-bold text-foreground">
+            <CardTitle className="flex items-center gap-2 font-heading text-[13.5px] font-bold text-foreground">
+              {Icon ? <Icon className="size-4 text-muted-foreground" strokeWidth={1.7} /> : null}
               {title}
             </CardTitle>
           ) : null}

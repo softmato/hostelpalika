@@ -84,7 +84,7 @@ export function RegistrationShortStays({
           <label className="block text-xs font-semibold text-foreground">
             Fewest nights
             <input
-              className="input-field mt-1 w-28"
+              className="input-field mt-2 block w-28"
               inputMode="numeric"
               onChange={(event) => onChange({ ...value, minNights: event.target.value })}
               value={value.minNights}
@@ -104,7 +104,7 @@ export function RegistrationShortStays({
                   </span>
                 </span>
                 <input
-                  className="input-field"
+                  className="input-field w-full min-w-0"
                   inputMode="numeric"
                   onChange={(event) =>
                     onChange({ ...value, rates: { ...value.rates, [room.roomType]: event.target.value } })

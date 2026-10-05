@@ -71,6 +71,7 @@ const hostelSchema = new Schema(
       admissionFee: { min: 0, type: Number },
       formFee: { min: 0, type: Number },
     },
+    securityDeposit: { min: 0, type: Number },
     facilities: [{ type: String, trim: true }],
     roomTypes: [{ type: String, trim: true }],
     // Per-room-type pricing and vacancy as the owner submitted it. `roomTypes`

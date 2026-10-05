@@ -1,6 +1,7 @@
 "use client";
 
-import { BadgePlus, ChevronDown, LogOut, QrCode } from "lucide-react";
+import { BadgePlus, ChevronDown, LogOut, QrCode, Smartphone, Users } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { checkAuthWithRefresh } from "@/lib/auth-check";
@@ -8,6 +9,9 @@ import { cn } from "@/lib/utils";
 import { disableBrowserPush } from "@/lib/web-push-client";
 import { type SessionUser, useSessionStore } from "@/stores/session-store";
 import { signOutRequest } from "@/lib/sign-out";
+import { GetAppDialog } from "@/components/get-app-dialog";
+import { HostelPreviewLink } from "@/components/hostel-preview-link";
+import { ThemeToggle } from "@/components/theme-toggle";
 import {
   ResidentIdentityCenter,
   requestResidentProfileForm,
@@ -35,7 +39,8 @@ type MeResponse =
       success: false;
     };
 
-type PortalTone = "platform" | "admin" | "resident" | "guardian" | "team" | "cook" | "provider";
+type PortalTone =
+  "platform" | "admin" | "resident" | "guardian" | "team" | "cook" | "provider";
 
 function readableRole(role: string) {
   return role
@@ -65,11 +70,18 @@ const toneBg: Record<PortalTone, string> = {
   provider: "bg-role-team-soft text-role-team",
 };
 
-export function PortalAccount({ tone = "platform" }: { tone?: PortalTone }) {
+export function PortalAccount({
+  tone = "platform",
+  showPortalActions = false,
+}: {
+  tone?: PortalTone;
+  showPortalActions?: boolean;
+}) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [getAppOpen, setGetAppOpen] = useState(false);
   const [user, setUser] = useState<CurrentUser | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -156,8 +168,16 @@ export function PortalAccount({ tone = "platform" }: { tone?: PortalTone }) {
     : "HH";
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div
+      className="relative"
+      ref={menuRef}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") setMenuOpen(false);
+      }}
+    >
       <button
+        aria-label="Account and portal actions"
+        aria-expanded={menuOpen}
         className="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-2 shadow-sm transition hover:bg-slate-50 dark:border-border dark:bg-card dark:hover:bg-muted sm:pr-2.5"
         onClick={() => setMenuOpen((open) => !open)}
         type="button"
@@ -218,7 +238,7 @@ export function PortalAccount({ tone = "platform" }: { tone?: PortalTone }) {
       </button>
 
       {menuOpen ? (
-        <div className="absolute right-0 top-full z-50 mt-2 w-52 overflow-hidden rounded-xl border border-slate-200 bg-white p-1 shadow-lg dark:border-border dark:bg-card">
+        <div className="absolute right-0 top-full z-50 mt-2 max-h-[calc(100dvh-6rem)] w-64 max-w-[calc(100vw-1.5rem)] overflow-y-auto rounded-2xl border border-border bg-card p-1.5 shadow-lg">
           {user ? (
             <div className="border-b border-slate-100 px-3 py-2 dark:border-border">
               <p className="truncate text-sm font-semibold text-foreground">
@@ -227,6 +247,30 @@ export function PortalAccount({ tone = "platform" }: { tone?: PortalTone }) {
               <p className="truncate text-xs text-muted-foreground">
                 {user.email ?? readableRole(user.role)}
               </p>
+            </div>
+          ) : null}
+          {showPortalActions ? (
+            <div className="border-b border-border py-1.5">
+              <Link
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+                href="/community"
+                onClick={() => setMenuOpen(false)}
+              >
+                <Users className="size-4" /> Community
+              </Link>
+              {tone === "admin" ? (
+                <HostelPreviewLink menu onNavigate={() => setMenuOpen(false)} />
+              ) : null}
+              <button
+                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  setGetAppOpen(true);
+                }}
+              >
+                <Smartphone className="size-4" /> Get the app
+              </button>
             </div>
           ) : null}
           {/* Shown to everyone: with no profile yet, the QR modal opens the
@@ -255,6 +299,11 @@ export function PortalAccount({ tone = "platform" }: { tone?: PortalTone }) {
               Create resident ID
             </button>
           )}
+          {showPortalActions ? (
+            <div className="my-1 border-y border-border py-1">
+              <ThemeToggle menu />
+            </div>
+          ) : null}
           <button
             className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-rose-600 transition hover:bg-rose-50 disabled:opacity-60 dark:hover:bg-rose-950/30"
             disabled={isLoggingOut}
@@ -268,6 +317,9 @@ export function PortalAccount({ tone = "platform" }: { tone?: PortalTone }) {
       ) : null}
 
       <ResidentIdentityCenter onProfileSaved={loadCurrentUser} />
+      {showPortalActions ? (
+        <GetAppDialog comingSoon open={getAppOpen} onOpenChange={setGetAppOpen} />
+      ) : null}
     </div>
   );
 }

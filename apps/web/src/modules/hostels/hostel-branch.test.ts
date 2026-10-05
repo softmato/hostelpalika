@@ -63,7 +63,7 @@ vi.mock("@/modules/notifications/notification.service", () => ({
   }),
 }));
 
-const { requestBranch, branchRequestSchema } = await import("./hostel-branch.service");
+const { requestBranch, branchRequestSchema, getBranchDetails } = await import("./hostel-branch.service");
 const { HostelModel } = await import("@hostel/db/models/Hostel");
 const { HostelPayoutAccountModel } =
   await import("@hostel/db/models/HostelPayoutAccount");
@@ -132,6 +132,24 @@ beforeEach(() => {
   (UserModel as unknown as FakeModel).reset([
     { _id: new Types.ObjectId(), role: Role.SUPERADMIN, status: "ACTIVE" },
   ]);
+});
+
+describe("getBranchDetails", () => {
+  it("reads pending branches and their registration details", async () => {
+    const id = new Types.ObjectId();
+    hostels.docs.push({ _id: id, parentHostelId: mainId, ownerId, name: "Pending branch", slug: "pending", status: "PENDING_APPROVAL", location: { area: "Koteswor" }, securityDeposit: 2000 });
+    documents.docs.push({ _id: new Types.ObjectId(), hostelId: id, documentType: "PAN / VAT document", status: "PENDING" });
+    const result = await getBranchDetails(mainId.toString(), id.toString(), principal);
+    expect(result.hostel).toMatchObject({ id: id.toString(), status: "PENDING_APPROVAL", securityDeposit: 2000 });
+    expect(result.documents).toMatchObject([{ type: "PAN / VAT document", status: "PENDING" }]);
+  });
+
+  it("refuses hostels outside the owner's branch family", async () => {
+    const id = new Types.ObjectId();
+    hostels.docs.push({ _id: id, parentHostelId: new Types.ObjectId(), ownerId: new Types.ObjectId(), name: "Other hostel" });
+    await expect(getBranchDetails(mainId.toString(), id.toString(), principal)).rejects.toMatchObject({ status: 404 });
+    await expect(getBranchDetails(mainId.toString(), "invalid", principal)).rejects.toMatchObject({ status: 404 });
+  });
 });
 
 describe("requestBranch", () => {
@@ -409,6 +427,7 @@ describe("requestBranch", () => {
     const result = await requestBranch(
       mainId.toString(),
       input({
+        securityDeposit: 4000,
         roomConfigurations: [
           {
             roomType: "Twin",
@@ -424,6 +443,29 @@ describe("requestBranch", () => {
     expect(
       hostels.docs.find((doc) => String(doc._id) === result.branch.id)?.capacitySummary,
     ).toEqual({ totalRooms: 3, totalBeds: 6, vacantBeds: 6 });
+    expect(
+      hostels.docs.find((doc) => String(doc._id) === result.branch.id)?.securityDeposit,
+    ).toBe(4000);
+  });
+
+  it("uses the global deposit for blank rows and preserves explicit zero overrides", async () => {
+    const room = { rooms: 1, bedsPerRoom: 1, vacantBeds: 1, mealInclusion: "Included" };
+    const result = await requestBranch(
+      mainId.toString(),
+      input({
+        securityDeposit: 4000,
+        roomConfigurations: [
+          { ...room, roomType: "Single Room" },
+          { ...room, roomType: "Single Room — Attached Bathroom", securityDeposit: 0 },
+        ],
+      }),
+      principal,
+    );
+    const saved = hostels.docs.find((doc) => String(doc._id) === result.branch.id);
+    expect(saved?.roomConfigurations).toMatchObject([
+      { securityDeposit: 4000 },
+      { securityDeposit: 0 },
+    ]);
   });
 
   it("stops at the plan's cap, counting branches still pending", async () => {

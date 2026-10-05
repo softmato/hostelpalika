@@ -134,6 +134,7 @@ export const platformHostelCreateSchema = z.object({
       monthlyRentMin: z.coerce.number().nonnegative().optional(),
     })
     .optional(),
+  securityDeposit: z.coerce.number().int().min(0).max(1_000_000).optional(),
   roomConfigurations: roomConfigurationsSchema,
   roomTypes: textArraySchema,
   rules: textArraySchema,

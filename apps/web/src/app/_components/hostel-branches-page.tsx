@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 
-import { Building2, Loader2, Plus } from "lucide-react";
+import { ArrowUpRight, Building2, GitBranch, Loader2, MapPin, Plus } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { BranchForm } from "./branch-registration-form";
@@ -47,6 +48,7 @@ export function HostelBranchesPageContent() {
   const invalidate = useInvalidateResources();
   const view = resource.data;
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   const room = view ? view.allowance.cap - view.allowance.used : 0;
   const blocked = !view
@@ -105,40 +107,47 @@ export function HostelBranchesPageContent() {
         ) : null}
         {blocked ? <p className="text-sm text-muted-foreground">{blocked}</p> : null}
         {view ? (
-          <ul className="mt-2 divide-y divide-border">
-            {[view.main, ...view.branches].map((branch) => {
+          <ul className="grid gap-3 sm:grid-cols-2">
+            {[view.main, ...view.branches].map((branch, index) => {
               const status = STATUS[branch.status] ?? {
                 label: branch.status,
                 tone: "slate" as const,
               };
 
               return (
-                <li
-                  className="flex items-center justify-between gap-3 py-3"
-                  key={branch.id}
-                >
-                  <div className="flex min-w-0 items-center gap-2.5">
-                    <Building2 className="size-4 shrink-0 text-muted-foreground" />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground">
-                        {branch.name}
-                      </p>
+                <li key={branch.id}>
+                  <Link
+                    href={`${pathname.replace(/\/$/, "")}/${branch.id}`}
+                    className="group flex h-full flex-col gap-4 rounded-2xl border border-border bg-background p-5 transition hover:border-brand-teal/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="flex size-12 items-center justify-center rounded-xl bg-brand-teal/10 text-brand-teal">
+                        {index === 0 ? (
+                          <Building2 className="size-6" strokeWidth={1.6} />
+                        ) : (
+                          <GitBranch className="size-6" strokeWidth={1.6} />
+                        )}
+                      </span>
+                      <SoftBadge tone={status.tone}>{status.label}</SoftBadge>
+                    </div>
+                    <div>
                       <p className="text-xs text-muted-foreground">
-                        {[branch.area, branch.city].filter(Boolean).join(", ")}
+                        {index === 0 ? "Main hostel" : "Branch"}
+                      </p>
+                      <h3 className="mt-1 text-base font-semibold text-foreground">
+                        {branch.name}
+                      </h3>
+                      <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <MapPin className="size-3.5 shrink-0" />
+                        {[branch.area, branch.city].filter(Boolean).join(", ") ||
+                          "Location not added"}
                       </p>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <SoftBadge tone={status.tone}>{status.label}</SoftBadge>
-                    {branch.status === "PUBLISHED" ? (
-                      <Link
-                        className="text-xs font-semibold text-brand-teal underline"
-                        href={`/${encodeURIComponent(branch.slug)}/admin/dashboard`}
-                      >
-                        Open
-                      </Link>
-                    ) : null}
-                  </div>
+                    <span className="mt-auto flex items-center justify-between border-t border-border pt-3 text-xs font-semibold text-brand-teal">
+                      View branch details{" "}
+                      <ArrowUpRight className="size-4 transition group-hover:translate-x-0.5" />
+                    </span>
+                  </Link>
                 </li>
               );
             })}

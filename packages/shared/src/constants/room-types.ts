@@ -1,14 +1,14 @@
 /** A bathroom variant is a separate inventory and pricing row, not a hostel amenity. */
 export const ROOM_TYPE_OPTIONS = [
   "Single Room",
-  "Double Sharing",
-  "Triple Sharing",
-  "Four Sharing",
-  "Dormitory",
   "Single Room — Attached Bathroom",
+  "Double Sharing",
   "Double Sharing — Attached Bathroom",
+  "Triple Sharing",
   "Triple Sharing — Attached Bathroom",
+  "Four Sharing",
   "Four Sharing — Attached Bathroom",
+  "Dormitory",
   "Dormitory — Attached Bathroom",
 ];
 

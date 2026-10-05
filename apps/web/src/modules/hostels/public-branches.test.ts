@@ -54,6 +54,17 @@ describe("public branch family", () => {
     ).toEqual([String(root), String(c)].sort());
   });
   it("returns only public fields and each branch's own photo", async () => {
+    hostels.reset([
+      row(root, { parentHostelId: null }),
+      row(b, {
+        photos: [
+          { url: "/interior.jpg", kind: "INTERIOR" },
+          { url: "/first-exterior.jpg", kind: "EXTERIOR" },
+          { url: "/second-exterior.jpg", kind: "EXTERIOR" },
+        ],
+      }),
+      row(c),
+    ]);
     const rows = await listPublicSiblingBranches({ _id: root, ownerId });
     expect(rows).toHaveLength(2);
     expect(rows.find((item) => item.id === String(b))).toEqual({
@@ -62,7 +73,7 @@ describe("public branch family", () => {
       name: String(b),
       area: "Patan",
       city: "Lalitpur",
-      photoUrl: `/${b}.jpg`,
+      photoUrl: "/first-exterior.jpg",
     });
   });
   it("returns empty for a standalone hostel or absent owner", async () => {

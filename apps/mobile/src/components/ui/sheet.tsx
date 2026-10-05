@@ -89,6 +89,8 @@ type SheetProps = {
   children: ReactNode;
   /** Pinned under the scrolling content — an Apply button, usually. */
   footer?: ReactNode;
+  /** Let short option lists use their content height instead of the usual floor. */
+  fitContent?: boolean;
   onClose: () => void;
   open: boolean;
   /**
@@ -183,6 +185,7 @@ export function Sheet({
   bare = false,
   children,
   footer,
+  fitContent = false,
   onClose,
   open,
   tall = false,
@@ -326,10 +329,11 @@ export function Sheet({
 
             <KeyboardAwareScrollView
               ScrollViewComponent={SheetScrollView}
+              showsVerticalScrollIndicator={!fitContent}
               // Room for the field's label and a line under it, not flush to the keys.
               bottomOffset={24}
               contentContainerStyle={{
-                minHeight:
+                minHeight: fitContent ? undefined :
                   window.height *
                   (tall
                     ? MIN_BODY_FRACTION_TALL

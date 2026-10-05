@@ -99,30 +99,80 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
 
       <Sheet
         bare
+        fitContent
         onClose={() => setOpen(false)}
         open={open}
         title="Switch branch"
       >
-        {rows.map((row) => (
+        <View className="gap-2 px-4 pt-4">
+          {rows.length > 1 ? (
+            <View className="mb-2 overflow-hidden rounded-2xl border border-primary/20 bg-brand-soft">
+              <SheetRow
+                label="Overall · all branches"
+                subtitle="Residents, staff, money, operations and reports together"
+                leading={
+                  <View className="h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
+                    <Ionicons color={colors.primary} name="layers-outline" size={22} />
+                  </View>
+                }
+                onPress={() => {
+                  setOpen(false);
+                  router.push("/manage/overall");
+                }}
+                trailing={<Ionicons color={colors.primary} name="chevron-forward" size={17} />}
+              />
+            </View>
+          ) : null}
+          <Text className="mb-1 px-1" variant="caption">Your hostels</Text>
+          {rows.map((row) => {
+            const selected = row.id === current?.id;
+            return (
+              <View
+                className={`overflow-hidden rounded-2xl border ${selected ? "border-primary/20 bg-brand-soft" : "border-border bg-card"}`}
+                key={row.id}
+              >
+                <SheetRow
+                  label={row.name}
+                  leading={
+                    <View className={`h-11 w-11 items-center justify-center rounded-xl ${selected ? "bg-primary/10" : "bg-muted"}`}>
+                      <Ionicons color={selected ? colors.primary : colors.mutedForeground} name="business-outline" size={22} />
+                    </View>
+                  }
+                  onPress={() => {
+                    setOpen(false);
+                    if (!selected) void switchTo(row, rows);
+                  }}
+                  selected={selected}
+                  subtitle={[row.area, row.city].filter(Boolean).join(", ") || row.slug}
+                  trailing={selected ? (
+                    <View className="flex-row items-center gap-1 rounded-full bg-primary/10 px-2 py-1">
+                      <Ionicons color={colors.primary} name="checkmark" size={13} />
+                      <Text className="text-primary" variant="caption">Active</Text>
+                    </View>
+                  ) : (
+                    <Ionicons color={colors.mutedForeground} name="chevron-forward" size={17} />
+                  )}
+                />
+              </View>
+            );
+          })}
+        </View>
+        <View className="mx-4 mt-4 border-t border-border pt-1">
           <SheetRow
-            key={row.id}
-            label={row.name}
+            label="Manage branches"
+            leading={
+              <View className="h-11 w-11 items-center justify-center rounded-xl bg-muted">
+                <Ionicons color={colors.mutedForeground} name="git-network-outline" size={21} />
+              </View>
+            }
             onPress={() => {
               setOpen(false);
-              void switchTo(row, rows);
+              router.push("/manage/branches");
             }}
-            selected={row.id === current?.id}
-            subtitle={`${[row.area, row.city].filter(Boolean).join(", ") || row.slug}${row.id === current?.id ? " / Active branch" : ""}`}
+            subtitle="Add a branch or check its setup"
+            trailing={<Ionicons color={colors.mutedForeground} name="chevron-forward" size={17} />}
           />
-        ))}
-        <SheetRow
-          label="Manage branches"
-          onPress={() => {
-            setOpen(false);
-            router.push("/manage/branches");
-          }}
-          subtitle="Add a branch or check its setup"
-        />
+        </View>
       </Sheet>
     </View>
   );

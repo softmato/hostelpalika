@@ -20,6 +20,7 @@ export const branchRequestSchema = platformHostelCreateSchema
     panNumber: registration.panNumber,
     payoutAccount: registration.payoutAccount,
     shortStays: registration.shortStays,
+    securityDeposit: registration.securityDeposit,
     totalCapacity: registration.totalCapacity,
     yearEstablished: registration.yearEstablished,
     reuseDocuments: z.boolean().default(false),
@@ -56,7 +57,7 @@ export const branchRequestSchema = platformHostelCreateSchema
       ctx.addIssue({
         code: "custom",
         path: ["totalCapacity"],
-        message: `Room types add up to ${beds} beds. Update the capacity or room counts to match.`,
+        message: `Total capacity is ${input.totalCapacity} beds, but your room counts give ${beds} beds (${input.roomConfigurations.map((room) => `${room.rooms} × ${room.bedsPerRoom} for ${room.roomType}`).join(" + ")}). Set total capacity to ${beds}, or correct the room counts.`,
       });
     }
   });

@@ -78,6 +78,7 @@ import {
   RULES_TEMPLATES,
   rupees,
 } from "./registration-fields";
+import { nextAvailableRoomType, RoomTypePicker } from "./room-type-picker";
 import { StepFlow, StepRail, type RegistrationStep } from "./registration-step-shell";
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 
@@ -2689,27 +2690,23 @@ export function TeamRegisterHostelPage() {
                             <span className="mb-1 block text-[11px] font-semibold text-muted-foreground">
                               {ROOM_KEY_LABEL.roomType}
                             </span>
-                            <select
-                              aria-invalid={invalid("roomType")}
-                              className="input-field w-full"
-                              onChange={(event) => {
+                            <RoomTypePicker
+                              invalid={invalid("roomType")}
+                              className="w-full"
+                              label="Room type"
+                              selectedElsewhere={rooms.filter((entry) => entry.id !== room.id).map((entry) => entry.roomType)}
+                              onChange={(roomType) => {
                                 clearSubmitError(cell("roomType"));
                                 setRooms((prev) =>
                                   prev.map((entry) =>
                                     entry.id === room.id
-                                      ? editRoomRow(entry, { roomType: event.target.value })
+                                      ? editRoomRow(entry, { roomType })
                                       : entry,
                                   ),
                                 );
                               }}
                               value={room.roomType}
-                            >
-                              {roomTypeOptions.map((option) => (
-                                <option key={option} value={option}>
-                                  {option}
-                                </option>
-                              ))}
-                            </select>
+                            />
                           </label>
 
                           {(["rooms", "bedsPerRoom", "vacantBeds", "monthlyRent"] as const).map(
@@ -2763,7 +2760,11 @@ export function TeamRegisterHostelPage() {
 
                 <button
                   className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-brand-teal hover:underline"
-                  onClick={() => setRooms((prev) => [...prev, newRoom()])}
+                  disabled={rooms.length >= roomTypeOptions.length}
+                  onClick={() => setRooms((prev) => {
+                    const roomType = nextAvailableRoomType(prev.map((room) => room.roomType));
+                    return roomType ? [...prev, editRoomRow(newRoom(), { roomType })] : prev;
+                  })}
                   type="button"
                 >
                   <Plus className="size-3.5" /> Add room type

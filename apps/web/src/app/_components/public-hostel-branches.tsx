@@ -22,14 +22,14 @@ export function PublicHostelBranches({ branches }: { branches: PublicBranch[] })
         {branches.map((branch) => (
           <Link
             key={branch.id}
-            href={`/hostels/${encodeURIComponent(branch.slug)}`}
+            href={`/map?slug=${encodeURIComponent(branch.slug)}`}
             className="group flex items-center gap-3 rounded-xl border border-border bg-background p-3 transition-colors hover:border-brand-teal focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal"
           >
             <div className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
               {branch.photoUrl ? (
                 <Image
                   src={branch.photoUrl}
-                  alt={branch.name}
+                  alt={`${branch.name} exterior`}
                   fill
                   sizes="80px"
                   className="object-cover"
@@ -46,7 +46,7 @@ export function PublicHostelBranches({ branches }: { branches: PublicBranch[] })
                 {[branch.area, branch.city].filter(Boolean).join(", ")}
               </p>
               <span className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-brand-teal">
-                View branch <ArrowRight className="size-3.5" />
+                View on map <ArrowRight className="size-3.5" />
               </span>
             </div>
           </Link>

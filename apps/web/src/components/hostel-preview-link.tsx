@@ -15,7 +15,15 @@ import { cn } from "@/lib/utils";
  * public route serves published + verified hostels only — anything else would
  * 404 the admin, so the button simply stays hidden until the listing is live.
  */
-export function HostelPreviewLink({ className }: { className?: string }) {
+export function HostelPreviewLink({
+  className,
+  menu = false,
+  onNavigate,
+}: {
+  className?: string;
+  menu?: boolean;
+  onNavigate?: () => void;
+}) {
   const profileResource = usePortalResource<{ hostel: Hostel }>(
     hostelAdminEndpoints.profile,
     { errorMessage: "" },
@@ -34,10 +42,13 @@ export function HostelPreviewLink({ className }: { className?: string }) {
   return (
     <a
       className={cn(
-        "inline-flex h-8 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-600 shadow-sm transition hover:text-foreground dark:border-border dark:bg-card dark:text-foreground",
+        menu
+          ? "flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+          : "inline-flex h-8 items-center gap-1.5 rounded-full border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-600 shadow-sm transition hover:text-foreground dark:border-border dark:bg-card dark:text-foreground",
         className,
       )}
       href={`/hostels/${hostel?.slug}`}
+      onClick={onNavigate}
       rel="noreferrer"
       target="_blank"
       title="Open this hostel's public listing in a new tab"

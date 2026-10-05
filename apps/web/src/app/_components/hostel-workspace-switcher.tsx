@@ -35,7 +35,7 @@ export function HostelWorkspaceSwitcher({
         <button
           aria-label={`Switch branch. Current branch: ${selected?.name ?? current}`}
           disabled={switching}
-          className="flex min-w-0 items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-left shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-brand-teal"
+          className="flex min-w-0 max-w-full items-center gap-2 rounded-xl border border-border bg-background px-3 py-2 text-left shadow-sm outline-none focus-visible:ring-2 focus-visible:ring-brand-teal"
         >
           {switching ? (
             <Loader2 className="size-4 shrink-0 animate-spin" />

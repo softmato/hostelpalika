@@ -25,6 +25,7 @@ import { ResidentModel } from "@hostel/db/models/Resident";
 import { UserModel } from "@hostel/db/models/User";
 import { currentBsPeriod } from "@hostel/shared/calendar/bs";
 import { getPlan } from "@hostel/shared/plans/catalog";
+import { serializeHostel, type HostelRecord } from "./hostel.service";
 
 /** Branches share an owner and plan; business details and accounts belong to each hostel. */
 
@@ -116,6 +117,48 @@ export async function listBranches(mainHostelId: string, principal: ApiPrincipal
       city: mainPan?.location?.city ?? "",
       panNumber: mainPan?.panNumber ?? null,
     },
+  };
+}
+
+/** Owner-only read, including branches whose registration is still pending. */
+export async function getBranchDetails(mainHostelId: string, branchId: string, principal: ApiPrincipal) {
+  await connectToDatabase();
+  const main = await resolveOwnedHostel(mainHostelId, principal.userId);
+  if (!Types.ObjectId.isValid(branchId)) throw new BranchError("Branch not found.", "HOSTEL_NOT_FOUND", 404);
+  const hostel = await HostelModel.findOne({
+    _id: new Types.ObjectId(branchId),
+    isDeleted: { $ne: true },
+    $or: [{ _id: main._id }, { parentHostelId: main._id }],
+  }).lean<(Omit<HostelRecord, "roomConfigurations"> & {
+    contact?: HostelRecord["contact"] & { alternatePhone?: string };
+    location: HostelRecord["location"] & { landmark?: string; mapLink?: string };
+    yearEstablished?: string;
+    securityDeposit?: number;
+    shortStays?: { enabled?: boolean; minNights?: number; rates?: Array<{ roomType: string; dailyRate: number }> };
+    roomConfigurations?: Array<NonNullable<HostelRecord["roomConfigurations"]>[number] & { securityDeposit?: number }>;
+  }) | null>();
+  if (!hostel) throw new BranchError("Branch not found.", "HOSTEL_NOT_FOUND", 404);
+  const documents = await HostelDocumentModel.find({ hostelId: hostel._id, isDeleted: { $ne: true } })
+    .select("documentType status rejectionReason")
+    .lean<Array<{ _id: Types.ObjectId; documentType: string; status: string; rejectionReason?: string }>>();
+  const saved = serializeHostel(hostel);
+  return {
+    hostel: {
+      ...saved,
+      contact: hostel.contact ?? {},
+      location: hostel.location,
+      photos: saved.photos.map((photo) => ({ ...photo, url: photo.url || (photo.fileAssetId ? `/api/v1/files/${photo.fileAssetId}/url` : "") })),
+      yearEstablished: hostel.yearEstablished ?? "",
+      securityDeposit: hostel.securityDeposit,
+      shortStays: hostel.shortStays,
+      roomConfigurations: (hostel.roomConfigurations ?? []).map((room) => ({
+        roomType: room.roomType, rooms: room.rooms, bedsPerRoom: room.bedsPerRoom,
+        vacantBeds: room.vacantBeds, monthlyRent: room.monthlyRent,
+        securityDeposit: room.securityDeposit, mealInclusion: room.mealInclusion,
+      })),
+    },
+    main: { id: main._id.toString(), name: main.name ?? "", slug: main.slug ?? "" },
+    documents: documents.map((document) => ({ id: document._id.toString(), type: document.documentType, status: document.status, rejectionReason: document.rejectionReason ?? "" })),
   };
 }
 
@@ -253,7 +296,11 @@ export async function requestBranch(
     parentHostelId: main._id,
     photos: input.photos,
     pricing: input.pricing,
-    roomConfigurations: input.roomConfigurations,
+    securityDeposit: input.securityDeposit,
+    roomConfigurations: input.roomConfigurations.map((room) => ({
+      ...room,
+      securityDeposit: room.securityDeposit ?? input.securityDeposit,
+    })),
     roomTypes: input.roomTypes,
     rules: input.rules,
     shortStays,
@@ -281,6 +328,7 @@ export async function requestBranch(
       name: input.name,
       parentHostelId: main._id,
       pricing: input.pricing,
+      securityDeposit: input.securityDeposit,
       roomConfigurations: input.roomConfigurations,
     },
     source: "BRANCH",
