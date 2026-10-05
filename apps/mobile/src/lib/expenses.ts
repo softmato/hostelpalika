@@ -35,6 +35,7 @@ export {
   todayKey,
 } from "@hostel/expenses/input";
 export {
+  EXPENSE_AMOUNT_MAX,
   EXPENSE_CATEGORY_KEYS,
   EXPENSE_CATEGORY_LABELS,
   EXPENSE_PAID_BY,

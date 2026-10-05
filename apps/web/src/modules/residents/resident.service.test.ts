@@ -363,6 +363,10 @@ describe("resident management service behavior", () => {
         staffPrincipal,
       ),
     ).rejects.toMatchObject({ errorCode: "RESIDENT_PHONE_TAKEN", status: 409 });
+    // Their own moved-out row must not count, or nobody can come back.
+    expect(serviceMocks.residentFindOne).toHaveBeenCalledWith(
+      expect.objectContaining({ status: { $ne: "MOVED_OUT" } }),
+    );
     // The bed must never be claimed for a registration that cannot proceed.
     expect(serviceMocks.claimBedForRoomType).not.toHaveBeenCalled();
     expect(serviceMocks.residentCreate).not.toHaveBeenCalled();

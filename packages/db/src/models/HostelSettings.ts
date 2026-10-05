@@ -147,6 +147,7 @@ const hostelSettingsSchema = new Schema(
           name: { maxlength: 40, required: true, trim: true, type: String },
           price: { min: 1, required: true, type: Number },
           active: { default: true, type: Boolean },
+          imageAssetId: { default: null, ref: "FileAsset", type: Schema.Types.ObjectId },
         },
       ],
       default: [],

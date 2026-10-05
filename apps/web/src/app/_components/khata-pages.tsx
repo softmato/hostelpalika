@@ -4,6 +4,7 @@ import {
   AlarmClock,
   Check,
   ChevronRight,
+  Camera,
   Clock,
   FileText,
   Minus,
@@ -26,7 +27,9 @@ import {
   SectionCard,
   SoftBadge,
 } from "@/app/_components/portal-dashboard-ui";
+import { mediaUrl } from "@/app/_components/community-post-card";
 import { currency, EmptyState, Input, LoadingRows, Panel } from "@/app/_components/shared-ui";
+import { useUploader } from "@/components/uploads";
 import type { PortalTone } from "@/app/_components/portal-dashboard-ui";
 import { browserApi } from "@/lib/browser-api";
 import { usePortalResource } from "@/lib/portal-query";
@@ -48,7 +51,13 @@ const RESIDENT_KHATA_URL = "/api/v1/resident/finance/khata";
 type LateFineMode = "PER_DAY_AMOUNT" | "PER_DAY_PERCENT";
 type LateFine = { enabled: boolean; graceDays: number; mode: LateFineMode; rate: number };
 
-type KhataItem = { active: boolean; id: string; name: string; price: number };
+type KhataItem = {
+  active: boolean;
+  id: string;
+  imageAssetId?: string | null;
+  name: string;
+  price: number;
+};
 type KhataEntry = {
   amount: number;
   billed: boolean;
@@ -474,7 +483,7 @@ export function CookKhataPage() {
 /* Khata — owner/warden                                                       */
 /* ------------------------------------------------------------------------- */
 
-type ItemDraft = { id?: string; name: string; price: string };
+type ItemDraft = { id?: string; imageAssetId?: string | null; name: string; price: string };
 
 export function HostelAdminKhataPageContent() {
   const khata = usePortalResource<KhataOverview>(ADMIN_KHATA_URL, {
@@ -483,6 +492,17 @@ export function HostelAdminKhataPageContent() {
   const [draft, setDraft] = useState<ItemDraft>({ name: "", price: "" });
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  // PUBLIC: residents see the photo on their item tiles.
+  const photo = useUploader({ accessLevel: "PUBLIC", kind: "media", label: "Item photo", optimizeImage: true });
+
+  async function pickPhoto(file: File | undefined) {
+    const uploaded = file ? await photo.upload(file) : null;
+
+    photo.clear();
+    if (uploaded?.assetId) {
+      setDraft((prev) => ({ ...prev, imageAssetId: uploaded.assetId }));
+    }
+  }
 
   const data = khata.data;
   const totalOnBills = useMemo(
@@ -516,9 +536,11 @@ export function HostelAdminKhataPageContent() {
       return;
     }
 
-    const item = { active: true, name: draft.name.trim(), price };
+    const item = { active: true, imageAssetId: draft.imageAssetId ?? null, name: draft.name.trim(), price };
     const items = draft.id
-      ? data.items.map((row) => (row.id === draft.id ? { ...row, name: item.name, price } : row))
+      ? data.items.map((row) =>
+          row.id === draft.id ? { ...row, imageAssetId: item.imageAssetId, name: item.name, price } : row,
+        )
       : [...data.items, item];
 
     void saveItems(items, draft.id ? "Item saved." : `${item.name} added.`);
@@ -612,7 +634,40 @@ export function HostelAdminKhataPageContent() {
             </SectionCard>
 
             <SectionCard icon={ShoppingBasket} title="Items">
-              <form className="mb-4 grid grid-cols-[1fr_120px_auto] items-end gap-2" onSubmit={submitItem}>
+              <form className="mb-4 grid grid-cols-[auto_1fr_120px_auto] items-end gap-2" onSubmit={submitItem}>
+                <span className="relative">
+                  <label
+                    className="flex size-9 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-dashed border-border bg-muted text-muted-foreground hover:text-foreground"
+                    title={draft.imageAssetId ? "Change photo (optional)" : "Add a photo (optional)"}
+                  >
+                    {draft.imageAssetId ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img alt="" className="size-full object-cover" src={mediaUrl(draft.imageAssetId, "THUMBNAIL")} />
+                    ) : (
+                      <Camera className="size-4" />
+                    )}
+                    <input
+                      accept="image/*"
+                      className="sr-only"
+                      disabled={photo.isUploading}
+                      onChange={(event) => {
+                        void pickPhoto(event.target.files?.[0]);
+                        event.target.value = "";
+                      }}
+                      type="file"
+                    />
+                  </label>
+                  {draft.imageAssetId ? (
+                    <button
+                      aria-label="Remove photo"
+                      className="absolute -right-1.5 -top-1.5 rounded-full bg-card p-0.5 text-muted-foreground shadow hover:text-destructive"
+                      onClick={() => setDraft((prev) => ({ ...prev, imageAssetId: null }))}
+                      type="button"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  ) : null}
+                </span>
                 <Input
                   label={draft.id ? "Edit item" : "New item"}
                   name="name"
@@ -629,7 +684,7 @@ export function HostelAdminKhataPageContent() {
                   value={draft.price}
                 />
                 <span className="flex gap-1.5">
-                  <RoleButton className="h-9" disabled={busy} tone="admin" type="submit">
+                  <RoleButton className="h-9" disabled={busy || photo.isUploading} tone="admin" type="submit">
                     {draft.id ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}
                     {draft.id ? "Save" : "Add"}
                   </RoleButton>
@@ -647,6 +702,10 @@ export function HostelAdminKhataPageContent() {
                 <ul className="divide-y divide-border">
                   {data.items.map((item) => (
                     <li className="flex items-center gap-3 py-2.5" key={item.id}>
+                      {item.imageAssetId ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img alt="" className="size-8 rounded-md object-cover" src={mediaUrl(item.imageAssetId, "THUMBNAIL")} />
+                      ) : null}
                       <span className={cn("min-w-0 flex-1 font-medium", item.active ? "text-foreground" : "text-muted-foreground line-through")}>
                         {item.name}
                       </span>
@@ -664,7 +723,7 @@ export function HostelAdminKhataPageContent() {
                       <button
                         aria-label={`Edit ${item.name}`}
                         className="rounded-md p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                        onClick={() => setDraft({ id: item.id, name: item.name, price: String(item.price) })}
+                        onClick={() => setDraft({ id: item.id, imageAssetId: item.imageAssetId, name: item.name, price: String(item.price) })}
                         type="button"
                       >
                         <Pencil className="size-4" />
@@ -759,9 +818,14 @@ export function ResidentKhataPage() {
           }}
           type="button"
         >
-          <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-            <ShoppingBasket className="size-4" />
-          </span>
+          {item.imageAssetId ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img alt="" className="size-9 rounded-lg object-cover" src={mediaUrl(item.imageAssetId, "THUMBNAIL")} />
+          ) : (
+            <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <ShoppingBasket className="size-4" />
+            </span>
+          )}
           <span className="font-semibold text-foreground">{item.name}</span>
           <span className="text-[12.5px] text-muted-foreground">{currency(item.price)}</span>
         </button>

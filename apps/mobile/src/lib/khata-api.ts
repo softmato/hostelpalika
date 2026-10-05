@@ -60,7 +60,14 @@ export function lateFineRate(fine: Pick<LateFine, "mode" | "rate">) {
 
 export type KhataStatus = "NONE" | "REQUESTED" | "ACTIVE" | "DECLINED" | "CLOSED";
 
-export type KhataItem = { active: boolean; id: string; name: string; price: number };
+export type KhataItem = {
+  active: boolean;
+  id: string;
+  /** A PUBLIC asset — loads bare through `assetUrl`. */
+  imageAssetId?: string | null;
+  name: string;
+  price: number;
+};
 
 export type KhataEntry = {
   amount: number;

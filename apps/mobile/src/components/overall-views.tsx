@@ -1,7 +1,9 @@
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
+import { AdminHomeHeader, HostelHero } from "@/components/admin-home";
 import { HostelSwitcher } from "@/components/hostel-switcher";
 import { NotificationBell } from "@/components/notification-bell";
 import { AppBar } from "@/components/ui/app-bar";
@@ -23,6 +25,7 @@ import { setActiveHostelId } from "@/lib/active-hostel";
 import { overallPdfPath } from "@/lib/admin-manage-api";
 import { readApiError } from "@/lib/api-contract";
 import { downloadToDevice } from "@/lib/documents";
+import { absoluteMediaUrl } from "@/lib/media";
 import { expenseTitle, isSpending } from "@/lib/expenses";
 import { formatMoney, humanizeEnum, nepalPeriodKey } from "@/lib/format";
 import { creditTitle, splitTotals, statementCredits } from "@/lib/hostel-statement";
@@ -148,6 +151,9 @@ export function OverallTabScreen({ tab }: { tab: OverallTab }) {
   return (
     <Screen
       header={
+        tab === "home" ? (
+          <AdminHomeHeader />
+        ) : (
         <AppBar
           actions={
             <View className="flex-row items-center gap-1">
@@ -159,8 +165,10 @@ export function OverallTabScreen({ tab }: { tab: OverallTab }) {
           subtitle="All branches"
           title={TITLES[tab]}
         />
+        )
       }
       insideTabs
+      padded={tab !== "home"}
       onRefresh={resource.refresh}
       refreshing={resource.refreshing}
       scroll
@@ -180,8 +188,16 @@ export function OverallTabScreen({ tab }: { tab: OverallTab }) {
           </>
         ) : null}
 
-        {resource.error && !visible ? <ErrorState message={resource.error} onRetry={resource.reload} /> : null}
-        {!visible && !resource.error ? <SkeletonCard rows={4} /> : null}
+        {resource.error && !visible ? (
+          <View className={tab === "home" ? "px-5" : undefined}>
+            <ErrorState message={resource.error} onRetry={resource.reload} />
+          </View>
+        ) : null}
+        {!visible && !resource.error ? (
+          <View className={tab === "home" ? "px-5" : undefined}>
+            <SkeletonCard rows={4} />
+          </View>
+        ) : null}
 
         {visible ? (
           visible.branches.length === 0 ? (
@@ -189,7 +205,7 @@ export function OverallTabScreen({ tab }: { tab: OverallTab }) {
               <Text variant="caption">No branches yet.</Text>
             </Card>
           ) : section === "overview" ? (
-            <OverallHome rows={visible.branches} />
+            <OverallHome period={visible.period} rows={visible.branches} />
           ) : (
             <StackedTopics rows={visible.branches} section={section} />
           )
@@ -216,8 +232,13 @@ function Figure({ label, children }: { children: ReactNode; label: string }) {
   );
 }
 
-function HostelMark({ isBranch, size = 40 }: { isBranch: boolean; size?: number }) {
+function HostelMark({ coverUrl, isBranch, size = 40 }: { coverUrl?: string | null; isBranch: boolean; size?: number }) {
   const { colors } = useAppTheme();
+  const photo = absoluteMediaUrl(coverUrl, API_BASE_URL);
+
+  if (photo) {
+    return <Image contentFit="cover" source={{ uri: photo }} style={{ borderRadius: 12, height: size, width: size }} />;
+  }
 
   return (
     <View className="items-center justify-center rounded-xl bg-brand-soft" style={{ height: size, width: size }}>
@@ -227,7 +248,7 @@ function HostelMark({ isBranch, size = 40 }: { isBranch: boolean; size?: number 
 }
 
 /** The whole business on one card, then each branch as its own card, stacked. */
-function OverallHome({ rows }: { rows: BranchOverall[] }) {
+function OverallHome({ period, rows }: { period: string; rows: BranchOverall[] }) {
   const { colors } = useAppTheme();
   const totals = rows.reduce(
     (sum, row) => ({
@@ -243,35 +264,26 @@ function OverallHome({ rows }: { rows: BranchOverall[] }) {
 
   return (
     <View className="gap-5">
-      <Card className="gap-4">
-        <View className="flex-row">
-          <Figure label="Collected this month">
-            <Money size="large" tone="credit" value={totals.collected} />
-          </Figure>
-          <Figure label="Still due">
-            <Money owed={totals.due > 0} size="large" value={totals.due} />
-          </Figure>
-        </View>
-        <Meter
-          label={billed > 0 ? `${Math.round((totals.collected / billed) * 100)}% collected` : null}
-          percent={billed > 0 ? Math.round((totals.collected / billed) * 100) : null}
-        />
-        <View className="flex-row border-t border-border pt-3">
-          <Figure label="Residents">
-            <Text variant="subtitle">{`${totals.residents} / ${totals.beds}`}</Text>
-          </Figure>
-          <Figure label="Branches">
-            <Text variant="subtitle">{String(rows.length)}</Text>
-          </Figure>
-          <Figure label="Complaints">
-            <Text className={totals.complaints > 0 ? "text-warning" : undefined} variant="subtitle">
-              {String(totals.complaints)}
-            </Text>
-          </Figure>
-        </View>
-      </Card>
+      {/* The branch Home's own hero card, summed over every branch. */}
+      <HostelHero
+        delta={null}
+        earnings={{
+          lifetime: null,
+          outstanding: totals.due,
+          outstandingIsLifetime: false,
+          period,
+          thisMonth: totals.collected,
+          thisMonthBilled: billed,
+        }}
+        hostel={null}
+        occupancy={totals.beds > 0 ? Math.round((totals.residents / totals.beds) * 100) : null}
+        onSos={() => router.push("/(admin)/alerts")}
+        residents={totals.residents}
+        sosCount={0}
+        vacantBeds={Math.max(0, totals.beds - totals.residents)}
+      />
 
-      <View className="gap-3">
+      <View className="gap-3 px-5">
         {rows.map(({ branch }) => (
           <Pressable
             accessibilityHint="Opens this branch"
@@ -281,7 +293,7 @@ function OverallHome({ rows }: { rows: BranchOverall[] }) {
             onPress={() => openIn(branch.id, branch.isBranch, "/(admin)")}
           >
             <View className="flex-row items-center gap-3">
-              <HostelMark isBranch={branch.isBranch} />
+              <HostelMark coverUrl={branch.coverUrl} isBranch={branch.isBranch} />
               <View className="min-w-0 flex-1">
                 <Text numberOfLines={1} variant="subtitle">
                   {branch.name}

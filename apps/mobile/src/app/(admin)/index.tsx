@@ -19,7 +19,7 @@ import {
   ServiceGrid,
   WaitingActions,
 } from "@/components/admin-home";
-import { BranchesCard, useIsOverall } from "@/components/hostel-switcher";
+import { useIsOverall } from "@/components/hostel-switcher";
 import { KycCard } from "@/components/manage/kyc-card";
 import { FreeMonthCard, SubscriptionDueCard } from "@/components/subscription-due";
 import { SectionHeader } from "@/components/ui/card";
@@ -365,7 +365,6 @@ function BranchAdminHomeScreen() {
           <KycCard />
           <SubscriptionDueCard state={due.data ?? null} />
           <FreeMonthCard state={due.data ?? null} />
-          <BranchesCard />
 
           {/* A warden's cash box, one tap from Home: what is left, and cash waiting for "Got it". */}
           {expenses.data?.kind === "ok" && expenses.data.home.wallet ? (

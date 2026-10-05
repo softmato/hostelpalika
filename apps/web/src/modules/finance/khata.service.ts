@@ -38,6 +38,8 @@ export const khataItemsSchema = z.object({
       z.object({
         active: z.boolean().default(true),
         id: z.string().optional(),
+        /** A PUBLIC upload — the item photo residents pick from. */
+        imageAssetId: z.string().regex(/^[a-f\d]{24}$/i).nullish(),
         name: z.string().trim().min(1).max(40),
         price: z.number().int().min(1).max(100000),
       }),
@@ -66,7 +68,13 @@ export const residentKhataActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("CANCEL"), entryId: z.string() }),
 ]);
 
-type ItemRecord = { _id: Types.ObjectId; active?: boolean; name: string; price: number };
+type ItemRecord = {
+  _id: Types.ObjectId;
+  active?: boolean;
+  imageAssetId?: Types.ObjectId | null;
+  name: string;
+  price: number;
+};
 
 type EntryRecord = {
   _id: Types.ObjectId;
@@ -99,6 +107,7 @@ function toItem(item: ItemRecord) {
   return {
     active: item.active !== false,
     id: item._id.toString(),
+    imageAssetId: item.imageAssetId?.toString() ?? null,
     name: item.name,
     price: item.price,
   };
@@ -221,6 +230,7 @@ export async function saveKhataItems(
   const next = items.map((item) => ({
     _id: item.id && Types.ObjectId.isValid(item.id) ? new Types.ObjectId(item.id) : new Types.ObjectId(),
     active: item.active,
+    imageAssetId: item.imageAssetId ? new Types.ObjectId(item.imageAssetId) : null,
     name: item.name,
     price: item.price,
   }));

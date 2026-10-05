@@ -888,6 +888,9 @@ export async function createResident(
      * database would have allowed, and that refusal is the correct answer.
      */
     isDeleted: { $ne: true },
+    // A moved-out row is history, not a holder of the number: the same person
+    // coming back is a new stay on a new row.
+    status: { $ne: "MOVED_OUT" },
     ...(email ? { $or: [{ phone: input.phone }, { email }] } : { phone: input.phone }),
   }).lean<ResidentRecord>();
 
@@ -1317,6 +1320,7 @@ export async function updateResident(
       hostelId: resident.hostelId,
       isDeleted: false,
       phone: input.phone,
+      status: { $ne: "MOVED_OUT" },
     });
 
     if (phoneTaken) {
@@ -1339,6 +1343,7 @@ export async function updateResident(
       email: nextEmail,
       hostelId: resident.hostelId,
       isDeleted: false,
+      status: { $ne: "MOVED_OUT" },
     });
 
     if (emailTaken) {
@@ -1408,6 +1413,31 @@ export async function updateResidentStatus(
   await connectToDatabase();
 
   const resident = await findResidentForPrincipal(residentId, principal, input.hostelId);
+
+  // An old moved-out row brought back while the same person is already on the
+  // roll again (scanned in as a new stay) would be a second live row — the
+  // unique index refuses it, so say why instead of a raw 500.
+  if (resident.status === "MOVED_OUT" && input.status !== "MOVED_OUT") {
+    const email = normalizedEmail(resident.email);
+    const current = await ResidentModel.findOne({
+      _id: { $ne: resident._id },
+      hostelId: resident.hostelId,
+      isDeleted: false,
+      status: { $ne: "MOVED_OUT" },
+      ...(email ? { $or: [{ phone: resident.phone }, { email }] } : { phone: resident.phone }),
+    })
+      .select("firstName lastName")
+      .lean<Pick<ResidentRecord, "firstName" | "lastName"> | null>();
+
+    if (current) {
+      throw new ResidentServiceError(
+        `${current.firstName} ${current.lastName} is already on the roll again with this phone or email. Open that record instead.`,
+        "RESIDENT_ALREADY_HERE",
+        409,
+      );
+    }
+  }
+
   const updatedResident = await ResidentModel.findOneAndUpdate(
     { _id: resident._id, isDeleted: false },
     {

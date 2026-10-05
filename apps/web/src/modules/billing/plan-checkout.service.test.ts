@@ -5,6 +5,7 @@ import { hostelCode } from "@/lib/hostel-code";
 
 const mocks = vi.hoisted(() => ({
   hostelFind: vi.fn(),
+  hostelFindOne: vi.fn(),
   otpFindOne: vi.fn(),
   requestOtp: vi.fn(),
   userFind: vi.fn(),
@@ -13,7 +14,9 @@ const mocks = vi.hoisted(() => ({
 const lean = (rows: unknown[]) => ({ select: () => ({ lean: async () => rows }) });
 
 vi.mock("@hostel/db/models/User", () => ({ UserModel: { find: mocks.userFind } }));
-vi.mock("@hostel/db/models/Hostel", () => ({ HostelModel: { find: mocks.hostelFind } }));
+vi.mock("@hostel/db/models/Hostel", () => ({
+  HostelModel: { find: mocks.hostelFind, findOne: mocks.hostelFindOne },
+}));
 vi.mock("@hostel/db/models/OtpChallenge", () => ({ OtpChallengeModel: { findOne: mocks.otpFindOne } }));
 vi.mock("@/lib/db", () => ({ connectToDatabase: async () => undefined }));
 vi.mock("@/modules/auth/auth.service", async (importOriginal) => ({
@@ -69,6 +72,17 @@ describe("findHostelForCheckout — a code is only sent past all three gates", (
     mocks.hostelFind.mockReturnValue(lean([other]));
 
     expect(await findHostelForCheckout("front-desk@x.com", hostelCode(String(other._id)))).toBe(other);
+  });
+
+  it("opens the main hostel's checkout for a branch's ID — the branch has no plan of its own", async () => {
+    const branch = { _id: new Types.ObjectId(), name: "Branch", ownerId, parentHostelId: owned._id };
+
+    mocks.userFind.mockReturnValue(lean([{ _id: ownerId }]));
+    mocks.hostelFind.mockReturnValueOnce(lean([])).mockReturnValueOnce(lean([owned, branch]));
+    mocks.hostelFindOne.mockReturnValue({ select: () => ({ lean: async () => owned }) });
+
+    expect(await findHostelForCheckout("owner@x.com", hostelCode(String(branch._id)))).toBe(owned);
+    expect(mocks.hostelFindOne).toHaveBeenCalledWith({ _id: owned._id, isDeleted: { $ne: true } });
   });
 });
 

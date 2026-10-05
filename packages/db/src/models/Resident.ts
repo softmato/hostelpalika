@@ -140,9 +140,20 @@ const residentSchema = new Schema(
 // resident's phone reserved forever and make re-registering the same person
 // fail with a raw E11000. The partial filter scopes uniqueness to the residents
 // that are actually still on the roll.
+//
+// A move-out keeps its row (bills, deposit and history hang off its id), so it
+// is outside the rule too: otherwise somebody who left and came back was
+// refused at intake over their own old record. Named, because Mongo will not
+// change a partial filter in place — the old `hostelId_1_phone_1` and
+// `hostelId_1_email_1` are dropped by hand once these exist.
+const LIVE_ROW = {
+  isDeleted: false,
+  status: { $in: ["PENDING", "ACTIVE", "SUSPENDED"] },
+};
+
 residentSchema.index(
   { hostelId: 1, phone: 1 },
-  { partialFilterExpression: { isDeleted: false }, unique: true },
+  { name: "hostelId_1_phone_1_live", partialFilterExpression: LIVE_ROW, unique: true },
 );
 // The same rule for the mailbox, and it is the stronger of the two: `email` is
 // what `linkResidentAccount` turns into a login, and one account may hold only
@@ -156,7 +167,8 @@ residentSchema.index(
 residentSchema.index(
   { hostelId: 1, email: 1 },
   {
-    partialFilterExpression: { isDeleted: false, email: { $type: "string" } },
+    name: "hostelId_1_email_1_live",
+    partialFilterExpression: { ...LIVE_ROW, email: { $type: "string" } },
     unique: true,
   },
 );

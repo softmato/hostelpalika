@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { type ReactNode, useState } from "react";
 import {
   ActivityIndicator,
@@ -155,6 +156,7 @@ export function InfoTile({
   badge,
   caption,
   icon,
+  image,
   label,
   onPress,
   tone = "brand",
@@ -163,6 +165,8 @@ export function InfoTile({
   badge?: number;
   caption?: string;
   icon: keyof typeof Ionicons.glyphMap;
+  /** A photo URI drawn in the glyph's square instead of the icon. */
+  image?: string | null;
   label: string;
   onPress?: () => void;
   tone?: TileTone;
@@ -184,11 +188,19 @@ export function InfoTile({
         The tile keeps the parts the shortcut row does not have: the border and
         card fill that make it an enclosed cell, and the corner count.
       */}
-      <View
-        className={`h-12 w-12 items-center justify-center rounded-2xl ${palette.surface}`}
-      >
-        <Ionicons color={colors[TONE_COLOR[tone]]} name={icon} size={21} />
-      </View>
+      {image ? (
+        <Image
+          contentFit="cover"
+          source={{ uri: image }}
+          style={{ borderRadius: 16, height: 48, width: 48 }}
+        />
+      ) : (
+        <View
+          className={`h-12 w-12 items-center justify-center rounded-2xl ${palette.surface}`}
+        >
+          <Ionicons color={colors[TONE_COLOR[tone]]} name={icon} size={21} />
+        </View>
+      )}
 
       <View className="items-center gap-0.5">
         <Text

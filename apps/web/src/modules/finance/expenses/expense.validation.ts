@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import {
   CUSTOM_EXPENSE_CATEGORY,
+  EXPENSE_AMOUNT_MAX,
   EXPENSE_CATEGORY_KEYS,
   EXPENSE_CUSTOM_CATEGORY_NAME_MAX,
   EXPENSE_PAID_BY,
@@ -31,7 +32,11 @@ export const expenseHomeQuerySchema = z.object({
 export const createExpenseSchema = z
   .object({
     /** Whole rupees (ADR-1): refused at the boundary, never rounded. */
-    amount: z.number().int().positive().max(100_000_000),
+    amount: z
+      .number({ message: "Write how much you paid." })
+      .int("Write the amount in whole rupees.")
+      .positive("Write how much you paid.")
+      .max(EXPENSE_AMOUNT_MAX, "That amount is too big. Check it."),
     category: z.enum([...EXPENSE_CATEGORY_KEYS, CUSTOM_EXPENSE_CATEGORY]),
     clientRequestId: z.string().trim().min(8).max(64).optional(),
     customCategoryId: objectIdSchema.optional(),
@@ -40,7 +45,7 @@ export const createExpenseSchema = z
     photoAssetId: objectIdSchema.optional(),
     salaryFor: z
       .object({
-        name: z.string().trim().min(1).max(120),
+        name: z.string().trim().min(1, "Write their name.").max(120, "Their name is too long."),
         userId: objectIdSchema.optional(),
       })
       .optional(),

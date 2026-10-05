@@ -335,7 +335,8 @@ export function HostelHero({
   delta: MonthDelta | null;
   earnings: EarningsSummary;
   hostel: AdminHostel | null;
-  listing: { live: boolean; note: string };
+  /** Omitted for Overall — several listings have no single state. */
+  listing?: { live: boolean; note: string };
   /** Percent, or `null` when the hostel has never configured its rooms. */
   occupancy: number | null;
   onSos: () => void;
@@ -424,7 +425,7 @@ export function HostelHero({
           </View>
         </View>
 
-        <ListingPill listing={listing} />
+        {listing ? <ListingPill listing={listing} /> : null}
       </View>
 
       {/*
@@ -526,9 +527,10 @@ export function HostelHero({
               The month, unless there is no lifetime figure to have been
               redundant with — see the note above on the degraded path.
             */
+            // With no lifetime, the headline already is the month — so this half says what it was billed.
             lifetimeKnown
               ? { label: monthLabel, value: money(earnings.thisMonth) }
-              : { label: "Since opening", value: money(earnings.lifetime) },
+              : { label: "Billed", value: money(earnings.thisMonthBilled) },
             { label: "Still due", value: money(monthShortfall) },
           ].map((fact, index) => (
             <View className="flex-1 flex-row items-center" key={fact.label}>

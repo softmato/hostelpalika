@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { OVERALL_SLUG } from "@/lib/branch-cache";
+import { type HostelPhoto, resolveHostelPhotos } from "@/lib/hostel-photos";
 import { connectToDatabase } from "@/lib/db";
 import { claimRegistrationDocuments } from "@/lib/registration-documents";
 import { Role } from "@/lib/roles";
@@ -173,10 +174,11 @@ export async function requestBranch(
   // Only the owner of the main hostel — not its wardens or cooks.
   const owned = await resolveOwnedHostel(mainHostelId, principal.userId);
   const main = await HostelModel.findById(owned._id)
-    .select("contact name ownerId panNumber parentHostelId slug")
+    .select("contact name ownerId panNumber parentHostelId slug suspension")
     .lean<{
       _id: Types.ObjectId;
       contact?: { phone?: string };
+      suspension?: Record<string, unknown> | null;
       name: string;
       ownerId: Types.ObjectId;
       panNumber?: string;
@@ -266,6 +268,9 @@ export async function requestBranch(
     ...uploadedDocuments,
   ];
   const branch = await HostelModel.create({
+    // A branch rides its main hostel's plan, so it starts on the same suspension
+    // clock — `startHostelSuspension` only copies onto branches that exist then.
+    ...(main.suspension ? { suspension: main.suspension } : {}),
     capacitySummary: input.roomConfigurations.length
       ? {
           totalRooms: input.roomConfigurations.reduce((sum, room) => sum + room.rooms, 0),
@@ -441,7 +446,7 @@ export async function getBranchesSummary(principal: ApiPrincipal) {
     _id: { $in: ids.map((id) => new Types.ObjectId(id)) },
     isDeleted: { $ne: true },
   })
-    .select("capacitySummary location.area location.city name parentHostelId slug status")
+    .select("capacitySummary location.area location.city name parentHostelId photos.kind photos.url slug status")
     .lean<
       Array<{
         _id: Types.ObjectId;
@@ -449,6 +454,7 @@ export async function getBranchesSummary(principal: ApiPrincipal) {
         location?: { area?: string; city?: string };
         name: string;
         parentHostelId?: Types.ObjectId | null;
+        photos?: HostelPhoto[];
         slug: string;
         status: string;
       }>
@@ -476,6 +482,8 @@ export async function getBranchesSummary(principal: ApiPrincipal) {
         city: hostel.location?.city ?? "",
         beds,
         collected: money.paidAmount,
+        /** First exterior photo — the branch's face in the app's switcher. */
+        coverUrl: resolveHostelPhotos(hostel.photos, "EXTERIOR")[0]?.url ?? null,
         due: Math.max(0, money.dueAmount - money.paidAmount),
         id: hostel._id.toString(),
         isBranch: Boolean(hostel.parentHostelId),

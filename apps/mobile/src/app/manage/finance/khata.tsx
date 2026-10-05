@@ -1,5 +1,8 @@
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { KhataAsks } from "@/components/khata-asks";
 import { AppBar } from "@/components/ui/app-bar";
@@ -14,6 +17,7 @@ import { SkeletonCard, SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { Toggle } from "@/components/ui/toggle";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
 import { readApiError } from "@/lib/api-contract";
 import { openConfirm } from "@/lib/confirm";
@@ -27,6 +31,7 @@ import {
   saveKhataItems,
 } from "@/lib/khata-api";
 import { toastError, toastSuccess } from "@/lib/toast";
+import { assetUrl, uploadAsset } from "@/lib/uploads";
 
 /**
  * Khata — the warden's side.
@@ -37,7 +42,23 @@ import { toastError, toastSuccess } from "@/lib/toast";
  * paragraph.
  */
 
-type ItemDraft = { active: boolean; id?: string; name: string; price: string };
+type ItemDraft = {
+  active: boolean;
+  id?: string;
+  imageAssetId?: string | null;
+  name: string;
+  price: string;
+};
+
+function ItemThumb({ assetId }: { assetId: string }) {
+  return (
+    <Image
+      contentFit="cover"
+      source={{ uri: assetUrl(assetId, "THUMBNAIL") }}
+      style={{ borderRadius: 9, height: 32, width: 32 }}
+    />
+  );
+}
 
 const EMPTY_DRAFT: ItemDraft = { active: true, name: "", price: "" };
 
@@ -48,6 +69,7 @@ function room(account: KhataAccount) {
 export default function KhataScreen() {
   const query = khataQuery.admin();
   const khata = useResource(query.load, { cacheKey: query.key, topics: query.topics });
+  const { colors } = useAppTheme();
 
   const [request, setRequest] = useState<KhataAccount | null>(null);
   const [account, setAccount] = useState<KhataAccount | null>(null);
@@ -105,13 +127,56 @@ export default function KhataScreen() {
       return;
     }
 
-    const item = { active: draft.active, id: draft.id, name: draft.name.trim(), price };
+    const item = {
+      active: draft.active,
+      id: draft.id,
+      imageAssetId: draft.imageAssetId ?? null,
+      name: draft.name.trim(),
+      price,
+    };
     const items = draft.id
       ? khata.data.items.map((row) => (row.id === draft.id ? { ...row, ...item, id: row.id } : row))
       : [...khata.data.items, item];
 
     if (await saveItems(items)) {
       toastSuccess(draft.id ? "Item saved" : `${item.name} added`);
+    }
+  };
+
+  const pickPhoto = async () => {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permission.granted) {
+      toastError("Permission needed", "Allow photo access to add a photo.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      mediaTypes: ["images"],
+      quality: 0.8,
+    });
+    const picked = result.canceled ? null : result.assets[0];
+
+    if (!picked) {
+      return;
+    }
+
+    setBusy("photo");
+
+    try {
+      // PUBLIC: residents see it on their item tiles without an auth header.
+      const imageAssetId = await uploadAsset(picked, {
+        accessLevel: "PUBLIC",
+        label: "Item photo",
+      });
+
+      setDraft((prev) => (prev ? { ...prev, imageAssetId } : prev));
+    } catch (error) {
+      toastError("That photo did not upload", readApiError(error));
+    } finally {
+      setBusy(null);
     }
   };
 
@@ -225,8 +290,15 @@ export default function KhataScreen() {
                   <ListRow
                     icon={khataIcon(item.name)}
                     iconBgColor={item.active ? "#AF52DE" : "#8E8E93"}
+                    left={item.imageAssetId ? <ItemThumb assetId={item.imageAssetId} /> : undefined}
                     onPress={() =>
-                      setDraft({ active: item.active, id: item.id, name: item.name, price: String(item.price) })
+                      setDraft({
+                        active: item.active,
+                        id: item.id,
+                        imageAssetId: item.imageAssetId,
+                        name: item.name,
+                        price: String(item.price),
+                      })
                     }
                     right={item.active ? undefined : <Badge label="Off" tone="neutral" />}
                     title={item.name}
@@ -287,7 +359,12 @@ export default function KhataScreen() {
       <Sheet
         footer={
           <View className="gap-2">
-            <Button label="Save" loading={busy === "items"} onPress={() => void saveDraft()} />
+            <Button
+              disabled={busy === "photo"}
+              label="Save"
+              loading={busy === "items"}
+              onPress={() => void saveDraft()}
+            />
             {draft?.id ? (
               <Button label="Remove item" onPress={removeDraft} variant="ghost" />
             ) : null}
@@ -299,6 +376,40 @@ export default function KhataScreen() {
       >
         {draft ? (
           <View className="gap-3 pb-2">
+            <View className="flex-row items-center gap-3">
+              <Pressable
+                accessibilityLabel={draft.imageAssetId ? "Change photo" : "Add a photo"}
+                accessibilityRole="button"
+                className="h-16 w-16 items-center justify-center overflow-hidden rounded-2xl border border-dashed border-border bg-muted active:opacity-70"
+                disabled={busy === "photo"}
+                onPress={() => void pickPhoto()}
+              >
+                {draft.imageAssetId ? (
+                  <Image
+                    contentFit="cover"
+                    source={{ uri: assetUrl(draft.imageAssetId, "MEDIUM") }}
+                    style={{ height: 64, width: 64 }}
+                  />
+                ) : (
+                  <Ionicons color={colors.mutedForeground} name="camera-outline" size={22} />
+                )}
+              </Pressable>
+              <View className="flex-1 gap-1">
+                <Text variant="label">Photo</Text>
+                {draft.imageAssetId ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    onPress={() => setDraft((prev) => (prev ? { ...prev, imageAssetId: null } : prev))}
+                  >
+                    <Text className="text-destructive" variant="caption">
+                      Remove photo
+                    </Text>
+                  </Pressable>
+                ) : (
+                  <Text variant="caption">Optional</Text>
+                )}
+              </View>
+            </View>
             <Input
               label="Item"
               onChangeText={(name) => setDraft((prev) => (prev ? { ...prev, name } : prev))}

@@ -89,6 +89,8 @@ export const EXPENSE_PAID_BY_LABELS: Record<ExpensePaidBy, string> = {
   KHALTI: "Khalti",
 };
 
+/** Largest single expense, in whole rupees. */
+export const EXPENSE_AMOUNT_MAX = 100_000_000;
 /** Longest "what" line — one short phrase, e.g. "Rice 25 kg". */
 export const EXPENSE_WHAT_MAX = 120;
 /** Longest name for a hostel's own category. */

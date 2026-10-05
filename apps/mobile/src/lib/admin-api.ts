@@ -160,6 +160,8 @@ export type AdminBranchRow = {
   city?: string;
   beds: number;
   collected: number;
+  /** First exterior photo, relative or absolute — resolve with `absoluteMediaUrl`. */
+  coverUrl?: string | null;
   due: number;
   id: string;
   isBranch: boolean;

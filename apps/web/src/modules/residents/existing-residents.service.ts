@@ -227,6 +227,8 @@ export async function contextFor(
           hostelId,
           email: { $ne: DEMO_RESIDENT_EMAIL },
           isDeleted: { $ne: true },
+          // Somebody who moved out and came back does not collide with their old row.
+          status: { $ne: "MOVED_OUT" },
           $or: [
             ...(phones.length ? [{ phone: { $in: phones } }] : []),
             ...(emails.length ? [{ email: { $in: emails } }] : []),

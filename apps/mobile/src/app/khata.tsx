@@ -30,6 +30,7 @@ import {
   type ResidentKhataAction,
 } from "@/lib/khata-api";
 import { toastError, toastSuccess } from "@/lib/toast";
+import { assetUrl } from "@/lib/uploads";
 
 /**
  * Khata — take things now, pay with next month's rent.
@@ -118,6 +119,7 @@ export default function KhataScreen() {
         <InfoTile
           caption={formatMoney(item.price)}
           icon={khataIcon(item.name)}
+          image={item.imageAssetId ? assetUrl(item.imageAssetId, "THUMBNAIL") : null}
           key={item.id}
           label={item.name}
           onPress={onPress ? () => onPress(item) : undefined}

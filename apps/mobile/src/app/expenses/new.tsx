@@ -28,6 +28,7 @@ import { prepareEvidenceForUpload } from "@/lib/evidence-image";
 import {
   BUILT_IN_CATEGORIES,
   CUSTOM_CATEGORY_ICON,
+  EXPENSE_AMOUNT_MAX,
   EXPENSE_PAID_BY,
   EXPENSE_PAID_BY_LABELS,
   EXPENSE_WHAT_MAX,
@@ -136,7 +137,12 @@ export default function AddExpenseScreen() {
   const proofRequired = home?.proofRequired === true && !isCash;
 
   const errors = {
-    amount: amount === null ? "Write how much you paid." : null,
+    amount:
+      amount === null
+        ? "Write how much you paid."
+        : amount > EXPENSE_AMOUNT_MAX
+          ? "That amount is too big. Check it."
+          : null,
     category: choice ? null : "Pick what it was for.",
     salary:
       isSalary && salaryPick === SOMEONE_ELSE && salaryName.trim().length < 1
@@ -146,15 +152,16 @@ export default function AddExpenseScreen() {
     cashTo: isCash && !cashTo ? "Pick the warden." : null,
     photo: proofRequired && !photo?.assetId ? "Add a photo of the bill or the goods." : null,
   };
-  const valid =
-    !errors.amount &&
-    !errors.category &&
-    !errors.what &&
-    !errors.salary &&
-    !errors.cashTo &&
-    !errors.photo &&
-    !dayError &&
-    !uploading;
+  /** Screen order, so the toast names the first thing to fix. */
+  const firstError =
+    errors.amount ??
+    errors.category ??
+    errors.cashTo ??
+    errors.salary ??
+    errors.what ??
+    dayError ??
+    errors.photo;
+  const valid = !firstError && !uploading;
 
   /* ------------------------------------------------------------- tiles */
 
@@ -325,6 +332,8 @@ export default function AddExpenseScreen() {
     setTried(true);
 
     if (!valid || amount === null || !choice || !typedDay) {
+      // The field's own line may be scrolled out of sight; this one is not.
+      if (firstError) toastError("Not saved yet", firstError);
       return;
     }
 
@@ -372,6 +381,7 @@ export default function AddExpenseScreen() {
     audience,
     cashTo,
     choice,
+    firstError,
     isCash,
     isSalary,
     paidBy,
@@ -451,6 +461,15 @@ export default function AddExpenseScreen() {
                 style={{ fontSize: 40, fontWeight: "700", minWidth: 80, textAlign: "center" }}
                 value={amountText}
               />
+              {/* An unseen twin of "Rs": balances the row so the number, not the pair, sits on the centre line. */}
+              <Text
+                accessibilityElementsHidden
+                className="opacity-0"
+                importantForAccessibility="no-hide-descendants"
+                style={{ fontSize: 22, fontWeight: "600" }}
+              >
+                Rs
+              </Text>
             </View>
             {tried && errors.amount ? (
               <Text className="text-destructive" variant="caption">

@@ -223,6 +223,8 @@ export type RoomRow = {
   monthlyRent: string;
   rooms: string;
   roomType: string;
+  /** Branch form only — registration does not ask it. */
+  securityDeposit?: string;
   vacantBeds: string;
 };
 

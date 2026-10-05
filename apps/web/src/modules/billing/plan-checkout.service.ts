@@ -12,6 +12,7 @@ import {
   requestOtpChallenge,
   verifyOtpChallenge,
 } from "@/modules/auth/auth.service";
+import { countBranches } from "@/modules/billing/billing-hostel";
 import { daysLeftThrough, getBillingHistory } from "@/modules/billing/billing-history.service";
 import { planAfterPayment } from "@/modules/billing/subscription.service";
 import {
@@ -101,7 +102,35 @@ export type PlanCheckoutInput = z.infer<typeof planCheckoutSchema>;
  */
 const NOT_MATCHED = "This email and Hostel ID don't match. Please check both.";
 
-type HostelMatch = { _id: Types.ObjectId; name?: string; ownerId: Types.ObjectId };
+type HostelMatch = {
+  _id: Types.ObjectId;
+  name?: string;
+  ownerId: Types.ObjectId;
+  parentHostelId?: Types.ObjectId | null;
+};
+
+/**
+ * A branch has no plan of its own — it rides its main hostel's — so a branch's
+ * Hostel ID opens the main hostel's checkout. Resolved here, before the token
+ * is signed, so every later step (invoice, months, resume, pay, claim) is
+ * already about the account that is actually billed.
+ */
+async function billedHostel(match: HostelMatch): Promise<HostelMatch | null> {
+  if (!match.parentHostelId) return match;
+
+  return HostelModel.findOne({ _id: match.parentHostelId, isDeleted: { $ne: true } })
+    .select("_id name ownerId")
+    .lean<HostelMatch | null>();
+}
+
+/** What the Pay page names: the billed hostel, and how many branches its plan covers. */
+async function checkoutHostel(hostelId: string, name: string | undefined) {
+  return {
+    branches: await countBranches(new Types.ObjectId(hostelId)),
+    code: hostelCode(hostelId),
+    name: name ?? "",
+  };
+}
 
 /**
  * The hostel both details point at, or `null`. Three gates, in order, and a
@@ -121,7 +150,7 @@ export async function findHostelForCheckout(email: string, code: string): Promis
       "contact.email": { $options: "i", $regex: `^${escaped}$` },
       isDeleted: { $ne: true },
     })
-      .select("_id name ownerId")
+      .select("_id name ownerId parentHostelId")
       .lean<HostelMatch[]>(),
   ]);
 
@@ -135,7 +164,7 @@ export async function findHostelForCheckout(email: string, code: string): Promis
         isDeleted: { $ne: true },
         ownerId: { $in: accounts.map((account) => account._id) },
       })
-        .select("_id name ownerId")
+        .select("_id name ownerId parentHostelId")
         .lean<HostelMatch[]>()
     : [];
   const bound = [...ownedHostels, ...contactHostels];
@@ -148,7 +177,9 @@ export async function findHostelForCheckout(email: string, code: string): Promis
   // 3. The ID must name one of this email's hostels.
   const wanted = normalizeHostelCode(code);
 
-  return (wanted && bound.find((hostel) => hostelCode(String(hostel._id)) === wanted)) || null;
+  const match = wanted && bound.find((hostel) => hostelCode(String(hostel._id)) === wanted);
+
+  return match ? billedHostel(match) : null;
 }
 
 async function signCheckoutToken(hostelId: string, ownerId: string) {
@@ -358,7 +389,7 @@ export async function runPlanCheckout(
       const hostelId = String(hostel._id);
 
       return {
-        hostel: { code: hostelCode(hostelId), name: hostel.name ?? "" },
+        hostel: await checkoutHostel(hostelId, hostel.name),
         token: await signCheckoutToken(hostelId, String(hostel.ownerId)),
         ...(await paymentState(hostelId)),
       };
@@ -400,7 +431,7 @@ export async function runPlanCheckout(
       ]);
 
       return {
-        hostel: { code: hostelCode(hostelId), name: hostel?.name ?? "" },
+        hostel: await checkoutHostel(hostelId, hostel?.name),
         ...(await checkoutView(hostelId, open)),
       };
     }

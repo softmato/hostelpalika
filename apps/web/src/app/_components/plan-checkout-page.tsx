@@ -142,7 +142,7 @@ export function PlanCheckoutPage({ cycle: initialCycle, planId }: { cycle: strin
   const [resendAt, setResendAt] = useState(0);
   const [now, setNow] = useState(() => Date.now());
   const [token, setToken] = useState("");
-  const [hostel, setHostel] = useState<{ code: string; name: string } | null>(null);
+  const [hostel, setHostel] = useState<{ branches?: number; code: string; name: string } | null>(null);
   const [payment, setPayment] = useState<PaymentState | null>(null);
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [reused, setReused] = useState(false);
@@ -175,7 +175,7 @@ export function PlanCheckoutPage({ cycle: initialCycle, planId }: { cycle: strin
       history: History;
       invoice: Invoice | null;
     },
-    context: { hostel: { code: string; name: string }; reused: boolean; token: string },
+    context: { hostel: { branches?: number; code: string; name: string }; reused: boolean; token: string },
   ) {
     setToken(context.token);
     setHostel(context.hostel);
@@ -192,7 +192,7 @@ export function PlanCheckoutPage({ cycle: initialCycle, planId }: { cycle: strin
     checkout<
       PaymentState & {
         afterPayment: AfterPayment | null;
-        hostel: { code: string; name: string };
+        hostel: { branches?: number; code: string; name: string };
         history: History;
         invoice: Invoice | null;
       }
@@ -263,7 +263,7 @@ export function PlanCheckoutPage({ cycle: initialCycle, planId }: { cycle: strin
   function verify(event: FormEvent) {
     event.preventDefault();
     void run("verify", async () => {
-      const verified = await checkout<PaymentState & { hostel: { code: string; name: string }; token: string }>({
+      const verified = await checkout<PaymentState & { hostel: { branches?: number; code: string; name: string }; token: string }>({
         challengeId,
         code,
         hostelCode,
@@ -506,6 +506,11 @@ export function PlanCheckoutPage({ cycle: initialCycle, planId }: { cycle: strin
                   <div className="flex items-baseline justify-between gap-3">
                     <p className="text-sm font-semibold text-foreground">
                       {hostel?.name} <span className="font-mono text-xs text-muted-foreground">{hostel?.code}</span>
+                      {hostel?.branches ? (
+                        <span className="block text-xs font-normal text-muted-foreground">
+                          One plan · covers {hostel.branches} {hostel.branches === 1 ? "branch" : "branches"}
+                        </span>
+                      ) : null}
                     </p>
                     {/* Paying for a different hostel starts over from its email and ID. */}
                     <button

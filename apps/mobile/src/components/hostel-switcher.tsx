@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState, useSyncExternalStore } from "react";
 import { Pressable, View } from "react-native";
@@ -18,14 +19,14 @@ import {
 } from "@/lib/active-hostel";
 import { type AdminBranchRow, getBranchesSummary } from "@/lib/admin-api";
 import { adminQuery } from "@/lib/admin-queries";
-import { formatMoney } from "@/lib/format";
+import { API_BASE_URL } from "@/lib/api";
+import { absoluteMediaUrl } from "@/lib/media";
 import type { GlyphName } from "@hostel/constants/glyphs";
 
 /**
- * An owner with branches works in one hostel at a time. These two read the
- * same summary: the chip at the top of Home says which hostel this is and opens
- * the list, and the card lower down puts every hostel's figures side by side.
- * The switcher also offers branch management for an owner with one hostel.
+ * An owner with branches works in one hostel at a time. The chip at the top of
+ * Home says which hostel this is — its first exterior photo, or a plain glyph in
+ * the text colour — and opens the list: the hostels first, Overall after them.
  */
 
 const BRANCHES_KEY = "admin:branches";
@@ -87,11 +88,27 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
     return null;
 
   const current = currentRow(rows, active);
-  const tile = (name: GlyphName, on: boolean) => (
-    <View className={`h-10 w-10 items-center justify-center rounded-xl ${on ? "bg-primary" : "bg-brand-soft"}`}>
-      <Glyph color={on ? colors.primaryForeground : colors.primary} name={name} size={20} />
-    </View>
-  );
+  const cover = (row: AdminBranchRow | undefined) =>
+    row ? absoluteMediaUrl(row.coverUrl, API_BASE_URL) : null;
+  const tile = (name: GlyphName, on: boolean, image?: string | null) =>
+    image ? (
+      <Image
+        contentFit="cover"
+        source={{ uri: image }}
+        style={{
+          borderColor: on ? colors.primary : colors.border,
+          borderRadius: 12,
+          borderWidth: on ? 2 : 1,
+          height: 40,
+          width: 40,
+        }}
+      />
+    ) : (
+      <View className={`h-10 w-10 items-center justify-center rounded-xl ${on ? "bg-foreground" : "bg-muted"}`}>
+        <Glyph color={on ? colors.background : colors.foreground} name={name} size={20} />
+      </View>
+    );
+  const headerImage = overall ? null : cover(current);
   const mark = (on: boolean) =>
     on ? <Glyph color={colors.primary} name="check" size={18} strokeWidth={2} /> : null;
 
@@ -113,11 +130,19 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
         }
         onPress={() => setOpen(true)}
       >
-        <Glyph
-          color={colors.primary}
-          name={overall ? "overall" : current?.isBranch ? "branch" : "hostel"}
-          size={16}
-        />
+        {headerImage ? (
+          <Image
+            contentFit="cover"
+            source={{ uri: headerImage }}
+            style={{ borderRadius: 999, height: 26, width: 26 }}
+          />
+        ) : (
+          <Glyph
+            color={colors.foreground}
+            name={overall ? "overall" : current?.isBranch ? "branch" : "hostel"}
+            size={16}
+          />
+        )}
         {compact ? null : (
           <Text
             className="max-w-[220px] font-semibold text-foreground"
@@ -138,21 +163,6 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
         title="Switch hostel"
       >
         <View className="gap-4 px-4 py-4">
-          {rows.length > 1 ? (
-            <View className="overflow-hidden rounded-2xl bg-card">
-              <SheetRow
-                label="Overall"
-                leading={tile("overall", overall)}
-                onPress={() => {
-                  setOpen(false);
-                  if (!overall) void setActiveHostelId(OVERALL);
-                }}
-                selected={overall}
-                subtitle={`All ${rows.length} branches together`}
-                trailing={mark(overall)}
-              />
-            </View>
-          ) : null}
           <View className="gap-1.5">
             <Text className="px-1" variant="label">
               Your hostels
@@ -165,7 +175,7 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
                     {at ? <View className="ml-[72px] h-px bg-border" /> : null}
                     <SheetRow
                       label={row.name}
-                      leading={tile(row.isBranch ? "branch" : "hostel", selected)}
+                      leading={tile(row.isBranch ? "branch" : "hostel", selected, cover(row))}
                       onPress={() => {
                         setOpen(false);
                         if (!selected) void switchTo(row, rows);
@@ -182,6 +192,21 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
               })}
             </View>
           </View>
+          {rows.length > 1 ? (
+            <View className="overflow-hidden rounded-2xl bg-card">
+              <SheetRow
+                label="Overall"
+                leading={tile("overall", overall)}
+                onPress={() => {
+                  setOpen(false);
+                  if (!overall) void setActiveHostelId(OVERALL);
+                }}
+                selected={overall}
+                subtitle={`All ${rows.length} branches together`}
+                trailing={mark(overall)}
+              />
+            </View>
+          ) : null}
           <Pressable
             accessibilityRole="button"
             className="flex-row items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-3.5 active:bg-muted"
@@ -197,120 +222,6 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
           </Pressable>
         </View>
       </Sheet>
-    </View>
-  );
-}
-
-export function BranchesCard() {
-  const { colors } = useAppTheme();
-  const branches = useBranches();
-  const active = useActiveHostel();
-  const rows = branches.data?.hostels ?? [];
-
-  if (rows.length < 2) return null;
-
-  const current = currentRow(rows, active);
-
-  return (
-    <View className="gap-3">
-      <View className="gap-1 px-1">
-        <Text variant="subtitle">Your hostels</Text>
-        <Text variant="caption">Choose a hostel to open its workspace.</Text>
-      </View>
-      {rows.map((row) => {
-        const selected = row.id === current?.id;
-        return (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ selected }}
-            className="gap-4 rounded-2xl border border-border bg-card p-4 active:bg-brand-soft"
-            key={row.id}
-            onPress={selected ? undefined : () => void switchTo(row, rows)}
-          >
-            <View className="flex-row items-center gap-3">
-              <View className="h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft">
-                <Glyph
-                  color={colors.primary}
-                  name={row.isBranch ? "branch" : "hostel"}
-                  size={20}
-                />
-              </View>
-              <Text
-                className="flex-1 text-sm font-semibold text-foreground"
-                numberOfLines={2}
-                variant={null}
-              >
-                {row.name}
-              </Text>
-              {selected ? (
-                <View className="rounded-full bg-brand-soft px-2 py-1">
-                  <Text
-                    className="text-xs font-semibold text-primary"
-                    variant={null}
-                  >
-                    Active
-                  </Text>
-                </View>
-              ) : (
-                <Glyph color={colors.mutedForeground} name="chevron" size={16} />
-              )}
-            </View>
-            <View className="flex-row flex-wrap gap-y-3 border-t border-border pt-4">
-              <BranchMetric
-                label="Residents"
-                value={row.residents.toLocaleString()}
-              />
-              <BranchMetric
-                label="Occupancy"
-                value={
-                  row.occupancyPercent === null
-                    ? "—"
-                    : `${row.occupancyPercent}%`
-                }
-                detail={`${row.beds} beds`}
-              />
-              <BranchMetric
-                label="Collected"
-                value={formatMoney(row.collected)}
-              />
-              <BranchMetric
-                label="Due"
-                value={row.due > 0 ? formatMoney(row.due) : "—"}
-                warning={row.due > 0}
-              />
-              <BranchMetric
-                label="Complaints"
-                value={row.openComplaints.toLocaleString()}
-              />
-            </View>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
-function BranchMetric({
-  detail,
-  label,
-  value,
-  warning = false,
-}: {
-  detail?: string;
-  label: string;
-  value: string;
-  warning?: boolean;
-}) {
-  return (
-    <View className="w-1/2 pr-3">
-      <Text variant="caption">{label}</Text>
-      <Text
-        className={`text-sm font-semibold ${warning ? "text-warning" : "text-foreground"}`}
-        variant={null}
-      >
-        {value}
-      </Text>
-      {detail ? <Text variant="caption">{detail}</Text> : null}
     </View>
   );
 }
