@@ -301,6 +301,15 @@ const PLAN_SERVICES: PlanServiceSeed[] = [
     plan: "go",
     slug: "meal-feedback",
   },
+  {
+    audience: ["Hostel admin", "Warden"],
+    blurb:
+      "Rice, daal, oil and vegetables tracked from the day they are bought to the branch they went to, with what is left in each store.",
+    module: "food-kitchen",
+    name: "Inventory Management",
+    plan: "max",
+    slug: "inventory-management",
+  },
   // Attendance & Safety
   {
     audience: ["Resident", "Warden", "Guardian"],

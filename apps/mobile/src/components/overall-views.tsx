@@ -3,11 +3,11 @@ import { router } from "expo-router";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
-import { AdminHomeHeader, HostelHero } from "@/components/admin-home";
-import { HostelSwitcher } from "@/components/hostel-switcher";
+import { AdminHomeHeader, HostelHero, QuickActions, ServiceGrid, WaitingActions } from "@/components/admin-home";
+import { HostelSwitcher, openInBranch } from "@/components/hostel-switcher";
 import { NotificationBell } from "@/components/notification-bell";
 import { AppBar } from "@/components/ui/app-bar";
-import { Card } from "@/components/ui/card";
+import { Card, SectionHeader } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { FactRow } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
@@ -15,13 +15,13 @@ import { Meter } from "@/components/ui/meter";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
+import { Sheet, SheetRow } from "@/components/ui/sheet";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { API_BASE_URL } from "@/lib/api";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
-import { setActiveHostelId } from "@/lib/active-hostel";
 import { overallPdfPath } from "@/lib/admin-manage-api";
 import { readApiError } from "@/lib/api-contract";
 import { downloadToDevice } from "@/lib/documents";
@@ -124,12 +124,36 @@ function field<K extends OverallField>(row: BranchOverall, key: K): FieldState<O
   return row.fields[key] as FieldState<OverallValues[K]> | undefined;
 }
 
-/** Switch into one branch, then open the screen there. */
 function openIn(branchId: string, isBranch: boolean, route: string) {
-  void setActiveHostelId(isBranch ? branchId : null).then(() => {
-    if (route.startsWith("/(admin)")) router.navigate(route as never);
-    else router.push(route as never);
-  });
+  openInBranch({ id: branchId, isBranch }, route);
+}
+
+/**
+ * Where a branch Home's tile goes when Overall is picked: the all-branches view
+ * of the same subject. A tile missing here is a per-branch job (rooms, settings,
+ * a new resident) and asks which branch first.
+ */
+const OVERALL_HREFS: Record<string, string> = {
+  "/(admin)/residents": "/(admin)/residents",
+  "/expenses": "/overall/expenses",
+  "/manage/billing": "/overall/billing",
+  "/manage/complaints": "/overall/complaints",
+  "/manage/cook": "/overall/cooks",
+  "/manage/finance": "/(admin)/money",
+  "/manage/finance/statement": "/manage/finance/statement",
+  "/manage/food": "/overall/food",
+  "/manage/inquiries": "/overall/inquiries",
+  "/manage/maintenance": "/overall/maintenance",
+  "/manage/notices": "/overall/notices",
+  "/manage/reports": "/overall/performance",
+  "/manage/roll-call": "/overall/night",
+  "/manage/wardens": "/overall/wardens",
+  "/stock": "/stock",
+};
+
+function go(route: string) {
+  if (route.startsWith("/(admin)")) router.navigate(route as never);
+  else router.push(route as never);
 }
 
 /* ------------------------------------------------------------------ shell */
@@ -221,6 +245,47 @@ export function OverallTabScreen({ tab }: { tab: OverallTab }) {
   );
 }
 
+const TOPIC_SECTION = Object.fromEntries(
+  Object.entries(TOPICS).flatMap(([section, options]) => options.map((option) => [option.value, section])),
+) as Partial<Record<string, Exclude<OverallSection, "overview">>>;
+
+/**
+ * One subject over every branch — where an Overall Home tile lands
+ * (`app/overall/[topic].tsx`). The same stacked cards as the tabs, one topic.
+ */
+export function OverallTopicScreen({ topic }: { topic: string }) {
+  const section = TOPIC_SECTION[topic];
+  const label = section ? TOPICS[section].find((option) => option.value === topic)!.label : "Overall";
+  const period = nepalPeriodKey();
+  const load = useCallback(() => getOverallData(section ?? "people", period), [section, period]);
+  const resource = useResource<OverallData>(load, { cacheKey: `admin:overall:${section ?? "people"}:${period}` });
+  const visible = resource.data?.section === section ? resource.data : null;
+
+  return (
+    <Screen
+      header={<AppBar showBack subtitle="All branches" title={label} />}
+      onRefresh={resource.refresh}
+      refreshing={resource.refreshing}
+      scroll
+    >
+      <View className="gap-5 pb-6 pt-1">
+        {!section ? <ErrorState message="This page does not exist." /> : null}
+        {section && resource.error && !visible ? <ErrorState message={resource.error} onRetry={resource.reload} /> : null}
+        {section && !visible && !resource.error ? <SkeletonCard rows={4} /> : null}
+        {section && visible ? (
+          visible.branches.length === 0 ? (
+            <Card>
+              <Text variant="caption">No branches yet.</Text>
+            </Card>
+          ) : (
+            <StackedTopics fixed={topic as Topic} rows={visible.branches} section={section} />
+          )
+        ) : null}
+      </View>
+    </Screen>
+  );
+}
+
 /* ------------------------------------------------------------------- home */
 
 function Figure({ label, children }: { children: ReactNode; label: string }) {
@@ -247,9 +312,15 @@ function HostelMark({ coverUrl, isBranch, size = 40 }: { coverUrl?: string | nul
   );
 }
 
-/** The whole business on one card, then each branch as its own card, stacked. */
+/**
+ * A branch's Home, answered for every branch: the same hero (summed), the same
+ * shortcut row, "Waiting for you" and Manage grid, then each branch as a card.
+ * A tile opens the all-branches view of its subject; a per-branch job asks
+ * which branch first and switches into it.
+ */
 function OverallHome({ period, rows }: { period: string; rows: BranchOverall[] }) {
   const { colors } = useAppTheme();
+  const [picking, setPicking] = useState<string | null>(null);
   const totals = rows.reduce(
     (sum, row) => ({
       beds: sum.beds + row.branch.beds,
@@ -262,8 +333,16 @@ function OverallHome({ period, rows }: { period: string; rows: BranchOverall[] }
   );
   const billed = totals.collected + totals.due;
 
+  const open = (route: string) => {
+    const overall = OVERALL_HREFS[route];
+
+    if (overall) go(overall);
+    else if (rows.length === 1) openIn(rows[0]!.branch.id, rows[0]!.branch.isBranch, route);
+    else setPicking(route);
+  };
+
   return (
-    <View className="gap-5">
+    <View>
       {/* The branch Home's own hero card, summed over every branch. */}
       <HostelHero
         delta={null}
@@ -283,48 +362,100 @@ function OverallHome({ period, rows }: { period: string; rows: BranchOverall[] }
         vacantBeds={Math.max(0, totals.beds - totals.residents)}
       />
 
-      <View className="gap-3 px-5">
-        {rows.map(({ branch }) => (
-          <Pressable
-            accessibilityHint="Opens this branch"
-            accessibilityRole="button"
-            className="gap-3 rounded-2xl border border-border bg-card p-4 active:opacity-80"
-            key={branch.id}
-            onPress={() => openIn(branch.id, branch.isBranch, "/(admin)")}
-          >
-            <View className="flex-row items-center gap-3">
-              <HostelMark coverUrl={branch.coverUrl} isBranch={branch.isBranch} />
-              <View className="min-w-0 flex-1">
-                <Text numberOfLines={1} variant="subtitle">
-                  {branch.name}
-                </Text>
-                <Text numberOfLines={1} variant="caption">
-                  {[branch.isBranch ? "Branch" : "Main", branch.area || branch.city].filter(Boolean).join(" · ")}
-                </Text>
-              </View>
-              <Glyph color={colors.mutedForeground} name="chevron" size={16} />
-            </View>
-            <Meter
-              label={`${branch.residents} of ${branch.beds} beds`}
-              percent={branch.occupancyPercent}
-              reading="share"
-            />
-            <View className="flex-row">
-              <Figure label="Collected">
-                <Money tone="credit" value={branch.collected} />
-              </Figure>
-              <Figure label="Due">
-                <Money owed={branch.due > 0} value={branch.due} />
-              </Figure>
-              <Figure label="Complaints">
-                <Text className={branch.openComplaints > 0 ? "text-warning" : undefined} variant="label">
-                  {String(branch.openComplaints)}
-                </Text>
-              </Figure>
-            </View>
-          </Pressable>
-        ))}
+      <View className="pt-3">
+        <QuickActions
+          onAddExpense={() => open("/expenses/new")}
+          onNewResident={() => open("/manage/resident/new")}
+          onRollCall={() => open("/manage/roll-call")}
+          onScan={() => open("/manage/scan")}
+        />
       </View>
+
+      <View className="gap-6 px-5 pt-6">
+        <View>
+          <SectionHeader title="Waiting for you" />
+          <WaitingActions
+            inquiries={0}
+            onInquiries={() => open("/manage/inquiries")}
+            onReconcile={() => open("/manage/statements")}
+            onStatement={() => open("/manage/finance/statement")}
+            onToday={() => go("/(admin)/more")}
+          />
+        </View>
+
+        <View>
+          <SectionHeader title="Manage" />
+          <ServiceGrid onOpen={open} owner />
+        </View>
+
+        <View className="gap-3">
+          <SectionHeader title="Branches" />
+          {rows.map(({ branch }) => (
+            <Pressable
+              accessibilityHint="Opens this branch"
+              accessibilityRole="button"
+              className="gap-3 rounded-2xl border border-border bg-card p-4 active:opacity-80"
+              key={branch.id}
+              onPress={() => openIn(branch.id, branch.isBranch, "/(admin)")}
+            >
+              <View className="flex-row items-center gap-3">
+                <HostelMark coverUrl={branch.coverUrl} isBranch={branch.isBranch} />
+                <View className="min-w-0 flex-1">
+                  <Text numberOfLines={1} variant="subtitle">
+                    {branch.name}
+                  </Text>
+                  <Text numberOfLines={1} variant="caption">
+                    {[branch.isBranch ? "Branch" : "Main", branch.area || branch.city].filter(Boolean).join(" · ")}
+                  </Text>
+                </View>
+                <Glyph color={colors.mutedForeground} name="chevron" size={16} />
+              </View>
+              <Meter
+                label={`${branch.residents} of ${branch.beds} beds`}
+                percent={branch.occupancyPercent}
+                reading="share"
+              />
+              <View className="flex-row">
+                <Figure label="Collected">
+                  <Money tone="credit" value={branch.collected} />
+                </Figure>
+                <Figure label="Due">
+                  <Money owed={branch.due > 0} value={branch.due} />
+                </Figure>
+                <Figure label="Complaints">
+                  <Text className={branch.openComplaints > 0 ? "text-warning" : undefined} variant="label">
+                    {String(branch.openComplaints)}
+                  </Text>
+                </Figure>
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      {/* A write belongs to one branch: pick it, and the app moves there. */}
+      <Sheet bare fitContent onClose={() => setPicking(null)} open={picking !== null} title="Which branch?">
+        <View className="px-4 py-4">
+          <View className="overflow-hidden rounded-2xl bg-card">
+            {rows.map(({ branch }, at) => (
+              <View key={branch.id}>
+                {at ? <View className="ml-[72px] h-px bg-border" /> : null}
+                <SheetRow
+                  label={branch.name}
+                  leading={<HostelMark coverUrl={branch.coverUrl} isBranch={branch.isBranch} />}
+                  onPress={() => {
+                    const route = picking;
+
+                    setPicking(null);
+                    if (route) openIn(branch.id, branch.isBranch, route);
+                  }}
+                  subtitle={branch.isBranch ? "Branch" : "Main hostel"}
+                />
+              </View>
+            ))}
+          </View>
+        </View>
+      </Sheet>
     </View>
   );
 }
@@ -407,10 +538,15 @@ function TopicChips({ onChange, options, value }: {
 }
 
 /** One subject, every branch: the total on top, then each branch's own card. */
-function StackedTopics({ rows, section }: { rows: BranchOverall[]; section: Exclude<OverallSection, "overview"> }) {
+function StackedTopics({ fixed, rows, section }: {
+  /** One subject only, no chips — the single-topic screen a Home tile opens. */
+  fixed?: Topic;
+  rows: BranchOverall[];
+  section: Exclude<OverallSection, "overview">;
+}) {
   const options = TOPICS[section];
-  const [picked, setPicked] = useState<Topic>(options[0]!.value);
-  const topic = options.some((option) => option.value === picked) ? picked : options[0]!.value;
+  const [picked, setPicked] = useState<Topic>(fixed ?? options[0]!.value);
+  const topic = fixed ?? (options.some((option) => option.value === picked) ? picked : options[0]!.value);
   // Plan billing lives on the main hostel only: one plan covers its branches.
   const shown = useMemo(
     () => (topic === "billing" ? rows.filter((row) => !row.branch.isBranch) : rows),
@@ -419,7 +555,7 @@ function StackedTopics({ rows, section }: { rows: BranchOverall[]; section: Excl
 
   return (
     <View className="gap-5">
-      <TopicChips onChange={setPicked} options={options} value={topic} />
+      {fixed ? null : <TopicChips onChange={setPicked} options={options} value={topic} />}
       <TopicTotal rows={rows} topic={topic} />
       {shown.map((row) => (
         <View className="gap-2" key={row.branch.id}>

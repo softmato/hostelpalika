@@ -82,6 +82,10 @@ const PERMISSION_LABELS: Record<WardenPermission, { hint: string; label: string 
     label: "Payment setup",
   },
   manageRooms: { hint: "Change room types, beds and vacancies.", label: "Rooms" },
+  manageStock: {
+    hint: "Add what was bought, send to a branch, tap Got it, count what is left.",
+    label: "Stock",
+  },
   recordCash: { hint: "Mark an invoice settled in cash.", label: "Record cash" },
   recordExpenses: {
     hint: "Add money they spend for the hostel. They never see the hostel's totals.",

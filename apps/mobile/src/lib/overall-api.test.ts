@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { api } from "@/lib/api";
 import { getBranchesSummary } from "@/lib/admin-api";
-import { getOverallData } from "@/lib/overall-api";
+import { getOverallData, getOverallLedger } from "@/lib/overall-api";
 
 vi.mock("@/lib/api", () => ({ api: { get: vi.fn() } }));
 vi.mock("@/lib/admin-api", () => ({ getBranchesSummary: vi.fn() }));
@@ -64,5 +64,40 @@ describe("overall branch reads", () => {
     expect(vi.mocked(api.get).mock.calls.filter(([path]) => path === "/hostel-admin/billing")
       .map(([, config]) => config?.headers?.["x-hostel-id"])).toEqual(["main"]);
     expect(result.branches[1]?.fields.billing).toBeUndefined();
+  });
+});
+
+describe("overall statement", () => {
+  it("merges every branch's ledger, tagging rows and keeping ids apart", async () => {
+    vi.mocked(api.get).mockImplementation(async (_path, config) => {
+      const id = config?.headers?.["x-hostel-id"];
+      return {
+        data: {
+          data: {
+            entries: [{ id: "inv1", paidAmount: id === "main" ? 100 : 70, residentName: id }],
+            expenses: [{ id: "exp1", amount: 5 }],
+            truncated: id === "north",
+          },
+        },
+      } as never;
+    });
+
+    const ledger = await getOverallLedger();
+
+    expect(ledger.entries.map((entry) => [entry.id, entry.branch?.name, entry.paidAmount])).toEqual([
+      ["main:inv1", "Main", 100],
+      ["north:inv1", "North", 70],
+    ]);
+    expect(ledger.expenses?.map((expense) => expense.id)).toEqual(["main:exp1", "north:exp1"]);
+    expect(ledger.truncated).toBe(true);
+  });
+
+  it("fails whole when one branch fails, rather than under-reporting", async () => {
+    vi.mocked(api.get).mockImplementation(async (_path, config) => {
+      if (config?.headers?.["x-hostel-id"] === "north") throw new Error("boom");
+      return { data: { data: { entries: [], expenses: null, truncated: false } } } as never;
+    });
+
+    await expect(getOverallLedger()).rejects.toThrow(/North/);
   });
 });

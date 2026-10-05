@@ -10,7 +10,22 @@
 import { Types } from "mongoose";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const mocks = vi.hoisted(() => ({ findOneAndUpdate: vi.fn() }));
+const mocks = vi.hoisted(() => ({
+  findOneAndUpdate: vi.fn(),
+  hostelFindById: vi.fn(),
+  hostelFindOneAndUpdate: vi.fn(),
+}));
+
+const lean = (value: unknown) => ({
+  select: () => ({ lean: vi.fn().mockResolvedValue(value) }),
+});
+
+vi.mock("@hostel/db/models/Hostel", () => ({
+  HostelModel: {
+    findById: mocks.hostelFindById,
+    findOneAndUpdate: mocks.hostelFindOneAndUpdate,
+  },
+}));
 
 vi.mock("@hostel/db/models/ReceiptCounter", () => ({
   ReceiptCounterModel: { findOneAndUpdate: mocks.findOneAndUpdate },
@@ -59,15 +74,21 @@ describe("allocateReferenceCode", () => {
     expect(parseReferenceCode(code)).toEqual({ prefix: "RUP", sequence: 4821 });
   });
 
-  it("refuses to bill a hostel with no reference prefix", async () => {
-    // An invoice issued without a code can never honestly gain one later, so
-    // this stops the run rather than issuing unmatchable invoices.
-    await expect(allocateReferenceCode(hostelId, null)).rejects.toMatchObject({
-      errorCode: "REFERENCE_PREFIX_MISSING",
-    });
-    await expect(allocateReferenceCode(hostelId, "R1P")).rejects.toMatchObject({
-      errorCode: "REFERENCE_PREFIX_MISSING",
-    });
+  it("gives a hostel with no prefix one on its first invoice", async () => {
+    // Hostel creation never set one, so this used to throw and intake raised
+    // no invoice at all for every newer hostel.
+    mocks.hostelFindById.mockReturnValue(lean({ name: "Test Hostel 1" }));
+    mocks.hostelFindOneAndUpdate
+      .mockImplementationOnce(() => {
+        throw Object.assign(new Error("dup"), { code: 11000 });
+      })
+      .mockReturnValueOnce(lean({ referencePrefix: "TEA" }));
+
+    const code = await allocateReferenceCode(hostelId, null);
+
+    expect(parseReferenceCode(code)?.prefix).toBe("TEA");
+    expect(mocks.hostelFindOneAndUpdate.mock.calls.map((call) => call[1].$set.referencePrefix))
+      .toEqual(["TES", "TEA"]);
   });
 
   it("errors rather than wrapping when the sequence is exhausted", async () => {

@@ -662,6 +662,8 @@ export function ServiceGrid({
       of its own. `manage/food.tsx` keeps a single row pointing here.
     */
     { href: "/manage/cook", icon: "flame-outline", label: "Cooks", tone: "warning" },
+    // The kitchen's sacks and sabji, beside the people who cook with them (docs/INVENTORY_PLAN.md).
+    { href: "/stock", icon: "cube-outline", label: "Stock", tone: "success" },
     // Beside Cooks: both are "who else works here".
     ...(owner
       ? [{ href: "/manage/wardens", icon: "shield-checkmark-outline", label: "Wardens", tone: "admin" } as const]

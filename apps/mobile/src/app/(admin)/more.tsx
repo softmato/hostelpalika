@@ -79,6 +79,13 @@ const MANAGE_ROWS: {
     tone: "success",
   },
   {
+    href: "/stock",
+    icon: "cube-outline",
+    subtitle: "Rice, daal, vegetables: bought, sent to each branch, what is left",
+    title: "Stock",
+    tone: "success",
+  },
+  {
     href: "/manage/bookings",
     icon: "calendar-outline",
     subtitle: "Confirm or decline booked beds, and your share",

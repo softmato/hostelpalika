@@ -26,6 +26,7 @@ import {
   type ExpensePaidBy,
 } from "@hostel/expenses/categories";
 import { dayFromKey, dayKey, todayKey } from "@hostel/expenses/input";
+import type { LedgerBranch } from "@/lib/admin-api";
 
 export {
   dayKey,
@@ -54,6 +55,8 @@ export type StaffCashStatus = "ACCEPTED" | "DECLINED" | "PENDING";
 
 export type ExpenseRow = {
   amount: number;
+  /** Overall's merged statement only: the branch it was spent in. */
+  branch?: LedgerBranch;
   /** `STAFF_CASH` only — see the server's `ExpenseRow`. */
   cashNote: string | null;
   cashRespondedAt: string | null;

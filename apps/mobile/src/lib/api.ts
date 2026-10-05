@@ -1,5 +1,6 @@
 import { receiptNative } from "./receipt-native";
 import { withSessionRefreshLock } from "@/lib/session-refresh-lock";
+import { invalidateAllQueries } from "@/lib/query-cache";
 /**
  * The single HTTP client.
  *
@@ -251,7 +252,14 @@ async function refreshStoredSession(): Promise<string | null> {
 }
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // ponytail: any write stales the whole cache; scope by topic if refetch traffic shows up.
+    if (response.config.method && response.config.method.toLowerCase() !== "get") {
+      invalidateAllQueries();
+    }
+
+    return response;
+  },
   async (error: AxiosError) => {
     const request = error.config as
       | (InternalAxiosRequestConfig & { _retried?: boolean })

@@ -31,8 +31,8 @@ import { MetricCard, PortalPageHeader, SectionCard, type SoftTone } from "./port
  *
  * Picked in the workspace switcher like a branch, with the same subjects in its
  * sidebar. Each page puts the all-branch totals on top and then **one card per
- * branch, stacked**, so two branches' rows never mix into a list nobody can
- * attribute. The app's Overall (`apps/mobile/src/components/overall-views.tsx`)
+ * branch, stacked**. Statement is the one merged list, every row naming its
+ * branch — mixing happens here in Overall and nowhere inside a branch. The app's Overall (`apps/mobile/src/components/overall-views.tsx`)
  * reads the same endpoints the same way.
  *
  * Read-only: every request names its branch in `x-hostel-id`, which the server
@@ -188,6 +188,7 @@ function ScreenBody({ data, screen }: { data: Overall; screen: OverallScreen }) 
   if (rows.length === 0) return <SectionCard><EmptyState label="No branches yet." /></SectionCard>;
 
   if (screen === "dashboard") return <Dashboard rows={rows} />;
+  if (screen === "statement") return <Statement rows={rows} />;
 
   return (
     <>
@@ -394,6 +395,47 @@ function movements(ledger: Ledger | null | undefined) {
   };
 }
 
+/**
+ * Every branch's money on one list — the one Overall page where rows from
+ * different branches share a list, each naming its branch. A branch that failed
+ * to load says so above it rather than quietly lowering the totals.
+ */
+function Statement({ rows }: { rows: BranchData[] }) {
+  const all = rows.map((row) => ({ money: movements(get<Ledger>(row, "ledger")), row }));
+  const merged = all
+    .flatMap(({ money, row }) =>
+      money.rows.map((item) => ({ ...item, branch: row.branch.name, id: `${row.branch.id}:${item.id}` })),
+    )
+    .sort((a, b) => b.at.localeCompare(a.at));
+
+  return (
+    <>
+      <Totals rows={rows} screen="statement" />
+      <SectionCard description="Money in and out across every branch, newest first" title="All branches">
+        {rows.map((row) =>
+          row.fields.ledger?.error ? (
+            <p className="text-sm text-amber-700 dark:text-amber-300" key={row.branch.id}>
+              {`${row.branch.name}: ${row.fields.ledger.error}`}
+            </p>
+          ) : null,
+        )}
+        <Rows
+          empty="Nothing moved yet."
+          items={merged.map((item) => (
+            <Row
+              amount={`${item.kind === "in" ? "+" : item.kind === "out" ? "-" : ""}${currency(item.amount)}`}
+              key={item.id}
+              sub={[item.branch, item.sub, item.kind === "move" ? "to staff cash" : null].filter(Boolean).join(" · ")}
+              title={item.title}
+              tone={item.kind}
+            />
+          ))}
+        />
+      </SectionCard>
+    </>
+  );
+}
+
 function sum(rows: BranchData[], value: (row: BranchData) => number | null | undefined) {
   return rows.reduce((total, row) => total + (value(row) ?? 0), 0);
 }
@@ -450,9 +492,33 @@ function Dashboard({ rows }: { rows: BranchData[] }) {
           );
         })}
       </div>
+      {/* The branch dashboard's Quick Actions card, each pointing at the all-branches page. */}
+      <SectionCard title="Quick Actions">
+        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {QUICK_LINKS.map(([screen, label]) => (
+            <Link
+              className="rounded-lg border border-border bg-muted/20 px-3 py-3 text-sm font-semibold text-foreground transition hover:border-role-admin/40 hover:bg-role-admin-soft/40"
+              href={`/overall/admin/${screen}`}
+              key={screen}
+            >
+              {label}
+            </Link>
+          ))}
+        </div>
+      </SectionCard>
     </>
   );
 }
+
+const QUICK_LINKS: [OverallScreen, string][] = [
+  ["statement", "Statement"],
+  ["payments", "Review Payments"],
+  ["expenses", "Expenses"],
+  ["residents", "Residents"],
+  ["staff", "Wardens & cooks"],
+  ["daily", "Complaints & repairs"],
+  ["reports", "Reports"],
+];
 
 function Totals({ rows, screen }: { rows: BranchData[]; screen: OverallScreen }) {
   switch (screen) {

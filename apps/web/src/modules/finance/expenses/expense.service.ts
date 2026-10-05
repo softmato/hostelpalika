@@ -542,7 +542,7 @@ export async function listStaffWallets(
  * switched "Bill photo needed" off for them (`expenseWithoutProof`). The cook
  * has no such switch, so the kitchen always does.
  */
-async function isProofRequired(actor: ExpenseActor): Promise<boolean> {
+export async function isProofRequired(actor: ExpenseActor): Promise<boolean> {
   if (actor.role === "HOSTEL_ADMIN") return false;
   if (actor.role === "COOK") return true;
 

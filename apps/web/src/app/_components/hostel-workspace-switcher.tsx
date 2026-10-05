@@ -22,7 +22,7 @@ export function HostelWorkspaceSwitcher({
   overall = false,
 }: {
   current: string;
-  hostels: Array<{ isBranch: boolean; name: string; slug: string }>;
+  hostels: Array<{ coverUrl?: string | null; isBranch: boolean; name: string; slug: string }>;
   /** The owner of several hostels: offer "Overall", every branch at once. */
   overall?: boolean;
 }) {
@@ -31,7 +31,7 @@ export function HostelWorkspaceSwitcher({
   if (!hostels.length) return null;
   const inOverall = current === OVERALL_SLUG;
   const selected = inOverall
-    ? { isBranch: false, name: "Overall", slug: OVERALL_SLUG }
+    ? { coverUrl: null, isBranch: false, name: "Overall", slug: OVERALL_SLUG }
     : hostels.find((hostel) => hostel.slug === current);
   function open(slug: string) {
     if (slug === current || switching) return;
@@ -45,9 +45,12 @@ export function HostelWorkspaceSwitcher({
           disabled={switching}
           className="flex min-w-0 max-w-full items-center gap-2 rounded-xl border border-border bg-background px-2.5 py-1.5 text-left outline-none transition hover:bg-muted focus-visible:ring-2 focus-visible:ring-brand-teal"
         >
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-brand-teal/10 text-brand-teal">
+          <span className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted text-foreground">
             {switching ? (
               <Loader2 className="size-4 animate-spin" />
+            ) : selected?.coverUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- a 28px thumbnail of a stored photo
+              <img alt="" className="size-full object-cover" src={selected.coverUrl} />
             ) : (
               <Glyph className="size-4" name={inOverall ? "overall" : selected?.isBranch ? "branch" : "hostel"} />
             )}
@@ -62,7 +65,7 @@ export function HostelWorkspaceSwitcher({
         {overall ? (
           <>
             <DropdownMenuItem onSelect={() => open(OVERALL_SLUG)} className="gap-3 rounded-lg px-2 py-2.5">
-              <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${inOverall ? "bg-brand-teal text-white" : "bg-brand-teal/10 text-brand-teal"}`}>
+              <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${inOverall ? "bg-foreground text-background" : "bg-muted text-foreground"}`}>
                 <Glyph className="size-[18px]" name="overall" />
               </span>
               <span className="min-w-0 flex-1">
@@ -85,9 +88,18 @@ export function HostelWorkspaceSwitcher({
               onSelect={() => open(hostel.slug)}
               className="gap-3 rounded-lg px-2 py-2.5"
             >
-              <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${active ? "bg-brand-teal text-white" : "bg-brand-teal/10 text-brand-teal"}`}>
-                <Glyph className="size-[18px]" name={hostel.isBranch ? "branch" : "hostel"} />
-              </span>
+              {hostel.coverUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- a 36px thumbnail of a stored photo
+                <img
+                  alt=""
+                  className={`size-9 shrink-0 rounded-lg object-cover ${active ? "ring-2 ring-brand-teal" : "ring-1 ring-border"}`}
+                  src={hostel.coverUrl}
+                />
+              ) : (
+                <span className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${active ? "bg-foreground text-background" : "bg-muted text-foreground"}`}>
+                  <Glyph className="size-[18px]" name={hostel.isBranch ? "branch" : "hostel"} />
+                </span>
+              )}
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold">{hostel.name}</span>
                 <span className="block truncate text-xs text-muted-foreground">

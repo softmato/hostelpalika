@@ -625,7 +625,11 @@ export async function getAdminInvoices(period?: string) {
  * `undefined` — not `"OTHER"` — for a settlement whose provider is unmapped or
  * absent. `lib/hostel-statement.ts` is what normalises that.
  */
+/** The branch a row came from — set only on Overall's merged reads (`lib/overall-api.ts`). */
+export type LedgerBranch = { id: string; isBranch: boolean; name: string };
+
 export type AdminLedgerEntry = {
+  branch?: LedgerBranch;
   /** ISO. When the invoice was raised, not when it was paid. */
   createdAt?: string;
   dueAmount: number;

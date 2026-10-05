@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, Share, TextInput, View } from "react-native";
 
+import { openInBranch, useIsOverall } from "@/components/hostel-switcher";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge, StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ import { useDates } from "@/hooks/use-dates";
 import type { CalendarSystem } from "@/lib/calendar";
 import { useResource } from "@/hooks/use-resource";
 import { type AdminHostel, type AdminLedger } from "@/lib/admin-api";
+import { overallPdfPath } from "@/lib/admin-manage-api";
 import { adminQuery } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { readApiError } from "@/lib/api-contract";
@@ -29,6 +31,7 @@ import {
   formatMoney,
   formatTime,
   humanizeEnum,
+  nepalPeriodKey,
 } from "@/lib/format";
 import {
   activeFilterCount,
@@ -161,7 +164,8 @@ function FilterChip({
       className={`rounded-full border px-3.5 py-2 active:opacity-70 ${
         selected ? "border-primary bg-primary" : "border-border bg-card"
       }`}
-      onPress={() => {        onPress();
+      onPress={() => {
+        onPress();
       }}
     >
       <Text
@@ -301,6 +305,7 @@ function CreditRow({
                 <Badge label={credit.expense.categoryLabel} tone="neutral" />
               ) : null}
               {isPartial(credit) ? <Badge label="Part payment" tone="warning" /> : null}
+              {credit.branch ? <Badge label={credit.branch.name} tone="neutral" /> : null}
             </View>
           </View>
 
@@ -353,9 +358,19 @@ function CreditRow({
   );
 }
 
+/** The resident, or the expenses screen — in the row's own branch when Overall merged it in. */
+function openBehind(credit: StatementCredit) {
+  const route = credit.debit ? "/expenses" : `/manage/resident/${credit.residentId}`;
+
+  if (credit.branch) openInBranch(credit.branch, route);
+  else router.push(route as never);
+}
+
 export default function ManageStatementScreen() {
   const dates = useDates();
   const { colors } = useAppTheme();
+  // Overall: the same statement over every branch at once, each row tagged (`getOverallLedger`).
+  const overall = useIsOverall();
 
   const ledgerQuery = adminQuery.ledger();
   const ledger = useResource<AdminLedger>(ledgerQuery.load, {
@@ -444,13 +459,13 @@ export default function ManageStatementScreen() {
           calendar: dates.calendar,
           credits: visible,
           filter,
-          hostelName: hostel.data?.name ?? "",
+          hostelName: overall ? "All branches" : (hostel.data?.name ?? ""),
         }),
       });
     } catch (error) {
       toastError("Could not share", readApiError(error, "The share sheet did not open."));
     }
-  }, [dates.calendar, filter, hostel.data, visible]);
+  }, [dates.calendar, filter, hostel.data, overall, visible]);
 
   /**
    * Downloads the statement in the format the owner picked.
@@ -474,16 +489,20 @@ export default function ManageStatementScreen() {
         fileName: "hostel-statement",
         label: "Statement export",
         mimeType: format === "pdf" ? "application/pdf" : "text/csv",
-        url: `${API_BASE_URL}/api/v1/hostel-admin/reports/export?format=${format}&report=payments`,
+        // Overall has one document for every branch: the owner's all-branches statement PDF.
+        url: overall
+          ? `${API_BASE_URL}${overallPdfPath("statement", nepalPeriodKey())}`
+          : `${API_BASE_URL}/api/v1/hostel-admin/reports/export?format=${format}&report=payments`,
       });
     } catch (error) {
       toastError("Could not export", readApiError(error, "The export did not download."));
     } finally {
       setExporting(false);
     }
-  }, []);
+  }, [overall]);
 
-  const clearFilters = useCallback(() => {    setFilter(NO_FILTER);
+  const clearFilters = useCallback(() => {
+    setFilter(NO_FILTER);
   }, []);
 
   const openFilters = useCallback(() => {
@@ -554,7 +573,7 @@ export default function ManageStatementScreen() {
           on the back arrow, the title and both actions.
         */
         straddle={STRADDLE}
-        subtitle={mixed ? "Money in and out" : "Money received"}
+        subtitle={overall ? "All branches" : mixed ? "Money in and out" : "Money received"}
         title="Statement"
       />
 
@@ -750,7 +769,8 @@ export default function ManageStatementScreen() {
           accessibilityRole="button"
           className="items-center justify-center rounded-full bg-primary active:opacity-80"
           hitSlop={10}
-          onPress={() => {            setRangesOpen((value) => !value);
+          onPress={() => {
+            setRangesOpen((value) => !value);
           }}
           style={{ height: PILL, width: PILL }}
         >
@@ -865,9 +885,7 @@ export default function ManageStatementScreen() {
                   key={credit.id}
                   mixed={mixed}
                   onOpen={() => setOpen(credit)}
-                  onResident={() =>
-                    router.push(credit.debit ? "/expenses" : `/manage/resident/${credit.residentId}`)
-                  }
+                  onResident={() => openBehind(credit)}
                 />
               ))}
             </View>
@@ -904,7 +922,7 @@ export default function ManageStatementScreen() {
             <Ionicons color={colors.mutedForeground} name="document-text-outline" size={20} />
           }
         />
-        <SheetRow
+        {overall ? null : <SheetRow
           label="Spreadsheet"
           onPress={() => {
             setFormatOpen(false);
@@ -912,7 +930,7 @@ export default function ManageStatementScreen() {
           }}
           subtitle="A CSV your accountant can open in Excel"
           trailing={<Ionicons color={colors.mutedForeground} name="grid-outline" size={20} />}
-        />
+        />}
       </Sheet>
 
       {/* --------------------------------------------------------- detail */}
@@ -924,11 +942,10 @@ export default function ManageStatementScreen() {
                 <Button
                   label={open.debit ? "Open expenses" : "Open resident"}
                   onPress={() => {
-                    const residentId = open.residentId;
-                    const debit = open.debit;
+                    const credit = open;
 
                     setOpen(null);
-                    router.push(debit ? "/expenses" : `/manage/resident/${residentId}`);
+                    openBehind(credit);
                   }}
                   variant="outline"
                 />
@@ -956,6 +973,7 @@ export default function ManageStatementScreen() {
               <View className="flex-1 gap-1">
                 <Text variant="subtitle">{creditTitle(open, dates.calendar)}</Text>
                 <Text variant="caption">{dates.dateTime(open.receivedAt)}</Text>
+                {open.branch ? <Text variant="caption">{open.branch.name}</Text> : null}
               </View>
             </View>
 

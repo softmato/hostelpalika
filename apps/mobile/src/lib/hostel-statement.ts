@@ -63,7 +63,7 @@
 
 import { bsPeriodBounds } from "@hostel/calendar/bs";
 
-import type { AdminLedger, AdminLedgerEntry } from "@/lib/admin-api";
+import type { AdminLedger, AdminLedgerEntry, LedgerBranch } from "@/lib/admin-api";
 import { type ExpenseRow, expenseTitle } from "@/lib/expenses";
 import {
   type CalendarSystem,
@@ -171,6 +171,8 @@ export type StatementRow = {
  * `expense` is set — a recorded expense (a debit). The name predates debits.
  */
 export type StatementCredit = StatementRow & {
+  /** Overall only: which branch this row belongs to. */
+  branch?: LedgerBranch;
   /** The expense behind a debit row; `null` on every credit. */
   expense: ExpenseRow | null;
   remarks: string;
@@ -238,6 +240,7 @@ function toCredit(entry: AdminLedgerEntry): StatementCredit {
   return {
     amount: entry.paidAmount,
     billed: entry.dueAmount,
+    branch: entry.branch,
     dueDate: entry.dueDate ?? null,
     expense: null,
     id: entry.id,
@@ -255,7 +258,7 @@ function toCredit(entry: AdminLedgerEntry): StatementCredit {
     residentId: entry.residentId,
     residentName: entry.residentName.trim(),
     runningTotal: null,
-    searchTerms: [entry.residentName.trim(), entry.remarks?.trim() ?? ""],
+    searchTerms: [entry.residentName.trim(), entry.remarks?.trim() ?? "", entry.branch?.name ?? ""],
     status: entry.status,
   };
 }
@@ -290,6 +293,7 @@ function toDebit(expense: ExpenseRow): StatementCredit {
   return {
     amount: expense.amount,
     billed: expense.amount,
+    branch: expense.branch,
     debit: true,
     transfer: expense.cashTo !== null,
     dueDate: null,
@@ -304,7 +308,7 @@ function toDebit(expense: ExpenseRow): StatementCredit {
     residentId: "",
     residentName: "",
     runningTotal: null,
-    searchTerms: ["expense", "spent", expense.categoryLabel, expense.what, who, expense.recordedBy.name],
+    searchTerms: ["expense", "spent", expense.categoryLabel, expense.what, who, expense.recordedBy.name, expense.branch?.name ?? ""],
     status: SPENT_STATUS,
   };
 }

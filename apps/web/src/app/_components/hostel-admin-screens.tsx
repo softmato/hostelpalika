@@ -31,6 +31,7 @@ import { HostelAdminResidentsPage } from "@/app/_components/hostel-admin-residen
 import { HostelAdminRoomsPageContent } from "@/app/_components/hostel-admin-rooms-page";
 import { HostelAdminSettingsPageContent } from "@/app/_components/hostel-admin-settings-page";
 import { HostelAdminSOSAlertsPage } from "@/app/_components/hostel-admin-sos-alerts-page";
+import { HostelAdminStockPageContent } from "@/app/_components/hostel-admin-stock-page";
 import { HostelAdminTransactionsPageContent } from "@/app/_components/hostel-admin-transactions-page";
 import { HostelAdminWardensPage } from "@/app/_components/hostel-admin-wardens-page";
 import { NotificationsPageContent } from "@/app/_components/notifications-page";
@@ -89,6 +90,8 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   "service-providers": () => <HostelAdminMaintenancePageContent />,
   settings: () => <HostelAdminSettingsPageContent />,
   "sos-alerts": () => <HostelAdminSOSAlertsPage />,
+  // Bought, Send, Count across the main hostel and its branches (docs/INVENTORY_PLAN.md).
+  stock: () => <HostelAdminStockPageContent />,
   transactions: () => <HostelAdminTransactionsPageContent />,
   wardens: () => <HostelAdminWardensPage />,
 };

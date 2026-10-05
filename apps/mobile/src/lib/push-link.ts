@@ -147,6 +147,8 @@ const REWRITES: { prefix: string; to: string }[] = [
   { prefix: "/hostel-admin/inquiries", to: "/manage/inquiries" },
   { prefix: "/hostel-admin/complaints", to: "/manage/complaints" },
   { prefix: "/hostel-admin/food", to: "/manage/food" },
+  // "Stock on the way" / "Stock received" — the website's stock page, the app's own.
+  { prefix: "/hostel-admin/stock", to: "/stock" },
   { prefix: "/hostel-admin/bookings", to: "/manage/bookings" },
   { prefix: "/hostel-admin/payments", to: "/(admin)/money" },
   { prefix: "/hostel-admin/sos-alerts", to: "/(admin)/alerts" },

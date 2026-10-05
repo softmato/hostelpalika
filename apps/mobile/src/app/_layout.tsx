@@ -469,6 +469,11 @@ function RootShell() {
         {/* Money Out — owner, warden and cook share these two (docs/EXPENSES_PLAN.md). */}
         <Stack.Screen name="expenses/index" />
         <Stack.Screen name="expenses/new" />
+        {/* Stock — Bought, Send, Count across the main hostel and its branches (docs/INVENTORY_PLAN.md). */}
+        <Stack.Screen name="stock/index" />
+        <Stack.Screen name="stock/entry" />
+        {/* Overall: one subject over every branch, from the Overall Home's tiles. */}
+        <Stack.Screen name="overall/[topic]" />
         <Stack.Screen name="manage/existing-residents" />
         <Stack.Screen name="manage/resident/[id]" />
         {/* Bottom, like every other "fill this in and finish" form in the app. */}

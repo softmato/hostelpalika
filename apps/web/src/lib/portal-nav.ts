@@ -724,6 +724,13 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         label: "Food & Menu",
       },
       {
+        description: "Rice, daal, vegetables — what was bought, what went to each branch, what is left.",
+        href: "/hostel-admin/stock",
+        icon: "clipboard",
+        keywords: ["stock", "inventory", "rice", "daal", "vegetables", "store", "godown", "send", "count"],
+        label: "Stock",
+      },
+      {
         description: "Who is in tonight, manual overrides, and absence follow-up.",
         href: "/hostel-admin/night-status",
         icon: "moon",

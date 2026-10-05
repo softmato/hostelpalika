@@ -41,6 +41,8 @@ export const WARDEN_PERMISSION_KEYS = [
   // default — so every warden, new or existing, must attach proof until the
   // owner switches "Bill photo needed" off for them. The forms show it inverted.
   "expenseWithoutProof",
+  // Bought, Send, Got it and Count for their own building (docs/INVENTORY_PLAN.md).
+  "manageStock",
 ] as const;
 
 export type WardenPermissionKey = (typeof WARDEN_PERMISSION_KEYS)[number];
@@ -82,6 +84,8 @@ export const DEFAULT_WARDEN_PERMISSIONS: WardenPermissionKey[] = [
   // Pre-ticked in the create form, marked "Recommended". Existing wardens do
   // not get it: this list is read only when a warden is created.
   "recordExpenses",
+  // The warden is usually the one who receives the sacks. New wardens only.
+  "manageStock",
 ];
 
 const permissionsSchema = z

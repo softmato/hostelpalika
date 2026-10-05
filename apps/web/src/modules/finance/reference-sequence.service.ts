@@ -2,10 +2,12 @@ import type { Types } from "mongoose";
 
 import { FinanceServiceError } from "@/modules/finance/finance.errors";
 import {
+  deriveHostelPrefix,
   generateReferenceCode,
   isValidPrefix,
   MAX_SEQUENCE,
 } from "@/modules/finance/reference-code";
+import { HostelModel } from "@hostel/db/models/Hostel";
 import { ReceiptCounterModel } from "@hostel/db/models/ReceiptCounter";
 
 /**
@@ -37,10 +39,7 @@ export async function allocateReferenceCode(
   prefix: string | null | undefined,
 ): Promise<string> {
   if (!prefix || !isValidPrefix(prefix)) {
-    throw new FinanceServiceError(
-      "This hostel has no reference prefix. Run the reference-prefix backfill before billing.",
-      "REFERENCE_PREFIX_MISSING",
-    );
+    prefix = await ensureHostelPrefix(hostelId);
   }
 
   const counter = await ReceiptCounterModel.findOneAndUpdate(
@@ -62,4 +61,64 @@ export async function allocateReferenceCode(
   }
 
   return generateReferenceCode(prefix, sequence);
+}
+
+/**
+ * Gives a hostel its prefix on its first invoice.
+ *
+ * Hostel creation never set one — only the one-off backfill did — so every
+ * hostel registered after it threw `REFERENCE_PREFIX_MISSING` here, which
+ * intake swallows: residents registered, and no admission or rent invoice was
+ * ever raised. Same derivation as the backfill; the unique index settles a
+ * collision, and the conditional `$set` settles two first invoices racing.
+ */
+async function ensureHostelPrefix(hostelId: Types.ObjectId | string): Promise<string> {
+  const hostel = await HostelModel.findById(hostelId)
+    .select("name referencePrefix")
+    .lean<{ name?: string; referencePrefix?: string } | null>();
+
+  if (!hostel) {
+    throw new FinanceServiceError("Hostel was not found.", "HOSTEL_SCOPE_REQUIRED");
+  }
+
+  if (hostel.referencePrefix && isValidPrefix(hostel.referencePrefix)) {
+    return hostel.referencePrefix;
+  }
+
+  for (let attempt = 0; attempt <= 26; attempt += 1) {
+    const candidate = deriveHostelPrefix(hostel.name ?? "", attempt);
+
+    try {
+      const updated = await HostelModel.findOneAndUpdate(
+        { _id: hostelId, referencePrefix: { $in: [null, ""] } },
+        { $set: { referencePrefix: candidate } },
+        { new: true },
+      )
+        .select("referencePrefix")
+        .lean<{ referencePrefix?: string } | null>();
+
+      if (updated?.referencePrefix) {
+        return updated.referencePrefix;
+      }
+
+      // Someone else set it first — use theirs.
+      const raced = await HostelModel.findById(hostelId)
+        .select("referencePrefix")
+        .lean<{ referencePrefix?: string } | null>();
+
+      if (raced?.referencePrefix && isValidPrefix(raced.referencePrefix)) {
+        return raced.referencePrefix;
+      }
+    } catch (error) {
+      if ((error as { code?: number }).code !== 11000) {
+        throw error;
+      }
+      // Taken by another hostel — try the next alternative.
+    }
+  }
+
+  throw new FinanceServiceError(
+    "Could not find a free reference prefix for this hostel.",
+    "REFERENCE_PREFIX_MISSING",
+  );
 }

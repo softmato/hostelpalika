@@ -39,6 +39,7 @@
 import type { AxiosError } from "axios";
 
 import { REALTIME_TOPIC } from "@/constants/topics";
+import { isOverall } from "@/lib/active-hostel";
 import {
   type AdminAlerts,
   type AdminComplaint,
@@ -152,6 +153,7 @@ import {
 } from "@/lib/existing-residents-api";
 import { nepalPeriodKey } from "@/lib/format";
 import { defineQuery, prefetchQuery, type Query } from "@/lib/query-cache";
+import { getOverallLedger } from "@/lib/overall-api";
 /*
  * Imported for the `AdminTodayData` shape only. It lives in `resident-api`
  * because the resident's week and the admin's routine are the same object seen
@@ -635,7 +637,8 @@ export const adminQuery = {
     define("admin:food", [REALTIME_TOPIC.FOOD], loadFood),
 
   ledger: (): AdminQuery<AdminLedger> =>
-    define("admin:ledger", [REALTIME_TOPIC.PAYMENTS], () => getAdminLedger()),
+    // Overall's statement is every branch merged; the cache keeps it apart by scope.
+    define("admin:ledger", [REALTIME_TOPIC.PAYMENTS], () => (isOverall() ? getOverallLedger() : getAdminLedger())),
 
   /** `status` is the screen's filter; `""` is its default, every request. */
   maintenance: (status: string): AdminQuery<AdminMaintenanceData> =>

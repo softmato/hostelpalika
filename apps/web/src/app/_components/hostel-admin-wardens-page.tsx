@@ -49,6 +49,7 @@ const PERMISSION_LABELS: Record<WardenPermissionKey, string> = {
   manageNotices: "Manage notices",
   managePaymentProfile: "Edit payment details",
   manageRooms: "Manage rooms & beds",
+  manageStock: "Stock (bought, send, count)",
   recordCash: "Record cash payments",
   recordExpenses: "Add expenses",
   // Shown inverted below: the box reads "Bill photo needed" and is ticked while

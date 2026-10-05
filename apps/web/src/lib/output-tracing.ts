@@ -63,6 +63,8 @@ export const PDF_LIB_ROUTES = [
   "/api/v1/hostel-admin/reports/**",
   "/api/v1/hostel-admin/residents/**",
   "/api/v1/hostel-admin/room-types/**",
+  // A Bought with an amount writes its expense through the expense service.
+  "/api/v1/hostel-admin/stock/**",
   "/api/v1/hostel-admin/subscription/**",
   "/api/v1/hostel-admin/wardens/**",
   "/api/v1/hostel-registration/**",

@@ -7,6 +7,7 @@ import type {
   AdminInquiry,
   AdminLedger,
   AdminMaintenance,
+  LedgerBranch,
   AdminNightStatus,
   AdminNotice,
   AdminPeriodSummary,
@@ -140,4 +141,42 @@ export async function getOverallData(section: OverallSection, period: string): P
     ));
   }
   return { branches, period: summary.period, section };
+}
+
+/**
+ * Every branch's ledger as one, for the Statement screen in Overall — the one
+ * place rows from different branches share a list. Each row carries its
+ * `branch`, ids are prefixed so two branches never collide, and one branch
+ * failing fails the whole read: a statement quietly missing a branch is wrong.
+ */
+export async function getOverallLedger(): Promise<AdminLedger> {
+  const summary = await getBranchesSummary();
+  const merged: AdminLedger = { entries: [], expenses: null, truncated: false };
+
+  for (let start = 0; start < summary.hostels.length; start += 3) {
+    const batch = summary.hostels.slice(start, start + 3);
+    const reads = await Promise.all(
+      batch.map((branch) => scopedGet<"ledger">(branch.id, `${ROOT}/finance/invoices/ledger`)),
+    );
+
+    reads.forEach((read, index) => {
+      const row = batch[index]!;
+
+      if (!read.data) throw new Error(`${row.name}: ${read.error}`);
+
+      const branch: LedgerBranch = { id: row.id, isBranch: row.isBranch, name: row.name };
+
+      merged.truncated ||= read.data.truncated;
+      merged.entries.push(...read.data.entries.map((entry) => ({ ...entry, branch, id: `${row.id}:${entry.id}` })));
+
+      if (read.data.expenses) {
+        merged.expenses = [
+          ...(merged.expenses ?? []),
+          ...read.data.expenses.map((expense) => ({ ...expense, branch, id: `${row.id}:${expense.id}` })),
+        ];
+      }
+    });
+  }
+
+  return merged;
 }

@@ -53,6 +53,8 @@ import { IncidentLogModel } from "@hostel/db/models/IncidentLog";
 import { InquiryModel } from "@hostel/db/models/Inquiry";
 import { InquiryNoteModel } from "@hostel/db/models/InquiryNote";
 import { KhataEntryModel } from "@hostel/db/models/KhataEntry";
+import { StockEntryModel } from "@hostel/db/models/StockEntry";
+import { StockItemModel } from "@hostel/db/models/StockItem";
 import { InvoiceModel } from "@hostel/db/models/Invoice";
 import { InvoiceBalanceModel } from "@hostel/db/models/InvoiceBalance";
 import { ListingFlagModel } from "@hostel/db/models/ListingFlag";
@@ -237,6 +239,7 @@ const ERASED_BY_HOSTEL_ID: Array<{ model: PurgeableModel; name: string }> = (
     ["RoomConditionPhoto", RoomConditionPhotoModel],
     ["SOSAlert", SOSAlertModel],
     ["StatementImport", StatementImportModel],
+    ["StockEntry", StockEntryModel],
     ["StoreCart", StoreCartModel],
     ["StoreOrder", StoreOrderModel],
     ["SubscriptionInvoice", SubscriptionInvoiceModel],
@@ -373,6 +376,10 @@ export async function purgeHostel(
   for (const [model, filter] of [
     [NoticeReadStatusModel, { noticeId: { $in: notices.map((row) => row._id) } }],
     [CommunityCommentVoteModel, { postId: { $in: posts.map((row) => row._id) } }],
+    // Stock is keyed by the group: a purged main hostel takes its item list and
+    // every entry its branches made with it.
+    [StockItemModel, { groupHostelId: hostelId }],
+    [StockEntryModel, { groupHostelId: hostelId }],
   ] as const) {
     const result = await model.deleteMany(filter);
     documentsDeleted += result.deletedCount ?? 0;

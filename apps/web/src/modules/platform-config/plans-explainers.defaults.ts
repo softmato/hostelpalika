@@ -123,6 +123,17 @@ export const DEFAULT_SERVICE_EXPLAINERS: Record<string, ServiceExplainer> = {
       "Parents ask anyway, and they ask the warden at the worst possible time. Giving them their own answer is better for everyone — but the resident is an adult, so nothing opens until they open it.",
     ],
   },
+  "inventory-management": {
+    how: [
+      "Three taps, each when goods actually move: Bought when they arrive, Send when they go to a branch, and a Count of what is left. The branch taps Got it, so a short delivery shows up the same day.",
+    ],
+    what: [
+      "How much of each item was bought, how much went to each building, and what is left in every store.",
+    ],
+    why: [
+      "Bulk rice split between two buildings by hand is the stock nobody can account for at the end of the month.",
+    ],
+  },
   "map-presence": {
     how: [
       "A pin placed from the hostel's address, shown wherever visitors browse by area, with directions that open in their own phone's map.",

@@ -257,6 +257,19 @@ export function invalidateQuery(key: string) {
   }
 }
 
+/**
+ * Every answer, after any write the app makes.
+ *
+ * A save rarely knows every screen that shows what it changed (rates feed Room
+ * rates, Finance and the listing). Marking all stale means each screen refetches
+ * on its next focus; nothing is dropped, so nothing flashes.
+ */
+export function invalidateAllQueries() {
+  for (const entry of entries.values()) {
+    entry.stale = true;
+  }
+}
+
 /** The same, for every key whose loader reads one of these topics. */
 export function invalidateQueriesForTopics(topics: readonly RealtimeTopic[]) {
   if (topics.length === 0) {

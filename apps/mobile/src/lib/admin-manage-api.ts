@@ -1024,6 +1024,7 @@ export const WARDEN_PERMISSIONS = [
   "updateNightStatus",
   "manageMaintenance",
   "recordExpenses",
+  "manageStock",
 ] as const;
 
 export type WardenPermission = (typeof WARDEN_PERMISSIONS)[number];
@@ -1050,6 +1051,7 @@ export const DEFAULT_WARDEN_PERMISSIONS: WardenPermission[] = [
   "updateNightStatus",
   "manageMaintenance",
   "recordExpenses",
+  "manageStock",
 ];
 
 export type ManagedWarden = {

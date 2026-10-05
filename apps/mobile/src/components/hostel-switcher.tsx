@@ -53,6 +53,14 @@ export function useIsOverall() {
   return isOverall(useActiveHostel()) && role === ROLE.HOSTEL_ADMIN;
 }
 
+/** Switch into one branch, then open the screen there — every write from Overall starts this way. */
+export function openInBranch(branch: { id: string; isBranch: boolean }, route: string) {
+  void setActiveHostelId(branch.isBranch ? branch.id : null).then(() => {
+    if (route.startsWith("/(admin)")) router.navigate(route as never);
+    else router.push(route as never);
+  });
+}
+
 /**
  * Switching remounts screens with the selected branch's cached answers.
  */

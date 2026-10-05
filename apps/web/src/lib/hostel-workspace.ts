@@ -5,10 +5,13 @@ import { readAccessTokenCookie } from "@/lib/auth-cookies";
 import { isAuthBypassEnabled } from "@/lib/auth-bypass";
 import { verifyAccessToken } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
+import { type HostelPhoto, resolveHostelPhotos } from "@/lib/hostel-photos";
 import { Role } from "@/lib/roles";
 import { HostelModel } from "@hostel/db/models/Hostel";
 
 type WorkspaceHostel = {
+  /** First exterior photo — the hostel's face in the switcher. */
+  coverUrl: string | null;
   id: string;
   /** A branch of a Max hostel — labelled so in the switcher. */
   isBranch: boolean;
@@ -23,11 +26,12 @@ async function previewHostels(): Promise<WorkspaceHostel[]> {
   await connectToDatabase();
 
   const hostels = await HostelModel.find({ isDeleted: { $ne: true } })
-    .select("name slug")
+    .select("name photos.kind photos.url slug")
     .limit(10)
-    .lean<Array<{ _id: { toString(): string }; name: string; slug: string }>>();
+    .lean<Array<{ _id: { toString(): string }; name: string; photos?: HostelPhoto[]; slug: string }>>();
 
   return hostels.map((hostel) => ({
+    coverUrl: resolveHostelPhotos(hostel.photos, "EXTERIOR")[0]?.url ?? null,
     id: hostel._id.toString(),
     isBranch: false,
     name: hostel.name,
@@ -72,9 +76,15 @@ export const listWorkspaceHostels = cache(async (): Promise<WorkspaceHostel[]> =
     _id: { $in: hostelIds },
     isDeleted: { $ne: true },
   })
-    .select("name parentHostelId slug")
+    .select("name parentHostelId photos.kind photos.url slug")
     .lean<
-      Array<{ _id: { toString(): string }; name: string; parentHostelId?: unknown; slug: string }>
+      Array<{
+        _id: { toString(): string };
+        name: string;
+        parentHostelId?: unknown;
+        photos?: HostelPhoto[];
+        slug: string;
+      }>
     >();
 
   // The token's order: the hostel granted first — the main one — leads.
@@ -82,6 +92,7 @@ export const listWorkspaceHostels = cache(async (): Promise<WorkspaceHostel[]> =
 
   return hostels
     .map((hostel) => ({
+      coverUrl: resolveHostelPhotos(hostel.photos, "EXTERIOR")[0]?.url ?? null,
       id: hostel._id.toString(),
       isBranch: Boolean(hostel.parentHostelId),
       name: hostel.name,
