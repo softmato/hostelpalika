@@ -1,5 +1,10 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { View } from "react-native";
+import { useEffect, useState } from "react";
+import { Animated, StyleSheet, View } from "react-native";
+import { useReducedMotion } from "react-native-reanimated";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -7,6 +12,7 @@ import { ListRow } from "@/components/ui/list-row";
 import { Money } from "@/components/ui/money";
 import { Text } from "@/components/ui/text";
 import { useDates } from "@/hooks/use-dates";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { type AdminSubscription, hasClaimInReview } from "@/lib/admin-api";
 
 /**
@@ -140,36 +146,128 @@ export function SubscriptionDueCard({
 }
 
 /**
- * "Enjoy the free Go plan this month" — while a hostel is on its free months.
- *
- * Facts only, like the due card above: which month this is, how many are left,
- * and the last free day. The website's copy of this card also says where the
- * plan is recharged afterwards; the app may not (Play payments rule).
+ * The home welcome is shown once per subscription on this device. Billing
+ * displays the same card throughout the free period.
  */
-export function FreeMonthCard({ state }: { state: AdminSubscription | null }) {
+export function FreeMonthCard({
+  placement = "home",
+  state,
+}: {
+  placement?: "billing" | "home";
+  state: AdminSubscription | null;
+}) {
   const dates = useDates();
+  const { colors, isDark } = useAppTheme();
+  const reducedMotion = useReducedMotion();
+  const [glow] = useState(() => new Animated.Value(0));
+  const [shownKey, setShownKey] = useState<string | null>(null);
   const now = state?.subscription.freeMonthNow;
+  const key = state?.subscription.id
+    ? `hostel-free-welcome:${state.subscription.id}`
+    : null;
+  const isWelcome = placement === "home" && shownKey === key;
 
-  if (!state || !now) {
+  useEffect(() => {
+    if (placement !== "home" || !now || !key) return;
+    let active = true;
+    AsyncStorage.getItem(key)
+      .then((seen) => {
+        if (active && seen !== "seen") setShownKey(key);
+      })
+      .catch(() => {
+        if (active) setShownKey(key);
+      });
+    return () => {
+      active = false;
+    };
+  }, [key, now, placement]);
+
+  useEffect(() => {
+    if (!isWelcome || !key) return;
+    void AsyncStorage.setItem(key, "seen").catch(() => undefined);
+    if (reducedMotion) return;
+    const animation = Animated.sequence([
+      Animated.timing(glow, {
+        duration: 500,
+        toValue: 0.7,
+        useNativeDriver: true,
+      }),
+      Animated.timing(glow, {
+        duration: 850,
+        toValue: 0,
+        useNativeDriver: true,
+      }),
+    ]);
+    animation.start();
+    return () => animation.stop();
+  }, [glow, isWelcome, key, reducedMotion]);
+
+  if (!state || !now || (placement === "home" && !isWelcome)) {
     return null;
   }
 
   return (
-    <Card className="gap-3">
-      <ListRow
-        icon="gift-outline"
-        subtitle={
-          now.left > 0
-            ? `${now.left} more free ${now.left === 1 ? "month" : "months"} after this one`
-            : "Your last free month"
+    <Card className="overflow-hidden border-warning/30" padding="p-0">
+      <LinearGradient
+        colors={
+          isDark
+            ? ["#352816", "#29291f", "#19332c"]
+            : ["#fff8e7", "#fffdf6", "#edf9f2"]
         }
-        title={`Enjoy the free ${state.subscription.planName ? `${state.subscription.planName} plan` : "plan"} this month`}
+        end={{ x: 1, y: 0.5 }}
+        start={{ x: 0, y: 0.5 }}
+        style={StyleSheet.absoluteFill}
       />
-      <View className="border-t border-border pt-3">
-        <Text variant="caption">
-          Free month {now.month} of {now.of} · free until{" "}
-          {dates.dateLong(state.subscription.freeUntil ?? now.endsAt)}
-        </Text>
+      {isWelcome && !reducedMotion ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { opacity: glow }]}
+        >
+          <LinearGradient
+            colors={["transparent", "#fff5c4", "transparent"]}
+            end={{ x: 1, y: 1 }}
+            start={{ x: 0, y: 0 }}
+            style={StyleSheet.absoluteFill}
+          />
+        </Animated.View>
+      ) : null}
+      <View className="gap-3 p-4">
+        <View className="flex-row items-start gap-3">
+          <View className="h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-warning/20 bg-card/70">
+            <Ionicons color={colors.warning} name="gift-outline" size={21} />
+          </View>
+          <View className="flex-1 gap-1">
+            <View className="flex-row items-start gap-1.5">
+              <Ionicons
+                color={colors.warning}
+                name="sparkles-outline"
+                size={16}
+                style={{ marginTop: 1 }}
+              />
+              <Text
+                className="flex-1 text-sm font-semibold text-foreground"
+                variant={null}
+              >
+                Enjoy the free{" "}
+                {state.subscription.planName
+                  ? `${state.subscription.planName} plan`
+                  : "plan"}{" "}
+                this month
+              </Text>
+            </View>
+            <Text variant="caption">
+              {now.left > 0
+                ? `${now.left} more free ${now.left === 1 ? "month" : "months"} after this one`
+                : "Your last free month"}
+            </Text>
+          </View>
+        </View>
+        <View className="border-t border-warning/20 pt-3">
+          <Text variant="caption">
+            Free month {now.month} of {now.of} · free until{" "}
+            {dates.dateLong(state.subscription.freeUntil ?? now.endsAt)}
+          </Text>
+        </View>
       </View>
     </Card>
   );

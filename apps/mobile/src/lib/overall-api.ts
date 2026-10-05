@@ -64,7 +64,7 @@ export type BranchOverall = {
   branch: AdminBranchRow;
   fields: Partial<{ [K in OverallField]: FieldState<OverallValues[K]> }>;
 };
-export type OverallData = { branches: BranchOverall[]; period: string };
+export type OverallData = { branches: BranchOverall[]; period: string; section: OverallSection };
 
 /** Explicit header wins over the ordinary active-branch interceptor. Each read is still
  * narrowed and authorised by the server. No aggregate request can write data. */
@@ -105,9 +105,9 @@ async function loadBranch(branch: AdminBranchRow, section: OverallSection, perio
       scopedGet<"periods">(branch.id, `${ROOT}/finance/invoices/periods`),
       scopedGet<"ledger">(branch.id, `${ROOT}/finance/invoices/ledger`),
       scopedGet<"expenses">(branch.id, `${ROOT}/expenses`, { period }),
-      scopedGet<"billing">(branch.id, `${ROOT}/billing`),
+      branch.isBranch ? Promise.resolve(undefined) : scopedGet<"billing">(branch.id, `${ROOT}/billing`),
     ]);
-    return { branch, fields: { invoices, periods, ledger, expenses, billing } };
+    return { branch, fields: { invoices, periods, ledger, expenses, ...(billing ? { billing } : {}) } };
   }
   if (section === "operations") {
     const [complaints, maintenance, inquiries, night, attendanceToday, bookings, notices] = await Promise.all([
@@ -139,5 +139,5 @@ export async function getOverallData(section: OverallSection, period: string): P
       summary.hostels.slice(start, start + 3).map((branch) => loadBranch(branch, section, period)),
     ));
   }
-  return { branches, period: summary.period };
+  return { branches, period: summary.period, section };
 }

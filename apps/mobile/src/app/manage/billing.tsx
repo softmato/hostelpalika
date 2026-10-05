@@ -5,6 +5,7 @@ import { View } from "react-native";
 
 import { PlanMark } from "@/components/plan-mark";
 import { PaintedAmount } from "@/components/portal-shared";
+import { FreeMonthCard } from "@/components/subscription-due";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Card, SectionHeader } from "@/components/ui/card";
@@ -247,6 +248,10 @@ export default function ManageBillingScreen() {
       scroll
     >
       <View className="gap-5 pt-2">
+        <FreeMonthCard
+          placement="billing"
+          state={data?.subscriptionState ?? null}
+        />
         {plan ? (
           <Standing dates={dates} plan={plan} />
         ) : (
@@ -371,7 +376,11 @@ function PlanHead({ plan }: { plan: PlanBillingPlan }) {
       >
         <View className="h-12 w-12 items-center justify-center rounded-2xl bg-brand-soft">
           {rank === null ? (
-            <Ionicons color={colors.primary} name="pricetag-outline" size={22} />
+            <Ionicons
+              color={colors.primary}
+              name="pricetag-outline"
+              size={22}
+            />
           ) : (
             <PlanMark color={colors.primary} rank={rank} size={30} />
           )}
@@ -409,7 +418,13 @@ function PlanHead({ plan }: { plan: PlanBillingPlan }) {
  * date. Now the plan starts when the hostel goes live, the bar opens full, and
  * the deadline keeps to its own block.
  */
-function Standing({ dates, plan }: { dates: PortalDates; plan: PlanBillingPlan }) {
+function Standing({
+  dates,
+  plan,
+}: {
+  dates: PortalDates;
+  plan: PlanBillingPlan;
+}) {
   // A clock held in state rather than read in render, so "Pay by" turns into
   // "Overdue since" on its own the moment the deadline passes.
   const now = useMinuteTick();
@@ -498,7 +513,10 @@ function PayBy({
 
       {plan.amountPaid > 0 ? (
         <>
-          <View className="h-px" style={{ backgroundColor: "#ffffff", opacity: 0.3 }} />
+          <View
+            className="h-px"
+            style={{ backgroundColor: "#ffffff", opacity: 0.3 }}
+          />
           <View className="flex-row items-center justify-between gap-3">
             <Text className="text-sm text-white" style={FADED} variant={null}>
               Paid so far
@@ -527,7 +545,13 @@ function PayBy({
  * The ends are labelled so the bar has a scale, in the reader's own calendar and
  * without the year: the day it started and the last day it covers.
  */
-function PlanDays({ dates, plan }: { dates: PortalDates; plan: PlanBillingPlan }) {
+function PlanDays({
+  dates,
+  plan,
+}: {
+  dates: PortalDates;
+  plan: PlanBillingPlan;
+}) {
   const days = plan.daysRemaining ?? 0;
   const span = plan.periodDays ?? null;
   const percent = span ? Math.round((days / span) * 100) : null;
@@ -593,7 +617,10 @@ function InvoiceCard({
               text-foreground` otherwise wins the generation-order race, and
               this rendered black at 16pt on the device. */}
           {settled ? null : (
-            <Text className="text-xs font-semibold text-destructive" variant={null}>
+            <Text
+              className="text-xs font-semibold text-destructive"
+              variant={null}
+            >
               {`${formatMoney(invoice.outstanding)} due`}
             </Text>
           )}

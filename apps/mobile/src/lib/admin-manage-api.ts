@@ -25,6 +25,7 @@
  */
 
 import { api } from "@/lib/api";
+import type { AdminSubscription } from "@/lib/admin-api";
 import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
 import type { PayMethod } from "@/lib/finance-api";
 import type { MealType, RoutineDay } from "@/lib/food-week";
@@ -65,11 +66,20 @@ export type HostelPhoto = {
  * and the editing screens genuinely need all of them.
  */
 export type ManagedHostel = {
-  capacitySummary: { totalBeds?: number; totalRooms?: number; vacantBeds?: number };
+  capacitySummary: {
+    totalBeds?: number;
+    totalRooms?: number;
+    vacantBeds?: number;
+  };
   contact: { email?: string; phone?: string };
   description: string;
   facilities: string[];
-  food: { hasNonVeg?: boolean; hasVeg?: boolean; mealsPerDay?: number; notes?: string };
+  food: {
+    hasNonVeg?: boolean;
+    hasVeg?: boolean;
+    mealsPerDay?: number;
+    notes?: string;
+  };
   hostelType: string;
   id: string;
   location: {
@@ -109,8 +119,9 @@ export type ManagedHostel = {
 };
 
 export async function getManagedHostel() {
-  const response =
-    await api.get<ApiEnvelope<{ hostel: ManagedHostel }>>("/hostel-admin/profile");
+  const response = await api.get<ApiEnvelope<{ hostel: ManagedHostel }>>(
+    "/hostel-admin/profile",
+  );
 
   return unwrap(response).hostel;
 }
@@ -127,11 +138,20 @@ export async function getManagedHostel() {
  * the whole array.
  */
 export async function updateManagedHostel(input: {
-  capacitySummary?: { totalBeds?: number; totalRooms?: number; vacantBeds?: number };
+  capacitySummary?: {
+    totalBeds?: number;
+    totalRooms?: number;
+    vacantBeds?: number;
+  };
   contact?: { email?: string; phone?: string };
   description?: string;
   facilities?: string[];
-  food?: { hasNonVeg?: boolean; hasVeg?: boolean; mealsPerDay?: number; notes?: string };
+  food?: {
+    hasNonVeg?: boolean;
+    hasVeg?: boolean;
+    mealsPerDay?: number;
+    notes?: string;
+  };
   hostelType?: string;
   location?: {
     address?: string;
@@ -234,10 +254,17 @@ export type ManagedNotice = {
  * filter — that is Today's "what did we tell people lately" strip. This one is
  * the management list: a category filter and a real page size.
  */
-export async function listManagedNotices(query: { category?: string; pageSize?: number } = {}) {
+export async function listManagedNotices(
+  query: { category?: string; pageSize?: number } = {},
+) {
   const response = await api.get<ApiEnvelope<{ notices: ManagedNotice[] }>>(
     "/hostel-admin/notices",
-    { params: { category: query.category || undefined, pageSize: query.pageSize ?? 50 } },
+    {
+      params: {
+        category: query.category || undefined,
+        pageSize: query.pageSize ?? 50,
+      },
+    },
   );
 
   return unwrap(response).notices;
@@ -265,7 +292,10 @@ export async function createManagedNotice(input: NoticeInput) {
  * deliberate on the server's side — a notice residents have already read should
  * stop applying, not stop having existed.
  */
-export async function updateManagedNotice(id: string, input: Partial<NoticeInput>) {
+export async function updateManagedNotice(
+  id: string,
+  input: Partial<NoticeInput>,
+) {
   await api.patch(`/hostel-admin/notices/${id}`, input);
 }
 
@@ -350,7 +380,12 @@ export async function sendNoticePushNow(id: string) {
  * about the hostel, and the resident's Food tab reads it off the same record.
  */
 export async function saveFoodRoutine(input: {
-  meals: { dayOfWeek: RoutineDay; items: string[]; mealType: MealType; note?: string }[];
+  meals: {
+    dayOfWeek: RoutineDay;
+    items: string[];
+    mealType: MealType;
+    note?: string;
+  }[];
   monthEndSpecial?: { items: string[]; note?: string };
   timings: Partial<Record<MealType, string>>;
 }) {
@@ -387,7 +422,12 @@ export const MAINTENANCE_STATUSES = [
 
 export type MaintenanceStatus = (typeof MAINTENANCE_STATUSES)[number];
 
-export const MAINTENANCE_PRIORITIES = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
+export const MAINTENANCE_PRIORITIES = [
+  "LOW",
+  "MEDIUM",
+  "HIGH",
+  "URGENT",
+] as const;
 
 export type MaintenancePriority = (typeof MAINTENANCE_PRIORITIES)[number];
 
@@ -447,7 +487,12 @@ export type ManagedMaintenanceRequest = {
 
 export type ManagedMaintenance = {
   requests: ManagedMaintenanceRequest[];
-  summary: { cancelled: number; completed: number; open: number; total: number };
+  summary: {
+    cancelled: number;
+    completed: number;
+    open: number;
+    total: number;
+  };
 };
 
 export async function listManagedMaintenance(
@@ -514,7 +559,10 @@ export async function updateMaintenanceStatus(
  * the superadmin, and there is no hostel write route — a hostel that could edit
  * them could approve any job by first lowering its charge.
  */
-export type MaintenanceCharge = { amount: number; category: MaintenanceCategory };
+export type MaintenanceCharge = {
+  amount: number;
+  category: MaintenanceCategory;
+};
 
 export async function getMaintenanceSettings() {
   const response = await api.get<
@@ -537,8 +585,13 @@ export async function getMaintenanceSettings() {
  * This is what makes the voice note reach anybody: an unassigned request appears
  * in no provider's job list, so nothing plays the recording.
  */
-export async function assignMaintenanceProvider(id: string, providerId: string) {
-  await api.patch(`/hostel-admin/maintenance/requests/${id}/provider`, { providerId });
+export async function assignMaintenanceProvider(
+  id: string,
+  providerId: string,
+) {
+  await api.patch(`/hostel-admin/maintenance/requests/${id}/provider`, {
+    providerId,
+  });
 }
 
 export async function commentOnMaintenance(
@@ -575,7 +628,9 @@ export type ManagedProvider = {
   ratingSummary: { averageRating: number; totalReviews: number };
 };
 
-export async function listManagedProviders(query: { category?: string; q?: string } = {}) {
+export async function listManagedProviders(
+  query: { category?: string; q?: string } = {},
+) {
   const response = await api.get<ApiEnvelope<{ providers: ManagedProvider[] }>>(
     "/hostel-admin/service-providers",
     {
@@ -627,11 +682,13 @@ export async function getCookPortal() {
  * one-time password; disabling **suspends** that account rather than deleting
  * it, so the same login comes back if the portal is switched on again.
  */
-export async function updateCookPortal(input: { cookName?: string; enabled: boolean }) {
-  const response = await api.patch<ApiEnvelope<{ settings: CookPortalSettings }>>(
-    "/hostel-admin/cook-portal",
-    input,
-  );
+export async function updateCookPortal(input: {
+  cookName?: string;
+  enabled: boolean;
+}) {
+  const response = await api.patch<
+    ApiEnvelope<{ settings: CookPortalSettings }>
+  >("/hostel-admin/cook-portal", input);
 
   return unwrap(response).settings;
 }
@@ -672,7 +729,11 @@ export type CookCredentials = { email: string; temporaryPassword: string };
 
 export async function getCookRoster() {
   const response = await api.get<
-    ApiEnvelope<{ cooks: CookAccount[]; expensesEnabled?: boolean; portalEnabled: boolean }>
+    ApiEnvelope<{
+      cooks: CookAccount[];
+      expensesEnabled?: boolean;
+      portalEnabled: boolean;
+    }>
   >("/hostel-admin/cooks");
 
   return unwrap(response);
@@ -774,7 +835,11 @@ export async function getAttendanceAnalytics(days?: number) {
  * negative means the meal went out early.
  */
 export type FoodAnalytics = {
-  byDevice: { announcements: number; device: string; lastAnnouncedAt: string }[];
+  byDevice: {
+    announcements: number;
+    device: string;
+    lastAnnouncedAt: string;
+  }[];
   byMeal: {
     announcements: number;
     averageDelayMinutes: number | null;
@@ -795,9 +860,12 @@ export type FoodAnalytics = {
 };
 
 export async function getFoodAnalytics(days?: number) {
-  const response = await api.get<ApiEnvelope<FoodAnalytics>>("/hostel-admin/reports/food", {
-    params: { days },
-  });
+  const response = await api.get<ApiEnvelope<FoodAnalytics>>(
+    "/hostel-admin/reports/food",
+    {
+      params: { days },
+    },
+  );
 
   return unwrap(response);
 }
@@ -813,7 +881,11 @@ export const REPORT_EXPORTS = [
 export type ReportExport = (typeof REPORT_EXPORTS)[number]["report"];
 
 /** A figure beside the same figure last month. `change` is a percent; `null` when last month was 0. */
-export type MonthCompare = { change: number | null; current: number; previous: number };
+export type MonthCompare = {
+  change: number | null;
+  current: number;
+  previous: number;
+};
 
 /**
  * `GET /hostel-admin/reports/performance` — the hostel's month on one page.
@@ -825,7 +897,12 @@ export type MonthCompare = { change: number | null; current: number; previous: n
  * `apps/web/src/modules/reports/performance-report.service.ts`.
  */
 export type PerformanceReport = {
-  beds: { occupancyRate: number | null; occupied: number; total: number; vacant: number };
+  beds: {
+    occupancyRate: number | null;
+    occupied: number;
+    total: number;
+    vacant: number;
+  };
   finance: {
     billed: number;
     collected: number;
@@ -835,9 +912,18 @@ export type PerformanceReport = {
     outstanding: number;
     outstandingAllTime: number;
     pendingProofs: number;
-    previous: { billed: number; collected: number; collectionRate: number | null };
+    previous: {
+      billed: number;
+      collected: number;
+      collectionRate: number | null;
+    };
     /** Six BS months ending at `period.month`, oldest first. */
-    trend: { billed: number; collected: number; collectionRate: number | null; month: string }[];
+    trend: {
+      billed: number;
+      collected: number;
+      collectionRate: number | null;
+      month: string;
+    }[];
   };
   generatedAt: string;
   hostelName: string;
@@ -850,7 +936,12 @@ export type PerformanceReport = {
     visitors: MonthCompare;
   };
   operations: {
-    complaints: { open: number; pastSla: number; raised: number; resolved: number };
+    complaints: {
+      open: number;
+      pastSla: number;
+      raised: number;
+      resolved: number;
+    };
     repairs: { completed: number; open: number; raised: number };
   };
   period: {
@@ -866,7 +957,12 @@ export type PerformanceReport = {
     movedIn: number;
     movedOut: number;
     now: { active: number; pending: number; suspended: number; total: number };
-    tonight: { inside: number; night: string; notAnswered: number; outside: number };
+    tonight: {
+      inside: number;
+      night: string;
+      notAnswered: number;
+      outside: number;
+    };
   };
 };
 
@@ -999,7 +1095,10 @@ export async function removeWarden(id: string) {
 /* Hostel-level switches                                                      */
 /* -------------------------------------------------------------------------- */
 
-export type CommunitySettings = { enabled: boolean; profanityFilterEnabled: boolean };
+export type CommunitySettings = {
+  enabled: boolean;
+  profanityFilterEnabled: boolean;
+};
 
 export async function getCommunitySettings() {
   const response = await api.get<ApiEnvelope<{ settings: CommunitySettings }>>(
@@ -1009,11 +1108,12 @@ export async function getCommunitySettings() {
   return unwrap(response).settings;
 }
 
-export async function updateCommunitySettings(input: Partial<CommunitySettings>) {
-  const response = await api.patch<ApiEnvelope<{ settings: CommunitySettings }>>(
-    "/hostel-admin/settings/community",
-    input,
-  );
+export async function updateCommunitySettings(
+  input: Partial<CommunitySettings>,
+) {
+  const response = await api.patch<
+    ApiEnvelope<{ settings: CommunitySettings }>
+  >("/hostel-admin/settings/community", input);
 
   return unwrap(response).settings;
 }
@@ -1070,10 +1170,9 @@ export async function updateAttendanceSettings(
     nightStatus?: Partial<NightStatusPromptSettings>;
   },
 ) {
-  const response = await api.patch<ApiEnvelope<{ settings: AttendanceSettings }>>(
-    "/hostel-admin/attendance/settings",
-    input,
-  );
+  const response = await api.patch<
+    ApiEnvelope<{ settings: AttendanceSettings }>
+  >("/hostel-admin/attendance/settings", input);
 
   return unwrap(response).settings;
 }
@@ -1114,7 +1213,9 @@ export type GeocodeHit = {
   province?: string;
 };
 
-export async function geocodeHostelLocation(query: string | { lat: number; lng: number }): Promise<GeocodeHit[]> {
+export async function geocodeHostelLocation(
+  query: string | { lat: number; lng: number },
+): Promise<GeocodeHit[]> {
   const response = await api.get<ApiEnvelope<{ results: LocationMatch[] }>>(
     "/hostel-admin/profile/geocode",
     // A pair asks the other way round: which address this pin sits on.
@@ -1185,9 +1286,12 @@ export type ReferralsPayload = {
 };
 
 export async function listReferrals(status?: string) {
-  const response = await api.get<ApiEnvelope<ReferralsPayload>>("/hostel-admin/referrals", {
-    params: { pageSize: 50, status: status || undefined },
-  });
+  const response = await api.get<ApiEnvelope<ReferralsPayload>>(
+    "/hostel-admin/referrals",
+    {
+      params: { pageSize: 50, status: status || undefined },
+    },
+  );
 
   return unwrap(response);
 }
@@ -1231,7 +1335,9 @@ export type MoveEvent = {
 };
 
 export async function listMoveEvents() {
-  const response = await api.get<ApiEnvelope<{ events: MoveEvent[] }>>("/hostel-admin/move-events");
+  const response = await api.get<ApiEnvelope<{ events: MoveEvent[] }>>(
+    "/hostel-admin/move-events",
+  );
 
   return unwrap(response).events;
 }
@@ -1255,9 +1361,9 @@ export type NotificationCampaign = {
 };
 
 export async function listNotificationCampaigns() {
-  const response = await api.get<ApiEnvelope<{ campaigns: NotificationCampaign[] }>>(
-    "/hostel-admin/notifications",
-  );
+  const response = await api.get<
+    ApiEnvelope<{ campaigns: NotificationCampaign[] }>
+  >("/hostel-admin/notifications");
 
   return unwrap(response).campaigns;
 }
@@ -1271,10 +1377,9 @@ export async function sendNotificationCampaign(input: {
   scheduledFor?: string;
   title: string;
 }) {
-  const response = await api.post<ApiEnvelope<{ campaign: NotificationCampaign }>>(
-    "/hostel-admin/notifications",
-    { ...input, category: "ANNOUNCEMENT" },
-  );
+  const response = await api.post<
+    ApiEnvelope<{ campaign: NotificationCampaign }>
+  >("/hostel-admin/notifications", { ...input, category: "ANNOUNCEMENT" });
 
   return unwrap(response).campaign;
 }
@@ -1287,7 +1392,10 @@ export type AttendanceZone = "INSIDE" | "NEARBY" | "OUTSIDE" | "UNKNOWN";
 
 export type HostelAttendance = {
   summary: Record<AttendanceZone | "total", number>;
-  today: { resident: { fullName: string; id: string; roomType?: string }; zone: AttendanceZone }[];
+  today: {
+    resident: { fullName: string; id: string; roomType?: string };
+    zone: AttendanceZone;
+  }[];
 };
 
 export type AttendanceAlert = {
@@ -1301,7 +1409,9 @@ export type AttendanceAlert = {
 
 /** `GET /hostel-admin/attendance` — today's zone per active resident. Coordinates are never stored. */
 export async function getHostelAttendance() {
-  const response = await api.get<ApiEnvelope<HostelAttendance>>("/hostel-admin/attendance");
+  const response = await api.get<ApiEnvelope<HostelAttendance>>(
+    "/hostel-admin/attendance",
+  );
 
   return unwrap(response);
 }
@@ -1309,16 +1419,18 @@ export async function getHostelAttendance() {
 /** One resident's last 60 days, for the history grid. */
 export async function getResidentAttendanceHistory(residentId: string) {
   const from = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
-  const response = await api.get<ApiEnvelope<{ history: { day: string; zone: AttendanceZone }[] }>>(
-    "/hostel-admin/attendance",
-    { params: { from, residentId } },
-  );
+  const response = await api.get<
+    ApiEnvelope<{ history: { day: string; zone: AttendanceZone }[] }>
+  >("/hostel-admin/attendance", { params: { from, residentId } });
 
   return unwrap(response).history;
 }
 
 /** Sets today's zone by hand — the phone-was-off case. The reason is required and audited. */
-export async function overrideAttendance(residentId: string, input: { reason: string; zone: AttendanceZone }) {
+export async function overrideAttendance(
+  residentId: string,
+  input: { reason: string; zone: AttendanceZone },
+) {
   await api.patch(`/hostel-admin/attendance/${residentId}/override`, {
     ...input,
     day: new Date().toISOString(),
@@ -1334,7 +1446,10 @@ export async function listAttendanceAlerts() {
 }
 
 export async function resolveAttendanceAlert(alertId: string, note?: string) {
-  await api.patch(`/hostel-admin/attendance/alerts/${alertId}/resolve`, note ? { note } : {});
+  await api.patch(
+    `/hostel-admin/attendance/alerts/${alertId}/resolve`,
+    note ? { note } : {},
+  );
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1359,13 +1474,18 @@ export type HostelInviteOverview = {
 };
 
 export async function getHostelInvites() {
-  const response = await api.get<ApiEnvelope<HostelInviteOverview>>("/hostel-admin/hostel-referrals");
+  const response = await api.get<ApiEnvelope<HostelInviteOverview>>(
+    "/hostel-admin/hostel-referrals",
+  );
 
   return unwrap(response);
 }
 
 /** Emails the hostel's link. The server caps it at 20 a day per hostel. */
-export async function sendHostelInvite(input: { email: string; name?: string }) {
+export async function sendHostelInvite(input: {
+  email: string;
+  name?: string;
+}) {
   await api.post("/hostel-admin/hostel-referrals/invite", input);
 }
 
@@ -1373,11 +1493,20 @@ export async function sendHostelInvite(input: { email: string; name?: string }) 
 /* Residents — intake, the record, and the two ends of a stay                 */
 /* -------------------------------------------------------------------------- */
 
-export const RESIDENT_TYPES = ["STUDENT", "WORKING_PROFESSIONAL", "OTHER"] as const;
+export const RESIDENT_TYPES = [
+  "STUDENT",
+  "WORKING_PROFESSIONAL",
+  "OTHER",
+] as const;
 
 export type ResidentType = (typeof RESIDENT_TYPES)[number];
 
-export const RESIDENT_STATUSES = ["PENDING", "ACTIVE", "SUSPENDED", "MOVED_OUT"] as const;
+export const RESIDENT_STATUSES = [
+  "PENDING",
+  "ACTIVE",
+  "SUSPENDED",
+  "MOVED_OUT",
+] as const;
 
 export type ResidentStatus = (typeof RESIDENT_STATUSES)[number];
 
@@ -1393,7 +1522,11 @@ export type ResidentStatus = (typeof RESIDENT_STATUSES)[number];
  * down, and on a scanned intake it is the address off their profile form, which
  * need not be the one on their account.
  */
-export type ResidentAccount = { email: string; image: string | null; name: string };
+export type ResidentAccount = {
+  email: string;
+  image: string | null;
+  name: string;
+};
 
 /** `serializeResident` in full. `AdminResident` in `admin-api.ts` is the row. */
 export type ManagedResident = {
@@ -1582,7 +1715,12 @@ export type ResidentPrefill = {
     permanentAddress: string | null;
     province: string | null;
   };
-  emergencyContact: { isPrimary: boolean; name: string; phone: string; relation: string };
+  emergencyContact: {
+    isPrimary: boolean;
+    name: string;
+    phone: string;
+    relation: string;
+  };
   guardians: {
     email?: string;
     firstName: string;
@@ -1606,7 +1744,10 @@ export type ResidentPrefill = {
  * The bytes come from `/hostel-admin/resident-scan/photo` — build the source
  * with `residentCardPhotoSource`, which is what the corridor scan uses too.
  */
-export type ResidentPrefillPhoto = { hasPhoto: boolean; updatedAt: string | null };
+export type ResidentPrefillPhoto = {
+  hasPhoto: boolean;
+  updatedAt: string | null;
+};
 
 /**
  * Where the scanned person already lives, when they live anywhere —
@@ -1827,7 +1968,11 @@ export async function addEmergencyContact(
  */
 export async function issueGuardianAccess(
   id: string,
-  input: { allowComplaintStatus?: boolean; expiresInDays?: number; guardianId: string },
+  input: {
+    allowComplaintStatus?: boolean;
+    expiresInDays?: number;
+    guardianId: string;
+  },
 ) {
   const response = await api.post<ApiEnvelope<{ accessCode?: string }>>(
     `/hostel-admin/residents/${id}/guardian-access`,
@@ -1899,9 +2044,9 @@ export type MoveOutChecklist = {
 };
 
 export async function getMoveInChecklist(id: string) {
-  const response = await api.get<ApiEnvelope<{ checklist: MoveInChecklist | null }>>(
-    `/hostel-admin/residents/${id}/move-in`,
-  );
+  const response = await api.get<
+    ApiEnvelope<{ checklist: MoveInChecklist | null }>
+  >(`/hostel-admin/residents/${id}/move-in`);
 
   return unwrap(response).checklist;
 }
@@ -1924,7 +2069,10 @@ export async function saveMoveInChecklist(
 /** The recorded move-out, if any, and what they owe right now. */
 export async function getMoveOutChecklist(id: string) {
   const response = await api.get<
-    ApiEnvelope<{ checklist: MoveOutChecklist | null; pendingFeeAmount?: number }>
+    ApiEnvelope<{
+      checklist: MoveOutChecklist | null;
+      pendingFeeAmount?: number;
+    }>
   >(`/hostel-admin/residents/${id}/move-out`);
 
   return unwrap(response);
@@ -1999,7 +2147,12 @@ export async function listManagedInquiries(
 ) {
   const response = await api.get<ApiEnvelope<{ inquiries: ManagedInquiry[] }>>(
     "/hostel-admin/inquiries",
-    { params: { pageSize: 100, ...(query.status ? { status: query.status } : {}) } },
+    {
+      params: {
+        pageSize: 100,
+        ...(query.status ? { status: query.status } : {}),
+      },
+    },
   );
 
   return unwrap(response).inquiries;
@@ -2116,9 +2269,12 @@ function withStanding(schedules: FeeSchedule[]): FeeSchedule[] {
     59,
     999,
   );
-  const from = (schedule: FeeSchedule) => new Date(schedule.effectiveFrom).getTime();
+  const from = (schedule: FeeSchedule) =>
+    new Date(schedule.effectiveFrom).getTime();
   const to = (schedule: FeeSchedule) =>
-    schedule.effectiveTo === null ? null : new Date(schedule.effectiveTo).getTime();
+    schedule.effectiveTo === null
+      ? null
+      : new Date(schedule.effectiveTo).getTime();
 
   const current = schedules
     .filter((schedule) => {
@@ -2148,7 +2304,9 @@ function withStanding(schedules: FeeSchedule[]): FeeSchedule[] {
  * from before the room-type re-key carry only a bed type, which is at least a
  * label a person recognises.
  */
-function roomTypesFromSchedules(schedules: FeeSchedule[]): FeeScheduleRoomType[] {
+function roomTypesFromSchedules(
+  schedules: FeeSchedule[],
+): FeeScheduleRoomType[] {
   const seen = new Map<string, FeeScheduleRoomType>();
 
   for (const schedule of schedules) {
@@ -2161,7 +2319,9 @@ function roomTypesFromSchedules(schedules: FeeSchedule[]): FeeScheduleRoomType[]
     }
   }
 
-  return [...seen.values()].sort((a, b) => a.roomType.localeCompare(b.roomType));
+  return [...seen.values()].sort((a, b) =>
+    a.roomType.localeCompare(b.roomType),
+  );
 }
 
 /** The rate cards plus the room types they are keyed by. */
@@ -2235,7 +2395,10 @@ export async function listFeeSchedules() {
   const data = unwrap(response);
   const schedules = withStanding(data.schedules ?? []);
 
-  return { roomTypes: data.roomTypes ?? roomTypesFromSchedules(schedules), schedules };
+  return {
+    roomTypes: data.roomTypes ?? roomTypesFromSchedules(schedules),
+    schedules,
+  };
 }
 
 /**
@@ -2265,7 +2428,9 @@ export async function createFeeSchedule(input: {
 }
 
 export async function closeFeeSchedule(id: string, effectiveTo: string) {
-  await api.post(`/hostel-admin/finance/fee-schedules/${id}/close`, { effectiveTo });
+  await api.post(`/hostel-admin/finance/fee-schedules/${id}/close`, {
+    effectiveTo,
+  });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2314,9 +2479,9 @@ export type RentConcession = {
 };
 
 export async function listRentConcessions() {
-  const response = await api.get<ApiEnvelope<{ concessions: RentConcession[] }>>(
-    "/hostel-admin/finance/rent-concessions",
-  );
+  const response = await api.get<
+    ApiEnvelope<{ concessions: RentConcession[] }>
+  >("/hostel-admin/finance/rent-concessions");
 
   return unwrap(response).concessions ?? [];
 }
@@ -2334,7 +2499,9 @@ export async function saveRentConcession(input: {
   reason?: string;
 }) {
   const response = await api.post<
-    ApiEnvelope<{ concession: RentConcession & { applied: ConcessionBackfill } }>
+    ApiEnvelope<{
+      concession: RentConcession & { applied: ConcessionBackfill };
+    }>
   >("/hostel-admin/finance/rent-concessions", input);
 
   return unwrap(response).concession;
@@ -2466,7 +2633,12 @@ export async function updatePaymentProfile(input: {
   displayName?: string;
   esewaId?: string;
   /** Replaces the whole list; an empty list clears it. */
-  extraAccounts?: { accountName?: string; bankName?: string; kind: ExtraPaymentAccount["kind"]; number: string }[];
+  extraAccounts?: {
+    accountName?: string;
+    bankName?: string;
+    kind: ExtraPaymentAccount["kind"];
+    number: string;
+  }[];
   khaltiId?: string;
   paymentInstructions?: string;
   qrPayeeName?: string;
@@ -2511,7 +2683,11 @@ export type GatewayConfig = {
   mode: string;
   payable: boolean;
   provider: string;
-  secret: { configured: boolean; fingerprint: string | null; rotatedAt: string | null };
+  secret: {
+    configured: boolean;
+    fingerprint: string | null;
+    rotatedAt: string | null;
+  };
   webhookSecret: {
     configured: boolean;
     fingerprint: string | null;
@@ -2555,7 +2731,9 @@ export async function saveGateway(input: {
 }
 
 export async function deleteGateway(provider: GatewayProviderName) {
-  await api.delete("/hostel-admin/finance/payment-gateways", { params: { provider } });
+  await api.delete("/hostel-admin/finance/payment-gateways", {
+    params: { provider },
+  });
 }
 
 /**
@@ -2596,7 +2774,9 @@ export async function recordCashPayment(
  * disaster as one they were never told about.
  */
 export async function voidInvoice(invoiceId: string, reason: string) {
-  await api.post(`/hostel-admin/finance/invoices/${invoiceId}/void`, { reason });
+  await api.post(`/hostel-admin/finance/invoices/${invoiceId}/void`, {
+    reason,
+  });
 }
 
 export type ResidentLedger = {
@@ -2624,7 +2804,12 @@ export type ResidentLedger = {
     phone: string | null;
     roomType: string | null;
   };
-  totals: { monthsBilled: number; monthsPaid: number; outstanding: number; paid: number };
+  totals: {
+    monthsBilled: number;
+    monthsPaid: number;
+    outstanding: number;
+    paid: number;
+  };
 };
 
 /**
@@ -2779,12 +2964,17 @@ export async function getReconciliation(statementImportId: string) {
 
 /** Settles every matched row on one import in a single act. */
 export async function approveMatchedStatement(statementImportId: string) {
-  await api.post(`/hostel-admin/finance/statements/${statementImportId}/approve-matched`, {});
+  await api.post(
+    `/hostel-admin/finance/statements/${statementImportId}/approve-matched`,
+    {},
+  );
 }
 
 /** Points an orphaned credit at an invoice — the only way that money is claimed. */
 export async function assignOrphanPayment(eventId: string, invoiceId: string) {
-  await api.post(`/hostel-admin/finance/events/${eventId}/assign`, { invoiceId });
+  await api.post(`/hostel-admin/finance/events/${eventId}/assign`, {
+    invoiceId,
+  });
 }
 
 /* -------------------------------------------------------------------------- */
@@ -2887,12 +3077,14 @@ export type PlanBilling = {
   payments: PlanBillingPayment[];
   /** Null for a hostel that predates plan billing. */
   plan: PlanBillingPlan | null;
+  subscriptionState?: AdminSubscription | null;
 };
 
 export async function getPlanBilling() {
   const response = await api.get<
-    ApiEnvelope<{ history: PlanBilling; state: unknown }>
+    ApiEnvelope<{ history: PlanBilling; state: AdminSubscription | null }>
   >("/hostel-admin/billing");
 
-  return unwrap(response).history;
+  const { history, state } = unwrap(response);
+  return { ...history, subscriptionState: state };
 }

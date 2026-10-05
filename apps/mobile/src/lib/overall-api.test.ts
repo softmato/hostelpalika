@@ -26,6 +26,7 @@ describe("overall branch reads", () => {
 
     const result = await getOverallData("people", "2083-06");
 
+    expect(result.section).toBe("people");
     expect(result.branches.map((row) => row.branch.id)).toEqual(["main", "north"]);
     expect(api.get).toHaveBeenCalledTimes(6);
     expect(vi.mocked(api.get).mock.calls.map(([path, config]) => [path, config?.headers?.["x-hostel-id"]])).toEqual([
@@ -52,5 +53,16 @@ describe("overall branch reads", () => {
     expect(result.branches[1]?.fields.cooks?.data).toBeNull();
     expect(result.branches[1]?.fields.cooks?.error).toBeTruthy();
     expect(result.branches[1]?.fields.residents?.data).toEqual({ residents: [] });
+  });
+
+  it("reads shared plan billing once from the main hostel", async () => {
+    vi.mocked(api.get).mockResolvedValue({ data: { data: {} } } as never);
+
+    const result = await getOverallData("money", "2083-06");
+
+    expect(result.section).toBe("money");
+    expect(vi.mocked(api.get).mock.calls.filter(([path]) => path === "/hostel-admin/billing")
+      .map(([, config]) => config?.headers?.["x-hostel-id"])).toEqual(["main"]);
+    expect(result.branches[1]?.fields.billing).toBeUndefined();
   });
 });

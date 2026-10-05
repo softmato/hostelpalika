@@ -58,15 +58,20 @@ export type AdminReport = {
 };
 
 export async function getAdminReport() {
-  const response =
-    await api.get<ApiEnvelope<{ report: AdminReport }>>("/hostel-admin/reports/dashboard");
+  const response = await api.get<ApiEnvelope<{ report: AdminReport }>>(
+    "/hostel-admin/reports/dashboard",
+  );
 
   return unwrap(response).report;
 }
 
 /** The subset of `serializeHostel` this app reads. */
 export type AdminHostel = {
-  capacitySummary: { totalBeds?: number; totalRooms?: number; vacantBeds?: number };
+  capacitySummary: {
+    totalBeds?: number;
+    totalRooms?: number;
+    vacantBeds?: number;
+  };
   contact: { email?: string; phone?: string };
   /** `BOYS` / `GIRLS` / `CO_LIVING` — the tag the public listing leads with. */
   hostelType: string;
@@ -81,7 +86,13 @@ export type AdminHostel = {
    * The server does not sort this array on the admin serializer the way it does
    * on the public one, so the cover is picked client-side by `kind`.
    */
-  photos: { alt: string; id?: string; kind: string; roomType: string; url: string }[];
+  photos: {
+    alt: string;
+    id?: string;
+    kind: string;
+    roomType: string;
+    url: string;
+  }[];
   /** The tenant segment in `/{slug}/admin` — needed to open the web portal. */
   slug: string;
   status: string;
@@ -119,10 +130,18 @@ export type AdminSubscription = {
     status: string;
   }[];
   subscription: {
+    id: string;
     dueBy: string | null;
     /** The free month running today — null outside the free months. */
-    freeMonthNow?: { endsAt: string; left: number; month: number; of: number } | null;
+    freeMonthNow?: {
+      endsAt: string;
+      left: number;
+      month: number;
+      of: number;
+    } | null;
     freeUntil?: string | null;
+    /** Stable catalogue key; the branch switcher is reserved for the Max plan. */
+    planId: string | null;
     planName: string | null;
     status: string;
   };
@@ -154,41 +173,61 @@ export type AdminBranchRow = {
 
 /** The main hostel's branches and how many more its plan allows (`GET /hostel-admin/branches`). */
 export type AdminBranches = {
-  allowance: { active: boolean; cap: number; planName: string | null; used: number };
-  branches: { area: string; city: string; id: string; name: string; slug: string; status: string }[];
-  main: { id: string; name: string; slug: string; status: string; area: string; city: string; panNumber: string | null };
+  allowance: {
+    active: boolean;
+    cap: number;
+    planName: string | null;
+    used: number;
+  };
+  branches: {
+    area: string;
+    city: string;
+    id: string;
+    name: string;
+    slug: string;
+    status: string;
+  }[];
+  main: {
+    id: string;
+    name: string;
+    slug: string;
+    status: string;
+    area: string;
+    city: string;
+    panNumber: string | null;
+  };
 };
 
 export async function getBranches() {
-  const response = await api.get<ApiEnvelope<AdminBranches>>("/hostel-admin/branches");
+  const response = await api.get<ApiEnvelope<AdminBranches>>(
+    "/hostel-admin/branches",
+  );
 
   return unwrap(response);
 }
 
 /** Files a branch; a superadmin calls it before it goes live. The body is `branchRequestSchema`. */
 export async function requestBranch(body: Record<string, unknown>) {
-  const response = await api.post<ApiEnvelope<{ branch: { id: string; name: string; status: string } }>>(
-    "/hostel-admin/branches",
-    body,
-  );
+  const response = await api.post<
+    ApiEnvelope<{ branch: { id: string; name: string; status: string } }>
+  >("/hostel-admin/branches", body);
 
   return unwrap(response);
 }
 
 /** Every hostel the owner runs — empty for an owner with one, so nothing renders. */
 export async function getBranchesSummary() {
-  const response = await api.get<ApiEnvelope<{ hostels: AdminBranchRow[]; period: string }>>(
-    "/hostel-admin/branches/summary",
-  );
+  const response = await api.get<
+    ApiEnvelope<{ hostels: AdminBranchRow[]; period: string }>
+  >("/hostel-admin/branches/summary");
 
   return unwrap(response);
 }
 
 export async function getAdminSubscription() {
-  const response =
-    await api.get<ApiEnvelope<{ state: AdminSubscription | null }>>(
-      "/hostel-admin/subscription",
-    );
+  const response = await api.get<
+    ApiEnvelope<{ state: AdminSubscription | null }>
+  >("/hostel-admin/subscription");
 
   return unwrap(response).state;
 }
@@ -200,8 +239,9 @@ export async function getAdminSubscription() {
  */
 
 export async function getAdminHostel() {
-  const response =
-    await api.get<ApiEnvelope<{ hostel: AdminHostel }>>("/hostel-admin/profile");
+  const response = await api.get<ApiEnvelope<{ hostel: AdminHostel }>>(
+    "/hostel-admin/profile",
+  );
 
   return unwrap(response).hostel;
 }
@@ -654,7 +694,12 @@ export type AdminNightStatusRow = {
     roomType?: string;
     status: string;
   };
-  status: { checkedAt: string | null; note: string; source: string; status: string };
+  status: {
+    checkedAt: string | null;
+    note: string;
+    source: string;
+    status: string;
+  };
 };
 
 export type AdminNightStatus = {
@@ -707,7 +752,9 @@ export const NIGHT_STATUS_PAGE_SIZE = 100;
  * its progress bar from. Segmenting is `filterRollCall`'s job, client-side,
  * over an unfiltered fetch.
  */
-export async function getAdminNightStatus({ page = 1 }: { page?: number } = {}) {
+export async function getAdminNightStatus({
+  page = 1,
+}: { page?: number } = {}) {
   const response = await api.get<ApiEnvelope<AdminNightStatus>>(
     "/hostel-admin/night-status",
     { params: { page, pageSize: NIGHT_STATUS_PAGE_SIZE } },
@@ -753,7 +800,12 @@ export type AdminMaintenanceRequest = {
 export type AdminMaintenance = {
   requests: AdminMaintenanceRequest[];
   /** Counted server-side: `open` is PENDING, CONTACTED or SCHEDULED. */
-  summary: { cancelled: number; completed: number; open: number; total: number };
+  summary: {
+    cancelled: number;
+    completed: number;
+    open: number;
+    total: number;
+  };
 };
 
 /**
@@ -842,7 +894,9 @@ export async function approveClaim(eventId: string) {
  * rejection a resident cannot act on sends them to the hostel office to ask why.
  */
 export async function rejectClaim(eventId: string, rejectionReason: string) {
-  await api.post(`/hostel-admin/finance/events/${eventId}/reject`, { rejectionReason });
+  await api.post(`/hostel-admin/finance/events/${eventId}/reject`, {
+    rejectionReason,
+  });
 }
 
 /**
@@ -884,7 +938,10 @@ export async function setComplaintStatus(
   status: "IN_PROGRESS" | "REJECTED" | "RESOLVED",
   response?: string,
 ) {
-  await api.patch(`/hostel-admin/complaints/${complaintId}/status`, { response, status });
+  await api.patch(`/hostel-admin/complaints/${complaintId}/status`, {
+    response,
+    status,
+  });
 }
 
 /** `POST /hostel-admin/complaints/{id}/reply` — 2–2000 chars. */
@@ -964,10 +1021,15 @@ export type AdminModeration = {
  * summary counts the whole queue rather than the returned page, which is what
  * lets the filter row carry totals the list itself cannot know.
  */
-export async function getAdminCommunityModeration(filter: AdminModerationFilter) {
-  const response = await api.get<ApiEnvelope<AdminModeration>>("/hostel-admin/community", {
-    params: { filter },
-  });
+export async function getAdminCommunityModeration(
+  filter: AdminModerationFilter,
+) {
+  const response = await api.get<ApiEnvelope<AdminModeration>>(
+    "/hostel-admin/community",
+    {
+      params: { filter },
+    },
+  );
 
   return unwrap(response);
 }
@@ -993,7 +1055,9 @@ export async function hideReportedPost(postId: string, reason: string) {
  * care which was meant.
  */
 export async function clearReportedPost(postId: string, reason: string) {
-  await api.delete(`/hostel-admin/community/${postId}/hide`, { data: { reason } });
+  await api.delete(`/hostel-admin/community/${postId}/hide`, {
+    data: { reason },
+  });
 }
 
 /**
@@ -1033,7 +1097,8 @@ export type HostelKyc = {
 };
 
 export async function getHostelKyc() {
-  const response = await api.get<ApiEnvelope<{ kyc: HostelKyc }>>("/hostel-admin/kyc");
+  const response =
+    await api.get<ApiEnvelope<{ kyc: HostelKyc }>>("/hostel-admin/kyc");
 
   return unwrap(response).kyc;
 }
@@ -1044,9 +1109,12 @@ export async function addKycDocument(document: {
   documentType: string;
   fileAssetId: string;
 }) {
-  const response = await api.post<ApiEnvelope<{ kyc: HostelKyc }>>("/hostel-admin/kyc", {
-    documents: [document],
-  });
+  const response = await api.post<ApiEnvelope<{ kyc: HostelKyc }>>(
+    "/hostel-admin/kyc",
+    {
+      documents: [document],
+    },
+  );
 
   return unwrap(response).kyc;
 }
