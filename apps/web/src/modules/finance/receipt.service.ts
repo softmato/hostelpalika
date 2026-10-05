@@ -278,8 +278,12 @@ export async function renderReceiptById(
       .lean<{ firstName?: string; fullName?: string; lastName?: string } | null>(),
     receipt.invoiceId
       ? InvoiceModel.findOne({ _id: receipt.invoiceId })
-          .select("period referenceCode")
-          .lean<{ period?: string; referenceCode?: string } | null>()
+          .select("lines period referenceCode")
+          .lean<{
+            lines?: { amount: number; description: string }[];
+            period?: string;
+            referenceCode?: string;
+          } | null>()
       : null,
     receipt.eventId
       ? PaymentEventModel.findOne({ _id: receipt.eventId })
@@ -296,6 +300,7 @@ export async function renderReceiptById(
     coversFrom: coverage?.from ?? null,
     coversTo: coverage?.to ?? null,
     hostelName: hostel?.name ?? "Hostel",
+    invoiceLines: invoice?.lines?.map(({ amount, description }) => ({ amount, description })),
     // Named, never raw. `2083-05` is a database key; the line on the document
     // has to say `Bhadra 2083 BS`, which is the month written on the hostel's
     // own receipt pad. `monthLabel` keeps a pre-cutover key in English.

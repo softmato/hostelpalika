@@ -446,6 +446,14 @@ export default function ResidentPaymentsScreen() {
           takes — see `(resident)/more.tsx`.
         */}
         <CardRow
+          icon="receipt-outline"
+          onPress={() => router.push("/khata")}
+          subtitle="Egg, meals, laundry — on next month's bill"
+          title="Khata"
+          tone="brand"
+        />
+
+        <CardRow
           icon="ribbon-outline"
           onPress={() => router.push("/offer-program/mine")}
           subtitle="Certified receipts, perks & your offers"

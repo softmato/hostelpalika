@@ -38,7 +38,8 @@ import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
-import { addKycDocument, getHostelKyc, type HostelKyc } from "@/lib/admin-api";
+import { addKycDocument, getHostelKyc, removeKycDocument, type HostelKyc } from "@/lib/admin-api";
+import { openConfirm } from "@/lib/confirm";
 import {
   type GeocodeHit,
   geocodeHostelLocation,
@@ -420,6 +421,16 @@ function DocumentsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Prom
               {rows.map((row, at) => (
                 <DocumentRow
                   key={`${row.type}-${at}`}
+                  onRemove={row.canRemove ? () => openConfirm({
+                    confirmLabel: "Remove",
+                    destructive: true,
+                    message: "You can upload it again any time.",
+                    title: `Remove ${doc.label.toLowerCase()}?`,
+                    onConfirm: async () => {
+                      try { await removeKycDocument(row.id); await onSaved(); toastSuccess("Removed"); }
+                      catch (error) { toastError("Could not remove it", readApiError(error)); }
+                    },
+                  }) : undefined}
                   onOpen={() =>
                     openAssetViewer(
                       viewable.map((item) => ({
@@ -452,7 +463,7 @@ function DocumentsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Prom
 }
 
 /** One file across the whole row: the page itself, big enough to read, then where it stands. */
-function DocumentRow({ onOpen, row }: { onOpen: () => void; row: HostelKyc["documents"][number] }) {
+function DocumentRow({ onOpen, onRemove, row }: { onOpen: () => void; onRemove?: () => void; row: HostelKyc["documents"][number] }) {
   const { colors } = useAppTheme();
   const token = useAppSelector((state) => state.auth.accessToken);
   const status = DOCUMENT_STATUS[row.status] ?? DOCUMENT_STATUS.PENDING;
@@ -491,6 +502,11 @@ function DocumentRow({ onOpen, row }: { onOpen: () => void; row: HostelKyc["docu
         <Text className={`flex-1 ${row.status === "REJECTED" ? "text-destructive" : ""}`} numberOfLines={2} variant="caption">
           {row.status === "REJECTED" && row.rejectionReason ? row.rejectionReason : row.fileName ?? row.type}
         </Text>
+        {onRemove ? (
+          <Pressable accessibilityLabel={`Remove ${row.fileName ?? row.type}`} accessibilityRole="button" className="size-9 items-center justify-center rounded-full active:opacity-70" hitSlop={8} onPress={onRemove}>
+            <Ionicons color={colors.destructive} name="trash-outline" size={18} />
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );

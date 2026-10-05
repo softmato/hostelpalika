@@ -3,12 +3,14 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
-import { Platform, Pressable, View } from "react-native";
+import { Platform, Pressable, ScrollView, View } from "react-native";
 
 import {
+  CashBoxTile,
   CategoryBars,
   ExpenseGlyph,
   ExpenseListRow,
+  PendingCashCard,
   useExpenseAudience,
 } from "@/components/expenses/expense-parts";
 import { FLOAT_SHADOW } from "@/components/portal-shared";
@@ -32,6 +34,7 @@ import { useResource } from "@/hooks/use-resource";
 import { readApiError } from "@/lib/api-contract";
 import { openAssetViewer } from "@/lib/asset-viewer";
 import {
+  CASH_STATUS_LABELS,
   EXPENSE_PAID_BY_LABELS,
   type ExpenseHome,
   type ExpenseRow,
@@ -40,7 +43,7 @@ import {
   groupExpensesByDay,
   monthChange,
 } from "@/lib/expenses";
-import { cancelExpense, expenseQuery, type ExpenseLoad } from "@/lib/expenses-api";
+import { cancelExpense, expenseQuery, type ExpenseLoad, walletQuery } from "@/lib/expenses-api";
 import { formatMoney } from "@/lib/format";
 import { adminQuery } from "@/lib/admin-queries";
 import { invalidateQuery } from "@/lib/query-cache";
@@ -107,6 +110,13 @@ export default function ExpensesScreen() {
     },
     [home],
   );
+
+  /** A "Got it" moves the box, the list and the owner's statement. */
+  const answered = useCallback(() => {
+    invalidateQuery(expenseQuery(audience, null).key);
+    invalidateQuery(walletQuery(null).key);
+    resource.refresh();
+  }, [audience, resource]);
 
   const closeSheet = useCallback(() => {
     setOpen(null);
@@ -212,6 +222,22 @@ export default function ExpensesScreen() {
                   <Money owed={home.totals.left < 0} value={home.totals.left} />
                 </Figure>
               </View>
+            ) : home.wallet ? (
+              // A warden's month opens on their cash box: what is left to spend.
+              <Pressable
+                accessibilityRole="button"
+                className="flex-row items-center active:opacity-70"
+                onPress={() => router.push("/expenses/wallet")}
+              >
+                <Figure label={home.wallet.left < 0 ? "Hostel owes you" : "Cash left"}>
+                  <Money owed={home.wallet.left < 0} size="large" value={Math.abs(home.wallet.left)} />
+                </Figure>
+                <View className="w-px self-stretch bg-border" />
+                <Figure label="You spent">
+                  <Money tone="debit" value={home.mine.out} />
+                </Figure>
+                <Ionicons color={colors.mutedForeground} name="chevron-forward" size={16} />
+              </Pressable>
             ) : (
               <View className="items-center gap-0.5">
                 <Text variant="caption">You spent</Text>
@@ -266,6 +292,45 @@ export default function ExpensesScreen() {
       >
         <View className="gap-6 px-5 pt-5">
           {resource.loading ? <SkeletonRows rows={5} /> : null}
+
+          {home && !isOwner && home.pendingCash.length > 0 ? (
+            <View className="gap-3">
+              {home.pendingCash.map((row) => (
+                <PendingCashCard key={row.id} onAnswered={answered} row={row} />
+              ))}
+            </View>
+          ) : null}
+
+          {home?.wallets && home.wallets.length > 0 ? (
+            <View>
+              <SectionHeader title="Staff cash" />
+              <ScrollView
+                contentContainerClassName="gap-3 pr-5"
+                horizontal
+                showsHorizontalScrollIndicator={false}
+              >
+                {home.wallets.map((wallet) => (
+                  <CashBoxTile
+                    key={wallet.userId}
+                    onPress={() => router.push({ params: { userId: wallet.userId }, pathname: "/expenses/wallet" })}
+                    wallet={wallet}
+                  />
+                ))}
+                <Pressable
+                  accessibilityRole="button"
+                  className="w-28 items-center justify-center gap-2 rounded-2xl border border-dashed border-border active:bg-muted"
+                  onPress={() => router.push({ params: { category: "STAFF_CASH" }, pathname: "/expenses/new" })}
+                >
+                  <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-soft">
+                    <Ionicons color={colors.primary} name="add" size={22} />
+                  </View>
+                  <Text className="text-primary" variant="label">
+                    Give cash
+                  </Text>
+                </Pressable>
+              </ScrollView>
+            </View>
+          ) : null}
 
           {home?.totals && home.totals.byCategory.length > 0 ? (
             <View>
@@ -362,13 +427,27 @@ export default function ExpensesScreen() {
             <View className="flex-row items-center gap-3">
               <ExpenseGlyph category={open.category} muted={open.status === "VOID"} size={48} />
               <View className="flex-1 gap-1">
-                <Money size="large" tone={open.status === "VOID" ? "default" : "debit"} value={open.amount} />
+                <Money
+                  size="large"
+                  tone={open.status === "VOID" || open.cashTo ? "default" : "debit"}
+                  value={open.amount}
+                />
                 {open.status === "VOID" ? <Badge label="Cancelled" /> : null}
               </View>
             </View>
 
             <View className="gap-2">
-              <FactRow label="Spent on" value={open.categoryLabel} />
+              {open.cashTo ? (
+                <>
+                  <FactRow label="Given to" value={open.cashTo.name} />
+                  {open.cashStatus ? (
+                    <FactRow label="Warden says" value={CASH_STATUS_LABELS[open.cashStatus]} />
+                  ) : null}
+                  {open.cashNote ? <FactRow label="Their note" value={open.cashNote} /> : null}
+                </>
+              ) : (
+                <FactRow label="Spent on" value={open.categoryLabel} />
+              )}
               {open.salaryFor ? <FactRow label="Salary for" value={open.salaryFor.name} /> : null}
               <FactRow label="Date" value={bsDayLong(open.spentOn)} />
               <FactRow label="Paid by" value={EXPENSE_PAID_BY_LABELS[open.paidBy]} />

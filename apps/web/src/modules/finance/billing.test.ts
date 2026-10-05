@@ -12,6 +12,8 @@
 import { Types } from "mongoose";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { markKhataBilled, unbilledKhata } from "@/modules/finance/khata.service";
+
 import { fromBs } from "@hostel/shared/calendar/bs";
 
 const mocks = vi.hoisted(() => ({
@@ -31,6 +33,15 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/db", () => ({ connectToDatabase: vi.fn() }));
+vi.mock("@/modules/finance/late-fine.service", () => ({
+  fineDueDate: vi.fn(),
+  getLateFine: vi.fn(async () => ({ enabled: false, graceDays: 5 })),
+}));
+vi.mock("@/modules/finance/khata.service", () => ({
+  markKhataBilled: vi.fn(),
+  releaseKhata: vi.fn(),
+  unbilledKhata: vi.fn(async () => new Map()),
+}));
 
 // Credit application (item 5.3) has its own suite; here it is stubbed to "no
 // credit available", which is every resident's situation in these cases —
@@ -237,6 +248,24 @@ describe("issuing invoices", () => {
     expect(mocks.invoiceCreate.mock.calls[0]![0].lines[0].prorationBasis).toBe(
       "Bhadra 1–8 · 8 of 31 days",
     );
+  });
+});
+
+describe("khata", () => {
+  it("adds last month's khata as one line and marks it billed", async () => {
+    const entryIds = [new Types.ObjectId()];
+
+    vi.mocked(unbilledKhata).mockResolvedValueOnce(
+      new Map([[residentA.toString(), { amount: 240, description: "Khata — Egg ×4", entryIds }]]),
+    );
+
+    const result = await runBillingCycle({ hostelId, period: BHADRA }, principal);
+    const created = mocks.invoiceCreate.mock.calls[0]![0];
+
+    expect(created.totalAmount).toBe(12240);
+    expect(created.lines[1]).toMatchObject({ amount: 240, basis: "KHATA", description: "Khata — Egg ×4" });
+    expect(result.totalBilled).toBe(12240);
+    expect(markKhataBilled).toHaveBeenCalledWith(entryIds, expect.anything());
   });
 });
 

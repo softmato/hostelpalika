@@ -118,6 +118,39 @@ const hostelSettingsSchema = new Schema(
       },
       default: () => ({}),
     },
+    /**
+     * Fine for paying rent late — see `late-fine.service`. When on, a month's
+     * bill is due on day `graceDays` and every day after that adds the fine to
+     * the unpaid bill as one `Late fine` line.
+     */
+    lateFine: {
+      type: {
+        enabled: { default: false, type: Boolean },
+        /** Rupees a day, or a percent of the bill a day. */
+        mode: {
+          default: "PER_DAY_AMOUNT",
+          enum: ["PER_DAY_AMOUNT", "PER_DAY_PERCENT"],
+          type: String,
+        },
+        rate: { default: 0, min: 0, type: Number },
+        /** Days from the 1st the bill can be paid without a fine. */
+        graceDays: { default: 5, max: 28, min: 1, type: Number },
+        /** Last off → on. No bill is fined for days before this. */
+        enabledAt: Date,
+      },
+      default: () => ({}),
+    },
+    /** What a resident can take on khata, and its price. See `khata.service`. */
+    khataItems: {
+      type: [
+        {
+          name: { maxlength: 40, required: true, trim: true, type: String },
+          price: { min: 1, required: true, type: Number },
+          active: { default: true, type: Boolean },
+        },
+      ],
+      default: [],
+    },
     createdBy: { ref: "User", type: Schema.Types.ObjectId },
     updatedBy: { ref: "User", type: Schema.Types.ObjectId },
   },

@@ -441,9 +441,9 @@ const PLAN_SERVICES: PlanServiceSeed[] = [
   {
     audience: ["Hostel admin"],
     blurb:
-      "Every property side by side, staff and rooms scoped to their own building, and one bill at the end of it.",
+      "Add branches under your main hostel — each with its own rooms, rent, staff, KYC and public page — then see every building side by side in Overall, with one bill at the end of it.",
     module: "reporting",
-    name: "Multi-Property Control",
+    name: "Branches & Multi-Property Control",
     plan: "max",
     slug: "multi-property-control",
   },

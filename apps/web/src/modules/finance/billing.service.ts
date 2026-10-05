@@ -4,7 +4,7 @@ import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
 import { auditFinanceAction } from "@/modules/finance/audit-finance";
 import { applyCreditToInvoice } from "@/modules/finance/credit-balance.service";
-import { formatBsPeriod, hostelPeriodOf } from "@/lib/hostel-day";
+import { formatBsPeriod, hostelPeriodOf, hostelToday } from "@/lib/hostel-day";
 import {
   computeInvoiceAmount,
   getEffectiveSchedule,
@@ -19,6 +19,8 @@ import type {
 } from "@/modules/finance/fee-schedule.service";
 import { FinanceServiceError } from "@/modules/finance/finance.errors";
 import { getRentConcession } from "@/modules/finance/rent-concession.service";
+import { markKhataBilled, releaseKhata, unbilledKhata } from "@/modules/finance/khata.service";
+import { fineDueDate, getLateFine } from "@/modules/finance/late-fine.service";
 import { paidBeforeJoining } from "@/modules/finance/paid-till";
 import { sumAmounts } from "@/modules/finance/money";
 import { allocateReferenceCode } from "@/modules/finance/reference-sequence.service";
@@ -318,8 +320,17 @@ export async function runBillingCycle(
    * saying it was due in Aswin, on every invoice, in the direction that reads as
    * a deadline already missed.
    */
-  const { lastDay } = periodBounds(input.period);
-  const dueDate = input.dueDate ?? lastDay;
+  const { lastDay, start } = periodBounds(input.period);
+  // With a late fine on, the bill falls due on the hostel's last fine-free day —
+  // counted from today instead when the month is billed late, so a bill is
+  // never born already fined.
+  const lateFine = await getLateFine(input.hostelId);
+  const fineDue = (from: Date) => fineDueDate(from, lateFine.graceDays);
+  const dueDate =
+    input.dueDate ??
+    (lateFine.enabled
+      ? new Date(Math.max(fineDue(start).getTime(), fineDue(hostelToday()).getTime()))
+      : lastDay);
 
   const hostel = await HostelModel.findOne({ _id: input.hostelId })
     .select("referencePrefix roomConfigurations")
@@ -391,6 +402,12 @@ export async function runBillingCycle(
     ).map((invoice) => invoice.residentId.toString()),
   );
 
+  // Khata handed over before this month starts rides on this month's bill.
+  const khata = await unbilledKhata(
+    plans.map((plan) => plan.resident._id),
+    start,
+  );
+
   const billed: BilledInvoice[] = [];
 
   for (const plan of plans) {
@@ -405,6 +422,9 @@ export async function runBillingCycle(
       input.hostelId,
       hostel.referencePrefix,
     );
+
+    const khataLine = khata.get(residentId);
+    const total = plan.amount + (khataLine?.amount ?? 0);
 
     try {
       const invoice = (await InvoiceModel.create({
@@ -428,13 +448,20 @@ export async function runBillingCycle(
             feeScheduleId: plan.feeScheduleId,
             prorationBasis: plan.prorationBasis ?? undefined,
           },
+          ...(khataLine
+            ? [{ amount: khataLine.amount, basis: "KHATA", description: khataLine.description }]
+            : []),
         ],
         period: input.period,
         referenceCode,
         residentId: plan.resident._id,
         status: "OPEN",
-        totalAmount: plan.amount,
+        totalAmount: total,
       })) as unknown as { _id: Types.ObjectId };
+
+      if (khataLine) {
+        await markKhataBilled(khataLine.entryIds, invoice._id);
+      }
 
       // Target §9.4: available credit comes off the new invoice as a negative
       // line. Consumed **before** the invoice is discounted, on purpose — a
@@ -444,7 +471,7 @@ export async function runBillingCycle(
       const creditApplied = await applyCreditToInvoice({
         hostelId: input.hostelId,
         invoiceId: invoice._id,
-        maxAmount: plan.amount,
+        maxAmount: total,
         residentId: plan.resident._id,
       });
 
@@ -459,13 +486,13 @@ export async function runBillingCycle(
                 description: "Credit from earlier overpayment",
               },
             },
-            $set: { totalAmount: plan.amount - creditApplied },
+            $set: { totalAmount: total - creditApplied },
           },
         );
       }
 
       billed.push({
-        amount: plan.amount - creditApplied,
+        amount: total - creditApplied,
         creditApplied,
         invoiceId: invoice._id.toString(),
         referenceCode,
@@ -605,6 +632,7 @@ export async function voidInvoice(
       },
     },
   );
+  await releaseKhata(invoice._id);
 
   await auditFinanceAction(options.principal, {
     action: "INVOICE_VOIDED",

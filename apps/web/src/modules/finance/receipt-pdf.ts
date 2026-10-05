@@ -127,6 +127,8 @@ export type ReceiptPdfInput = {
   coversFrom?: Date | null;
   coversTo?: Date | null;
   hostelName: string;
+  /** What the bill was made of — drawn only when it is more than one line (a fine, khata). */
+  invoiceLines?: { amount: number; description: string }[];
   invoicePeriod?: string | null;
   issuedAt: Date;
   method?: string | null;
@@ -361,6 +363,29 @@ export async function renderReceiptPdf(input: ReceiptPdfInput): Promise<Uint8Arr
       y: cursor,
     });
     cursor -= 24;
+  }
+
+  if (input.invoiceLines && input.invoiceLines.length > 1) {
+    cursor -= 8;
+    write("Bill", { bold: true, size: 12 });
+    cursor -= 20;
+
+    for (const line of input.invoiceLines) {
+      const amount = formatNPR(line.amount);
+
+      write(line.description.length > 72 ? `${line.description.slice(0, 71)}...` : line.description, {
+        color: muted,
+        size: 10,
+      });
+      page.drawText(sanitize(amount), {
+        color: ink,
+        font: regular,
+        size: 10,
+        x: 595.28 - margin - regular.widthOfTextAtSize(sanitize(amount), 10),
+        y: cursor,
+      });
+      cursor -= 16;
+    }
   }
 
   // A voided receipt still renders — a resident holding one is exactly who needs

@@ -27,6 +27,7 @@ import { usePortalResource } from "@/lib/portal-query";
 import { normalizeBedType } from "@/modules/finance/bed-type";
 import { BED_TYPE_LABELS, type BedType } from "@hostel/shared/types/bed-type";
 import { MonthField } from "./hostel-admin-month-picker";
+import { LateFinePanel } from "./khata-pages";
 import { Message, PageHeader, field } from "./portal-shared";
 
 /**
@@ -783,6 +784,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
             </Panel>
 
             <MonthDiscounts />
+            <LateFinePanel />
 
             <Panel title="Past rates">
               {pastSchedules.length === 0 ? (

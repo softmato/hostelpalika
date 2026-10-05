@@ -3,16 +3,16 @@ import { useEffect, useState } from "react";
 import { AppState, Platform, Switch, View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
-import { getActiveHostelId, subscribeActiveHostel } from "@/lib/active-hostel";
+import { getRequestHostelId, subscribeActiveHostel } from "@/lib/active-hostel";
 import { receiptNative } from "@/lib/receipt-native";
 import { toastError } from "@/lib/toast";
 export function ReceiptShareSettings() {
   const account = useAppSelector((state) => state.auth.account);
-  const [hostelId, setHostelId] = useState(getActiveHostelId());
+  const [hostelId, setHostelId] = useState(getRequestHostelId());
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState(true);
   const key = `hostelpalika.receipt-auto:${account?.id}:${hostelId || account?.hostelIds[0] || ""}`;
-  useEffect(() => subscribeActiveHostel(() => setHostelId(getActiveHostelId())), []);
+  useEffect(() => subscribeActiveHostel(() => setHostelId(getRequestHostelId())), []);
   useEffect(() => {
     let active = true;
     const load = async () => {

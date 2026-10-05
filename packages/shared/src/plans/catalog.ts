@@ -484,6 +484,14 @@ export function portalAccessLines(catalog: PlansCatalog, plan: PlanTierLike) {
       }),
       slug: linkTo("cook-portal"),
     },
+    // Branches are separate buildings under one owner — only plans that allow them say so.
+    ...(plan.maxBranches > 0
+      ? [{
+          id: "branch" as const,
+          label: "Add branches of your hostel",
+          slug: linkTo("multi-property-control"),
+        }]
+      : []),
   ];
 }
 

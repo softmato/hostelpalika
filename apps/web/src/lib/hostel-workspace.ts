@@ -5,6 +5,7 @@ import { readAccessTokenCookie } from "@/lib/auth-cookies";
 import { isAuthBypassEnabled } from "@/lib/auth-bypass";
 import { verifyAccessToken } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
+import { Role } from "@/lib/roles";
 import { HostelModel } from "@hostel/db/models/Hostel";
 
 type WorkspaceHostel = {
@@ -113,3 +114,22 @@ export async function workspaceHostelName(slug: string): Promise<string | null> 
 
   return hostels.find((hostel) => hostel.slug === slug)?.name ?? null;
 }
+
+/**
+ * The Overall workspace (`OVERALL_SLUG`): the owner of more than one hostel.
+ * A warden who works in two branches is a member of each, not their owner, so
+ * never gets it — the all-branches figures are the owner's alone.
+ */
+export const canOpenOverall = cache(async (): Promise<boolean> => {
+  const token = readAccessTokenCookie(await cookies());
+
+  if (!token) return isAuthBypassed() && (await listWorkspaceHostels()).length > 1;
+
+  try {
+    const payload = await verifyAccessToken(token);
+
+    return payload.role === Role.HOSTEL_ADMIN && (await listWorkspaceHostels()).length > 1;
+  } catch {
+    return false;
+  }
+});

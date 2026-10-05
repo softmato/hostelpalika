@@ -120,6 +120,12 @@ export type StatementRow = {
    * credit and on every resident row, so the resident side sums as before.
    */
   debit?: boolean;
+  /**
+   * Cash the owner handed a warden (`STAFF_CASH`). Listed with the debits —
+   * it left the owner's hand — but adds nothing to any total or balance: the
+   * warden's expenses are the spending, and counting both spends a rupee twice.
+   */
+  transfer?: boolean;
   /** What the invoice asked for. Larger than `amount` on a part payment. */
   billed: number;
   dueDate: string | null;
@@ -175,6 +181,8 @@ export type StatementCredit = StatementRow & {
 
 /** What a row adds to a running balance: money in up, money out down. */
 export function signedAmount(row: StatementRow): number {
+  if (row.transfer) return 0;
+
   return row.debit ? -row.amount : row.amount;
 }
 
@@ -196,7 +204,10 @@ export function statementCredits(ledger: AdminLedger | null | undefined): Statem
   const credits = [
     ...entries.filter((entry) => entry.paidAmount > 0).map(toCredit),
     ...(ledger?.expenses ?? [])
-      .filter((expense) => expense.status === "RECORDED" && expense.amount > 0)
+      .filter(
+        (expense) =>
+          expense.status === "RECORDED" && expense.amount > 0 && expense.cashStatus !== "DECLINED",
+      )
       .map(toDebit),
   ].sort(byNewestFirst);
 
@@ -274,12 +285,13 @@ function spentAt(expense: ExpenseRow): string {
 }
 
 function toDebit(expense: ExpenseRow): StatementCredit {
-  const who = expense.salaryFor?.name ?? "";
+  const who = expense.salaryFor?.name ?? expense.cashTo?.name ?? "";
 
   return {
     amount: expense.amount,
     billed: expense.amount,
     debit: true,
+    transfer: expense.cashTo !== null,
     dueDate: null,
     expense,
     // Prefixed: an expense id and an invoice id are both ObjectIds, and the
@@ -868,6 +880,8 @@ export function splitTotals(rows: readonly StatementRow[]): {
   const totals = { in: 0, inCount: 0, out: 0, outCount: 0 };
 
   for (const row of rows) {
+    if (row.transfer) continue;
+
     if (row.debit) {
       totals.out += row.amount;
       totals.outCount += 1;
@@ -893,7 +907,7 @@ export function monthlyTotals(rows: readonly StatementRow[]): MonthTotals[] {
   for (const row of rows) {
     const month = receivedMonth(row);
 
-    if (!month) {
+    if (!month || row.transfer) {
       continue;
     }
 
@@ -935,8 +949,15 @@ export function creditTitle(
   credit: StatementCredit,
   calendar: CalendarSystem,
 ): string {
+  if (credit.expense?.cashTo) {
+    return `Cash to ${credit.expense.cashTo.name}`;
+  }
+
   if (credit.expense) {
-    return expenseTitle(credit.expense);
+    const title = expenseTitle(credit.expense);
+
+    // A warden's spend says whose cash box it came out of.
+    return credit.expense.payer === "STAFF" ? `${title} · ${credit.expense.recordedBy.name || "Staff"}` : title;
   }
 
   const what = credit.period

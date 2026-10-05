@@ -1,3 +1,5 @@
+import { OverallTabScreen } from "@/components/overall-views";
+import { useIsOverall } from "@/components/hostel-switcher";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -17,6 +19,7 @@ import { StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { BillExtras } from "@/components/bill-extras";
 import { Chip } from "@/components/ui/layout";
 import { Lottie } from "@/components/ui/lottie";
 import { Meter } from "@/components/ui/meter";
@@ -55,6 +58,7 @@ import {
 import { readApiError } from "@/lib/api-contract";
 import { claimsForPeriod, paymentMonths } from "@/lib/payment-months";
 import { openConfirm } from "@/lib/confirm";
+import { waiveLateFine } from "@/lib/khata-api";
 import { formatMoney, humanizeEnum, nepalPeriodKey } from "@/lib/format";
 import { toastError, toastSuccess } from "@/lib/toast";
 
@@ -146,7 +150,7 @@ const SUCCESS_ANIMATION = require("../../../assets/lottie/success.lottie");
  * looked at comes back instantly and a month that has not been is a fresh load.
  */
 
-export default function AdminMoneyScreen() {
+function BranchAdminMoneyScreen() {
   /*
    * The month on screen, and the only piece of state on this screen that is a
    * *question* rather than a view of the answer. It is the first thing in the
@@ -470,6 +474,38 @@ export default function AdminMoneyScreen() {
       setBusy(null);
     }
   }, [cash, money, open]);
+
+  /* Takes the late fine off this bill; the sheet then offers the smaller total. */
+  const waiveFine = useCallback(() => {
+    const payment = open?.payment;
+
+    if (!payment) {
+      return;
+    }
+
+    openConfirm({
+      confirmLabel: "Waive fine",
+      message: "The fine comes off this bill and stops growing.",
+      onConfirm: async () => {
+        try {
+          await waiveLateFine(payment.id);
+          const fine = payment.lines?.find((line) => line.basis === "FINE")?.amount ?? 0;
+          const lines = payment.lines?.filter((line) => line.basis !== "FINE");
+          const dueAmount = payment.dueAmount - fine;
+
+          setOpen((current) =>
+            current?.payment ? { ...current, payment: { ...current.payment, dueAmount, lines } } : current,
+          );
+          setCash((prev) => ({ ...prev, amount: String(Math.max(dueAmount - payment.paidAmount, 0)) }));
+          toastSuccess("Fine waived");
+          money.refresh();
+        } catch (error) {
+          toastError("Could not waive it", readApiError(error));
+        }
+      },
+      title: "Waive the late fine?",
+    });
+  }, [money, open]);
 
   const voidIt = useCallback(async () => {
     if (!open?.payment) {
@@ -1022,6 +1058,17 @@ export default function AdminMoneyScreen() {
 
             {open.payment ? (
               <>
+                {open.payment.lines?.some((line) => line.basis === "FINE" || line.basis === "KHATA") ? (
+                  <View className="gap-2">
+                    <BillExtras lines={open.payment.lines} />
+                    {open.payment.status !== "PAID" &&
+                    open.payment.lines.some((line) => line.basis === "FINE") ? (
+                      <View className="flex-row">
+                        <Chip icon="close-circle-outline" label="Waive fine" onPress={waiveFine} />
+                      </View>
+                    ) : null}
+                  </View>
+                ) : null}
                 <View className="gap-3 border-t border-border pt-4">
                   <Input
                     keyboardType="number-pad"
@@ -1180,4 +1227,12 @@ export default function AdminMoneyScreen() {
       {actions.sheet}
     </>
   );
+}
+
+/**
+ * With Overall picked in the switcher this tab answers for every branch at
+ * once (`components/overall-views.tsx`); otherwise it is the one branch's screen.
+ */
+export default function AdminMoneyScreen() {
+  return useIsOverall() ? <OverallTabScreen tab="money" /> : <BranchAdminMoneyScreen />;
 }

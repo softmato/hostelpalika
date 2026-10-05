@@ -49,8 +49,15 @@ export type { ExpenseCategoryKey, ExpenseCategoryValue, ExpensePaidBy };
 
 export type ExpenseRecorderRole = "COOK" | "HOSTEL_ADMIN" | "WARDEN";
 
+export type StaffCashStatus = "ACCEPTED" | "DECLINED" | "PENDING";
+
 export type ExpenseRow = {
   amount: number;
+  /** `STAFF_CASH` only — see the server's `ExpenseRow`. */
+  cashNote: string | null;
+  cashRespondedAt: string | null;
+  cashStatus: StaffCashStatus | null;
+  cashTo: { name: string; userId: string } | null;
   category: ExpenseCategoryValue;
   categoryLabel: string;
   createdAt: string | null;
@@ -72,7 +79,23 @@ export type ExpenseRow = {
 
 export type CustomExpenseCategory = { hidden: boolean; id: string; name: string };
 
-export type ExpensePerson = { name: string; role: "COOK" | "WARDEN"; userId: string };
+export type ExpensePerson = {
+  /** A warden with Add expenses — the only people the owner can give cash to. */
+  holdsCash: boolean;
+  name: string;
+  role: "COOK" | "WARDEN";
+  userId: string;
+};
+
+/** A warden's cash box. `left < 0` reads "Hostel owes". `pending` is not in `left`. */
+export type StaffWallet = {
+  given: number;
+  left: number;
+  name: string;
+  pending: number;
+  spent: number;
+  userId: string;
+};
 
 export type ExpenseCategoryTotal = {
   amount: number;
@@ -87,9 +110,17 @@ export type ExpenseHome = {
   currentPeriod: string;
   expenses: ExpenseRow[];
   mine: { count: number; out: number };
+  /** Cash handed over and not yet answered, any month. */
+  pendingCash: ExpenseRow[];
   people: ExpensePerson[];
   period: string;
+  /** Saving needs a bill photo. Never for the owner. */
+  proofRequired: boolean;
   role: ExpenseRecorderRole;
+  /** The warden's own box; `null` for the owner and the cook. */
+  wallet: StaffWallet | null;
+  /** Every warden's box; the owner only. */
+  wallets: StaffWallet[] | null;
   totals: {
     byCategory: ExpenseCategoryTotal[];
     in: number;
@@ -121,6 +152,7 @@ export const EXPENSE_CATEGORY_ICONS: Record<ExpenseCategoryKey, IconName> = {
   RENT: "business-outline",
   REPAIR: "construct-outline",
   SALARY: "people-outline",
+  STAFF_CASH: "wallet-outline",
   VEGETABLES_MEAT: "leaf-outline",
   WATER: "water-outline",
 };
@@ -242,7 +274,8 @@ export function groupExpensesByDay(rows: readonly ExpenseRow[], now: Date = new 
 
     day.rows.push(row);
 
-    if (row.status === "RECORDED") day.total += row.amount;
+    // Cash handed to a warden is listed, not counted: their expenses are.
+    if (row.status === "RECORDED" && isSpending(row)) day.total += row.amount;
 
     days.set(row.spentOn, day);
   }
@@ -250,9 +283,16 @@ export function groupExpensesByDay(rows: readonly ExpenseRow[], now: Date = new 
   return [...days.values()].sort((a, b) => (a.key < b.key ? 1 : -1));
 }
 
+export const CASH_STATUS_LABELS: Record<StaffCashStatus, string> = {
+  ACCEPTED: "Got it",
+  DECLINED: "Not received",
+  PENDING: "Waiting",
+};
+
 /** The line under a row's title: who added it, and how it was paid. */
 export function expenseSubtitle(row: ExpenseRow, showWho: boolean): string {
   const parts = [
+    row.cashStatus ? CASH_STATUS_LABELS[row.cashStatus] : null,
     row.salaryFor ? `For ${row.salaryFor.name}` : null,
     showWho && !row.mine ? row.recordedBy.name || "Staff" : null,
     row.paidBy === "CASH" ? "Cash" : row.paidBy === "ESEWA" ? "eSewa" : row.paidBy === "KHALTI" ? "Khalti" : "Bank",
@@ -263,7 +303,24 @@ export function expenseSubtitle(row: ExpenseRow, showWho: boolean): string {
 
 /** The row's title: what it was for, or the category when nothing was written. */
 export function expenseTitle(row: ExpenseRow): string {
+  if (row.cashTo) return `Cash to ${row.cashTo.name}`;
+
   return row.what.trim() || row.categoryLabel;
+}
+
+/** Real spending — everything but cash handed to a warden. */
+export function isSpending(row: ExpenseRow): boolean {
+  return row.cashTo === null;
+}
+
+/**
+ * What a cash box can still cover, as a share of what was handed over — the
+ * fuel gauge on the box. `null` before anything was given.
+ */
+export function walletPercent(wallet: StaffWallet): number | null {
+  if (wallet.given <= 0) return null;
+
+  return Math.max(0, Math.round((wallet.left / wallet.given) * 100));
 }
 
 /**

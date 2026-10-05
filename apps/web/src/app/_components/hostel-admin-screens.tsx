@@ -24,6 +24,7 @@ import { HostelAdminPaymentsPage } from "@/app/_components/hostel-admin-payments
 import { HostelAdminProfilePageContent } from "@/app/_components/hostel-admin-profile-page";
 import { HostelAdminReconcilePageContent } from "@/app/_components/hostel-admin-reconcile-page";
 import { HostelAdminKycPageContent } from "@/app/_components/hostel-admin-kyc-page";
+import { HostelAdminKhataPageContent } from "@/app/_components/khata-pages";
 import { HostelAdminReferralsPageContent } from "@/app/_components/hostel-admin-referrals-page";
 import { HostelAdminReportsPageContent } from "@/app/_components/hostel-admin-reports-page";
 import { HostelAdminResidentsPage } from "@/app/_components/hostel-admin-residents-page";
@@ -63,6 +64,7 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   expenses: () => <HostelAdminExpensesPageContent />,
   inquiries: () => <HostelAdminInquiriesPageContent />,
   "invite-hostels": () => <HostelAdminInviteHostelsPageContent />,
+  khata: () => <HostelAdminKhataPageContent />,
   kyc: () => <HostelAdminKycPageContent />,
   maintenance: () => <HostelAdminMaintenancePageContent />,
   "move-in-out": () => <HostelAdminMoveChecklistPage />,

@@ -6,6 +6,7 @@ import {
   EXPENSE_CUSTOM_CATEGORY_NAME_MAX,
   EXPENSE_PAID_BY,
   EXPENSE_WHAT_MAX,
+  STAFF_CASH_CATEGORY,
 } from "@hostel/shared/expenses/categories";
 
 export const expenseReceiptReadSchema = z.object({ assetId: z.string().regex(/^[a-f\d]{24}$/i) });
@@ -45,9 +46,19 @@ export const createExpenseSchema = z
       .optional(),
     sharedReceipt: z.boolean().optional(),
     spentOn: calendarDaySchema.optional(),
+    /** `STAFF_CASH` only: which warden got the money. */
+    cashTo: z.object({ userId: objectIdSchema }).optional(),
     what: z.string().trim().max(EXPENSE_WHAT_MAX).optional(),
   })
   .superRefine((value, context) => {
+    if (value.category === STAFF_CASH_CATEGORY && !value.cashTo) {
+      context.addIssue({
+        code: "custom",
+        message: "Pick the warden who got the money.",
+        path: ["cashTo"],
+      });
+    }
+
     if (value.category === CUSTOM_EXPENSE_CATEGORY && !value.customCategoryId) {
       context.addIssue({
         code: "custom",
@@ -68,6 +79,17 @@ export const createExpenseSchema = z
 /** Shown to the person who added it, so it has to be a real sentence. */
 export const voidExpenseSchema = z.object({
   reason: z.string().trim().min(3).max(300),
+});
+
+/** The warden's answer to cash handed to them. Saying "not received" needs no essay. */
+export const respondStaffCashSchema = z.object({
+  accept: z.boolean(),
+  note: z.string().trim().max(300).optional(),
+});
+
+export const staffWalletQuerySchema = z.object({
+  hostelId: objectIdSchema.optional(),
+  userId: objectIdSchema.optional(),
 });
 
 export const createExpenseCategorySchema = z.object({

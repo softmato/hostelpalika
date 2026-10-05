@@ -230,8 +230,14 @@ Each step is usable on its own. A step starts only when the one before it works.
 - Not built in step 1: owner push when staff add something; monthly export (step 3)
 
 ### Step 2: cash boxes [server] [app] [web]
-- [ ] Give / take back cash, cash box screen (3.4), *Hostel owes* state
-- [ ] Staff expenses paid by Cash move their box
+Built 2026-10-05 — typecheck, lint and tests clean (server 79, app 1509); not yet seen on a handset or in a browser.
+- [x] **[server]** *Give cash* is the owner-only `STAFF_CASH` category ("Cash to warden"), picked to a warden of *this* branch who holds `recordExpenses`; the warden answers **Got it / Not received** (`POST …/expenses/[id]/cash`). Only `ACCEPTED` fills the box. (`expense.test.ts`)
+- [x] **[server]** Cash box = confirmed handovers − every expense the warden added, derived per hostel (so per branch), never stored; below zero is *Hostel owes*. `GET …/expenses/wallet`. Handovers are **not** spending: left out of Money Out, the category bars and the statement balance — printed as transfer lines instead, with a per-warden *Staff cash* table on the statement PDF. (`statement-pdf.test.ts`, `hostel-statement.test.ts`)
+- [x] **[server]** Bill photo required for warden and cook expenses; the owner waives it per warden (`expenseWithoutProof`, shown inverted as *Bill photo needed*, on by default for new and existing wardens).
+- [x] **[server]** Performance report PDF (owner copy) gains Money out pages: by category, each warden's box, every line.
+- [ ] **[device]** App: owner's *Staff cash* tile row + cash box screen (`expenses/wallet.tsx`); warden's *Cash left* header, *Cash for you* cards, Home *My cash* row; warden form switch
+- [ ] **[browser]** Web: *Staff cash* card, warden's *Cash for you* list, *Cash to warden* tile, warden form checkbox
+- Not built: *Take back cash* (the owner can cancel a handover with a reason); rent cash a warden collects going into their box (§7.2).
 
 ### Step 3: photo fill + reports [server] [app] [web]
 - [ ] Receipt reader prefills amount/date from the photo

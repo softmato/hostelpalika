@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { useMemo } from "react";
 import { Linking, Pressable, View } from "react-native";
 
+import { KhataHomeCard } from "@/components/khata-home-card";
 import { MealRow } from "@/components/meal-row";
 import {
   ResidentHomeActions,
@@ -293,6 +294,8 @@ export default function ResidentHomeScreen() {
       </View>
 
       <View className="gap-6 px-5 pt-6">
+        <KhataHomeCard />
+
         <TodaysMenuCard meals={dashboard.foodMenu} />
 
         <NoticesCard notices={dashboard.notices} />

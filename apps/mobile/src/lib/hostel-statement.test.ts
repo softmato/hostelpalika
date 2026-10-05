@@ -23,6 +23,7 @@ import {
   statementShareText,
   statementSummary,
   type StatementFilter,
+  splitTotals,
   statusOptions,
   UNKNOWN_METHOD,
   visibleTotal,
@@ -577,6 +578,10 @@ describe("debits — the owner's expenses on the same statement", () => {
   function expense(overrides: Partial<ExpenseRow> = {}): ExpenseRow {
     return {
       amount: 1200,
+      cashNote: null,
+      cashRespondedAt: null,
+      cashStatus: null,
+      cashTo: null,
       category: "GROCERIES",
       categoryLabel: "Groceries",
       createdAt: "2026-08-24T09:00:00.000Z",
@@ -606,6 +611,31 @@ describe("debits — the owner's expenses on the same statement", () => {
     ],
     truncated: false,
   };
+
+  it("lists cash handed to a warden without counting it, and counts what they spend once", () => {
+    const warden = { id: "hari", name: "Hari", role: "WARDEN" as const };
+    const rows = statementCredits({
+      entries: [entry({ id: "rent", paidAmount: 5000, paidDate: "2026-08-24T07:53:00.000Z" })],
+      expenses: [
+        expense({
+          amount: 3000,
+          cashStatus: "ACCEPTED",
+          cashTo: { name: "Hari", userId: "hari" },
+          category: "STAFF_CASH",
+          id: "give",
+        }),
+        expense({ amount: 1000, cashStatus: "DECLINED", cashTo: { name: "Hari", userId: "hari" }, id: "lost" }),
+        expense({ amount: 700, id: "rice", payer: "STAFF", recordedBy: warden }),
+      ],
+      truncated: false,
+    });
+
+    expect(rows.map((row) => row.id).sort()).toEqual(["expense:give", "expense:rice", "rent"]);
+    expect(splitTotals(rows)).toEqual({ in: 5000, inCount: 1, out: 700, outCount: 1 });
+    expect(visibleTotal(rows)).toBe(4300);
+    expect(creditTitle(rows.find((row) => row.id === "expense:give")!, "AD")).toBe("Cash to Hari");
+    expect(creditTitle(rows.find((row) => row.id === "expense:rice")!, "AD")).toBe("Vegetables · Hari");
+  });
 
   it("lists recorded expenses as debits beside the credits, leaving voided ones out", () => {
     const rows = statementCredits(mixed);

@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
 
+import { BillExtras } from "@/components/bill-extras";
 import { Sheet } from "@/components/ui/sheet";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
@@ -340,6 +341,8 @@ function AmountCard({
         </View>
 
         <Money size="display" value={instructions.amountDue} />
+
+        <BillExtras lines={instructions.extras} />
 
         {/* So they can sanity-check their own bill: "is this the right rent" is
           only answerable if the screen says what it is rent for. */}

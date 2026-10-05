@@ -41,6 +41,7 @@ function report(overrides: Partial<PerformanceReport> = {}): PerformanceReport {
       trend,
     },
     generatedAt: "2026-09-14T09:30:00.000Z",
+    moneyOut: null,
     hostelName: "Green View Hostel",
     listing: {
       appearances: { change: 20, current: 1_200, previous: 1_000 },
@@ -78,6 +79,45 @@ describe("renderPerformanceReportPdf", () => {
 
     expect(Buffer.from(pdf).toString("latin1").startsWith("%PDF-")).toBe(true);
     expect((await PDFDocument.load(pdf)).getPageCount()).toBe(2);
+  });
+
+  it("adds the owner's money-out pages, every expense line included", async () => {
+    const line = {
+      amount: 700,
+      cashNote: null,
+      cashRespondedAt: null,
+      cashStatus: null,
+      cashTo: null,
+      category: "GROCERIES" as const,
+      categoryLabel: "Groceries",
+      createdAt: null,
+      customCategoryId: null,
+      id: "e",
+      mine: false,
+      paidBy: "CASH" as const,
+      payer: "STAFF" as const,
+      photoAssetId: null,
+      recordedBy: { id: "hari", name: "Hari", role: "WARDEN" as const },
+      salaryFor: null,
+      spentOn: "2026-09-10",
+      status: "RECORDED" as const,
+      voidReason: null,
+      voidedAt: null,
+      what: "Rice 25 kg",
+    };
+    const pdf = await renderPerformanceReportPdf(
+      report({
+        moneyOut: {
+          byCategory: [{ amount: 700 * 90, category: "GROCERIES", customCategoryId: null, label: "Groceries" }],
+          out: 700 * 90,
+          // Enough lines to need a second money-out page.
+          rows: Array.from({ length: 90 }, (_, index) => ({ ...line, id: `e${index}` })),
+          staff: [{ given: 70_000, left: 7000, name: "Hari", pending: 0, spent: 63_000, userId: "hari" }],
+        },
+      }),
+    );
+
+    expect((await PDFDocument.load(pdf)).getPageCount()).toBeGreaterThanOrEqual(4);
   });
 
   it("does not throw on a hostel name outside WinAnsi", async () => {

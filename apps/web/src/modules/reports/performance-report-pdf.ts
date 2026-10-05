@@ -2,7 +2,7 @@ import { PDFDocument, type PDFFont, type RGB } from "pdf-lib";
 
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 import { bsMonthName, formatBsPeriod, periodParts, toBs } from "@hostel/shared/calendar/bs";
-import { documentInstant, drawFooter, loadInk } from "@/modules/billing/documents/document-parts";
+import { documentBsDate, documentInstant, drawFooter, loadInk } from "@/modules/billing/documents/document-parts";
 import { Cursor } from "@/modules/billing/documents/layout";
 import {
   COLORS,
@@ -675,6 +675,134 @@ function peoplePage(cursor: Cursor, report: PerformanceReport) {
   );
 }
 
+const FLOOR = MARGIN.bottom + 40;
+
+/**
+ * Money out, for the owner's copy only (`report.moneyOut` is `null` for a
+ * warden): the month's spending by category, each warden's cash box — handed
+ * over, spent, left — and then every line, so the owner can follow the cash
+ * they gave out rupee by rupee. Returns the pages it drew.
+ */
+function moneyOutPages(
+  pdf: PDFDocument,
+  ink: Ink,
+  report: PerformanceReport,
+  hostelName: string,
+): Cursor[] {
+  const out = report.moneyOut;
+
+  if (!out) return [];
+
+  const pages: Cursor[] = [];
+  const page = () => {
+    const cursor = new Cursor(pdf.addPage([PAGE.width, PAGE.height]), ink);
+
+    runningHeader(cursor, report, hostelName);
+    cursor.down(SPACE.line);
+    pages.push(cursor);
+
+    return cursor;
+  };
+  let cursor = page();
+  const withStaff = out.staff.reduce((sum, box) => sum + Math.max(0, box.left), 0);
+  const owed = out.staff.reduce((sum, box) => sum + Math.max(0, -box.left), 0);
+
+  sectionTitle(cursor, "MONEY OUT", "Where the money went", monthOnly(report.period.month));
+  figureRow(cursor, [
+    { label: "Spent", sub: `${out.rows.filter((row) => !row.cashTo).length} expenses`, value: rupees(out.out) },
+    { label: "With wardens", sub: "Cash they still hold", value: rupees(withStaff) },
+    { label: "Owed to wardens", sub: "Paid from their pocket", value: rupees(owed) },
+  ]);
+  cursor.down(SPACE.line);
+
+  if (out.byCategory.length > 0) {
+    table(
+      cursor,
+      [
+        { label: "Spent on", width: 3 },
+        { align: "right", label: "Amount", width: 1.2 },
+        { align: "right", label: "Share", width: 0.8 },
+      ],
+      out.byCategory.map((row) => ({
+        cells: [
+          sanitize(row.label),
+          rupees(row.amount),
+          out.out > 0 ? `${Math.round((row.amount / out.out) * 100)}%` : "-",
+        ],
+      })),
+    );
+    cursor.down(SPACE.line);
+  }
+
+  if (out.staff.length > 0) {
+    if (cursor.top - (out.staff.length + 3) * ROW < FLOOR) cursor = page();
+
+    sectionTitle(cursor, "STAFF CASH", "Each warden's cash box");
+    table(
+      cursor,
+      [
+        { label: "Warden", width: 2.4 },
+        { align: "right", label: "Given", width: 1.2 },
+        { align: "right", label: "Spent", width: 1.2 },
+        { align: "right", label: "Left", width: 1.4 },
+      ],
+      out.staff.map((box) => ({
+        cells: [
+          sanitize(box.pending > 0 ? `${box.name} (${rupees(box.pending)} waiting)` : box.name),
+          rupees(box.given),
+          rupees(box.spent),
+          box.left < 0 ? `owes ${rupees(-box.left)}` : rupees(box.left),
+        ],
+      })),
+    );
+    cursor.down(SPACE.line);
+  }
+
+  const columns = [
+    { label: "Date (BS)", width: 1.1 },
+    { label: "What", width: 2.6 },
+    { label: "By", width: 1.3 },
+    { label: "Paid by", width: 0.9 },
+    { align: "right" as const, label: "Amount", width: 1.1 },
+  ];
+  const lines = out.rows.map((row) => ({
+    cells: [
+      documentBsDate(new Date(`${row.spentOn}T12:00:00+05:45`)),
+      sanitize(
+        row.cashTo
+          ? `Cash to ${row.cashTo.name}${row.cashStatus === "PENDING" ? " (waiting)" : ""}`
+          : row.what
+            ? `${row.categoryLabel} - ${row.what}`
+            : row.categoryLabel,
+      ).slice(0, 48),
+      sanitize(row.recordedBy.name || "Staff").slice(0, 22),
+      row.paidBy === "ESEWA" ? "eSewa" : row.paidBy === "KHALTI" ? "Khalti" : row.paidBy === "BANK" ? "Bank" : "Cash",
+      rupees(row.amount),
+    ],
+  }));
+
+  if (lines.length === 0) return pages;
+
+  let start = 0;
+  let title = true;
+
+  while (start < lines.length) {
+    if (cursor.top - 5 * ROW < FLOOR) cursor = page();
+
+    if (title) {
+      sectionTitle(cursor, "EVERY EXPENSE", "Line by line", "Cash to a warden is not counted as spent");
+      title = false;
+    }
+
+    const fits = Math.max(1, Math.floor((cursor.top - FLOOR) / ROW) - 1);
+
+    table(cursor, columns, lines.slice(start, start + fits));
+    start += fits;
+  }
+
+  return pages;
+}
+
 export async function renderPerformanceReportPdf(report: PerformanceReport): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
   const ink: Ink = await loadInk(pdf);
@@ -689,13 +817,15 @@ export async function renderPerformanceReportPdf(report: PerformanceReport): Pro
 
   masthead(first, report, hostelName);
   moneyPage(first, report);
-  drawFooter(first, { note, reference: "Page 1 of 2" });
 
   const second = new Cursor(pdf.addPage([PAGE.width, PAGE.height]), ink);
 
   runningHeader(second, report, hostelName);
   peoplePage(second, report);
-  drawFooter(second, { note, reference: "Page 2 of 2" });
+
+  const pages = [first, second, ...moneyOutPages(pdf, ink, report, hostelName)];
+
+  pages.forEach((page, index) => drawFooter(page, { note, reference: `Page ${index + 1} of ${pages.length}` }));
 
   return pdf.save();
 }

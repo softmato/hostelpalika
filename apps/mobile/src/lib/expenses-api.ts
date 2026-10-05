@@ -7,6 +7,7 @@ import type {
   ExpenseHome,
   ExpensePaidBy,
   ExpenseRow,
+  StaffWallet,
 } from "@/lib/expenses";
 import { defineQuery, type Query } from "@/lib/query-cache";
 
@@ -33,6 +34,8 @@ export async function getExpenseHome(audience: ExpenseAudience, period?: string)
 
 export type NewExpense = {
   amount: number;
+  /** `STAFF_CASH` only. */
+  cashTo?: { userId: string };
   category: ExpenseCategoryValue;
   clientRequestId: string;
   customCategoryId?: string;
@@ -56,6 +59,31 @@ export async function cancelExpense(audience: ExpenseAudience, id: string, reaso
   });
 
   return unwrap(response);
+}
+
+/** The warden's answer to cash the owner handed over. */
+export async function answerStaffCash(id: string, accept: boolean) {
+  const response = await api.post<ApiEnvelope<ExpenseRow>>(`/hostel-admin/expenses/${id}/cash`, {
+    accept,
+  });
+
+  return unwrap(response);
+}
+
+export type StaffWalletDetail = { rows: ExpenseRow[]; truncated: boolean; wallet: StaffWallet };
+
+/**
+ * One warden's cash box and every row behind it. `null` is "mine" — a warden's
+ * own; the owner names the warden. On the payments topic like the home read.
+ */
+export function walletQuery(userId: string | null): Query<StaffWalletDetail> {
+  return defineQuery(`expenses:wallet:${userId ?? "mine"}`, [REALTIME_TOPIC.PAYMENTS], async () =>
+    unwrap(
+      await api.get<ApiEnvelope<StaffWalletDetail>>("/hostel-admin/expenses/wallet", {
+        params: userId ? { userId } : undefined,
+      }),
+    ),
+  );
 }
 
 /** Owner only. */

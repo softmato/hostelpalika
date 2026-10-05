@@ -131,6 +131,7 @@ export const TOPIC_ENDPOINTS: Record<RealtimeTopic, string[]> = {
   [REALTIME_TOPIC.PAYMENTS]: [
     "/api/v1/hostel-admin/finance*",
     "/api/v1/resident/finance*",
+    "/api/v1/cook/khata*",
     "/api/v1/guardian/payments*",
     "/api/v1/platform/billing*",
     "/api/v1/hostel-admin/dashboard*",

@@ -310,12 +310,13 @@ function CreditRow({
             does in the reference.
           */}
           <View className="flex-row items-center gap-1 pt-0.5">
+            {/* Cash handed to a warden moves money, it does not spend it. */}
             <Ionicons
-              color={debit ? colors.destructive : colors.success}
-              name={debit ? "caret-down" : "caret-up"}
+              color={credit.transfer ? colors.mutedForeground : debit ? colors.destructive : colors.success}
+              name={credit.transfer ? "swap-horizontal" : debit ? "caret-down" : "caret-up"}
               size={12}
             />
-            <Money tone={debit ? "debit" : "credit"} value={credit.amount} />
+            <Money tone={credit.transfer ? "default" : debit ? "debit" : "credit"} value={credit.amount} />
           </View>
         </View>
 

@@ -1,20 +1,25 @@
-import { Ionicons } from "@expo/vector-icons";
-import { router, usePathname } from "expo-router";
+import { router } from "expo-router";
 import { useState, useSyncExternalStore } from "react";
 import { Pressable, View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
+import { ROLE } from "@/constants/roles";
+import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
 import {
   getActiveHostelId,
+  isOverall,
+  OVERALL,
   setActiveHostelId,
   subscribeActiveHostel,
 } from "@/lib/active-hostel";
 import { type AdminBranchRow, getBranchesSummary } from "@/lib/admin-api";
 import { adminQuery } from "@/lib/admin-queries";
 import { formatMoney } from "@/lib/format";
+import type { GlyphName } from "@hostel/constants/glyphs";
 
 /**
  * An owner with branches works in one hostel at a time. These two read the
@@ -35,6 +40,16 @@ function useActiveHostel() {
     getActiveHostelId,
     getActiveHostelId,
   );
+}
+
+/**
+ * Whether the tabs should show every branch at once. Owner only: a stale value
+ * left on a shared phone never puts a warden into a view they cannot read.
+ */
+export function useIsOverall() {
+  const role = useAppSelector((state) => state.auth.account?.role);
+
+  return isOverall(useActiveHostel()) && role === ROLE.HOSTEL_ADMIN;
 }
 
 /**
@@ -63,15 +78,22 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
     topics: subscriptionQuery.topics,
   });
   const active = useActiveHostel();
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const rows = branches.data?.hostels ?? [];
-  const overall = pathname.endsWith("/manage/overall");
+  const overall = isOverall(active);
 
-  if (rows.length === 0 || subscription.data?.subscription.planId !== "max")
+  // Still shown in Overall whatever the plan says, so the way out never disappears.
+  if (rows.length === 0 || (subscription.data?.subscription.planId !== "max" && !overall))
     return null;
 
   const current = currentRow(rows, active);
+  const tile = (name: GlyphName, on: boolean) => (
+    <View className={`h-10 w-10 items-center justify-center rounded-xl ${on ? "bg-primary" : "bg-brand-soft"}`}>
+      <Glyph color={on ? colors.primaryForeground : colors.primary} name={name} size={20} />
+    </View>
+  );
+  const mark = (on: boolean) =>
+    on ? <Glyph color={colors.primary} name="check" size={18} strokeWidth={2} /> : null;
 
   return (
     <View className={compact ? "shrink-0" : "px-5 pt-3"}>
@@ -91,9 +113,9 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
         }
         onPress={() => setOpen(true)}
       >
-        <Ionicons
+        <Glyph
           color={colors.primary}
-          name={overall ? "layers-outline" : "business-outline"}
+          name={overall ? "overall" : current?.isBranch ? "branch" : "hostel"}
           size={16}
         />
         {compact ? null : (
@@ -105,11 +127,7 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
             {overall ? "Overall" : current?.name}
           </Text>
         )}
-        <Ionicons
-          color={colors.mutedForeground}
-          name="chevron-down"
-          size={14}
-        />
+        <Glyph color={colors.mutedForeground} name="chevronDown" size={14} />
       </Pressable>
 
       <Sheet
@@ -117,144 +135,66 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
         fitContent
         onClose={() => setOpen(false)}
         open={open}
-        title="Switch branch"
+        title="Switch hostel"
       >
-        <View className="gap-2 px-4 pt-4">
+        <View className="gap-4 px-4 py-4">
           {rows.length > 1 ? (
-            <View
-              className={`mb-2 overflow-hidden rounded-2xl border ${overall ? "border-primary/20 bg-brand-soft" : "border-border bg-card"}`}
-            >
+            <View className="overflow-hidden rounded-2xl bg-card">
               <SheetRow
-                label="Overall · all branches"
-                subtitle="Residents, staff, money, operations and reports together"
-                leading={
-                  <View
-                    className={`h-11 w-11 items-center justify-center rounded-xl ${overall ? "bg-primary/10" : "bg-muted"}`}
-                  >
-                    <Ionicons
-                      color={overall ? colors.primary : colors.mutedForeground}
-                      name="layers-outline"
-                      size={22}
-                    />
-                  </View>
-                }
+                label="Overall"
+                leading={tile("overall", overall)}
                 onPress={() => {
                   setOpen(false);
-                  if (!overall) router.push("/manage/overall");
+                  if (!overall) void setActiveHostelId(OVERALL);
                 }}
                 selected={overall}
-                trailing={
-                  overall ? (
-                    <View className="flex-row items-center gap-1 rounded-full bg-primary/10 px-2 py-1">
-                      <Ionicons
-                        color={colors.primary}
-                        name="checkmark"
-                        size={13}
-                      />
-                      <Text className="text-primary" variant="caption">
-                        Active
-                      </Text>
-                    </View>
-                  ) : (
-                    <Ionicons
-                      color={colors.mutedForeground}
-                      name="chevron-forward"
-                      size={17}
-                    />
-                  )
-                }
+                subtitle={`All ${rows.length} branches together`}
+                trailing={mark(overall)}
               />
             </View>
           ) : null}
-          <Text className="mb-1 px-1" variant="caption">
-            Your hostels
-          </Text>
-          {rows.map((row) => {
-            const selected = !overall && row.id === current?.id;
-            return (
-              <View
-                className={`overflow-hidden rounded-2xl border ${selected ? "border-primary/20 bg-brand-soft" : "border-border bg-card"}`}
-                key={row.id}
-              >
-                <SheetRow
-                  label={row.name}
-                  leading={
-                    <View
-                      className={`h-11 w-11 items-center justify-center rounded-xl ${selected ? "bg-primary/10" : "bg-muted"}`}
-                    >
-                      <Ionicons
-                        color={
-                          selected ? colors.primary : colors.mutedForeground
-                        }
-                        name="business-outline"
-                        size={22}
-                      />
-                    </View>
-                  }
-                  onPress={() => {
-                    setOpen(false);
-                    if (overall) {
-                      void switchTo(row, rows).then(() =>
-                        router.replace("/(admin)"),
-                      );
-                    } else if (!selected) {
-                      void switchTo(row, rows);
-                    }
-                  }}
-                  selected={selected}
-                  subtitle={
-                    [row.area, row.city].filter(Boolean).join(", ") || row.slug
-                  }
-                  trailing={
-                    selected ? (
-                      <View className="flex-row items-center gap-1 rounded-full bg-primary/10 px-2 py-1">
-                        <Ionicons
-                          color={colors.primary}
-                          name="checkmark"
-                          size={13}
-                        />
-                        <Text className="text-primary" variant="caption">
-                          Active
-                        </Text>
-                      </View>
-                    ) : (
-                      <Ionicons
-                        color={colors.mutedForeground}
-                        name="chevron-forward"
-                        size={17}
-                      />
-                    )
-                  }
-                />
-              </View>
-            );
-          })}
-        </View>
-        <View className="mx-4 mt-4 border-t border-border pt-1">
-          <SheetRow
-            label="Manage branches"
-            leading={
-              <View className="h-11 w-11 items-center justify-center rounded-xl bg-muted">
-                <Ionicons
-                  color={colors.mutedForeground}
-                  name="git-network-outline"
-                  size={21}
-                />
-              </View>
-            }
+          <View className="gap-1.5">
+            <Text className="px-1" variant="label">
+              Your hostels
+            </Text>
+            <View className="overflow-hidden rounded-2xl bg-card">
+              {rows.map((row, at) => {
+                const selected = !overall && row.id === current?.id;
+                return (
+                  <View key={row.id}>
+                    {at ? <View className="ml-[72px] h-px bg-border" /> : null}
+                    <SheetRow
+                      label={row.name}
+                      leading={tile(row.isBranch ? "branch" : "hostel", selected)}
+                      onPress={() => {
+                        setOpen(false);
+                        if (!selected) void switchTo(row, rows);
+                      }}
+                      selected={selected}
+                      subtitle={[
+                        row.isBranch ? "Branch" : "Main hostel",
+                        [row.area, row.city].filter(Boolean).join(", "),
+                      ].filter(Boolean).join(" · ")}
+                      trailing={mark(selected)}
+                    />
+                  </View>
+                );
+              })}
+            </View>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            className="flex-row items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-3.5 active:bg-muted"
             onPress={() => {
               setOpen(false);
               router.push("/manage/branches");
             }}
-            subtitle="Add a branch or check its setup"
-            trailing={
-              <Ionicons
-                color={colors.mutedForeground}
-                name="chevron-forward"
-                size={17}
-              />
-            }
-          />
+          >
+            <Glyph color={colors.primary} name="plus" size={18} />
+            <Text className="font-semibold text-primary" variant={null}>
+              Manage branches
+            </Text>
+          </Pressable>
         </View>
       </Sheet>
     </View>
@@ -289,10 +229,10 @@ export function BranchesCard() {
           >
             <View className="flex-row items-center gap-3">
               <View className="h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft">
-                <Ionicons
+                <Glyph
                   color={colors.primary}
-                  name="business-outline"
-                  size={21}
+                  name={row.isBranch ? "branch" : "hostel"}
+                  size={20}
                 />
               </View>
               <Text
@@ -312,11 +252,7 @@ export function BranchesCard() {
                   </Text>
                 </View>
               ) : (
-                <Ionicons
-                  color={colors.mutedForeground}
-                  name="arrow-forward"
-                  size={18}
-                />
+                <Glyph color={colors.mutedForeground} name="chevron" size={16} />
               )}
             </View>
             <View className="flex-row flex-wrap gap-y-3 border-t border-border pt-4">

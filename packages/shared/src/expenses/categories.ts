@@ -21,6 +21,7 @@ export const EXPENSE_CATEGORY_KEYS = [
   "WATER",
   "INTERNET",
   "SALARY",
+  "STAFF_CASH",
   "RENT",
   "REPAIR",
   "CLEANING",
@@ -47,9 +48,27 @@ export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategoryKey, string> = {
   RENT: "Building rent",
   REPAIR: "Repair",
   SALARY: "Salary",
+  STAFF_CASH: "Cash to warden",
   VEGETABLES_MEAT: "Vegetables & meat",
   WATER: "Water",
 };
+
+/**
+ * Money the owner hands a warden to run the hostel with (eSewa, Khalti, bank or
+ * cash in hand). **Not spending**: it moves money from the owner to the
+ * warden's cash box, and the warden's own expenses are the spending. So it is
+ * left out of Money Out and the category bars, and the statement prints it as a
+ * transfer — counting both would spend the same rupee twice.
+ */
+export const STAFF_CASH_CATEGORY = "STAFF_CASH" as const;
+
+/** Whether a row is real spending — everything except cash handed to staff. */
+export function isSpendingCategory(category: string): boolean {
+  return category !== STAFF_CASH_CATEGORY;
+}
+
+/** The warden's answer to cash the owner says they gave. Only `ACCEPTED` fills the box. */
+export type StaffCashStatus = "ACCEPTED" | "DECLINED" | "PENDING";
 
 export function isExpenseCategoryKey(value: unknown): value is ExpenseCategoryKey {
   return (

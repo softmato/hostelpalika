@@ -13,6 +13,7 @@ import { WalletMark, walletLabel } from "@/components/ui/wallet-mark";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { GATEWAY_PROVIDERS } from "@/lib/admin-manage-api";
+import { khataQuery, lateFineRate } from "@/lib/khata-api";
 import { type AdminFinanceData, adminQuery, prefetchAdminRoute } from "@/lib/admin-queries";
 
 /**
@@ -59,6 +60,13 @@ export default function ManageFinanceScreen() {
   const concessions = finance.data?.concessions ?? null;
   // Owner-only on the server: a warden's read is refused, and the row says so.
   const payout = usePayoutAccount();
+  const lateFineQuery = khataQuery.lateFine();
+  const lateFine = useResource(lateFineQuery.load, {
+    cacheKey: lateFineQuery.key,
+    topics: lateFineQuery.topics,
+  });
+  const khataKey = khataQuery.admin();
+  const khata = useResource(khataKey.load, { cacheKey: khataKey.key, topics: khataKey.topics });
 
   const header = <AppBar accent centerTitle showBack title="Finance" />;
 
@@ -131,6 +139,57 @@ export default function ManageFinanceScreen() {
               onPressIn={warm("/manage/finance/month-discounts")}
               subtitle={discountsSubtitle}
               title="Festival discounts"
+            />
+            <RowDivider inset />
+            <ListRow
+              icon="alarm-outline"
+              iconBgColor="#FF3B30"
+              onPress={lateFine.error ? undefined : () => router.push("/manage/finance/late-fine")}
+              right={
+                lateFine.data ? (
+                  <Badge
+                    label={lateFine.data.enabled ? "On" : "Off"}
+                    tone={lateFine.data.enabled ? "success" : "neutral"}
+                  />
+                ) : undefined
+              }
+              subtitle={
+                lateFine.error
+                  ? NO_ACCESS
+                  : !lateFine.data
+                    ? "…"
+                    : lateFine.data.enabled
+                      ? `${lateFineRate(lateFine.data)} after day ${lateFine.data.graceDays}`
+                      : "No fine for paying late"
+              }
+              title="Late fine"
+            />
+          </Card>
+        </View>
+
+        <View>
+          <SectionHeader title="Khata" />
+          <Card padding="px-4 py-1">
+            <ListRow
+              icon="receipt-outline"
+              iconBgColor="#AF52DE"
+              onPress={khata.error ? undefined : () => router.push("/manage/finance/khata")}
+              right={
+                khata.data && khata.data.requests.length + khata.data.waiting.length > 0 ? (
+                  <Badge
+                    label={`${khata.data.requests.length + khata.data.waiting.length} new`}
+                    tone="warning"
+                  />
+                ) : undefined
+              }
+              subtitle={
+                khata.error
+                  ? NO_ACCESS
+                  : !khata.data
+                    ? "…"
+                    : `${khata.data.accounts.length} open · ${khata.data.items.filter((item) => item.active).length} items`
+              }
+              title="Resident khata"
             />
           </Card>
         </View>

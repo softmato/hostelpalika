@@ -20,6 +20,7 @@ import { useResource } from "@/hooks/use-resource";
 import { readApiError } from "@/lib/api-contract";
 import { announceFoodReady, type CookToday } from "@/lib/cook-api";
 import { cookQuery, recordCookAnnouncement } from "@/lib/cook-queries";
+import { khataQuery } from "@/lib/khata-api";
 import {
   announcedCount,
   announcementSummary,
@@ -123,6 +124,9 @@ export default function CookTodayScreen() {
     cacheKey: query.key,
     topics: query.topics,
   });
+  const khataKey = khataQuery.orders();
+  const khataOrders = useResource(khataKey.load, { cacheKey: khataKey.key, topics: khataKey.topics });
+  const khataWaiting = khataOrders.data?.waiting.length ?? 0;
 
   /*
    * The clock, ticking. Every half minute and on every return from the
@@ -280,6 +284,18 @@ export default function CookTodayScreen() {
         kitchen's spending happens at the market in the morning, before any
         food is out — and one row, because it is a door, not a report.
       */}
+      {/* Khata asks — residents' eggs and extras, answered at the counter. */}
+      <View className="px-5 pt-5">
+        <CardRow
+          icon="receipt-outline"
+          onPress={() => router.push("/khata-asks")}
+          right={khataWaiting > 0 ? <Badge label={`${khataWaiting} waiting`} tone="warning" /> : undefined}
+          subtitle={khataWaiting > 0 ? "Tap to give" : "Nothing waiting"}
+          title="Khata asks"
+          tone="brand"
+        />
+      </View>
+
       {today.data.expensesEnabled ? (
         <View className="px-5 pt-5">
           <CardRow

@@ -35,6 +35,25 @@ export function getActiveHostelId() {
   return active;
 }
 
+/**
+ * **Overall** — every branch at once, picked in the switcher like a branch.
+ *
+ * It is a view, not a hostel: there is nothing to write to. The tabs render the
+ * stacked all-branches screens (`components/overall/`), which read each branch
+ * with its own explicit header, and every write starts by switching to the one
+ * branch it belongs to. Requests made without a header go to the main hostel.
+ */
+export const OVERALL = "overall";
+
+export function isOverall(id: string | null = active) {
+  return id === OVERALL;
+}
+
+/** The id to send as `x-hostel-id`: never the Overall sentinel, which the server would ignore anyway. */
+export function getRequestHostelId() {
+  return active === OVERALL ? null : active;
+}
+
 export function subscribeActiveHostel(listener: () => void) {
   listeners.add(listener);
 

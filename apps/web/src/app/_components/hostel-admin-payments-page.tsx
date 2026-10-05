@@ -75,6 +75,7 @@ import {
   TableHeader,
   TableRow,
 } from "./portal-dashboard-ui";
+import { BillExtraTags, type BillLine } from "./khata-pages";
 
 type MatrixRow = {
   displayStatus:
@@ -84,7 +85,7 @@ type MatrixRow = {
     | "OVERDUE"
     | "PENDING_PROOF"
     | "NOT_BILLED";
-  payment: Payment | null;
+  payment: (Payment & { lines?: BillLine[] }) | null;
   resident: Resident & {
     fullName: string;
     moveInDate: string;
@@ -344,6 +345,27 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
       }
     },
     [refreshPayments],
+  );
+
+  /* Takes the late fine off one bill; the matrix refetch shows the smaller due. */
+  const waiveFine = useCallback(
+    async (invoiceId: string, residentName: string) => {
+      if (!window.confirm(`Waive ${residentName}'s late fine? It comes off this bill and stops growing.`)) {
+        return;
+      }
+
+      try {
+        await browserApi(`/api/v1/hostel-admin/finance/invoices/${invoiceId}/waive-fine`, {
+          body: "{}",
+          method: "POST",
+        });
+        setActionMessage("Fine waived.");
+        await matrixResource.refreshAsync();
+      } catch (error) {
+        setActionMessage(error instanceof Error ? error.message : "Could not waive the fine.");
+      }
+    },
+    [matrixResource],
   );
 
   const reviewProof = useCallback(
@@ -879,6 +901,16 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
                           </TableCell>
                           <TableCell className="font-medium">
                             {row.payment ? currency(row.payment.dueAmount) : "—"}
+                            {row.payment ? (
+                              <BillExtraTags
+                                lines={row.payment.lines}
+                                onWaive={
+                                  row.displayStatus === "PAID"
+                                    ? undefined
+                                    : () => void waiveFine(row.payment!.id, name)
+                                }
+                              />
+                            ) : null}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {row.payment ? currency(row.payment.paidAmount) : "—"}

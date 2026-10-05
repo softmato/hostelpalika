@@ -1,3 +1,5 @@
+import { OverallTabScreen } from "@/components/overall-views";
+import { useIsOverall } from "@/components/hostel-switcher";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
@@ -213,7 +215,7 @@ const MANAGE_ROWS: {
   },
 ];
 
-export default function AdminMoreScreen() {
+function BranchAdminMoreScreen() {
   const account = useAppSelector((state) => state.auth.account);
   const preference = useAppSelector((state) => state.ui.themePreference);
   const dispatch = useAppDispatch();
@@ -390,4 +392,12 @@ export default function AdminMoreScreen() {
       </View>
     </Screen>
   );
+}
+
+/**
+ * With Overall picked in the switcher this tab answers for every branch at
+ * once (`components/overall-views.tsx`); otherwise it is the one branch's screen.
+ */
+export default function AdminMoreScreen() {
+  return useIsOverall() ? <OverallTabScreen tab="more" /> : <BranchAdminMoreScreen />;
 }

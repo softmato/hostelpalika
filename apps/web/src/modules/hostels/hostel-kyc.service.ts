@@ -35,7 +35,7 @@ export function kycPercent(done: Record<KycStep, boolean>) {
   return Math.round((100 * KYC_STEPS.filter((key) => done[key]).length) / KYC_STEPS.length);
 }
 
-export async function getHostelKyc(hostelId: string | Types.ObjectId) {
+export async function getHostelKyc(hostelId: string | Types.ObjectId, viewerId?: string) {
   await connectToDatabase();
 
   const id = new Types.ObjectId(String(hostelId));
@@ -48,10 +48,11 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId) {
     } | null>(),
     HostelDocumentModel.find({ hostelId: id, isDeleted: false })
       .sort({ createdAt: -1 })
-      .select("documentType status fileAssetId rejectionReason")
+      .select("documentType status fileAssetId rejectionReason createdBy")
       .lean<
         {
           _id: Types.ObjectId;
+          createdBy?: Types.ObjectId;
           documentType: string;
           fileAssetId?: Types.ObjectId;
           rejectionReason?: string;
@@ -96,6 +97,8 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId) {
       const file = doc.fileAssetId ? fileById.get(String(doc.fileAssetId)) : undefined;
 
       return {
+        // Only the uploader, and only until a platform admin approves it.
+        canRemove: Boolean(viewerId) && String(doc.createdBy) === viewerId && doc.status !== "APPROVED",
         fileAssetId: doc.fileAssetId ? String(doc.fileAssetId) : null,
         fileName: file?.fileName ?? null,
         id: String(doc._id),
@@ -145,5 +148,31 @@ export async function addHostelKycDocuments(
     })),
   );
 
-  return getHostelKyc(id);
+  return getHostelKyc(id, userId);
+}
+
+/** The uploader takes back their own file; an approved one stays as evidence. */
+export async function removeHostelKycDocument(
+  hostelId: string | Types.ObjectId,
+  userId: string,
+  documentId: string,
+) {
+  await connectToDatabase();
+
+  if (!Types.ObjectId.isValid(documentId)) {
+    throw new HostelServiceError("Document was not found.", "DOCUMENT_NOT_FOUND", 404);
+  }
+
+  const id = new Types.ObjectId(String(hostelId));
+  const actor = new Types.ObjectId(userId);
+  const removed = await HostelDocumentModel.findOneAndUpdate(
+    { _id: new Types.ObjectId(documentId), createdBy: actor, hostelId: id, isDeleted: false, status: { $ne: "APPROVED" } },
+    { deletedAt: new Date(), deletedBy: actor, isDeleted: true, updatedBy: actor },
+  );
+
+  if (!removed) {
+    throw new HostelServiceError("Only your own document can be removed, and only before it is approved.", "DOCUMENT_NOT_REMOVABLE", 404);
+  }
+
+  return getHostelKyc(id, userId);
 }

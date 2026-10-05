@@ -450,6 +450,16 @@ function BranchForm({
                     ? certificate.fileName
                     : "Add a PAN/VAT certificate (optional)"}
               </Text>
+              {certificate && !uploading ? (
+                <Pressable
+                  accessibilityLabel="Remove certificate"
+                  accessibilityRole="button"
+                  hitSlop={8}
+                  onPress={() => setCertificate(null)}
+                >
+                  <Ionicons color={colors.destructive} name="trash-outline" size={18} />
+                </Pressable>
+              ) : null}
             </Pressable>
           </Card>
 

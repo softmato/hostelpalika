@@ -2,6 +2,7 @@ import { listPublicSiblingBranches } from "@/modules/hostels/public-branches.ser
 import { Types } from "mongoose";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
+import { OVERALL_SLUG } from "@/lib/branch-cache";
 import { connectToDatabase } from "@/lib/db";
 import { paginationMeta, paginationRange } from "@/lib/pagination";
 import { escapeRegex } from "@/lib/validators";
@@ -361,7 +362,8 @@ async function uniqueSlug(name: string, area: string) {
   let candidate = baseSlug;
   let suffix = 2;
 
-  while (await HostelModel.exists({ slug: candidate })) {
+  // `overall` is the all-branches workspace's URL, never a hostel's.
+  while (candidate === OVERALL_SLUG || (await HostelModel.exists({ slug: candidate }))) {
     candidate = `${baseSlug}-${suffix}`;
     suffix += 1;
   }

@@ -81,6 +81,20 @@ const residentSchema = new Schema(
      * in through the normal intake (docs/EXISTING_RESIDENTS.md).
      */
     paidTill: { type: String, default: null, trim: true },
+    /**
+     * The resident's khata — things taken from the hostel (an egg, laundry)
+     * charged onto next month's bill. Opened on request, approved by staff.
+     * Absent means never asked. See `khata.service`.
+     */
+    khata: {
+      type: {
+        status: { enum: ["REQUESTED", "ACTIVE", "DECLINED", "CLOSED"], type: String },
+        requestedAt: Date,
+        decidedAt: Date,
+        decidedBy: { ref: "User", type: Schema.Types.ObjectId },
+      },
+      default: undefined,
+    },
     /** The existing-residents list this resident was added from, if any. */
     existingListId: {
       ref: "ExistingResidentList",

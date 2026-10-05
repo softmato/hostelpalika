@@ -51,6 +51,9 @@ const PERMISSION_LABELS: Record<WardenPermissionKey, string> = {
   manageRooms: "Manage rooms & beds",
   recordCash: "Record cash payments",
   recordExpenses: "Add expenses",
+  // Shown inverted below: the box reads "Bill photo needed" and is ticked while
+  // this waiver is absent.
+  expenseWithoutProof: "Bill photo needed for expenses",
   registerResidents: "Register residents",
   reversePayments: "Reverse & void payments",
   updateComplaints: "Update complaints",
@@ -59,6 +62,9 @@ const PERMISSION_LABELS: Record<WardenPermissionKey, string> = {
   viewPayments: "View payments",
   viewNightStatus: "View night status",
 };
+
+/** Stored as a waiver, offered as a rule — on by default for every warden. */
+const PROOF_WAIVER: WardenPermissionKey = "expenseWithoutProof";
 
 function PermissionGrid({
   onToggle,
@@ -75,8 +81,10 @@ function PermissionGrid({
           key={key}
         >
           <Checkbox
-            checked={selected.has(key)}
-            onCheckedChange={(value) => onToggle(key, value === true)}
+            checked={key === PROOF_WAIVER ? !selected.has(key) : selected.has(key)}
+            onCheckedChange={(value) =>
+              onToggle(key, key === PROOF_WAIVER ? value !== true : value === true)
+            }
           />
           {PERMISSION_LABELS[key]}
           {key === "recordExpenses" ? (

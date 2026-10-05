@@ -23,13 +23,29 @@ export type StatementLine = {
   /** Positive. Which column it sits in is `kind`. */
   amount: number;
   at: Date;
-  kind: "credit" | "debit";
+  /**
+   * `transfer` is cash the owner handed a warden: printed, never summed. The
+   * warden's own expenses are the debits, so counting the handover as well
+   * would spend the same rupee twice.
+   */
+  kind: "credit" | "debit" | "transfer";
   particulars: string;
 };
 
 export type StatementMonth = { credit: number; debit: number; month: string };
 
+/** One warden's cash box over the statement: handed over and spent in range, left at its end. */
+export type StaffCashLine = {
+  given: number;
+  left: number;
+  name: string;
+  /** Handed over in range, not yet confirmed by the warden. */
+  pending: number;
+  spent: number;
+};
+
 export type HostelStatement = {
+  staff: StaffCashLine[];
   closing: number;
   /** BS `YYYY-MM`, inclusive. */
   from: string;
@@ -74,19 +90,79 @@ export function ledgerLines(ledger: HostelLedger): StatementLine[] {
   for (const expense of ledger.expenses ?? []) {
     const at = nepalNoon(expense.spentOn);
 
-    if (expense.status === "RECORDED" && expense.amount > 0 && at) {
-      const what = expense.what.trim();
-      const label = what ? `${expense.categoryLabel} - ${what}` : expense.categoryLabel;
-      const salary = expense.salaryFor ? ` (${expense.salaryFor.name})` : "";
-
-      lines.push({ amount: expense.amount, at, kind: "debit", particulars: `${label}${salary}` });
+    if (expense.status !== "RECORDED" || expense.amount <= 0 || !at || expense.cashStatus === "DECLINED") {
+      continue;
     }
+
+    if (expense.cashTo) {
+      const waiting = expense.cashStatus === "PENDING" ? ", not confirmed yet" : "";
+
+      lines.push({
+        amount: expense.amount,
+        at,
+        kind: "transfer",
+        particulars: `Cash to ${expense.cashTo.name} - ${rupees(expense.amount)} (staff cash${waiting})`,
+      });
+      continue;
+    }
+
+    const what = expense.what.trim();
+    const label = what ? `${expense.categoryLabel} - ${what}` : expense.categoryLabel;
+    const salary = expense.salaryFor ? ` (${expense.salaryFor.name})` : "";
+    // A warden's spend names whose cash box it came out of.
+    const by = expense.payer === "STAFF" ? ` - by ${expense.recordedBy.name || "staff"}` : "";
+
+    lines.push({ amount: expense.amount, at, kind: "debit", particulars: `${label}${salary}${by}` });
   }
 
   return lines.sort((left, right) => left.at.getTime() - right.at.getTime());
 }
 
-const signed = (line: StatementLine) => (line.kind === "credit" ? line.amount : -line.amount);
+const signed = (line: StatementLine) =>
+  line.kind === "credit" ? line.amount : line.kind === "debit" ? -line.amount : 0;
+
+/**
+ * Each warden's cash box across the statement: what reached them and what they
+ * spent between `start` and `end`, and what they held at `end`.
+ */
+export function staffCashLines(ledger: HostelLedger, start: number, end: number): StaffCashLine[] {
+  const boxes = new Map<string, StaffCashLine & { total: number }>();
+  const box = (id: string, name: string) => {
+    const entry = boxes.get(id) ?? { given: 0, left: 0, name, pending: 0, spent: 0, total: 0 };
+
+    boxes.set(id, entry);
+
+    return entry;
+  };
+
+  for (const expense of ledger.expenses ?? []) {
+    const at = nepalNoon(expense.spentOn)?.getTime();
+
+    if (expense.status !== "RECORDED" || at === undefined || at >= end) continue;
+
+    const inRange = at >= start;
+
+    if (expense.cashTo && expense.cashStatus !== "DECLINED") {
+      const entry = box(expense.cashTo.userId, expense.cashTo.name);
+
+      if (expense.cashStatus === "ACCEPTED") {
+        entry.total += expense.amount;
+        if (inRange) entry.given += expense.amount;
+      } else if (inRange) {
+        entry.pending += expense.amount;
+      }
+    } else if (expense.payer === "STAFF" && expense.recordedBy.role === "WARDEN") {
+      const entry = box(expense.recordedBy.id, expense.recordedBy.name || "Warden");
+
+      entry.total -= expense.amount;
+      if (inRange) entry.spent += expense.amount;
+    }
+  }
+
+  return [...boxes.values()]
+    .map(({ total, ...line }) => ({ ...line, left: total }))
+    .sort((left, right) => left.name.localeCompare(right.name));
+}
 
 /** The statement between two BS months, inclusive. */
 export function buildStatement(ledger: HostelLedger, from: string, to: string): HostelStatement {
@@ -103,6 +179,8 @@ export function buildStatement(ledger: HostelLedger, from: string, to: string): 
   const byMonth = new Map<string, StatementMonth>();
 
   for (const line of lines) {
+    if (line.kind === "transfer") continue;
+
     totals[line.kind] += line.amount;
 
     const month = hostelPeriodOf(line.at);
@@ -118,6 +196,7 @@ export function buildStatement(ledger: HostelLedger, from: string, to: string): 
     lines,
     months: [...byMonth.values()].sort((left, right) => left.month.localeCompare(right.month)),
     opening,
+    staff: staffCashLines(ledger, start, end),
     to: last,
     totals,
   };
@@ -345,6 +424,41 @@ function monthTable(cursor: Cursor, months: StatementMonth[]) {
   cursor.down(8);
 }
 
+/** Per warden: handed over, spent, and what they still hold — or what the hostel owes them. */
+function staffTable(cursor: Cursor, staff: StaffCashLine[]) {
+  const { ink } = cursor;
+  const cols = { given: MARGIN.left + 290, left: MARGIN.left + CONTENT_WIDTH - 4, name: MARGIN.left + 4, spent: MARGIN.left + 390 };
+  const size = SIZE.label;
+
+  cursor.text(MARGIN.left, "STAFF CASH", { color: COLORS.muted, font: ink.bold, size: SIZE.eyebrow, tracking: 1.4 });
+  cursor.down(14);
+
+  const head = { font: ink.bold, size };
+
+  cursor.text(cols.name, "Warden", head);
+  right(cursor, cols.given, "Given", head);
+  right(cursor, cols.spent, "Spent", head);
+  right(cursor, cols.left, "Left with them", head);
+  cursor.down(6);
+  hairline(cursor);
+  cursor.down(14);
+
+  for (const line of staff) {
+    const waiting = line.pending > 0 ? ` (${rupees(line.pending)} not confirmed)` : "";
+
+    cursor.text(cols.name, clip(cursor, sanitize(`${line.name}${waiting}`), 260, size), { size });
+    right(cursor, cols.given, rupees(line.given), { color: BRAND_INK, size });
+    right(cursor, cols.spent, rupees(line.spent), { color: DEBIT_INK, size });
+    right(cursor, cols.left, line.left < 0 ? `Hostel owes ${rupees(-line.left)}` : rupees(line.left), {
+      font: ink.bold,
+      size,
+    });
+    cursor.down(ROW - 2);
+  }
+
+  cursor.down(8);
+}
+
 /**
  * The statement, paginated: the banner on page one, the table head repeated on
  * every page, and the totals after the last line.
@@ -398,6 +512,7 @@ export async function renderStatementPdf(
       cursor,
       {
         balance,
+        // A transfer prints in neither column: its amount is in the particulars.
         credit: line.kind === "credit" ? line.amount : undefined,
         date: documentBsDate(line.at),
         debit: line.kind === "debit" ? line.amount : undefined,
@@ -436,6 +551,14 @@ export async function renderStatementPdf(
     }
 
     monthTable(cursor, statement.months);
+  }
+
+  if (statement.staff.length > 0) {
+    if (cursor.top - (34 + statement.staff.length * (ROW - 2)) < floor) {
+      cursor = newPage(false);
+    }
+
+    staffTable(cursor, statement.staff);
   }
 
   const note = sanitize(

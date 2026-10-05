@@ -51,9 +51,16 @@ const invoiceLineSchema = new Schema(
     amount: { ...signedWholeRupees, required: true },
     basis: {
       type: String,
-      enum: ["SCHEDULE", "OVERRIDE", "MANUAL", "CREDIT"],
+      enum: ["SCHEDULE", "OVERRIDE", "MANUAL", "CREDIT", "FINE", "KHATA"],
       required: true,
     },
+    /**
+     * The late-fine rule this `FINE` line was first charged at — see
+     * `late-fine.service`. Snapshotted so a rate the warden changes later moves
+     * only the bills that fall late afterwards, never a fine already running.
+     */
+    fineMode: { type: String, enum: ["PER_DAY_AMOUNT", "PER_DAY_PERCENT"] },
+    fineRate: { min: 0, type: Number },
     /**
      * The schedule this line came from, for tracing — **not** for re-deriving.
      * The amount above is snapshotted, so a historical invoice stays correct
@@ -161,6 +168,8 @@ const invoiceSchema = new Schema(
       },
     },
 
+    /** Staff took the late fine off; the daily fine pass leaves this bill alone. */
+    fineWaived: { default: false, type: Boolean },
     voidedAt: Date,
     voidedBy: { ref: "User", type: Schema.Types.ObjectId },
     voidReason: { type: String, trim: true },

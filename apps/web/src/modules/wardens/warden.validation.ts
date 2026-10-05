@@ -37,6 +37,10 @@ export const WARDEN_PERMISSION_KEYS = [
   // Add what they spent for the hostel (docs/EXPENSES_PLAN.md). Add only: the
   // hostel's totals stay with the owner by role, never by grant.
   "recordExpenses",
+  // Lets this warden save an expense without a photo of the bill. Absent by
+  // default — so every warden, new or existing, must attach proof until the
+  // owner switches "Bill photo needed" off for them. The forms show it inverted.
+  "expenseWithoutProof",
 ] as const;
 
 export type WardenPermissionKey = (typeof WARDEN_PERMISSION_KEYS)[number];

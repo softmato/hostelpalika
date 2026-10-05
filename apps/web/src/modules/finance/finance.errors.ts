@@ -23,6 +23,14 @@ export const FINANCE_ERROR_STATUS = {
   FEE_SCHEDULE_MONTH_LOCKED: 409,
   /** The card has already priced an invoice, so it cannot be deleted. */
   FEE_SCHEDULE_IN_USE: 409,
+  /** The resident's khata is not open — ask for it, or wait for staff. */
+  KHATA_NOT_ACTIVE: 409,
+  /** No such khata item, or it is switched off. */
+  KHATA_ITEM_NOT_FOUND: 404,
+  /** No such khata entry this principal may act on. */
+  KHATA_ENTRY_NOT_FOUND: 404,
+  /** Somebody already gave, declined or cancelled it. */
+  KHATA_ENTRY_DECIDED: 409,
   /** No month discount with that id under this hostel. */
   RENT_CONCESSION_NOT_FOUND: 404,
   /** A non-void invoice already exists for the period. */

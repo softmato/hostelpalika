@@ -21,6 +21,10 @@ const NOW = new Date("2026-10-01T04:00:00Z");
 function row(overrides: Partial<ExpenseRow>): ExpenseRow {
   return {
     amount: 100,
+    cashNote: null,
+    cashRespondedAt: null,
+    cashStatus: null,
+    cashTo: null,
     category: "GROCERIES",
     categoryLabel: "Groceries",
     createdAt: null,

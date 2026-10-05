@@ -21,6 +21,7 @@ import { memo } from "react";
 import { currency, EmptyState, LoadingRows } from "@/app/_components/shared-ui";
 import { usePortalResource } from "@/lib/portal-query";
 import { residentEndpoints } from "@/lib/resident-endpoints";
+import { ResidentKhataCard } from "./khata-pages";
 import { ResidentQuestionCallCard } from "./resident-questioncall-card";
 import { type ResidentDashboard, Message } from "./resident-shared";
 import {
@@ -234,6 +235,8 @@ export const ResidentDashboardPageContent = memo(function ResidentDashboardPageC
             </SectionCard>
 
             <div className="space-y-5">
+              <ResidentKhataCard />
+
               <SectionCard title="Quick Actions">
                 <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
                   {[

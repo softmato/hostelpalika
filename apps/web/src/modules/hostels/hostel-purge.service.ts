@@ -52,6 +52,7 @@ import { HostelVerificationModel } from "@hostel/db/models/HostelVerification";
 import { IncidentLogModel } from "@hostel/db/models/IncidentLog";
 import { InquiryModel } from "@hostel/db/models/Inquiry";
 import { InquiryNoteModel } from "@hostel/db/models/InquiryNote";
+import { KhataEntryModel } from "@hostel/db/models/KhataEntry";
 import { InvoiceModel } from "@hostel/db/models/Invoice";
 import { InvoiceBalanceModel } from "@hostel/db/models/InvoiceBalance";
 import { ListingFlagModel } from "@hostel/db/models/ListingFlag";
@@ -196,6 +197,7 @@ const ERASED_BY_HOSTEL_ID: Array<{ model: PurgeableModel; name: string }> = (
     ["Inquiry", InquiryModel],
     ["InquiryNote", InquiryNoteModel],
     ["Invoice", InvoiceModel],
+    ["KhataEntry", KhataEntryModel],
     ["InvoiceBalance", InvoiceBalanceModel],
     ["ListingFlag", ListingFlagModel],
     ["MaintenanceComment", MaintenanceCommentModel],

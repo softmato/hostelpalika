@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
+import { OVERALL_SLUG } from "@/lib/branch-cache";
 import { connectToDatabase } from "@/lib/db";
 import { claimRegistrationDocuments } from "@/lib/registration-documents";
 import { Role } from "@/lib/roles";
@@ -50,7 +51,7 @@ async function uniqueBranchSlug(name: string, area: string) {
   for (let attempt = 0; attempt < 20; attempt += 1) {
     const slug = attempt === 0 ? base : `${base}-${attempt + 1}`;
 
-    if (!(await HostelModel.exists({ slug }))) return slug;
+    if (slug !== OVERALL_SLUG && !(await HostelModel.exists({ slug }))) return slug;
   }
 
   return `${base}-${new Types.ObjectId().toString().slice(-6)}`;

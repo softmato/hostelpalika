@@ -981,6 +981,14 @@ export function performanceReportPdfPath(month: string) {
 }
 
 /** The bank-style statement PDF — credits and debits between two BS months, inclusive. */
+/**
+ * Every branch in one PDF: a cover comparing the branches (collection, dues,
+ * spending, staff cash), then each branch's own pages. Owner only.
+ */
+export function overallPdfPath(kind: "report" | "statement", month: string) {
+  return `/api/v1/hostel-admin/reports/overall/pdf?kind=${kind}&month=${encodeURIComponent(month)}`;
+}
+
 export function statementPdfPath(from: string, to: string) {
   return `/api/v1/hostel-admin/reports/statement/pdf?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`;
 }
@@ -1019,6 +1027,14 @@ export const WARDEN_PERMISSIONS = [
 ] as const;
 
 export type WardenPermission = (typeof WARDEN_PERMISSIONS)[number];
+
+/**
+ * Stored like a permission, shown as its opposite: the warden form's
+ * "Bill photo needed" switch is on while this key is absent. Kept out of
+ * {@link WARDEN_PERMISSIONS} so the sheet and the "N of M" count never list it
+ * as a power — it is the one key that waives a rule rather than granting one.
+ */
+export const PROOF_WAIVER = "expenseWithoutProof";
 
 /** What a new warden gets — mirrors the server's `DEFAULT_WARDEN_PERMISSIONS`. */
 export const DEFAULT_WARDEN_PERMISSIONS: WardenPermission[] = [

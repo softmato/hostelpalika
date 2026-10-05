@@ -25,6 +25,7 @@ import {
   type ManagedWarden,
   removeWarden,
   updateWarden,
+  PROOF_WAIVER,
   WARDEN_PERMISSIONS,
   type WardenPermission,
 } from "@/lib/admin-manage-api";
@@ -265,7 +266,7 @@ export default function ManageWardensScreen() {
   }
 
   const retired = permissions.filter(
-    (key) => !(WARDEN_PERMISSIONS as readonly string[]).includes(key),
+    (key) => key !== PROOF_WAIVER && !(WARDEN_PERMISSIONS as readonly string[]).includes(key),
   );
 
   return (
@@ -425,6 +426,18 @@ export default function ManageWardensScreen() {
             />
           </View>
 
+          <ProofRule
+            onChange={(waived) =>
+              setDraft((prev) => ({
+                ...prev,
+                permissions: waived
+                  ? [...prev.permissions.filter((entry) => entry !== PROOF_WAIVER), PROOF_WAIVER]
+                  : prev.permissions.filter((entry) => entry !== PROOF_WAIVER),
+              }))
+            }
+            waived={draft.permissions.includes(PROOF_WAIVER)}
+          />
+
           <Text variant="label">What they may do</Text>
 
           <View className="flex-row flex-wrap gap-2">
@@ -484,9 +497,30 @@ export default function ManageWardensScreen() {
               />
             </View>
           ))}
+
+          <ProofRule
+            onChange={(waived) => toggle(PROOF_WAIVER, waived)}
+            waived={permissions.includes(PROOF_WAIVER)}
+          />
         </View>
       </Sheet>
     </Screen>
+  );
+}
+
+/**
+ * "Bill photo needed" — on by default for every warden, new or existing. Stored
+ * as the waiver {@link PROOF_WAIVER}, so the switch is that key's opposite.
+ */
+function ProofRule({ onChange, waived }: { onChange: (waived: boolean) => void; waived: boolean }) {
+  return (
+    <View className="flex-row items-center justify-between gap-3 rounded-xl border border-border bg-card p-3">
+      <View className="flex-1 gap-1">
+        <Text variant="label">Bill photo needed</Text>
+        <Text variant="caption">Every expense they add must have a photo.</Text>
+      </View>
+      <Toggle accessibilityLabel="Bill photo needed" onChange={(on) => onChange(!on)} value={!waived} />
+    </View>
   );
 }
 

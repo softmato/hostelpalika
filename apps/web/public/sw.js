@@ -262,6 +262,16 @@ self.addEventListener("fetch", (event) => {
     event.respondWith(receivePaymentShare(event.request));
   }
 });
+async function sniffType(file) {
+  const b = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const ascii = (from, to) => String.fromCharCode(...b.slice(from, to));
+  if (ascii(0, 4) === "%PDF") return "application/pdf";
+  if (b[0] === 0xff && b[1] === 0xd8) return "image/jpeg";
+  if (b[0] === 0x89 && ascii(1, 4) === "PNG") return "image/png";
+  if (ascii(0, 4) === "RIFF" && ascii(8, 12) === "WEBP") return "image/webp";
+  if (ascii(4, 8) === "ftyp") return "image/heic";
+  return "";
+}
 async function receivePaymentShare(request) {
   try {
     const form = await request.formData();
@@ -277,7 +287,10 @@ async function receivePaymentShare(request) {
     const extension = file.name.split(".").pop().toLowerCase();
     const aliases = { pdf: "application/pdf", jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png", webp: "image/webp", heic: "image/heic", heif: "image/heif" };
     const suppliedType = file.type.toLowerCase().split(";")[0].trim();
-    const mimeType = suppliedType === "application/x-pdf" ? "application/pdf" : !suppliedType || ["application/octet-stream", "binary/octet-stream", "*/*"].includes(suppliedType) ? aliases[extension] || "" : suppliedType;
+    const generic = !suppliedType || ["application/octet-stream", "binary/octet-stream", "*/*"].includes(suppliedType);
+    // eSewa/bank apps share statements as generic binary, sometimes with no
+    // extension at all — fall back to the file's own magic bytes.
+    const mimeType = suppliedType === "application/x-pdf" ? "application/pdf" : generic ? aliases[extension] || await sniffType(file) : suppliedType;
     if (!(mimeType.startsWith("image/") || mimeType === "application/pdf")) return reject("unsupported");
     const cache = await caches.open(SHARE_CACHE);
     for (const key of await cache.keys()) {

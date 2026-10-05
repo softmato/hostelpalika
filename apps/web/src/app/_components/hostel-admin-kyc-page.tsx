@@ -12,6 +12,7 @@ import {
   PartyPopper,
   QrCode,
   Sparkles,
+  Trash2,
   UtensilsCrossed,
   type LucideIcon,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { memo, useEffect, useRef, useState, type ReactNode } from "react";
 
+import { useConfirm } from "@/app/_components/confirm-dialog";
 import { StepFlow } from "@/app/_components/registration-step-shell";
 import { facilityOptions } from "@/app/_components/registration-fields";
 import {
@@ -37,7 +39,7 @@ import { cn } from "@/lib/utils";
 const ENDPOINT = "/api/v1/hostel-admin/kyc";
 
 type Kyc = {
-  documents: { status: string; type: string }[];
+  documents: { canRemove?: boolean; fileName: string | null; id: string; status: string; type: string }[];
   facilities: string[];
   minPhotos: number;
   percent: number;
@@ -398,6 +400,29 @@ function DocumentsStep({ kyc, onChange }: { kyc: Kyc; onChange: () => void }) {
   const pending = useRef<string>(DOCUMENTS[0].type);
   const [busy, setBusy] = useState("");
   const [error, setError] = useState("");
+  const { confirm, confirmDialog } = useConfirm();
+
+  async function remove(row: Kyc["documents"][number]) {
+    const ok = await confirm({
+      actionLabel: "Remove",
+      description: "You can upload it again any time.",
+      title: `Remove ${row.fileName ?? row.type}?`,
+      tone: "destructive",
+    });
+    if (!ok) return;
+
+    setBusy(row.id);
+    setError("");
+
+    try {
+      await browserApi(`${ENDPOINT}?documentId=${encodeURIComponent(row.id)}`, { method: "DELETE" });
+      onChange();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not remove it.");
+    } finally {
+      setBusy("");
+    }
+  }
 
   async function upload(file: File) {
     const type = pending.current;
@@ -433,14 +458,16 @@ function DocumentsStep({ kyc, onChange }: { kyc: Kyc; onChange: () => void }) {
         ref={input}
         type="file"
       />
+      {confirmDialog}
       {DOCUMENTS.map((doc) => {
-        const uploaded = kyc.documents.some((row) => doc.match(row.type));
+        const rows = kyc.documents.filter((row) => doc.match(row.type));
+        const uploaded = rows.length > 0;
 
         return (
+          <div className="space-y-1.5" key={doc.type}>
           <button
             className="flex w-full items-center gap-3 rounded-2xl border border-border p-4 text-left transition hover:bg-muted disabled:opacity-60"
             disabled={Boolean(busy)}
-            key={doc.type}
             onClick={() => {
               pending.current = doc.type;
               input.current?.click();
@@ -459,6 +486,22 @@ function DocumentsStep({ kyc, onChange }: { kyc: Kyc; onChange: () => void }) {
               <span className="text-sm font-semibold text-brand-teal">Upload</span>
             )}
           </button>
+          {rows.filter((row) => row.canRemove).map((row) => (
+            <div className="flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-2 text-sm" key={row.id}>
+              <FileText className="size-4 shrink-0 text-muted-foreground" />
+              <span className="min-w-0 flex-1 truncate text-muted-foreground">{row.fileName ?? row.type}</span>
+              <button
+                aria-label={`Remove ${row.fileName ?? row.type}`}
+                className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
+                disabled={Boolean(busy)}
+                onClick={() => void remove(row)}
+                type="button"
+              >
+                <Trash2 className="size-4" />
+              </button>
+            </div>
+          ))}
+          </div>
         );
       })}
       {error ? <p className="text-sm text-destructive">{error}</p> : null}

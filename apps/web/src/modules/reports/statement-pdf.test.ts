@@ -36,6 +36,30 @@ describe("buildStatement", () => {
     expect(statement.months).toEqual([{ credit: 6000, debit: 1200, month: "2083-05" }]);
   });
 
+  it("prints cash handed to a warden as a transfer and tracks what they hold", () => {
+    const base = ledger();
+    const owner = { id: "o", name: "Owner", role: "HOSTEL_ADMIN" };
+    const hari = { id: "hari", name: "Hari", role: "WARDEN" };
+    const row = base.expenses![0]!;
+    const withCash: HostelLedger = {
+      ...base,
+      expenses: [
+        ...base.expenses!,
+        { ...row, amount: 3000, cashStatus: "ACCEPTED", cashTo: { name: "Hari", userId: "hari" }, category: "STAFF_CASH", id: "give", recordedBy: owner, spentOn: "2026-08-25" },
+        { ...row, amount: 500, cashStatus: "PENDING", cashTo: { name: "Hari", userId: "hari" }, category: "STAFF_CASH", id: "wait", recordedBy: owner, spentOn: "2026-08-26" },
+        { ...row, amount: 900, cashStatus: "DECLINED", cashTo: { name: "Hari", userId: "hari" }, category: "STAFF_CASH", id: "lost", recordedBy: owner, spentOn: "2026-08-26" },
+        { ...row, amount: 700, id: "rice", payer: "STAFF", recordedBy: hari, spentOn: "2026-08-27" },
+      ] as HostelLedger["expenses"],
+    };
+    const statement = buildStatement(withCash, "2083-05", "2083-05");
+
+    expect(statement.lines.filter((line) => line.kind === "transfer")).toHaveLength(2);
+    expect(statement.totals).toEqual({ credit: 6000, debit: 1900 });
+    expect(statement.closing).toBe(5000 + 6000 - 1900);
+    expect(statement.lines.find((line) => line.amount === 700)?.particulars).toContain("by Hari");
+    expect(statement.staff).toEqual([{ given: 3000, left: 2300, name: "Hari", pending: 500, spent: 700 }]);
+  });
+
   it("covers a run of months and accepts the ends in either order", () => {
     const statement = buildStatement(ledger(), "2083-05", "2083-04");
 

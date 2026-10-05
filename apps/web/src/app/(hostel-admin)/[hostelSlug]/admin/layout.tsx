@@ -6,12 +6,14 @@ import { HostelPaymentCredentialsReminder } from "@/app/_components/hostel-payme
 import { HostelPhotoReminder } from "@/app/_components/hostel-photo-reminder";
 import { HostelWorkspaceSwitcher } from "@/app/_components/hostel-workspace-switcher";
 import { PortalShell } from "@/components/portal-shell";
+import { OVERALL_SLUG } from "@/lib/branch-cache";
 import {
   canAccessWorkspace,
+  canOpenOverall,
   listWorkspaceHostels,
   workspaceHostelName,
 } from "@/lib/hostel-workspace";
-import { hostelAdminNavForSlug, searchEntriesFromNav } from "@/lib/portal-nav";
+import { hostelAdminNavForSlug, overallAdminNav, searchEntriesFromNav } from "@/lib/portal-nav";
 import { PORTAL_ROBOTS } from "@/lib/seo";
 
 type HostelAdminWorkspaceLayoutProps = Readonly<{
@@ -27,6 +29,32 @@ export default async function HostelAdminWorkspaceLayout({
   params,
 }: HostelAdminWorkspaceLayoutProps) {
   const { hostelSlug } = await params;
+  const overall = await canOpenOverall();
+
+  // Every branch at once: its own sidebar, nothing to remind about — the
+  // reminders belong to one hostel each.
+  if (hostelSlug === OVERALL_SLUG) {
+    if (!overall) notFound();
+
+    const navGroups = overallAdminNav();
+
+    return (
+      <PortalShell
+        key={OVERALL_SLUG}
+        navGroups={navGroups}
+        searchEntries={searchEntriesFromNav(navGroups)}
+        searchPlaceholder="Search all branches..."
+        subtitle="Hostel Admin Portal"
+        tone="admin"
+        workspaceName="All branches"
+        workspaceSwitcher={
+          <HostelWorkspaceSwitcher current={OVERALL_SLUG} hostels={await listWorkspaceHostels()} overall />
+        }
+      >
+        {children}
+      </PortalShell>
+    );
+  }
 
   // A slug outside the signed-in staff member's hostels is a 404, not a 403 —
   // we never confirm that another hostel's workspace exists (API.md §5).
@@ -46,7 +74,7 @@ export default async function HostelAdminWorkspaceLayout({
       tone="admin"
       workspaceName={(await workspaceHostelName(hostelSlug)) ?? "Hostel Workspace"}
       workspaceSwitcher={
-        <HostelWorkspaceSwitcher current={hostelSlug} hostels={await listWorkspaceHostels()} />
+        <HostelWorkspaceSwitcher current={hostelSlug} hostels={await listWorkspaceHostels()} overall={overall} />
       }
     >
       {/* One opaque sticky stack: two separately sticky, tinted bars pinned to

@@ -457,7 +457,9 @@ export type InvoiceMatrixRow = {
   displayStatus: string;
   /** Set only on a row with no invoice. See {@link NotBilled}. */
   notBilled: NotBilled | null;
-  payment: PortalInvoice | null;
+  payment:
+    | (PortalInvoice & { lines: { amount: number; basis: string; description: string }[] })
+    | null;
   resident: {
     fullName: string;
     id: string;
@@ -562,6 +564,7 @@ export async function getInvoiceMatrix(
       {
         _id: Types.ObjectId;
         dueDate?: Date;
+        lines?: { amount: number; basis: string; description: string }[];
         period: string;
         residentId: Types.ObjectId;
         status: string;
@@ -587,6 +590,14 @@ export async function getInvoiceMatrix(
 
   const balances = await listRecentInvoices({ hostelId, period }, 1000);
   const balanceByInvoiceId = new Map(balances.map((row) => [row.id, row]));
+
+  // Fine and khata lines, so the cash sheet can say what the total is made of.
+  const linesByInvoiceId = new Map(
+    invoices.map((invoice) => [
+      invoice._id.toString(),
+      (invoice.lines ?? []).map(({ amount, basis, description }) => ({ amount, basis, description })),
+    ]),
+  );
 
   const invoiceByResident = new Map(
     invoices.map((invoice) => [
@@ -627,7 +638,9 @@ export async function getInvoiceMatrix(
       notBilled: invoice
         ? null
         : priceUnbilled(resident, schedule, listed, period, concession.percentOff),
-      payment: invoice ? toPortalInvoice(invoice) : null,
+      payment: invoice
+        ? { ...toPortalInvoice(invoice), lines: linesByInvoiceId.get(invoice.id) ?? [] }
+        : null,
       resident: {
         fullName: `${resident.firstName ?? ""} ${resident.lastName ?? ""}`.trim(),
         id: resident._id.toString(),

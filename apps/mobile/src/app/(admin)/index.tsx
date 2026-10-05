@@ -1,4 +1,8 @@
+import { OverallTabScreen } from "@/components/overall-views";
 import { router } from "expo-router";
+
+import { CardRow } from "@/components/ui/list-row";
+import { Money } from "@/components/ui/money";
 import { useMemo } from "react";
 import { View } from "react-native";
 
@@ -15,7 +19,7 @@ import {
   ServiceGrid,
   WaitingActions,
 } from "@/components/admin-home";
-import { BranchesCard } from "@/components/hostel-switcher";
+import { BranchesCard, useIsOverall } from "@/components/hostel-switcher";
 import { KycCard } from "@/components/manage/kyc-card";
 import { FreeMonthCard, SubscriptionDueCard } from "@/components/subscription-due";
 import { SectionHeader } from "@/components/ui/card";
@@ -154,7 +158,7 @@ function AdminHomeSkeleton() {
  * `loadOverview` is `adminQuery.overview()`, tolerant reads and all.
  */
 
-export default function AdminHomeScreen() {
+function BranchAdminHomeScreen() {
   // Read for one decision only: whether the shortcut row's lead cell is the
   // Store or roll call. See the `onStore` note on `<QuickActions>` below.
   const account = useAppSelector((state) => state.auth.account);
@@ -363,6 +367,29 @@ export default function AdminHomeScreen() {
           <FreeMonthCard state={due.data ?? null} />
           <BranchesCard />
 
+          {/* A warden's cash box, one tap from Home: what is left, and cash waiting for "Got it". */}
+          {expenses.data?.kind === "ok" && expenses.data.home.wallet ? (
+            <CardRow
+              icon="wallet-outline"
+              onPress={() => router.push("/expenses")}
+              right={
+                <Money
+                  owed={expenses.data.home.wallet.left < 0}
+                  value={Math.abs(expenses.data.home.wallet.left)}
+                />
+              }
+              subtitle={
+                expenses.data.home.pendingCash.length > 0
+                  ? `${expenses.data.home.pendingCash.length} waiting for you`
+                  : expenses.data.home.wallet.left < 0
+                    ? "Hostel owes you"
+                    : "Cash left"
+              }
+              title="My cash"
+              tone={expenses.data.home.pendingCash.length > 0 ? "warning" : "brand"}
+            />
+          ) : null}
+
           {sosRows.length > 0 ? (
             <View className="gap-3">
               {sosRows.map((row) => (
@@ -472,4 +499,12 @@ export default function AdminHomeScreen() {
       {actions.sheet}
     </>
   );
+}
+
+/**
+ * With Overall picked in the switcher this tab answers for every branch at
+ * once (`components/overall-views.tsx`); otherwise it is the one branch's screen.
+ */
+export default function AdminHomeScreen() {
+  return useIsOverall() ? <OverallTabScreen tab="home" /> : <BranchAdminHomeScreen />;
 }

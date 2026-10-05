@@ -3,6 +3,8 @@ import type { z } from "zod";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
+import { Role } from "@/lib/roles";
+import { getMonthMoneyOut } from "@/modules/finance/expenses/expense.service";
 import { addBsMonths, bsPeriodBounds, hostelPeriodOf, isBsPeriod } from "@/lib/hostel-day";
 import { ComplaintModel } from "@hostel/db/models/Complaint";
 import { HostelModel } from "@hostel/db/models/Hostel";
@@ -263,7 +265,14 @@ export async function getHostelPerformanceReport(
   const byStatus = (status: (typeof LIVE_STATUSES)[number]) =>
     liveResidents.filter((resident) => resident.status === status).length;
 
+  // Money out is the owner's: a warden reading this report never sees the hostel's spending.
+  const moneyOut =
+    principal.role === Role.HOSTEL_ADMIN && hostelIds.length === 1
+      ? await getMonthMoneyOut(hostelIds[0]!, month, principal.userId)
+      : null;
+
   return {
+    moneyOut,
     generatedAt: now.toISOString(),
     hostelName:
       hostels.length === 1 ? (hostels[0].name ?? "") : `${hostels.length} hostels`,

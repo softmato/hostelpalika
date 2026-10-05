@@ -54,6 +54,26 @@ const expenseSchema = new Schema(
       ),
     },
 
+    /**
+     * For `STAFF_CASH` only: the warden the owner handed money to. The warden
+     * confirms it (`cashStatus`) before it counts in their cash box, so an owner
+     * cannot fill a box the warden never received. `name` is a snapshot.
+     */
+    cashTo: {
+      default: null,
+      type: new Schema(
+        {
+          name: { maxlength: 120, required: true, trim: true, type: String },
+          userId: { ref: "User", required: true, type: Schema.Types.ObjectId },
+        },
+        { _id: false },
+      ),
+    },
+    cashStatus: { default: null, enum: ["PENDING", "ACCEPTED", "DECLINED", null], type: String },
+    cashRespondedAt: Date,
+    /** The warden's words when they say they did not get it. */
+    cashNote: { maxlength: 300, trim: true, type: String },
+
     paidBy: {
       default: "CASH",
       enum: ["CASH", "ESEWA", "KHALTI", "BANK"],
@@ -95,6 +115,11 @@ const expenseSchema = new Schema(
 
 expenseSchema.index({ hostelId: 1, status: 1, spentOn: -1 });
 expenseSchema.index({ hostelId: 1, recordedBy: 1, spentOn: -1 });
+// A warden's cash box: what was handed to them.
+expenseSchema.index(
+  { hostelId: 1, "cashTo.userId": 1, spentOn: -1 },
+  { partialFilterExpression: { category: "STAFF_CASH" } },
+);
 expenseSchema.index(
   { hostelId: 1, recordedBy: 1, clientRequestId: 1 },
   { partialFilterExpression: { clientRequestId: { $type: "string" } }, unique: true },

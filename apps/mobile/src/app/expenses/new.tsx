@@ -4,7 +4,7 @@ import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, TextInput, View } from "react-native";
 
@@ -49,6 +49,7 @@ import {
   addExpenseCategory,
   expenseQuery,
   type ExpenseLoad,
+  walletQuery,
 } from "@/lib/expenses-api";
 import { formatMoney } from "@/lib/format";
 import { adminQuery } from "@/lib/admin-queries";
@@ -86,9 +87,14 @@ export default function AddExpenseScreen() {
   });
   const home = resource.data?.kind === "ok" ? resource.data.home : null;
   const isOwner = home?.canSeeTotals === true;
+  /** "Give cash" on a cash box opens this screen on the tile, with the warden picked. */
+  const params = useLocalSearchParams<{ category?: string; to?: string }>();
 
   const [amountText, setAmountText] = useState("");
-  const [choice, setChoice] = useState<Choice | null>(null);
+  const [choice, setChoice] = useState<Choice | null>(() =>
+    params.category === "STAFF_CASH" ? { category: "STAFF_CASH" } : null,
+  );
+  const [cashTo, setCashTo] = useState<string | null>(params.to ?? null);
   const [what, setWhat] = useState("");
   const [day, setDay] = useState(() => todayKey());
   const [otherDay, setOtherDay] = useState(false);
@@ -124,7 +130,10 @@ export default function AddExpenseScreen() {
 
   const people: ExpensePerson[] = useMemo(() => home?.people ?? [], [home?.people]);
   const isSalary = choice?.category === "SALARY";
+  const isCash = choice?.category === "STAFF_CASH";
   const needsWhat = choice?.category === "OTHER";
+  const cashPeople = useMemo(() => people.filter((person) => person.holdsCash), [people]);
+  const proofRequired = home?.proofRequired === true && !isCash;
 
   const errors = {
     amount: amount === null ? "Write how much you paid." : null,
@@ -134,14 +143,24 @@ export default function AddExpenseScreen() {
         ? "Write their name."
         : null,
     what: needsWhat && what.trim().length < 1 ? "Write what it was for." : null,
+    cashTo: isCash && !cashTo ? "Pick the warden." : null,
+    photo: proofRequired && !photo?.assetId ? "Add a photo of the bill or the goods." : null,
   };
   const valid =
-    !errors.amount && !errors.category && !errors.what && !errors.salary && !dayError && !uploading;
+    !errors.amount &&
+    !errors.category &&
+    !errors.what &&
+    !errors.salary &&
+    !errors.cashTo &&
+    !errors.photo &&
+    !dayError &&
+    !uploading;
 
   /* ------------------------------------------------------------- tiles */
 
   const tiles: ActionTile[] = useMemo(() => {
-    const builtIn = BUILT_IN_CATEGORIES.map((category) => ({
+    // Only the owner hands cash to a warden.
+    const builtIn = BUILT_IN_CATEGORIES.filter((category) => isOwner || category.key !== "STAFF_CASH").map((category) => ({
       glyph: colors.primary,
       icon: category.icon,
       key: category.key,
@@ -326,6 +345,7 @@ export default function AddExpenseScreen() {
         category: choice.category,
         clientRequestId: requestId.current,
         customCategoryId: choice.customCategoryId,
+        cashTo: isCash && cashTo ? { userId: cashTo } : undefined,
         paidBy,
         photoAssetId: photo?.assetId ?? undefined,
         salaryFor,
@@ -333,8 +353,12 @@ export default function AddExpenseScreen() {
         what: what.trim() || undefined,
       });
 
-      toastSuccess("Expense added", `${formatMoney(saved.amount)} · ${saved.categoryLabel}`);
+      toastSuccess(
+        saved.cashTo ? "Cash sent" : "Expense added",
+        saved.cashTo ? `${formatMoney(saved.amount)} · ${saved.cashTo.name} confirms it` : `${formatMoney(saved.amount)} · ${saved.categoryLabel}`,
+      );
       invalidateQuery(expenseQuery(audience, null).key);
+      invalidateQuery(walletQuery(isCash && cashTo ? cashTo : null).key);
       // The owner's statement lists expenses as debits.
       invalidateQuery(adminQuery.ledger().key);
       router.back();
@@ -346,7 +370,9 @@ export default function AddExpenseScreen() {
   }, [
     amount,
     audience,
+    cashTo,
     choice,
+    isCash,
     isSalary,
     paidBy,
     people,
@@ -407,7 +433,7 @@ export default function AddExpenseScreen() {
         <View className="gap-6 pb-4 pt-3">
           {/* ------------------------------------------------------ amount */}
           <Card className="items-center gap-1" padding="px-4 py-5">
-            <Text variant="caption">How much did you pay?</Text>
+            <Text variant="caption">{isCash ? "How much did you give?" : "How much did you pay?"}</Text>
             <View className="flex-row items-center justify-center gap-2">
               <Text className="text-muted-foreground" style={{ fontSize: 22, fontWeight: "600" }}>
                 Rs
@@ -443,6 +469,31 @@ export default function AddExpenseScreen() {
               </Text>
             ) : null}
           </View>
+
+          {/* -------------------------------------------------- cash to warden */}
+          {isCash ? (
+            <View className="gap-2.5">
+              <FieldLabel>Which warden?</FieldLabel>
+              <View className="flex-row flex-wrap gap-2">
+                {cashPeople.map((person) => (
+                  <Chip
+                    key={person.userId}
+                    label={person.name}
+                    onPress={() => setCashTo(person.userId)}
+                    tone={cashTo === person.userId ? "brand" : "neutral"}
+                  />
+                ))}
+              </View>
+              {cashPeople.length === 0 ? (
+                <Text variant="caption">No warden here has Add expenses on.</Text>
+              ) : null}
+              {tried && errors.cashTo ? (
+                <Text className="text-destructive" variant="caption">
+                  {errors.cashTo}
+                </Text>
+              ) : null}
+            </View>
+          ) : null}
 
           {/* ------------------------------------------------------ salary */}
           {isSalary ? (
@@ -577,7 +628,9 @@ export default function AddExpenseScreen() {
 
           {/* ------------------------------------------------------- photo */}
           <View className="gap-2.5">
-            <FieldLabel>Photo of the bill (optional)</FieldLabel>
+            <FieldLabel>
+              {isCash ? "Receipt (optional)" : proofRequired ? "Photo of the bill" : "Photo of the bill (optional)"}
+            </FieldLabel>
             {photo ? (
               <View className="flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3">
                 <Image
@@ -608,6 +661,11 @@ export default function AddExpenseScreen() {
                 </View>
               </View>
             )}
+            {tried && errors.photo ? (
+              <Text className="text-destructive" variant="caption">
+                {errors.photo}
+              </Text>
+            ) : null}
           </View>
         </View>
       </Screen>

@@ -22,6 +22,9 @@ import {
   type ExpenseCategoryValue,
   type ExpensePaidBy,
   isExpenseCategoryKey,
+  isSpendingCategory,
+  STAFF_CASH_CATEGORY,
+  type StaffCashStatus,
 } from "@hostel/shared/expenses/categories";
 import { CookAccountModel } from "@hostel/db/models/CookAccount";
 import { ExpenseModel } from "@hostel/db/models/Expense";
@@ -141,6 +144,10 @@ export async function resolveExpenseActor(
 type ExpenseDoc = {
   _id: Types.ObjectId;
   amount: number;
+  cashNote?: string;
+  cashRespondedAt?: Date;
+  cashStatus?: StaffCashStatus | null;
+  cashTo?: { name: string; userId: Types.ObjectId } | null;
   category: string;
   createdAt?: Date;
   customCategoryId?: Types.ObjectId | null;
@@ -160,6 +167,13 @@ type ExpenseDoc = {
 
 export type ExpenseRow = {
   amount: number;
+  /** `STAFF_CASH` only: the warden's words when they said it never arrived. */
+  cashNote: string | null;
+  cashRespondedAt: string | null;
+  /** `STAFF_CASH` only. Only `ACCEPTED` is in the warden's cash box. */
+  cashStatus: StaffCashStatus | null;
+  /** `STAFF_CASH` only: which warden the owner gave it to. */
+  cashTo: { name: string; userId: string } | null;
   category: ExpenseCategoryValue;
   /** What to print under the icon — built-in label or the hostel's own name. */
   categoryLabel: string;
@@ -183,7 +197,32 @@ export type ExpenseRow = {
 
 export type CustomExpenseCategory = { hidden: boolean; id: string; name: string };
 
-export type ExpensePerson = { name: string; role: "WARDEN" | "COOK"; userId: string };
+export type ExpensePerson = {
+  /** A warden who can add expenses — the only people the owner can hand cash to. */
+  holdsCash: boolean;
+  name: string;
+  role: "WARDEN" | "COOK";
+  userId: string;
+};
+
+/**
+ * A warden's cash box in one hostel (docs/EXPENSES_PLAN.md §3.4), derived from
+ * rows every time — never a stored number that can drift.
+ *
+ * `given` is cash the warden confirmed; `spent` is every expense they added
+ * (whatever app they paid from: the money they spend is the money they were
+ * given). `left` goes below zero when they paid from their own pocket, which
+ * the screens read as "Hostel owes Hari Rs 400".
+ */
+export type StaffWallet = {
+  given: number;
+  left: number;
+  name: string;
+  /** Handed over but not yet confirmed — not in `left`. */
+  pending: number;
+  spent: number;
+  userId: string;
+};
 
 export type ExpenseCategoryTotal = {
   amount: number;
@@ -194,6 +233,17 @@ export type ExpenseCategoryTotal = {
 
 export type ExpenseHome = {
   canSeeTotals: boolean;
+  /**
+   * Cash handed over and not yet confirmed, any month. The warden sees what is
+   * waiting for their "Got it"; the owner sees who has not answered yet.
+   */
+  pendingCash: ExpenseRow[];
+  /** Whether the asker must attach a bill photo to save. Never for the owner. */
+  proofRequired: boolean;
+  /** The asker's own cash box — wardens only. */
+  wallet: StaffWallet | null;
+  /** Every warden's cash box — the owner only. */
+  wallets: StaffWallet[] | null;
   categories: CustomExpenseCategory[];
   currentPeriod: string;
   expenses: ExpenseRow[];
@@ -233,6 +283,10 @@ export function serializeExpense(
 ): ExpenseRow {
   return {
     amount: doc.amount,
+    cashNote: doc.cashNote ?? null,
+    cashRespondedAt: doc.cashRespondedAt ? doc.cashRespondedAt.toISOString() : null,
+    cashStatus: doc.cashStatus ?? null,
+    cashTo: doc.cashTo ? { name: doc.cashTo.name, userId: doc.cashTo.userId.toString() } : null,
     category: (doc.category === CUSTOM_EXPENSE_CATEGORY || isExpenseCategoryKey(doc.category)
       ? doc.category
       : "OTHER") as ExpenseCategoryValue,
@@ -327,7 +381,8 @@ export async function listLedgerExpenses(
 
   const id = typeof hostelId === "string" ? new Types.ObjectId(hostelId) : hostelId;
   const [docs, categories] = await Promise.all([
-    ExpenseModel.find({ hostelId: id, status: "RECORDED" })
+    // A handover the warden says never arrived is not money that moved.
+    ExpenseModel.find({ cashStatus: { $ne: "DECLINED" }, hostelId: id, status: "RECORDED" })
       .sort({ spentOn: -1, createdAt: -1 })
       .limit(limit)
       .lean<ExpenseDoc[]>(),
@@ -350,8 +405,8 @@ async function loadPeople(hostelId: Types.ObjectId): Promise<ExpensePerson[]> {
       role: Role.WARDEN,
       status: "ACTIVE",
     })
-      .select("userId")
-      .lean<{ userId: Types.ObjectId }[]>(),
+      .select("permissions userId")
+      .lean<{ permissions?: string[]; userId: Types.ObjectId }[]>(),
     CookAccountModel.find({ hostelId, status: "ACTIVE", userId: { $ne: null } })
       .select("name userId")
       .lean<{ name: string; userId?: Types.ObjectId }[]>(),
@@ -363,12 +418,143 @@ async function loadPeople(hostelId: Types.ObjectId): Promise<ExpensePerson[]> {
         .lean<{ _id: Types.ObjectId; name: string }[]>()
     : [];
 
+  const canSpend = new Set(
+    members
+      .filter((member) => member.permissions?.includes("recordExpenses"))
+      .map((member) => member.userId.toString()),
+  );
+
   return [
-    ...users.map((user) => ({ name: user.name, role: "WARDEN" as const, userId: user._id.toString() })),
+    ...users.map((user) => ({
+      holdsCash: canSpend.has(user._id.toString()),
+      name: user.name,
+      role: "WARDEN" as const,
+      userId: user._id.toString(),
+    })),
     ...cooks
       .filter((cook) => cook.userId)
-      .map((cook) => ({ name: cook.name, role: "COOK" as const, userId: cook.userId!.toString() })),
+      .map((cook) => ({
+        holdsCash: false,
+        name: cook.name,
+        role: "COOK" as const,
+        userId: cook.userId!.toString(),
+      })),
   ].sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Cash boxes                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/** Every handover still waiting for the warden's answer. */
+function pendingCashFilter(hostelId: Types.ObjectId, userId?: Types.ObjectId) {
+  return {
+    category: STAFF_CASH_CATEGORY,
+    cashStatus: "PENDING",
+    hostelId,
+    status: "RECORDED",
+    ...(userId ? { "cashTo.userId": userId } : {}),
+  };
+}
+
+const EMPTY_WALLET = { given: 0, left: 0, pending: 0, spent: 0 };
+
+/**
+ * The cash boxes of one hostel — every warden who can hold cash, plus anyone
+ * with a handover or a staff expense on the books (a warden removed since keeps
+ * their history). Pass `userId` for one person's box.
+ *
+ * Per hostel, so a warden of two branches has two boxes and neither branch's
+ * owner view mixes in the other's money.
+ */
+export async function listStaffWallets(
+  hostelId: Types.ObjectId,
+  people: ExpensePerson[],
+  userId?: Types.ObjectId,
+): Promise<StaffWallet[]> {
+  const [handed, spent] = await Promise.all([
+    ExpenseModel.aggregate<{ _id: { status: StaffCashStatus; user: Types.ObjectId }; name: string; total: number }>([
+      {
+        $match: {
+          category: STAFF_CASH_CATEGORY,
+          cashStatus: { $in: ["PENDING", "ACCEPTED"] },
+          hostelId,
+          status: "RECORDED",
+          ...(userId ? { "cashTo.userId": userId } : {}),
+        },
+      },
+      {
+        $group: {
+          _id: { status: "$cashStatus", user: "$cashTo.userId" },
+          name: { $last: "$cashTo.name" },
+          total: { $sum: "$amount" },
+        },
+      },
+    ]),
+    ExpenseModel.aggregate<{ _id: Types.ObjectId; name: string; total: number }>([
+      {
+        $match: {
+          category: { $ne: STAFF_CASH_CATEGORY },
+          hostelId,
+          payer: "STAFF",
+          recordedByRole: "WARDEN",
+          status: "RECORDED",
+          ...(userId ? { recordedBy: userId } : {}),
+        },
+      },
+      { $group: { _id: "$recordedBy", name: { $last: "$recordedByName" }, total: { $sum: "$amount" } } },
+    ]),
+  ]);
+
+  const boxes = new Map<string, StaffWallet>();
+  const box = (id: string, name: string) => {
+    const existing = boxes.get(id) ?? { ...EMPTY_WALLET, name, userId: id };
+
+    boxes.set(id, existing);
+
+    return existing;
+  };
+
+  for (const person of people) {
+    if (person.holdsCash && (!userId || person.userId === userId.toString())) box(person.userId, person.name);
+  }
+
+  for (const row of handed) {
+    const entry = box(row._id.user.toString(), row.name);
+
+    if (row._id.status === "ACCEPTED") entry.given += row.total;
+    else entry.pending += row.total;
+  }
+
+  for (const row of spent) {
+    box(row._id.toString(), row.name || "Warden").spent += row.total;
+  }
+
+  const names = new Map(people.map((person) => [person.userId, person.name]));
+
+  return [...boxes.values()]
+    .map((entry) => ({ ...entry, left: entry.given - entry.spent, name: names.get(entry.userId) ?? entry.name }))
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * The owner never has to attach a bill. A warden must, unless the owner
+ * switched "Bill photo needed" off for them (`expenseWithoutProof`). The cook
+ * has no such switch, so the kitchen always does.
+ */
+async function isProofRequired(actor: ExpenseActor): Promise<boolean> {
+  if (actor.role === "HOSTEL_ADMIN") return false;
+  if (actor.role === "COOK") return true;
+
+  const waived = await HostelMemberModel.exists({
+    hostelId: actor.hostelId,
+    isDeleted: { $ne: true },
+    permissions: "expenseWithoutProof",
+    status: "ACTIVE",
+    userId: actor.principal.userId,
+  });
+
+  return !waived;
 }
 
 function resolvePeriod(requested?: string) {
@@ -406,23 +592,36 @@ export async function getExpenseHome(actor: ExpenseActor, requestedPeriod?: stri
   const askerId = actor.principal.userId;
   const scope: Record<string, unknown> = { hostelId: actor.hostelId, spentOn: periodFilter(period) };
 
+  const me = new Types.ObjectId(askerId);
+
   if (!actor.canSeeAll) {
-    scope.recordedBy = new Types.ObjectId(askerId);
+    // Their own rows, and the cash the owner handed them — nobody else's.
+    scope.$or = [{ recordedBy: me }, { category: STAFF_CASH_CATEGORY, "cashTo.userId": me }];
   }
 
-  const [docs, categories, people] = await Promise.all([
+  const [docs, categories, people, pendingDocs, proofRequired] = await Promise.all([
     ExpenseModel.find(scope)
       .sort({ spentOn: -1, createdAt: -1 })
       .limit(MAX_ROWS_PER_MONTH)
       .lean<ExpenseDoc[]>(),
     loadCustomCategories(actor.hostelId),
     loadPeople(actor.hostelId),
+    ExpenseModel.find(pendingCashFilter(actor.hostelId, actor.canSeeAll ? undefined : me))
+      .sort({ spentOn: -1, createdAt: -1 })
+      .limit(50)
+      .lean<ExpenseDoc[]>(),
+    isProofRequired(actor),
   ]);
 
   const customNames = new Map(categories.map((category) => [category.id, category.name]));
   const expenses = docs.map((doc) => serializeExpense(doc, askerId, customNames));
   const recorded = expenses.filter((row) => row.status === "RECORDED");
-  const mineRows = recorded.filter((row) => row.mine);
+  const spending = recorded.filter((row) => isSpendingCategory(row.category));
+  const mineRows = spending.filter((row) => row.mine);
+  const wallets =
+    actor.canSeeAll || actor.role === "WARDEN"
+      ? await listStaffWallets(actor.hostelId, people, actor.canSeeAll ? undefined : me)
+      : [];
 
   const home: ExpenseHome = {
     canSeeTotals: actor.canSeeAll,
@@ -430,10 +629,15 @@ export async function getExpenseHome(actor: ExpenseActor, requestedPeriod?: stri
     currentPeriod: currentBsPeriod(),
     expenses,
     mine: { count: mineRows.length, out: mineRows.reduce((sum, row) => sum + row.amount, 0) },
+    pendingCash: pendingDocs.map((doc) => serializeExpense(doc, askerId, customNames)),
     people,
     period,
+    proofRequired,
     role: actor.role,
     totals: null,
+    wallet:
+      actor.role === "WARDEN" ? wallets[0] ?? { ...EMPTY_WALLET, name: "", userId: askerId } : null,
+    wallets: actor.canSeeAll ? wallets : null,
   };
 
   if (!actor.canSeeAll) {
@@ -444,15 +648,23 @@ export async function getExpenseHome(actor: ExpenseActor, requestedPeriod?: stri
   const [moneyIn, lastMonth] = await Promise.all([
     moneyInForPeriod(actor.hostelId, period),
     ExpenseModel.aggregate<{ total: number }>([
-      { $match: { hostelId: actor.hostelId, spentOn: periodFilter(lastPeriod), status: "RECORDED" } },
+      {
+        $match: {
+          category: { $ne: STAFF_CASH_CATEGORY },
+          hostelId: actor.hostelId,
+          spentOn: periodFilter(lastPeriod),
+          status: "RECORDED",
+        },
+      },
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ]),
   ]);
 
-  const out = recorded.reduce((sum, row) => sum + row.amount, 0);
+  // Cash handed to a warden is not spending; what they buy with it is.
+  const out = spending.reduce((sum, row) => sum + row.amount, 0);
   const byCategory = new Map<string, ExpenseCategoryTotal>();
 
-  for (const row of recorded) {
+  for (const row of spending) {
     const key = row.category === CUSTOM_EXPENSE_CATEGORY ? `C:${row.customCategoryId}` : row.category;
     const entry = byCategory.get(key) ?? {
       amount: 0,
@@ -471,10 +683,74 @@ export async function getExpenseHome(actor: ExpenseActor, requestedPeriod?: stri
     lastMonthOut: lastMonth[0]?.total ?? 0,
     left: moneyIn - out,
     out,
-    staffCount: recorded.filter((row) => row.recordedBy.role !== "HOSTEL_ADMIN").length,
+    staffCount: spending.filter((row) => row.recordedBy.role !== "HOSTEL_ADMIN").length,
   };
 
   return home;
+}
+
+/** A month's money out for the owner's report PDF. */
+export type MonthMoneyOut = {
+  byCategory: ExpenseCategoryTotal[];
+  out: number;
+  /** Every row that stands, oldest first: spending, and cash handed to wardens. */
+  rows: ExpenseRow[];
+  /** Each warden's cash box as it stands now. */
+  staff: StaffWallet[];
+};
+
+/**
+ * Where the month's money went, for the performance report: the category
+ * split, each warden's box, and every line — when, what, who, how much.
+ * Owner only by construction: the report asks only for `HOSTEL_ADMIN`.
+ */
+export async function getMonthMoneyOut(
+  hostelId: Types.ObjectId,
+  period: string,
+  askerId: string,
+): Promise<MonthMoneyOut> {
+  await connectToDatabase();
+
+  const [docs, categories, people] = await Promise.all([
+    ExpenseModel.find({
+      cashStatus: { $ne: "DECLINED" },
+      hostelId,
+      spentOn: periodFilter(period),
+      status: "RECORDED",
+    })
+      .sort({ spentOn: 1, createdAt: 1 })
+      .limit(MAX_ROWS_PER_MONTH)
+      .lean<ExpenseDoc[]>(),
+    loadCustomCategories(hostelId),
+    loadPeople(hostelId),
+  ]);
+  const customNames = new Map(categories.map((category) => [category.id, category.name]));
+  const rows = docs.map((doc) => serializeExpense(doc, askerId, customNames));
+  const byCategory = new Map<string, ExpenseCategoryTotal>();
+  let out = 0;
+
+  for (const row of rows) {
+    if (!isSpendingCategory(row.category)) continue;
+
+    const key = row.category === CUSTOM_EXPENSE_CATEGORY ? `C:${row.customCategoryId}` : row.category;
+    const entry = byCategory.get(key) ?? {
+      amount: 0,
+      category: row.category,
+      customCategoryId: row.customCategoryId,
+      label: row.categoryLabel,
+    };
+
+    entry.amount += row.amount;
+    out += row.amount;
+    byCategory.set(key, entry);
+  }
+
+  return {
+    byCategory: [...byCategory.values()].sort((a, b) => b.amount - a.amount),
+    out,
+    rows,
+    staff: await listStaffWallets(hostelId, people),
+  };
 }
 
 /* -------------------------------------------------------------------------- */
@@ -611,6 +887,34 @@ export async function createExpense(actor: ExpenseActor, input: CreateExpenseInp
     };
   }
 
+  let cashTo: { name: string; userId: Types.ObjectId } | null = null;
+
+  if (input.category === STAFF_CASH_CATEGORY) {
+    if (!actor.canSeeAll) {
+      throw new ExpenseError("Only the owner can give cash to a warden.", "CAPABILITY_DENIED", 403);
+    }
+
+    // Only a warden of *this* hostel who can add expenses — a box nobody can
+    // spend from, or a warden of another branch, is refused.
+    const person = (await loadPeople(actor.hostelId)).find(
+      (entry) => entry.holdsCash && entry.userId === input.cashTo?.userId,
+    );
+
+    if (!person) {
+      throw new ExpenseError(
+        "Pick a warden of this hostel who can add expenses.",
+        "CASH_TO_NOT_STAFF",
+        422,
+      );
+    }
+
+    cashTo = { name: person.name, userId: new Types.ObjectId(person.userId) };
+  }
+
+  if (!input.photoAssetId && (await isProofRequired(actor))) {
+    throw new ExpenseError("Add a photo of the bill or the goods.", "PROOF_REQUIRED", 422);
+  }
+
   const photoAssetId = input.photoAssetId ? await assertPhotoUsable(actor, input.photoAssetId) : null;
 
   let doc: ExpenseDoc;
@@ -618,6 +922,8 @@ export async function createExpense(actor: ExpenseActor, input: CreateExpenseInp
   try {
     const created = await ExpenseModel.create({
       amount: input.amount,
+      cashStatus: cashTo ? "PENDING" : null,
+      cashTo,
       category: input.category,
       clientRequestId: input.clientRequestId ?? null,
       customCategoryId,
@@ -663,6 +969,17 @@ export async function createExpense(actor: ExpenseActor, input: CreateExpenseInp
     source: "EXPENSE_MANUAL",
   });
 
+  if (cashTo) {
+    await notifyQuietly({
+      actionUrl: "/app/expenses",
+      body: `${rupees(doc.amount)} from the owner. Open Expenses and tap Got it.`,
+      data: { expenseId: doc._id.toString(), type: "STAFF_CASH_GIVEN" },
+      hostelId: actor.hostelId,
+      title: "Cash for the hostel",
+      userId: cashTo.userId.toString(),
+    });
+  }
+
   if (input.sharedReceipt && photoAssetId) {
     try {
       await createInAppNotification({
@@ -682,6 +999,135 @@ export async function createExpense(actor: ExpenseActor, input: CreateExpenseInp
   }
 
   return { duplicate: false, expense: await serializeOne(actor, doc) };
+}
+
+function rupees(amount: number) {
+  return `Rs ${amount.toLocaleString("en-IN")}`;
+}
+
+/** Delivery must never turn a committed write into a failed request. */
+async function notifyQuietly(input: {
+  actionUrl: string;
+  body: string;
+  data: Record<string, string>;
+  hostelId: Types.ObjectId;
+  title: string;
+  userId: string;
+}) {
+  try {
+    await createInAppNotification({
+      ...input,
+      category: "PAYMENT",
+      hostelId: input.hostelId.toString(),
+      kind: "NORMAL",
+    });
+  } catch (error) {
+    console.warn("staff_cash_notification_failed", input.data.expenseId, error);
+  }
+}
+
+/**
+ * The warden's answer to cash the owner says they handed over. **Got it** puts
+ * it in their box; **Not received** keeps the row (and the owner's claim) on the
+ * record with the warden's words, out of the box and out of the statement.
+ * Only the warden it was given to can answer, and only once.
+ */
+export async function respondToStaffCash(
+  actor: ExpenseActor,
+  expenseId: string,
+  input: { accept: boolean; note?: string },
+) {
+  await connectToDatabase();
+
+  if (actor.role !== "WARDEN" || !Types.ObjectId.isValid(expenseId)) {
+    throw new ExpenseError("Cash not found.", "EXPENSE_NOT_FOUND", 404);
+  }
+
+  const updated = await ExpenseModel.findOneAndUpdate(
+    {
+      ...pendingCashFilter(actor.hostelId, new Types.ObjectId(actor.principal.userId)),
+      _id: new Types.ObjectId(expenseId),
+    },
+    {
+      $set: {
+        cashNote: input.accept ? undefined : input.note || "Not received",
+        cashRespondedAt: new Date(),
+        cashStatus: input.accept ? "ACCEPTED" : "DECLINED",
+      },
+    },
+    { new: true },
+  ).lean<ExpenseDoc | null>();
+
+  if (!updated) {
+    throw new ExpenseError("This cash was already answered, or is not yours.", "CASH_NOT_PENDING", 409);
+  }
+
+  await auditFinanceAction(actor.principal, {
+    action: input.accept ? "STAFF_CASH_ACCEPTED" : "STAFF_CASH_DECLINED",
+    amountAfter: input.accept ? updated.amount : 0,
+    amountBefore: 0,
+    entityId: updated._id,
+    entityType: "Expense",
+    hostelId: actor.hostelId,
+    reason: input.accept ? undefined : updated.cashNote,
+    source: "STAFF_CASH",
+  });
+
+  const name = updated.cashTo?.name || "The warden";
+
+  await notifyQuietly({
+    actionUrl: "/app/expenses",
+    body: input.accept
+      ? `${name} got ${rupees(updated.amount)}.`
+      : `${name} says ${rupees(updated.amount)} did not reach them.`,
+    data: { expenseId: updated._id.toString(), type: input.accept ? "STAFF_CASH_ACCEPTED" : "STAFF_CASH_DECLINED" },
+    hostelId: actor.hostelId,
+    title: input.accept ? "Cash received" : "Cash not received",
+    userId: updated.recordedBy.toString(),
+  });
+
+  return serializeOne(actor, updated);
+}
+
+/**
+ * One warden's cash box with its whole history, newest first: what the owner
+ * handed over (+) and every expense they added (−), each with its bill photo.
+ * The owner names the warden; a warden only ever gets their own.
+ */
+export async function getStaffWallet(actor: ExpenseActor, requestedUserId?: string) {
+  await connectToDatabase();
+
+  if (actor.role === "COOK" || (actor.canSeeAll && !requestedUserId)) {
+    throw new ExpenseError("Pick a warden.", "WALLET_USER_REQUIRED", 422);
+  }
+
+  const userId = new Types.ObjectId(actor.canSeeAll ? requestedUserId : actor.principal.userId);
+  const [people, categories, docs] = await Promise.all([
+    loadPeople(actor.hostelId),
+    loadCustomCategories(actor.hostelId),
+    ExpenseModel.find({
+      $or: [
+        { category: STAFF_CASH_CATEGORY, "cashTo.userId": userId },
+        { category: { $ne: STAFF_CASH_CATEGORY }, payer: "STAFF", recordedBy: userId, recordedByRole: "WARDEN" },
+      ],
+      hostelId: actor.hostelId,
+    })
+      .sort({ spentOn: -1, createdAt: -1 })
+      .limit(MAX_ROWS_PER_MONTH)
+      .lean<ExpenseDoc[]>(),
+  ]);
+  const [wallet] = await listStaffWallets(actor.hostelId, people, userId);
+  const customNames = new Map(categories.map((category) => [category.id, category.name]));
+
+  if (!wallet && docs.length === 0) {
+    throw new ExpenseError("This warden has no cash box here.", "WALLET_NOT_FOUND", 404);
+  }
+
+  return {
+    rows: docs.map((doc) => serializeExpense(doc, actor.principal.userId, customNames)),
+    truncated: docs.length >= MAX_ROWS_PER_MONTH,
+    wallet: wallet ?? { ...EMPTY_WALLET, name: docs[0]?.cashTo?.name ?? "", userId: userId.toString() },
+  };
 }
 
 async function serializeOne(actor: ExpenseActor, doc: ExpenseDoc) {

@@ -490,8 +490,13 @@ export const DEFAULT_SEO: SeoConfig = {
       },
       {
         answer:
-          "Yes. Multi-property control puts every building side by side, with staff and rooms scoped to their own property and one bill for all of them.",
+          "Yes, on the Max plan. Add branches of your hostel from Branches in the portal or the app. Each branch has its own rooms, rent, staff, KYC and payment details and its own public page, and Overall shows every branch side by side with one bill for all of them.",
         question: "Can I manage more than one hostel?",
+      },
+      {
+        answer:
+          "Open Branches in your hostel portal or the app and tap Add branch. You fill in the branch's name, address, rooms and rent; it can use a different PAN and payout account from the main hostel. We review it before it goes live.",
+        question: "How do I add a branch?",
       },
       {
         answer:

@@ -25,7 +25,7 @@ import {
   type InternalAxiosRequestConfig,
 } from "axios";
 
-import { getActiveHostelId, loadActiveHostel } from "@/lib/active-hostel";
+import { getRequestHostelId, loadActiveHostel } from "@/lib/active-hostel";
 import { AUTH_CLIENT_HEADER, MOBILE_AUTH_CLIENT } from "@/lib/api-contract";
 import {
   accessTokenNeedsRefresh,
@@ -147,7 +147,7 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   // does not hold, so a stale one is harmless — it answers for the main hostel.
   await loadActiveHostel();
 
-  const hostelId = getActiveHostelId();
+  const hostelId = getRequestHostelId();
 
   if (!config.headers.has("x-hostel-id") && hostelId) {
     config.headers["x-hostel-id"] = hostelId;
@@ -160,7 +160,7 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
 // before token refresh can yield and the owner can switch to another branch.
 api.interceptors.request.use((config) => {
   if (!config.headers.has("x-hostel-id")) {
-    config.headers.set("x-hostel-id", getActiveHostelId() ?? "");
+    config.headers.set("x-hostel-id", getRequestHostelId() ?? "");
   }
   return config;
 }, undefined, { synchronous: true });

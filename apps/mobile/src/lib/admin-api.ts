@@ -544,6 +544,8 @@ export type AdminInvoiceRow = {
     /** ISO — `PortalInvoice` types it as a `Date`, but this crossed JSON. */
     dueDate?: string;
     id: string;
+    /** The bill's lines — a `FINE` or `KHATA` one explains a bigger total. */
+    lines?: { amount: number; basis: string; description: string }[];
     method?: string;
     /** `2026-08`. Renamed from `period` by the portal's own serializer. */
     month: string;
@@ -1080,6 +1082,8 @@ export async function postHostelAnnouncement(body: string) {
 export type HostelKyc = {
   /** Newest first. The file is read through `files/[assetId]/url`. */
   documents: {
+    /** The caller uploaded it and it is not approved yet. */
+    canRemove?: boolean;
     fileAssetId: string | null;
     fileName: string | null;
     id: string;
@@ -1099,6 +1103,16 @@ export type HostelKyc = {
 export async function getHostelKyc() {
   const response =
     await api.get<ApiEnvelope<{ kyc: HostelKyc }>>("/hostel-admin/kyc");
+
+  return unwrap(response).kyc;
+}
+
+/** Takes back one of the caller's own documents before it is approved. */
+export async function removeKycDocument(documentId: string) {
+  const response = await api.delete<ApiEnvelope<{ kyc: HostelKyc }>>(
+    "/hostel-admin/kyc",
+    { params: { documentId } },
+  );
 
   return unwrap(response).kyc;
 }

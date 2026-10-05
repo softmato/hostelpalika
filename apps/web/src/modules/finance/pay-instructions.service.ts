@@ -63,6 +63,8 @@ export type PayInstructions = {
    * payment.
    */
   bedLabel: string | null;
+  /** Late fine and khata lines on this bill, so the amount explains itself. */
+  extras: { amount: number; basis: string; description: string }[];
   /**
    * Credit carried from an earlier overpayment (target §9.4), shown above the
    * amount. Zero for almost everyone; when it is not, saying nothing means the
@@ -87,6 +89,7 @@ export type PayInstructions = {
 type InvoiceRecord = {
   _id: Types.ObjectId;
   bedType?: BedType | null;
+  lines?: { amount: number; basis: string; description: string }[];
   dueDate?: Date;
   hostelId: Types.ObjectId;
   period?: string;
@@ -327,6 +330,9 @@ export async function getPayInstructions(
     // billed for, and a resident who has since moved rooms must still see the
     // bed type this particular month was priced at.
     bedLabel: isBedType(invoice.bedType) ? bedTypeLabel(invoice.bedType) : null,
+    extras: (invoice.lines ?? [])
+      .filter((line) => line.basis === "FINE" || line.basis === "KHATA")
+      .map(({ amount, basis, description }) => ({ amount, basis, description })),
     credit,
     displayName: profile?.displayName ?? null,
     dueDate: invoice.dueDate ? new Date(invoice.dueDate).toISOString() : null,

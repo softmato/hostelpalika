@@ -342,7 +342,7 @@ export async function updateCookPortal(
   };
 }
 
-async function resolveCookHostelId(principal: ApiPrincipal, requestedHostelId?: string) {
+export async function resolveCookHostelId(principal: ApiPrincipal, requestedHostelId?: string) {
   if (principal.role === Role.COOK) {
     const hostelId = requestedHostelId ?? principal.hostelIds[0];
 

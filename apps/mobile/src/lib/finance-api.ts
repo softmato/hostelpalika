@@ -185,6 +185,8 @@ export type PayInstructions = {
   /** "Triple sharing". Read off the invoice, so a resident who has since moved
    *  rooms still sees what *this* month was priced at. */
   bedLabel: string | null;
+  /** Late fine and khata on this bill. Optional: an older API sends none. */
+  extras?: { amount: number; basis: string; description: string }[];
   /** Carried from an earlier overpayment. Shown **above** the amount: a credit
    *  read after the number is a credit already ignored. */
   credit: number;

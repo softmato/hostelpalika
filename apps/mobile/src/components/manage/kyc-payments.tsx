@@ -17,6 +17,7 @@ import { WalletMark } from "@/components/ui/wallet-mark";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { updatePaymentProfile, type PaymentProfile } from "@/lib/admin-manage-api";
 import { readApiError } from "@/lib/api-contract";
+import { openConfirm } from "@/lib/confirm";
 import { toastError } from "@/lib/toast";
 
 type PaymentField = "bankName" | "bankAccountName" | "bankAccountNumber" | "esewaId" | "khaltiId" | "qrPayeeName" | "qrPayeeNumber";
@@ -67,6 +68,7 @@ export function KycPayments({ onSaved }: { onSaved: () => Promise<void> | void }
       {profile.qrPayeeName ? <Text variant="subtitle">{profile.qrPayeeName}</Text> : null}
       {profile.qrPayeeNumber ? <Text variant="muted">{mask(profile.qrPayeeNumber)}</Text> : null}
       <View className="w-full flex-row gap-2"><Button className="flex-1" label={setup.qrBusy ? "Uploading…" : setup.qrSource ? "Change QR" : "Add QR"} disabled={Boolean(setup.qrBusy)} variant="outline" onPress={() => void setup.pickQr()} />{setup.qrSource ? <Button className="flex-1" label="Edit name" variant="outline" onPress={() => setEditing(editing === "qr" ? null : "qr")} /> : null}</View>
+      {setup.qrSource ? <Button className="w-full" disabled={Boolean(setup.qrBusy)} label={setup.qrBusy === "remove" ? "Removing…" : "Remove QR"} variant="ghost" onPress={() => openConfirm({ confirmLabel: "Remove", destructive: true, message: "Residents will stop seeing this QR.", title: "Remove the QR?", onConfirm: setup.removeQr })} /> : null}
       {editing === "qr" ? <View className="w-full gap-3"><Text variant="muted">Change only if wrong.</Text>{field(["qrPayeeName", "Name on QR"])}{field(["qrPayeeNumber", "Number on QR"])}</View> : null}
     </Card>
     <Card padding="p-0" className="overflow-hidden">

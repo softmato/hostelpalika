@@ -2,7 +2,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 import { AxiosError, AxiosHeaders, type InternalAxiosRequestConfig } from "axios";
 const mocks = vi.hoisted(() => ({ read: vi.fn(), write: vi.fn(), clear: vi.fn(), active: null as string | null }));
 vi.mock("@/lib/session", () => ({ readTokens: mocks.read, writeTokens: mocks.write, writeAccessToken: vi.fn(), clearTokens: mocks.clear }));
-vi.mock("@/lib/active-hostel", () => ({ getActiveHostelId: () => mocks.active, loadActiveHostel: vi.fn() }));
+vi.mock("@/lib/active-hostel", () => ({ getRequestHostelId: () => mocks.active, loadActiveHostel: vi.fn() }));
 vi.mock("@/lib/receipt-native", () => ({ receiptNative: null }));
 beforeEach(() => { mocks.active = null; vi.resetModules(); vi.clearAllMocks(); mocks.read.mockResolvedValue({ accessToken: "old", refreshToken: "saved" }); });
 it.each([undefined, 429, 500, 503])("keeps credentials after refresh failure %s", async (status) => {

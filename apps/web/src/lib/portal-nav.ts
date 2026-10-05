@@ -640,6 +640,13 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
           },
           {
             description:
+              "Eggs, extra meals, laundry taken on account — open khatas, asks to give, and the price list.",
+            href: "/hostel-admin/khata",
+            keywords: ["khata", "account", "egg", "laundry", "extra", "credit", "tab", "items"],
+            label: "Khata",
+          },
+          {
+            description:
               "Upload your wallet or bank statement and settle the month against what arrived.",
             href: "/hostel-admin/reconcile",
             keywords: [
@@ -876,6 +883,12 @@ export const RESIDENT_NAV: PortalNavGroup[] = [
         label: "Fees & Payments",
       },
       {
+        href: "/resident/khata",
+        icon: "card",
+        keywords: ["khata", "egg", "laundry", "extra", "meal"],
+        label: "Khata",
+      },
+      {
         // Its own entry rather than a tab inside Fees & Payments: a resident
         // opens that page to *do* something about a due date, and the
         // programme's own view is what they open when they want to see what
@@ -964,6 +977,7 @@ export const COOK_NAV: PortalNavGroup[] = [
       { href: "/cook", icon: "food", keywords: ["food ready", "announce", "meal"], label: "Today" },
       { href: "/cook/menu", icon: "calendar", keywords: ["week", "routine"], label: "Menu" },
       { href: "/cook/photos", icon: "camera", keywords: ["upload", "picture"], label: "Photos" },
+      { href: "/cook/khata", icon: "card", keywords: ["khata", "ask", "egg", "give"], label: "Khata" },
       { href: "/cook/notifications", icon: "bell", label: "Notifications" },
     ],
   },
@@ -1176,6 +1190,41 @@ export function hostelAdminHref(slug: string, href: string) {
 }
 
 /** The same nav tree, pointed at one hostel's workspace. */
+/**
+ * The Overall workspace's sidebar — the same subjects as a branch, each page
+ * answering for every branch at once (`hostel-admin-overall-page.tsx`).
+ * `OVERALL_SCREENS` in that file is the list of pages these point at.
+ */
+export function overallAdminNav(): PortalNavGroup[] {
+  const href = (screen: string) => `/overall/admin/${screen}`;
+
+  return [
+    { items: [{ href: href("dashboard"), icon: "dashboard", label: "Dashboard" }] },
+    {
+      items: [
+        { href: href("residents"), icon: "users", label: "Residents" },
+        { href: href("staff"), icon: "shield", label: "Wardens & cooks" },
+      ],
+      label: "People",
+    },
+    {
+      items: [
+        { href: href("payments"), icon: "card", label: "Payments" },
+        { href: href("statement"), icon: "receipt", label: "Statement" },
+        { href: href("expenses"), icon: "receipt", label: "Expenses" },
+      ],
+      label: "Finance",
+    },
+    {
+      items: [
+        { href: href("daily"), icon: "clipboard", label: "Daily work" },
+        { href: href("reports"), icon: "chart", label: "Reports" },
+      ],
+      label: "Operations",
+    },
+  ];
+}
+
 export function hostelAdminNavForSlug(slug: string): PortalNavGroup[] {
   return HOSTEL_ADMIN_NAV.map((group) => ({
     ...group,

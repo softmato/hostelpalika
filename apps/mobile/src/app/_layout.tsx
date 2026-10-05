@@ -392,6 +392,9 @@ function RootShell() {
         <Stack.Screen name="night-status" />
         {/* The resident's own record of those answers, night by night. */}
         <Stack.Screen name="night-status-history" />
+        {/* Khata: the resident's own (Payments), and the kitchen's asks (cook Today). */}
+        <Stack.Screen name="khata" />
+        <Stack.Screen name="khata-asks" />
         {/*
           What the app has recorded about where the resident was, and the two
           controls over it. At the root beside `night-status` because the two are

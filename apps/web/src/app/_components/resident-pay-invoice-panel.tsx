@@ -31,6 +31,7 @@ import {
   OfferProgramBadge,
   OfferProgramCallout,
 } from "./resident-offer-program";
+import { BillExtraRows, type BillLine } from "@/app/_components/khata-pages";
 
 /**
  * How to pay one invoice (target §11.1, plan item 3.3).
@@ -71,6 +72,7 @@ type IntentHandoff =
 type PayInstructions = {
   amountDue: number;
   bedLabel: string | null;
+  extras?: BillLine[];
   credit: number;
   displayName: string | null;
   dueDate: string | null;
@@ -392,6 +394,9 @@ export const ResidentPayInvoicePanel = memo(function ResidentPayInvoicePanel({
                       {instructions.bedLabel}
                     </p>
                   ) : null}
+                  <div className="mt-3">
+                    <BillExtraRows lines={instructions.extras} />
+                  </div>
                 </div>
 
                 <dl className="space-y-1.5 border-t border-border/60 pt-3 text-[12.5px]">

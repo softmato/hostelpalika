@@ -1,3 +1,5 @@
+import { OverallTabScreen } from "@/components/overall-views";
+import { useIsOverall } from "@/components/hostel-switcher";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Linking, View } from "react-native";
@@ -92,7 +94,7 @@ import { humanizeEnum } from "@/lib/format";
  * is where the phone is and the laptop is not. The rows open
  * `manage/resident/[id]`, and the button registers somebody.
  */
-export default function AdminResidentsScreen() {
+function BranchAdminResidentsScreen() {
   const dates = useDates();
   /*
    * Warmed by `prefetchAdminPortal` when the portal opens, so arriving here from
@@ -368,4 +370,12 @@ export default function AdminResidentsScreen() {
       </View>
     </Screen>
   );
+}
+
+/**
+ * With Overall picked in the switcher this tab answers for every branch at
+ * once (`components/overall-views.tsx`); otherwise it is the one branch's screen.
+ */
+export default function AdminResidentsScreen() {
+  return useIsOverall() ? <OverallTabScreen tab="people" /> : <BranchAdminResidentsScreen />;
 }

@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 
-import { ArrowUpRight, Building2, GitBranch, Loader2, MapPin, Plus } from "lucide-react";
+import { Loader2 } from "lucide-react";
+
+import { Glyph } from "@/components/glyph";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 
@@ -77,7 +79,7 @@ export function HostelBranchesPageContent() {
               onClick={() => setOpen(true)}
               type="button"
             >
-              <Plus className="size-4" />
+              <Glyph className="size-4" name="plus" strokeWidth={2} />
               Add a branch
             </button>
           ) : null
@@ -121,12 +123,8 @@ export function HostelBranchesPageContent() {
                     className="group flex h-full flex-col gap-4 rounded-2xl border border-border bg-background p-5 transition hover:border-brand-teal/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <span className="flex size-12 items-center justify-center rounded-xl bg-brand-teal/10 text-brand-teal">
-                        {index === 0 ? (
-                          <Building2 className="size-6" strokeWidth={1.6} />
-                        ) : (
-                          <GitBranch className="size-6" strokeWidth={1.6} />
-                        )}
+                      <span className="flex size-11 items-center justify-center rounded-xl bg-brand-teal/10 text-brand-teal">
+                        <Glyph className="size-6" name={index === 0 ? "hostel" : "branch"} />
                       </span>
                       <SoftBadge tone={status.tone}>{status.label}</SoftBadge>
                     </div>
@@ -138,14 +136,14 @@ export function HostelBranchesPageContent() {
                         {branch.name}
                       </h3>
                       <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <MapPin className="size-3.5 shrink-0" />
+                        <Glyph className="size-3.5 shrink-0" name="pin" />
                         {[branch.area, branch.city].filter(Boolean).join(", ") ||
                           "Location not added"}
                       </p>
                     </div>
                     <span className="mt-auto flex items-center justify-between border-t border-border pt-3 text-xs font-semibold text-brand-teal">
                       View branch details{" "}
-                      <ArrowUpRight className="size-4 transition group-hover:translate-x-0.5" />
+                      <Glyph className="size-4 transition group-hover:translate-x-0.5" name="open" />
                     </span>
                   </Link>
                 </li>

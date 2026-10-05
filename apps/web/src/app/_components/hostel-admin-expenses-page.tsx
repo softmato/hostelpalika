@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Droplets,
   Flame,
+  HandCoins,
   ImageIcon,
   Leaf,
   type LucideIcon,
@@ -74,6 +75,9 @@ const ENDPOINT = "/api/v1/hostel-admin/expenses";
 
 type Row = {
   amount: number;
+  cashNote: string | null;
+  cashStatus: "ACCEPTED" | "DECLINED" | "PENDING" | null;
+  cashTo: { name: string; userId: string } | null;
   category: ExpenseCategoryValue;
   categoryLabel: string;
   customCategoryId: string | null;
@@ -95,8 +99,12 @@ type Home = {
   currentPeriod: string;
   expenses: Row[];
   mine: { count: number; out: number };
-  people: { name: string; role: string; userId: string }[];
+  pendingCash: Row[];
+  people: { holdsCash: boolean; name: string; role: string; userId: string }[];
   period: string;
+  proofRequired: boolean;
+  wallet: Wallet | null;
+  wallets: Wallet[] | null;
   totals: {
     byCategory: {
       amount: number;
@@ -112,6 +120,15 @@ type Home = {
   } | null;
 };
 
+/** A warden's cash box — see `StaffWallet` in expense.service.ts. */
+type Wallet = { given: number; left: number; name: string; pending: number; spent: number; userId: string };
+
+const CASH_STATE: Record<NonNullable<Row["cashStatus"]>, string> = {
+  ACCEPTED: "Got it",
+  DECLINED: "Not received",
+  PENDING: "Waiting",
+};
+
 const ICONS: Record<ExpenseCategoryKey, LucideIcon> = {
   CLEANING: Sparkles,
   ELECTRICITY: Zap,
@@ -122,6 +139,7 @@ const ICONS: Record<ExpenseCategoryKey, LucideIcon> = {
   RENT: Building2,
   REPAIR: Wrench,
   SALARY: Users,
+  STAFF_CASH: HandCoins,
   VEGETABLES_MEAT: Leaf,
   WATER: Droplets,
 };
@@ -234,6 +252,22 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
     }
   }, [newCategory, resource]);
 
+  const answerCash = useCallback(
+    async (id: string, accept: boolean) => {
+      try {
+        await browserApi(`${ENDPOINT}/${id}/cash`, {
+          body: JSON.stringify({ accept }),
+          method: "POST",
+        });
+        setMessage(accept ? "Added to your cash." : "The owner is told it did not reach you.");
+        await resource.refreshAsync();
+      } catch (error) {
+        setMessage(errorText(error, "Could not save your answer."));
+      }
+    },
+    [resource],
+  );
+
   const toggleCategory = useCallback(
     async (id: string, hidden: boolean) => {
       try {
@@ -323,6 +357,15 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
         </div>
       ) : home ? (
         <div className="grid gap-3 sm:grid-cols-3">
+          {home.wallet ? (
+            <MetricCard
+              icon={HandCoins}
+              label={home.wallet.left < 0 ? "Hostel owes you" : "Cash left"}
+              note={`Got ${currency(home.wallet.given)} · Spent ${currency(home.wallet.spent)}`}
+              tone={home.wallet.left < 0 ? "rose" : "green"}
+              value={currency(Math.abs(home.wallet.left))}
+            />
+          ) : null}
           <MetricCard
             icon={ArrowUpRight}
             label="You spent"
@@ -333,9 +376,69 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
         </div>
       ) : null}
 
+      {home && !owner && home.pendingCash.length > 0 ? (
+        <SectionCard title="Cash for you">
+          <ul className="divide-y divide-border/70">
+            {home.pendingCash.map((row) => (
+              <li className="flex flex-wrap items-center gap-3 py-2.5" key={row.id}>
+                <Glyph icon={HandCoins} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold tabular-nums">{currency(row.amount)}</p>
+                  <p className="truncate text-xs text-muted-foreground">
+                    {[formatBsDate(dayOf(row.spentOn)), EXPENSE_PAID_BY_LABELS[row.paidBy], row.what]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                </div>
+                <Button onClick={() => void answerCash(row.id, true)} size="sm">
+                  Got it
+                </Button>
+                <Button onClick={() => void answerCash(row.id, false)} size="sm" variant="ghost">
+                  Not received
+                </Button>
+              </li>
+            ))}
+          </ul>
+        </SectionCard>
+      ) : null}
+
       <div className={cn("grid gap-4", owner && "lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]")}>
         {owner && home?.totals ? (
           <div className="space-y-4">
+            {home.wallets && home.wallets.length > 0 ? (
+              <SectionCard title="Staff cash">
+                <ul className="space-y-3">
+                  {home.wallets.map((wallet) => (
+                    <li className="flex items-center gap-3 text-sm" key={wallet.userId}>
+                      <Glyph icon={HandCoins} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium">{wallet.name}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {[
+                            `Spent ${currency(wallet.spent)} of ${currency(wallet.given)}`,
+                            wallet.pending > 0 ? `${currency(wallet.pending)} waiting` : null,
+                          ]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                      </div>
+                      <span
+                        className={cn(
+                          "text-right font-semibold tabular-nums",
+                          wallet.left < 0 ? "text-destructive" : "text-primary",
+                        )}
+                      >
+                        {currency(Math.abs(wallet.left))}
+                        <span className="block text-[11px] font-normal text-muted-foreground">
+                          {wallet.left < 0 ? "Hostel owes" : "Left"}
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </SectionCard>
+            ) : null}
+
             <SectionCard title="Spent on">
               {home.totals.byCategory.length === 0 ? (
                 <EmptyState label="Nothing spent this month yet." />
@@ -444,13 +547,15 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
                                 cancelled && "text-muted-foreground line-through",
                               )}
                             >
-                              {row.what || row.categoryLabel}
+                              {row.cashTo ? `Cash to ${row.cashTo.name}` : row.what || row.categoryLabel}
                             </p>
                             <p className="truncate text-xs text-muted-foreground">
                               {cancelled
                                 ? `Cancelled${row.voidReason ? ` — ${row.voidReason}` : ""}`
                                 : [
-                                    row.what ? row.categoryLabel : null,
+                                    row.cashStatus ? CASH_STATE[row.cashStatus] : null,
+                                    row.cashStatus === "DECLINED" ? row.cashNote : null,
+                                    row.what && !row.cashTo ? row.categoryLabel : null,
                                     row.salaryFor ? `For ${row.salaryFor.name}` : null,
                                     owner && !row.mine ? row.recordedBy.name || "Staff" : null,
                                     EXPENSE_PAID_BY_LABELS[row.paidBy],
@@ -473,7 +578,7 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
                           <span
                             className={cn(
                               "text-sm font-semibold tabular-nums",
-                              cancelled ? "text-muted-foreground" : "text-destructive",
+                              cancelled ? "text-muted-foreground" : row.cashTo ? "text-foreground" : "text-destructive",
                             )}
                           >
                             {currency(row.amount)}
@@ -530,7 +635,9 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
           await resource.refreshAsync();
         }}
         open={adding}
+        owner={owner}
         people={home?.people ?? []}
+        proofRequired={home?.proofRequired ?? false}
       />
     </div>
   );
@@ -547,13 +654,17 @@ function AddExpenseDialog({
   onClose,
   onSaved,
   open,
+  owner,
   people,
+  proofRequired,
 }: {
   categories: { id: string; name: string }[];
   onClose: () => void;
   onSaved: (note: string) => Promise<void>;
   open: boolean;
-  people: { name: string; userId: string }[];
+  owner: boolean;
+  people: { holdsCash: boolean; name: string; userId: string }[];
+  proofRequired: boolean;
 }) {
   const [amountText, setAmountText] = useState("");
   const [choice, setChoice] = useState<Choice | null>(null);
@@ -561,6 +672,7 @@ function AddExpenseDialog({
   const [bsDate, setBsDate] = useState(() => toBsDayInput(todayKey()));
   const [paidBy, setPaidBy] = useState<ExpensePaidBy>("CASH");
   const [salaryFor, setSalaryFor] = useState("");
+  const [cashTo, setCashTo] = useState("");
   const [photoAssetId, setPhotoAssetId] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -579,6 +691,7 @@ function AddExpenseDialog({
     setBsDate(toBsDayInput(todayKey()));
     setPaidBy("CASH");
     setSalaryFor("");
+    setCashTo("");
     setPhotoAssetId(null);
     setError("");
     setRequestId(newRequestId());
@@ -596,6 +709,8 @@ function AddExpenseDialog({
     if (choice.category === "OTHER" && !what.trim()) return setError("Write what it was for.");
     if (!day) return setError("Write the Nepali date like 2083-06-15.");
     if (day > today) return setError("This day has not come yet.");
+    if (choice.category === "STAFF_CASH" && !cashTo) return setError("Pick the warden.");
+    if (proofRequired && !photoAssetId) return setError("Add a photo of the bill or the goods.");
 
     // The list fills in a name, so a picked person is found by name.
     const typed = salaryFor.trim();
@@ -619,6 +734,7 @@ function AddExpenseDialog({
                 ? { name: person.name, userId: person.userId }
                 : { name: typed }
               : undefined,
+          cashTo: choice.category === "STAFF_CASH" ? { userId: cashTo } : undefined,
           spentOn: day,
           what: what.trim() || undefined,
         }),
@@ -634,7 +750,8 @@ function AddExpenseDialog({
   };
 
   const tiles: { choice: Choice; icon: LucideIcon; key: string; label: string }[] = [
-    ...EXPENSE_CATEGORY_KEYS.map((key) => ({
+    // Only the owner hands cash to a warden.
+    ...EXPENSE_CATEGORY_KEYS.filter((key) => owner || key !== "STAFF_CASH").map((key) => ({
       choice: { category: key } as Choice,
       icon: ICONS[key],
       key,
@@ -699,6 +816,37 @@ function AddExpenseDialog({
               })}
             </div>
           </div>
+
+          {choice?.category === "STAFF_CASH" ? (
+            <div className="space-y-1.5">
+              <span className="text-sm font-semibold">Which warden?</span>
+              <div className="flex flex-wrap gap-1.5">
+                {people
+                  .filter((person) => person.holdsCash)
+                  .map((person) => (
+                    <button
+                      aria-pressed={cashTo === person.userId}
+                      className={cn(
+                        "rounded-full border px-3 py-1.5 text-xs font-semibold",
+                        cashTo === person.userId
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "border-border hover:bg-muted",
+                      )}
+                      key={person.userId}
+                      onClick={() => setCashTo(person.userId)}
+                      type="button"
+                    >
+                      {person.name}
+                    </button>
+                  ))}
+              </div>
+              {people.every((person) => !person.holdsCash) ? (
+                <span className="block text-xs text-muted-foreground">
+                  No warden here has Add expenses turned on.
+                </span>
+              ) : null}
+            </div>
+          ) : null}
 
           {choice?.category === "SALARY" ? (
             <label className="block space-y-1.5">
@@ -769,7 +917,11 @@ function AddExpenseDialog({
           </div>
 
           <label className="block space-y-1.5">
-            <span className="text-sm font-semibold">Photo of the bill (optional)</span>
+            <span className="text-sm font-semibold">
+              {choice?.category === "STAFF_CASH"
+                ? "Receipt (optional)"
+                : `Photo of the bill${proofRequired ? "" : " (optional)"}`}
+            </span>
             <input
               accept="image/*"
               className="block w-full text-sm"

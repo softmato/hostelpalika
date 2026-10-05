@@ -38,6 +38,7 @@ const mocks = vi.hoisted(() => ({
   expenseFind: vi.fn(),
   expenseFindOne: vi.fn(),
   expenseFindOneAndUpdate: vi.fn(),
+  memberExists: vi.fn(),
   memberFind: vi.fn(),
   settingsFindOne: vi.fn(),
   userFind: vi.fn(),
@@ -82,7 +83,9 @@ vi.mock("@hostel/db/models/FileAsset", () => ({ FileAssetModel: { findOne: mocks
 vi.mock("@hostel/db/models/HostelSettings", () => ({
   HostelSettingsModel: { findOne: mocks.settingsFindOne },
 }));
-vi.mock("@hostel/db/models/HostelMember", () => ({ HostelMemberModel: { find: mocks.memberFind } }));
+vi.mock("@hostel/db/models/HostelMember", () => ({
+  HostelMemberModel: { exists: mocks.memberExists, find: mocks.memberFind },
+}));
 vi.mock("@hostel/db/models/CookAccount", () => ({
   CookAccountModel: { find: mocks.cookFind, findOne: mocks.cookFindOne },
 }));
@@ -95,8 +98,10 @@ import {
   readExpenseReceipt,
   createExpense,
   getExpenseHome,
+  listStaffWallets,
   parseSpentOn,
   resolveExpenseActor,
+  respondToStaffCash,
   voidExpense,
 } from "@/modules/finance/expenses/expense.service";
 
@@ -143,7 +148,14 @@ beforeEach(() => {
   mocks.aggregate.mockResolvedValue([]);
   mocks.expenseFind.mockReturnValue(query([]));
   mocks.expenseFindOne.mockReturnValue(query(null));
+  mocks.memberExists.mockResolvedValue(null);
 });
+
+/** Month totals group on `null`; the cash-box reads group per person and get nothing here. */
+function monthTotalOnly(total: number) {
+  return (pipeline: { $group?: { _id: unknown } }[]) =>
+    Promise.resolve(pipeline[1]?.$group?._id === null ? [{ total }] : []);
+}
 
 describe("the day the money went", () => {
   const now = new Date("2026-10-01T10:00:00Z");
@@ -225,7 +237,12 @@ describe("the month", () => {
     expect(home.totals).toBeNull();
     expect(home.canSeeTotals).toBe(false);
     expect(home.mine).toEqual({ count: 1, out: 400 });
-    expect(mocks.expenseFind.mock.calls[0]?.[0]).toMatchObject({ recordedBy: wardenId });
+    // Their own rows, and cash handed to them — nobody else's.
+    expect(mocks.expenseFind.mock.calls[0]?.[0]).toMatchObject({
+      $or: [{ recordedBy: wardenId }, { category: "STAFF_CASH", "cashTo.userId": wardenId }],
+    });
+    expect(home.wallets).toBeNull();
+    expect(home.wallet).toMatchObject({ left: 0 });
     expect(mocks.eventFind).not.toHaveBeenCalled();
   });
 
@@ -248,7 +265,7 @@ describe("the month", () => {
         { amount: 7000, direction: "CREDIT", settledAt: new Date(asojFirst.getTime() - 20 * 3600_000) },
       ]),
     );
-    mocks.aggregate.mockResolvedValue([{ total: 4000 }]);
+    mocks.aggregate.mockImplementation(monthTotalOnly(4000));
 
     const home = await getExpenseHome(await resolveExpenseActor(owner), period);
 
@@ -265,6 +282,28 @@ describe("the month", () => {
     ]);
     // The void row is still listed — the owner sees the mistake and its fix.
     expect(home.expenses).toHaveLength(4);
+  });
+
+  it("does not count cash handed to a warden as spending", async () => {
+    mocks.expenseFind.mockReturnValue(
+      query([
+        expense({ amount: 1000, category: "GROCERIES", spentOn: asojFirst }),
+        expense({
+          amount: 5000,
+          cashStatus: "ACCEPTED",
+          cashTo: { name: "Hari", userId: wardenId },
+          category: "STAFF_CASH",
+          spentOn: asojFirst,
+        }),
+      ]),
+    );
+    mocks.aggregate.mockImplementation(monthTotalOnly(0));
+
+    const home = await getExpenseHome(await resolveExpenseActor(owner), period);
+
+    expect(home.totals?.out).toBe(1000);
+    expect(home.totals?.byCategory.map((row) => row.category)).toEqual(["GROCERIES"]);
+    expect(home.expenses).toHaveLength(2);
   });
 
   it("answers a month before the calendar floor with a sentence, not a crash", async () => {
@@ -290,7 +329,38 @@ describe("adding an expense", () => {
     }));
   });
 
+  it("refuses a warden's expense without a bill photo unless the owner waived it", async () => {
+    await expect(createExpense(await resolveExpenseActor(warden), input)).rejects.toMatchObject({
+      errorCode: "PROOF_REQUIRED",
+      status: 422,
+    });
+    expect(mocks.expenseCreate).not.toHaveBeenCalled();
+  });
+
+  it("lets only the owner hand cash, and only to a warden who can add expenses", async () => {
+    const cash = { ...input, cashTo: { userId: wardenId.toString() }, category: "STAFF_CASH" as const };
+
+    await expect(createExpense(await resolveExpenseActor(warden), cash)).rejects.toMatchObject({ status: 403 });
+
+    mocks.memberFind.mockReturnValue(query([{ permissions: [], userId: wardenId }]));
+    mocks.userFind.mockReturnValue(query([{ _id: wardenId, name: "Hari" }]));
+    await expect(createExpense(await resolveExpenseActor(owner), cash)).rejects.toMatchObject({
+      errorCode: "CASH_TO_NOT_STAFF",
+    });
+
+    mocks.memberFind.mockReturnValue(query([{ permissions: ["recordExpenses"], userId: wardenId }]));
+    await createExpense(await resolveExpenseActor(owner), cash);
+
+    expect(mocks.expenseCreate.mock.calls[0]?.[0]).toMatchObject({
+      cashStatus: "PENDING",
+      cashTo: { name: "Hari", userId: wardenId },
+      payer: "HOSTEL",
+    });
+    expect(mocks.notify).toHaveBeenCalledWith(expect.objectContaining({ userId: wardenId.toString() }));
+  });
+
   it("records a warden's spending as paid by staff, under their name", async () => {
+    mocks.memberExists.mockResolvedValue({ _id: wardenId });
     const row = await createExpense(await resolveExpenseActor(warden), input);
 
     expect(mocks.expenseCreate.mock.calls[0]?.[0]).toMatchObject({
@@ -433,5 +503,38 @@ describe("shared expense receipt read", () => {
     mocks.assetFindOne.mockReturnValue(query({ hostelId, ownerId: wardenId, kind: "EXPENSE_RECEIPT", uploadCompletedAt: new Date() }));
     const actor = await resolveExpenseActor(owner);
     await expect(readExpenseReceipt(actor, assetId.toString())).rejects.toMatchObject({ errorCode: "ASSET_NOT_OWNED" });
+  });
+});
+
+describe("cash boxes", () => {
+  it("fills a box only with cash the warden confirmed, less what they spent", async () => {
+    mocks.aggregate
+      .mockResolvedValueOnce([
+        { _id: { status: "ACCEPTED", user: wardenId }, name: "Hari", total: 5000 },
+        { _id: { status: "PENDING", user: wardenId }, name: "Hari", total: 1000 },
+      ])
+      .mockResolvedValueOnce([{ _id: wardenId, name: "Hari", total: 6200 }]);
+
+    const [box] = await listStaffWallets(hostelId, []);
+
+    // Spent past what was handed over: the hostel owes Hari Rs 1,200.
+    expect(box).toEqual({ given: 5000, left: -1200, name: "Hari", pending: 1000, spent: 6200, userId: wardenId.toString() });
+  });
+
+  it("lets only the warden it was given to answer, and only once", async () => {
+    mocks.expenseFindOneAndUpdate.mockReturnValue(query(null));
+    const id = new Types.ObjectId().toString();
+
+    await expect(respondToStaffCash(await resolveExpenseActor(warden), id, { accept: true })).rejects.toMatchObject({
+      errorCode: "CASH_NOT_PENDING",
+    });
+    expect(mocks.expenseFindOneAndUpdate.mock.calls[0]?.[0]).toMatchObject({
+      cashStatus: "PENDING",
+      "cashTo.userId": wardenId,
+      hostelId,
+    });
+    await expect(respondToStaffCash(await resolveExpenseActor(owner), id, { accept: true })).rejects.toMatchObject({
+      status: 404,
+    });
   });
 });

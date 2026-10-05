@@ -6,6 +6,7 @@ import {
   periodOf,
   runBillingCycleForAllHostels,
 } from "@/modules/finance/billing.service";
+import { accrueLateFines } from "@/modules/finance/late-fine.service";
 
 export const runtime = "nodejs";
 /** Every hostel, every resident, priced then written. 60s is the ceiling here. */
@@ -42,12 +43,15 @@ export async function POST(request: NextRequest) {
     const period =
       new URL(request.url).searchParams.get("period") ?? periodOf(new Date());
     const hostels = await runBillingCycleForAllHostels(period);
+    // Daily, after billing: bring every late bill's fine up to today.
+    const lateFines = await accrueLateFines();
 
     return successResponse(
       {
         failedHostels: hostels.filter((hostel) => hostel.errorCode),
         hostels,
         invoicesIssued: hostels.reduce((sum, hostel) => sum + hostel.billedCount, 0),
+        lateFines,
         period,
         totalBilled: hostels.reduce((sum, hostel) => sum + hostel.totalBilled, 0),
       },
