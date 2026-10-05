@@ -44,7 +44,7 @@ class ReceiptSheetActivity : Activity() {
       }
     }
     setContentView(web)
-    window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, (resources.displayMetrics.heightPixels * .88).toInt())
+    window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, (resources.displayMetrics.heightPixels * .5).toInt())
     web.loadDataWithBaseURL("https://receipt.invalid/", assets.open("receipt-sheet.html").bufferedReader().use { it.readText() }, "text/html", "UTF-8", null)
   }
   @Suppress("DEPRECATION")
@@ -89,6 +89,13 @@ class ReceiptSheetActivity : Activity() {
       if (closed) return
       val message = try { JSONObject(raw) } catch (_: Exception) { return }
       if (message.optString("action") == "close") { closed = true; runOnUiThread { finish() }; return }
+      if (message.optString("action") == "size") {
+        // Fit the sheet to the page (CSS px → device px), never above 90% of the screen.
+        val metrics = resources.displayMetrics
+        val height = (message.optDouble("height", 0.0) * metrics.density).toInt().coerceIn(metrics.heightPixels / 4, (metrics.heightPixels * .9).toInt())
+        runOnUiThread { if (!closed) window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, height) }
+        return
+      }
       worker.execute {
         if (closed) return@execute
         val reply = JSONObject().put("id", message.optInt("id"))
