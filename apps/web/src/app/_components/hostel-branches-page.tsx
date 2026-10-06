@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 
 import { Glyph } from "@/components/glyph";
 import { usePathname } from "next/navigation";
@@ -45,8 +45,9 @@ const STATUS: Record<
   REJECTED: { label: "Not approved", tone: "rose" },
 };
 
-export function HostelBranchesPageContent() {
-  const resource = usePortalResource<BranchesView>(BRANCHES);
+/** `lock` — why this workspace can't use branches (`branchesLock`); the screen says so instead of fetching. */
+export function HostelBranchesPageContent({ lock = null }: { lock?: string | null }) {
+  const resource = usePortalResource<BranchesView>(lock ? null : BRANCHES);
   const invalidate = useInvalidateResources();
   const view = resource.data;
   const [open, setOpen] = useState(false);
@@ -71,6 +72,14 @@ export function HostelBranchesPageContent() {
         title="Branches"
       />
 
+      {lock ? (
+        <SectionCard title="Your branches">
+          <div className="flex items-start gap-3 rounded-xl border border-warning/40 bg-warning/10 p-4" role="alert">
+            <Lock className="mt-0.5 size-5 shrink-0 text-warning" />
+            <p className="text-sm font-semibold text-foreground">{lock}</p>
+          </div>
+        </SectionCard>
+      ) : (
       <SectionCard
         actions={
           view && !blocked && !open ? (
@@ -152,6 +161,7 @@ export function HostelBranchesPageContent() {
           </ul>
         ) : null}
       </SectionCard>
+      )}
 
       {open && view ? (
         <BranchForm

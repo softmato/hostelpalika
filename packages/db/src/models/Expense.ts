@@ -104,6 +104,14 @@ const expenseSchema = new Schema(
      * connection returns the row it already made instead of adding it twice.
      */
     clientRequestId: { default: null, trim: true, type: String },
+    /**
+     * Shared receipts only: the main hostel of this building's group (itself, or
+     * its `parentHostelId`), the receipt's SHA-256 and its transaction id. One
+     * payment may stand as one expense across a main hostel and all its branches.
+     */
+    receiptGroupId: { default: null, ref: "Hostel", type: Schema.Types.ObjectId },
+    receiptHash: { default: null, type: String },
+    receiptTxnId: { default: null, type: String },
 
     status: { default: "RECORDED", enum: ["RECORDED", "VOID"], required: true, type: String },
     voidReason: { trim: true, type: String },
@@ -124,5 +132,12 @@ expenseSchema.index(
   { hostelId: 1, recordedBy: 1, clientRequestId: 1 },
   { partialFilterExpression: { clientRequestId: { $type: "string" } }, unique: true },
 );
+// One receipt, one standing expense per hostel group. Voiding a row releases its receipt.
+for (const key of ["receiptHash", "receiptTxnId"]) {
+  expenseSchema.index(
+    { receiptGroupId: 1, [key]: 1 },
+    { partialFilterExpression: { [key]: { $type: "string" }, status: "RECORDED" }, unique: true },
+  );
+}
 
 export const ExpenseModel = models.Expense || model("Expense", expenseSchema);

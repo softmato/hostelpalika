@@ -7,7 +7,7 @@ const TABS: readonly TabDef[] = [
   { icon: "card", label: "Payments", name: "payments" },
   { icon: "chatbubbles", label: "Community", name: "community" },
   { icon: "receipt", label: "Statement", name: "statement" },
-  { icon: "ellipsis-horizontal", label: "More", name: "more" },
+  { icon: "grid", label: "More", name: "more" },
 ];
 
 /**

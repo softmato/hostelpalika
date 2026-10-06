@@ -74,3 +74,5 @@ apps/web/public/uploads/activation-qr/
 # git history. Keep those in a private R2 prefix.
 fixtures/evidence-golden/*
 !fixtures/evidence-golden/manifest.json
+.vercel
+.env*

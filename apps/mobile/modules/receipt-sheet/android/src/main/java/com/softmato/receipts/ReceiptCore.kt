@@ -44,6 +44,15 @@ object ReceiptCore {
   }
   fun prefs(c: Context) = c.getSharedPreferences("receipt-settings", Context.MODE_PRIVATE)
   fun base(c: Context) = prefs(c).getString("base", "https://hostelpalika.com")!!
+  /** Receipts handed to [ReceiptSaveService], kept until saved or reviewed; a day later they are swept. */
+  fun pending(c: Context) = File(c.noBackupFilesDir, "receipts").apply {
+    mkdirs(); listFiles()?.filter { it.lastModified() < System.currentTimeMillis() - 86_400_000 }?.forEach { it.delete() }
+  }
+  /** "Don't ask next time" for the signed-in account and hostel — the key the app last set via `setAutoKey`. */
+  fun autoSaveOn(c: Context) = try {
+    val key = prefs(c).getString("autoKey", null)
+    key != null && prefs(c).getBoolean(key, false) && read(c) != null
+  } catch (_: Exception) { false }
   fun configure(c: Context, base: String, hostel: String?) {
     require(URL(base).protocol == "https") { "Receipt sharing requires HTTPS" }
     prefs(c).edit().putString("base", base.trimEnd('/')).putString("hostel", hostel).apply()
@@ -62,8 +71,10 @@ object ReceiptCore {
       val stream = if (status in 200..299) connection.inputStream else connection.errorStream
       val raw = stream?.bufferedReader()?.use { it.readText() }.orEmpty()
       val result = try { JSONObject(raw) } catch (_: Exception) { JSONObject().put("message", "Server unavailable. Try again.") }
+      // No disconnect(): the body is read and closed, so the socket goes back to the pool
+      // and the next call of this share skips a fresh TLS handshake.
       return status to result
-    } finally { connection.disconnect() }
+    } catch (e: Exception) { connection.disconnect(); throw e }
   }
   fun refresh(c: Context, base: String, previous: String? = null): String? = synchronized(lock) {
     require(URL(base).protocol == "https")

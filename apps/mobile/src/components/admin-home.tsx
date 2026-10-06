@@ -624,51 +624,24 @@ export function ServiceGrid({
 }) {
   const { colors, scheme } = useAppTheme();
 
+  // Finance, Expenses and Stock sit in the row above, so no second door here.
   const services = [
-    { href: "/manage/finance", icon: "cash-outline", label: "Finance", tone: "success" },
-    /*
-      Money Out, beside the money that comes in. A warden without
-      `recordExpenses` who taps it is told so on the screen, the way every
-      other permission-gated tile here behaves.
-    */
-    { href: "/expenses", icon: "wallet-outline", label: "Expenses", tone: "success" },
-    { href: "/(admin)/residents", icon: "people-outline", label: "Residents", tone: "admin" },
-    /*
-      Roll call came down from the shortcut row when the Store took its cell.
-
-      It belongs in a grid of destinations rather than in a row of shortcuts, by
-      the rule that row is chosen on: those four are jobs done *standing up*, and
-      this is a roster somebody sits and reads top to bottom. It kept the moon
-      and the amber it had, so anyone who learnt the glyph finds the same object
-      one section lower — and the nightly path to it through Today is unchanged.
-
-      Next to Residents deliberately: it is that list, at night.
-    */
+    { href: "/manage/rooms", icon: "bed-outline", label: "Rooms", tone: "brand" },
+    ...(owner
+      ? [{ href: "/manage/wardens", icon: "shield-checkmark-outline", label: "Wardens", tone: "admin" } as const]
+      : []),
+    { href: "/manage/cook", icon: "flame-outline", label: "Cooks", tone: "warning" },
     { href: "/manage/roll-call", icon: "moon-outline", label: "Night status", tone: "warning" },
+    { href: "/manage/food", icon: "restaurant-outline", label: "Food", tone: "warning" },
+    { href: "/manage/notices", icon: "megaphone-outline", label: "Notices", tone: "warning" },
+    { href: "/manage/maintenance", icon: "construct-outline", label: "Repairs", tone: "danger" },
+    { href: "/(admin)/residents", icon: "people-outline", label: "Residents", tone: "admin" },
     {
       href: "/manage/complaints",
       icon: "chatbox-ellipses-outline",
       label: "Complaints",
       tone: "danger",
     },
-    { href: "/manage/rooms", icon: "bed-outline", label: "Rooms", tone: "brand" },
-    { href: "/manage/notices", icon: "megaphone-outline", label: "Notices", tone: "warning" },
-    { href: "/manage/food", icon: "restaurant-outline", label: "Food", tone: "warning" },
-    /*
-      Beside Food, not inside it. Who is allowed to say a meal is ready used to
-      be a card at the bottom of the menu editor, which was fine while it was a
-      name and a switch — it is now a roster with two kinds of access, a rotate
-      and a removal that renames a departed cook's history, and that is a door
-      of its own. `manage/food.tsx` keeps a single row pointing here.
-    */
-    { href: "/manage/cook", icon: "flame-outline", label: "Cooks", tone: "warning" },
-    // The kitchen's sacks and sabji, beside the people who cook with them (docs/INVENTORY_PLAN.md).
-    { href: "/stock", icon: "cube-outline", label: "Stock", tone: "success" },
-    // Beside Cooks: both are "who else works here".
-    ...(owner
-      ? [{ href: "/manage/wardens", icon: "shield-checkmark-outline", label: "Wardens", tone: "admin" } as const]
-      : []),
-    { href: "/manage/maintenance", icon: "construct-outline", label: "Repairs", tone: "danger" },
     { href: "/manage/reports", icon: "bar-chart-outline", label: "Reports", tone: "admin" },
     // Moved here from the Reports screen: inviting a hostel is a job, not a figure.
     { href: "/manage/referrals", icon: "gift-outline", label: "Referrals", tone: "brand" },
@@ -917,21 +890,18 @@ export function QuickActions({
  * a single scroll. `more.tsx` keeps its row, having no "Waiting for you".
  */
 export function WaitingActions({
-  inquiries,
-  onInquiries,
-  onReconcile,
+  onExpenses,
+  onFinance,
   onStatement,
-  onToday,
+  onStock,
 }: {
-  inquiries: number;
-  onInquiries: () => void;
-  /** `manage/statements` — importing a bank or wallet export and matching it. */
-  onReconcile: () => void;
+  onExpenses: () => void;
+  onFinance: () => void;
   /** `manage/finance/statement` — the ledger of credits, day by day. */
   onStatement: () => void;
-  onToday: () => void;
+  onStock: () => void;
 }) {
-  const { colors, scheme } = useAppTheme();
+  const { colors } = useAppTheme();
 
   return (
     <ActionCard>
@@ -947,36 +917,9 @@ export function WaitingActions({
         onPress={onStatement}
         tone="success"
       />
-      {/*
-        The bank import, under the name of the job rather than of the file.
-
-        No badge: an import is something you *do*, not a queue that fills — the
-        same reason `Today` below carries none. It keeps the amber the cell
-        beside it used to have, so the row still reads left-to-right as "the
-        money paperwork, then the people, then the day".
-      */}
-      <ActionCell
-        glyph={colors.warning}
-        icon="git-compare-outline"
-        label="Reconcile"
-        onPress={onReconcile}
-        tone="warning"
-      />
-      <ActionCell
-        badge={inquiries}
-        glyph={roleAccent.ADMIN[scheme]}
-        icon="mail-outline"
-        label="New inquiries"
-        onPress={onInquiries}
-        tone="admin"
-      />
-      <ActionCell
-        glyph={colors.success}
-        icon="today-outline"
-        label="Today"
-        onPress={onToday}
-        tone="success"
-      />
+      <ActionCell glyph={colors.warning} icon="cube-outline" label="Stock" onPress={onStock} tone="warning" />
+      <ActionCell glyph={colors.success} icon="cash-outline" label="Finance" onPress={onFinance} tone="success" />
+      <ActionCell glyph={colors.success} icon="wallet-outline" label="Expenses" onPress={onExpenses} tone="success" />
     </ActionCard>
   );
 }

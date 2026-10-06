@@ -1699,7 +1699,7 @@ into six prompts to argue about.
 ---
 
 ## M8 — Native polish & offline
-
+- ☑ Biometric unlock gating app open — `lib/app-lock.ts` + `components/app-lock.tsx`: splash → fingerprint on every open (30 s grace for pickers), offered by sheet on each cold open, Settings → Security toggle; Gmail code (`/auth/biometric/code`) is the recovery and what turning it off needs. Cooks only when the owner turns on Cook → "Cooks lock the app with a fingerprint" (`HostelSettings.cookFingerprintLock`); `@cook.local` logins recover by password. Recents thumbnail hidden on Android 13+ (`modules/hostelhub-app-lock`). Plus "Update available" sheet (`components/update-sheet.tsx`: OTA + Play in-app update via `modules/hostelhub-app-update` + App Store lookup on iOS, needs a new native build)
 - ☐ Biometric unlock (`expo-local-authentication`) gating app open, opt-in in Settings
 - ☐ Offline: persisted slices render cached dashboard/payments/notices with a stale banner
 - ☐ Queue payment-claim uploads made offline; flush on reconnect
@@ -1773,6 +1773,15 @@ Explicitly out of scope for the first release. The server side already exists
 - ☐ EAS `preview` APK distributed internally
 - ☐ Physical Android device pass over every acceptance test above
 - ☐ iOS simulator pass (physical device if one is available)
+- ☐ **iOS "Update available" — prove it on the first App Store release.** Built
+      2026-10-06 but never run: the app is not on the App Store yet, so Apple's
+      lookup has nothing to answer. `components/update-sheet.tsx` →
+      `appStoreUpdateUrl` in `lib/app-version.ts` asks
+      `itunes.apple.com/lookup?bundleId=…&country=np|in` and opens the store page
+      (Apple allows no in-app install). When the iOS app is live:
+  - ☐ Its App Store countries are in the `["np", "in"]` list in `lib/app-version.ts` — a missing country answers nothing and no sheet ever shows
+  - ☐ `version` in `app.json` is raised for every App Store release (the check compares it; the build number alone does not count) — together with a new build, since `version` moves the fingerprint
+  - ☐ From an iPhone on the previous store version: the sheet appears (Apple's lookup can lag hours to a day after release) and "Update now" lands on the App Store page
 - ☐ EAS `production` build; `expo-updates` channel configured
 - ☐ `CHANGELOG.md` entry, `docs/MEMORY.md` updated, PHASES.md §6 ticked
 

@@ -1,6 +1,8 @@
 import { router } from "expo-router";
+import type { ReactNode } from "react";
 import { View } from "react-native";
 
+import { useBranchesLock } from "@/components/hostel-switcher";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,7 +10,7 @@ import { Card, SectionHeader } from "@/components/ui/card";
 import { ListRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
-import { ErrorState } from "@/components/ui/states";
+import { EmptyState, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useResource } from "@/hooks/use-resource";
 import { setActiveHostelId } from "@/lib/active-hostel";
@@ -23,9 +25,34 @@ const STATUS: Record<
   REJECTED: { label: "Not approved", tone: "danger" },
 };
 
+/** Max only, owner only (`useBranchesLock`) — says so instead of fetching a 403. */
 export default function BranchesScreen() {
-  const branches = useResource(getBranches, { cacheKey: "admin:branch-list" });
+  const lock = useBranchesLock();
   const header = <AppBar accent centerTitle showBack title="Branches" />;
+
+  if (lock) {
+    return (
+      <Screen header={header}>
+        <EmptyState icon="lock-closed-outline" title={lock} tone="warning" />
+      </Screen>
+    );
+  }
+
+  if (lock === undefined) {
+    return (
+      <Screen header={header}>
+        <View className="gap-4 pt-1">
+          <SkeletonCard rows={3} />
+        </View>
+      </Screen>
+    );
+  }
+
+  return <BranchList header={header} />;
+}
+
+function BranchList({ header }: { header: ReactNode }) {
+  const branches = useResource(getBranches, { cacheKey: "admin:branch-list" });
 
   if (branches.loading) {
     return (

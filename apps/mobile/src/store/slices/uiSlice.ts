@@ -14,8 +14,6 @@ export type CalendarPreference = "AD" | "BS";
 
 export type UiState = {
   calendarPreference: CalendarPreference;
-  /** Set by the biometric gate in M8; ignored until then. */
-  isUnlocked: boolean;
   themePreference: ThemePreference;
 };
 
@@ -37,7 +35,6 @@ const initialState: UiState = {
    * back. See `hooks/use-dates.ts` for how the choice reaches the screens.
    */
   calendarPreference: "BS",
-  isUnlocked: true,
   /*
    * Light by default, deliberately — not "system".
    *
@@ -60,13 +57,10 @@ const uiSlice = createSlice({
     setThemePreference(state, action: PayloadAction<ThemePreference>) {
       state.themePreference = action.payload;
     },
-    setUnlocked(state, action: PayloadAction<boolean>) {
-      state.isUnlocked = action.payload;
-    },
   },
 });
 
-export const { setCalendarPreference, setThemePreference, setUnlocked } =
+export const { setCalendarPreference, setThemePreference } =
   uiSlice.actions;
 
 export default uiSlice.reducer;

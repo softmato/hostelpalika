@@ -5,6 +5,10 @@ describe("shared expense suggestions", () => {
   it("permits a complete successful outgoing receipt", () => {
     expect(expenseReceiptSuggestions(clear).autoSaveEligible).toBe(true);
   });
+  it("keys duplicates on the transaction id, whatever its spacing or case", () => {
+    expect(expenseReceiptSuggestions(clear).txnId).toBe("8823119471");
+    expect(expenseReceiptSuggestions(clear.replace("8823119471", "8823 1194 71")).txnId).toBe("8823119471");
+  });
   it("never auto-saves incoming, failed or pending receipts with otherwise complete fields", () => {
     for (const text of [clear + "\nTransaction failed", clear + "\nPending", clear.replace("Money sent", "Money received\nReceived from Ramesh")]) {
       expect(expenseReceiptSuggestions(text).autoSaveEligible).toBe(false);

@@ -7,6 +7,7 @@ import { verifyAccessToken } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import { type HostelPhoto, resolveHostelPhotos } from "@/lib/hostel-photos";
 import { Role } from "@/lib/roles";
+import { planBranchCap } from "@/modules/billing/billing-hostel";
 import { HostelModel } from "@hostel/db/models/Hostel";
 
 type WorkspaceHostel = {
@@ -142,5 +143,29 @@ export const canOpenOverall = cache(async (): Promise<boolean> => {
     return payload.role === Role.HOSTEL_ADMIN && (await listWorkspaceHostels()).length > 1;
   } catch {
     return false;
+  }
+});
+
+/**
+ * Why Branches is closed in this workspace, or null when it is open. Branches
+ * come with Max and only the owner runs them — the nav hides the screen, the
+ * switcher's "Manage branches" toasts this, and the screen says it.
+ */
+export const branchesLock = cache(async (slug: string): Promise<string | null> => {
+  const hostel = (await listWorkspaceHostels()).find((entry) => entry.slug === slug);
+
+  if (!hostel) return null;
+  if ((await planBranchCap(hostel.id)) === 0) return "You need the Max plan to use branches.";
+
+  const token = readAccessTokenCookie(await cookies());
+
+  if (!token) return null; // dev preview, no session
+
+  try {
+    const payload = await verifyAccessToken(token);
+
+    return payload.role === Role.HOSTEL_ADMIN ? null : "Only the hostel owner can manage branches.";
+  } catch {
+    return "Only the hostel owner can manage branches.";
   }
 });

@@ -732,9 +732,20 @@ export async function getCookRoster() {
     ApiEnvelope<{
       cooks: CookAccount[];
       expensesEnabled?: boolean;
+      fingerprintLock?: boolean;
       portalEnabled: boolean;
     }>
   >("/hostel-admin/cooks");
+
+  return unwrap(response);
+}
+
+/** Owner only: ask every cook to lock the app with a fingerprint (`lib/app-lock.ts`). */
+export async function setCookFingerprintLock(enabled: boolean) {
+  const response = await api.put<ApiEnvelope<{ fingerprintLock: boolean }>>(
+    "/hostel-admin/cooks/fingerprint",
+    { enabled },
+  );
 
   return unwrap(response);
 }

@@ -70,7 +70,7 @@ export default function RoleLayout() {
       { icon: "restaurant", label: "Menu", name: "menu" },
       { icon: "chatbubbles", label: "Community", name: "community" },
       { icon: "camera", label: "Photos", name: "photos" },
-      { icon: "ellipsis-horizontal", label: "More", name: "more" },
+      { icon: "grid", label: "More", name: "more" },
     ],
     [now, today],
   );

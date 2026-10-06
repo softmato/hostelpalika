@@ -1,7 +1,6 @@
-import { Linking, View } from "react-native";
+import { Linking } from "react-native";
 
-import { Card, SectionHeader } from "@/components/ui/card";
-import { ListRow, RowDivider } from "@/components/ui/list-row";
+import { MenuGroup, MenuRow } from "@/components/more-menu";
 import { useSiteConfig } from "@/hooks/use-site-config";
 
 /**
@@ -16,33 +15,27 @@ export function SupportContact() {
   }
 
   return (
-    <View>
-      <SectionHeader title="Get in touch" />
-      <Card>
-        {identity.supportPhone ? (
-          <ListRow
-            icon="call-outline"
-            onPress={() =>
-              void Linking.openURL(`tel:${identity.supportPhone.replace(/\s/g, "")}`)
-            }
-            title={identity.supportPhone}
-          />
-        ) : null}
-        {identity.supportPhone && identity.supportEmail ? <RowDivider inset /> : null}
-        {identity.supportEmail ? (
-          <ListRow
-            icon="mail-outline"
-            onPress={() => void Linking.openURL(`mailto:${identity.supportEmail}`)}
-            title={identity.supportEmail}
-          />
-        ) : null}
-        {identity.address && (identity.supportPhone || identity.supportEmail) ? (
-          <RowDivider inset />
-        ) : null}
-        {identity.address ? (
-          <ListRow icon="location-outline" title={identity.address} />
-        ) : null}
-      </Card>
-    </View>
+    <MenuGroup>
+      {identity.supportPhone ? (
+        <MenuRow
+          icon="call"
+          onPress={() =>
+            void Linking.openURL(`tel:${identity.supportPhone.replace(/\s/g, "")}`)
+          }
+          title={identity.supportPhone}
+        />
+      ) : null}
+      {identity.supportEmail ? (
+        <MenuRow
+          icon="mail"
+          onPress={() => void Linking.openURL(`mailto:${identity.supportEmail}`)}
+          title={identity.supportEmail}
+          tone="warning"
+        />
+      ) : null}
+      {identity.address ? (
+        <MenuRow icon="location" title={identity.address} tone="neutral" />
+      ) : null}
+    </MenuGroup>
   );
 }

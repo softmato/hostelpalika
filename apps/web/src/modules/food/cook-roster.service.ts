@@ -365,8 +365,12 @@ export async function listCookAccounts(
     .sort({ createdAt: 1 })
     .lean<CookAccountRecord[]>();
   const settings = await HostelSettingsModel.findOne({ hostelId })
-    .select("cookCanRecordExpenses cookPortalEnabled")
-    .lean<{ cookCanRecordExpenses?: boolean; cookPortalEnabled?: boolean } | null>();
+    .select("cookCanRecordExpenses cookFingerprintLock cookPortalEnabled")
+    .lean<{
+      cookCanRecordExpenses?: boolean;
+      cookFingerprintLock?: boolean;
+      cookPortalEnabled?: boolean;
+    } | null>();
 
   // One query for every live cook's account rather than one per row: the flag
   // being read is `mustChangePassword`, which only exists on the User.
@@ -394,8 +398,36 @@ export async function listCookAccounts(
     ],
     /** Whether the cook may add expenses. Only the owner can change it. */
     expensesEnabled: Boolean(settings?.cookCanRecordExpenses),
+    /** Whether cooks are asked for a fingerprint lock in the app. Owner only. */
+    fingerprintLock: Boolean(settings?.cookFingerprintLock),
     portalEnabled: Boolean(settings?.cookPortalEnabled),
   };
+}
+
+/**
+ * The owner's call, like the cook's *Add expense*: whether every cook of this
+ * hostel is asked to lock the app with a fingerprint. Reaches the cook through
+ * `/auth/me` and the sign-in payload (`cookFingerprintLock`).
+ */
+export async function setCookFingerprintLock(
+  principal: ApiPrincipal,
+  enabled: boolean,
+  requestedHostelId?: string,
+) {
+  await connectToDatabase();
+
+  const hostelId = resolveAdminHostelId(principal, requestedHostelId);
+
+  await HostelSettingsModel.updateOne(
+    { hostelId },
+    {
+      $set: { cookFingerprintLock: enabled, updatedBy: principal.userId },
+      $setOnInsert: { hostelId },
+    },
+    { upsert: true },
+  );
+
+  return { fingerprintLock: enabled };
 }
 
 async function assertRoomForAnotherCook(hostelId: Types.ObjectId) {

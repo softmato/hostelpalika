@@ -1,31 +1,26 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 
+import { AppRows, MenuGroup, MenuGroups, MenuProfile, MenuRow, MenuSearch, SignOutRow } from "@/components/more-menu";
+import { AdminSearchBar } from "@/components/admin-search-bar";
 import { NotificationBell } from "@/components/notification-bell";
 import { SupportContact } from "@/components/support-contact";
-import { AppBar } from "@/components/ui/app-bar";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Card, SectionHeader } from "@/components/ui/card";
 import { FactRow } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
-import { useAppDispatch, useAppSelector } from "@/hooks/redux";
-import { useAppTheme } from "@/hooks/use-app-theme";
+import { useAppSelector } from "@/hooks/redux";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
-import { endSession } from "@/lib/auth-session";
-import { openConfirm } from "@/lib/confirm";
 import type { CookToday, FoodReadyAnnouncement } from "@/lib/cook-api";
 import { cookQuery } from "@/lib/cook-queries";
 import { collectDeviceInfo } from "@/lib/device-info";
 import { humanizeEnum } from "@/lib/format";
-import { setThemePreference } from "@/store/slices/uiSlice";
 
 /**
  * The kitchen's account, the handset it is signed in on, and what it has called.
@@ -46,49 +41,30 @@ import { setThemePreference } from "@/store/slices/uiSlice";
  *
  * ## The announcement history came here from the Photos tab
  *
- * It sat under the photo feed, on a tab named "Photos", and it is the list that
- * grows: a hostel serving four meals a day adds a hundred and twenty rows a
- * month underneath the control a cook opens that tab to press.
- *
- * It belongs here because it is the **same subject as the block above it**. The
- * device section says which handset is stamped on an announcement; this says
- * which announcements were stamped. Together they are the whole of what a shared
- * kitchen login can be held to, which is the one thing this screen exists to be
- * honest about.
- *
- * "Did I already announce lunch?" is not this list's question — that is answered
- * on Today, on the meal's own card, which carries `Sent 12:04`.
+ * It is the list that grows, and it is the same subject as the device block
+ * above it: which handset is stamped on an announcement, then which
+ * announcements were stamped. "Did I already announce lunch?" is answered on
+ * Today, on the meal's own card.
  *
  * ## No privacy or account-deletion row, deliberately
  *
- * Every other portal's More has one into `settings?section=privacy`, whose
- * pathways include closing the account. A cook login belongs to **the hostel**
- * — a generated one outright, an invited one for as long as the hostel says so
- * — and the person holding the phone at 6am is not the person entitled to
- * close it. The office removes a cook from `manage/cook`, which is where that
- * decision has an owner.
+ * A cook login belongs to **the hostel**, and the person holding the phone at
+ * 6am is not the person entitled to close it. The office removes a cook from
+ * `manage/cook`, which is where that decision has an owner.
  */
 export default function CookMoreScreen() {
   const dates = useDates();
   const account = useAppSelector((state) => state.auth.account);
-  const preference = useAppSelector((state) => state.ui.themePreference);
-  const dispatch = useAppDispatch();
-  const { colors } = useAppTheme();
+  const [search, setSearch] = useState("");
   const [device, setDevice] = useState<Record<string, unknown> | null>(null);
-  const [signingOut, setSigningOut] = useState(false);
 
-  /*
-   * Under the portal's own key, warmed on entry — see `lib/cook-queries.ts`.
-   * It is the one read on this screen and it is allowed to fail on its own: a
-   * kitchen whose log errors must still be able to read its device details and
-   * sign out.
-   */
   // Cached by Today; read here only for whether the owner turned expenses on.
   const kitchenQuery = cookQuery.today();
   const kitchen = useResource<CookToday>(kitchenQuery.load, {
     cacheKey: kitchenQuery.key,
     topics: kitchenQuery.topics,
   });
+  // Allowed to fail on its own: the device details and sign-out must still work.
   const query = cookQuery.announcements();
   const logs = useResource<FoodReadyAnnouncement[]>(query.load, {
     cacheKey: query.key,
@@ -109,197 +85,81 @@ export default function CookMoreScreen() {
     };
   }, []);
 
-  const signOut = useCallback(() => {
-    openConfirm({
-      confirmLabel: "Sign out",
-      destructive: true,
-      message:
-        "You'll need your cook sign-in to get back in — the hostel office can issue a new password if it has been lost.",
-      onConfirm: () => {
-        setSigningOut(true);
-        void endSession().finally(() => router.replace("/(browse)"));
-      },
-      title: "Sign out?",
-    });
-  }, []);
-
-  const nextTheme = preference === "dark" ? "light" : "dark";
   const deviceName = [device?.brand, device?.model].filter(Boolean).join(" ");
   const fingerprint = typeof device?.fingerprint === "string" ? device.fingerprint : "";
   const announcements = logs.data ?? [];
 
   return (
     <Screen
-      header={<AppBar actions={<NotificationBell />} large title="More" />}
+      header={<AdminSearchBar actions={<NotificationBell />} onQueryChange={setSearch} placeholder="Search" query={search} title="More" />}
       insideTabs
       onRefresh={logs.refresh}
       refreshing={logs.refreshing}
       scroll
     >
-      <View className="gap-5 pt-1">
-        {/*
-          An `<Avatar>`, as every other More screen in the app opens with — and
-          this one is the only place in the product where the initial is
-          deliberately *not* a person. It is the kitchen, and the caption under
-          it says so in the same breath.
-        */}
-        <Card className="flex-row items-center gap-3">
-          <PersonAvatar
-            image={account?.image}
-            name={account?.name ?? "Kitchen"}
-            size="lg"
-          />
+      <MenuSearch query={search}>
+        {/* The one avatar in the product that is deliberately not a person. */}
+        <MenuProfile
+          avatar={<PersonAvatar image={account?.image} name={account?.name ?? "Kitchen"} size="xl" />}
+          lines={["Shared by the whole kitchen. Announcements are traced to the device that sent them."]}
+          title={account?.name ?? "Kitchen"}
+        />
 
-          <View className="flex-1 gap-0.5">
-            <Text numberOfLines={1} variant="subtitle">
-              {account?.name ?? "Kitchen"}
-            </Text>
-            <Text variant="caption">
-              Shared by the whole kitchen. Announcements are traced to the device that
-              sent them, not to a person.
-            </Text>
-          </View>
-        </Card>
+        <MenuGroups>
+          {kitchen.data?.expensesEnabled ? (
+            <MenuGroup>
+              <MenuRow icon="add-circle-outline" onPress={() => router.push("/expenses/new")} title="Add expense" />
+              <MenuRow icon="wallet-outline" onPress={() => router.push("/expenses")} title="My expenses" tone="warning" />
+            </MenuGroup>
+          ) : null}
 
-        <View>
-          <SectionHeader
-            subtitle="Stamped on every announcement sent from here"
-            title="This device"
-          />
-          {/*
-            `<FactRow>` rather than three `<ListRow>`s with a `value`. These are
-            read-only facts, not rows you can press — and a fingerprint is
-            exactly the string `NOTES.md` §8's label/value pair exists to let
-            wrap, instead of being squeezed into the ~150dp a 320dp phone leaves
-            a right-hand column.
-          */}
-          <Card className="gap-2">
-            <FactRow label="Handset" value={deviceName || "Unknown"} />
-            <FactRow
-              label="Fingerprint"
-              value={fingerprint ? `${fingerprint.slice(0, 8)}…` : "Not available"}
-            />
-            <FactRow label="App version" value={String(device?.appVersion ?? "—")} />
-          </Card>
-        </View>
+          {/* `<FactRow>`: read-only facts that may wrap, not rows you can press. */}
+          <MenuGroup title="This device · stamped on every announcement">
+            <View className="gap-2 py-2">
+              <FactRow label="Handset" value={deviceName || "Unknown"} />
+              <FactRow
+                label="Fingerprint"
+                value={fingerprint ? `${fingerprint.slice(0, 8)}…` : "Not available"}
+              />
+              <FactRow label="App version" value={String(device?.appVersion ?? "—")} />
+            </View>
+          </MenuGroup>
 
-        <View>
-          <SectionHeader
-            subtitle="Everything this kitchen has called, newest first"
-            title="Announcement history"
-          />
-
-          {logs.error ? (
-            <Card>
+          <MenuGroup title="Announcement history">
+            {logs.error ? (
               <ErrorState message={logs.error} onRetry={logs.reload} />
-            </Card>
-          ) : logs.loading ? (
-            <SkeletonRows rows={5} />
-          ) : announcements.length === 0 ? (
-            <Card>
-              <Text variant="muted">
+            ) : logs.loading ? (
+              <SkeletonRows rows={5} />
+            ) : announcements.length === 0 ? (
+              <Text className="py-2" variant="muted">
                 Announce a meal from the Today tab and it appears here.
               </Text>
-            </Card>
-          ) : (
-            <Card padding="px-4 py-1">
-              {announcements.map((log, index) => (
+            ) : (
+              announcements.map((log, index) => (
                 <View key={log.id}>
                   {index > 0 ? <RowDivider /> : null}
                   <ListRow
                     right={
-                      /*
-                        `notifiedCount`, and amber when it is zero. The fan-out
-                        returns 201 once the log row is written whether or not a
-                        single resident had an account — so a green pill on a
-                        zero would tell a kitchen the hostel had been called to
-                        dinner when nobody was told.
-                      */
+                      // Amber on zero: a 201 is returned whether or not anybody was told.
                       <Badge
                         label={`${log.notifiedCount} notified`}
                         tone={log.notifiedCount > 0 ? "success" : "warning"}
                       />
                     }
-                    /*
-                      Who called it, under what was said. This is where a
-                      removed cook shows up as "Previous Sunrise cook" — the
-                      whole point of keeping their roster row after their
-                      account is gone. Rows from before the roster carry no
-                      name and simply show the message, which is what they
-                      always showed.
-                    */
-                    subtitle={
-                      [log.announcedBy, log.message].filter(Boolean).join(" · ") ||
-                      undefined
-                    }
-                    title={`${humanizeEnum(log.mealType)} · ${dates.dateTime(
-                      log.announcedAt,
-                    )}`}
+                    // A removed cook shows up here as "Previous <hostel> cook".
+                    subtitle={[log.announcedBy, log.message].filter(Boolean).join(" · ") || undefined}
+                    title={`${humanizeEnum(log.mealType)} · ${dates.dateTime(log.announcedAt)}`}
                   />
                 </View>
-              ))}
-            </Card>
-          )}
-        </View>
+              ))
+            )}
+          </MenuGroup>
 
-        {kitchen.data?.expensesEnabled ? (
-          <View>
-            <SectionHeader title="Money" />
-            <Card padding="px-4 py-1">
-              <ListRow
-                icon="add-circle-outline"
-                onPress={() => router.push("/expenses/new")}
-                subtitle="What the kitchen paid for"
-                title="Add expense"
-              />
-              <RowDivider inset />
-              <ListRow
-                icon="wallet-outline"
-                onPress={() => router.push("/expenses")}
-                subtitle="Everything added from this phone"
-                title="My expenses"
-              />
-            </Card>
-          </View>
-        ) : null}
-
-        <View>
-          <SectionHeader title="App" />
-          <Card padding="px-4 py-1">
-            <ListRow
-              icon={preference === "dark" ? "moon-outline" : "sunny-outline"}
-              onPress={() => dispatch(setThemePreference(nextTheme))}
-              subtitle={`Currently ${preference}`}
-              title="Theme"
-              value={`Switch to ${nextTheme}`}
-            />
-            <RowDivider inset />
-            <ListRow
-              icon="notifications-outline"
-              onPress={() => router.push("/notifications")}
-              subtitle="Everything the platform has sent this account"
-              title="Notifications"
-            />
-          </Card>
-        </View>
-
-        <SupportContact />
-
-        <Card padding="px-4 py-1">
-          <ListRow
-            icon="log-out-outline"
-            onPress={signOut}
-            right={
-              <Ionicons
-                color={colors.destructive}
-                name={signingOut ? "hourglass-outline" : "chevron-forward"}
-                size={18}
-              />
-            }
-            title="Sign out"
-          />
-        </Card>
-      </View>
+          <AppRows privacy={false} />
+          <SupportContact />
+          <SignOutRow message="You'll need your cook sign-in to get back in — the hostel office can issue a new password if it has been lost." />
+        </MenuGroups>
+      </MenuSearch>
     </Screen>
   );
 }

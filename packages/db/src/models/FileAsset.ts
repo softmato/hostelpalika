@@ -92,6 +92,8 @@ const fileAssetSchema = new Schema(
      * payment*, and that rule belongs to the finance module, which reads this.
      */
     systemDocumentKind: { type: String, enum: ["RECEIPT", "STATEMENT"] },
+    /** Bank/wallet transaction id read off a shared expense receipt; copied onto the Expense at Save. */
+    receiptTxnId: String,
     /**
      * What the decoded image measures (gap fixes 2 and 3). Images only.
      *

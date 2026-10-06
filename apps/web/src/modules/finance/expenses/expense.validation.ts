@@ -50,6 +50,8 @@ export const createExpenseSchema = z
       })
       .optional(),
     sharedReceipt: z.boolean().optional(),
+    /** The Android share sheet posts its own "saved" notice, so the server skips the push. */
+    notifiedOnDevice: z.boolean().optional(),
     spentOn: calendarDaySchema.optional(),
     /** `STAFF_CASH` only: which warden got the money. */
     cashTo: z.object({ userId: objectIdSchema }).optional(),

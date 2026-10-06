@@ -26,6 +26,7 @@ import {
   fetchMe,
   logout as revokeSession,
 } from "@/lib/auth-api";
+import { disarmFingerprint } from "@/lib/app-lock";
 import { revokePushToken } from "@/lib/push-notifications";
 import { setActiveHostelId } from "@/lib/active-hostel";
 import { clearQueryCache } from "@/lib/query-cache";
@@ -313,6 +314,8 @@ export async function endSession(options?: {
   }
 
   await clearTokens();
+  // The lock belonged to the account leaving; `resetStore` drops its flag.
+  await disarmFingerprint();
 
   store.dispatch(resetStore());
   await persistor.purge();

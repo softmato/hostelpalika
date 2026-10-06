@@ -3,28 +3,23 @@ import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import { Linking, View } from "react-native";
 
+import { AppRows, MenuGroup, MenuGroups, MenuProfile, MenuRow, MenuSearch, SignOutRow } from "@/components/more-menu";
+import { AdminSearchBar } from "@/components/admin-search-bar";
 import { ProviderStatusCard } from "@/components/provider-status-card";
 import { SupportContact } from "@/components/support-contact";
-import { AppBar } from "@/components/ui/app-bar";
 import { PersonAvatar } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, SectionHeader } from "@/components/ui/card";
-import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { readableRole } from "@/constants/roles";
-import { useAppDispatch, useAppSelector } from "@/hooks/redux";
+import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
 import { useSiteConfig } from "@/hooks/use-site-config";
-import { endSession } from "@/lib/auth-session";
-import { openConfirm } from "@/lib/confirm";
 import type { ProviderApplication } from "@/lib/provider-api";
 import { providerQuery } from "@/lib/provider-queries";
 import { isApplicationInFlight } from "@/lib/provider-status";
 import { toastInfo } from "@/lib/toast";
-import { setThemePreference } from "@/store/slices/uiSlice";
 
 /**
  * Profile — and, since the tab bar replaced the signed-out shell, the app's
@@ -71,11 +66,9 @@ import { setThemePreference } from "@/store/slices/uiSlice";
 export default function BrowseProfileScreen() {
   const account = useAppSelector((state) => state.auth.account);
   const saved = useAppSelector((state) => state.saved.items);
-  const preference = useAppSelector((state) => state.ui.themePreference);
-  const dispatch = useAppDispatch();
+  const [search, setSearch] = useState("");
   const { colors } = useAppTheme();
   const { config, refresh, refreshing } = useSiteConfig();
-  const [signingOut, setSigningOut] = useState(false);
 
   /*
    * Whether this account has a service provider application in motion.
@@ -105,29 +98,6 @@ export default function BrowseProfileScreen() {
     toastInfo(`${what} is coming`, "It lands in the next release.");
   }, []);
 
-  const signOut = useCallback(() => {
-    openConfirm({
-      confirmLabel: "Sign out",
-      destructive: true,
-      message: "You'll need your password to get back in.",
-      onConfirm: () => {
-          setSigningOut(true);
-          /*
-           * Back to these same tabs, signed out — this screen simply redraws its
-           * top card as the guest one. `replace` rather than nothing, because
-           * `endSession` resets the store and the router has to remount the
-           * group from the boot gate for the accent and the avatar tab to
-           * follow; `endSession` only navigates on the server-driven path
-           * (`onSessionEnded`), not on a deliberate sign-out.
-           */
-          void endSession().finally(() => router.replace("/(browse)"));
-      },
-      title: "Sign out?",
-    });
-  }, []);
-
-  const nextTheme = preference === "dark" ? "light" : "dark";
-
   const socialLinks = (
     [
       ["Facebook", social.facebook],
@@ -141,370 +111,195 @@ export default function BrowseProfileScreen() {
 
   return (
     <Screen
-      header={<AppBar title="Profile" />}
+      header={<AdminSearchBar onQueryChange={setSearch} placeholder="Search" query={search} title="Profile" />}
       insideTabs
       onRefresh={refresh}
       refreshing={refreshing}
       scroll
     >
-      <View className="gap-5 pt-1">
-        {account ? (
-          <Card className="gap-3">
-            <View className="flex-row items-center gap-3">
-              {/* The shared component, which also handles a Google photo and a
-                  photo URL that exists but cannot be drawn. `useAvatarSource`
-                  and not a bare absolute URL: a card photo is served from our
-                  own origin behind auth, so without the bearer token it 401s
-                  and silently becomes an initial. */}
-              <PersonAvatar image={account.image} name={account.name} size="lg" />
-
-              <View className="flex-1">
-                <Text variant="subtitle">{account.name || "Your account"}</Text>
-                <Text variant="caption">{account.email || account.phone || ""}</Text>
-              </View>
-            </View>
-
-            <View className="border-t border-border pt-3">
-              <Text variant="caption">
-                {`${readableRole(account.role)} account — you're browsing, not living in a hostel yet.`}
-              </Text>
-            </View>
-          </Card>
+      <MenuSearch query={search}>
+        {search ? null : account ? (
+          <MenuProfile
+            // `PersonAvatar`, not a bare URL: a card photo is ours, behind auth.
+            avatar={<PersonAvatar image={account.image} name={account.name} size="xl" />}
+            lines={[
+              account.email || account.phone,
+              `${readableRole(account.role)} account — you're browsing, not living in a hostel yet.`,
+            ]}
+            title={account.name || "Your account"}
+          />
         ) : (
           /*
-           * The sign-in card. It is the *only* thing on this screen that differs
-           * between a signed-out reader and a signed-in one, and it sits at the
-           * top so it is the first thing read — not floating over another screen
-           * where it interrupts what someone came to do.
+           * The sign-in block. It is the *only* thing on this screen that differs
+           * between a signed-out reader and a signed-in one, and it sits at the top
+           * so it is the first thing read.
            */
-          <Card className="gap-3">
-            <View className="flex-row items-center gap-3">
-              <View className="h-12 w-12 items-center justify-center rounded-full bg-brand-soft">
-                <Ionicons color={colors.primary} name="person-outline" size={22} />
-              </View>
-              <View className="flex-1">
-                <Text variant="subtitle">You&apos;re browsing as a guest</Text>
-                <Text variant="caption">
-                  Sign in to send inquiries, post in the community and keep your
-                  shortlist across devices.
-                </Text>
-              </View>
-            </View>
-
-            <View className="gap-2 border-t border-border pt-3">
-              <Button label="Sign in" onPress={() => router.push("/(auth)/login")} />
-              <Button
-                label="Create account"
-                onPress={() => router.push("/(auth)/register")}
-                variant="outline"
-              />
-            </View>
-          </Card>
+          <View className="gap-2 pb-3">
+            <MenuProfile
+              avatar={
+                <View className="h-24 w-24 items-center justify-center rounded-full bg-brand-soft">
+                  <Ionicons color={colors.primary} name="person-outline" size={40} />
+                </View>
+              }
+              lines={["Sign in to send inquiries, post in the community and keep your shortlist across devices."]}
+              title="You're browsing as a guest"
+            />
+            <Button label="Sign in" onPress={() => router.push("/(auth)/login")} />
+            <Button
+              label="Create account"
+              onPress={() => router.push("/(auth)/register")}
+              variant="outline"
+            />
+          </View>
         )}
 
         {/*
-          A service provider application in motion, reported on the screen the
-          applicant is actually holding.
-
-          A pending applicant is a `PUBLIC` account, so the app around them is
-          this browsing shell — and until this card the only screen that knew
-          about their application was "Become a service provider", which is the
-          last page somebody who has already applied would open. They had handed
-          over five steps of documents and a photograph of their face and the app
-          looked exactly as it had before.
-
-          Drawn only for a record that is *in motion*: an approved provider never
-          reaches this screen (`resolveHome` routes them to their own tabs), and
-          an account that never applied has nothing to be told. That is also why
-          there is no skeleton — a placeholder on every browsing user's Profile
-          tab, for a card almost none of them will ever see, is a worse trade
-          than the late insert this one occasionally causes.
+          A service provider application in motion, on the screen the applicant is
+          actually holding. Only for a record *in motion*, hence no skeleton.
         */}
-        {!application.loading && isApplicationInFlight(application.data) ? (
-          <ProviderStatusCard application={application.data} />
+        {!search && !application.loading && isApplicationInFlight(application.data) ? (
+          <View className="pb-3">
+            <ProviderStatusCard application={application.data} />
+          </View>
         ) : null}
 
-        <View>
-          <SectionHeader title="Your search" />
-          <Card>
-            {/*
-              Saved hostels are real and **device-local** — the subtitle says so,
-              because a shortlist that does not follow you to another phone is
-              worth knowing about before you build one. It works signed out for
-              the same reason: nothing about it touches an account.
-
-              This used to push `/(browse)` — the Home tab — because Home draws a
-              Saved row. Tapping "Saved hostels" and arriving at the top of a
-              discovery feed, with your shortlist in a carousel three screenfuls
-              down, reads as a broken link. `/saved` is the list and nothing else.
-            */}
-            <ListRow
-              icon="bookmark-outline"
+        <MenuGroups>
+          <MenuGroup>
+            {/* Device-local, so it works signed out. `/saved` is the list and nothing else. */}
+            <MenuRow
+              icon="bookmark"
               onPress={() => router.push("/saved")}
-              right={
-                saved.length > 0 ? (
-                  <Badge label={String(saved.length)} tone="success" />
-                ) : undefined
-              }
-              subtitle={
-                saved.length > 0
-                  ? "Kept on this device"
-                  : "Tap the heart on a hostel to shortlist it"
-              }
               title="Saved hostels"
+              value={saved.length > 0 ? String(saved.length) : undefined}
             />
-
             {account ? (
-              <ListRow
-                icon="calendar-outline"
+              <MenuRow
+                icon="calendar"
                 onPress={() => router.push("/bookings")}
-                subtitle="Rooms you booked, refunds and receipts"
                 title="My bookings"
+                tone="warning"
               />
             ) : null}
-
-            {/*
-              The one honest "not yet" left. `/public/inquiries` is a POST and
-              nothing lists what you have sent, so this row would open onto a
-              permanent empty state. Signed-in only — a guest has no inquiries to
-              have a history of.
-            */}
+            {/* The one honest "not yet" left: nothing lists what you have sent. */}
             {account ? (
-              <>
-                <RowDivider inset />
-                <ListRow
-                  icon="mail-outline"
-                  onPress={() => soon("Your inquiries")}
-                  subtitle="The hostels you've messaged"
-                  title="Inquiries"
-                />
-              </>
+              <MenuRow icon="mail" onPress={() => soon("Your inquiries")} title="Inquiries" tone="neutral" />
             ) : null}
-          </Card>
-        </View>
+          </MenuGroup>
 
-        <View>
-          <SectionHeader title="Explore" />
-          <Card>
-            <ListRow
-              icon="search-outline"
-              onPress={() => router.push("/(browse)/search")}
-              subtitle="Every verified listing, with filters and a map"
-              title="Browse hostels"
-            />
+          <MenuGroup>
+            <MenuRow icon="search" onPress={() => router.push("/(browse)/search")} title="Browse hostels" />
             {features.compare ? (
-              <>
-                <RowDivider inset />
-                <ListRow
-                  icon="git-compare-outline"
-                  onPress={() => router.push("/(browse)/compare")}
-                  subtitle="Put shortlisted hostels side by side"
-                  title="Compare hostels"
-                />
-              </>
+              <MenuRow
+                icon="git-compare"
+                onPress={() => router.push("/(browse)/compare")}
+                title="Compare hostels"
+                tone="warning"
+              />
             ) : null}
-            <RowDivider inset />
-            <ListRow
-              icon="people-outline"
+            <MenuRow
+              icon="people"
               onPress={() => router.push("/(browse)/community")}
-              subtitle="Ask, answer and see what residents are saying"
               title="Community"
+              tone="warning"
             />
             {features.inquiries ? (
-              <>
-                <RowDivider inset />
-                <ListRow
-                  icon="chatbubble-ellipses-outline"
-                  onPress={() => router.push("/inquiry")}
-                  subtitle="Tell us what you need and we'll match you"
-                  title="Send an inquiry"
-                />
-              </>
+              <MenuRow
+                icon="chatbubble-ellipses"
+                onPress={() => router.push("/inquiry")}
+                title="Send an inquiry"
+              />
             ) : null}
-          </Card>
-        </View>
-
-        <View>
-          <SectionHeader title="Programs" />
-          <Card>
-            <ListRow
-              icon="sparkles-outline"
+            <MenuRow
+              icon="sparkles"
               onPress={() => router.push("/offer-program")}
-              subtitle="How rent payments are matched, verified and receipted"
               title="Resident Offer Program"
+              tone="danger"
             />
-          </Card>
-        </View>
+          </MenuGroup>
 
-        {features.publicRegistration || features.serviceProviderSignup ? (
-          <View>
-            <SectionHeader title="Partners" />
-            <Card>
+          {features.publicRegistration || features.serviceProviderSignup ? (
+            <MenuGroup>
               {features.publicRegistration ? (
-                <ListRow
-                  icon="business-outline"
+                <MenuRow
+                  icon="business"
                   onPress={() => router.push("/register-hostel")}
-                  subtitle="List your property and run it from one dashboard"
                   title="Register your hostel"
                 />
               ) : null}
-              {features.publicRegistration && features.serviceProviderSignup ? (
-                <RowDivider inset />
-              ) : null}
               {features.serviceProviderSignup ? (
-                <ListRow
-                  icon="construct-outline"
+                <MenuRow
+                  icon="construct"
                   onPress={() => router.push("/service-providers")}
-                  subtitle="Plumbing, electrical, cleaning — get matched with jobs"
                   title="Become a service provider"
+                  tone="warning"
                 />
               ) : null}
               {features.publicRegistration ? (
-                <>
-                  <RowDivider inset />
-                  <ListRow
-                    icon="pricetags-outline"
-                    onPress={() => router.push("/pricing")}
-                    subtitle="What a listing costs, plan by plan"
-                    title="Pricing"
-                  />
-                </>
+                <MenuRow
+                  icon="pricetags"
+                  onPress={() => router.push("/pricing")}
+                  title="Pricing"
+                  tone="danger"
+                />
               ) : null}
-            </Card>
-          </View>
-        ) : null}
+            </MenuGroup>
+          ) : null}
 
-        <View>
-          <SectionHeader title="App" />
-          <Card>
-            <ListRow
-              icon={preference === "dark" ? "moon-outline" : "sunny-outline"}
-              onPress={() => dispatch(setThemePreference(nextTheme))}
-              subtitle={`Currently ${preference}`}
-              title="Theme"
-              value={`Switch to ${nextTheme}`}
-            />
-            {/*
-              Both need a session. `/settings` itself takes `requireApiPrincipal`,
-              so these are not shown-and-refused — they are simply not offered to
-              someone who has no preferences to set and no account to delete.
+          {/* Notification settings and privacy need a session; the theme does not. */}
+          <AppRows feed={false} notificationSettings={Boolean(account)} privacy={Boolean(account)} />
 
-              Two rows, two destinations. They both used to push plain `/settings`,
-              which meant two subtitles promising two different things and one
-              screen delivering whichever of them happened to be scrolled to. The
-              `section` parameter draws only the half that was asked for; see
-              `SETTINGS_TITLES` in `app/settings.tsx`.
-            */}
-            {account ? (
-              <>
-                <RowDivider inset />
-                <ListRow
-                  icon="notifications-outline"
-                  onPress={() =>
-                    router.push({
-                      params: { section: "notifications" },
-                      pathname: "/settings",
-                    })
-                  }
-                  subtitle="Choose what reaches you, and set quiet hours"
-                  title="Notifications"
-                />
-                <RowDivider inset />
-                <ListRow
-                  icon="shield-checkmark-outline"
-                  onPress={() =>
-                    router.push({
-                      params: { section: "privacy" },
-                      pathname: "/settings",
-                    })
-                  }
-                  subtitle="Your data, and closing your account"
-                  title="Privacy & your data"
-                />
-              </>
-            ) : null}
-          </Card>
-        </View>
-
-        <View>
-          <SectionHeader title="Company" />
-          <Card>
-            <ListRow
-              icon="information-circle-outline"
+          <MenuGroup>
+            <MenuRow
+              icon="information-circle"
               onPress={() => router.push("/about")}
-              subtitle={`What ${identity.siteName} is for, and who builds it`}
               title="About us"
+              tone="neutral"
             />
-            <RowDivider inset />
-            <ListRow
-              icon="chatbubbles-outline"
+            <MenuRow
+              icon="chatbubbles"
               onPress={() => router.push("/contact")}
-              subtitle="Support channels, opening hours and answers"
               title="Contact"
+              tone="neutral"
             />
-          </Card>
-        </View>
-
-        <View>
-          <SectionHeader title="Legal" />
-          <Card>
-            <ListRow
-              icon="document-text-outline"
+            <MenuRow
+              icon="document-text"
               onPress={() => router.push("/legal/terms")}
-              subtitle="The rules you accept by using the platform"
               title="Terms & Regulations"
+              tone="neutral"
             />
-            <RowDivider inset />
-            <ListRow
-              icon="lock-closed-outline"
+            <MenuRow
+              icon="lock-closed"
               onPress={() => router.push("/legal/privacy")}
-              subtitle="What we collect, why, and for how long"
               title="Privacy Policy"
+              tone="neutral"
             />
-          </Card>
-        </View>
+          </MenuGroup>
 
-        <SupportContact />
+          <SupportContact />
 
-        {socialLinks.length > 0 ? (
-          <View>
-            <SectionHeader title="Follow" />
-            <Card>
-              {socialLinks.map(([label, href], index) => (
-                <View key={label}>
-                  {index > 0 ? <RowDivider inset /> : null}
-                  <ListRow
-                    icon="open-outline"
-                    onPress={() => void Linking.openURL(href)}
-                    title={label}
-                  />
-                </View>
-              ))}
-            </Card>
-          </View>
-        ) : null}
-
-        {account ? (
-          <Card>
-            <ListRow
-              icon="log-out-outline"
-              onPress={signOut}
-              right={
-                <Ionicons
-                  color={colors.destructive}
-                  name={signingOut ? "hourglass-outline" : "chevron-forward"}
-                  size={18}
+          {socialLinks.length > 0 ? (
+            <MenuGroup>
+              {socialLinks.map(([label, href]) => (
+                <MenuRow
+                  icon="open-outline"
+                  key={label}
+                  onPress={() => void Linking.openURL(href)}
+                  title={label}
+                  tone="neutral"
                 />
-              }
-              title="Sign out"
-            />
-          </Card>
-        ) : null}
+              ))}
+            </MenuGroup>
+          ) : null}
 
-        <Text className="pt-1 text-center" variant="caption">
-          {`© ${new Date().getFullYear()} ${identity.siteName}. All rights reserved.`}
-        </Text>
-      </View>
+          {account ? <SignOutRow /> : null}
+        </MenuGroups>
+
+        {search ? null : (
+          <Text className="pt-4 text-center" variant="caption">
+            {`© ${new Date().getFullYear()} ${identity.siteName}. All rights reserved.`}
+          </Text>
+        )}
+      </MenuSearch>
     </Screen>
   );
 }

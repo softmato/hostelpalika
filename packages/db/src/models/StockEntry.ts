@@ -27,6 +27,8 @@ const stockLineSchema = new Schema(
     qty: { min: 0, required: true, type: Number },
     /** SEND only, set by Got it. */
     receivedQty: { default: null, min: 0, type: Number },
+    /** BUY only: whole rupees per unit, if the bill showed it. */
+    rate: { default: null, min: 0, type: Number },
   },
   { _id: false },
 );
@@ -44,6 +46,8 @@ const stockEntrySchema = new Schema(
     on: { required: true, type: Date },
     lines: { required: true, type: [stockLineSchema] },
     note: { maxlength: 200, trim: true, type: String },
+    /** BUY only: the shop or person it came from. */
+    supplier: { maxlength: 80, trim: true, type: String },
 
     status: {
       default: "DONE",

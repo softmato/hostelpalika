@@ -30,6 +30,44 @@ class ReceiptSheetActivity : Activity() {
   override fun onCreate(state: Bundle?) {
     super.onCreate(state)
     requestId = state?.getString("requestId") ?: requestId
+    if (state == null && intent.action == Intent.ACTION_SEND) {
+      window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+      if (ReceiptCore.prefs(this).getString("role", null) == "RESIDENT") return openApp()
+      if (ReceiptCore.autoSaveOn(this)) return saveInBackground()
+    }
+    showSheet()
+  }
+  /**
+   * Residents claim against an invoice, which lives in the app: hand it this share.
+   * expo-sharing turns a SEND at MainActivity into /share-payment (invoice → claim → the
+   * usual checks). The read grant is passed on before this activity, which holds it, goes.
+   */
+  @Suppress("DEPRECATION")
+  private fun openApp() {
+    closed = true
+    ReceiptCore.prefs(this).edit().putString("role", "RESIDENT").apply()
+    packageManager.getLaunchIntentForPackage(packageName)?.component?.let { main ->
+      startActivity(Intent(intent).setComponent(main).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION))
+    }
+    finish(); overridePendingTransition(0, 0)
+  }
+  /** "Don't ask next time": copy while the share grant lives, hand off to [ReceiptSaveService], get out of the way. */
+  @Suppress("DEPRECATION")
+  private fun saveInBackground() = worker.execute {
+    try {
+      prepare()
+      val kept = File(ReceiptCore.pending(this), requestId)
+      check(receipt!!.renameTo(kept))
+      receipt = null
+      startService(Intent(this, ReceiptSaveService::class.java).putExtra("receiptPath", kept.path)
+        .putExtra("name", name).putExtra("mime", mime).putExtra("requestId", requestId))
+      runOnUiThread { finish(); overridePendingTransition(0, 0) }
+    } catch (_: Exception) {
+      // The sheet runs the same steps again and shows what went wrong.
+      runOnUiThread { if (!isFinishing) showSheet() }
+    }
+  }
+  private fun showSheet() {
     window.setGravity(Gravity.BOTTOM)
     window.addFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
     window.setDimAmount(0.25f)
@@ -50,6 +88,7 @@ class ReceiptSheetActivity : Activity() {
   @Suppress("DEPRECATION")
   private fun prepare() {
     if (receipt != null) return
+    intent.getStringExtra("receiptPath")?.let { return resume(File(it)) }
     require(intent.action == Intent.ACTION_SEND) { "Share one payment screenshot or PDF." }
     val stream = intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
     val clips = intent.clipData
@@ -84,11 +123,22 @@ class ReceiptSheetActivity : Activity() {
       receipt = file
     } catch (e: Exception) { file.delete(); throw e }
   }
+  /** Opened from a "tap to finish" notice: the copy [ReceiptSaveService] kept. This activity is exported, so only that folder is accepted. */
+  private fun resume(file: File) {
+    require(file.isFile && file.canonicalFile.parentFile == ReceiptCore.pending(this).canonicalFile) { "This receipt is no longer on the phone. Share it again." }
+    name = intent.getStringExtra("name") ?: name
+    mime = intent.getStringExtra("mime") ?: ""
+    require(mime == "application/pdf" || mime.startsWith("image/")) { "Choose a payment screenshot or PDF." }
+    requestId = intent.getStringExtra("requestId") ?: requestId
+    uploaded = intent.getStringExtra("assetId")
+    receipt = file
+  }
   inner class Bridge {
     @JavascriptInterface fun postMessage(raw: String) {
       if (closed) return
       val message = try { JSONObject(raw) } catch (_: Exception) { return }
       if (message.optString("action") == "close") { closed = true; runOnUiThread { finish() }; return }
+      if (message.optString("action") == "handoff") { runOnUiThread { if (!isFinishing) openApp() }; return }
       if (message.optString("action") == "size") {
         // Fit the sheet to the page (CSS px → device px), never above 90% of the screen.
         val metrics = resources.displayMetrics
@@ -104,9 +154,16 @@ class ReceiptSheetActivity : Activity() {
             "init" -> { prepare(); JSONObject().put("fileName", name).put("requestId", requestId) }
             "hostel" -> ReceiptCore.prefs(this@ReceiptSheetActivity).getString("hostel", "") ?: ""
             "upload" -> { prepare(); uploaded ?: ReceiptCore.upload(this@ReceiptSheetActivity, receipt!!, name, mime).also { uploaded = it } }
-            "api" -> { check(!closed); ReceiptCore.api(this@ReceiptSheetActivity, message.getString("path"), message.optString("method", "GET"), message.optJSONObject("body")) }
+            "api" -> { check(!closed)
+              val path = message.getString("path"); val method = message.optString("method", "GET"); val body = message.optJSONObject("body")
+              // A push would land while this sheet is in front, where Expo drops it; the notice is drawn here instead.
+              val saving = path == "/hostel-admin/expenses" && method == "POST"
+              if (saving) body?.put("notifiedOnDevice", true)
+              ReceiptCore.api(this@ReceiptSheetActivity, path, method, body).also { if (saving && it is JSONObject) ReceiptNotices.saved(this@ReceiptSheetActivity, requestId, it) }
+            }
             "preference" -> { val key = message.getString("key"); require(key.startsWith("hostelpalika.receipt-auto:"))
-              val prefs = ReceiptCore.prefs(this@ReceiptSheetActivity)
+              // The sheet just worked this key out for the signed-in account + hostel, so the next share can skip the sheet.
+              val prefs = ReceiptCore.prefs(this@ReceiptSheetActivity).also { it.edit().putString("autoKey", key).commit() }
               if (message.has("enabled")) prefs.edit().putBoolean(key, message.getBoolean("enabled")).commit()
               prefs.getBoolean(key, false)
             }
@@ -122,7 +179,7 @@ class ReceiptSheetActivity : Activity() {
   override fun onDestroy() {
     closed = true
     worker.execute { receipt?.delete() }; worker.shutdown()
-    web.removeJavascriptInterface("ReceiptBridge"); web.destroy()
+    if (::web.isInitialized) { web.removeJavascriptInterface("ReceiptBridge"); web.destroy() }
     super.onDestroy()
   }
 }

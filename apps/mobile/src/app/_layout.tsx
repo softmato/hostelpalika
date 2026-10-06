@@ -6,7 +6,7 @@ import { router, Stack, usePathname } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Platform, StatusBar as RNStatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -18,10 +18,17 @@ import { PersistGate } from "redux-persist/integration/react";
 import { hydrateQueryCache } from "@/lib/query-cache-persist";
 
 import { BottomChromeProvider } from "@/components/bottom-chrome";
+import { AppLockHost, FingerprintOffer } from "@/components/app-lock";
 import { AssetViewer } from "@/components/asset-viewer";
-import { BootSplashCover, BrandSplash } from "@/components/brand-splash";
+import {
+  BootSplashCover,
+  bootSplashGone,
+  BrandSplash,
+  releaseBootSplash,
+} from "@/components/brand-splash";
 import { HostelSuspensionHost } from "@/components/hostel-suspension-host";
 import { ConfirmDialogHost } from "@/components/ui/confirm-dialog";
+import { UpdateSheet } from "@/components/update-sheet";
 import { UploadToaster } from "@/components/upload-toaster";
 import { ReceiptNativeSync } from "@/components/receipt-native-sync";
 import { SharedPaymentResume } from "@/components/shared-payment-resume";
@@ -46,6 +53,11 @@ void SplashScreen.preventAutoHideAsync();
 function RootShell() {
   const dispatch = useAppDispatch();
   const { colors, isDark } = useAppTheme();
+  const [splashGone, setSplashGone] = useState(false);
+
+  useEffect(() => {
+    void bootSplashGone().then(() => setSplashGone(true));
+  }, []);
 
   /*
    * The route this launch started on, read through a ref so the boot effect can
@@ -101,11 +113,11 @@ function RootShell() {
    * one component mounted on every route, deep-linked or not.
    *
    * It fires on mount rather than waiting for `isReady`, and the handover is
-   * still seamless because `BrandSplash` is drawn to the same white ground and
-   * the same centred lockup as the native splash in app.json. What it buys is
-   * the "Powered by Softmato" strip on Android 11 and below and on iOS, which
-   * have no native branding slot — holding the native splash to the end of boot
-   * meant nobody there ever saw it.
+   * still seamless because `BrandSplash` is the launch screen's end state with
+   * the same pixels. On Android the system splash is already gone by now —
+   * MainActivity let it go for the native launch screen — so `hideAsync` matters
+   * on iOS, and `releaseBootSplash` lets the launch screen leave once its
+   * animation has played (see `components/brand-splash.tsx`).
    *
    * There is still nothing to flash past. This effect runs after the subtree
    * below has committed, and while `isReady` is false every route under it —
@@ -114,6 +126,7 @@ function RootShell() {
    */
   useEffect(() => {
     void SplashScreen.hideAsync();
+    releaseBootSplash();
   }, []);
 
   useEffect(() => {
@@ -227,9 +240,9 @@ function RootShell() {
         SDK 57, so `translucent` was removed from the props entirely and the
         AppBar's colour runs to the top of the screen by default. All that is
         left to choose is the glyph colour: dark on the light theme's white bar,
-        light on dark.
+        light on dark — and dark while the white launch screen is still up.
       */}
-      <StatusBar style={isDark ? "light" : "dark"} />
+      <StatusBar style={isDark && splashGone ? "light" : "dark"} />
 
       {/*
         Everything the confirm dialog's backdrop blurs, named as one view.
@@ -471,7 +484,13 @@ function RootShell() {
         <Stack.Screen name="expenses/new" />
         {/* Stock — Bought, Send, Count across the main hostel and its branches (docs/INVENTORY_PLAN.md). */}
         <Stack.Screen name="stock/index" />
-        <Stack.Screen name="stock/entry" />
+        <Stack.Screen name="stock/buy" />
+        <Stack.Screen name="stock/send" />
+        <Stack.Screen name="stock/count" />
+        <Stack.Screen name="stock/history" />
+        <Stack.Screen name="stock/item/[id]" />
+        <Stack.Screen name="stock/entry/[id]" />
+        <Stack.Screen name="stock/receive/[id]" />
         {/* Overall: one subject over every branch, from the Overall Home's tiles. */}
         <Stack.Screen name="overall/[topic]" />
         <Stack.Screen name="manage/existing-residents" />
@@ -549,6 +568,8 @@ function RootShell() {
         signed-in public account on any screen, and on the way back from a push.
       */}
       <ResidencyInviteHost />
+      <UpdateSheet />
+      <FingerprintOffer />
       <SharedPaymentResume />
       <ReceiptNativeSync />
       </BlurTargetView>
@@ -614,6 +635,12 @@ export default function RootLayout() {
                 </BottomChromeProvider>
               </BottomSheetModalProvider>
               <ToastHost />
+              {/*
+                The fingerprint lock: last, so nothing — no sheet, no toast —
+                draws above it. Only the boot splash cover sits higher, which is
+                what makes it "splash, then fingerprint".
+              */}
+              <AppLockHost />
             </KeyboardProvider>
           </SafeAreaProvider>
         </PersistGate>

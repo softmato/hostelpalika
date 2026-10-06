@@ -33,6 +33,8 @@ import type {
   VerifyEmailInput,
 } from "@hostel/shared/schemas/auth.schema";
 import { OAuthAccountModel } from "@hostel/db/models/OAuthAccount";
+import { HostelSettingsModel } from "@hostel/db/models/HostelSettings";
+import { COOK_LOGIN_DOMAIN } from "@/modules/food/cook-identity";
 import { OtpChallengeModel } from "@hostel/db/models/OtpChallenge";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { SessionModel } from "@hostel/db/models/Session";
@@ -136,6 +138,24 @@ async function isApprovedServiceProvider(user: { _id: unknown; role: Role }) {
   );
 }
 
+/**
+ * A cook is offered the app's fingerprint lock only where the owner switched it
+ * on (`HostelSettings.cookFingerprintLock`). `undefined` for every other role,
+ * which the app reads by role instead.
+ */
+async function cookFingerprintLock(user: { hostelIds: string[]; role: Role }) {
+  if (user.role !== Role.COOK || user.hostelIds.length === 0) {
+    return undefined;
+  }
+
+  return Boolean(
+    await HostelSettingsModel.exists({
+      cookFingerprintLock: true,
+      hostelId: { $in: user.hostelIds },
+    }),
+  );
+}
+
 function normalizeEmail(email?: string | null) {
   return email?.trim().toLowerCase() || undefined;
 }
@@ -188,10 +208,14 @@ function otpDeliveryProvider() {
  * the shared `otpCodeEmail` template like everything else, which also means it
  * arrives from `security@` rather than from the general mailbox.
  */
-async function sendResendOtp(input: { code: string; identifier: string }) {
+async function sendResendOtp(input: { code: string; identifier: string; instruction?: string }) {
   const delivery = await sendEmail({
     to: input.identifier,
-    ...otpCodeEmail({ code: input.code, expiresInMinutes: otpTtlMs() / 60_000 }),
+    ...otpCodeEmail({
+      code: input.code,
+      expiresInMinutes: otpTtlMs() / 60_000,
+      instruction: input.instruction,
+    }),
   });
 
   if (delivery.sent) {
@@ -213,6 +237,7 @@ async function dispatchOtpChallenge(input: {
   channel: OtpRequestInput["channel"];
   code: string;
   identifier: string;
+  instruction?: string;
 }) {
   const provider = otpDeliveryProvider();
 
@@ -309,10 +334,11 @@ export async function issueSessionForUser(
     temporaryCredentialId: options?.temporaryCredentialId,
     userId: safeUser.id,
   };
-  const [accessToken, refreshToken, isServiceProvider] = await Promise.all([
+  const [accessToken, refreshToken, isServiceProvider, cookLock] = await Promise.all([
     signAccessToken(tokenInput),
     signRefreshToken(tokenInput),
     isApprovedServiceProvider(account),
+    cookFingerprintLock(safeUser),
   ]);
 
   session.refreshTokenHash = hashToken(refreshToken);
@@ -329,6 +355,7 @@ export async function issueSessionForUser(
     refreshToken,
     user: {
       ...safeUser,
+      cookFingerprintLock: cookLock,
       isServiceProvider,
       viaTemporaryCredential: Boolean(options?.temporaryCredentialId),
     },
@@ -336,10 +363,11 @@ export async function issueSessionForUser(
 }
 
 export async function requestOtpChallenge(
-  // `plan-checkout` is not accepted by the public OTP route — only the plan
-  // checkout, after matching the email to a hostel, asks for one.
+  // `plan-checkout` and `biometric` are not accepted by the public OTP route —
+  // only the plan checkout, after matching the email to a hostel, and a
+  // signed-in account confirming itself (`requestBiometricCode`) ask for one.
   input: Omit<OtpRequestInput, "purpose"> & {
-    purpose: OtpRequestInput["purpose"] | "plan-checkout";
+    purpose: OtpRequestInput["purpose"] | "plan-checkout" | "biometric";
   },
   context?: RequestContext,
 ) {
@@ -388,6 +416,10 @@ export async function requestOtpChallenge(
     channel: input.channel,
     code,
     identifier,
+    instruction:
+      input.purpose === "biometric"
+        ? "Enter this code in the app to confirm it is you. It unlocks the app, or turns fingerprint unlock off."
+        : undefined,
   });
   const challenge = await OtpChallengeModel.create({
     channel: input.channel,
@@ -459,6 +491,57 @@ export async function verifyOtpChallenge(input: OtpVerifyInput) {
     identifier: challenge.identifier,
     verifiedAt: challenge.verifiedAt,
   };
+}
+
+async function accountEmail(userId: string) {
+  const user = await UserModel.findById(userId).select("email").lean<{ email?: string | null }>();
+  const email = normalizeEmail(user?.email);
+
+  // A minted cook login (`sunr@cook.local`) is a username, not an inbox.
+  if (!email || email.endsWith(`@${COOK_LOGIN_DOMAIN}`)) {
+    throw new AuthServiceError(
+      "This account has no email address to send a code to.",
+      "NO_ACCOUNT_EMAIL",
+      409,
+    );
+  }
+
+  return email;
+}
+
+/**
+ * The app's fingerprint lock falls back to this: a code mailed to the
+ * signed-in account's own address. It unlocks the app when the finger will not
+ * read or the phone's fingerprints changed, and it is what turning the lock off
+ * asks for. Always the account's address — never one the caller names.
+ */
+export async function requestBiometricCode(userId: string, context?: RequestContext) {
+  await connectToDatabase();
+
+  return requestOtpChallenge(
+    { channel: "email", identifier: await accountEmail(userId), purpose: "biometric" },
+    context,
+  );
+}
+
+/** Checks and spends a `requestBiometricCode` code; only that account's own challenge counts. */
+export async function verifyBiometricCode(userId: string, input: OtpVerifyInput) {
+  await connectToDatabase();
+
+  const owned = await OtpChallengeModel.exists({
+    _id: input.challengeId,
+    identifier: await accountEmail(userId),
+    purpose: "biometric",
+  });
+
+  if (!owned) {
+    throw new AuthServiceError("OTP challenge is invalid or expired.", "OTP_INVALID", 400);
+  }
+
+  await verifyOtpChallenge(input);
+  await OtpChallengeModel.updateOne({ _id: input.challengeId }, { $set: { consumedAt: new Date() } });
+
+  return { verified: true };
 }
 
 async function findVerifiedRegistrationChallenge(input: RegisterInput) {
@@ -997,6 +1080,7 @@ export async function getCurrentUser(accessToken: string) {
 
   return {
     ...safeUser,
+    cookFingerprintLock: await cookFingerprintLock(safeUser),
     hostelSuspension,
     isServiceProvider,
     /**

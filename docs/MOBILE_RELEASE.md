@@ -363,6 +363,7 @@ plist Google issued: identical.
 | **An active paid membership** | Apple issues no distribution certificate without one, so there is no iOS build of any kind — TestFlight or ad-hoc — until the $99 clears. Verified documents alone is not enough. | Apple Developer |
 | `APPLE_APP_ID_PREFIX` | Universal links — see §4.3. Not needed to build. | Vercel env |
 | An **APNs key** | Push. EAS offers to create it during the first iOS build; accept. | EAS prompt |
+| **"Update available" on iOS** | Built, never run — nothing is on the App Store for Apple's lookup to report. Verify on the first App Store release; checklist in `MOBILE_APP_PHASES.md` M10. | `lib/app-version.ts` |
 
 ---
 

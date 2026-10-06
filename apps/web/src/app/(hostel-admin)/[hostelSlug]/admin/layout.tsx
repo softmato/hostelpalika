@@ -8,6 +8,7 @@ import { HostelWorkspaceSwitcher } from "@/app/_components/hostel-workspace-swit
 import { PortalShell } from "@/components/portal-shell";
 import { OVERALL_SLUG } from "@/lib/branch-cache";
 import {
+  branchesLock,
   canAccessWorkspace,
   canOpenOverall,
   listWorkspaceHostels,
@@ -37,6 +38,7 @@ export default async function HostelAdminWorkspaceLayout({
     if (!overall) notFound();
 
     const navGroups = overallAdminNav();
+    const hostels = await listWorkspaceHostels();
 
     return (
       <PortalShell
@@ -48,7 +50,12 @@ export default async function HostelAdminWorkspaceLayout({
         tone="admin"
         workspaceName="All branches"
         workspaceSwitcher={
-          <HostelWorkspaceSwitcher current={OVERALL_SLUG} hostels={await listWorkspaceHostels()} overall />
+          <HostelWorkspaceSwitcher
+            branchesLock={hostels[0] ? await branchesLock(hostels[0].slug) : null}
+            current={OVERALL_SLUG}
+            hostels={hostels}
+            overall
+          />
         }
       >
         {children}
@@ -62,7 +69,8 @@ export default async function HostelAdminWorkspaceLayout({
     notFound();
   }
 
-  const navGroups = hostelAdminNavForSlug(hostelSlug);
+  const lock = await branchesLock(hostelSlug);
+  const navGroups = hostelAdminNavForSlug(hostelSlug, { branches: !lock });
 
   return (
     <PortalShell
@@ -74,7 +82,12 @@ export default async function HostelAdminWorkspaceLayout({
       tone="admin"
       workspaceName={(await workspaceHostelName(hostelSlug)) ?? "Hostel Workspace"}
       workspaceSwitcher={
-        <HostelWorkspaceSwitcher current={hostelSlug} hostels={await listWorkspaceHostels()} overall={overall} />
+        <HostelWorkspaceSwitcher
+          branchesLock={lock}
+          current={hostelSlug}
+          hostels={await listWorkspaceHostels()}
+          overall={overall}
+        />
       }
     >
       {/* One opaque sticky stack: two separately sticky, tinted bars pinned to

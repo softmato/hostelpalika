@@ -134,13 +134,33 @@ export function isPdfEvidence(mimeType: string | undefined): boolean {
  * wallet screenshot is already under the cap and passes through untouched, which
  * is the point: Vision performs best on the original pixels.
  */
-async function prepareForVision(bytes: Buffer | Uint8Array): Promise<Buffer | null> {
+async function prepareForVision(
+  bytes: Buffer | Uint8Array,
+): Promise<{ bytes: Buffer; mimeType: string } | null> {
   const sharp = await loadSharp();
 
   if (!sharp) return null;
 
   try {
-    return await sharp(bytes)
+    // Already upright, under the cap, and a format both engines take: send the
+    // original. Re-encoding gains nothing here, costs a full decode + PNG
+    // encode, and turns a 300 KB JPEG screenshot into a multi-megabyte PNG.
+    const meta = await sharp(bytes).metadata();
+    const passThrough: Record<string, string> = { jpeg: "image/jpeg", png: "image/png", webp: "image/webp" };
+    const mimeType = passThrough[meta.format ?? ""];
+    if (
+      mimeType &&
+      (meta.orientation ?? 1) === 1 &&
+      Math.max(meta.width ?? Infinity, meta.height ?? Infinity) <= VISION_MAX_EDGE
+    ) {
+      return { bytes: Buffer.from(bytes), mimeType };
+    }
+  } catch {
+    // Unreadable header: let the full preparation below decide.
+  }
+
+  try {
+    const prepared = await sharp(bytes)
       .rotate()
       .resize({
         fit: "inside",
@@ -152,6 +172,8 @@ async function prepareForVision(bytes: Buffer | Uint8Array): Promise<Buffer | nu
       })
       .png({ compressionLevel: 6 })
       .toBuffer();
+
+    return { bytes: prepared, mimeType: "image/png" };
   } catch {
     return null;
   }
@@ -225,11 +247,11 @@ export async function readEvidence(
     // saying so: it means `sharp` is missing, which breaks far more than this.
     if (!prepared) return { failure: "unknown", result: null };
 
-    // `prepareForVision` re-encodes to PNG, and the mime type has to say so —
-    // Vision sniffs the bytes, but Gemini is told what it is being given.
-    if (mode === "gemini") return readWithGemini(prepared, "image/png");
+    // Vision sniffs the bytes, but Gemini is told what it is being given — the
+    // original's type when it passed through, PNG when it was re-encoded.
+    if (mode === "gemini") return readWithGemini(prepared.bytes, prepared.mimeType);
 
-    const vision = await readWithVision(prepared);
+    const vision = await readWithVision(prepared.bytes);
 
     if (mode === "vision" || !worthAskingTheOtherEngine(vision.failure)) {
       return vision;
@@ -247,7 +269,7 @@ export async function readEvidence(
       `[evidence-fallback] vision returned nothing (${vision.failure}) — asking gemini`,
     );
 
-    const gemini = await readWithGemini(prepared, "image/png");
+    const gemini = await readWithGemini(prepared.bytes, prepared.mimeType);
 
     if (gemini.failure) {
       console.error(

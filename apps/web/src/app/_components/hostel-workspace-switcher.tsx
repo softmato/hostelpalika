@@ -1,11 +1,12 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, Lock } from "lucide-react";
 import { Glyph } from "@/components/glyph";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { OVERALL_SLUG } from "@/lib/branch-cache";
+import { toast } from "@/stores/toast-store";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,10 +18,13 @@ import {
 
 /** Client navigation retains each branch cache; the workspace key resets local forms. */
 export function HostelWorkspaceSwitcher({
+  branchesLock = null,
   current,
   hostels,
   overall = false,
 }: {
+  /** Why "Manage branches" is closed here (`branchesLock`) — a toast instead of a dead page. */
+  branchesLock?: string | null;
   current: string;
   hostels: Array<{ coverUrl?: string | null; isBranch: boolean; name: string; slug: string }>;
   /** The owner of several hostels: offer "Overall", every branch at once. */
@@ -111,17 +115,29 @@ export function HostelWorkspaceSwitcher({
           );
         })}
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link
-            href={`/${encodeURIComponent(inOverall ? hostels[0]?.slug ?? current : current)}/admin/branches`}
-            className="gap-3 rounded-lg px-2 py-2.5 font-semibold text-brand-teal"
+        {branchesLock ? (
+          <DropdownMenuItem
+            className="gap-3 rounded-lg px-2 py-2.5 font-semibold text-muted-foreground"
+            onSelect={() => toast.error(branchesLock)}
           >
             <span className="flex size-9 items-center justify-center rounded-lg border border-dashed border-border">
-              <Glyph className="size-4" name="plus" />
+              <Lock className="size-4" />
             </span>
             Manage branches
-          </Link>
-        </DropdownMenuItem>
+          </DropdownMenuItem>
+        ) : (
+          <DropdownMenuItem asChild>
+            <Link
+              href={`/${encodeURIComponent(inOverall ? hostels[0]?.slug ?? current : current)}/admin/branches`}
+              className="gap-3 rounded-lg px-2 py-2.5 font-semibold text-brand-teal"
+            >
+              <span className="flex size-9 items-center justify-center rounded-lg border border-dashed border-border">
+                <Glyph className="size-4" name="plus" />
+              </span>
+              Manage branches
+            </Link>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

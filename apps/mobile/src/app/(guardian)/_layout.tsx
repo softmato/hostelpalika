@@ -5,7 +5,7 @@ const TABS: readonly TabDef[] = [
   { icon: "shield-checkmark", label: "Safety", name: "safety" },
   { icon: "chatbubbles", label: "Community", name: "community" },
   { icon: "card", label: "Payments", name: "payments" },
-  { icon: "ellipsis-horizontal", label: "More", name: "more" },
+  { icon: "grid", label: "More", name: "more" },
 ];
 
 export default function RoleLayout() {

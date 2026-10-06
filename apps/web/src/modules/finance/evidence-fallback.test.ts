@@ -36,8 +36,11 @@ vi.mock("@/modules/finance/evidence-gemini", () => ({
  * `sharp`'s business and has its own coverage. Stubbing it also keeps this suite
  * from depending on a native module being installed to prove a branch.
  */
+const header = vi.hoisted(() => ({ value: {} as Record<string, unknown> }));
+
 vi.mock("@/lib/sharp", () => ({
   loadSharp: async () => () => ({
+    metadata: async () => header.value,
     png: () => ({ toBuffer: async () => Buffer.from("prepared") }),
     resize: function () {
       return this;
@@ -134,6 +137,19 @@ describe("vision+gemini — when Vision does not answer", () => {
    * given rather than sniffing it. A fallback that forwarded the original mime
    * type would describe a PNG as a JPEG on every fall-through.
    */
+  it("sends an upright screenshot under the cap as it is, typed as itself", async () => {
+    header.value = { format: "jpeg", height: 2340, orientation: 1, width: 1080 };
+    mocks.vision.mockResolvedValue(failed("provider-error"));
+    mocks.gemini.mockResolvedValue(succeeded("gemini", "text"));
+    try {
+      await readEvidence(IMAGE, "image/jpeg");
+    } finally {
+      header.value = {};
+    }
+    expect(mocks.vision).toHaveBeenCalledWith(IMAGE);
+    expect(mocks.gemini).toHaveBeenCalledWith(IMAGE, "image/jpeg");
+  });
+
   it("hands Gemini the same prepared PNG Vision was given", async () => {
     mocks.vision.mockResolvedValue(failed("provider-error"));
     mocks.gemini.mockResolvedValue(succeeded("gemini", "text"));

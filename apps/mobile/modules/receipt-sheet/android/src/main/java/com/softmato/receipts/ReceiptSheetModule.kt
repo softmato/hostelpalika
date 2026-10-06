@@ -14,5 +14,6 @@ class ReceiptSheetModule : Module() {
     AsyncFunction("configure") { base: String, hostel: String? -> ReceiptCore.configure(context, base, hostel) }
     AsyncFunction("getAutoSave") { key: String -> ReceiptCore.prefs(context).getBoolean(key, false) }
     AsyncFunction("setAutoSave") { key: String, enabled: Boolean -> ReceiptCore.prefs(context).edit().putBoolean(key, enabled).commit(); Unit }
+    AsyncFunction("setShareAccount") { role: String?, autoKey: String? -> ReceiptCore.prefs(context).edit().putString("role", role).putString("autoKey", autoKey).commit(); Unit }
   }
 }

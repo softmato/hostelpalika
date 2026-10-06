@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 
+import { branchesLock } from "@/lib/hostel-workspace";
+
 import { HostelAdminAttendancePageContent } from "@/app/_components/hostel-admin-attendance-page";
 import { HostelAdminBillingPageContent } from "@/app/_components/hostel-admin-billing-page";
 import { HostelAdminBookingsPage } from "@/app/_components/hostel-admin-bookings-page";
@@ -79,7 +81,7 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   "payment-setup": () => <HostelAdminPaymentProfilePageContent />,
   payments: () => <HostelAdminPaymentsPage />,
   profile: () => <HostelAdminProfilePageContent />,
-  branches: () => <HostelBranchesPageContent />,
+  branches: async (slug) => <HostelBranchesPageContent lock={await branchesLock(slug)} />,
   reconcile: () => <HostelAdminReconcilePageContent />,
   referrals: () => <HostelAdminReferralsPageContent />,
   reports: () => <HostelAdminReportsPageContent />,

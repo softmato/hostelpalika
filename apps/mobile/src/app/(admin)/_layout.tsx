@@ -79,7 +79,7 @@ function AdminTabs() {
         should not have to learn that the two are the same section.
       */
       { badge: counts.claim, icon: "card", label: "Payments", name: "money" },
-      { icon: "ellipsis-horizontal", label: "More", name: "more" },
+      { icon: "grid", label: "More", name: "more" },
     ],
     [counts.claim],
   );

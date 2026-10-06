@@ -29,6 +29,7 @@ import {
 import { CookAccountModel } from "@hostel/db/models/CookAccount";
 import { ExpenseModel } from "@hostel/db/models/Expense";
 import { FileAssetModel } from "@hostel/db/models/FileAsset";
+import { HostelModel } from "@hostel/db/models/Hostel";
 import { HostelExpenseCategoryModel } from "@hostel/db/models/HostelExpenseCategory";
 import { HostelMemberModel } from "@hostel/db/models/HostelMember";
 import { HostelSettingsModel } from "@hostel/db/models/HostelSettings";
@@ -810,11 +811,13 @@ async function recorderName(actor: ExpenseActor) {
  */
 async function assertPhotoUsable(actor: ExpenseActor, assetId: string) {
   const asset = await FileAssetModel.findOne({ _id: assetId, isDeleted: false, status: "ACTIVE" })
-    .select("hostelId kind ownerId uploadCompletedAt")
+    .select("contentHash hostelId kind ownerId receiptTxnId uploadCompletedAt")
     .lean<{
+      contentHash?: string;
       hostelId?: Types.ObjectId;
       kind?: string;
       ownerId?: Types.ObjectId;
+      receiptTxnId?: string;
       uploadCompletedAt?: Date;
     } | null>();
 
@@ -831,7 +834,50 @@ async function assertPhotoUsable(actor: ExpenseActor, assetId: string) {
     throw new ExpenseError("The photo has not finished uploading. Try again.", "ASSET_NOT_READY", 409);
   }
 
-  return new Types.ObjectId(assetId);
+  return { contentHash: asset.contentHash, id: new Types.ObjectId(assetId), receiptTxnId: asset.receiptTxnId };
+}
+
+/** The main hostel of this building's group: itself, or the hostel it is a branch of. */
+async function receiptGroup(hostelId: Types.ObjectId) {
+  const hostel = await HostelModel.findById(hostelId)
+    .select("parentHostelId")
+    .lean<{ parentHostelId?: Types.ObjectId | null } | null>();
+  return hostel?.parentHostelId ?? hostelId;
+}
+
+type SavedReceipt = { amount: number; by: string; what: string; where: string | null };
+
+/**
+ * The standing expense already holding this receipt anywhere in the hostel
+ * group — the same bytes or the same transaction id. Two point lookups on the
+ * `receiptGroupId` indexes; the branch is only named when the hit is elsewhere.
+ */
+async function findSavedReceipt(
+  actor: ExpenseActor,
+  groupId: Types.ObjectId,
+  receipt: { hash?: string | null; txnId?: string | null },
+): Promise<SavedReceipt | null> {
+  const match = [
+    ...(receipt.hash ? [{ receiptHash: receipt.hash }] : []),
+    ...(receipt.txnId ? [{ receiptTxnId: receipt.txnId }] : []),
+  ];
+  if (!match.length) return null;
+  const saved = await ExpenseModel.findOne({ receiptGroupId: groupId, status: "RECORDED", $or: match })
+    .select("amount hostelId recordedByName what")
+    .lean<{ amount: number; hostelId: Types.ObjectId; recordedByName?: string; what?: string } | null>();
+  if (!saved) return null;
+  const elsewhere = saved.hostelId.toString() !== actor.hostelId.toString()
+    ? await HostelModel.findById(saved.hostelId).select("name").lean<{ name?: string } | null>()
+    : null;
+  return { amount: saved.amount, by: saved.recordedByName ?? "", what: saved.what ?? "", where: elsewhere?.name ?? null };
+}
+
+function receiptAlreadySaved(saved: SavedReceipt) {
+  return new ExpenseError(
+    `Already added: ${rupees(saved.amount)}${saved.by ? ` by ${saved.by}` : ""}${saved.where ? ` in ${saved.where}` : ""}.`,
+    "RECEIPT_ALREADY_SAVED",
+    409,
+  );
 }
 
 function isDuplicateKeyError(error: unknown) {
@@ -915,7 +961,16 @@ export async function createExpense(actor: ExpenseActor, input: CreateExpenseInp
     throw new ExpenseError("Add a photo of the bill or the goods.", "PROOF_REQUIRED", 422);
   }
 
-  const photoAssetId = input.photoAssetId ? await assertPhotoUsable(actor, input.photoAssetId) : null;
+  const photo = input.photoAssetId ? await assertPhotoUsable(actor, input.photoAssetId) : null;
+  const photoAssetId = photo?.id ?? null;
+  const receipt = input.sharedReceipt && photo
+    ? { groupId: await receiptGroup(actor.hostelId), hash: photo.contentHash ?? null, txnId: photo.receiptTxnId ?? null }
+    : null;
+
+  if (receipt) {
+    const saved = await findSavedReceipt(actor, receipt.groupId, receipt);
+    if (saved) throw receiptAlreadySaved(saved);
+  }
 
   let doc: ExpenseDoc;
 
@@ -931,6 +986,9 @@ export async function createExpense(actor: ExpenseActor, input: CreateExpenseInp
       paidBy: input.paidBy,
       payer: actor.role === "HOSTEL_ADMIN" ? "HOSTEL" : "STAFF",
       photoAssetId,
+      receiptGroupId: receipt?.groupId ?? null,
+      receiptHash: receipt?.hash ?? null,
+      receiptTxnId: receipt?.txnId ?? null,
       recordedBy,
       recordedByName: await recorderName(actor),
       recordedByRole: actor.role,
@@ -954,6 +1012,12 @@ export async function createExpense(actor: ExpenseActor, input: CreateExpenseInp
       if (existing) {
         return { duplicate: true, expense: await serializeOne(actor, existing) };
       }
+    }
+
+    // Two people saved the same payment at once; the receipt index kept one.
+    if (receipt && isDuplicateKeyError(error)) {
+      const saved = await findSavedReceipt(actor, receipt.groupId, receipt);
+      if (saved) throw receiptAlreadySaved(saved);
     }
 
     throw error;
@@ -989,6 +1053,8 @@ export async function createExpense(actor: ExpenseActor, input: CreateExpenseInp
         data: { expenseId: doc._id.toString(), type: "SHARED_RECEIPT_SAVED" },
         hostelId: actor.hostelId.toString(),
         kind: "NORMAL",
+        // The Android share sheet draws its own notice; a push would be a second one.
+        push: !input.notifiedOnDevice,
         title: "Receipt saved",
         userId: actor.principal.userId,
       });
@@ -1322,7 +1388,7 @@ export async function readExpenseReceipt(actor: ExpenseActor, assetId: string) {
   await connectToDatabase();
   await assertPhotoUsable(actor, assetId);
   const asset = await FileAssetModel.findOne({ _id: assetId, hostelId: actor.hostelId, ownerId: actor.principal.userId, kind: "EXPENSE_RECEIPT", isDeleted: false, status: "ACTIVE" })
-    .select("bucket key mimeType").lean<{ bucket: string; key: string; mimeType?: string } | null>();
+    .select("bucket contentHash key mimeType").lean<{ bucket: string; contentHash?: string; key: string; mimeType?: string } | null>();
   if (!asset) throw new ExpenseError("File not found", "NOT_FOUND", 404);
   const { readStoredObject } = await import("@/lib/uploads/verify");
   const { readEvidence } = await import("@/modules/finance/evidence-ocr");
@@ -1330,5 +1396,8 @@ export async function readExpenseReceipt(actor: ExpenseActor, assetId: string) {
   if (!bytes) throw new ExpenseError("Receipt could not be opened. Try again.", "READ_UNAVAILABLE", 503);
   const read = await readEvidence(bytes, asset.mimeType);
   const { expenseReceiptSuggestions } = await import("./receipt-suggestions");
-  return expenseReceiptSuggestions(read.result?.text ?? null);
+  const suggestions = expenseReceiptSuggestions(read.result?.text ?? null);
+  if (suggestions.txnId) await FileAssetModel.updateOne({ _id: assetId }, { $set: { receiptTxnId: suggestions.txnId } });
+  const saved = await findSavedReceipt(actor, await receiptGroup(actor.hostelId), { hash: asset.contentHash, txnId: suggestions.txnId });
+  return { ...suggestions, alreadySaved: saved, autoSaveEligible: suggestions.autoSaveEligible && !saved };
 }

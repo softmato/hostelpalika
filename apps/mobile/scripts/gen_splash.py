@@ -11,9 +11,10 @@ Run from `apps/mobile`:  python scripts/gen_splash.py
    `imageWidth` (280dp) in app.json.
 
 2. `assets/images/splash-branding.png` + `plugins/splash-branding-res/drawable-*`
-   — "Powered by" and Softmato's logo as one 136x55dp image. Android 12+ draws
-   it natively through `plugins/withSplashBranding.js`; `BrandSplash` draws the
-   same image at the same size and inset everywhere else.
+   — "Powered by" and Softmato's logo as one 136x55dp image. The system splash
+   never draws it (it varied by phone); on Android the native launch screen in
+   `modules/hostelhub-boot-splash` does, and `BrandSplash` draws the same image
+   at the same size and inset everywhere else.
 
 After editing this, run it and copy the `LOGO_HEIGHT` ratio it prints into
 `src/components/brand-splash.tsx`.

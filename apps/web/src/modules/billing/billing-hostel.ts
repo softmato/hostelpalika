@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
 import { HostelModel } from "@hostel/db/models/Hostel";
+import { HostelSubscriptionModel } from "@hostel/db/models/HostelSubscription";
 import { getPlan } from "@hostel/shared/plans/catalog";
 
 /**
@@ -19,6 +20,17 @@ export async function billingHostelId(hostelId: string | Types.ObjectId) {
     .lean<{ parentHostelId?: Types.ObjectId | null } | null>();
 
   return hostel?.parentHostelId ?? id;
+}
+
+/** Branches this hostel's plan includes — 0 on every plan but Max. A branch answers for its main hostel. */
+export async function planBranchCap(hostelId: string | Types.ObjectId) {
+  const subscription = await HostelSubscriptionModel.findOne({ hostelId: await billingHostelId(hostelId) })
+    .select("planId")
+    .lean<{ planId?: string | null } | null>();
+
+  if (!subscription?.planId) return 0;
+
+  return getPlan(await getSiteConfigSection("plans"), subscription.planId)?.maxBranches ?? 0;
 }
 
 /** Live branches of a main hostel — pending ones count, they hold a place under the cap. */

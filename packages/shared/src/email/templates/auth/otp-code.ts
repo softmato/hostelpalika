@@ -12,6 +12,8 @@ import { emailLayout, escapeHtml, paragraph, type EmailContent } from "../layout
 export function otpCodeEmail(input: {
   code: string;
   expiresInMinutes?: number;
+  /** What the code is for. Left out, it is the signup line. */
+  instruction?: string;
   siteName?: string;
 }): EmailContent {
   const brand = input.siteName?.trim();
@@ -28,7 +30,7 @@ export function otpCodeEmail(input: {
       ...(brand ? { siteName: brand } : {}),
       bodyHtml: [
         paragraph(
-          "Enter this code to finish making your account.",
+          input.instruction ?? "Enter this code to finish making your account.",
         ),
         `<div style="margin:28px 0;text-align:center;">
           <span style="display:inline-block;border:1px dashed #14b8a6;border-radius:12px;background:#f0fdfa;padding:14px 24px;font-size:30px;font-weight:800;letter-spacing:8px;color:#0f766e;">${escapeHtml(input.code)}</span>

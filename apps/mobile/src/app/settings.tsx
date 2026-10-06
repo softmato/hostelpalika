@@ -3,6 +3,7 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Linking, View } from "react-native";
 
+import { FingerprintLockSetting } from "@/components/app-lock";
 import { CalendarPreferenceCard } from "@/components/calendar-preference";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
@@ -176,6 +177,8 @@ export default function SettingsScreen() {
             </Card>
           </View>
         ) : null}
+
+        {showAll ? <FingerprintLockSetting /> : null}
 
         {showAll ? <CalendarPreferenceCard /> : null}
 

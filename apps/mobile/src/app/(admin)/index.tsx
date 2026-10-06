@@ -419,34 +419,14 @@ function BranchAdminHomeScreen() {
               — a third path to the same places, sitting on the heading of a row
               that is already nothing but paths, was chrome.
             */}
-            <SectionHeader title="Waiting for you" />
+            <SectionHeader title="Money & stock" />
 
             <DeniedNotice denied={alerts.data?.denied ?? []} />
 
             <WaitingActions
-              inquiries={alerts.counts.inquiry}
-              /*
-                `manage/inquiries`, not the Residents tab.
-
-                It pointed at the roster, which is a list of people who already
-                live here — so the tile's red count sent you to a screen that did
-                not contain the thing it was counting, and there was nowhere to
-                clear it. See the note at the top of `manage/inquiries.tsx`.
-              */
-              onInquiries={() => router.push("/manage/inquiries")}
-              /*
-                `manage/statements`, the bank import — under the name of the job
-                rather than of the file it eats.
-
-                It is the screen the cell beside it used to open while wearing
-                the word `Statement`, which the Manage grid below spends on a
-                different screen entirely. Two doors, one word, one scroll
-                apart. Now each says what is behind it.
-
-                No badge: an import is something you *do*, not a queue that
-                fills, same as `Today` below.
-              */
-              onReconcile={() => router.push("/manage/statements")}
+              onExpenses={() => router.push("/expenses")}
+              onFinance={() => router.push("/manage/finance")}
+              onStock={() => router.push("/stock")}
               /*
                 `manage/finance/statement`, the hostel's own ledger of credits —
                 the same screen the Manage grid's `Statement` tile opens, and the
@@ -455,12 +435,6 @@ function BranchAdminHomeScreen() {
                 already reading rather than one section further down.
               */
               onStatement={() => router.push("/manage/finance/statement")}
-              /*
-                No badge on this one: Today is a **door**, not a queue — roll
-                call, complaints, maintenance, the menu and notices — and there
-                is no single number that means "how much of that is waiting".
-              */
-              onToday={() => router.push("/(admin)/today")}
             />
           </View>
 

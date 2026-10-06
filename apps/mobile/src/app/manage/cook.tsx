@@ -29,6 +29,7 @@ import {
   type CookAccount,
   type CookCredentials,
   removeCook,
+  setCookFingerprintLock,
   updateCook,
 } from "@/lib/admin-manage-api";
 import { adminQuery, type CookRoster } from "@/lib/admin-queries";
@@ -133,6 +134,30 @@ export default function ManageCookScreen() {
         toastError("Could not change it", readApiError(error));
       } finally {
         setSavingExpenses(false);
+      }
+    },
+    [setData],
+  );
+
+  const [savingLock, setSavingLock] = useState(false);
+
+  /** Owner only, like expenses: whether cooks are asked for a fingerprint lock. */
+  const toggleCookFingerprint = useCallback(
+    async (enabled: boolean) => {
+      setSavingLock(true);
+      setData((current) => (current ? { ...current, fingerprintLock: enabled } : current));
+
+      try {
+        await setCookFingerprintLock(enabled);
+        toastSuccess(
+          enabled ? "Cooks will be asked for a fingerprint" : "Cooks are no longer asked",
+          enabled ? "They see it the next time they open the app." : undefined,
+        );
+      } catch (error) {
+        setData((current) => (current ? { ...current, fingerprintLock: !enabled } : current));
+        toastError("Could not change it", readApiError(error));
+      } finally {
+        setSavingLock(false);
       }
     },
     [setData],
@@ -349,6 +374,26 @@ export default function ManageCookScreen() {
               disabled={savingExpenses}
               onChange={(on) => void toggleCookExpenses(on)}
               value={Boolean(roster.data?.expensesEnabled)}
+            />
+          </Card>
+        ) : null}
+
+        {isOwner ? (
+          <Card className="flex-row items-center gap-3">
+            <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
+              <Ionicons color={colors.brand} name="finger-print" size={19} />
+            </View>
+            <View className="flex-1">
+              <Text variant="label">Cooks lock the app with a fingerprint</Text>
+              <Text variant="caption">
+                Each cook is asked to turn it on, then the app asks for their finger every time it opens.
+              </Text>
+            </View>
+            <Toggle
+              accessibilityLabel="Cooks lock the app with a fingerprint"
+              disabled={savingLock}
+              onChange={(on) => void toggleCookFingerprint(on)}
+              value={Boolean(roster.data?.fingerprintLock)}
             />
           </Card>
         ) : null}

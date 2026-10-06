@@ -54,13 +54,22 @@ export const createStockEntrySchema = z
     hostelId: objectIdSchema.optional(),
     kind: z.enum(STOCK_ENTRY_KINDS),
     lines: z
-      .array(z.object({ itemId: objectIdSchema, qty: qtySchema }))
+      .array(
+        z.object({
+          itemId: objectIdSchema,
+          qty: qtySchema,
+          /** BUY only: whole rupees per unit. */
+          rate: z.number().int("Whole rupees.").min(0).max(EXPENSE_AMOUNT_MAX).optional(),
+        }),
+      )
       .min(1, "Add at least one item.")
       .max(STOCK_LINES_MAX),
     note: z.string().trim().max(200).optional(),
     on: calendarDaySchema.optional(),
     paidBy: z.enum(EXPENSE_PAID_BY).default("CASH"),
     photoAssetId: objectIdSchema.optional(),
+    /** BUY only: the shop or person it came from. */
+    supplier: z.string().trim().max(80).optional(),
     toHostelId: objectIdSchema.optional(),
   })
   .superRefine((value, context) => {

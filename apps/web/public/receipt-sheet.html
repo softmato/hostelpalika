@@ -15,11 +15,11 @@
 <label for="amount">Amount · Rs.</label><input id="amount" inputmode="numeric" type="number" min="1" max="100000000" step="1" required>
 <div class="row"><div><label for="category">Category</label><select id="category"><option value="OTHER">Other</option><option value="GROCERIES">Groceries</option><option value="VEGETABLES_MEAT">Vegetables &amp; meat</option><option value="GAS">Gas</option><option value="ELECTRICITY">Electricity</option><option value="WATER">Water</option><option value="INTERNET">Internet</option><option value="SALARY">Salary</option><option value="RENT">Building rent</option><option value="REPAIR">Repair</option><option value="CLEANING">Cleaning</option></select></div>
 <div><label for="method">Paid by</label><select id="method"><option value="BANK">Bank</option><option value="ESEWA">eSewa</option><option value="KHALTI">Khalti</option><option value="CASH">Cash</option></select></div></div>
-<details id="details"><summary>Details</summary><label for="what">Description</label><input id="what" maxlength="160" required>
+<details id="details"><summary>Details</summary><label for="what">Description</label><input id="what" maxlength="120" required>
 </details>
 <label class="check"><input type="checkbox" id="auto"><span>Don’t ask next time — read and save my shared receipts automatically</span></label>
 </form>
-<div id="done" hidden><b>✓</b><h1>Saved</h1></div>
+<div id="done" hidden><b>✓</b><h1 id="doneTitle">Saved</h1><p id="doneText"></p></div>
 <input id="picker" type="file" accept="image/*,application/pdf,.pdf" hidden>
 <button id="pick" class="primary" hidden>Select receipt</button>
 <a id="login" hidden href="/app/share-payment">Sign in to HostelPalika</a>
@@ -131,6 +131,8 @@
         if (!native && account.role === 'RESIDENT' && shareId) {
           cancelled = true; location.replace('/app/share-payment?share=' + encodeURIComponent(shareId)); return;
         }
+        // Residents claim against an invoice: the app opens on that flow with this file.
+        if (native && account.role === 'RESIDENT') { $('status').textContent = 'Opening HostelPalika…'; await bridge('handoff'); return; }
         if (!['HOSTEL_ADMIN','WARDEN'].includes(account.role)) throw new Error('Use a hostel staff account to save an expense. Residents can add payment proof from their invoice.');
         const hostel = native ? await bridge('hostel') : branch();
         prefKey = `hostelpalika.receipt-auto:${account.id}:${hostel || account.hostelIds?.[0] || ''}`;
@@ -138,11 +140,12 @@
         loaded = true;
       }
       $('file').textContent = fileName;
-      $('status').textContent = 'Reading receipt…';
-      if (!assetId) assetId = await upload();
+      if (!assetId) { $('status').textContent = 'Uploading receipt…'; assetId = await upload(); }
       if (cancelled || !assetId) return;
+      $('status').textContent = 'Reading receipt…';
       const result = await api('/hostel-admin/expenses/receipt/read','POST',{assetId});
       if (cancelled) return;
+      if (result.alreadySaved) { const saved = result.alreadySaved; finish('Already added', 'Rs. ' + saved.amount.toLocaleString('en-IN') + (saved.by ? ' · added by ' + saved.by : '') + (saved.where ? ' in ' + saved.where : '')); return; }
       $('amount').value = result.fields.amount || '';
       $('method').value = ['ESEWA','KHALTI'].includes(result.fields.method) ? result.fields.method : 'BANK';
       $('what').value = result.description || 'Shared payment receipt';
@@ -165,12 +168,16 @@
           else localStorage.setItem(prefKey,String($('auto').checked));
         } catch { error('Expense saved. Auto-save setting could not be changed.'); }
       }
-      await cleanup().catch(() => {});
-      $('form').hidden = true; $('pick').hidden = true; $('done').hidden = false; $('status').textContent = ''; $('save').hidden = true; $('scan').hidden = true;
-      $('cancel').textContent = 'Done'; $('cancel').disabled = false;
+      finish('Saved', '');
       if (automatic) setTimeout(() => { void close(); }, 650);
     } catch (e) { error(e.message || 'Not saved. Try again.'); $('status').textContent = 'Your receipt is ready to save.'; $('save').disabled = false; $('cancel').disabled = false; }
     finally { saving = false; }
+  }
+  function finish(title, text) {
+    void cleanup().catch(() => {});
+    $('doneTitle').textContent = title; $('doneText').textContent = text;
+    $('form').hidden = true; $('pick').hidden = true; $('done').hidden = false; $('status').textContent = ''; $('save').hidden = true; $('scan').hidden = true;
+    $('cancel').textContent = 'Done'; $('cancel').disabled = false;
   }
   $('form').onsubmit = event => { event.preventDefault(); void save(); };
   void open();

@@ -22,7 +22,7 @@ working*, not *file created*. **[server]** `apps/web` API, **[app]** `apps/mobil
 | Money | A Bought with an amount writes **one Expense** in the hostel the recorder is working in — the same row Money Out shows. Sending never moves money between branches; Overall shows the whole group. |
 | Who | Owner: the building picked in the switcher (every building only in Overall, read-only). Warden: only with the new `manageStock` permission, only their building, but can Send to any building in the group. Cook: not in this round. |
 | Plan | Listed as **Inventory Management** under Food & Kitchen on **Max**. Not gated on the server — no other plan service is. |
-| Look | The Finance screen: accent header, sections of tinted icon rows, badges, values on the right. Bottom sheets, skeletons, dates grouped with the heading outside the card. |
+| Look | **Redesigned 2026-10-06 from the owner's mockup:** plain white headers, one job per screen, items picked with "+ Add Item" (never a box per item), one green button at the bottom, emoji item pictures. Bottom sheets, skeletons, dates grouped with the heading outside the card. |
 
 ## 2. Words (A1 English)
 
@@ -34,7 +34,7 @@ Never: inventory ledger, transfer, reconcile, consumption, variance.
 - `StockItem` — per group (main hostel id): name, unit, kind (`STORE`/`DAILY`),
   `lowAt`, `active`. Shared by the main hostel and every branch.
 - `StockEntry` — one per tap of Save: kind (`BUY`/`SEND`/`COUNT`), building,
-  `toHostelId` (Send), BS day, `lines[{ itemId, name, unit, qty, receivedQty }]`,
+  `toHostelId` (Send), BS day, `lines[{ itemId, name, unit, qty, rate, receivedQty }]`, `supplier` (Bought),
   status (`DONE`/`PENDING`/`RECEIVED`/`CANCELLED`), optional `expenseId`.
   Never deleted — cancelled with a reason; cancelling a Bought voids its expense.
 - **Balances are derived, never stored** (same rule as the warden cash box):
@@ -60,9 +60,9 @@ the rest tick after the device pass in "After shipping".
 
 ### App
 - [ ] `lib/stock-api.ts`
-- [ ] `/stock` home — Finance look: summary card, waiting for Got it, Store items, Daily items, this month's entries by date
-- [ ] Item sheet — per building: left, counted on, used this month, per resident
-- [ ] `/stock/entry?kind=buy|send|count` — one screen, item list with quantity inputs
+- [ ] `/stock` — tabs Overview (waiting for Got it, 4 figures, Quick Actions, Recent Activity) · Store Items · Daily Items
+- [ ] `/stock/buy` (bill → items, with Supplier and per-item Rate) · `/stock/send` (where + items → review) · `/stock/count`
+- [ ] `/stock/receive/[id]` (Got it) · `/stock/entry/[id]` (details, Send timeline, Cancel) · `/stock/item/[id]` (Overview · History · Settings) · `/stock/history`
 - [ ] Manage grid tile + More row
 
 ### Web

@@ -12,6 +12,11 @@ export type AuthState = {
    * from it before any network call — that is what removes the login flash.
    */
   account: ApiUser | null;
+  /**
+   * The account that turned the fingerprint lock on for this phone. Persisted so
+   * the lock is decided on the first frame — see `lib/app-lock.ts`.
+   */
+  biometricUserId: string | null;
   /** RESIDENT only. `null` means "not known yet", which is not the same as false. */
   isResidentActivated: boolean | null;
   /** True once the boot gate has finished; the router waits on this. */
@@ -22,6 +27,7 @@ export type AuthState = {
 const initialState: AuthState = {
   accessToken: null,
   account: null,
+  biometricUserId: null,
   isReady: false,
   isResidentActivated: null,
   sessionEndReason: null,
@@ -34,10 +40,14 @@ const authSlice = createSlice({
     clearAuth(state) {
       state.accessToken = null;
       state.account = null;
+      state.biometricUserId = null;
       state.isResidentActivated = null;
     },
     setAccessToken(state, action: PayloadAction<string>) {
       state.accessToken = action.payload;
+    },
+    setBiometricUserId(state, action: PayloadAction<string | null>) {
+      state.biometricUserId = action.payload;
     },
     setAccount(state, action: PayloadAction<ApiUser>) {
       state.account = action.payload;
@@ -66,6 +76,7 @@ export const {
   clearAuth,
   setAccessToken,
   setAccount,
+  setBiometricUserId,
   setReady,
   setResidentActivated,
   setSession,

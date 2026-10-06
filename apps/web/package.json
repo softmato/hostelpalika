@@ -31,6 +31,7 @@
     "backfill:r2-public-origin": "node scripts/backfill-r2-public-origin.mjs",
     "migrate:registration-documents": "node scripts/migrate-registration-documents-private.mjs",
     "backfill:card-avatars": "node scripts/backfill-card-avatars.mjs",
+    "backfill:receipt-keys": "node scripts/backfill-receipt-keys.mjs",
     "backfill:hostel-map-pins": "node --experimental-transform-types --import ./scripts/register-ts-hook.mjs scripts/backfill-hostel-map-pins.mjs",
     "repair:archived-residents": "node scripts/repair-archived-residents.mjs",
     "repair:account-hostels": "node scripts/repair-account-hostel-scope.mjs",

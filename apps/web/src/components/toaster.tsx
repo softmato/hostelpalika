@@ -50,29 +50,37 @@ const SUCCESS_LINGER_MS = 2600;
 /** Rows shown before collapsing the rest into a "+N more" line. */
 const MAX_VISIBLE_UPLOADS = 3;
 
+/**
+ * Each tone tints the whole card and fills its icon, so an error never reads as
+ * another green "done" at a glance — a 4px stripe alone was too easy to miss.
+ */
 const TOAST_TONE: Record<
   ToastTone,
-  { accent: string; icon: typeof Info; iconTone: string }
+  { badge: string; border: string; icon: typeof Info; surface: string }
 > = {
   error: {
-    accent: "bg-destructive",
+    badge: "bg-destructive text-white",
+    border: "border-destructive/50",
     icon: XCircle,
-    iconTone: "text-destructive",
+    surface: "bg-destructive/10",
   },
   info: {
-    accent: "bg-muted-foreground/40",
+    badge: "bg-foreground text-background",
+    border: "border-border",
     icon: Info,
-    iconTone: "text-muted-foreground",
+    surface: "bg-muted/60",
   },
   success: {
-    accent: "bg-brand-teal",
+    badge: "bg-brand-teal text-white",
+    border: "border-brand-teal/50",
     icon: CheckCircle2,
-    iconTone: "text-brand-teal",
+    surface: "bg-brand-teal/10",
   },
   warning: {
-    accent: "bg-warning",
+    badge: "bg-warning text-white",
+    border: "border-warning/50",
     icon: AlertTriangle,
-    iconTone: "text-warning",
+    surface: "bg-warning/10",
   },
 };
 
@@ -677,16 +685,20 @@ const Toast = memo(function Toast({ toast: item }: { toast: ToastItem }) {
 
   return (
     <div
-      className="pointer-events-auto flex overflow-hidden rounded-xl border border-border bg-card shadow-lg animate-in fade-in slide-in-from-bottom-2"
+      className={cn(
+        "pointer-events-auto overflow-hidden rounded-xl border bg-card shadow-xl animate-in fade-in slide-in-from-bottom-2",
+        tone.border,
+      )}
       role={item.tone === "error" ? "alert" : "status"}
     >
-      <span className={cn("w-1 shrink-0", tone.accent)} />
-      <div className="flex min-w-0 flex-1 items-start gap-2.5 px-3 py-2.5">
-        <Icon className={cn("mt-0.5 size-4 shrink-0", tone.iconTone)} />
-        <div className="min-w-0 flex-1">
-          <p className="text-[12.5px] font-semibold text-foreground">{item.title}</p>
+      <div className={cn("flex min-w-0 items-start gap-3 px-3 py-3", tone.surface)}>
+        <span className={cn("flex size-7 shrink-0 items-center justify-center rounded-full", tone.badge)}>
+          <Icon className="size-4" />
+        </span>
+        <div className="min-w-0 flex-1 self-center">
+          <p className="break-words text-[13px] font-semibold text-foreground">{item.title}</p>
           {item.description ? (
-            <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+            <p className="mt-0.5 break-words text-[12px] text-muted-foreground">
               {item.description}
             </p>
           ) : null}

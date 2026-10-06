@@ -11,5 +11,6 @@
         <data android:mimeType="application/x-pdf" /><data android:mimeType="binary/octet-stream" />
       </intent-filter>
     </activity>
+    <service android:name="com.softmato.receipts.ReceiptSaveService" android:exported="false" />
   </application>
 </manifest>

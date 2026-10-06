@@ -10,7 +10,7 @@ const otpChallengeSchema = new Schema(
     expiresAt: { required: true, type: Date },
     identifier: { required: true, trim: true, type: String },
     ipAddress: String,
-    purpose: { enum: ["registration", "plan-checkout"], required: true, type: String },
+    purpose: { enum: ["registration", "plan-checkout", "biometric"], required: true, type: String },
     requestCount: { default: 1, type: Number },
     userAgent: String,
     verifiedAt: { default: null, type: Date },

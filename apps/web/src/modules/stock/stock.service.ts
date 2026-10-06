@@ -154,8 +154,16 @@ type EntryDoc = {
   expenseId?: Types.ObjectId | null;
   hostelId: Types.ObjectId;
   kind: StockEntryKind;
-  lines: { itemId: Types.ObjectId; name: string; qty: number; receivedQty?: number | null; unit: StockUnit }[];
+  lines: {
+    itemId: Types.ObjectId;
+    name: string;
+    qty: number;
+    rate?: number | null;
+    receivedQty?: number | null;
+    unit: StockUnit;
+  }[];
   note?: string;
+  supplier?: string;
   on: Date;
   receivedAt?: Date;
   receivedByName?: string;
@@ -175,9 +183,10 @@ export type StockEntryRow = {
   hostelName: string;
   id: string;
   kind: StockEntryKind;
-  lines: { itemId: string; name: string; qty: number; receivedQty: number | null; unit: StockUnit }[];
+  lines: { itemId: string; name: string; qty: number; rate: number | null; receivedQty: number | null; unit: StockUnit }[];
   mine: boolean;
   note: string;
+  supplier: string;
   /** Gregorian `YYYY-MM-DD`; screens read it in Bikram Sambat. */
   on: string;
   receivedAt: string | null;
@@ -244,11 +253,13 @@ function serializeEntry(actor: StockActor, doc: EntryDoc): StockEntryRow {
       itemId: line.itemId.toString(),
       name: line.name,
       qty: line.qty,
+      rate: line.rate ?? null,
       receivedQty: line.receivedQty ?? null,
       unit: line.unit,
     })),
     mine,
     note: doc.note ?? "",
+    supplier: doc.supplier ?? "",
     on: dayKey(doc.on),
     receivedAt: doc.receivedAt?.toISOString() ?? null,
     receivedByName: doc.receivedByName ?? null,
@@ -418,8 +429,9 @@ async function userName(userId: string) {
   return user?.name ?? "";
 }
 
-function lineSummary(lines: { name: string; qty: number; unit: StockUnit }[]) {
-  const text = lines.map((line) => `${line.name} ${formatQty(line.qty, line.unit)}`).join(", ");
+/** `Rice 25 kg, Daal 10 kg`, or with a prefix: `Local Store: Rice 25 kg`. Fits an expense's `what`. */
+function lineSummary(lines: { name: string; qty: number; unit: StockUnit }[], prefix = "") {
+  const text = prefix + lines.map((line) => `${line.name} ${formatQty(line.qty, line.unit)}`).join(", ");
 
   return text.length > EXPENSE_WHAT_MAX ? `${text.slice(0, EXPENSE_WHAT_MAX - 1)}…` : text;
 }
@@ -518,6 +530,7 @@ export async function createStockEntry(actor: StockActor, input: CreateStockEntr
 
   // One line per item: two rows of Rice on one Bought are one Rice.
   const merged = new Map<string, number>();
+  const rates = new Map<string, number>();
 
   for (const line of input.lines) {
     const item = byId.get(line.itemId);
@@ -529,14 +542,24 @@ export async function createStockEntry(actor: StockActor, input: CreateStockEntr
     }
 
     merged.set(line.itemId, input.kind === "COUNT" ? line.qty : (merged.get(line.itemId) ?? 0) + line.qty);
+
+    if (input.kind === "BUY" && line.rate !== undefined) rates.set(line.itemId, line.rate);
   }
 
   const lines = [...merged].map(([itemId, qty]) => {
     const item = byId.get(itemId)!;
 
-    return { itemId: item._id, name: item.name, qty: roundQty(qty), receivedQty: null, unit: item.unit };
+    return {
+      itemId: item._id,
+      name: item.name,
+      qty: roundQty(qty),
+      rate: rates.get(itemId) ?? null,
+      receivedQty: null,
+      unit: item.unit,
+    };
   });
 
+  const supplier = input.kind === "BUY" ? input.supplier?.trim() || undefined : undefined;
   let expenseId: Types.ObjectId | null = null;
 
   if (input.kind === "BUY" && input.amount) {
@@ -564,7 +587,7 @@ export async function createStockEntry(actor: StockActor, input: CreateStockEntr
       paidBy: input.paidBy,
       photoAssetId: input.photoAssetId,
       spentOn: input.on,
-      what: lineSummary(lines),
+      what: supplier ? lineSummary(lines, `${supplier}: `) : lineSummary(lines),
     });
 
     expenseId = new Types.ObjectId(expense.id);
@@ -583,6 +606,7 @@ export async function createStockEntry(actor: StockActor, input: CreateStockEntr
       lines,
       note: input.note,
       on,
+      supplier,
       recordedBy: new Types.ObjectId(actor.principal.userId),
       recordedByName: await userName(actor.principal.userId),
       status: input.kind === "SEND" ? "PENDING" : "DONE",

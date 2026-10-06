@@ -11,6 +11,11 @@ import type { Role } from "@/constants/roles";
 
 /** Exactly `publicUser()` + `isServiceProvider` from apps/web's auth.service.ts. */
 export type ApiUser = {
+  /**
+   * COOK only: the owner asked cooks to lock the app with a fingerprint. Every
+   * other role leaves it out — `lib/app-lock.ts` decides those by role.
+   */
+  cookFingerprintLock?: boolean;
   email: string | null;
   emailVerified: boolean;
   hostelIds: string[];

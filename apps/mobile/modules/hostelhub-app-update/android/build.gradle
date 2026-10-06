@@ -1,0 +1,20 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'com.softmato.hostelhub'
+version = '1.0.0'
+
+android {
+  namespace "com.softmato.hostelhub.appupdate"
+  defaultConfig {
+    versionCode 1
+    versionName '1.0.0'
+  }
+}
+
+dependencies {
+  // Play In-App Updates: Play itself says a newer build is out and runs the update.
+  implementation "com.google.android.play:app-update:2.1.0"
+}

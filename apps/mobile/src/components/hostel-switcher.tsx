@@ -21,6 +21,7 @@ import { type AdminBranchRow, getBranchesSummary } from "@/lib/admin-api";
 import { adminQuery } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { absoluteMediaUrl } from "@/lib/media";
+import { toastError } from "@/lib/toast";
 import type { GlyphName } from "@hostel/constants/glyphs";
 
 /**
@@ -51,6 +52,21 @@ export function useIsOverall() {
   const role = useAppSelector((state) => state.auth.account?.role);
 
   return isOverall(useActiveHostel()) && role === ROLE.HOSTEL_ADMIN;
+}
+
+/**
+ * Why Branches is closed, or null when it is open — the web portal's
+ * `branchesLock`: Max only, owner only. `undefined` while the plan loads.
+ */
+export function useBranchesLock(): string | null | undefined {
+  const role = useAppSelector((state) => state.auth.account?.role);
+  const query = adminQuery.subscription();
+  const subscription = useResource(query.load, { cacheKey: query.key, topics: query.topics });
+
+  if (subscription.loading) return undefined;
+  if (subscription.data?.subscription.planId !== "max") return "You need the Max plan to use branches.";
+
+  return role === ROLE.HOSTEL_ADMIN ? null : "Only the hostel owner can manage branches.";
 }
 
 /** Switch into one branch, then open the screen there — every write from Overall starts this way. */
@@ -87,6 +103,7 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
     topics: subscriptionQuery.topics,
   });
   const active = useActiveHostel();
+  const lock = useBranchesLock();
   const [open, setOpen] = useState(false);
   const rows = branches.data?.hostels ?? [];
   const overall = isOverall(active);
@@ -220,11 +237,12 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
             className="flex-row items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-3.5 active:bg-muted"
             onPress={() => {
               setOpen(false);
-              router.push("/manage/branches");
+              if (lock) toastError(lock);
+              else router.push("/manage/branches");
             }}
           >
-            <Glyph color={colors.primary} name="plus" size={18} />
-            <Text className="font-semibold text-primary" variant={null}>
+            <Glyph color={lock ? colors.mutedForeground : colors.primary} name="plus" size={18} />
+            <Text className={`font-semibold ${lock ? "text-muted-foreground" : "text-primary"}`} variant={null}>
               Manage branches
             </Text>
           </Pressable>

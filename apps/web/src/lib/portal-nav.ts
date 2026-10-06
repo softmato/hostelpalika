@@ -1232,10 +1232,11 @@ export function overallAdminNav(): PortalNavGroup[] {
   ];
 }
 
-export function hostelAdminNavForSlug(slug: string): PortalNavGroup[] {
+/** `branches: false` drops the Branches screen — a Max-only, owner-only one (`branchesLock`). */
+export function hostelAdminNavForSlug(slug: string, { branches = true } = {}): PortalNavGroup[] {
   return HOSTEL_ADMIN_NAV.map((group) => ({
     ...group,
-    items: group.items.map((item) => ({
+    items: group.items.filter((item) => branches || item.href !== "/hostel-admin/branches").map((item) => ({
       ...item,
       children: item.children?.map((child) => ({
         ...child,

@@ -38,6 +38,7 @@ const mocks = vi.hoisted(() => ({
   expenseFind: vi.fn(),
   expenseFindOne: vi.fn(),
   expenseFindOneAndUpdate: vi.fn(),
+  hostelFindById: vi.fn(),
   memberExists: vi.fn(),
   memberFind: vi.fn(),
   settingsFindOne: vi.fn(),
@@ -80,6 +81,7 @@ vi.mock("@hostel/db/models/HostelExpenseCategory", () => ({
   },
 }));
 vi.mock("@hostel/db/models/FileAsset", () => ({ FileAssetModel: { findOne: mocks.assetFindOne } }));
+vi.mock("@hostel/db/models/Hostel", () => ({ HostelModel: { findById: mocks.hostelFindById } }));
 vi.mock("@hostel/db/models/HostelSettings", () => ({
   HostelSettingsModel: { findOne: mocks.settingsFindOne },
 }));
@@ -149,6 +151,7 @@ beforeEach(() => {
   mocks.expenseFind.mockReturnValue(query([]));
   mocks.expenseFindOne.mockReturnValue(query(null));
   mocks.memberExists.mockResolvedValue(null);
+  mocks.hostelFindById.mockReturnValue(query({ parentHostelId: null }));
 });
 
 /** Month totals group on `null`; the cash-box reads group per person and get nothing here. */
@@ -387,6 +390,36 @@ describe("adding an expense", () => {
     mocks.expenseFindOne.mockReturnValue(query(expense()));
     await createExpense(actor, shared);
     expect(mocks.notify).toHaveBeenCalledTimes(1);
+  });
+
+  it("refuses a receipt already saved anywhere in the hostel group, naming the branch", async () => {
+    const hash = "ab".repeat(32);
+    const mainId = new Types.ObjectId();
+    mocks.assetFindOne.mockReturnValue(query({ contentHash: hash, hostelId, kind: "EXPENSE_RECEIPT", ownerId, receiptTxnId: "8823119471", uploadCompletedAt: new Date() }));
+    // This hostel is a branch; the row sits in the main hostel.
+    mocks.hostelFindById.mockReturnValueOnce(query({ parentHostelId: mainId })).mockReturnValueOnce(query({ name: "Sunrise Main" }));
+    mocks.expenseFindOne.mockReturnValueOnce(query(null)).mockReturnValueOnce(query(expense({ amount: 300, hostelId: mainId, recordedByName: "Hari" })));
+    const shared = { ...input, sharedReceipt: true, photoAssetId: assetId.toString(), clientRequestId: "receipt-other-bytes" };
+    await expect(createExpense(await resolveExpenseActor(owner), shared)).rejects.toMatchObject({
+      errorCode: "RECEIPT_ALREADY_SAVED", message: "Already added: Rs 300 by Hari in Sunrise Main.", status: 409,
+    });
+    expect(mocks.expenseFindOne.mock.calls[1]?.[0]).toEqual({
+      receiptGroupId: mainId, status: "RECORDED", $or: [{ receiptHash: hash }, { receiptTxnId: "8823119471" }],
+    });
+    expect(mocks.expenseCreate).not.toHaveBeenCalled();
+  });
+
+  it("stamps the receipt's group, hash and transaction id, and lets the device own the saved notice", async () => {
+    mocks.assetFindOne.mockReturnValue(query({ contentHash: "cd".repeat(32), hostelId, kind: "EXPENSE_RECEIPT", ownerId, receiptTxnId: "8823119471", uploadCompletedAt: new Date() }));
+    await createExpense(await resolveExpenseActor(owner), { ...input, sharedReceipt: true, notifiedOnDevice: true, photoAssetId: assetId.toString() });
+    expect(mocks.expenseCreate.mock.calls[0]?.[0]).toMatchObject({ receiptGroupId: hostelId, receiptHash: "cd".repeat(32), receiptTxnId: "8823119471" });
+    expect(mocks.notify).toHaveBeenCalledWith(expect.objectContaining({ push: false }));
+  });
+
+  it("leaves ordinary photo expenses out of the receipt check", async () => {
+    mocks.assetFindOne.mockReturnValue(query({ contentHash: "cd".repeat(32), hostelId, kind: "EXPENSE_RECEIPT", ownerId, uploadCompletedAt: new Date() }));
+    await createExpense(await resolveExpenseActor(owner), { ...input, photoAssetId: assetId.toString() });
+    expect(mocks.expenseCreate.mock.calls[0]?.[0]).toMatchObject({ receiptGroupId: null, receiptHash: null });
   });
 
   it("keeps Save successful if notifications fail", async () => {

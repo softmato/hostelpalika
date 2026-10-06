@@ -486,6 +486,8 @@ export type CookRoster = {
   cooks: CookAccount[];
   /** The cook may add expenses — owner's switch, off by default. */
   expensesEnabled?: boolean;
+  /** Cooks are asked for a fingerprint lock — owner's switch, off by default. */
+  fingerprintLock?: boolean;
   portalEnabled: boolean;
 };
 

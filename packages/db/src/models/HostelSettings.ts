@@ -19,6 +19,8 @@ const hostelSettingsSchema = new Schema(
      * money is not part of the cook portal by default.
      */
     cookCanRecordExpenses: { default: false, type: Boolean },
+    // The owner asks cooks to lock the app with a fingerprint (apps/mobile `lib/app-lock.ts`).
+    cookFingerprintLock: { default: false, type: Boolean },
     cookName: { trim: true, type: String },
     cookUserId: { ref: "User", type: Schema.Types.ObjectId },
     /**

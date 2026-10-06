@@ -4,14 +4,14 @@ import { AppState, Platform, Switch, View } from "react-native";
 import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
 import { getRequestHostelId, subscribeActiveHostel } from "@/lib/active-hostel";
-import { receiptNative } from "@/lib/receipt-native";
+import { receiptAutoKey, receiptNative } from "@/lib/receipt-native";
 import { toastError } from "@/lib/toast";
 export function ReceiptShareSettings() {
   const account = useAppSelector((state) => state.auth.account);
   const [hostelId, setHostelId] = useState(getRequestHostelId());
   const [enabled, setEnabled] = useState(false);
   const [busy, setBusy] = useState(true);
-  const key = `hostelpalika.receipt-auto:${account?.id}:${hostelId || account?.hostelIds[0] || ""}`;
+  const key = account ? receiptAutoKey(account, hostelId) : "";
   useEffect(() => subscribeActiveHostel(() => setHostelId(getRequestHostelId())), []);
   useEffect(() => {
     let active = true;
@@ -29,7 +29,7 @@ export function ReceiptShareSettings() {
   if (!account || !["HOSTEL_ADMIN", "WARDEN"].includes(account.role)) return null;
   return <View className="mx-5 my-3 flex-row items-center gap-3 rounded-2xl border border-border p-4">
     <View className="flex-1"><Text variant="label">Auto-save shared receipts</Text>
-      <Text variant="muted">Clear outgoing receipts save under Other. Turn off to review every receipt.</Text>
+      <Text variant="muted">Clear outgoing receipts save under Other and you get a notification. Turn off to review every receipt.</Text>
       {Platform.OS === "web" ? <Text variant="caption">On iPhone, use Import payment receipt.</Text> : null}
     </View>
     <Switch accessibilityLabel="Auto-save shared receipts" value={enabled} disabled={busy} onValueChange={async (value) => {
