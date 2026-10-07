@@ -18,6 +18,8 @@ import { EmptyState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { canOfferLock } from "@/lib/app-lock";
+import { CALENDAR_LABELS } from "@/lib/calendar";
 import { endSession } from "@/lib/auth-session";
 import { openConfirm } from "@/lib/confirm";
 import { setThemePreference } from "@/store/slices/uiSlice";
@@ -201,6 +203,11 @@ export function AppRows({
   privacy?: boolean;
 }) {
   const preference = useAppSelector((state) => state.ui.themePreference);
+  const account = useAppSelector((state) => state.auth.account);
+  const calendar = useAppSelector((state) => state.ui.calendarPreference);
+  const lockOn = useAppSelector(
+    (state) => state.auth.account !== null && state.auth.biometricUserId === state.auth.account.id,
+  );
   const dispatch = useAppDispatch();
   const dark = preference === "dark";
 
@@ -212,6 +219,21 @@ export function AppRows({
         title="Dark mode"
         tone="neutral"
         value={dark ? "On" : "Off"}
+      />
+      {canOfferLock(account) ? (
+        <MenuRow
+          icon="finger-print"
+          onPress={() => router.push({ params: { section: "security" }, pathname: "/settings" })}
+          title="Fingerprint lock"
+          value={lockOn ? "On" : "Off"}
+        />
+      ) : null}
+      <MenuRow
+        icon="calendar"
+        onPress={() => router.push({ params: { section: "calendar" }, pathname: "/settings" })}
+        title="Dates"
+        tone="neutral"
+        value={CALENDAR_LABELS[calendar]}
       />
       {feed ? (
         <MenuRow

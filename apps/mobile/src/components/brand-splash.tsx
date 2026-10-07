@@ -22,7 +22,8 @@ import { palette } from "@/constants/theme";
  * `plugins/withSplashBranding.js`). The system splash shows only the centred
  * logo — the one thing every phone draws the same — and the native view takes
  * over with that logo in place, then "Powered by Softmato" rises in and a shine
- * crosses the logo. It holds until `releaseBootSplash()` and fades.
+ * crosses the logo while the loader under it fills in step — to 85%, and the
+ * rest once `releaseBootSplash()` says the app is up. Then it fades.
  *
  * `BrandSplash` is that screen's end state with the same pixels, so whatever
  * the native view fades onto — the persist gate, the boot gate — nothing moves.
@@ -36,7 +37,7 @@ import { palette } from "@/constants/theme";
  * The timeline and the shine mirror `BootSplash.kt`.
  */
 
-const LOGO_WIDTH = 280;
+const LOGO_WIDTH = 210;
 const LOGO_HEIGHT = Math.round(LOGO_WIDTH * (510 / 1024));
 
 const STRIP_WIDTH = 136;
@@ -50,9 +51,16 @@ const SHINE_DELAY_MS = 750;
 const SHINE_MS = 750;
 const FADE_OUT_MS = 320;
 
-const SHINE_TRAVEL = 110;
-const SHINE_BAND = 44;
+const SHINE_TRAVEL = 83;
+const SHINE_BAND = 33;
 const SHINE_ANGLE = 20;
+
+const LOADER_WIDTH = 80;
+const LOADER_HEIGHT = 3;
+/** Bar centre below the screen centre: under the wordmark's ink, then a 22dp gap. */
+const LOADER_OFFSET = 67;
+const LOADER_HOLD = 0.85;
+const LOADER_FINISH_MS = 220;
 
 /** The ground colour, clear → 60% (`99`) → clear: invisible over the canvas, a shine over the ink. */
 const GROUND = palette.light.background;
@@ -94,6 +102,7 @@ export function bootSplashGone() {
  */
 export function BootSplashCover() {
   const [visible, setVisible] = useState(!nativeSplash);
+  const [finishing, setFinishing] = useState(false);
 
   useEffect(() => {
     if (nativeSplash) return;
@@ -103,8 +112,11 @@ export function BootSplashCover() {
 
     void Promise.all([played, released]).then(() => {
       if (cancelled) return;
-      setVisible(false);
-      setTimeout(markGone, FADE_OUT_MS);
+      setFinishing(true);
+      setTimeout(() => {
+        setVisible(false);
+        setTimeout(markGone, FADE_OUT_MS);
+      }, LOADER_FINISH_MS);
     });
 
     return () => {
@@ -122,7 +134,7 @@ export function BootSplashCover() {
       pointerEvents="none"
       style={[StyleSheet.absoluteFill, styles.cover]}
     >
-      <AnimatedSplash />
+      <AnimatedSplash finishing={finishing} />
     </Animated.View>
   );
 }
@@ -132,10 +144,17 @@ export function BrandSplash() {
   return <SplashLayout />;
 }
 
-/** The native view's animation, step for step: the strip rises in, then the shine crosses the logo. */
-function AnimatedSplash() {
+/** The native view's animation, step for step: the strip rises in, then the shine crosses the logo as the loader fills. */
+function AnimatedSplash({ finishing }: { finishing: boolean }) {
   const strip = useSharedValue(0);
   const shine = useSharedValue(0);
+  const finish = useSharedValue(0);
+
+  useEffect(() => {
+    if (finishing) {
+      finish.value = withTiming(1, { duration: LOADER_FINISH_MS, easing: Easing.out(Easing.quad) });
+    }
+  }, [finish, finishing]);
 
   useEffect(() => {
     strip.value = withDelay(
@@ -152,6 +171,17 @@ function AnimatedSplash() {
     opacity: strip.value,
     transform: [{ translateY: (1 - strip.value) * STRIP_RISE }],
   }));
+
+  const trackStyle = useAnimatedStyle(() => ({ opacity: strip.value }));
+
+  // The shine's own eased value, so the fill and the gleam move as one.
+  const fillStyle = useAnimatedStyle(() => {
+    const progress = shine.value * LOADER_HOLD + finish.value * (1 - LOADER_HOLD);
+    return {
+      opacity: progress > 0 ? 1 : 0,
+      width: Math.max(LOADER_HEIGHT, LOADER_WIDTH * progress),
+    };
+  });
 
   const shineStyle = useAnimatedStyle(() => ({
     opacity: shine.value > 0 && shine.value < 1 ? 1 : 0,
@@ -173,17 +203,26 @@ function AnimatedSplash() {
           />
         </Animated.View>
       }
+      fillStyle={fillStyle}
       stripStyle={stripStyle}
+      trackStyle={trackStyle}
     />
   );
 }
 
+type AnimatedStyle = ComponentProps<typeof Animated.View>["style"];
+
+/** At rest — no styles passed — the loader is full: what the launch screen fades from. */
 function SplashLayout({
+  fillStyle,
   shine,
   stripStyle,
+  trackStyle,
 }: {
+  fillStyle?: AnimatedStyle;
   shine?: ReactNode;
-  stripStyle?: ComponentProps<typeof Animated.View>["style"];
+  stripStyle?: AnimatedStyle;
+  trackStyle?: AnimatedStyle;
 }) {
   return (
     <View style={[StyleSheet.absoluteFill, styles.ground]}>
@@ -201,6 +240,12 @@ function SplashLayout({
         </View>
       </View>
 
+      <View pointerEvents="none" style={styles.loaderSlot}>
+        <Animated.View style={[styles.track, trackStyle]}>
+          <Animated.View style={[styles.fill, fillStyle]} />
+        </Animated.View>
+      </View>
+
       <Animated.View style={[styles.stripSlot, stripStyle]}>
         <Image
           accessibilityLabel={POWERED_BY}
@@ -216,8 +261,15 @@ function SplashLayout({
 
 const styles = StyleSheet.create({
   cover: { elevation: 9999, zIndex: 9999 },
+  fill: {
+    backgroundColor: palette.light.brand,
+    borderRadius: LOADER_HEIGHT / 2,
+    height: LOADER_HEIGHT,
+    width: LOADER_WIDTH,
+  },
   ground: { backgroundColor: GROUND },
   logo: { height: LOGO_HEIGHT, overflow: "hidden", width: LOGO_WIDTH },
+  loaderSlot: { alignItems: "center", inset: 0, justifyContent: "center", position: "absolute" },
   logoSlot: { alignItems: "center", inset: 0, justifyContent: "center", position: "absolute" },
   shine: {
     height: LOGO_HEIGHT * 2,
@@ -228,4 +280,12 @@ const styles = StyleSheet.create({
   },
   strip: { height: STRIP_HEIGHT, width: STRIP_WIDTH },
   stripSlot: { alignItems: "center", bottom: STRIP_BOTTOM, left: 0, position: "absolute", right: 0 },
+  track: {
+    backgroundColor: palette.light.brandSoft,
+    borderRadius: LOADER_HEIGHT / 2,
+    height: LOADER_HEIGHT,
+    overflow: "hidden",
+    transform: [{ translateY: LOADER_OFFSET }],
+    width: LOADER_WIDTH,
+  },
 });

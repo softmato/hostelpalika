@@ -89,8 +89,10 @@ const THEME_OPTIONS: { icon: keyof typeof Ionicons.glyphMap; iconBgColor: string
  * Which slice of this screen to draw.
  */
 const SETTINGS_TITLES: Record<string, string> = {
+  calendar: "Dates",
   notifications: "Notifications",
   privacy: "Privacy & your data",
+  security: "Fingerprint lock",
 };
 
 export default function SettingsScreen() {
@@ -112,6 +114,8 @@ export default function SettingsScreen() {
   const showAll = !section || !(section in SETTINGS_TITLES);
   const showNotifications = showAll || section === "notifications";
   const showPrivacy = showAll || section === "privacy";
+  const showSecurity = showAll || section === "security";
+  const showCalendar = showAll || section === "calendar";
   // Only these two roles are sent optional mail; nobody else gets the section.
   const emailAudience: EmailAudience | null =
     account?.role === ROLE.RESIDENT
@@ -178,9 +182,9 @@ export default function SettingsScreen() {
           </View>
         ) : null}
 
-        {showAll ? <FingerprintLockSetting /> : null}
+        {showSecurity ? <FingerprintLockSetting /> : null}
 
-        {showAll ? <CalendarPreferenceCard /> : null}
+        {showCalendar ? <CalendarPreferenceCard /> : null}
 
         {showNotifications ? <NotificationSettings /> : null}
 

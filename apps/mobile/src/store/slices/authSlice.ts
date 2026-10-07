@@ -64,6 +64,7 @@ const authSlice = createSlice({
     ) {
       state.accessToken = action.payload.accessToken;
       state.account = action.payload.account;
+      state.isResidentActivated = null;
       state.sessionEndReason = null;
     },
     setSessionEndReason(state, action: PayloadAction<SessionEndReason>) {

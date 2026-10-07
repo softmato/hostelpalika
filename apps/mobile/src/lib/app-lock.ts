@@ -111,12 +111,23 @@ export function isAuthenticating() {
   return authenticating;
 }
 
-/** A strong biometric is enrolled — what SecureStore's auth-bound keys require. */
-export async function hasFingerprint() {
+export type FingerprintStatus = "ready" | "weak" | "none";
+
+/**
+ * `ready`: a strong biometric is enrolled — what SecureStore's auth-bound keys
+ * require. `weak`: only a weak one (often face unlock), which cannot hold the
+ * key. `none`: nothing saved on the phone yet.
+ */
+export async function fingerprintStatus(): Promise<FingerprintStatus> {
   const level = await LocalAuthentication.getEnrolledLevelAsync().catch(
     () => LocalAuthentication.SecurityLevel.NONE,
   );
-  return level >= LocalAuthentication.SecurityLevel.BIOMETRIC_STRONG;
+  if (level >= LocalAuthentication.SecurityLevel.BIOMETRIC_STRONG) return "ready";
+  return level === LocalAuthentication.SecurityLevel.BIOMETRIC_WEAK ? "weak" : "none";
+}
+
+export async function hasFingerprint() {
+  return (await fingerprintStatus()) === "ready";
 }
 
 async function withPrompt<T>(work: () => Promise<T>) {

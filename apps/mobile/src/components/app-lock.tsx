@@ -17,6 +17,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
 import { Toggle } from "@/components/ui/toggle";
 import { APP_NAME, logo } from "@/constants/branding";
+import { ROLE } from "@/constants/roles";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
@@ -25,6 +26,8 @@ import {
   armFingerprint,
   canOfferLock,
   disarmFingerprint,
+  type FingerprintStatus,
+  fingerprintStatus,
   hasFingerprint,
   hasMailbox,
   isAuthenticating,
@@ -422,7 +425,8 @@ export function FingerprintOffer() {
     ready &&
     !enabled &&
     !offerDismissed &&
-    activated !== false &&
+    // Only a resident has an activation; an account that was one once keeps the stale `false`.
+    (account?.role !== ROLE.RESIDENT || activated !== false) &&
     canOfferLock(account) &&
     !pathname.startsWith("/login") &&
     !pathname.startsWith("/activate");
@@ -500,15 +504,18 @@ export function FingerprintLockSetting() {
   const account = useAppSelector((state) => state.auth.account);
   const enabled = useLockEnabled();
   const turnOn = useTurnOnLock();
-  const [available, setAvailable] = useState(false);
+  const [status, setStatus] = useState<FingerprintStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [turningOff, setTurningOff] = useState(false);
 
   useEffect(() => {
-    void hasFingerprint().then(setAvailable);
+    void fingerprintStatus().then(setStatus);
   }, []);
 
-  if (!account || !canOfferLock(account) || (!available && !enabled)) return null;
+  if (!account || !canOfferLock(account)) return null;
+
+  // Hidden used to be the answer when the phone could not do it, which left nobody able to say why.
+  const usable = enabled || status === "ready" || status === null;
 
   const mailbox = hasMailbox(account);
 
@@ -553,12 +560,18 @@ export function FingerprintLockSetting() {
           right={
             <Toggle
               accessibilityLabel="Fingerprint lock"
-              disabled={busy}
+              disabled={busy || !usable}
               onChange={(next) => void onToggle(next)}
               value={enabled}
             />
           }
-          subtitle="Asked every time the app opens"
+          subtitle={
+            usable
+              ? "Asked every time the app opens"
+              : status === "weak"
+                ? "This phone's fingerprint cannot lock apps"
+                : "Save a fingerprint in your phone's settings first"
+          }
           title="Fingerprint lock"
         />
       </Card>

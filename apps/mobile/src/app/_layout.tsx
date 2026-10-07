@@ -34,7 +34,7 @@ import { ReceiptNativeSync } from "@/components/receipt-native-sync";
 import { SharedPaymentResume } from "@/components/shared-payment-resume";
 import { ResidencyInviteHost } from "@/components/residency-invite-host";
 import { useAppDispatch } from "@/hooks/redux";
-import { useAppTheme } from "@/hooks/use-app-theme";
+import { primeColorScheme, useAppTheme } from "@/hooks/use-app-theme";
 import { usePush } from "@/hooks/use-push";
 import { useRealtime } from "@/hooks/use-realtime";
 import { useRoleSync } from "@/hooks/use-role-sync";
@@ -617,8 +617,12 @@ export default function RootLayout() {
         <PersistGate
           loading={<BrandSplash />}
           // The last session's answers, back in the query cache before any
-          // screen mounts, so a cold start paints instead of loading.
-          onBeforeLift={hydrateQueryCache}
+          // screen mounts, so a cold start paints instead of loading — and the
+          // saved theme in place, so it paints in the right one.
+          onBeforeLift={() => {
+            primeColorScheme(store.getState().ui.themePreference);
+            return hydrateQueryCache();
+          }}
           persistor={persistor}
         >
           <SafeAreaProvider>

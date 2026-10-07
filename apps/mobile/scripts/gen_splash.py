@@ -8,7 +8,7 @@ Run from `apps/mobile`:  python scripts/gen_splash.py
    *lockup*, so the mark sits just above the optical centre with the name under
    it. Android 12+ draws it inside a 288dp icon and masks everything outside a
    192dp circle, so every ink corner is kept inside a 90dp radius at the
-   `imageWidth` (280dp) in app.json.
+   280dp it is designed at — and further inside at the 210dp app.json draws.
 
 2. `assets/images/splash-branding.png` + `plugins/splash-branding-res/drawable-*`
    — "Powered by" and Softmato's logo as one 136x55dp image. The system splash
@@ -30,7 +30,7 @@ IMAGES = ROOT / "assets" / "images"
 
 # ---- Logo lockup -----------------------------------------------------------
 CANVAS_W = 1024
-IMAGE_WIDTH_DP = 280  # `imageWidth` in app.json
+IMAGE_WIDTH_DP = 280  # the lockup is designed at 280dp; app.json `imageWidth` draws it at 210 (75%)
 PX_PER_DP = CANVAS_W / IMAGE_WIDTH_DP
 MARK_DP = 128  # mark ink width
 WORDMARK_DP = 136  # wordmark ink width
