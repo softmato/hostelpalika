@@ -48,6 +48,8 @@ const paidAtSchema = z.coerce
 
 export const claimSubmitSchema = z.object({
   amount: z.number().int().positive(),
+  /** The Android share sheet draws its own notice; a push would be a second one. */
+  notifiedOnDevice: z.boolean().optional(),
   paidAt: paidAtSchema.optional(),
   paymentMethod: z.enum(PAYMENT_METHODS),
   proofImageAssetId: z.string().trim().min(1),

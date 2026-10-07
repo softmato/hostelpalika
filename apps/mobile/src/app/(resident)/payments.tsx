@@ -4,6 +4,7 @@ import { View } from "react-native";
 
 import { NotificationBell } from "@/components/notification-bell";
 import { ResidentDuesCard } from "@/components/resident-payments";
+import { ShareReceiptGuide } from "@/components/share-receipt-guide";
 import { AppBar } from "@/components/ui/app-bar";
 import { StatusText } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -404,6 +405,8 @@ export default function ResidentPaymentsScreen() {
             </View>
           </View>
         ) : null}
+
+        {focus ? <ShareReceiptGuide /> : null}
 
         {credit > 0 ? (
           /*

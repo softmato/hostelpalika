@@ -30,6 +30,7 @@ import { field, optionalField } from "./resident-shared";
 import { RoleButton } from "./portal-dashboard-ui";
 import { ModalAmount, ResidentFlowModal } from "./resident-flow-modal";
 import { OfferProgramBadge, OfferProgramCallout } from "./resident-offer-program";
+import { ShareReceiptSteps } from "./share-receipt-steps";
 import {
   STAGE_LABELS,
   useEvidenceReader,
@@ -860,6 +861,9 @@ export const ResidentClaimForm = memo(function ResidentClaimForm({
             {error || blockReason}
           </p>
         ) : null}
+
+        {/* Sharing from the bank app on the phone skips this form entirely. */}
+        <ShareReceiptSteps />
 
         <div className="grid gap-2">
           <label className="text-sm font-semibold text-foreground">

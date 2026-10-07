@@ -110,6 +110,8 @@ export async function notifyResidentOfClaim(input: {
   hostelId: Types.ObjectId | string;
   invoiceId: string | null;
   period: string | null;
+  /** False when the share sheet already showed the notice on the phone. */
+  push?: boolean;
   /** The invoice's own code — not the transaction id the resident typed. */
   referenceCode: string | null;
   residentId: Types.ObjectId | string;
@@ -141,6 +143,7 @@ export async function notifyResidentOfClaim(input: {
         data: { invoiceId: input.invoiceId ?? undefined },
         hostelId: input.hostelId.toString(),
         kind: "NORMAL",
+        push: input.push ?? true,
         title: "Payment proof sent",
         userId: resident.userId.toString(),
       });

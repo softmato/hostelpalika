@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import type { NextRequest } from "next/server";
 
 import { requireResidentPrincipal } from "@/lib/api-auth";
-import { errorResponse, handleRouteError } from "@/lib/api-response";
+import { errorResponse, handleRouteError, successResponse } from "@/lib/api-response";
 import { connectToDatabase } from "@/lib/db";
 import { readStoredObject } from "@/lib/uploads/verify";
 import {
@@ -31,6 +31,7 @@ import {
   readPayeeOnEvidence,
 } from "@/modules/finance/evidence-payee";
 import { systemDocumentKindFromText } from "@/modules/finance/evidence";
+import { receiptBank } from "@/modules/finance/receipt-labels";
 import { transactionCodeProblem } from "@/modules/finance/transaction-code";
 import { findCurrentResident } from "@/modules/residents/resident-access";
 import { FileAssetModel } from "@hostel/db/models/FileAsset";
@@ -86,6 +87,8 @@ type Stage =
   | { stage: "reading" }
   | { stage: "matching" }
   | {
+      /** The bank named on the receipt, so the share sheet can draw its logo. */
+      bank?: ReturnType<typeof receiptBank>;
       fields: ReturnType<typeof extractClaimFields>;
       /**
        * False when the text was read and is not a payment record at all (gap fix
@@ -410,6 +413,7 @@ export async function POST(request: NextRequest, context: RouteContext) {
               : undefined;
 
           finish({
+            bank: receiptBank(text),
             fields: {
               ...scanned,
               ...(detectedMethod ? { method: detectedMethod } : {}),
@@ -468,6 +472,14 @@ export async function POST(request: NextRequest, context: RouteContext) {
         }
       },
     });
+
+    // The share sheet (native and PWA) wants the verdict, not the stages: its
+    // HTTP layer reads one JSON envelope, and it shows its own "Reading…".
+    if (request.nextUrl.searchParams.get("format") === "json") {
+      const lines = (await new Response(stream).text()).trim().split("\n");
+
+      return successResponse(JSON.parse(lines[lines.length - 1]) as Stage, "Receipt read");
+    }
 
     return new Response(stream, {
       headers: {

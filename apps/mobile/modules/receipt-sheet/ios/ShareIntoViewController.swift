@@ -75,11 +75,12 @@ private final class ReceiptImportJob {
         switch action {
         case "init": try prepare(); value = ["fileName":fileName,"requestId":requestId]
         case "hostel": value = ReceiptCore.prefs.string(forKey: "hostel") ?? ""
-        case "upload": try prepare(); if assetId == nil { assetId = try ReceiptCore.upload(file!, name:fileName, mime:mime) }; value = assetId!
+        case "upload": try prepare(); if assetId == nil { assetId = try ReceiptCore.upload(file!, name:fileName, mime:mime, kind:request["kind"] as? String ?? "EXPENSE_RECEIPT") }; value = assetId!
         case "api":
           guard !closed, let path = request["path"] as? String else { throw ReceiptFailure.message("Receipt cancelled.") }
           value = try ReceiptCore.api(path, request["method"] as? String ?? "GET", request["body"] as? [String:Any])
-        case "handoff": try handoff()
+        // iOS delivers the server's push for a sent claim; the extension draws nothing itself.
+        case "notice": value = NSNull()
         case "preference":
           guard let key = request["key"] as? String, key.hasPrefix("hostelpalika.receipt-auto:") else { throw ReceiptFailure.message("Invalid receipt preference.") }
           if let enabled = request["enabled"] as? Bool { ReceiptCore.prefs.set(enabled, forKey:key) }
@@ -87,22 +88,6 @@ private final class ReceiptImportJob {
         default: throw ReceiptFailure.message("Unsupported receipt action.")
         }
     return value
-  }
-  /// Residents claim against an invoice, which lives in the app. Leave the file
-  /// exactly where expo-sharing's own extension would; its app side reads this
-  /// payload and routes to /share-payment (invoice → claim → the usual checks).
-  private func handoff() throws {
-    try prepare()
-    guard let group = Bundle.main.object(forInfoDictionaryKey: "AppGroupId") as? String,
-      let container = FileManager.default.containerURL(forSecurityApplicationGroupIdentifier: group),
-      let defaults = UserDefaults(suiteName: group) else { throw ReceiptFailure.message("Open HostelPalika to add this receipt.") }
-    let target = container.appendingPathComponent(requestId + "-" + (fileName as NSString).lastPathComponent)
-    try? FileManager.default.removeItem(at: target)
-    try FileManager.default.copyItem(at: file!, to: target)
-    let size = (try? FileManager.default.attributesOfItem(atPath: target.path))?[.size] as? Int
-    let payload = [SharePayload(type: mime.hasPrefix("image/") ? .image : .file, value: target.absoluteString, mimeType: mime,
-      metadata: ShareMetadata(originalName: fileName, size: size))]
-    defaults.set(try JSONEncoder().encode(payload), forKey: SHARE_INTO_DEFAULTS_KEY)
   }
   func cancel() {
     cancellation.lock(); isClosed = true; cancellation.unlock()
@@ -138,23 +123,9 @@ final class ShareIntoViewController: UIViewController, WKScriptMessageHandler, W
       var reply: [String:Any] = ["id":request["id"] ?? 0]
       do { reply["value"] = try current.handle(request) }
       catch { reply["error"] = error.localizedDescription }
-      if request["action"] as? String == "handoff" && reply["error"] == nil {
-        DispatchQueue.main.async { self?.openApp(); self?.finish() }
-        return
-      }
       if let data = try? JSONSerialization.data(withJSONObject:reply), let json = String(data:data,encoding:.utf8) {
         DispatchQueue.main.async { if !current.closed { self?.web.evaluateJavaScript("window.receiptReply(\(json))", completionHandler:nil) } }
       }
-    }
-  }
-  /// expo-sharing's own way out of a share extension (its template's `openURL`).
-  private func openApp() {
-    guard let scheme = Bundle.main.object(forInfoDictionaryKey: "MainTargetUrlScheme") as? String,
-      let url = URL(string: "\(scheme)://expo-sharing") else { return }
-    var responder: UIResponder? = self
-    while let current = responder {
-      if let application = current as? UIApplication { application.open(url, options: [:], completionHandler: nil) }
-      responder = current.next
     }
   }
   private func finish() {

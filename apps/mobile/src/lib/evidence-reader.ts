@@ -322,7 +322,9 @@ export function useEvidenceReader() {
         }
 
         for await (const message of streamMessages(response)) {
-          if (!current()) return;
+          // A newer read replaced this one. `break`, not `return`: the row below
+          // must still finish, or the shade keeps "Reading it…" for ever.
+          if (!current()) break;
 
           if (message.stage === "done") {
             applyDone(message);

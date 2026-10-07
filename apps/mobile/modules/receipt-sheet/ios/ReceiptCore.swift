@@ -97,7 +97,8 @@ enum ReceiptCore {
     }
   }
   static func api(_ path: String, _ method: String = "GET", _ body: [String: Any]? = nil) throws -> Any {
-    let allowed = (path == "/auth/me" && method == "GET") || (path == "/hostel-admin/expenses" && ["GET","POST"].contains(method)) || (["/files/presign", "/hostel-admin/expenses/receipt/read"].contains(path) && method == "POST") || (path.range(of: "^/files/[a-f0-9]{24}/complete$", options: .regularExpression) != nil && method == "POST")
+    let resident = (path == "/resident/finance/invoices" && method == "GET") || (method == "POST" && (path.range(of: "^/resident/finance/invoices/[a-f0-9]{24}/claims$", options: .regularExpression) != nil || path.range(of: "^/resident/finance/evidence/[a-f0-9]{24}/read\\?format=json$", options: .regularExpression) != nil))
+    let allowed = resident || (path == "/auth/me" && method == "GET") || (path == "/hostel-admin/expenses" && ["GET","POST"].contains(method)) || (["/files/presign", "/hostel-admin/expenses/receipt/read"].contains(path) && method == "POST") || (path.range(of: "^/files/[a-f0-9]{24}/complete$", options: .regularExpression) != nil && method == "POST")
     guard allowed else { throw ReceiptFailure.message("Unsupported receipt action.") }
     guard let token = try read()?["accessToken"] else { throw ReceiptFailure.message("Sign in to HostelPalika, then share again.") }
     var response = try http(base, path, method, body, token)
@@ -105,9 +106,11 @@ enum ReceiptCore {
     guard (200..<300).contains(response.0), response.1["success"] as? Bool == true else { throw ReceiptFailure.message(response.1["message"] as? String ?? "Could not finish. Try again.") }
     return response.1["data"] ?? NSNull()
   }
-  static func upload(_ file: URL, name: String, mime: String) throws -> String {
+  static func upload(_ file: URL, name: String, mime: String, kind: String = "EXPENSE_RECEIPT") throws -> String {
+    // Staff save an expense receipt; residents send payment proof. Nothing else is uploaded from a share.
+    guard kind == "EXPENSE_RECEIPT" || kind == "PAYMENT_PROOF" else { throw ReceiptFailure.message("Unsupported receipt upload.") }
     let size = try file.resourceValues(forKeys: [.fileSizeKey]).fileSize ?? 0
-    let value = try api("/files/presign", "POST", ["accessLevel":"PRIVATE","kind":"EXPENSE_RECEIPT","fileName":name,"mimeType":mime,"sizeBytes":size])
+    let value = try api("/files/presign", "POST", ["accessLevel":"PRIVATE","kind":kind,"fileName":name,"mimeType":mime,"sizeBytes":size])
     guard let signed = value as? [String:Any], let id = signed["assetId"] as? String, let raw = signed["presignedUrl"] as? String, let url = URL(string: raw), url.scheme == "https" else { throw ReceiptFailure.message("Could not start receipt upload.") }
     var request = URLRequest(url: url); request.httpMethod = "PUT"; request.timeoutInterval = 60
     request.setValue(mime, forHTTPHeaderField: "Content-Type")

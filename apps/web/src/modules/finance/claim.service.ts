@@ -1043,6 +1043,7 @@ export async function submitClaim(
       hostelId: invoice.hostelId,
       invoiceId: invoice._id.toString(),
       period: invoice.period ?? null,
+      push: !input.notifiedOnDevice,
       referenceCode: invoice.referenceCode ?? null,
       residentId: resident._id,
     });

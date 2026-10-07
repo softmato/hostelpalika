@@ -14,6 +14,7 @@ import {
 import { ActivityIndicator, Pressable, View } from "react-native";
 
 import { isPdfReceipt } from "@/components/receipt-preview";
+import { ShareReceiptGuide } from "@/components/share-receipt-guide";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -1032,22 +1033,14 @@ export default function SubmitClaimScreen() {
     >
       <View className="gap-4 pt-1">
         {/*
-          What is owed and the quota, in one line each.
-
-          The outstanding figure is not a hero here — this is a form, and the
-          number matters only as the thing being confirmed, which it already is
-          in the amount field below. What a resident genuinely cannot find out
-          elsewhere is the rate limit, so that is what the notice carries.
+          What is owed, in one line. The rate limit and the reference code used
+          to ride along here; the code has its own row below, and a resident
+          who hits the limit is told so by the refusal itself.
         */}
-        <Notice
-          body={
-            data.referenceCode
-              ? `Reference ${data.referenceCode}. You can submit up to 8 claims per hour.`
-              : "You can submit up to 8 claims per hour."
-          }
-          icon="time-outline"
-          title={`Claiming against ${formatMoney(data.amountDue)}`}
-        />
+        <Notice icon="receipt-outline" title={`${formatMoney(data.amountDue)} due`} />
+
+        {/* Sharing from the bank app skips this whole form. */}
+        <ShareReceiptGuide />
 
         {/* The blocking sentence, at the top rather than beside the button that
             produced it: the submit is pinned to the footer, so a refusal
@@ -1057,7 +1050,7 @@ export default function SubmitClaimScreen() {
         ) : null}
 
         <View className="gap-2">
-          <Text variant="label">Payment screenshot or receipt (required)</Text>
+          <Text variant="label">Receipt</Text>
 
           {attachFailure ? (
             /* The failed attach replaces the picker and carries the one control
@@ -1158,7 +1151,6 @@ export default function SubmitClaimScreen() {
             <View className="gap-1.5">
               <Input
                 error={errors.amount}
-                hint="Edit it if you paid part of the month."
                 inputMode="numeric"
                 keyboardType="number-pad"
                 label="Amount"
@@ -1184,7 +1176,7 @@ export default function SubmitClaimScreen() {
               parseClaimAmount(amount) !== data.amountDue &&
               data.amountDue > 0 ? (
                 <ReadOffReceipt
-                  text={`Read from your receipt — this invoice's balance is ${formatMoney(data.amountDue)}`}
+                  text={`Invoice balance is ${formatMoney(data.amountDue)}`}
                 />
               ) : null}
             </View>
@@ -1209,11 +1201,6 @@ export default function SubmitClaimScreen() {
                 autoCapitalize="characters"
                 autoCorrect={false}
                 error={errors.transactionCode}
-                hint={
-                  isCash
-                    ? "The warden or owner who took it."
-                    : "UTR, txn id or reference id."
-                }
                 label={
                   isCash
                     ? "Who did you give the cash to?"
@@ -1271,8 +1258,7 @@ export default function SubmitClaimScreen() {
         ) : null}
 
         <Input
-          hint="Optional."
-          label="Anything your hostel should know?"
+          label="Note (optional)"
           maxLength={200}
           multiline
           onChangeText={setNote}
@@ -1280,21 +1266,6 @@ export default function SubmitClaimScreen() {
           value={note}
         />
 
-        {/*
-          The things that get a claim rejected, said before it is submitted
-          rather than after. A rejection round-trip costs the resident a day and
-          the hostel a review; four lines of caption cost neither.
-        */}
-        <View className="gap-1.5">
-          <View className="flex-row items-center gap-1.5">
-            <Ionicons color={colors.primary} name="bulb-outline" size={14} />
-            <Text variant="label">Tips</Text>
-          </View>
-          <Tip text="Just upload the proof — we read it and fill the form in for you." />
-          <Tip text="Make sure the amount, the date and the transaction ID are visible." />
-          <Tip text="Send the receipt for this payment, not one you have sent before." />
-          <Tip text="Supported: JPG, PNG, WEBP and PDF (max 10MB)." />
-        </View>
       </View>
 
       <Sheet
@@ -1326,10 +1297,10 @@ export default function SubmitClaimScreen() {
  *
  * A whole screen rather than a toast over a form, because the form has no
  * further use — and because this is the moment a resident wants reassurance
- * about a rent payment they have just staked a claim on. `What happens next?`
- * exists for exactly that: the gap between submitting proof and a hostel
- * confirming it is measured in hours, and an unexplained gap is where people
- * start submitting it again.
+ * about a rent payment they have just staked a claim on. One sentence says
+ * what happens next: the gap between submitting proof and a hostel confirming
+ * it is measured in hours, and an unexplained gap is where people start
+ * submitting it again.
  */
 function SubmittedScreen({
   duplicate,
@@ -1355,21 +1326,12 @@ function SubmittedScreen({
           </View>
 
           <Text className="text-center" variant="title">
-            {duplicate ? "Already submitted" : "Claim submitted!"}
+            {duplicate ? "Already sent" : "Sent to your hostel"}
           </Text>
           <Text className="text-center" variant="body">
-            {duplicate
-              ? "We had this proof on file already, so nothing was sent twice. Your hostel will confirm it."
-              : "We'll review your proof and update you on the invoice."}
+            You&apos;ll get a notification when it&apos;s confirmed.
           </Text>
         </View>
-
-        <Card className="gap-3">
-          <Text variant="label">What happens next?</Text>
-          <NextStep text="We'll review your proof" />
-          <NextStep text="You'll get a notification" />
-          <NextStep text="You can check the status on the invoice" />
-        </Card>
       </View>
     </Screen>
   );
@@ -1484,42 +1446,8 @@ function RefusedScreen({
           </Card>
         </View>
 
-        <View className="gap-2.5">
-          <Text variant="label">What you can do</Text>
-          <FixRow text="Check the amount and try again" />
-          <FixRow text="Upload the correct receipt" />
-          <FixRow text="Contact your hostel if you need help" />
-        </View>
       </View>
     </Screen>
-  );
-}
-
-/** One line of `What happens next?`. */
-function NextStep({ text }: { text: string }) {
-  const { colors } = useAppTheme();
-
-  return (
-    <View className="flex-row items-center gap-2.5">
-      <Ionicons color={colors.success} name="checkmark-circle-outline" size={18} />
-      <Text className="flex-1" variant="body">
-        {text}
-      </Text>
-    </View>
-  );
-}
-
-/** One line of `What you can do`. */
-function FixRow({ text }: { text: string }) {
-  const { colors } = useAppTheme();
-
-  return (
-    <View className="flex-row items-center gap-2.5">
-      <Ionicons color={colors.destructive} name="ellipse" size={7} />
-      <Text className="flex-1" variant="body">
-        {text}
-      </Text>
-    </View>
   );
 }
 
@@ -1563,7 +1491,6 @@ function UploadProgressBar({ progress }: { progress: UploadProgress }) {
         />
       </View>
 
-      <Text variant="caption">Please wait, it may take a few seconds.</Text>
     </View>
   );
 }
@@ -1759,10 +1686,7 @@ function EvidenceStatus({
         <ActivityIndicator color={colors.primary} size="small" />
         <View className="flex-1 gap-0.5">
           <Text className="text-primary" variant="label">
-            Reading your proof…
-          </Text>
-          <Text variant="caption">
-            We&apos;re checking the amount, method and transaction ID.
+            Reading your receipt…
           </Text>
         </View>
       </View>
@@ -1793,9 +1717,8 @@ function EvidenceStatus({
   if (notAReceipt) {
     return (
       <Notice
-        body="We could not find a payment app, an amount or a transaction ID on it. Check you picked the right file — you can still submit, but your hostel will have to look at it by hand."
         icon="alert-circle"
-        title="This does not look like a payment receipt"
+        title="This doesn't look like a payment receipt"
         tone="warning"
       />
     );
@@ -1812,9 +1735,8 @@ function EvidenceStatus({
   if (filledAnything && missing) {
     return (
       <Notice
-        body="Please fill in the highlighted fields."
         icon="alert-circle"
-        title="Some details missing"
+        title="Fill in the highlighted fields"
         tone="warning"
       />
     );
@@ -1823,9 +1745,8 @@ function EvidenceStatus({
   if (filledAnything) {
     return (
       <Notice
-        body="We've filled the form. Please review and continue."
         icon="checkmark-circle"
-        title="Details found"
+        title="Filled from your receipt"
         tone="success"
       />
     );
@@ -1841,15 +1762,14 @@ function EvidenceStatus({
    */
   return unreadable ? (
     <Notice
-      body="Please fill in the amount and transaction ID yourself."
       icon="close-circle"
-      title="We couldn't read this one"
+      title="Couldn't read it — fill in the details"
       tone="danger"
     />
   ) : (
     <Notice
       icon="scan-outline"
-      title="Uploaded. Please fill in the amount and transaction ID."
+      title="Uploaded. Fill in the amount and ID."
     />
   );
 }
@@ -1871,21 +1791,21 @@ function ReferenceState({
 }) {
   const copy = {
     confirmed: {
-      body: "Your hostel can match this payment automatically.",
+      body: undefined,
       icon: "checkmark-circle" as const,
-      title: `We found ${code} on your receipt`,
+      title: `Reference ${code} found`,
       tone: "success" as const,
     },
     missed: {
-      body: "Submit anyway — your hostel will match it by hand. Next time, put the code in the remarks.",
+      body: "Your hostel will match it by hand.",
       icon: "alert-circle" as const,
-      title: `We could not find ${code} on your receipt`,
+      title: `${code} isn't on this receipt`,
       tone: "warning" as const,
     },
     reminder: {
-      body: "Put it in the remarks when you pay, so your hostel can match it automatically.",
+      body: "Add it to the remarks when you pay.",
       icon: "pricetag-outline" as const,
-      title: `Your reference code is ${code}`,
+      title: `Reference ${code}`,
       tone: "plain" as const,
     },
   }[state];
@@ -2021,7 +1941,7 @@ function Dropzone({
         </View>
 
         <View className="items-center gap-1">
-          <Text variant="subtitle">Just upload the proof</Text>
+          <Text variant="subtitle">Upload your receipt</Text>
           {/*
             Said *before* they upload, not after.
 
@@ -2032,7 +1952,7 @@ function Dropzone({
             is what makes uploading first a reason rather than an order.
           */}
           <Text className="text-center" variant="caption">
-            We&apos;ll read it and fill the form for you.
+            We fill in the rest.
           </Text>
         </View>
 
@@ -2076,24 +1996,6 @@ function SourceTile({
       <Ionicons color={colors.primary} name={icon} size={20} />
       <Text variant="caption">{label}</Text>
     </Pressable>
-  );
-}
-
-function Tip({ text }: { text: string }) {
-  const { colors } = useAppTheme();
-
-  return (
-    <View className="flex-row items-start gap-2">
-      <Ionicons
-        color={colors.mutedForeground}
-        name="ellipse"
-        size={5}
-        style={{ marginTop: 7 }}
-      />
-      <Text className="flex-1" variant="caption">
-        {text}
-      </Text>
-    </View>
   );
 }
 

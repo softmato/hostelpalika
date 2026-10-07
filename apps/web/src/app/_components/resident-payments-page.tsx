@@ -16,6 +16,7 @@ import { currency, EmptyState, LoadingRows } from "@/app/_components/shared-ui";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ResidentClaimForm } from "@/app/_components/resident-claim-form";
+import { ShareReceiptSteps } from "@/app/_components/share-receipt-steps";
 import { ResidentPayInvoicePanel } from "@/app/_components/resident-pay-invoice-panel";
 import {
   dayMonthYear,
@@ -422,6 +423,8 @@ export const ResidentPaymentsPageContent = memo(function ResidentPaymentsPageCon
           }
         />
       ) : null}
+
+      {state === "ready" && stats.nextDue ? <ShareReceiptSteps /> : null}
 
       {state === "ready" && !stats.nextDue ? (
         <section className="rounded-2xl border-2 border-emerald-500/40 bg-emerald-500/5 p-6 text-center">

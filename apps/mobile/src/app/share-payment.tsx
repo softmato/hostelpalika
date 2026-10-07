@@ -24,7 +24,8 @@ export default function SharePaymentScreen() {
   const [retry, setRetry] = useState(0);
   useEffect(() => {
     if (!isReady || !account) return;
-    if (Platform.OS === "web" && ["HOSTEL_ADMIN", "WARDEN"].includes(account.role)) {
+    // The sheet page reads, matches and saves/sends for staff and residents alike.
+    if (Platform.OS === "web" && ["HOSTEL_ADMIN", "WARDEN", "RESIDENT"].includes(account.role)) {
       const query = new URLSearchParams();
       if (share) query.set("share", share);
       if (error) query.set("error", error);

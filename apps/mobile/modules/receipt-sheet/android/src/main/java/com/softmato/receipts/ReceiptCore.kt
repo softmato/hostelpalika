@@ -88,8 +88,13 @@ object ReceiptCore {
     write(c, next)
     next.getString("accessToken")
   }
+  /** A resident's claim on one of their invoices, sent from the sheet. */
+  val CLAIM = Regex("/resident/finance/invoices/[a-f0-9]{24}/claims")
+  private val EVIDENCE_READ = Regex("/resident/finance/evidence/[a-f0-9]{24}/read\\?format=json")
   fun api(c: Context, path: String, method: String = "GET", body: JSONObject? = null): Any {
     require((path == "/auth/me" && method == "GET") ||
+      (path == "/resident/finance/invoices" && method == "GET") ||
+      ((CLAIM.matches(path) || EVIDENCE_READ.matches(path)) && method == "POST") ||
       (path == "/hostel-admin/expenses" && method in listOf("GET", "POST")) ||
       (path in listOf("/files/presign", "/hostel-admin/expenses/receipt/read") && method == "POST") ||
       (Regex("/files/[a-f0-9]{24}/complete").matches(path) && method == "POST"))
@@ -104,8 +109,10 @@ object ReceiptCore {
     check(response.first in 200..299 && response.second.optBoolean("success")) { response.second.optString("message", "Could not finish. Try again.") }
     return response.second.opt("data") ?: JSONObject.NULL
   }
-  fun upload(c: Context, file: File, name: String, mime: String): String {
-    val signed = api(c, "/files/presign", "POST", JSONObject().put("accessLevel", "PRIVATE").put("kind", "EXPENSE_RECEIPT")
+  fun upload(c: Context, file: File, name: String, mime: String, kind: String = "EXPENSE_RECEIPT"): String {
+    // Staff save an expense receipt; residents send payment proof. Nothing else is uploaded from a share.
+    require(kind == "EXPENSE_RECEIPT" || kind == "PAYMENT_PROOF")
+    val signed = api(c, "/files/presign", "POST", JSONObject().put("accessLevel", "PRIVATE").put("kind", kind)
       .put("fileName", name).put("mimeType", mime).put("sizeBytes", file.length())) as JSONObject
     val url = URL(signed.getString("presignedUrl")); require(url.protocol == "https")
     val connection = url.openConnection() as HttpURLConnection

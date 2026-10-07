@@ -56,7 +56,9 @@ class ReceiptSaveService : Service() {
       val amount = fields.optInt("amount")
       if (!read.optBoolean("autoSaveEligible") || amount <= 0) return review(job, id, "Check this receipt", "Tap to review and save.")
       val method = fields.optString("method").takeIf { it == "ESEWA" || it == "KHALTI" } ?: "BANK"
-      val expense = ReceiptCore.api(this, "/hostel-admin/expenses", "POST", JSONObject().put("amount", amount).put("category", "OTHER")
+      // The category read off the receipt when there was one ("Auto" on the sheet), otherwise Other.
+      val category = read.optString("category").takeIf { it.isNotBlank() && it != "null" } ?: "OTHER"
+      val expense = ReceiptCore.api(this, "/hostel-admin/expenses", "POST", JSONObject().put("amount", amount).put("category", category)
         .put("paidBy", method).put("what", read.optString("description").ifBlank { "Shared payment receipt" })
         .put("photoAssetId", assetId).put("clientRequestId", id).put("sharedReceipt", true).put("notifiedOnDevice", true)) as JSONObject
       file.delete()
@@ -84,6 +86,10 @@ object ReceiptNotices {
     Intent(Intent.ACTION_VIEW, Uri.parse("hostelpalika://expenses")).setPackage(c.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
   fun saved(c: Context, requestId: String, expense: JSONObject) =
     post(c, requestId, "Receipt saved", line(expense.optInt("amount"), expense.optString("what")), expenses(c))
+  fun payments(c: Context): Intent =
+    Intent(Intent.ACTION_VIEW, Uri.parse("hostelpalika://payments")).setPackage(c.packageName).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+  fun claimed(c: Context, requestId: String, amount: Int, created: Boolean) =
+    post(c, requestId, if (created) "Payment proof sent" else "Already sent", line(amount, "your hostel will confirm it"), payments(c))
   @Suppress("DEPRECATION")
   fun post(c: Context, requestId: String, title: String, text: String, tap: Intent?, progress: Boolean = false) {
     val builder = if (Build.VERSION.SDK_INT >= 26) {

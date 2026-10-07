@@ -32,24 +32,10 @@ class ReceiptSheetActivity : Activity() {
     requestId = state?.getString("requestId") ?: requestId
     if (state == null && intent.action == Intent.ACTION_SEND) {
       window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
-      if (ReceiptCore.prefs(this).getString("role", null) == "RESIDENT") return openApp()
-      if (ReceiptCore.autoSaveOn(this)) return saveInBackground()
+      // Residents always see the sheet: a claim is sent once a month and is always looked at first.
+      if (ReceiptCore.prefs(this).getString("role", null) != "RESIDENT" && ReceiptCore.autoSaveOn(this)) return saveInBackground()
     }
     showSheet()
-  }
-  /**
-   * Residents claim against an invoice, which lives in the app: hand it this share.
-   * expo-sharing turns a SEND at MainActivity into /share-payment (invoice → claim → the
-   * usual checks). The read grant is passed on before this activity, which holds it, goes.
-   */
-  @Suppress("DEPRECATION")
-  private fun openApp() {
-    closed = true
-    ReceiptCore.prefs(this).edit().putString("role", "RESIDENT").apply()
-    packageManager.getLaunchIntentForPackage(packageName)?.component?.let { main ->
-      startActivity(Intent(intent).setComponent(main).setFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION))
-    }
-    finish(); overridePendingTransition(0, 0)
   }
   /** "Don't ask next time": copy while the share grant lives, hand off to [ReceiptSaveService], get out of the way. */
   @Suppress("DEPRECATION")
@@ -138,7 +124,6 @@ class ReceiptSheetActivity : Activity() {
       if (closed) return
       val message = try { JSONObject(raw) } catch (_: Exception) { return }
       if (message.optString("action") == "close") { closed = true; runOnUiThread { finish() }; return }
-      if (message.optString("action") == "handoff") { runOnUiThread { if (!isFinishing) openApp() }; return }
       if (message.optString("action") == "size") {
         // Fit the sheet to the page (CSS px → device px), never above 90% of the screen.
         val metrics = resources.displayMetrics
@@ -153,14 +138,19 @@ class ReceiptSheetActivity : Activity() {
           val value: Any = when (message.getString("action")) {
             "init" -> { prepare(); JSONObject().put("fileName", name).put("requestId", requestId) }
             "hostel" -> ReceiptCore.prefs(this@ReceiptSheetActivity).getString("hostel", "") ?: ""
-            "upload" -> { prepare(); uploaded ?: ReceiptCore.upload(this@ReceiptSheetActivity, receipt!!, name, mime).also { uploaded = it } }
+            "upload" -> { prepare(); uploaded ?: ReceiptCore.upload(this@ReceiptSheetActivity, receipt!!, name, mime, message.optString("kind", "EXPENSE_RECEIPT")).also { uploaded = it } }
             "api" -> { check(!closed)
               val path = message.getString("path"); val method = message.optString("method", "GET"); val body = message.optJSONObject("body")
               // A push would land while this sheet is in front, where Expo drops it; the notice is drawn here instead.
               val saving = path == "/hostel-admin/expenses" && method == "POST"
-              if (saving) body?.put("notifiedOnDevice", true)
-              ReceiptCore.api(this@ReceiptSheetActivity, path, method, body).also { if (saving && it is JSONObject) ReceiptNotices.saved(this@ReceiptSheetActivity, requestId, it) }
+              val claiming = ReceiptCore.CLAIM.matches(path) && method == "POST"
+              if (saving || claiming) body?.put("notifiedOnDevice", true)
+              ReceiptCore.api(this@ReceiptSheetActivity, path, method, body).also {
+                if (saving && it is JSONObject) ReceiptNotices.saved(this@ReceiptSheetActivity, requestId, it)
+                if (claiming) ReceiptNotices.claimed(this@ReceiptSheetActivity, requestId, body?.optInt("amount") ?: 0, (it as? JSONObject)?.optBoolean("created", true) ?: true)
+              }
             }
+            "notice" -> { ReceiptNotices.post(this@ReceiptSheetActivity, requestId, message.getString("title").take(80), message.optString("text").take(300), ReceiptNotices.payments(this@ReceiptSheetActivity)); JSONObject.NULL }
             "preference" -> { val key = message.getString("key"); require(key.startsWith("hostelpalika.receipt-auto:"))
               // The sheet just worked this key out for the signed-in account + hostel, so the next share can skip the sheet.
               val prefs = ReceiptCore.prefs(this@ReceiptSheetActivity).also { it.edit().putString("autoKey", key).commit() }

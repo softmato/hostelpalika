@@ -2,6 +2,7 @@ import { EXPENSE_WHAT_MAX } from "@hostel/shared/expenses/categories";
 import { extractClaimFields } from "../evidence-ocr";
 import { parseReceipt } from "../evidence-receipt";
 import { readEvidenceDirection } from "../evidence-direction";
+import { receiptBank, receiptCategory } from "../receipt-labels";
 
 /** Auto-save is opt-in on the device; uncertain documents always remain editable. */
 export function expenseReceiptSuggestions(text: string | null) {
@@ -16,5 +17,8 @@ export function expenseReceiptSuggestions(text: string | null) {
     && receipt.txnId && receipt.payee && fields.amount && fields.method && receipt.amount === fields.amount);
   // Duplicate key: spacing and case differ between a PDF and a screenshot of one payment.
   const txnId = receipt.txnId?.replace(/\s+/g, "").toUpperCase() || null;
-  return { fields, description, autoSaveEligible, txnId: txnId && txnId.length >= 6 ? txnId : null };
+  // Pre-fills on the sheet, marked "Auto" there; null leaves its defaults (Other, plain Bank).
+  const category = receiptCategory(text, receipt);
+  const bank = receiptBank(text);
+  return { fields, description, autoSaveEligible, category, bank, txnId: txnId && txnId.length >= 6 ? txnId : null };
 }
