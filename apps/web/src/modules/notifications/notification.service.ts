@@ -440,6 +440,35 @@ export async function settleNightStatusNotifications(
 }
 
 /**
+ * Take one request out of "Needs action" for everyone it went to, once anybody
+ * has answered it. A khata request goes to every warden and the owner; when one
+ * of them approves it, it is not still waiting on the rest. `data` names the
+ * request (`{ type, residentId }`), so only that request's rows move.
+ */
+export async function settleActionNotifications(
+  match: { category: string; data: Record<string, string> },
+  actionKey: string,
+) {
+  await connectToDatabase();
+
+  const filter: Record<string, unknown> = {
+    actionState: "PENDING",
+    category: match.category,
+    kind: "ACTION",
+  };
+  for (const [key, value] of Object.entries(match.data)) filter[`data.${key}`] = value;
+
+  const userIds: Types.ObjectId[] = await NotificationModel.distinct("userId", filter);
+  if (userIds.length === 0) return;
+
+  const now = new Date();
+  await NotificationModel.updateMany(filter, {
+    $set: { actionState: "COMPLETED", actionTakenAt: now, actionTakenKey: actionKey, readAt: now },
+  });
+  await Promise.all(userIds.map((userId) => publishNotificationUpdated(String(userId), "all")));
+}
+
+/**
  * Record that an ACTION notification has been dealt with.
  *
  * This only moves the notification out of the "Needs action" queue — the actual

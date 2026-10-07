@@ -505,8 +505,9 @@ export function ResidentStayHero({
  * **Digital ID** leads, because it is the single most phone-shaped thing a
  * resident owns: produced at a gate, at a counter, to a warden who does not
  * recognise them. Then **Call hostel**, one tap to the office rather than
- * reading a number off a chip; then **Raise issue**, which is `complaints/new`
- * opened with the broken tap in front of you; then **Notices**.
+ * reading a number off a chip; then **Notices**; then, for students,
+ * **QuestionCall**. `Raise issue` came off so QuestionCall sits in the first row
+ * instead of alone on a second: Complaints is a row on More, with its history.
  *
  * ## The rules both cards brought, which still hold
  *
@@ -520,7 +521,7 @@ export function ResidentStayHero({
  *   the card it came from, where nothing else did; here `Call hostel` already
  *   has it, so the notice board takes the row's remaining colour rather than
  *   drawing the second amber square the eye then has to read word by word.
- * - **A resident with no hostel phone number gets three cells.** `onCall` is
+ * - **A resident with no hostel phone number gets one cell fewer.** `onCall` is
  *   optional and the cell is simply not in the list; `<ActionTiles>` pads the
  *   short row with a spacer, so the column pitch holds either way.
  *
@@ -535,7 +536,6 @@ export function ResidentHomeActions({
   onCall,
   onIdCard,
   onNotices,
-  onRaiseIssue,
   questionCall,
   unreadNotices,
 }: {
@@ -543,7 +543,6 @@ export function ResidentHomeActions({
   onCall?: () => void;
   onIdCard: () => void;
   onNotices: () => void;
-  onRaiseIssue: () => void;
   /**
    * The study-partner cell, last, under QuestionCall's own logo and the one
    * tone the row has not used. The caller decides whether it shows (students
@@ -581,14 +580,6 @@ export function ResidentHomeActions({
           } satisfies ActionTile,
         ]
       : []),
-    {
-      glyph: colors.destructive,
-      icon: "create-outline",
-      key: "raise-issue",
-      label: "Raise issue",
-      onPress: onRaiseIssue,
-      tone: "danger",
-    },
     {
       badge: unreadNotices,
       glyph: colors.success,
@@ -638,8 +629,8 @@ export function ResidentHomeActions({
  *
  * ## What is not here
  *
- * Anything already on `<ResidentHomeActions>` — Digital ID, Call hostel, Raise
- * issue and Notices. A cell up there and a tile down here are two doors to one
+ * Anything already on `<ResidentHomeActions>` — Digital ID, Call hostel, Notices
+ * and QuestionCall. A cell up there and a tile down here are two doors to one
  * room inside a single scroll, which is the rule that took `Statement` off the
  * admin's grid. `more.tsx` has no action row at all, so More keeps every one of
  * those rows — and it is where Complaints and Night status now live, since the

@@ -10,7 +10,15 @@ import {
   Mail,
 } from "lucide-react-native";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-import { ActivityIndicator, AppState, BackHandler, Pressable, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  AppState,
+  BackHandler,
+  Pressable,
+  processColor,
+  StyleSheet,
+  View,
+} from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import Animated, {
   FadeIn,
@@ -46,9 +54,12 @@ import {
   disarmFingerprint,
   type FingerprintStatus,
   fingerprintStatus,
+  handReturnsToNative,
   hasMailbox,
   isAuthenticating,
   isLocked,
+  LOCK_GRACE_MS,
+  lockAfterAway,
   lockApp,
   type LockPinProof,
   maskEmail,
@@ -69,10 +80,19 @@ import { toastError, toastInfo, toastSuccess } from "@/lib/toast";
 import { persistor, store } from "@/store";
 import { setAccount, setBiometricUserId } from "@/store/slices/authSlice";
 
-/** `modules/hostelhub-app-lock` — keeps the portal out of the Recents thumbnail. */
-const appLockNative = requireOptionalNativeModule<{
-  setRecentsHidden(hidden: boolean): Promise<void>;
-}>("HostelHubAppLock");
+/** Android's return guard — see "Coming back" in `lib/app-lock.ts`. */
+type LockGuard = {
+  addListener(event: "onLockDue", listener: () => void): { remove(): void };
+  removeCover(): Promise<void>;
+  setGuard(on: boolean, graceMs: number, color: number): Promise<void>;
+};
+
+/** `modules/hostelhub-app-lock` — the Recents thumbnail, and the return guard. */
+const appLockNative = requireOptionalNativeModule<
+  { setRecentsHidden(hidden: boolean): Promise<void> } & Partial<LockGuard>
+>("HostelHubAppLock");
+/** Absent from binaries built before it; those keep the JS-only lock. */
+const lockGuard = appLockNative?.setGuard ? (appLockNative as LockGuard) : null;
 
 /** True for the process's first lock only — that one waits for the splash. */
 let coldStart = true;
@@ -117,6 +137,7 @@ export function AppLockHost() {
   const account = useAppSelector((state) => state.auth.account);
   const enabled = useLockEnabled();
   const locked = useSyncExternalStore(subscribeToLock, isLocked);
+  const { colors } = useAppTheme();
 
   // A sign-in meets the lock too: a one-tap Google sign-in on this phone must
   // not walk past a PIN the account set. Heard straight from the store, before
@@ -131,9 +152,24 @@ export function AppLockHost() {
   }, []);
 
   useEffect(() => {
+    if (!lockGuard) return;
+    handReturnsToNative();
+    const subscription = lockGuard.addListener("onLockDue", () => {
+      if (!lockAfterAway()) void lockGuard.removeCover().catch(() => {});
+    });
+    return () => subscription.remove();
+  }, []);
+
+  useEffect(() => {
     const subscription = AppState.addEventListener("change", onAppStateChange);
     return () => subscription.remove();
   }, []);
+
+  // Armed only while open: a lock already up needs no cover.
+  useEffect(() => {
+    const color = (processColor(colors.background) as number | null | undefined) ?? -1;
+    void lockGuard?.setGuard(enabled && !locked, LOCK_GRACE_MS, color).catch(() => {});
+  }, [colors.background, enabled, locked]);
 
   useEffect(() => {
     void appLockNative?.setRecentsHidden(enabled).catch(() => {});
@@ -432,6 +468,16 @@ function LockScreen({ account }: { account: ApiUser }) {
   const fingerChanged = useRef(false);
   // A stray tap on "Sign out" must not end the session — the portal asks too.
   const [confirmingSignOut, setConfirmingSignOut] = useState(false);
+
+  // After a long trip away the native guard's cover is over the window; it
+  // comes off once this has painted beneath it, in the same background.
+  useEffect(() => {
+    if (!lockGuard) return;
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => void lockGuard.removeCover().catch(() => {}));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
 
   async function tryFingerprint() {
     // "background", not "!== active": iOS can report "unknown" on the first frame.

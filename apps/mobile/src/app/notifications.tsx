@@ -16,6 +16,7 @@ import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import {
   type NotificationTone,
+  type NotificationVisual,
   notificationVisual,
 } from "@/lib/notification-categories";
 import { readApiError } from "@/lib/api-contract";
@@ -216,6 +217,32 @@ export default function NotificationsScreen() {
     return filter === "unread" ? shown.filter((row) => !row.isRead) : shown;
   }, [data, filter, held]);
 
+  /*
+   * The kinds of thing on this page — Khata, Stock, Payment… — keyed by the
+   * word on the chip, most rows first. A khata request and a rent reminder are
+   * different jobs, and one long mixed list made the reader sort them by eye.
+   */
+  const [category, setCategory] = useState<string | null>(null);
+  const categories = useMemo(() => {
+    const byLabel = new Map<string, CategoryChip>();
+    for (const row of rows) {
+      const { icon, label } = notificationVisual({ category: row.category });
+      const chip = byLabel.get(label);
+      if (chip) chip.count += 1;
+      else byLabel.set(label, { count: 1, icon, label });
+    }
+    return [...byLabel.values()].sort((left, right) => right.count - left.count);
+  }, [rows]);
+  // A pick that is not on this page (another chip above was chosen) means "every kind".
+  const picked = categories.some((chip) => chip.label === category) ? category : null;
+  const shownRows = useMemo(
+    () =>
+      picked
+        ? rows.filter((row) => notificationVisual({ category: row.category }).label === picked)
+        : rows,
+    [picked, rows],
+  );
+
   /** What the server still counts, which is what the badges show. */
   const serverUnread = data?.unreadCount ?? 0;
   /** What is still tinted, which is what the header and its button speak to. */
@@ -277,7 +304,7 @@ export default function NotificationsScreen() {
    * midnight Kathmandu time mid-loop would otherwise file its first rows under
    * one heading and its last under another.
    */
-  const groups = useMemo(() => groupNotifications(rows), [rows]);
+  const groups = useMemo(() => groupNotifications(shownRows), [shownRows]);
 
   /*
    * The app-icon badge, written from the server's count.
@@ -438,6 +465,23 @@ export default function NotificationsScreen() {
           })}
         </ScrollView>
 
+        {categories.length > 1 ? (
+          <ScrollView
+            contentContainerClassName="gap-2"
+            horizontal
+            showsHorizontalScrollIndicator={false}
+          >
+            {categories.map((chip) => (
+              <CategoryChipButton
+                active={chip.label === picked}
+                chip={chip}
+                key={chip.label}
+                onPress={() => setCategory(chip.label === picked ? null : chip.label)}
+              />
+            ))}
+          </ScrollView>
+        ) : null}
+
         {/*
           Skeleton rows rather than a centred spinner, per NOTES §9: the shape of
           this list is known before its contents are, and matching it is what
@@ -485,6 +529,44 @@ export default function NotificationsScreen() {
         )}
       </View>
     </Screen>
+  );
+}
+
+type CategoryChip = { count: number; icon: NotificationVisual["icon"]; label: string };
+
+/** One kind of notification: its glyph, its word, how many. Tap again to show every kind. */
+function CategoryChipButton({
+  active,
+  chip,
+  onPress,
+}: {
+  active: boolean;
+  chip: CategoryChip;
+  onPress: () => void;
+}) {
+  const { colors } = useAppTheme();
+
+  return (
+    <Pressable
+      accessibilityLabel={`${chip.label}, ${chip.count}`}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      className={`flex-row items-center gap-1.5 rounded-xl px-3 py-2 active:opacity-70 ${
+        active ? "bg-primary" : "bg-muted"
+      }`}
+      onPress={onPress}
+    >
+      <Ionicons
+        color={active ? colors.primaryForeground : colors.foreground}
+        name={chip.icon}
+        size={15}
+      />
+      <Text
+        className={`text-sm font-medium ${active ? "text-primary-foreground" : "text-foreground"}`}
+      >
+        {`${chip.label} ${chip.count}`}
+      </Text>
+    </Pressable>
   );
 }
 

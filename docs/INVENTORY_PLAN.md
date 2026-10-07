@@ -22,7 +22,7 @@ working*, not *file created*. **[server]** `apps/web` API, **[app]** `apps/mobil
 | Money | A Bought with an amount writes **one Expense** in the hostel the recorder is working in — the same row Money Out shows. Sending never moves money between branches; Overall shows the whole group. |
 | Who | Owner: the building picked in the switcher (every building only in Overall, read-only). Warden: only with the new `manageStock` permission, only their building, but can Send to any building in the group. Cook: not in this round. |
 | Plan | Listed as **Inventory Management** under Food & Kitchen on **Max**. Not gated on the server — no other plan service is. |
-| Look | **Redesigned 2026-10-06 from the owner's mockup:** plain white headers, one job per screen, items picked with "+ Add Item" (never a box per item), one green button at the bottom, emoji item pictures. Bottom sheets, skeletons, dates grouped with the heading outside the card. |
+| Look | **Simplified 2026-10-07 for staff who read little:** the home is two big buttons (**Add stock**, **Send**) over the list of what is in store; Count and History are icons in the bar. Add stock is one screen of lines — name, quantity, price — where a new name becomes an item on Save (store or daily guessed from the name) and the prices make the expense. Send is one screen: tap the building, write how much beside each item. Emoji item pictures on the muted ground, palette colours only. |
 
 ## 2. Words (A1 English)
 
@@ -60,8 +60,8 @@ the rest tick after the device pass in "After shipping".
 
 ### App
 - [ ] `lib/stock-api.ts`
-- [ ] `/stock` — tabs Overview (waiting for Got it, 4 figures, Quick Actions, Recent Activity) · Store Items · Daily Items
-- [ ] `/stock/buy` (bill → items, with Supplier and per-item Rate) · `/stock/send` (where + items → review) · `/stock/count`
+- [ ] `/stock` — Got it card, Add stock / Send buttons, In store list (Count and History in the bar)
+- [ ] `/stock/buy` (Add stock: name · quantity · price lines) · `/stock/send` (building + quantities, one screen) · `/stock/count`
 - [ ] `/stock/receive/[id]` (Got it) · `/stock/entry/[id]` (details, Send timeline, Cancel) · `/stock/item/[id]` (Overview · History · Settings) · `/stock/history`
 - [ ] Manage grid tile + More row
 

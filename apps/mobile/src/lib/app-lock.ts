@@ -7,13 +7,22 @@
  * account's setting (`auth.biometricUserId`), which redux-persist has already
  * rehydrated before the first portal frame. So a cold start is decided
  * synchronously: there is no async read in between during which a dashboard
- * could paint. It also locks the moment the app goes to the background, so the
- * frame waiting there when it comes back is the lock, never the portal.
+ * could paint.
+ *
+ * ## Coming back
+ *
+ * The first frame after a return is drawn before JS hears `active`, so a return
+ * past the grace has to be decided before then. On Android the native guard
+ * (`modules/hostelhub-app-lock`) decides it in `onResume` and covers the window
+ * itself, then calls `lockAfterAway`; a quick return draws nothing, so a trip to
+ * Recents never flashes the keypad over the portal. Without it (iOS, Expo Go)
+ * the lock goes up the moment the app leaves, so the frame waiting there is the
+ * lock, never the portal.
  *
  * ## The grace
  *
  * Picking a photo, signing a payment in eSewa or reading the code email all
- * background the app. Coming back within `GRACE_MS` lifts the lock without
+ * background the app. Coming back within `LOCK_GRACE_MS` lifts the lock without
  * asking; longer, and it asks.
  *
  * ## PIN or fingerprint
@@ -46,12 +55,14 @@ import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
 import type { ApiUser } from "@/lib/auth-api";
 import { ROLE } from "@/constants/roles";
 
-const GRACE_MS = 30_000;
+export const LOCK_GRACE_MS = 30_000;
 
 const LOCK_KEY = "hh_app_lock";
 
 let locked = true;
 let backgroundedAt: number | null = null;
+/** Android's native guard decides returns — see "Coming back". */
+let nativeGuard = false;
 /** A system fingerprint sheet can pause the activity on some phones; that is not leaving. */
 let authenticating = false;
 const listeners = new Set<() => void>();
@@ -81,9 +92,14 @@ export function lockApp() {
   emit(true);
 }
 
+/** Called once by the lock host when the native guard is in this build. */
+export function handReturnsToNative() {
+  nativeGuard = true;
+}
+
 /** Wired to `AppState` once, by the lock host. */
 export function onAppStateChange(state: string) {
-  if (authenticating) return;
+  if (authenticating || nativeGuard) return;
 
   if (state === "background") {
     // Already locked when it left means it was never opened — no grace for that.
@@ -93,10 +109,21 @@ export function onAppStateChange(state: string) {
   }
 
   if (state === "active" && backgroundedAt !== null) {
-    const quick = Date.now() - backgroundedAt < GRACE_MS;
+    const quick = Date.now() - backgroundedAt < LOCK_GRACE_MS;
     backgroundedAt = null;
     if (quick) emit(false);
   }
+}
+
+/**
+ * The native guard saw a return past the grace and covered the window. False
+ * when it was a fingerprint sheet's pause rather than leaving — nothing locks,
+ * and the caller lifts the cover.
+ */
+export function lockAfterAway() {
+  if (authenticating) return false;
+  emit(true);
+  return true;
 }
 
 /**

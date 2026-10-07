@@ -7,7 +7,10 @@ import { formatBsPeriod } from "@/lib/hostel-day";
 import { REALTIME_TOPIC } from "@/lib/realtime/channels";
 import { publishResourceChange } from "@/lib/realtime/server";
 import { FinanceServiceError } from "@/modules/finance/finance.errors";
-import { createInAppNotification } from "@/modules/notifications/notification.service";
+import {
+  createInAppNotification,
+  settleActionNotifications,
+} from "@/modules/notifications/notification.service";
 import { findCurrentResident } from "@/modules/residents/resident-access";
 import { resolveHostelStaffUserIds } from "@/modules/residents/resident-notify";
 import { CookAccountModel } from "@hostel/db/models/CookAccount";
@@ -158,14 +161,47 @@ function changed(hostelId: Types.ObjectId | string) {
   });
 }
 
-async function notify(userIds: string[], title: string, body: string, hostelId: string) {
+/** The web page each audience answers a khata bell on; the app rewrites each to its own screen. */
+const KHATA_PAGE = {
+  cook: "/cook/khata",
+  resident: "/resident/khata",
+  staff: "/hostel-admin/khata",
+} as const;
+
+/**
+ * Every khata bell is filed under `KHATA` and opens the screen that answers it.
+ * They were `PAYMENT` rows with no link, so a warden told "asked to open a
+ * khata" was sent to a resident's rent list and had no way to approve it.
+ *
+ * A row that waits on somebody (`waits`: a request, an ask) is an ACTION row,
+ * and is cleared for everyone it went to once one of them answers it
+ * (`settleKhataBells`). The rest are plain news.
+ */
+async function notify(
+  userIds: string[],
+  title: string,
+  body: string,
+  hostelId: string,
+  link: { data: Record<string, string>; page: string; waits?: boolean },
+) {
   await Promise.all(
     userIds.map((userId) =>
-      createInAppNotification({ body, category: "PAYMENT", hostelId, title, userId }).catch(
-        () => undefined,
-      ),
+      createInAppNotification({
+        actionUrl: link.page,
+        body,
+        category: "KHATA",
+        data: link.data,
+        hostelId,
+        kind: link.waits ? "ACTION" : "NORMAL",
+        title,
+        userId,
+      }).catch(() => undefined),
     ),
   );
+}
+
+async function settleKhataBells(data: Record<string, string>, answer: string) {
+  await settleActionNotifications({ category: "KHATA", data }, answer).catch(() => undefined);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -289,9 +325,11 @@ export async function decideKhataAccount(
           ? "The hostel did not open a khata for you."
           : "Your khata is closed. Anything already taken stays on your next bill.",
       String(hostelId),
+      { data: { residentId, type: "KHATA_ACCOUNT" }, page: KHATA_PAGE.resident },
     );
   }
 
+  await settleKhataBells({ residentId, type: "KHATA_REQUEST" }, action);
   await changed(hostelId);
 
   return { residentId, status };
@@ -373,9 +411,11 @@ export async function decideKhataOrder(
         ? `Rs ${entry.amount.toLocaleString("en-US")} added to your khata — it goes on next month's bill.`
         : "Nothing was added to your khata.",
       String(hostelId),
+      { data: { entryId, type: "KHATA_ASK_ANSWERED" }, page: KHATA_PAGE.resident },
     );
   }
 
+  await settleKhataBells({ entryId, type: "KHATA_ASK" }, action);
   await changed(hostelId);
 
   return toEntry(entry);
@@ -454,6 +494,11 @@ export async function residentKhataAction(
         "Khata request",
         `${fullName(resident)}${resident.roomNumber ? ` (room ${resident.roomNumber})` : ""} asked to open a khata.`,
         hostelId,
+        {
+          data: { residentId: resident._id.toString(), type: "KHATA_REQUEST" },
+          page: KHATA_PAGE.staff,
+          waits: true,
+        },
       );
       await changed(hostelId);
     }
@@ -471,6 +516,7 @@ export async function residentKhataAction(
       throw new FinanceServiceError("It was already answered.", "KHATA_ENTRY_DECIDED");
     }
 
+    await settleKhataBells({ entryId: input.entryId, type: "KHATA_ASK" }, "CANCEL");
     await changed(hostelId);
 
     return getResidentKhata(principal);
@@ -500,7 +546,7 @@ export async function residentKhataAction(
     );
   }
 
-  await KhataEntryModel.create({
+  const ask = await KhataEntryModel.create({
     amount: item.price * input.quantity,
     hostelId,
     itemId: item._id,
@@ -526,6 +572,11 @@ export async function residentKhataAction(
     `${item.name} ×${input.quantity}`,
     `${fullName(resident)}${resident.roomNumber ? `, room ${resident.roomNumber}` : ""} asked on khata.${input.note ? ` “${input.note}”` : ""}`,
     hostelId,
+    {
+      data: { entryId: ask._id.toString(), type: "KHATA_ASK" },
+      page: cooks.length > 0 ? KHATA_PAGE.cook : KHATA_PAGE.staff,
+      waits: true,
+    },
   );
   await changed(hostelId);
 

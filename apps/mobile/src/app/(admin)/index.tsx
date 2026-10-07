@@ -20,6 +20,7 @@ import {
   WaitingActions,
 } from "@/components/admin-home";
 import { useIsOverall } from "@/components/hostel-switcher";
+import { KhataStaffCard } from "@/components/khata-home-card";
 import { KycCard } from "@/components/manage/kyc-card";
 import { FreeMonthCard, SubscriptionDueCard } from "@/components/subscription-due";
 import { SectionHeader } from "@/components/ui/card";
@@ -436,6 +437,15 @@ function BranchAdminHomeScreen() {
               */
               onStatement={() => router.push("/manage/finance/statement")}
             />
+
+            {/*
+              Khata's own door, with its three numbers: a resident asking to
+              open one is waiting on someone here, and the bell is not where
+              that should be found.
+            */}
+            <View className="pt-3">
+              <KhataStaffCard />
+            </View>
           </View>
 
           <View>

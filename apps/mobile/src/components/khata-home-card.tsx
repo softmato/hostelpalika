@@ -75,3 +75,55 @@ export function KhataHomeCard() {
     </Pressable>
   );
 }
+
+/**
+ * The staff side of the same card, on the owner's and warden's Home: how many
+ * khatas are open, how many residents are waiting on an answer, and what goes
+ * on the next bills. A request used to reach staff only as a bell row with
+ * nowhere to approve it; this is the door, and Approve is one tap behind it.
+ *
+ * Hidden when the account cannot read khata (a warden without `viewPayments`
+ * gets a 403) and while it loads, like the resident card.
+ */
+export function KhataStaffCard() {
+  const { colors } = useAppTheme();
+  const query = khataQuery.admin();
+  const khata = useResource(query.load, { cacheKey: query.key, topics: query.topics });
+  const data = khata.data;
+
+  if (!data || khata.error) {
+    return null;
+  }
+
+  const open = () => router.push("/manage/finance/khata");
+  const pending = data.requests.length + data.waiting.length;
+  const toBill = data.accounts.reduce((sum, account) => sum + account.unbilled, 0);
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      className="gap-3 rounded-2xl border border-border bg-card p-4 active:opacity-80"
+      onPress={open}
+    >
+      <View className="flex-row items-center gap-3">
+        <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
+          <Ionicons color={colors.primary} name="receipt-outline" size={22} />
+        </View>
+        <Text className="flex-1" variant="subtitle">
+          Khata
+        </Text>
+        <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} />
+      </View>
+
+      <View className="flex-row gap-2">
+        <Stat label="Open" value={String(data.accounts.length)} />
+        <Stat label="Pending" value={String(pending)} />
+        <Stat label="To bill" value={formatMoney(toBill)} />
+      </View>
+
+      {data.requests.length > 0 ? (
+        <Button label={`Approve ${data.requests.length}`} onPress={open} size="sm" />
+      ) : null}
+    </Pressable>
+  );
+}
