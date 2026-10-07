@@ -26,7 +26,6 @@ import {
   fetchMe,
   logout as revokeSession,
 } from "@/lib/auth-api";
-import { disarmFingerprint } from "@/lib/app-lock";
 import { revokePushToken } from "@/lib/push-notifications";
 import { setActiveHostelId } from "@/lib/active-hostel";
 import { clearQueryCache } from "@/lib/query-cache";
@@ -37,6 +36,7 @@ import {
   clearAuth,
   setAccessToken,
   setAccount,
+  setBiometricUserId,
   setReady,
   setResidentActivated,
   setSession,
@@ -314,11 +314,14 @@ export async function endSession(options?: {
   }
 
   await clearTokens();
-  // The lock belonged to the account leaving; `resetStore` drops its flag.
-  await disarmFingerprint();
+  // The fingerprint stays on for this account on this phone: whoever signs back
+  // in as it meets the lock again (`AppLockHost`), not a fresh setup. Another
+  // account never matches the id, so it gets nothing of this one's.
+  const biometricUserId = store.getState().auth.biometricUserId;
 
   store.dispatch(resetStore());
   await persistor.purge();
+  store.dispatch(setBiometricUserId(biometricUserId));
 
   // `resetStore` cleared it, so re-flag the two things the login screen needs:
   // that boot is done (otherwise the gate re-runs and hangs on the splash) and

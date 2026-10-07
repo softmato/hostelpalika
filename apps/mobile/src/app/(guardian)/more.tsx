@@ -124,7 +124,6 @@ export default function GuardianMoreScreen() {
           {dashboard?.access ? (
             <MenuGroup title="Your access">
               <View className="gap-2 py-2">
-                <FactRow label="Access code" value={dashboard.access.accessCode} />
                 <FactRow label="Expires" value={dates.date(dashboard.access.expiresAt)} />
               </View>
             </MenuGroup>

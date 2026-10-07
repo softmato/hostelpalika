@@ -55,6 +55,7 @@ vi.mock("@/lib/auth", async () => ({
   verifyPurposeToken: mocks.verifyPurposeToken,
 }));
 
+import { POST as touch } from "@/app/api/v1/auth/lock-pin/touch/route";
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { setLockPin, verifyLockPin } from "@/modules/auth/lock-pin.service";
 
@@ -155,5 +156,25 @@ describe("lock PIN", () => {
       headers: { authorization: "Bearer t" },
     });
     await expect(requireApiPrincipal(app)).resolves.not.toHaveProperty("pinLocked");
+  });
+
+  it("slides a live unlock on activity, but never revives a lapsed one", async () => {
+    mocks.verifyAccessToken.mockResolvedValue({
+      hostelIds: [],
+      lockPin: true,
+      role: Role.PUBLIC,
+      sessionId: "s-1",
+      sub: "user-1",
+      tokenType: "access",
+    });
+    mocks.verifyPurposeToken.mockRejectedValue(new Error("expired"));
+
+    const lapsed = await touch(
+      new NextRequest("https://x.local/api/v1/auth/lock-pin/touch", {
+        headers: { cookie: "hostelpalika_access_token=t; hostelpalika_unlock=old" },
+        method: "POST",
+      }),
+    );
+    expect(lapsed.status).toBe(423);
   });
 });

@@ -20,12 +20,80 @@ import {
 
 type CurrentUser = {
   email: string | null;
+  /** The account has an app-lock PIN — this portal asks again after idle time. */
+  hasLockPin?: boolean;
   image?: string | null;
   name: string;
+  /** The account has an app-lock PIN this browser has not typed yet. */
+  pinLocked?: boolean;
   role: string;
   /** Null until they save their resident profile for the first time. */
   userResidentId?: string | null;
+  viaTemporaryCredential?: boolean;
 };
+
+/** No click, key, scroll or touch for this long and the PIN is asked again. Mirrors `UNLOCK_IDLE_SECONDS`. */
+const PIN_IDLE_MS = 30 * 60 * 1000;
+/** Activity reaches the server at most this often. */
+const PIN_TOUCH_EVERY_MS = 60 * 1000;
+const ACTIVITY_EVENTS = ["pointerdown", "keydown", "wheel", "touchstart"] as const;
+
+function toUnlock() {
+  const next = encodeURIComponent(window.location.pathname + window.location.search);
+  window.location.assign(`/unlock?next=${next}`);
+}
+
+/**
+ * The portal of an account with a PIN, left open on a desk: after
+ * {@link PIN_IDLE_MS} without activity it steps aside for `/unlock`. Moving
+ * around never asks — activity slides the server's unlock cookie
+ * (`/auth/lock-pin/touch`), so the API agrees with what this tab decides.
+ */
+function usePinIdleLock(active: boolean) {
+  useEffect(() => {
+    if (!active) return;
+
+    let lastActivity = Date.now();
+    // Zero, so the first activity on this page slides the cookie at once.
+    let lastTouch = 0;
+
+    function check() {
+      if (Date.now() - lastActivity >= PIN_IDLE_MS) toUnlock();
+    }
+
+    function onActivity() {
+      const now = Date.now();
+
+      // Back at a tab left past the limit: the tap that woke it does not count.
+      if (now - lastActivity >= PIN_IDLE_MS) {
+        toUnlock();
+        return;
+      }
+
+      lastActivity = now;
+      if (now - lastTouch < PIN_TOUCH_EVERY_MS) return;
+      lastTouch = now;
+
+      void fetch("/api/v1/auth/lock-pin/touch", { credentials: "include", method: "POST" })
+        .then((response) => {
+          if (response.status === 423) toUnlock();
+        })
+        .catch(() => {});
+    }
+
+    for (const name of ACTIVITY_EVENTS) {
+      window.addEventListener(name, onActivity, { passive: true });
+    }
+    document.addEventListener("visibilitychange", check);
+    const timer = window.setInterval(check, 30_000);
+
+    return () => {
+      for (const name of ACTIVITY_EVENTS) window.removeEventListener(name, onActivity);
+      document.removeEventListener("visibilitychange", check);
+      window.clearInterval(timer);
+    };
+  }, [active]);
+}
 
 type MeResponse =
   | {
@@ -85,6 +153,8 @@ export function PortalAccount({
   const [user, setUser] = useState<CurrentUser | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  usePinIdleLock(Boolean(user?.hasLockPin && !user.viaTemporaryCredential));
+
   const loadCurrentUser = useCallback(async () => {
     try {
       const response = await checkAuthWithRefresh();
@@ -94,6 +164,12 @@ export function PortalAccount({
         throw new Error(
           payload && !payload.success ? payload.message : "Unable to load account.",
         );
+      }
+
+      if (payload.data.user.pinLocked) {
+        const next = encodeURIComponent(window.location.pathname + window.location.search);
+        window.location.assign(`/unlock?next=${next}`);
+        return;
       }
 
       setUser(payload.data.user);

@@ -160,20 +160,6 @@ export default function LoginScreen() {
               </Pressable>
             </Link>
 
-            {/*
-              Below the main form, not beside it. A guardian holding a printed
-              access code has no email account and no password — that is why
-              their hostel gave them a code — so the fields above are useless to
-              them, and this is where someone who has just failed to sign in
-              will look. See `app/(auth)/guardian-login.tsx`.
-            */}
-            <Link asChild href="/(auth)/guardian-login">
-              <Pressable className="self-center py-2">
-                <Text className="text-primary" variant="label">
-                  Sign in with a guardian access code
-                </Text>
-              </Pressable>
-            </Link>
           </View>
         </View>
 

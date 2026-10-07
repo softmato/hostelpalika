@@ -48,7 +48,8 @@
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
 
-import { APP_NAME } from "@/constants/branding";
+// The name alone — `constants/branding` also pulls in the logo images.
+import { PLATFORM_NAME as APP_NAME } from "@hostel/brand/brand";
 import { api } from "@/lib/api";
 import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
 import type { ApiUser } from "@/lib/auth-api";
@@ -85,6 +86,10 @@ export function isLocked() {
 
 export function unlockApp() {
   emit(false);
+}
+
+export function lockApp() {
+  emit(true);
 }
 
 /** Called once by the lock host when the native guard is in this build. */
@@ -194,13 +199,13 @@ export async function armFingerprint() {
   if (status === "none") return false;
 
   if (status === "weak") {
-    const result = await withPrompt(() => promptWeakFingerprint("Confirm your fingerprint"));
+    const result = await withPrompt(() => promptWeakFingerprint("Confirm it's you"));
     return result.success;
   }
 
   return withPrompt(() =>
     SecureStore.setItemAsync(LOCK_KEY, String(Date.now()), {
-      authenticationPrompt: "Confirm your fingerprint",
+      authenticationPrompt: "Confirm it's you",
       requireAuthentication: true,
     }),
   )

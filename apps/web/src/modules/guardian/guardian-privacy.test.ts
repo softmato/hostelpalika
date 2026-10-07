@@ -83,10 +83,7 @@ vi.mock("@/modules/food/food-routine.service", () => ({
 
 vi.mock("@/modules/auth/auth.service", () => ({ issueSessionForUser: vi.fn() }));
 
-import {
-  createGuardianAccess,
-  getGuardianDashboard,
-} from "@/modules/guardian/guardian.service";
+import { getGuardianDashboard } from "@/modules/guardian/guardian.service";
 
 const hostelId = "64f0f0f0f0f0f0f0f0f0f0d1";
 const residentId = new Types.ObjectId("64f0f0f0f0f0f0f0f0f0f0d2");
@@ -422,85 +419,5 @@ describe("guardian dashboard privacy", () => {
         targetAudience: { $in: ["ALL", "GUARDIANS"] },
       }),
     );
-  });
-});
-
-/**
- * The access code is the credential `POST /guardian/login` takes, alongside a
- * phone number that is not a secret. It was `Math.random().toString(36)` until
- * 2026-08-17 — a seeded generator whose state is recoverable from a handful of
- * outputs, which a hostel admin issuing several codes in an afternoon supplies.
- */
-describe("guardian access codes", () => {
-  const adminPrincipal = {
-    hostelIds: [hostelId],
-    role: Role.HOSTEL_ADMIN,
-    sessionId: "session-a",
-    userId: "64f0f0f0f0f0f0f0f0f0f0e1",
-  };
-
-  function issue() {
-    return createGuardianAccess(
-      residentId.toString(),
-      { allowComplaintStatus: false, expiresInDays: 30, guardianId: guardianId.toString() },
-      adminPrincipal,
-    );
-  }
-
-  beforeEach(() => {
-    vi.clearAllMocks();
-    mocks.residentFindOne.mockReturnValue(
-      leanResult({
-        _id: residentId,
-        depositAmount: 5000,
-        firstName: "Asha",
-        hostelId: new Types.ObjectId(hostelId),
-        lastName: "Rai",
-        moveInDate: new Date("2030-01-01T00:00:00.000Z"),
-        phone: "9800000000",
-        roomType: "DOUBLE",
-        status: "ACTIVE",
-      }),
-    );
-    mocks.guardianFindOne.mockReturnValue(
-      leanResult({
-        _id: guardianId,
-        firstName: "Bimala",
-        hostelId: new Types.ObjectId(hostelId),
-        lastName: "Rai",
-        phone: "9800000000",
-        relation: "Mother",
-        residentId,
-      }),
-    );
-    mocks.guardianAccessCreate.mockImplementation(
-      async (doc: Record<string, unknown>) => ({
-        ...doc,
-        _id: accessId,
-        expiresAt: doc.expiresAt,
-      }),
-    );
-  });
-
-  it("draws only from the unambiguous alphabet, at a fixed length", async () => {
-    // 0/O and 1/I are the pairs people mistype off a printed slip, and each one
-    // is a call to the hostel office.
-    for (let attempt = 0; attempt < 200; attempt += 1) {
-      const { access } = await issue();
-
-      expect(access.accessCode).toMatch(/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/);
-    }
-  });
-
-  it("does not repeat itself across a hostel's afternoon of invitations", async () => {
-    const codes = new Set<string>();
-
-    for (let attempt = 0; attempt < 200; attempt += 1) {
-      codes.add((await issue()).access.accessCode);
-    }
-
-    // 32^6 is ~1.07 billion, so 200 draws colliding even once would mean the
-    // source is not what this test thinks it is.
-    expect(codes.size).toBe(200);
   });
 });

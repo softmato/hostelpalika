@@ -27,7 +27,6 @@ import {
   addResidentGuardian,
   type ActivationIssue,
   issueActivationCode,
-  issueGuardianAccess,
   saveMoveInChecklist,
   saveMoveOutChecklist,
   setResidentFee,
@@ -36,7 +35,6 @@ import {
 } from "@/lib/admin-manage-api";
 import { type AdminResidentRecord, adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
-import { openConfirm } from "@/lib/confirm";
 import { humanizeEnum } from "@/lib/format";
 import { toastError, toastSuccess } from "@/lib/toast";
 
@@ -545,32 +543,6 @@ export default function ManageResidentScreen() {
                         tone="brand"
                       />
                     ) : null}
-                    <Chip
-                      icon="key-outline"
-                      label="Give them a login"
-                      onPress={() =>
-                        void run(
-                          async () => {
-                            const result = await issueGuardianAccess(id, {
-                              expiresInDays: 30,
-                              guardianId: guardian.id,
-                            });
-
-                            if (result.accessCode) {
-                              openConfirm({
-                                cancelLabel: null,
-                                confirmLabel: "Done",
-                                message: `${result.accessCode}\n\nThey sign in with their phone number and this code. It lasts 30 days.`,
-                                onConfirm: () => {},
-                                title: "Guardian access code",
-                              });
-                            }
-                          },
-                          "Access issued",
-                          false,
-                        )
-                      }
-                    />
                   </View>
                 </View>
               ))

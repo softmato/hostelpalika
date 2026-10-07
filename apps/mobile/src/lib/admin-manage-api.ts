@@ -1988,30 +1988,6 @@ export async function addEmergencyContact(
 }
 
 /**
- * Issues a guardian an access code — `POST .../guardian-access`.
- *
- * Every flag is opt-in and defaults false: `allowComplaintStatus` is the only
- * one this route sets, and the rest of what a guardian may see is the
- * *resident's* decision, made on their own privacy screen. An admin issuing
- * access is granting a login, not opening a record.
- */
-export async function issueGuardianAccess(
-  id: string,
-  input: {
-    allowComplaintStatus?: boolean;
-    expiresInDays?: number;
-    guardianId: string;
-  },
-) {
-  const response = await api.post<ApiEnvelope<{ accessCode?: string }>>(
-    `/hostel-admin/residents/${id}/guardian-access`,
-    input,
-  );
-
-  return unwrap(response);
-}
-
-/**
  * `POST .../activation-code` issues one; `PATCH` reissues, cancelling whatever
  * was outstanding.
  *
