@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const routeMocks = vi.hoisted(() => ({
   confirmComplaintResolution: vi.fn(),
   createComplaint: vi.fn(),
-  createGuardianAccess: vi.fn(),
   createMoveInChecklist: vi.fn(),
   createMoveOutChecklist: vi.fn(),
   createResidentReview: vi.fn(),
@@ -25,7 +24,6 @@ const routeMocks = vi.hoisted(() => ({
   listPublicHostelReviews: vi.fn(),
   listResidentComplaints: vi.fn(),
   listResidentEmergencyContacts: vi.fn(),
-  loginGuardian: vi.fn(),
   markNotificationRead: vi.fn(),
   overrideNightStatus: vi.fn(),
   replyToComplaint: vi.fn(),
@@ -73,13 +71,11 @@ vi.mock("@/modules/safety/safety.service", () => ({
 }));
 
 vi.mock("@/modules/guardian/guardian.service", () => ({
-  createGuardianAccess: routeMocks.createGuardianAccess,
   getGuardianDashboard: routeMocks.getGuardianDashboard,
   getGuardianSafetySummary: routeMocks.getGuardianSafetySummary,
   listGuardianFood: routeMocks.listGuardianFood,
   listGuardianNotices: routeMocks.listGuardianNotices,
   listGuardianPayments: routeMocks.listGuardianPayments,
-  loginGuardian: routeMocks.loginGuardian,
 }));
 
 vi.mock("@/modules/move-checklist/move-checklist.service", () => ({
@@ -114,7 +110,6 @@ vi.mock("@hostel/db/models/AuthAttempt", async () => {
 
 import * as guardianDashboardRoute from "@/app/api/v1/guardian/dashboard/route";
 import * as guardianFoodRoute from "@/app/api/v1/guardian/food/route";
-import * as guardianLoginRoute from "@/app/api/v1/guardian/login/route";
 import * as guardianNoticesRoute from "@/app/api/v1/guardian/notices/route";
 import * as guardianPaymentsRoute from "@/app/api/v1/guardian/payments/route";
 import * as guardianSafetyRoute from "@/app/api/v1/guardian/safety-summary/route";
@@ -123,7 +118,6 @@ import * as adminComplaintReplyRoute from "@/app/api/v1/hostel-admin/complaints/
 import * as adminComplaintStatusRoute from "@/app/api/v1/hostel-admin/complaints/[id]/status/route";
 import * as adminNightStatusRoute from "@/app/api/v1/hostel-admin/night-status/route";
 import * as adminNightStatusOverrideRoute from "@/app/api/v1/hostel-admin/night-status/[residentId]/override/route";
-import * as adminGuardianAccessRoute from "@/app/api/v1/hostel-admin/residents/[id]/guardian-access/route";
 import * as moveInRoute from "@/app/api/v1/hostel-admin/residents/[id]/move-in/route";
 import * as moveOutRoute from "@/app/api/v1/hostel-admin/residents/[id]/move-out/route";
 import * as adminSOSAlertsRoute from "@/app/api/v1/hostel-admin/sos-alerts/route";
@@ -146,7 +140,6 @@ import { Role } from "@/lib/roles";
 const hostelId = "64f0f0f0f0f0f0f0f0f0f0d1";
 const userId = "64f0f0f0f0f0f0f0f0f0f0d2";
 const entityId = "64f0f0f0f0f0f0f0f0f0f0d3";
-const guardianId = "64f0f0f0f0f0f0f0f0f0f0d4";
 
 const staffPrincipal = {
   hostelIds: [hostelId],
@@ -354,34 +347,13 @@ describe("daily operations routes", () => {
     );
   });
 
-  it("handles guardian access, login, and limited guardian views", async () => {
-    routeMocks.createGuardianAccess.mockResolvedValue({
-      access: { accessCode: "ABC123", id: entityId },
-    });
-    routeMocks.loginGuardian.mockResolvedValue({
-      accessToken: "access",
-      refreshToken: "refresh",
-      user: { id: userId, role: Role.GUARDIAN },
-    });
+  it("serves the limited guardian views", async () => {
     routeMocks.getGuardianDashboard.mockResolvedValue({ dashboard: {} });
     routeMocks.listGuardianPayments.mockResolvedValue({ payments: [] });
     routeMocks.listGuardianNotices.mockResolvedValue({ notices: [] });
     routeMocks.listGuardianFood.mockResolvedValue({ food: [] });
     routeMocks.getGuardianSafetySummary.mockResolvedValue({ safety: {} });
 
-    const access = await adminGuardianAccessRoute.POST(
-      request(`/api/v1/hostel-admin/residents/${entityId}/guardian-access`, {
-        body: { guardianId },
-        method: "POST",
-      }),
-      routeContext({ id: entityId }),
-    );
-    const login = await guardianLoginRoute.POST(
-      request("/api/v1/guardian/login", {
-        body: { accessCode: "ABC123", phone: "9800000000" },
-        method: "POST",
-      }),
-    );
     const dashboard = await guardianDashboardRoute.GET(
       request("/api/v1/guardian/dashboard"),
     );
@@ -394,8 +366,6 @@ describe("daily operations routes", () => {
       request("/api/v1/guardian/safety-summary"),
     );
 
-    expect(access.status).toBe(201);
-    expect(login.status).toBe(200);
     expect(dashboard.status).toBe(200);
     expect(payments.status).toBe(200);
     expect(notices.status).toBe(200);

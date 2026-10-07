@@ -159,6 +159,10 @@ Rows are flagged where reality differs from the original plan:
 | POST | `/api/v1/auth/verify-email` | none | `{ token }` | Verifies email, sets `emailVerified: true` |
 | POST | `/api/v1/auth/resend-verification` | none | `{ email }` | Resends verification email |
 | POST | `/api/v1/auth/login` | none | `{ identifier, password }` | Unified login — see ARCHITECTURE.md §3.1. `identifier` is an email address **or** a temporary access username (§2.1); the two are told apart by `@`. Returns `{ role, redirectPath, mustChangePassword }` |
+| PUT | `/api/v1/auth/lock-pin` | signed in, own credential | `{ pin, currentPin? \| challengeId+code? \| password? }` | Sets the account's 4-digit app-lock PIN, or replaces one with proof (current PIN, the `/auth/biometric/code` email code, or — only for a `@cook.local` login — the password). Unlocks this browser. |
+| DELETE | `/api/v1/auth/lock-pin` | signed in, own credential | same proofs | Turns the lock off for the account — every phone and the website. |
+| POST | `/api/v1/auth/lock-pin/verify` | signed in | `{ pin }` | The unlock. 10 wrong in a row → `LOCK_PIN_BLOCKED` (423) until reset by email code; "N tries left" only from the 6th. Sets the browser's unlock cookie (30 idle minutes). |
+| POST | `/api/v1/auth/lock-pin/touch` | signed in | — | Portal activity: slides the unlock cookie another 30 idle minutes; a lapsed one answers 423 `LOCK_PIN_REQUIRED`. |
 | GET | `/api/auth/google` | none | — | ↔ **Superseded.** ID-token POST to `/api/v1/auth/google` instead of a GET redirect (ARCHITECTURE.md §3.1 — no client secret in env). |
 | GET | `/api/auth/google/callback` | none | `?code=` | ↔ **Superseded.** No callback leg: Google Identity Services returns the ID token to the browser, which posts it to `/api/v1/auth/google`. |
 | POST | `/api/v1/auth/refresh` | refresh token (cookie or header) | — | Rotates and reissues tokens |
@@ -430,7 +434,6 @@ They never see the resident's email, phone or deposit, whatever else is enabled.
 | GET | `/api/v1/guardian/food` | `canViewFood`: today's meals off the weekly routine. |
 | GET | `/api/v1/guardian/safety-summary` | `canViewSafety`: `{ asOf: 'YYYY-MM-DD', status }` — a **date**, never a timestamp, never coordinates. `canViewComplaintStatus`: complaint titles + status only. |
 | POST | `/api/v1/guardian/accept-invitation` | Public. `{ token, name? }` — accepts an emailed invitation, creating or upgrading the account through `registerOrUpgradeUserByEmail` (so an email already holding another role is refused `409`). Token is single-use and expires after 7 days. **Issues no session** — credentials are emailed and the guardian signs in afterwards. |
-| POST | `/api/v1/guardian/login` | Public. `{ accessCode, phone }` — the code-and-phone path, for a guardian with no email address. **Issues a full session** (same payload as `/auth/login`), unlike accept-invitation. Rate limited to **5 attempts per 15 minutes per IP**; the refresh token is returned in the body only to the mobile client and set as an httpOnly cookie otherwise. `INVALID_GUARDIAN_LOGIN` (401) is returned when *either* half is wrong — deliberately, since naming the half turns a phone number into an oracle for enumerating codes; `GUARDIAN_ACCESS_EXPIRED` (410) also marks the row EXPIRED on the way out; `PHONE_ALREADY_HAS_ROLE` (409) when the number belongs to a resident or staff account, which is refused rather than demoting them. |
 
 ---
 

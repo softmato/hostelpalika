@@ -169,6 +169,12 @@ export type ConfirmDialogProps = ConfirmRequest & {
    */
   onClose: () => void;
   open: boolean;
+  /**
+   * `false`: the scrim only, no blur. For a card drawn over the app lock — on
+   * Android the frost is a capture of the whole app, which is the portal the
+   * lock is there to hide.
+   */
+  frost?: boolean;
 };
 
 /**
@@ -179,6 +185,7 @@ export function ConfirmDialog({
   cancelLabel = "Cancel",
   confirmLabel,
   destructive = false,
+  frost: frosted = true,
   message,
   onCancel,
   onClose,
@@ -280,6 +287,7 @@ export function ConfirmDialog({
       cancelLabel={cancelLabel}
       confirmLabel={confirmLabel}
       destructive={destructive}
+      frosted={frosted}
       message={message}
       onBackdrop={single ? undefined : dismiss}
       onCancel={cancel}
@@ -295,6 +303,7 @@ function ConfirmCard({
   cancelLabel,
   confirmLabel,
   destructive,
+  frosted,
   message,
   onBackdrop,
   onCancel,
@@ -307,6 +316,7 @@ function ConfirmCard({
   cancelLabel: string | null;
   confirmLabel: string;
   destructive: boolean;
+  frosted: boolean;
   message?: string;
   /** Absent for an alert the backdrop must not close. */
   onBackdrop?: () => void;
@@ -384,23 +394,25 @@ function ConfirmCard({
         className="flex-1 items-center justify-center px-8"
         onPress={onBackdrop}
       >
-        <AnimatedBlurView
-          animatedProps={blurProps}
-          /*
-           * On Android the blur is a capture of a named view, not a sample of
-           * whatever is behind this one — so `blurMethod` alone renders a flat
-           * tint and logs that `blurTarget` was never configured. The target is
-           * the whole app, wrapped once at the root; see `lib/blur-target.ts`.
-           * iOS ignores both props and uses its own backdrop material.
-           */
-          blurMethod={Platform.OS === "android" ? "dimezisBlurView" : "none"}
-          blurReductionFactor={BLUR_REDUCTION}
-          blurTarget={appBlurTarget}
-          // White frost in light mode, black in dark: the blur has to read as
-          // the same screen pushed back, never as a colour laid over it.
-          style={StyleSheet.absoluteFill}
-          tint={isDark ? "dark" : "light"}
-        />
+        {frosted ? (
+          <AnimatedBlurView
+            animatedProps={blurProps}
+            /*
+             * On Android the blur is a capture of a named view, not a sample of
+             * whatever is behind this one — so `blurMethod` alone renders a flat
+             * tint and logs that `blurTarget` was never configured. The target is
+             * the whole app, wrapped once at the root; see `lib/blur-target.ts`.
+             * iOS ignores both props and uses its own backdrop material.
+             */
+            blurMethod={Platform.OS === "android" ? "dimezisBlurView" : "none"}
+            blurReductionFactor={BLUR_REDUCTION}
+            blurTarget={appBlurTarget}
+            // White frost in light mode, black in dark: the blur has to read as
+            // the same screen pushed back, never as a colour laid over it.
+            style={StyleSheet.absoluteFill}
+            tint={isDark ? "dark" : "light"}
+          />
+        ) : null}
         {/*
           The blur alone is not contrast. It softens the screen behind without
           darkening it, so on a pale screen in light mode the card would sit on

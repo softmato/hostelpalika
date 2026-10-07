@@ -9,11 +9,14 @@ import { signPurposeToken, verifyPurposeToken } from "@/lib/auth";
  * (`proxy.ts` → `/unlock`) and every API guard (`requireApiPrincipal`, 423)
  * until this cookie is present and names the same user *and* session — so a
  * new sign-in asks again, and a copied cookie is useless on another session.
- * No `maxAge`: it dies with the browser, and the token inside caps it at 12 h.
+ * No `maxAge`: it dies with the browser. The token inside lasts
+ * {@link UNLOCK_IDLE_SECONDS}, and activity in a portal slides it
+ * (`/auth/lock-pin/touch`) — so moving around never asks, walking away does.
  */
 export const LOCK_PIN_UNLOCK_COOKIE = "hostelpalika_unlock";
 
-const UNLOCK_TTL_SECONDS = 12 * 60 * 60;
+/** Idle time before a portal asks for the PIN again. `portal-account.tsx` mirrors it. */
+export const UNLOCK_IDLE_SECONDS = 30 * 60;
 
 type CookieReader = { get(name: string): { value: string } | undefined };
 
@@ -38,7 +41,7 @@ export async function applyPinUnlockCookie(
   const token = await signPurposeToken({
     claims: { sessionId },
     purpose: "lock-pin-unlock",
-    ttlSeconds: UNLOCK_TTL_SECONDS,
+    ttlSeconds: UNLOCK_IDLE_SECONDS,
     userId,
   });
 

@@ -60,7 +60,7 @@ export type GuardianPermissions = {
  * **null** without `canViewPayments`) threw outright.
  */
 export type GuardianDashboard = {
-  access: { accessCode: string; expiresAt: string; status: string };
+  access: { expiresAt: string; status: string };
   complaints: Array<{ id: string; status: string; title: string }>;
   food: Array<{ id: string; items: string[]; mealType: string; timing: string }>;
   guardian: { id: string; name: string; phone: string; relation: string };

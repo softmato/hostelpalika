@@ -37,7 +37,6 @@ function payment(overrides: Partial<GuardianPayment> = {}): GuardianPayment {
 function dashboard(overrides: Partial<GuardianDashboard> = {}): GuardianDashboard {
   return {
     access: {
-      accessCode: "AB12CD",
       expiresAt: "2026-12-01T00:00:00.000Z",
       guardianId: "g-1",
       hostelId: "h-1",

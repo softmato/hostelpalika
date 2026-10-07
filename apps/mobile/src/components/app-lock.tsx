@@ -27,6 +27,7 @@ import { bootSplashGone } from "@/components/brand-splash";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { ListRow } from "@/components/ui/list-row";
 import { Sheet } from "@/components/ui/sheet";
@@ -48,6 +49,7 @@ import {
   hasMailbox,
   isAuthenticating,
   isLocked,
+  lockApp,
   type LockPinProof,
   maskEmail,
   onAppStateChange,
@@ -116,14 +118,14 @@ export function AppLockHost() {
   const enabled = useLockEnabled();
   const locked = useSyncExternalStore(subscribeToLock, isLocked);
 
-  // Signing in just proved who this is: the lock is for the next open. Heard
-  // straight from the store, before React renders the signed-in frame, so
-  // that frame is never the lock.
+  // A sign-in meets the lock too: a one-tap Google sign-in on this phone must
+  // not walk past a PIN the account set. Heard straight from the store, before
+  // React renders the signed-in frame, so the portal never shows first.
   useEffect(() => {
     let lastId = store.getState().auth.account?.id ?? null;
     return store.subscribe(() => {
       const id = store.getState().auth.account?.id ?? null;
-      if (lastId === null && id !== null) unlockApp();
+      if (lastId === null && id !== null) lockApp();
       lastId = id;
     });
   }, []);
@@ -234,7 +236,7 @@ function PinPad({
             {key === "finger" && !onFingerprint ? null : (
               <Pressable
                 accessibilityLabel={
-                  key === "back" ? "Delete" : key === "finger" ? "Use fingerprint" : key
+                  key === "back" ? "Delete" : key === "finger" ? "Use biometric" : key
                 }
                 accessibilityRole="button"
                 className="h-16 items-center justify-center rounded-2xl active:bg-brand-soft"
@@ -400,11 +402,11 @@ function RecoveryStep({
 type LockStatus = "idle" | "prompting" | "failed" | "changed" | "saving";
 
 const STATUS_COPY: Record<LockStatus, string> = {
-  changed: "The fingerprints on this phone changed. Confirm it is you with an email code.",
-  failed: "Not recognised. Tap the fingerprint to try again.",
-  idle: "Touch the fingerprint sensor to open.",
-  prompting: "Touch the fingerprint sensor to open.",
-  saving: "Code accepted. Touch the sensor to save your fingerprint.",
+  changed: "The biometrics on this phone changed. Confirm it is you with an email code.",
+  failed: "Not recognised. Tap to try again.",
+  idle: "Use your biometric to open.",
+  prompting: "Use your biometric to open.",
+  saving: "Code accepted. Confirm your biometric to save it.",
 };
 
 function LockScreen({ account }: { account: ApiUser }) {
@@ -428,6 +430,8 @@ function LockScreen({ account }: { account: ApiUser }) {
   const [checking, setChecking] = useState(false);
   const [proof, setProof] = useState<LockPinProof>({});
   const fingerChanged = useRef(false);
+  // A stray tap on "Sign out" must not end the session — the portal asks too.
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false);
 
   async function tryFingerprint() {
     // "background", not "!== active": iOS can report "unknown" on the first frame.
@@ -439,7 +443,7 @@ function LockScreen({ account }: { account: ApiUser }) {
     if (result === "changed" && hasPin) {
       // Someone added or removed a finger: the PIN decides, then the new set is saved.
       fingerChanged.current = true;
-      setPinError("The fingerprints on this phone changed. Enter your PIN.");
+      setPinError("The biometrics on this phone changed. Enter your PIN.");
       setStatus("idle");
       return;
     }
@@ -451,7 +455,7 @@ function LockScreen({ account }: { account: ApiUser }) {
     if (!fingerChanged.current) return;
     if (!(await armFingerprint())) {
       dispatch(setBiometricUserId(null));
-      toastInfo("Fingerprint is off on this phone", "Your PIN still opens the app.");
+      toastInfo("Biometric is off on this phone", "Your PIN still opens the app.");
     }
   }
 
@@ -532,7 +536,7 @@ function LockScreen({ account }: { account: ApiUser }) {
       setStatus("saving");
       if (!(await armFingerprint())) {
         dispatch(setBiometricUserId(null));
-        toastInfo("Fingerprint lock is off", "Turn it on again in Settings.");
+        toastInfo("Biometric lock is off", "Turn it on again in Settings.");
       }
     }
     unlockApp();
@@ -574,7 +578,11 @@ function LockScreen({ account }: { account: ApiUser }) {
   );
 
   const signOutLink = (
-    <Pressable accessibilityRole="button" className="self-center py-2" onPress={signOut}>
+    <Pressable
+      accessibilityRole="button"
+      className="self-center py-2"
+      onPress={() => setConfirmingSignOut(true)}
+    >
       <Text variant="muted">
         Not you? <Text className="text-primary" variant="label">Sign out</Text>
       </Text>
@@ -605,7 +613,7 @@ function LockScreen({ account }: { account: ApiUser }) {
               {mode === "pin" ? (
                 <>
                   <Text className="text-center" variant="subtitle">
-                    {fingerOnPhone ? "Enter your PIN or use your fingerprint" : "Enter your PIN"}
+                    {fingerOnPhone ? "Enter your PIN or use biometric" : "Enter your PIN"}
                   </Text>
                   <PinPad
                     busy={checking}
@@ -668,7 +676,7 @@ function LockScreen({ account }: { account: ApiUser }) {
               {status !== "changed" && status !== "saving" ? (
                 <Button
                   icon={FingerprintPattern}
-                  label="Use fingerprint"
+                  label="Use biometric"
                   onPress={() => {
                     setWithCode(false);
                     void tryFingerprint();
@@ -682,17 +690,17 @@ function LockScreen({ account }: { account: ApiUser }) {
             // No inbox to send a code to (a minted cook login): the password is the way back.
             <Animated.View className="mt-12 flex-1 gap-4" entering={FadeIn.duration(220)}>
               <Text className="text-center" variant="muted">
-                The fingerprints on this phone changed. Sign out, then sign in again with your
+                The biometrics on this phone changed. Sign out, then sign in again with your
                 password.
               </Text>
-              <Button label="Sign out" onPress={signOut} />
+              <Button label="Sign out" onPress={() => setConfirmingSignOut(true)} />
             </Animated.View>
           ) : (
             <>
               <View className="mt-12 flex-1 items-center gap-4">
                 <Animated.View entering={ZoomIn.delay(160).springify().damping(14)}>
                   <Pressable
-                    accessibilityLabel="Unlock with fingerprint"
+                    accessibilityLabel="Unlock with biometric"
                     accessibilityRole="button"
                     className="h-32 w-32 items-center justify-center rounded-full bg-brand-soft active:opacity-80"
                     onPress={() => void tryFingerprint()}
@@ -722,6 +730,18 @@ function LockScreen({ account }: { account: ApiUser }) {
           )}
         </KeyboardAwareScrollView>
       ) : null}
+
+      {/* Drawn inside the lock: the app-wide host sits under it. No frost — see `frost`. */}
+      <ConfirmDialog
+        confirmLabel="Sign out"
+        destructive
+        frost={false}
+        message="You will need your password or Google to sign in again."
+        onClose={() => setConfirmingSignOut(false)}
+        onConfirm={signOut}
+        open={confirmingSignOut}
+        title="Sign out?"
+      />
     </Animated.View>
   );
 }
@@ -876,7 +896,7 @@ function LockSetupSheet({
     setBusy(false);
     toastSuccess(
       "App lock is on",
-      finger ? "Fingerprint or PIN, every time the app opens." : "Your PIN, every time the app opens.",
+      finger ? "Biometric or PIN, every time the app opens." : "Your PIN, every time the app opens.",
     );
     onClose();
   }
@@ -894,8 +914,8 @@ function LockSetupSheet({
               icon={LockKeyhole}
               subtitle={
                 fingerOnPhone
-                  ? "Your fingerprint keeps opening the app. A PIN opens it when the finger will not — and opens your portal on the website."
-                  : `Every time ${APP_NAME} opens, use your fingerprint or a 4-digit PIN. The same PIN opens your portal on the website.`
+                  ? "Your biometric keeps opening the app. A PIN opens it when biometric will not — and opens your portal on the website."
+                  : `Every time ${APP_NAME} opens, use biometric or a 4-digit PIN. The same PIN opens your portal on the website.`
               }
               title={fingerOnPhone ? "Add a PIN" : "Lock the app"}
             />
@@ -1120,9 +1140,9 @@ export function AppLockSetting() {
       dispatch(setBiometricUserId(null));
     } else if (await armFingerprint()) {
       dispatch(setBiometricUserId(account.id));
-      toastSuccess("Fingerprint is on", "It opens the app on this phone.");
+      toastSuccess("Biometric is on", "It opens the app on this phone.");
     } else {
-      toastError("Fingerprint not confirmed");
+      toastError("Biometric not confirmed");
     }
     await persistor.flush();
     setBusy(false);
@@ -1145,7 +1165,7 @@ export function AppLockSetting() {
     } else if (mailbox) {
       openSheet("legacy-off");
     } else if ((await unlockWithFingerprint()) === "failed") {
-      toastError("Fingerprint not confirmed");
+      toastError("Biometric not confirmed");
     } else {
       await legacyOff();
     }
@@ -1154,7 +1174,7 @@ export function AppLockSetting() {
   const fingerSubtitle = fingerOnPhone
     ? "Opens the app on this phone"
     : status === "none"
-      ? "Save a fingerprint in your phone's settings first"
+      ? "Set up fingerprint or face unlock in your phone's settings first"
       : "Off on this phone";
 
   return (
@@ -1183,8 +1203,8 @@ export function AppLockSetting() {
             !enabled
               ? "Off"
               : hasPin
-                ? "PIN or fingerprint every time the app opens"
-                : "Fingerprint every time the app opens"
+                ? "PIN or biometric every time the app opens"
+                : "Biometric every time the app opens"
           }
           title="App lock"
         />
@@ -1195,14 +1215,14 @@ export function AppLockSetting() {
               iconBgColor={colors.primary}
               right={
                 <Toggle
-                  accessibilityLabel="Unlock with fingerprint"
+                  accessibilityLabel="Unlock with biometric"
                   disabled={busy || (!fingerOnPhone && status === "none")}
                   onChange={(next) => void setFinger(next)}
                   value={fingerOnPhone}
                 />
               }
               subtitle={fingerSubtitle}
-              title="Fingerprint"
+              title="Biometric"
             />
             <ListRow
               icon="keypad"

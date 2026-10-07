@@ -34,10 +34,6 @@
 
 import { api, publicApi } from "@/lib/api";
 import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
-import type { LoginResult } from "@/lib/auth-api";
-
-/** `issueSessionForUser`'s return, identical to `/auth/login`'s. */
-export type GuardianLoginResult = LoginResult;
 
 /* -------------------------------------------------------------------------- */
 /* Shapes                                                                     */
@@ -56,7 +52,6 @@ export type GuardianPermissionKey = keyof GuardianPermissions;
 
 /** The share link itself: which code was redeemed, and when it lapses. */
 export type GuardianAccess = {
-  accessCode: string;
   expiresAt: string;
   guardianId: string;
   hostelId: string;
@@ -219,57 +214,6 @@ export async function getGuardianSafetySummary() {
   const response = await api.get<
     ApiEnvelope<{ complaints: GuardianComplaint[]; safety: GuardianSafety | null }>
   >("/guardian/safety-summary");
-
-  return unwrap(response);
-}
-
-/* -------------------------------------------------------------------------- */
-/* Access-code sign-in                                                        */
-/* -------------------------------------------------------------------------- */
-
-/**
- * `POST /guardian/login` — the code-and-phone path, for a guardian whose hostel
- * printed them an access code instead of emailing an invitation.
- *
- * ## Two ways in, and they are not alternatives
- *
- * An **invitation** (`acceptGuardianInvitation`, below) needs an email address
- * the hostel has on file and issues no session — the credentials are emailed
- * and the guardian signs in normally afterwards. An **access code** needs no
- * email at all and *is* the sign-in: it returns a full session here and now.
- * That matters for the audience: a parent with a feature phone and no mailbox
- * is exactly who the code exists for, and the ordinary login screen has nothing
- * they can type.
- *
- * ## On `publicApi`, and the response is a `LoginResult`
- *
- * No session exists yet, so the authenticated client's 401 interceptor must not
- * see this — a wrong code would otherwise trigger a refresh-and-sign-out cycle
- * against a route that never needed a session. The shape is exactly
- * `/auth/login`'s, so the caller hands it straight to `startSession`.
- *
- * ## What a failure means
- *
- * `INVALID_GUARDIAN_LOGIN` (401) — no ACTIVE access row matches this code *and*
- * this phone. Deliberately one message for both halves being wrong.
- * `GUARDIAN_ACCESS_EXPIRED` (410) — the row was found and has lapsed; the code
- * is also marked EXPIRED on the way out, so a retry says "invalid" instead.
- * `PHONE_ALREADY_HAS_ROLE` (409) — the number belongs to a resident or staff
- * account, and the server refuses rather than demoting them out of their own
- * portal. Every one of those messages is written for the person reading it, so
- * show the server's text.
- *
- * The route is rate limited to 5 attempts per 15 minutes per IP (added
- * 2026-08-17, alongside this screen — it had none).
- */
-export async function loginWithGuardianAccessCode(input: {
-  accessCode: string;
-  phone: string;
-}) {
-  const response = await publicApi.post<ApiEnvelope<GuardianLoginResult>>(
-    "/guardian/login",
-    input,
-  );
 
   return unwrap(response);
 }

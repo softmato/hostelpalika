@@ -5,6 +5,7 @@ import {
   CalendarClock,
   Download,
   FileText,
+  LayoutList,
   Loader2,
   Receipt,
   RefreshCw,
@@ -468,35 +469,43 @@ function PlanCard({ onRaised, plan }: { onRaised: () => void; plan: BillingPlan 
           </span>
         ) : null}
 
-        {canRenew || canUpgrade ? (
-          <div className="ml-auto flex flex-wrap gap-2">
-            {canUpgrade ? (
-              <button
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-brand-teal/40 px-3 text-xs font-bold text-brand-teal transition hover:bg-brand-teal/10"
-                onClick={() => setUpgrading(true)}
-                type="button"
-              >
-                <ArrowUpCircle className="size-3.5" />
-                Upgrade plan
-              </button>
-            ) : null}
-            {canRenew ? (
-              <button
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-brand-teal px-3 text-xs font-bold text-white transition hover:brightness-110 disabled:opacity-60"
-                disabled={renewing}
-                onClick={() => void renew()}
-                type="button"
-              >
-                {renewing ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <RefreshCw className="size-3.5" />
-                )}
-                Pay for this plan
-              </button>
-            ) : null}
-          </div>
-        ) : null}
+        <div className="ml-auto flex flex-wrap gap-2">
+          {/* A new tab: the owner compares plans and comes back to this bill. */}
+          <a
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-bold text-foreground transition hover:border-brand-teal/40"
+            href="/plans-pricing"
+            rel="noopener"
+            target="_blank"
+          >
+            <LayoutList className="size-3.5" />
+            See plans
+          </a>
+          {canUpgrade ? (
+            <button
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-brand-teal/40 px-3 text-xs font-bold text-brand-teal transition hover:bg-brand-teal/10"
+              onClick={() => setUpgrading(true)}
+              type="button"
+            >
+              <ArrowUpCircle className="size-3.5" />
+              Upgrade plan
+            </button>
+          ) : null}
+          {canRenew ? (
+            <button
+              className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-brand-teal px-3 text-xs font-bold text-white transition hover:brightness-110 disabled:opacity-60"
+              disabled={renewing}
+              onClick={() => void renew()}
+              type="button"
+            >
+              {renewing ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <RefreshCw className="size-3.5" />
+              )}
+              Pay for this plan
+            </button>
+          ) : null}
+        </div>
       </div>
 
       {upgrading ? (

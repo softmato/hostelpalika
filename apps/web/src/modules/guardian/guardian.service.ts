@@ -1,12 +1,7 @@
-import { randomInt } from "node:crypto";
 import { Types } from "mongoose";
-import type { z } from "zod";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
-import { Role } from "@/lib/roles";
 import { connectToDatabase } from "@/lib/db";
-import { assertHostelAccess } from "@/lib/tenant";
-import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { ComplaintModel } from "@hostel/db/models/Complaint";
 import { GuardianAccessModel } from "@hostel/db/models/GuardianAccess";
 import { GuardianModel } from "@hostel/db/models/Guardian";
@@ -21,20 +16,10 @@ import {
 } from "@/modules/finance/ledger-read.service";
 import { ReceiptModel } from "@hostel/db/models/Receipt";
 import { ResidentModel } from "@hostel/db/models/Resident";
-import { UserModel } from "@hostel/db/models/User";
-import { issueSessionForUser } from "@/modules/auth/auth.service";
 import {
   findResidentAvatars,
   normalizeObjectId,
-  serializeResidentSummary,
 } from "@/modules/residents/resident-access";
-import type {
-  guardianAccessCreateSchema,
-  guardianLoginSchema,
-} from "@/modules/guardian/guardian.validation";
-
-type GuardianAccessCreateInput = z.infer<typeof guardianAccessCreateSchema>;
-type GuardianLoginInput = z.infer<typeof guardianLoginSchema>;
 
 type GuardianRecord = {
   _id: Types.ObjectId;
@@ -83,16 +68,6 @@ type ResidentRecord = {
   userId?: Types.ObjectId;
 };
 
-type UserRecord = {
-  _id: Types.ObjectId;
-  email?: string | null;
-  hostelIds?: Types.ObjectId[];
-  name: string;
-  phone?: string | null;
-  role: Role;
-  status: string;
-};
-
 export class GuardianServiceError extends Error {
   constructor(
     message: string,
@@ -103,103 +78,8 @@ export class GuardianServiceError extends Error {
   }
 }
 
-/**
- * The guardian access code — a real credential, so a real random source.
- *
- * This was `Math.random().toString(36).slice(2, 8)`, which is not a CSPRNG:
- * V8's generator is seeded state that can be recovered from a handful of
- * outputs, so codes issued in sequence are predictable from codes already seen
- * — and a hostel admin issuing several in an afternoon publishes exactly that
- * sample. `POST /guardian/login` takes this code plus a phone number and
- * returns a session on the ward's guardian view.
- *
- * The alphabet drops the two glyph pairs people confuse when a code is read off
- * a printout or over a phone (`0`/`O`, `1`/`I`), because each one of those is a
- * support call. 32 symbols over 6 characters is ~1.07 billion codes, against a
- * route now capped at 5 attempts per 15 minutes. Codes already issued from the
- * old alphabet keep working: login matches the stored string exactly.
- *
- * `randomInt` rather than `randomBytes(n) % alphabet.length` — that modulo is
- * only unbiased because 32 happens to divide 256, and it would silently skew
- * the moment a character was added to the alphabet.
- */
-const ACCESS_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-const ACCESS_CODE_LENGTH = 6;
-
-function randomAccessCode() {
-  let code = "";
-
-  for (let index = 0; index < ACCESS_CODE_LENGTH; index += 1) {
-    code += ACCESS_CODE_ALPHABET[randomInt(ACCESS_CODE_ALPHABET.length)];
-  }
-
-  return code;
-}
-
-function expiresInDays(days: number) {
-  const date = new Date();
-
-  date.setDate(date.getDate() + days);
-
-  return date;
-}
-
-function resolveAdminHostelId(principal: ApiPrincipal, requestedHostelId?: string) {
-  if (requestedHostelId) {
-    assertHostelAccess(principal, requestedHostelId);
-    return normalizeObjectId(requestedHostelId, "hostel id");
-  }
-
-  if (principal.hostelIds.length === 1) {
-    return normalizeObjectId(principal.hostelIds[0], "hostel id");
-  }
-
-  throw new GuardianServiceError(
-    "A hostelId is required for this hostel admin action.",
-    "HOSTEL_SCOPE_REQUIRED",
-    422,
-  );
-}
-
-async function auditGuardianAction(
-  principal: ApiPrincipal,
-  hostelId: Types.ObjectId,
-  entityId: Types.ObjectId,
-  action: string,
-  metadata: Record<string, unknown> = {},
-) {
-  await AuditLogModel.create({
-    action,
-    actorId: principal.userId,
-    entityId: entityId.toString(),
-    entityType: "GuardianAccess",
-    hostelId,
-    metadata,
-  });
-}
-
-async function findAdminResident(
-  residentId: string,
-  principal: ApiPrincipal,
-  requestedHostelId?: string,
-) {
-  const hostelId = resolveAdminHostelId(principal, requestedHostelId);
-  const resident = await ResidentModel.findOne({
-    _id: normalizeObjectId(residentId, "resident id"),
-    hostelId,
-    isDeleted: false,
-  }).lean<ResidentRecord | null>();
-
-  if (!resident) {
-    throw new GuardianServiceError("Resident was not found.", "RESIDENT_NOT_FOUND", 404);
-  }
-
-  return resident;
-}
-
 function serializeGuardianAccess(access: GuardianAccessRecord) {
   return {
-    accessCode: access.accessCode,
     expiresAt: access.expiresAt.toISOString(),
     guardianId: access.guardianId.toString(),
     hostelId: access.hostelId.toString(),
@@ -293,141 +173,6 @@ function serializePayment(payment: LedgerInvoice) {
     paidAmount: payment.paidAmount,
     status: payment.status,
   };
-}
-
-export async function createGuardianAccess(
-  residentId: string,
-  input: GuardianAccessCreateInput,
-  principal: ApiPrincipal,
-) {
-  await connectToDatabase();
-
-  const resident = await findAdminResident(residentId, principal, input.hostelId);
-  const guardian = await GuardianModel.findOne({
-    _id: normalizeObjectId(input.guardianId, "guardian id"),
-    hostelId: resident.hostelId,
-    residentId: resident._id,
-  }).lean<GuardianRecord | null>();
-
-  if (!guardian) {
-    throw new GuardianServiceError("Guardian was not found.", "GUARDIAN_NOT_FOUND", 404);
-  }
-
-  await GuardianAccessModel.updateMany(
-    { guardianId: guardian._id, status: "ACTIVE" },
-    { $set: { status: "REVOKED" } },
-  );
-
-  const access = (await GuardianAccessModel.create({
-    accessCode: randomAccessCode(),
-    allowComplaintStatus: input.allowComplaintStatus,
-    createdBy: principal.userId,
-    expiresAt: expiresInDays(input.expiresInDays),
-    guardianId: guardian._id,
-    hostelId: resident.hostelId,
-    phone: guardian.phone,
-    residentId: resident._id,
-    status: "ACTIVE",
-  })) as GuardianAccessRecord;
-
-  await GuardianPermissionModel.create({
-    canViewComplaintStatus: input.allowComplaintStatus,
-    guardianAccessId: access._id,
-    hostelId: resident.hostelId,
-    residentId: resident._id,
-  });
-  await auditGuardianAction(
-    principal,
-    resident.hostelId,
-    access._id,
-    "GUARDIAN_ACCESS_CREATED",
-    { guardianId: guardian._id.toString(), residentId: resident._id.toString() },
-  );
-
-  return {
-    access: serializeGuardianAccess(access),
-    resident: serializeResidentSummary(resident),
-  };
-}
-
-export async function loginGuardian(input: GuardianLoginInput) {
-  await connectToDatabase();
-
-  const access = await GuardianAccessModel.findOne({
-    accessCode: input.accessCode.toUpperCase(),
-    phone: input.phone,
-    status: "ACTIVE",
-  }).lean<GuardianAccessRecord | null>();
-
-  if (!access) {
-    throw new GuardianServiceError(
-      "Invalid guardian access.",
-      "INVALID_GUARDIAN_LOGIN",
-      401,
-    );
-  }
-
-  if (access.expiresAt.getTime() < Date.now()) {
-    await GuardianAccessModel.updateOne(
-      { _id: access._id },
-      { $set: { status: "EXPIRED" } },
-    );
-    throw new GuardianServiceError(
-      "Guardian access expired.",
-      "GUARDIAN_ACCESS_EXPIRED",
-      410,
-    );
-  }
-
-  const guardian = await GuardianModel.findById(
-    access.guardianId,
-  ).lean<GuardianRecord | null>();
-
-  if (!guardian) {
-    throw new GuardianServiceError("Guardian was not found.", "GUARDIAN_NOT_FOUND", 404);
-  }
-
-  // A phone number is not proof of identity for anything but a guardian link.
-  // Upserting blindly on `phone` would rewrite the role of whoever already owns
-  // that number — a resident sharing a family phone would be demoted out of
-  // their own portal — so an established non-PUBLIC account is refused instead.
-  const existingUser = await UserModel.findOne({
-    isDeleted: { $ne: true },
-    phone: input.phone,
-  }).lean<UserRecord | null>();
-
-  if (
-    existingUser &&
-    existingUser.role !== Role.PUBLIC &&
-    existingUser.role !== Role.GUARDIAN
-  ) {
-    throw new GuardianServiceError(
-      "This phone number already belongs to another hostel account. Ask the hostel to register the guardian with a different number.",
-      "PHONE_ALREADY_HAS_ROLE",
-      409,
-    );
-  }
-
-  const user = (await UserModel.findOneAndUpdate(
-    existingUser ? { _id: existingUser._id } : { phone: input.phone },
-    {
-      $addToSet: { hostelIds: access.hostelId },
-      $set: {
-        name: `${guardian.firstName} ${guardian.lastName}`.trim(),
-        phone: input.phone,
-        role: Role.GUARDIAN,
-        status: "ACTIVE",
-      },
-    },
-    { new: true, upsert: true },
-  ).lean<UserRecord>()) as UserRecord;
-
-  await GuardianAccessModel.updateOne(
-    { _id: access._id },
-    { $set: { status: "USED", usedAt: new Date(), userId: user._id } },
-  );
-
-  return issueSessionForUser(user);
 }
 
 export async function getGuardianDashboard(principal: ApiPrincipal) {
