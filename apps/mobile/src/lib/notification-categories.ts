@@ -101,6 +101,8 @@ const CATEGORY_VISUALS: Record<string, NotificationVisual> = {
     label: "Approval",
     tone: "brand",
   },
+  /** Khata: a request to open one, an ask, an answer. The Khata card's own glyph. */
+  KHATA: { icon: "receipt-outline", label: "Khata", tone: "brand" },
   /** A lead. `mail-outline` is what the portal's own Inquiries door uses. */
   INQUIRY: { icon: "mail-outline", label: "Inquiry", tone: "warning" },
   MAINTENANCE: { icon: "construct-outline", label: "Maintenance", tone: "warning" },
@@ -125,6 +127,8 @@ const CATEGORY_VISUALS: Record<string, NotificationVisual> = {
    * its colour from what happened.
    */
   SOS: { icon: "warning-outline", label: "SOS", tone: "danger" },
+  /** Stock sent between buildings, and Got it. The Stock door's cube. */
+  STOCK: { icon: "cube-outline", label: "Stock", tone: "warning" },
   STORE_ORDER: { icon: "bag-handle-outline", label: "Order", tone: "brand" },
   URGENT: { icon: "alert-circle-outline", label: "Urgent", tone: "danger" },
 };

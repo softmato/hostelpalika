@@ -75,6 +75,15 @@ describe("resolvePushPath", () => {
     expect(resolvePushPath("/guardian/dashboard")).toBe("/(guardian)");
   });
 
+  it("opens each khata bell on the screen that answers it", () => {
+    expect(resolvePushPath("/hostel-admin/khata")).toBe("/manage/finance/khata");
+    expect(resolvePushPath("/cook/khata")).toBe("/khata-asks");
+    expect(resolvePushPath("/resident/khata")).toBe("/khata");
+    expect(
+      notificationRoute({ actionUrl: "/hostel-admin/khata", category: "KHATA", data: { type: "KHATA_REQUEST" } }),
+    ).toBe("/manage/finance/khata");
+  });
+
   // The resident's own guardian list is a real route, so it passes through
   // rather than being rewritten.
   it("opens a join link to fix a request that was sent back", () => {

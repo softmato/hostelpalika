@@ -241,7 +241,7 @@ export default function KhataScreen() {
                   {index > 0 ? <RowDivider inset /> : null}
                   <ListRow
                     icon="person-add-outline"
-                    iconBgColor="#007AFF"
+                    iconBgColor={colors.warning}
                     onPress={() => setRequest(row)}
                     right={<Badge label="New" tone="warning" />}
                     subtitle={room(row)}
@@ -266,7 +266,7 @@ export default function KhataScreen() {
                   {index > 0 ? <RowDivider inset /> : null}
                   <ListRow
                     icon="person-outline"
-                    iconBgColor="#34C759"
+                    iconBgColor={colors.primary}
                     onPress={() => setAccount(row)}
                     subtitle={room(row)}
                     title={row.name}
@@ -289,7 +289,7 @@ export default function KhataScreen() {
                   {index > 0 ? <RowDivider inset /> : null}
                   <ListRow
                     icon={khataIcon(item.name)}
-                    iconBgColor={item.active ? "#AF52DE" : "#8E8E93"}
+                    iconBgColor={item.active ? colors.primary : colors.mutedForeground}
                     left={item.imageAssetId ? <ItemThumb assetId={item.imageAssetId} /> : undefined}
                     onPress={() =>
                       setDraft({
@@ -429,7 +429,7 @@ export default function KhataScreen() {
             <Card padding="px-4 py-1">
               <ListRow
                 icon="eye-outline"
-                iconBgColor="#34C759"
+                iconBgColor={colors.primary}
                 right={
                   <Toggle
                     accessibilityLabel="Residents can ask for it"

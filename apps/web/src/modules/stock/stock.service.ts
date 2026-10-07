@@ -15,7 +15,10 @@ import {
   voidExpense,
 } from "@/modules/finance/expenses/expense.service";
 import type { CreateExpenseInput } from "@/modules/finance/expenses/expense.validation";
-import { createInAppNotification } from "@/modules/notifications/notification.service";
+import {
+  createInAppNotification,
+  settleActionNotifications,
+} from "@/modules/notifications/notification.service";
 import { EXPENSE_WHAT_MAX } from "@hostel/shared/expenses/categories";
 import {
   formatQty,
@@ -454,20 +457,38 @@ function changed(...hostelIds: (string | null | undefined)[]) {
   return publishResourceChange({ hostelIds, topics: [REALTIME_TOPIC.FOOD] }).catch(() => undefined);
 }
 
-async function notifyQuietly(userIds: string[], title: string, body: string, hostelId: string, entryId: string) {
+/**
+ * Filed under `STOCK`, not `GENERAL`, so the bell can show stock on its own.
+ * "On the way" waits for Got it (`waits`); the rest is news. A send's waiting
+ * rows are cleared for every receiver once it is answered or cancelled
+ * (`settleStockBells`).
+ */
+async function notifyQuietly(
+  userIds: string[],
+  title: string,
+  body: string,
+  hostelId: string,
+  entryId: string,
+  waits = false,
+) {
   await Promise.all(
     [...new Set(userIds)].map((userId) =>
       createInAppNotification({
         actionUrl: "/hostel-admin/stock",
         body,
-        category: "GENERAL",
+        category: "STOCK",
         data: { entryId, type: "STOCK" },
         hostelId,
+        kind: waits ? "ACTION" : "NORMAL",
         title,
         userId,
       }).catch((error) => console.warn("stock_notification_failed", entryId, error)),
     ),
   );
+}
+
+async function settleStockBells(entryId: string, answer: string) {
+  await settleActionNotifications({ category: "STOCK", data: { entryId } }, answer).catch(() => undefined);
 }
 
 /** The owner and every warden of the building who can tap Got it. */
@@ -633,6 +654,7 @@ export async function createStockEntry(actor: StockActor, input: CreateStockEntr
       `${lineSummary(lines)} from ${from}. Tap Got it when it comes.`,
       toHostelId,
       doc._id.toString(),
+      true,
     );
   }
 
@@ -691,6 +713,8 @@ export async function receiveStock(
 
   const place = actor.places.find((entry) => entry.id === doc.toHostelId?.toString())?.name ?? "The branch";
   const short = lines.filter((line) => line.receivedQty < line.qty);
+
+  await settleStockBells(entryId, "GOT_IT");
 
   if (updated.recordedBy.toString() !== actor.principal.userId) {
     await notifyQuietly(
@@ -765,6 +789,7 @@ export async function cancelStockEntry(actor: StockActor, entryId: string, reaso
 
   if (!updated) throw new StockError("This is already cancelled.", "ENTRY_NOT_CANCELLABLE", 409);
 
+  await settleStockBells(doc._id.toString(), "CANCEL");
   await changed(doc.hostelId.toString(), doc.toHostelId?.toString());
 
   return serializeEntry(actor, updated);

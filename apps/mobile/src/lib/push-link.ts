@@ -150,6 +150,14 @@ const REWRITES: { prefix: string; to: string }[] = [
   // "Stock on the way" / "Stock received" — the website's stock page, the app's own.
   { prefix: "/hostel-admin/stock", to: "/stock" },
   { prefix: "/hostel-admin/bookings", to: "/manage/bookings" },
+  /*
+   * Khata bells (`KHATA`): a resident asking to open one, or asking for an
+   * item, lands the warden on the screen with the Approve and Give buttons;
+   * the cook on their asks; the resident on their own khata.
+   */
+  { prefix: "/hostel-admin/khata", to: "/manage/finance/khata" },
+  { prefix: "/cook/khata", to: "/khata-asks" },
+  { prefix: "/resident/khata", to: "/khata" },
   { prefix: "/hostel-admin/payments", to: "/(admin)/money" },
   { prefix: "/hostel-admin/sos-alerts", to: "/(admin)/alerts" },
   { prefix: "/resident/payments", to: "/(resident)/payments" },
