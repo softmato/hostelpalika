@@ -69,6 +69,8 @@ export const planCheckoutSchema = z.discriminatedUnion("step", [
   }),
   z.object({
     cycle: z.enum(["monthly", "halfYearly", "annual"]),
+    /** The lifetime deal on `planId` — paid once, instead of a cycle. */
+    lifetime: z.boolean().optional(),
     /** Absent from the footer's "Pay for your hostel": the hostel's own plan is renewed. */
     planId: z.string().trim().min(1).optional(),
     step: z.literal("invoice"),
@@ -221,7 +223,9 @@ async function paymentState(hostelId: string) {
     online: isSoftmatoConfigured(),
     plan: state
       ? {
-          currentPeriodEnd: state.subscription.currentPeriodEnd,
+          currentPeriodEnd: state.subscription.lifetimeSince
+            ? null
+            : state.subscription.currentPeriodEnd,
           name: state.subscription.planName,
           status: state.subscription.status,
         }
@@ -235,6 +239,7 @@ type CheckoutInvoice = {
   cycle: string;
   cycleMonths?: number;
   invoiceNumber: string;
+  lifetime?: boolean;
   periodEnd?: Date | null;
   planId: string;
   planName: string;
@@ -246,6 +251,34 @@ type CheckoutInvoice = {
 /** The pay step: the invoice, the hostel's billing trace, and where the plan lands once paid. */
 async function checkoutView(hostelId: string, invoice: CheckoutInvoice | null) {
   const history = await getBillingHistory(hostelId);
+
+  // The lifetime deal: no period to count down and nothing added to another plan.
+  if (invoice?.lifetime) {
+    return {
+      afterPayment: {
+        cycleLabel: "Lifetime",
+        daysRemaining: null,
+        note: "Paid once. No renewals, and no free months — it starts the day it is paid.",
+        planName: invoice.planName,
+        runsUntil: null,
+      },
+      history: { invoices: history.invoices, payments: history.payments, plan: history.plan },
+      invoice: {
+        amount: invoice.amount,
+        cycle: invoice.cycle,
+        invoiceNumber: invoice.invoiceNumber,
+        lifetime: true,
+        // No month picker on a lifetime invoice.
+        monthsLocked: true,
+        months: null,
+        periodEnd: null,
+        planId: invoice.planId,
+        planName: invoice.planName,
+      },
+      ...(await paymentState(hostelId)),
+    };
+  }
+
   /*
    * Where the plan stands once this invoice is settled in full — the same
    * rule `startPlanPeriod` applies: a running period that already reaches
@@ -286,6 +319,7 @@ async function checkoutView(hostelId: string, invoice: CheckoutInvoice | null) {
           amount: invoice.amount,
           cycle: invoice.cycle,
           invoiceNumber: invoice.invoiceNumber,
+          lifetime: false,
           // Whether the page may still offer the month picker (see `invoiceMonthsLocked`).
           monthsLocked: await invoiceMonthsLocked(invoice),
           months: invoice.cycleMonths ?? null,
@@ -399,7 +433,11 @@ export async function runPlanCheckout(
       const { hostelId, ownerId } = await readCheckoutToken(input.token);
       const { invoice, reused } = await raiseRenewalInvoice(
         hostelId,
-        { cycle: input.cycle, planId: input.planId ?? (await currentPlanId(hostelId)) },
+        {
+          cycle: input.cycle,
+          lifetime: input.lifetime,
+          planId: input.planId ?? (await currentPlanId(hostelId)),
+        },
         ownerId,
         // Raised on Softmato at Pay, so the months can still change here.
         { deferDocument: true },

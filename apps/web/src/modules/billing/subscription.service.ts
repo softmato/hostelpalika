@@ -13,6 +13,10 @@ import { servicePeriod } from "@/modules/billing/softmato/invoice";
 import { buildPresentation } from "@/modules/billing/softmato/presentation";
 import { assertBranchesFit, billingHostelId } from "@/modules/billing/billing-hostel";
 import { freeMonthOf } from "@/modules/billing/free-months";
+import {
+  getLifetimeAvailability,
+  LIFETIME_PERIOD_END,
+} from "@/modules/billing/lifetime";
 import { onInvoiceIssued } from "@/modules/hostels/hostel-registration.events";
 import { getOperationsConfig } from "@/modules/platform-config/operations-config";
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
@@ -85,6 +89,10 @@ type SubscriptionRecord = {
   freeMonths?: number | null;
   freeUntil?: Date | null;
   hostelId: Types.ObjectId;
+  /** The chosen plan is the lifetime deal. See the model. */
+  lifetime?: boolean;
+  /** When the lifetime payment settled; null until then. */
+  lifetimeSince?: Date | null;
   monthlyRate?: number | null;
   planId?: string | null;
   planName?: string | null;
@@ -98,6 +106,8 @@ export type InvoiceRecord = {
   amount: number;
   /** `SETUP_FEE` buys no time on the plan. Absent on invoices older than the field: `PLAN`. */
   kind?: "PLAN" | "SETUP_FEE";
+  /** Pays for the plan for life. See the model. */
+  lifetime?: boolean;
   billedTo?: { email?: string; hostelName?: string; name?: string } | null;
   createdAt?: Date;
   currency?: string;
@@ -218,6 +228,87 @@ export async function pricePlan(
     planId: plan.id,
     planName: plan.name,
   };
+}
+
+/**
+ * Prices the lifetime deal on a tier, once, at the moment of choosing — the
+ * same snapshot rule as `pricePlan`, plus the deal's own two gates: its window
+ * is open today, and the tier still has a seat.
+ *
+ * The seat is checked here and not held: it is taken when the payment
+ * settles (`lifetimeSince`). A payment that lands after the last seat went is
+ * still honoured — the money is in — which can sell a tier one over in a
+ * photo finish, and that is the right way round to be wrong.
+ *
+ * The cycle fields are written because the subscription and invoice schemas
+ * need them, never read: a lifetime plan has no cycle.
+ */
+export async function priceLifetime(
+  planId: string,
+  /**
+   * `false` when the money is already in (a team agent's online payment taken
+   * before publish): the window or the last seat closing in between must not
+   * refuse a hostel that has paid. The offer itself still has to exist.
+   */
+  options: { gate?: boolean } = {},
+) {
+  const gate = options.gate ?? true;
+  const availability = await getLifetimeAvailability();
+
+  if (gate && availability.window !== "open") {
+    throw new SubscriptionError(
+      availability.window === "upcoming"
+        ? "The lifetime deal has not opened yet."
+        : "The lifetime deal is closed. Choose a regular plan instead.",
+      "LIFETIME_CLOSED",
+      409,
+    );
+  }
+
+  const offer = availability.offers.find((entry) => entry.planId === planId);
+
+  if (!offer) {
+    throw new SubscriptionError(
+      "That plan has no lifetime offer. Choose another one.",
+      "LIFETIME_NOT_OFFERED",
+      404,
+    );
+  }
+
+  if (gate && offer.left <= 0) {
+    throw new SubscriptionError(
+      `All ${offer.seats} lifetime seats on ${offer.planName} are taken.`,
+      "LIFETIME_SOLD_OUT",
+      409,
+    );
+  }
+
+  return {
+    cycle: "annual" as BillingCycle,
+    cycleMonths: 12,
+    cycleTotal: offer.price,
+    freeMonths: 0,
+    lifetime: true as const,
+    monthlyRate: offer.monthly,
+    planId: offer.planId,
+    planName: offer.planName,
+  };
+}
+
+/** A lifetime invoice's period: from the day it is raised, for life. */
+export function lifetimePeriod(from: Date) {
+  return { endsAt: LIFETIME_PERIOD_END, startsAt: new Date(from) };
+}
+
+/** Refuses anything that would sell more time to a hostel that already has it for life. */
+function assertNotLifetime(subscription: Pick<SubscriptionRecord, "lifetimeSince">) {
+  if (subscription.lifetimeSince) {
+    throw new SubscriptionError(
+      "This hostel is on a lifetime plan. There is nothing to renew or change.",
+      "LIFETIME_PLAN",
+      409,
+    );
+  }
 }
 
 /* ── Reading state ─────────────────────────────────────────────────────── */
@@ -458,6 +549,10 @@ export async function getSubscriptionState(hostelId: string) {
         ? { ...freeMonthNow, endsAt: freeMonthNow.endsAt.toISOString() }
         : null,
       id: subscription._id.toString(),
+      /** The chosen plan is the lifetime deal. */
+      lifetime: Boolean(subscription.lifetime),
+      /** Paid for life since; null until the lifetime payment settles. */
+      lifetimeSince: subscription.lifetimeSince?.toISOString() ?? null,
       planId: subscription.planId ?? null,
       planName: subscription.planName ?? null,
       source: subscription.source ?? "PUBLIC",
@@ -484,7 +579,13 @@ export async function getSubscriptionState(hostelId: string) {
  */
 export async function raiseRenewalInvoice(
   hostelId: string,
-  input: { cycle: BillingCycle; months?: number; planId: string },
+  input: {
+    cycle: BillingCycle;
+    /** The lifetime deal on `planId` instead of a cycle. */
+    lifetime?: boolean;
+    months?: number;
+    planId: string;
+  },
   /** Null when the renewal sweep raised it. */
   actorId: string | null,
   options: {
@@ -501,9 +602,35 @@ export async function raiseRenewalInvoice(
   await connectToDatabase();
 
   const subscription = await getOrCreateSubscription(hostelId);
+
+  assertNotLifetime(subscription);
+
   const open = await findOpenInvoice(subscription._id);
 
   if (open) {
+    /*
+     * The self-serve checkout asking for the other kind — lifetime instead of
+     * months, or back — on an invoice nothing has touched: reshaped in place,
+     * so the owner is not stuck paying the one they opened first. Only there:
+     * the renewal sweep must never turn somebody's lifetime invoice into months.
+     */
+    if (
+      options.deferDocument &&
+      Boolean(open.lifetime) !== Boolean(input.lifetime) &&
+      !(await invoiceMonthsLocked(open))
+    ) {
+      const reshaped = input.lifetime
+        ? await reshapeOpenInvoice(subscription, open, await priceLifetime(input.planId), actorId)
+        : await reshapeOpenInvoice(
+            subscription,
+            open,
+            await pricePlan(input.planId, input.cycle, input.months),
+            actorId,
+          );
+
+      return { invoice: reshaped, reused: true };
+    }
+
     return { invoice: await ensureInvoiceRaised(open, { required: false }), reused: true };
   }
 
@@ -523,12 +650,17 @@ export async function raiseRenewalInvoice(
     );
   }
 
-  const priced = options.agreed ?? (await pricePlan(input.planId, input.cycle, input.months));
+  const lifetime = Boolean(input.lifetime) && !options.agreed;
+  const priced = lifetime
+    ? await priceLifetime(input.planId)
+    : (options.agreed ?? (await pricePlan(input.planId, input.cycle, input.months)));
 
   await assertBranchesFit(subscription.hostelId, priced.planId);
   const operations = await getOperationsConfig();
   const issuedAt = new Date();
-  const period = servicePeriod(priced.cycleMonths, subscription.currentPeriodEnd ?? null, issuedAt);
+  const period = lifetime
+    ? lifetimePeriod(issuedAt)
+    : servicePeriod(priced.cycleMonths, subscription.currentPeriodEnd ?? null, issuedAt);
   const owner = await resolveBillingContact(subscription.hostelId);
   const invoiceNumber = await allocateNumber(subscription.hostelId, "SUBSCRIPTION_INVOICE");
 
@@ -542,6 +674,7 @@ export async function raiseRenewalInvoice(
     hostelId: subscription.hostelId,
     invoiceNumber,
     issuedAt,
+    lifetime,
     periodEnd: period.endsAt,
     periodStart: period.startsAt,
     planId: priced.planId,
@@ -577,10 +710,70 @@ export async function raiseRenewalInvoice(
     entityId: invoice._id.toString(),
     entityType: "SubscriptionInvoice",
     hostelId: subscription.hostelId,
-    metadata: { amount: priced.cycleTotal, cycle: priced.cycle, invoiceNumber, planId: priced.planId },
+    metadata: {
+      amount: priced.cycleTotal,
+      cycle: priced.cycle,
+      invoiceNumber,
+      lifetime,
+      planId: priced.planId,
+    },
   });
 
   return { invoice, reused: false };
+}
+
+/**
+ * Re-prices an untouched open invoice into the shape the owner now asked for —
+ * lifetime or a number of months — keeping its number, so Softmato (which has
+ * no void) never sees a second document. Callers have checked it is unlocked.
+ */
+async function reshapeOpenInvoice(
+  subscription: SubscriptionRecord,
+  open: InvoiceRecord,
+  priced: Awaited<ReturnType<typeof pricePlan>> & { lifetime?: boolean },
+  actorId: string | null,
+) {
+  await assertBranchesFit(subscription.hostelId, priced.planId);
+
+  const lifetime = Boolean(priced.lifetime);
+  const from = open.issuedAt ?? new Date();
+  const period = lifetime
+    ? lifetimePeriod(from)
+    : servicePeriod(priced.cycleMonths, subscription.currentPeriodEnd ?? null, from);
+
+  await SubscriptionInvoiceModel.updateOne(
+    { _id: open._id, status: "OPEN" },
+    {
+      $set: {
+        amount: priced.cycleTotal,
+        cycle: priced.cycle,
+        cycleMonths: priced.cycleMonths,
+        lifetime,
+        periodEnd: period.endsAt,
+        periodStart: period.startsAt,
+        planId: priced.planId,
+        planName: priced.planName,
+      },
+    },
+  );
+
+  await AuditLogModel.create({
+    action: "SUBSCRIPTION_INVOICE_RESHAPED",
+    actorId,
+    actorType: actorId ? "USER" : "SYSTEM",
+    entityId: String(open._id),
+    entityType: "SubscriptionInvoice",
+    hostelId: subscription.hostelId,
+    metadata: {
+      amount: priced.cycleTotal,
+      fromLifetime: Boolean(open.lifetime),
+      fromPlanId: open.planId,
+      lifetime,
+      planId: priced.planId,
+    },
+  });
+
+  return (await SubscriptionInvoiceModel.findById(open._id).lean<InvoiceRecord | null>()) ?? open;
 }
 
 /**
@@ -650,6 +843,9 @@ export async function changeOpenInvoiceMonths(
   await connectToDatabase();
 
   const subscription = await getOrCreateSubscription(hostelId);
+
+  assertNotLifetime(subscription);
+
   const open = await findOpenInvoice(subscription._id);
 
   if (!open) {
@@ -681,6 +877,8 @@ export async function changeOpenInvoiceMonths(
         amount: priced.cycleTotal,
         cycle: priced.cycle,
         cycleMonths: priced.cycleMonths,
+        // Months chosen: whatever it was before, it is not the lifetime deal now.
+        lifetime: false,
         periodEnd: period.endsAt,
         periodStart: period.startsAt,
         planId: priced.planId,
@@ -746,12 +944,21 @@ export async function invoiceIdFor(hostelId: string) {
  */
 export async function selectPlan(
   hostelId: string,
-  input: { cycle: BillingCycle; planId: string },
+  input: {
+    cycle: BillingCycle;
+    /** The lifetime deal on `planId`: paid once, no free months. */
+    lifetime?: boolean;
+    planId: string;
+  },
   actorId: string,
+  /** `lifetimeGate: false` — the lifetime price is already paid; see `priceLifetime`. */
+  options: { lifetimeGate?: boolean } = {},
 ) {
   await connectToDatabase();
 
   const subscription = await getOrCreateSubscription(hostelId);
+
+  assertNotLifetime(subscription);
 
   if (subscription.status === "ACTIVE") {
     throw new SubscriptionError(
@@ -771,7 +978,10 @@ export async function selectPlan(
     );
   }
 
-  const priced = await pricePlan(input.planId, input.cycle);
+  const lifetime = Boolean(input.lifetime);
+  const priced = lifetime
+    ? await priceLifetime(input.planId, { gate: options.lifetimeGate ?? true })
+    : await pricePlan(input.planId, input.cycle);
 
   await HostelSubscriptionModel.updateOne(
     { _id: subscription._id },
@@ -780,7 +990,9 @@ export async function selectPlan(
         cycle: priced.cycle,
         cycleMonths: priced.cycleMonths,
         cycleTotal: priced.cycleTotal,
+        // Zero on the lifetime deal: it starts the day it is paid.
         freeMonths: priced.freeMonths,
+        lifetime,
         monthlyRate: priced.monthlyRate,
         planId: priced.planId,
         planName: priced.planName,
@@ -797,7 +1009,7 @@ export async function selectPlan(
     entityId: subscription._id.toString(),
     entityType: "HostelSubscription",
     hostelId: subscription.hostelId,
-    metadata: { cycle: priced.cycle, planId: priced.planId, total: priced.cycleTotal },
+    metadata: { cycle: priced.cycle, lifetime, planId: priced.planId, total: priced.cycleTotal },
   });
 
   return getSubscriptionState(hostelId);
@@ -901,11 +1113,20 @@ export async function issueSubscriptionInvoice(
    * registration starts it the moment the hostel is filed (`startPlanPeriod`),
    * and a later settlement reads it back to know that has already happened.
    */
-  const period = servicePeriod(
-    subscription.cycleMonths || 1,
-    subscription.currentPeriodEnd ?? null,
-    issuedAt,
-  );
+  const lifetime = Boolean(subscription.lifetime);
+
+  /*
+   * A lifetime choice made days ago (public flow: chosen before verification)
+   * is checked again before it is billed — the window may have closed or the
+   * last seat gone meanwhile. Money already taken (`prepaid`) is not refused.
+   */
+  if (lifetime && !options.prepaid) {
+    await priceLifetime(subscription.planId);
+  }
+
+  const period = lifetime
+    ? lifetimePeriod(issuedAt)
+    : servicePeriod(subscription.cycleMonths || 1, subscription.currentPeriodEnd ?? null, issuedAt);
 
   const source = options.source ?? subscription.source ?? "PUBLIC";
   const owner = await resolveBillingContact(subscription.hostelId);
@@ -941,6 +1162,7 @@ export async function issueSubscriptionInvoice(
     hostelId: subscription.hostelId,
     invoiceNumber,
     issuedAt,
+    lifetime,
     periodEnd: period.endsAt,
     periodStart: period.startsAt,
     planId: subscription.planId,
@@ -977,6 +1199,7 @@ export async function issueSubscriptionInvoice(
     metadata: {
       amount,
       invoiceNumber,
+      lifetime,
       planId: subscription.planId,
       prepaid: Boolean(prepaid),
     },
@@ -991,7 +1214,9 @@ export async function issueSubscriptionInvoice(
 
   await onInvoiceIssued({
     amount: amount ?? 0,
-    cycleLabel: catalog.cycleLabels[subscription.cycle] ?? subscription.cycle,
+    cycleLabel: lifetime
+      ? "Lifetime"
+      : (catalog.cycleLabels[subscription.cycle] ?? subscription.cycle),
     documentUrl: invoice.documentUrl ?? null,
     dueAt,
     hostelLive: hostel.status === "PUBLISHED",
@@ -1110,6 +1335,34 @@ export async function invoiceDocumentInput(invoice: InvoiceRecord): Promise<Ensu
   ).lean<SubscriptionRecord | null>();
 
   const catalog = await getSiteConfigSection("plans");
+
+  /*
+   * The lifetime deal prints as what it is: one line, "Go — Lifetime", from
+   * the day it was raised and with no end date — the far-future sentinel is a
+   * database convenience, not something to put on a statutory document.
+   */
+  if (invoice.lifetime) {
+    return {
+      amount: invoice.amount,
+      customer: {
+        hostelId: invoice.hostelId.toString(),
+        name: invoice.billedTo?.hostelName || invoice.billedTo?.name || "Hostel",
+        ...(invoice.billedTo?.email ? { email: invoice.billedTo.email } : {}),
+      },
+      description: `${invoice.planName} — Lifetime`,
+      dueAt: invoice.dueAt ?? null,
+      invoiceNumber: invoice.invoiceNumber,
+      presentation: buildPresentation({
+        billingPeriod: "Lifetime",
+        cycleLabel: "Lifetime",
+        cycleMonths: invoice.cycleMonths,
+        plan: catalog.plans.find((tier) => tier.id === invoice.planId) ?? null,
+        planName: invoice.planName,
+      }),
+      serviceStartsAt: invoice.periodStart ?? invoice.issuedAt ?? new Date(),
+    };
+  }
+
   // The stored pair when the invoice has one, so a retry prints the dates the
   // hostel was already given rather than recomputing them from a later day.
   const period =

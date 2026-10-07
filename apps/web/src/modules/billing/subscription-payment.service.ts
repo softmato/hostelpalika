@@ -17,6 +17,7 @@ import {
 } from "@/modules/billing/subscription.service";
 import { checkoutDocumentFor } from "@/modules/billing/balance-document";
 import { claimFreeMonths } from "@/modules/billing/free-months";
+import { LIFETIME_PERIOD_END } from "@/modules/billing/lifetime";
 import { servicePeriod } from "@/modules/billing/softmato/invoice";
 import { planAfterPayment } from "@/modules/billing/subscription.service";
 import { ensureLocalReceiptNumber } from "@/modules/billing/documents/issue";
@@ -483,6 +484,52 @@ async function applySettlement(
     return { dueBy: null };
   }
 
+  /*
+   * The lifetime deal, paid in full: the seat is taken and the plan runs for
+   * life from today. Whatever was there before — free months still running, a
+   * cycle part-way through — is replaced rather than stacked: free months stop
+   * meaning anything once nothing will ever be billed again.
+   */
+  if (outstanding <= 0 && invoice.lifetime) {
+    const now = new Date();
+
+    await HostelSubscriptionModel.updateOne(
+      { _id: subscription._id },
+      {
+        $set: {
+          activatedAt: now,
+          currentPeriodEnd: LIFETIME_PERIOD_END,
+          cycle: invoice.cycle,
+          cycleMonths: invoice.cycleMonths,
+          cycleTotal: invoice.amount,
+          dueBy: null,
+          freeMonths: 0,
+          freeUntil: null,
+          lifetime: true,
+          lifetimeSince: now,
+          planId: invoice.planId,
+          planName: invoice.planName,
+          status: "ACTIVE",
+        },
+      },
+    );
+
+    await AuditLogModel.create({
+      action: "SUBSCRIPTION_LIFETIME_STARTED",
+      actorId: actorId ?? null,
+      actorType: actorId ? "USER" : "SYSTEM",
+      entityId: subscription._id.toString(),
+      entityType: "HostelSubscription",
+      hostelId: invoice.hostelId,
+      metadata: { amount: invoice.amount, invoiceNumber: invoice.invoiceNumber, planId: invoice.planId },
+    });
+
+    await publishForSubscription(invoice.hostelId, actorId);
+    await openHostelAfterPayment(invoice.hostelId, subscription.source, actorId);
+
+    return { dueBy: null };
+  }
+
   if (outstanding <= 0) {
     /*
      * A renewal bought on a different plan or cycle (`raiseRenewalInvoice`)
@@ -586,12 +633,19 @@ export async function startFreeMonths(hostelId: string, actorId?: string, from =
     freeMonths?: number | null;
     freeUntil?: Date | null;
     hostelId: Types.ObjectId;
+    lifetime?: boolean;
     planId?: string | null;
     source?: string;
     status?: string;
   } | null>();
 
   if (!subscription?.planId) {
+    return null;
+  }
+
+  // The lifetime deal has no free months: it starts the day it is paid, and
+  // the building's free months stay unclaimed rather than spent on it.
+  if (subscription.lifetime) {
     return null;
   }
 

@@ -506,6 +506,64 @@ export const plansSchema = z.object({
 });
 
 /**
+ * ## The lifetime deal, as configuration
+ *
+ * One payment that buys a plan for life, sold to a fixed number of hostels
+ * inside a dated window. Its own section rather than a field on `plans`, on
+ * purpose: the ordinary tiers, their cycles and their event offer are read on
+ * every invoice and every renewal, and a deal that runs for a month and then
+ * closes has no business sitting inside the numbers those read. Switching it
+ * off, or deleting it, leaves the catalogue exactly as it was.
+ *
+ * Each offer points at a tier by `planId` and carries everything that tier
+ * carries — every service and every cap — for one `price`, to the first
+ * `seats` hostels that pay it. Seats are counted from paid subscriptions, never
+ * stored, so the number on the card cannot drift from what was sold.
+ *
+ * `startsOn` / `endsOn` are calendar days in Nepal (`YYYY-MM-DD`), both
+ * inclusive. A lifetime plan starts the day it is paid: no free months.
+ */
+const isoDay = trimmed
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Use a date like 2026-10-07.")
+  .or(z.literal(""));
+
+const lifetimeOfferSchema = z.object({
+  /** `plans.plans[].id`. An offer whose tier was deleted is simply not sold. */
+  planId: trimmed.min(1).max(40),
+  /** Whole rupees, paid once. */
+  price: z.number().int("Whole rupees only.").min(0).max(10_000_000).default(0),
+  /** How many hostels may buy it. Sold seats are counted, not stored. */
+  seats: z.number().int().min(0).max(100_000).default(0),
+});
+
+export const lifetimeSchema = z
+  .object({
+    badge: trimmed.max(40).default("Lifetime deal"),
+    ctaLabel: trimmed.max(40).default("Claim lifetime"),
+    enabled: z.boolean().default(false),
+    /** Last day it can be bought, inclusive. Blank means no end. */
+    endsOn: isoDay.default(""),
+    /** The small print under the cards. */
+    note: trimmed.max(400).default(""),
+    offers: z.array(lifetimeOfferSchema).max(6).default([]),
+    /** First day it can be bought. Blank means from now. */
+    startsOn: isoDay.default(""),
+    subtitle: trimmed.max(400).default(""),
+    title: trimmed.max(80).default("Pay once. Use it for life."),
+  })
+  .refine((deal) => !deal.startsOn || !deal.endsOn || deal.endsOn >= deal.startsOn, {
+    message: "The last day has to be on or after the first.",
+    path: ["endsOn"],
+  })
+  .refine(
+    (deal) => new Set(deal.offers.map((offer) => offer.planId)).size === deal.offers.length,
+    { message: "Each plan can have one lifetime offer.", path: ["offers"] },
+  );
+
+export type LifetimeConfig = z.infer<typeof lifetimeSchema>;
+export type LifetimeOffer = z.infer<typeof lifetimeOfferSchema>;
+
+/**
  * ## Search, as configuration
  *
  * What Google shows for each page — its title and description — plus the words
@@ -667,6 +725,7 @@ export const siteConfigSectionSchemas = {
   identity: identitySchema,
   issuer: issuerSchema,
   legal: legalSchema,
+  lifetime: lifetimeSchema,
   locations: locationsSchema,
   plans: plansSchema,
   questionCall: questionCallSchema,

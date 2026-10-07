@@ -57,6 +57,13 @@ const subscriptionInvoiceSchema = new Schema(
      * day, for the record; `planName` reads "Setup fee".
      */
     kind: { default: "PLAN", enum: ["PLAN", "SETUP_FEE"], type: String },
+    /**
+     * Pays for the plan for life (the lifetime deal) rather than for
+     * `cycleMonths`. `cycle` / `cycleMonths` are still written because the
+     * schema needs them, but nothing reads them on a lifetime invoice:
+     * settling it in full moves the subscription to `lifetimeSince`.
+     */
+    lifetime: { default: false, type: Boolean },
 
     /* ── The plan, snapshotted at issue ────────────────────────────────── */
 

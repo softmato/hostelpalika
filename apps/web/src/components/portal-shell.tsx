@@ -246,6 +246,7 @@ type PlanState = {
   subscription: {
     currentPeriodEnd: string | null;
     dueBy: string | null;
+    lifetimeSince?: string | null;
     planName: string | null;
     status: string;
   };
@@ -257,10 +258,14 @@ function shortDate(iso: string) {
 
 /** One line under the plan name: the fact the owner needs, nothing more. */
 function planLine(state: NonNullable<PlanState>) {
-  const { currentPeriodEnd, dueBy, status } = state.subscription;
+  const { currentPeriodEnd, dueBy, lifetimeSince, status } = state.subscription;
 
   if (state.outstanding > 0) {
     return `Rs ${state.outstanding.toLocaleString("en-IN")} due${dueBy ? ` by ${shortDate(dueBy)}` : ""}`;
+  }
+
+  if (status === "ACTIVE" && lifetimeSince) {
+    return "Lifetime plan";
   }
 
   if (status === "ACTIVE") {

@@ -185,6 +185,10 @@ export async function getPublicSiteConfig() {
     hero: config.hero,
     identity: config.identity,
     legal: config.legal,
+    // The lifetime deal as configured. Seats sold are counted on their own
+    // endpoint (`/public/lifetime`) so this projection — read on every page —
+    // never grows a query.
+    lifetime: config.lifetime,
     locations: config.locations.filter((location) => location.enabled),
     // The whole Plans & Pricing catalogue, priced as it is actually sold right
     // now: in standard mode this is the stored section untouched, and during a

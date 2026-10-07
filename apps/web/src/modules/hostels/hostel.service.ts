@@ -56,6 +56,7 @@ import {
 import {
   getOrCreateSubscription,
   getSubscriptionState,
+  priceLifetime,
 } from "@/modules/billing/subscription.service";
 import { startFreeMonths } from "@/modules/billing/subscription-payment.service";
 import {
@@ -1526,7 +1527,22 @@ export async function registerTeamHostelApplication(
   // The setup fee is capped by the platform: an agent may take less, never more.
   const { teamSetupFee } = await getOperationsConfig();
 
-  if (input.payment.method === "CASH" && input.payment.amount > teamSetupFee) {
+  /*
+   * The lifetime deal takes the lifetime price instead, in full: checked here,
+   * before anything is written, against the live offer (window and seats). An
+   * online payment was checked when it was taken and is read off its row.
+   */
+  if (input.plan.lifetime && input.payment.method === "CASH") {
+    const { cycleTotal: lifetimePrice } = await priceLifetime(input.plan.planId);
+
+    if (input.payment.amount !== lifetimePrice) {
+      throw new HostelServiceError(
+        `The lifetime price is Rs ${lifetimePrice}. Collect exactly that, or take it online.`,
+        "LIFETIME_AMOUNT",
+        422,
+      );
+    }
+  } else if (input.payment.method === "CASH" && input.payment.amount > teamSetupFee) {
     throw new HostelServiceError(
       `The setup fee is at most Rs ${teamSetupFee}. Collect no more than that.`,
       "SETUP_FEE_TOO_HIGH",

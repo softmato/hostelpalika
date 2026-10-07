@@ -1,5 +1,6 @@
 import { PLATFORM_NAME, PLATFORM_PLAY_STORE_URL } from "@hostel/shared/brand/brand";
 
+import { DEFAULT_LIFETIME } from "./lifetime.defaults";
 import { DEFAULT_PLANS } from "./plans.defaults";
 import { DEFAULT_SEO } from "./seo.defaults";
 import type { SiteConfig } from "./site-config.validation";
@@ -711,6 +712,8 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     refund: { body: "", updatedAt: "" },
     terms: { body: "", updatedAt: "" },
   },
+  /** The lifetime deal — kept apart from `plans`; see `lifetimeSchema`. */
+  lifetime: DEFAULT_LIFETIME,
   /**
    * The cities the platform is open in. Two surfaces read this, and the second
    * one is why the order matters:

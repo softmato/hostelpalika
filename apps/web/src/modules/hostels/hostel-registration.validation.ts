@@ -43,6 +43,12 @@ export const billingCycleSchema = z.enum(["monthly", "halfYearly", "annual"]);
 
 export const registrationPlanChoiceSchema = z.object({
   cycle: billingCycleSchema.default("monthly"),
+  /**
+   * The lifetime deal on `planId` (the `lifetime` site-config section): paid
+   * once in full, no free months, no cycle. Window and seats are checked in
+   * the service, where the live counts are.
+   */
+  lifetime: z.boolean().optional(),
   /** Catalogue id. Validated against the live catalogue in the service. */
   planId: z.string().trim().min(1).max(40),
 });

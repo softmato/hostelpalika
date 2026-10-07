@@ -135,7 +135,7 @@ export interface BillingPlan {
    * runs while its balance is still owed.
    */
   currentPeriodEnd: string | null;
-  /** Days left on the plan, today included. Null when no period is running. */
+  /** Days left on the plan, today included. Null when no period is running, and on a lifetime plan. */
   daysRemaining: number | null;
   /** Days until the day in `dueBy`; 0 on that day. */
   daysToDue: number | null;
@@ -153,6 +153,11 @@ export interface BillingPlan {
    * derive so the bar and the count under it move on the same midnight.
    */
   periodDays: number | null;
+  /**
+   * Paid for life (the lifetime deal). `currentPeriodEnd`, `daysRemaining` and
+   * `periodDays` are null on it: a screen says "Lifetime", never a date.
+   */
+  lifetime: boolean;
   /** The catalogue id — what a client ranks the plan's mark by. */
   planId: string | null;
   planName: string | null;
@@ -222,6 +227,7 @@ export async function getBillingHistory(
       currentPeriodEnd?: Date | null;
       cycleTotal?: number | null;
       dueBy?: Date | null;
+      lifetimeSince?: Date | null;
       planId?: string | null;
       planName?: string | null;
       status: string;
@@ -240,6 +246,7 @@ export async function getBillingHistory(
           dueAt?: Date | null;
           invoiceNumber: string;
           issuedAt?: Date | null;
+          lifetime?: boolean;
           localInvoiceNo?: string | null;
           planName: string;
           softmatoInvoiceNo?: string | null;
@@ -299,6 +306,9 @@ export async function getBillingHistory(
   // One clock for every count in the payload, so none of them can straddle a
   // midnight the others did not.
   const now = new Date();
+  const lifetime = Boolean(subscription?.lifetimeSince);
+  // The lifetime sentinel is a database convenience; nothing counts down to it.
+  const periodEnd = lifetime ? null : (subscription?.currentPeriodEnd ?? null);
 
   return {
     docsUrl: softmatoDocsUrl(),
@@ -308,7 +318,7 @@ export async function getBillingHistory(
       return {
         amount: invoice.amount,
         currency: invoice.currency ?? "NPR",
-        cycleLabel: cycleLabel(invoice.cycle, invoice.cycleMonths),
+        cycleLabel: invoice.lifetime ? "Lifetime" : cycleLabel(invoice.cycle, invoice.cycleMonths),
         /*
          * Built rather than read from the row. `documentUrl` is written when an
          * invoice is raised, so the rows that predate the local renderer carry a
@@ -367,18 +377,18 @@ export async function getBillingHistory(
           amountPaid: openPaid,
           cycle: subscription.cycle ?? null,
           cycleMonths: subscription.cycleMonths ?? null,
-          cycleLabel: subscription.cycle
-            ? cycleLabel(subscription.cycle, subscription.cycleMonths)
-            : null,
-          currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
-          daysRemaining: daysLeftThrough(subscription.currentPeriodEnd, now),
+          cycleLabel: lifetime
+            ? "Lifetime"
+            : subscription.cycle
+              ? cycleLabel(subscription.cycle, subscription.cycleMonths)
+              : null,
+          currentPeriodEnd: periodEnd?.toISOString() ?? null,
+          daysRemaining: daysLeftThrough(periodEnd, now),
           daysToDue: daysUntil(dueBy, now),
           dueBy: dueBy?.toISOString() ?? null,
           dueFrom: dueBy ? (open?.issuedAt?.toISOString() ?? null) : null,
-          periodDays: daysSpanned(
-            subscription.activatedAt,
-            subscription.currentPeriodEnd,
-          ),
+          lifetime,
+          periodDays: daysSpanned(subscription.activatedAt, periodEnd),
           planId: subscription.planId ?? null,
           planName: subscription.planName ?? null,
           price: subscription.cycleTotal ?? null,

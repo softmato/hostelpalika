@@ -13,6 +13,7 @@ import {
   planRank,
   type BillingCycle,
 } from "@hostel/shared/plans/catalog";
+import { lifetimeOfferFor } from "@hostel/shared/plans/lifetime";
 
 import { useSiteConfig } from "@/components/site-config-provider";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -44,6 +45,8 @@ type Invoice = {
   amount: number;
   cycle: string;
   invoiceNumber: string;
+  /** The lifetime deal: paid once, no period, no month picker. */
+  lifetime?: boolean;
   /** How many months it buys; the picker can change it while `monthsLocked` is false. */
   months?: number | null;
   monthsLocked?: boolean;
@@ -126,9 +129,19 @@ function checkout<T>(body: Record<string, unknown>) {
  * name the hostel (email + Hostel ID), prove it with a code sent to that
  * email, then pay. Paying extends the plan that is running.
  */
-export function PlanCheckoutPage({ cycle: initialCycle, planId }: { cycle: string; planId: string }) {
-  const { plans: catalog } = useSiteConfig();
+export function PlanCheckoutPage({
+  cycle: initialCycle,
+  lifetime = false,
+  planId,
+}: {
+  cycle: string;
+  /** Arrived from a lifetime card: the invoice is the lifetime deal on `planId`. */
+  lifetime?: boolean;
+  planId: string;
+}) {
+  const { lifetime: deal, plans: catalog } = useSiteConfig();
   const plan = getPlan(catalog, planId);
+  const lifetimeOffer = lifetime && plan ? lifetimeOfferFor(deal, plan.id) : null;
   const [cycle, setCycle] = useState<BillingCycle>(
     (["monthly", "halfYearly", "annual"] as const).find((id) => id === initialCycle) ?? "annual",
   );
@@ -273,6 +286,7 @@ export function PlanCheckoutPage({ cycle: initialCycle, planId }: { cycle: strin
         PaymentState & { afterPayment: AfterPayment; history: History; invoice: Invoice; reused: boolean }
       >({
         cycle,
+        ...(lifetimeOffer ? { lifetime: true } : {}),
         // None from the footer link: the server renews the plan the hostel is on.
         planId: plan?.id,
         step: "invoice",
@@ -307,14 +321,23 @@ export function PlanCheckoutPage({ cycle: initialCycle, planId }: { cycle: strin
     );
   }
 
-  const price = plan ? cycleTotal(plan, cycle) : 0;
+  const price = lifetimeOffer ? lifetimeOffer.price : plan ? cycleTotal(plan, cycle) : 0;
   // The plan on the invoice, which the pay step can switch.
   const invoicePlan = invoice ? getPlan(catalog, invoice.planId) : undefined;
   const heldPlanId = trace?.history.plan?.planId ?? "";
-  const cycleLabel = billingCycles(catalog).find((option) => option.id === cycle)?.label ?? cycle;
+  const cycleLabel = lifetimeOffer
+    ? "Lifetime"
+    : (billingCycles(catalog).find((option) => option.id === cycle)?.label ?? cycle);
   const openRow = trace?.history.invoices.find((row) => row.invoiceNumber === invoice?.invoiceNumber) ?? null;
   // The open invoice is for something other than what was picked here.
-  const otherPick = Boolean(plan && reused && invoice && (invoice.planName !== plan.name || invoice.cycle !== cycle));
+  const otherPick = Boolean(
+    plan &&
+      reused &&
+      invoice &&
+      (invoice.planName !== plan.name ||
+        Boolean(invoice.lifetime) !== Boolean(lifetimeOffer) ||
+        (!lifetimeOffer && invoice.cycle !== cycle)),
+  );
 
   function reprice(change: { months: number; planId?: string }) {
     void run("months", async () => {
@@ -335,17 +358,23 @@ export function PlanCheckoutPage({ cycle: initialCycle, planId }: { cycle: strin
         */}
         <h1 className={cn("text-2xl font-bold tracking-tight text-foreground", !invoice && "text-center")}>
           {!invoice
-            ? "Pay for your hostel"
+            ? lifetimeOffer && plan
+              ? `${plan.name} for life`
+              : "Pay for your hostel"
             : reused
               ? `Pay your ${invoice.planName} ${openRow?.paid ? "balance" : "invoice"}`
               : `Get ${invoice.planName}`}
         </h1>
         <p className={cn("mt-1 text-sm text-muted-foreground", !invoice && "text-center")}>
           {!invoice
-            ? "Enter your hostel's email and ID. You choose the plan after the code."
+            ? lifetimeOffer
+              ? `${rupees(lifetimeOffer.price)}, paid once — every feature of ${plan?.name}, no renewals. Enter your hostel's email and ID to claim it.`
+              : "Enter your hostel's email and ID. You choose the plan after the code."
             : reused
               ? `Invoice ${invoice.invoiceNumber} is still open. It is paid before any new plan.`
-              : "Paying extends the plan your hostel is on now."}
+              : invoice.lifetime
+                ? "Paid once. It starts the day it is paid and never renews."
+                : "Paying extends the plan your hostel is on now."}
         </p>
 
         {/* Checkout on the right, the hostel's billing trace on the left; stacked on a phone, pay first. */}
@@ -367,7 +396,8 @@ export function PlanCheckoutPage({ cycle: initialCycle, planId }: { cycle: strin
                   <p className="text-xl font-bold tabular-nums text-foreground">{rupees(invoice.amount)}</p>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Invoice {invoice.invoiceNumber} · plan runs until {day(invoice.periodEnd)}
+                  Invoice {invoice.invoiceNumber} ·{" "}
+                  {invoice.lifetime ? "lifetime plan, no renewals" : `plan runs until ${day(invoice.periodEnd)}`}
                 </p>
                 {openRow && openRow.paid > 0 ? (
                   <div className="mt-3">
@@ -444,7 +474,7 @@ export function PlanCheckoutPage({ cycle: initialCycle, planId }: { cycle: strin
                     Not on HostelPalika yet?{" "}
                     <Link
                       className="font-semibold text-brand-teal"
-                      href={plan ? `/register-hostel?plan=${plan.id}` : "/register-hostel"}
+                      href={plan && !lifetimeOffer ? `/register-hostel?plan=${plan.id}` : "/register-hostel"}
                     >
                       Register your hostel
                     </Link>
@@ -723,11 +753,15 @@ function BillingTrace({
               value={`${plan.planName ?? "—"}${plan.cycleLabel ? ` · ${plan.cycleLabel}` : ""}`}
             />
             <Fact label="Status" value={PLAN_STATUS[plan.status] ?? plan.status} />
-            <Fact
-              label="Runs until"
-              note={daysLeft(plan.daysRemaining)}
-              value={day(plan.currentPeriodEnd)}
-            />
+            {plan.lifetime ? (
+              <Fact label="Runs until" value="For life" />
+            ) : (
+              <Fact
+                label="Runs until"
+                note={daysLeft(plan.daysRemaining)}
+                value={day(plan.currentPeriodEnd)}
+              />
+            )}
             {plan.amountDue > 0 && plan.dueBy ? (
               <Fact
                 label="Pay by"
@@ -755,7 +789,11 @@ function BillingTrace({
           <dl className="mt-1 divide-y divide-border">
             <Fact label="Plan" value={`${after.planName} · ${after.cycleLabel}`} />
             <Fact label="Status" value={PLAN_STATUS.ACTIVE} />
-            <Fact label="Runs until" note={daysLeft(after.daysRemaining)} value={day(after.runsUntil)} />
+            {after.cycleLabel === "Lifetime" ? (
+              <Fact label="Runs until" value="For life" />
+            ) : (
+              <Fact label="Runs until" note={daysLeft(after.daysRemaining)} value={day(after.runsUntil)} />
+            )}
           </dl>
         </section>
       ) : null}

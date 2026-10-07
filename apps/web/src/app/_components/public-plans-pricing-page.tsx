@@ -5,6 +5,7 @@ import { useState } from "react";
 
 import { useSiteConfig } from "@/components/site-config-provider";
 
+import { LifetimeDeal, useLifetimeAvailability } from "./lifetime-deal";
 import { PlansFaq } from "./plans-faq";
 import {
   BillingToggle,
@@ -41,8 +42,9 @@ import { PublicShell } from "./shared";
  * renders too, so the editor cannot drift from what a visitor sees.
  */
 export function PublicPlansPricingPage() {
-  const { identity, plans: catalog } = useSiteConfig();
+  const { identity, lifetime, plans: catalog } = useSiteConfig();
   const [cycle, setCycle] = useState<BillingCycle>("annual");
+  const { availability } = useLifetimeAvailability();
   const { container, item, reduced } = useEntranceVariants();
 
   return (
@@ -70,6 +72,14 @@ export function PublicPlansPricingPage() {
         >
           <PlansFootnote catalog={catalog} identity={identity} />
         </motion.div>
+
+        {/* Its own block under the tiers — the cards above are untouched by it. */}
+        <LifetimeDeal
+          availability={availability}
+          catalog={catalog}
+          deal={lifetime}
+          identity={identity}
+        />
 
         <PlansFaq />
 

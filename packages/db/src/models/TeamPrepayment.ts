@@ -39,9 +39,11 @@ const teamPrepaymentSchema = new Schema(
      * What the money is for. `SETUP_FEE` since the plan started on free months:
      * the agent collects the setup fee and the plan fields only record the plan
      * chosen. `PLAN` is a row from before that, which still publishes the old
-     * way — its payment becomes the plan's first invoice.
+     * way — its payment becomes the plan's first invoice. `LIFETIME` is the
+     * lifetime deal's one payment: it becomes the hostel's lifetime invoice,
+     * and no setup fee or free months go with it.
      */
-    kind: { default: "PLAN", enum: ["PLAN", "SETUP_FEE"], type: String },
+    kind: { default: "PLAN", enum: ["PLAN", "SETUP_FEE", "LIFETIME"], type: String },
 
     planId: { required: true, trim: true, type: String },
     planName: { required: true, trim: true, type: String },

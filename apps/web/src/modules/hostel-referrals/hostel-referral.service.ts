@@ -317,15 +317,22 @@ export async function recordHostelReferral(
  */
 async function addPlanBonus(hostelId: Types.ObjectId, bonus: PlanBonus, reason: string) {
   const subscription = await HostelSubscriptionModel.findOne({ hostelId })
-    .select("_id currentPeriodEnd freeUntil status")
+    .select("_id currentPeriodEnd freeUntil lifetimeSince status")
     .lean<{
       _id: Types.ObjectId;
       currentPeriodEnd?: Date | null;
       freeUntil?: Date | null;
+      lifetimeSince?: Date | null;
       status?: string;
     } | null>();
 
   if (!subscription?.currentPeriodEnd || subscription.status !== "ACTIVE") {
+    return false;
+  }
+
+  // A lifetime plan has no end to push back, and its period end is past the
+  // Bikram Sambat range `extendByBonus` counts in.
+  if (subscription.lifetimeSince) {
     return false;
   }
 

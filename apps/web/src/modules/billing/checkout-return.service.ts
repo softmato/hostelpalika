@@ -5,6 +5,7 @@ import { Types } from "mongoose";
 import { connectToDatabase } from "@/lib/db";
 import { softmatoDocumentNumbers } from "@/modules/billing/balance-document";
 import { fetchInvoiceDetail } from "@/modules/billing/billing-gateway";
+import { isLifetimePeriodEnd } from "@/modules/billing/lifetime";
 import { resolveOwnedHostel } from "@/modules/billing/subscription-access";
 import { reconcileInvoiceFromSoftmato } from "@/modules/billing/subscription-reconcile.service";
 import { assertAgentFiledHostel } from "@/modules/team/team.service";
@@ -166,8 +167,11 @@ export async function readReturnState(
       .lean<{ currentPeriodEnd?: Date | null; status?: string } | null>();
 
     return {
+      // A lifetime plan has no "until" worth printing.
       activeUntil:
-        subscription?.status === "ACTIVE" && subscription.currentPeriodEnd
+        subscription?.status === "ACTIVE" &&
+        subscription.currentPeriodEnd &&
+        !isLifetimePeriodEnd(subscription.currentPeriodEnd)
           ? subscription.currentPeriodEnd.toISOString()
           : null,
       invoiceNumber,

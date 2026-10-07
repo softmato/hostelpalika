@@ -6,6 +6,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/) — sections per 
 
 ## [Unreleased]
 
+### Added
+- **Lifetime deal.** One payment buys a plan for life — every feature of that tier, no
+  renewals, no free months — for a fixed number of hostels inside a dated window. Its own
+  `lifetime` site-config section (never inside `plans`), edited at Website Config →
+  Plans & Pricing → **Lifetime** with its own Save. Shipped default: opens 7 Oct 2026 for one
+  month, Go NPR 9,999 × 18 seats, Pro NPR 16,999 × 16, Max NPR 24,999 × 16 (first 50 hostels).
+  Seats are counted from paid subscriptions (`lifetimeSince`), served by
+  `GET /api/v1/public/lifetime`. Sold on the public pricing page (its own block under the
+  cards → `/plans-pricing/checkout?plan=…&lifetime=1`), in the team register form (the
+  lifetime price is collected instead of the setup fee, online or cash), and in the public
+  registration's plan picker. A paid lifetime plan runs to `LIFETIME_PERIOD_END` (2099), is
+  never renewed, swept, extended by referral time or given free months, and every billing
+  screen says "Lifetime" instead of a date.
+
 ### Changed
 - **Email now sends from the mailbox that matches the message.** Every email in the product
   went out from one address, set by `RESEND_FROM_EMAIL`, so a receipt and an emergency SOS

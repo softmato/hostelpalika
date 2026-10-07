@@ -23,6 +23,7 @@ const FALLBACK: PublicSiteConfig = {
   hero: DEFAULT_SITE_CONFIG.hero,
   identity: DEFAULT_SITE_CONFIG.identity,
   legal: DEFAULT_SITE_CONFIG.legal,
+  lifetime: DEFAULT_SITE_CONFIG.lifetime,
   locations: DEFAULT_SITE_CONFIG.locations,
   plans: DEFAULT_SITE_CONFIG.plans,
   questionCall: DEFAULT_SITE_CONFIG.questionCall,

@@ -55,6 +55,9 @@ export async function raiseDueRenewals(now = new Date()) {
   // ponytail: one unpaged read, like the plan reminders next door; page by `_id` at thousands.
   const subscriptions = await HostelSubscriptionModel.find({
     currentPeriodEnd: { $lte: hostelDayEnd(now, RENEW_AHEAD_DAYS), $ne: null },
+    // A lifetime plan never renews. Its period end is decades out anyway; this
+    // says so in the query rather than leaving it to the arithmetic.
+    lifetimeSince: null,
     planId: { $ne: null },
     status: "ACTIVE",
   }).lean<Row[]>();

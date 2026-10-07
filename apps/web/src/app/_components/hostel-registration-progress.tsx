@@ -23,6 +23,7 @@ import {
   cycleTotal,
   type BillingCycle,
 } from "./plans-catalog";
+import { useLifetimeAvailability } from "./lifetime-deal";
 
 /**
  * The owner's progress page.
@@ -93,6 +94,9 @@ type SubscriptionState = {
     freeMonths?: number | null;
     freeUntil?: string | null;
     id: string;
+    /** The chosen plan is the lifetime deal: paid once, no free months. */
+    lifetime?: boolean;
+    lifetimeSince?: string | null;
     planId: string | null;
     planName: string | null;
     source: string;
@@ -193,17 +197,29 @@ function Journey({ reached }: { reached: number }) {
  */
 function PlanPicker({
   busy,
+  currentLifetime,
   currentPlanId,
   onSelect,
 }: {
   busy: boolean;
+  /** The plan chosen is the lifetime deal. */
+  currentLifetime: boolean;
   currentPlanId: string | null;
-  onSelect: (planId: string, cycle: BillingCycle) => void;
+  onSelect: (planId: string, cycle: BillingCycle, lifetime: boolean) => void;
 }) {
   const { plans: catalog } = useSiteConfig();
   const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const cycles = billingCycles(catalog);
   const priced = catalog.plans.filter((plan) => plan.monthly > 0);
+  /*
+   * The lifetime deal, while it is on sale: a separate switch rather than a
+   * fourth cycle, because it is a different purchase — paid once, in full,
+   * with no free months. The cards then show its prices and seats.
+   */
+  const { availability } = useLifetimeAvailability();
+  const lifetimeOffers = availability?.window === "open" ? availability.offers : [];
+  const [lifetimeMode, setLifetimeMode] = useState(currentLifetime);
+  const onLifetime = lifetimeMode && lifetimeOffers.length > 0;
 
   if (priced.length === 0) {
     return (
@@ -215,7 +231,82 @@ function PlanPicker({
 
   return (
     <div className="space-y-5">
-      <div className="inline-flex rounded-lg border border-border bg-muted/50 p-1">
+      {lifetimeOffers.some((offer) => offer.left > 0) || (currentLifetime && lifetimeOffers.length > 0) ? (
+        <div className="grid grid-cols-2 gap-2 sm:inline-grid sm:w-auto">
+          {(
+            [
+              [false, "Regular plan", "Free months, then monthly"],
+              [true, "Lifetime deal", "Pay once · every feature, for life"],
+            ] as const
+          ).map(([value, label, note]) => (
+            <button
+              className={cn(
+                "rounded-lg border px-3 py-2 text-left transition",
+                onLifetime === value
+                  ? "border-brand-teal bg-brand-teal/10"
+                  : "border-border hover:border-brand-teal/40",
+              )}
+              key={label}
+              onClick={() => setLifetimeMode(value)}
+              type="button"
+            >
+              <span className="block text-xs font-bold text-foreground">{label}</span>
+              <span className="block text-[11px] text-muted-foreground">{note}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+
+      {onLifetime ? (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {priced.flatMap((plan) => {
+            const offer = lifetimeOffers.find((entry) => entry.planId === plan.id);
+
+            if (!offer) return [];
+
+            const selected = currentLifetime && plan.id === currentPlanId;
+            const soldOut = offer.left <= 0;
+
+            return [
+              <button
+                className={cn(
+                  "rounded-xl border p-4 text-left transition disabled:cursor-not-allowed disabled:opacity-50",
+                  "focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal/40",
+                  selected
+                    ? "border-brand-teal bg-brand-teal/5 ring-1 ring-brand-teal/30"
+                    : "border-border bg-surface hover:border-brand-teal/40",
+                  busy && "pointer-events-none opacity-60",
+                )}
+                disabled={busy || (soldOut && !selected)}
+                key={plan.id}
+                onClick={() => onSelect(plan.id, cycle, true)}
+                type="button"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-sm font-bold text-foreground">{plan.name} · Lifetime</p>
+                  {selected ? (
+                    <span className="flex size-5 items-center justify-center rounded-full bg-brand-teal text-white">
+                      <Check className="size-3" strokeWidth={3} />
+                    </span>
+                  ) : null}
+                </div>
+                <p className="mt-2 text-lg font-bold tabular-nums text-foreground">
+                  {rupees(offer.price)}
+                  <span className="ml-1 text-xs font-medium text-muted-foreground">once</span>
+                </p>
+                <p className={cn("mt-1 text-xs font-semibold", soldOut ? "text-muted-foreground" : "text-brand-teal")}>
+                  {soldOut ? "Sold out" : `${offer.left} of ${offer.seats} seats left`}
+                </p>
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                  Every feature of {plan.name}, for life. No free months — it starts the day you pay.
+                </p>
+              </button>,
+            ];
+          })}
+        </div>
+      ) : null}
+
+      <div className={cn("inline-flex rounded-lg border border-border bg-muted/50 p-1", onLifetime && "hidden")}>
         {cycles.map((option) => {
           // The best discount across the plans, not one plan's — the badge sits
           // on the toggle, above every card, so a figure taken from one of them
@@ -243,9 +334,9 @@ function PlanPicker({
         })}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className={cn("grid gap-3 sm:grid-cols-2 lg:grid-cols-3", onLifetime && "hidden")}>
         {priced.map((plan) => {
-          const selected = plan.id === currentPlanId;
+          const selected = !currentLifetime && plan.id === currentPlanId;
           const total = cycleTotal(plan, cycle);
 
           return (
@@ -260,7 +351,7 @@ function PlanPicker({
               )}
               disabled={busy}
               key={plan.id}
-              onClick={() => onSelect(plan.id, cycle)}
+              onClick={() => onSelect(plan.id, cycle, false)}
               type="button"
             >
               <div className="flex items-start justify-between gap-2">
@@ -425,14 +516,17 @@ export function HostelRegistrationProgress({
     };
   }, [fetchState]);
 
-  async function choosePlan(planId: string, cycle: BillingCycle) {
+  async function choosePlan(planId: string, cycle: BillingCycle, lifetime: boolean) {
     setBusy(true);
     setError("");
 
     try {
       const result = await browserApi<{ state: SubscriptionState }>(
         `/api/v1/hostel-registration/${application.hostelId}/plan`,
-        { body: JSON.stringify({ cycle, planId }), method: "POST" },
+        {
+          body: JSON.stringify({ cycle, planId, ...(lifetime ? { lifetime: true } : {}) }),
+          method: "POST",
+        },
       );
 
       setState(result.state);
@@ -524,7 +618,9 @@ export function HostelRegistrationProgress({
           ) : (
             <p className="mt-2 text-sm text-muted-foreground">
               {state?.subscription.planName} is active
-              {state?.subscription.currentPeriodEnd
+              {state?.subscription.lifetimeSince
+                ? " for life — paid once, nothing to renew"
+                : state?.subscription.currentPeriodEnd
                 ? ` until ${new Date(state.subscription.currentPeriodEnd).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
                 : ""}
               . You can manage everything from your dashboard.
@@ -609,6 +705,7 @@ export function HostelRegistrationProgress({
               <div className="mt-5">
                 <PlanPicker
                   busy={busy}
+                  currentLifetime={Boolean(state?.subscription.lifetime)}
                   currentPlanId={state?.subscription.planId ?? null}
                   onSelect={choosePlan}
                 />
@@ -640,8 +737,11 @@ export function HostelRegistrationProgress({
                 <p className="mt-6 rounded-lg border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
                   <strong className="font-semibold text-foreground">
                     {state.subscription.planName}
+                    {state.subscription.lifetime ? " · Lifetime" : ""}
                   </strong>{" "}
-                  {state.subscription.freeMonths
+                  {state.subscription.lifetime
+                    ? "is saved — one payment, for life, with no free months. Pay now appears here as soon as your details are verified."
+                    : state.subscription.freeMonths
                     ? `is saved. Its ${state.subscription.freeMonths} free ${state.subscription.freeMonths === 1 ? "month starts" : "months start"} the day your details are verified — nothing to pay now.`
                     : "is saved. Pay now appears here as soon as your details are verified."}
                 </p>

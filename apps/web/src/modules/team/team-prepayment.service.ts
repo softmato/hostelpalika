@@ -18,6 +18,7 @@ import { getOperationsConfig } from "@/modules/platform-config/operations-config
 import {
   allocateNumber,
   invoiceDocumentInput,
+  priceLifetime,
   pricePlan,
   SubscriptionError,
   type InvoiceRecord,
@@ -53,6 +54,11 @@ export const teamPrepaymentSchema = z.object({
   planId: z.string().trim().min(1, "Pick a plan first."),
   /** The setup fee to take online; omitted means the configured fee, which is also its ceiling. */
   amount: z.number().int("Whole rupees only.").positive("Enter an amount above zero.").optional(),
+  /**
+   * The lifetime deal on `planId` instead of a setup fee: the amount is the
+   * lifetime price, read from the live offer here — never from the form.
+   */
+  lifetime: z.boolean().optional(),
   /** The row this form already opened, so a retry reuses it. */
   prepaymentId: z.string().trim().optional(),
   /** The form as it stands, kept on the row so a paid hostel never lives in one browser only. */
@@ -71,7 +77,7 @@ type PrepaymentRow = {
   cycleMonths: number;
   hostelId: Types.ObjectId;
   invoiceNumber: string;
-  kind?: "PLAN" | "SETUP_FEE";
+  kind?: "PLAN" | "SETUP_FEE" | "LIFETIME";
   paidAt?: Date | null;
   planId: string;
   planName: string;
@@ -92,8 +98,8 @@ export type TeamPrepaymentView = {
   chargeAmount: number;
   cycle: BillingCycle;
   id: string;
-  /** `PLAN` only on a row taken before setup fees; see the model. */
-  kind: "PLAN" | "SETUP_FEE";
+  /** `PLAN` only on a row taken before setup fees; `LIFETIME` is the lifetime deal. See the model. */
+  kind: "PLAN" | "SETUP_FEE" | "LIFETIME";
   paidAt: string | null;
   planId: string;
   planName: string;
@@ -217,13 +223,18 @@ export async function openTeamPrepayment(
   step("invoice");
   await connectToDatabase();
 
+  const lifetime = Boolean(input.lifetime);
   // The plan is only recorded here: what is taken is the setup fee, capped by
-  // the platform's own figure — never the form's.
-  const priced = await pricePlan(input.planId, input.cycle);
+  // the platform's own figure — never the form's. On the lifetime deal it is
+  // the lifetime price, from the live offer (window and seats checked).
+  const priced = lifetime
+    ? await priceLifetime(input.planId)
+    : await pricePlan(input.planId, input.cycle);
   const { teamSetupFee } = await getOperationsConfig();
-  const fee = input.amount ?? teamSetupFee;
+  const fee = lifetime ? priced.cycleTotal : (input.amount ?? teamSetupFee);
+  const kind = lifetime ? "LIFETIME" : "SETUP_FEE";
 
-  if (fee > teamSetupFee || fee <= 0) {
+  if (!lifetime && (fee > teamSetupFee || fee <= 0)) {
     throw new SubscriptionError(
       `The setup fee is 1 to Rs ${teamSetupFee}. It can't be more than that.`,
       "PREPAYMENT_ABOVE_PRICE",
@@ -238,7 +249,9 @@ export async function openTeamPrepayment(
   if (previous?.status === "PAID" || previous?.status === "CLAIMED") {
     throw new SubscriptionError(
       previous.status === "PAID"
-        ? "The setup fee is already paid. Carry on to Review & publish."
+        ? previous.kind === "LIFETIME"
+          ? "The lifetime payment is already in. Carry on to Review & publish."
+          : "The setup fee is already paid. Carry on to Review & publish."
         : "That payment already belongs to a published hostel.",
       "PREPAYMENT_ALREADY_PAID",
       409,
@@ -246,8 +259,12 @@ export async function openTeamPrepayment(
   }
 
   // The same fee reuses the open row whatever plan is picked: the fee does not depend on it.
+  // A lifetime row is tied to its plan, so it is only reused for the same one.
   let row =
-    previous?.status === "OPEN" && previous.kind === "SETUP_FEE" && previous.amount === fee
+    previous?.status === "OPEN" &&
+    previous.kind === kind &&
+    previous.amount === fee &&
+    (!lifetime || previous.planId === priced.planId)
       ? previous
       : null;
 
@@ -279,7 +296,7 @@ export async function openTeamPrepayment(
       cycleMonths: priced.cycleMonths,
       hostelId,
       invoiceNumber: await allocateNumber(hostelId, "SUBSCRIPTION_INVOICE"),
-      kind: "SETUP_FEE",
+      kind,
       planId: priced.planId,
       planName: priced.planName,
       draft: input.draft ?? null,
@@ -316,7 +333,9 @@ export async function openTeamPrepayment(
       hostelId: row.hostelId,
       invoiceNumber: row.invoiceNumber,
       issuedAt,
-      kind: row.kind ?? "PLAN",
+      // A lifetime row prints as the lifetime invoice it will become.
+      kind: row.kind === "LIFETIME" ? "PLAN" : (row.kind ?? "PLAN"),
+      lifetime: row.kind === "LIFETIME",
       periodEnd: period.endsAt,
       periodStart: period.startsAt,
       planId: row.planId,
@@ -423,13 +442,43 @@ export async function listUnpublishedPrepayments(agent: { role: string; userId: 
 export async function claimTeamPrepayment(
   id: string,
   agent: { role: string; userId: string },
-  plan: { cycle: BillingCycle; planId: string },
+  plan: { cycle: BillingCycle; lifetime?: boolean; planId: string },
 ) {
   await connectToDatabase();
 
   const row = await refresh(await loadOwned(id, agent));
 
   if (row.status === "SUPERSEDED") return null;
+
+  /*
+   * The lifetime deal and the setup fee are different money for different
+   * things, so neither is carried across to the other. Paid: refused, with
+   * what to pick. Unpaid: dropped, and the publish asks for the right payment.
+   */
+  const wantsLifetime = Boolean(plan.lifetime);
+  const isLifetime = row.kind === "LIFETIME";
+
+  if (
+    (row.status === "OPEN" || row.status === "PAID") &&
+    (wantsLifetime !== isLifetime || (isLifetime && row.planId !== plan.planId))
+  ) {
+    if (row.status === "PAID") {
+      throw new SubscriptionError(
+        isLifetime
+          ? `The online payment was the lifetime price for ${row.planName}. Pick ${row.planName} · Lifetime to publish.`
+          : "The online payment was the setup fee. A lifetime plan is paid in full instead — publish this hostel on a regular plan, or ask the platform team to refund the setup fee first.",
+        "PREPAYMENT_PLAN_MISMATCH",
+        409,
+      );
+    }
+
+    await TeamPrepaymentModel.updateOne(
+      { _id: row._id, status: "OPEN" },
+      { $set: { status: "SUPERSEDED" } },
+    );
+
+    return null;
+  }
 
   if (row.status === "CLAIMED") {
     throw new SubscriptionError(
@@ -439,8 +488,8 @@ export async function claimTeamPrepayment(
     );
   }
 
-  // Only a plan-priced row from before setup fees is tied to one plan.
-  if (row.kind !== "SETUP_FEE" && (row.planId !== plan.planId || row.cycle !== plan.cycle)) {
+  // Only a plan-priced row from before setup fees is tied to one plan and cycle.
+  if ((row.kind ?? "PLAN") === "PLAN" && (row.planId !== plan.planId || row.cycle !== plan.cycle)) {
     if (row.status === "PAID") {
       throw new SubscriptionError(
         `The online payment was for ${row.planName}, ${CYCLE_WORDS[row.cycle]}. Pick that plan to publish.`,

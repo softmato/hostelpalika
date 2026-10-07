@@ -105,6 +105,7 @@ type InvoiceLean = {
   hostelId: Types.ObjectId;
   invoiceNumber: string;
   issuedAt?: Date | null;
+  lifetime?: boolean;
   localInvoiceNo?: string | null;
   planName: string;
   softmatoInvoiceNo?: string | null;
@@ -246,7 +247,8 @@ export async function getPlatformSubscriptionLedger(options: {
         outstanding:
           invoice.status === "VOID" ? 0 : Math.max(0, invoice.amount - paid),
         paid,
-        planName: invoice.planName,
+        // The lifetime deal reads as such in the platform's own list.
+        planName: invoice.lifetime ? `${invoice.planName} · Lifetime` : invoice.planName,
         printedNumber,
         source: invoice.source ?? "PUBLIC",
         status: invoice.status,

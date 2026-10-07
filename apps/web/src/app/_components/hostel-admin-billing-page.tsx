@@ -418,13 +418,18 @@ function PlanCard({ onRaised, plan }: { onRaised: () => void; plan: BillingPlan 
             <Badge status={plan.status.replaceAll("_", " ")} />
             {plan.price ? (
               <span className="text-xs text-muted-foreground">
-                {rupees(plan.price)} per cycle
+                {rupees(plan.price)} {plan.lifetime ? "paid once" : "per cycle"}
               </span>
             ) : null}
           </div>
         </div>
 
-        {days !== null ? (
+        {plan.lifetime ? (
+          <div className="text-right">
+            <p className="text-3xl font-bold text-brand-teal">For life</p>
+            <p className="text-xs font-semibold text-muted-foreground">nothing to renew</p>
+          </div>
+        ) : days !== null ? (
           <div className="text-right">
             <p
               className={cn(
@@ -443,7 +448,9 @@ function PlanCard({ onRaised, plan }: { onRaised: () => void; plan: BillingPlan 
 
       <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-3 text-xs text-muted-foreground">
         <CalendarClock className="size-3.5" />
-        {expired ? (
+        {plan.lifetime ? (
+          <span>Lifetime plan — paid once, every feature of {plan.planName ?? "this plan"}, no renewals.</span>
+        ) : expired ? (
           <span className="font-semibold text-warning">
             This plan has reached the end of its paid period.
           </span>

@@ -129,6 +129,21 @@ const hostelSubscriptionSchema = new Schema(
     freeMonthsWelcomed: { default: [], type: [Number] },
     currency: currencyField,
 
+    /* ── The lifetime deal ─────────────────────────────────────────────── */
+
+    /**
+     * The chosen plan is the lifetime deal (the `lifetime` site-config
+     * section): one payment, no cycle, no free months. Set when it is chosen,
+     * so an unpaid lifetime choice is invoiced as one and never renewed.
+     */
+    lifetime: { default: false, type: Boolean },
+    /**
+     * When the lifetime payment settled. This is the seat: seats sold are a
+     * count of subscriptions with it set, per `planId`. From this moment
+     * `currentPeriodEnd` is `LIFETIME_PERIOD_END` and nothing renews.
+     */
+    lifetimeSince: { default: null, type: Date },
+
     selectedAt: { default: null, type: Date },
     selectedBy: { default: null, ref: "User", type: Schema.Types.ObjectId },
 
@@ -165,6 +180,10 @@ const hostelSubscriptionSchema = new Schema(
 hostelSubscriptionSchema.index({ hostelId: 1 }, { unique: true });
 hostelSubscriptionSchema.index({ status: 1, dueBy: 1 });
 hostelSubscriptionSchema.index({ agentId: 1, createdAt: -1 });
+hostelSubscriptionSchema.index(
+  { planId: 1 },
+  { name: "lifetime_seats", partialFilterExpression: { lifetimeSince: { $type: "date" } } },
+);
 
 export const HostelSubscriptionModel =
   models.HostelSubscription ||

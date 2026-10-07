@@ -154,6 +154,8 @@ function featuresFor(plan: PlanTier): string[] {
 }
 
 export interface PresentationInput {
+  /** Overrides the "12 months" line — the lifetime deal says "Lifetime". */
+  billingPeriod?: string;
   /** `Annual`, `6 months` — the catalogue's own label for the cycle. */
   cycleLabel: string;
   cycleMonths: number;
@@ -194,7 +196,8 @@ export function buildPresentation(
 
   const tagline = fit(input.plan?.description, LIMITS.tagline);
   const billingPeriod = fit(
-    `${input.cycleMonths} ${input.cycleMonths === 1 ? "month" : "months"}`,
+    input.billingPeriod ??
+      `${input.cycleMonths} ${input.cycleMonths === 1 ? "month" : "months"}`,
     LIMITS.billingPeriod,
   );
 

@@ -47,6 +47,11 @@ const SOURCES: Source[] = [
     file: "platform-config-plans-page.tsx",
     href: "/platform/config/plans",
   },
+  {
+    decls: { DayField: null, LifetimeTab: "lifetime" },
+    file: "platform-config-lifetime-tab.tsx",
+    href: "/platform/config/plans",
+  },
   { file: "platform-config-announcements-page.tsx", href: "/platform/config/announcements" },
   { file: "platform-config-content-page.tsx", href: "/platform/config/content" },
   { file: "platform-config-seo-page.tsx", href: "/platform/config/seo" },

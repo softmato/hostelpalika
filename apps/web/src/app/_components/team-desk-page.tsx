@@ -577,7 +577,8 @@ function PaidNotPublished({ rows }: { rows: UnpublishedPrepayment[] }) {
               <span className="min-w-0">
                 <span className="block truncate font-semibold text-foreground">{row.hostelName}</span>
                 <span className="block truncate text-xs text-muted-foreground">
-                  {row.ownerName || "—"} · {row.planName} · paid {row.paidAt ? formatBsAdDate(new Date(row.paidAt)) : "—"}
+                  {row.ownerName || "—"} · {row.planName}
+                  {row.kind === "LIFETIME" ? " · Lifetime" : ""} · paid {row.paidAt ? formatBsAdDate(new Date(row.paidAt)) : "—"}
                   {row.reference ? ` · ${row.reference}` : ""}
                 </span>
               </span>

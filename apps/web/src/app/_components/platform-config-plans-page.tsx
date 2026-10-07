@@ -17,6 +17,7 @@ import { CONTENT_ICON_SLUGS } from "@/lib/site-content";
 import { cn } from "@/lib/utils";
 
 import { InlineText } from "./inline-text";
+import { LifetimeTab } from "./platform-config-lifetime-tab";
 import {
   BillingToggle,
   PlanCards,
@@ -70,6 +71,8 @@ import {
  *    commitment, with the resulting totals worked out beside them. Caps, seats
  *    and the directory badge live here too, because a number typed onto a card
  *    would be a card that reformats itself under the caret.
+ *  - **Lifetime** — the lifetime deal, which is its own `lifetime` section
+ *    with its own Save, so nothing on it can move the regular plans.
  *  - **Links** — where the buttons go. The words on them are edited on the page.
  *
  * One Save for the screen, not one per card: every control here writes into the
@@ -88,7 +91,9 @@ export const PlatformConfigPlansPageContent = memo(
     const router = useRouter();
     const pathname = usePathname();
     const requested = useSearchParams().get("tab") ?? "";
-    const tab = ["pricing", "offer", "links"].includes(requested) ? requested : "catalogue";
+    const tab = ["pricing", "offer", "lifetime", "links"].includes(requested)
+      ? requested
+      : "catalogue";
     const setTab = (key: string) => router.replace(`${pathname}?tab=${key}`, { scroll: false });
 
     /*
@@ -206,6 +211,7 @@ export const PlatformConfigPlansPageContent = memo(
             { count: catalog.services.length, key: "catalogue", label: "Catalogue" },
             { count: catalog.plans.length, key: "pricing", label: "Pricing" },
             { key: "offer", label: "Offer" },
+            { key: "lifetime", label: "Lifetime" },
             { key: "links", label: "Links" },
           ]}
           value={tab}
@@ -219,6 +225,18 @@ export const PlatformConfigPlansPageContent = memo(
         ) : null}
         {tab === "offer" ? (
           <OfferTab catalog={catalog} onPatch={patch} onPatchPlan={patchPlan} />
+        ) : null}
+        {tab === "lifetime" ? (
+          // Its own section and its own Save: see `LifetimeTab`.
+          <LifetimeTab
+            catalog={catalog}
+            deal={valueFor("lifetime")}
+            dirty={isDirty("lifetime")}
+            onChange={(next) => setValue("lifetime", next)}
+            onReset={() => reset("lifetime")}
+            onSave={() => save("lifetime")}
+            saving={savingSection === "lifetime"}
+          />
         ) : null}
         {tab === "links" ? (
           <LinksTab catalog={catalog} onPatch={patch} onPatchPlan={patchPlan} />
