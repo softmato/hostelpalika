@@ -20,6 +20,12 @@ type TokenType = "access" | "refresh";
 export type AuthTokenPayload = JWTPayload & {
   role: Role;
   hostelIds?: string[];
+  /**
+   * The account has an app-lock PIN: a cookie session must also carry the
+   * PIN-unlock cookie for this session (`lib/lock-pin-cookie.ts`). Bearer
+   * (app) sessions are locked by the app itself.
+   */
+  lockPin?: boolean;
   sessionId?: string;
   /**
    * Present only when the session was opened with a temporary credential
@@ -32,6 +38,7 @@ export type AuthTokenPayload = JWTPayload & {
 
 type TokenInput = {
   hostelIds?: string[];
+  lockPin?: boolean;
   role: Role;
   sessionId?: string;
   temporaryCredentialId?: string;
@@ -98,6 +105,7 @@ export async function signAccessToken(input: TokenInput) {
   return new SignJWT({
     role: input.role,
     hostelIds: input.hostelIds ?? [],
+    ...(input.lockPin ? { lockPin: true } : {}),
     sessionId: input.sessionId,
     ...(input.temporaryCredentialId
       ? { temporaryCredentialId: input.temporaryCredentialId }
@@ -144,6 +152,7 @@ async function verifyToken(
 
 export type PurposeTokenPurpose =
   | "cancel-account-deletion"
+  | "lock-pin-unlock"
   | "night-status-answer"
   | "password-reset"
   | "verify-email";

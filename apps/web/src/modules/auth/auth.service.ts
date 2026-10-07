@@ -85,6 +85,7 @@ function publicUser(user: {
   emailVerifiedAt?: Date | null;
   hostelIds?: unknown[];
   image?: string | null;
+  lockPinSetAt?: Date | null;
   mustChangePassword?: boolean | null;
   name: string;
   phone?: string | null;
@@ -98,6 +99,8 @@ function publicUser(user: {
     emailVerified: Boolean(user.emailVerified || user.emailVerifiedAt),
     hostelIds: (user.hostelIds ?? []).map((hostelId) => String(hostelId)),
     image: user.image ?? null,
+    /** An app-lock PIN is set — the app locks with it, and so does every web portal. */
+    hasLockPin: Boolean(user.lockPinSetAt),
     mustChangePassword: Boolean(user.mustChangePassword),
     name: user.name,
     phone: user.phone ?? null,
@@ -329,6 +332,8 @@ export async function issueSessionForUser(
 
   const tokenInput = {
     hostelIds: safeUser.hostelIds,
+    // A borrowed login is handed out on purpose; it never knows the owner's PIN.
+    lockPin: safeUser.hasLockPin && !options?.temporaryCredentialId,
     role: safeUser.role,
     sessionId,
     temporaryCredentialId: options?.temporaryCredentialId,
@@ -418,7 +423,7 @@ export async function requestOtpChallenge(
     identifier,
     instruction:
       input.purpose === "biometric"
-        ? "Enter this code in the app to confirm it is you. It unlocks the app, or turns fingerprint unlock off."
+        ? "Enter this code to confirm it is you. It lets you set a new app-lock PIN, or turns the lock off."
         : undefined,
   });
   const challenge = await OtpChallengeModel.create({
@@ -965,6 +970,7 @@ export async function refreshAccessToken(
   const safeUser = publicUser(account);
   const tokenInput = {
     hostelIds: safeUser.hostelIds,
+    lockPin: safeUser.hasLockPin && !temporaryCredentialId,
     role: safeUser.role,
     sessionId: String(session._id),
     temporaryCredentialId,
@@ -1106,7 +1112,9 @@ export async function getCurrentUser(accessToken: string) {
      */
     sessionStale:
       payload.role !== safeUser.role ||
-      !sameIds(payload.hostelIds, safeUser.hostelIds),
+      !sameIds(payload.hostelIds, safeUser.hostelIds) ||
+      // A PIN set or removed on the phone reaches this tab's guards now, not in 15 minutes.
+      Boolean(payload.lockPin) !== (safeUser.hasLockPin && !viaTemporaryCredential),
     /**
      * Lets the portal header say "you are on a temporary login" — the account
      * looks identical otherwise, and a borrower who does not realise it will

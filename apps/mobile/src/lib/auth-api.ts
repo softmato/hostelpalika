@@ -18,6 +18,12 @@ export type ApiUser = {
   cookFingerprintLock?: boolean;
   email: string | null;
   emailVerified: boolean;
+  /**
+   * The account has an app-lock PIN. One PIN per account: every phone signed
+   * in to it locks (`lib/app-lock.ts`), and so does every web portal.
+   * Optional: a cached account from before the PIN existed has nothing here.
+   */
+  hasLockPin?: boolean;
   hostelIds: string[];
   /**
    * Set while the account's hostel is in pre-suspension or suspended for an
@@ -44,6 +50,8 @@ export type ApiUser = {
   role: Role;
   status: string;
   userResidentId: string | null;
+  /** Signed in with a temporary login — the owner's lock and PIN are not theirs. */
+  viaTemporaryCredential?: boolean;
 };
 
 /** A hostel's plan suspension, as `/auth/me` reports it (apps/web `hostel-suspension.ts`). */

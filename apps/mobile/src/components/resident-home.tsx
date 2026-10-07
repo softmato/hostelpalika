@@ -18,6 +18,8 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { formatMoney, heroAmountSize, maskMoney } from "@/lib/format";
 import type { StayPill } from "@/lib/resident-home";
 
+const QUESTIONCALL_LOGO = require("../../assets/images/questioncall-logo.png");
+
 /**
  * The parts the resident Home screen is built out of.
  *
@@ -441,7 +443,8 @@ export function ResidentStayHero({
             accessibilityRole="button"
             className="-m-2 p-2 active:opacity-60"
             hitSlop={8}
-            onPress={() => {              setShown((current) => !current);
+            onPress={() => {
+              setShown((current) => !current);
             }}
           >
             <Ionicons
@@ -533,6 +536,7 @@ export function ResidentHomeActions({
   onIdCard,
   onNotices,
   onRaiseIssue,
+  questionCall,
   unreadNotices,
 }: {
   /** `tel:` the hostel. Omitted when the listing carries no phone number. */
@@ -540,6 +544,13 @@ export function ResidentHomeActions({
   onIdCard: () => void;
   onNotices: () => void;
   onRaiseIssue: () => void;
+  /**
+   * The study-partner cell, last, under QuestionCall's own logo and the one
+   * tone the row has not used. The caller decides whether it shows (students
+   * only, site-config switch) — data this row does not have. More has no row
+   * for it on purpose: it is not a screen of ours.
+   */
+  questionCall?: { label: string; onPress: () => void };
   /** Notices this resident has not opened. */
   unreadNotices: number;
 }) {
@@ -587,6 +598,19 @@ export function ResidentHomeActions({
       onPress: onNotices,
       tone: "success",
     },
+    ...(questionCall
+      ? [
+          {
+            glyph: colors.primary,
+            icon: "school-outline",
+            image: QUESTIONCALL_LOGO,
+            key: "questioncall",
+            label: questionCall.label,
+            onPress: questionCall.onPress,
+            tone: "resident",
+          } satisfies ActionTile,
+        ]
+      : []),
   ];
 
   return (

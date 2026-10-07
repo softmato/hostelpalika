@@ -74,4 +74,25 @@ export const googleAuthSchema = z.object({
 export type GoogleAuthInput = z.infer<typeof googleAuthSchema>;
 export type OtpRequestInput = z.infer<typeof otpRequestSchema>;
 export type OtpVerifyInput = z.infer<typeof otpVerifySchema>;
+
+/** The app-lock PIN: four digits, like the bank apps. */
+const lockPinSchema = z.string().regex(/^\d{4}$/, "Enter 4 digits.");
+
+/** What changing or removing an existing PIN accepts as "it is me" — see `lock-pin.service.ts`. */
+export const lockPinProofSchema = z.object({
+  challengeId: objectIdSchema.optional(),
+  code: z
+    .string()
+    .trim()
+    .regex(/^\d{6}$/, "Expected a 6-digit code.")
+    .optional(),
+  currentPin: lockPinSchema.optional(),
+  password: z.string().min(1).max(200).optional(),
+});
+
+export type LockPinProof = z.infer<typeof lockPinProofSchema>;
+
+export const setLockPinSchema = lockPinProofSchema.extend({ pin: lockPinSchema });
+
+export const verifyLockPinSchema = z.object({ pin: lockPinSchema });
 export type RegisterInput = z.infer<typeof registerSchema>;

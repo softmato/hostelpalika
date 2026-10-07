@@ -27,11 +27,40 @@ export function ResidentQuestionCallCard() {
     <a
       className="flex items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 shadow-sm transition hover:border-primary/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
       href={questionCall.url}
-      onClick={() => {
-        void browserApi("/api/v1/resident/questioncall/click", {
+      onClick={(event) => {
+        // A modified click (new window, background tab) stays a plain link.
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) {
+          return;
+        }
+
+        /*
+          Open in the click, point after the round trip — a window opened after
+          an await is a blocked popup — so the single-use `ssoCode` can ride
+          along as `hp_code` and QuestionCall opens signed in as this resident.
+        */
+        event.preventDefault();
+        const tab = window.open("", "_blank");
+        const url = questionCall.url;
+
+        void browserApi<{ ssoCode: string | null }>("/api/v1/resident/questioncall/click", {
           body: JSON.stringify({ deviceType: "web" }),
           method: "POST",
-        }).catch(() => undefined);
+        })
+          .then((click) => click.ssoCode)
+          .catch(() => null)
+          .then((ssoCode) => {
+            const target = ssoCode
+              ? `${url}${url.includes("?") ? "&" : "?"}hp_code=${encodeURIComponent(ssoCode)}`
+              : url;
+
+            if (!tab) {
+              window.open(target, "_blank", "noopener");
+              return;
+            }
+
+            tab.opener = null;
+            tab.location.href = target;
+          });
       }}
       // noopener/noreferrer: the partner tab must not get a handle on ours.
       rel="noopener noreferrer"

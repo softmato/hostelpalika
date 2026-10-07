@@ -46,6 +46,15 @@ const userSchema = new Schema(
      */
     previousRole: { type: String, enum: ROLE_VALUES },
     mustChangePassword: { type: Boolean, default: false },
+    /**
+     * The app-lock PIN (4 digits, bcrypt). Unlocks the app beside the
+     * fingerprint, and every web portal asks for it before it opens.
+     * `lockPinSetAt` is the readable "has a PIN" flag; `lockPinFailures`
+     * counts wrong tries, and at 10 only an email code can set a new one.
+     */
+    lockPinHash: { type: String, select: false },
+    lockPinSetAt: { type: Date, default: null },
+    lockPinFailures: { type: Number, default: 0 },
     tokenVersion: { type: Number, default: 0 },
     hostelIds: [{ ref: "Hostel", type: Schema.Types.ObjectId }],
     status: {

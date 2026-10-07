@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 
 import { getBearerToken, readAccessTokenCookie, verifyAccessToken } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
+import { isPinUnlocked } from "@/lib/lock-pin-cookie";
 import { HOSTEL_STAFF_ROLES, PLATFORM_ROLES, TEAM_ROLES, assertAllowedRole } from "@/lib/permissions";
 import { assertHostelAccess } from "@/lib/tenant";
 import { Role } from "@/lib/roles";
@@ -27,6 +28,11 @@ export type ApiPrincipal = {
    */
   allHostelIds?: string[];
   hostelIds: string[];
+  /**
+   * A browser (cookie) session of an account with an app-lock PIN that has not
+   * typed it yet. `requireApiPrincipal` answers 423 `LOCK_PIN_REQUIRED`.
+   */
+  pinLocked?: boolean;
   role: Role;
   sessionId?: string;
   /**
@@ -63,8 +69,8 @@ function cookieAccessToken(request: NextRequest) {
 }
 
 export async function loadApiPrincipal(request: NextRequest) {
-  const accessToken =
-    getBearerToken(request.headers.get("authorization")) ?? cookieAccessToken(request);
+  const bearer = getBearerToken(request.headers.get("authorization"));
+  const accessToken = bearer ?? cookieAccessToken(request);
 
   if (!accessToken) {
     return null;
@@ -95,12 +101,20 @@ export async function loadApiPrincipal(request: NextRequest) {
       return null;
     }
 
+    const sessionId = typeof payload.sessionId === "string" ? payload.sessionId : undefined;
+    // The app (bearer) draws its own lock; only a browser session is held here.
+    const pinLocked =
+      !bearer &&
+      payload.lockPin === true &&
+      !(await isPinUnlocked(request.cookies, payload.sub, sessionId));
+
     return {
       hostelIds: Array.isArray(payload.hostelIds)
         ? payload.hostelIds.map((hostelId) => String(hostelId))
         : [],
+      ...(pinLocked ? { pinLocked } : {}),
       role: payload.role,
-      sessionId: typeof payload.sessionId === "string" ? payload.sessionId : undefined,
+      sessionId,
       temporaryCredentialId,
       userId: payload.sub,
     } satisfies ApiPrincipal;
@@ -257,11 +271,25 @@ function assertNotSuspended(principal: ApiPrincipal) {
   }
 }
 
+/** What a PIN-locked browser may still call: the unlock, its email reset, signing out. */
+const OPEN_WHILE_PIN_LOCKED = [
+  "/api/v1/auth/lock-pin",
+  "/api/v1/auth/biometric/",
+  "/api/v1/auth/logout",
+];
+
 export async function requireApiPrincipal(request: NextRequest) {
   const principal = await loadApiPrincipal(request);
 
   if (!principal) {
     throw new ApiAuthError("Authentication is required.");
+  }
+
+  if (
+    principal.pinLocked &&
+    !OPEN_WHILE_PIN_LOCKED.some((path) => requestPath(request).startsWith(path))
+  ) {
+    throw new ApiAuthError("Enter your PIN to continue.", "LOCK_PIN_REQUIRED", 423);
   }
 
   return narrowToLiveHostels(request, principal);

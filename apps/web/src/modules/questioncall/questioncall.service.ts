@@ -1,3 +1,5 @@
+import crypto from "node:crypto";
+
 import { Types } from "mongoose";
 import type { z } from "zod";
 
@@ -5,17 +7,45 @@ import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { QuestionCallClickModel } from "@hostel/db/models/QuestionCallClick";
+import { UserModel } from "@hostel/db/models/User";
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
 import { findCurrentResident } from "@/modules/residents/resident-access";
 import type {
   questionCallAnalyticsQuerySchema,
   questionCallClickSchema,
   questionCallConversionSchema,
+  questionCallSsoExchangeSchema,
 } from "@/modules/questioncall/questioncall.validation";
 
 type QuestionCallClickInput = z.infer<typeof questionCallClickSchema>;
 type QuestionCallAnalyticsQuery = z.infer<typeof questionCallAnalyticsQuerySchema>;
 type QuestionCallConversionInput = z.infer<typeof questionCallConversionSchema>;
+type QuestionCallSsoExchangeInput = z.infer<typeof questionCallSsoExchangeSchema>;
+
+/** Long enough for QuestionCall's app to cold-start, short enough to be useless in a log. */
+const SSO_CODE_TTL_MS = 5 * 60 * 1000;
+
+function hashSsoSecret(secret: string) {
+  return crypto.createHash("sha256").update(secret).digest("hex");
+}
+
+type SsoUser = {
+  _id: Types.ObjectId;
+  email?: string;
+  emailVerified?: boolean;
+  name: string;
+  phone?: string;
+  status?: string;
+};
+
+/**
+ * Only a verified email is vouched for: QuestionCall keys accounts on email, so
+ * an unverified one would hand its owner's QuestionCall account to whoever typed
+ * it in here.
+ */
+function canSignInToQuestionCall(user: SsoUser | null): user is SsoUser & { email: string } {
+  return Boolean(user?.email && user.emailVerified && (user.status ?? "ACTIVE") === "ACTIVE");
+}
 
 export class QuestionCallServiceError extends Error {
   constructor(
@@ -38,11 +68,13 @@ type ClickRecord = {
 };
 
 /**
- * Records the click. Where the resident goes is the `questionCall` site-config
- * link, which both clients open straight from the tap — a window opened after a
- * round trip is a popup the browser blocks. `redirectUrl` is that same link,
- * kept for app builds older than the 2026-10-01 row, which open what this
- * returns.
+ * Records the click and, for a verified email, mints the single-use `ssoCode`
+ * QuestionCall trades (server to server) for this resident's identity — so they
+ * land signed in, the way ChatGPT opens inside Viber. `ssoCode` is null when
+ * there is nothing to vouch for; QuestionCall then shows its own sign-in.
+ *
+ * `redirectUrl` is the `questionCall` site-config link, kept for app builds older
+ * than the 2026-10-01 row, which open what this returns.
  *
  * Only STUDENT residents see the entry point (PHASES.md §5.1), and the check is
  * repeated here — a hidden button is not access control.
@@ -63,18 +95,90 @@ export async function trackQuestionCallClick(
     );
   }
 
-  const click = await QuestionCallClickModel.create({
+  const userId = resident.userId ?? principal.userId;
+  const user = await UserModel.findById(userId)
+    .select("email emailVerified name status")
+    .lean<SsoUser | null>();
+  const clickId = new Types.ObjectId();
+  const ssoSecret = canSignInToQuestionCall(user)
+    ? crypto.randomBytes(32).toString("base64url")
+    : null;
+
+  await QuestionCallClickModel.create({
+    _id: clickId,
     clickedAt: new Date(),
     converted: false,
     deviceType: input.deviceType,
     hostelId: resident.hostelId,
     residentId: resident._id,
-    userId: resident.userId ?? principal.userId,
+    ...(ssoSecret
+      ? {
+          ssoCodeHash: hashSsoSecret(ssoSecret),
+          ssoExpiresAt: new Date(Date.now() + SSO_CODE_TTL_MS),
+        }
+      : {}),
+    userId,
   });
 
   const { url } = await getSiteConfigSection("questionCall");
 
-  return { clickId: click._id.toString(), redirectUrl: url };
+  return {
+    clickId: clickId.toString(),
+    redirectUrl: url,
+    ssoCode: ssoSecret ? `${clickId.toString()}.${ssoSecret}` : null,
+  };
+}
+
+/**
+ * QuestionCall's backend trading an `ssoCode` for who the resident is. Burns
+ * the code in the same write that finds it, so a replay — or a second tab —
+ * gets nothing. The account is re-checked here, not trusted from the tap.
+ */
+export async function exchangeQuestionCallSsoCode(input: QuestionCallSsoExchangeInput) {
+  await connectToDatabase();
+
+  const [clickId, secret] = input.code.split(".");
+  const invalid = new QuestionCallServiceError(
+    "This sign-in link has expired or was already used.",
+    "QUESTIONCALL_SSO_INVALID",
+    401,
+  );
+
+  if (!clickId || !secret || !Types.ObjectId.isValid(clickId)) {
+    throw invalid;
+  }
+
+  const click = await QuestionCallClickModel.findOneAndUpdate(
+    {
+      _id: new Types.ObjectId(clickId),
+      ssoCodeHash: hashSsoSecret(secret),
+      ssoExpiresAt: { $gt: new Date() },
+      ssoUsedAt: null,
+    },
+    { $set: { ssoUsedAt: new Date() } },
+  ).lean<ClickRecord | null>();
+
+  if (!click) {
+    throw invalid;
+  }
+
+  const user = await UserModel.findById(click.userId)
+    .select("email emailVerified name phone status")
+    .lean<SsoUser | null>();
+
+  if (!canSignInToQuestionCall(user)) {
+    throw invalid;
+  }
+
+  return {
+    clickId: click._id.toString(),
+    user: {
+      email: user.email,
+      id: user._id.toString(),
+      name: user.name,
+      phone: user.phone ?? null,
+    },
+  };
 }
 
 export async function getQuestionCallStatus(principal: ApiPrincipal) {

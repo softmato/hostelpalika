@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import type { ReactNode } from "react";
-import { Pressable, View } from "react-native";
+import { Image, type ImageSourcePropType, Pressable, View } from "react-native";
 
 import { FLOAT_SHADOW } from "@/components/portal-shared";
 import { Text } from "@/components/ui/text";
@@ -99,6 +99,7 @@ export function ActionCell({
   badge,
   glyph,
   icon,
+  image,
   label,
   onPress,
   onPressIn,
@@ -114,6 +115,11 @@ export function ActionCell({
   badge?: number;
   glyph: string;
   icon: keyof typeof Ionicons.glyphMap;
+  /**
+   * Drawn instead of `icon`, for a door to somebody else's product — their logo
+   * is how people recognise it. Ours stay Ionicons.
+   */
+  image?: ImageSourcePropType;
   label: string;
   onPress: () => void;
   /**
@@ -160,7 +166,11 @@ export function ActionCell({
           selected ? "bg-primary" : ACTION_TONES[tone]
         }`}
       >
-        <Ionicons color={selected ? colors.primaryForeground : glyph} name={icon} size={21} />
+        {image ? (
+          <Image resizeMode="contain" source={image} style={{ height: 28, width: 28 }} />
+        ) : (
+          <Ionicons color={selected ? colors.primaryForeground : glyph} name={icon} size={21} />
+        )}
 
         {/*
           On the glyph's shoulder, where every phone home screen has trained
@@ -208,6 +218,8 @@ export type ActionTile = {
   badge?: number;
   glyph: string;
   icon: keyof typeof Ionicons.glyphMap;
+  /** See `<ActionCell image>`. */
+  image?: ImageSourcePropType;
   /** Stable across renders. The destination's href does fine. */
   key: string;
   label: string;
@@ -247,6 +259,7 @@ export function ActionTiles({ tiles }: { tiles: readonly ActionTile[] }) {
               badge={tile.badge}
               glyph={tile.glyph}
               icon={tile.icon}
+              image={tile.image}
               key={tile.key}
               label={tile.label}
               onPress={tile.onPress}

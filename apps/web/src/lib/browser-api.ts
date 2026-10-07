@@ -168,6 +168,17 @@ async function parseResponse<T>(
       leaveResidentPortal();
     }
 
+    // A PIN set on the phone mid-session: the next call is refused, and the
+    // portal steps aside for the PIN screen.
+    if (
+      errorCode === "LOCK_PIN_REQUIRED" &&
+      typeof window !== "undefined" &&
+      !window.location.pathname.startsWith("/unlock")
+    ) {
+      const next = encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.assign(`/unlock?next=${next}`);
+    }
+
     throw new ApiRequestError(
       payload.message || "Request failed",
       "details" in payload ? payload.details : undefined,

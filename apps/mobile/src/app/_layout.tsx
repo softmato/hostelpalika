@@ -18,7 +18,7 @@ import { PersistGate } from "redux-persist/integration/react";
 import { hydrateQueryCache } from "@/lib/query-cache-persist";
 
 import { BottomChromeProvider } from "@/components/bottom-chrome";
-import { AppLockHost, FingerprintOffer } from "@/components/app-lock";
+import { AppLockHost, AppLockOffer } from "@/components/app-lock";
 import { AssetViewer } from "@/components/asset-viewer";
 import {
   BootSplashCover,
@@ -569,7 +569,7 @@ function RootShell() {
       */}
       <ResidencyInviteHost />
       <UpdateSheet />
-      <FingerprintOffer />
+      <AppLockOffer />
       <SharedPaymentResume />
       <ReceiptNativeSync />
       </BlurTargetView>

@@ -16,18 +16,30 @@
  * background the app. Coming back within `GRACE_MS` lifts the lock without
  * asking; longer, and it asks.
  *
- * ## Why a SecureStore item and not just `authenticateAsync`
+ * ## PIN or fingerprint
  *
- * Reading `LOCK_KEY` *is* the fingerprint check, and the key is bound to the
- * phone's current fingerprints: Android drops it the moment one is added or
- * removed, iOS stores it `biometryCurrentSet`. So `null` means "someone changed
- * the fingers on this phone", which a bare prompt cannot tell from a wrong
- * finger — and that is when the email code (the account's Gmail) is asked for.
+ * The lock is the account's 4-digit PIN (`hasLockPin`, checked by the server,
+ * shared with every web portal); the fingerprint is a per-phone shortcut to
+ * the same door (`auth.biometricUserId`). An account from before the PIN that
+ * turned on a fingerprint keeps a fingerprint-only lock until it adds one.
+ *
+ * ## Strong fingerprints hold a key; weak ones get the system prompt
+ *
+ * On a phone whose fingerprint is Android Class 3 ("strong"), reading
+ * `LOCK_KEY` *is* the check, and the key is bound to the current fingerprints:
+ * Android drops it the moment one is added or removed, iOS stores it
+ * `biometryCurrentSet`. So `null` means "someone changed the fingers on this
+ * phone" — and then the PIN (or, with no PIN, the email code) is asked for.
+ *
+ * Many budget phones register their fingerprint as Class 2 ("weak"), which no
+ * keystore key can be bound to. Those get the plain system prompt — what the
+ * bank apps use — and the PIN stands behind it.
  */
 
 import * as LocalAuthentication from "expo-local-authentication";
 import * as SecureStore from "expo-secure-store";
 
+import { APP_NAME } from "@/constants/branding";
 import { api } from "@/lib/api";
 import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
 import type { ApiUser } from "@/lib/auth-api";
@@ -88,7 +100,8 @@ export function onAppStateChange(state: string) {
  * already-enabled cook's lock).
  */
 export function canOfferLock(account: ApiUser | null) {
-  if (!account?.email) return false;
+  // A temporary login was handed out on purpose; the owner's lock is not its to keep.
+  if (!account?.email || account.viaTemporaryCredential) return false;
   if (account.role === ROLE.COOK) return account.cookFingerprintLock === true;
   return (
     account.role === ROLE.HOSTEL_ADMIN ||
@@ -114,9 +127,8 @@ export function isAuthenticating() {
 export type FingerprintStatus = "ready" | "weak" | "none";
 
 /**
- * `ready`: a strong biometric is enrolled — what SecureStore's auth-bound keys
- * require. `weak`: only a weak one (often face unlock), which cannot hold the
- * key. `none`: nothing saved on the phone yet.
+ * `ready`: a strong biometric is enrolled — SecureStore's auth-bound key.
+ * `weak`: only a Class 2 one — the system prompt. `none`: nothing saved yet.
  */
 export async function fingerprintStatus(): Promise<FingerprintStatus> {
   const level = await LocalAuthentication.getEnrolledLevelAsync().catch(
@@ -126,8 +138,18 @@ export async function fingerprintStatus(): Promise<FingerprintStatus> {
   return level === LocalAuthentication.SecurityLevel.BIOMETRIC_WEAK ? "weak" : "none";
 }
 
+/** Either kind can open the app. */
 export async function hasFingerprint() {
-  return (await fingerprintStatus()) === "ready";
+  return (await fingerprintStatus()) !== "none";
+}
+
+function promptWeakFingerprint(message: string) {
+  return LocalAuthentication.authenticateAsync({
+    biometricsSecurityLevel: "weak",
+    cancelLabel: "Use PIN",
+    disableDeviceFallback: true,
+    promptMessage: message,
+  });
 }
 
 async function withPrompt<T>(work: () => Promise<T>) {
@@ -139,8 +161,16 @@ async function withPrompt<T>(work: () => Promise<T>) {
   }
 }
 
-/** Creates the fingerprint-bound key; the prompt it shows is the confirmation. */
+/** Strong: creates the fingerprint-bound key. Weak: one good read. The prompt is the confirmation. */
 export async function armFingerprint() {
+  const status = await fingerprintStatus();
+  if (status === "none") return false;
+
+  if (status === "weak") {
+    const result = await withPrompt(() => promptWeakFingerprint("Confirm your fingerprint"));
+    return result.success;
+  }
+
   return withPrompt(() =>
     SecureStore.setItemAsync(LOCK_KEY, String(Date.now()), {
       authenticationPrompt: "Confirm your fingerprint",
@@ -158,12 +188,20 @@ export async function disarmFingerprint() {
 export type FingerprintResult = "unlocked" | "changed" | "failed";
 
 export async function unlockWithFingerprint(): Promise<FingerprintResult> {
-  if (!(await hasFingerprint())) return "changed";
+  const status = await fingerprintStatus();
+  if (status === "none") return "changed";
+
+  if (status === "weak") {
+    const result = await withPrompt(() => promptWeakFingerprint(`Unlock ${APP_NAME}`));
+    if (!result.success) return "failed";
+    emit(false);
+    return "unlocked";
+  }
 
   try {
     const value = await withPrompt(() =>
       SecureStore.getItemAsync(LOCK_KEY, {
-        authenticationPrompt: "Unlock HostelPalika",
+        authenticationPrompt: `Unlock ${APP_NAME}`,
         requireAuthentication: true,
       }),
     );
@@ -174,6 +212,35 @@ export async function unlockWithFingerprint(): Promise<FingerprintResult> {
     // Cancelled, not recognised, or locked out for too many tries.
     return "failed";
   }
+}
+
+export type LockPinProof = {
+  challengeId?: string;
+  code?: string;
+  currentPin?: string;
+  password?: string;
+};
+
+/** Checks the PIN with the server; 10 wrong in a row blocks it until it is reset. */
+export async function checkLockPin(pin: string) {
+  unwrap(await api.post<ApiEnvelope<{ verified: true }>>("/auth/lock-pin/verify", { pin }));
+}
+
+export async function unlockWithPin(pin: string) {
+  await checkLockPin(pin);
+  emit(false);
+}
+
+/** First PIN needs nothing more; replacing one needs `proof`. */
+export async function saveLockPin(pin: string, proof: LockPinProof = {}) {
+  return unwrap(await api.put<ApiEnvelope<{ hasLockPin: true }>>("/auth/lock-pin", { pin, ...proof }));
+}
+
+/** Off for the account — every phone and the website. */
+export async function removeLockPin(proof: LockPinProof) {
+  return unwrap(
+    await api.delete<ApiEnvelope<{ hasLockPin: false }>>("/auth/lock-pin", { data: proof }),
+  );
 }
 
 /** Mails the signed-in account's own address a code. */

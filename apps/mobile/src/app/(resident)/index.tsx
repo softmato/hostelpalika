@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useMemo } from "react";
 import { Linking, Pressable, View } from "react-native";
@@ -13,12 +12,10 @@ import {
 } from "@/components/resident-home";
 import { Badge } from "@/components/ui/badge";
 import { Card, SectionHeader } from "@/components/ui/card";
-import { CardRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
-import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { useSiteConfig } from "@/hooks/use-site-config";
@@ -102,6 +99,7 @@ import { toastError } from "@/lib/toast";
 
 export default function ResidentHomeScreen() {
   const dates = useDates();
+  const { questionCall } = useSiteConfig().config;
 
   /*
    * Live, which no resident screen was.
@@ -289,6 +287,24 @@ export default function ResidentHomeScreen() {
           onIdCard={() => router.push("/id-card")}
           onNotices={() => router.push("/(resident)/notices")}
           onRaiseIssue={() => router.push("/complaints/new")}
+          /*
+            Students only — a working professional has no use for it, and the
+            API repeats the check (403 `QUESTIONCALL_NOT_ELIGIBLE`), so hiding
+            the tile is presentation rather than the gate. Label and on/off
+            are Website Config → Site Content → QuestionCall.
+          */
+          questionCall={
+            questionCall.enabled &&
+            (dashboard.resident.residentType ?? "STUDENT") === "STUDENT"
+              ? {
+                  label: questionCall.label,
+                  onPress: () =>
+                    void openQuestionCall(questionCall.url).catch(() =>
+                      toastError("Could not open QuestionCall"),
+                    ),
+                }
+              : undefined
+          }
           unreadNotices={unreadNotices.length}
         />
       </View>
@@ -309,15 +325,6 @@ export default function ResidentHomeScreen() {
             onPrefetch={prefetchResidentRoute}
           />
         </View>
-
-        {/*
-          Students only — a working professional has no use for it, and the API
-          repeats the check (403 `QUESTIONCALL_NOT_ELIGIBLE`), so hiding the row
-          is presentation rather than the gate.
-        */}
-        {(dashboard.resident.residentType ?? "STUDENT") === "STUDENT" ? (
-          <QuestionCallRow />
-        ) : null}
       </View>
     </Screen>
   );
@@ -436,37 +443,5 @@ function NoticesCard({ notices }: { notices: ResidentDashboard["notices"] }) {
         )}
       </Card>
     </View>
-  );
-}
-
-/**
- * The study-partner door, as a tinted row like every other door on this screen
- * rather than a paragraph and a button. Label, link and the on/off switch are
- * Website Config → Site Content → QuestionCall, so they change without a
- * release; the web resident dashboard draws the same row.
- *
- * The trailing glyph is `open-outline`, not a chevron: this leaves the app.
- */
-function QuestionCallRow() {
-  const { colors } = useAppTheme();
-  const { questionCall } = useSiteConfig().config;
-
-  if (!questionCall.enabled) {
-    return null;
-  }
-
-  return (
-    <CardRow
-      icon="school-outline"
-      onPress={() =>
-        void openQuestionCall(questionCall.url).catch(() =>
-          toastError("Could not open QuestionCall"),
-        )
-      }
-      right={<Ionicons color={colors.mutedForeground} name="open-outline" size={18} />}
-      subtitle="Ask a tutor your study questions"
-      title={questionCall.label}
-      tone="brand"
-    />
   );
 }

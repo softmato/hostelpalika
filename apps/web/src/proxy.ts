@@ -9,6 +9,7 @@ import {
 } from "@/lib/auth-cookies";
 import { applySessionCookies } from "@/lib/session-cookies";
 import { isAuthBypassEnabled } from "@/lib/auth-bypass";
+import { isPinUnlocked } from "@/lib/lock-pin-cookie";
 import { landingPathForRole, protectedRouteRuleForPath } from "@/lib/route-access";
 import { Role } from "@/lib/roles";
 
@@ -35,6 +36,16 @@ function redirectToLogin(request: NextRequest, error?: string) {
   }
 
   return NextResponse.redirect(loginUrl);
+}
+
+/** The account has an app-lock PIN this browser has not typed this session. */
+function redirectToUnlock(request: NextRequest) {
+  const unlockUrl = request.nextUrl.clone();
+  unlockUrl.pathname = "/unlock";
+  unlockUrl.search = "";
+  unlockUrl.searchParams.set("next", `${request.nextUrl.pathname}${request.nextUrl.search}`);
+
+  return NextResponse.redirect(unlockUrl);
 }
 
 function redirectHome(request: NextRequest) {
@@ -69,7 +80,7 @@ export async function proxy(request: NextRequest) {
   const refuse = (error?: string) =>
     rule.refuseTo === "home" ? redirectHome(request) : redirectToLogin(request, error);
 
-  let role = await roleFromAccessToken(readAccessTokenCookie(request.cookies));
+  let claims = await claimsFromAccessToken(readAccessTokenCookie(request.cookies));
   let refreshed: { accessToken: string; refreshToken: string | null } | null = null;
 
   /*
@@ -77,7 +88,7 @@ export async function proxy(request: NextRequest) {
    * through the client's 401 → refresh path. Refresh here, from the refresh
    * cookie, so an idle tab or a fresh navigation keeps the session.
    */
-  if (!role) {
+  if (!claims) {
     try {
       refreshed = await refreshFromCookie(request);
     } catch {
@@ -85,19 +96,25 @@ export async function proxy(request: NextRequest) {
         status: 503, headers: { "Retry-After": "5", "Cache-Control": "no-store" },
       });
     }
-    role = refreshed ? await roleFromAccessToken(refreshed.accessToken) : null;
+    claims = refreshed ? await claimsFromAccessToken(refreshed.accessToken) : null;
   }
 
-  if (!role) {
+  if (!claims) {
     return hasSessionCookie(request.cookies) ? refuse("session_expired") : refuse();
   }
 
+  const { role } = claims;
   const withSession = (response: NextResponse) =>
     refreshed ? applySessionCookies(response, refreshed) : response;
 
   // `roles: null` means the route only asks that somebody is signed in, which
   // the valid token above has already established.
   if (!rule.roles || rule.roles.includes(role)) {
+    // Before anything of the portal renders: the PIN, once per browser session.
+    if (claims.lockPin && !(await isPinUnlocked(request.cookies, claims.userId, claims.sessionId))) {
+      return withSession(redirectToUnlock(request));
+    }
+
     if (!refreshed) {
       return NextResponse.next();
     }
@@ -144,7 +161,7 @@ function isSoftSessionPath(pathname: string) {
 async function keepSessionAlive(request: NextRequest) {
   if (
     !readRefreshTokenCookieValue(request.cookies) ||
-    (await roleFromAccessToken(readAccessTokenCookie(request.cookies)))
+    (await claimsFromAccessToken(readAccessTokenCookie(request.cookies)))
   ) {
     return NextResponse.next();
   }
@@ -163,7 +180,7 @@ async function keepSessionAlive(request: NextRequest) {
   );
 }
 
-async function roleFromAccessToken(token: string | undefined) {
+async function claimsFromAccessToken(token: string | undefined) {
   if (!token) {
     return null;
   }
@@ -174,7 +191,12 @@ async function roleFromAccessToken(token: string | undefined) {
     return payload.tokenType === "access" &&
       payload.sub &&
       typeof payload.role === "string"
-      ? (payload.role as Role)
+      ? {
+          lockPin: payload.lockPin === true,
+          role: payload.role as Role,
+          sessionId: typeof payload.sessionId === "string" ? payload.sessionId : undefined,
+          userId: payload.sub,
+        }
       : null;
   } catch {
     return null;

@@ -402,7 +402,7 @@ export async function markNoticeRead(noticeId: string) {
  * The server validates `deviceType` as `"android" | "ios" | "web"`.
  */
 export async function recordQuestionCallClick(deviceType: "android" | "ios" | "web") {
-  const response = await api.post<ApiEnvelope<{ clickId: string }>>(
+  const response = await api.post<ApiEnvelope<{ clickId: string; ssoCode: string | null }>>(
     "/resident/questioncall/click",
     { deviceType },
   );

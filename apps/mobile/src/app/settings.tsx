@@ -3,7 +3,7 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Linking, View } from "react-native";
 
-import { FingerprintLockSetting } from "@/components/app-lock";
+import { AppLockSetting } from "@/components/app-lock";
 import { CalendarPreferenceCard } from "@/components/calendar-preference";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
@@ -92,7 +92,7 @@ const SETTINGS_TITLES: Record<string, string> = {
   calendar: "Dates",
   notifications: "Notifications",
   privacy: "Privacy & your data",
-  security: "Fingerprint lock",
+  security: "App lock",
 };
 
 export default function SettingsScreen() {
@@ -182,7 +182,7 @@ export default function SettingsScreen() {
           </View>
         ) : null}
 
-        {showSecurity ? <FingerprintLockSetting /> : null}
+        {showSecurity ? <AppLockSetting /> : null}
 
         {showCalendar ? <CalendarPreferenceCard /> : null}
 

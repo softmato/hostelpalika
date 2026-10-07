@@ -6,8 +6,13 @@ import { recordQuestionCallClick } from "@/lib/resident-api";
 const NATIVE_APP_URL = "questioncall://";
 
 /**
- * Opens QuestionCall for a student resident: its phone app when installed,
- * otherwise `url` — the site-config link into its installable web app.
+ * Opens QuestionCall for a student resident, signed in: its phone app when
+ * installed, otherwise `url` — the site-config link into its installable web app.
+ *
+ * The click comes first now, not alongside: its `ssoCode` rides on the link as
+ * `hp_code`, and QuestionCall's backend trades it with ours for who this is — a
+ * single-use code, so the link is worthless once opened. No code (unverified
+ * email, offline) still opens QuestionCall; they sign in there instead.
  *
  * The phone app first because QuestionCall is a calling app, and only the
  * native one rings like a phone call. A scheme nobody registered rejects, which
@@ -22,12 +27,14 @@ const NATIVE_APP_URL = "questioncall://";
  * The PWA's stand-in is `web/questioncall.ts`.
  */
 export async function openQuestionCall(url: string) {
-  // Alongside, not before: the tap must not wait on our analytics.
-  void recordQuestionCallClick(Platform.OS as "android" | "ios").catch(() => undefined);
+  const ssoCode = await recordQuestionCallClick(Platform.OS as "android" | "ios")
+    .then((click) => click.ssoCode)
+    .catch(() => null);
+  const code = ssoCode ? `hp_code=${encodeURIComponent(ssoCode)}` : "";
 
   try {
-    await Linking.openURL(NATIVE_APP_URL);
+    await Linking.openURL(code ? `${NATIVE_APP_URL}?${code}` : NATIVE_APP_URL);
   } catch {
-    await Linking.openURL(url);
+    await Linking.openURL(code ? `${url}${url.includes("?") ? "&" : "?"}${code}` : url);
   }
 }

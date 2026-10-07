@@ -18,6 +18,7 @@ import { EmptyState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useLockEnabled } from "@/components/app-lock";
 import { canOfferLock } from "@/lib/app-lock";
 import { CALENDAR_LABELS } from "@/lib/calendar";
 import { endSession } from "@/lib/auth-session";
@@ -205,9 +206,7 @@ export function AppRows({
   const preference = useAppSelector((state) => state.ui.themePreference);
   const account = useAppSelector((state) => state.auth.account);
   const calendar = useAppSelector((state) => state.ui.calendarPreference);
-  const lockOn = useAppSelector(
-    (state) => state.auth.account !== null && state.auth.biometricUserId === state.auth.account.id,
-  );
+  const lockOn = useLockEnabled();
   const dispatch = useAppDispatch();
   const dark = preference === "dark";
 
@@ -222,9 +221,9 @@ export function AppRows({
       />
       {canOfferLock(account) ? (
         <MenuRow
-          icon="finger-print"
+          icon="lock-closed"
           onPress={() => router.push({ params: { section: "security" }, pathname: "/settings" })}
-          title="Fingerprint lock"
+          title="App lock"
           value={lockOn ? "On" : "Off"}
         />
       ) : null}

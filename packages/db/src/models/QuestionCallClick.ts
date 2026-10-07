@@ -24,6 +24,14 @@ const questionCallClickSchema = new Schema(
     deviceType: { default: "web", enum: ["web", "android", "ios"], type: String },
     converted: { default: false, index: true, type: Boolean },
     conversionTrackedAt: Date,
+    /*
+      Single-use sign-in handoff to QuestionCall. Only the SHA-256 of the code's
+      secret half is kept; the code is `<this _id>.<secret>`, so the exchange
+      looks the row up by `_id` and needs no index of its own.
+    */
+    ssoCodeHash: String,
+    ssoExpiresAt: Date,
+    ssoUsedAt: Date,
   },
   { timestamps: true },
 );

@@ -18,3 +18,8 @@ export const questionCallConversionSchema = z.object({
   clickId: objectIdSchema.optional(),
   userId: objectIdSchema.optional(),
 });
+
+/** QuestionCall trades the code a resident arrived with for who they are. */
+export const questionCallSsoExchangeSchema = z.object({
+  code: z.string().min(1).max(200),
+});
