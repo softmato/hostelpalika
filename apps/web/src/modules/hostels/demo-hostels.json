@@ -73,16 +73,6 @@
     },
     "photos": [
       {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/31533419/pexels-photo-31533419.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Saathi Ghar Boys Hostel — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/20988035/pexels-photo-20988035.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Saathi Ghar Boys Hostel — hostel exterior"
-      },
-      {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/31944365/pexels-photo-31944365.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
         "alt": "Saathi Ghar Boys Hostel — kitchen"
@@ -200,16 +190,6 @@
     },
     "photos": [
       {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/36293969/pexels-photo-36293969.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Pathshala Girls Hostel — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/37411522/pexels-photo-37411522.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Pathshala Girls Hostel — hostel exterior"
-      },
-      {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/6375553/pexels-photo-6375553.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
         "alt": "Pathshala Girls Hostel — kitchen"
@@ -324,16 +304,6 @@
       "vacantBeds": 7
     },
     "photos": [
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/37662361/pexels-photo-37662361.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Naya Basti Boys Hostel — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/37662352/pexels-photo-37662352.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Naya Basti Boys Hostel — hostel exterior"
-      },
       {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/31944361/pexels-photo-31944361.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
@@ -450,16 +420,6 @@
       "vacantBeds": 5
     },
     "photos": [
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/32329121/pexels-photo-32329121.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Himal Chhaya Co-living — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/35157543/pexels-photo-35157543.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Himal Chhaya Co-living — hostel exterior"
-      },
       {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/36881138/pexels-photo-36881138.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
@@ -586,16 +546,6 @@
     },
     "photos": [
       {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/17136827/pexels-photo-17136827.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Aangan Girls Hostel — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/35157557/pexels-photo-35157557.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Aangan Girls Hostel — hostel exterior"
-      },
-      {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/31944364/pexels-photo-31944364.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
         "alt": "Aangan Girls Hostel — kitchen"
@@ -711,16 +661,6 @@
       "vacantBeds": 9
     },
     "photos": [
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/33557085/pexels-photo-33557085.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Kupondole Student Residence — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/36404578/pexels-photo-36404578.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Kupondole Student Residence — hostel exterior"
-      },
       {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/32048482/pexels-photo-32048482.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
@@ -847,16 +787,6 @@
     },
     "photos": [
       {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/11443895/pexels-photo-11443895.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Patan Nest Girls Hostel — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/23833980/pexels-photo-23833980.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Patan Nest Girls Hostel — hostel exterior"
-      },
-      {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/33375679/pexels-photo-33375679.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
         "alt": "Patan Nest Girls Hostel — kitchen"
@@ -971,16 +901,6 @@
       "vacantBeds": 5
     },
     "photos": [
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/11429504/pexels-photo-11429504.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Bhaktapur Chowk Boys Hostel — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/34436808/pexels-photo-34436808.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Bhaktapur Chowk Boys Hostel — hostel exterior"
-      },
       {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/31944361/pexels-photo-31944361.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
@@ -1097,16 +1017,6 @@
       "vacantBeds": 10
     },
     "photos": [
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/27582015/pexels-photo-27582015.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Phewa View Co-living — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/13319068/pexels-photo-13319068.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Phewa View Co-living — hostel exterior"
-      },
       {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/36881138/pexels-photo-36881138.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
@@ -1232,16 +1142,6 @@
     },
     "photos": [
       {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/7718485/pexels-photo-7718485.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Machhapuchhre Boys Hostel — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/18084655/pexels-photo-18084655.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Machhapuchhre Boys Hostel — hostel exterior"
-      },
-      {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/6375553/pexels-photo-6375553.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
         "alt": "Machhapuchhre Boys Hostel — kitchen"
@@ -1357,16 +1257,6 @@
     },
     "photos": [
       {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/36040078/pexels-photo-36040078.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Annapurna Aawas Girls Hostel — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/15534873/pexels-photo-15534873.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Annapurna Aawas Girls Hostel — hostel exterior"
-      },
-      {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/31944365/pexels-photo-31944365.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
         "alt": "Annapurna Aawas Girls Hostel — kitchen"
@@ -1481,16 +1371,6 @@
       "vacantBeds": 7
     },
     "photos": [
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/14224231/pexels-photo-14224231.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Seti Kinara Co-living — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/33982324/pexels-photo-33982324.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Seti Kinara Co-living — hostel exterior"
-      },
       {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/31944364/pexels-photo-31944364.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
@@ -1616,16 +1496,6 @@
     },
     "photos": [
       {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/31820499/pexels-photo-31820499.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Koshi Boys Hostel — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/11779974/pexels-photo-11779974.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Koshi Boys Hostel — hostel exterior"
-      },
-      {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/31944361/pexels-photo-31944361.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
         "alt": "Koshi Boys Hostel — kitchen"
@@ -1741,16 +1611,6 @@
     },
     "photos": [
       {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/11439224/pexels-photo-11439224.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Morang Girls Hostel — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/33981155/pexels-photo-33981155.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Morang Girls Hostel — hostel exterior"
-      },
-      {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/32048482/pexels-photo-32048482.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
         "alt": "Morang Girls Hostel — kitchen"
@@ -1865,16 +1725,6 @@
       "vacantBeds": 6
     },
     "photos": [
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/32622736/pexels-photo-32622736.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Bargachhi Co-living — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/33982322/pexels-photo-33982322.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Bargachhi Co-living — hostel exterior"
-      },
       {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/36881138/pexels-photo-36881138.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
@@ -2000,16 +1850,6 @@
     },
     "photos": [
       {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/4715245/pexels-photo-4715245.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Jyatha Co-living — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/11404908/pexels-photo-11404908.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Jyatha Co-living — hostel exterior"
-      },
-      {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/31944365/pexels-photo-31944365.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
         "alt": "Jyatha Co-living — kitchen"
@@ -2134,16 +1974,6 @@
     },
     "photos": [
       {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/37227721/pexels-photo-37227721.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Chaksibari Boys Hostel — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/37710833/pexels-photo-37710833.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Chaksibari Boys Hostel — hostel exterior"
-      },
-      {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/6375553/pexels-photo-6375553.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
         "alt": "Chaksibari Boys Hostel — kitchen"
@@ -2259,16 +2089,6 @@
     },
     "photos": [
       {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/6428786/pexels-photo-6428786.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Boudha Shanti Girls Hostel — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/35739391/pexels-photo-35739391.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Boudha Shanti Girls Hostel — hostel exterior"
-      },
-      {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/36881138/pexels-photo-36881138.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
         "alt": "Boudha Shanti Girls Hostel — kitchen"
@@ -2383,16 +2203,6 @@
       "vacantBeds": 7
     },
     "photos": [
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/38914366/pexels-photo-38914366.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Tusal Co-living — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/29651627/pexels-photo-29651627.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Tusal Co-living — hostel exterior"
-      },
       {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/32048482/pexels-photo-32048482.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
@@ -2518,16 +2328,6 @@
     },
     "photos": [
       {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/5147364/pexels-photo-5147364.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Lazimpat Scholars Boys Hostel — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/28159677/pexels-photo-28159677.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Lazimpat Scholars Boys Hostel — hostel exterior"
-      },
-      {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/31944361/pexels-photo-31944361.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
         "alt": "Lazimpat Scholars Boys Hostel — kitchen"
@@ -2644,16 +2444,6 @@
     },
     "photos": [
       {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/37371756/pexels-photo-37371756.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Panipokhari Girls Residence — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/31520637/pexels-photo-31520637.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Panipokhari Girls Residence — hostel exterior"
-      },
-      {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/33375679/pexels-photo-33375679.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
         "alt": "Panipokhari Girls Residence — kitchen"
@@ -2768,16 +2558,6 @@
       "vacantBeds": 5
     },
     "photos": [
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/36019261/pexels-photo-36019261.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Thapagaun Co-living — hostel exterior"
-      },
-      {
-        "kind": "EXTERIOR",
-        "url": "https://images.pexels.com/photos/35156954/pexels-photo-35156954.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
-        "alt": "Thapagaun Co-living — hostel exterior"
-      },
       {
         "kind": "INTERIOR",
         "url": "https://images.pexels.com/photos/31944364/pexels-photo-31944364.jpeg?auto=compress&cs=tinysrgb&w=940&h=650",
