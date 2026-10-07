@@ -10,7 +10,6 @@ import {
   ResidentServiceGrid,
   ResidentStayHero,
 } from "@/components/resident-home";
-import { Badge } from "@/components/ui/badge";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Screen } from "@/components/ui/screen";
 import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
@@ -23,7 +22,7 @@ import { API_BASE_URL } from "@/lib/api";
 import { formatDueLabel, humanizeEnum } from "@/lib/format";
 import { absoluteMediaUrl } from "@/lib/media";
 import { openQuestionCall } from "@/lib/questioncall";
-import { markNoticeRead, type ResidentDashboard, type RoutineMeal } from "@/lib/resident-api";
+import { type ResidentDashboard, type RoutineMeal } from "@/lib/resident-api";
 import { duesLine, stayPill } from "@/lib/resident-home";
 import { prefetchResidentRoute, residentQuery } from "@/lib/resident-queries";
 import { toastError } from "@/lib/toast";
@@ -54,7 +53,7 @@ import { toastError } from "@/lib/toast";
  * | `DuesCard` — amount, pill, due label, button | the hero, with `Pay now` on the figure |
  * | `StatStrip` — three metric tiles | the hero's figures, and the `Notices` count |
  * | `HostelCard` — photo, address, chips | the hero's ground, its name line, `Call hostel` |
- * | `ComplaintsCard` — a summary of a screen | `Raise issue`, and the More tab's row |
+ * | `ComplaintsCard` — a summary of a screen | the More tab's row |
  * | `QuickActions` — Complaints, ID, Review, SOS | the action card and the `Your stay` grid |
  *
  * Nothing was dropped that carried a fact. The complaints *summary* went for the
@@ -67,7 +66,8 @@ import { toastError } from "@/lib/toast";
  * The shortcut row and `Waiting for you` were two identically-built cards
  * separated by a heading and a section gap — the same cell drawn twice, split by
  * whether its destination carries a number. They are one row now: `Digital ID`,
- * `Call hostel`, `Raise issue` and `Notices`.
+ * `Call hostel`, `Notices` and — for students — `QuestionCall`. `Raise issue`
+ * came off it: Complaints is a row on More, where its history already lives.
  *
  * `Invoices`, `Complaints` and `Night status` came off the screen with the
  * heading. Every one of them is still one tap away — Payments is a bottom tab,
@@ -76,12 +76,10 @@ import { toastError } from "@/lib/toast";
  *
  * ## What is still below the fold, and why
  *
- * **Today's food** and **the latest notices**, in that order. Neither is a
- * summary of a screen you can reach in one tap and read properly — a resident
- * checks what is for dinner *here*, without going anywhere, and a notice's first
- * two lines are the whole notice most days. They are the two things this app is
- * opened for that are not money, so they sit between the action row and the
- * grid.
+ * **Today's food** — a resident checks what is for dinner *here*, without going
+ * anywhere. The latest-notices card came off: it was the Notices screen's first
+ * three rows again, one tap from the `Notices` cell that already counts the
+ * unread ones.
  *
  * ## One request
  *
@@ -286,7 +284,6 @@ export default function ResidentHomeScreen() {
           onCall={phone ? () => void Linking.openURL(`tel:${phone}`) : undefined}
           onIdCard={() => router.push("/id-card")}
           onNotices={() => router.push("/(resident)/notices")}
-          onRaiseIssue={() => router.push("/complaints/new")}
           /*
             Students only — a working professional has no use for it, and the
             API repeats the check (403 `QUESTIONCALL_NOT_ELIGIBLE`), so hiding
@@ -313,8 +310,6 @@ export default function ResidentHomeScreen() {
         <KhataHomeCard />
 
         <TodaysMenuCard meals={dashboard.foodMenu} />
-
-        <NoticesCard notices={dashboard.notices} />
 
         <View>
           <SectionHeader title="Your stay" />
@@ -375,70 +370,6 @@ function TodaysMenuCard({ meals }: { meals: RoutineMeal[] }) {
               note={meal.note}
               timing={meal.timing}
             />
-          ))
-        )}
-      </Card>
-    </View>
-  );
-}
-
-/**
- * The web shows two lines of each notice's body under its title, and this screen
- * showed only "Category · 3 days ago" — which for a notice titled "Water supply"
- * leaves out the half that says when the water is off. Ported.
- */
-function NoticesCard({ notices }: { notices: ResidentDashboard["notices"] }) {
-  const dates = useDates();
-
-  return (
-    <View>
-      <SectionHeader
-        action={
-          <Pressable
-            accessibilityRole="button"
-            hitSlop={8}
-            onPress={() => router.push("/(resident)/notices")}
-          >
-            <Text className="text-primary" variant="label">
-              See all
-            </Text>
-          </Pressable>
-        }
-        title="Latest notices"
-      />
-
-      <Card className="gap-2">
-        {notices.length === 0 ? (
-          <Text variant="muted">Nothing from your hostel right now.</Text>
-        ) : (
-          notices.slice(0, 3).map((notice) => (
-            <Pressable
-              accessibilityRole="button"
-              className="gap-1 rounded-xl border border-border px-3 py-2.5 active:opacity-70"
-              key={notice.id}
-              onPress={() => {
-                // Its title and first lines are right here — the tap is the read.
-                void markNoticeRead(notice.id).catch(() => undefined);
-                router.push("/(resident)/notices");
-              }}
-            >
-              <View className="flex-row items-start justify-between gap-2">
-                <Text className="flex-1" numberOfLines={2} variant="label">
-                  {notice.title}
-                </Text>
-                {notice.isUrgent ? <Badge label="Urgent" tone="danger" /> : null}
-              </View>
-
-              {notice.content ? (
-                <Text numberOfLines={2} variant="muted">
-                  {notice.content}
-                </Text>
-              ) : null}
-
-              <Text variant="caption">
-                {`${humanizeEnum(notice.category)} · ${dates.relativeDay(notice.publishedAt)}`}
-              </Text>
-            </Pressable>
           ))
         )}
       </Card>

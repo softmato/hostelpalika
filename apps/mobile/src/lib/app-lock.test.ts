@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("expo-local-authentication", () => ({}));
 vi.mock("expo-secure-store", () => ({}));
 vi.mock("@/lib/api", () => ({ api: {} }));
+vi.mock("@/constants/branding", () => ({ APP_NAME: "HostelPalika" }));
 
 async function freshLock() {
   vi.resetModules();
@@ -41,6 +42,22 @@ describe("app lock", () => {
     lock.onAppStateChange("background");
     vi.advanceTimersByTime(31_000);
     lock.onAppStateChange("active");
+    expect(lock.isLocked()).toBe(true);
+  });
+
+  it("with the native guard, leaving draws nothing and only the guard locks", async () => {
+    const lock = await freshLock();
+    lock.handReturnsToNative();
+    lock.unlockApp();
+
+    // A trip to Recents: no keypad mounted on the way out or the way back.
+    lock.onAppStateChange("background");
+    expect(lock.isLocked()).toBe(false);
+    vi.advanceTimersByTime(31_000);
+    lock.onAppStateChange("active");
+    expect(lock.isLocked()).toBe(false);
+
+    expect(lock.lockAfterAway()).toBe(true);
     expect(lock.isLocked()).toBe(true);
   });
 
