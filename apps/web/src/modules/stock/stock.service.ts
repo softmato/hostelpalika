@@ -542,8 +542,22 @@ export async function createStockEntry(actor: StockActor, input: CreateStockEntr
   }
 
   const on = parseSpentOn(input.on);
+  const lineIds = input.lines.map((line) => new Types.ObjectId(line.itemId));
+
+  /*
+   * Buying a switched-off item switches it back on. Its name stays taken while
+   * it is off, so the app's Add stock — which matches what was typed to an
+   * existing item — would otherwise have nowhere to put it.
+   */
+  if (input.kind === "BUY") {
+    await StockItemModel.updateMany(
+      { _id: { $in: lineIds }, active: false, groupHostelId: actor.groupId },
+      { $set: { active: true } },
+    );
+  }
+
   const items = await StockItemModel.find({
-    _id: { $in: input.lines.map((line) => new Types.ObjectId(line.itemId)) },
+    _id: { $in: lineIds },
     active: true,
     groupHostelId: actor.groupId,
   }).lean<ItemDoc[]>();

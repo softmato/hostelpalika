@@ -1,5 +1,6 @@
 import type { Ionicons } from "@expo/vector-icons";
 
+import { palette } from "@/constants/theme";
 import { REALTIME_TOPIC } from "@/constants/topics";
 import { isOverall } from "@/lib/active-hostel";
 import { api } from "@/lib/api";
@@ -198,38 +199,59 @@ export async function updateStockItem(id: string, input: Partial<StockItemInput>
 type IconName = keyof typeof Ionicons.glyphMap;
 
 /**
- * An item's picture: an emoji on a tint of its family colour, read from the
+ * An item's picture: an emoji, read from the
  * name (English or romanised Nepali). Emoji rather than photos: every phone
  * already has them, they need no upload, and a sack of rice reads as rice.
  * Only emoji from Unicode 12 or older, so a 2019 Android does not draw boxes.
  */
-const LOOKS: { color: string; emoji: string; words: RegExp }[] = [
-  { color: "#FF3B30", emoji: "🔥", words: /gas|cylinder|lpg|firewood|daura/i },
-  { color: "#FF9F0A", emoji: "🛢️", words: /oil|tel\b|ghee|ghiu/i },
-  { color: "#FF2D55", emoji: "🍗", words: /chicken|kukhura/i },
-  { color: "#FF2D55", emoji: "🐟", words: /fish|machha/i },
-  { color: "#FF2D55", emoji: "🥩", words: /meat|masu|mutton|khasi|buff|pork/i },
-  { color: "#FF9500", emoji: "🥚", words: /egg|anda|phul/i },
-  { color: "#007AFF", emoji: "🥛", words: /milk|dudh|curd|dahi|paneer|butter/i },
-  { color: "#34C759", emoji: "🥔", words: /potato|aalu|alu\b/i },
-  { color: "#34C759", emoji: "🧅", words: /onion|pyaj/i },
-  { color: "#FF3B30", emoji: "🍅", words: /tomato|golbheda/i },
-  { color: "#FF3B30", emoji: "🌶️", words: /chilli|chili|khursani/i },
-  { color: "#34C759", emoji: "🥬", words: /veg|tarkari|sabji|saag|spinach|cauli|cabbage|bandagobi|carrot|gajar|radish|mula|garlic|lasun|ginger|aduwa/i },
-  { color: "#FF9500", emoji: "🍌", words: /fruit|banana|apple|orange|suntala/i },
-  { color: "#AF52DE", emoji: "🍵", words: /tea|chiya|coffee/i },
-  { color: "#AF52DE", emoji: "🧂", words: /salt|nun\b|masala|spice|jeera|besar|turmeric|sugar|chini/i },
-  { color: "#5AC8FA", emoji: "🧼", words: /soap|sabun|detergent|surf|clean|phenyl|harpic|broom|kucho|mop|tissue/i },
-  { color: "#5E5CE6", emoji: "🍳", words: /pot|pan\b|plate|thal|cooker|utensil|bhada|spoon|chamcha|glass|gilas|bucket|balti|kadai|karahi|tawa|jug|bowl|knife/i },
-  { color: "#FF9500", emoji: "🥣", words: /daal|dal\b|lentil|pulse|beans|chana|rajma/i },
-  { color: "#FF9500", emoji: "🍚", words: /rice|chamal|chawal|atta|maida|flour|chiura|beaten/i },
+const LOOKS: { emoji: string; words: RegExp }[] = [
+  { emoji: "🔥", words: /gas|cylinder|lpg|firewood|daura/i },
+  { emoji: "🛢️", words: /oil|tel\b|ghee|ghiu/i },
+  { emoji: "🍗", words: /chicken|kukhura/i },
+  { emoji: "🐟", words: /fish|machha/i },
+  { emoji: "🥩", words: /meat|masu|mutton|khasi|buff|pork/i },
+  { emoji: "🥚", words: /egg|anda|phul/i },
+  { emoji: "🥛", words: /milk|dudh|curd|dahi|paneer|butter/i },
+  { emoji: "🥔", words: /potato|aalu|alu\b/i },
+  { emoji: "🧅", words: /onion|pyaj/i },
+  { emoji: "🍅", words: /tomato|golbheda/i },
+  { emoji: "🌶️", words: /chilli|chili|khursani/i },
+  { emoji: "🥬", words: /veg|tarkari|sabji|saag|spinach|cauli|cabbage|bandagobi|carrot|gajar|radish|mula|garlic|lasun|ginger|aduwa/i },
+  { emoji: "🍌", words: /fruit|banana|apple|orange|suntala/i },
+  { emoji: "🍵", words: /tea|chiya|coffee/i },
+  { emoji: "🧂", words: /salt|nun\b|masala|spice|jeera|besar|turmeric|sugar|chini/i },
+  { emoji: "🧼", words: /soap|sabun|detergent|surf|clean|phenyl|harpic|broom|kucho|mop|tissue/i },
+  { emoji: "🍳", words: /pot|pan\b|plate|thal|cooker|utensil|bhada|spoon|chamcha|glass|gilas|bucket|balti|kadai|karahi|tawa|jug|bowl|knife/i },
+  { emoji: "🥣", words: /daal|dal\b|lentil|pulse|beans|chana|rajma/i },
+  { emoji: "🍚", words: /rice|chamal|chawal|atta|maida|flour|chiura|beaten/i },
 ];
 
-export function stockLook(item: { kind: StockKind; name: string }): { color: string; emoji: string } {
+export function stockLook(item: { kind: StockKind; name: string }): { emoji: string } {
   return (
     LOOKS.find((entry) => entry.words.test(item.name)) ??
-    (item.kind === "DAILY" ? { color: "#34C759", emoji: "🧺" } : { color: "#FF9500", emoji: "📦" })
+    (item.kind === "DAILY" ? { emoji: "🧺" } : { emoji: "📦" })
   );
+}
+
+/**
+ * Used the day it comes, read from the name: green vegetables, meat, fish, milk,
+ * fruit, bread. Everything else is kept in the store. Adding stock never asks
+ * which — the person standing with the sack should only have to say what it is.
+ */
+const DAILY_WORDS =
+  /veg|tarkari|sabji|saag|spinach|cauli|cabbage|bandagobi|carrot|gajar|radish|mula|tomato|golbheda|chilli|chili|khursani|chicken|kukhura|fish|machha|meat|masu|mutton|khasi|buff|pork|milk|dudh|curd|dahi|paneer|fruit|banana|apple|orange|suntala|bread|pauroti/i;
+
+export function guessStockKind(name: string): StockKind {
+  return DAILY_WORDS.test(name) ? "DAILY" : "STORE";
+}
+
+/** The item already called this — any case, any spacing — switched off ones included. */
+export function findStockItem<T extends { name: string }>(items: readonly T[], name: string): T | null {
+  const wanted = name.trim().replace(/\s+/g, " ").toLowerCase();
+
+  if (!wanted) return null;
+
+  return items.find((item) => item.name.trim().replace(/\s+/g, " ").toLowerCase() === wanted) ?? null;
 }
 
 /** `Rice 50 kg, Daal 20 kg +2 more` — one line for a row. */
@@ -273,11 +295,11 @@ export type EntryView = {
  */
 export function entryView(entry: StockEntry, mine: ReadonlySet<string>): EntryView {
   const cancelled = entry.status === "CANCELLED";
-  const grey = "#8E8E93";
+  const grey = palette.light.mutedForeground;
 
   if (entry.kind === "BUY") {
     return {
-      color: cancelled ? grey : "#34C759",
+      color: cancelled ? grey : palette.light.primary,
       detail: entry.supplier || namesSummary(entry.lines),
       icon: "cart-outline",
       kind: "BOUGHT",
@@ -289,7 +311,7 @@ export function entryView(entry: StockEntry, mine: ReadonlySet<string>): EntryVi
     const only = entry.lines.length === 1 ? entry.lines[0] : null;
 
     return {
-      color: cancelled ? grey : "#AF52DE",
+      color: cancelled ? grey : palette.light.mutedForeground,
       detail: only ? `Set left to ${formatQty(only.qty, only.unit)}` : `${entry.lines.length} items counted`,
       icon: "clipboard-outline",
       kind: "COUNT",
@@ -303,7 +325,7 @@ export function entryView(entry: StockEntry, mine: ReadonlySet<string>): EntryVi
     const waiting = entry.status === "PENDING";
 
     return {
-      color: cancelled ? grey : waiting ? "#FF9500" : "#5AC8FA",
+      color: cancelled ? grey : waiting ? palette.light.warning : palette.light.success,
       detail: `From ${entry.hostelName}`,
       icon: waiting ? "time-outline" : "checkmark-done-outline",
       kind: waiting ? "ON_THE_WAY" : "GOT_IT",
@@ -312,7 +334,7 @@ export function entryView(entry: StockEntry, mine: ReadonlySet<string>): EntryVi
   }
 
   return {
-    color: cancelled ? grey : "#007AFF",
+    color: cancelled ? grey : palette.light.primary,
     detail: `To ${entry.toHostelName ?? ""}`,
     icon: "arrow-redo-outline",
     kind: "SEND",

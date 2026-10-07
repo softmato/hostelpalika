@@ -150,7 +150,7 @@ function Overview({
       {readOnly ? null : (
         <View className="flex-row gap-2">
           <View className="flex-1">
-            <Button label="Buy" onPress={() => go("/stock/buy")} variant="outline" />
+            <Button label="Add" onPress={() => go("/stock/buy")} variant="outline" />
           </View>
           <View className="flex-1">
             <Button label="Send" onPress={() => go("/stock/send")} variant="outline" />
@@ -189,7 +189,7 @@ function LeftNow({ at, item, onEditLow }: { at: StockAt; item: StockItem; onEdit
           {item.lowAt !== null ? `Running low below ${formatQty(item.lowAt, item.unit)}` : "No low mark set"}
         </Text>
         <View className="flex-row items-center gap-2">
-          {at.low ? <Pill color="#FF3B30" label="Low" /> : null}
+          {at.low ? <Pill color={colors.destructive} label="Low" /> : null}
           {onEditLow ? (
             <Pressable accessibilityLabel="Change the low mark" accessibilityRole="button" hitSlop={8} onPress={onEditLow}>
               <Ionicons color={colors.mutedForeground} name="pencil" size={16} />
@@ -197,7 +197,7 @@ function LeftNow({ at, item, onEditLow }: { at: StockAt; item: StockItem; onEdit
           ) : null}
         </View>
       </View>
-      {at.onWay > 0 ? <Pill color="#007AFF" label={`+${formatQty(at.onWay, item.unit)} on the way`} /> : null}
+      {at.onWay > 0 ? <Pill color={colors.warning} label={`+${formatQty(at.onWay, item.unit)} on the way`} /> : null}
     </Card>
   );
 }

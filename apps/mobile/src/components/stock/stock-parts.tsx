@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { type ReactNode, useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
@@ -60,14 +60,17 @@ import { addBsMonths, bsMonthName, periodParts } from "@hostel/calendar/bs";
 
 /* ------------------------------------------------------------------ looks */
 
-/** An item's picture: its emoji on a tint of its family colour. */
+/**
+ * An item's picture: its emoji on the muted ground. The emoji is already the
+ * colour; a tint per family put six off-palette hues on one list.
+ */
 export function ItemAvatar({ item, size = 40 }: { item: { kind: StockKind; name: string }; size?: number }) {
   const look = stockLook(item);
 
   return (
     <View
-      className="items-center justify-center"
-      style={{ backgroundColor: `${look.color}1F`, borderRadius: size * 0.3, height: size, width: size }}
+      className="items-center justify-center bg-muted"
+      style={{ borderRadius: size * 0.3, height: size, width: size }}
     >
       <Text style={{ fontSize: size * 0.52, lineHeight: size * 0.7 }}>{look.emoji}</Text>
     </View>
@@ -116,88 +119,6 @@ export function UnderlineTabs<T extends string>({
   );
 }
 
-/** One figure in the 2×2 on the Overview: a tinted icon, a caption, a value. */
-export function StatCard({
-  color,
-  icon,
-  label,
-  onPress,
-  value,
-}: {
-  color: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  onPress?: () => void;
-  value: string;
-}) {
-  return (
-    <Pressable
-      accessibilityRole={onPress ? "button" : undefined}
-      className="flex-1 flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3.5 active:opacity-80"
-      disabled={!onPress}
-      onPress={onPress}
-    >
-      <View
-        className="h-10 w-10 items-center justify-center rounded-full"
-        style={{ backgroundColor: `${color}1F` }}
-      >
-        <Ionicons color={color} name={icon} size={20} />
-      </View>
-      <View className="flex-1">
-        <Text numberOfLines={1} variant="caption">
-          {label}
-        </Text>
-        <Text numberOfLines={1} variant="label">
-          {value}
-        </Text>
-      </View>
-    </Pressable>
-  );
-}
-
-/** A Quick Action: a green glyph and a two-word job. */
-export function ActionTile({
-  caption,
-  disabled = false,
-  icon,
-  label,
-  onPress,
-}: {
-  caption?: string;
-  disabled?: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  onPress: () => void;
-}) {
-  const { colors } = useAppTheme();
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      className={`flex-1 flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3.5 active:opacity-80 ${
-        disabled ? "opacity-50" : ""
-      }`}
-      disabled={disabled}
-      onPress={onPress}
-    >
-      <View className="h-10 w-10 items-center justify-center rounded-xl bg-brand-soft">
-        <Ionicons color={colors.primary} name={icon} size={20} />
-      </View>
-      <View className="flex-1">
-        <Text numberOfLines={2} variant="label">
-          {label}
-        </Text>
-        {caption ? (
-          <Text numberOfLines={1} variant="caption">
-            {caption}
-          </Text>
-        ) : null}
-      </View>
-    </Pressable>
-  );
-}
-
 /** One entry in a list: what happened, from or to where, when — and how much. */
 export function EntryRow({
   entry,
@@ -208,6 +129,7 @@ export function EntryRow({
   mine: ReadonlySet<string>;
   onPress: () => void;
 }) {
+  const { colors } = useAppTheme();
   const view = entryView(entry, mine);
   const short = entry.status === "RECEIVED" && entry.lines.some((line) => (line.receivedQty ?? line.qty) < line.qty);
   const right =
@@ -236,11 +158,11 @@ export function EntryRow({
         <View className="items-end gap-1">
           <Text variant="label">{right}</Text>
           {entry.status === "CANCELLED" ? (
-            <Pill color="#8E8E93" label="Cancelled" />
+            <Pill color={colors.mutedForeground} label="Cancelled" />
           ) : entry.status === "PENDING" ? (
-            <Pill color="#007AFF" label="On the way" />
+            <Pill color={colors.warning} label="On the way" />
           ) : short ? (
-            <Pill color="#FF3B30" label="Short" />
+            <Pill color={colors.destructive} label="Short" />
           ) : null}
         </View>
       </View>
@@ -407,30 +329,6 @@ export function DateField({
   );
 }
 
-/** Paid by, as four pills: Cash first — most hostel spending is cash. */
-export function PaidByChips<T extends string>({
-  onChange,
-  options,
-  value,
-}: {
-  onChange: (value: T) => void;
-  options: readonly { label: string; value: T }[];
-  value: T;
-}) {
-  return (
-    <View className="flex-row flex-wrap gap-2">
-      {options.map((option) => (
-        <Chip
-          key={option.value}
-          label={option.label}
-          onPress={() => onChange(option.value)}
-          tone={value === option.value ? "brand" : "neutral"}
-        />
-      ))}
-    </View>
-  );
-}
-
 /**
  * The bill photo: picked, uploaded at once as an expense photo, and held as an
  * asset id. A failed upload leaves no thumbnail — that is how someone saves
@@ -561,37 +459,6 @@ export function BillPhotoBox({
           />
         </View>
       </Sheet>
-    </View>
-  );
-}
-
-/** The outlined "+ Add Item" button the forms share. */
-export function AddItemButton({ label = "Add Item", onPress }: { label?: string; onPress: () => void }) {
-  const { colors } = useAppTheme();
-
-  return (
-    <Pressable
-      accessibilityRole="button"
-      className="min-h-12 flex-row items-center justify-center gap-2 rounded-xl border border-primary bg-card active:bg-brand-soft"
-      onPress={onPress}
-    >
-      <Ionicons color={colors.primary} name="add" size={20} />
-      <Text className="font-semibold text-primary" variant="label">
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-/** A labelled block with an optional action on the right, for forms. */
-export function FormSection({ action, children, title }: { action?: ReactNode; children: ReactNode; title: string }) {
-  return (
-    <View className="gap-3">
-      <View className="flex-row items-center justify-between">
-        <Text variant="subtitle">{title}</Text>
-        {action}
-      </View>
-      {children}
     </View>
   );
 }
@@ -868,6 +735,7 @@ export function ItemFields({
 
 /** An item's Settings tab: the same fields, plus "Still buying it". Owner only. */
 export function ItemSettings({ item, onSaved }: { item: StockItem; onSaved: () => void }) {
+  const { colors } = useAppTheme();
   const [draft, setDraft] = useState<Draft>({
     kind: item.kind,
     lowAt: item.lowAt === null ? "" : String(item.lowAt),
@@ -908,7 +776,7 @@ export function ItemSettings({ item, onSaved }: { item: StockItem; onSaved: () =
       <Card padding="px-4 py-1">
         <ListRow
           icon="eye-outline"
-          iconBgColor="#34C759"
+          iconBgColor={colors.primary}
           right={<Toggle accessibilityLabel="Still buying it" onChange={setActive} value={active} />}
           subtitle="Off hides it from Buy, Send and Count. Its history stays."
           title="Still buying it"

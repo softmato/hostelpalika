@@ -3,6 +3,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
+import { palette } from "@/constants/theme";
 import { ItemAvatar, NoStockAccess, stockChanged, unitLabel, useStock } from "@/components/stock/stock-parts";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
@@ -35,22 +36,22 @@ function banner(entry: StockEntry) {
   const short = entry.lines.some((line) => line.receivedQty !== null && line.receivedQty < line.qty);
 
   if (entry.status === "CANCELLED") {
-    return { color: "#8E8E93", icon: "close-circle-outline" as const, line: entry.cancelReason ?? day, title: "Cancelled" };
+    return { color: palette.light.mutedForeground, icon: "close-circle-outline" as const, line: entry.cancelReason ?? day, title: "Cancelled" };
   }
 
   if (entry.kind === "SEND") {
     if (entry.status === "PENDING") {
-      return { color: "#007AFF", icon: "arrow-redo-outline" as const, line: `Sent to ${entry.toHostelName} · ${day}`, title: "On the way" };
+      return { color: palette.light.warning, icon: "arrow-redo-outline" as const, line: `Sent to ${entry.toHostelName} · ${day}`, title: "On the way" };
     }
 
     return short
-      ? { color: "#FF3B30", icon: "alert-circle-outline" as const, line: `Less came at ${entry.toHostelName}`, title: "Short" }
-      : { color: "#34C759", icon: "checkmark-done-outline" as const, line: `Arrived at ${entry.toHostelName}`, title: "Got it" };
+      ? { color: palette.light.destructive, icon: "alert-circle-outline" as const, line: `Less came at ${entry.toHostelName}`, title: "Short" }
+      : { color: palette.light.primary, icon: "checkmark-done-outline" as const, line: `Arrived at ${entry.toHostelName}`, title: "Got it" };
   }
 
   return entry.kind === "BUY"
-    ? { color: "#34C759", icon: "cart-outline" as const, line: `At ${entry.hostelName} · ${day}`, title: "Bought" }
-    : { color: "#AF52DE", icon: "clipboard-outline" as const, line: `At ${entry.hostelName} · ${day}`, title: "Counted" };
+    ? { color: palette.light.primary, icon: "cart-outline" as const, line: `At ${entry.hostelName} · ${day}`, title: "Bought" }
+    : { color: palette.light.mutedForeground, icon: "clipboard-outline" as const, line: `At ${entry.hostelName} · ${day}`, title: "Counted" };
 }
 
 export default function EntryDetailScreen() {
