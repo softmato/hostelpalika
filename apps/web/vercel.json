@@ -4,5 +4,5 @@
   "regions": ["bom1"],
   "installCommand": "npm install --prefix=../.. --include=dev",
   "buildCommand": "node scripts/build-pwa.mjs && next build",
-  "ignoreCommand": "git diff --quiet ${VERCEL_GIT_PREVIOUS_SHA:-HEAD^} HEAD -- ../.. ':(exclude)../../docs' ':(exclude)../../graphify-out' ':(exclude)../../ui_inspiration_folder' ':(exclude,glob)../../*.md'"
+  "ignoreCommand": "git diff --quiet ${VERCEL_GIT_PREVIOUS_SHA:-HEAD^} HEAD -- ../.. ':(exclude)../../docs' ':(exclude)../../graphify-out' ':(exclude)../../ui_inspiration_folder' ':(exclude)../../marketing'':(exclude,glob)../../*.md'"
 }

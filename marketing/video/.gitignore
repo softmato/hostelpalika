@@ -1,0 +1,19 @@
+# Large or regenerable media. Kept in git: scripts, build code, narration text + mp3s,
+# music, SFX, fonts, PNG illustrations (paid or slow to regenerate, all small).
+
+# phone recordings, pulled PDFs (personal data) and their 30fps copies
+assets/raw/
+assets/cfr/
+
+# outputs
+**/renders/
+**/snapshots/
+
+# scene cuts the build regenerates from assets/cfr
+*-film/assets/video/
+
+# the vertical project's assets/ is a Windows junction to the landscape project's
+*-film-vertical/assets
+
+# intermediate music edit (music_film.mp3 is rebuilt from music_v2.mp3)
+**/music_v2f.mp3

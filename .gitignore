@@ -76,3 +76,7 @@ fixtures/evidence-golden/*
 !fixtures/evidence-golden/manifest.json
 .vercel
 .env*
+
+# Third-party agent skills (HyperFrames video tooling) — reinstall with: npx skills add heygen-com/hyperframes
+.agents/
+skills-lock.json
