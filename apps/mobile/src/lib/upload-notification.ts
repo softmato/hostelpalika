@@ -103,7 +103,11 @@ export const PROGRESS_DELAY_MS = 1_200;
  * indistinguishable from nothing having happened.
  */
 export const DOWNLOAD_CHANNEL = "downloads";
-export const DOWNLOAD_CHANNEL_NAME = "Finished downloads";
+/*
+ * Carries failed transfers too: an error the user only learns about by opening
+ * the app is the same silence a buried "Downloaded" was. The id stays.
+ */
+export const DOWNLOAD_CHANNEL_NAME = "Finished and failed transfers";
 
 /** Marks the notification that a tap should open a file rather than route. */
 export const DOWNLOAD_NOTIFICATION_TYPE = "download-complete";
@@ -152,6 +156,8 @@ export type UploadTally = {
    * picking one of the two and being wrong about half the bytes.
    */
   direction: TransferDirection | null;
+  /** The latest failure's own message, so the shade says what the toast says. */
+  error: string | null;
   failed: number;
   /** The single row's label, or `null` once a batch holds more than one. */
   label: string | null;
@@ -178,6 +184,7 @@ export type UploadTally = {
 export const EMPTY_TALLY: UploadTally = {
   active: 0,
   direction: null,
+  error: null,
   failed: 0,
   label: null,
   openMimeType: null,
@@ -218,6 +225,7 @@ export function tallyUploads(
     : previous;
 
   const seen = new Set(base.seen);
+  let error = base.error;
   let failed = base.failed;
   let succeeded = base.succeeded;
   let openMimeType = base.openMimeType;
@@ -233,6 +241,7 @@ export function tallyUploads(
 
     if (row.stage === "failed") {
       failed += 1;
+      error = row.error ?? error;
     } else {
       succeeded += 1;
 
@@ -292,6 +301,7 @@ export function tallyUploads(
   return {
     active: active.length,
     direction: directionOf(active) ?? base.direction,
+    error,
     failed,
     label: total === 1 ? (activeLabel ?? base.label) : null,
     openMimeType,
@@ -486,7 +496,9 @@ export function uploadNotice(tally: UploadTally, now: number = Date.now()): Uplo
   if (tally.failed > 0) {
     return {
       ...quiet,
-      body: "Open the app to try again.",
+      body: (tally.failed === 1 && tally.error) || "Open the app to try again.",
+      // Heard, like a finished download — see `DOWNLOAD_CHANNEL_NAME`.
+      channel: DOWNLOAD_CHANNEL,
       ongoing: false,
       title:
         tally.total === 1 && tally.label

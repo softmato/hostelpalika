@@ -104,7 +104,7 @@ function BranchList({ header }: { header: ReactNode }) {
             subtitle={`${allowance.used} of ${allowance.cap} on ${allowance.planName ?? "your plan"} · no extra cost`}
             title="Your branches"
           />
-          <Card className="gap-1 px-0 py-1">
+          <Card className="gap-1" padding="px-4 py-1">
             {[main, ...branches.data.branches].map((branch) => {
               const status = STATUS[branch.status] ?? {
                 label: branch.status,
@@ -138,7 +138,12 @@ function BranchList({ header }: { header: ReactNode }) {
                       : undefined
                   }
                   key={branch.id}
-                  right={<Badge label={status.label} tone={status.tone} />}
+                  right={
+                    <View className="items-end gap-1">
+                      {branch.id === main.id ? <Badge label="Main hostel" tone="info" /> : null}
+                      <Badge label={status.label} tone={status.tone} />
+                    </View>
+                  }
                   subtitle={[branch.area, branch.city]
                     .filter(Boolean)
                     .join(", ")}

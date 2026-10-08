@@ -25,7 +25,7 @@ vi.mock("@/modules/billing/softmato/documents", () => ({
   documentFilename: (number: string) => `${number}.pdf`,
   downloadInvoiceFile: mocks.download,
   downloadReceiptFile: vi.fn(),
-  isPdf: () => true,
+  isPdf: (file: { contentType: string }) => file.contentType === "application/pdf",
 }));
 vi.mock("./issue", () => ({
   documentFileName: (number: string) => `${number}.pdf`,
@@ -75,6 +75,24 @@ describe("resolveInvoiceDocument", () => {
 
     expect(document?.issuedBy).toBe("softmato");
     expect(mocks.render).not.toHaveBeenCalled();
+  });
+
+  it("prints the same number itself when Softmato answers HTML instead of a PDF", async () => {
+    mocks.invoice.mockResolvedValue(ROW);
+    mocks.download.mockResolvedValue({
+      bytes: new Uint8Array([60]),
+      contentType: "text/html",
+      pdfFallbackReason: "no engine",
+    });
+
+    const document = await resolveInvoiceDocument("SUB-0001-2431", null);
+
+    expect(document?.contentType).toBe("application/pdf");
+    expect(document?.filename).toBe("INV-2083/84-000012.pdf");
+    expect(mocks.render).toHaveBeenCalledWith(
+      expect.objectContaining({ localInvoiceNo: "INV-2083/84-000012" }),
+      { amountPaid: 2000, documentNumber: "INV-2083/84-000012" },
+    );
   });
 
   it("still answers not-found when there is no copy of ours to fall back to", async () => {

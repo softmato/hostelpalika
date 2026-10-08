@@ -434,7 +434,7 @@ async function assertMatchesExtension(file: File, extension: string) {
 
   if (text !== magic) {
     throw new Error(
-      `The server sent something that is not a ${extension.toUpperCase()}. It may not have been updated yet — try the other format.`,
+      `The server sent something that is not a ${extension.toUpperCase()}, so nothing was saved. Try again in a minute.`,
     );
   }
 }

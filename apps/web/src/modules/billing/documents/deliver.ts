@@ -88,12 +88,18 @@ function scopeFilter(scope: HostelScope): Record<string, unknown> {
 /**
  * Softmato's own file: from the local copy, or fetched and copied. A Softmato
  * that cannot be reached is said so (503), never papered over with a redraw.
+ *
+ * One exception: their deployment answers HTML when its PDF engine fails
+ * (`pdfFallbackReason`). Every reader asked for a PDF — the phone refuses to
+ * save anything else — so `redraw` prints the same document, under the same
+ * number, with our renderer. Not cached: the next download asks them again.
  */
 export async function softmatoDocument(
   kind: "invoice" | "receipt",
   number: string,
   version: string,
   read: () => Promise<Awaited<ReturnType<typeof downloadInvoiceFile>>>,
+  redraw: () => Promise<Uint8Array>,
 ): Promise<ResolvedDocument | null> {
   const cached = await SoftmatoDocumentModel.findOne({ kind, number, version })
     .lean<{ bytes: Buffer; contentType: string } | null>();
@@ -116,14 +122,31 @@ export async function softmatoDocument(
 
   if (!file) return null;
 
-  // Only a real PDF is kept; an HTML fallback is served but fetched again next time.
-  if (isPdf(file)) {
-    await SoftmatoDocumentModel.updateOne(
-      { kind, number, version },
-      { $setOnInsert: { bytes: Buffer.from(file.bytes), contentType: file.contentType } },
-      { upsert: true },
-    ).catch(() => undefined);
+  if (!isPdf(file)) {
+    console.error(
+      JSON.stringify({
+        action: "softmato_document_not_pdf",
+        kind,
+        level: "error",
+        number,
+        reason: file.pdfFallbackReason,
+      }),
+    );
+
+    return {
+      bytes: await redraw(),
+      contentType: "application/pdf",
+      filename: documentFileName(number),
+      issuedBy: "platform",
+    };
   }
+
+  // Only a real PDF is kept.
+  await SoftmatoDocumentModel.updateOne(
+    { kind, number, version },
+    { $setOnInsert: { bytes: Buffer.from(file.bytes), contentType: file.contentType } },
+    { upsert: true },
+  ).catch(() => undefined);
 
   return {
     bytes: new Uint8Array(file.bytes),
@@ -156,10 +179,21 @@ export async function resolveInvoiceDocument(
 
   if (!invoice) return null;
 
+  const drawOurs = async (documentNumber: string) =>
+    renderInvoiceForRow(
+      { ...invoice, localInvoiceNo: documentNumber },
+      { amountPaid: await settledTotal(invoice._id), documentNumber },
+    );
+
   // Softmato's invoice is the invoice. The status is the copy's version: paid prints differently.
   if (invoice.softmatoInvoiceNo) {
-    const theirs = await softmatoDocument("invoice", invoice.softmatoInvoiceNo, String(invoice.status), () =>
-      downloadInvoiceFile(invoice.softmatoInvoiceNo as string),
+    const softmatoNo = invoice.softmatoInvoiceNo;
+    const theirs = await softmatoDocument(
+      "invoice",
+      softmatoNo,
+      String(invoice.status),
+      () => downloadInvoiceFile(softmatoNo),
+      () => drawOurs(softmatoNo),
     );
 
     /*
@@ -175,14 +209,8 @@ export async function resolveInvoiceDocument(
 
   if (!documentNumber) return null;
 
-  const paid = await settledTotal(invoice._id);
-  const bytes = await renderInvoiceForRow(
-    { ...invoice, localInvoiceNo: documentNumber },
-    { amountPaid: paid, documentNumber },
-  );
-
   return {
-    bytes,
+    bytes: await drawOurs(documentNumber),
     contentType: "application/pdf",
     filename: documentFileName(documentNumber),
     issuedBy: "platform",
@@ -234,9 +262,49 @@ export async function resolveReceiptDocument(
 
   if (!payment || payment.status !== "SETTLED") return null;
 
+  const drawOurs = async (documentNumber: string) => {
+    const invoice = await SubscriptionInvoiceModel.findById(
+      payment.invoiceId,
+    ).lean<{
+      amount: number;
+      billedTo?: { email?: string; hostelName?: string; name?: string };
+      invoiceNumber: string;
+      localInvoiceNo?: string | null;
+      softmatoInvoiceNo?: string | null;
+    } | null>();
+
+    return renderReceiptForRow(payment, {
+      documentNumber,
+      /*
+       * The invoice as it is *printed*, not as we file it. A receipt whose
+       * "Against Invoice" line quoted `SUB-0001-4F2A` would send an owner looking
+       * for a number that appears nowhere on the invoice in their hand.
+       */
+      invoiceNumber:
+        invoice?.softmatoInvoiceNo ??
+        invoice?.localInvoiceNo ??
+        invoice?.invoiceNumber ??
+        "—",
+      invoiceTotal: invoice?.amount ?? payment.amount,
+      receivedFrom: {
+        email: invoice?.billedTo?.email ?? "",
+        name: invoice?.billedTo?.name || invoice?.billedTo?.hostelName || "",
+      },
+      totalReceived: invoice
+        ? await settledTotal(payment.invoiceId)
+        : payment.amount,
+    });
+  };
+
   if (payment.softmatoTransactionNo) {
-    return softmatoDocument("receipt", payment.softmatoTransactionNo, "1", () =>
-      downloadReceiptFile(payment.softmatoTransactionNo as string),
+    const softmatoNo = payment.softmatoTransactionNo;
+
+    return softmatoDocument(
+      "receipt",
+      softmatoNo,
+      "1",
+      () => downloadReceiptFile(softmatoNo),
+      () => drawOurs(softmatoNo),
     );
   }
 
@@ -248,40 +316,8 @@ export async function resolveReceiptDocument(
 
   if (!documentNumber) return null;
 
-  const invoice = await SubscriptionInvoiceModel.findById(
-    payment.invoiceId,
-  ).lean<{
-    amount: number;
-    billedTo?: { email?: string; hostelName?: string; name?: string };
-    invoiceNumber: string;
-    localInvoiceNo?: string | null;
-    softmatoInvoiceNo?: string | null;
-  } | null>();
-
-  const bytes = await renderReceiptForRow(payment, {
-    documentNumber,
-    /*
-     * The invoice as it is *printed*, not as we file it. A receipt whose
-     * "Against Invoice" line quoted `SUB-0001-4F2A` would send an owner looking
-     * for a number that appears nowhere on the invoice in their hand.
-     */
-    invoiceNumber:
-      invoice?.softmatoInvoiceNo ??
-      invoice?.localInvoiceNo ??
-      invoice?.invoiceNumber ??
-      "—",
-    invoiceTotal: invoice?.amount ?? payment.amount,
-    receivedFrom: {
-      email: invoice?.billedTo?.email ?? "",
-      name: invoice?.billedTo?.name || invoice?.billedTo?.hostelName || "",
-    },
-    totalReceived: invoice
-      ? await settledTotal(payment.invoiceId)
-      : payment.amount,
-  });
-
   return {
-    bytes,
+    bytes: await drawOurs(documentNumber),
     contentType: "application/pdf",
     filename: documentFileName(documentNumber),
     issuedBy: "platform",

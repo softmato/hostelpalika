@@ -227,7 +227,7 @@ describe("uploadNotice", () => {
 });
 
 describe("uploadNotice, going the other way", () => {
-  function down(id: string, stage: UploadStage, extra: { fraction?: number; label?: string } = {}) {
+  function down(id: string, stage: UploadStage, extra: { error?: string; fraction?: number; label?: string } = {}) {
     return row(id, stage, { direction: "download", ...extra });
   }
 
@@ -267,6 +267,17 @@ describe("uploadNotice, going the other way", () => {
     );
 
     expect(failed?.title).toBe("Report did not download");
+  });
+
+  it("puts the failure's own reason in the shade, on the heard channel", () => {
+    const failed = uploadNotice(
+      tallyUploads(tallyUploads(EMPTY_TALLY, [down("a", "uploading", { label: "Invoice" })]), [
+        down("a", "failed", { error: "Not a PDF.", label: "Invoice" }),
+      ]),
+    );
+
+    expect(failed?.body).toBe("Not a PDF.");
+    expect(failed?.channel).toBe(DOWNLOAD_CHANNEL);
   });
 
   it("keeps the direction after the last active row has gone", () => {

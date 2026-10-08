@@ -223,7 +223,7 @@ export function NumberStepper({
       <Pressable
         accessibilityLabel={`${by < 0 ? "Fewer" : "More"} — ${label}`}
         accessibilityRole="button"
-        className="h-11 w-11 items-center justify-center rounded-xl bg-muted active:opacity-60"
+        className="h-12 w-12 items-center justify-center rounded-xl bg-muted active:opacity-60"
         disabled={off}
         onPress={() => onChange(String(Math.min(max ?? Infinity, Math.max(min, count + by))))}
       >
@@ -237,14 +237,29 @@ export function NumberStepper({
       {button(-1)}
       <TextInput
         accessibilityLabel={label}
-        className={`h-11 w-14 border-b text-center text-lg font-semibold ${error ? "border-destructive text-destructive" : "border-border text-foreground"}`}
+        className={`border-b text-center font-semibold ${error ? "border-destructive text-destructive" : "border-border text-foreground"}`}
         inputMode="numeric"
         maxLength={5}
         onChangeText={(text) => onChange(text.replace(/\D/g, ""))}
         placeholder="0"
         placeholderTextColor={colors.mutedForeground}
         selectTextOnFocus
-        style={{ fontVariant: ["tabular-nums"] }}
+        /*
+          Sized here, not with `text-lg`: that class brings a 28pt line height,
+          and inside Android's default vertical padding the digits were clipped
+          top and bottom. No padding, no font padding, a line that fits the box.
+        */
+        style={{
+          fontSize: 18,
+          fontVariant: ["tabular-nums"],
+          height: 48,
+          includeFontPadding: false,
+          lineHeight: 24,
+          minWidth: 56,
+          paddingHorizontal: 4,
+          paddingVertical: 0,
+          textAlignVertical: "center",
+        }}
         value={value}
       />
       {button(1)}

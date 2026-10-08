@@ -48,7 +48,10 @@ export function roomTypeOptions(rooms: readonly RoomRow[], editingId: string | n
     rooms.filter((room) => room.id !== editingId).map((room) => room.roomType.trim().toLowerCase()),
   );
 
-  return ROOM_TYPE_OPTIONS.map((type) => {
+  // The shared list alternates plain / attached; the sheet wants each group together.
+  const ordered = [...ROOM_TYPE_OPTIONS].sort((a, b) => Number(a.endsWith(ATTACHED)) - Number(b.endsWith(ATTACHED)));
+
+  return ordered.map((type) => {
     const beds = BEDS_BY_ROOM_TYPE[type];
     const taken = used.has(type.toLowerCase());
 
@@ -242,7 +245,9 @@ export function RoomTypeEditor({
             <Text className="text-destructive" variant="caption">
               {shown.text}
             </Text>
-          ) : null}
+          ) : (
+            <Text variant="caption">All beds start free. Lower it if some are taken.</Text>
+          )}
         </View>
 
         <Field

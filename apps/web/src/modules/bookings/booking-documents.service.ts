@@ -78,12 +78,15 @@ export async function resolveBookingDocument(
     return null;
   }
 
-  // Softmato's receipt, from the local copy or fetched once — never redrawn here.
+  const drawOurs = async () =>
+    renderBookingDocument(bookingDocumentLayout(paper, booking, transfer, await loadIssuer()));
+
+  // Softmato's receipt, from the local copy or fetched once — redrawn only when they answer HTML.
   if (paper === "receipt" && booking.softmatoInvoiceNo) {
-    return softmatoDocument("receipt", documentNumber, "1", () => downloadReceiptFile(documentNumber));
+    return softmatoDocument("receipt", documentNumber, "1", () => downloadReceiptFile(documentNumber), drawOurs);
   }
 
-  const bytes = await renderBookingDocument(bookingDocumentLayout(paper, booking, transfer, await loadIssuer()));
+  const bytes = await drawOurs();
 
   return { bytes, contentType: "application/pdf", filename: documentFileName(documentNumber) };
 }

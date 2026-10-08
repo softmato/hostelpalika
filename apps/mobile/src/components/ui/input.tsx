@@ -181,7 +181,15 @@ export function Input({
           }}
           placeholderTextColor={colors.mutedForeground}
           secureTextEntry={secure && !revealed}
-          style={[multiline ? { paddingTop: line ? 8 : 12, textAlignVertical: "top" } : null, style]}
+          /*
+            Single-line: no vertical padding. Android adds its own on top of the
+            line height, and inside the fixed 44/48dp row that left too little
+            room — digits came out clipped top and bottom. The row centres it.
+          */
+          style={[
+            multiline ? { paddingTop: line ? 8 : 12, textAlignVertical: "top" } : { paddingVertical: 0 },
+            style,
+          ]}
           {...props}
           placeholder={line && label && !focused ? label : props.placeholder}
         />

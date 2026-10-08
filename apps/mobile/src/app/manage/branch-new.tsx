@@ -196,7 +196,8 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
   // Edit on Review sends the owner back here after one step, not through the rest.
   const [fromReview, setFromReview] = useState(false);
   const [picker, setPicker] = useState<"add" | "change" | null>(null);
-  const [editor, setEditor] = useState<{ draft: RoomRow; id: string | null } | null>(null);
+  // `vacantSet`: the owner has typed "Beds free now" themselves, so it stops following the count.
+  const [editor, setEditor] = useState<{ draft: RoomRow; id: string | null; vacantSet: boolean } | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const [roomMenu, setRoomMenu] = useState<RoomRow | null>(null);
 
@@ -529,13 +530,34 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
     }
   }
 
+  /**
+   * A new branch has nobody in it yet, so every bed starts free — "Beds free now"
+   * follows rooms × beds until the owner sets it, and then it is theirs.
+   */
+  function editDraft(next: Partial<RoomRow>) {
+    setEditor((current) => {
+      if (!current) return current;
+
+      const draft = { ...current.draft, ...next };
+      const vacantSet = current.vacantSet || "vacantBeds" in next;
+
+      if (!vacantSet) {
+        draft.vacantBeds = String((numberValue(draft.rooms) ?? 0) * (numberValue(draft.bedsPerRoom) ?? 0));
+      }
+
+      return { ...current, draft, vacantSet };
+    });
+  }
+
   function openEditor(room: RoomRow | null, type?: string) {
     if (room) {
-      setEditor({ draft: room, id: room.id });
+      const all = (numberValue(room.rooms) ?? 0) * (numberValue(room.bedsPerRoom) ?? 0);
+      setEditor({ draft: room, id: room.id, vacantSet: (numberValue(room.vacantBeds) ?? 0) !== all });
     } else {
       const draft = emptyRoomRow(`room-${nextRoom}`, type ?? "");
       setNextRoom((value) => value + 1);
-      setEditor({ draft: { ...draft, bedsPerRoom: bedsFor(draft.roomType), rooms: "1", vacantBeds: "0" }, id: null });
+      const beds = bedsFor(draft.roomType);
+      setEditor({ draft: { ...draft, bedsPerRoom: beds, rooms: "1", vacantBeds: String(numberValue(beds) ?? 0) }, id: null, vacantSet: false });
     }
     setEditorOpen(true);
   }
@@ -1109,7 +1131,7 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
         customLabel={(text) => `Use “${text.slice(0, 80)}” as a room type`}
         onChoose={(type) => {
           if (picker === "change") {
-            setEditor((current) => current && { ...current, draft: { ...current.draft, bedsPerRoom: bedsFor(type) || current.draft.bedsPerRoom, roomType: type } });
+            editDraft(bedsFor(type) ? { bedsPerRoom: bedsFor(type), roomType: type } : { roomType: type });
           } else {
             openEditor(null, type);
           }
@@ -1118,7 +1140,7 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
         onClose={() => setPicker(null)}
         onCustom={(text) => {
           const type = text.slice(0, 80);
-          if (picker === "change") setEditor((current) => current && { ...current, draft: { ...current.draft, roomType: type } });
+          if (picker === "change") editDraft({ roomType: type });
           else openEditor(null, type);
           setPicker(null);
         }}
@@ -1133,7 +1155,7 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
       <RoomTypeEditor
         draft={editor?.draft ?? null}
         isNew={editor?.id === null}
-        onChange={(next) => setEditor((current) => current && { ...current, draft: { ...current.draft, ...next } })}
+        onChange={editDraft}
         onClose={() => setEditorOpen(false)}
         onPickType={() => setPicker("change")}
         onSave={() => {
