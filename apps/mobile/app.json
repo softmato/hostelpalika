@@ -166,7 +166,8 @@
           }
         }
       ],
-      "./plugins/withReceiptSheet"
+      "./plugins/withReceiptSheet",
+      "./plugins/withReleaseMinify"
     ],
     "experiments": {
       "typedRoutes": false,
