@@ -4,7 +4,7 @@ import { Smartphone } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-import { PLATFORM_SITE_URL } from "@hostel/shared/brand/brand";
+import { PLATFORM_NAME, PLATFORM_SITE_URL } from "@hostel/shared/brand/brand";
 
 import {
   Dialog,
@@ -21,20 +21,17 @@ type Platform = "android" | "ios";
 /**
  * "Get the app": a QR a field agent holds up for an owner to scan.
  *
- * Android points at `/get-app`, which downloads the uploaded APK (or opens the
- * Play listing) — a stable link, so a new APK never invalidates a QR. iPhone
+ * Android points at `/get-app`, which opens the Play listing — a stable link,
+ * so a printed QR survives the listing or APK changing. iPhone
  * points at the installable web app with `?install`, whose sheet walks through
  * Add to Home Screen until the App Store build exists.
  */
 export function GetAppDialog({
   className,
-  comingSoon = false,
   open,
   onOpenChange,
 }: {
   className?: string;
-  /** Portal users: no QR, just "coming soon" and how to install the web app now. */
-  comingSoon?: boolean;
   /** Controlled from a menu item: no trigger button of its own. */
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -46,11 +43,10 @@ export function GetAppDialog({
   const link = `${PLATFORM_SITE_URL}${platform === "android" ? "/get-app" : "/app?install"}`;
 
   useEffect(() => {
-    if (comingSoon) return;
     void import("qrcode").then(({ toDataURL }) =>
       toDataURL(link, { margin: 1, width: 480 }).then((data) => setQr({ data, url: link })),
     );
-  }, [link, comingSoon]);
+  }, [link]);
 
   const tabs = (
     <div className="grid grid-cols-2 gap-1 rounded-lg bg-muted p-1" role="tablist">
@@ -88,28 +84,11 @@ export function GetAppDialog({
       </DialogTrigger>
       ) : null}
       <DialogContent className="sm:max-w-sm">
-        {comingSoon ? (
-          <>
-            <DialogHeader>
-              <DialogTitle>Get the app</DialogTitle>
-              <DialogDescription>
-                The {platform === "android" ? "Android" : "iPhone"} app is coming soon. We will
-                email you when it is ready.
-              </DialogDescription>
-            </DialogHeader>
-            {tabs}
-            <p className="rounded-lg bg-muted p-3 text-sm text-foreground">
-              For now, open {PLATFORM_SITE_URL.replace(/^https?:\/\//, "")} on your phone and tap
-              the <strong>Install</strong> button. It installs right away.
-            </p>
-          </>
-        ) : (
-          <>
         <DialogHeader>
           <DialogTitle>Scan to get the app</DialogTitle>
           <DialogDescription>
             {platform === "android"
-              ? "Opens the download on the phone that scans it."
+              ? `Opens ${PLATFORM_NAME} on Google Play on the phone that scans it.`
               : "Opens the website; tap Share → Add to Home Screen to install it. The iPhone app is coming soon."}
           </DialogDescription>
         </DialogHeader>
@@ -131,8 +110,6 @@ export function GetAppDialog({
         >
           {link}
         </a>
-          </>
-        )}
       </DialogContent>
     </Dialog>
   );

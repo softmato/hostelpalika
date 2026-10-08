@@ -676,7 +676,7 @@ export function PortalShell({
                 )}
 
                 {tone === "team" || tone === "platform" || cleanHeader ? null : (
-                  <GetAppDialog className="px-2.5 py-1.5 text-[12.5px]" comingSoon />
+                  <GetAppDialog className="px-2.5 py-1.5 text-[12.5px]" />
                 )}
 
                 {cleanHeader ? null : <ThemeToggle className="hidden size-8 sm:inline-flex" />}

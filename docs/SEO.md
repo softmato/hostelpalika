@@ -137,14 +137,17 @@ Rules every page follows:
 Held back until `com.softmato.hostelpalika` is live on Google Play, so nothing links to a store page
 that does not exist yet. First confirm the listing URL loads publicly, then:
 
-1. ☐ `lib/json-ld.ts` → `softwareApplicationJsonLd`: `operatingSystem` becomes `"Web, Android"`, and
+Listing confirmed live 2026-10-08.
+
+1. ☑ `lib/json-ld.ts` → `softwareApplicationJsonLd`: `operatingSystem` becomes `"Web, Android"`, and
    the Play URL is added as `installUrl`.
-2. ☐ `app/manifest.ts`: add `related_applications` (platform `play`, id `com.softmato.hostelpalika`)
+2. ☑ `app/manifest.ts`: add `related_applications` (platform `play`, id `com.softmato.hostelpalika`)
    and `prefer_related_applications: true`, so Chrome offers the real app.
-3. ☐ A "Get it on Google Play" link, using Google's official badge, in `components/public-footer.tsx`
+3. ☑ A "Get it on Google Play" link, using Google's official badge, in `components/public-footer.tsx`
    and on `/hostel-management-software`.
-4. ☐ The FAQ answer to "Is there a HostelPalika app?" says it is on Google Play (`seo.defaults.ts`
-   and the stored SEO config).
+4. ☑ The FAQ answer to "Is there a HostelPalika app?" says it is on Google Play (`seo.defaults.ts`
+   and the stored SEO config). The default is changed; a FAQ already saved in Website Config → SEO
+   keeps its old wording until it is edited there.
 
 ## Check it yourself
 

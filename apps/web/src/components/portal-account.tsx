@@ -394,7 +394,7 @@ export function PortalAccount({
 
       <ResidentIdentityCenter onProfileSaved={loadCurrentUser} />
       {showPortalActions ? (
-        <GetAppDialog comingSoon open={getAppOpen} onOpenChange={setGetAppOpen} />
+        <GetAppDialog open={getAppOpen} onOpenChange={setGetAppOpen} />
       ) : null}
     </div>
   );

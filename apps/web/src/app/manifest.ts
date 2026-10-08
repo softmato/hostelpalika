@@ -1,6 +1,8 @@
 import type { MetadataRoute } from "next";
 
-import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
+import { PLATFORM_NAME, PLATFORM_PLAY_STORE_URL } from "@hostel/shared/brand/brand";
+
+const PLATFORM_PLAY_STORE_ID = new URL(PLATFORM_PLAY_STORE_URL).searchParams.get("id") ?? undefined;
 
 import { loadSeo, resolveSeoPage } from "@/lib/seo-config";
 
@@ -15,8 +17,9 @@ import { loadSeo, resolveSeoPage } from "@/lib/seo-config";
  * and `/app` is outside a `/app/` scope, so Chrome drew its "left the app" bar
  * over the home screen. `id` keeps the slash so existing installs update.
  * `InstallAppBanner` fires Android's install prompt and sends iPhones to `/app`,
- * where the app's own sheet walks through Add to Home Screen. When the Play
- * listing is live, add it under `related_applications` as well.
+ * where the app's own sheet walks through Add to Home Screen. On Android,
+ * `prefer_related_applications` makes Chrome offer the Play app instead of
+ * installing this one; iPhones and desktops still install `/app`.
  */
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const { fill, seo } = await loadSeo();
@@ -34,6 +37,10 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     ],
     lang: "en-NP",
     name: PLATFORM_NAME,
+    prefer_related_applications: true,
+    related_applications: [
+      { id: PLATFORM_PLAY_STORE_ID, platform: "play", url: PLATFORM_PLAY_STORE_URL },
+    ],
     scope: "/app",
     share_target: {
       action: "/app/share-payment",

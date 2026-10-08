@@ -425,7 +425,7 @@ export const DEFAULT_SEO: SeoConfig = {
       },
       {
         answer:
-          "Yes. {siteName} has a dedicated app designed for phones, with separate home screens for hostel owners, wardens, cooks, residents and parents, so each person sees only their own work. The same account also works on the web.",
+          "Yes. The {siteName} app is on Google Play for Android phones, with separate home screens for hostel owners, wardens, cooks, residents and parents, so each person sees only their own work. On an iPhone, open the website and add the app to your home screen. The same account also works on the web.",
         question: "Is there a {siteName} app?",
       },
       {

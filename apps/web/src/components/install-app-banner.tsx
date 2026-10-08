@@ -32,10 +32,11 @@ function readDismissed() {
  * browser's own install prompt is held and fired by "Install"; where the
  * browser has not offered one, and on iPhone (no install API, only Share → Add
  * to Home Screen), "Install" opens `/app`, whose own sheet finishes the job.
- * One button on both platforms until the store apps are live.
+ * Android goes to the Play listing instead (Website Config → Mobile App) — the
+ * manifest's `prefer_related_applications` stops Chrome offering `/app` there.
  */
 export function InstallAppBanner() {
-  const { identity } = useSiteConfig();
+  const { apps, identity } = useSiteConfig();
   /*
    * A join link opens here, in the browser, because `/join/` is outside the
    * app's `/app` scope. Sending its "Install" to `/app` dropped the token: an
@@ -80,6 +81,8 @@ export function InstallAppBanner() {
     return null;
   }
 
+  const playHref = platform === "android" && !appHref ? apps.androidPlayUrl : "";
+
   function dismiss() {
     setVisible(false);
 
@@ -91,8 +94,8 @@ export function InstallAppBanner() {
   }
 
   async function install() {
-    if (appHref) {
-      window.location.href = appHref;
+    if (appHref || playHref) {
+      window.location.href = appHref || playHref;
       return;
     }
 
@@ -114,7 +117,11 @@ export function InstallAppBanner() {
           {appHref ? `Open in ${identity.siteName}` : `Install ${identity.siteName}`}
         </span>
         <span className="block truncate text-xs text-muted-foreground">
-          {appHref ? "Send your details from the app" : "Add the app to your home screen"}
+          {appHref
+            ? "Send your details from the app"
+            : playHref
+              ? "Get it on Google Play"
+              : "Add the app to your home screen"}
         </span>
       </span>
       <button

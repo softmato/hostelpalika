@@ -417,7 +417,7 @@ export function PublicHeader({ active }: PublicHeaderProps) {
         </div>
       </div>
 
-      <GetAppDialog comingSoon onOpenChange={setGetAppOpen} open={getAppOpen} />
+      <GetAppDialog onOpenChange={setGetAppOpen} open={getAppOpen} />
 
       <Sheet open={navOpen} onOpenChange={setNavOpen}>
         <SheetContent side="right" className="flex w-[280px] flex-col gap-0 p-0 sm:max-w-[280px]">

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { PLATFORM_NAME, PLATFORM_VENDOR, PLATFORM_VENDOR_URL } from "@hostel/shared/brand/brand";
 
 import { BrandMark } from "@/components/brand-mark";
+import { GooglePlayBadge } from "@/components/google-play-badge";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { locationSlug } from "@/lib/hostel-locations";
 
@@ -129,6 +130,8 @@ export function PublicFooter() {
               ))}
             </div>
           ) : null}
+
+          <GooglePlayBadge className="-ml-2.5 mt-4 block w-fit" />
 
           <a
             className="mt-6 inline-flex items-center gap-3 rounded-xl border border-border bg-white px-3.5 py-2 text-xs font-semibold text-neutral-600 transition hover:border-primary/50"

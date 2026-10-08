@@ -7,8 +7,8 @@ export const dynamic = "force-dynamic";
 /**
  * The one link the team's QR codes and the install banner point at.
  *
- * - Android: the uploaded APK when there is one (the browser starts the
- *   download straight away), else the Play listing.
+ * - Android: the Play listing, or the uploaded APK when the Play link is
+ *   blank (the browser starts the download straight away).
  * - iPhone/iPad: there is no App Store build yet, so the installable web app
  *   at `/app`, whose `?install` sheet walks through Add to Home Screen.
  * - Anything else (a laptop that opened the link): the Play listing.
@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
   }
 
   const target =
-    (/Android/i.test(agent) && apps.androidApkUrl) || apps.androidPlayUrl || "/";
+    apps.androidPlayUrl || (/Android/i.test(agent) && apps.androidApkUrl) || "/";
 
   return NextResponse.redirect(new URL(target, request.url));
 }

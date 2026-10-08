@@ -1,5 +1,6 @@
 import {
   PLATFORM_NAME,
+  PLATFORM_PLAY_STORE_URL,
   PLATFORM_VENDOR,
   PLATFORM_VENDOR_URL,
 } from "@hostel/shared/brand/brand";
@@ -129,8 +130,8 @@ export function websiteJsonLd(alternateNames: string[] = []): JsonLd {
 }
 
 /**
- * The product itself. `operatingSystem` says Web because that is where it can be
- * used today; add Android and iOS the day the store listings are live, not before.
+ * The product itself, on the web and on Google Play. Add iOS the day the App
+ * Store listing is live, not before.
  */
 export function softwareApplicationJsonLd(input: {
   description: string;
@@ -160,7 +161,9 @@ export function softwareApplicationJsonLd(input: {
         }
       : undefined,
     creator: vendorJsonLd(),
-    operatingSystem: "Web",
+    operatingSystem: "Web, Android",
+    installUrl: PLATFORM_PLAY_STORE_URL,
+    downloadUrl: PLATFORM_PLAY_STORE_URL,
     publisher: { "@id": organizationId() },
     url,
   };

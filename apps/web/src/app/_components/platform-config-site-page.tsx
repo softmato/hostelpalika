@@ -389,7 +389,7 @@ export const PlatformConfigSitePageContent = memo(
           </ConfigCard>
 
           <ConfigCard
-            description="Where the phone app comes from. Android visitors and the team's QR go to the Play listing, or to the APK when one is uploaded. iOS installs the website as an app until the iPhone app ships."
+            description="Where the phone app comes from. Android visitors and the team's QR go to the Play listing; the APK is used only when the Play link is blank. iOS installs the website as an app until the iPhone app ships."
             dirty={isDirty("apps")}
             onReset={() => reset("apps")}
             onSave={() => save("apps")}
@@ -417,8 +417,8 @@ export const PlatformConfigSitePageContent = memo(
                 />
               </div>
               <p className="mt-1 text-[10.5px] text-muted-foreground">
-                Direct download. When set, /get-app downloads this file instead of opening the Play
-                listing. Save after uploading.
+                Direct download, used by /get-app only when the Play Store link is blank. Save after
+                uploading.
               </p>
               {apkError ? <p className="mt-1 text-xs text-destructive">{apkError}</p> : null}
             </div>

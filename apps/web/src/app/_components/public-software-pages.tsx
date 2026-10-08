@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 
 import { ContentSectionIcon } from "@/components/content-sections";
+import { GooglePlayBadge } from "@/components/google-play-badge";
 import { formatNpr } from "@/lib/json-ld";
 import type {
   ResolvedComparison,
@@ -98,6 +99,7 @@ export function SoftwarePage({
               See plans & pricing
             </Link>
           </div>
+          <GooglePlayBadge className="-ml-2.5 mt-3" />
         </header>
 
         {page.intro.length ? (
