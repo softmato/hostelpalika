@@ -11,6 +11,7 @@ import {
   MapPin,
   Star,
   Trash2,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { memo, useCallback, useMemo, useState } from "react";
@@ -222,6 +223,68 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
       }
     },
     [confirm, invalidate],
+  );
+
+  /**
+   * Recharge a hostel's plan by hand: the months add onto what is running and
+   * the chosen plan becomes the live one. No payment is checked yet.
+   */
+  const rechargeAction = useCallback(
+    async (hostel: Hostel) => {
+      let plans: { id: string; monthly: number; name: string }[] = [];
+      try {
+        const site = await browserApi<{
+          config: { plans?: { plans?: { id: string; monthly: number; name: string }[] } };
+        }>("/api/v1/public/site-config");
+        plans = site?.config.plans?.plans ?? [];
+      } catch {
+        // Falls through to the empty-catalogue message below.
+      }
+
+      if (!plans.length) {
+        setActionMessage("No plans are configured to recharge with.");
+        return;
+      }
+
+      const picked = window.prompt(
+        `Recharge "${hostel.name}" — which plan?\n\n${plans
+          .map((plan, index) => `${index + 1}. ${plan.name} (${currency(plan.monthly)}/month)`)
+          .join("\n")}\n\nType the number:`,
+      );
+      if (picked === null) return;
+      const plan = plans[Number(picked) - 1];
+      if (!plan) {
+        setActionMessage("No such plan — nothing was recharged.");
+        return;
+      }
+
+      const months = Number(
+        window.prompt(`How many months of ${plan.name} to add (1–12)?`, "1"),
+      );
+      if (!Number.isInteger(months) || months < 1 || months > 12) {
+        setActionMessage("Months must be 1–12 — nothing was recharged.");
+        return;
+      }
+
+      setBusy(true);
+      try {
+        const result = await browserApi<{ currentPeriodEnd: string; planName: string }>(
+          `${platformEndpoints.hostel(hostel.id)}/recharge`,
+          { body: JSON.stringify({ months, planId: plan.id }), method: "POST" },
+        );
+        setActionMessage(
+          `"${hostel.name}" recharged: ${result?.planName ?? plan.name}, paid till ${
+            result ? new Date(result.currentPeriodEnd).toLocaleDateString() : "—"
+          }.`,
+        );
+        invalidate(platformEndpoints.hostels, platformEndpoints.hostelDetails);
+      } catch (error) {
+        setActionMessage(error instanceof Error ? error.message : "Recharge failed.");
+      } finally {
+        setBusy(false);
+      }
+    },
+    [invalidate],
   );
 
   /**
@@ -643,6 +706,17 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
                             >
                               <Ban className="size-3.5" />
                               Suspend
+                            </button>
+                          )}
+                          {hostel.isArchived ? null : (
+                            <button
+                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-40 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                              disabled={busy}
+                              onClick={() => void rechargeAction(hostel)}
+                              type="button"
+                            >
+                              <Zap className="size-3.5" />
+                              Recharge
                             </button>
                           )}
                           {/* Offered at every stage — a listing can be a

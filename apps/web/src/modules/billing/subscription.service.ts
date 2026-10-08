@@ -1511,3 +1511,67 @@ async function resolveBillingContact(hostelId: Types.ObjectId) {
     name: owner?.name ?? "",
   };
 }
+
+/**
+ * Superadmin recharge: puts a hostel on `planId` for `months` more, at once,
+ * with no invoice and no payment.
+ *
+ * Additive — the months land on top of whatever is still running, never
+ * replacing it — and the plan becomes the recharged one from now. Any open
+ * invoice is left alone.
+ */
+// ponytail: no payment recorded; add an invoice + PAID payment when recharges must be verified.
+export async function rechargeSubscription(
+  hostelId: string,
+  input: { months: number; planId: string },
+  actorId: string,
+) {
+  await connectToDatabase();
+
+  const subscription = await getOrCreateSubscription(hostelId);
+  assertNotLifetime(subscription);
+
+  const priced = await pricePlan(input.planId, "monthly", input.months);
+  const now = new Date();
+  const runningEnd = subscription.currentPeriodEnd ?? null;
+  const period = servicePeriod(priced.cycleMonths, runningEnd, now);
+  const extending = Boolean(runningEnd && runningEnd.getTime() > now.getTime());
+  const activatedAt =
+    extending && subscription.activatedAt ? subscription.activatedAt : period.startsAt;
+
+  await HostelSubscriptionModel.updateOne(
+    { _id: subscription._id },
+    {
+      $set: {
+        activatedAt,
+        currentPeriodEnd: period.endsAt,
+        cycle: priced.cycle,
+        cycleMonths: priced.cycleMonths,
+        cycleTotal: priced.cycleTotal,
+        dueBy: null,
+        monthlyRate: priced.monthlyRate,
+        planId: priced.planId,
+        planName: priced.planName,
+        selectedAt: subscription.selectedAt ?? now,
+        status: "ACTIVE",
+      },
+    },
+  );
+
+  await AuditLogModel.create({
+    action: "SUBSCRIPTION_RECHARGED",
+    actorId,
+    actorType: "USER",
+    entityId: subscription._id.toString(),
+    entityType: "HostelSubscription",
+    hostelId: subscription.hostelId,
+    metadata: {
+      from: runningEnd,
+      months: priced.cycleMonths,
+      planId: priced.planId,
+      to: period.endsAt,
+    },
+  });
+
+  return { currentPeriodEnd: period.endsAt, planName: priced.planName };
+}
