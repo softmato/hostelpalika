@@ -20,7 +20,6 @@ import {
   WaitingActions,
 } from "@/components/admin-home";
 import { useIsOverall } from "@/components/hostel-switcher";
-import { KhataStaffCard } from "@/components/khata-home-card";
 import { KycCard } from "@/components/manage/kyc-card";
 import { FreeMonthCard, SubscriptionDueCard } from "@/components/subscription-due";
 import { SectionHeader } from "@/components/ui/card";
@@ -40,6 +39,7 @@ import {
 } from "@/lib/admin-queries";
 import { openConfirm } from "@/lib/confirm";
 import { expenseQuery } from "@/lib/expenses-api";
+import { khataQuery } from "@/lib/khata-api";
 import { STORE_OPEN } from "@/lib/store-api";
 
 /**
@@ -193,6 +193,14 @@ function BranchAdminHomeScreen() {
    * news belongs on the screen that opens first.
    */
   const dueQuery = adminQuery.subscription();
+  // Khata's waiting count rides on its Home cell; a 403 (warden without
+  // `viewPayments`) leaves `data` empty and the cell hidden.
+  const khataAccess = khataQuery.admin();
+  const khata = useResource(khataAccess.load, {
+    cacheKey: khataAccess.key,
+    topics: khataAccess.topics,
+  });
+
   const due = useResource(dueQuery.load, {
     cacheKey: dueQuery.key,
     topics: dueQuery.topics,
@@ -436,16 +444,14 @@ function BranchAdminHomeScreen() {
                 already reading rather than one section further down.
               */
               onStatement={() => router.push("/manage/finance/statement")}
+              khataPending={
+                khata.data && !khata.error
+                  ? khata.data.requests.length + khata.data.waiting.length
+                  : null
+              }
+              onKhata={() => router.push("/manage/finance/khata")}
             />
 
-            {/*
-              Khata's own door, with its three numbers: a resident asking to
-              open one is waiting on someone here, and the bell is not where
-              that should be found.
-            */}
-            <View className="pt-3">
-              <KhataStaffCard />
-            </View>
           </View>
 
           <View>

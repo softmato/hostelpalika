@@ -54,3 +54,27 @@ Nothing here has run on a phone yet. In order:
 3. **Device run** — the opening view, pan smoothness, navigation tilt and follow,
    Re-centre after a drag, voice, an offline pack completing, dark mode style,
    and a release (R8) build opening the map.
+
+## 5. First device run (2026-10-08, release build v22)
+
+The map opened, panned and drew pins on a real phone. Three problems, all fixed
+in JS (no native change, so they ship as an OTA on the v22 runtime):
+
+- [x] **Directions turned the whole app white.** Logcat: `Error: \`id\` cannot be
+  changed` from a `<Layer>` in a `GeoJSONSource`. MapLibre RN's sources drop
+  `null` children and key the rest by position, so the casing that appears when
+  the road route replaces the dashed line took the route line's slot. Every
+  layer inside a source now has a `key`; the dashed line and the road route
+  are separate sources (a dropped `line-dasharray` is never reset natively);
+  `/map` has an `ErrorBoundary` with Try again / Go back.
+- [x] **Satellite / Terrain flashed blank.** They were whole styles, and a style
+  swap clears the map until the new one draws. Now the street style loads once
+  and they are overlays — Esri imagery under the street labels, AWS terrarium
+  hill shading under the roads — stacked with two invisible anchor layers
+  (`lib/map-styles.ts`). Dark mode remounts the map at the same view. The route
+  anchor also moved: in dark mode it was under every road.
+- [x] **Opened too close.** Opening view now frames up to 8 hostels within 5 km,
+  never a box smaller than ~3 km, zoom 13 when none are near.
+- [x] **Pins.** The green dot is a branded pin (`scripts/gen_map_pins.mjs`: green
+  teardrop, white rim, HP mark), on both native maps; the chosen one is larger
+  and on top. The PWA's Leaflet pins are still the CSS teardrop.

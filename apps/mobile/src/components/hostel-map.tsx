@@ -1,4 +1,11 @@
-import { Camera, GeoJSONSource, Layer, Map, NativeUserLocation } from "@maplibre/maplibre-react-native";
+import {
+  Camera,
+  GeoJSONSource,
+  Images,
+  Layer,
+  Map,
+  NativeUserLocation,
+} from "@maplibre/maplibre-react-native";
 import { useMemo } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
@@ -6,7 +13,7 @@ import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { type Coordinates, hostelCoordinates } from "@/lib/geo";
 import { priceRange } from "@/lib/hostel-display";
-import { LABEL_FONT, nativeStyle } from "@/lib/map-styles";
+import { baseStyle, HOSTEL_PIN, LABEL_FONT, PIN_OFFSET, pinImages } from "@/lib/map-styles";
 import type { NearbyPlace, PublicHostel } from "@/lib/public-api";
 
 /**
@@ -55,7 +62,7 @@ export function HostelMap({
   preview?: boolean;
 }) {
   const { colors, isDark } = useAppTheme();
-  const style = nativeStyle("standard", isDark);
+  const style = baseStyle(isDark);
 
   const pins = useMemo(
     () =>
@@ -148,8 +155,10 @@ export function HostelMap({
         compass={false}
         doubleTapZoom={interactive}
         dragPan={interactive}
+        // A theme switch remounts rather than swapping styles in place — see `lib/map-styles.ts`.
+        key={style.url}
         logo={false}
-        mapStyle={style.mapStyle}
+        mapStyle={style.url}
         style={{ flex: 1 }}
         touchPitch={interactive}
         touchRotate={interactive}
@@ -157,10 +166,14 @@ export function HostelMap({
       >
         <Camera initialViewState={view} />
 
+        <Images images={pinImages(isDark)} />
+
         {places.features.length > 0 ? (
           <GeoJSONSource data={places} id="nearby">
             <Layer
+              beforeId="hostel-pin"
               id="nearby-dot"
+              key="nearby-dot"
               paint={{
                 "circle-color": colors.mutedForeground,
                 "circle-radius": 5,
@@ -170,7 +183,9 @@ export function HostelMap({
               type="circle"
             />
             <Layer
+              beforeId="hostel-pin"
               id="nearby-label"
+              key="nearby-label"
               layout={{
                 "text-anchor": "top",
                 "text-field": ["get", "name"],
@@ -202,23 +217,27 @@ export function HostelMap({
           }}
         >
           <Layer
-            id="hostel-dot"
-            paint={{
-              "circle-color": colors.primary,
-              "circle-radius": 8,
-              "circle-stroke-color": "#ffffff",
-              "circle-stroke-width": 2.5,
+            id="hostel-pin"
+            key="hostel-pin"
+            layout={{
+              "icon-allow-overlap": true,
+              "icon-anchor": "bottom",
+              "icon-ignore-placement": true,
+              "icon-image": HOSTEL_PIN,
+              "icon-offset": PIN_OFFSET,
+              "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.55, 13, 0.68, 16, 0.85],
             }}
-            type="circle"
+            type="symbol"
           />
           <Layer
             id="hostel-label"
+            key="hostel-label"
             layout={{
               "text-anchor": "top",
               "text-field": ["get", "label"],
               "text-font": LABEL_FONT,
               "text-max-width": 9,
-              "text-offset": [0, 1],
+              "text-offset": [0, 0.3],
               "text-size": 11,
             }}
             paint={{

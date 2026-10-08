@@ -890,13 +890,18 @@ export function QuickActions({
  * a single scroll. `more.tsx` keeps its row, having no "Waiting for you".
  */
 export function WaitingActions({
+  khataPending,
   onExpenses,
   onFinance,
+  onKhata,
   onStatement,
   onStock,
 }: {
+  /** Khata asks waiting on staff; null hides the cell (no access, or loading). */
+  khataPending: number | null;
   onExpenses: () => void;
   onFinance: () => void;
+  onKhata: () => void;
   /** `manage/finance/statement` — the ledger of credits, day by day. */
   onStatement: () => void;
   onStock: () => void;
@@ -920,6 +925,16 @@ export function WaitingActions({
       <ActionCell glyph={colors.warning} icon="cube-outline" label="Stock" onPress={onStock} tone="warning" />
       <ActionCell glyph={colors.success} icon="cash-outline" label="Finance" onPress={onFinance} tone="success" />
       <ActionCell glyph={colors.success} icon="wallet-outline" label="Expenses" onPress={onExpenses} tone="success" />
+      {khataPending === null ? null : (
+        <ActionCell
+          badge={khataPending || undefined}
+          glyph={colors.success}
+          icon="book-outline"
+          label="Khata"
+          onPress={onKhata}
+          tone="success"
+        />
+      )}
     </ActionCard>
   );
 }

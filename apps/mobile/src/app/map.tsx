@@ -1,7 +1,7 @@
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
-import { router, useLocalSearchParams } from "expo-router";
+import { type ErrorBoundaryProps, router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, Pressable, ScrollView, TextInput, View } from "react-native";
 
@@ -10,6 +10,7 @@ import { MapExplorer, type MapHandle, type MapMarker } from "@/components/map-ex
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet } from "@/components/ui/sheet";
+import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -32,7 +33,7 @@ import { type MapLayerId, MAP_LAYERS } from "@/lib/leaflet";
 import { cardinalFor, formatManeuverDistance, instructionFor } from "@/lib/navigation";
 import { formatTime } from "@/lib/format";
 import { formatDistance, locationLabel, priceRange, ratingDisplay } from "@/lib/hostel-display";
-import { nativeStyle } from "@/lib/map-styles";
+import { baseStyle } from "@/lib/map-styles";
 import { absoluteMediaUrl } from "@/lib/media";
 import { openConfirm } from "@/lib/confirm";
 import { saveRouteOffline } from "@/lib/offline-route";
@@ -149,6 +150,32 @@ type Choice = {
 
 /** The state before anybody has tapped anything, and after they close the card. */
 const NOTHING_CHOSEN: Choice = { directions: false, id: null };
+
+/**
+ * A map that throws stays a map screen with a way back, not a white app.
+ *
+ * Without this, any render error under the map — the native layer bridge has
+ * thrown before — unmounts the whole tree, and the reader is left on a blank
+ * screen they can only swipe away. Expo Router mounts this in place of the
+ * screen; "Try again" renders it afresh.
+ */
+export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+  const { colors } = useAppTheme();
+
+  return (
+    <View className="flex-1" style={{ backgroundColor: colors.background }}>
+      <ErrorState
+        icon="map-outline"
+        message="Something on the map failed to draw. Try again, or go back and open it later."
+        onRetry={() => void retry()}
+        title="The map stopped"
+      />
+      <View className="items-center pb-12">
+        <Button label="Go back" onPress={() => router.back()} variant="ghost" />
+      </View>
+    </View>
+  );
+}
 
 export default function MapScreen() {
   const { route: routeParam, slug } = useLocalSearchParams<{
@@ -442,9 +469,9 @@ export default function MapScreen() {
 
     // Vector tiles only: the street map is what guidance needs, and photo
     // tiles are many times the bytes.
-    const style = nativeStyle("standard", isDark).mapStyle;
+    const style = baseStyle(isDark).url;
 
-    if (chosen && typeof style === "string") {
+    if (chosen) {
       setOffline("saving");
       void saveRouteOffline(chosen.points, style).then((ok) => setOffline(ok ? "saved" : null));
     }
