@@ -180,14 +180,8 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
         <Glyph color={colors.mutedForeground} name="chevronDown" size={14} />
       </Pressable>
 
-      <Sheet
-        bare
-        fitContent
-        onClose={() => setOpen(false)}
-        open={open}
-        title="Switch hostel"
-      >
-        <View className="gap-4 px-4 py-4">
+      <Sheet bare onClose={() => setOpen(false)} open={open} title="Switch hostel">
+        <View className="gap-4 px-4 pb-10 pt-4">
           <View className="gap-1.5">
             <Text className="px-1" variant="label">
               Your hostels

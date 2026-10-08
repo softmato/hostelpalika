@@ -437,6 +437,7 @@ class LastFrame extends Component<
  * list row's denser padding is a miss target in that position.
  */
 export function SheetRow({
+  disabled = false,
   label,
   leading,
   onPress,
@@ -444,6 +445,8 @@ export function SheetRow({
   subtitle,
   trailing,
 }: {
+  /** Shown, dimmed and untappable — an option already used elsewhere. */
+  disabled?: boolean;
   label: string;
   /**
    * Ahead of the label — an avatar, a logo tile.
@@ -463,13 +466,14 @@ export function SheetRow({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityState={{ selected }}
+      accessibilityState={{ disabled, selected }}
       className="flex-row items-center gap-3 px-5 py-3.5 active:bg-muted"
+      disabled={disabled}
       onPress={handlePress}
     >
       {leading}
       <View className="flex-1">
-        <Text className={selected ? "text-primary" : undefined} variant="subtitle">
+        <Text className={selected ? "text-primary" : disabled ? "text-muted-foreground" : undefined} variant="subtitle">
           {label}
         </Text>
         {subtitle ? <Text variant="caption">{subtitle}</Text> : null}

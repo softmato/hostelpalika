@@ -287,6 +287,8 @@ export async function fetchRoadRoute(
 /**
  * The route and up to two alternatives, for the reader to choose between.
  * Empty for every failure, like `fetchRoadRoute`'s `null`.
+ *
+ * On foot the road routes are candidates too — see `walkingChoices`.
  */
 export async function fetchRoadRoutes(
   from: Coordinates,
@@ -298,6 +300,24 @@ export async function fetchRoadRoutes(
     return [];
   }
 
+  if (mode === "foot") {
+    const [foot, street] = await Promise.all([
+      requestRoutes(from, to, "foot", alternatives),
+      requestRoutes(from, to, "car", alternatives),
+    ]);
+
+    return walkingChoices(foot, street, alternatives ? MAX_CHOICES : 1);
+  }
+
+  return requestRoutes(from, to, mode, alternatives);
+}
+
+async function requestRoutes(
+  from: Coordinates,
+  to: Coordinates,
+  mode: RouteMode,
+  alternatives: boolean,
+): Promise<RoadRoute[]> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -319,6 +339,73 @@ export async function fetchRoadRoutes(
   }
 }
 
+/** The router's best and two alternatives — what the card has room to list. */
+const MAX_CHOICES = 3;
+
+/** 5 km/h, the foot profile's own pace, for when the foot router gave nothing to measure. */
+const WALKING_METERS_PER_SECOND = 5_000 / 3_600;
+
+/**
+ * Walking routes, shortest first, from the foot graph **and** the road graph.
+ *
+ * The foot router is not always the shorter answer. Between Koteshwor and
+ * Putalisadak it walks 5.8 km while the car router's road is 5.5 km — the foot
+ * profile weighs some main roads down, and on a Kathmandu street a person can
+ * walk anywhere a car can drive. So the road routes are re-timed at the
+ * walker's pace and put in the same list, and the list is ordered by length:
+ * on foot, shorter *is* faster, which the router's own first pick is not always
+ * (it answered 6.4 km first with 6.3 km second).
+ *
+ * Two routes within 1% (or 25 m) of each other are the same walk drawn twice;
+ * the first, shorter one stays.
+ */
+export function walkingChoices(
+  foot: RoadRoute[],
+  street: RoadRoute[],
+  limit = MAX_CHOICES,
+): RoadRoute[] {
+  const sample = foot.find((route) => route.durationSeconds > 0);
+  const pace = sample ? sample.distanceMeters / sample.durationSeconds : WALKING_METERS_PER_SECOND;
+  const candidates = [...foot, ...street.map((route) => onFoot(route, pace))].sort(
+    (a, b) => a.distanceMeters - b.distanceMeters,
+  );
+  const kept: RoadRoute[] = [];
+
+  for (const route of candidates) {
+    const same = kept.some(
+      (other) =>
+        Math.abs(other.distanceMeters - route.distanceMeters) <=
+        Math.max(25, other.distanceMeters * 0.01),
+    );
+
+    if (!same) {
+      kept.push(route);
+    }
+
+    if (kept.length === limit) {
+      break;
+    }
+  }
+
+  return kept;
+}
+
+/** A road route, walked: the same line and turns, timed at `pace` metres a second. */
+function onFoot(route: RoadRoute, pace: number): RoadRoute {
+  return {
+    ...route,
+    durationSeconds: Math.round(route.distanceMeters / pace),
+    ...(route.steps
+      ? {
+          steps: route.steps.map((step) => ({
+            ...step,
+            durationSeconds: Math.round(step.distanceMeters / pace),
+          })),
+        }
+      : {}),
+  };
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -330,18 +417,59 @@ const TABLE_CHUNK = 90;
  * Seconds from `origin` to each of `points`, in order, `null` where the router
  * found no way. One `table` request per ninety points — the whole catalogue is
  * one request — and every failure is a row of `null`s, never a throw.
+ *
+ * On foot the road table is asked as well, for the same reason as
+ * `walkingChoices`: the minutes on a pin must be the walk the route then draws,
+ * not the foot graph's longer one.
  */
 export async function fetchTravelTimes(
   origin: Coordinates,
   points: Coordinates[],
   mode: RouteMode,
 ): Promise<(number | null)[]> {
+  if (mode === "foot") {
+    const [foot, street] = await Promise.all([
+      fetchTable(origin, points, "foot"),
+      fetchTable(origin, points, "car"),
+    ]);
+
+    return foot.map((walk, index) => walkingSeconds(walk, street[index]));
+  }
+
+  return (await fetchTable(origin, points, mode)).map((cell) => cell.seconds);
+}
+
+/** One destination's answer from a `table` request. */
+export type TableCell = { meters: number | null; seconds: number | null };
+
+/**
+ * The walk to one destination: the foot graph's time, or the road's length at
+ * that walker's pace, whichever is shorter. `null` only when neither answered.
+ */
+export function walkingSeconds(walk: TableCell, street: TableCell | undefined): number | null {
+  const pace = walk.seconds && walk.meters ? walk.meters / walk.seconds : WALKING_METERS_PER_SECOND;
+  const byRoad = street?.meters ? Math.round(street.meters / pace) : null;
+
+  if (walk.seconds === null) {
+    return byRoad;
+  }
+
+  return byRoad === null ? walk.seconds : Math.min(walk.seconds, byRoad);
+}
+
+async function fetchTable(
+  origin: Coordinates,
+  points: Coordinates[],
+  mode: RouteMode,
+): Promise<TableCell[]> {
   const base = ROUTERS[mode].replace("/route/v1/", "/table/v1/");
   const chunks: Coordinates[][] = [];
 
   for (let i = 0; i < points.length; i += TABLE_CHUNK) {
     chunks.push(points.slice(i, i + TABLE_CHUNK));
   }
+
+  const nothing = (chunk: Coordinates[]) => chunk.map(() => ({ meters: null, seconds: null }));
 
   const answers = await Promise.all(
     chunks.map(async (chunk) => {
@@ -350,13 +478,21 @@ export async function fetchTravelTimes(
       const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
       try {
-        const response = await fetch(`${base}/${coords}?sources=0&annotations=duration`, {
+        const response = await fetch(`${base}/${coords}?sources=0&annotations=duration,distance`, {
           signal: controller.signal,
         });
 
-        return response.ok ? parseTravelTimes(await response.json(), chunk.length) : chunk.map(() => null);
+        if (!response.ok) {
+          return nothing(chunk);
+        }
+
+        const payload: unknown = await response.json();
+        const seconds = parseTravelTimes(payload, chunk.length);
+        const meters = parseTableRow(payload, "distances", chunk.length);
+
+        return chunk.map((_, index) => ({ meters: meters[index], seconds: seconds[index] }));
       } catch {
-        return chunk.map(() => null);
+        return nothing(chunk);
       } finally {
         clearTimeout(timer);
       }
@@ -368,10 +504,16 @@ export async function fetchTravelTimes(
 
 /** The source row of a `table` reply, minus the origin's own zero. */
 export function parseTravelTimes(payload: unknown, count: number): (number | null)[] {
-  const row =
-    isRecord(payload) && payload.code === "Ok" && Array.isArray(payload.durations)
-      ? payload.durations[0]
-      : null;
+  return parseTableRow(payload, "durations", count);
+}
+
+function parseTableRow(
+  payload: unknown,
+  key: "distances" | "durations",
+  count: number,
+): (number | null)[] {
+  const rows = isRecord(payload) && payload.code === "Ok" ? payload[key] : null;
+  const row = Array.isArray(rows) ? rows[0] : null;
 
   return Array.from({ length: count }, (_, index) => {
     const value = Array.isArray(row) ? row[index + 1] : null;

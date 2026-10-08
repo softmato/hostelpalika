@@ -24,7 +24,7 @@ export function uploadUri(url: string): string {
 }
 
 /** On a card-coloured disc, because a glyph straight onto an unknown photo is invisible against half of them. */
-function RemoveButton({ label, onPress }: { label: string; onPress: () => void }) {
+export function RemoveButton({ label, onPress }: { label: string; onPress: () => void }) {
   const { colors } = useAppTheme();
 
   return (

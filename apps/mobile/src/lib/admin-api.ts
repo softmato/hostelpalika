@@ -184,6 +184,8 @@ export type AdminBranches = {
   branches: {
     area: string;
     city: string;
+    /** First exterior photo — resolve with `absoluteMediaUrl`. */
+    coverUrl?: string | null;
     id: string;
     name: string;
     slug: string;
@@ -196,6 +198,7 @@ export type AdminBranches = {
     status: string;
     area: string;
     city: string;
+    coverUrl?: string | null;
     panNumber: string | null;
   };
 };

@@ -78,3 +78,21 @@ in JS (no native change, so they ship as an OTA on the v22 runtime):
 - [x] **Pins.** The green dot is a branded pin (`scripts/gen_map_pins.mjs`: green
   teardrop, white rim, HP mark), on both native maps; the chosen one is larger
   and on top. The PWA's Leaflet pins are still the CSS teardrop.
+
+Second pass, after that OTA:
+
+- [x] **Arrow froze while standing still.** The puck was GPS-course in a vehicle;
+  it is compass heading in every mode now (the camera still follows the road in
+  a vehicle).
+- [x] **A tap on the map dropped the route.** Ignored while directions or
+  navigation are up; Back / X / another pin still leave.
+- [x] **Navigation card** is the hostel's sheet (photo, name, area, minutes) with
+  a labelled Exit and Tell hostel, instead of a lone X.
+- [x] **College / office sheet** opens tall; `Sheet` already keeps the field above
+  the keyboard.
+- [x] **Walking took the longer way.** `walkingChoices` (`lib/routing.ts`, tested):
+  on foot the car router's roads are candidates too, re-timed at walking pace,
+  and choices are ordered shortest first. Vehicle is unchanged.
+- [x] **Walking minutes on pins and cards** — `fetchTravelTimes` on foot asks the
+  road table too and takes `walkingSeconds` (the shorter of the foot time and
+  the road length at the walker's pace), so the pin agrees with the drawn route.

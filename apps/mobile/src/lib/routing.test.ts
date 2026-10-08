@@ -5,7 +5,10 @@ import {
   parseRoadRoutes,
   parseTravelTimes,
   ROUTE_MODES,
+  type RoadRoute,
   routeUrl,
+  walkingChoices,
+  walkingSeconds,
 } from "@/lib/routing";
 
 /**
@@ -364,6 +367,68 @@ describe("route choices", () => {
     const routes = parseRoadRoutes({ code: "Ok", routes: [leg(5000), { distance: "x" }, leg(5600)] });
     expect(routes.map((route) => route.distanceMeters)).toEqual([5000, 5600]);
     expect(parseRoadRoutes({ code: "NoRoute" })).toEqual([]);
+  });
+});
+
+describe("walkingChoices", () => {
+  const route = (distanceMeters: number, durationSeconds: number): RoadRoute => ({
+    distanceMeters,
+    durationSeconds,
+    points: [
+      { lat: 27.7, lng: 85.3 },
+      { lat: 27.71, lng: 85.31 },
+    ],
+    steps: [
+      {
+        distanceMeters,
+        durationSeconds,
+        location: { lat: 27.7, lng: 85.3 },
+        maneuver: { type: "depart" },
+        name: "",
+      },
+    ],
+  });
+
+  it("puts the shorter walk first, whichever router's pick came first", () => {
+    const chosen = walkingChoices([route(6400, 5100), route(6300, 5040)], []);
+    expect(chosen.map((choice) => choice.distanceMeters)).toEqual([6300, 6400]);
+  });
+
+  it("offers a shorter road route on foot, timed at the walker's pace", () => {
+    // Foot pace here is 5817 m in 78 min; the road route took 9 min by car.
+    const [best] = walkingChoices([route(5817, 4680)], [route(5463, 540)]);
+    expect(best.distanceMeters).toBe(5463);
+    expect(best.durationSeconds).toBe(Math.round(5463 / (5817 / 4680)));
+    expect(best.steps?.[0].durationSeconds).toBe(best.durationSeconds);
+  });
+
+  it("drops a road route that is the same walk as a foot route", () => {
+    const chosen = walkingChoices([route(5000, 3600)], [route(5030, 400), route(6900, 540)]);
+    expect(chosen.map((choice) => choice.distanceMeters)).toEqual([5000, 6900]);
+  });
+
+  it("walks the road at 5 km/h when the foot router gave nothing", () => {
+    const [only] = walkingChoices([], [route(5000, 400)], 1);
+    expect(only.durationSeconds).toBe(3600);
+  });
+});
+
+describe("walkingSeconds", () => {
+  it("takes the road when it is the shorter walk, at the walker's own pace", () => {
+    // Real table answers, Koteshwor to Putalisadak: foot 5817 m in 4655 s, road 5462 m.
+    expect(walkingSeconds({ meters: 5817, seconds: 4655 }, { meters: 5462, seconds: 529 })).toBe(
+      Math.round(5462 / (5817 / 4655)),
+    );
+  });
+
+  it("keeps the foot time when the foot graph is shorter", () => {
+    expect(walkingSeconds({ meters: 5151, seconds: 4121 }, { meters: 5218, seconds: 355 })).toBe(4121);
+  });
+
+  it("falls back to either side alone, and to null when neither answered", () => {
+    expect(walkingSeconds({ meters: null, seconds: null }, { meters: 5000, seconds: 400 })).toBe(3600);
+    expect(walkingSeconds({ meters: 900, seconds: 700 }, undefined)).toBe(700);
+    expect(walkingSeconds({ meters: null, seconds: null }, { meters: null, seconds: null })).toBeNull();
   });
 });
 

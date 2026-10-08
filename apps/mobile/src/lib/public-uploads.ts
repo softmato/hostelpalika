@@ -77,13 +77,23 @@ type PickedAsset = Pick<
  */
 export async function uploadPublicFile(
   asset: PickedAsset,
-  { label, visibility = "private" }: { label: string; visibility?: "private" | "public" },
+  {
+    label,
+    onProgress,
+    visibility = "private",
+  }: {
+    label: string;
+    /** 0–1, for a screen that draws its own progress beside the global toaster's. */
+    onProgress?: (fraction: number) => void;
+    visibility?: "private" | "public";
+  },
 ): Promise<PublicFile> {
   const rowId = startUpload(label);
 
   try {
     const uploaded = await runPublicUpload(asset, visibility, (fraction) => {
       updateUpload(rowId, { fraction, stage: "uploading" });
+      if (fraction !== null) onProgress?.(fraction);
     });
 
     finishUpload(rowId);

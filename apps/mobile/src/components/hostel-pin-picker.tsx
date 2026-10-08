@@ -44,17 +44,19 @@ function looksLikeMapLink(value: string): boolean {
   );
 }
 
-export function MapLinkField({
+/**
+ * The link-reading half of {@link MapLinkField}, for a form that draws its own
+ * field: wire `onChangeText` and `onEndEditing` to it, and show `status`.
+ */
+export function useMapLinkReader({
   near,
   onChange,
   onPinned,
-  pin,
   value,
 }: {
   near: string;
   onChange: (value: string) => void;
   onPinned: (match: LocationMatch) => void;
-  pin: Coordinates | null;
   value: string;
 }) {
   const [status, setStatus] = useState<{ error: boolean; text: string } | null>(null);
@@ -99,6 +101,38 @@ export function MapLinkField({
     [near, onPinned],
   );
 
+  return {
+    onChangeText: (next: string) => {
+      onChange(next);
+
+      if (!next.trim()) {
+        readFor.current = "";
+        setStatus(null);
+      } else if (next.length - value.length > 8) {
+        // A jump this size is a paste: read it now.
+        void read(next);
+      }
+    },
+    onEndEditing: () => void read(value),
+    status,
+  };
+}
+
+export function MapLinkField({
+  near,
+  onChange,
+  onPinned,
+  pin,
+  value,
+}: {
+  near: string;
+  onChange: (value: string) => void;
+  onPinned: (match: LocationMatch) => void;
+  pin: Coordinates | null;
+  value: string;
+}) {
+  const { onChangeText, onEndEditing, status } = useMapLinkReader({ near, onChange, onPinned, value });
+
   return (
     <View className="gap-3">
       <Input
@@ -108,18 +142,8 @@ export function MapLinkField({
         hint={status?.text ?? "Google Maps → your hostel → Share → Copy link"}
         keyboardType="url"
         label="Google Maps link"
-        onChangeText={(next) => {
-          onChange(next);
-
-          if (!next.trim()) {
-            readFor.current = "";
-            setStatus(null);
-          } else if (next.length - value.length > 8) {
-            // A jump this size is a paste: read it now.
-            void read(next);
-          }
-        }}
-        onEndEditing={() => void read(value)}
+        onChangeText={onChangeText}
+        onEndEditing={onEndEditing}
         placeholder="https://maps.app.goo.gl/…"
         value={value}
         variant="line"

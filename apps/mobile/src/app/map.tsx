@@ -568,11 +568,18 @@ export default function MapScreen() {
         navigating={navigating}
         nearby={showAround && selected ? selected.nearbyPlaces : undefined}
         northUp={northUp}
-        onSelect={(id) =>
+        onSelect={(id) => {
+          // A tap on empty map while a route is up is a pan that missed, not
+          // "close everything" — Google keeps the route too. Only the card's
+          // own Back / X (or another pin) leaves directions.
+          if (id === null && (directions || navigating)) {
+            return;
+          }
+
           // Changing hostel drops the old route rather than leaving a line to
           // somewhere the card no longer describes.
-          setChoice({ directions: false, id })
-        }
+          setChoice({ directions: false, id });
+        }}
         onLongPress={(point) =>
           openConfirm({
             confirmLabel: "Set",
@@ -1049,7 +1056,9 @@ function PlaceSheet({
   }, [settled]);
 
   return (
-    <Sheet fitContent onClose={onClose} open={open} title="My college or office">
+    // Tall: a search whose answers arrive under the field needs the room, and
+    // the sheet's own keyboard handling keeps the field above the keyboard.
+    <Sheet onClose={onClose} open={open} tall title="My college or office">
       <View className="gap-3 pb-2">
         <Input
           hint="Every hostel then shows how long it takes from there. Or long-press the map to drop a pin."
@@ -1723,9 +1732,15 @@ function NavCard({
     );
   }
 
+  const cover = hostel.photos
+    .map((photo) => absoluteMediaUrl(photo.url, API_BASE_URL))
+    .find((uri): uri is string => Boolean(uri));
+
   /*
-   * Google's bottom bar: the way out on the left, then how long, how far and
-   * when. The next turn is not here — it is the banner across the top.
+   * The hostel's own sheet, still there while guiding — as Google keeps the
+   * place card under the turn banner — with the way out as a labelled button
+   * rather than a lone X that reads as "close this card". The next turn is not
+   * here; it is the banner across the top.
    *
    * The one line that can replace the totals is `stale`: the reader is off the
    * route and no replacement came back, so what is drawn is a route from where
@@ -1734,26 +1749,41 @@ function NavCard({
    */
   return (
     <View
-      className="flex-row items-center gap-3 rounded-3xl border border-border p-3"
+      className="gap-3 rounded-3xl border border-border p-3"
       style={{ backgroundColor: colors.card }}
     >
-      <Pressable
-        accessibilityLabel="End navigation"
-        accessibilityRole="button"
-        className="h-12 w-12 items-center justify-center rounded-full active:opacity-70"
-        hitSlop={6}
-        onPress={onStop}
-        style={{ backgroundColor: colors.muted }}
-      >
-        <Ionicons color={colors.foreground} name="close" size={24} />
-      </Pressable>
+      <View className="flex-row items-center gap-3">
+        {cover ? (
+          <Image
+            contentFit="cover"
+            source={{ uri: cover }}
+            style={{ borderRadius: 14, height: 48, width: 48 }}
+          />
+        ) : (
+          <View
+            className="h-12 w-12 items-center justify-center rounded-2xl"
+            style={{ backgroundColor: colors.brandSoft }}
+          >
+            <Ionicons color={colors.primary} name="business-outline" size={22} />
+          </View>
+        )}
 
-      <View className="flex-1 gap-0.5">
+        <View className="flex-1 gap-0.5">
+          <Text className="font-bold" numberOfLines={1} variant="label">
+            {hostel.name}
+          </Text>
+          <Text numberOfLines={1} variant="caption">
+            {locationLabel(hostel.location)}
+          </Text>
+        </View>
+
         <Text className="text-xl font-bold text-primary" variant={null}>
           {minutes === null ? "On the way" : `${minutes} min`}
         </Text>
+      </View>
 
-        <Text numberOfLines={1} variant="caption">
+      <View className="gap-0.5">
+        <Text numberOfLines={2} variant="caption">
           {rerouting
             ? "Off the route — finding a new one…"
             : stale
@@ -1768,25 +1798,27 @@ function NavCard({
         </Text>
       </View>
 
-      {onTell || told ? (
-        <Pressable
-          accessibilityLabel={told ? "The hostel knows you are coming" : "Tell the hostel you are coming"}
-          accessibilityRole="button"
-          className="flex-row items-center gap-1.5 rounded-full px-3 py-2 active:opacity-80"
-          disabled={!onTell || telling}
-          onPress={onTell}
-          style={{ backgroundColor: colors.brandSoft, opacity: telling ? 0.6 : 1 }}
-        >
-          <Ionicons
-            color={colors.primary}
-            name={told ? "checkmark-circle" : "megaphone-outline"}
-            size={16}
+      <View className="flex-row gap-2">
+        <Button
+          className="flex-1"
+          label="Exit"
+          onPress={onStop}
+          size="sm"
+          variant="danger"
+        />
+
+        {onTell || told ? (
+          <Button
+            className="flex-1"
+            disabled={!onTell || telling}
+            label={told ? "Hostel told" : "Tell hostel"}
+            loading={telling}
+            onPress={onTell}
+            size="sm"
+            variant="outline"
           />
-          <Text className="text-xs font-semibold text-primary" variant={null}>
-            {told ? "Hostel told" : "Tell hostel"}
-          </Text>
-        </Pressable>
-      ) : null}
+        ) : null}
+      </View>
     </View>
   );
 }

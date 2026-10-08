@@ -2,7 +2,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { type ReactNode, useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
 
-import { FieldLabel } from "@/components/ui/input";
+import { FieldLabel, Input } from "@/components/ui/input";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -44,6 +44,13 @@ export type SelectOption<T extends string> = {
    * moment you choose it reads as two different controls.
    */
   leading?: ReactNode;
+  /** Dimmed and untappable, with {@link tag} saying why — "Added". */
+  disabled?: boolean;
+  /** Options sharing a group sit under one heading, in the order they first appear. */
+  group?: string;
+  /** Right-aligned and quiet — "2 beds". */
+  meta?: string;
+  tag?: string;
   value: T;
 };
 
@@ -65,6 +72,13 @@ type SelectProps<T extends string> = {
   onChange: (value: T) => void;
   options: readonly SelectOption<T>[];
   placeholder?: string;
+  /**
+   * Lets a value outside `options` be typed into the search and chosen —
+   * returns the row's wording ("Use “Hetauda”"). Implies `searchable`.
+   */
+  customLabel?: (text: string) => string;
+  /** A search field over the options, for a list too long to scan. */
+  searchable?: boolean;
   /** Sheet heading. Defaults to `label`. */
   sheetTitle?: string;
   /** Border-only emphasis, said by the screen rather than by a validator. See `Input`. */
@@ -79,6 +93,7 @@ type SelectProps<T extends string> = {
 };
 
 export function Select<T extends string>({
+  customLabel,
   disabled = false,
   error,
   hint,
@@ -86,6 +101,7 @@ export function Select<T extends string>({
   onChange,
   options,
   placeholder = "Select",
+  searchable = false,
   sheetTitle,
   tone,
   value,
@@ -96,7 +112,10 @@ export function Select<T extends string>({
   const { colors } = useAppTheme();
   const [open, setOpen] = useState(false);
 
-  const selected = options.find((option) => option.value === value) ?? null;
+  const selected =
+    options.find((option) => option.value === value) ??
+    // A typed-in value is still the value: shown as itself.
+    (customLabel && value ? { label: value, value } : null);
 
   const choose = useCallback(
     (next: T) => {
@@ -176,23 +195,128 @@ export function Select<T extends string>({
         <Text variant="caption">{hint}</Text>
       ) : null}
 
-      <Sheet bare onClose={() => setOpen(false)} open={open} title={sheetTitle ?? label}>
-        {options.map((option) => (
+      <OptionSheet
+        onChoose={choose}
+        onClose={() => setOpen(false)}
+        onCustom={customLabel ? (text) => choose(text as T) : undefined}
+        customLabel={customLabel}
+        open={open}
+        options={options}
+        searchable={searchable || Boolean(customLabel)}
+        title={sheetTitle ?? label}
+        value={value}
+      />
+    </View>
+  );
+}
+
+/**
+ * The sheet half of {@link Select}, for a list opened from something that is
+ * not a field — "Add room type" opens it straight from a dashed row.
+ */
+export function OptionSheet<T extends string>({
+  customLabel,
+  onChoose,
+  onClose,
+  onCustom,
+  open,
+  options,
+  searchable = false,
+  searchPlaceholder = "Search",
+  title,
+  value,
+}: {
+  customLabel?: (text: string) => string;
+  onChoose: (value: T) => void;
+  onClose: () => void;
+  onCustom?: (text: string) => void;
+  open: boolean;
+  options: readonly SelectOption<T>[];
+  searchable?: boolean;
+  searchPlaceholder?: string;
+  title?: string;
+  value?: T | null;
+}) {
+  const { colors } = useAppTheme();
+  const [query, setQuery] = useState("");
+  const needle = query.trim().toLowerCase();
+  const shown = needle
+    ? options.filter((option) => `${option.label} ${option.group ?? ""}`.toLowerCase().includes(needle))
+    : options;
+  const exact = options.some((option) => option.label.toLowerCase() === needle);
+  const close = () => {
+    setQuery("");
+    onClose();
+  };
+
+  return (
+    // `tall` when searching: a list that shrinks as you type would drag the sheet with it.
+    <Sheet bare onClose={close} open={open} tall={searchable} title={title}>
+      {searchable ? (
+        <View className="px-5 pb-1 pt-3">
+          <Input
+            autoCapitalize="none"
+            autoCorrect={false}
+            leading={<Ionicons color={colors.mutedForeground} name="search" size={18} />}
+            onChangeText={setQuery}
+            placeholder={searchPlaceholder}
+            returnKeyType="search"
+            value={query}
+          />
+        </View>
+      ) : null}
+
+      {shown.map((option, at) => (
+        <View key={option.value}>
+          {option.group && option.group !== shown[at - 1]?.group ? (
+            <Text className="px-5 pb-1 pt-4 font-semibold text-foreground" variant={null}>
+              {option.group}
+            </Text>
+          ) : null}
           <SheetRow
-            key={option.value}
+            disabled={option.disabled}
             label={option.label}
             leading={option.leading}
-            onPress={() => choose(option.value)}
+            onPress={() => {
+              setQuery("");
+              onChoose(option.value);
+            }}
             selected={option.value === value}
             subtitle={option.description}
             trailing={
-              option.value === value ? (
-                <Ionicons color={colors.primary} name="checkmark" size={20} />
-              ) : null
+              <View className="flex-row items-center gap-2">
+                {option.tag ? (
+                  <Text className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground" variant={null}>
+                    {option.tag}
+                  </Text>
+                ) : null}
+                {option.meta ? <Text variant="caption">{option.meta}</Text> : null}
+                {option.value === value ? (
+                  <Ionicons color={colors.primary} name="checkmark" size={20} />
+                ) : null}
+              </View>
             }
           />
-        ))}
-      </Sheet>
-    </View>
+        </View>
+      ))}
+
+      {onCustom && customLabel && needle && !exact ? (
+        <SheetRow
+          label={customLabel(query.trim())}
+          leading={<Ionicons color={colors.primary} name="add-circle-outline" size={22} />}
+          onPress={() => {
+            const text = query.trim();
+            setQuery("");
+            onCustom(text);
+          }}
+        />
+      ) : null}
+
+      {searchable && !shown.length && !(onCustom && needle) ? (
+        <Text className="px-5 py-6 text-center" variant="muted">
+          Nothing matches “{query.trim()}”.
+        </Text>
+      ) : null}
+    </Sheet>
   );
 }

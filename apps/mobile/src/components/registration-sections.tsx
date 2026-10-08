@@ -140,8 +140,7 @@ export function ShortStaysSection({
             .map((room) => {
               const name = room.roomType.trim();
               const monthly = numberValue(room.monthlyRent) ?? 0;
-              const floor =
-                terms && monthly > 0 ? Math.max(1, Math.ceil((monthly * (100 + terms.minMarkupPercent)) / 3000)) : null;
+              const floor = shortStayFloor(monthly, terms);
               const rate = value.rates[name] ?? "";
 
               return (
@@ -161,6 +160,11 @@ export function ShortStaysSection({
       ) : null}
     </Accordion>
   );
+}
+
+/** The lowest nightly rate a room type may ask: its monthly rent over 30 days, plus the platform markup. */
+export function shortStayFloor(monthly: number, terms: { minMarkupPercent: number } | undefined): number | null {
+  return terms && monthly > 0 ? Math.max(1, Math.ceil((monthly * (100 + terms.minMarkupPercent)) / 3000)) : null;
 }
 
 /** "Add your own" under the facility chips: opens a field, and the typed name joins the chips already on. */

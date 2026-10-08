@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import type { ReactNode } from "react";
 import { View } from "react-native";
@@ -7,14 +8,18 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { ListRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
 import { setActiveHostelId } from "@/lib/active-hostel";
 import { getBranches } from "@/lib/admin-api";
+import { API_BASE_URL } from "@/lib/api";
+import { absoluteMediaUrl } from "@/lib/media";
 
 const STATUS: Record<
   string,
@@ -52,6 +57,7 @@ export default function BranchesScreen() {
 }
 
 function BranchList({ header }: { header: ReactNode }) {
+  const { colors } = useAppTheme();
   const branches = useResource(getBranches, { cacheKey: "admin:branch-list" });
 
   if (branches.loading) {
@@ -104,10 +110,24 @@ function BranchList({ header }: { header: ReactNode }) {
                 label: branch.status,
                 tone: "neutral" as const,
               };
+              const cover = absoluteMediaUrl(branch.coverUrl, API_BASE_URL);
 
               return (
                 <ListRow
-                  icon="business-outline"
+                  left={
+                    // The switcher's 40pt tile, a step larger here where the list is the whole screen.
+                    cover ? (
+                      <Image
+                        contentFit="cover"
+                        source={{ uri: cover }}
+                        style={{ borderColor: colors.border, borderRadius: 14, borderWidth: 1, height: 52, width: 52 }}
+                      />
+                    ) : (
+                      <View className="h-[52px] w-[52px] items-center justify-center rounded-[14px] bg-muted">
+                        <Glyph color={colors.foreground} name={branch.id === main.id ? "hostel" : "branch"} size={22} />
+                      </View>
+                    )
+                  }
                   onPress={
                     branch.status === "PUBLISHED"
                       ? () => {

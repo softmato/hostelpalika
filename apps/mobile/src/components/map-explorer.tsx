@@ -618,11 +618,13 @@ export const MapExplorer = forwardRef<MapHandle, MapExplorerProps>(function MapE
           />
         </GeoJSONSource>
 
-        {me || navigating ? (
-          <NativeUserLocation
-            mode={navigating ? (mode === "car" ? "course" : "heading") : "default"}
-          />
-        ) : null}
+        {/*
+          The puck turns with the phone's compass in every mode. "course" (GPS
+          bearing) froze it whenever the reader stood still, which is exactly
+          when they turn on the spot to work out which way to go. The camera
+          still follows the road's direction in a vehicle — see `follow`.
+        */}
+        {me || navigating ? <NativeUserLocation mode="heading" /> : null}
       </Map>
 
       {/*

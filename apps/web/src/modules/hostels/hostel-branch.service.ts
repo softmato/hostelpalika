@@ -81,7 +81,7 @@ export async function listBranches(mainHostelId: string, principal: ApiPrincipal
   const main = await resolveOwnedHostel(mainHostelId, principal.userId);
   const [branches, allowance, mainPan] = await Promise.all([
     HostelModel.find({ isDeleted: { $ne: true }, parentHostelId: main._id })
-      .select("name slug status location.area location.city createdAt")
+      .select("name slug status location.area location.city photos.kind photos.url createdAt")
       .sort({ createdAt: 1 })
       .lean<
         Array<{
@@ -89,14 +89,19 @@ export async function listBranches(mainHostelId: string, principal: ApiPrincipal
           createdAt?: Date;
           location?: { area?: string; city?: string };
           name: string;
+          photos?: HostelPhoto[];
           slug: string;
           status: string;
         }>
       >(),
     getBranchAllowance(mainHostelId),
     HostelModel.findById(main._id)
-      .select("panNumber location")
-      .lean<{ panNumber?: string; location?: { area?: string; city?: string } } | null>(),
+      .select("panNumber location photos.kind photos.url")
+      .lean<{
+        panNumber?: string;
+        location?: { area?: string; city?: string };
+        photos?: HostelPhoto[];
+      } | null>(),
   ]);
 
   return {
@@ -104,6 +109,7 @@ export async function listBranches(mainHostelId: string, principal: ApiPrincipal
     branches: branches.map((branch) => ({
       area: branch.location?.area ?? "",
       city: branch.location?.city ?? "",
+      coverUrl: resolveHostelPhotos(branch.photos, "EXTERIOR")[0]?.url ?? null,
       createdAt: branch.createdAt?.toISOString() ?? null,
       id: branch._id.toString(),
       name: branch.name,
@@ -117,6 +123,7 @@ export async function listBranches(mainHostelId: string, principal: ApiPrincipal
       status: main.status ?? "",
       area: mainPan?.location?.area ?? "",
       city: mainPan?.location?.city ?? "",
+      coverUrl: resolveHostelPhotos(mainPan?.photos, "EXTERIOR")[0]?.url ?? null,
       panNumber: mainPan?.panNumber ?? null,
     },
   };
