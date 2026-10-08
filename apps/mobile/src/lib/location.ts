@@ -204,6 +204,8 @@ export type NavigationFix = {
   heading: number | null;
   /** Metres per second, or `null`. */
   speed: number | null;
+  /** When the fix was taken (epoch ms), or `null` for the coarse seed. */
+  timestamp: number | null;
 };
 
 /**
@@ -237,8 +239,10 @@ export function watchNavigationPosition(
   return Location.watchPositionAsync(
     {
       accuracy: Location.Accuracy.BestForNavigation,
-      distanceInterval: 5,
-      timeInterval: 2_000,
+      // Once a second, like every navigation app: the map glides between fixes
+      // over the same second (`map-explorer`), so a slower feed moves in steps.
+      distanceInterval: 1,
+      timeInterval: 1_000,
     },
     (position) => {
       const coordinates = toCoordinates(position);
@@ -252,6 +256,7 @@ export function watchNavigationPosition(
         coordinates,
         heading: nonNegativeOrNull(position.coords.heading),
         speed: nonNegativeOrNull(position.coords.speed),
+        timestamp: position.timestamp,
       });
     },
   );

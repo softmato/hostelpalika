@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import { haversineMeters } from "@/lib/geo";
 import {
+  bearingAlong,
   cardinalFor,
   chooseHeading,
+  corridorBoxes,
   distanceToPath,
   formatManeuverDistance,
   hasArrived,
@@ -14,6 +16,9 @@ import {
   normaliseHeading,
   progressAlong,
   smoothHeading,
+  spokenCue,
+  spokenDistance,
+  startCue,
 } from "@/lib/navigation";
 import type { RouteStep } from "@/lib/routing";
 
@@ -33,6 +38,25 @@ describe("normaliseHeading", () => {
     expect(normaliseHeading(450)).toBe(90);
     expect(normaliseHeading(-90)).toBe(270);
     expect(normaliseHeading(-450)).toBe(270);
+  });
+});
+
+describe("bearingAlong", () => {
+  const origin = { lat: 27.7, lng: 85.3 };
+
+  it("reads the nearest segment's direction", () => {
+    const northThenEast = [origin, { lat: 27.71, lng: 85.3 }, { lat: 27.71, lng: 85.31 }];
+    expect(bearingAlong(northThenEast, { lat: 27.703, lng: 85.3 })).toBeCloseTo(0, 0);
+    expect(bearingAlong(northThenEast, { lat: 27.71, lng: 85.307 })).toBeCloseTo(90, 0);
+  });
+
+  it("has nothing to say about a line with no length", () => {
+    expect(bearingAlong([origin, origin], origin)).toBeNull();
+  });
+
+  it("is the last fallback, after the compass", () => {
+    expect(chooseHeading({ compass: null, gpsHeading: null, route: 200, speed: 0 })).toBe(200);
+    expect(chooseHeading({ compass: 10, gpsHeading: null, route: 200, speed: 0 })).toBe(10);
   });
 });
 
@@ -513,5 +537,74 @@ describe("cardinalFor", () => {
     expect(cardinalFor(360)).toBe("N");
     expect(cardinalFor(-45)).toBe("NW");
     expect(cardinalFor(720 + 90)).toBe("E");
+  });
+});
+
+describe("voice cues", () => {
+  const left: RouteStep = {
+    distanceMeters: 300,
+    durationSeconds: 60,
+    location: { lat: 27.7, lng: 85.3 },
+    maneuver: { modifier: "left", type: "turn" },
+    name: "Ring Road",
+  };
+  const door: RouteStep = { ...left, maneuver: { type: "arrive" }, name: "" };
+  const at = (step: RouteStep, distanceMeters: number) => ({ distanceMeters, index: 1, step });
+
+  it("says nothing far out, then the approach, then the turn — each once", () => {
+    const spoken = new Set<string>();
+
+    expect(spokenCue(at(left, 150), "foot", spoken)).toBeNull();
+
+    const early = spokenCue(at(left, 96), "foot", spoken)!;
+    expect(early.text).toBe("In 100 metres, turn left onto Ring Road");
+    spoken.add(early.key);
+    expect(spokenCue(at(left, 60), "foot", spoken)).toBeNull();
+
+    const now = spokenCue(at(left, 15), "foot", spoken)!;
+    expect(now.text).toBe("Turn left onto Ring Road");
+    spoken.add(now.key);
+    expect(spokenCue(at(left, 5), "foot", spoken)).toBeNull();
+  });
+
+  it("warns a driver further out than a walker", () => {
+    expect(spokenCue(at(left, 380), "car", new Set())?.text).toBe(
+      "In 400 metres, turn left onto Ring Road",
+    );
+    expect(spokenCue(at(left, 380), "foot", new Set())).toBeNull();
+  });
+
+  it("announces the destination ahead but leaves the door to the arrival", () => {
+    expect(spokenCue(at(door, 80), "foot", new Set())?.text).toBe(
+      "Your destination is 80 metres ahead",
+    );
+    expect(spokenCue(at(door, 10), "foot", new Set())).toBeNull();
+  });
+
+  it("never opens with silence", () => {
+    expect(startCue(at(left, 1_250), "car", "Sunrise Hostel")).toBe(
+      "Starting route to Sunrise Hostel. In 1.3 kilometres, turn left onto Ring Road",
+    );
+    expect(startCue(at(left, 50), "foot", "Sunrise Hostel")).toBe("Starting route to Sunrise Hostel");
+    expect(spokenDistance(2_000, "car")).toBe("2 kilometres");
+  });
+});
+
+describe("corridorBoxes", () => {
+  it("splits a long route into overlapping boxes that cover every point", () => {
+    // ~4.4 km due north, a point every ~110 m.
+    const route = Array.from({ length: 41 }, (_, i) => ({ lat: 27.66 + i * 0.001, lng: 85.32 }));
+    const boxes = corridorBoxes(route);
+
+    expect(boxes.length).toBe(3);
+    for (const point of route) {
+      expect(
+        boxes.some(([w, s, e, n]) => point.lng >= w && point.lng <= e && point.lat >= s && point.lat <= n),
+      ).toBe(true);
+    }
+  });
+
+  it("gives a short route one box", () => {
+    expect(corridorBoxes([{ lat: 27.7, lng: 85.3 }, { lat: 27.701, lng: 85.3 }])).toHaveLength(1);
   });
 });

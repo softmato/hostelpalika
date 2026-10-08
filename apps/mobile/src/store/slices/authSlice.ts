@@ -37,10 +37,10 @@ const authSlice = createSlice({
   initialState,
   name: "auth",
   reducers: {
+    /** Keeps `biometricUserId` — see `resetStore` in `store/index.ts`. */
     clearAuth(state) {
       state.accessToken = null;
       state.account = null;
-      state.biometricUserId = null;
       state.isResidentActivated = null;
     },
     setAccessToken(state, action: PayloadAction<string>) {

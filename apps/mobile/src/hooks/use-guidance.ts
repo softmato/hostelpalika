@@ -8,6 +8,7 @@ import {
   watchNavigationPosition,
 } from "@/lib/location";
 import {
+  bearingAlong,
   chooseHeading,
   distanceToPath,
   hasArrived,
@@ -96,6 +97,8 @@ export type Guidance = {
   isNavigating: boolean;
   /** The reader's position, at navigation accuracy. Never persisted. */
   position: Coordinates | null;
+  /** When they get there (epoch ms): the last fix's time plus what is left. */
+  arrivesAt: number | null;
   /** Metres to the hostel along the road, counting down. */
   remainingMeters: number | null;
   /** And that distance as seconds, at the route's own average pace. */
@@ -177,10 +180,13 @@ export function useGuidance({
 
   /** Fuse whichever of the two sources is worth believing, then ease into it. */
   const applyHeading = useCallback(() => {
+    const fix = fixRef.current;
+    const following = lineRef.current;
     const chosen = chooseHeading({
       compass: compassRef.current,
-      gpsHeading: fixRef.current?.heading ?? null,
-      speed: fixRef.current?.speed ?? null,
+      gpsHeading: fix?.heading ?? null,
+      route: fix && following ? bearingAlong(following.points, fix.coordinates) : null,
+      speed: fix?.speed ?? null,
     });
 
     if (chosen === null) {
@@ -325,6 +331,7 @@ export function useGuidance({
           coordinates: outcome.coordinates,
           heading: null,
           speed: null,
+          timestamp: null,
         };
 
         fixRef.current = seed;
@@ -333,13 +340,16 @@ export function useGuidance({
 
       try {
         positionSub.current = await watchNavigationPosition(onFix);
-        headingSub.current = await watchDeviceHeading(onCompass);
       } catch {
         // Location services switched off at the OS level lands here.
         teardown();
         setStatus("unavailable");
         return;
       }
+
+      // Budget phones often have no magnetometer. That is not a reason to stop:
+      // GPS course and the road's own bearing still turn the arrow.
+      headingSub.current = await watchDeviceHeading(onCompass).catch(() => null);
 
       setStatus((current) =>
         current === "starting" && fixRef.current ? "guiding" : current,
@@ -379,8 +389,14 @@ export function useGuidance({
       ? Math.round(line.durationSeconds * (remainingMeters / line.distanceMeters))
       : null;
 
+  const arrivesAt =
+    fix?.timestamp != null && remainingSeconds !== null
+      ? fix.timestamp + remainingSeconds * 1000
+      : null;
+
   return {
     accuracyMeters: fix?.accuracyMeters ?? null,
+    arrivesAt,
     heading,
     isNavigating: status === "starting" || status === "guiding",
     position,

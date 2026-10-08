@@ -70,10 +70,17 @@ export function normaliseHeading(degrees: number): number {
 export function chooseHeading({
   compass,
   gpsHeading,
+  route = null,
   speed,
 }: {
   compass: number | null;
   gpsHeading: number | null;
+  /**
+   * Which way the road runs where the reader is (`bearingAlong`). The last
+   * resort, for a phone with no magnetometer standing still: the arrow and
+   * the map still face along the road, which is what Google's snapped puck does.
+   */
+  route?: number | null;
   speed: number | null;
 }): number | null {
   const moving = speed !== null && speed >= GPS_HEADING_MIN_SPEED;
@@ -86,7 +93,40 @@ export function chooseHeading({
     return normaliseHeading(compass);
   }
 
+  if (route !== null) {
+    return normaliseHeading(route);
+  }
+
   return gpsHeading === null ? null : normaliseHeading(gpsHeading);
+}
+
+/**
+ * The bearing of the route segment nearest the reader, `null` for a line with
+ * no length. Same flat projection as `distanceToPath`.
+ */
+export function bearingAlong(points: Coordinates[], point: Coordinates): number | null {
+  let best = Number.POSITIVE_INFINITY;
+  let bearing: number | null = null;
+
+  for (let i = 0; i < points.length - 1; i += 1) {
+    const a = points[i];
+    const b = points[i + 1];
+
+    if (a.lat === b.lat && a.lng === b.lng) {
+      continue;
+    }
+
+    const { distance } = projectOntoSegment(point, a, b);
+
+    if (distance < best) {
+      best = distance;
+      const east = (b.lng - a.lng) * Math.cos((a.lat * Math.PI) / 180);
+      const north = b.lat - a.lat;
+      bearing = normaliseHeading((Math.atan2(east, north) * 180) / Math.PI);
+    }
+  }
+
+  return bearing;
 }
 
 /**
@@ -477,4 +517,150 @@ function projectOntoSegment(
   const nearestY = ay + t * dy;
 
   return { distance: Math.hypot(nearestX, nearestY), t };
+}
+
+/**
+ * When a maneuver is spoken: once on the approach, once at it.
+ *
+ * Per mode, because the same 300 m is a minute and a half on foot and half a
+ * minute at city speed. Each cue is said once — the caller keeps the keys.
+ */
+const CUE_METERS: Record<RouteMode, { early: number; now: number }> = {
+  car: { early: 400, now: 60 },
+  foot: { early: 100, now: 20 },
+};
+
+export type SpokenCue = { key: string; text: string };
+
+/** "120 metres", "1.5 kilometres" — rounded the way a voice says them. */
+export function spokenDistance(meters: number, mode: RouteMode): string {
+  if (meters >= 1_000) {
+    return `${(Math.round(meters / 100) / 10).toFixed(1).replace(/\.0$/, "")} kilometres`;
+  }
+
+  const unit = mode === "car" && meters >= 200 ? 50 : 10;
+
+  return `${Math.max(unit, Math.round(meters / unit) * unit)} metres`;
+}
+
+function lowerFirst(text: string) {
+  return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+/**
+ * What to say about the maneuver ahead, or `null` for silence.
+ *
+ * The arrival step is special: its approach is "your destination is ahead",
+ * and at the door it says nothing, because `hasArrived` ends guidance and the
+ * arrival is announced from that.
+ */
+export function spokenCue(
+  upcoming: UpcomingStep,
+  mode: RouteMode,
+  spoken: ReadonlySet<string>,
+): SpokenCue | null {
+  const { distanceMeters, step } = upcoming;
+  const at = `${step.location.lat},${step.location.lng}`;
+  const { early, now } = CUE_METERS[mode];
+  const arriving = step.maneuver.type === "arrive";
+
+  if (distanceMeters <= now) {
+    const key = `${at}:now`;
+
+    return arriving || spoken.has(key) ? null : { key, text: instructionFor(step) };
+  }
+
+  if (distanceMeters <= early) {
+    const key = `${at}:early`;
+
+    if (spoken.has(key) || spoken.has(`${at}:now`)) {
+      return null;
+    }
+
+    const distance = spokenDistance(distanceMeters, mode);
+
+    return {
+      key,
+      text: arriving
+        ? `Your destination is ${distance} ahead`
+        : `In ${distance}, ${lowerFirst(instructionFor(step))}`,
+    };
+  }
+
+  return null;
+}
+
+/**
+ * The first thing said when guidance starts. When the first maneuver is still
+ * beyond its approach cue, it is named now, so Start is never met with silence.
+ */
+export function startCue(upcoming: UpcomingStep | null, mode: RouteMode, place: string): string {
+  const opening = `Starting route to ${place}`;
+
+  if (!upcoming || upcoming.distanceMeters <= CUE_METERS[mode].early) {
+    return opening;
+  }
+
+  const distance = spokenDistance(upcoming.distanceMeters, mode);
+  const next =
+    upcoming.step.maneuver.type === "arrive"
+      ? `Your destination is in ${distance}`
+      : `In ${distance}, ${lowerFirst(instructionFor(upcoming.step))}`;
+
+  return `${opening}. ${next}`;
+}
+
+/**
+ * The route as a chain of small boxes, `[west, south, east, north]` each — what
+ * gets saved for offline. One box around a whole diagonal route would be mostly
+ * fields; boxes every `chunkMeters`, padded by `padMeters` either side, keep the
+ * download to the streets the reader will actually walk or drive.
+ */
+export function corridorBoxes(
+  points: Coordinates[],
+  chunkMeters = 1_500,
+  padMeters = 300,
+): [number, number, number, number][] {
+  const boxes: [number, number, number, number][] = [];
+  let chunk: Coordinates[] = [];
+  let length = 0;
+
+  const close = () => {
+    if (chunk.length === 0) {
+      return;
+    }
+
+    const lats = chunk.map((point) => point.lat);
+    const lngs = chunk.map((point) => point.lng);
+    const padLat = padMeters / METERS_PER_DEGREE_LAT;
+    const padLng = padLat / Math.cos((lats[0] * Math.PI) / 180);
+
+    boxes.push([
+      Math.min(...lngs) - padLng,
+      Math.min(...lats) - padLat,
+      Math.max(...lngs) + padLng,
+      Math.max(...lats) + padLat,
+    ]);
+  };
+
+  points.forEach((point, index) => {
+    if (index > 0) {
+      length += haversineMeters(points[index - 1], point);
+    }
+
+    chunk.push(point);
+
+    if (length >= chunkMeters) {
+      close();
+      // The joint belongs to both boxes, so no street falls between them.
+      chunk = [point];
+      length = 0;
+    }
+  });
+
+  if (chunk.length > 1 || boxes.length === 0) {
+    close();
+  }
+
+  return boxes;
 }

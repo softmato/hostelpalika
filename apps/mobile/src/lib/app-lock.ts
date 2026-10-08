@@ -258,11 +258,6 @@ export async function checkLockPin(pin: string) {
   unwrap(await api.post<ApiEnvelope<{ verified: true }>>("/auth/lock-pin/verify", { pin }));
 }
 
-export async function unlockWithPin(pin: string) {
-  await checkLockPin(pin);
-  emit(false);
-}
-
 /** First PIN needs nothing more; replacing one needs `proof`. */
 export async function saveLockPin(pin: string, proof: LockPinProof = {}) {
   return unwrap(await api.put<ApiEnvelope<{ hasLockPin: true }>>("/auth/lock-pin", { pin, ...proof }));

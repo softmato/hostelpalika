@@ -112,6 +112,8 @@ export type ManagedHostel = {
   roomConfigurations: RoomConfiguration[];
   roomTypes: string[];
   rules: string[];
+  /** "Find the gate": a short note and one photo of the entrance, or null. */
+  arrivalGuide?: { note: string; photoUrl: string } | null;
   slug: string;
   status: string;
   totalFloors: number;
@@ -138,6 +140,7 @@ export async function getManagedHostel() {
  * the whole array.
  */
 export async function updateManagedHostel(input: {
+  arrivalGuide?: { note?: string; photoUrl?: string };
   capacitySummary?: {
     totalBeds?: number;
     totalRooms?: number;

@@ -32,7 +32,7 @@ import { Button } from "@/components/ui/button";
 import { browserApi } from "@/lib/browser-api";
 import { photosOfKind } from "@/lib/hostel-photos";
 import { acceptAttribute } from "@/lib/uploads/accepts";
-import { uploadFiles } from "@/lib/uploads/uploader";
+import { uploadFile, uploadFiles } from "@/lib/uploads/uploader";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
 import {
@@ -242,6 +242,9 @@ export const HostelAdminProfilePageContent = memo(
   function HostelAdminProfilePageContent() {
     const [actionMessage, setActionMessage] = useState("");
     const [saving, setSaving] = useState(false);
+    /** The gate photo being edited; `undefined` until touched = the saved one. */
+    const [gatePhoto, setGatePhoto] = useState<string | undefined>(undefined);
+    const [gateUploading, setGateUploading] = useState(false);
     const [uploadingKind, setUploadingKind] = useState<"" | "EXTERIOR" | "INTERIOR">("");
     const [pendingByKind, setPendingByKind] = useState<Record<string, PendingPhoto[]>>(
       {},
@@ -573,6 +576,8 @@ export const HostelAdminProfilePageContent = memo(
       }
     }, []);
 
+    const savedGatePhoto = hostel?.arrivalGuide?.photoUrl ?? "";
+
     const save = useCallback(
       async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -637,6 +642,10 @@ export const HostelAdminProfilePageContent = memo(
                 no longer even shows. The PATCH schema makes each one optional,
                 so omitting them leaves what the hostel already has.
               */
+              arrivalGuide: {
+                note: field(form, "arrivalNote") ?? "",
+                photoUrl: gatePhoto ?? savedGatePhoto,
+              },
               rules: csvField(form, "rules"),
               totalFloors: numberField(form, "totalFloors"),
               // Written once: the box only shows while empty, and the server ignores a second.
@@ -656,7 +665,7 @@ export const HostelAdminProfilePageContent = memo(
           setSaving(false);
         }
       },
-      [location, nameLocked, reloadProfile],
+      [gatePhoto, location, nameLocked, reloadProfile, savedGatePhoto],
     );
 
     const sectionById = useMemo(
@@ -971,6 +980,77 @@ export const HostelAdminProfilePageContent = memo(
                           it yourself for an accurate listing.
                         </p>
                       ) : null}
+                    </SettingsBlock>
+                  </FieldGroup>
+
+                  {/*
+                    "Find the gate": the app's map shows this within 200 m of
+                    the hostel and reads the note out on arrival.
+                  */}
+                  <FieldGroup
+                    hint="Kathmandu addresses stop a few lanes short. A landmark and a photo of the door get visitors the last fifty metres."
+                    title="Finding the gate"
+                  >
+                    <SettingsBlock
+                      description="Up to 240 characters — what a visitor sees, e.g. blue gate beside Bhatbhateni."
+                      label="How to spot it"
+                    >
+                      <TextArea
+                        defaultValue={hostel.arrivalGuide?.note ?? ""}
+                        label=""
+                        name="arrivalNote"
+                      />
+                    </SettingsBlock>
+                    <SettingsBlock description="One photo of the entrance." label="Gate photo">
+                      {(gatePhoto ?? hostel.arrivalGuide?.photoUrl) ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          alt="The hostel's gate"
+                          className="mb-2 h-40 w-full rounded-xl object-cover"
+                          src={gatePhoto ?? hostel.arrivalGuide?.photoUrl}
+                        />
+                      ) : null}
+                      <div className="flex gap-2">
+                        <label className="inline-flex cursor-pointer items-center rounded-lg border border-border px-3 py-1.5 text-sm font-medium hover:bg-muted">
+                          {gateUploading
+                            ? "Uploading…"
+                            : (gatePhoto ?? hostel.arrivalGuide?.photoUrl)
+                              ? "Change photo"
+                              : "Add a photo"}
+                          <input
+                            accept="image/*"
+                            className="sr-only"
+                            disabled={gateUploading}
+                            onChange={async (event) => {
+                              const file = event.target.files?.[0];
+                              event.target.value = "";
+                              if (!file) return;
+                              setGateUploading(true);
+                              try {
+                                const uploaded = await uploadFile(file, {
+                                  kind: "image",
+                                  label: "Gate photo",
+                                  target: "public",
+                                  visibility: "public",
+                                });
+                                if (uploaded?.url) setGatePhoto(uploaded.url);
+                              } finally {
+                                setGateUploading(false);
+                              }
+                            }}
+                            type="file"
+                          />
+                        </label>
+                        {(gatePhoto ?? hostel.arrivalGuide?.photoUrl) ? (
+                          <button
+                            className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted"
+                            onClick={() => setGatePhoto("")}
+                            type="button"
+                          >
+                            Remove
+                          </button>
+                        ) : null}
+                      </div>
                     </SettingsBlock>
                   </FieldGroup>
                 </SectionBody>

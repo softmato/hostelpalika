@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { parseRoadRoute, ROUTE_MODES, routeUrl } from "@/lib/routing";
+import {
+  parseRoadRoute,
+  parseRoadRoutes,
+  parseTravelTimes,
+  ROUTE_MODES,
+  routeUrl,
+} from "@/lib/routing";
 
 /**
  * Trimmed from a **real** reply, taken on 2026-08-18 by asking the endpoint in
@@ -337,5 +343,36 @@ describe("parseRoadRoute steps", () => {
       exit: 2,
       type: "roundabout",
     });
+  });
+});
+
+describe("route choices", () => {
+  const leg = (distance: number) => ({
+    distance,
+    duration: distance / 10,
+    geometry: { coordinates: [[85.3, 27.7], [85.31, 27.71], [85.32, 27.72]], type: "LineString" },
+  });
+
+  it("asks for alternatives only when told to", () => {
+    const from = { lat: 27.7, lng: 85.3 };
+    const to = { lat: 27.6, lng: 85.4 };
+    expect(routeUrl(from, to, "car", { alternatives: true })).toContain("alternatives=2");
+    expect(routeUrl(from, to, "car")).not.toContain("alternatives");
+  });
+
+  it("keeps every route that parses, best first", () => {
+    const routes = parseRoadRoutes({ code: "Ok", routes: [leg(5000), { distance: "x" }, leg(5600)] });
+    expect(routes.map((route) => route.distanceMeters)).toEqual([5000, 5600]);
+    expect(parseRoadRoutes({ code: "NoRoute" })).toEqual([]);
+  });
+});
+
+describe("parseTravelTimes", () => {
+  it("drops the origin's own zero and keeps unreachable points as null", () => {
+    expect(parseTravelTimes({ code: "Ok", durations: [[0, 412.6, null, 90]] }, 3)).toEqual([413, null, 90]);
+  });
+
+  it("answers a row of nulls for anything that is not a table", () => {
+    expect(parseTravelTimes({ code: "NoTable" }, 2)).toEqual([null, null]);
   });
 });

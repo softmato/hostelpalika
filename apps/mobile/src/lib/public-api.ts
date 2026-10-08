@@ -19,7 +19,7 @@ import type { PublicBranch } from "@hostel/shared/types/public-branch";
  * (docs/mockups/mobile/README.md).
  */
 
-import { publicApi } from "@/lib/api";
+import { api, publicApi } from "@/lib/api";
 import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
 
 /* -------------------------------------------------------------------------- */
@@ -124,6 +124,8 @@ export type PublicHostel = {
   };
   name: string;
   nearbyPlaces: NearbyPlace[];
+  /** "Find the gate": a short note and one photo of the entrance, or null. */
+  arrivalGuide?: { note: string; photoUrl: string } | null;
   photos: HostelPhoto[];
   pricing: {
     admissionFee?: number;
@@ -318,4 +320,26 @@ export async function sendReferredInquiry(input: ReferredInquiryInput) {
   >("/public/inquiries/with-referral", input);
 
   return unwrap(response);
+}
+
+/**
+ * Tells the hostel's staff a signed-in traveller is on the way, and roughly
+ * when. Only the minutes and the mode are sent — never a position.
+ */
+export async function announceArrival(slug: string, minutes: number, mode: "car" | "foot") {
+  return unwrap(
+    await api.post<ApiEnvelope<{ sent: boolean }>>(
+      `/public/hostels/${encodeURIComponent(slug)}/arriving`,
+      { minutes, mode },
+    ),
+  );
+}
+
+/** Place search for "My college / office", through our server's geocoder proxy. */
+export async function searchPlaces(query: string) {
+  const response = await publicApi.get<
+    ApiEnvelope<{ places: { lat: number; lng: number; name: string }[] }>
+  >("/public/places", { params: { q: query } });
+
+  return unwrap(response).places;
 }

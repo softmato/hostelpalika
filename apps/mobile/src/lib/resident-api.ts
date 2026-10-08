@@ -390,6 +390,13 @@ export async function markNoticeRead(noticeId: string) {
   return unwrap(response);
 }
 
+/** Every notice on the board, read — what opening the Notices screen does. */
+export async function markAllNoticesRead() {
+  const response = await api.post<ApiEnvelope<{ marked: number }>>("/resident/notices/read-all");
+
+  return unwrap(response);
+}
+
 /* -------------------------------------------------------------------------- */
 /* QuestionCall                                                               */
 /* -------------------------------------------------------------------------- */

@@ -124,10 +124,16 @@ export type RoadRoute = {
  * the reader presses Start, which is the worst moment to wait — and the parser
  * makes them optional, so a router that ignores the flag still draws a line.
  */
-export function routeUrl(from: Coordinates, to: Coordinates, mode: RouteMode): string {
+export function routeUrl(
+  from: Coordinates,
+  to: Coordinates,
+  mode: RouteMode,
+  { alternatives = false }: { alternatives?: boolean } = {},
+): string {
   const path = `${from.lng},${from.lat};${to.lng},${to.lat}`;
+  const others = alternatives ? "&alternatives=2" : "";
 
-  return `${ROUTERS[mode]}/${path}?overview=full&geometries=geojson&steps=true`;
+  return `${ROUTERS[mode]}/${path}?overview=full&geometries=geojson&steps=true${others}`;
 }
 
 /**
@@ -140,12 +146,27 @@ export function routeUrl(from: Coordinates, to: Coordinates, mode: RouteMode): s
  * field has no road to it.
  */
 export function parseRoadRoute(payload: unknown): RoadRoute | null {
-  if (!isRecord(payload) || payload.code !== "Ok") {
-    return null;
+  return parseRoadRoutes(payload)[0] ?? null;
+}
+
+/**
+ * Every route in the reply, best first — the router's own pick, then up to two
+ * alternatives when they were asked for. A route that does not parse is
+ * dropped rather than failing the others.
+ */
+export function parseRoadRoutes(payload: unknown): RoadRoute[] {
+  if (!isRecord(payload) || payload.code !== "Ok" || !Array.isArray(payload.routes)) {
+    return [];
   }
 
-  const route = Array.isArray(payload.routes) ? payload.routes[0] : null;
+  return payload.routes.flatMap((route) => {
+    const parsed = parseOne(route);
 
+    return parsed ? [parsed] : [];
+  });
+}
+
+function parseOne(route: unknown): RoadRoute | null {
   if (!isRecord(route)) {
     return null;
   }
@@ -260,24 +281,39 @@ export async function fetchRoadRoute(
   to: Coordinates,
   mode: RouteMode = "car",
 ): Promise<RoadRoute | null> {
+  return (await fetchRoadRoutes(from, to, mode, { alternatives: false }))[0] ?? null;
+}
+
+/**
+ * The route and up to two alternatives, for the reader to choose between.
+ * Empty for every failure, like `fetchRoadRoute`'s `null`.
+ */
+export async function fetchRoadRoutes(
+  from: Coordinates,
+  to: Coordinates,
+  mode: RouteMode = "car",
+  { alternatives = true }: { alternatives?: boolean } = {},
+): Promise<RoadRoute[]> {
   if (!isUsableCoordinate(from) || !isUsableCoordinate(to)) {
-    return null;
+    return [];
   }
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    const response = await fetch(routeUrl(from, to, mode), { signal: controller.signal });
+    const response = await fetch(routeUrl(from, to, mode, { alternatives }), {
+      signal: controller.signal,
+    });
 
     if (!response.ok) {
-      return null;
+      return [];
     }
 
-    return parseRoadRoute(await response.json());
+    return parseRoadRoutes(await response.json());
   } catch {
     // Offline, aborted, or a body that was not JSON. All the same to the caller.
-    return null;
+    return [];
   } finally {
     clearTimeout(timer);
   }
@@ -285,4 +321,61 @@ export async function fetchRoadRoute(
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
+}
+
+/** OSRM's `table` service caps how many points one request may carry. */
+const TABLE_CHUNK = 90;
+
+/**
+ * Seconds from `origin` to each of `points`, in order, `null` where the router
+ * found no way. One `table` request per ninety points — the whole catalogue is
+ * one request — and every failure is a row of `null`s, never a throw.
+ */
+export async function fetchTravelTimes(
+  origin: Coordinates,
+  points: Coordinates[],
+  mode: RouteMode,
+): Promise<(number | null)[]> {
+  const base = ROUTERS[mode].replace("/route/v1/", "/table/v1/");
+  const chunks: Coordinates[][] = [];
+
+  for (let i = 0; i < points.length; i += TABLE_CHUNK) {
+    chunks.push(points.slice(i, i + TABLE_CHUNK));
+  }
+
+  const answers = await Promise.all(
+    chunks.map(async (chunk) => {
+      const coords = [origin, ...chunk].map((point) => `${point.lng},${point.lat}`).join(";");
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+
+      try {
+        const response = await fetch(`${base}/${coords}?sources=0&annotations=duration`, {
+          signal: controller.signal,
+        });
+
+        return response.ok ? parseTravelTimes(await response.json(), chunk.length) : chunk.map(() => null);
+      } catch {
+        return chunk.map(() => null);
+      } finally {
+        clearTimeout(timer);
+      }
+    }),
+  );
+
+  return answers.flat();
+}
+
+/** The source row of a `table` reply, minus the origin's own zero. */
+export function parseTravelTimes(payload: unknown, count: number): (number | null)[] {
+  const row =
+    isRecord(payload) && payload.code === "Ok" && Array.isArray(payload.durations)
+      ? payload.durations[0]
+      : null;
+
+  return Array.from({ length: count }, (_, index) => {
+    const value = Array.isArray(row) ? row[index + 1] : null;
+
+    return typeof value === "number" && Number.isFinite(value) ? Math.round(value) : null;
+  });
 }

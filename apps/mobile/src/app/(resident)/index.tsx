@@ -285,14 +285,12 @@ export default function ResidentHomeScreen() {
           onIdCard={() => router.push("/id-card")}
           onNotices={() => router.push("/(resident)/notices")}
           /*
-            Students only — a working professional has no use for it, and the
-            API repeats the check (403 `QUESTIONCALL_NOT_ELIGIBLE`), so hiding
-            the tile is presentation rather than the gate. Label and on/off
-            are Website Config → Site Content → QuestionCall.
+            Every resident, students or not — a student-only cell left a hole
+            in the row for working professionals. Label and on/off are Website
+            Config → Site Content → QuestionCall.
           */
           questionCall={
-            questionCall.enabled &&
-            (dashboard.resident.residentType ?? "STUDENT") === "STUDENT"
+            questionCall.enabled
               ? {
                   label: questionCall.label,
                   onPress: () =>

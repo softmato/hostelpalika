@@ -505,8 +505,7 @@ export function ResidentStayHero({
  * **Digital ID** leads, because it is the single most phone-shaped thing a
  * resident owns: produced at a gate, at a counter, to a warden who does not
  * recognise them. Then **Call hostel**, one tap to the office rather than
- * reading a number off a chip; then **Notices**; then, for students,
- * **QuestionCall**. `Raise issue` came off so QuestionCall sits in the first row
+ * reading a number off a chip; then **Notices**; then **QuestionCall**. `Raise issue` came off so QuestionCall sits in the first row
  * instead of alone on a second: Complaints is a row on More, with its history.
  *
  * ## The rules both cards brought, which still hold
@@ -545,8 +544,8 @@ export function ResidentHomeActions({
   onNotices: () => void;
   /**
    * The study-partner cell, last, under QuestionCall's own logo and the one
-   * tone the row has not used. The caller decides whether it shows (students
-   * only, site-config switch) — data this row does not have. More has no row
+   * tone the row has not used. The caller decides whether it shows (the
+   * site-config switch) — data this row does not have. More has no row
    * for it on purpose: it is not a screen of ours.
    */
   questionCall?: { label: string; onPress: () => void };

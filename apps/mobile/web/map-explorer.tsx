@@ -21,12 +21,23 @@ import {
   LEAFLET_JS,
   LEAFLET_JS_SRI,
   mapLayer,
-  type MapLayerId,
   MAP_LAYERS,
 } from "@/lib/leaflet";
+import type { MapExplorerProps, MapHandle } from "@/lib/map-types";
+
+export type { MapHandle, MapMarker } from "@/lib/map-types";
+
+/** Street level while navigating — the native map's zoom, in Leaflet's whole steps. */
+const NAVIGATION_ZOOM = 18;
 
 /**
- * The map every other map screen turned into: pins, a selection, and a route.
+ * The PWA's map: a Leaflet page in the iframe stand-in for the WebView.
+ *
+ * The phone app draws natively with MapLibre (`src/components/map-explorer.tsx`);
+ * MapLibre's React Native build has no web version, so `metro.config.js` swaps
+ * this in for the web bundle. Both keep the contract in `lib/map-types.ts`.
+ * Navigation's follow and turn, which MapLibre does natively, are done here in
+ * effects from the reader's position and heading.
  *
  * ## The page is built once and then *driven*
  *
@@ -53,81 +64,11 @@ import {
  * ## What crosses the bridge
  *
  * Out: JSON this component built. In: `{ type: "ready" }`, `{ type: "select",
- * id }` and `{ type: "clear" }` — nothing else is honoured, and the id is
+ * id }`, `{ type: "clear" }` and `{ type: "touched" }` — nothing else is honoured, and the id is
  * matched against the markers this component was given before it is passed on.
  * The page is third-party JavaScript (Leaflet, from a CDN, with an SRI hash) and
  * is treated as untrusted input in both directions.
  */
-
-/**
- * Deliberately four fields.
- *
- * This object is serialised into a script and injected on every search
- * keystroke, so it carries what the *map* needs and nothing the card needs —
- * price, rating, photos and facilities are read from the hostel itself, natively,
- * when a pin is tapped. A marker payload that grew to the full listing would put
- * sixty hostels' photo arrays through a string bridge to draw sixty 18px dots.
- */
-export type MapMarker = {
-  /** The hostel id. Comes back over the bridge, so it is matched, never trusted. */
-  id: string;
-  lat: number;
-  lng: number;
-  /** The long-press tooltip, and what a screen reader announces for the pin. */
-  name: string;
-};
-
-export type MapHandle = {
-  /** Centre on a point — "locate me", or a search result being chosen. */
-  center: (point: Coordinates, zoom?: number) => void;
-  /** Frame every pin currently on the map. */
-  fitAll: () => void;
-  /**
-   * Navigation mode: put the map here.
-   *
-   * A `null` zoom keeps whatever zoom the map is on — which is what makes a
-   * reader's pinch survive the next fix — so the zoom is worth passing only on
-   * the first fix of a session. A `null` bearing leaves the rotation alone.
-   */
-  follow: (point: Coordinates, zoom: number | null, bearing: number | null) => void;
-  /**
-   * A compass sample with no new fix.
-   *
-   * Both this and `follow` drop a bearing that has moved less than two degrees
-   * from the last one injected: a magnetometer at rest jitters by about that
-   * much, and forwarding every sample is a script across the bridge several
-   * times a second to turn the map by nothing the reader can see.
-   */
-  setBearing: (bearing: number) => void;
-};
-
-export type MapExplorerProps = {
-  /** Which tile source to draw. The attribution chip follows it. */
-  layer?: MapLayerId;
-  markers: MapMarker[];
-  /** The device, when it has a fix. Drawn as a blue dot, never as a pin. */
-  me: Coordinates | null;
-  /**
-   * Radial uncertainty of that fix, in metres, drawn as a circle around it.
-   *
-   * Navigation only. The coarse reading the rest of the app takes is accurate
-   * to a suburb, and a circle that size is a blue wash over the whole screen.
-   */
-  meAccuracyMeters?: number | null;
-  /** Which way the device is facing. Turns the dot into an arrow. */
-  meHeading?: number | null;
-  onSelect: (id: string | null) => void;
-  /**
-   * The line to draw, in order. `null` clears it.
-   *
-   * `dashed` says the line is the straight one between two points rather than
-   * a road, and the map draws it differently for a reason: a straight line
-   * through a riverbank rendered as a solid route is a direction to walk into a
-   * river. The card says so too, but the map itself should not lie.
-   */
-  route: { dashed: boolean; points: Coordinates[] } | null;
-  selectedId: string | null;
-};
 
 /**
  * Degrees of compass movement worth an injection. Below this the map turns by
@@ -137,7 +78,23 @@ export type MapExplorerProps = {
 const BEARING_EPSILON_DEGREES = 2;
 
 export const MapExplorer = forwardRef<MapHandle, MapExplorerProps>(function MapExplorer(
-  { layer = "standard", markers, me, meAccuracyMeters, meHeading, onSelect, route, selectedId },
+  {
+    alternatives,
+    layer = "standard",
+    markers,
+    me,
+    meAccuracyMeters,
+    meHeading,
+    navigating = false,
+    nearby,
+    northUp = false,
+    onLongPress,
+    onPickAlternative,
+    onSelect,
+    onTouched,
+    route,
+    selectedId,
+  },
   ref,
 ) {
   const { colors } = useAppTheme();
@@ -216,27 +173,79 @@ export const MapExplorer = forwardRef<MapHandle, MapExplorerProps>(function MapE
     return true;
   }, []);
 
+  const center = useCallback(
+    (point: Coordinates, zoom = 15) =>
+      call(`window.__map.center(${point.lat}, ${point.lng}, ${zoom})`),
+    [call],
+  );
+
+  const setBearing = useCallback(
+    (bearing: number) => {
+      if (worthSending(bearing)) {
+        call(`window.__map.setBearing(${bearing})`);
+      }
+    },
+    [call, worthSending],
+  );
+
+  // The latest fix, for `recentre` — read from a handler, never during render.
+  const here = useRef(me);
+
+  useEffect(() => {
+    here.current = me;
+  }, [me]);
+
   useImperativeHandle(
     ref,
     () => ({
-      center: (point, zoom = 15) =>
-        call(`window.__map.center(${point.lat}, ${point.lng}, ${zoom})`),
+      center,
       fitAll: () => call("window.__map.fitAll()"),
-      follow: (point, zoom, bearing) => {
-        const turn = worthSending(bearing) ? bearing : null;
-
-        call(
-          `window.__map.follow(${point.lat}, ${point.lng}, ${inlineJson(zoom)}, ${inlineJson(turn)})`,
-        );
-      },
-      setBearing: (bearing) => {
-        if (worthSending(bearing)) {
-          call(`window.__map.setBearing(${bearing})`);
+      recentre: () => {
+        if (here.current) {
+          center(here.current, NAVIGATION_ZOOM);
         }
       },
     }),
-    [call, worthSending],
+    [call, center],
   );
+
+  /*
+   * Navigation follows, in two effects rather than one: a fix moves the map and
+   * a compass sample only turns it, so a pinch is not undone ten times a second.
+   * The zoom is passed once per session; after that the page keeps its own.
+   */
+  const zoomed = useRef(false);
+
+  useEffect(() => {
+    if (!navigating) {
+      zoomed.current = false;
+      return;
+    }
+
+    if (!me || !ready) {
+      return;
+    }
+
+    call(
+      `window.__map.follow(${me.lat}, ${me.lng}, ${inlineJson(zoomed.current ? null : NAVIGATION_ZOOM)}, null)`,
+    );
+    zoomed.current = true;
+  }, [call, me, navigating, ready]);
+
+  useEffect(() => {
+    if (!navigating) {
+      if (ready) {
+        setBearing(0);
+      }
+      return;
+    }
+
+    if (northUp) {
+      setBearing(0);
+    } else if (typeof meHeading === "number") {
+      setBearing(meHeading);
+    }
+  }, [meHeading, navigating, northUp, ready, setBearing]);
 
   const ids = useMemo(() => new Set(markers.map((marker) => marker.id)), [markers]);
 
@@ -277,13 +286,36 @@ export const MapExplorer = forwardRef<MapHandle, MapExplorerProps>(function MapE
         return;
       }
 
+      if (type === "touched") {
+        onTouched?.();
+        return;
+      }
+
+      if (type === "alternative") {
+        const { index } = message as { index?: unknown };
+
+        if (typeof index === "number") {
+          onPickAlternative?.(index);
+        }
+        return;
+      }
+
+      if (type === "longpress") {
+        const { lat, lng } = message as { lat?: unknown; lng?: unknown };
+
+        if (typeof lat === "number" && typeof lng === "number") {
+          onLongPress?.({ lat, lng });
+        }
+        return;
+      }
+
       // An id the page was never given cannot select anything. This is the one
       // place a string from inside the WebView could reach navigation.
       if (type === "select" && typeof id === "string" && ids.has(id)) {
         onSelect(id);
       }
     },
-    [ids, onSelect],
+    [ids, onLongPress, onPickAlternative, onSelect, onTouched],
   );
 
   /*
@@ -291,6 +323,13 @@ export const MapExplorer = forwardRef<MapHandle, MapExplorerProps>(function MapE
    * costs exactly one small script and never touches the rest. `ready` is in
    * every dependency list: it flips once, and that pass sets the full state.
    */
+  // First, so the canvas has its navigation size before any fix is followed.
+  useEffect(() => {
+    if (ready) {
+      call(`window.__map.setNavigating(${navigating})`);
+    }
+  }, [call, navigating, ready]);
+
   useEffect(() => {
     if (ready) {
       call(`window.__map.setMarkers(${inlineJson(markers)})`);
@@ -323,11 +362,24 @@ export const MapExplorer = forwardRef<MapHandle, MapExplorerProps>(function MapE
     }
   }, [call, layer, ready]);
 
+  useEffect(() => {
+    if (ready) {
+      call(`window.__map.setAlternatives(${inlineJson(alternatives ?? [])})`);
+    }
+  }, [alternatives, call, ready]);
+
+  useEffect(() => {
+    if (ready) {
+      call(`window.__map.setNearby(${inlineJson(nearby ?? [])})`);
+    }
+  }, [call, nearby, ready]);
+
   return (
     <View className="flex-1" style={{ backgroundColor: colors.muted }}>
       <WebView
         allowFileAccess={false}
-        androidLayerType="hardware"
+        // No `androidLayerType="hardware"`: an offscreen layer is re-rendered
+        // on every frame of a pan, which is what made dragging feel stuck.
         domStorageEnabled={false}
         javaScriptEnabled
         onMessage={onMessage}
@@ -523,14 +575,11 @@ function buildShell({
    * One element that is right in both modes, rather than two markers.
    */
   .me-arrow {
-    border-bottom: 20px solid #1d7fe0;
-    border-left: 9px solid transparent;
-    border-right: 9px solid transparent;
-    filter: drop-shadow(0 0 1.5px #ffffff) drop-shadow(0 1px 2px rgba(0,0,0,.45));
-    height: 0;
+    filter: drop-shadow(0 1px 3px rgba(0,0,0,.45));
+    height: 34px;
     transition: transform 300ms linear;
-    transform-origin: 50% 60%;
-    width: 0;
+    transform-origin: 50% 50%;
+    width: 34px;
   }
 </style>
 </head>
@@ -556,7 +605,11 @@ function buildShell({
    * the corners off-screen. OSM's licence is not optional, so the credit is
    * rendered natively over the map instead, where nothing rotates it.
    */
-  var map = L.map('map', { attributionControl: false, zoomControl: false })
+  /*
+   * No tile fade: it is a per-frame opacity loop over every arriving tile,
+   * running on the same thread as the drag.
+   */
+  var map = L.map('map', { attributionControl: false, fadeAnimation: false, zoomControl: false })
     .setView([27.7172, 85.324], 12);
 
   /*
@@ -594,9 +647,18 @@ function buildShell({
       map.setZoom(next.maxZoom, { animate: false });
     }
 
+    /*
+     * Leaflet defaults to loading tiles only once a drag *ends* on mobile, so
+     * every pan uncovered grey until the finger lifted — the "stuck" feel.
+     * Load while moving, keep a wider ring of tiles around the view, and skip
+     * the in-between zoom levels a pinch passes through.
+     */
     var replacement = L.tileLayer(next.url, {
+      keepBuffer: 4,
       maxZoom: next.maxZoom,
-      subdomains: next.subdomains || []
+      subdomains: next.subdomains || [],
+      updateWhenIdle: false,
+      updateWhenZooming: false
     }).addTo(map);
 
     /*
@@ -619,21 +681,43 @@ function buildShell({
   var stage = document.getElementById('stage');
   var canvas = document.getElementById('map');
   var bearing = 0;
+  var navigating = false;
+
+  /* How far below the middle the reader's arrow sits while navigating, as a
+     share of the screen: the road ahead gets the room, as in Google Maps. */
+  var NAV_LEAD = 0.22;
+  /* One fix a second (lib/location.ts), and the arrow and map glide over it. */
+  var GLIDE_MS = 1000;
 
   /*
-   * The square has to be the diagonal of the window, and it has to be resized
-   * whenever the window is — a keyboard opening counts. invalidateSize runs
-   * after every change, or Leaflet keeps loading tiles for the size it last
-   * measured,
-   * which shows up as grey bands sliding in from the edges as the map turns.
+   * The canvas is the screen, except while navigating.
+   *
+   * Only navigation turns the map, and a turned rectangle shows bare corners,
+   * so then the canvas is a square big enough to cover the screen at any angle
+   * around the reader's arrow — and its centre, which is where Leaflet puts the
+   * reader and what the square turns about, is moved down by the lead. Browsing
+   * never turns, and a square there was 2–3x the tiles behind every drag.
+   *
+   * Resized with the window too — a keyboard opening counts. invalidateSize
+   * runs after every change, or Leaflet keeps loading tiles for the size it
+   * last measured.
    */
   function fitStage() {
     var width = stage.clientWidth;
     var height = stage.clientHeight;
-    var side = Math.ceil(Math.sqrt(width * width + height * height));
+    var lead = navigating ? Math.round(height * NAV_LEAD) : 0;
 
-    canvas.style.width = side + 'px';
-    canvas.style.height = side + 'px';
+    if (navigating) {
+      var half = Math.ceil(Math.sqrt(width * width / 4 + Math.pow(height / 2 + lead, 2)));
+
+      canvas.style.width = 2 * half + 'px';
+      canvas.style.height = 2 * half + 'px';
+    } else {
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+    }
+
+    canvas.style.top = 'calc(50% + ' + lead + 'px)';
     map.invalidateSize();
   }
 
@@ -650,9 +734,8 @@ function buildShell({
    * strip that is not visible, and it is added to whatever padding the caller
    * already wanted for the card and the search field.
    *
-   * Exact at north-up, which is the only state that fits anything: navigation
-   * follows, it does not fit. At a bearing the visible region is a rotated
-   * rectangle and this is merely generous, which is the harmless direction.
+   * Outside navigation the canvas is the screen and the overflow is zero;
+   * navigation follows, it never fits.
    */
   function fitPadding(topLeft, bottomRight) {
     var overflowX = Math.max(0, (canvas.clientWidth - stage.clientWidth) / 2);
@@ -693,6 +776,10 @@ function buildShell({
   var surface = map.getContainer();
 
   function takeOver() {
+    if (!touched) {
+      post({ type: 'touched' });
+    }
+
     touched = true;
   }
 
@@ -713,8 +800,131 @@ function buildShell({
   var routeShape = null;
   var meCircle = null;
   var line = null;
+  var casing = null;
+  var others = L.layerGroup().addTo(map);
+  var places = L.layerGroup().addTo(map);
   var selected = null;
-  var fitted = false;
+  var meTarget = null;
+  var glideFrame = null;
+  var navZoom = null;
+
+  /*
+   * The opening view: the reader's own streets, not the whole catalogue.
+   *
+   * With a position, frame it with the nearest few hostels (when any are
+   * close) or simply the neighbourhood around it. Without one yet, wait a
+   * moment — the fix usually lands in the same breath as the pins — then show
+   * the catalogue, and fly down to the reader when the fix does arrive. Any
+   * gesture, selection, route or button press settles it for good.
+   */
+  var NEAR_METERS = 2000;
+  var NEAR_PINS = 3;
+  var framed = false;
+  var provisional = false;
+  var openingTimer = null;
+  var meLatLng = null;
+
+  function framePins() {
+    var points = Object.keys(byId).map(function (key) { return byId[key].getLatLng(); });
+
+    if (points.length === 1) {
+      map.setView(points[0], 15, { animate: true });
+    } else if (points.length > 1) {
+      map.fitBounds(points, fitPadding([50, 50], [50, 50]));
+    }
+  }
+
+  function frameOpening() {
+    if (framed || touched || navigating) {
+      return;
+    }
+
+    if (meLatLng) {
+      framed = true;
+      clearTimeout(openingTimer);
+
+      var here = meLatLng;
+      var near = Object.keys(byId)
+        .map(function (key) { return byId[key].getLatLng(); })
+        .filter(function (point) { return here.distanceTo(point) <= NEAR_METERS; })
+        .sort(function (a, b) { return here.distanceTo(a) - here.distanceTo(b); })
+        .slice(0, NEAR_PINS);
+
+      // Room for the search field above and the card below.
+      var bounds = L.latLngBounds([here].concat(near));
+      var zoom = near.length > 0
+        ? Math.max(13, Math.min(16, map.getBoundsZoom(bounds, false, L.point(96, 220))))
+        : 15;
+      var centre = near.length > 0 ? bounds.getCenter() : here;
+
+      // A fly when the catalogue was already on screen; a cut when it was not.
+      if (provisional) {
+        map.flyTo(centre, zoom, { duration: 0.8 });
+      } else {
+        map.setView(centre, zoom, { animate: false });
+      }
+
+      return;
+    }
+
+    if (!provisional && openingTimer === null && Object.keys(byId).length > 0) {
+      openingTimer = setTimeout(function () {
+        if (!framed && !touched) {
+          provisional = true;
+          framePins();
+        }
+      }, 400);
+    }
+  }
+
+  /*
+   * Moves the reader's arrow. While navigating it glides to the new fix over
+   * GLIDE_MS — the same second, at the same linear pace, as the map's pan in
+   * follow — so the arrow holds still on screen while the streets slide under
+   * it, instead of jumping once a second.
+   */
+  function placeMe(latlng) {
+    var to = L.latLng(latlng);
+
+    if (meTarget && meTarget.equals(to)) {
+      return;
+    }
+
+    meTarget = to;
+
+    if (glideFrame) {
+      cancelAnimationFrame(glideFrame);
+      glideFrame = null;
+    }
+
+    if (!navigating) {
+      meMarker.setLatLng(to);
+      return;
+    }
+
+    var from = meMarker.getLatLng();
+    var start = null;
+
+    function step(now) {
+      if (start === null) {
+        start = now;
+      }
+
+      var t = Math.min(1, (now - start) / GLIDE_MS);
+
+      var at = [from.lat + (to.lat - from.lat) * t, from.lng + (to.lng - from.lng) * t];
+
+      meMarker.setLatLng(at);
+
+      if (meCircle) {
+        meCircle.setLatLng(at);
+      }
+
+      glideFrame = t < 1 ? requestAnimationFrame(step) : null;
+    }
+
+    glideFrame = requestAnimationFrame(step);
+  }
 
   /**
    * The pin, its hostel's name, and — when it is the chosen one — a line
@@ -779,13 +989,9 @@ function buildShell({
         nameById[marker.id] = marker.name;
       });
 
-      // Frame the catalogue once, on the first set that has anything in it.
-      // Refitting on every search would yank the map out from under somebody
-      // who had panned somewhere deliberately.
-      if (!fitted && list.length > 0) {
-        fitted = true;
-        window.__map.fitAll();
-      }
+      // Framed once — see frameOpening. Refitting on every search would yank
+      // the map out from under somebody who had panned somewhere deliberately.
+      frameOpening();
     },
 
     /**
@@ -799,22 +1005,35 @@ function buildShell({
      */
     setMe: function (point, heading, accuracy) {
       if (!point) {
-        if (meMarker) { map.removeLayer(meMarker); meMarker = null; meKind = null; }
+        if (meMarker) { map.removeLayer(meMarker); meMarker = null; meKind = null; meTarget = null; }
         if (meCircle) { map.removeLayer(meCircle); meCircle = null; }
+        meLatLng = null;
         return;
       }
 
       var kind = typeof heading === 'number' ? 'arrow' : 'dot';
       var latlng = [point.lat, point.lng];
 
+      meLatLng = L.latLng(latlng);
+
       if (meMarker && meKind === kind) {
-        meMarker.setLatLng(latlng);
+        placeMe(latlng);
       } else {
+        // Swapping dot for arrow mid-glide starts the new one where the old one was.
+        var from = meMarker ? meMarker.getLatLng() : L.latLng(latlng);
+
         if (meMarker) { map.removeLayer(meMarker); }
 
-        meMarker = L.marker(latlng, {
+        meMarker = L.marker(from, {
+          // Google's navigation arrow: a broad chevron, outlined in white so it
+          // reads over any street colour, big enough to see at a glance.
           icon: kind === 'arrow'
-            ? L.divIcon({ className: '', html: '<div class="me-arrow"></div>', iconAnchor: [9, 12], iconSize: [18, 20] })
+            ? L.divIcon({
+                className: '',
+                html: '<div class="me-arrow"><svg viewBox="0 0 34 34" width="34" height="34"><path d="M17 3 L29 30 L17 23.5 L5 30 Z" fill="#1d7fe0" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/></svg></div>',
+                iconAnchor: [17, 17],
+                iconSize: [34, 34]
+              })
             : L.divIcon({ className: '', html: '<div class="me"></div>', iconAnchor: [8, 8], iconSize: [16, 16] }),
           // Above the pins: the reader is looking for themselves first, and a
           // hostel marker sitting on top of the arrow is the one pin they
@@ -822,7 +1041,11 @@ function buildShell({
           zIndexOffset: 1000
         }).addTo(map);
         meKind = kind;
+        meTarget = from;
+        placeMe(latlng);
       }
+
+      frameOpening();
 
       if (kind === 'arrow') {
         var arrow = meMarker.getElement() && meMarker.getElement().querySelector('.me-arrow');
@@ -866,6 +1089,11 @@ function buildShell({
         line = null;
       }
 
+      if (casing) {
+        map.removeLayer(casing);
+        casing = null;
+      }
+
       if (!payload || !payload.points || payload.points.length < 2) {
         // Clearing the line forgets the shape too, so choosing the same hostel
         // again frames it rather than deciding it has already been framed.
@@ -892,16 +1120,24 @@ function buildShell({
 
       routeShape = shape;
 
+      // A white edge under a road route, so the line reads over any street
+      // colour at street zoom — the way Google draws its own.
+      if (!payload.dashed) {
+        casing = L.polyline(latlngs, { color: '#ffffff', opacity: 0.95, weight: 10 }).addTo(map);
+      }
+
       line = L.polyline(latlngs, {
         color: payload.dashed ? '#1d7fe0' : ${JSON.stringify(accent)},
         dashArray: payload.dashed ? '6 8' : null,
-        opacity: 0.9,
-        weight: 5
+        opacity: payload.dashed ? 0.9 : 1,
+        weight: payload.dashed ? 5 : 6
       }).addTo(map);
 
       // A new route frames itself; the same route arriving again does not. And
-      // neither happens while the reader is holding the map — see "touched".
-      if (changed && !touched) {
+      // neither happens while the reader is holding the map — see "touched" —
+      // nor while navigating, where the view belongs to follow.
+      if (changed && !touched && !navigating) {
+        framed = true;
         map.fitBounds(latlngs, fitPadding([40, 120], [40, 220]));
       }
     },
@@ -917,6 +1153,7 @@ function buildShell({
       selected = id;
 
       if (id && byId[id]) {
+        framed = true;
         // Enough of a nudge to bring a pin out from behind the card at the
         // bottom of the screen, without the jump of a re-centre.
         map.panTo(byId[id].getLatLng(), { animate: true, duration: 0.25 });
@@ -933,30 +1170,99 @@ function buildShell({
       applyLayer(id);
     },
 
+    /* Other routes, grey and tappable, under the chosen one. */
+    setAlternatives: function (list) {
+      others.clearLayers();
+
+      list.forEach(function (alternative, index) {
+        if (!alternative.points || alternative.points.length < 2) {
+          return;
+        }
+
+        var shape = L.polyline(alternative.points.map(function (point) { return [point.lat, point.lng]; }), {
+          color: ${JSON.stringify(mutedForeground)},
+          opacity: 0.6,
+          weight: 6
+        });
+
+        shape.on('click', function (event) {
+          L.DomEvent.stopPropagation(event);
+          post({ index: index, type: 'alternative' });
+        });
+        shape.addTo(others);
+      });
+
+      if (line) {
+        line.bringToFront();
+      }
+    },
+
+    /* What is around the chosen hostel: small dots, named on tap. */
+    setNearby: function (list) {
+      places.clearLayers();
+
+      list.forEach(function (place) {
+        L.circleMarker([place.coordinates.lat, place.coordinates.lng], {
+          color: '#ffffff',
+          fillColor: ${JSON.stringify(mutedForeground)},
+          fillOpacity: 1,
+          radius: 5,
+          weight: 1.5
+        }).bindTooltip(document.createTextNode(place.name)).addTo(places);
+      });
+    },
+
     setBearing: function (heading) {
       bearing = typeof heading === 'number' ? heading : 0;
       canvas.style.setProperty('--bearing', (-bearing) + 'deg');
     },
 
+    /*
+     * Start and Stop. Starting is an explicit instruction, so it takes the map
+     * back from a drag made while browsing — without that, a reader who had
+     * panned before pressing Start was never followed at all.
+     */
+    setNavigating: function (on) {
+      if (navigating === on) {
+        return;
+      }
+
+      navigating = on;
+      touched = false;
+      navZoom = null;
+
+      if (!on && glideFrame) {
+        cancelAnimationFrame(glideFrame);
+        glideFrame = null;
+      }
+
+      fitStage();
+    },
+
     center: function (lat, lng, zoom) {
       // An explicit instruction: it hands the map back, so following resumes.
       touched = false;
+      framed = true;
+
+      if (navigating) {
+        navZoom = zoom;
+      }
 
       map.setView([lat, lng], zoom, { animate: true });
     },
 
     /**
-     * Navigation's one call: put the map here, at this zoom, turned this way.
+     * Navigation's one call: put the map here, turned this way.
      *
-     * No animation, on purpose. A fix arrives every second or two, and
-     * Leaflet's pan animation restarted by each one is a map that never
-     * settles — it slides continuously towards a position it never reaches.
-     * The smoothness comes from the stage's CSS transition instead, which is
-     * animating a rotation nothing else is fighting over.
+     * The first fix of a session carries the zoom and flies down onto the
+     * reader. Every fix after that is a linear pan lasting exactly as long as
+     * the gap between fixes (GLIDE_MS), with the arrow gliding at the same
+     * pace in placeMe — so the arrow stays put low on the screen and the
+     * streets slide steadily under it, rather than jumping once a second.
      *
-     * A null heading leaves the bearing alone: a fix with no new compass sample
-     * should not straighten the map out. A null zoom likewise keeps the zoom
-     * the map is on, which is how a reader's pinch survives the next fix.
+     * The zoom is held in navZoom rather than read back from the map: a fix
+     * landing mid-flight would otherwise freeze the map at whatever zoom the
+     * flight had reached. A null heading leaves the bearing alone.
      */
     follow: function (lat, lng, zoom, heading) {
       // The bearing still tracks the reader even when the view does not: the
@@ -965,30 +1271,39 @@ function buildShell({
         window.__map.setBearing(heading);
       }
 
+      if (typeof zoom === 'number') {
+        navZoom = zoom;
+      }
+
       if (touched) {
         return;
       }
 
-      map.setView([lat, lng], typeof zoom === 'number' ? zoom : map.getZoom(), {
-        animate: false
+      if (typeof zoom === 'number') {
+        map.flyTo([lat, lng], zoom, { duration: 0.8 });
+        return;
+      }
+
+      map.setView([lat, lng], navZoom || map.getZoom(), {
+        animate: true,
+        pan: { duration: GLIDE_MS / 1000, easeLinearity: 1, noMoveStart: true }
       });
     },
 
     fitAll: function () {
-      var points = Object.keys(byId).map(function (key) { return byId[key].getLatLng(); });
-
       touched = false;
-
-      if (points.length === 1) {
-        map.setView(points[0], 15, { animate: true });
-      } else if (points.length > 1) {
-        map.fitBounds(points, fitPadding([50, 50], [50, 50]));
-      }
+      framed = true;
+      framePins();
     }
   };
 
   // A tap on the map itself, not on a pin, closes the card.
   map.on('click', function () { post({ type: 'clear' }); });
+
+  // A long press — the browser's contextmenu on touch — offers "my college here".
+  map.on('contextmenu', function (event) {
+    post({ lat: event.latlng.lat, lng: event.latlng.lng, type: 'longpress' });
+  });
 
   // Leaflet measures its container, and inside a WebView that container has no
   // height on the first frame.

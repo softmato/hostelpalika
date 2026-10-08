@@ -1,3 +1,5 @@
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -32,6 +34,7 @@ import {
 import { type AdminSettingsData, adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
 import { formatMoney, humanizeEnum } from "@/lib/format";
+import { uploadPublicFile } from "@/lib/public-uploads";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 /**
@@ -88,6 +91,7 @@ type Panel =
   | "change"
   | "contact"
   | "facilities"
+  | "gate"
   | "location"
   | "pricing"
   | "rules"
@@ -177,6 +181,13 @@ export default function ManageSettingsScreen() {
           name: hostel.name,
           panNumber: hostel.panNumber ?? "",
           totalFloors: String(hostel.totalFloors ?? 0),
+        });
+      }
+
+      if (next === "gate") {
+        setForm({
+          note: hostel.arrivalGuide?.note ?? "",
+          photoUrl: hostel.arrivalGuide?.photoUrl ?? "",
         });
       }
 
@@ -441,6 +452,18 @@ export default function ManageSettingsScreen() {
             />
             <RowDivider inset />
             <ListRow
+              icon="flag-outline"
+              iconBgColor="#0a8a4b"
+              onPress={() => openPanel("gate")}
+              subtitle={
+                hostel.arrivalGuide
+                  ? hostel.arrivalGuide.note || "Photo added"
+                  : "How visitors spot your entrance"
+              }
+              title="Finding the gate"
+            />
+            <RowDivider inset />
+            <ListRow
               icon="bed-outline"
               iconBgColor="#5E5CE6"
               onPress={() => router.push("/manage/rooms")}
@@ -621,6 +644,93 @@ export default function ManageSettingsScreen() {
       </View>
 
       {/* ------------------------------------------------------------------ */}
+      {/*
+        "Find the gate" — the map shows this within 200 m of the hostel and
+        reads the note out on arrival. Kathmandu addresses stop a few lanes
+        short; a landmark and a photo of the door do not.
+      */}
+      <Sheet
+        footer={
+          <Button
+            label="Save"
+            loading={saving}
+            onPress={() =>
+              void patch(
+                { arrivalGuide: { note: form.note?.trim() ?? "", photoUrl: form.photoUrl ?? "" } },
+                "Saved",
+              )
+            }
+          />
+        }
+        onClose={() => setPanel(null)}
+        open={panel === "gate"}
+        title="Finding the gate"
+      >
+        <View className="gap-3 pb-2">
+          <Input
+            hint="Up to 240 characters. Say what a visitor sees, e.g. blue gate beside Bhatbhateni."
+            label="How to spot it"
+            maxLength={240}
+            multiline
+            onChangeText={(note) => setForm((prev) => ({ ...prev, note }))}
+            style={{ height: 96 }}
+            value={form.note ?? ""}
+          />
+          {form.photoUrl ? (
+            <Image
+              contentFit="cover"
+              source={{ uri: form.photoUrl }}
+              style={{ borderRadius: 14, height: 160, width: "100%" }}
+            />
+          ) : null}
+          <View className="flex-row gap-2">
+            <View className="flex-1">
+              <Button
+                label={form.photoUrl ? "Change photo" : "Add a photo of the gate"}
+                loading={saving}
+                onPress={() =>
+                  void (async () => {
+                    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+                    if (!permission.granted) {
+                      toastError("Photo access needed", "Allow it to add the gate photo.");
+                      return;
+                    }
+
+                    const picked = await ImagePicker.launchImageLibraryAsync({
+                      mediaTypes: ["images"],
+                      quality: 0.7,
+                    });
+                    const asset = picked.canceled ? null : picked.assets[0];
+
+                    if (!asset) return;
+
+                    try {
+                      const uploaded = await uploadPublicFile(asset, {
+                        label: "Gate photo",
+                        visibility: "public",
+                      });
+
+                      setForm((prev) => ({ ...prev, photoUrl: uploaded.url }));
+                    } catch (error) {
+                      toastError("That photo didn't upload", readApiError(error));
+                    }
+                  })()
+                }
+                variant="outline"
+              />
+            </View>
+            {form.photoUrl ? (
+              <Button
+                label="Remove"
+                onPress={() => setForm((prev) => ({ ...prev, photoUrl: "" }))}
+                variant="ghost"
+              />
+            ) : null}
+          </View>
+        </View>
+      </Sheet>
+
       <Sheet
         footer={
           <Button

@@ -129,6 +129,15 @@ const hostelSchema = new Schema(
     totalFloors: { min: 0, type: Number },
     /** Four-digit year the hostel opened. Shown on the public listing. */
     yearEstablished: { type: String, trim: true },
+    /**
+     * "Find the gate": how to spot the entrance once you are on the street —
+     * Kathmandu addresses stop a few lanes short. Public; shown by the map
+     * near the hostel and read out on arrival.
+     */
+    arrivalGuide: {
+      note: { type: String, trim: true, maxlength: 240 },
+      photoUrl: { type: String, trim: true },
+    },
     capacitySummary: {
       totalRooms: { min: 0, type: Number },
       totalBeds: { min: 0, type: Number },

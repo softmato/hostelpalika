@@ -6,8 +6,8 @@ import { useSiteConfig } from "@/components/site-config-provider";
 import { browserApi } from "@/lib/browser-api";
 
 /**
- * The QuestionCall row, shown only to STUDENT residents (PHASES.md §5.1); the
- * app's resident home draws the same row.
+ * The QuestionCall row, shown to every resident; the app's resident home
+ * draws the same entry.
  *
  * A plain link, not a button that fetches and then opens: a window opened after
  * a round trip is a popup the browser blocks. The click is recorded alongside.

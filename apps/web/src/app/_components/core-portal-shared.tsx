@@ -15,6 +15,8 @@ export type HostelPortal = {
 };
 
 export type Hostel = {
+  /** "Find the gate": a note and a photo of the entrance, or null. */
+  arrivalGuide?: { note: string; photoUrl: string } | null;
   /** `HH-3F9A1C2E` — only on the hostel's own profile read. */
   hostelCode?: string;
   /** Present on the platform approval queue — see listPlatformHostels. */

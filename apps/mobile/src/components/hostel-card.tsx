@@ -160,6 +160,7 @@ export function SaveButton({
 }
 
 export function HostelCard({
+  commute,
   distanceMeters,
   hostel,
   onToggleCompare,
@@ -170,6 +171,8 @@ export function HostelCard({
   showVacancy = false,
   variant = "list",
 }: {
+  /** "12 min walk to IOE Pulchowk" — the reader's own place outranks a campus guess. */
+  commute?: string | null;
   /**
    * Metres from the device, when the screen has a position and this hostel has
    * coordinates — see `lib/geo.ts`. `null`/absent means one of those is missing,
@@ -225,7 +228,7 @@ export function HostelCard({
   // Distance from *you* outranks distance from a campus: it is the thing the
   // user just asked for by tapping "Near me", and the campus line is a guess at
   // what they care about.
-  const place = campus ?? locationLabel(hostel.location);
+  const place = commute ?? campus ?? locationLabel(hostel.location);
   const subtitle =
     typeof distanceMeters === "number"
       ? `${formatDistance(distanceMeters)} away · ${place}`
@@ -339,7 +342,8 @@ export function HostelCard({
               accessibilityState={{ selected: selectedForCompare }}
               className="h-9 w-9 items-center justify-center rounded-full bg-card/95 active:opacity-70"
               hitSlop={6}
-              onPress={() => {                onToggleCompare(hostel);
+              onPress={() => {
+                onToggleCompare(hostel);
               }}
             >
               <Ionicons

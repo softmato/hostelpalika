@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useCommuteTimes } from "@/hooks/use-commute";
 import { useNearby } from "@/hooks/use-nearby";
 import { useResource } from "@/hooks/use-resource";
 import { useSavedHostels } from "@/hooks/use-saved";
@@ -224,6 +225,9 @@ export function HostelBrowser({
     [nearby.coordinates, rows],
   );
 
+  // Walking minutes to the reader's own college or office, when they set one on the map.
+  const { minutesTo, place: commute } = useCommuteTimes(rows, "foot");
+
   const toggleCompare = useCallback(
     (hostel: PublicHostel) => {
       setCompare((current) => {
@@ -410,6 +414,11 @@ export function HostelBrowser({
 
             {ordered.map((row) => (
               <HostelCard
+                commute={
+                  commute && minutesTo(row.hostel.id)
+                    ? `${minutesTo(row.hostel.id)} min walk to ${commute.name}`
+                    : null
+                }
                 distanceMeters={row.distanceMeters}
                 hostel={row.hostel}
                 key={row.hostel.id}

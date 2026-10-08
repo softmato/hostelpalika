@@ -375,6 +375,16 @@ export async function updateNotice(
   };
 }
 
+/** What a resident's board shows: published, for residents, not expired. */
+function residentNoticeFilter(hostelId: Types.ObjectId) {
+  return {
+    hostelId,
+    publishedAt: { $lte: new Date() },
+    targetAudience: { $in: ["ALL", "RESIDENTS"] },
+    $or: [{ expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }],
+  };
+}
+
 export async function listNoticesForResident(
   principal: ApiPrincipal,
   query: PaginationQuery = { page: 1, pageSize: MAX_PAGE_SIZE },
@@ -382,12 +392,7 @@ export async function listNoticesForResident(
   await connectToDatabase();
 
   const resident = await findCurrentResident(principal);
-  const filter = {
-    hostelId: resident.hostelId,
-    publishedAt: { $lte: new Date() },
-    targetAudience: { $in: ["ALL", "RESIDENTS"] },
-    $or: [{ expiresAt: { $exists: false } }, { expiresAt: { $gt: new Date() } }],
-  };
+  const filter = residentNoticeFilter(resident.hostelId);
   const { limit, skip } = paginationRange(query);
 
   const [notices, total] = await Promise.all([
@@ -445,4 +450,50 @@ export async function markNoticeAsRead(noticeId: string, principal: ApiPrincipal
     notice: serializeNotice(notice, readStatus),
     resident: serializeResidentSummary(resident),
   };
+}
+
+/**
+ * Opening the board reads it. Every notice this resident can see is marked read
+ * for them in one call, so the Notices badge stops counting the board's whole
+ * history just because nobody tapped each card. Only the missing rows are
+ * written; a duplicate from a concurrent call (the app and the website at once)
+ * is already the answer.
+ */
+export async function markAllNoticesAsRead(principal: ApiPrincipal) {
+  await connectToDatabase();
+
+  const resident = await findCurrentResident(principal);
+  const userId = normalizeObjectId(principal.userId, "user id");
+  const ids = (await NoticeModel.distinct(
+    "_id",
+    residentNoticeFilter(resident.hostelId),
+  )) as Types.ObjectId[];
+  const read = new Set(
+    ((await NoticeReadStatusModel.distinct("noticeId", {
+      noticeId: { $in: ids },
+      userId,
+    })) as Types.ObjectId[]).map(String),
+  );
+  const unread = ids.filter((id) => !read.has(String(id)));
+
+  if (unread.length > 0) {
+    const readAt = new Date();
+
+    try {
+      await NoticeReadStatusModel.bulkWrite(
+        unread.map((noticeId) => ({
+          updateOne: {
+            filter: { noticeId, userId },
+            update: { $setOnInsert: { readAt } },
+            upsert: true,
+          },
+        })),
+        { ordered: false },
+      );
+    } catch (error) {
+      if ((error as { code?: number }).code !== 11000) throw error;
+    }
+  }
+
+  return { marked: unread.length };
 }

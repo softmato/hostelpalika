@@ -2,7 +2,7 @@ import { NoticeReader } from "@/components/notice-reader";
 import { Sheet } from "@/components/ui/sheet";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { NotificationBell } from "@/components/notification-bell";
@@ -21,6 +21,8 @@ import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { residentQuery } from "@/lib/resident-queries";
 import { humanizeEnum } from "@/lib/format";
+import { invalidateQueriesForTopics } from "@/lib/query-cache";
+import { REALTIME_TOPIC } from "@/constants/topics";
 import {
   filterNotices,
   groupNoticesByDay,
@@ -29,6 +31,7 @@ import {
 } from "@/lib/notice-list";
 import {
   getResidentNotices,
+  markAllNoticesRead,
   markNoticeRead,
   type ResidentNotice,
   type ResidentNoticeList,
@@ -70,15 +73,15 @@ import {
  * it follows the resident's **calendar preference** — a heading in AD above
  * rows a BS reader is counting from is worse than no heading.
  *
- * ## Read is marked on expand, not on scroll-past
+ * ## Opening the board reads it
  *
- * A notice counts as read when the resident opens it, because that is the only
- * moment we know they saw the *content* rather than the headline. Marking on
- * render would clear the unread badge for a list somebody scrolled past on the
- * way to Payments, and the one notice that matters — a water cut tomorrow — is
- * exactly the one that gets scrolled past.
+ * Marking only on expand meant a resident who read the list without tapping
+ * each card never cleared the Home badge — it counted the board's whole
+ * history. So arriving here marks everything read on the server (one
+ * `read-all` call), and the Home count clears on the way back. The dots and the
+ * Unread count stay for this visit, so the resident still sees what is new.
  *
- * The flip is **optimistic**: the row un-bolds immediately and the PATCH runs
+ * Tapping a card still un-bolds it at once. The flip is **optimistic**: the row un-bolds immediately and the PATCH runs
  * behind it. The server upserts with `$setOnInsert`, so a replay is a no-op
  * rather than a second timestamp, and a failed call leaves a notice marked read
  * locally that the next fetch will correct. Both failure modes are cheaper than
@@ -96,6 +99,15 @@ import {
  */
 
 const STATUS_ALL: NoticeStatus = "all";
+
+/**
+ * Home's Notices count is cached "fresh" for two minutes, so without this a
+ * read here did not reach the badge on the way back. Marked stale, not dropped:
+ * nothing blanks, the next focus refetches.
+ */
+function staleNoticeCounts() {
+  invalidateQueriesForTopics([REALTIME_TOPIC.NOTICES]);
+}
 
 export default function ResidentNoticesScreen() {
   const dates = useDates();
@@ -152,6 +164,21 @@ export default function ResidentNoticesScreen() {
     }
   }, [loadingMore, notices, pagination]);
 
+  // Once per visit, as soon as there is anything unread to clear.
+  const clearedBoard = useRef(false);
+
+  useEffect(() => {
+    if (clearedBoard.current || unread === 0) {
+      return;
+    }
+
+    clearedBoard.current = true;
+    // Fire and forget, like `markRead` below; the next fetch is the correction.
+    void markAllNoticesRead()
+      .then(staleNoticeCounts)
+      .catch(() => undefined);
+  }, [unread]);
+
   const markRead = useCallback(
     (notice: ResidentNotice) => {
       if (notice.isRead) {
@@ -171,7 +198,9 @@ export default function ResidentNoticesScreen() {
 
       // Fire and forget. The next fetch is the correction, and a toast about a
       // read receipt would be noise on a screen someone is reading.
-      void markNoticeRead(notice.id).catch(() => undefined);
+      void markNoticeRead(notice.id)
+        .then(staleNoticeCounts)
+        .catch(() => undefined);
     },
     [notices],
   );

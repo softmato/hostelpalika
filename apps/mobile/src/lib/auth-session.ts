@@ -36,7 +36,6 @@ import {
   clearAuth,
   setAccessToken,
   setAccount,
-  setBiometricUserId,
   setReady,
   setResidentActivated,
   setSession,
@@ -314,14 +313,9 @@ export async function endSession(options?: {
   }
 
   await clearTokens();
-  // The fingerprint stays on for this account on this phone: whoever signs back
-  // in as it meets the lock again (`AppLockHost`), not a fresh setup. Another
-  // account never matches the id, so it gets nothing of this one's.
-  const biometricUserId = store.getState().auth.biometricUserId;
-
+  // Biometric stays on for this account on this phone — `resetStore` keeps it.
   store.dispatch(resetStore());
   await persistor.purge();
-  store.dispatch(setBiometricUserId(biometricUserId));
 
   // `resetStore` cleared it, so re-flag the two things the login screen needs:
   // that boot is done (otherwise the gate re-runs and hangs on the splash) and

@@ -1,3 +1,4 @@
+import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { requireOptionalNativeModule } from "expo-modules-core";
 import { router, usePathname } from "expo-router";
@@ -55,6 +56,7 @@ import {
   type FingerprintStatus,
   fingerprintStatus,
   handReturnsToNative,
+  hasFingerprint,
   hasMailbox,
   isAuthenticating,
   isLocked,
@@ -70,7 +72,6 @@ import {
   subscribeToLock,
   unlockApp,
   unlockWithFingerprint,
-  unlockWithPin,
   verifyLockCode,
 } from "@/lib/app-lock";
 import type { ApiUser } from "@/lib/auth-api";
@@ -98,6 +99,18 @@ const lockGuard = appLockNative?.setGuard ? (appLockNative as LockGuard) : null;
 let coldStart = true;
 /** "Remind me later" lasts until the app is next opened from cold. */
 let offerDismissed = false;
+/** The lock on screen was raised by a sign-in, not a cold open or a return. */
+let signInLock = false;
+/** That lock was opened with the PIN, and biometric is off here: ask once. */
+let biometricOfferDue = false;
+
+/** Arms biometric for this account on this phone. The system prompt is the confirmation. */
+async function turnOnBiometric(dispatch: ReturnType<typeof useAppDispatch>, accountId: string) {
+  const armed = await armFingerprint();
+  if (armed) dispatch(setBiometricUserId(accountId));
+  await persistor.flush();
+  return armed;
+}
 
 /**
  * The lock is on for this account on this phone: it has a PIN (account-wide),
@@ -146,7 +159,10 @@ export function AppLockHost() {
     let lastId = store.getState().auth.account?.id ?? null;
     return store.subscribe(() => {
       const id = store.getState().auth.account?.id ?? null;
-      if (lastId === null && id !== null) lockApp();
+      if (lastId === null && id !== null) {
+        signInLock = true;
+        lockApp();
+      }
       lastId = id;
     });
   }, []);
@@ -185,6 +201,9 @@ const KEYS = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "finger", "0", "back"
 /**
  * Four boxes and the app's own number pad — the phone keyboard never opens for
  * a PIN. The bank apps' lock, in our green. A new `error` shakes the boxes.
+ *
+ * A digit lands on touch-down with a haptic tick, as on a bank keypad, rather
+ * than on release.
  */
 function PinPad({
   busy = false,
@@ -205,6 +224,19 @@ function PinPad({
   const offset = useSharedValue(0);
   const shake = useAnimatedStyle(() => ({ transform: [{ translateX: offset.value }] }));
 
+  /*
+   * The digits as typed, ahead of React. Two quick taps both land before the
+   * re-render, and a handler reading `value` built the second digit on the
+   * stale first — a dropped digit, the "stuck" pad. Reading this instead also
+   * keeps `press` free of `value`, so the key grid is not rebuilt per digit.
+   * Only a reset flows back in from the parent, and a reset is always "".
+   */
+  const typed = useRef(value);
+
+  useEffect(() => {
+    if (value === "") typed.current = "";
+  }, [value]);
+
   useEffect(() => {
     if (!error) return;
     offset.set(withSequence(
@@ -222,14 +254,13 @@ function PinPad({
       onFingerprint?.();
       return;
     }
-    if (key === "back") {
-      onChange(value.slice(0, -1));
-      return;
-    }
-    if (value.length >= 4) return;
-    const next = value + key;
+    const current = typed.current;
+    const next = key === "back" ? current.slice(0, -1) : current.length >= 4 ? current : current + key;
+    if (next === current) return;
+    typed.current = next;
+    void Haptics.selectionAsync().catch(() => {});
     onChange(next);
-    if (next.length === 4) onComplete(next);
+    if (next.length === 4 && key !== "back") onComplete(next);
   }
 
   return (
@@ -277,7 +308,9 @@ function PinPad({
                 accessibilityRole="button"
                 className="h-16 items-center justify-center rounded-2xl active:bg-brand-soft"
                 disabled={busy}
-                onPress={() => press(key)}
+                // The biometric sheet opens on release, so a brushed key cannot pop it.
+                onPress={key === "finger" ? () => press(key) : undefined}
+                onPressIn={key === "finger" ? undefined : () => press(key)}
               >
                 {key === "back" ? (
                   <Delete color={colors.mutedForeground} size={26} strokeWidth={1.8} />
@@ -494,6 +527,7 @@ function LockScreen({ account }: { account: ApiUser }) {
       return;
     }
     if (result === "changed" && mailbox) setWithCode(true);
+    if (result === "unlocked") signInLock = false;
     setStatus(result === "unlocked" ? "idle" : result);
   }
 
@@ -548,7 +582,11 @@ function LockScreen({ account }: { account: ApiUser }) {
     setChecking(true);
     setPinError(null);
     try {
-      await unlockWithPin(value);
+      await checkLockPin(value);
+      // Signed back in and typed the PIN: offer biometric, once (`AppLockOffer`).
+      if (signInLock && !fingerOnPhone) biometricOfferDue = true;
+      signInLock = false;
+      unlockApp();
       await rearmIfChanged();
     } catch (caught) {
       setPin("");
@@ -1006,7 +1044,58 @@ export function AppLockOffer() {
     setOpen(false);
   }
 
-  return <LockSetupSheet intro onClose={later} open={open && wanted} />;
+  const dispatch = useAppDispatch();
+  const locked = useSyncExternalStore(subscribeToLock, isLocked);
+  const fingerOnPhone = useFingerOnPhone();
+  const [askFinger, setAskFinger] = useState(false);
+  const [arming, setArming] = useState(false);
+
+  // Once, when a sign-in's lock was just opened with the PIN — see `submitPin`.
+  useEffect(() => {
+    if (locked || !biometricOfferDue) return;
+    biometricOfferDue = false;
+    if (fingerOnPhone || !canOfferLock(account)) return;
+    let live = true;
+    void hasFingerprint().then((has) => {
+      if (live && has) setAskFinger(true);
+    });
+    return () => {
+      live = false;
+    };
+  }, [account, fingerOnPhone, locked]);
+
+  async function armFinger() {
+    if (!account) return;
+    setArming(true);
+    const armed = await turnOnBiometric(dispatch, account.id);
+    setArming(false);
+    setAskFinger(false);
+    if (armed) toastSuccess("Biometric is on", "Biometric or PIN, every time the app opens.");
+  }
+
+  return (
+    <>
+      <LockSetupSheet intro onClose={later} open={open && wanted} />
+      <Sheet fitContent onClose={() => setAskFinger(false)} open={askFinger}>
+        <View className="pb-2 pt-4">
+          <StepHeading
+            icon={FingerprintPattern}
+            subtitle="Open the app with your fingerprint or face instead of typing the PIN."
+            title="Use biometric next time?"
+          />
+        </View>
+        <View className="gap-3 pt-4">
+          <Button label="Not now" onPress={() => setAskFinger(false)} variant="outline" />
+          <Button
+            icon={FingerprintPattern}
+            label="Turn on"
+            loading={arming}
+            onPress={() => void armFinger()}
+          />
+        </View>
+      </Sheet>
+    </>
+  );
 }
 
 /**
@@ -1184,13 +1273,12 @@ export function AppLockSetting() {
     if (!next) {
       await disarmFingerprint();
       dispatch(setBiometricUserId(null));
-    } else if (await armFingerprint()) {
-      dispatch(setBiometricUserId(account.id));
+      await persistor.flush();
+    } else if (await turnOnBiometric(dispatch, account.id)) {
       toastSuccess("Biometric is on", "It opens the app on this phone.");
     } else {
       toastError("Biometric not confirmed");
     }
-    await persistor.flush();
     setBusy(false);
   }
 

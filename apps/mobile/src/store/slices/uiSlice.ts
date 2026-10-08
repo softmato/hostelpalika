@@ -12,8 +12,22 @@ export type ThemePreference = "dark" | "light" | "system";
  */
 export type CalendarPreference = "AD" | "BS";
 
+export type CommutePlace = { lat: number; lng: number; name: string };
+
 export type UiState = {
   calendarPreference: CalendarPreference;
+  /**
+   * "My college / office" — a place the reader chose, kept on this phone only
+   * and never sent with their identity. Hostel pins and cards show the travel
+   * time to it.
+   */
+  commutePlace?: CommutePlace | null;
+  /**
+   * Turn-by-turn speaks unless this is true. Named as the exception so an
+   * install from before it existed — where rehydration leaves it undefined —
+   * reads as "on" without a migration.
+   */
+  navigationVoiceMuted?: boolean;
   themePreference: ThemePreference;
 };
 
@@ -54,13 +68,23 @@ const uiSlice = createSlice({
     setCalendarPreference(state, action: PayloadAction<CalendarPreference>) {
       state.calendarPreference = action.payload;
     },
+    setCommutePlace(state, action: PayloadAction<CommutePlace | null>) {
+      state.commutePlace = action.payload;
+    },
+    setNavigationVoiceMuted(state, action: PayloadAction<boolean>) {
+      state.navigationVoiceMuted = action.payload;
+    },
     setThemePreference(state, action: PayloadAction<ThemePreference>) {
       state.themePreference = action.payload;
     },
   },
 });
 
-export const { setCalendarPreference, setThemePreference } =
-  uiSlice.actions;
+export const {
+  setCalendarPreference,
+  setCommutePlace,
+  setNavigationVoiceMuted,
+  setThemePreference,
+} = uiSlice.actions;
 
 export default uiSlice.reducer;

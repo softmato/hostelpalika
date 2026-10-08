@@ -325,6 +325,18 @@ export const hostelAdminGeocodeQuerySchema = z
 
 export const hostelAdminProfileUpdateSchema = z.object({
   ...optionalHostelScopeSchema,
+  /** "Find the gate" — a short note and one photo of the entrance. Photo is https only. */
+  arrivalGuide: z
+    .object({
+      note: z.string().trim().max(240).optional(),
+      photoUrl: z
+        .string()
+        .trim()
+        .max(500)
+        .refine((url) => url === "" || url.startsWith("https://"), "The photo must be an https link.")
+        .optional(),
+    })
+    .optional(),
   capacitySummary: z
     .object({
       totalBeds: z.coerce.number().int().nonnegative().optional(),

@@ -1,7 +1,7 @@
 "use client";
 
 import { AlertTriangle, Bell, Check, Megaphone } from "lucide-react";
-import { memo, useCallback, useMemo, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { EmptyState } from "@/app/_components/shared-ui";
 import {
@@ -69,6 +69,23 @@ export const ResidentNoticesPageContent = memo(function ResidentNoticesPageConte
     },
     [updateResource],
   );
+
+  /*
+   * Opening the board reads it, as in the app: every notice is marked read on
+   * the server once per visit, so the portal's notice count clears. The "New"
+   * badges stay for this visit so the resident still sees what came in.
+   */
+  const clearedBoard = useRef(false);
+  const hasUnread = notices.some((notice) => !notice.isRead);
+
+  useEffect(() => {
+    if (clearedBoard.current || !hasUnread) return;
+    clearedBoard.current = true;
+    void browserApi(`${residentEndpoints.notices}/read-all`, {
+      body: JSON.stringify({}),
+      method: "POST",
+    }).catch(() => undefined);
+  }, [hasUnread]);
 
   const counts = useMemo(
     () => ({

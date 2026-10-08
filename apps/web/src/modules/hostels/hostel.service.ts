@@ -178,6 +178,7 @@ export type HostelRecord = {
     type?: string;
   }>;
   nearbyPlacesLastUpdated?: Date;
+  arrivalGuide?: { note?: string; photoUrl?: string };
   ownerId: Types.ObjectId;
   photos?: Array<{
     _id?: Types.ObjectId;
@@ -386,6 +387,7 @@ function serializeRoomConfigurations(hostel: HostelRecord) {
 
 export function serializeHostel(hostel: HostelRecord) {
   return {
+    arrivalGuide: serializeArrivalGuide(hostel),
     // Archive state travels with every hostel the superadmin reads, so the
     // Archived queue can render the reason and the countdown without a second
     // endpoint. Empty on a live hostel, which is every hostel any other portal
@@ -436,8 +438,17 @@ export function serializeHostel(hostel: HostelRecord) {
 
 const PUBLIC_PHOTO_ORDER = { EXTERIOR: 0, INTERIOR: 1, ROOM: 2 } as const;
 
+/** The gate note and photo, or null when the hostel has written neither. */
+function serializeArrivalGuide(hostel: HostelRecord) {
+  const note = hostel.arrivalGuide?.note?.trim() ?? "";
+  const photoUrl = hostel.arrivalGuide?.photoUrl?.trim() ?? "";
+
+  return note || photoUrl ? { note, photoUrl } : null;
+}
+
 export function serializePublicHostel(hostel: HostelRecord) {
   return {
+    arrivalGuide: serializeArrivalGuide(hostel),
     capacitySummary: hostel.capacitySummary ?? {},
     // Phone only, so a visitor can call the hostel directly instead of being
     // funnelled through the inquiry form. The email stays private — inbound

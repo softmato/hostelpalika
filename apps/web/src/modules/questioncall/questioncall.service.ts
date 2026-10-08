@@ -76,8 +76,7 @@ type ClickRecord = {
  * `redirectUrl` is the `questionCall` site-config link, kept for app builds older
  * than the 2026-10-01 row, which open what this returns.
  *
- * Only STUDENT residents see the entry point (PHASES.md §5.1), and the check is
- * repeated here — a hidden button is not access control.
+ * Every resident sees the entry point, students or not.
  */
 export async function trackQuestionCallClick(
   input: QuestionCallClickInput,
@@ -86,14 +85,6 @@ export async function trackQuestionCallClick(
   await connectToDatabase();
 
   const resident = await findCurrentResident(principal);
-
-  if ((resident.residentType ?? "STUDENT") !== "STUDENT") {
-    throw new QuestionCallServiceError(
-      "QuestionCall is available to student residents only.",
-      "QUESTIONCALL_NOT_ELIGIBLE",
-      403,
-    );
-  }
 
   const userId = resident.userId ?? principal.userId;
   const user = await UserModel.findById(userId)
@@ -195,7 +186,7 @@ export async function getQuestionCallStatus(principal: ApiPrincipal) {
   return {
     clickCount,
     converted: Boolean(latest?.converted),
-    eligible: (resident.residentType ?? "STUDENT") === "STUDENT",
+    eligible: true,
     lastClickedAt: latest?.clickedAt?.toISOString(),
   };
 }

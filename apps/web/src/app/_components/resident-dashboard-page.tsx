@@ -379,11 +379,7 @@ export const ResidentDashboardPageContent = memo(function ResidentDashboardPageC
             </div>
           </div>
 
-          {/* Students only — a working professional has no use for it, and the
-              API repeats the check so hiding the card is not the gate. */}
-          {(dashboard.resident.residentType ?? "STUDENT") === "STUDENT" ? (
-            <ResidentQuestionCallCard />
-          ) : null}
+          <ResidentQuestionCallCard />
         </>
       ) : null}
     </div>

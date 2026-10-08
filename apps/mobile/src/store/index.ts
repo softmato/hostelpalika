@@ -106,7 +106,19 @@ const rootReducer = (state: AppState | undefined, action: UnknownAction): AppSta
   if (action.type === RESET_STORE) {
     // Returning undefined state makes every reducer fall back to its initial
     // value; `_persist` is re-attached by persistReducer.
-    return combined(undefined, action);
+    const fresh = combined(undefined, action);
+
+    /*
+     * Except one field: biometric stays on for an account on this phone across
+     * a sign-out. It only ever matches that account's id, so the same person
+     * signing back in keeps it and nobody else gets anything of theirs. Kept
+     * here rather than re-dispatched after the reset, so no path through a
+     * reset — sign-out, a dead refresh, a boot with no tokens — can drop it.
+     */
+    return {
+      ...fresh,
+      auth: { ...fresh.auth, biometricUserId: state?.auth.biometricUserId ?? null },
+    };
   }
 
   return combined(state, action);

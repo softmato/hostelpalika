@@ -166,6 +166,7 @@
           }
         }
       ],
+      "@maplibre/maplibre-react-native",
       "./plugins/withReceiptSheet",
       "./plugins/withReleaseMinify"
     ],
