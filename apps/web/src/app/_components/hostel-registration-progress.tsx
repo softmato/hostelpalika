@@ -197,19 +197,52 @@ function Journey({ reached }: { reached: number }) {
  */
 function PlanPicker({
   busy,
+  currentCycle,
   currentLifetime,
   currentPlanId,
+  onDirtyChange,
   onSelect,
 }: {
   busy: boolean;
+  currentCycle: string | null;
   /** The plan chosen is the lifetime deal. */
   currentLifetime: boolean;
   currentPlanId: string | null;
+  /** True while a picked plan is waiting on Confirm — Pay now must not charge the old one. */
+  onDirtyChange?: (dirty: boolean) => void;
   onSelect: (planId: string, cycle: BillingCycle, lifetime: boolean) => void;
 }) {
   const { plans: catalog } = useSiteConfig();
-  const [cycle, setCycle] = useState<BillingCycle>("monthly");
   const cycles = billingCycles(catalog);
+  const savedCycle = cycles.find((option) => option.id === currentCycle)?.id ?? null;
+  const [cycle, setCycle] = useState<BillingCycle>(savedCycle ?? "monthly");
+  /*
+   * A card press picks, it does not save. Saving on every press raised a new
+   * selection server-side each time an owner was only comparing, the same way
+   * the Regular / Lifetime switch already worked locally. Confirm saves it.
+   */
+  const [draft, setDraft] = useState<{ lifetime: boolean; planId: string } | null>(
+    currentPlanId ? { lifetime: currentLifetime, planId: currentPlanId } : null,
+  );
+  const dirty =
+    draft !== null &&
+    (draft.planId !== currentPlanId ||
+      draft.lifetime !== currentLifetime ||
+      (!draft.lifetime && savedCycle !== null && cycle !== savedCycle));
+  const draftName = draft ? catalog.plans.find((plan) => plan.id === draft.planId)?.name : null;
+
+  // Whatever the server now holds — on first load, and after a Confirm — is the pick.
+  useEffect(() => {
+    setDraft(currentPlanId ? { lifetime: currentLifetime, planId: currentPlanId } : null);
+  }, [currentLifetime, currentPlanId]);
+
+  useEffect(() => {
+    if (savedCycle) setCycle(savedCycle);
+  }, [savedCycle]);
+
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
   const priced = catalog.plans.filter((plan) => plan.monthly > 0);
   /*
    * The lifetime deal, while it is on sale: a separate switch rather than a
@@ -264,7 +297,7 @@ function PlanPicker({
 
             if (!offer) return [];
 
-            const selected = currentLifetime && plan.id === currentPlanId;
+            const selected = draft?.lifetime === true && plan.id === draft.planId;
             const soldOut = offer.left <= 0;
 
             return [
@@ -277,9 +310,9 @@ function PlanPicker({
                     : "border-border bg-surface hover:border-brand-teal/40",
                   busy && "pointer-events-none opacity-60",
                 )}
-                disabled={busy || (soldOut && !selected)}
+                disabled={busy || (soldOut && !(currentLifetime && plan.id === currentPlanId))}
                 key={plan.id}
-                onClick={() => onSelect(plan.id, cycle, true)}
+                onClick={() => setDraft({ lifetime: true, planId: plan.id })}
                 type="button"
               >
                 <div className="flex items-start justify-between gap-2">
@@ -336,7 +369,7 @@ function PlanPicker({
 
       <div className={cn("grid gap-3 sm:grid-cols-2 lg:grid-cols-3", onLifetime && "hidden")}>
         {priced.map((plan) => {
-          const selected = !currentLifetime && plan.id === currentPlanId;
+          const selected = draft?.lifetime === false && plan.id === draft.planId;
           const total = cycleTotal(plan, cycle);
 
           return (
@@ -351,7 +384,7 @@ function PlanPicker({
               )}
               disabled={busy}
               key={plan.id}
-              onClick={() => onSelect(plan.id, cycle, false)}
+              onClick={() => setDraft({ lifetime: false, planId: plan.id })}
               type="button"
             >
               <div className="flex items-start justify-between gap-2">
@@ -384,6 +417,40 @@ function PlanPicker({
           );
         })}
       </div>
+
+      {dirty && draft ? (
+        <div className="flex flex-wrap items-center gap-3 rounded-xl border border-brand-teal/30 bg-brand-teal/5 p-3">
+          <p className="flex-1 text-sm text-foreground">
+            <strong className="font-semibold">
+              {draftName}
+              {draft.lifetime ? " · Lifetime" : ""}
+            </strong>{" "}
+            is picked. Confirm to save it.
+          </p>
+          {currentPlanId ? (
+            <button
+              className="rounded-lg px-3 py-2 text-xs font-semibold text-muted-foreground transition hover:text-foreground"
+              disabled={busy}
+              onClick={() => {
+                setDraft({ lifetime: currentLifetime, planId: currentPlanId });
+                if (savedCycle) setCycle(savedCycle);
+              }}
+              type="button"
+            >
+              Keep current plan
+            </button>
+          ) : null}
+          <button
+            className="inline-flex items-center gap-2 rounded-lg bg-brand-teal px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-teal/90 disabled:opacity-60"
+            disabled={busy}
+            onClick={() => onSelect(draft.planId, cycle, draft.lifetime)}
+            type="button"
+          >
+            {busy ? <Loader2 className="size-4 animate-spin" /> : null}
+            Confirm plan
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -515,6 +582,8 @@ export function HostelRegistrationProgress({
       cancelled = true;
     };
   }, [fetchState]);
+
+  const [planDirty, setPlanDirty] = useState(false);
 
   async function choosePlan(planId: string, cycle: BillingCycle, lifetime: boolean) {
     setBusy(true);
@@ -705,8 +774,10 @@ export function HostelRegistrationProgress({
               <div className="mt-5">
                 <PlanPicker
                   busy={busy}
+                  currentCycle={state?.subscription.cycle ?? null}
                   currentLifetime={Boolean(state?.subscription.lifetime)}
                   currentPlanId={state?.subscription.planId ?? null}
+                  onDirtyChange={setPlanDirty}
                   onSelect={choosePlan}
                 />
               </div>
@@ -715,7 +786,8 @@ export function HostelRegistrationProgress({
                 <>
                   <button
                     className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-brand-teal px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-teal/90 disabled:opacity-60 sm:w-auto"
-                    disabled={busy}
+                    disabled={busy || planDirty}
+                    title={planDirty ? "Confirm the plan you picked first" : undefined}
                     onClick={payNow}
                     type="button"
                   >
