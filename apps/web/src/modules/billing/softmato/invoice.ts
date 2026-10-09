@@ -81,11 +81,13 @@ export async function ensureSoftmatoInvoice(
       ? { due_at: input.dueAt.toISOString() }
       : {}),
     ...(input.presentation ? { presentation: input.presentation } : {}),
-    ...(input.serviceStartsAt
-      ? { service_starts_at: input.serviceStartsAt.toISOString() }
-      : {}),
-    ...(input.serviceEndsAt
-      ? { service_ends_at: input.serviceEndsAt.toISOString() }
+    // Both ends or neither — Softmato refuses a half-open period with
+    // VALIDATION_FAILED, which is what broke every lifetime checkout.
+    ...(input.serviceStartsAt && input.serviceEndsAt
+      ? {
+          service_ends_at: input.serviceEndsAt.toISOString(),
+          service_starts_at: input.serviceStartsAt.toISOString(),
+        }
       : {}),
   });
 }
