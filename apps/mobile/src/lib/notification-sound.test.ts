@@ -33,3 +33,20 @@ describe("claimNotificationSound", () => {
     expect(claimNotificationSound("row-1", CLAIM_TTL_MS)).toBe(true);
   });
 });
+
+describe("claimNotificationDisplay", () => {
+  it("lets one of the socket echo and its push show the banner, not both", async () => {
+    const { claimNotificationDisplay } = await import("./notification-sound");
+
+    expect(claimNotificationDisplay("row-display-1")).toBe(true);
+    expect(claimNotificationDisplay("row-display-1")).toBe(false);
+    expect(claimNotificationDisplay("campaign:c1")).toBe(true);
+  });
+
+  it("always shows a notification that carries no id", async () => {
+    const { claimNotificationDisplay } = await import("./notification-sound");
+
+    expect(claimNotificationDisplay(undefined)).toBe(true);
+    expect(claimNotificationDisplay(undefined)).toBe(true);
+  });
+});

@@ -83,7 +83,7 @@ import { api, API_BASE_URL } from "@/lib/api";
 import { APP_DRAWS_CATEGORY_PUSHES } from "@/lib/drawn-push";
 import { configureNativeNightPrompt } from "@/lib/night-prompt-native";
 import { registerNightStatusCategory } from "@/lib/night-status-notification";
-import { claimNotificationSound } from "@/lib/notification-sound";
+import { claimNotificationDisplay, claimNotificationSound } from "@/lib/notification-sound";
 import { palette } from "@/constants/theme";
 import { UPLOAD_NOTIFICATION_TYPE } from "@/lib/upload-notification";
 
@@ -186,9 +186,27 @@ Notifications.setNotificationHandler({
      */
     const isUploadProgress = data?.type === UPLOAD_NOTIFICATION_TYPE;
 
+    // Our own echo of a socket row (`live-notifier.ts`): always shown, and
+    // silent here because the socket path already played the drop.
+    const isLiveEcho = data?.liveEcho === true;
+
+    /*
+     * A push for a row the socket already drew in the shade. Shown once, not
+     * twice: whichever arrived first claimed the banner.
+     */
+    const displayKey =
+      typeof data?.notificationId === "string"
+        ? data.notificationId
+        : typeof data?.campaignId === "string"
+          ? `campaign:${data.campaignId}`
+          : null;
+    const duplicate =
+      !isLiveEcho && !isUploadProgress && displayKey !== null && !claimNotificationDisplay(displayKey);
+
     // Claimed even when urgent, so the socket does not add a drop to an alert
     // that already sounded.
-    const firstToSound = !isUploadProgress && claimNotificationSound(data?.notificationId);
+    const firstToSound =
+      !isUploadProgress && !isLiveEcho && claimNotificationSound(data?.notificationId);
 
     /*
      * No `shouldShowAlert`. It was the pre-SDK-52 name for the pair below and
@@ -199,10 +217,10 @@ Notifications.setNotificationHandler({
      */
     return {
       // `urgent` is stamped by `push.service.ts` from the channel it chose.
-      shouldPlaySound: firstToSound || (!isUploadProgress && data?.urgent === true),
+      shouldPlaySound: !duplicate && (firstToSound || (!isUploadProgress && data?.urgent === true)),
       shouldSetBadge: !isUploadProgress,
-      shouldShowBanner: !isUploadProgress,
-      shouldShowList: true,
+      shouldShowBanner: !isUploadProgress && !duplicate,
+      shouldShowList: !duplicate,
     };
   },
 });

@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  cached: vi.fn(),
+  dropCached: vi.fn(),
   download: vi.fn(),
   invoice: vi.fn(),
   render: vi.fn(),
@@ -15,7 +17,8 @@ vi.mock("@hostel/db/models/SubscriptionPayment", () => ({
 }));
 vi.mock("@hostel/db/models/SoftmatoDocument", () => ({
   SoftmatoDocumentModel: {
-    findOne: () => ({ lean: async () => null }),
+    deleteOne: (filter: unknown) => ({ catch: async () => mocks.dropCached(filter) }),
+    findOne: () => ({ lean: mocks.cached }),
     updateOne: () => ({ catch: async () => undefined }),
   },
 }));
@@ -36,6 +39,9 @@ vi.mock("./issue", () => ({
 
 import { resolveInvoiceDocument } from "./deliver";
 
+/** "%PDF-1" — the header the app checks before it saves anything. */
+const PDF = new Uint8Array([0x25, 0x50, 0x44, 0x46, 0x2d, 0x31]);
+
 const ROW = {
   _id: "6aa7abf84bc62299c2cf243c",
   invoiceNumber: "SUB-0001-2431",
@@ -47,6 +53,7 @@ const ROW = {
 describe("resolveInvoiceDocument", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.cached.mockResolvedValue(null);
     mocks.render.mockResolvedValue(new Uint8Array([1]));
   });
 
@@ -66,7 +73,7 @@ describe("resolveInvoiceDocument", () => {
   it("serves Softmato's copy when they have it", async () => {
     mocks.invoice.mockResolvedValue(ROW);
     mocks.download.mockResolvedValue({
-      bytes: new Uint8Array([2]),
+      bytes: PDF,
       contentType: "application/pdf",
       pdfFallbackReason: null,
     });
@@ -93,6 +100,48 @@ describe("resolveInvoiceDocument", () => {
       expect.objectContaining({ localInvoiceNo: "INV-2083/84-000012" }),
       { amountPaid: 2000, documentNumber: "INV-2083/84-000012" },
     );
+  });
+
+  it("serves a cached copy whole when the driver hands it back as a BSON Binary", async () => {
+    mocks.invoice.mockResolvedValue(ROW);
+    // `.lean()` shape: a capacity buffer plus `position`, and `length` is a method.
+    const padded = new Uint8Array(16);
+    padded.set(PDF);
+    mocks.cached.mockResolvedValue({
+      bytes: { buffer: padded, length: () => PDF.length, position: PDF.length },
+      contentType: "application/pdf",
+    });
+
+    const document = await resolveInvoiceDocument("SUB-0001-2431", null);
+
+    expect(Array.from(document?.bytes ?? [])).toEqual(Array.from(PDF));
+    expect(mocks.download).not.toHaveBeenCalled();
+  });
+
+  it("drops a cached copy that is not a PDF and fetches it again", async () => {
+    mocks.invoice.mockResolvedValue(ROW);
+    mocks.cached.mockResolvedValue({ bytes: new Uint8Array([60]), contentType: "application/pdf" });
+    mocks.download.mockResolvedValue({ bytes: PDF, contentType: "application/pdf", pdfFallbackReason: null });
+
+    const document = await resolveInvoiceDocument("SUB-0001-2431", null);
+
+    expect(mocks.dropCached).toHaveBeenCalled();
+    expect(document?.issuedBy).toBe("softmato");
+    expect(Array.from(document?.bytes ?? [])).toEqual(Array.from(PDF));
+  });
+
+  it("prints its own when Softmato labels something a PDF that is not one", async () => {
+    mocks.invoice.mockResolvedValue(ROW);
+    mocks.download.mockResolvedValue({
+      bytes: new Uint8Array([123, 34]),
+      contentType: "application/pdf",
+      pdfFallbackReason: null,
+    });
+
+    const document = await resolveInvoiceDocument("SUB-0001-2431", null);
+
+    expect(document?.issuedBy).toBe("platform");
+    expect(mocks.render).toHaveBeenCalled();
   });
 
   it("still answers not-found when there is no copy of ours to fall back to", async () => {

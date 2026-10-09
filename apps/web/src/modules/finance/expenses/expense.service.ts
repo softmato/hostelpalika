@@ -1289,6 +1289,29 @@ export async function voidExpense(actor: ExpenseActor, expenseId: string, reason
     source: "EXPENSE_VOID",
   });
 
+  const what = `${rupees(existing.amount)}${existing.what ? ` — ${existing.what}` : ""}`;
+
+  if (existing.recordedBy.toString() !== actor.principal.userId) {
+    // Somebody else cancelled it: the person who recorded it hears why.
+    await notifyQuietly({
+      actionUrl: "/app/expenses",
+      body: `${what} was cancelled. ${reason}`,
+      data: { expenseId: existing._id.toString(), type: "EXPENSE_VOIDED" },
+      hostelId: actor.hostelId,
+      title: "Expense cancelled",
+      userId: existing.recordedBy.toString(),
+    });
+  } else if (actor.role !== "HOSTEL_ADMIN") {
+    await notifyHostelAdmins({
+      actionUrl: "/app/expenses",
+      body: `${existing.recordedByName || "Staff"} cancelled ${what}. ${reason}`,
+      data: { expenseId: existing._id.toString(), type: "STAFF_EXPENSE_VOIDED" },
+      exceptUserId: actor.principal.userId,
+      hostelId: actor.hostelId,
+      title: "Expense cancelled",
+    });
+  }
+
   return serializeOne(actor, updated);
 }
 

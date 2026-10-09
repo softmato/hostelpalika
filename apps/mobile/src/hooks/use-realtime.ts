@@ -11,8 +11,13 @@ import { useEffect, useRef } from "react";
 import { AppState } from "react-native";
 
 import { useAppSelector } from "@/hooks/redux";
+import { presentLiveNotification } from "@/lib/live-notifier";
 import { claimNotificationSound } from "@/lib/notification-sound";
-import { connectRealtime, type RealtimeConnection } from "@/lib/realtime";
+import {
+  connectRealtime,
+  type RealtimeConnection,
+  type RealtimeNotification,
+} from "@/lib/realtime";
 import { playNotificationDrop } from "@/lib/sound-effects";
 import { toastInfo, toastUrgent } from "@/lib/toast";
 
@@ -23,6 +28,20 @@ import { toastInfo, toastUrgent } from "@/lib/toast";
  */
 function isOnScreen() {
   return AppState.currentState === "active";
+}
+
+/**
+ * A live row goes to the phone's notification shade, like its push — see
+ * `lib/live-notifier.ts`. The toast is only for a phone without notification
+ * permission, where the shade is not ours to write to.
+ */
+function showLive(payload: RealtimeNotification) {
+  void presentLiveNotification(payload).then((shown) => {
+    if (shown) return;
+    const urgent =
+      payload.priority === "URGENT" || payload.priority === "HIGH" || payload.kind === "ACTION";
+    (urgent ? toastUrgent : toastInfo)(payload.title, payload.body);
+  });
 }
 
 export function useRealtime() {
@@ -45,30 +64,33 @@ export function useRealtime() {
          * bell, which reads the row when it eventually exists.
          */
         onAnnouncement: (payload) => {
-          const urgent = payload.priority === "URGENT" || payload.priority === "HIGH";
-          (urgent ? toastUrgent : toastInfo)(payload.title, payload.body);
-
-          // No push twin to de-duplicate against — a broadcast is socket-only.
-          if (isOnScreen()) {
-            playNotificationDrop();
+          if (!isOnScreen()) {
+            return;
           }
+
+          playNotificationDrop();
+          showLive(payload);
         },
         /*
          * Surfaced rather than only badging the bell: the entire reason for
          * the socket is that some of these cannot wait for someone to go
-         * looking. A notification that also arrived as a push will not
-         * double-toast — a push received in the foreground renders as a system
-         * banner, not through this path.
+         * looking. Drawn in the shade as a system notification, and the push
+         * for the same row is hidden when it lands — one banner per row.
          */
         onNotification: (payload) => {
-          const urgent = payload.priority === "URGENT" || payload.kind === "ACTION";
-          (urgent ? toastUrgent : toastInfo)(payload.title, payload.body);
+          // In the background the push is what the shade shows; drawing it
+          // here as well would be a second banner for one row.
+          if (!isOnScreen()) {
+            return;
+          }
 
           // Keyed on the row id, which the push for the same row carries as
           // `notificationId` — the push handler then shows it silently.
-          if (isOnScreen() && claimNotificationSound(payload.id)) {
+          if (claimNotificationSound(payload.id)) {
             playNotificationDrop();
           }
+
+          showLive(payload);
         },
       });
 

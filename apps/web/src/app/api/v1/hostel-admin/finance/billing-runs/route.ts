@@ -11,6 +11,7 @@ import {
   billingRunSchema,
 } from "@/modules/finance/billing.validation";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
+import { notifyInvoicesRaised } from "@/modules/finance/finance-notify";
 
 export const runtime = "nodejs";
 /** A large roster prices every resident before writing; the default is tight. */
@@ -38,6 +39,8 @@ export async function POST(request: NextRequest) {
       },
       principal,
     );
+
+    await notifyInvoicesRaised({ billed: result.billed, hostelId, period: input.period });
 
     // 200, not 201: a re-run that creates nothing is a success, and it is the
     // common case. The counts in the body say what happened.

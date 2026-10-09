@@ -7,6 +7,7 @@ import { hostelDaysBetween } from "@/lib/hostel-day";
 import { REALTIME_TOPIC } from "@/lib/realtime/channels";
 import { publishResourceChange } from "@/lib/realtime/server";
 import { FinanceServiceError } from "@/modules/finance/finance.errors";
+import { notifyResident, notifyResidentsBatch } from "@/modules/finance/finance-notify";
 import { recomputeInvoiceBalance } from "@/modules/finance/payment-event.service";
 import { HostelSettingsModel } from "@hostel/db/models/HostelSettings";
 import { InvoiceModel } from "@hostel/db/models/Invoice";
@@ -253,10 +254,12 @@ export async function accrueLateFines(now = new Date()) {
       kind: "MONTHLY_RENT",
       status: { $in: ["OPEN", "OVERDUE", "PARTIAL"] },
     })
-      .select("dueDate lines totalAmount")
-      .lean<FineableInvoice[]>();
+      .select("dueDate lines residentId totalAmount")
+      .lean<(FineableInvoice & { residentId: Types.ObjectId })[]>();
 
     let changed = 0;
+    // Only the day a fine first lands is news — a daily fine growing is not a push a day.
+    const firstFined: { body: string; data: Record<string, string>; residentId: string }[] = [];
 
     for (const invoice of invoices) {
       const next = refineInvoice(invoice, settings, now);
@@ -271,7 +274,22 @@ export async function accrueLateFines(now = new Date()) {
       );
 
       changed += result.modifiedCount;
+
+      if (result.modifiedCount > 0 && !invoice.lines.some((line) => line.basis === "FINE")) {
+        firstFined.push({
+          body: `A late fine was added. Your bill is now NPR ${next.totalAmount.toLocaleString("en-US")}.`,
+          data: { invoiceId: invoice._id.toString(), type: "LATE_FINE_ADDED" },
+          residentId: invoice.residentId.toString(),
+        });
+      }
     }
+
+    await notifyResidentsBatch({
+      hostelId: hostel.hostelId,
+      pushBody: "Your rent is overdue and a late fine was added. Tap to pay.",
+      rows: firstFined,
+      title: "Late fine added",
+    });
 
     if (changed > 0) {
       invoicesFined += changed;
@@ -301,7 +319,9 @@ export async function waiveLateFine(
   const invoice = await InvoiceModel.findOne({
     _id: invoiceId,
     hostelId: { $in: hostelIds },
-  }).lean<(FineableInvoice & { hostelId: Types.ObjectId; status: string }) | null>();
+  }).lean<
+    (FineableInvoice & { hostelId: Types.ObjectId; residentId: Types.ObjectId; status: string }) | null
+  >();
 
   if (!invoice) {
     throw new FinanceServiceError("Invoice was not found.", "INVOICE_NOT_FOUND");
@@ -333,6 +353,14 @@ export async function waiveLateFine(
   await publishResourceChange({
     hostelIds: [invoice.hostelId.toString()],
     topics: [REALTIME_TOPIC.PAYMENTS],
+  });
+
+  await notifyResident({
+    body: "The late fine on your bill was waived.",
+    data: { invoiceId: invoice._id.toString(), type: "LATE_FINE_WAIVED" },
+    hostelId: invoice.hostelId,
+    residentId: invoice.residentId,
+    title: "Late fine waived",
   });
 
   return { invoiceId: invoice._id.toString() };

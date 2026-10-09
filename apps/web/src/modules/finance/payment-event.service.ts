@@ -9,6 +9,7 @@ import { assertWholeRupees, sumAmounts } from "@/modules/finance/money";
 import {
   notifyAdminsOfStaffSettlement,
   notifyPaymentReversed,
+  notifyResident,
 } from "@/modules/finance/finance-notify";
 import { Role } from "@/lib/roles";
 import { issueReceiptForEvent, voidReceipt } from "@/modules/finance/receipt.service";
@@ -318,6 +319,22 @@ export async function settleEvent(
       hostelId: event.hostelId,
       residentId: event.residentId,
       staffUserId: options.principal.userId,
+    });
+  }
+
+  // Cash at the desk has no claim behind it, so nothing else tells the resident
+  // their money landed. (A proof or gateway payment hears via `notifyClaimReviewed`.)
+  if (event.source === "CASH_ENTRY" && event.direction === "CREDIT" && event.residentId) {
+    await notifyResident({
+      body: `NPR ${event.amount.toLocaleString("en-US")} received in cash. Your receipt is in Payments.`,
+      data: {
+        eventId: event._id.toString(),
+        ...(event.invoiceId ? { invoiceId: event.invoiceId.toString() } : {}),
+        type: "CASH_PAYMENT_RECEIVED",
+      },
+      hostelId: event.hostelId,
+      residentId: event.residentId,
+      title: "Payment received",
     });
   }
 

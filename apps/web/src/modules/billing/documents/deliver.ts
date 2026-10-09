@@ -102,11 +102,16 @@ export async function softmatoDocument(
   redraw: () => Promise<Uint8Array>,
 ): Promise<ResolvedDocument | null> {
   const cached = await SoftmatoDocumentModel.findOne({ kind, number, version })
-    .lean<{ bytes: Buffer; contentType: string } | null>();
+    .lean<{ bytes: unknown; contentType: string } | null>();
+  const cachedBytes = cached ? storedBytes(cached.bytes) : null;
 
-  if (cached) {
+  // A copy that is not a PDF (an empty read, or one cached before the bytes
+  // were checked) is dropped and fetched again rather than served forever.
+  if (cached && !startsWithPdf(cachedBytes)) {
+    await SoftmatoDocumentModel.deleteOne({ kind, number, version }).catch(() => undefined);
+  } else if (cached && cachedBytes) {
     return {
-      bytes: new Uint8Array(cached.bytes),
+      bytes: cachedBytes,
       contentType: cached.contentType,
       filename: softmatoFilename(number, { contentType: cached.contentType, pdfFallbackReason: null }),
       issuedBy: "softmato",
@@ -122,7 +127,7 @@ export async function softmatoDocument(
 
   if (!file) return null;
 
-  if (!isPdf(file)) {
+  if (!isPdf(file) || !startsWithPdf(file.bytes)) {
     console.error(
       JSON.stringify({
         action: "softmato_document_not_pdf",
@@ -154,6 +159,34 @@ export async function softmatoDocument(
     filename: softmatoFilename(number, file),
     issuedBy: "softmato",
   };
+}
+
+/**
+ * The bytes of a cached document, whatever shape the driver handed back.
+ *
+ * `.lean()` returns a `Buffer` field as a BSON `Binary`, not a `Buffer`, and
+ * `new Uint8Array(binary)` reads its `length()` *method* as a length — so every
+ * cached document was served as an empty body, and the app reported "the server
+ * sent something that is not a PDF" on every download after the first.
+ */
+function storedBytes(value: unknown): Uint8Array | null {
+  if (value instanceof Uint8Array) return new Uint8Array(value);
+
+  const binary = value as { buffer?: unknown; position?: number } | null;
+
+  if (binary && binary.buffer instanceof Uint8Array) {
+    const end = typeof binary.position === "number" ? binary.position : binary.buffer.length;
+    return new Uint8Array(binary.buffer.subarray(0, end));
+  }
+
+  return null;
+}
+
+const PDF_MAGIC = [0x25, 0x50, 0x44, 0x46, 0x2d]; // "%PDF-"
+
+/** The file itself says it is a PDF — a `Content-Type` alone is only a claim. */
+function startsWithPdf(bytes: ArrayLike<number> | null | undefined): boolean {
+  return Boolean(bytes) && PDF_MAGIC.every((byte, index) => bytes![index] === byte);
 }
 
 /* ── Invoice ───────────────────────────────────────────────────────────── */

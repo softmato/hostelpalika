@@ -18,6 +18,7 @@ import type {
   ListedRoomRates,
 } from "@/modules/finance/fee-schedule.service";
 import { FinanceServiceError } from "@/modules/finance/finance.errors";
+import { notifyInvoicesRaised, notifyResident } from "@/modules/finance/finance-notify";
 import { getRentConcession } from "@/modules/finance/rent-concession.service";
 import { markKhataBilled, releaseKhata, unbilledKhata } from "@/modules/finance/khata.service";
 import { fineDueDate, getLateFine } from "@/modules/finance/late-fine.service";
@@ -596,6 +597,7 @@ export async function voidInvoice(
   const invoice = await InvoiceModel.findOne(filter).lean<{
     _id: Types.ObjectId;
     hostelId: Types.ObjectId;
+    residentId: Types.ObjectId;
     status: string;
     totalAmount: number;
   } | null>();
@@ -644,6 +646,14 @@ export async function voidInvoice(
     invoiceId: invoice._id.toString(),
     reason: options.reason,
     source: "INVOICE_VOID",
+  });
+
+  await notifyResident({
+    body: `Your bill of NPR ${invoice.totalAmount.toLocaleString("en-US")} was cancelled. ${options.reason.trim()}`,
+    data: { invoiceId: invoice._id.toString(), type: "INVOICE_VOIDED" },
+    hostelId: invoice.hostelId,
+    residentId: invoice.residentId,
+    title: "Bill cancelled",
   });
 
   return { invoiceId: invoice._id.toString(), status: "VOID" };
@@ -756,6 +766,8 @@ export async function runBillingCycleForAllHostels(
   for (const hostel of hostels) {
     try {
       const result = await runBillingCycle({ hostelId: hostel._id, period });
+
+      await notifyInvoicesRaised({ billed: result.billed, hostelId: hostel._id, period });
 
       outcomes.push({
         billedCount: result.billed.length,

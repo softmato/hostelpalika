@@ -8,7 +8,9 @@ import {
   resolveResidentContact,
   sendNotificationEmail,
 } from "@/modules/residents/resident-notify";
+import { formatBsPeriod } from "@/lib/hostel-day";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
+import { sendPushToUsers } from "@/modules/notifications/push.service";
 import { getOperationsConfig } from "@/modules/platform-config/operations-config";
 import { renderReceiptById } from "@/modules/finance/receipt.service";
 import { InvoiceModel } from "@hostel/db/models/Invoice";
@@ -67,6 +69,137 @@ export async function notifyHostelAdmins(input: {
       }),
     );
   }
+}
+
+/**
+ * One resident's bell row and push — the money moves that used to reach them
+ * only if they happened to open Payments. Resolved through the resident
+ * record's linked account; a desk registration with no account has no phone to
+ * reach. Never throws.
+ */
+export async function notifyResident(input: {
+  body: string;
+  data: Record<string, string>;
+  hostelId: Types.ObjectId | string;
+  residentId: Types.ObjectId | string;
+  title: string;
+}): Promise<void> {
+  try {
+    const resident = await ResidentModel.findById(input.residentId)
+      .select("userId")
+      .lean<{ userId?: Types.ObjectId } | null>();
+
+    if (!resident?.userId) return;
+
+    await createInAppNotification({
+      body: input.body,
+      category: "PAYMENT",
+      data: input.data,
+      hostelId: input.hostelId.toString(),
+      title: input.title,
+      userId: resident.userId.toString(),
+    });
+  } catch (error) {
+    console.warn(
+      JSON.stringify({
+        action: "resident_notification_failed",
+        level: "warn",
+        message: error instanceof Error ? error.message : "Unknown notification error",
+        type: input.data.type,
+      }),
+    );
+  }
+}
+
+/**
+ * Many residents of one hostel at once — a billing run, the nightly fine run.
+ * Each gets a bell row in their own words; the push is one batched Expo send
+ * (`push: false` on the rows) so a hostel-wide run is one round trip, not forty.
+ * Never throws.
+ */
+export async function notifyResidentsBatch(input: {
+  hostelId: Types.ObjectId | string;
+  pushBody: string;
+  rows: { body: string; data: Record<string, string>; residentId: string }[];
+  title: string;
+}): Promise<void> {
+  try {
+    if (input.rows.length === 0) return;
+
+    const residents = await ResidentModel.find({
+      _id: { $in: input.rows.map((row) => row.residentId) },
+    })
+      .select("userId")
+      .lean<{ _id: Types.ObjectId; userId?: Types.ObjectId }[]>();
+    const userOf = new Map(
+      residents.flatMap((resident) =>
+        resident.userId ? [[resident._id.toString(), resident.userId.toString()] as const] : [],
+      ),
+    );
+    const targets = input.rows.flatMap((row) => {
+      const userId = userOf.get(row.residentId);
+      return userId ? [{ ...row, userId }] : [];
+    });
+
+    if (targets.length === 0) return;
+
+    const hostelId = input.hostelId.toString();
+
+    await Promise.all(
+      targets.map((target) =>
+        createInAppNotification({
+          body: target.body,
+          category: "PAYMENT",
+          data: target.data,
+          hostelId,
+          push: false,
+          title: input.title,
+          userId: target.userId,
+        }),
+      ),
+    );
+    await sendPushToUsers(
+      targets.map((target) => target.userId),
+      {
+        body: input.pushBody,
+        category: "PAYMENT",
+        dataByUser: Object.fromEntries(targets.map((target) => [target.userId, target.data])),
+        hostelId,
+        title: input.title,
+      },
+    );
+  } catch (error) {
+    console.warn(
+      JSON.stringify({
+        action: "resident_batch_notification_failed",
+        level: "warn",
+        message: error instanceof Error ? error.message : "Unknown notification error",
+        title: input.title,
+      }),
+    );
+  }
+}
+
+/** A billing run raised this month's rent: each billed resident hears it on their phone. */
+export async function notifyInvoicesRaised(input: {
+  billed: { amount: number; invoiceId: string; residentId: string }[];
+  hostelId: Types.ObjectId | string;
+  period: string;
+}): Promise<void> {
+  const month = formatBsPeriod(input.period) || input.period;
+
+  await notifyResidentsBatch({
+    hostelId: input.hostelId,
+    pushBody: `Your rent for ${month} is ready. Tap to view and pay.`,
+    rows: input.billed
+      .filter((invoice) => invoice.amount > 0)
+      .map((invoice) => ({
+        body: `Your rent for ${month} is NPR ${invoice.amount.toLocaleString("en-US")}.`,
+        data: { invoiceId: invoice.invoiceId, type: "INVOICE_RAISED" },
+        residentId: invoice.residentId,
+      })),
+    title: "Rent bill ready",
+  });
 }
 
 /** A warden took a resident's payment (cash, or approving their proof): tell the owner. */

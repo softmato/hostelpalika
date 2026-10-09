@@ -52,3 +52,32 @@ export function claimNotificationSound(id: unknown, now = Date.now()): boolean {
 export function resetNotificationSoundClaims() {
   claims.clear();
 }
+
+const displays = new Map<string, number>();
+
+/**
+ * The same first-one-wins claim as {@link claimNotificationSound}, for the
+ * **banner** rather than the chime: a notification row reaches an open app twice
+ * — over the socket (`useRealtime`, drawn as a local notification) and as its
+ * push — and only the first of the two may be shown. Keyed on the row id, or
+ * `campaign:{id}` for a broadcast.
+ */
+export function claimNotificationDisplay(id: unknown, now = Date.now()): boolean {
+  for (const [key, claimedAt] of displays) {
+    if (now - claimedAt >= CLAIM_TTL_MS) {
+      displays.delete(key);
+    }
+  }
+
+  if (typeof id !== "string" || id === "") {
+    return true;
+  }
+
+  if (displays.has(id)) {
+    return false;
+  }
+
+  displays.set(id, now);
+
+  return true;
+}
