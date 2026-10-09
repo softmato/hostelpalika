@@ -21,6 +21,7 @@ import { FoodPhotoModel } from "@hostel/db/models/FoodPhoto";
 import { FoodReadyLogModel } from "@hostel/db/models/FoodReadyLog";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { CookAccountModel } from "@hostel/db/models/CookAccount";
+import { StockItemModel } from "@hostel/db/models/StockItem";
 import { HostelSettingsModel } from "@hostel/db/models/HostelSettings";
 import { UserModel } from "@hostel/db/models/User";
 import { ResidentModel } from "@hostel/db/models/Resident";
@@ -638,9 +639,11 @@ export async function getCookToday(principal: ApiPrincipal, requestedHostelId?: 
       >(),
     // Whether the owner let the kitchen add what it spends (docs/EXPENSES_PLAN.md).
     HostelSettingsModel.findOne({ hostelId })
-      .select("cookCanRecordExpenses")
-      .lean<{ cookCanRecordExpenses?: boolean } | null>(),
+      .select("cookCanRecordExpenses cookCanUseStock")
+      .lean<{ cookCanRecordExpenses?: boolean; cookCanUseStock?: boolean } | null>(),
   ]);
+
+  const stockEnabled = settings?.cookCanUseStock !== false && (await storeHasItems(hostelId));
 
   return {
     today: {
@@ -677,8 +680,25 @@ export async function getCookToday(principal: ApiPrincipal, requestedHostelId?: 
       residentCount,
       /** Shows the kitchen's *Add expense* entry. The API checks it again. */
       expensesEnabled: Boolean(settings?.cookCanRecordExpenses),
+      /** Shows *Kitchen stock*: allowed, and there is something in the store to take. */
+      stockEnabled,
     },
   };
+}
+
+/**
+ * Whether the group's store has anything for *Kitchen stock* to show. Read here
+ * rather than through the stock service, which writes expenses and would drag
+ * the whole of Money Out into every kitchen route.
+ */
+async function storeHasItems(hostelId: Types.ObjectId) {
+  const hostel = await HostelModel.findById(hostelId)
+    .select("parentHostelId")
+    .lean<{ parentHostelId?: Types.ObjectId | null } | null>();
+
+  return Boolean(
+    await StockItemModel.exists({ active: true, groupHostelId: hostel?.parentHostelId ?? hostelId, kind: "STORE" }),
+  );
 }
 
 /**

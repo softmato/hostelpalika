@@ -409,6 +409,8 @@ function RootShell() {
         {/* Khata: the resident's own (Payments), and the kitchen's asks (cook Today). */}
         <Stack.Screen name="khata" />
         <Stack.Screen name="khata-asks" />
+        {/* The cook's Kitchen stock: what was taken from the store (docs/INVENTORY_PLAN.md). */}
+        <Stack.Screen name="kitchen-stock" />
         {/*
           What the app has recorded about where the resident was, and the two
           controls over it. At the root beside `night-status` because the two are
@@ -496,6 +498,7 @@ function RootShell() {
         <Stack.Screen name="stock/suppliers" />
         <Stack.Screen name="stock/supplier/[id]" />
         <Stack.Screen name="stock/reports" />
+        <Stack.Screen name="stock/usage" />
         {/* Overall: one subject over every branch, from the Overall Home's tiles. */}
         <Stack.Screen name="overall/[topic]" />
         <Stack.Screen name="manage/existing-residents" />

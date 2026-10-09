@@ -149,6 +149,8 @@ export type StockEntry = {
   supplier: string;
   receivedByName: string | null;
   recordedByName: string;
+  /** Who in the hostel entered it. `null` on old rows. */
+  recordedRole: "COOK" | "OWNER" | "WARDEN" | null;
   status: StockEntryStatus;
   toHostelId: string | null;
   toHostelName: string | null;
@@ -361,6 +363,133 @@ export async function payStockSupplier(input: NewStockPayment) {
 
 export async function cancelStockPayment(id: string, reason: string) {
   return unwrap(await api.post<ApiEnvelope<{ id: string }>>(`/hostel-admin/stock/payments/${id}/cancel`, { reason }));
+}
+
+/* -------------------------------------------------------------------------- */
+/* The kitchen                                                                */
+/* -------------------------------------------------------------------------- */
+
+export type CookStockItem = {
+  id: string;
+  left: number;
+  low: boolean;
+  name: string;
+  packSize: number | null;
+  packUnit: StockUnit | null;
+  unit: StockUnit;
+};
+
+export type CookStockLine = {
+  at: string;
+  /** `You`, a warden's name, or `Kitchen`. */
+  by: string;
+  canUndo: boolean;
+  entryId: string;
+  itemId: string;
+  kind: "USE" | "WASTE";
+  name: string;
+  qty: number;
+  unit: StockUnit;
+};
+
+export type CookStock = { hostelName: string; items: CookStockItem[]; today: CookStockLine[] };
+
+export function cookStockQuery(): Query<CookStock> {
+  return defineQuery("cook:stock", [REALTIME_TOPIC.FOOD], async () =>
+    unwrap(await api.get<ApiEnvelope<CookStock>>("/cook/stock")),
+  );
+}
+
+/** The kitchen used (or threw away) one thing. */
+export async function addCookStock(input: {
+  clientRequestId: string;
+  itemId: string;
+  kind: "USE" | "WASTE";
+  qty: number;
+}) {
+  return unwrap(
+    await api.post<ApiEnvelope<StockEntry>>("/cook/stock", {
+      clientRequestId: input.clientRequestId,
+      kind: input.kind,
+      lines: [{ itemId: input.itemId, qty: input.qty }],
+      ...(input.kind === "WASTE" ? { wasteReason: "SPOILED" } : {}),
+    }),
+  );
+}
+
+/** Take back the kitchen's own entry, the same day. */
+export async function undoCookStock(entryId: string) {
+  return unwrap(await api.post<ApiEnvelope<StockEntry>>(`/cook/stock/entries/${entryId}/undo`, {}));
+}
+
+/** Owner only: let the kitchen enter what it used. On by default. */
+export async function setCookStock(enabled: boolean) {
+  return unwrap(await api.put<ApiEnvelope<{ stockEnabled: boolean }>>("/hostel-admin/stock/cook", { enabled }));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Usage                                                                      */
+/* -------------------------------------------------------------------------- */
+
+export type UsageRange = "month" | "today" | "week";
+
+export type UsageRow = { byCook: number; day: string; hostelId: string; itemId: string; used: number; wasted: number };
+
+export type StockUsage = {
+  /** Newest first. */
+  days: string[];
+  from: string;
+  items: { avgCost: number | null; id: string; kind: StockKind; name: string; unit: StockUnit }[];
+  money: boolean;
+  places: { id: string; name: string }[];
+  range: UsageRange;
+  rows: UsageRow[];
+  to: string;
+  value: number | null;
+};
+
+export function usageQuery(range: UsageRange): Query<StockUsage> {
+  return defineQuery(`stock-usage:${range}`, [REALTIME_TOPIC.FOOD], async () =>
+    unwrap(
+      await api.get<ApiEnvelope<StockUsage>>("/hostel-admin/stock/usage", {
+        params: { range, ...(isOverall() ? { scope: "all" } : {}) },
+      }),
+    ),
+  );
+}
+
+export type UsageTotal = {
+  byCook: number;
+  item: StockUsage["items"][number];
+  used: number;
+  value: number | null;
+  wasted: number;
+};
+
+/** Rows → one line per item, most used (by value, else by name) first. `place` narrows to one building. */
+export function usageTotals(usage: StockUsage, place: string | null, day: string | null = null): UsageTotal[] {
+  const byItem = new Map<string, UsageTotal>();
+  const items = new Map(usage.items.map((item) => [item.id, item]));
+
+  for (const row of usage.rows) {
+    if ((place && row.hostelId !== place) || (day && row.day !== day)) continue;
+
+    const item = items.get(row.itemId);
+
+    if (!item) continue;
+
+    const total = byItem.get(row.itemId) ?? { byCook: 0, item, used: 0, value: null, wasted: 0 };
+
+    total.used += row.used;
+    total.wasted += row.wasted;
+    total.byCook += row.byCook;
+    total.value = item.avgCost === null ? null : Math.round((total.used + total.wasted) * item.avgCost);
+    byItem.set(row.itemId, total);
+  }
+
+  return [...byItem.values()].sort(
+    (a, b) => (b.value ?? 0) - (a.value ?? 0) || a.item.name.localeCompare(b.item.name),
+  );
 }
 
 /* -------------------------------------------------------------------------- */

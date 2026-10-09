@@ -296,6 +296,19 @@ export default function CookTodayScreen() {
         />
       </View>
 
+      {/* What the kitchen took from the store — the warden's daily usage is built from these taps. */}
+      {today.data.stockEnabled ? (
+        <View className="px-5 pt-5">
+          <CardRow
+            icon="cube-outline"
+            onPress={() => router.push("/kitchen-stock")}
+            subtitle="Tap what you took from the store"
+            title="Kitchen stock"
+            tone="brand"
+          />
+        </View>
+      ) : null}
+
       {today.data.expensesEnabled ? (
         <View className="px-5 pt-5">
           <CardRow

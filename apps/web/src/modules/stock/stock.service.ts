@@ -37,6 +37,7 @@ import {
 import { ExpenseModel } from "@hostel/db/models/Expense";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { HostelMemberModel } from "@hostel/db/models/HostelMember";
+import { HostelSettingsModel } from "@hostel/db/models/HostelSettings";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { StockEntryModel } from "@hostel/db/models/StockEntry";
 import { StockItemModel } from "@hostel/db/models/StockItem";
@@ -44,7 +45,15 @@ import { StockPaymentModel } from "@hostel/db/models/StockPayment";
 import { StockSupplierModel } from "@hostel/db/models/StockSupplier";
 import { UserModel } from "@hostel/db/models/User";
 
-import { emptyAtPlace, type FoldEntry, foldStock, type ItemAtPlace, supplierLedger } from "./stock-balance";
+import {
+  emptyAtPlace,
+  type FoldEntry,
+  foldStock,
+  type ItemAtPlace,
+  supplierLedger,
+  type UsageRow,
+  usageRows,
+} from "./stock-balance";
 import type {
   CreateStockEntryInput,
   CreateStockItemInput,
@@ -100,6 +109,8 @@ type Place = { id: string; isMain: boolean; name: string };
 export type StockActor = {
   /** The building the request is about. */
   activeHostelId: Types.ObjectId;
+  /** The kitchen's login: Use and Waste in its own building, nothing else, no money. */
+  cook: boolean;
   groupId: Types.ObjectId;
   /** Buildings this person may act for. */
   mine: string[];
@@ -132,12 +143,23 @@ export type StockRights = {
  */
 export async function resolveStockActor(principal: ApiPrincipal, everyBuilding = false): Promise<StockActor> {
   const active = principal.hostelIds[0];
+  const cook = principal.role === Role.COOK;
 
   if (!active || !Types.ObjectId.isValid(active)) {
-    throw new StockError("Pick a hostel first.", "HOSTEL_SCOPE_REQUIRED", 422);
+    throw new StockError(cook ? "This cook account is not linked to a hostel." : "Pick a hostel first.", "HOSTEL_SCOPE_REQUIRED", 422);
   }
 
   await connectToDatabase();
+
+  if (cook) {
+    const settings = await HostelSettingsModel.findOne({ hostelId: active })
+      .select("cookCanUseStock")
+      .lean<{ cookCanUseStock?: boolean } | null>();
+
+    if (settings?.cookCanUseStock === false) {
+      throw new StockError("The owner has turned off stock for the kitchen.", "STOCK_OFF_FOR_COOK", 403);
+    }
+  }
 
   const hostel = await HostelModel.findById(active)
     .select("parentHostelId")
@@ -158,17 +180,22 @@ export async function resolveStockActor(principal: ApiPrincipal, everyBuilding =
     .map((row) => ({ id: row._id.toString(), isMain: !row.parentHostelId, name: row.name ?? "Hostel" }))
     .sort((a, b) => Number(b.isMain) - Number(a.isMain));
   const owner = principal.role === Role.HOSTEL_ADMIN;
-  const held = new Set(owner && everyBuilding ? (principal.allHostelIds ?? principal.hostelIds) : principal.hostelIds);
+  const held = new Set(
+    cook ? [active] : owner && everyBuilding ? (principal.allHostelIds ?? principal.hostelIds) : principal.hostelIds,
+  );
 
   return {
     activeHostelId: new Types.ObjectId(active),
+    cook,
     groupId,
     mine: places.filter((place) => held.has(place.id)).map((place) => place.id),
     overall: owner && everyBuilding,
     owner,
     places,
     principal,
-    rights: await readRights(owner, active, principal.userId),
+    rights: cook
+      ? { canApprove: false, canSpend: false, money: false, proofRequired: true }
+      : await readRights(owner, active, principal.userId),
   };
 }
 
@@ -244,6 +271,7 @@ type EntryDoc = {
   receivedByName?: string;
   recordedBy: Types.ObjectId;
   recordedByName?: string;
+  recordedRole?: StockRecorderRole | null;
   status: StockEntryStatus;
   supplier?: string;
   supplierId?: Types.ObjectId | null;
@@ -279,6 +307,9 @@ type PaymentDoc = {
   status: "CANCELLED" | "DONE";
   supplierId: Types.ObjectId;
 };
+
+/** Who in the hostel entered a movement. `null` on rows from before this was kept. */
+export type StockRecorderRole = "COOK" | "OWNER" | "WARDEN";
 
 export type StockBill = {
   billNo: string;
@@ -329,6 +360,7 @@ export type StockEntryRow = {
   receivedAt: string | null;
   receivedByName: string | null;
   recordedByName: string;
+  recordedRole: StockRecorderRole | null;
   status: StockEntryStatus;
   supplier: string;
   toHostelId: string | null;
@@ -457,9 +489,14 @@ function serializeEntry(actor: StockActor, doc: EntryDoc): StockEntryRow {
     canApprove,
     canCancel:
       live &&
-      (actor.owner ||
-        canApprove ||
-        (mine && !(doc.kind === "SEND" && doc.status === "RECEIVED") && !(doc.kind === "COUNT" && doc.status === "DONE" && !pendingCount))),
+      (actor.cook
+        ? // The kitchen undoes its own slip, the same day — never yesterday's book.
+          mine && (doc.kind === "USE" || doc.kind === "WASTE") && dayKey(doc.on) === dayKey(hostelToday())
+        : actor.owner ||
+          canApprove ||
+          (mine &&
+            !(doc.kind === "SEND" && doc.status === "RECEIVED") &&
+            !(doc.kind === "COUNT" && doc.status === "DONE" && !pendingCount))),
     canReceive: !actor.overall && doc.status === "PENDING" && doc.kind === "SEND" && toHostelId !== null && actor.mine.includes(toHostelId),
     cancelReason: doc.cancelReason ?? null,
     createdAt: doc.createdAt.toISOString(),
@@ -484,7 +521,8 @@ function serializeEntry(actor: StockActor, doc: EntryDoc): StockEntryRow {
     on: dayKey(doc.on),
     receivedAt: doc.receivedAt?.toISOString() ?? null,
     receivedByName: doc.receivedByName ?? null,
-    recordedByName: doc.recordedByName || "Staff",
+    recordedByName: doc.recordedByName || (doc.recordedRole === "COOK" ? "Kitchen" : "Staff"),
+    recordedRole: doc.recordedRole ?? null,
     status: doc.status,
     supplier: doc.supplier ?? "",
     toHostelId,
@@ -926,6 +964,10 @@ export async function createStockEntry(actor: StockActor, input: CreateStockEntr
 
   if (actor.overall) throw new StockError("Overall only shows. Pick a building to add stock.", "OVERALL_READ_ONLY", 422);
 
+  if (actor.cook && input.kind !== "USE" && input.kind !== "WASTE") {
+    throw new StockError("The kitchen enters what it used or threw away. Ask the warden for the rest.", "CAPABILITY_DENIED", 403);
+  }
+
   const main = actor.places.find((place) => place.isMain)?.id;
   const fallback =
     actor.owner && input.kind === "BUY" && main && actor.mine.includes(main)
@@ -1151,6 +1193,7 @@ export async function createStockEntry(actor: StockActor, input: CreateStockEntr
       photoAssetId: input.kind === "BUY" && input.photoAssetId ? new Types.ObjectId(input.photoAssetId) : null,
       recordedBy: new Types.ObjectId(actor.principal.userId),
       recordedByName,
+      recordedRole: actor.cook ? "COOK" : actor.owner ? "OWNER" : "WARDEN",
       status,
       supplier,
       supplierId: supplierDoc?._id ?? null,
@@ -1854,4 +1897,209 @@ export async function cancelStockPayment(actor: StockActor, paymentId: string, r
   await changed(...actor.mine);
 
   return { id: doc._id.toString(), status: "CANCELLED" as const };
+}
+
+/* -------------------------------------------------------------------------- */
+/* The kitchen                                                                */
+/* -------------------------------------------------------------------------- */
+
+export type CookStockItem = {
+  id: string;
+  /** In this building, now. */
+  left: number;
+  low: boolean;
+  name: string;
+  packSize: number | null;
+  packUnit: StockUnit | null;
+  unit: StockUnit;
+};
+
+export type CookStockLine = {
+  at: string;
+  canUndo: boolean;
+  entryId: string;
+  itemId: string;
+  kind: "USE" | "WASTE";
+  /** Who entered it: `You`, a warden's name, or `Kitchen`. */
+  by: string;
+  name: string;
+  qty: number;
+  unit: StockUnit;
+};
+
+/**
+ * What the kitchen sees: the store items of its own building with what is left,
+ * the ones it uses most first, and everything taken out today — by anyone — so
+ * the cook does not enter the warden's 10 kg a second time. No prices, ever.
+ */
+export async function getCookStock(actor: StockActor) {
+  await connectToDatabase();
+
+  const here = actor.activeHostelId.toString();
+  const { docs, fold, items } = await readBook(actor, [here]);
+  const today = dayKey(hostelToday());
+  const ranks = new Map<string, number>();
+
+  for (const doc of docs.slice(-300)) {
+    if (doc.kind !== "USE" || doc.status === "CANCELLED" || doc.hostelId.toString() !== here) continue;
+
+    for (const line of doc.lines) ranks.set(line.itemId.toString(), (ranks.get(line.itemId.toString()) ?? 0) + 1);
+  }
+
+  const stock: CookStockItem[] = items
+    .filter((item) => item.active && item.kind === "STORE")
+    .map((item) => {
+      const left = fold.byItem.get(item._id.toString())?.get(here)?.left ?? 0;
+
+      return {
+        id: item._id.toString(),
+        left,
+        low: item.lowAt != null && left < item.lowAt,
+        name: item.name,
+        packSize: item.packSize ?? null,
+        packUnit: item.packUnit ?? null,
+        unit: item.unit,
+      };
+    })
+    .sort((a, b) => (ranks.get(b.id) ?? 0) - (ranks.get(a.id) ?? 0) || a.name.localeCompare(b.name));
+
+  const todayLines: CookStockLine[] = docs
+    .filter(
+      (doc) =>
+        (doc.kind === "USE" || doc.kind === "WASTE") &&
+        doc.status !== "CANCELLED" &&
+        doc.hostelId.toString() === here &&
+        dayKey(doc.on) === today,
+    )
+    .reverse()
+    .flatMap((doc) => {
+      const row = serializeEntry(actor, doc);
+      const by = row.mine ? "You" : row.recordedByName;
+
+      return doc.lines.map((line) => ({
+        at: doc.createdAt.toISOString(),
+        by,
+        canUndo: row.canCancel,
+        entryId: row.id,
+        itemId: line.itemId.toString(),
+        kind: doc.kind as "USE" | "WASTE",
+        name: line.name,
+        qty: line.qty,
+        unit: line.unit,
+      }));
+    });
+
+  return {
+    hostelName: actor.places.find((place) => place.id === here)?.name ?? "Your hostel",
+    items: stock,
+    today: todayLines,
+  };
+}
+
+/** The owner turns the kitchen's *Kitchen stock* on or off, for the building being worked in. */
+export async function setCookStockEnabled(actor: StockActor, enabled: boolean) {
+  if (!actor.owner || actor.overall) {
+    throw new StockError("Only the owner can change this, for one building at a time.", "CAPABILITY_DENIED", 403);
+  }
+
+  await connectToDatabase();
+  await HostelSettingsModel.updateOne(
+    { hostelId: actor.activeHostelId },
+    {
+      $set: { cookCanUseStock: enabled, updatedBy: actor.principal.userId },
+      $setOnInsert: { hostelId: actor.activeHostelId },
+    },
+    { upsert: true },
+  );
+
+  return { stockEnabled: enabled };
+}
+
+/* -------------------------------------------------------------------------- */
+/* Usage — today, this week, this month                                       */
+/* -------------------------------------------------------------------------- */
+
+export type StockUsageRange = "month" | "today" | "week";
+
+export type StockUsage = {
+  /** Every day in the range, newest first. */
+  days: string[];
+  from: string;
+  items: { avgCost: number | null; id: string; kind: StockKind; name: string; unit: StockUnit }[];
+  money: boolean;
+  places: { id: string; name: string }[];
+  range: StockUsageRange;
+  rows: UsageRow[];
+  to: string;
+  /** Used + wasted, at average cost. `null` without money rights. */
+  value: number | null;
+};
+
+function addDays(key: string, days: number) {
+  const day = new Date(`${key}T00:00:00.000Z`);
+
+  day.setUTCDate(day.getUTCDate() + days);
+
+  return dayKey(day);
+}
+
+/**
+ * How much of each thing was used, per day and building, for today, the last
+ * seven days, or this Nepali month — the warden's daily question. Who entered
+ * it is kept: the kitchen's share is `byCook`.
+ */
+export async function getStockUsage(actor: StockActor, range: StockUsageRange): Promise<StockUsage> {
+  await connectToDatabase();
+
+  const to = dayKey(hostelToday());
+  const from =
+    range === "today" ? to : range === "week" ? addDays(to, -6) : dayKey(bsPeriodBounds(currentBsPeriod()).start);
+  const { docs, fold, items } = await readBook(actor, actor.mine);
+  const kinds = new Map(items.map((item) => [item._id.toString(), item.kind]));
+  const rows = usageRows(
+    docs.map((doc) => ({
+      byCook: doc.recordedRole === "COOK",
+      day: dayKey(doc.on),
+      hostelId: doc.hostelId.toString(),
+      kind: doc.kind,
+      lines: doc.lines.map((line) => ({
+        itemId: line.itemId.toString(),
+        qty: line.qty,
+        receivedQty: line.receivedQty ?? null,
+      })),
+      status: doc.status,
+      toHostelId: doc.toHostelId?.toString() ?? null,
+    })),
+    kinds,
+    actor.mine,
+    from,
+    to,
+  );
+  const usedIds = new Set(rows.map((row) => row.itemId));
+  const money = actor.rights.money;
+  const days: string[] = [];
+
+  for (let day = to; day >= from; day = addDays(day, -1)) days.push(day);
+
+  return {
+    days,
+    from,
+    items: items
+      .filter((item) => usedIds.has(item._id.toString()))
+      .map((item) => ({
+        avgCost: money ? (fold.avgCost.get(item._id.toString()) ?? null) : null,
+        id: item._id.toString(),
+        kind: item.kind,
+        name: item.name,
+        unit: item.unit,
+      })),
+    money,
+    places: actor.places.filter((place) => actor.mine.includes(place.id)).map(({ id, name }) => ({ id, name })),
+    range,
+    rows,
+    to,
+    value: money
+      ? Math.round(rows.reduce((sum, row) => sum + (row.used + row.wasted) * (fold.avgCost.get(row.itemId) ?? 0), 0))
+      : null,
+  };
 }

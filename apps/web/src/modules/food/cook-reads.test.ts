@@ -23,7 +23,10 @@ vi.mock("@hostel/db/models/FoodReadyLog", () => ({
 }));
 
 vi.mock("@hostel/db/models/Hostel", () => ({
-  HostelModel: { findOne: mocks.hostelFindOne },
+  HostelModel: {
+    findById: () => ({ select: () => ({ lean: async () => ({ parentHostelId: null }) }) }),
+    findOne: mocks.hostelFindOne,
+  },
 }));
 
 vi.mock("@hostel/db/models/HostelSettings", () => ({
@@ -66,6 +69,8 @@ vi.mock("@/modules/residents/resident-notify", () => ({
 }));
 
 vi.mock("@/lib/realtime/server", () => ({ publishResourceChange: vi.fn() }));
+
+vi.mock("@hostel/db/models/StockItem", () => ({ StockItemModel: { exists: vi.fn().mockResolvedValue({ _id: "item" }) } }));
 
 import {
   getCookToday,
@@ -142,6 +147,17 @@ describe("the cook's own reads", () => {
 
     // No settings row yet is the default: off.
     expect((await getCookToday(cookPrincipal)).today.expensesEnabled).toBe(false);
+  });
+
+  it("shows the kitchen its stock unless the owner turned it off", async () => {
+    mocks.hostelSettingsFindOne.mockReturnValue(leanResult(null));
+
+    // No settings row: on, because nothing about it is money.
+    expect((await getCookToday(cookPrincipal)).today.stockEnabled).toBe(true);
+
+    mocks.hostelSettingsFindOne.mockReturnValue(leanResult({ cookCanUseStock: false }));
+
+    expect((await getCookToday(cookPrincipal)).today.stockEnabled).toBe(false);
   });
 
   it("counts plates, which is every active resident and not only the notifiable ones", async () => {

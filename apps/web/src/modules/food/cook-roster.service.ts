@@ -365,9 +365,10 @@ export async function listCookAccounts(
     .sort({ createdAt: 1 })
     .lean<CookAccountRecord[]>();
   const settings = await HostelSettingsModel.findOne({ hostelId })
-    .select("cookCanRecordExpenses cookFingerprintLock cookPortalEnabled")
+    .select("cookCanRecordExpenses cookCanUseStock cookFingerprintLock cookPortalEnabled")
     .lean<{
       cookCanRecordExpenses?: boolean;
+      cookCanUseStock?: boolean;
       cookFingerprintLock?: boolean;
       cookPortalEnabled?: boolean;
     } | null>();
@@ -398,6 +399,8 @@ export async function listCookAccounts(
     ],
     /** Whether the cook may add expenses. Only the owner can change it. */
     expensesEnabled: Boolean(settings?.cookCanRecordExpenses),
+    /** Whether the kitchen may enter what it used from the store. On unless the owner turned it off. */
+    stockEnabled: settings?.cookCanUseStock !== false,
     /** Whether cooks are asked for a fingerprint lock in the app. Owner only. */
     fingerprintLock: Boolean(settings?.cookFingerprintLock),
     portalEnabled: Boolean(settings?.cookPortalEnabled),

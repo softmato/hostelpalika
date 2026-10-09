@@ -161,3 +161,25 @@ export type CreateStockEntryInput = z.infer<typeof createStockEntrySchema>;
 export type CreateStockSupplierInput = z.infer<typeof createStockSupplierSchema>;
 export type UpdateStockSupplierInput = z.infer<typeof updateStockSupplierSchema>;
 export type CreateStockPaymentInput = z.infer<typeof createStockPaymentSchema>;
+
+/* ---------------------------------------------------------------- kitchen */
+
+/** The kitchen enters only what it took out: Used, or thrown away. */
+export const cookStockEntrySchema = z.object({
+  clientRequestId: z.string().trim().min(8).max(64).optional(),
+  kind: z.enum(["USE", "WASTE"]).default("USE"),
+  lines: z
+    .array(z.object({ itemId: objectIdSchema, packQty: qtySchema.optional(), qty: qtySchema.refine((qty) => qty > 0, "Write how much.") }))
+    .min(1, "Pick what you used.")
+    .max(STOCK_LINES_MAX),
+  note: z.string().trim().max(200).optional(),
+  wasteReason: z.enum(STOCK_WASTE_REASONS).optional(),
+});
+
+export const cookStockToggleSchema = z.object({ enabled: z.boolean() });
+
+/** Today, the last seven days, or this Nepali month. `scope=all` is the owner's Overall. */
+export const stockUsageQuerySchema = z.object({
+  range: z.enum(["today", "week", "month"]).default("today"),
+  scope: z.literal("all").optional(),
+});

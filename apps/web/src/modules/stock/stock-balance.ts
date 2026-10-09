@@ -440,3 +440,100 @@ export function supplierLedger(
     rows: ledger,
   };
 }
+
+/* -------------------------------------------------------------------------- */
+/* Usage                                                                      */
+/* -------------------------------------------------------------------------- */
+
+export type UsageEntry = {
+  /** Was it the kitchen's login that entered it. */
+  byCook: boolean;
+  /** `YYYY-MM-DD`, the entry's own day. */
+  day: string;
+  hostelId: string;
+  kind: StockEntryKind;
+  lines: { itemId: string; qty: number; receivedQty: number | null }[];
+  status: StockEntryStatus;
+  toHostelId: string | null;
+};
+
+export type UsageRow = {
+  /** Of `used`, what the kitchen's login entered. */
+  byCook: number;
+  day: string;
+  hostelId: string;
+  itemId: string;
+  used: number;
+  wasted: number;
+};
+
+/**
+ * What was used and thrown away, per day, item and building, between two days
+ * inclusive — the warden's "how much went today, this week, this month".
+ *
+ * - **Store** items: every Use, and every Waste (kept apart).
+ * - **Daily** items are used the day they come, so what came in *is* what was
+ *   used: bought here, plus what arrived from another building, minus what was
+ *   sent on. A day that sent more than it bought counts as nothing, not less.
+ *
+ * Counts are left out: what a count finds missing was never seen being used,
+ * and the reports show it as missing on its own.
+ */
+export function usageRows(
+  entries: readonly UsageEntry[],
+  kinds: ReadonlyMap<string, StockKind>,
+  places: readonly string[],
+  from: string,
+  to: string,
+): UsageRow[] {
+  const wanted = new Set(places);
+  const rows = new Map<string, UsageRow>();
+
+  const add = (day: string, hostelId: string, itemId: string, change: Partial<Omit<UsageRow, "day" | "hostelId" | "itemId">>) => {
+    if (!wanted.has(hostelId)) return;
+
+    const key = `${day}|${hostelId}|${itemId}`;
+    const row = rows.get(key) ?? { byCook: 0, day, hostelId, itemId, used: 0, wasted: 0 };
+
+    row.used += change.used ?? 0;
+    row.wasted += change.wasted ?? 0;
+    row.byCook += change.byCook ?? 0;
+    rows.set(key, row);
+  };
+
+  for (const entry of entries) {
+    if (entry.status === "CANCELLED" || entry.day < from || entry.day > to) continue;
+
+    for (const line of entry.lines) {
+      const kind = kinds.get(line.itemId);
+
+      if (!kind) continue;
+
+      if (kind === "STORE") {
+        if (entry.kind === "USE") add(entry.day, entry.hostelId, line.itemId, { byCook: entry.byCook ? line.qty : 0, used: line.qty });
+        if (entry.kind === "WASTE") add(entry.day, entry.hostelId, line.itemId, { wasted: line.qty });
+        continue;
+      }
+
+      if (entry.kind === "BUY" || entry.kind === "OPENING") add(entry.day, entry.hostelId, line.itemId, { used: line.qty });
+
+      if (entry.kind === "SEND") {
+        add(entry.day, entry.hostelId, line.itemId, { used: -line.qty });
+
+        if (entry.toHostelId && entry.status === "RECEIVED") {
+          add(entry.day, entry.toHostelId, line.itemId, { used: line.receivedQty ?? line.qty });
+        }
+      }
+    }
+  }
+
+  return [...rows.values()]
+    .map((row) => ({
+      ...row,
+      byCook: roundQty(Math.max(0, row.byCook)),
+      used: roundQty(Math.max(0, row.used)),
+      wasted: roundQty(row.wasted),
+    }))
+    .filter((row) => row.used > 0 || row.wasted > 0)
+    .sort((a, b) => b.day.localeCompare(a.day) || a.itemId.localeCompare(b.itemId) || a.hostelId.localeCompare(b.hostelId));
+}

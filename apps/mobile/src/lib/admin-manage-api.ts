@@ -737,6 +737,7 @@ export async function getCookRoster() {
       expensesEnabled?: boolean;
       fingerprintLock?: boolean;
       portalEnabled: boolean;
+      stockEnabled?: boolean;
     }>
   >("/hostel-admin/cooks");
 

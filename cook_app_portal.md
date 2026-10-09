@@ -342,6 +342,13 @@ clean, lint clean, 1342 tests / 83 files.
   stops an admin publishing a routine with all four cells empty, in which case
   the kitchen announces four meals whose message is built from nothing. Worth a
   look at what `announceFoodReady` composes in that case.
+- **5.2** *(2026-10-09)* **Kitchen stock.** The cook now also enters what the
+  kitchen took from the store: a *Kitchen stock* row on Today and in More opens
+  `app/kitchen-stock.tsx` — picture tiles, one item per sheet, `+½ +1 +2 +5`,
+  one green **Used**. Same-day **Undo** for its own taps. No prices. Behind
+  `HostelSettings.cookCanUseStock` (on by default; owner's switch on
+  `manage/cook`). Server: `GET/POST /cook/stock`, `POST /cook/stock/entries/[id]/undo`.
+  See docs/INVENTORY_PLAN.md.
 
 ---
 

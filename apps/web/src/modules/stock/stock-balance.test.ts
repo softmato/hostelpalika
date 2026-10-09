@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { type FoldEntry, foldStock, supplierLedger } from "./stock-balance";
+import { type FoldEntry, foldStock, supplierLedger, type UsageEntry, usageRows } from "./stock-balance";
 
 const MAIN = "main";
 const BRANCH = "branch";
@@ -150,5 +150,58 @@ describe("supplierLedger", () => {
       ["b3", 2_500],
     ]);
     expect(ledger).toMatchObject({ billed: 6_500, due: 2_500, paid: 5_000 });
+  });
+});
+
+describe("usageRows", () => {
+  const usage = (partial: Partial<UsageEntry> & Pick<UsageEntry, "kind" | "lines">): UsageEntry => ({
+    byCook: false,
+    day: "2026-10-09",
+    hostelId: MAIN,
+    status: "DONE",
+    toHostelId: null,
+    ...partial,
+  });
+  const qty = (itemId: string, value: number, receivedQty: number | null = null) => ({ itemId, qty: value, receivedQty });
+
+  it("adds up Use per day and building, and says how much the kitchen entered", () => {
+    const rows = usageRows(
+      [
+        usage({ byCook: true, kind: "USE", lines: [qty(RICE, 8)] }),
+        usage({ kind: "USE", lines: [qty(RICE, 2)] }),
+        usage({ kind: "WASTE", lines: [qty(RICE, 1)] }),
+        usage({ kind: "USE", lines: [qty(RICE, 5)], status: "CANCELLED" }),
+        usage({ byCook: true, day: "2026-10-08", kind: "USE", lines: [qty(RICE, 7)] }),
+        usage({ day: "2026-10-01", kind: "USE", lines: [qty(RICE, 99)] }),
+      ],
+      kinds,
+      [MAIN],
+      "2026-10-03",
+      "2026-10-09",
+    );
+
+    expect(rows).toEqual([
+      { byCook: 8, day: "2026-10-09", hostelId: MAIN, itemId: RICE, used: 10, wasted: 1 },
+      { byCook: 7, day: "2026-10-08", hostelId: MAIN, itemId: RICE, used: 7, wasted: 0 },
+    ]);
+  });
+
+  it("counts a daily item as used where it ended up the day it came", () => {
+    const rows = usageRows(
+      [
+        usage({ kind: "BUY", lines: [qty(VEG, 10)] }),
+        usage({ kind: "SEND", lines: [qty(VEG, 4, 3)], status: "RECEIVED", toHostelId: BRANCH }),
+        usage({ kind: "BUY", lines: [qty(RICE, 50)] }),
+      ],
+      kinds,
+      [MAIN, BRANCH],
+      "2026-10-09",
+      "2026-10-09",
+    );
+
+    expect(rows.map((row) => [row.hostelId, row.itemId, row.used])).toEqual([
+      [BRANCH, VEG, 3],
+      [MAIN, VEG, 6],
+    ]);
   });
 });

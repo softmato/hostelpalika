@@ -19,6 +19,12 @@ const hostelSettingsSchema = new Schema(
      * money is not part of the cook portal by default.
      */
     cookCanRecordExpenses: { default: false, type: Boolean },
+    /**
+     * Whether the cook may enter what the kitchen took from the store
+     * (docs/INVENTORY_PLAN.md). On unless the owner turns it off: no money is
+     * involved, and the kitchen is who knows what was used.
+     */
+    cookCanUseStock: { default: true, type: Boolean },
     // The owner asks cooks to lock the app with a fingerprint (apps/mobile `lib/app-lock.ts`).
     cookFingerprintLock: { default: false, type: Boolean },
     cookName: { trim: true, type: String },

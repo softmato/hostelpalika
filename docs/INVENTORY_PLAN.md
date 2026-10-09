@@ -25,7 +25,9 @@ working*, not *file created*. **[server]** `apps/web` API, **[app]** `apps/mobil
 | Packs | An item may have one pack: `1 sack = 25 kg`. Stock is always kept in the item's own unit; a line typed in packs is multiplied out on Save and remembers it was `2 sacks`. |
 | Counts | Shows `Book says 40 kg · 2 kg missing` as you type. A different count needs a reason. The owner's count (or a warden with **Approve stock counts**) corrects the book at once; anyone else's waits for approval and the approver gets a push. |
 | Low stock | A push to the owner and the building's stock wardens the moment an item **crosses** below its low mark — not on every Use after. |
-| Who | **Storekeeper** — a warden with `manageStock`: Buy, Use, Waste, Send, Count, add items and suppliers. **Money** — owner, or a warden with Add expenses: sees prices, values and dues; pays suppliers. **Approver** — owner, or a warden with `approveStockCount`. A storekeeper without money rights never sees a price. |
+| Who | **Storekeeper** — a warden with `manageStock`: Buy, Use, Waste, Send, Count, add items and suppliers. **Cook** — *Kitchen stock* in the cook app: Used or thrown away, for its own building, same-day Undo, never a price; on unless the owner turns it off (`cookCanUseStock`). **Money** — owner, or a warden with Add expenses: sees prices, values and dues; pays suppliers. **Approver** — owner, or a warden with `approveStockCount`. A storekeeper without money rights never sees a price. |
+| The kitchen | **Decided 2026-10-09 (option B):** no "kitchen holds it" stock. The cook enters what it took straight from its building's store, and that is the Used. Every movement records who entered it (`recordedRole`: OWNER / WARDEN / COOK). |
+| Usage | The warden's question — *how much went today, this week, this month* — is the **Used** screen (`/stock/usage`, `GET /hostel-admin/stock/usage?range=today|week|month`): per item, per building, per day, with the kitchen's share and what was thrown away. Daily items count as used the day they came. A *Used today* card sits on the Stock home. |
 | Where | Items and suppliers belong to the **group** (main hostel + branches). Movements belong to a building; the switcher picks it. Overall reads every building and writes nothing. |
 | Balances | Folded from movements on every read (`stock-balance.ts`), the warden cash box's rule — so they can always be rebuilt. The fold is in memory; past ~20k entries per group, move it into a Mongo aggregation. |
 | Look | Black, white, green. Home: a green header with **Stock value · Items · Running low** on a card straddling it; one grid of job tiles (**Use · Buy · Waste · Count · Send · Suppliers · Reports · Opening**); then what is waiting, then running low, then everything grouped by category with the heading outside the card. Use is built to take five seconds: most-used items are tiles, a tap focuses the box, `+1 / +5 / +1 sack` do the typing. |
@@ -53,8 +55,9 @@ Never: inventory ledger, issue, transfer, reconcile, consumption, variance, paya
 
 ## 4. Tracker
 
-**2026-10-09:** the ledger rebuild is code-complete, typechecked and linted on
-server, app and web; the fold and supplier-ledger unit tests pass (8 cases).
+**2026-10-09:** the ledger rebuild and the kitchen/usage pass are code-complete,
+typechecked and linted on server, app and web; the fold, supplier-ledger and
+usage unit tests pass (10 cases).
 Nothing below has been *seen working* against a database or on a device yet.
 
 ### Phase 1 — the ledger (built)
@@ -71,6 +74,14 @@ Nothing below has been *seen working* against a database or on a device yet.
 - [ ] [app] `/stock/reports` (cost per student per day, spent from store, by category, by supplier, item ledger, share as CSV)
 - [ ] [app] Entry details: bill money and photo, Count book vs shelf, Approve / Turn down
 - [ ] [web] Stock page: all movements, bill form, counts to approve, suppliers + Pay, value columns, CSV export
+
+### Phase 1b — the kitchen and usage (built 2026-10-09)
+- [x] Usage per day / item / building with the kitchen's share (`usageRows`, `stock-balance.test.ts`)
+- [ ] [server] Cook stock access (`/cook/stock`, undo same day), `cookCanUseStock` switch, `recordedRole`, `/stock/usage`
+- [ ] [app] Cook: *Kitchen stock* (tiles → one sheet → Used), Today list with Undo; row on Today and More
+- [ ] [app] Owner switch on `manage/cook`; warden/owner **Used** screen (Today · This week · This month, by item and by day); *Used today* card on Stock home
+- [ ] [web] *Used* table on the stock page (Today · 7 days · This month, per building, by kitchen, thrown away)
+- [ ] [device] Cook taps Rice 5 kg on a shared kitchen phone → warden sees it on Used today → cook undoes → it is gone
 
 ### After shipping
 - [ ] `npm run db:indexes -w apps/web` against prod — `StockPayment`'s unique `clientRequestId` index is what makes a retried Pay safe

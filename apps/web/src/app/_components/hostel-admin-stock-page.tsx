@@ -58,7 +58,7 @@ import {
   type StockWasteReason,
 } from "@hostel/shared/expenses/stock";
 
-import type { StockEntryRow, StockHome, StockItemRow } from "@/modules/stock/stock.service";
+import type { StockEntryRow, StockHome, StockItemRow, StockUsage, StockUsageRange } from "@/modules/stock/stock.service";
 
 import { EmptyState, LoadingRows, currency } from "./shared-ui";
 import { MetricCard, PortalPageHeader, SectionCard } from "./portal-dashboard-ui";
@@ -549,6 +549,8 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
               </div>
             )}
           </SectionCard>
+
+          <UsageCard />
 
           <SuppliersCard home={home} onChanged={refresh} onMessage={setMessage} />
 
@@ -1475,6 +1477,140 @@ function SuppliersCard({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+    </SectionCard>
+  );
+}
+
+/* ------------------------------------------------------------------- Usage */
+
+const USAGE_RANGES: { label: string; value: StockUsageRange }[] = [
+  { label: "Today", value: "today" },
+  { label: "7 days", value: "week" },
+  { label: "This month", value: "month" },
+];
+
+/**
+ * How much of each thing was used — today, the last seven days, this month —
+ * per building, with how much of it the kitchen entered. Daily items count as
+ * used the day they came.
+ */
+function UsageCard() {
+  const [range, setRange] = useState<StockUsageRange>("today");
+  const resource = usePortalResource<StockUsage>(`${ENDPOINT}/usage?range=${range}`, {
+    errorMessage: "Could not load usage.",
+  });
+  const usage = resource.data ?? null;
+
+  const rows = useMemo(() => {
+    if (!usage) return [];
+
+    const items = new Map(usage.items.map((item) => [item.id, item]));
+    const byItem = new Map<
+      string,
+      { byCook: number; byPlace: Map<string, number>; item: StockUsage["items"][number]; used: number; wasted: number }
+    >();
+
+    for (const row of usage.rows) {
+      const item = items.get(row.itemId);
+
+      if (!item) continue;
+
+      const total = byItem.get(row.itemId) ?? { byCook: 0, byPlace: new Map(), item, used: 0, wasted: 0 };
+
+      total.used += row.used;
+      total.wasted += row.wasted;
+      total.byCook += row.byCook;
+      total.byPlace.set(row.hostelId, (total.byPlace.get(row.hostelId) ?? 0) + row.used);
+      byItem.set(row.itemId, total);
+    }
+
+    return [...byItem.values()].sort(
+      (a, b) =>
+        (b.used + b.wasted) * (b.item.avgCost ?? 0) - (a.used + a.wasted) * (a.item.avgCost ?? 0) ||
+        a.item.name.localeCompare(b.item.name),
+    );
+  }, [usage]);
+
+  return (
+    <SectionCard
+      actions={
+        <div className="flex gap-1 rounded-lg border border-border bg-muted p-1">
+          {USAGE_RANGES.map((option) => (
+            <button
+              className={cn(
+                "rounded-md px-3 py-1 text-sm font-medium",
+                range === option.value ? "bg-background shadow-sm" : "text-muted-foreground",
+              )}
+              key={option.value}
+              onClick={() => setRange(option.value)}
+              type="button"
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      }
+      description={
+        usage?.money && usage.value
+          ? `Worth about ${currency(usage.value)}, at average cost.`
+          : "What left the store, and how much of it the kitchen entered."
+      }
+      icon={UtensilsCrossed}
+      title="Used"
+    >
+      {!usage ? (
+        resource.state === "error" ? (
+          <p className="text-sm text-muted-foreground">{resource.message}</p>
+        ) : (
+          <LoadingRows />
+        )
+      ) : rows.length === 0 ? (
+        <EmptyState label="Nothing used yet. When the cook taps Kitchen stock, or you click Use, it shows here." />
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="py-2 pr-3 font-medium">Item</th>
+                {usage.places.length > 1
+                  ? usage.places.map((place) => (
+                      <th className="py-2 pr-3 text-right font-medium" key={place.id}>
+                        {place.name}
+                      </th>
+                    ))
+                  : null}
+                <th className="py-2 pr-3 text-right font-medium">Used</th>
+                <th className="py-2 pr-3 text-right font-medium">By kitchen</th>
+                <th className="py-2 text-right font-medium">Thrown away</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {rows.map((row) => (
+                <tr key={row.item.id}>
+                  <td className="py-2.5 pr-3">
+                    <p className="font-medium">{row.item.name}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {row.item.kind === "DAILY" ? "Daily · used the day it came" : "Store"}
+                    </p>
+                  </td>
+                  {usage.places.length > 1
+                    ? usage.places.map((place) => (
+                        <td className="py-2.5 pr-3 text-right" key={place.id}>
+                          {formatQty(row.byPlace.get(place.id) ?? 0, row.item.unit)}
+                        </td>
+                      ))
+                    : null}
+                  <td className="py-2.5 pr-3 text-right font-semibold">{formatQty(row.used, row.item.unit)}</td>
+                  <td className="py-2.5 pr-3 text-right">{row.byCook > 0 ? formatQty(row.byCook, row.item.unit) : "—"}</td>
+                  <td className={cn("py-2.5 text-right", row.wasted > 0 && "text-destructive")}>
+                    {row.wasted > 0 ? formatQty(row.wasted, row.item.unit) : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </SectionCard>
   );
 }

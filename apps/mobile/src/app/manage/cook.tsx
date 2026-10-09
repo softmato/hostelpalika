@@ -36,6 +36,7 @@ import { adminQuery, type CookRoster } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
 import { openConfirm } from "@/lib/confirm";
 import { setCookExpenses } from "@/lib/expenses-api";
+import { setCookStock } from "@/lib/stock-api";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 /**
@@ -120,6 +121,27 @@ export default function ManageCookScreen() {
    */
   const isOwner = useAppSelector((state) => state.auth.account?.role) === ROLE.HOSTEL_ADMIN;
   const [savingExpenses, setSavingExpenses] = useState(false);
+
+  const [savingStock, setSavingStock] = useState(false);
+
+  /** The kitchen's *Kitchen stock* — on by default, owner only, like the expense switch above. */
+  const toggleCookStock = useCallback(
+    async (enabled: boolean) => {
+      setSavingStock(true);
+      setData((current) => (current ? { ...current, stockEnabled: enabled } : current));
+
+      try {
+        await setCookStock(enabled);
+        toastSuccess(enabled ? "The cook can enter stock used" : "The cook can no longer enter stock");
+      } catch (error) {
+        setData((current) => (current ? { ...current, stockEnabled: !enabled } : current));
+        toastError("Could not change it", readApiError(error));
+      } finally {
+        setSavingStock(false);
+      }
+    },
+    [setData],
+  );
 
   const toggleCookExpenses = useCallback(
     async (enabled: boolean) => {
@@ -357,6 +379,26 @@ export default function ManageCookScreen() {
             Only a cook can press this.
           </Text>
         </Card>
+
+        {isOwner ? (
+          <Card className="flex-row items-center gap-3">
+            <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
+              <Ionicons color={colors.primary} name="cube-outline" size={19} />
+            </View>
+            <View className="flex-1">
+              <Text variant="label">Cook enters stock used</Text>
+              <Text variant="caption">
+                Rice, daal, oil taken from the store. The cook never sees prices.
+              </Text>
+            </View>
+            <Toggle
+              accessibilityLabel="Cook enters stock used"
+              disabled={savingStock}
+              onChange={(on) => void toggleCookStock(on)}
+              value={roster.data?.stockEnabled !== false}
+            />
+          </Card>
+        ) : null}
 
         {isOwner ? (
           <Card className="flex-row items-center gap-3">

@@ -37,6 +37,8 @@ export const PDF_LIB_ROUTES = [
   "/api/v1/bookings/**",
   // Expenses resolve the hostel through `hostel.service`, which reaches it.
   "/api/v1/cook/expenses/**",
+  // Kitchen stock runs through the stock service, which writes expenses.
+  "/api/v1/cook/stock/**",
   "/api/v1/cron/billing-cycle/**",
   "/api/v1/cron/gateway-expiry-sweep/**",
   "/api/v1/cron/gateway-health/**",

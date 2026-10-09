@@ -489,6 +489,8 @@ export type CookRoster = {
   /** Cooks are asked for a fingerprint lock — owner's switch, off by default. */
   fingerprintLock?: boolean;
   portalEnabled: boolean;
+  /** The kitchen may enter what it used from the store — owner's switch, on by default. */
+  stockEnabled?: boolean;
 };
 
 export const adminQuery = {

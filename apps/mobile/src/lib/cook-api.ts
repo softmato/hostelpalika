@@ -82,6 +82,8 @@ export type CookToday = {
    * Optional: an older server does not send it, and absent reads as off.
    */
   expensesEnabled?: boolean;
+  /** Shows *Kitchen stock*: the owner allows it and the store has items. Absent reads as off. */
+  stockEnabled?: boolean;
 };
 
 export async function getCookToday() {

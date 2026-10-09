@@ -19,8 +19,17 @@ import { Skeleton, SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useResource } from "@/hooks/use-resource";
 import { formatMoney } from "@/lib/format";
-import { countGap, formatQty, namesSummary, type StockHome, type StockItem } from "@/lib/stock-api";
+import {
+  countGap,
+  formatQty,
+  namesSummary,
+  type StockHome,
+  type StockItem,
+  usageQuery,
+  usageTotals,
+} from "@/lib/stock-api";
 
 /**
  * Stock — home (docs/INVENTORY_PLAN.md).
@@ -138,6 +147,8 @@ export default function StockScreen() {
       ) : (
         <View className="gap-6 pb-8 pt-5">
           <ActionTiles tiles={tilesFor(home, overall, colors)} />
+
+          <UsedToday />
 
           <Waiting home={home} overall={overall} />
 
@@ -322,6 +333,45 @@ function tilesFor(
   }
 
   return tiles;
+}
+
+/**
+ * Today's use in one line — the number a warden opens Stock for. The kitchen's
+ * taps land here as they happen; the card opens Used for the week and month.
+ */
+function UsedToday() {
+  const { colors } = useAppTheme();
+  const query = usageQuery("today");
+  const resource = useResource(query.load, { cacheKey: query.key, topics: query.topics });
+  const usage = resource.data ?? null;
+  const totals = usage ? usageTotals(usage, null) : [];
+  const value = totals.reduce((sum, row) => sum + (row.value ?? 0), 0);
+  const shown = totals.slice(0, 3).map((row) => `${row.item.name} ${formatQty(row.used, row.item.unit)}`);
+  const more = totals.length - shown.length;
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      className="flex-row items-center gap-3 rounded-2xl border border-border bg-card p-4 active:opacity-70"
+      onPress={() => router.push("/stock/usage")}
+    >
+      <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
+        <Ionicons color={colors.primary} name="today-outline" size={21} />
+      </View>
+      <View className="flex-1 gap-0.5">
+        <Text variant="label">Used today</Text>
+        {!usage ? (
+          <Skeleton height={14} width="70%" />
+        ) : (
+          <Text numberOfLines={2} variant="caption">
+            {totals.length === 0 ? "Nothing yet · see week and month" : `${shown.join(" · ")}${more > 0 ? ` · +${more} more` : ""}`}
+          </Text>
+        )}
+      </View>
+      {usage?.money && value > 0 ? <Text variant="label">{formatMoney(value)}</Text> : null}
+      <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} />
+    </Pressable>
+  );
 }
 
 /** Goods coming in and counts to approve: the two things another person is waiting on. */

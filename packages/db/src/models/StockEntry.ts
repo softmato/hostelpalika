@@ -93,6 +93,8 @@ const stockEntrySchema = new Schema(
 
     recordedBy: { ref: "User", required: true, type: Schema.Types.ObjectId },
     recordedByName: { default: "", trim: true, type: String },
+    /** `OWNER`, `WARDEN` or `COOK` — so usage can say who in the hostel entered it. Old rows: `null`. */
+    recordedRole: { default: null, type: String },
 
     receivedAt: Date,
     receivedBy: { ref: "User", type: Schema.Types.ObjectId },
