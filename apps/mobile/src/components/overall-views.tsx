@@ -377,6 +377,9 @@ function OverallHome({ period, rows }: { period: string; rows: BranchOverall[] }
           <WaitingActions
             onExpenses={() => open("/expenses")}
             onFinance={() => open("/manage/finance")}
+            // No per-branch count in Overall: the tile shows, without a badge.
+            khataPending={0}
+            onKhata={() => open("/manage/finance/khata")}
             onStatement={() => open("/manage/finance/statement")}
             onStock={() => open("/stock")}
           />

@@ -17,7 +17,7 @@ import {
   setActiveHostelId,
   subscribeActiveHostel,
 } from "@/lib/active-hostel";
-import { type AdminBranchRow, getBranchesSummary } from "@/lib/admin-api";
+import { type BranchName, getBranchesSummary, getBranchNames } from "@/lib/admin-api";
 import { adminQuery } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { absoluteMediaUrl } from "@/lib/media";
@@ -28,12 +28,19 @@ import type { GlyphName } from "@hostel/constants/glyphs";
  * An owner with branches works in one hostel at a time. The chip at the top of
  * Home says which hostel this is — its first exterior photo, or a plain glyph in
  * the text colour — and opens the list: the hostels first, Overall after them.
+ *
+ * A warden gets the same chip and list, read-only: names only, their own
+ * hostel ticked, the rest dimmed, no Overall and no Manage branches.
  */
 
 const BRANCHES_KEY = "admin:branches";
+const BRANCH_NAMES_KEY = "admin:branch-names";
 
-function useBranches() {
-  return useResource(getBranchesSummary, { cacheKey: BRANCHES_KEY });
+function useBranches(warden: boolean) {
+  return useResource<{ current?: string | null; hostels: BranchName[] }>(
+    warden ? getBranchNames : getBranchesSummary,
+    { cacheKey: warden ? BRANCH_NAMES_KEY : BRANCHES_KEY },
+  );
 }
 
 function useActiveHostel() {
@@ -80,13 +87,13 @@ export function openInBranch(branch: { id: string; isBranch: boolean }, route: s
 /**
  * Switching remounts screens with the selected branch's cached answers.
  */
-async function switchTo(row: AdminBranchRow, rows: AdminBranchRow[]) {
+async function switchTo(row: BranchName, rows: BranchName[]) {
   await setActiveHostelId(
     row.id === rows[0]?.id && !row.isBranch ? null : row.id,
   );
 }
 
-function currentRow(rows: AdminBranchRow[], active: string | null) {
+function currentRow(rows: BranchName[], active: string | null) {
   return (
     rows.find((row) => row.id === active) ??
     rows.find((row) => !row.isBranch) ??
@@ -96,7 +103,8 @@ function currentRow(rows: AdminBranchRow[], active: string | null) {
 
 export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
   const { colors } = useAppTheme();
-  const branches = useBranches();
+  const warden = useAppSelector((state) => state.auth.account?.role) === ROLE.WARDEN;
+  const branches = useBranches(warden);
   const subscriptionQuery = adminQuery.subscription();
   const subscription = useResource(subscriptionQuery.load, {
     cacheKey: subscriptionQuery.key,
@@ -106,14 +114,21 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
   const lock = useBranchesLock();
   const [open, setOpen] = useState(false);
   const rows = branches.data?.hostels ?? [];
-  const overall = isOverall(active);
+  const overall = !warden && isOverall(active);
 
   // Still shown in Overall whatever the plan says, so the way out never disappears.
-  if (rows.length === 0 || (subscription.data?.subscription.planId !== "max" && !overall))
+  // A warden's hostel with no branches has nothing to show.
+  if (
+    warden
+      ? rows.length < 2
+      : rows.length === 0 || (subscription.data?.subscription.planId !== "max" && !overall)
+  )
     return null;
 
-  const current = currentRow(rows, active);
-  const cover = (row: AdminBranchRow | undefined) =>
+  const current = warden
+    ? rows.find((row) => row.id === branches.data?.current) ?? rows[0]
+    : currentRow(rows, active);
+  const cover = (row: BranchName | undefined) =>
     row ? absoluteMediaUrl(row.coverUrl, API_BASE_URL) : null;
   const tile = (name: GlyphName, on: boolean, image?: string | null) =>
     image ? (
@@ -143,10 +158,10 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
         accessibilityLabel={
           overall
             ? "Viewing all branches. Switch view"
-            : `Working in ${current?.name}. Switch branch`
+            : `Working in ${current?.name}. ${warden ? "See branches" : "Switch branch"}`
         }
         accessibilityRole="button"
-        accessibilityHint="Choose a hostel or manage your branches"
+        accessibilityHint={warden ? "Lists the hostel's branches" : "Choose a hostel or manage your branches"}
         accessibilityState={{ expanded: open }}
         className={
           compact
@@ -180,11 +195,11 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
         <Glyph color={colors.mutedForeground} name="chevronDown" size={14} />
       </Pressable>
 
-      <Sheet bare onClose={() => setOpen(false)} open={open} title="Switch hostel">
+      <Sheet bare onClose={() => setOpen(false)} open={open} title={warden ? "Branches" : "Switch hostel"}>
         <View className="gap-4 px-4 pb-10 pt-4">
           <View className="gap-1.5">
             <Text className="px-1" variant="label">
-              Your hostels
+              {warden ? "This hostel and its branches" : "Your hostels"}
             </Text>
             <View className="overflow-hidden rounded-2xl bg-card">
               {rows.map((row, at) => {
@@ -193,11 +208,12 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
                   <View key={row.id}>
                     {at ? <View className="ml-[72px] h-px bg-border" /> : null}
                     <SheetRow
+                      disabled={warden && !selected}
                       label={row.name}
                       leading={tile(row.isBranch ? "branch" : "hostel", selected, cover(row))}
                       onPress={() => {
                         setOpen(false);
-                        if (!selected) void switchTo(row, rows);
+                        if (!selected && !warden) void switchTo(row, rows);
                       }}
                       selected={selected}
                       subtitle={[
@@ -211,7 +227,7 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
               })}
             </View>
           </View>
-          {rows.length > 1 ? (
+          {rows.length > 1 && !warden ? (
             <View className="overflow-hidden rounded-2xl bg-card">
               <SheetRow
                 label="Overall"
@@ -226,7 +242,7 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
               />
             </View>
           ) : null}
-          <Pressable
+          {warden ? null : <Pressable
             accessibilityRole="button"
             className="flex-row items-center justify-center gap-2 rounded-2xl border border-dashed border-border py-3.5 active:bg-muted"
             onPress={() => {
@@ -239,7 +255,7 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
             <Text className={`font-semibold ${lock ? "text-muted-foreground" : "text-primary"}`} variant={null}>
               Manage branches
             </Text>
-          </Pressable>
+          </Pressable>}
         </View>
       </Sheet>
     </View>

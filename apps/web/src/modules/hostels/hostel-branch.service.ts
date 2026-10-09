@@ -514,3 +514,55 @@ export async function getBranchesSummary(principal: ApiPrincipal) {
 
   return { hostels: rows, period };
 }
+
+/**
+ * The hostel group a warden works in, by name only — the app shows it in a
+ * read-only switcher so they know which branch they are in and what else the
+ * group runs. No counts and no money: those stay the owner's
+ * ({@link getBranchesSummary}). `current` is the hostel this request is about.
+ */
+export async function getBranchNames(principal: ApiPrincipal) {
+  await connectToDatabase();
+
+  const ids = (principal.allHostelIds ?? principal.hostelIds)
+    .filter((id) => Types.ObjectId.isValid(id))
+    .map((id) => new Types.ObjectId(id));
+  const current = principal.hostelIds[0] ?? null;
+
+  if (ids.length === 0) return { current, hostels: [] };
+
+  const own = await HostelModel.find({ _id: { $in: ids } })
+    .select("parentHostelId")
+    .lean<Array<{ _id: Types.ObjectId; parentHostelId?: Types.ObjectId | null }>>();
+  const groups = own.map((hostel) => hostel.parentHostelId ?? hostel._id);
+  const hostels = await HostelModel.find({
+    $or: [{ _id: { $in: groups } }, { parentHostelId: { $in: groups } }],
+    isDeleted: { $ne: true },
+  })
+    .select("location.area location.city name parentHostelId photos.kind photos.url")
+    .sort({ _id: 1 })
+    .lean<
+      Array<{
+        _id: Types.ObjectId;
+        location?: { area?: string; city?: string };
+        name: string;
+        parentHostelId?: Types.ObjectId | null;
+        photos?: HostelPhoto[];
+      }>
+    >();
+
+  return {
+    current,
+    // Main hostel first, then branches in the order they were added.
+    hostels: hostels
+      .map((hostel) => ({
+        area: hostel.location?.area ?? "",
+        city: hostel.location?.city ?? "",
+        coverUrl: resolveHostelPhotos(hostel.photos, "EXTERIOR")[0]?.url ?? null,
+        id: hostel._id.toString(),
+        isBranch: Boolean(hostel.parentHostelId),
+        name: hostel.name,
+      }))
+      .sort((a, b) => Number(a.isBranch) - Number(b.isBranch)),
+  };
+}

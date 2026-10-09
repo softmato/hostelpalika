@@ -229,6 +229,18 @@ export async function getBranchesSummary() {
   return unwrap(response);
 }
 
+/** One hostel in the switcher — all it needs, and all a warden is sent. */
+export type BranchName = Pick<AdminBranchRow, "area" | "city" | "coverUrl" | "id" | "isBranch" | "name">;
+
+/** The warden's hostel group by name; `current` is the one they work in. */
+export async function getBranchNames() {
+  const response = await api.get<
+    ApiEnvelope<{ current: string | null; hostels: BranchName[] }>
+  >("/hostel-admin/branches/names");
+
+  return unwrap(response);
+}
+
 export async function getAdminSubscription() {
   const response = await api.get<
     ApiEnvelope<{ state: AdminSubscription | null }>

@@ -22,12 +22,19 @@ const mocks = vi.hoisted(() => ({
   findCurrentResident: vi.fn(),
   findOne: vi.fn(),
   loadApiPrincipal: vi.fn(),
+  narrowed: undefined as undefined | ((...args: unknown[]) => unknown),
   presignedReadUrl: vi.fn(),
   presignedUploadUrl: vi.fn(),
   ResidentAccessError: class ResidentAccessError extends Error {},
 }));
 
-vi.mock("@/lib/api-auth", () => ({ loadApiPrincipal: mocks.loadApiPrincipal }));
+vi.mock("@/lib/api-auth", () => ({
+  loadApiPrincipal: mocks.loadApiPrincipal,
+  // Presign goes through `require…`, which narrows staff to the active branch;
+  // the mocked principal here already stands for that narrowed answer.
+  requireApiPrincipal: (...args: unknown[]) =>
+    (mocks.narrowed ?? mocks.loadApiPrincipal)(...args),
+}));
 
 vi.mock("@/lib/db", () => ({ connectToDatabase: vi.fn() }));
 
@@ -256,6 +263,21 @@ describe("POST /api/v1/files/presign", () => {
     expect(mocks.create).toHaveBeenCalledWith(
       expect.objectContaining({ hostelId: HOSTEL_B, ownerId: RESIDENT_USER }),
     );
+  });
+
+  // An owner with a branch shares an expense receipt: the active branch, not a 422.
+  it("scopes an owner's expense receipt to the active branch", async () => {
+    const owner = { hostelIds: [HOSTEL_A, HOSTEL_B], role: Role.HOSTEL_ADMIN, userId: RESIDENT_USER };
+    // The token holds both; only the narrowed principal names the branch.
+    mocks.loadApiPrincipal.mockResolvedValue(owner);
+    mocks.narrowed = async () => ({ ...owner, allHostelIds: owner.hostelIds, hostelIds: [HOSTEL_B] });
+
+    const response = await POST(presignRequest({ ...proofBody, kind: "EXPENSE_RECEIPT" })).finally(() => {
+      mocks.narrowed = undefined;
+    });
+
+    expect(response.status).toBe(200);
+    expect(mocks.create).toHaveBeenCalledWith(expect.objectContaining({ hostelId: HOSTEL_B }));
   });
 
   it("still refuses a resident's proof when no profile and no single hostel resolve", async () => {

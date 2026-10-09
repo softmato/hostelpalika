@@ -1398,6 +1398,23 @@ export async function readExpenseReceipt(actor: ExpenseActor, assetId: string) {
   const { expenseReceiptSuggestions } = await import("./receipt-suggestions");
   const suggestions = expenseReceiptSuggestions(read.result?.text ?? null);
   if (suggestions.txnId) await FileAssetModel.updateOne({ _id: assetId }, { $set: { receiptTxnId: suggestions.txnId } });
-  const saved = await findSavedReceipt(actor, await receiptGroup(actor.hostelId), { hash: asset.contentHash, txnId: suggestions.txnId });
-  return { ...suggestions, alreadySaved: saved, autoSaveEligible: suggestions.autoSaveEligible && !saved };
+  const [saved, hostel] = await Promise.all([
+    receiptGroup(actor.hostelId).then((group) => findSavedReceipt(actor, group, { hash: asset.contentHash, txnId: suggestions.txnId })),
+    receiptHostel(actor.hostelId),
+  ]);
+  return { ...suggestions, alreadySaved: saved, autoSaveEligible: suggestions.autoSaveEligible && !saved, hostel };
+}
+
+/**
+ * Which hostel the share sheet is saving into, by name. A main hostel and its
+ * branch often share one name, so `kind` tells them apart; a hostel with no
+ * branches gets none.
+ */
+async function receiptHostel(hostelId: Types.ObjectId | string) {
+  const hostel = await HostelModel.findById(hostelId).select("name parentHostelId location.area")
+    .lean<{ name: string; parentHostelId?: Types.ObjectId | null; location?: { area?: string } } | null>();
+  if (!hostel) return null;
+  const kind = hostel.parentHostelId ? "Branch"
+    : await HostelModel.exists({ parentHostelId: hostelId, isDeleted: { $ne: true } }) ? "Main hostel" : null;
+  return { area: hostel.location?.area ?? "", kind, name: hostel.name };
 }

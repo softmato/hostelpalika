@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
-import { loadApiPrincipal } from "@/lib/api-auth";
+import { requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse, errorResponse } from "@/lib/api-response";
 import { connectToDatabase } from "@/lib/db";
 import {
@@ -32,11 +32,15 @@ export const runtime = "nodejs";
  * that never got a profile there kept both. "Exactly one" then resolved to
  * nothing and every proof upload was refused, while the invoice beside it —
  * which goes through `findCurrentResident` — loaded fine.
+ *
+ * Staff arrive already narrowed to the branch they are working in
+ * (`x-hostel-id`, see `activeHostel`), so an owner with branches gets that one.
  */
 async function resolveAssetHostelId(principal: ApiPrincipal, requested?: string) {
   if (requested) {
     const allowed =
-      principal.role === Role.SUPERADMIN || principal.hostelIds.includes(requested);
+      principal.role === Role.SUPERADMIN ||
+      (principal.allHostelIds ?? principal.hostelIds).includes(requested);
 
     return allowed ? requested : null;
   }
@@ -59,11 +63,9 @@ async function resolveAssetHostelId(principal: ApiPrincipal, requested?: string)
 
 export async function POST(request: NextRequest) {
   try {
-    const principal = await loadApiPrincipal(request);
-
-    if (!principal) {
-      return errorResponse("Authentication required", "UNAUTHENTICATED", 401);
-    }
+    // `require…`, not `load…`: it narrows an owner with branches to the active
+    // one. Without it `hostelIds` held both and every receipt upload was refused.
+    const principal = await requireApiPrincipal(request);
 
     const body = (await request.json()) as {
       accessLevel?: "PUBLIC" | "PRIVATE" | "PROTECTED";
