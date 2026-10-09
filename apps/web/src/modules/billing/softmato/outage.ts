@@ -75,17 +75,24 @@ export async function unlessSoftmatoDown<T>(
     return await work();
   } catch (error) {
     if (error instanceof SoftmatoApiError && !isSoftmatoDown(error)) {
+      const details = rejectionDetails(error);
+
       console.error(
         JSON.stringify({
           action: "softmato_request_rejected",
           code: error.code,
+          details,
           level: "error",
           message: error.message,
           status: error.status,
         }),
       );
 
-      throw new SoftmatoRejectedError(error.message || "the request was refused.");
+      throw new SoftmatoRejectedError(
+        [error.message || "the request was refused.", details ? `(${details})` : ""]
+          .filter(Boolean)
+          .join(" "),
+      );
     }
 
     if (!isSoftmatoDown(error)) throw error;
@@ -95,5 +102,26 @@ export async function unlessSoftmatoDown<T>(
     if (remembered) await rememberTask(remembered);
 
     throw new SoftmatoUnavailableError();
+  }
+}
+
+/**
+ * Whatever the SDK attached beyond the message — which field a validation
+ * failure was about. Read generically, because the error's extra properties
+ * are the SDK's to name; capped so a large body cannot flood a log line.
+ */
+function rejectionDetails(error: Error): string {
+  const extra = Object.fromEntries(
+    Object.entries(error).filter(
+      ([key, value]) => !["code", "message", "name", "stack", "status"].includes(key) && value != null,
+    ),
+  );
+
+  if (Object.keys(extra).length === 0) return "";
+
+  try {
+    return JSON.stringify(extra).slice(0, 400);
+  } catch {
+    return "";
   }
 }

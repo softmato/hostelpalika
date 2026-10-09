@@ -75,7 +75,11 @@ export async function ensureSoftmatoInvoice(
         unit_price_minor: rupeesToPaisa(input.amount),
       },
     ],
-    ...(input.dueAt ? { due_at: input.dueAt.toISOString() } : {}),
+    // Only a due date still ahead. An overdue invoice (or the balance document
+    // for one) carries a date that has passed, and that is not one to send.
+    ...(input.dueAt && input.dueAt.getTime() > Date.now()
+      ? { due_at: input.dueAt.toISOString() }
+      : {}),
     ...(input.presentation ? { presentation: input.presentation } : {}),
     ...(input.serviceStartsAt
       ? { service_starts_at: input.serviceStartsAt.toISOString() }

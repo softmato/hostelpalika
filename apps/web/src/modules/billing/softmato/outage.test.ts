@@ -44,6 +44,15 @@ describe("unlessSoftmatoDown", () => {
     });
   });
 
+  it("names the field Softmato refused, when the SDK says", async () => {
+    const error = new SoftmatoApiError("The request body failed validation", 422, "VALIDATION_ERROR");
+    Object.assign(error, { details: { field: "due_at" } });
+
+    await expect(unlessSoftmatoDown(() => null, async () => Promise.reject(error))).rejects.toMatchObject({
+      message: expect.stringContaining("due_at"),
+    });
+  });
+
   it("leaves every other error alone", async () => {
     const boom = new TypeError("not Softmato");
 
