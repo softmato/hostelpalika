@@ -1359,7 +1359,10 @@ export async function invoiceDocumentInput(invoice: InvoiceRecord): Promise<Ensu
         plan: catalog.plans.find((tier) => tier.id === invoice.planId) ?? null,
         planName: invoice.planName,
       }),
-      serviceStartsAt: invoice.periodStart ?? invoice.issuedAt ?? new Date(),
+      // No service period. A lifetime sale has a start and no end, and a
+      // half-open period is not one Softmato can defer revenue over — the
+      // invoice was refused and the checkout died at "Reading your invoice".
+      // Like the setup fee, it is earned when it is paid.
     };
   }
 

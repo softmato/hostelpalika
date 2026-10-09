@@ -408,7 +408,9 @@ describe("invoicing it", () => {
 
     const document = mocks.issueInvoiceDocument.mock.calls[0]?.[0];
     expect(document).toMatchObject({ amount: 9_999, description: "Go — Lifetime" });
+    // A half-open period is refused by Softmato; a lifetime sale sends none.
     expect(document.serviceEndsAt).toBeUndefined();
+    expect(document.serviceStartsAt).toBeUndefined();
     expect(mocks.onInvoiceIssued).toHaveBeenCalledWith(
       expect.objectContaining({ cycleLabel: "Lifetime" }),
     );

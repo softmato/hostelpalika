@@ -1,5 +1,6 @@
 import "server-only";
 
+import { SoftmatoApiError } from "@softmato/sdk";
 import { SoftmatoTaskModel, SOFTMATO_TASK_KINDS } from "@hostel/db/models/SoftmatoTask";
 
 import { connectToDatabase } from "@/lib/db";
@@ -23,6 +24,21 @@ export class SoftmatoUnavailableError extends Error {
   constructor() {
     super(SOFTMATO_DOWN_MESSAGE);
     this.name = "SoftmatoUnavailableError";
+  }
+}
+
+/**
+ * Softmato answered, and said no — a 4xx, not an outage. Carried to the screen
+ * with their own words: it used to fall through `handleRouteError` as a bare
+ * "Internal server error", which told neither the owner nor us what was wrong.
+ */
+export class SoftmatoRejectedError extends Error {
+  readonly errorCode = "SOFTMATO_REJECTED";
+  readonly status = 502;
+
+  constructor(reason: string) {
+    super(`Our payment server could not accept this: ${reason}`);
+    this.name = "SoftmatoRejectedError";
   }
 }
 
@@ -58,6 +74,20 @@ export async function unlessSoftmatoDown<T>(
   try {
     return await work();
   } catch (error) {
+    if (error instanceof SoftmatoApiError && !isSoftmatoDown(error)) {
+      console.error(
+        JSON.stringify({
+          action: "softmato_request_rejected",
+          code: error.code,
+          level: "error",
+          message: error.message,
+          status: error.status,
+        }),
+      );
+
+      throw new SoftmatoRejectedError(error.message || "the request was refused.");
+    }
+
     if (!isSoftmatoDown(error)) throw error;
 
     const remembered = await task();
