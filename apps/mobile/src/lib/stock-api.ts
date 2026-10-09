@@ -9,23 +9,36 @@ import type { ExpensePaidBy } from "@/lib/expenses";
 import { defineQuery, type Query } from "@/lib/query-cache";
 import {
   formatQty,
+  STOCK_USE_FOR_LABELS,
+  STOCK_WASTE_LABELS,
+  type StockBillStatus,
   type StockEntryKind,
   type StockEntryStatus,
   type StockKind,
   type StockUnit,
+  type StockUseFor,
+  type StockWasteReason,
 } from "@hostel/expenses/stock";
 
 export {
+  billStatus,
+  formatPackQty,
   formatQty,
   roundQty,
+  STOCK_BILL_STATUS_LABELS,
   STOCK_ENTRY_LABELS,
   STOCK_ITEM_NAME_MAX,
   STOCK_KIND_LABELS,
   STOCK_QTY_MAX,
+  STOCK_SUPPLIER_NAME_MAX,
   STOCK_UNIT_LABELS,
   STOCK_UNITS,
+  STOCK_USE_FOR,
+  STOCK_USE_FOR_LABELS,
+  STOCK_WASTE_LABELS,
+  STOCK_WASTE_REASONS,
 } from "@hostel/expenses/stock";
-export type { StockEntryKind, StockEntryStatus, StockKind, StockUnit };
+export type { StockBillStatus, StockEntryKind, StockEntryStatus, StockKind, StockUnit, StockUseFor, StockWasteReason };
 
 /**
  * Stock over the wire (docs/INVENTORY_PLAN.md). Shapes mirror
@@ -42,8 +55,15 @@ export type StockPlace = {
   residents: number | null;
 };
 
+/** One item in one building. Values are whole rupees, and 0 for someone who does not see money. */
 export type StockAt = {
+  /** This month: signed — found extra (+) or missing (−) at Counts. */
+  adjusted: number;
+  adjustedValue: number;
   bought: number;
+  boughtValue: number;
+  /** End of the month on screen. */
+  closing: number;
   counted: number | null;
   countedAt: string | null;
   hostelId: string;
@@ -51,34 +71,67 @@ export type StockAt = {
   left: number;
   low: boolean;
   onWay: number;
+  /** Start of the month on screen. */
+  opening: number;
   out: number;
   short: number;
   used: number;
+  usedValue: number;
+  wasted: number;
+  wastedValue: number;
 };
 
 export type StockItem = {
   active: boolean;
   at: StockAt[];
+  /** Weighted average cost per unit; `null` without money rights or a priced Bought. */
+  avgCost: number | null;
   category: string;
   id: string;
   kind: StockKind;
+  location: string;
   lowAt: number | null;
   name: string;
+  packSize: number | null;
+  packUnit: StockUnit | null;
   unit: StockUnit;
+  /** Left now at the average cost; `null` without money rights. */
+  value: number | null;
 };
 
 export type StockLine = {
+  /** Bought: the line's price. */
+  amount: number | null;
   itemId: string;
   name: string;
+  packQty: number | null;
+  packUnit: StockUnit | null;
   qty: number;
   /** Bought only: rupees per unit, if the bill showed it. */
   rate: number | null;
   receivedQty: number | null;
+  /** Count: what the book said then. */
+  systemQty: number | null;
   unit: StockUnit;
+};
+
+export type StockBill = {
+  billNo: string;
+  discount: number | null;
+  due: number | null;
+  paid: number | null;
+  photoAssetId: string | null;
+  status: StockBillStatus | null;
+  supplierId: string | null;
+  tax: number | null;
+  total: number | null;
 };
 
 export type StockEntry = {
   amount: number | null;
+  approvedByName: string | null;
+  bill: StockBill | null;
+  canApprove: boolean;
   canCancel: boolean;
   canReceive: boolean;
   cancelReason: string | null;
@@ -99,18 +152,60 @@ export type StockEntry = {
   status: StockEntryStatus;
   toHostelId: string | null;
   toHostelName: string | null;
+  useFor: StockUseFor | null;
+  wasteReason: StockWasteReason | null;
+};
+
+export type StockSupplier = {
+  active: boolean;
+  bills: number;
+  billed: number | null;
+  /** Owed now; negative is paid ahead. `null` without money rights. */
+  due: number | null;
+  id: string;
+  lastBillOn: string | null;
+  name: string;
+  note: string;
+  openingDue: number | null;
+  phone: string;
+};
+
+export type StockSummary = {
+  boughtValue: number | null;
+  byCategory: { category: string; stockValue: number; usedValue: number }[];
+  bySupplier: { bills: number; billed: number; name: string; paid: number; supplierId: string | null }[];
+  costPerResidentDay: number | null;
+  days: number;
+  dueTotal: number | null;
+  low: number;
+  missingValue: number | null;
+  residents: number;
+  spentValue: number | null;
+  stockValue: number | null;
+  usedValue: number | null;
+  wastedValue: number | null;
 };
 
 export type StockHome = {
+  /** May approve someone else's Count. */
+  canApprove: boolean;
+  /** May put prices on a bill and pay suppliers. */
   canSpend: boolean;
   currentPeriod: string;
   entries: StockEntry[];
   items: StockItem[];
+  /** Sees prices, values and dues. */
+  money: boolean;
   owner: boolean;
   period: string;
   places: StockPlace[];
   proofRequired: boolean;
+  /** Store item ids, most used lately first. */
+  recentUse: string[];
   sentWaiting: StockEntry[];
+  summary: StockSummary;
+  suppliers: StockSupplier[];
+  toApprove: StockEntry[];
   waiting: StockEntry[];
 };
 
@@ -143,12 +238,20 @@ export function stockQuery(period: string | null): Query<StockLoad> {
 
 export type NewStockEntry = {
   amount?: number;
+  billNo?: string;
   clientRequestId: string;
+  discount?: number;
   hostelId?: string;
   kind: StockEntryKind;
-  lines: { itemId: string; qty: number; rate?: number }[];
+  lines: { amount?: number; itemId: string; packQty?: number; qty: number; rate?: number }[];
   note?: string;
+  /** Bought: paid on the day. Absent: all of it. */
+  paid?: number;
   supplier?: string;
+  supplierId?: string;
+  tax?: number;
+  useFor?: StockUseFor;
+  wasteReason?: StockWasteReason;
   /** Gregorian `YYYY-MM-DD`. */
   on?: string;
   paidBy?: ExpensePaidBy;
@@ -167,6 +270,11 @@ export async function receiveStock(id: string, lines?: { itemId: string; receive
   );
 }
 
+/** Approve a warden's Count. Turning it down is `cancelStockEntry` with a reason. */
+export async function approveStockCount(id: string) {
+  return unwrap(await api.post<ApiEnvelope<StockEntry>>(`/hostel-admin/stock/entries/${id}/approve`, {}));
+}
+
 export async function cancelStockEntry(id: string, reason: string) {
   return unwrap(
     await api.post<ApiEnvelope<StockEntry>>(`/hostel-admin/stock/entries/${id}/cancel`, { reason }),
@@ -175,13 +283,17 @@ export async function cancelStockEntry(id: string, reason: string) {
 
 export type StockItemInput = {
   active?: boolean;
+  category?: string;
   kind: StockKind;
+  location?: string;
   lowAt?: number | null;
   name: string;
+  packSize?: number | null;
+  packUnit?: StockUnit | null;
   unit: StockUnit;
 };
 
-type StockItemOnly = Omit<StockItem, "at">;
+type StockItemOnly = Omit<StockItem, "at" | "avgCost" | "value">;
 
 export async function addStockItem(input: StockItemInput) {
   return unwrap(await api.post<ApiEnvelope<StockItemOnly>>("/hostel-admin/stock/items", input));
@@ -190,6 +302,65 @@ export async function addStockItem(input: StockItemInput) {
 /** Owner only. */
 export async function updateStockItem(id: string, input: Partial<StockItemInput>) {
   return unwrap(await api.patch<ApiEnvelope<StockItemOnly>>(`/hostel-admin/stock/items/${id}`, input));
+}
+
+/* -------------------------------------------------------------------------- */
+/* Suppliers                                                                  */
+/* -------------------------------------------------------------------------- */
+
+export type StockSupplierInput = { active?: boolean; name: string; note?: string; openingDue?: number; phone?: string };
+
+type StockSupplierOnly = Pick<StockSupplier, "active" | "id" | "name" | "note" | "openingDue" | "phone">;
+
+export async function addStockSupplier(input: StockSupplierInput) {
+  return unwrap(await api.post<ApiEnvelope<StockSupplierOnly>>("/hostel-admin/stock/suppliers", input));
+}
+
+export async function updateStockSupplier(id: string, input: Partial<StockSupplierInput>) {
+  return unwrap(await api.patch<ApiEnvelope<StockSupplierOnly>>(`/hostel-admin/stock/suppliers/${id}`, input));
+}
+
+export type SupplierLedgerRow = {
+  balance: number;
+  bill: { billNo: string; items: string; paid: number; status: StockBillStatus; total: number } | null;
+  change: number;
+  id: string;
+  kind: "BILL" | "OPENING" | "PAYMENT";
+  on: string;
+  payment: { amount: number; canCancel: boolean; note: string; paidBy: string; recordedByName: string } | null;
+};
+
+export type SupplierLedger = {
+  billed: number;
+  due: number;
+  paid: number;
+  /** Newest first. */
+  rows: SupplierLedgerRow[];
+  supplier: StockSupplierOnly;
+};
+
+export function supplierQuery(id: string): Query<SupplierLedger> {
+  return defineQuery(`stock-supplier:${id}`, [REALTIME_TOPIC.FOOD], async () =>
+    unwrap(await api.get<ApiEnvelope<SupplierLedger>>(`/hostel-admin/stock/suppliers/${id}`)),
+  );
+}
+
+export type NewStockPayment = {
+  amount: number;
+  clientRequestId: string;
+  note?: string;
+  on?: string;
+  paidBy?: ExpensePaidBy;
+  photoAssetId?: string;
+  supplierId: string;
+};
+
+export async function payStockSupplier(input: NewStockPayment) {
+  return unwrap(await api.post<ApiEnvelope<{ amount: number; id: string }>>("/hostel-admin/stock/payments", input));
+}
+
+export async function cancelStockPayment(id: string, reason: string) {
+  return unwrap(await api.post<ApiEnvelope<{ id: string }>>(`/hostel-admin/stock/payments/${id}/cancel`, { reason }));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -277,7 +448,7 @@ export function shortLines(entry: StockEntry) {
     .map((line) => `${line.name} ${formatQty(line.qty - (line.receivedQty ?? 0), line.unit)} short`);
 }
 
-export type EntryKindView = "BOUGHT" | "COUNT" | "GOT_IT" | "ON_THE_WAY" | "SEND";
+export type EntryKindView = "BOUGHT" | "COUNT" | "GOT_IT" | "ON_THE_WAY" | "OPENING" | "SEND" | "USED" | "WASTED";
 
 export type EntryView = {
   color: string;
@@ -303,19 +474,54 @@ export function entryView(entry: StockEntry, mine: ReadonlySet<string>): EntryVi
       detail: entry.supplier || namesSummary(entry.lines),
       icon: "cart-outline",
       kind: "BOUGHT",
-      label: "Bought",
+      label: entry.bill?.billNo ? `Bill ${entry.bill.billNo}` : "Bought",
+    };
+  }
+
+  if (entry.kind === "OPENING") {
+    return {
+      color: cancelled ? grey : palette.light.primary,
+      detail: namesSummary(entry.lines),
+      icon: "archive-outline",
+      kind: "OPENING",
+      label: "Opening stock",
+    };
+  }
+
+  if (entry.kind === "USE") {
+    return {
+      color: cancelled ? grey : palette.light.foreground,
+      detail: `${entry.useFor ? STOCK_USE_FOR_LABELS[entry.useFor] : "Kitchen"} · ${namesSummary(entry.lines)}`,
+      icon: "restaurant-outline",
+      kind: "USED",
+      label: "Used",
+    };
+  }
+
+  if (entry.kind === "WASTE") {
+    return {
+      color: cancelled ? grey : palette.light.destructive,
+      detail: `${entry.wasteReason ? STOCK_WASTE_LABELS[entry.wasteReason] : "Wasted"} · ${namesSummary(entry.lines)}`,
+      icon: "trash-outline",
+      kind: "WASTED",
+      label: "Wasted",
     };
   }
 
   if (entry.kind === "COUNT") {
-    const only = entry.lines.length === 1 ? entry.lines[0] : null;
+    const off = entry.lines.filter((line) => line.systemQty !== null && line.qty !== line.systemQty);
+    const only = off.length === 1 ? off[0] : null;
 
     return {
-      color: cancelled ? grey : palette.light.mutedForeground,
-      detail: only ? `Set left to ${formatQty(only.qty, only.unit)}` : `${entry.lines.length} items counted`,
+      color: cancelled ? grey : entry.status === "PENDING" ? palette.light.warning : palette.light.mutedForeground,
+      detail: only
+        ? countGap(only)
+        : off.length > 1
+          ? `${off.length} items different`
+          : `${entry.lines.length} item${entry.lines.length === 1 ? "" : "s"} · all match`,
       icon: "clipboard-outline",
       kind: "COUNT",
-      label: "Count",
+      label: entry.status === "PENDING" ? "Count · to approve" : "Count",
     };
   }
 
@@ -340,6 +546,15 @@ export function entryView(entry: StockEntry, mine: ReadonlySet<string>): EntryVi
     kind: "SEND",
     label: "Send",
   };
+}
+
+/** `Rice 2 kg missing` / `Rice 1 kg extra` — a Count line against the book. */
+export function countGap(line: StockLine) {
+  const gap = line.qty - (line.systemQty ?? line.qty);
+
+  if (gap === 0) return `${line.name} matches`;
+
+  return `${line.name} ${formatQty(Math.abs(gap), line.unit)} ${gap < 0 ? "missing" : "extra"}`;
 }
 
 /** The number on the right of a row: one line's quantity, or the item count. */

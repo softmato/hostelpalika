@@ -83,8 +83,12 @@ const PERMISSION_LABELS: Record<WardenPermission, { hint: string; label: string 
   },
   manageRooms: { hint: "Change room types, beds and vacancies.", label: "Rooms" },
   manageStock: {
-    hint: "Add what was bought, send to a branch, tap Got it, count what is left.",
+    hint: "Add bills, enter what was used or wasted, send to a branch, count what is left.",
     label: "Stock",
+  },
+  approveStockCount: {
+    hint: "Approve another warden's count when it differs from the book. Off by default.",
+    label: "Approve counts",
   },
   recordCash: { hint: "Mark an invoice settled in cash.", label: "Record cash" },
   recordExpenses: {

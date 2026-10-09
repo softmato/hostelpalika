@@ -1039,6 +1039,7 @@ export const WARDEN_PERMISSIONS = [
   "manageMaintenance",
   "recordExpenses",
   "manageStock",
+  "approveStockCount",
 ] as const;
 
 export type WardenPermission = (typeof WARDEN_PERMISSIONS)[number];

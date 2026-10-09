@@ -22,7 +22,9 @@ import { prepareEvidenceForUpload } from "@/lib/evidence-image";
 import {
   bsDayLong,
   bsDayMonth,
+  groupDigits,
   isFutureDay,
+  parseAmountInput,
   parseBsDayInput,
   recentDayChoices,
   toBsDayInput,
@@ -31,6 +33,7 @@ import { formatMoney } from "@/lib/format";
 import { invalidateQuery } from "@/lib/query-cache";
 import {
   addStockItem,
+  addStockSupplier,
   entryQty,
   entryView,
   parseQtyInput,
@@ -41,6 +44,7 @@ import {
   type StockItem,
   type StockKind,
   type StockLoad,
+  type StockSupplier,
   type StockUnit,
   stockLook,
   stockQuery,
@@ -49,6 +53,7 @@ import {
 import { toastError, toastSuccess } from "@/lib/toast";
 import { uploadAsset } from "@/lib/uploads";
 import { addBsMonths, bsMonthName, periodParts } from "@hostel/calendar/bs";
+import { EXPENSE_CATEGORY_LABELS, type ExpenseCategoryKey } from "@hostel/expenses/categories";
 
 /**
  * The pieces every Stock screen is built from (docs/INVENTORY_PLAN.md).
@@ -133,7 +138,13 @@ export function EntryRow({
   const view = entryView(entry, mine);
   const short = entry.status === "RECEIVED" && entry.lines.some((line) => (line.receivedQty ?? line.qty) < line.qty);
   const right =
-    entry.kind === "BUY" && entry.amount ? formatMoney(entry.amount) : entryQty(entry);
+    entry.kind === "BUY" && entry.bill?.total ? formatMoney(entry.bill.total) : entryQty(entry);
+  const billPill =
+    entry.status !== "CANCELLED" && entry.bill?.status === "DUE"
+      ? "Not paid"
+      : entry.status !== "CANCELLED" && entry.bill?.status === "PARTIAL"
+        ? "Part paid"
+        : null;
 
   return (
     <Pressable accessibilityRole="button" className="active:opacity-70" onPress={onPress}>
@@ -160,9 +171,11 @@ export function EntryRow({
           {entry.status === "CANCELLED" ? (
             <Pill color={colors.mutedForeground} label="Cancelled" />
           ) : entry.status === "PENDING" ? (
-            <Pill color={colors.warning} label="On the way" />
+            <Pill color={colors.warning} label={entry.kind === "COUNT" ? "To approve" : "On the way"} />
           ) : short ? (
             <Pill color={colors.destructive} label="Short" />
+          ) : billPill ? (
+            <Pill color={colors.warning} label={billPill} />
           ) : null}
         </View>
       </View>
@@ -578,7 +591,26 @@ const STARTERS: { kind: StockKind; name: string; unit: StockUnit }[] = [
   { kind: "DAILY", name: "Eggs", unit: "DOZEN" },
 ];
 
-type Draft = { kind: StockKind; lowAt: string; name: string; unit: StockUnit };
+type Draft = {
+  category: string;
+  kind: StockKind;
+  location: string;
+  lowAt: string;
+  name: string;
+  packSize: string;
+  packUnit: StockUnit | null;
+  unit: StockUnit;
+};
+
+/** What an item's purchase is filed under in Money Out — the kitchen and store ones only. */
+export const STOCK_CATEGORIES = ["GROCERIES", "VEGETABLES_MEAT", "GAS", "WATER", "CLEANING", "OTHER"] as const;
+
+export function categoryLabel(category: string) {
+  return EXPENSE_CATEGORY_LABELS[category as ExpenseCategoryKey] ?? "Other";
+}
+
+/** The units an item can be bought in by the pack. */
+const PACK_UNITS: StockUnit[] = ["SACK", "PACKET", "DOZEN", "BOTTLE", "TIN", "PIECE"];
 
 /** Add a new item, in a bottom sheet, with the usual ones one tap away. */
 export function ItemSheet({
@@ -595,7 +627,16 @@ export function ItemSheet({
   onSaved: (id: string) => void;
   open: boolean;
 }) {
-  const blank: Draft = { kind: defaultKind, lowAt: "", name: "", unit: "KG" };
+  const blank: Draft = {
+    category: defaultKind === "DAILY" ? "VEGETABLES_MEAT" : "GROCERIES",
+    kind: defaultKind,
+    location: "",
+    lowAt: "",
+    name: "",
+    packSize: "",
+    packUnit: null,
+    unit: "KG",
+  };
   const [draft, setDraft] = useState<Draft>(blank);
   const [busy, setBusy] = useState(false);
   const [seen, setSeen] = useState(open);
@@ -611,6 +652,7 @@ export function ItemSheet({
   const save = async () => {
     const name = draft.name.trim();
     const lowAt = readQty(draft.lowAt);
+    const pack = readPack(draft);
 
     if (!name) {
       toastError("Name it", "Like Rice or Vegetables.");
@@ -622,14 +664,22 @@ export function ItemSheet({
       return;
     }
 
+    if (pack === false) {
+      toastError("Check the pack size", "How many in one pack, like 25.");
+      return;
+    }
+
     setBusy(true);
 
     try {
       const saved = await addStockItem({
+        category: draft.category,
         kind: draft.kind,
+        location: draft.location.trim() || undefined,
         lowAt: draft.kind === "STORE" ? lowAt : null,
         name,
         unit: draft.unit,
+        ...pack,
       });
 
       toastSuccess(`${saved.name} added`);
@@ -656,7 +706,13 @@ export function ItemSheet({
                 <Chip
                   key={starter.name}
                   label={starter.name}
-                  onPress={() => setDraft({ ...blank, ...starter })}
+                  onPress={() =>
+                    setDraft({
+                      ...blank,
+                      ...starter,
+                      category: starter.kind === "DAILY" ? "VEGETABLES_MEAT" : starter.unit === "CYLINDER" ? "GAS" : "GROCERIES",
+                    })
+                  }
                   tone={draft.name === starter.name ? "brand" : "neutral"}
                 />
               ))}
@@ -669,7 +725,18 @@ export function ItemSheet({
   );
 }
 
-/** Name, kind, unit and low mark — shared by New item and an item's Settings. */
+/** `{ packUnit, packSize }` from the draft, `false` when the size is not a number. */
+function readPack(draft: Draft): { packSize: number | null; packUnit: StockUnit | null } | false {
+  if (!draft.packUnit) return { packSize: null, packUnit: null };
+
+  const size = readQty(draft.packSize);
+
+  if (size === false || size === null || size <= 0) return false;
+
+  return { packSize: size, packUnit: draft.packUnit };
+}
+
+/** Name, kind, unit, pack, low mark, category and place — shared by New item and an item's Settings. */
 export function ItemFields({
   draft,
   onChange,
@@ -720,6 +787,30 @@ export function ItemFields({
         </View>
       </View>
 
+      <View className="gap-1.5">
+        <Text variant="caption">Bought in packs? (optional)</Text>
+        <View className="flex-row flex-wrap gap-2">
+          <Chip label="No" onPress={() => onChange({ packUnit: null })} tone={draft.packUnit ? "neutral" : "brand"} />
+          {PACK_UNITS.filter((unit) => unit !== draft.unit).map((unit) => (
+            <Chip
+              key={unit}
+              label={STOCK_UNIT_LABELS[unit].one}
+              onPress={() => onChange({ packUnit: unit })}
+              tone={draft.packUnit === unit ? "brand" : "neutral"}
+            />
+          ))}
+        </View>
+        {draft.packUnit ? (
+          <QtyInput
+            label={`1 ${STOCK_UNIT_LABELS[draft.packUnit].one} has`}
+            onChangeText={(packSize) => onChange({ packSize })}
+            placeholder="e.g. 25"
+            unit={draft.unit}
+            value={draft.packSize}
+          />
+        ) : null}
+      </View>
+
       {draft.kind === "STORE" ? (
         <QtyInput
           label="Running low below (optional)"
@@ -729,6 +820,28 @@ export function ItemFields({
           value={draft.lowAt}
         />
       ) : null}
+
+      <View className="gap-1.5">
+        <Text variant="caption">Money Out group</Text>
+        <View className="flex-row flex-wrap gap-2">
+          {STOCK_CATEGORIES.map((category) => (
+            <Chip
+              key={category}
+              label={categoryLabel(category)}
+              onPress={() => onChange({ category })}
+              tone={draft.category === category ? "brand" : "neutral"}
+            />
+          ))}
+        </View>
+      </View>
+
+      <Input
+        label="Kept in (optional)"
+        maxLength={40}
+        onChangeText={(location) => onChange({ location })}
+        placeholder="e.g. Store room"
+        value={draft.location}
+      />
     </View>
   );
 }
@@ -737,9 +850,13 @@ export function ItemFields({
 export function ItemSettings({ item, onSaved }: { item: StockItem; onSaved: () => void }) {
   const { colors } = useAppTheme();
   const [draft, setDraft] = useState<Draft>({
+    category: item.category,
     kind: item.kind,
+    location: item.location,
     lowAt: item.lowAt === null ? "" : String(item.lowAt),
     name: item.name,
+    packSize: item.packSize === null ? "" : String(item.packSize),
+    packUnit: item.packUnit,
     unit: item.unit,
   });
   const [active, setActive] = useState(item.active);
@@ -747,16 +864,21 @@ export function ItemSettings({ item, onSaved }: { item: StockItem; onSaved: () =
 
   const save = async () => {
     const lowAt = readQty(draft.lowAt);
+    const pack = readPack(draft);
 
     if (!draft.name.trim()) return toastError("Name it", "Like Rice.");
     if (lowAt === false) return toastError("Check the low mark", "A number, like 10.");
+    if (pack === false) return toastError("Check the pack size", "How many in one pack, like 25.");
 
     setBusy(true);
 
     try {
       await updateStockItem(item.id, {
         active,
+        category: draft.category,
         kind: draft.kind,
+        location: draft.location.trim(),
+        ...pack,
         lowAt: draft.kind === "STORE" ? lowAt : null,
         name: draft.name.trim(),
         ...(draft.unit !== item.unit ? { unit: draft.unit } : {}),
@@ -778,12 +900,240 @@ export function ItemSettings({ item, onSaved }: { item: StockItem; onSaved: () =
           icon="eye-outline"
           iconBgColor={colors.primary}
           right={<Toggle accessibilityLabel="Still buying it" onChange={setActive} value={active} />}
-          subtitle="Off hides it from Buy, Send and Count. Its history stays."
+          subtitle="Off hides it from Buy, Use, Send and Count. Its history stays."
           title="Still buying it"
         />
       </Card>
       <Button label="Save item" loading={busy} onPress={() => void save()} />
     </View>
+  );
+}
+
+/* -------------------------------------------------------------- amounts */
+
+/** A rupee box: `Rs` in front, digits grouped as typed, number pad. */
+export function MoneyInput({
+  error,
+  hint,
+  label,
+  onChangeText,
+  value,
+}: {
+  error?: string | null;
+  hint?: string;
+  label?: string;
+  onChangeText: (value: string) => void;
+  value: string;
+}) {
+  return (
+    <Input
+      error={error}
+      hint={hint}
+      inputMode="numeric"
+      keyboardType="number-pad"
+      label={label}
+      leading={<Text variant="muted">Rs</Text>}
+      onChangeText={(next) => onChangeText(groupDigits(next))}
+      placeholder="0"
+      selectTextOnFocus
+      value={value}
+    />
+  );
+}
+
+/** `null` blank, `false` not whole rupees, else the number. */
+export function readRupees(text: string): number | false | null {
+  if (!text.trim()) return null;
+
+  const value = parseAmountInput(text);
+
+  return value === null ? false : value;
+}
+
+/**
+ * Tap-to-add amounts under a quantity box: `+1`, `+5`, `+10`, and `+1 sack`
+ * when the item comes in packs. The thumb does the typing.
+ */
+export function QuickQty({
+  item,
+  onAdd,
+}: {
+  item: Pick<StockItem, "packSize" | "packUnit" | "unit">;
+  onAdd: (qty: number) => void;
+}) {
+  const steps = item.unit === "KG" || item.unit === "LITRE" ? [0.5, 1, 2, 5] : [1, 2, 5, 10];
+
+  return (
+    <View className="flex-row flex-wrap gap-2">
+      {steps.map((step) => (
+        <Pressable
+          accessibilityLabel={`Add ${step} ${unitLabel(item.unit)}`}
+          accessibilityRole="button"
+          className="min-h-10 min-w-14 items-center justify-center rounded-xl bg-muted px-3 active:opacity-70"
+          key={step}
+          onPress={() => onAdd(step)}
+        >
+          <Text className="text-sm font-semibold">+{step}</Text>
+        </Pressable>
+      ))}
+      {item.packUnit && item.packSize ? (
+        <Pressable
+          accessibilityRole="button"
+          className="min-h-10 items-center justify-center rounded-xl bg-brand-soft px-3 active:opacity-70"
+          onPress={() => onAdd(item.packSize!)}
+        >
+          <Text className="text-sm font-semibold text-primary">+1 {STOCK_UNIT_LABELS[item.packUnit].one}</Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+/** `2.5` — a quantity as it goes back into a box. */
+export function qtyText(qty: number) {
+  return String(Math.round(qty * 100) / 100);
+}
+
+/* ------------------------------------------------------------- suppliers */
+
+/**
+ * The supplier on a bill, as a field. Tapping it opens the list — searchable,
+ * with what is owed beside each name for someone who sees money — and a
+ * "New supplier" row that adds one without leaving the bill.
+ */
+export function SupplierField({
+  error,
+  money,
+  onChange,
+  onCreated,
+  suppliers,
+  value,
+}: {
+  error?: string | null;
+  money: boolean;
+  onChange: (id: string | null) => void;
+  onCreated: () => void;
+  suppliers: readonly StockSupplier[];
+  value: string | null;
+}) {
+  const { colors } = useAppTheme();
+  const [open, setOpen] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [query, setQuery] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [busy, setBusy] = useState(false);
+  const picked = suppliers.find((supplier) => supplier.id === value) ?? null;
+  const shown = suppliers.filter(
+    (supplier) => supplier.active && supplier.name.toLowerCase().includes(query.trim().toLowerCase()),
+  );
+
+  const create = async () => {
+    if (!name.trim()) return toastError("Name the shop", "Like Ram Kirana Pasal.");
+
+    setBusy(true);
+
+    try {
+      const saved = await addStockSupplier({ name: name.trim(), phone: phone.trim() || undefined });
+
+      toastSuccess(`${saved.name} added`);
+      onChange(saved.id);
+      onCreated();
+      setAdding(false);
+      setOpen(false);
+    } catch (error) {
+      toastError("Not saved", readApiError(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <>
+      <View className="gap-1.5">
+        <Text variant="caption">Supplier</Text>
+        <Pressable
+          accessibilityLabel={`Supplier: ${picked?.name ?? "none"}. Change`}
+          accessibilityRole="button"
+          className={`min-h-12 flex-row items-center gap-3 rounded-xl border bg-card px-3.5 active:opacity-70 ${
+            error ? "border-destructive" : "border-border"
+          }`}
+          onPress={() => {
+            setQuery("");
+            setAdding(suppliers.length === 0);
+            setName("");
+            setPhone("");
+            setOpen(true);
+          }}
+        >
+          <Ionicons color={colors.primary} name="storefront-outline" size={20} />
+          <Text className={`flex-1 ${picked ? "" : "text-muted-foreground"}`} numberOfLines={1} variant="body">
+            {picked?.name ?? "Pick the shop (optional when paid)"}
+          </Text>
+          <Ionicons color={colors.mutedForeground} name="chevron-down" size={18} />
+        </Pressable>
+        {error ? (
+          <Text className="text-destructive" variant="caption">
+            {error}
+          </Text>
+        ) : null}
+      </View>
+
+      <Sheet
+        footer={adding ? <Button label="Add supplier" loading={busy} onPress={() => void create()} /> : undefined}
+        onClose={() => setOpen(false)}
+        open={open}
+        tall={!adding}
+        title={adding ? "New supplier" : "Supplier"}
+      >
+        {adding ? (
+          <View className="gap-4 pb-2">
+            <Input autoFocus label="Shop or person" maxLength={60} onChangeText={setName} placeholder="e.g. Ram Kirana Pasal" value={name} />
+            <Input keyboardType="phone-pad" label="Phone (optional)" maxLength={20} onChangeText={setPhone} placeholder="98XXXXXXXX" value={phone} />
+          </View>
+        ) : (
+          <View className="gap-3 pb-2">
+            {suppliers.length > 6 ? (
+              <Input
+                leading={<Ionicons color={colors.mutedForeground} name="search" size={18} />}
+                onChangeText={setQuery}
+                placeholder="Search suppliers"
+                value={query}
+              />
+            ) : null}
+            <Card padding="px-4 py-1">
+              {value ? (
+                <>
+                  <ListRow icon="close" iconBgColor={colors.mutedForeground} onPress={() => { onChange(null); setOpen(false); }} title="No supplier" />
+                  <RowDivider inset />
+                </>
+              ) : null}
+              {shown.map((supplier) => (
+                <View key={supplier.id}>
+                  <SheetRow
+                    label={supplier.name}
+                    onPress={() => {
+                      onChange(supplier.id);
+                      setOpen(false);
+                    }}
+                    selected={supplier.id === value}
+                    subtitle={
+                      money && supplier.due
+                        ? supplier.due > 0
+                          ? `${formatMoney(supplier.due)} due`
+                          : `${formatMoney(-supplier.due)} paid ahead`
+                        : supplier.phone || undefined
+                    }
+                  />
+                </View>
+              ))}
+              {shown.length > 0 ? <RowDivider inset /> : null}
+              <ListRow icon="add" iconBgColor={colors.primary} onPress={() => setAdding(true)} title="New supplier" />
+            </Card>
+          </View>
+        )}
+      </Sheet>
+    </>
   );
 }
 
@@ -831,11 +1181,13 @@ export function stockChanged() {
 
 /* ---------------------------------------------------------------- history */
 
-export type HistoryFilter = "ALL" | "BOUGHT" | "COUNT" | "GOT_IT" | "SEND";
+export type HistoryFilter = "ALL" | "BOUGHT" | "COUNT" | "GOT_IT" | "SEND" | "USED" | "WASTED";
 
 export const HISTORY_FILTERS: { label: string; value: HistoryFilter }[] = [
   { label: "All", value: "ALL" },
   { label: "Bought", value: "BOUGHT" },
+  { label: "Used", value: "USED" },
+  { label: "Wasted", value: "WASTED" },
   { label: "Send", value: "SEND" },
   { label: "Got it", value: "GOT_IT" },
   { label: "Count", value: "COUNT" },
@@ -846,7 +1198,10 @@ function matches(filter: HistoryFilter, entry: StockEntry, mine: ReadonlySet<str
 
   const kind = entryView(entry, mine).kind;
 
-  return filter === "SEND" ? kind === "SEND" || kind === "ON_THE_WAY" : kind === filter;
+  if (filter === "SEND") return kind === "SEND" || kind === "ON_THE_WAY";
+  if (filter === "BOUGHT") return kind === "BOUGHT" || kind === "OPENING";
+
+  return kind === filter;
 }
 
 /** `Asoj 2083` from `2083-06`. */

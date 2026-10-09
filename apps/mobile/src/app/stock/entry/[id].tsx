@@ -7,6 +7,7 @@ import { palette } from "@/constants/theme";
 import { ItemAvatar, NoStockAccess, stockChanged, unitLabel, useStock } from "@/components/stock/stock-parts";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { FactRow } from "@/components/ui/layout";
@@ -18,18 +19,36 @@ import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { readApiError } from "@/lib/api-contract";
+import { openAssetViewer } from "@/lib/asset-viewer";
 import { bsDayLong } from "@/lib/expenses";
 import { formatMoney } from "@/lib/format";
-import { cancelStockEntry, formatQty, type StockEntry } from "@/lib/stock-api";
+import {
+  approveStockCount,
+  cancelStockEntry,
+  formatPackQty,
+  formatQty,
+  STOCK_BILL_STATUS_LABELS,
+  STOCK_USE_FOR_LABELS,
+  STOCK_WASTE_LABELS,
+  type StockEntry,
+} from "@/lib/stock-api";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 /**
  * One entry, whole (docs/INVENTORY_PLAN.md): what it carried, where, who, and —
- * for a Send — the two steps it goes through, with Got it or Cancel at the
- * bottom when this person may do either.
+ * for a bill, its money; for a Count, the book against the shelf; for a Send,
+ * the two steps it goes through. Got it, Approve or Cancel sit at the bottom
+ * when this person may do them.
  */
 
-const TITLES = { BUY: "Bought", COUNT: "Count", SEND: "Send Details" } as const;
+const TITLES = {
+  BUY: "Bill",
+  COUNT: "Count",
+  OPENING: "Opening stock",
+  SEND: "Send Details",
+  USE: "Used",
+  WASTE: "Wasted",
+} as const;
 
 function banner(entry: StockEntry) {
   const day = bsDayLong(entry.on);
@@ -49,9 +68,32 @@ function banner(entry: StockEntry) {
       : { color: palette.light.primary, icon: "checkmark-done-outline" as const, line: `Arrived at ${entry.toHostelName}`, title: "Got it" };
   }
 
-  return entry.kind === "BUY"
-    ? { color: palette.light.primary, icon: "cart-outline" as const, line: `At ${entry.hostelName} · ${day}`, title: "Bought" }
-    : { color: palette.light.mutedForeground, icon: "clipboard-outline" as const, line: `At ${entry.hostelName} · ${day}`, title: "Counted" };
+  const at = `At ${entry.hostelName} · ${day}`;
+
+  switch (entry.kind) {
+    case "BUY":
+      return { color: palette.light.primary, icon: "cart-outline" as const, line: at, title: entry.supplier || "Bought" };
+    case "OPENING":
+      return { color: palette.light.primary, icon: "archive-outline" as const, line: at, title: "Opening stock" };
+    case "USE":
+      return {
+        color: palette.light.foreground,
+        icon: "restaurant-outline" as const,
+        line: at,
+        title: `Used · ${STOCK_USE_FOR_LABELS[entry.useFor ?? "KITCHEN"]}`,
+      };
+    case "WASTE":
+      return {
+        color: palette.light.destructive,
+        icon: "trash-outline" as const,
+        line: at,
+        title: `Wasted · ${STOCK_WASTE_LABELS[entry.wasteReason ?? "OTHER"]}`,
+      };
+    default:
+      return entry.status === "PENDING"
+        ? { color: palette.light.warning, icon: "hourglass-outline" as const, line: at, title: "Count · waiting for approval" }
+        : { color: palette.light.mutedForeground, icon: "clipboard-outline" as const, line: at, title: "Counted" };
+  }
 }
 
 export default function EntryDetailScreen() {
@@ -59,7 +101,9 @@ export default function EntryDetailScreen() {
   const { id, period } = useLocalSearchParams<{ id: string; period?: string }>();
   const { denied, home, resource } = useStock(period ?? null);
   const entry =
-    [...(home?.waiting ?? []), ...(home?.sentWaiting ?? []), ...(home?.entries ?? [])].find((row) => row.id === id) ?? null;
+    [...(home?.waiting ?? []), ...(home?.sentWaiting ?? []), ...(home?.toApprove ?? []), ...(home?.entries ?? [])].find(
+      (row) => row.id === id,
+    ) ?? null;
 
   const [cancelling, setCancelling] = useState(false);
   const [reason, setReason] = useState("");
@@ -101,6 +145,23 @@ export default function EntryDetailScreen() {
 
   const look = banner(entry);
   const isSend = entry.kind === "SEND";
+  const pendingCount = entry.kind === "COUNT" && entry.status === "PENDING";
+  const bill = entry.bill;
+
+  const approve = async () => {
+    setBusy(true);
+
+    try {
+      await approveStockCount(entry.id);
+      toastSuccess("Count approved", "The book now matches the shelf.");
+      stockChanged();
+      resource.refresh();
+    } catch (error) {
+      toastError("Could not approve", readApiError(error));
+    } finally {
+      setBusy(false);
+    }
+  };
 
   const cancel = async () => {
     if (reason.trim().length < 3) {
@@ -124,8 +185,11 @@ export default function EntryDetailScreen() {
   };
 
   const footer =
-    entry.canReceive || entry.canCancel ? (
+    entry.canReceive || entry.canCancel || entry.canApprove ? (
       <View className="gap-2">
+        {entry.canApprove ? (
+          <Button label="Approve count" loading={busy} onPress={() => void approve()} size="lg" />
+        ) : null}
         {entry.canReceive ? (
           <Button
             label="Got it"
@@ -135,7 +199,9 @@ export default function EntryDetailScreen() {
         ) : null}
         {entry.canCancel ? (
           <Button
-            label={isSend && entry.status === "PENDING" ? "Cancel Send" : "Cancel this entry"}
+            label={
+              entry.canApprove ? "Turn down" : isSend && entry.status === "PENDING" ? "Cancel Send" : "Cancel this entry"
+            }
             onPress={() => setCancelling(true)}
             variant="outline"
           />
@@ -164,6 +230,7 @@ export default function EntryDetailScreen() {
             <Card padding="px-4 py-1">
               {entry.lines.map((line, index) => {
                 const came = line.receivedQty !== null && line.receivedQty !== line.qty;
+                const gap = line.systemQty !== null ? Math.round((line.qty - line.systemQty) * 100) / 100 : null;
 
                 return (
                   <View key={line.itemId}>
@@ -172,9 +239,18 @@ export default function EntryDetailScreen() {
                       <ItemAvatar item={{ kind: "STORE", name: line.name }} size={36} />
                       <View className="flex-1">
                         <Text variant="label">{line.name}</Text>
-                        {line.rate ? (
+                        {entry.kind === "COUNT" && line.systemQty !== null ? (
+                          <Text
+                            className={gap === 0 ? "text-success" : gap !== null && gap < 0 ? "text-destructive" : "text-warning"}
+                            variant="caption"
+                          >
+                            Book {formatQty(line.systemQty, line.unit)} ·{" "}
+                            {gap === 0 ? "matches" : `${formatQty(Math.abs(gap ?? 0), line.unit)} ${gap! < 0 ? "missing" : "extra"}`}
+                          </Text>
+                        ) : line.rate ? (
                           <Text variant="caption">
                             {formatMoney(line.rate)}/{unitLabel(line.unit)}
+                            {line.amount ? ` · ${formatMoney(line.amount)}` : ""}
                           </Text>
                         ) : null}
                         {came ? (
@@ -184,7 +260,9 @@ export default function EntryDetailScreen() {
                         ) : null}
                       </View>
                       <Text variant="label">
-                        {entry.kind === "COUNT" ? `Left ${formatQty(line.qty, line.unit)}` : formatQty(line.qty, line.unit)}
+                        {entry.kind === "COUNT"
+                          ? `Found ${formatQty(line.qty, line.unit)}`
+                          : formatPackQty(line.qty, line.unit, line)}
                       </Text>
                     </View>
                   </View>
@@ -193,13 +271,60 @@ export default function EntryDetailScreen() {
             </Card>
           </View>
 
+          {bill && bill.total !== null ? (
+            <Card className="gap-2">
+              <View className="flex-row items-center justify-between">
+                <Text variant="subtitle">Bill</Text>
+                {bill.status ? (
+                  <Badge
+                    label={STOCK_BILL_STATUS_LABELS[bill.status]}
+                    tone={bill.status === "PAID" ? "success" : bill.status === "PARTIAL" ? "warning" : "danger"}
+                  />
+                ) : null}
+              </View>
+              {bill.discount ? <FactRow label="Discount" value={`− ${formatMoney(bill.discount)}`} /> : null}
+              {bill.tax ? <FactRow label="VAT / tax" value={formatMoney(bill.tax)} /> : null}
+              <FactRow label="Total" value={formatMoney(bill.total)} />
+              <FactRow label="Paid" value={formatMoney(bill.paid ?? 0)} />
+              {bill.due ? <FactRow label="Still owed" value={formatMoney(bill.due)} /> : null}
+            </Card>
+          ) : null}
+
           <Card className="gap-2">
             <FactRow label="Date" value={bsDayLong(entry.on)} />
             {entry.supplier ? <FactRow label="Supplier" value={entry.supplier} /> : null}
-            {entry.amount ? <FactRow label="Bill" value={formatMoney(entry.amount)} /> : null}
+            {bill?.billNo ? <FactRow label="Bill no." value={bill.billNo} /> : null}
             <FactRow label="Added by" value={entry.mine ? "You" : entry.recordedByName} />
-            {entry.note ? <FactRow label="Note" value={entry.note} /> : null}
+            {entry.approvedByName && entry.kind === "COUNT" && entry.status === "DONE" ? (
+              <FactRow label="Approved by" value={entry.approvedByName} />
+            ) : null}
+            {entry.note ? <FactRow label={entry.kind === "COUNT" ? "Why different" : "Note"} value={entry.note} /> : null}
           </Card>
+
+          {bill?.supplierId && home.money ? (
+            <Button
+              label="Open supplier"
+              onPress={() => router.push({ params: { id: bill.supplierId! }, pathname: "/stock/supplier/[id]" })}
+              variant="outline"
+            />
+          ) : null}
+
+          {bill?.photoAssetId ? (
+            <Button
+              label="See bill photo"
+              onPress={() => openAssetViewer([{ assetId: bill.photoAssetId ?? undefined, caption: entry.supplier, title: "Bill" }])}
+              variant="outline"
+            />
+          ) : null}
+
+          {pendingCount && !entry.canApprove ? (
+            <View className="flex-row items-center gap-2 rounded-xl bg-muted px-3 py-2.5">
+              <Ionicons color={colors.mutedForeground} name="information-circle-outline" size={18} />
+              <Text className="flex-1" variant="caption">
+                The book changes only when the owner approves this count.
+              </Text>
+            </View>
+          ) : null}
 
           {isSend ? (
             <View className="gap-3">
@@ -245,17 +370,24 @@ export default function EntryDetailScreen() {
 
       <Sheet
         footer={
-          <Button label={isSend ? "Cancel Send" : "Cancel entry"} loading={busy} onPress={() => void cancel()} variant="danger" />
+          <Button
+            label={pendingCount && entry.canApprove ? "Turn down count" : isSend ? "Cancel Send" : "Cancel entry"}
+            loading={busy}
+            onPress={() => void cancel()}
+            variant="danger"
+          />
         }
         onClose={() => setCancelling(false)}
         open={cancelling}
-        title="Cancel this?"
+        title={pendingCount && entry.canApprove ? "Turn down this count?" : "Cancel this?"}
       >
         <View className="gap-3 pb-2">
           <Text variant="muted">
-            {entry.kind === "BUY" && entry.amount
-              ? "Its expense is cancelled too. Nothing is deleted — it stays in History as cancelled."
-              : "Nothing is deleted — it stays in History as cancelled."}
+            {pendingCount && entry.canApprove
+              ? "The book stays as it is. The person who counted sees your reason."
+              : entry.kind === "BUY" && entry.amount
+                ? "What was paid on it is cancelled in Money Out too, and the supplier is owed less. Nothing is deleted."
+                : "Nothing is deleted — it stays in History as cancelled."}
           </Text>
           <Input
             autoFocus

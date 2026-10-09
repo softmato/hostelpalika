@@ -21,12 +21,14 @@ import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { bsDayLong } from "@/lib/expenses";
-import { formatQty, type StockAt, type StockItem, type StockPlace } from "@/lib/stock-api";
+import { formatMoney } from "@/lib/format";
+import { formatQty, STOCK_UNIT_LABELS, type StockAt, type StockItem, type StockPlace } from "@/lib/stock-api";
 
 /**
- * One item (docs/INVENTORY_PLAN.md): **Overview** — what is left now and what
- * this month did to it, per building; **History** — every entry it was on;
- * **Settings** — the owner's name, kind, unit and low mark.
+ * One item (docs/INVENTORY_PLAN.md): **Overview** — what is left now, what it
+ * is worth, and this month as opening → in → out → closing, per building;
+ * **History** — every entry it was on; **Settings** — the owner's name, kind,
+ * unit, pack, low mark and where it is kept.
  */
 
 type Tab = "history" | "overview" | "settings";
@@ -89,6 +91,8 @@ export default function StockItemScreen() {
               <Text variant="title">{item.name}</Text>
               <Text variant="muted">
                 {item.kind === "STORE" ? "Store item" : "Daily item"}
+                {item.packUnit && item.packSize ? ` · 1 ${STOCK_UNIT_LABELS[item.packUnit].one} = ${formatQty(item.packSize, item.unit)}` : ""}
+                {item.location ? ` · ${item.location}` : ""}
                 {item.active ? "" : " · not buying any more"}
               </Text>
             </View>
@@ -130,7 +134,7 @@ function Overview({
   readOnly: boolean;
 }) {
   const many = item.at.length > 1;
-  const go = (pathname: "/stock/buy" | "/stock/count" | "/stock/send") =>
+  const go = (pathname: "/stock/buy" | "/stock/count" | "/stock/send" | "/stock/use") =>
     router.push({ params: { itemId: item.id }, pathname });
 
   return (
@@ -142,19 +146,30 @@ function Overview({
           <View className="gap-3" key={at.hostelId}>
             {many ? <Text variant="subtitle">{place?.name ?? "Hostel"}</Text> : null}
             {item.kind === "STORE" ? <LeftNow at={at} item={item} onEditLow={onEditLow} /> : null}
-            <ThisMonth at={at} item={item} residents={place?.residents ?? null} />
+            {item.kind === "STORE" ? (
+              <ThisMonth at={at} item={item} />
+            ) : (
+              <DailyMonth at={at} item={item} residents={place?.residents ?? null} />
+            )}
           </View>
         );
       })}
 
       {readOnly ? null : (
         <View className="flex-row gap-2">
+          {item.kind === "STORE" ? (
+            <View className="flex-1">
+              <Button label="Use" onPress={() => go("/stock/use")} />
+            </View>
+          ) : null}
           <View className="flex-1">
-            <Button label="Add" onPress={() => go("/stock/buy")} variant="outline" />
+            <Button label="Buy" onPress={() => go("/stock/buy")} variant="outline" />
           </View>
-          <View className="flex-1">
-            <Button label="Send" onPress={() => go("/stock/send")} variant="outline" />
-          </View>
+          {places.length > 1 ? (
+            <View className="flex-1">
+              <Button label="Send" onPress={() => go("/stock/send")} variant="outline" />
+            </View>
+          ) : null}
           {item.kind === "STORE" ? (
             <View className="flex-1">
               <Button label="Count" onPress={() => go("/stock/count")} variant="outline" />
@@ -184,6 +199,20 @@ function LeftNow({ at, item, onEditLow }: { at: StockAt; item: StockItem; onEdit
           <Text variant="label">{at.countedAt ? bsDayLong(at.countedAt.slice(0, 10)) : "Not counted yet"}</Text>
         </View>
       </View>
+      {item.avgCost !== null ? (
+        <View className="flex-row">
+          <View className="flex-1 gap-0.5">
+            <Text variant="caption">Worth</Text>
+            <Text variant="label">{formatMoney(Math.round(Math.max(0, at.left) * item.avgCost))}</Text>
+          </View>
+          <View className="flex-1 gap-0.5">
+            <Text variant="caption">Average cost</Text>
+            <Text variant="label">
+              {formatMoney(item.avgCost)} / {STOCK_UNIT_LABELS[item.unit].one}
+            </Text>
+          </View>
+        </View>
+      ) : null}
       <View className="flex-row items-center justify-between rounded-xl bg-muted px-3 py-2.5">
         <Text variant="muted">
           {item.lowAt !== null ? `Running low below ${formatQty(item.lowAt, item.unit)}` : "No low mark set"}
@@ -202,7 +231,34 @@ function LeftNow({ at, item, onEditLow }: { at: StockAt; item: StockItem; onEdit
   );
 }
 
-function ThisMonth({ at, item, residents }: { at: StockAt; item: StockItem; residents: number | null }) {
+/** The month as a ledger: what it started with, what came and went, what it ended with. */
+function ThisMonth({ at, item }: { at: StockAt; item: StockItem }) {
+  const gone = at.used + at.wasted + at.out + Math.max(0, -at.adjusted);
+  const came = at.in + Math.max(0, at.adjusted);
+
+  return (
+    <View className="gap-2">
+      <Text variant="subtitle">This month</Text>
+      <View className="flex-row gap-2">
+        <Tile label="Opening" value={formatQty(at.opening, item.unit)} />
+        <Tile label="In" value={`+${formatQty(came, item.unit)}`} />
+        <Tile label="Out" value={`−${formatQty(gone, item.unit)}`} />
+        <Tile label="Closing" value={formatQty(at.closing, item.unit)} />
+      </View>
+      <View className="flex-row flex-wrap gap-2">
+        {at.used > 0 ? <Tile label="Used" value={formatQty(at.used, item.unit)} /> : null}
+        {at.wasted > 0 ? <Tile danger label="Wasted" value={formatQty(at.wasted, item.unit)} /> : null}
+        {at.out > 0 ? <Tile label="Sent" value={formatQty(at.out, item.unit)} /> : null}
+        {at.adjusted < 0 ? <Tile danger label="Missing at count" value={formatQty(-at.adjusted, item.unit)} /> : null}
+        {at.adjusted > 0 ? <Tile label="Extra at count" value={formatQty(at.adjusted, item.unit)} /> : null}
+        {at.short > 0 ? <Tile danger label="Short on Send" value={formatQty(at.short, item.unit)} /> : null}
+      </View>
+    </View>
+  );
+}
+
+/** A daily item has no shelf: just what came, what went on, and so what was used. */
+function DailyMonth({ at, item, residents }: { at: StockAt; item: StockItem; residents: number | null }) {
   const perResident = residents && at.used > 0 ? formatQty(at.used / residents, item.unit) : null;
 
   return (
@@ -213,11 +269,10 @@ function ThisMonth({ at, item, residents }: { at: StockAt; item: StockItem; resi
         <Tile label="Sent out" value={formatQty(at.out, item.unit)} />
         <Tile label="Used" value={formatQty(at.used, item.unit)} />
       </View>
-      {perResident || at.short > 0 ? (
+      {perResident ? (
         <View className="flex-row gap-2">
-          {perResident ? <Tile label="Per resident" value={`${perResident} each`} /> : null}
+          <Tile label="Per resident" value={`${perResident} each`} />
           {residents ? <Tile label="Residents" value={String(residents)} /> : null}
-          {at.short > 0 ? <Tile danger label="Short" value={formatQty(at.short, item.unit)} /> : null}
         </View>
       ) : null}
     </View>
@@ -226,7 +281,7 @@ function ThisMonth({ at, item, residents }: { at: StockAt; item: StockItem; resi
 
 function Tile({ danger = false, label, value }: { danger?: boolean; label: string; value: string }) {
   return (
-    <View className={`flex-1 gap-0.5 rounded-2xl px-3 py-2.5 ${danger ? "bg-destructive-soft" : "bg-muted"}`}>
+    <View className={`min-w-[22%] flex-1 gap-0.5 rounded-2xl px-3 py-2.5 ${danger ? "bg-destructive-soft" : "bg-muted"}`}>
       <Text variant="caption">{label}</Text>
       <Text className={danger ? "text-destructive" : "text-foreground"} numberOfLines={1} variant="label">
         {value}

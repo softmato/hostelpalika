@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-/** Bought, Send or Count. `201` new; `200` when `clientRequestId` matched one already saved. */
+/** Bought, Opening stock, Used, Wasted, Send or Count. `201` new; `200` when `clientRequestId` matched one already saved. */
 export async function POST(request: NextRequest) {
   try {
     const principal = await requireHostelCapability(request, "manageStock");

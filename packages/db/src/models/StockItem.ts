@@ -20,7 +20,15 @@ const stockItemSchema = new Schema(
     kind: { default: "STORE", enum: ["STORE", "DAILY"], required: true, type: String },
     /** A built-in expense category key the Bought amount is filed under. */
     category: { default: "GROCERIES", type: String },
-    /** A building's Left below this is shown as low. `null` never warns. */
+    /**
+     * The pack it is usually bought in: `SACK` of `25` (kg). Stock is always kept
+     * in `unit`; a line entered in packs is multiplied out on Save.
+     */
+    packUnit: { default: null, type: String },
+    packSize: { default: null, min: 0, type: Number },
+    /** Where it is kept: "Store room", "Kitchen shelf". */
+    location: { maxlength: 40, trim: true, type: String },
+    /** A building's Left below this is shown as low, and a push goes out once. `null` never warns. */
     lowAt: { default: null, min: 0, type: Number },
     active: { default: true, type: Boolean },
 

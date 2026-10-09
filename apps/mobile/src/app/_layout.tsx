@@ -485,6 +485,7 @@ function RootShell() {
         <Stack.Screen name="expenses/new" />
         {/* Stock — Bought, Send, Count across the main hostel and its branches (docs/INVENTORY_PLAN.md). */}
         <Stack.Screen name="stock/index" />
+        <Stack.Screen name="stock/use" />
         <Stack.Screen name="stock/buy" />
         <Stack.Screen name="stock/send" />
         <Stack.Screen name="stock/count" />
@@ -492,6 +493,9 @@ function RootShell() {
         <Stack.Screen name="stock/item/[id]" />
         <Stack.Screen name="stock/entry/[id]" />
         <Stack.Screen name="stock/receive/[id]" />
+        <Stack.Screen name="stock/suppliers" />
+        <Stack.Screen name="stock/supplier/[id]" />
+        <Stack.Screen name="stock/reports" />
         {/* Overall: one subject over every branch, from the Overall Home's tiles. */}
         <Stack.Screen name="overall/[topic]" />
         <Stack.Screen name="manage/existing-residents" />

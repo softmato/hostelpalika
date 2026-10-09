@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { type FoldEntry, foldStock } from "./stock-balance";
+import { type FoldEntry, foldStock, supplierLedger } from "./stock-balance";
 
 const MAIN = "main";
 const BRANCH = "branch";
@@ -19,7 +19,7 @@ function entry(partial: Partial<FoldEntry> & Pick<FoldEntry, "kind" | "lines">):
   return {
     createdAt: new Date(clock * 1000),
     hostelId: MAIN,
-    inPeriod: true,
+    when: "in",
     receivedAt: null,
     status: partial.kind === "SEND" ? "PENDING" : "DONE",
     toHostelId: null,
@@ -27,14 +27,21 @@ function entry(partial: Partial<FoldEntry> & Pick<FoldEntry, "kind" | "lines">):
   };
 }
 
-const line = (itemId: string, qty: number, receivedQty: number | null = null) => ({
+const line = (
+  itemId: string,
+  qty: number,
+  receivedQty: number | null = null,
+  extra: { rate?: number; systemQty?: number } = {},
+) => ({
   itemId,
   qty,
+  rate: extra.rate ?? null,
   receivedQty,
+  systemQty: extra.systemQty ?? null,
 });
 
 describe("foldStock", () => {
-  it("answers how much went where, and what a Count says was used", () => {
+  it("answers how much went where, and what an old Count found missing", () => {
     const entries = [
       entry({ kind: "BUY", lines: [line(RICE, 200)] }),
       entry({ kind: "SEND", lines: [line(RICE, 60, 58)], receivedAt: new Date(10_000), status: "RECEIVED", toHostelId: BRANCH }),
@@ -44,12 +51,12 @@ describe("foldStock", () => {
     ];
 
     const result = foldStock(entries, kinds, [MAIN, BRANCH]);
-    const main = result.get(RICE)!.get(MAIN)!;
-    const branch = result.get(RICE)!.get(BRANCH)!;
+    const main = result.byItem.get(RICE)!.get(MAIN)!;
+    const branch = result.byItem.get(RICE)!.get(BRANCH)!;
 
     expect(main).toMatchObject({ bought: 200, in: 200, left: 120, out: 80 });
-    // 58 came of 60; 20 still in the jeep; the count found 18 gone.
-    expect(branch).toMatchObject({ counted: 40, in: 58, left: 40, onWay: 20, short: 2, used: 18 });
+    // 58 came of 60; 20 still in the jeep; the count (no book figure: it sets the Left) found 18 gone.
+    expect(branch).toMatchObject({ adjusted: -18, counted: 40, in: 58, left: 40, onWay: 20, short: 2 });
   });
 
   it("puts goods in a branch's store only once Got it is tapped", () => {
@@ -57,7 +64,7 @@ describe("foldStock", () => {
     const count = entry({ hostelId: BRANCH, kind: "COUNT", lines: [line(RICE, 10)] });
     const received = { ...send, receivedAt: new Date(count.createdAt.getTime() + 1), status: "RECEIVED" as const };
 
-    const branch = foldStock([received, count], kinds, [BRANCH]).get(RICE)!.get(BRANCH)!;
+    const branch = foldStock([received, count], kinds, [BRANCH]).byItem.get(RICE)!.get(BRANCH)!;
 
     // Counted 10 while the sack was on the way, then it arrived.
     expect(branch).toMatchObject({ left: 35, used: 0 });
@@ -70,20 +77,78 @@ describe("foldStock", () => {
     ];
     const result = foldStock(entries, kinds, [MAIN, BRANCH]);
 
-    expect(result.get(VEG)!.get(MAIN)!.used).toBe(6);
-    expect(result.get(VEG)!.get(BRANCH)!.used).toBe(4);
+    expect(result.byItem.get(VEG)!.get(MAIN)!.used).toBe(6);
+    expect(result.byItem.get(VEG)!.get(BRANCH)!.used).toBe(4);
   });
 
   it("leaves another month's entries out of the month's figures but not out of Left", () => {
-    const entries = [entry({ inPeriod: false, kind: "BUY", lines: [line(RICE, 50)] })];
-    const main = foldStock(entries, kinds, [MAIN]).get(RICE)!.get(MAIN)!;
+    const entries = [
+      entry({ kind: "BUY", lines: [line(RICE, 50)], when: "before" }),
+      entry({ kind: "USE", lines: [line(RICE, 10)] }),
+      entry({ kind: "BUY", lines: [line(RICE, 30)], when: "after" }),
+    ];
+    const main = foldStock(entries, kinds, [MAIN]).byItem.get(RICE)!.get(MAIN)!;
 
-    expect(main).toMatchObject({ bought: 0, left: 50 });
+    // Opening 50, used 10 → closing 40; the later Bought is in Left only.
+    expect(main).toMatchObject({ bought: 0, closing: 40, left: 70, opening: 50, used: 10 });
   });
 
   it("does not show a building it was not asked about", () => {
     const entries = [entry({ kind: "SEND", lines: [line(RICE, 5)], toHostelId: BRANCH })];
 
-    expect(foldStock(entries, kinds, [BRANCH]).get(RICE)!.has(MAIN)).toBe(false);
+    expect(foldStock(entries, kinds, [BRANCH]).byItem.get(RICE)!.has(MAIN)).toBe(false);
+  });
+
+  it("values what went out at the weighted average cost of the moment", () => {
+    const entries = [
+      entry({ kind: "BUY", lines: [line(RICE, 100, null, { rate: 80 })] }),
+      entry({ kind: "USE", lines: [line(RICE, 50)] }),
+      // 50 left at 80, 50 more at 110 → average 95.
+      entry({ kind: "BUY", lines: [line(RICE, 50, null, { rate: 110 })] }),
+      entry({ kind: "WASTE", lines: [line(RICE, 10)] }),
+    ];
+    const result = foldStock(entries, kinds, [MAIN]);
+    const main = result.byItem.get(RICE)!.get(MAIN)!;
+
+    expect(result.avgCost.get(RICE)).toBe(95);
+    expect(main).toMatchObject({ boughtValue: 13_500, left: 90, used: 50, usedValue: 4_000, wasted: 10, wastedValue: 950 });
+  });
+
+  it("applies a Count as the gap from the book, and only once approved", () => {
+    const entries = [
+      entry({ kind: "OPENING", lines: [line(RICE, 40)] }),
+      // Counted 35 when the book said 40, then 5 more were used before approval.
+      entry({ kind: "COUNT", lines: [line(RICE, 35, null, { systemQty: 40 })] }),
+      entry({ kind: "USE", lines: [line(RICE, 5)] }),
+      entry({ kind: "COUNT", lines: [line(RICE, 1, null, { systemQty: 30 })], status: "PENDING" }),
+    ];
+    const main = foldStock(entries, kinds, [MAIN]).byItem.get(RICE)!.get(MAIN)!;
+
+    expect(main).toMatchObject({ adjusted: -5, closing: 30, counted: 35, in: 40, left: 30, used: 5 });
+  });
+});
+
+describe("supplierLedger", () => {
+  const day = (n: number) => new Date(Date.UTC(2026, 9, n));
+
+  it("runs a balance through bills and payments, skipping cancelled ones", () => {
+    const ledger = supplierLedger(
+      1_000,
+      [
+        { createdAt: day(2), id: "b1", on: day(2), paid: 2_000, status: "DONE", total: 5_000 },
+        { createdAt: day(3), id: "b2", on: day(3), paid: 0, status: "CANCELLED", total: 9_999 },
+        { createdAt: day(6), id: "b3", on: day(6), paid: 0, status: "DONE", total: 1_500 },
+      ],
+      [{ amount: 3_000, createdAt: day(4), id: "p1", on: day(4), status: "DONE" }],
+      day(1),
+    );
+
+    expect(ledger.rows.map((row) => [row.id, row.balance])).toEqual([
+      ["opening", 1_000],
+      ["b1", 4_000],
+      ["p1", 1_000],
+      ["b3", 2_500],
+    ]);
+    expect(ledger).toMatchObject({ billed: 6_500, due: 2_500, paid: 5_000 });
   });
 });

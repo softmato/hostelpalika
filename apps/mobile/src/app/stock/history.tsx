@@ -16,7 +16,7 @@ import { SkeletonRows } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 
 /**
- * History — every Bought, Send, Got it and Count, month by month
+ * History — every Bought, Used, Wasted, Send, Got it and Count, month by month
  * (docs/INVENTORY_PLAN.md). Filter chips across the top; each row opens the
  * entry.
  */

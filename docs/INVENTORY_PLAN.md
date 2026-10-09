@@ -1,9 +1,9 @@
 # Inventory (Stock) — plan
 
-**Created 2026-10-05.** An owner with a main hostel and branches buys rice, daal,
-oil and utensils in bulk and vegetables daily, then splits them between buildings
-by hand. Nobody can say afterwards how much went where. This feature records the
-three moments goods physically move — and never the cooking.
+**Created 2026-10-05. Rebuilt as a stock ledger 2026-10-09.** A hostel buys rice,
+daal, oil, gas and cleaning goods in bulk and vegetables daily, from a handful of
+shops, often on credit. The owner needs to answer four questions at any time:
+*what is in the store, what is it worth, where did it go, and who do we owe.*
 
 This file is the tracker. Work at the first unticked box; `[x]` means *seen
 working*, not *file created*. **[server]** `apps/web` API, **[app]** `apps/mobile`
@@ -15,66 +15,78 @@ working*, not *file created*. **[server]** `apps/web` API, **[app]** `apps/mobil
 
 | Question | Decision |
 |---|---|
-| What is recorded | **Bought** (goods arrived), **Send** (carried to another building), **Count** (what is left). Daily use is never recorded — it is worked out at each Count. |
-| Two kinds of item | **Store** (long use: rice, daal, oil, gas, utensils) keeps a *Left* and is counted. **Daily** (vegetables, meat, milk) is used the same day: no *Left*, no Count. |
-| Where goods land | Wherever they arrive. Defaults to the main hostel; whoever records it picks the building. No separate godown. |
-| A Send counts when | The receiving building taps **Got it** (or types what actually came). Until then it is *on the way*. The owner can confirm for a branch with no warden. |
-| Money | A Bought with an amount writes **one Expense** in the hostel the recorder is working in — the same row Money Out shows. Sending never moves money between branches; Overall shows the whole group. |
-| Who | Owner: the building picked in the switcher (every building only in Overall, read-only). Warden: only with the new `manageStock` permission, only their building, but can Send to any building in the group. Cook: not in this round. |
-| Plan | Listed as **Inventory Management** under Food & Kitchen on **Max**. Not gated on the server — no other plan service is. |
-| Look | **Simplified 2026-10-07 for staff who read little:** the home is two big buttons (**Add stock**, **Send**) over the list of what is in store; Count and History are icons in the bar. Add stock is one screen of lines — name, quantity, price — where a new name becomes an item on Save (store or daily guessed from the name) and the prices make the expense. Send is one screen: tap the building, write how much beside each item. Emoji item pictures on the muted ground, palette colours only. |
+| The model | **A ledger, not a quantity field.** Every change is a movement row; what is left is their sum. Nothing is edited — a mistake is cancelled with a reason and stays in History. |
+| Movements | **In:** Bought (a bill), Opening stock. **Out:** Used (for Kitchen / Staff / Student / Other), Wasted (Spoiled / Expired / Damaged / Other), Send to another building. **Adjust:** an approved Count — what was found minus what the book said at that moment. |
+| Two kinds of item | **Store** (rice, daal, oil, gas, cleaning) is used, wasted and counted. **Daily** (vegetables, meat, milk) is used the day it comes: no Left, no Use entry, no Count. |
+| A bill | One row: supplier, bill no., date, photo, lines (qty + price), discount, VAT, total, paid. Saving it is one write, so the stock and the supplier's due never disagree. |
+| Money | What was **paid** on a bill writes one Expense (Money Out). The rest is **owed to the supplier**. Each later payment to a supplier writes its own Expense. Cancelling a bill or payment voids its expense. Money Out is cash that left; the supplier ledger is what is still owed. |
+| Supplier balance | `opening due + Σ(bill total − paid on bill) − Σ payments`. Derived on every read, never stored. Running balance per supplier, newest first. |
+| Cost | **Weighted average**, per item across the group. Only a priced Bought or Opening moves it. Every movement out is valued at the average *at that moment*. |
+| Packs | An item may have one pack: `1 sack = 25 kg`. Stock is always kept in the item's own unit; a line typed in packs is multiplied out on Save and remembers it was `2 sacks`. |
+| Counts | Shows `Book says 40 kg · 2 kg missing` as you type. A different count needs a reason. The owner's count (or a warden with **Approve stock counts**) corrects the book at once; anyone else's waits for approval and the approver gets a push. |
+| Low stock | A push to the owner and the building's stock wardens the moment an item **crosses** below its low mark — not on every Use after. |
+| Who | **Storekeeper** — a warden with `manageStock`: Buy, Use, Waste, Send, Count, add items and suppliers. **Money** — owner, or a warden with Add expenses: sees prices, values and dues; pays suppliers. **Approver** — owner, or a warden with `approveStockCount`. A storekeeper without money rights never sees a price. |
+| Where | Items and suppliers belong to the **group** (main hostel + branches). Movements belong to a building; the switcher picks it. Overall reads every building and writes nothing. |
+| Balances | Folded from movements on every read (`stock-balance.ts`), the warden cash box's rule — so they can always be rebuilt. The fold is in memory; past ~20k entries per group, move it into a Mongo aggregation. |
+| Look | Black, white, green. Home: a green header with **Stock value · Items · Running low** on a card straddling it; one grid of job tiles (**Use · Buy · Waste · Count · Send · Suppliers · Reports · Opening**); then what is waiting, then running low, then everything grouped by category with the heading outside the card. Use is built to take five seconds: most-used items are tiles, a tap focuses the box, `+1 / +5 / +1 sack` do the typing. |
 
 ## 2. Words (A1 English)
 
-Use: **Stock · Bought · Send · Got it · Count · Left · On the way · Used · Short**.
-Never: inventory ledger, transfer, reconcile, consumption, variance.
+Use: **Stock · Buy · Bill · Use · Waste · Count · Send · Got it · Left · Supplier · Owed · Paid · Part paid · Not paid · Running low · Missing · Extra**.
+Never: inventory ledger, issue, transfer, reconcile, consumption, variance, payable.
 
 ## 3. Data
 
-- `StockItem` — per group (main hostel id): name, unit, kind (`STORE`/`DAILY`),
-  `lowAt`, `active`. Shared by the main hostel and every branch.
-- `StockEntry` — one per tap of Save: kind (`BUY`/`SEND`/`COUNT`), building,
-  `toHostelId` (Send), BS day, `lines[{ itemId, name, unit, qty, rate, receivedQty }]`, `supplier` (Bought),
-  status (`DONE`/`PENDING`/`RECEIVED`/`CANCELLED`), optional `expenseId`.
-  Never deleted — cancelled with a reason; cancelling a Bought voids its expense.
-- **Balances are derived, never stored** (same rule as the warden cash box):
-  per item per building, fold the entries in time order — Bought +, Send out −,
-  Got it +received, Count sets it. *Used* is what a Count found missing.
+- `StockItem` — per group: name, unit, kind (`STORE`/`DAILY`), category (Money Out
+  group), `packUnit` + `packSize`, `location`, `lowAt`, `active`.
+- `StockSupplier` — per group: name, phone, `openingDue`, note, `active`.
+- `StockEntry` — one per Save: kind (`BUY`/`OPENING`/`USE`/`WASTE`/`SEND`/`COUNT`),
+  building, `toHostelId` (Send), BS day, `lines[{ itemId, name, unit, qty, rate,
+  packQty, packUnit, systemQty (Count), receivedQty (Send) }]`, bill fields
+  (`supplierId`, `billNo`, `photoAssetId`, `discount`, `tax`, `total`, `paid`,
+  `expenseId`), `useFor`, `wasteReason`, status (`DONE`/`PENDING`/`RECEIVED`/
+  `CANCELLED`), approval and cancel trail, `clientRequestId`.
+- `StockPayment` — per group: supplier, building paid from, amount, day, paid by,
+  note, `expenseId`, status, `clientRequestId`.
+- Old Bought rows (only `amount`) read as fully paid; old Counts (no `systemQty`)
+  set the Left at their time, as before.
 
 ## 4. Tracker
 
-**2026-10-05:** every Server, App and Web item below is code-complete, typechecked,
-linted, and the web (3,272) and app (1,509) suites pass. None has been *seen
-working* against a database or on a device yet, so only the unit test is ticked;
-the rest tick after the device pass in "After shipping".
+**2026-10-09:** the ledger rebuild is code-complete, typechecked and linted on
+server, app and web; the fold and supplier-ledger unit tests pass (8 cases).
+Nothing below has been *seen working* against a database or on a device yet.
 
-### Server
-- [ ] Shared units/kinds in `packages/shared/src/expenses/stock.ts` (already aliased into Metro)
-- [ ] `StockItem` + `StockEntry` models, indexes
-- [ ] `manageStock` warden permission (validation, web + app warden forms)
-- [ ] `stock.service.ts`: home read, add/edit item, entry (Bought/Send/Count), Got it, cancel
-- [ ] Routes under `/api/v1/hostel-admin/stock`
-- [ ] Notifications: Send → receiving building; Got it → sender
-- [x] Unit test for the balance fold (`stock-balance.test.ts`, 5 cases)
-- [ ] Plan service `inventory-management` (Max) + explainer
-
-### App
-- [ ] `lib/stock-api.ts`
-- [ ] `/stock` — Got it card, Add stock / Send buttons, In store list (Count and History in the bar)
-- [ ] `/stock/buy` (Add stock: name · quantity · price lines) · `/stock/send` (building + quantities, one screen) · `/stock/count`
-- [ ] `/stock/receive/[id]` (Got it) · `/stock/entry/[id]` (details, Send timeline, Cancel) · `/stock/item/[id]` (Overview · History · Settings) · `/stock/history`
-- [ ] Manage grid tile + More row
-
-### Web
-- [ ] `/hostel-admin/stock` page + nav entry
+### Phase 1 — the ledger (built)
+- [x] Fold: opening → in → out → closing, used / wasted / adjusted, weighted average cost (`stock-balance.test.ts`)
+- [x] Supplier running balance (`stock-balance.test.ts`)
+- [ ] [server] Bills with supplier, discount, VAT, paid; paid part → one Expense; rest owed
+- [ ] [server] Use / Waste; Opening stock (owner); Count with book figure, reason, approval
+- [ ] [server] Suppliers: add, edit, ledger read; payments + cancel (each an Expense)
+- [ ] [server] Low-stock push on crossing; Count-to-approve push; approved / turned down push
+- [ ] [server] `approveStockCount` warden permission (validation, web + app warden forms)
+- [ ] [app] Home (value card, job tiles, waiting, running low, by category)
+- [ ] [app] `/stock/use` (Use + Waste), `/stock/buy` (bill + Opening), `/stock/count`
+- [ ] [app] `/stock/suppliers`, `/stock/supplier/[id]` (ledger, Pay, edit, cancel payment)
+- [ ] [app] `/stock/reports` (cost per student per day, spent from store, by category, by supplier, item ledger, share as CSV)
+- [ ] [app] Entry details: bill money and photo, Count book vs shelf, Approve / Turn down
+- [ ] [web] Stock page: all movements, bill form, counts to approve, suppliers + Pay, value columns, CSV export
 
 ### After shipping
-- [ ] `npm run db:indexes -w apps/web` against prod (StockEntry's unique `clientRequestId` index is what makes a retried Save safe)
-- [ ] Superadmin adds the *Inventory Management* service in Website Config → Plans (the stored catalogue replaces the defaults)
-- [ ] Owner turns on **Stock** for each existing warden (only new wardens get it by default)
-- [ ] [device] Bought → Send → Got it → Count on two buildings
+- [ ] `npm run db:indexes -w apps/web` against prod — `StockPayment`'s unique `clientRequestId` index is what makes a retried Pay safe
+- [ ] Owner gives **Approve stock counts** to a senior warden where they want one
+- [ ] [device] Buy on credit → Use → Count (warden) → Approve (owner) → Pay supplier → Reports
 
-## 5. Later (not built, on purpose)
+### Phase 2 — needs Phase 1 seen working first
+- Return to supplier (goods out, supplier owed less)
+- Returnable items (water jars): full and empty tracked apart, deposit held by the vendor
+- Edit a bill's prices after the storekeeper saved it without them
+- PDF export of the reports; Excel file rather than CSV
+- Month-end Count reminder push
 
-Pack sizes (1 sack = 25 kg) · cook sees stock / "Running low" · low-stock push ·
-month-end Count reminder · a delivered Supply Store order adds itself as Bought.
+### Phase 3 — needs Phase 2 and real usage numbers
+- Expected use from meals (students present × per-head norm) against what was used, flagging the gap
+- Expiry and batches (would move valuation to FIFO for those items)
+- Purchase orders and requisitions
+- Bill OCR
+- Multi-hostel dashboard across separate groups
