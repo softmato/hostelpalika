@@ -17,9 +17,9 @@
  * the net balance. Voided expenses are not on the wire — the server leaves them
  * out — because a cancelled expense never moved any money.
  *
- * Expenses arrive only for the owner (`AdminLedger.expenses` is `null` for a
- * warden), the same line the expenses screen draws, so a warden's statement is
- * still credits only.
+ * The owner receives every expense; a warden receives the ones they recorded or
+ * were handed — the same line the expenses screen draws — so a warden's
+ * statement carries their debits too.
  *
  * An invoice that is merely *raised* is absent. That is deliberate and
  * it is the difference between this screen and the Money tab: Money answers "who

@@ -27,22 +27,23 @@ const querySchema = z.object({
 
 /**
  * The hostel statement between two BS months as a bank-style PDF — every
- * credit (rent received) and, for the owner, every debit (expense recorded),
+ * credit (rent received) and every debit the reader may see (expense recorded),
  * numbered, with a running balance and the totals under it.
  *
  * Same read and the same rule as `finance/invoices/ledger`: `viewPayments`,
- * and expenses only for the owner. Both ends default to this month.
+ * and a warden sees only their own expenses. Both ends default to this month.
  */
 export async function GET(request: NextRequest) {
   try {
     const principal = await requireHostelCapability(request, "viewPayments");
     const query = querySchema.parse(Object.fromEntries(request.nextUrl.searchParams.entries()));
     const hostelId = resolveAdminHostelId(principal, query.hostelId);
-    const expensesFor = principal.role === Role.HOSTEL_ADMIN ? principal.userId : undefined;
+    const expensesFor = principal.userId;
+    const expensesMineOnly = principal.role !== Role.HOSTEL_ADMIN;
     const thisMonth = currentBsPeriod();
 
     const [ledger, hostel] = await Promise.all([
-      getHostelLedger(hostelId, { expensesFor }),
+      getHostelLedger(hostelId, { expensesFor, expensesMineOnly }),
       HostelModel.findById(hostelId).select("name").lean<{ name?: string } | null>(),
     ]);
     const statement = buildStatement(ledger, query.from ?? thisMonth, query.to ?? query.from ?? thisMonth);

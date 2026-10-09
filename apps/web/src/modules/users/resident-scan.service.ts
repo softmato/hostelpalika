@@ -13,6 +13,7 @@ import {
   resolvePlatformIdCard,
 } from "@/modules/users/resident-identity.service";
 import type { ResidentProfileData } from "@/modules/users/resident-identity.validation";
+import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { ComplaintModel } from "@hostel/db/models/Complaint";
 import { EmergencyContactModel } from "@hostel/db/models/EmergencyContact";
@@ -20,7 +21,6 @@ import { FileAssetModel } from "@hostel/db/models/FileAsset";
 import { GuardianModel } from "@hostel/db/models/Guardian";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { NightStatusModel } from "@hostel/db/models/NightStatus";
-import { NotificationModel } from "@hostel/db/models/Notification";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { UserModel } from "@hostel/db/models/User";
 import { UserResidentProfileModel } from "@hostel/db/models/UserResidentProfile";
@@ -356,15 +356,13 @@ export async function scanResidentForHostel(
     });
 
     if (!repeat) {
-      await NotificationModel.create({
+      await createInAppNotification({
         body: "A hostel scanned your ID card and read your profile. If that was not you, turn sharing off from your ID card screen.",
         category: "ACCOUNT",
-        channel: "IN_APP",
         data: { residentId },
-        ...(hostelId ? { hostelId } : {}),
-        status: "SENT",
+        ...(hostelId ? { hostelId: hostelId.toString() } : {}),
         title: "Your ID card was scanned",
-        userId: user._id,
+        userId: user._id.toString(),
       }).catch(() => null);
     }
   }

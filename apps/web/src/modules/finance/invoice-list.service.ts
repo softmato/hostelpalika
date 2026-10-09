@@ -689,8 +689,8 @@ export type HostelLedger = {
   entries: HostelLedgerEntry[];
   /**
    * Money out — the hostel's recorded expenses, newest first, so the statement
-   * can show debits beside credits. `null` when the reader may not see the
-   * hostel's spending (anyone but the owner), which is not the same as `[]`.
+   * can show debits beside credits. The owner gets every expense; a warden gets
+   * the ones they recorded or were handed. `null` only when no reader was named.
    */
   expenses: ExpenseRow[] | null;
   /** True when the ledger hit {@link LEDGER_LIMIT} and older rows were dropped. */
@@ -725,7 +725,7 @@ const LEDGER_LIMIT = 5000;
  */
 export async function getHostelLedger(
   hostelId: Types.ObjectId | string,
-  options: { expensesFor?: string } = {},
+  options: { expensesFor?: string; expensesMineOnly?: boolean } = {},
 ): Promise<HostelLedger> {
   await connectToDatabase();
 
@@ -733,7 +733,7 @@ export async function getHostelLedger(
   const [invoices, spent] = await Promise.all([
     listRecentInvoices({ hostelId, residentIds }, LEDGER_LIMIT),
     options.expensesFor
-      ? listLedgerExpenses(hostelId, options.expensesFor, LEDGER_LIMIT)
+      ? listLedgerExpenses(hostelId, options.expensesFor, LEDGER_LIMIT, options.expensesMineOnly)
       : Promise.resolve(null),
   ]);
 

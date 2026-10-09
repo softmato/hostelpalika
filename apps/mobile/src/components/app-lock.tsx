@@ -99,6 +99,19 @@ const lockGuard = appLockNative?.setGuard ? (appLockNative as LockGuard) : null;
 let coldStart = true;
 /** "Remind me later" lasts until the app is next opened from cold. */
 let offerDismissed = false;
+const offerListeners = new Set<() => void>();
+
+/** The push offer waits for this one to be answered, so two sheets never stack. */
+export function subscribeToLockOffer(listener: () => void) {
+  offerListeners.add(listener);
+  return () => {
+    offerListeners.delete(listener);
+  };
+}
+
+export function isLockOfferDismissed() {
+  return offerDismissed;
+}
 /** The lock on screen was raised by a sign-in, not a cold open or a return. */
 let signInLock = false;
 /** That lock was opened with the PIN, and biometric is off here: ask once. */
@@ -331,7 +344,7 @@ function PinPad({
 }
 
 /** The tinted icon, one line and the line under it — the head of every lock step. */
-function StepHeading({
+export function StepHeading({
   icon: Icon,
   subtitle,
   title,
@@ -1042,6 +1055,7 @@ export function AppLockOffer() {
   function later() {
     offerDismissed = true;
     setOpen(false);
+    offerListeners.forEach((listener) => listener());
   }
 
   const dispatch = useAppDispatch();

@@ -25,8 +25,8 @@ const querySchema = z.object({
  *
  * **Reads never bill.** Same rule as the matrix.
  *
- * For the owner it also carries the hostel's recorded expenses, so the
- * statement shows money out (debits) beside money in.
+ * It also carries the recorded expenses (all for the owner, a warden's own for
+ * a warden), so the statement shows money out (debits) beside money in.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -36,11 +36,13 @@ export async function GET(request: NextRequest) {
     );
     const hostelId = resolveAdminHostelId(principal, query.hostelId);
 
-    // Expenses ride along for the owner only — the same line the expenses
-    // screen draws, where a warden sees just the rows they added themselves.
-    const expensesFor = principal.role === Role.HOSTEL_ADMIN ? principal.userId : undefined;
+    // Expenses ride along so the statement shows debits too — every one for the
+    // owner, and for a warden the rows they added or were handed, the same line
+    // the expenses screen draws.
+    const expensesFor = principal.userId;
+    const expensesMineOnly = principal.role !== Role.HOSTEL_ADMIN;
 
-    return successResponse(await getHostelLedger(hostelId, { expensesFor }), "Transactions");
+    return successResponse(await getHostelLedger(hostelId, { expensesFor, expensesMineOnly }), "Transactions");
   } catch (error) {
     return handleRouteError(error);
   }

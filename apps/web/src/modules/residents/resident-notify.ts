@@ -108,6 +108,8 @@ export async function resolveResidentContact(resident: {
  */
 export async function resolveHostelStaffUserIds(
   hostelId: Types.ObjectId | string,
+  /** `adminsOnly` drops the wardens: the owner and `HOSTEL_ADMIN` members only. */
+  options: { adminsOnly?: boolean } = {},
 ): Promise<string[]> {
   const hostel = await HostelModel.findOne({ _id: hostelId })
     .select("ownerId")
@@ -116,7 +118,7 @@ export async function resolveHostelStaffUserIds(
   const members = await HostelMemberModel.find({
     hostelId,
     isDeleted: { $ne: true },
-    role: { $in: [Role.HOSTEL_ADMIN, Role.WARDEN] },
+    role: { $in: options.adminsOnly ? [Role.HOSTEL_ADMIN] : [Role.HOSTEL_ADMIN, Role.WARDEN] },
     status: "ACTIVE",
   }).lean<{ userId: Types.ObjectId }[]>();
 

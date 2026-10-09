@@ -4,6 +4,7 @@ import {
   appUrl,
   getHostelName,
   resolveHostelAdminContacts,
+  resolveHostelStaffUserIds,
   resolveResidentContact,
   sendNotificationEmail,
 } from "@/modules/residents/resident-notify";
@@ -23,6 +24,74 @@ import { gatewayUnhealthyEmail } from "@hostel/shared/email/templates/payment/ga
 import { paymentRejectedEmail } from "@hostel/shared/email/templates/payment/payment-rejected";
 import { paymentReversedEmail } from "@hostel/shared/email/templates/payment/payment-reversed";
 import { paymentVerifiedEmail } from "@hostel/shared/email/templates/payment/payment-verified";
+
+/**
+ * Tell the owner (and `HOSTEL_ADMIN` members) what a warden just did with money —
+ * an expense recorded, a resident's payment taken. Bell row and push in one
+ * call, never the actor themselves, and never allowed to fail the write.
+ */
+export async function notifyHostelAdmins(input: {
+  actionUrl: string;
+  body: string;
+  data: Record<string, string>;
+  exceptUserId?: string;
+  hostelId: Types.ObjectId | string;
+  title: string;
+}): Promise<void> {
+  try {
+    const admins = await resolveHostelStaffUserIds(input.hostelId, { adminsOnly: true });
+
+    await Promise.all(
+      admins
+        .filter((userId) => userId !== input.exceptUserId)
+        .map((userId) =>
+          createInAppNotification({
+            actionUrl: input.actionUrl,
+            body: input.body,
+            category: "PAYMENT",
+            data: input.data,
+            hostelId: input.hostelId.toString(),
+            kind: "NORMAL",
+            title: input.title,
+            userId,
+          }),
+        ),
+    );
+  } catch (error) {
+    console.warn(
+      JSON.stringify({
+        action: "hostel_admin_notification_failed",
+        level: "warn",
+        message: error instanceof Error ? error.message : "Unknown notification error",
+        type: input.data.type,
+      }),
+    );
+  }
+}
+
+/** A warden took a resident's payment (cash, or approving their proof): tell the owner. */
+export async function notifyAdminsOfStaffSettlement(input: {
+  amount: number;
+  eventId: string;
+  hostelId: Types.ObjectId;
+  residentId: Types.ObjectId;
+  staffUserId: string;
+}): Promise<void> {
+  const resident = await ResidentModel.findById(input.residentId)
+    .select("firstName lastName")
+    .lean<{ firstName?: string; lastName?: string } | null>()
+    .catch(() => null);
+  const name = `${resident?.firstName ?? ""} ${resident?.lastName ?? ""}`.trim() || "A resident";
+
+  await notifyHostelAdmins({
+    actionUrl: "/hostel-admin/payments",
+    body: `A warden accepted NPR ${input.amount.toLocaleString("en-US")} from ${name}.`,
+    data: { eventId: input.eventId, type: "STAFF_PAYMENT_ACCEPTED" },
+    exceptUserId: input.staffUserId,
+    hostelId: input.hostelId,
+    title: "Payment accepted",
+  });
+}
 
 /**
  * Tell the hostel's admins a claim is waiting (target §11.4, plan item 2.8).
@@ -46,7 +115,11 @@ export async function notifyAdminsOfClaim(input: {
   try {
     // Bell and push only. The email is the morning digest
     // (`sendAdminPaymentDigest`) — one per claim was dozens a day at month start.
-    const admins = await resolveHostelAdminContacts(input.resident.hostelId);
+    // By user id, not by email: an owner who signed up with a phone number has
+    // a device token and no address, and was missing every claim push.
+    const admins = (
+      await resolveHostelStaffUserIds(input.resident.hostelId, { adminsOnly: true })
+    ).map((userId) => ({ userId }));
 
     const residentName =
       `${input.resident.firstName ?? ""} ${input.resident.lastName ?? ""}`.trim();

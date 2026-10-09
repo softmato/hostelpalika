@@ -71,6 +71,7 @@ vi.mock("@/modules/finance/receipt.service", () => ({
 }));
 
 vi.mock("@/modules/finance/finance-notify", () => ({
+  notifyAdminsOfStaffSettlement: vi.fn(),
   notifyPaymentReversed: mocks.notifyReversed,
 }));
 

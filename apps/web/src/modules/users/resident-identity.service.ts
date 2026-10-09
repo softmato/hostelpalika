@@ -11,11 +11,11 @@ import {
 } from "@/lib/personal-data-crypto";
 import { getPresignedReadUrl } from "@/lib/r2";
 import { siteUrl } from "@/lib/site";
+import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { FileAssetModel } from "@hostel/db/models/FileAsset";
 import { HostelPageViewModel } from "@hostel/db/models/HostelPageView";
 import { InquiryModel } from "@hostel/db/models/Inquiry";
-import { NotificationModel } from "@hostel/db/models/Notification";
 import { ServiceProviderModel } from "@hostel/db/models/ServiceProvider";
 import { UserModel } from "@hostel/db/models/User";
 import { Role } from "@hostel/shared/types/roles";
@@ -1186,15 +1186,13 @@ export async function lookupResidentProfile(
     metadata: { residentId, subjectUserId: user._id.toString() },
   });
 
-  await NotificationModel.create({
+  await createInAppNotification({
     body: "A hostel used your resident ID to fill in your details. If this was not you, turn off sharing from your profile menu.",
     category: "ACCOUNT",
-    channel: "IN_APP",
     data: { residentId },
-    ...(scopedHostelId ? { hostelId: scopedHostelId } : {}),
-    status: "SENT",
+    ...(scopedHostelId ? { hostelId: scopedHostelId.toString() } : {}),
     title: "Your resident profile was shared",
-    userId: user._id,
+    userId: user._id.toString(),
   }).catch(() => null);
 
   const profile = readProfile(record);

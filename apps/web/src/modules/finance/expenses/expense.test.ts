@@ -59,6 +59,7 @@ function query<T>(result: T) {
 }
 
 vi.mock("@/modules/notifications/notification.service", () => ({ createInAppNotification: mocks.notify }));
+vi.mock("@/modules/finance/finance-notify", () => ({ notifyHostelAdmins: vi.fn() }));
 vi.mock("@/lib/db", () => ({ connectToDatabase: vi.fn() }));
 vi.mock("@/modules/finance/audit-finance", () => ({ auditFinanceAction: mocks.audit }));
 vi.mock("@hostel/db/models/Expense", () => ({

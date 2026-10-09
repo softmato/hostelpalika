@@ -6,7 +6,11 @@ import { auditFinanceAction } from "@/modules/finance/audit-finance";
 import { creditOverpayment } from "@/modules/finance/credit-balance.service";
 import { FinanceServiceError } from "@/modules/finance/finance.errors";
 import { assertWholeRupees, sumAmounts } from "@/modules/finance/money";
-import { notifyPaymentReversed } from "@/modules/finance/finance-notify";
+import {
+  notifyAdminsOfStaffSettlement,
+  notifyPaymentReversed,
+} from "@/modules/finance/finance-notify";
+import { Role } from "@/lib/roles";
 import { issueReceiptForEvent, voidReceipt } from "@/modules/finance/receipt.service";
 import { qualifiesForOfferProgram } from "@/modules/offer-program/offer-program.rules";
 import type { ReceiptRecord } from "@/modules/finance/receipt.service";
@@ -298,6 +302,22 @@ export async function settleEvent(
       hostelId: event.hostelId,
       invoiceId: event.invoiceId?.toString(),
       source: "EVENT_SETTLEMENT",
+    });
+  }
+
+  // A warden taking a resident's money — cash at the desk or approving their
+  // proof — reaches the owner's phone. Every such path settles through here.
+  if (
+    options.principal?.role === Role.WARDEN &&
+    event.direction === "CREDIT" &&
+    event.residentId
+  ) {
+    await notifyAdminsOfStaffSettlement({
+      amount: event.amount,
+      eventId: event._id.toString(),
+      hostelId: event.hostelId,
+      residentId: event.residentId,
+      staffUserId: options.principal.userId,
     });
   }
 

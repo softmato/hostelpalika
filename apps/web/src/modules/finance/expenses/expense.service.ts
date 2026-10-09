@@ -1,5 +1,6 @@
 import { Types } from "mongoose";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
+import { notifyHostelAdmins } from "@/modules/finance/finance-notify";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
@@ -377,13 +378,23 @@ export async function listLedgerExpenses(
   hostelId: Types.ObjectId | string,
   askerId: string,
   limit: number,
+  /** A warden's statement: only what they recorded or were handed — the expenses screen's own scope. */
+  mineOnly = false,
 ): Promise<{ expenses: ExpenseRow[]; truncated: boolean }> {
   await connectToDatabase();
 
   const id = typeof hostelId === "string" ? new Types.ObjectId(hostelId) : hostelId;
+  const me = new Types.ObjectId(askerId);
   const [docs, categories] = await Promise.all([
     // A handover the warden says never arrived is not money that moved.
-    ExpenseModel.find({ cashStatus: { $ne: "DECLINED" }, hostelId: id, status: "RECORDED" })
+    ExpenseModel.find({
+      cashStatus: { $ne: "DECLINED" },
+      hostelId: id,
+      status: "RECORDED",
+      ...(mineOnly
+        ? { $or: [{ recordedBy: me }, { category: STAFF_CASH_CATEGORY, "cashTo.userId": me }] }
+        : {}),
+    })
       .sort({ spentOn: -1, createdAt: -1 })
       .limit(limit)
       .lean<ExpenseDoc[]>(),
@@ -1041,6 +1052,18 @@ export async function createExpense(actor: ExpenseActor, input: CreateExpenseInp
       hostelId: actor.hostelId,
       title: "Cash for the hostel",
       userId: cashTo.userId.toString(),
+    });
+  }
+
+  // Staff spending reaches the owner's phone the moment it is recorded.
+  if (actor.role !== "HOSTEL_ADMIN") {
+    await notifyHostelAdmins({
+      actionUrl: "/app/expenses",
+      body: `${doc.recordedByName || "Staff"} recorded ${rupees(doc.amount)}${doc.what ? ` — ${doc.what}` : ""}.`,
+      data: { expenseId: doc._id.toString(), type: "STAFF_EXPENSE_RECORDED" },
+      exceptUserId: actor.principal.userId,
+      hostelId: actor.hostelId,
+      title: "New expense recorded",
     });
   }
 

@@ -79,7 +79,7 @@ import { toastError } from "@/lib/toast";
  * sign them by colour, and since expenses (docs/EXPENSES_PLAN.md) this one does
  * too: money in is green with an up caret, money out is `<Money tone="debit">`
  * with a down caret, and the running figure is the net balance. A warden gets
- * no expenses on the wire, so their statement stays credits only. See the head
+ * the expenses they recorded or were handed, so their debits show too. See the head
  * of `lib/hostel-statement.ts`.
  *
  * ## The shape is the reference's, the colour is ours

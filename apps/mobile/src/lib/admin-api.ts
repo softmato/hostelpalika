@@ -667,9 +667,9 @@ export type AdminLedgerEntry = {
 export type AdminLedger = {
   entries: AdminLedgerEntry[];
   /**
-   * The hostel's recorded expenses — the debit half of the statement. `null`
-   * for anyone but the owner (a warden sees only their own spending, on the
-   * expenses screen), and absent from a server that predates it.
+   * The hostel's recorded expenses — the debit half of the statement. All of
+   * them for the owner; for a warden, the ones they recorded or were handed
+   * (the expenses screen's own scope). Absent from a server that predates it.
    */
   expenses?: ExpenseRow[] | null;
   /**
