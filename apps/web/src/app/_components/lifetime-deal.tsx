@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown, Infinity as InfinityIcon, Sparkles } from "lucide-react";
+import { Check, ChevronDown, Infinity as InfinityIcon, Sparkles, Timer } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -13,10 +13,10 @@ import type { LifetimeAvailability } from "@/modules/billing/lifetime";
 import type { LifetimeConfig } from "@/modules/platform-config/site-config.validation";
 import {
   formatLifetimeDay,
+  lifetimeEndsAt,
   lifetimeMonthsEquivalent,
   lifetimeOfferFor,
   lifetimeSeatsLeft,
-  lifetimeTotalSeats,
   lifetimeWindow,
 } from "@hostel/shared/plans/lifetime";
 
@@ -100,11 +100,6 @@ export function LifetimeDeal({
 
   const soldOf = (planId: string) =>
     availability?.offers.find((entry) => entry.planId === planId)?.sold ?? 0;
-  const totalSeats = lifetimeTotalSeats(deal);
-  const totalLeft = offers.reduce(
-    (sum, { offer }) => sum + lifetimeSeatsLeft(offer, soldOf(offer.planId)),
-    0,
-  );
   const endsOn = formatLifetimeDay(deal.endsOn);
 
   return (
@@ -113,7 +108,7 @@ export function LifetimeDeal({
       className="mt-16 overflow-hidden rounded-3xl border border-brand-teal/30 bg-surface shadow-sm"
       id="lifetime"
     >
-      {/* The painted header block, with the seat counter straddling its edge. */}
+      {/* The painted header block, with the countdown straddling its edge. */}
       <header className="relative rounded-b-3xl bg-brand-teal px-6 pb-10 pt-8 text-center text-white md:px-10">
         <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider">
           <Sparkles className="size-3.5" />
@@ -132,16 +127,7 @@ export function LifetimeDeal({
         ) : null}
 
         <div className="absolute -bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-2 whitespace-nowrap rounded-full border border-border bg-surface px-4 py-2 text-xs font-semibold text-foreground shadow-sm">
-          {availability ? (
-            <>
-              <span className="tabular-nums text-brand-teal">
-                {totalLeft} of {totalSeats}
-              </span>
-              seats left
-            </>
-          ) : (
-            <Skeleton className="h-4 w-28" />
-          )}
+          <Countdown endsOn={deal.endsOn} />
           {endsOn ? <span className="text-muted-foreground">· ends {endsOn}</span> : null}
         </div>
       </header>
@@ -219,7 +205,6 @@ function LifetimeCard({
     ...(plan.listingTier ? [`${plan.listingTier.label} badge in the directory`] : []),
   ];
   const href = `/plans-pricing/checkout?plan=${encodeURIComponent(plan.id)}&lifetime=1`;
-  const filled = offer.seats > 0 ? Math.min(100, (Math.min(sold, offer.seats) / offer.seats) * 100) : 100;
 
   return (
     <article className="flex flex-col rounded-2xl border border-border bg-background p-5 transition-colors hover:border-brand-teal/40">
@@ -246,30 +231,6 @@ function LifetimeCard({
       <p className="mt-1 text-xs text-muted-foreground">
         {months ? `About ${months} months of ${plan.name} at ${money(plan.monthly)}/month — then nothing, ever.` : "Paid once — then nothing, ever."}
       </p>
-
-      {/* Seats: the number a visitor acts on. */}
-      <div className="mt-4">
-        <div className="flex items-baseline justify-between text-xs">
-          <span className="font-semibold text-foreground">
-            {loading ? (
-              <Skeleton className="inline-block h-3.5 w-24 align-middle" />
-            ) : soldOut ? (
-              "Sold out"
-            ) : (
-              `${left} of ${offer.seats} seats left`
-            )}
-          </span>
-          {!loading && sold > 0 ? (
-            <span className="text-muted-foreground">{sold} claimed</span>
-          ) : null}
-        </div>
-        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
-          <div
-            className={cn("h-full rounded-full", soldOut ? "bg-muted-foreground/40" : "bg-brand-teal")}
-            style={{ width: loading ? "0%" : `${filled}%` }}
-          />
-        </div>
-      </div>
 
       <p className="mt-4 text-sm font-semibold text-foreground">
         Every feature in {plan.name}, for life
@@ -329,5 +290,54 @@ function LifetimeCard({
         </p>
       </div>
     </article>
+  );
+}
+
+/**
+ * Time left on the sale, ticking down each second to the instant
+ * {@link lifetimeEndsAt} names. Blank until mounted: the server's clock and the
+ * visitor's differ, and a number rendered on one and replaced on the other is a
+ * hydration mismatch.
+ */
+function Countdown({ endsOn }: { endsOn: string }) {
+  const endsAt = endsOn ? lifetimeEndsAt(endsOn) : null;
+  const [now, setNow] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (endsAt === null) return;
+    setNow(Date.now());
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [endsAt]);
+
+  if (endsAt === null) return null;
+  if (now === null) return <Skeleton className="h-4 w-36" />;
+
+  const left = Math.max(0, endsAt - now);
+
+  if (left === 0) return <span>Offer ended</span>;
+
+  const seconds = Math.floor(left / 1000);
+  const parts = [
+    [Math.floor(seconds / 86400), "d"],
+    [Math.floor((seconds % 86400) / 3600), "h"],
+    [Math.floor((seconds % 3600) / 60), "m"],
+    [seconds % 60, "s"],
+  ] as const;
+
+  return (
+    <span className="inline-flex items-center gap-1.5" role="timer">
+      <Timer className="size-3.5 text-brand-teal" />
+      <span className="tabular-nums text-brand-teal">
+        {parts.map(([value, unit], index) => (
+          <span key={unit}>
+            {index > 0 ? " " : ""}
+            {index > 0 ? String(value).padStart(2, "0") : value}
+            {unit}
+          </span>
+        ))}
+      </span>
+      left
+    </span>
   );
 }

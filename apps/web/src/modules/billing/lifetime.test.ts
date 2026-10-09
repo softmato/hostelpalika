@@ -5,6 +5,7 @@ import { DEFAULT_LIFETIME } from "@/modules/platform-config/lifetime.defaults";
 import { lifetimeSchema } from "@/modules/platform-config/site-config.validation";
 import {
   formatLifetimeDay,
+  lifetimeEndsAt,
   lifetimeMonthsEquivalent,
   lifetimeOfferFor,
   lifetimeSeatsLeft,
@@ -246,6 +247,15 @@ describe("the deal's window", () => {
     // All of the 7th of November in Nepal, and not a minute after it.
     expect(lifetimeWindow(deal, new Date("2026-11-07T18:14:00Z"))).toBe("open");
     expect(lifetimeWindow(deal, new Date("2026-11-07T18:15:00Z"))).toBe("ended");
+  });
+
+  it("counts down to the same instant the window turns ended", () => {
+    const endsAt = lifetimeEndsAt(deal.endsOn)!;
+
+    expect(new Date(endsAt).toISOString()).toBe("2026-11-07T18:15:00.000Z");
+    expect(lifetimeWindow(deal, new Date(endsAt - 1))).toBe("open");
+    expect(lifetimeWindow(deal, new Date(endsAt))).toBe("ended");
+    expect(lifetimeEndsAt("")).toBeNull();
   });
 
   it("is off whenever it is switched off, and open-ended without dates", () => {

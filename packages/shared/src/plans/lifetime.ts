@@ -84,6 +84,16 @@ export function lifetimeMonthsEquivalent(price: number, monthly: number) {
   return Math.round((price / monthly) * 10) / 10;
 }
 
+/**
+ * The instant the sale closes: the end of `endsOn` in Kathmandu — the same
+ * moment {@link lifetimeWindow} turns "ended". `null` for a day it cannot read.
+ */
+export function lifetimeEndsAt(endsOn: string): number | null {
+  const start = Date.parse(`${endsOn}T00:00:00Z`);
+
+  return Number.isNaN(start) ? null : start + 24 * 60 * 60 * 1000 - NEPAL_OFFSET_MS;
+}
+
 /** `7 Nov 2026`, from a `YYYY-MM-DD` day, read as the calendar day it names. */
 export function formatLifetimeDay(day: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(day);
