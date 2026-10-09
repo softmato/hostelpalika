@@ -23,12 +23,12 @@ swipe() { echo "$(t) swipe $1 $2 $3 $4 $5" >> "$LOG"; adb shell input swipe "$1"
 key()   { adb shell input keyevent "$1"; }
 type_slow() { # text typed a character at a time, like a person
   local s=$1 i
-  for ((i = 0; i < ${#s}; i++)); do adb shell input text "${s:i:1}"; sleep 0.05; done
+  for ((i = 0; i < ${#s}; i++)); do local c="${s:i:1}"; [ "$c" = " " ] && c="%s"; adb shell input text "$c"; sleep 0.05; done
 }
 at() { node "$HERE/ui.mjs" find "$@"; } # -> "x y"
 tapt() { local p; p=$(at "$@") || return 1; tap $p; }
 shot() { adb exec-out screencap -p > "$HERE/../assets/raw/$1.png"; }
-SCR="C:/Users/Aanand/AppData/Local/Temp/claude/D--company/e66a38a6-c6bf-451b-9b3e-7292348fa360/scratchpad"
+SCR="${SCR:-$HERE/../assets/raw}"
 sheet() { # clip [frames] -> contact sheet in scratchpad/sheet.png
   local n=${2:-10} d; d=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$OUT/$1.mp4")
   ffmpeg -v error -y -i "$OUT/$1.mp4" -vf "fps=$n/$d,scale=180:-1,tile=${n}x1" -frames:v 1 "$SCR/sheet.png"

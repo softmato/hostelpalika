@@ -17,3 +17,7 @@ assets/cfr/
 
 # intermediate music edit (music_film.mp3 is rebuilt from music_v2.mp3)
 **/music_v2f.mp3
+
+# the repo root ignores build/ — the film generators are source, keep them
+!/*-film/build/
+audio/admin/old/

@@ -168,6 +168,38 @@ and render them with PyMuPDF for the "report flies out of the phone" beat.
 - Find the track's **drop** (RMS per 0.25 s) and offset the music so the drop lands on
   the visual reveal; put the line before the drop in the track's pre-drop silence.
 
+## 5b. Admin film (v1, 215 s) — what changed, reuse it
+
+- **Shared code is `lib/`** (`film.mjs` pipeline, `phone.mjs` rig, `segments.mjs`, `end.mjs`,
+  `styles.mjs`, `emit.mjs`). A film's `build/` is just `config.mjs` + its hook + `extras.mjs`
+  (+ `theme.mjs`). public-film rebuilds byte-identical on the lib.
+- **Close-ups** (`focus` in config): `{tap: n}` / `{src: [clip, s]}` / `{at}` + x, y, k, hold.
+  The camera flies the phone to frame centre, the screen frosts (4 blurred panels + green ring —
+  a backdrop-filter *mask* renders black in Chrome, don't use one) and consecutive close-ups pan.
+  Prefer `src:` times — `at:` drifts whenever a voice line changes length.
+- **Ring sync (v1 bug):** a tap close-up arrives 0.8 s *before* the logged tap and the ring
+  clears 0.22 s after it — the screen changes 0–1 s after a tap, so a ring held longer sits on
+  the next screen. One ring at a time. Rings fit the component: `lib/detect.mjs` flood-fills the
+  real frame from the tap point; full-width rows / big buttons leak, so give those a measured
+  `box: [x, y, w, h]` (recording px). Check with `BOXES=1 node build.mjs` → draw boxes on frames.
+- Footage you didn't record with `rec.sh` has no touch log: write one, and **measure** tap
+  times from scene changes (`select='gt(scene,0.03)',showinfo`) — guessed times were 1 s off.
+- A close-up must also end inside the moment it shows: if the list scrolls or the scene cuts
+  while the ring is up, it lands on the wrong row (and past its blur window).
+- **`blur`** boxes per seg hide phone numbers on lists (only where the list is still).
+- **Look:** moving mesh (lavender / mint / cream on white), black type, green accent, white glass
+  cards with odometer numbers. User's reference: soft gradient blobs, "not joker colours".
+- **Voices:** eleven_v3 **emotion tags** (`[curious]`, `[warmly]`, `[excited]`, `[confident]`)
+  and conversational phrasing ("अनि…", "हेर्नुहोस्…") — v1 lines read like bullet points. Then
+  speed up 1.1× (Sunita) / 1.05× (Bishnu). Subtitles strip the tags. Mukta drops ह्वा → write व्हा.
+- **Portal beats:** after each staff/resident admin scene, a short scene on *their* phone
+  (`badge: "Warden's phone"`); the user logs into each account in turn.
+- **adb traps hit:** BACK on the home screen exits the app; a "Call" tap opens the dialer
+  (personal recents) — cut before it; a missed field tap + BACK walks into the launcher.
+  Always check `mInputShown` before using BACK to hide a keyboard.
+- `music.mjs` generates music; the track had its own break+drop at 32 s → start offset so the
+  drop lands on the burst, cut dips on the bar grid, loop a groove block to reach the length.
+
 ## 6. Process — do it in this order next time
 
 1. Read this file + memory. Confirm the user is logged in on the phone and the screen

@@ -21,6 +21,22 @@ const kit = {
   riser: ["Smooth airy cinematic riser building tension, soft synth swell and reverse cymbal, ends abruptly", 3],
   reveal: ["Bright warm light-burst reveal, soft shimmering whoosh opening into a glowing chord, premium logo reveal", 2.5],
   sent: ["Soft message sent swoosh, short and clean, messaging app", 0.6],
+  // admin film additions
+  bubble: ["Single soft round bubble pop, glossy and playful, clean premium UI, very short", 0.5],
+  flash: ["Quick bright camera-flash light burst, airy sparkle swish, clean and modern, short", 0.8],
+  zoom: ["Smooth fast camera push-in whoosh, short airy zoom, premium product video", 0.7],
+  toggle: ["Crisp soft switch toggle click, tactile, premium iPhone-like settings switch", 0.5],
+  scan: ["Soft futuristic scanning sweep, gentle rising shimmer beam passing over paper, clean, ends with a light confirm blip", 1.5],
+  count: ["Fast soft digital number ticker rolling, tiny clicks speeding up then settling, clean", 1.0],
+  coin: ["Soft clean cash-register coin chime, short and pleasant, premium fintech app", 0.8],
+  notif: ["Gentle modern phone notification ding with soft vibration buzz, clean and pleasant", 0.8],
+  keys: ["Soft quick phone keypad taps, four light clicks in a row, clean UI", 0.8],
+  stamp: ["Soft rubber stamp thump on paper, short, clean, satisfying", 0.6],
+  glass: ["Smooth glass card sliding into place, soft airy swipe ending in a tiny clink, premium UI", 0.8],
+  page: ["Single crisp document page flip, clean paper sound, short", 0.6],
+  click: ["Soft premium button press click, rounded and muted, clean app interface", 0.5],
+  snap: ["Two cards snapping together magnetically, soft satisfying click with a little air", 0.6],
+  heart: ["Soft deep heartbeat thump, single beat, cinematic, warm", 0.8],
 };
 const out = process.argv[2];
 for (const [name, [text, duration]] of Object.entries(kit)) {
