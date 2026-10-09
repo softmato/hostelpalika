@@ -98,6 +98,29 @@ export function handleRouteError(error: unknown) {
     );
   }
 
+  /*
+   * Softmato (the payment server) said no. Every payment route can meet one,
+   * and only some run inside `unlessSoftmatoDown`; the rest fell through to a
+   * bare 500, which is how a refused lifetime invoice reached owners as
+   * "Internal server error" while the reason sat in Softmato's own logs.
+   * Matched by name so this module does not import the SDK.
+   */
+  if (error instanceof Error && error.name === "SoftmatoApiError") {
+    const extra = Object.fromEntries(
+      Object.entries(error).filter(
+        ([key, value]) => !["message", "name", "stack"].includes(key) && value != null,
+      ),
+    );
+
+    logger.error("Softmato refused a request", { error, ...extra });
+
+    return errorResponse(
+      `Our payment server could not accept this: ${error.message}`,
+      "SOFTMATO_REJECTED",
+      502,
+    );
+  }
+
   logger.error("Unhandled API route error", { error });
   return errorResponse("Internal server error", "INTERNAL_SERVER_ERROR", 500);
 }
