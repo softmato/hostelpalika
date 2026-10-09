@@ -10,7 +10,7 @@ import type { SiteConfig } from "./site-config.validation";
  * the public site always renders even on a fresh database.
  */
 export const DEFAULT_SITE_CONFIG: SiteConfig = {
-  apps: { androidApkUrl: "", androidPlayUrl: PLATFORM_PLAY_STORE_URL },
+  apps: { androidApkUrl: "", androidPlayUrl: PLATFORM_PLAY_STORE_URL, demoVideoUrl: "" },
   announcement: {
     enabled: false,
     link: "",

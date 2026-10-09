@@ -17,13 +17,18 @@ import {
 } from "./platform-config-shared";
 
 /**
- * Uploads an APK straight to R2 and hands back its public URL. The row is only
- * live once the section is saved, so a half-finished upload changes nothing.
+ * Uploads an APK or the demo video straight to R2 and hands back its public
+ * URL. The row is only live once the section is saved, so a half-finished
+ * upload changes nothing.
  */
-function ApkUploadButton({
+function PublicFileUploadButton({
+  accept,
+  label,
   onError,
   onUploaded,
 }: {
+  accept: string;
+  label: string;
   onError: (message: string) => void;
   onUploaded: (url: string) => void;
 }) {
@@ -59,9 +64,9 @@ function ApkUploadButton({
   return (
     <label className="inline-flex h-9 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-semibold text-foreground transition hover:border-role-platform">
         {percent === null ? <Upload className="size-3.5" /> : <Loader2 className="size-3.5 animate-spin" />}
-        {percent === null ? "Upload APK" : `Uploading ${percent}%`}
+        {percent === null ? label : `Uploading ${percent}%`}
         <input
-          accept=".apk,application/vnd.android.package-archive"
+          accept={accept}
           className="sr-only"
           disabled={percent !== null}
           onChange={(event) => {
@@ -99,6 +104,7 @@ export const PlatformConfigSitePageContent = memo(
     const apps = valueFor("apps");
     const questionCall = valueFor("questionCall");
     const [apkError, setApkError] = useState("");
+    const [videoError, setVideoError] = useState("");
 
     return (
       <ConfigPage
@@ -411,7 +417,9 @@ export const PlatformConfigSitePageContent = memo(
                     value={apps.androidApkUrl}
                   />
                 </div>
-                <ApkUploadButton
+                <PublicFileUploadButton
+                  accept=".apk,application/vnd.android.package-archive"
+                  label="Upload APK"
                   onError={setApkError}
                   onUploaded={(androidApkUrl) => setValue("apps", { ...apps, androidApkUrl })}
                 />
@@ -421,6 +429,29 @@ export const PlatformConfigSitePageContent = memo(
                 uploading.
               </p>
               {apkError ? <p className="mt-1 text-xs text-destructive">{apkError}</p> : null}
+            </div>
+            <div>
+              <div className="flex items-end gap-2">
+                <div className="min-w-0 flex-1">
+                  <TextField
+                    label="Demo video"
+                    onChange={(demoVideoUrl) => setValue("apps", { ...apps, demoVideoUrl })}
+                    placeholder="Upload an MP4, or paste its link"
+                    value={apps.demoVideoUrl}
+                  />
+                </div>
+                <PublicFileUploadButton
+                  accept="video/mp4,video/webm,.mp4,.webm"
+                  label="Upload video"
+                  onError={setVideoError}
+                  onUploaded={(demoVideoUrl) => setValue("apps", { ...apps, demoVideoUrl })}
+                />
+              </div>
+              <p className="mt-1 text-[10.5px] text-muted-foreground">
+                Plays from Watch Demo on Register Hostel. Use a web-compressed MP4 (fast start)
+                — it streams as it plays. Save after uploading.
+              </p>
+              {videoError ? <p className="mt-1 text-xs text-destructive">{videoError}</p> : null}
             </div>
           </ConfigCard>
 

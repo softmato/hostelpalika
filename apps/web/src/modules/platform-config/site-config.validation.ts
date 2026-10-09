@@ -123,10 +123,15 @@ export const announcementSchema = z.object({
  * sent to; the APK is a direct download a superadmin uploads (R2, public
  * bucket) for phones that cannot reach the store. iOS has no app yet — the
  * website installs as a PWA instead.
+ *
+ * `demoVideoUrl` is the product film behind Register Hostel's "Watch Demo",
+ * uploaded the same way as the APK. Blank keeps the button as a scroll to the
+ * screenshots.
  */
 export const appsSchema = z.object({
   androidApkUrl: optionalUrl,
   androidPlayUrl: optionalUrl,
+  demoVideoUrl: optionalUrl,
 });
 
 /**

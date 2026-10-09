@@ -16,6 +16,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { preconnect } from "react-dom";
 
 import { browserApi } from "@/lib/browser-api";
 import { cn } from "@/lib/utils";
@@ -33,6 +34,7 @@ import {
   TooltipTrigger,
 } from "@/components/animate-ui/components/animate/tooltip";
 import { useSiteConfig } from "@/components/site-config-provider";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { contentIcon, resolveContentPage } from "@/lib/site-content";
 import { useSessionStore } from "@/stores/session-store";
 
@@ -211,8 +213,45 @@ async function fetchOwnerApplication(): Promise<OwnerApplication | null> {
   }
 }
 
+/**
+ * With a demo video configured (Website Config → Mobile App) this opens it in a
+ * dialog. The `<video>` mounts only on open, so the page never downloads a byte
+ * of it until asked; hovering warms the connection to the bucket. Without one
+ * it scrolls to the screenshots.
+ */
+function WatchDemo({ className, url }: { className: string; url: string }) {
+  const label = (
+    <>
+      <span className="flex size-5 items-center justify-center rounded-full bg-brand-teal/10 text-[9px] text-brand-teal">
+        ▶
+      </span>
+      Watch Demo
+    </>
+  );
+
+  if (!url) {
+    return (
+      <Link className={className} href="#hostel-product-tour">
+        {label}
+      </Link>
+    );
+  }
+
+  return (
+    <Dialog>
+      <DialogTrigger className={className} onPointerEnter={() => preconnect(url)}>
+        {label}
+      </DialogTrigger>
+      <DialogContent className="aspect-video bg-black p-0 sm:max-w-5xl [&_[data-slot=dialog-close]]:text-white">
+        <DialogTitle className="sr-only">Product demo</DialogTitle>
+        <video autoPlay className="size-full" controls playsInline preload="auto" src={url} />
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function PublicHostelRegistrationLandingPage() {
-  const { content, identity, platformStats } = useSiteConfig();
+  const { apps, content, identity, platformStats } = useSiteConfig();
   const siteName = identity.siteName;
   const page = resolveContentPage(content.registerHostel, identity);
   const stats = page.highlights;
@@ -357,15 +396,10 @@ export function PublicHostelRegistrationLandingPage() {
                 Get Started Free
                 <ArrowRight className="size-4" />
               </RegisterHostelStart>
-              <Link
-                href="#hostel-product-tour"
+              <WatchDemo
                 className="inline-flex h-13 items-center justify-center gap-2 rounded-full border border-border bg-background/75 px-7 text-sm font-semibold text-foreground shadow-sm transition hover:bg-muted md:h-14 md:text-base md:px-8"
-              >
-                <span className="flex size-5 items-center justify-center rounded-full bg-brand-teal/10 text-[9px] text-brand-teal">
-                  ▶
-                </span>
-                Watch Demo
-              </Link>
+                url={apps.demoVideoUrl}
+              />
             </motion.div>
 
             <motion.div variants={fadeUp} custom={4}>
