@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { headers } from "next/headers";
 
 import { PLATFORM_NAME, PLATFORM_PLAY_STORE_URL } from "@hostel/shared/brand/brand";
 
@@ -9,7 +10,7 @@ import { loadSeo, resolveSeoPage } from "@/lib/seo-config";
 /**
  * The web app manifest: the name, icons and colour a browser uses for the site.
  *
- * What gets installed is the phone app itself, exported for the web and served
+ * What a phone installs is the phone app itself, exported for the web and served
  * at `/app` (`apps/mobile/scripts/export-pwa.mjs`) — the same screens as the
  * Android build, not the website in a window. So `start_url`, `scope` and `id`
  * all point there, and installing from any page of the site installs the app.
@@ -19,24 +20,41 @@ import { loadSeo, resolveSeoPage } from "@/lib/seo-config";
  * `InstallAppBanner` fires Android's install prompt and sends iPhones to `/app`,
  * where the app's own sheet walks through Add to Home Screen. On Android,
  * `prefer_related_applications` makes Chrome offer the Play app instead of
- * installing this one; iPhones and desktops still install `/app`.
+ * installing this one; iPhones still install `/app`.
+ *
+ * A laptop or desktop gets the website itself instead — the portals in their
+ * own window, from `/` — because the phone screens are wrong at that size. The
+ * browser fetches this file with its own user agent, so the split happens here
+ * and `/app`'s `index.html` (which links this same file) follows it too.
  */
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const { fill, seo } = await loadSeo();
   const home = resolveSeoPage(seo, "home", fill);
-
-  return {
+  const phone = /Android|iPhone|iPad|iPod|Mobile/i.test((await headers()).get("user-agent") ?? "");
+  const shared: MetadataRoute.Manifest = {
     background_color: "#ffffff",
     categories: ["business", "education", "lifestyle"],
     description: home.description,
     display: "standalone",
-    id: "/app/",
     icons: [
       { sizes: "512x512", src: "/icon.png", type: "image/png" },
       { sizes: "180x180", src: "/apple-icon.png", type: "image/png" },
     ],
     lang: "en-NP",
     name: PLATFORM_NAME,
+    short_name: PLATFORM_NAME,
+    // The app's own background, not the brand green: Android paints the status
+    // bar and the navigation bar under the tab bar in this colour.
+    theme_color: "#ffffff",
+  };
+
+  if (!phone) {
+    return { ...shared, id: "/", scope: "/", start_url: "/" };
+  }
+
+  return {
+    ...shared,
+    id: "/app/",
     prefer_related_applications: true,
     related_applications: [
       { id: PLATFORM_PLAY_STORE_ID, platform: "play", url: PLATFORM_PLAY_STORE_URL },
@@ -50,10 +68,6 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
       // Include extensions too, otherwise Chrome can omit the attachment.
       params: { files: [{ name: "receipt", accept: ["image/*", "application/pdf", "application/x-pdf", "application/octet-stream", "binary/octet-stream", ".pdf", ".jpg", ".jpeg", ".png", ".webp", ".heic", ".heif"] }] },
     },
-    short_name: PLATFORM_NAME,
     start_url: "/app",
-    // The app's own background, not the brand green: Android paints the status
-    // bar and the navigation bar under the tab bar in this colour.
-    theme_color: "#ffffff",
   };
 }
