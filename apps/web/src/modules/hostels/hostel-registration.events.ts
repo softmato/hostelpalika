@@ -11,6 +11,7 @@ import {
   resolveInvoiceDocument,
   resolveReceiptDocument,
 } from "@/modules/billing/documents/deliver";
+import { planPayLink } from "@/modules/billing/plan-pay-link";
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
 
 /**
@@ -141,7 +142,7 @@ export async function onRegisteredByTeam(input: {
   agentName?: string;
   amountPaid: number;
   dueBy?: Date | null;
-  free?: { freeMonths: number; freeUntil: Date } | null;
+  free?: { freeMonths: number; freeUntil: Date; trialDays?: number | null } | null;
   setupFee?: number | null;
   hostelName: string;
   hostelSlug: string;
@@ -160,10 +161,14 @@ export async function onRegisteredByTeam(input: {
     hostelRegisteredByTeamEmail({
       agentName: input.agentName,
       amountPaid: input.amountPaid,
-      billingUrl: hostelBillingUrl(input.hostelSlug),
+      billingUrl: await planPayLink({ slug: input.hostelSlug }, hostelBillingUrl(input.hostelSlug)),
       dueBy: formatEmailDate(input.dueBy),
       free: input.free
-        ? { months: input.free.freeMonths, until: formatEmailDate(input.free.freeUntil) ?? "" }
+        ? {
+            days: input.free.trialDays,
+            months: input.free.freeMonths,
+            until: formatEmailDate(input.free.freeUntil) ?? "",
+          }
         : null,
       hostelName: input.hostelName,
       listingUrl: hostelListingUrl(input.hostelSlug),
@@ -188,8 +193,8 @@ export async function onRegisteredByTeam(input: {
 export async function onHostelVerified(input: {
   /** A temporary password for an owner who had no way to sign in. */
   credentials?: { email: string; temporaryPassword: string } | null;
-  /** Went live on free months at verification. */
-  free?: { months: number; until: Date } | null;
+  /** Went live on free months, or the trial (`days`), at verification. */
+  free?: { days?: number | null; months: number; until: Date } | null;
   hostelName: string;
   ownerEmail?: string;
   ownerName?: string;
@@ -208,6 +213,7 @@ export async function onHostelVerified(input: {
       credentials: input.credentials,
       free: input.free
         ? {
+            days: input.free.days,
             months: input.free.months,
             supportPhone: (await getSiteConfigSection("identity")).supportPhone,
             until: emailDate(input.free.until) ?? "",
@@ -258,7 +264,9 @@ export async function onPlanSuspensionStarted(input: {
     invoiceNumber: input.invoiceNumber,
     ownerName: input.ownerName,
     payBy: formatEmailDate(input.graceEndsAt) ?? "",
-    payUrl: input.hostelSlug ? hostelBillingUrl(input.hostelSlug) : registrationStatusUrl(),
+    payUrl: input.hostelSlug
+      ? await planPayLink({ slug: input.hostelSlug }, hostelBillingUrl(input.hostelSlug))
+      : registrationStatusUrl(),
     planName: input.planName,
   });
 
@@ -368,7 +376,7 @@ export async function onInvoiceIssued(input: {
   const team = input.source === "TEAM";
   const billingUrl =
     input.hostelSlug && (team || input.hostelLive)
-      ? hostelBillingUrl(input.hostelSlug)
+      ? await planPayLink({ slug: input.hostelSlug }, hostelBillingUrl(input.hostelSlug))
       : null;
 
   await deliver(

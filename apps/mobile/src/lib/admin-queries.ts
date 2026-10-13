@@ -142,6 +142,12 @@ import {
 } from "@/lib/admin-manage-api";
 import { type ResidentScan, scanResident } from "@/lib/admin-scan-api";
 import {
+  type AdmissionFormLink,
+  type AdmissionForms,
+  getAdmissionFormLink,
+  listAdmissionForms,
+} from "@/lib/admission-form-api";
+import {
   getJoinLink,
   type JoinLink,
   type JoinRequests,
@@ -538,6 +544,13 @@ export const adminQuery = {
 
   joinLink: (): AdminQuery<JoinLink> =>
     define("admin:join-link", [REALTIME_TOPIC.RESIDENTS], () => getJoinLink()),
+
+  /** Admission forms filled through the Form QR, waiting for a bed, and the QR itself. */
+  admissionForms: (): AdminQuery<AdmissionForms> =>
+    define("admin:admission-forms", [REALTIME_TOPIC.RESIDENTS], () => listAdmissionForms()),
+
+  admissionFormLink: (): AdminQuery<AdmissionFormLink> =>
+    define("admin:admission-form-link", [REALTIME_TOPIC.RESIDENTS], () => getAdmissionFormLink()),
 
   /** The gateway list behind each provider's setup screen. */
   gateways: (): AdminQuery<GatewayConfig[]> =>

@@ -671,6 +671,19 @@ export const PlatformHostelReviewPageContent = memo(
         />
         <Message value={message} />
 
+        {hostel.kyc ? (
+          <section className="rounded-lg border border-border bg-muted/40 p-4 text-sm">
+            <p className="font-semibold text-foreground">
+              Quick sign-up — KYC {hostel.kyc.status === "SUBMITTED" ? "submitted" : hostel.kyc.status.toLowerCase()}
+              {hostel.kyc.submittedAt ? ` ${new Date(hostel.kyc.submittedAt).toLocaleString()}` : ""}.
+            </p>
+            <p className="mt-1 text-muted-foreground">
+              The owner already has the portal on a free trial. Approve lists the hostel as Verified and opens
+              every feature. Reject or Request documents sends it back to the owner&apos;s KYC with your note.
+            </p>
+          </section>
+        ) : null}
+
         {detail?.branchOf ? (
           <section className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm">
             <p className="font-semibold text-foreground">

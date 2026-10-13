@@ -83,6 +83,7 @@ export const TOPIC_ENDPOINTS: Record<RealtimeTopic, string[]> = {
     "/api/v1/resident/attendance*",
     "/api/v1/guardian/attendance*",
     "/api/v1/hostel-admin/dashboard*",
+    "/api/v1/hostel-admin/reports*",
   ],
   /* The guest's booking, the hostel's requests and the platform's queues all move together. */
   [REALTIME_TOPIC.BOOKINGS]: [
@@ -96,6 +97,7 @@ export const TOPIC_ENDPOINTS: Record<RealtimeTopic, string[]> = {
     "/api/v1/resident/complaints*",
     "/api/v1/guardian/complaints*",
     "/api/v1/hostel-admin/dashboard*",
+    "/api/v1/hostel-admin/reports*",
   ],
   [REALTIME_TOPIC.FOOD]: [
     "/api/v1/hostel-admin/food*",
@@ -107,11 +109,13 @@ export const TOPIC_ENDPOINTS: Record<RealtimeTopic, string[]> = {
     "/api/v1/platform/dashboard*",
     "/api/v1/hostel-admin/hostel*",
     "/api/v1/hostel-admin/dashboard*",
+    "/api/v1/hostel-admin/reports*",
   ],
   [REALTIME_TOPIC.INQUIRIES]: [
     "/api/v1/hostel-admin/inquiries*",
     "/api/v1/platform/inquiries*",
     "/api/v1/hostel-admin/dashboard*",
+    "/api/v1/hostel-admin/reports*",
   ],
   [REALTIME_TOPIC.MAINTENANCE]: [
     "/api/v1/hostel-admin/maintenance*",
@@ -135,20 +139,27 @@ export const TOPIC_ENDPOINTS: Record<RealtimeTopic, string[]> = {
     "/api/v1/guardian/payments*",
     "/api/v1/platform/billing*",
     "/api/v1/hostel-admin/dashboard*",
+    "/api/v1/hostel-admin/reports*",
     "/api/v1/platform/dashboard*",
   ],
   [REALTIME_TOPIC.RESIDENTS]: [
     "/api/v1/hostel-admin/residents*",
+    "/api/v1/hostel-admin/rooms*",
+    "/api/v1/hostel-admin/move-events*",
     "/api/v1/hostel-admin/dashboard*",
+    "/api/v1/hostel-admin/reports*",
   ],
   [REALTIME_TOPIC.REVIEWS]: ["/api/v1/platform/reviews*", "/api/v1/hostel-admin/reviews*"],
-  // Rooms are `roomConfigurations` counts on the hostel document, not their own
-  // collection — so occupancy shows up on the room-type picker and the hostel
-  // profile rather than on any `/rooms` route.
+  // Room-type counts live on the hostel document; numbered rooms by floor are
+  // `/rooms` (docs/FIELD_FIXES_2026_10.md §3).
   [REALTIME_TOPIC.ROOMS]: [
+    "/api/v1/hostel-admin/rooms*",
+    "/api/v1/hostel-admin/kyc*",
+    "/api/v1/resident/room*",
     "/api/v1/hostel-admin/room-types*",
     "/api/v1/hostel-admin/profile*",
     "/api/v1/hostel-admin/dashboard*",
+    "/api/v1/hostel-admin/reports*",
   ],
   [REALTIME_TOPIC.SAFETY]: [
     "/api/v1/hostel-admin/sos*",

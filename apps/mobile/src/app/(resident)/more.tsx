@@ -36,6 +36,7 @@ type Row = { href: string; icon: keyof typeof Ionicons.glyphMap; title: string; 
 /** The doors, in the order Home's `<ResidentServiceGrid>` draws them. */
 const STAY_ROWS: Row[] = [
   { href: "/profile", icon: "person-outline", title: "Profile" },
+  { href: "/my-room", icon: "bed-outline", title: "My room" },
   { href: "/night-status", icon: "moon-outline", title: "Night status", tone: "warning" },
   // Directly under Night status: what the resident says, then what the phone reported.
   { href: "/attendance", icon: "location-outline", title: "Location & attendance" },

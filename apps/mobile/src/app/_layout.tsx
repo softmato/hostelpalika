@@ -27,6 +27,7 @@ import {
   releaseBootSplash,
 } from "@/components/brand-splash";
 import { HostelSuspensionHost } from "@/components/hostel-suspension-host";
+import { TrialEndedHost } from "@/components/trial-ended-host";
 import { ConfirmDialogHost } from "@/components/ui/confirm-dialog";
 import { UpdateSheet } from "@/components/update-sheet";
 import { PushOffer } from "@/components/push-offer";
@@ -408,6 +409,7 @@ function RootShell() {
         <Stack.Screen name="night-status-history" />
         {/* Khata: the resident's own (Payments), and the kitchen's asks (cook Today). */}
         <Stack.Screen name="khata" />
+        <Stack.Screen name="my-room" />
         <Stack.Screen name="khata-asks" />
         {/* The cook's Kitchen stock: what was taken from the store (docs/INVENTORY_PLAN.md). */}
         <Stack.Screen name="kitchen-stock" />
@@ -457,6 +459,8 @@ function RootShell() {
           and they open over the tab bar like every other one.
         */}
         <Stack.Screen name="manage/rooms" />
+        <Stack.Screen name="manage/floors" />
+        <Stack.Screen name="manage/finance/money-rules" />
         <Stack.Screen name="manage/notices" />
         <Stack.Screen name="manage/push-notices/index" />
         <Stack.Screen name="manage/push-notices/[id]" />
@@ -593,6 +597,7 @@ function RootShell() {
         still draws above it.
       */}
       <HostelSuspensionHost />
+      <TrialEndedHost />
       <ConfirmDialogHost />
 
     </>

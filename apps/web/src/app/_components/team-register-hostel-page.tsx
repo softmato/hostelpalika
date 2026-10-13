@@ -835,6 +835,7 @@ export function TeamRegisterHostelPage() {
    */
   const [amount, setAmount] = useState("");
   const [setupFee, setSetupFee] = useState<number | null>(null);
+  const [trialDays, setTrialDays] = useState<number | null>(null);
   const [paymentReference, setPaymentReference] = useState("");
   const [payout, setPayout] = useState(EMPTY_PAYOUT_DRAFT);
   const handoff = useCheckoutHandoff();
@@ -851,10 +852,11 @@ export function TeamRegisterHostelPage() {
   useEffect(() => {
     let live = true;
 
-    void browserApi<{ setupFee: number }>("/api/v1/team/setup-fee")
+    void browserApi<{ setupFee: number; trialDays: number }>("/api/v1/team/setup-fee")
       .then((result) => {
         if (!live) return;
         setSetupFee(result.setupFee);
+        setTrialDays(result.trialDays);
         // A draft or a paid row already set the amount; only an empty box takes the default.
         setAmount((current) => (current.trim() ? current : String(result.setupFee)));
       })
@@ -1018,13 +1020,27 @@ export function TeamRegisterHostelPage() {
           ? cycleTotal(plan, cycle)
           : 0;
   const fee = numberValue(amount) ?? 0;
+  /*
+   * On the lifetime deal, what the owner pays today: the whole price unless
+   * the agent typed less — the rest stays due (docs/FIELD_FIXES_2026_10.md §8).
+   */
+  const lifetimeNow = amount.trim() ? fee : price;
+  const lifetimeRest = Math.max(price - (lifetimeLocked && paidOnline ? paidOnline.chargeAmount : lifetimeNow), 0);
   const feeValid = onLifetime
-    ? lifetimeLocked || Boolean(lifetimeOffer && lifetimeOffer.left > 0 && lifetimeOffer.price > 0)
+    ? lifetimeLocked ||
+      Boolean(
+        lifetimeOffer &&
+          lifetimeOffer.left > 0 &&
+          lifetimeOffer.price > 0 &&
+          Number.isInteger(lifetimeNow) &&
+          lifetimeNow > 0 &&
+          lifetimeNow <= price,
+      )
     : Number.isInteger(fee) && fee > 0 && setupFee !== null && fee <= setupFee;
-  // Cash is typed in (or, on the lifetime deal, is the lifetime price);
+  // Cash is typed in (on the lifetime deal, the part taken today);
   // online is only ever what Softmato confirmed.
   const collecting =
-    method === "CASH" ? (onLifetime ? price : fee) : (paidOnline?.chargeAmount ?? 0);
+    method === "CASH" ? (onLifetime ? lifetimeNow : fee) : (paidOnline?.chargeAmount ?? 0);
   const uploading = documents.some((doc) => doc.uploading) || photos.some((p) => p.uploading);
 
   /** Room rows that have enough on them to be a room type at all. */
@@ -1513,7 +1529,7 @@ export function TeamRegisterHostelPage() {
         message: onLifetime
           ? method === "SOFTMATO"
             ? "Take the lifetime payment online. A hostel does not publish unpaid."
-            : "Collect the lifetime price in cash. A hostel does not publish unpaid."
+            : "Enter the cash collected for the lifetime plan. A hostel does not publish unpaid."
           : method === "SOFTMATO"
             ? "Take the setup fee online. A hostel does not publish unpaid."
             : "Enter the setup fee collected. A hostel does not publish unpaid.",
@@ -2139,8 +2155,10 @@ export function TeamRegisterHostelPage() {
         ownerName: ownerName.trim(),
         phone: phone.trim(),
         planId: plan.id,
-        // The lifetime price is read from the live offer on the server, never sent.
-        ...(onLifetime ? { lifetime: true } : { amount: fee }),
+        // The lifetime price is read from the live offer on the server; only a smaller part is sent.
+        ...(onLifetime
+          ? { lifetime: true, ...(lifetimeNow < price ? { amount: lifetimeNow } : {}) }
+          : { amount: fee }),
         ...(prepaymentId ? { prepaymentId } : {}),
       },
       endpoint: "/api/v1/team/prepayments",
@@ -2216,16 +2234,19 @@ export function TeamRegisterHostelPage() {
       actionLabel: "Publish the hostel",
       description: [
         onLifetime
-          ? `${hostelName.trim()} goes live now, on ${plan?.name} for life — ${rupees(price)} once, no free months, no renewals.`
+          ? `${hostelName.trim()} goes live now, on ${plan?.name} for life — ${rupees(price)} once, no renewals.`
           : planLocked
             ? `${hostelName.trim()} goes live now, on the ${plan?.name} plan at ${rupees(price)}.`
-            : `${hostelName.trim()} goes live now, on the ${plan?.name} plan${plan?.freeMonths ? `, free for ${plan.freeMonths} months if this building has not had them before` : ""}.`,
+            : `${hostelName.trim()} goes live now, on the ${plan?.name} plan${trialDays ? `, free for the first ${trialDays} days` : ""}.`,
         // Only reached with money in (`blocking`), so it is one or the other.
         paidOnline
-          ? `${rupees(paidOnline.amount)} paid online${paidOnline.reference ? ` (${paidOnline.reference})` : ""} is attached to it.`
+          ? `${rupees(paidOnline.chargeAmount)} paid online${paidOnline.reference ? ` (${paidOnline.reference})` : ""} is attached to it.`
           : onLifetime
-            ? `${rupees(collecting)} lifetime price in cash is filed with Softmato; the plan becomes lifetime the moment it is confirmed, and the owner's receipt follows.`
+            ? `${rupees(collecting)} in cash is filed with Softmato; the owner's receipt follows once it is confirmed.`
             : `${rupees(collecting)} setup fee in cash is filed with Softmato; the owner's receipt follows once it is confirmed.`,
+        ...(onLifetime && lifetimeRest > 0
+          ? [`${rupees(lifetimeRest)} stays due — the plan becomes lifetime once it is all paid.`]
+          : []),
         "The owner will be emailed that their hostel is published, with the amount you collected.",
       ].join(" "),
       title: "Publish this hostel?",
@@ -3330,7 +3351,11 @@ export function TeamRegisterHostelPage() {
                           value ? Boolean(paidOnline) && !lifetimeLocked : lifetimeLocked
                         }
                         key={label}
-                        onClick={() => setLifetime(value)}
+                        onClick={() => {
+                          setLifetime(value);
+                          // A setup fee typed earlier is not a lifetime part payment.
+                          setAmount("");
+                        }}
                         type="button"
                       >
                         <span className="block text-xs font-bold text-foreground">{label}</span>
@@ -3460,17 +3485,7 @@ export function TeamRegisterHostelPage() {
                             ) : null}
                           </div>
 
-                          {entry.freeMonths ? (
-                            <p className="mt-2 text-xs font-semibold text-brand-teal">
-                              {entry.freeMonths} {entry.freeMonths === 1 ? "month" : "months"} free, then
-                            </p>
-                          ) : null}
-                          <p
-                            className={cn(
-                              "text-lg font-bold tabular-nums text-foreground",
-                              entry.freeMonths ? "mt-0.5" : "mt-2",
-                            )}
-                          >
+                          <p className="mt-2 text-lg font-bold tabular-nums text-foreground">
                             {rupees(cycleTotal(entry, cycle))}
                             <span className="ml-1 text-xs font-medium text-muted-foreground">
                               /{" "}
@@ -3504,12 +3519,11 @@ export function TeamRegisterHostelPage() {
                 {plan && !planLocked && !onLifetime ? (
                   <p className="mt-4 rounded-lg border border-border bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground">
                     Tell the owner:{" "}
-                    {plan.freeMonths
-                      ? `this month is free, and ${plan.freeMonths - 1} more after it — no need to recharge until then.`
+                    {trialDays
+                      ? `the first ${trialDays} days are free — no need to pay until then.`
                       : "the plan is billed from today."}{" "}
-                    After that they recharge this hostel themselves from Billing on the
-                    website{identity.supportPhone ? `, or call ${identity.supportPhone}` : ""}. A
-                    building that has had its free months before is billed from today.
+                    After that they pay monthly or for life themselves from Billing on the
+                    website{identity.supportPhone ? `, or call ${identity.supportPhone}` : ""}.
                   </p>
                 ) : null}
               </Card>
@@ -3517,7 +3531,7 @@ export function TeamRegisterHostelPage() {
               <Card
                 subtitle={
                   onLifetime
-                    ? `The full lifetime price, ${rupees(price)}, collected now — the hostel does not publish until it is paid. No setup fee is taken.`
+                    ? `Lifetime price ${rupees(price)}. Take all of it now, or a part — the rest stays due on My desk. No setup fee is taken.`
                     : `One-off, collected now. Up to ${rupees(setupFee ?? 0)} — the hostel does not publish until it is paid.`
                 }
                 title={onLifetime ? "Lifetime payment" : "Setup fee"}
@@ -3561,6 +3575,11 @@ export function TeamRegisterHostelPage() {
                         value={rupees(paidOnline.chargeAmount)}
                       />
                     </Field>
+                    {onLifetime && lifetimeRest > 0 ? (
+                      <p className="text-xs font-semibold text-warning sm:col-span-2">
+                        {rupees(lifetimeRest)} of the lifetime price stays due after publish.
+                      </p>
+                    ) : null}
                     <Field hint="From Softmato's receipt." label="Reference" name="paymentReference">
                       <input
                         className="input-field w-full cursor-not-allowed bg-muted/40 font-mono"
@@ -3573,14 +3592,22 @@ export function TeamRegisterHostelPage() {
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     {onLifetime ? (
                       <Field
-                        hint="The lifetime price, set by the platform. It cannot be changed here."
-                        label="Lifetime price"
+                        hint={
+                          price <= 0
+                            ? "Pick a plan first."
+                            : lifetimeRest > 0
+                              ? `${rupees(lifetimeRest)} stays due after publish.`
+                              : `The whole lifetime price, ${rupees(price)}. Type less to take a part now.`
+                        }
+                        label="Paying now"
                         name="amount"
                       >
                         <input
-                          className="input-field w-full cursor-not-allowed bg-muted/40 font-semibold tabular-nums"
-                          readOnly
-                          value={price > 0 ? rupees(price) : "Pick a plan"}
+                          className="input-field w-full tabular-nums"
+                          inputMode="numeric"
+                          onChange={(event) => setAmount(event.target.value)}
+                          placeholder={price > 0 ? String(price) : ""}
+                          value={amount}
                         />
                       </Field>
                     ) : (
@@ -3625,7 +3652,7 @@ export function TeamRegisterHostelPage() {
                         type="button"
                       >
                         <QrCode className="size-4" />
-                        {plan ? `Take payment · ${rupees(onLifetime ? price : fee)}` : "Pick a plan first"}
+                        {plan ? `Take payment · ${rupees(onLifetime ? lifetimeNow : fee)}` : "Pick a plan first"}
                       </button>
                       {prepayment?.status === "OPEN" ? (
                         <button
@@ -3645,11 +3672,10 @@ export function TeamRegisterHostelPage() {
                     <AlertTriangle className="mt-0.5 size-4 shrink-0 text-warning" />
                     <p>
                       <strong className="font-semibold">
-                        Collect exactly {rupees(price)} — the lifetime price, nothing else.
+                        Collect {rupees(lifetimeNow)} — never more than the lifetime price.
                       </strong>{" "}
-                      It is filed with Softmato as cash and the plan becomes lifetime once their
-                      admin confirms it. Online is faster: the hostel publishes already on its
-                      lifetime plan.
+                      It is filed with Softmato as cash. The plan becomes lifetime once the
+                      whole {rupees(price)} is paid and confirmed.
                     </p>
                   </div>
                 ) : null}
@@ -3713,7 +3739,7 @@ export function TeamRegisterHostelPage() {
                             ? `${plan.name} · Lifetime · ${rupees(price)} once`
                             : planLocked
                               ? `${plan.name} · ${rupees(price)}`
-                              : `${plan.name} · ${plan.freeMonths ? `${plan.freeMonths} months free, then ` : ""}${rupees(price)}`
+                              : `${plan.name} · ${trialDays ? `${trialDays} days free, then ` : ""}${rupees(price)}`
                           : "—",
                       ],
                       [

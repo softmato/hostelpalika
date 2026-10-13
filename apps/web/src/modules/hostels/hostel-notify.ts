@@ -170,3 +170,21 @@ export async function notifyPlatformOfPendingHostel(
     topics: [REALTIME_TOPIC.HOSTELS],
   });
 }
+
+/** Bell + push to the owner. `type` routes the app (`push-routing.ts`); `actionUrl` the web bell. */
+export async function notifyHostelOwnerOf(
+  userId: Types.ObjectId | string,
+  hostelId: Types.ObjectId | string,
+  message: { actionUrl: string; body: string; title: string; type: string },
+) {
+  await createInAppNotification({
+    actionUrl: message.actionUrl,
+    body: message.body,
+    category: "GENERAL",
+    data: { hostelId: String(hostelId), type: message.type },
+    hostelId: String(hostelId),
+    priority: "HIGH",
+    title: message.title,
+    userId: String(userId),
+  }).catch(() => null);
+}

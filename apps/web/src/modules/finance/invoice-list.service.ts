@@ -24,6 +24,7 @@ import type { LedgerInvoice } from "@/modules/finance/ledger-read.service";
 import { paidBeforeJoining } from "@/modules/finance/paid-till";
 import { type ExpenseRow, listLedgerExpenses } from "@/modules/finance/expenses/expense.service";
 import { countableResidentIds } from "@/modules/finance/resident-scope";
+import { getMoneyRules } from "@/modules/finance/money-rules.service";
 import { listReviewQueue } from "@/modules/finance/review.service";
 import {
   findCurrentResident,
@@ -693,6 +694,12 @@ export type HostelLedger = {
    * the ones they recorded or were handed. `null` only when no reader was named.
    */
   expenses: ExpenseRow[] | null;
+  /**
+   * The bank's balance the day the hostel started with us — the statement's
+   * first row, so its running balance matches the bank. Owner only: a
+   * warden's statement is their own cash, not the hostel's account.
+   */
+  openingBalance?: { amount: number; asOf: string } | null;
   /** True when the ledger hit {@link LEDGER_LIMIT} and older rows were dropped. */
   truncated: boolean;
 };
@@ -730,11 +737,12 @@ export async function getHostelLedger(
   await connectToDatabase();
 
   const residentIds = await countableResidentIds(hostelId);
-  const [invoices, spent] = await Promise.all([
+  const [invoices, spent, rules] = await Promise.all([
     listRecentInvoices({ hostelId, residentIds }, LEDGER_LIMIT),
     options.expensesFor
       ? listLedgerExpenses(hostelId, options.expensesFor, LEDGER_LIMIT, options.expensesMineOnly)
       : Promise.resolve(null),
+    options.expensesMineOnly ? Promise.resolve(null) : getMoneyRules(hostelId),
   ]);
 
   const residents = await ResidentModel.find({ _id: { $in: residentIds } })
@@ -758,6 +766,7 @@ export async function getHostelLedger(
       residentName: nameById.get(invoice.residentId) ?? "",
     })),
     expenses: spent?.expenses ?? null,
+    openingBalance: rules?.openingBalance ?? null,
     truncated: invoices.length >= LEDGER_LIMIT || Boolean(spent?.truncated),
   };
 }

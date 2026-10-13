@@ -21,7 +21,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const principal = await requireHostelCapability(request, "registerResidents");
     const { id } = await context.params;
     const hostelId = request.nextUrl.searchParams.get("hostelId") ?? undefined;
-    const result = await getMoveOutChecklist(id, principal, hostelId);
+    const result = await getMoveOutChecklist(
+      id,
+      principal,
+      hostelId,
+      request.nextUrl.searchParams.get("date"),
+    );
 
     return successResponse(result, "Move-out checklist loaded");
   } catch (error) {
@@ -34,6 +39,12 @@ export async function POST(request: NextRequest, context: RouteContext) {
     const principal = await requireHostelCapability(request, "registerResidents");
     const { id } = await context.params;
     const input = moveOutChecklistSchema.parse(await request.json());
+
+    // Letting money go is a money decision, not a move-out one.
+    if (input.dues === "WRITE_OFF") {
+      await requireHostelCapability(request, "recordCash");
+    }
+
     const result = await createMoveOutChecklist(id, input, principal);
 
     return successResponse(result, "Move-out checklist saved", { status: 201 });

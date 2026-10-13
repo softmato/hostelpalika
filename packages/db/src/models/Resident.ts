@@ -14,6 +14,14 @@ const residentSchema = new Schema(
     // back. There are no Room or Bed records to point at.
     roomType: { type: String, required: true, trim: true },
     /**
+     * The numbered room, when the hostel has laid out its floors
+     * (`HostelRoom`, docs/FIELD_FIXES_2026_10.md §3). `floor` and `roomNumber`
+     * are copied off the room so every list can print "Room 204" without a join.
+     */
+    roomId: { ref: "HostelRoom", type: Schema.Types.ObjectId, default: null },
+    floor: { type: Number, default: null },
+    roomNumber: { type: String, trim: true, default: null },
+    /**
      * Canonical pricing vocabulary, derived from `roomType` via
      * `normalizeBedType`. Additive and nullable on purpose: `roomType` above
      * stays the capacity key and the display label everywhere outside finance
@@ -120,6 +128,33 @@ const residentSchema = new Schema(
      * ever raised for them, and the booking sweep moves them out at this time.
      */
     stayEndsAt: { type: Date, default: null },
+    /**
+     * The day they left. Billing has always read this (a resident leaving on the
+     * 8th owes eight days) but it was never in the schema, so every move-out
+     * wrote nothing and the leaving month was never worked out.
+     */
+    moveOutDate: { type: Date, default: null },
+    /**
+     * How the leaving month is charged: the whole month, or only up to
+     * `moveOutDate`. Chosen on the move-out sheet; the hostel sets the default.
+     */
+    lastMonthCharge: { type: String, enum: ["FULL_MONTH", "TILL_DAY", null], default: null },
+    /**
+     * Registered at the desk with an email the person was standing there to
+     * confirm. If that address has no account yet, signing in with it later
+     * links straight to this resident instead of asking "is this you?".
+     */
+    deskIntake: { type: Boolean, default: false },
+    /**
+     * The application form — address, citizenship, college, family, local
+     * guardian (`resident-details.ts`). Encrypted like the ID card; null when
+     * nothing was filled in.
+     */
+    detailsData: { type: String, default: null },
+    /** Their face, from the admission form (private bucket; staff photo route). */
+    photoAssetId: { ref: "FileAsset", type: Schema.Types.ObjectId, default: null },
+    /** The Form QR submission this resident was admitted from, if any. */
+    admissionFormId: { ref: "AdmissionForm", type: Schema.Types.ObjectId, default: null },
     status: {
       type: String,
       enum: ["PENDING", "ACTIVE", "SUSPENDED", "MOVED_OUT"],
@@ -174,6 +209,7 @@ residentSchema.index(
 );
 residentSchema.index({ hostelId: 1, status: 1 });
 residentSchema.index({ hostelId: 1, roomType: 1 });
+residentSchema.index({ roomId: 1, status: 1 });
 residentSchema.index({ userId: 1, status: 1 });
 
 export const ResidentModel =

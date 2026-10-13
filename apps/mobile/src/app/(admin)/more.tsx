@@ -17,6 +17,7 @@ import type { AdminHostel } from "@/lib/admin-api";
 import { adminQuery, prefetchAdminRoute } from "@/lib/admin-queries";
 import { prefetchCommunity } from "@/lib/community-queries";
 import { readableRole, ROLE } from "@/constants/roles";
+import { isKycFrozenHref, useKycLock } from "@/lib/kyc-lock";
 
 /**
  * More — the doors that are not tabs.
@@ -51,7 +52,7 @@ const MANAGE_GROUPS: ManageRow[][] = [
     { href: "/expenses", icon: "wallet-outline", title: "Expenses" },
   ],
   [
-    { href: "/manage/rooms", icon: "bed-outline", title: "Rooms" },
+    { href: "/manage/floors", icon: "bed-outline", title: "Rooms" },
     { href: "/manage/wardens", icon: "shield-checkmark-outline", ownerOnly: true, title: "Wardens" },
     { href: "/manage/cook", icon: "flame-outline", title: "Cooks", tone: "warning" },
     { href: "/manage/roll-call", icon: "moon-outline", title: "Night status", tone: "warning" },
@@ -87,6 +88,7 @@ function BranchAdminMoreScreen() {
     topics: query.topics,
   });
   const branchesLock = useBranchesLock();
+  const { locked } = useKycLock();
 
   const visible = (row: ManageRow) =>
     (!row.ownerOnly || account?.role === ROLE.HOSTEL_ADMIN) &&
@@ -132,6 +134,7 @@ function BranchAdminMoreScreen() {
             <MenuGroup key={group[0].href}>
               {group.filter(visible).map((row) => (
                 <MenuRow
+                  frozen={locked && isKycFrozenHref(row.href)}
                   icon={row.icon}
                   key={row.href}
                   onPress={() => router.push(row.href)}

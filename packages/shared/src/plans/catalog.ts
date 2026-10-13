@@ -40,8 +40,6 @@ export type PlanTierLike = {
   /** Percent off `monthly` while an event runs. Ignored outside one. */
   eventDiscountPercent: number;
   featured: boolean;
-  /** Months free from the day a hostel goes live. Once per building. */
-  freeMonths: number;
   /** Percent off six months bought one month at a time. */
   halfYearlyDiscountPercent: number;
   id: string;

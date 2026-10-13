@@ -12,6 +12,10 @@ import {
 } from "react-native";
 import Animated, {
   Easing,
+  interpolate,
+  runOnJS,
+  type SharedValue,
+  useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -79,9 +83,13 @@ import { APP_NAME } from "@/constants/branding";
 
 export type ScannerTone = "brand" | "neutral";
 
+/** Close, the page tabs and the torch sit in this band; the pages start under it. */
+const TOP_BAR = 44;
+
 export function IdScanner({
   busy,
   extraAction,
+  formQr,
   hint,
   manualTitle,
   onClose,
@@ -105,6 +113,13 @@ export function IdScanner({
   busy?: string | null;
   /** An escape hatch under the keypad button — "register without a card", say. */
   extraAction?: ReactNode;
+  /**
+   * A second page beside the camera — the hostel's Form QR on the intake.
+   * When set, a "Scan ID | Form QR" pill sits in the top bar, the way the
+   * reference banking apps put "Scan | My QR" over their scanner, and the two
+   * pages swipe sideways as one strip. The camera pauses while it is off screen.
+   */
+  formQr?: ReactNode;
   /** Set by the caller when a *valid* id was rejected downstream. */
   hint?: string | null;
   manualTitle: string;
@@ -128,8 +143,39 @@ export function IdScanner({
   // Off while a pushed screen covers this one: a camera left running underneath
   // keeps the sensor busy and the torch lit.
   const [focused, setFocused] = useState(true);
+  const [page, setPage] = useState(0);
+  // The pages take the screen's own height, measured: the window's counts the system bars differently per phone.
+  const [height, setHeight] = useState(window.height);
 
   const handled = useRef(false);
+  const pager = useRef<Animated.ScrollView>(null);
+  const offset = useSharedValue(0);
+  const pageNow = useSharedValue(0);
+  const width = window.width;
+
+  const turnTo = useCallback((next: number) => {
+    setPage(next);
+    void Haptics.selectionAsync();
+
+    if (next === 1) {
+      setTorch(false);
+    }
+  }, []);
+
+  const onPagerScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      offset.value = event.contentOffset.x;
+      // Flips at halfway, so the camera is already starting while a swipe back settles.
+      const next = event.contentOffset.x > width / 2 ? 1 : 0;
+
+      if (next !== pageNow.value) {
+        pageNow.value = next;
+        runOnJS(turnTo)(next);
+      }
+    },
+  });
+
+  const goTo = (next: number) => pager.current?.scrollTo({ animated: true, x: next * width, y: 0 });
 
   useFocusEffect(
     useCallback(() => {
@@ -191,8 +237,8 @@ export function IdScanner({
     open(normalizeResidentId(typed) as string);
   }
 
-  return (
-    <View className="flex-1 bg-black">
+  const camera = (
+    <>
       {/*
         The camera fills the screen and everything else floats over it. A preview
         boxed inside a card is what `activate.tsx` does, and it is right there —
@@ -202,35 +248,26 @@ export function IdScanner({
       */}
       {permission?.granted ? (
         <QrCamera
-          active={focused}
+          active={focused && page === 0}
           onCode={onScan}
           style={{ bottom: 0, left: 0, position: "absolute", right: 0, top: 0 }}
           torch={torch}
         />
       ) : null}
+    </>
+  );
 
+  const scannerPage = (
       <View
-        className="flex-1 justify-between"
-        style={{ paddingBottom: insets.bottom + 24, paddingTop: insets.top + 8 }}
+        className="justify-between"
+        style={{
+          height,
+          paddingBottom: insets.bottom + 24,
+          paddingTop: insets.top + 8 + TOP_BAR + 24,
+          width,
+        }}
       >
         <View className="gap-6 px-5">
-          <View className="flex-row items-center justify-between">
-            <GlassButton
-              icon="chevron-down"
-              label="Close the scanner"
-              onPress={onClose}
-            />
-
-            {permission?.granted ? (
-              <GlassButton
-                active={torch}
-                icon={torch ? "flashlight" : "flashlight-outline"}
-                label={torch ? "Turn off the torch" : "Turn on the torch"}
-                onPress={() => setTorch((current) => !current)}
-              />
-            ) : null}
-          </View>
-
           <View className="gap-1">
             {step ? (
               <View className="flex-row">
@@ -336,6 +373,65 @@ export function IdScanner({
           </View>
         </View>
       </View>
+  );
+
+  return (
+    <View className="flex-1 bg-black" onLayout={(event) => setHeight(event.nativeEvent.layout.height)}>
+      {camera}
+
+      {formQr ? (
+        <Animated.ScrollView
+          bounces={false}
+          decelerationRate="fast"
+          horizontal
+          onScroll={onPagerScroll}
+          overScrollMode="never"
+          pagingEnabled
+          ref={pager}
+          scrollEnabled={!busy}
+          scrollEventThrottle={16}
+          showsHorizontalScrollIndicator={false}
+        >
+          {scannerPage}
+          {/* Opaque, so it slides over the camera rather than the feed showing through. */}
+          <View
+            className="bg-black"
+            style={{ height, paddingBottom: insets.bottom + 24, paddingTop: insets.top + 8 + TOP_BAR + 16, width }}
+          >
+            {formQr}
+          </View>
+        </Animated.ScrollView>
+      ) : (
+        scannerPage
+      )}
+
+      <View
+        className="absolute inset-x-0 flex-row items-center justify-between px-5"
+        style={{ height: TOP_BAR, top: insets.top + 8 }}
+      >
+        <GlassButton icon="chevron-down" label="Close the scanner" onPress={onClose} />
+
+        {formQr ? (
+          <PageTabs
+            labels={["Scan ID", "Form QR"]}
+            offset={offset}
+            onPress={goTo}
+            page={page}
+            pageWidth={width}
+          />
+        ) : null}
+
+        {permission?.granted && page === 0 ? (
+          <GlassButton
+            active={torch}
+            icon={torch ? "flashlight" : "flashlight-outline"}
+            label={torch ? "Turn off the torch" : "Turn on the torch"}
+            onPress={() => setTorch((current) => !current)}
+          />
+        ) : (
+          <View style={{ width: TOP_BAR }} />
+        )}
+      </View>
 
       <Sheet
         footer={<Button label="Look them up" onPress={submitTyped} />}
@@ -378,6 +474,55 @@ export function IdScanner({
         className="absolute inset-x-0 top-0 bg-black/35"
         style={{ height: insets.top, pointerEvents: "none" }}
       />
+    </View>
+  );
+}
+
+const TAB_WIDTH = 92;
+
+/**
+ * "Scan ID | Form QR" — a glass pill with a white thumb that rides the pager's
+ * own scroll offset on the UI thread, so it moves with the finger mid-swipe
+ * rather than jumping when the page settles. Tapping a label scrolls the pager
+ * there; the label colour flips at halfway, with the camera.
+ */
+function PageTabs({
+  labels,
+  offset,
+  onPress,
+  page,
+  pageWidth,
+}: {
+  labels: [string, string];
+  offset: SharedValue<number>;
+  onPress: (page: number) => void;
+  page: number;
+  pageWidth: number;
+}) {
+  const thumb = useAnimatedStyle(() => ({
+    transform: [{ translateX: interpolate(offset.value, [0, pageWidth], [0, TAB_WIDTH], "clamp") }],
+  }));
+
+  return (
+    <View accessibilityRole="tablist" className="flex-row rounded-full bg-black/45 p-1">
+      <Animated.View
+        className="absolute bottom-1 left-1 top-1 rounded-full bg-white"
+        style={[{ width: TAB_WIDTH }, thumb]}
+      />
+      {labels.map((label, index) => (
+        <Pressable
+          accessibilityLabel={label}
+          accessibilityRole="tab"
+          accessibilityState={{ selected: page === index }}
+          className="h-9 items-center justify-center rounded-full"
+          hitSlop={4}
+          key={label}
+          onPress={() => onPress(index)}
+          style={{ width: TAB_WIDTH }}
+        >
+          <Text className={`text-sm font-semibold ${page === index ? "text-black" : "text-white"}`}>{label}</Text>
+        </Pressable>
+      ))}
     </View>
   );
 }

@@ -1,14 +1,20 @@
 import { Ionicons } from "@expo/vector-icons";
 import { addBsMonths, currentBsPeriod } from "@hostel/calendar/bs";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Pressable, View } from "react-native";
+import { Linking, Pressable, View } from "react-native";
 
+import { ApplicantForm } from "@/components/manage/applicant-form";
+import { DetailsFacts } from "@/components/manage/details-facts";
+import { FormQrPage } from "@/components/manage/form-qr-page";
 import { IdScanner } from "@/components/manage/id-scanner";
+import { RoomPicker } from "@/components/manage/room-picker";
+import { type Charges, ChargesSheet } from "@/components/manage/charges-sheet";
+import { type Room, type RoomLayout, roomsQuery } from "@/lib/rooms-api";
 import { ManualMethodPanel, methodLabel, methodProvider } from "@/components/pay-methods";
 import { ReferenceStrip } from "@/components/resident-payments";
 import { AppBar } from "@/components/ui/app-bar";
-import { Avatar } from "@/components/ui/avatar";
+import { Avatar, PersonAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -27,6 +33,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import {
+  type ChargeOverrides,
   createResident,
   getIntakeQuote,
   type IntakeQuote,
@@ -45,6 +52,7 @@ import { type CardBooking, findCardBooking } from "@/lib/admin-bookings-api";
 import { readApiError, readApiErrorCode } from "@/lib/api-contract";
 import { formatDateIn } from "@/lib/calendar";
 import { openConfirm } from "@/lib/confirm";
+import { openAssetViewer } from "@/lib/asset-viewer";
 import { monthName, rentStatusOptions, rupeesFrom } from "@/lib/existing-residents";
 import { addScannedExistingResident } from "@/lib/existing-residents-api";
 import { humanizeEnum } from "@/lib/format";
@@ -61,6 +69,27 @@ import {
   residentFullName,
 } from "@/lib/resident-intake";
 import { toastError, toastSuccess } from "@/lib/toast";
+import {
+  type AdmissionForm,
+  type AdmissionFormLink,
+  declineAdmissionForm,
+  getAdmissionForm,
+} from "@/lib/admission-form-api";
+import {
+  type ApplicantDraft,
+  type ApplicantField,
+  type ApplicantDocuments,
+  type ApplicantPhoto,
+  type DocumentKind,
+  documentsPayload,
+  documentsProblem,
+  applicantProblem,
+  detailsContacts,
+  detailsFromDraft,
+  emptyApplicantDraft,
+  photoPayload,
+  type ResidentDetails,
+} from "@/lib/resident-details";
 import { APP_NAME } from "@/constants/branding";
 
 /**
@@ -91,15 +120,15 @@ import { APP_NAME } from "@/constants/branding";
  * lookup screen never has, and says *Register a new resident* where the other
  * says *Look up a resident*.
  *
- * ## The price is shown, never chosen
+ * ## The price is quoted; a special fee needs a reason
  *
  * The rent, the admission fee and the deposit are quoted by the server from the
- * rate card in force on the move-in date, and are rendered as `<FactRow>`s. This
- * screen used to prefill an editable *Monthly fee* box, which was wrong twice
- * over: `Resident.monthlyFee` is an override that outranks the rate card
- * forever, and the field defaulted to zero — so every resident registered from
- * this app was quietly billed nothing. A negotiated rate is still possible, on
- * the resident's own screen, where a reason is recorded beside it.
+ * rate card in force on the move-in date. The old editable *Monthly fee* box
+ * defaulted to zero and billed residents nothing; its replacement is "Edit",
+ * which opens rent, admission fee, form fee and deposit on the rate card and
+ * will not save without a reason (Short stay, Relative, or typed). Rent is
+ * stored as `Resident.monthlyFee`, so every bill — the first month too — uses
+ * it; the other three go on the joining bill (docs/FIELD_FIXES_2026_10.md §2).
  *
  * ## The referral code has one chance
  *
@@ -136,6 +165,8 @@ type Identity =
       prefill: ResidentPrefill;
       residentId: string;
     }
+  /** Filled by the person themself through the hostel's Form QR. */
+  | { form: AdmissionForm; kind: "form" }
   | { kind: "manual" };
 
 export default function NewResidentScreen() {
@@ -161,14 +192,70 @@ export default function NewResidentScreen() {
    */
   const [reading, setReading] = useState(false);
 
-  // Only reachable on the manual path — a card answers all four.
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
+  // Only reachable on the manual path — a card or a sent form answers all of it.
+  const [draft, setDraft] = useState<ApplicantDraft>(emptyApplicantDraft);
+  const setDraftField = useCallback(
+    (field: ApplicantField, value: string) => setDraft((current) => ({ ...current, [field]: value })),
+    [],
+  );
   const [residentType, setResidentType] = useState<ResidentType>("STUDENT");
+  /** Their face, taken or uploaded at the desk — optional for the warden. */
+  const [photo, setPhoto] = useState<ApplicantPhoto | null>(null);
+  const [signing, setSigning] = useState(false);
+  /** Citizenship / ID scans: their own always, the guardian's when Settings → Form details says so. */
+  const [documents, setDocuments] = useState<ApplicantDocuments>({});
+  const setDocument = useCallback(
+    (kind: DocumentKind, document: ApplicantPhoto | null) =>
+      setDocuments((current) => ({ ...current, [kind]: document ?? undefined })),
+    [],
+  );
+  const formLinkQuery = adminQuery.admissionFormLink();
+  const formLink = useResource<AdmissionFormLink>(formLinkQuery.load, {
+    cacheKey: formLinkQuery.key,
+    topics: formLinkQuery.topics,
+  });
+  const guardianDocRequired = Boolean(formLink.data?.guardianDocRequired);
 
-  const [roomType, setRoomType] = useState<string | null>(null);
+  /*
+   * Opened from a Form QR submission on the Residents tab: the person filled
+   * the form themself, so the intake starts at reading it back, not the camera.
+   */
+  const { application } = useLocalSearchParams<{ application?: string }>();
+  const [opening, setOpening] = useState(Boolean(application));
+
+  useEffect(() => {
+    if (!application) {
+      return;
+    }
+
+    let live = true;
+
+    getAdmissionForm(application)
+      .then((form) => {
+        if (live) {
+          setIdentity({ form, kind: "form" });
+          setStep("confirm");
+        }
+      })
+      .catch((error) => toastError("Could not open that form", readApiError(error)))
+      .finally(() => {
+        if (live) setOpening(false);
+      });
+
+    return () => {
+      live = false;
+    };
+  }, [application]);
+
+  const [roomType, setRoomTypeRaw] = useState<string | null>(null);
+  /** The numbered room, when the hostel keeps floors and rooms. */
+  const [roomId, setRoomId] = useState<string | null>(null);
+  const setRoomType = useCallback((next: string | null) => {
+    setRoomTypeRaw(next);
+    setRoomId(null);
+  }, []);
+  /** Their own charges instead of the rate card, with the reason. Null = the rate card. */
+  const [charges, setCharges] = useState<Charges | null>(null);
   const [moveInDate, setMoveInDate] = useState(() => dayInputFromNow(0));
   const [referralCode, setReferralCode] = useState("");
   const [saving, setSaving] = useState(false);
@@ -198,7 +285,18 @@ export default function NewResidentScreen() {
     [hostel.data],
   );
 
-  const quote = useIntakeQuote({ moveInDate, referralCode, roomType });
+  const quote = useIntakeQuote({ charges, moveInDate, referralCode, roomType });
+
+  const layoutQuery = roomsQuery.layout();
+  const layout = useResource<RoomLayout>(layoutQuery.load, {
+    cacheKey: layoutQuery.key,
+    topics: layoutQuery.topics,
+  });
+  /** Floor & room is on and this type has numbered rooms: a room must be picked. */
+  const numberedRooms = useMemo(
+    () => (layout.data?.tracking ? layout.data.rooms.filter((room) => room.roomType === roomType) : []),
+    [layout.data, roomType],
+  );
 
   const person = useMemo(() => {
     if (identity?.kind === "card") {
@@ -211,14 +309,32 @@ export default function NewResidentScreen() {
       };
     }
 
+    if (identity?.kind === "form") {
+      return {
+        email: identity.form.email,
+        firstName: identity.form.firstName,
+        lastName: identity.form.lastName,
+        phone: identity.form.phone,
+        residentType: identity.form.residentType,
+      };
+    }
+
     return {
-      email: email.trim(),
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      phone: phone.trim(),
+      email: draft.email.trim(),
+      firstName: draft.firstName.trim(),
+      lastName: draft.lastName.trim(),
+      phone: draft.phone.trim(),
       residentType,
     };
-  }, [email, firstName, identity, lastName, phone, residentType]);
+  }, [draft, identity, residentType]);
+
+  /** The admission form that goes on their record, whichever way it came. */
+  const details = useMemo<ResidentDetails | undefined>(() => {
+    if (identity?.kind === "card") return identity.prefill.form;
+    if (identity?.kind === "form") return identity.form.details ?? undefined;
+
+    return detailsFromDraft(draft);
+  }, [draft, identity]);
 
   /** The confirmed booking the scanned card holds here — registering them closes it (docs/BOOKINGS.md item 8). */
   const [cardBooking, setCardBooking] = useState<CardBooking | null>(null);
@@ -322,6 +438,18 @@ export default function NewResidentScreen() {
       return;
     }
 
+    if (identity?.kind === "manual" && photo && !photoPayload(photo)) {
+      toastError("Wait for the photo", "It is still uploading.");
+      return;
+    }
+
+    const documentProblem = identity?.kind === "manual" ? documentsProblem(documents, guardianDocRequired) : null;
+
+    if (documentProblem) {
+      toastError("Check the documents", documentProblem);
+      return;
+    }
+
     if (person.firstName.length < 1 || person.lastName.length < 1) {
       toastError("Name them", "Both names, as they would write them.");
       return;
@@ -334,6 +462,11 @@ export default function NewResidentScreen() {
 
     if (!roomType) {
       toastError("Pick a bed type", "Admitting somebody takes a bed off one of them.");
+      return;
+    }
+
+    if (numberedRooms.length > 0 && !roomId) {
+      toastError("Pick their room", "Choose the floor, then the room they sleep in.");
       return;
     }
 
@@ -363,13 +496,23 @@ export default function NewResidentScreen() {
           // Only when a month is due — a stale amount left from an earlier pick means nothing.
           partPaid: paidTill < currentBsPeriod() ? (rupeesFrom(partPaid) ?? 0) : 0,
           phone: person.phone,
+          // Checked and given with the add — a full room refuses before anyone is added.
+          roomNumber: numberedRooms.find((room) => room.id === roomId)?.number ?? "",
           roomType,
           userResidentId: identity?.kind === "card" ? identity.residentId : undefined,
+          details,
+          admissionFormId: identity?.kind === "form" ? identity.form.id : undefined,
+          photo: identity?.kind === "manual" ? photoPayload(photo) : undefined,
+          documents: identity?.kind === "manual" ? documentsPayload(documents) : undefined,
         });
 
-        if (added.residentId && identity?.kind === "card") {
-          await attachContacts(added.residentId, identity.prefill).catch(() => 0);
+        if (added.residentId) {
+          await (identity?.kind === "card"
+            ? attachContacts(added.residentId, identity.prefill)
+            : attachDetailsContacts(added.residentId, details)
+          ).catch(() => 0);
         }
+
 
         const bills = added.result.billsRaised;
 
@@ -429,6 +572,8 @@ export default function NewResidentScreen() {
         referralCode: referralCode.trim() || undefined,
         residentType: person.residentType,
         roomType,
+        ...(roomId ? { roomId } : {}),
+        ...(charges ? { ...overridesOf(charges), feeReason: charges.reason } : {}),
         /*
          * Always active. The intake screen used to carry a "Living here" toggle
          * that wrote `PENDING` instead, and nobody ever turned it off — a warden
@@ -442,6 +587,10 @@ export default function NewResidentScreen() {
         // The card that opened this intake, so the server links the account it
         // already resolved rather than guessing at it from the email.
         userResidentId: identity?.kind === "card" ? identity.residentId : undefined,
+        details,
+        admissionFormId: identity?.kind === "form" ? identity.form.id : undefined,
+        photo: identity?.kind === "manual" ? photoPayload(photo) : undefined,
+        documents: identity?.kind === "manual" ? documentsPayload(documents) : undefined,
       });
     } catch (error) {
       setSaving(false);
@@ -485,7 +634,7 @@ export default function NewResidentScreen() {
       contacts =
         identity?.kind === "card"
           ? await attachContacts(result.resident.id, identity.prefill)
-          : 0;
+          : await attachDetailsContacts(result.resident.id, details);
     } catch {
       contacts = 0;
     }
@@ -506,8 +655,12 @@ export default function NewResidentScreen() {
     setStep("collect");
   }, [
     depositPaid,
+    details,
+    documents,
+    guardianDocRequired,
     existing,
     identity,
+    photo,
     joined,
     moveInDate,
     occupancy,
@@ -515,10 +668,24 @@ export default function NewResidentScreen() {
     paidTill,
     partPaid,
     person,
+    numberedRooms,
     referralCode,
     rescan,
+    roomId,
     roomType,
+    charges,
   ]);
+
+  if (opening) {
+    return (
+      <Screen header={<AppBar accent centerTitle showBack title="Admission form" />}>
+        <View className="gap-4 pt-1">
+          <SkeletonCard rows={3} />
+          <SkeletonCard rows={4} />
+        </View>
+      </Screen>
+    );
+  }
 
   if (step === "identify") {
     return (
@@ -540,6 +707,7 @@ export default function NewResidentScreen() {
             </Text>
           </Pressable>
         }
+        formQr={<FormQrPage />}
         hint={scanError}
         manualTitle="Their resident ID"
         onClose={() => router.back()}
@@ -603,7 +771,48 @@ export default function NewResidentScreen() {
     );
   }
 
-  const back = () => setStep(step === "terms" ? "confirm" : "identify");
+  const back = () => {
+    if (step === "terms") {
+      setStep("confirm");
+    } else if (identity?.kind === "form") {
+      // They came from the Residents tab, not the camera.
+      router.back();
+    } else {
+      setStep("identify");
+    }
+  };
+
+  const toTerms = () => {
+    const problem =
+      identity?.kind === "manual"
+        ? (applicantProblem(draft) ?? documentsProblem(documents, guardianDocRequired))
+        : null;
+
+    if (problem) {
+      toastError("Check the form", problem);
+      return;
+    }
+
+    setStep("terms");
+  };
+
+  /** Not taking somebody who sent the form: it leaves the Residents tab. */
+  const decline = () =>
+    identity?.kind === "form" &&
+    openConfirm({
+      confirmLabel: "Not taking them",
+      destructive: true,
+      message: `${person.firstName}'s form leaves the list. They are not told.`,
+      onConfirm: async () => {
+        try {
+          await declineAdmissionForm(identity.form.id);
+          router.back();
+        } catch (error) {
+          toastError("Could not do that", readApiError(error));
+        }
+      },
+      title: "Not taking them?",
+    });
 
   return (
     <Screen
@@ -617,7 +826,7 @@ export default function NewResidentScreen() {
           occupancy ? (
             <Button label="Scan another card" onPress={rescan} />
           ) : (
-            <Button label="Next — bed and money" onPress={() => setStep("terms")} />
+            <Button label="Next — bed and money" onPress={toTerms} />
           )
         ) : (
           <Button
@@ -634,25 +843,33 @@ export default function NewResidentScreen() {
           onBack={back}
           showBack
           subtitle={step === "confirm" ? "Step 2 of 3" : "Step 3 of 3"}
-          title={step === "confirm" ? "Confirm who they are" : "Bed, date and money"}
+          title={
+            step === "terms"
+              ? "Bed, date and money"
+              : identity?.kind === "manual"
+                ? "Admission form"
+                : "Confirm who they are"
+          }
         />
       }
       scroll
+      scrollEnabled={!signing}
     >
       {step === "confirm" ? (
         <ConfirmStep
           cardBooking={cardBooking}
-          email={email}
-          firstName={firstName}
+          draft={draft}
           identity={identity}
-          lastName={lastName}
-          onChangeEmail={setEmail}
-          onChangeFirstName={setFirstName}
-          onChangeLastName={setLastName}
-          onChangePhone={setPhone}
+          onChangeDraft={setDraftField}
           onChangeResidentType={setResidentType}
+          onDecline={decline}
+          onPhoto={setPhoto}
+          documents={documents}
+          guardianDocRequired={guardianDocRequired}
+          onDocument={setDocument}
+          onSigning={setSigning}
           onRescan={rescan}
-          phone={phone}
+          photo={photo}
           residentType={residentType}
         />
       ) : (
@@ -674,11 +891,16 @@ export default function NewResidentScreen() {
           moveInDate={moveInDate}
           onChangeMoveInDate={setMoveInDate}
           onChangeReferralCode={setReferralCode}
+          numberedRooms={numberedRooms}
+          onPickNumberedRoom={setRoomId}
           onPickRoom={setRoomType}
+          onCharges={setCharges}
           quote={quote}
           referralCode={referralCode}
+          roomId={roomId}
           roomType={roomType}
           rooms={rooms}
+          charges={charges}
         />
       )}
     </Screen>
@@ -701,91 +923,73 @@ export default function NewResidentScreen() {
  */
 function ConfirmStep({
   cardBooking,
-  email,
-  firstName,
+  draft,
   identity,
-  lastName,
-  onChangeEmail,
-  onChangeFirstName,
-  onChangeLastName,
-  onChangePhone,
+  onChangeDraft,
   onChangeResidentType,
+  onDecline,
+  onPhoto,
+  documents,
+  guardianDocRequired,
+  onDocument,
+  onSigning,
   onRescan,
-  phone,
+  photo: applicantPhoto,
   residentType,
 }: {
   /** The booking this card holds here, if any — registering them closes it. */
   cardBooking: CardBooking | null;
-  email: string;
-  firstName: string;
+  /** The admission form the warden is typing, on the no-card path. */
+  draft: ApplicantDraft;
   identity: Identity | null;
-  lastName: string;
-  onChangeEmail: (value: string) => void;
-  onChangeFirstName: (value: string) => void;
-  onChangeLastName: (value: string) => void;
-  onChangePhone: (value: string) => void;
+  onChangeDraft: (field: ApplicantField, value: string) => void;
   onChangeResidentType: (value: ResidentType) => void;
+  /** Not taking somebody who sent the Form QR. */
+  onDecline: () => void;
+  onPhoto: (photo: ApplicantPhoto | null) => void;
+  documents: ApplicantDocuments;
+  guardianDocRequired: boolean;
+  onDocument: (kind: DocumentKind, document: ApplicantPhoto | null) => void;
+  /** The signature box is being drawn on: the page must not scroll under the pen. */
+  onSigning: (active: boolean) => void;
   onRescan: () => void;
-  phone: string;
+  photo: ApplicantPhoto | null;
   residentType: ResidentType;
 }) {
   const { colors } = useAppTheme();
   const dates = useDates();
   const token = useAppSelector((state) => state.auth.accessToken);
 
+  if (identity?.kind === "form") {
+    return <SentFormStep form={identity.form} onDecline={onDecline} />;
+  }
+
   if (identity?.kind !== "card") {
+    /*
+     * No card: the hostel's paper admission form, typed here. Only the name and
+     * the number are needed to go on; everything else is kept on their record
+     * and the family with phones become their guardian records.
+     */
     return (
       <View className="gap-5 pt-1">
-        <View>
-          <SectionHeader
-            subtitle="No card was scanned, so these are the only details the hostel will hold"
-            title="Who they are"
-          />
-          <Card className="gap-3">
-            <View className="flex-row gap-3">
-              <View className="flex-1">
-                <Input
-                  autoCapitalize="words"
-                  label="First name"
-                  onChangeText={onChangeFirstName}
-                  value={firstName}
-                />
-              </View>
-              <View className="flex-1">
-                <Input
-                  autoCapitalize="words"
-                  label="Last name"
-                  onChangeText={onChangeLastName}
-                  value={lastName}
-                />
-              </View>
-            </View>
-
-            <Input
-              hint="One phone number per resident — a number already on the roll is refused."
-              keyboardType="phone-pad"
-              label="Phone"
-              onChangeText={onChangePhone}
-              value={phone}
-            />
-
-            <Input
-              autoCapitalize="none"
-              hint="Their activation code and receipts go here. Optional, but without it every code has to be read out loud."
-              keyboardType="email-address"
-              label="Email"
-              onChangeText={onChangeEmail}
-              value={email}
-            />
-
+        <ApplicantForm
+          draft={draft}
+          extra={
             <Select
               label="They are a"
               onChange={onChangeResidentType}
               options={TYPE_OPTIONS}
               value={residentType}
             />
-          </Card>
-        </View>
+          }
+          onChange={onChangeDraft}
+          onPhoto={onPhoto}
+          photo={applicantPhoto}
+          documents={documents}
+          guardianDocRequired={guardianDocRequired}
+          onDocument={onDocument}
+          onSigning={onSigning}
+        />
 
         <Pressable
           accessibilityRole="button"
@@ -939,6 +1143,93 @@ function ConfirmStep({
   );
 }
 
+/**
+ * A form the person filled themself through the Form QR, read back.
+ *
+ * Same painted block as a scanned card, with their initial where the card has
+ * a photo — a sent form has no face — and the form's own facts underneath. Read
+ * only, like the card: it is their answers. "Not taking them" is the one other
+ * way out, and it only takes the form off the list.
+ */
+function SentFormStep({ form, onDecline }: { form: AdmissionForm; onDecline: () => void }) {
+  const dates = useDates();
+  const name = `${form.firstName} ${form.lastName}`.trim();
+
+  return (
+    <View className="gap-5 pt-1">
+      <View className="-mt-1">
+        <View className="items-center gap-1 rounded-b-3xl bg-primary px-5 pb-12 pt-4">
+          <Text className="text-xs font-bold uppercase tracking-wide text-primary-foreground/75">
+            Filled the admission form
+          </Text>
+          <Text className="text-center text-xl font-bold text-primary-foreground">{name}</Text>
+        </View>
+        <View className="-mt-10 items-center gap-2">
+          <View className="rounded-full bg-card p-1">
+            <PersonAvatar image={form.photo} name={name} size="xl" />
+          </View>
+          <View className="rounded-full border border-border bg-card px-4 py-1.5">
+            <Text className="text-xs font-semibold tracking-wide text-foreground">
+              {`Sent ${dates.dateTime(form.submittedAt)}`}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      <View>
+        <SectionHeader title="Who they are" />
+        <Card padding="px-4 py-1">
+          <FactRow
+            label="Contact no."
+            value={
+              <Chip
+                icon="call-outline"
+                label={form.phone}
+                onPress={() => void Linking.openURL(`tel:${form.phone}`)}
+                tone="brand"
+              />
+            }
+          />
+          {form.email ? <FactRow label="Email" value={form.email} /> : null}
+          <FactRow label="They are a" value={humanizeEnum(form.residentType)} />
+        </Card>
+      </View>
+
+      {form.documents?.length ? (
+        <View>
+          <SectionHeader subtitle="Tap one to open it" title="Documents" />
+          <Card padding="px-4 py-1">
+            {form.documents.map((document, index) => (
+              <ListRow
+                icon="card-outline"
+                key={document.assetId}
+                onPress={() =>
+                  openAssetViewer(
+                    form.documents!.map((item) => ({ assetId: item.assetId, caption: item.label, title: item.label })),
+                    index,
+                  )
+                }
+                subtitle="Sent with the form"
+                title={document.label}
+              />
+            ))}
+          </Card>
+        </View>
+      ) : null}
+
+      <DetailsFacts details={form.details} />
+
+      <Pressable
+        accessibilityRole="button"
+        className="flex-row items-center justify-center gap-2 py-2 active:opacity-60"
+        onPress={onDecline}
+      >
+        <Text className="text-sm font-semibold text-destructive">Not taking them</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 function FactCard({ facts, title }: { facts: IntakeFact[]; title: string }) {
   if (facts.length === 0) {
     return null;
@@ -980,24 +1271,35 @@ type ExistingForm = {
 function TermsStep({
   existing,
   moveInDate,
+  numberedRooms,
   onChangeMoveInDate,
   onChangeReferralCode,
+  onPickNumberedRoom,
   onPickRoom,
+  onCharges,
   quote,
   referralCode,
+  roomId,
   roomType,
   rooms,
+  charges,
 }: {
   existing: ExistingForm;
   moveInDate: string;
+  numberedRooms: Room[];
   onChangeMoveInDate: (value: string) => void;
   onChangeReferralCode: (value: string) => void;
+  onPickNumberedRoom: (roomId: string) => void;
   onPickRoom: (value: string) => void;
+  onCharges: (charges: Charges | null) => void;
   quote: { data: IntakeQuote | null; loading: boolean };
   referralCode: string;
+  roomId: string | null;
   roomType: string | null;
   rooms: ManagedHostel["roomConfigurations"];
+  charges: Charges | null;
 }) {
+  const [feeOpen, setFeeOpen] = useState(false);
   /*
    * The move-in date said back in Nepali, under the field.
    *
@@ -1058,6 +1360,18 @@ function TermsStep({
               ))}
             </View>
           )}
+
+          {numberedRooms.length > 0 ? (
+            <View className="gap-2 pt-1">
+              <Text variant="label">Which room</Text>
+              <RoomPicker
+                onChange={(room) => onPickNumberedRoom(room.id)}
+                roomType={roomType}
+                rooms={numberedRooms}
+                value={roomId}
+              />
+            </View>
+          ) : null}
 
           {existing.on ? null : (
             <Input
@@ -1185,10 +1499,27 @@ function TermsStep({
       <>
       <View>
         <SectionHeader
-          subtitle="Set by the hostel's rate card — not editable here"
+          action={
+            roomType ? (
+              <Pressable accessibilityRole="button" hitSlop={8} onPress={() => setFeeOpen(true)}>
+                <Text className="text-sm font-semibold text-primary">Edit</Text>
+              </Pressable>
+            ) : undefined
+          }
+          subtitle={charges ? `Set for them · ${charges.reason}` : "From the hostel's rate card"}
           title="What it costs"
         />
         <MoneyCard quote={quote} roomType={roomType} />
+        <ChargesSheet
+          onClose={() => setFeeOpen(false)}
+          onSave={(next) => {
+            onCharges(next);
+            setFeeOpen(false);
+          }}
+          open={feeOpen}
+          standard={quote.data?.standard ?? null}
+          value={charges}
+        />
       </View>
 
       <View>
@@ -1582,10 +1913,12 @@ function HowToPay({
  * the total before a thumb reaches the button under it.
  */
 function useIntakeQuote({
+  charges,
   moveInDate,
   referralCode,
   roomType,
 }: {
+  charges: Charges | null;
   moveInDate: string;
   referralCode: string;
   roomType: string | null;
@@ -1598,7 +1931,7 @@ function useIntakeQuote({
   } | null>(null);
 
   const key = roomType
-    ? [roomType, moveInDate, referralCode.trim().toUpperCase()].join("|")
+    ? [roomType, moveInDate, referralCode.trim().toUpperCase(), JSON.stringify(charges ?? {})].join("|")
     : null;
 
   useEffect(() => {
@@ -1609,6 +1942,7 @@ function useIntakeQuote({
     let live = true;
     const timer = setTimeout(() => {
       void getIntakeQuote({
+        ...(charges ? overridesOf(charges) : {}),
         moveInDate: startOfDayIso(moveInDate) ?? undefined,
         referralCode: referralCode.trim() || undefined,
         roomType,
@@ -1631,7 +1965,7 @@ function useIntakeQuote({
       live = false;
       clearTimeout(timer);
     };
-  }, [key, moveInDate, referralCode, roomType]);
+  }, [charges, key, moveInDate, referralCode, roomType]);
 
   const settled = answer?.key === key;
 
@@ -1639,6 +1973,11 @@ function useIntakeQuote({
     data: settled ? answer.quote : null,
     loading: Boolean(key) && !settled,
   };
+}
+
+/** The figures without the reason, as the API takes them. */
+function overridesOf({ admissionFee, depositAmount, formFee, monthlyFee }: Charges): ChargeOverrides {
+  return { admissionFee, depositAmount, formFee, monthlyFee };
 }
 
 /** `NPR 1,500` without the component, for the one place it sits inside a string. */
@@ -1662,6 +2001,26 @@ function normalizeResidentType(value: string): ResidentType {
 }
 
 /** Their guardians and emergency contact, written from the card they showed. */
+/**
+ * The family and local guardian off the admission form, as guardian and
+ * emergency records — what `attachContacts` does for a card. Counted, never
+ * thrown: the resident is already registered.
+ */
+async function attachDetailsContacts(residentId: string, details: ResidentDetails | undefined) {
+  if (!details) {
+    return 0;
+  }
+
+  const { addEmergencyContact, addResidentGuardian } = await import("@/lib/admin-manage-api");
+  const { emergencyContact, guardians } = detailsContacts(details);
+  const outcomes = await Promise.allSettled([
+    ...guardians.map((guardian) => addResidentGuardian(residentId, guardian)),
+    ...(emergencyContact ? [addEmergencyContact(residentId, emergencyContact)] : []),
+  ]);
+
+  return outcomes.filter((outcome) => outcome.status === "fulfilled").length;
+}
+
 async function attachContacts(residentId: string, prefill: ResidentPrefill) {
   const { addEmergencyContact, addResidentGuardian } = await import(
     "@/lib/admin-manage-api"

@@ -38,6 +38,7 @@ export type ExistingResidentFileRow = {
   oldDues: number;
   paidTill: string | null;
   phone: string;
+  roomNumber: string;
   roomType: string;
 };
 
@@ -73,9 +74,16 @@ export const EXISTING_RESIDENT_COLUMNS: { key: ColumnKey; label: string }[] = [
   { key: "email", label: "Email" },
 ];
 
-/** Columns read but not written, in the same shape. */
+/**
+ * Written last, and only for a hostel that keeps floors and rooms — last, so a
+ * sheet copied from the older template still pastes into the same columns.
+ */
+const ROOM_NUMBER_COLUMN: { key: ColumnKey; label: string } = { key: "roomNumber", label: "Room no." };
+
+/** Columns read but not always written, in the same shape. */
 const EXTRA_COLUMNS: { key: ColumnKey; label: string }[] = [
   { key: "paidTill", label: "Rent paid till" },
+  ROOM_NUMBER_COLUMN,
 ];
 
 /** Other ways people write the same header. Compared with letters only. */
@@ -89,6 +97,7 @@ const HEADER_ALIASES: Record<ColumnKey, string[]> = {
   oldDues: ["olddues", "dues", "due", "dueamount", "remaining", "baki"],
   paidTill: ["rentpaidtill", "paidtill", "paiduntil", "rentpaidupto", "paidupto", "paidtillmonth"],
   phone: ["phone", "phonenumber", "mobile", "mobilenumber", "contact", "contactnumber"],
+  roomNumber: ["roomno", "roomnumber", "roomnum", "roomnos"],
   roomType: ["roomtype", "room", "roomcategory"],
 };
 
@@ -266,6 +275,7 @@ export function readExistingResidentsFile(
       oldDues: dues ?? 0,
       paidTill: typeof paidTill === "string" ? paidTill : null,
       phone: readPhone(value("phone")),
+      roomNumber: value("roomNumber"),
       roomType: value("roomType"),
     });
   }
@@ -283,9 +293,14 @@ export function buildExistingResidentsTemplate(input: {
   /** `Aswin 2083` — this month, named in the help. */
   currentMonth: string;
   hostelName: string;
+  /** Room numbers, when the hostel keeps floors and rooms: adds the Room no. column. */
+  roomNumbers?: string[] | null;
   roomTypes: { monthlyRent: number | null; roomType: string }[];
 }): Buffer {
   const book = XLSX.utils.book_new();
+  const withRooms = Boolean(input.roomNumbers?.length);
+  const columns = [...EXISTING_RESIDENT_COLUMNS, ...(withRooms ? [ROOM_NUMBER_COLUMN] : [])];
+  const exampleRooms = withRooms ? [input.roomNumbers![0], input.roomNumbers![1] ?? input.roomNumbers![0]] : [];
 
   const firstRoom = input.roomTypes[0];
   const helpRows: (number | string)[][] = [
@@ -311,11 +326,14 @@ export function buildExistingResidentsTemplate(input: {
       "No",
     ],
     ["Email", "Their email, if they use one", "No"],
+    ...(withRooms
+      ? [["Room no.", `Their room number, like ${input.roomNumbers![0]}. The room type can be left empty then`, "Yes"]]
+      : []),
     [],
     ["Example"],
-    EXISTING_RESIDENT_COLUMNS.map((column) => column.label),
-    ["Ram Thapa", "9841234567", firstRoom?.roomType ?? "Double", firstRoom?.monthlyRent ?? "", "10000", "1", "2500", "2082-04-15", ""],
-    ["Sita KC", "9801234567", firstRoom?.roomType ?? "Double", firstRoom?.monthlyRent ?? "", "10000", "0", "", "", ""],
+    columns.map((column) => column.label),
+    ["Ram Thapa", "9841234567", firstRoom?.roomType ?? "Double", firstRoom?.monthlyRent ?? "", "10000", "1", "2500", "2082-04-15", "", ...exampleRooms.slice(0, 1)],
+    ["Sita KC", "9801234567", firstRoom?.roomType ?? "Double", firstRoom?.monthlyRent ?? "", "10000", "0", "", "", "", ...exampleRooms.slice(1)],
     [],
     ["Room types in this hostel", "Monthly rent from the rate card (Rs)"],
   ];
@@ -329,9 +347,7 @@ export function buildExistingResidentsTemplate(input: {
   );
 
   const roomsTo = roomsFrom + input.roomTypes.length - 1;
-  const residents = XLSX.utils.aoa_to_sheet([
-    EXISTING_RESIDENT_COLUMNS.map((column) => column.label),
-  ]);
+  const residents = XLSX.utils.aoa_to_sheet([columns.map((column) => column.label)]);
 
   if (input.roomTypes.length) {
     // Excel works these out when it opens the file: SheetJS writes no cached values.
@@ -342,7 +358,7 @@ export function buildExistingResidentsTemplate(input: {
       };
     }
 
-    residents["!ref"] = `A1:I${MAX_ROWS + 1}`;
+    residents["!ref"] = `A1:${withRooms ? "J" : "I"}${MAX_ROWS + 1}`;
   }
 
   residents["!cols"] = [
@@ -355,6 +371,7 @@ export function buildExistingResidentsTemplate(input: {
     { wch: 15 },
     { wch: 14 },
     { wch: 28 },
+    ...(withRooms ? [{ wch: 10 }] : []),
   ];
 
   const help = XLSX.utils.aoa_to_sheet(helpRows);

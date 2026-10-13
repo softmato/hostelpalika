@@ -63,7 +63,7 @@ async function loadConfigurations(hostelId: Types.ObjectId) {
   return hostel.roomConfigurations ?? [];
 }
 
-async function writeConfigurations(
+export async function writeConfigurations(
   hostelId: Types.ObjectId,
   configurations: RoomConfiguration[],
 ) {

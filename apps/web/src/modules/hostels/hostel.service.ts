@@ -4,6 +4,7 @@ import { Types } from "mongoose";
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { OVERALL_SLUG } from "@/lib/branch-cache";
 import { connectToDatabase } from "@/lib/db";
+import { siteUrl } from "@/lib/site";
 import { paginationMeta, paginationRange } from "@/lib/pagination";
 import { escapeRegex } from "@/lib/validators";
 import { Role } from "@/lib/roles";
@@ -51,8 +52,14 @@ import { hostelRejectedEmail } from "@hostel/shared/email/templates/hostel/hoste
 import { ownerEmailChangedEmail } from "@hostel/shared/email/templates/hostel/owner-email-changed";
 import {
   notifyHostelOfInquiry,
+  notifyHostelOwnerOf,
   notifyPlatformOfPendingHostel,
 } from "@/modules/hostels/hostel-notify";
+import {
+  hostelKycApprovedEmail,
+  hostelKycSentBackEmail,
+} from "@hostel/shared/email/templates/hostel/hostel-kyc";
+import { trialEndSuspension } from "@/modules/hostels/hostel-suspension";
 import {
   getOrCreateSubscription,
   getSubscriptionState,
@@ -62,6 +69,7 @@ import { startFreeMonths } from "@/modules/billing/subscription-payment.service"
 import {
   recordHostelReferral,
   resolveHostelReferralCode,
+  settleHostelReferrals,
 } from "@/modules/hostel-referrals/hostel-referral.service";
 import {
   registrationShortStays,
@@ -74,10 +82,14 @@ import {
   releaseTeamPrepayment,
 } from "@/modules/team/team-prepayment.service";
 import {
+  formatEmailDate,
+  hostelBillingUrl,
   onHostelVerified,
   onRegisteredByTeam,
   onRegistrationSubmitted,
 } from "@/modules/hostels/hostel-registration.events";
+import { planPayLink } from "@/modules/billing/plan-pay-link";
+import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
 import type {
   HostelRegistrationInput,
   TeamHostelRegistrationInput,
@@ -131,6 +143,7 @@ export type HostelRecord = {
   _id: Types.ObjectId;
   panNumber?: string | null;
   parentHostelId?: Types.ObjectId | null;
+  kyc?: { note?: string | null; required?: boolean; status?: string | null; submittedAt?: Date | null } | null;
   suspension?: SuspensionRecord | null;
   capacitySummary?: {
     totalBeds?: number;
@@ -359,7 +372,7 @@ function slugify(value: string) {
     .slice(0, 80);
 }
 
-async function uniqueSlug(name: string, area: string) {
+export async function uniqueSlug(name: string, area: string) {
   const baseSlug = slugify(`${name}-${area}`) || `hostel-${Date.now()}`;
   let candidate = baseSlug;
   let suffix = 2;
@@ -430,6 +443,14 @@ export function serializeHostel(hostel: HostelRecord) {
     // Stage computed at read time — the platform's Listings shows it, and the
     // hostel's own portal learns it through `/auth/me`.
     suspension: serializeSuspension(hostel.suspension),
+    /** A quick sign-up's KYC review (docs/QUICK_SIGNUP_KYC_TRIAL.md); null for every older hostel. */
+    kyc: hostel.kyc?.required
+      ? {
+          note: hostel.kyc.note ?? null,
+          status: hostel.kyc.status ?? "DRAFT",
+          submittedAt: hostel.kyc.submittedAt?.toISOString() ?? null,
+        }
+      : null,
     totalFloors: hostel.totalFloors ?? 0,
     updatedAt: hostel.updatedAt?.toISOString(),
     verificationStatus: hostel.verificationStatus,
@@ -1539,16 +1560,17 @@ export async function registerTeamHostelApplication(
   const { teamSetupFee } = await getOperationsConfig();
 
   /*
-   * The lifetime deal takes the lifetime price instead, in full: checked here,
-   * before anything is written, against the live offer (window and seats). An
-   * online payment was checked when it was taken and is read off its row.
+   * The lifetime deal takes the lifetime price instead — all of it, or a part
+   * with the rest due (docs/FIELD_FIXES_2026_10.md §8). Checked here, before
+   * anything is written, against the live offer (window and seats). An online
+   * payment was checked when it was taken and is read off its row.
    */
   if (input.plan.lifetime && input.payment.method === "CASH") {
     const { cycleTotal: lifetimePrice } = await priceLifetime(input.plan.planId);
 
-    if (input.payment.amount !== lifetimePrice) {
+    if (input.payment.amount > lifetimePrice) {
       throw new HostelServiceError(
-        `The lifetime price is Rs ${lifetimePrice}. Collect exactly that, or take it online.`,
+        `The lifetime price is Rs ${lifetimePrice}. Collect that or less — never more.`,
         "LIFETIME_AMOUNT",
         422,
       );
@@ -2374,8 +2396,13 @@ export async function approvePlatformHostel(hostelId: string, principal: ApiPrin
    * third of the three checks in `hostel-branch.service.ts`.
    */
   const branch = await HostelModel.findById(normalizeObjectId(hostelId))
-    .select("parentHostelId pricing roomConfigurations")
-    .lean<Pick<HostelRecord, "parentHostelId" | "pricing" | "roomConfigurations"> | null>();
+    .select("kyc parentHostelId pricing roomConfigurations")
+    .lean<
+      | (Pick<HostelRecord, "parentHostelId" | "pricing" | "roomConfigurations"> & {
+          kyc?: { required?: boolean; status?: string | null };
+        })
+      | null
+    >();
 
   if (branch?.parentHostelId && principal.role !== Role.SUPERADMIN) {
     throw new HostelServiceError(
@@ -2436,6 +2463,16 @@ export async function approvePlatformHostel(hostelId: string, principal: ApiPrin
    * hostel publishes with the same map a team-registered one has.
    */
   await placeOnMap(objectId);
+
+  /*
+   * A quick sign-up (docs/QUICK_SIGNUP_KYC_TRIAL.md) already holds its portal
+   * and its trial: approving its KYC lists it and opens its frozen features.
+   */
+  if (branch?.kyc?.required) {
+    await completeKycApproval(objectId, principal.userId);
+
+    return { hostel: serializeHostel(await findHostelByIdOrThrow(hostelId)) };
+  }
 
   /*
    * **Verification is not payment.**
@@ -2510,7 +2547,7 @@ export async function approvePlatformHostel(hostelId: string, principal: ApiPrin
       credentials: signIn?.temporaryPassword
         ? { email: ownerInfo.owner.email, temporaryPassword: signIn.temporaryPassword }
         : null,
-      free: free ? { months: free.freeMonths, until: free.freeUntil } : null,
+      free: free ? { days: free.trialDays, months: free.freeMonths, until: free.freeUntil } : null,
       hostelName: ownerInfo.hostelName,
       ownerEmail: ownerInfo.owner.email,
       ownerName: ownerInfo.owner.name,
@@ -2520,6 +2557,156 @@ export async function approvePlatformHostel(hostelId: string, principal: ApiPrin
   }
 
   return result;
+}
+
+/**
+ * A quick sign-up's KYC, approved: listed and Verified, every feature open,
+ * the cook login and the owner ID card it did not get at sign-up, referral
+ * time, and the trial's end scheduled now that the plan can be bought.
+ *
+ * The trial-end block (`TRIAL_ENDED`) counts down for the trial's last
+ * `SUSPENSION_GRACE_DAYS` and bites when it ends. A hostel approved with the
+ * trial already over, or nearly, gets those days from today instead: the
+ * plan could not be bought before it was verified.
+ */
+async function completeKycApproval(hostelId: Types.ObjectId, actorId: string) {
+  const now = new Date();
+
+  await HostelModel.updateOne(
+    { _id: hostelId },
+    {
+      $set: {
+        "kyc.note": null,
+        "kyc.reviewedAt": now,
+        "kyc.reviewedBy": actorId,
+        "kyc.status": "APPROVED",
+        status: "PUBLISHED",
+        updatedBy: actorId,
+        verificationStatus: "VERIFIED",
+      },
+    },
+  );
+
+  const subscription = await HostelSubscriptionModel.findOne({ hostelId })
+    .select("planId trialEndsAt")
+    .lean<{ planId?: string | null; trialEndsAt?: Date | null } | null>();
+
+  const trialEnded = Boolean(subscription?.trialEndsAt && subscription.trialEndsAt.getTime() < now.getTime());
+
+  if (subscription?.trialEndsAt && !subscription.planId) {
+    await HostelModel.updateOne(
+      { _id: hostelId, "suspension.startedAt": null },
+      { $set: { suspension: trialEndSuspension(subscription.trialEndsAt, now) } },
+    );
+  }
+
+  await settleHostelReferrals(hostelId).catch((error: unknown) =>
+    console.error(
+      JSON.stringify({
+        action: "hostel_referral_settle_failed",
+        hostelId: hostelId.toString(),
+        level: "error",
+        message: error instanceof Error ? error.message : String(error),
+      }),
+    ),
+  );
+
+  const cookAccount = await provisionApprovalCookAccount(hostelId, actorId);
+  const ownerInfo = await resolveHostelOwner(hostelId);
+
+  if (!ownerInfo) {
+    return;
+  }
+
+  const slug = (await HostelModel.findById(hostelId).select("slug").lean<{ slug?: string } | null>())?.slug ?? "";
+
+  await sendEmail({
+    to: ownerInfo.owner.email,
+    ...hostelKycApprovedEmail({
+      cookCredentials: cookAccount,
+      hostelName: ownerInfo.hostelName,
+      listingUrl: appHostelListingUrl(slug),
+      ownerName: ownerInfo.owner.name,
+      // The checkout for this hostel, no sign-in: the email is the proof (`plan-pay-link.ts`).
+      planUrl: await planPayLink({ id: hostelId.toString() }, hostelBillingUrl(slug)),
+      supportPhone: (await getSiteConfigSection("identity")).supportPhone || null,
+      trialEnded,
+      trialEndsOn: formatEmailDate(subscription?.trialEndsAt ?? null),
+    }),
+  });
+  // Facts only: the push reaches the app, where the plan may not be sold.
+  await notifyHostelOwnerOf(ownerInfo.owner.id, hostelId, {
+    actionUrl: "/hostel-admin",
+    body: trialEnded
+      ? "Every feature is open and your hostel is live. Your free trial has ended — check your email to choose your plan."
+      : "Every feature of the app is open now, and your hostel is live with the Verified badge.",
+    title: "Your KYC is verified",
+    type: "HOSTEL_KYC_APPROVED",
+  });
+
+  // Dynamic for the same reason as in `grantHostelOwnerAccess` below.
+  const { sendIdCardEmail } = await import("@/modules/users/id-card-delivery.service");
+
+  await sendIdCardEmail(ownerInfo.owner.id.toString(), "HOSTEL_OWNER").catch(() => null);
+}
+
+/**
+ * A quick sign-up's KYC, sent back with what to fix. The hostel leaves the
+ * review queue (`DRAFT`) and its owner submits again from the KYC screen.
+ * `null` when this is not a quick sign-up awaiting review — the caller then
+ * carries on with the old public-registration decision.
+ */
+async function sendBackHostelKyc(hostelId: string, note: string, principal: ApiPrincipal) {
+  const objectId = normalizeObjectId(hostelId);
+  const now = new Date();
+  const hostel = await HostelModel.findOneAndUpdate(
+    { _id: objectId, isDeleted: false, "kyc.required": true, "kyc.status": { $ne: "APPROVED" } },
+    {
+      $set: {
+        "kyc.note": note,
+        "kyc.reviewedAt": now,
+        "kyc.reviewedBy": principal.userId,
+        "kyc.status": "REJECTED",
+        status: "DRAFT",
+        updatedBy: principal.userId,
+        verificationStatus: "UNVERIFIED",
+      },
+    },
+    { new: true },
+  ).lean<HostelRecord | null>();
+
+  if (!hostel) {
+    return null;
+  }
+
+  await HostelApplicationModel.updateMany(
+    { hostelId: objectId, status: { $in: ["PENDING", "NEEDS_MORE_INFO"] } },
+    { $set: { rejectionReason: note, reviewedAt: now, reviewedBy: principal.userId, status: "REJECTED" } },
+  );
+  await HostelVerificationModel.findOneAndUpdate(
+    { hostelId: objectId },
+    { $set: { notes: note, status: "REJECTED", updatedBy: principal.userId } },
+    { upsert: true },
+  );
+  await auditHostelAction(principal, objectId, "HOSTEL_KYC_SENT_BACK", { note });
+
+  const notification = await notifyHostelOwner(objectId, "hostel_kyc_sent_back", ({ hostelName, owner }) =>
+    hostelKycSentBackEmail({
+      hostelName,
+      kycUrl: `${siteUrl()}/${encodeURIComponent(hostel.slug)}/admin/kyc`,
+      note,
+      ownerName: owner.name,
+    }),
+  );
+
+  await notifyHostelOwnerOf(hostel.ownerId, objectId, {
+    actionUrl: "/hostel-admin/kyc",
+    body: note,
+    title: "Your KYC needs a change",
+    type: "HOSTEL_KYC",
+  });
+
+  return { hostel: serializeHostel(hostel), notification };
 }
 
 /**
@@ -2675,6 +2862,12 @@ export async function rejectPlatformHostel(
 ) {
   await connectToDatabase();
 
+  const sentBack = await sendBackHostelKyc(hostelId, input.reason, principal);
+
+  if (sentBack) {
+    return { hostel: sentBack.hostel };
+  }
+
   const result = await updateHostelStatus(
     hostelId,
     principal,
@@ -2732,6 +2925,24 @@ export async function requestPlatformHostelDocuments(
   await connectToDatabase();
 
   const objectId = normalizeObjectId(hostelId);
+
+  // A quick sign-up fixes things in its own KYC, so it is sent back there.
+  const sentBack = await sendBackHostelKyc(
+    hostelId,
+    [
+      input.note,
+      input.documents.length > 0
+        ? `Please add: ${input.documents.map((doc) => doc.documentType).join(", ")}.`
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" ") || "Please check your documents.",
+    principal,
+  );
+
+  if (sentBack) {
+    return sentBack;
+  }
 
   // Keep the hostel in the review queue; the "needs more info" signal lives on
   // the application so the owner sees exactly which documents are outstanding.

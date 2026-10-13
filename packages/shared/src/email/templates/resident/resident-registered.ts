@@ -22,8 +22,12 @@ import {
  * address that belongs to no account. Residents are **never** sent credentials
  * (`linkResidentAccount`), so the honest sentence is that the hostel will hand
  * them a code, not a promise of a login that does not exist.
+ *
+ * `NEW_ACCOUNT` — registered off the admission form, and the form's email had
+ * no account, so this registration made one. No password exists to send: they
+ * sign in with Google on that address, or set one through "Forgot password".
  */
-export type ResidentSignIn = "ACTIVATION_CODE" | "EXISTING_ACCOUNT";
+export type ResidentSignIn = "ACTIVATION_CODE" | "EXISTING_ACCOUNT" | "NEW_ACCOUNT";
 
 /**
  * The confirmation a resident gets the moment a hostel registers them.
@@ -71,6 +75,8 @@ export function residentRegisteredEmail(input: {
   roomNumber?: string | null;
   roomType: string;
   signIn: ResidentSignIn;
+  /** The address they sign in with, for `NEW_ACCOUNT`. */
+  signInEmail?: string;
 }): EmailContent {
   const currency = input.currency ?? "NPR";
   const money = (value?: number | null) =>
@@ -122,7 +128,9 @@ export function residentRegisteredEmail(input: {
         smallPrint(
           input.signIn === "EXISTING_ACCOUNT"
             ? "Log in the same way as before. No new password needed."
-            : "To use the app, ask the hostel for your code.",
+            : input.signIn === "NEW_ACCOUNT"
+              ? `Your account is ready on ${escapeHtml(input.signInEmail ?? "this email")}. Log in with Google, or tap “Forgot password” on the login page to set one.`
+              : "To use the app, ask the hostel for your code.",
         ),
         smallPrint("Something wrong? Tell the hostel before you pay."),
       ]

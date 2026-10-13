@@ -2,6 +2,7 @@ import { File } from "expo-file-system";
 import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 
+import { RoomPicker } from "@/components/manage/room-picker";
 import { ActionCard, ActionCell } from "@/components/ui/action-grid";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,7 @@ type Draft = {
   oldDues: string;
   paidTill: string | null;
   phone: string;
+  roomNumber: string;
   roomType: string;
 };
 
@@ -102,6 +104,7 @@ function draftFrom(input: ReturnType<typeof blankRow>): Draft {
     oldDues: input.oldDues ? String(input.oldDues) : "",
     paidTill: input.paidTill,
     phone: input.phone,
+    roomNumber: input.roomNumber ?? "",
     roomType: input.roomType,
   };
 }
@@ -170,6 +173,7 @@ export default function ExistingResidentsScreen() {
       oldDues: rupeesFrom(draft.oldDues) ?? 0,
       paidTill: draft.paidTill,
       phone: draft.phone.trim(),
+      roomNumber: draft.roomNumber,
       roomType: draft.roomType,
     };
 
@@ -361,6 +365,11 @@ export default function ExistingResidentsScreen() {
     value: room.roomType,
   }));
   const draftRoom = view.roomTypes.find((room) => room.roomType === draft?.roomType);
+  /** Floor & room is on: each line goes into a numbered room (docs/FIELD_FIXES_2026_10.md §3). */
+  const numberedRooms = view.numberedRooms?.length ? view.numberedRooms : null;
+  const draftNumbered = numberedRooms?.find(
+    (room) => room.number.toLowerCase() === draft?.roomNumber.trim().toLowerCase(),
+  );
   const joinedHint = draft?.joined.trim()
     ? formatDateIn("BS", startOfDayIso(draft.joined.trim()))
     : "Optional · YYYY-MM-DD";
@@ -544,11 +553,29 @@ export default function ExistingResidentsScreen() {
                   : undefined
               }
               label="Room type"
-              onChange={(roomType) => setDraft({ ...draft, roomType })}
+              // A room of another type no longer fits: pick the room again.
+              onChange={(roomType) =>
+                setDraft({ ...draft, roomNumber: draftNumbered?.roomType === roomType ? draft.roomNumber : "", roomType })
+              }
               options={roomOptions}
               placeholder="Choose"
               value={draftRoom ? draftRoom.roomType : null}
             />
+            {numberedRooms ? (
+              <View className="gap-2">
+                <Text variant="label">Which room</Text>
+                <RoomPicker
+                  onChange={(room) => setDraft({ ...draft, roomNumber: room.number, roomType: room.roomType })}
+                  roomType={draftRoom ? draftRoom.roomType : null}
+                  rooms={numberedRooms}
+                  showType={!draftRoom}
+                  value={draftNumbered?.id ?? null}
+                />
+                {draftProblems.get("roomNumber") ? (
+                  <Text className="text-sm text-destructive">{draftProblems.get("roomNumber")}</Text>
+                ) : null}
+              </View>
+            ) : null}
             <Select
               error={draftProblems.get("paidTill")}
               hint={`Is ${view.currentMonth.label} paid? If not, how many months are due?`}

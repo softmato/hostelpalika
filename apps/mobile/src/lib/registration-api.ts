@@ -24,7 +24,6 @@
 import { api } from "@/lib/api";
 import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
 import type { Coordinates } from "@/lib/geo";
-import type { HostelRegisterPayload } from "@/lib/hostel-registration";
 import type { ProviderRegisterPayload } from "@/lib/provider-registration";
 
 /* -------------------------------------------------------------------------- */
@@ -116,12 +115,18 @@ export async function previewHostelReferralCode(code: string) {
   return unwrap(response);
 }
 
-export async function registerHostelApplication(payload: HostelRegisterPayload) {
+/** The quick sign-up (docs/QUICK_SIGNUP_KYC_TRIAL.md): the hostel portal on this account, on the trial. */
+export async function quickRegisterHostel(payload: {
+  hostelName: string;
+  ownerName: string;
+  phone: string;
+  referralCode?: string;
+}) {
   const response = await api.post<
-    ApiEnvelope<{ hostel: { id: string; name?: string } }>
-  >("/public/hostels/register", payload);
+    ApiEnvelope<{ hostelId: string; name: string; slug: string; trialDays: number; trialEndsAt: string | null }>
+  >("/public/hostels/quick-register", payload);
 
-  return unwrap(response).hostel;
+  return unwrap(response);
 }
 
 /* -------------------------------------------------------------------------- */

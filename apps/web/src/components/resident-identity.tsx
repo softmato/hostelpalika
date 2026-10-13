@@ -161,6 +161,16 @@ type ResidentIdentity = {
 
 type ResidentProfile = {
   age?: number | null;
+  district?: string;
+  wardNo?: string;
+  levelOfStudy?: string;
+  classTime?: string;
+  guardianOccupation?: string;
+  secondGuardianOccupation?: string;
+  emergencyContactAddress?: string;
+  emergencyContactOccupation?: string;
+  governmentIdIssuedOn?: string;
+  governmentIdIssuedAt?: string;
   alternatePhone?: string;
   backupEmail?: string;
   bloodGroup: string;
@@ -913,6 +923,16 @@ function ProfileForm({
     try {
       const profileData = {
         alternatePhone: draft.alternatePhone.trim() || undefined,
+        district: draft.district.trim() || undefined,
+        wardNo: draft.wardNo.trim() || undefined,
+        levelOfStudy: draft.levelOfStudy.trim() || undefined,
+        classTime: draft.classTime.trim() || undefined,
+        guardianOccupation: draft.guardianOccupation.trim() || undefined,
+        secondGuardianOccupation: draft.secondGuardianOccupation.trim() || undefined,
+        emergencyContactAddress: draft.emergencyContactAddress.trim() || undefined,
+        emergencyContactOccupation: draft.emergencyContactOccupation.trim() || undefined,
+        governmentIdIssuedOn: draft.governmentIdIssuedOn.trim() || undefined,
+        governmentIdIssuedAt: draft.governmentIdIssuedAt.trim() || undefined,
         backupEmail: draft.backupEmail.trim() || undefined,
         bloodGroup: draft.bloodGroup,
         budgetRange: draft.budgetRange.trim() || undefined,
@@ -1212,31 +1232,45 @@ function ProfileForm({
               </div>
             </div>
 
-            <Field
-              defaultValue={draft.permanentAddress}
-              hint={stepErrors.permanentAddress}
-              hintTone={stepErrors.permanentAddress ? "danger" : undefined}
-              label="Permanent address"
-              name="permanentAddress"
-              onChange={(val) => updateField("permanentAddress", val)}
-              placeholder="Street / tole, ward, house number"
-            />
             <div className="grid gap-4 sm:grid-cols-2">
               <Field
-                defaultValue={draft.city}
-                label="City / Municipality"
-                name="city"
-                onChange={(val) => updateField("city", val)}
-                placeholder="e.g. Kathmandu, Pokhara"
-              />
-              <Field
                 defaultValue={draft.province}
-                label="Province / State"
+                label="Province"
                 name="province"
                 onChange={(val) => updateField("province", val)}
                 placeholder="e.g. Bagmati Province"
               />
+              <Field
+                defaultValue={draft.district}
+                label="District"
+                name="district"
+                onChange={(val) => updateField("district", val)}
+                placeholder="e.g. Kathmandu"
+              />
+              <Field
+                defaultValue={draft.city}
+                label="Metro / Municipality / Rural"
+                name="city"
+                onChange={(val) => updateField("city", val)}
+                placeholder="e.g. Kathmandu Metropolitan"
+              />
+              <Field
+                defaultValue={draft.wardNo}
+                label="Ward no."
+                name="wardNo"
+                onChange={(val) => updateField("wardNo", val)}
+                placeholder="e.g. 32"
+              />
             </div>
+            <Field
+              defaultValue={draft.permanentAddress}
+              hint={stepErrors.permanentAddress}
+              hintTone={stepErrors.permanentAddress ? "danger" : undefined}
+              label="Street / Tole / Chowk"
+              name="permanentAddress"
+              onChange={(val) => updateField("permanentAddress", val)}
+              placeholder="e.g. Thapagaun, house no. 12"
+            />
           </div>
         )}
 
@@ -1300,6 +1334,20 @@ function ProfileForm({
                 onChange={(val) => updateField("courseOrDesignation", val)}
                 placeholder="e.g. BBA / Software Engineer"
               />
+                <Field
+                  defaultValue={draft.levelOfStudy}
+                  label="Level of study"
+                  name="levelOfStudy"
+                  onChange={(val) => updateField("levelOfStudy", val)}
+                  placeholder="e.g. +2, Bachelor"
+                />
+                <Field
+                  defaultValue={draft.classTime}
+                  label="Class / work time"
+                  name="classTime"
+                  onChange={(val) => updateField("classTime", val)}
+                  placeholder="e.g. 6 AM – 11 AM"
+                />
             </div>
           </div>
         )}
@@ -1355,6 +1403,12 @@ function ProfileForm({
                   onChange={(val) => updateField("guardianEmail", val)}
                   type="email"
                 />
+                <Field
+                  defaultValue={draft.guardianOccupation}
+                  label="Occupation"
+                  name="guardianOccupation"
+                  onChange={(val) => updateField("guardianOccupation", val)}
+                />
               </div>
             </div>
 
@@ -1388,6 +1442,12 @@ function ProfileForm({
                     onChange={(val) => updateField("secondGuardianEmail", val)}
                     type="email"
                   />
+                  <Field
+                    defaultValue={draft.secondGuardianOccupation}
+                    label="Occupation"
+                    name="secondGuardianOccupation"
+                    onChange={(val) => updateField("secondGuardianOccupation", val)}
+                  />
                 </div>
               </div>
             ) : (
@@ -1402,7 +1462,7 @@ function ProfileForm({
             )}
 
             <div className="space-y-3 border-t border-border pt-3">
-              <SectionTitle hint="Leave blank to use primary guardian" label="Emergency Contact" />
+              <SectionTitle hint="Someone near the hostel. Leave blank to use your guardian" label="Local guardian / Emergency contact" />
               <div className="grid gap-4 sm:grid-cols-3">
                 <Field
                   defaultValue={draft.emergencyContactName}
@@ -1423,6 +1483,20 @@ function ProfileForm({
                   onChange={(val) => updateField("emergencyContactPhone", val)}
                   type="tel"
                 />
+                <Field
+                  defaultValue={draft.emergencyContactOccupation}
+                  label="Occupation"
+                  name="emergencyContactOccupation"
+                  onChange={(val) => updateField("emergencyContactOccupation", val)}
+                />
+                <div className="sm:col-span-2">
+                  <Field
+                    defaultValue={draft.emergencyContactAddress}
+                    label="Address"
+                    name="emergencyContactAddress"
+                    onChange={(val) => updateField("emergencyContactAddress", val)}
+                  />
+                </div>
               </div>
             </div>
           </div>
@@ -1550,6 +1624,22 @@ function ProfileForm({
                     onChange={(val) => updateField("governmentIdNumber", val)}
                     placeholder="Enter document number"
                   />
+                  <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                    <Field
+                      defaultValue={draft.governmentIdIssuedOn}
+                      label="Date of issue"
+                      name="governmentIdIssuedOn"
+                      onChange={(val) => updateField("governmentIdIssuedOn", val)}
+                      placeholder="e.g. 2078-04-12"
+                    />
+                    <Field
+                      defaultValue={draft.governmentIdIssuedAt}
+                      label="Place of issue"
+                      name="governmentIdIssuedAt"
+                      onChange={(val) => updateField("governmentIdIssuedAt", val)}
+                      placeholder="e.g. DAO Kathmandu"
+                    />
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -1847,9 +1937,11 @@ function ProfileForm({
                 title="Address"
                 onEdit={() => setStepKey("address")}
                 rows={[
-                  ["Permanent Address", draft.permanentAddress || "—"],
-                  ["City", draft.city || "—"],
                   ["Province", draft.province || "—"],
+                  ["District", draft.district || "—"],
+                  ["Municipality", draft.city || "—"],
+                  ["Ward no.", draft.wardNo || "—"],
+                  ["Street / Tole", draft.permanentAddress || "—"],
                 ]}
               />
 
@@ -1860,6 +1952,8 @@ function ProfileForm({
                   ["Occupation", draft.occupation || "—"],
                   ["College / Company", draft.institution || "—"],
                   ["Course / Title", draft.courseOrDesignation || "—"],
+                  ["Level of study", draft.levelOfStudy || "—"],
+                  ["Class / work time", draft.classTime || "—"],
                 ]}
               />
 
@@ -1869,7 +1963,8 @@ function ProfileForm({
                 rows={[
                   ["Guardian", `${draft.guardianName} (${draft.guardianRelation || "—"})`],
                   ["Phone", draft.guardianPhone || "—"],
-                  ["Emergency Contact", draft.emergencyContactName ? `${draft.emergencyContactName} (${draft.emergencyContactPhone})` : "Guardian"],
+                  ["Occupation", draft.guardianOccupation || "—"],
+                  ["Local guardian", draft.emergencyContactName ? `${draft.emergencyContactName} (${draft.emergencyContactPhone})` : "Guardian"],
                 ]}
               />
 

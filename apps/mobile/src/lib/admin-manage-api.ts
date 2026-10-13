@@ -1564,6 +1564,12 @@ export type ResidentAccount = {
 
 /** `serializeResident` in full. `AdminResident` in `admin-api.ts` is the row. */
 export type ManagedResident = {
+  /** The application form on file (`lib/resident-details.ts`). Only on the one-resident read. */
+  details?: import("@/lib/resident-details").ResidentDetails | null;
+  /** Their admission-form photo (staff route); the account's own picture wins where there is one. */
+  photo?: string | null;
+  /** Citizenship / ID scans on file. Only on the one-resident read. */
+  documents?: import("@/lib/admission-form-api").AdmissionDocumentView[];
   /** Null until they activate a login. See {@link ResidentAccount}. */
   account?: ResidentAccount | null;
   /** What was levied at intake. Null — not zero — when none was. */
@@ -1577,6 +1583,12 @@ export type ManagedResident = {
   lastName: string;
   /** Zero is a real value — a free stay — and is not the same as "no override". */
   monthlyFee: number;
+  /** A special fee replacing the rate, with why. Null = the rate card. */
+  specialFee?: { amount: number; reason: string } | null;
+  /** The numbered room, when the hostel keeps floors and rooms. */
+  floor?: number | null;
+  roomId?: string | null;
+  roomNumber?: string | null;
   moveInDate: string;
   phone: string;
   /** The code that brought them in. Empty when nobody referred them. */
@@ -1677,9 +1689,12 @@ export type ResidentIntakeResult = {
  * billed nothing. A negotiated rate is an override, set on the resident's own
  * screen where a reason is recorded with it.
  */
-export async function createResident(input: {
-  depositAmount?: number;
+export async function createResident(input: ChargeOverrides & {
   email?: string;
+  /** Why any charge differs from the rate card. Needed with any of them. */
+  feeReason?: string;
+  /** The numbered room, when the hostel keeps floors and rooms. */
+  roomId?: string;
   firstName: string;
   lastName: string;
   /** ISO. */
@@ -1700,6 +1715,14 @@ export async function createResident(input: {
    * apart was registered and then left with no portal at all.
    */
   userResidentId?: string;
+  /** The application form — typed here, sent through the Form QR, or read off their card. */
+  details?: import("@/lib/resident-details").ResidentDetails;
+  /** The Form QR submission this intake answers; the server marks it added. */
+  admissionFormId?: string;
+  /** Their face, taken or uploaded at the desk (anonymous upload + claim token). */
+  photo?: { claimToken: string; fileAssetId: string };
+  /** Citizenship / ID scans taken at the desk. */
+  documents?: { claimToken: string; fileAssetId: string; kind: "APPLICANT_ID" | "GUARDIAN_ID" }[];
 }) {
   const response = await api.post<ApiEnvelope<ResidentIntakeResult>>(
     "/hostel-admin/residents",
@@ -1730,6 +1753,8 @@ export async function createResident(input: {
  * curiosity: a resident is told each time a hostel opens their details.
  */
 export type ResidentPrefill = {
+  /** The card as application-form facts, sent back on the intake as `details`. Absent from older APIs. */
+  form?: import("@/lib/resident-details").ResidentDetails;
   details: {
     age: number | null;
     alternatePhone: string | null;
@@ -1820,7 +1845,7 @@ export async function lookupResidentProfile(residentId: string) {
 }
 
 /** Where {@link IntakeQuote.monthlyRent} came from. `UNPRICED` means nowhere. */
-export type RentBasis = "ROOM_CONFIGURATION" | "SCHEDULE" | "UNPRICED";
+export type RentBasis = "OVERRIDE" | "ROOM_CONFIGURATION" | "SCHEDULE" | "UNPRICED";
 
 /**
  * What this intake costs, resolved by the server — `GET .../residents/intake-quote`.
@@ -1875,9 +1900,25 @@ export type IntakeQuote = {
   };
   rentBasis: RentBasis;
   roomType: string;
+  /** The rate card's own figures, before anything set for this resident. */
+  standard?: { admissionFee: number; depositAmount: number; formFee: number; monthlyRent: number | null };
+  /** The room type's normal rent, when a special fee replaced it. */
+  standardRent?: number | null;
 };
 
-export async function getIntakeQuote(input: {
+/**
+ * One resident's own charges, set at registration with one reason
+ * (docs/FIELD_FIXES_2026_10.md §2). Each one left out is the rate card's.
+ */
+export type ChargeOverrides = {
+  admissionFee?: number;
+  depositAmount?: number;
+  formFee?: number;
+  /** Every monthly bill uses it, the first month too. */
+  monthlyFee?: number;
+};
+
+export async function getIntakeQuote(input: ChargeOverrides & {
   /** ISO. Decides which rate card is in force. */
   moveInDate?: string;
   referralCode?: string;
@@ -2077,13 +2118,41 @@ export async function saveMoveInChecklist(
 }
 
 /** The recorded move-out, if any, and what they owe right now. */
-export async function getMoveOutChecklist(id: string) {
+export type LastMonthCharge = "FULL_MONTH" | "TILL_DAY";
+
+/** The leaving month both ways, and what is owed after each (docs/FIELD_FIXES_2026_10.md §1). */
+export type MoveOutPreview = {
+  billedDays: number;
+  /** `YYYY-MM-DD`. */
+  date: string;
+  dateLabel: string;
+  defaultCharge: LastMonthCharge;
+  /** Null when the leaving month has no bill yet; it is billed on move-out. */
+  lastMonth: Record<LastMonthCharge, number> | null;
+  owedAfter: Record<LastMonthCharge, number>;
+  paidBack: Record<LastMonthCharge, number>;
+  periodLabel: string;
+  stayed: number;
+};
+
+export async function getMoveOutChecklist(id: string, date?: string) {
   const response = await api.get<
     ApiEnvelope<{
       checklist: MoveOutChecklist | null;
       pendingFeeAmount?: number;
+      preview?: MoveOutPreview | null;
     }>
-  >(`/hostel-admin/residents/${id}/move-out`);
+  >(`/hostel-admin/residents/${id}/move-out`, date ? { params: { date } } : undefined);
+
+  return unwrap(response);
+}
+
+/** Let go of what a moved-out resident still owes. */
+export async function writeOffResidentDues(id: string, reason?: string) {
+  const response = await api.post<ApiEnvelope<{ writtenOff: number }>>(
+    `/hostel-admin/residents/${id}/write-off`,
+    reason ? { reason } : {},
+  );
 
   return unwrap(response);
 }
@@ -2099,7 +2168,10 @@ export async function saveMoveOutChecklist(
     damageNotes?: string;
     depositRefundAmount: number;
     depositRefundDecision: "PENDING" | "APPROVED" | "PARTIAL" | "FORFEITED";
+    dues?: "KEEP" | "WRITE_OFF";
     itemReturnNotes?: string;
+    lastMonthCharge?: LastMonthCharge;
+    moveOutDate?: string;
   },
 ) {
   await api.post(`/hostel-admin/residents/${id}/move-out`, input);
@@ -3079,6 +3151,8 @@ export type PlanBillingPlan = {
   planName: string | null;
   price: number | null;
   status: string;
+  /** On the free trial with no plan bought yet (docs/QUICK_SIGNUP_KYC_TRIAL.md). Absent on an older server. */
+  trialEndsAt?: string | null;
 };
 
 export type PlanBilling = {

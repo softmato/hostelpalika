@@ -412,6 +412,8 @@ export type AdminSosAlert = {
 export type AdminResident = {
   /** Null until they activate a login. See {@link ResidentAccount}. */
   account?: ResidentAccount | null;
+  /** Their admission-form photo (staff route), when they have no account picture. */
+  photo?: string | null;
   email: string;
   firstName: string;
   id: string;
@@ -420,6 +422,8 @@ export type AdminResident = {
   moveInDate: string;
   phone: string;
   residentType: string;
+  /** "204" when the hostel keeps floors and rooms. */
+  roomNumber?: string | null;
   roomType: string;
   status: string;
 };
@@ -672,6 +676,8 @@ export type AdminLedger = {
    * (the expenses screen's own scope). Absent from a server that predates it.
    */
   expenses?: ExpenseRow[] | null;
+  /** The bank's balance the day the hostel started — the statement's first row. Owner only. */
+  openingBalance?: { amount: number; asOf: string } | null;
   /**
    * The server capped the read at 5000 rows and dropped older ones. Anything
    * cumulative computed over these entries is therefore incomplete — see the
@@ -1101,6 +1107,8 @@ export async function postHostelAnnouncement(body: string) {
 
 /** Hostel KYC — what a hostel still has to finish after it goes live. */
 export type HostelKyc = {
+  /** What the details step pre-fills from. Absent on an older server. */
+  details?: { address: string; area: string; city: string; hostelType: string };
   /** Newest first. The file is read through `files/[assetId]/url`. */
   documents: {
     /** The caller uploaded it and it is not approved yet. */
@@ -1117,13 +1125,33 @@ export type HostelKyc = {
   minPhotos: number;
   percent: number;
   photoCount: number;
+  /**
+   * A quick sign-up's review (docs/QUICK_SIGNUP_KYC_TRIAL.md). `null` (or
+   * absent, on an older server) for every hostel that never needed one.
+   */
+  review?: {
+    canSubmit: boolean;
+    /** Required sections still to do. */
+    missing: string[];
+    /** Why it was sent back; only while `REJECTED`. */
+    note: string | null;
+    status: "DRAFT" | "SUBMITTED" | "APPROVED" | "REJECTED";
+    submittedAt: string | null;
+  } | null;
   rules: string[];
-  steps: { done: boolean; key: string }[];
+  steps: { done: boolean; key: string; required?: boolean }[];
 };
 
 export async function getHostelKyc() {
   const response =
     await api.get<ApiEnvelope<{ kyc: HostelKyc }>>("/hostel-admin/kyc");
+
+  return unwrap(response).kyc;
+}
+
+/** Sends the KYC to our team; editing stays open until they decide. */
+export async function submitHostelKyc() {
+  const response = await api.post<ApiEnvelope<{ kyc: HostelKyc }>>("/hostel-admin/kyc/submit", {});
 
   return unwrap(response).kyc;
 }

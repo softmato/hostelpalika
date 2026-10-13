@@ -267,6 +267,8 @@ function asRow(request: Pick<
     partPaid: request.partPaid,
     phone: request.phone,
     residentId: null,
+    // Picked by the staff who add them, not by the resident sending.
+    roomNumber: "",
     roomType: request.roomType,
   };
 }
@@ -686,6 +688,8 @@ export async function addJoinRequest(
   hostelId: Types.ObjectId,
   requestId: string,
   principal: ApiPrincipal,
+  /** Their numbered room — needed when the hostel keeps floors and rooms. */
+  roomNumber = "",
 ) {
   await connectToDatabase();
 
@@ -720,6 +724,7 @@ export async function addJoinRequest(
         paidTill: request.paidTill,
         partPaid: request.partPaid,
         phone: request.phone,
+        roomNumber,
         roomType: request.roomType,
       },
       request.cardId,

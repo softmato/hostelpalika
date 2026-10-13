@@ -77,7 +77,7 @@ import type { BedType } from "@hostel/shared/types/bed-type";
  * resident because finance has not been configured yet.
  */
 
-export type RentBasis = "ROOM_CONFIGURATION" | "SCHEDULE" | "UNPRICED";
+export type RentBasis = "OVERRIDE" | "ROOM_CONFIGURATION" | "SCHEDULE" | "UNPRICED";
 
 /**
  * What the move-in month costs, as distinct from what a month costs.
@@ -133,9 +133,28 @@ export type IntakeQuote = {
   };
   rentBasis: RentBasis;
   roomType: string;
+  /**
+   * What the rate card asks, before anything typed at the desk replaced it —
+   * so a screen can show the normal figure and send only what actually changed.
+   */
+  standard?: { admissionFee: number; depositAmount: number; formFee: number; monthlyRent: number | null };
+  /** The room type's normal rent, when a special fee replaced it. Null otherwise. */
+  standardRent?: number | null;
 };
 
-export type QuoteInput = {
+/**
+ * One resident's own charges, set at the desk with a reason
+ * (docs/FIELD_FIXES_2026_10.md §2). Each one omitted is the rate card's.
+ */
+export type ChargeOverrides = {
+  admissionFee?: number | null;
+  depositAmount?: number | null;
+  formFee?: number | null;
+  /** A special monthly fee (Short stay, Relative…), replacing the rate. */
+  monthlyFee?: number | null;
+};
+
+export type QuoteInput = ChargeOverrides & {
   moveInDate?: Date | null;
   referralCode?: string | null;
   roomType: string;
@@ -186,7 +205,7 @@ export function quoteIntake(input: {
   referralCodeActive: boolean;
   roomType: string;
   schedule: FeeScheduleRecord | null;
-}): IntakeQuote {
+} & ChargeOverrides): IntakeQuote {
   const bedType = normalizeBedType(input.roomType);
   // The billing run's own lookup, not a second one. Room type first, bed type
   // only for cards written before rates were re-keyed — see `rateForRoomType`.
@@ -211,7 +230,7 @@ export function quoteIntake(input: {
     (entry) => entry.roomType === input.roomType,
   );
 
-  const { monthlyRent, rentBasis } = rate
+  const standard = rate
     ? { monthlyRent: rate.monthlyAmount, rentBasis: "SCHEDULE" as const }
     : configured?.monthlyRent
       ? {
@@ -219,9 +238,16 @@ export function quoteIntake(input: {
           rentBasis: "ROOM_CONFIGURATION" as const,
         }
       : { monthlyRent: null, rentBasis: "UNPRICED" as const };
+  // A special fee wins outright, the same way `resolveMonthlyCharge` bills it.
+  const special = input.monthlyFee !== null && input.monthlyFee !== undefined;
+  const { monthlyRent, rentBasis } = special
+    ? { monthlyRent: input.monthlyFee as number, rentBasis: "OVERRIDE" as RentBasis }
+    : standard;
 
-  const admissionFee =
-    input.schedule?.admissionFee ?? input.hostel?.pricing?.admissionFee ?? 0;
+  const standardAdmission = input.schedule?.admissionFee ?? input.hostel?.pricing?.admissionFee ?? 0;
+  const standardForm = input.schedule ? (input.schedule.formFee ?? 0) : (input.hostel?.pricing?.formFee ?? 0);
+  const standardDeposit = input.schedule?.depositAmount ?? 0;
+  const admissionFee = input.admissionFee ?? standardAdmission;
 
   const code = input.referralCode?.trim().toUpperCase() || null;
   const offered = input.schedule?.referralAdmissionDiscount ?? 0;
@@ -238,10 +264,10 @@ export function quoteIntake(input: {
   return {
     admissionFee,
     admissionPayable: admissionFee - discount,
-    formFee: input.schedule ? (input.schedule.formFee ?? 0) : (input.hostel?.pricing?.formFee ?? 0),
+    formFee: input.formFee ?? standardForm,
     bedType,
     currency: input.hostel?.pricing?.currency ?? "NPR",
-    depositAmount: input.schedule?.depositAmount ?? 0,
+    depositAmount: input.depositAmount ?? standardDeposit,
     feeScheduleId: input.schedule?._id?.toString() ?? null,
     firstMonth: quoteFirstMonth(
       monthlyRent === null
@@ -263,6 +289,13 @@ export function quoteIntake(input: {
     },
     rentBasis,
     roomType: input.roomType,
+    standard: {
+      admissionFee: standardAdmission,
+      depositAmount: standardDeposit,
+      formFee: standardForm,
+      monthlyRent: standard.monthlyRent,
+    },
+    standardRent: special ? standard.monthlyRent : null,
   };
 }
 
@@ -371,8 +404,12 @@ export async function getIntakeQuote(
   ]);
 
   return quoteIntake({
+    admissionFee: input.admissionFee,
     concessionPercent: concession.percentOff,
+    depositAmount: input.depositAmount,
+    formFee: input.formFee,
     hostel,
+    monthlyFee: input.monthlyFee,
     moveInDate,
     referralCode: input.referralCode,
     referralCodeActive,
@@ -436,6 +473,8 @@ export async function raiseAdmissionInvoice(input: {
   hostelId: Types.ObjectId | string;
   principal: ApiPrincipal;
   quote: IntakeQuote;
+  /** Why the desk changed a charge — printed on that line. */
+  reason?: string | null;
   residentId: Types.ObjectId;
 }): Promise<AdmissionInvoiceResult> {
   const deposit = Math.max(input.quote.depositAmount, 0);
@@ -490,7 +529,16 @@ export async function raiseAdmissionInvoice(input: {
     // A charge taken from the rate card is SCHEDULE; one falling back to the
     // hostel's listed pricing is MANUAL, because no schedule stands behind it
     // and the invoice should not claim one does.
-    const basis = input.quote.feeScheduleId ? "SCHEDULE" : "MANUAL";
+    const scheduleBasis = input.quote.feeScheduleId ? "SCHEDULE" : "MANUAL";
+    const standard = input.quote.standard;
+    /*
+     * A charge the desk changed is MANUAL and says why on its own line, so the
+     * resident's invoice explains the number rather than somebody's memory.
+     */
+    const line = (description: string, amount: number, rateCard: number | undefined) =>
+      standard && amount !== rateCard
+        ? { amount, basis: "MANUAL", description: input.reason ? `${description} · ${input.reason}` : description }
+        : { amount, basis: scheduleBasis, description, feeScheduleId: input.quote.feeScheduleId ?? undefined };
 
     const lines: {
       amount: number;
@@ -500,16 +548,11 @@ export async function raiseAdmissionInvoice(input: {
     }[] = [];
 
     if ((input.quote.formFee ?? 0) > 0) {
-      lines.push({ amount: input.quote.formFee!, basis, description: "Form fee", feeScheduleId: input.quote.feeScheduleId ?? undefined });
+      lines.push(line("Form fee", input.quote.formFee!, standard?.formFee));
     }
 
     if (input.quote.admissionFee > 0) {
-      lines.push({
-        amount: input.quote.admissionFee,
-        basis,
-        description: "Admission fee",
-        feeScheduleId: input.quote.feeScheduleId ?? undefined,
-      });
+      lines.push(line("Admission fee", input.quote.admissionFee, standard?.admissionFee));
     }
 
     if (input.quote.referral.discount > 0) {
@@ -527,12 +570,7 @@ export async function raiseAdmissionInvoice(input: {
      * order the lines are written in is the order they are read in.
      */
     if (deposit > 0) {
-      lines.push({
-        amount: deposit,
-        basis,
-        description: "Security deposit",
-        feeScheduleId: input.quote.feeScheduleId ?? undefined,
-      });
+      lines.push(line("Security deposit", deposit, standard?.depositAmount));
     }
 
     const invoice = (await InvoiceModel.create({

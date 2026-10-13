@@ -53,6 +53,10 @@ vi.mock("@/modules/hostels/hostel-capacity.service", () => ({
   releaseBedForRoomType: mocks.releaseBed,
 }));
 vi.mock("@/modules/residents/resident-intake.service", () => ({ getIntakeQuote: mocks.quote }));
+// Floor & room off: the list keeps room types only, as before (docs/FIELD_FIXES_2026_10.md §3).
+vi.mock("@/modules/hostels/hostel-rooms.service", () => ({
+  getRoomLayout: vi.fn(async () => ({ rooms: [], tracking: false })),
+}));
 vi.mock("@/modules/residents/resident.service", () => ({
   auditResidentAction: mocks.audit,
 }));

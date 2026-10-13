@@ -50,7 +50,6 @@ export const PLATFORM_FIELDS: ReadonlyArray<{
   { href: "/platform/config/facilities", label: "Show publicly", section: "Facility Catalogue", tab: "" },
   { href: "/platform/config/plans", label: "Highlighted", section: "Prices & discounts", tab: "pricing" },
   { href: "/platform/config/plans", label: "Monthly price", section: "Prices & discounts", tab: "pricing" },
-  { href: "/platform/config/plans", label: "Free months", section: "Prices & discounts", tab: "pricing" },
   { href: "/platform/config/plans", label: "Branches", section: "Prices & discounts", tab: "pricing" },
   { href: "/platform/config/plans", label: "Residents", section: "Prices & discounts", tab: "pricing" },
   { href: "/platform/config/plans", label: "Warden accounts", section: "Prices & discounts", tab: "pricing" },

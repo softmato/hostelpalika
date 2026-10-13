@@ -1,5 +1,8 @@
 import { z } from "zod";
 
+import { admissionDocumentSchema, applicantPhotoSchema } from "@/modules/residents/applicant-photo";
+import { residentDetailsSchema } from "@/modules/residents/resident-details";
+
 /**
  * Inputs for the existing-residents list (docs/EXISTING_RESIDENTS.md).
  *
@@ -28,6 +31,8 @@ export const existingResidentRowSchema = z.object({
     .nullable()
     .default(null),
   phone: z.string().trim().max(24).default(""),
+  /** `101` — needed when the hostel keeps floors and rooms. */
+  roomNumber: z.string().trim().max(20).default(""),
   roomType: z.string().trim().max(80).default(""),
 });
 
@@ -50,6 +55,12 @@ export type ExistingResidentRowInput = z.infer<typeof existingResidentRowSchema>
 /** One scanned person, added straight off the intake's bed step. */
 export const scannedExistingResidentSchema = existingResidentRowSchema.omit({ id: true }).extend({
   userResidentId: z.string().trim().min(1).max(200).optional(),
+  /** The admission form, when the desk has one — kept on the resident (`resident-details.ts`). */
+  details: residentDetailsSchema.optional(),
+  /** The Form QR submission this add answers; marked ADDED. */
+  admissionFormId: z.string().regex(/^[a-f\d]{24}$/i).optional(),
+  photo: applicantPhotoSchema.optional(),
+  documents: z.array(admissionDocumentSchema).max(4).optional(),
 });
 
 /* -------------------------------------------------------------------------- */
@@ -76,7 +87,11 @@ export const joinRequestSchema = z.object({
 export type JoinRequestInput = z.infer<typeof joinRequestSchema>;
 
 export const joinDecisionSchema = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("add") }),
+  z.object({
+    action: z.literal("add"),
+    /** Their numbered room, picked by the staff adding them. */
+    roomNumber: z.string().trim().max(20).optional(),
+  }),
   z.object({
     action: z.literal("reject"),
     reason: z.string().trim().min(3, "Say what they need to fix.").max(300),

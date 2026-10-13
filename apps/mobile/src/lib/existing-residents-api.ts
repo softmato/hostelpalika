@@ -21,8 +21,13 @@ export type ExistingRow = {
   paidTill: string | null;
   phone: string;
   residentId: string | null;
+  /** `101` — needed when the hostel keeps floors and rooms. */
+  roomNumber: string;
   roomType: string;
 };
+
+/** A numbered room a line can go into, with its free beds now. */
+export type ExistingNumberedRoom = { beds: number; floor: number; free: number; id: string; number: string; roomType: string };
 
 export type ExistingRowField =
   | "email"
@@ -31,6 +36,7 @@ export type ExistingRowField =
   | "monthlyRent"
   | "paidTill"
   | "phone"
+  | "roomNumber"
   | "roomType";
 
 export type ExistingCheckedRow = {
@@ -66,6 +72,8 @@ export type ExistingResidentsView = {
   hostel: { id: string; name: string };
   lastAdded: (ExistingAddResult & { addedAt: string }) | null;
   list: { id: string; rows: ExistingRow[]; updatedAt: string | null } | null;
+  /** Null when the hostel keeps room types only — then no line needs a room number. */
+  numberedRooms?: ExistingNumberedRoom[] | null;
   roomTypes: { freeBeds: number; monthlyRent: number | null; roomType: string }[];
 };
 
@@ -114,6 +122,11 @@ export async function addScannedExistingResident(
     /** Rent already paid towards the oldest month due; comes off that bill. */
     partPaid?: number;
     userResidentId?: string;
+    /** The admission form, kept on the resident. */
+    details?: import("@/lib/resident-details").ResidentDetails;
+    admissionFormId?: string;
+    photo?: { claimToken: string; fileAssetId: string };
+    documents?: { claimToken: string; fileAssetId: string; kind: "APPLICANT_ID" | "GUARDIAN_ID" }[];
   },
 ) {
   return unwrap(

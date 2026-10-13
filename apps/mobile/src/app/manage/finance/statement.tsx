@@ -46,6 +46,7 @@ import {
   monthOptions,
   monthRange,
   NO_FILTER,
+  OPENING_ID,
   quickRange,
   QUICK_RANGES,
   rangeLabel,
@@ -341,17 +342,19 @@ function CreditRow({
             )}
           </View>
 
-          <Pressable
-            accessibilityLabel={debit ? "Open expenses" : `Open ${credit.residentName || "this resident"}`}
-            accessibilityRole="button"
-            className="rounded-lg bg-brand-soft px-3 py-2 active:opacity-70"
-            hitSlop={6}
-            onPress={onResident}
-          >
-            <Text className="text-xs font-bold uppercase tracking-wide text-primary">
-              {debit ? "Expenses" : "Resident"}
-            </Text>
-          </Pressable>
+          {credit.id === OPENING_ID ? null : (
+            <Pressable
+              accessibilityLabel={debit ? "Open expenses" : `Open ${credit.residentName || "this resident"}`}
+              accessibilityRole="button"
+              className="rounded-lg bg-brand-soft px-3 py-2 active:opacity-70"
+              hitSlop={6}
+              onPress={onResident}
+            >
+              <Text className="text-xs font-bold uppercase tracking-wide text-primary">
+                {debit ? "Expenses" : "Resident"}
+              </Text>
+            </Pressable>
+          )}
         </View>
       </Card>
     </Pressable>

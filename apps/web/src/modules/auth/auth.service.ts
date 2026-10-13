@@ -20,6 +20,7 @@ import {
   SUSPENDABLE_ROLES,
   suspensionForAccount,
 } from "@/modules/hostels/hostel-suspension";
+import { kycForAccount } from "@/modules/hostels/hostel-kyc-lock";
 import { sendEmail } from "@hostel/shared/email/sender";
 import { otpCodeEmail } from "@hostel/shared/email/templates/auth/otp-code";
 import { verificationEmail } from "@hostel/shared/email/templates/auth/verification";
@@ -37,6 +38,7 @@ import { HostelSettingsModel } from "@hostel/db/models/HostelSettings";
 import { COOK_LOGIN_DOMAIN } from "@/modules/food/cook-identity";
 import { OtpChallengeModel } from "@hostel/db/models/OtpChallenge";
 import { ResidentModel } from "@hostel/db/models/Resident";
+import { linkDeskIntakeOnSignIn } from "@/modules/residents/desk-intake-link";
 import { SessionModel } from "@hostel/db/models/Session";
 import { ServiceProviderModel } from "@hostel/db/models/ServiceProvider";
 import { UserModel } from "@hostel/db/models/User";
@@ -318,7 +320,20 @@ export async function issueSessionForUser(
    */
   options?: { temporaryCredentialId?: string },
 ) {
-  const account = await releaseStrandedResident(user);
+  let account = await releaseStrandedResident(user);
+
+  // Registered at the desk with this email before they had an account: their
+  // first sign-in opens the resident portal (residency-invite.service).
+  if (account.role === Role.PUBLIC && !options?.temporaryCredentialId) {
+    if (await linkDeskIntakeOnSignIn(String(account._id))) {
+      const fresh = await UserModel.findById(account._id)
+        .select("hostelIds role")
+        .lean<{ hostelIds?: unknown[]; role: Role } | null>();
+
+      if (fresh) account = Object.assign(account, { hostelIds: fresh.hostelIds ?? [], role: fresh.role });
+    }
+  }
+
   const safeUser = publicUser(account);
 
   const session = new SessionModel({
@@ -339,11 +354,12 @@ export async function issueSessionForUser(
     temporaryCredentialId: options?.temporaryCredentialId,
     userId: safeUser.id,
   };
-  const [accessToken, refreshToken, isServiceProvider, cookLock] = await Promise.all([
+  const [accessToken, refreshToken, isServiceProvider, cookLock, hostelKyc] = await Promise.all([
     signAccessToken(tokenInput),
     signRefreshToken(tokenInput),
     isApprovedServiceProvider(account),
     cookFingerprintLock(safeUser),
+    hostelKycFor(safeUser),
   ]);
 
   session.refreshTokenHash = hashToken(refreshToken);
@@ -361,10 +377,22 @@ export async function issueSessionForUser(
     user: {
       ...safeUser,
       cookFingerprintLock: cookLock,
+      hostelKyc,
       isServiceProvider,
       viaTemporaryCredential: Boolean(options?.temporaryCredentialId),
     },
   };
+}
+
+/**
+ * A quick sign-up's KYC and trial, on `/auth/me`, every sign-in and every
+ * refresh — so the frozen menus are right from the first frame, not only after
+ * the next revalidation. Hostel staff only; null for everyone else.
+ */
+function hostelKycFor(user: { hostelIds: string[]; role: string }) {
+  return user.role === Role.HOSTEL_ADMIN || user.role === Role.WARDEN
+    ? kycForAccount(user.hostelIds)
+    : Promise.resolve(null);
 }
 
 export async function requestOtpChallenge(
@@ -976,10 +1004,11 @@ export async function refreshAccessToken(
     temporaryCredentialId,
     userId: safeUser.id,
   };
-  const [accessToken, signedRefreshToken, isServiceProvider] = await Promise.all([
+  const [accessToken, signedRefreshToken, isServiceProvider, hostelKyc] = await Promise.all([
     signAccessToken(tokenInput),
     signRefreshToken(tokenInput),
     isApprovedServiceProvider(account),
+    hostelKycFor(safeUser),
   ]);
 
   // Compare-and-set on the presented hash: two requests that both read the
@@ -1030,6 +1059,7 @@ export async function refreshAccessToken(
     refreshToken: rotated ? signedRefreshToken : null,
     user: {
       ...safeUser,
+      hostelKyc,
       isServiceProvider,
       viaTemporaryCredential: Boolean(temporaryCredentialId),
     },
@@ -1084,9 +1114,13 @@ export async function getCurrentUser(accessToken: string) {
     ? await suspensionForAccount(safeUser.hostelIds)
     : null;
 
+  /** A quick sign-up's KYC and trial (docs/QUICK_SIGNUP_KYC_TRIAL.md); null otherwise. */
+  const hostelKyc = await hostelKycFor(safeUser);
+
   return {
     ...safeUser,
     cookFingerprintLock: await cookFingerprintLock(safeUser),
+    hostelKyc,
     hostelSuspension,
     isServiceProvider,
     /**

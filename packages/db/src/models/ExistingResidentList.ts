@@ -20,6 +20,8 @@ const existingResidentRowSchema = new Schema(
     fullName: { default: "", trim: true, type: String },
     phone: { default: "", trim: true, type: String },
     email: { default: "", lowercase: true, trim: true, type: String },
+    /** `101` — their numbered room, when the hostel keeps floors and rooms. */
+    roomNumber: { default: "", trim: true, type: String },
     roomType: { default: "", trim: true, type: String },
     /** Null means "the hostel's normal rate for this room type". */
     monthlyRent: { default: null, min: 0, type: Number },

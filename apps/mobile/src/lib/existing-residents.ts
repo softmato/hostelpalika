@@ -94,6 +94,7 @@ export function inputFromRow(row: ExistingRow): ExistingRowInput {
     oldDues: row.oldDues,
     paidTill: row.paidTill,
     phone: row.phone,
+    roomNumber: row.roomNumber ?? "",
     roomType: row.roomType,
   };
 }
@@ -110,6 +111,7 @@ export function blankRow(): ExistingRowInput {
     // owes two months gets added owing nothing.
     paidTill: null,
     phone: "",
+    roomNumber: "",
     roomType: "",
   };
 }
@@ -174,7 +176,7 @@ export function rowSubtitle(
     return checked.problems[0]!.message;
   }
 
-  return [row.phone, rentStatusLabel(row.paidTill, currentPeriod)]
+  return [row.roomNumber ? `Room ${row.roomNumber}` : "", row.phone, rentStatusLabel(row.paidTill, currentPeriod)]
     .filter(Boolean)
     .join(" · ");
 }

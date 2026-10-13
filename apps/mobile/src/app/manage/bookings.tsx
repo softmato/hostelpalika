@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
 
+import { REALTIME_TOPIC } from "@/constants/topics";
 import { PayoutAccountCard } from "@/components/manage/payout-account-card";
 import { ShortStaysCard } from "@/components/manage/short-stays-card";
 import { AppBar } from "@/components/ui/app-bar";
@@ -72,6 +73,7 @@ export default function ManageBookingsScreen() {
   const listTab: HostelBookingsTab = tab === "settings" ? "requests" : tab;
   const list = useResource<HostelBookings>(useCallback(() => listHostelBookings(listTab), [listTab]), {
     cacheKey: `hostel-bookings:${listTab}`,
+    topics: [REALTIME_TOPIC.BOOKINGS],
   });
   const { dateTime } = useDates();
   const header = <AppBar accent centerTitle showBack title="Bookings" />;

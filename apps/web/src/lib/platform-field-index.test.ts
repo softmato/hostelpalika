@@ -211,7 +211,7 @@ describe("platform field index", () => {
       tab: "",
     });
     expect(fields).toContainEqual(
-      expect.objectContaining({ label: "Free months", tab: "pricing" }),
+      expect.objectContaining({ label: "Branches", tab: "pricing" }),
     );
     expect(fields).toContainEqual(
       expect.objectContaining({ href: "/platform/bookings", label: "Booking fee", tab: "settings" }),
@@ -232,7 +232,7 @@ describe("platform field index", () => {
       }),
     );
     expect(PLATFORM_SEARCH_ENTRIES).toContainEqual(
-      expect.objectContaining({ href: "/platform/config/plans?tab=pricing&field=free-months&in=prices-discounts" }),
+      expect.objectContaining({ href: "/platform/config/plans?tab=pricing&field=branches&in=prices-discounts" }),
     );
     expect(new Set(PLATFORM_SEARCH_ENTRIES.map((entry) => entry.id)).size).toBe(
       PLATFORM_SEARCH_ENTRIES.length,

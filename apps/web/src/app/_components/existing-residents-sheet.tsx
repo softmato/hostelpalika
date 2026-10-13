@@ -42,11 +42,22 @@ type Props = {
   onSave: (rows: SheetOutRow[]) => Promise<{ check: CheckResult | null; rows: ListRow[] }>;
   /** The list line to put the cursor on. */
   openAt?: string | null;
+  /** Numbered rooms when the hostel keeps floors and rooms; null hides the Room no. column. */
+  numberedRooms: { floor: number; free: number; number: string; roomType: string }[] | null;
   /** Each room type with its rate-card rent, which fills the rent box. */
   rooms: SheetContext["rooms"];
   rows: ListRow[];
   tone: "admin" | "platform";
 };
+
+/** "Ground floor", "1st floor", "Basement". */
+function floorName(floor: number) {
+  if (floor === 0) return "Ground floor";
+  if (floor < 0) return floor === -1 ? "Basement" : `Basement ${-floor}`;
+  const tens = floor % 100;
+  const suffix = tens >= 11 && tens <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[floor % 10] ?? "th";
+  return `${floor}${suffix} floor`;
+}
 
 const INPUT_MODES: Partial<Record<SheetColumn, SheetGridColumn["inputMode"]>> = {
   depositPaid: "numeric",
@@ -61,6 +72,7 @@ export function ExistingResidentsSheet({
   check: firstCheck,
   currentPeriod,
   hostelName,
+  numberedRooms,
   onClose,
   onSave,
   openAt,
@@ -69,7 +81,7 @@ export function ExistingResidentsSheet({
   tone,
 }: Props) {
   const { confirm, confirmDialog } = useConfirm();
-  const context = useMemo(() => ({ currentPeriod, rooms }), [currentPeriod, rooms]);
+  const context = useMemo(() => ({ currentPeriod, numberedRooms, rooms }), [currentPeriod, numberedRooms, rooms]);
   const [rows, setRows] = useState<SheetRow[]>(() => sheetFrom(listRows, context));
   const [check, setCheck] = useState(firstCheck);
   // Lines typed in since the last check — their old problems no longer apply.
@@ -87,11 +99,18 @@ export function ExistingResidentsSheet({
   const columns = useMemo(() => {
     const roomTypes = rooms.map((room) => room.roomType);
 
-    return SHEET_COLUMNS.map((column): SheetGridColumn => ({
+    // Room no. is last, so hiding it moves no other column (paste maps by position).
+    return SHEET_COLUMNS.filter((column) => column.key !== "roomNumber" || numberedRooms).map((column): SheetGridColumn => ({
       ...column,
       inputMode: INPUT_MODES[column.key],
       options:
-        column.key === "roomType"
+        column.key === "roomNumber"
+          ? () =>
+              (numberedRooms ?? []).map((room) => ({
+                label: `${room.number} · ${floorName(room.floor)} · ${room.roomType} (${room.free} free)`,
+                value: room.number,
+              }))
+          : column.key === "roomType"
           ? (value) => [
               ...(value && !roomTypes.includes(value) ? [value] : []),
               ...roomTypes,
@@ -102,7 +121,7 @@ export function ExistingResidentsSheet({
       placeholder: column.key === "joinedDate" ? "2082-04-15" : undefined,
       readOnly: AUTO_COLUMNS.includes(column.key),
     }));
-  }, [currentPeriod, rooms]);
+  }, [currentPeriod, numberedRooms, rooms]);
 
   const read = useMemo(() => readSheet(rows), [rows]);
   const cellErrors = useMemo(

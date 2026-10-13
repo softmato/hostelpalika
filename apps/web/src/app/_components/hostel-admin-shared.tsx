@@ -38,7 +38,12 @@ export type Resident = {
   moveInDate: string;
   phone: string;
   residentType?: "STUDENT" | "WORKING_PROFESSIONAL" | "OTHER";
+  /** "204" when the hostel keeps floors and rooms. */
+  roomId?: string | null;
+  roomNumber?: string | null;
   roomType: string;
+  /** A special fee replacing the rate, with why. */
+  specialFee?: { amount: number; reason: string } | null;
   status: "PENDING" | "ACTIVE" | "SUSPENDED" | "MOVED_OUT";
 };
 

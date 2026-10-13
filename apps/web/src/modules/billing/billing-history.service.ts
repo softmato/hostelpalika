@@ -163,6 +163,8 @@ export interface BillingPlan {
   planName: string | null;
   price: number | null;
   status: string;
+  /** On the free trial with no plan bought yet: its last instant. */
+  trialEndsAt: string | null;
 }
 
 export interface BillingHistory {
@@ -231,6 +233,7 @@ export async function getBillingHistory(
       planId?: string | null;
       planName?: string | null;
       status: string;
+      trialEndsAt?: Date | null;
     } | null>(),
     SubscriptionInvoiceModel.find({ hostelId: id })
       .sort({ createdAt: -1 })
@@ -393,6 +396,8 @@ export async function getBillingHistory(
           planName: subscription.planName ?? null,
           price: subscription.cycleTotal ?? null,
           status: subscription.status,
+          trialEndsAt:
+            subscription.trialEndsAt && !subscription.planId ? subscription.trialEndsAt.toISOString() : null,
         }
       : null,
   };

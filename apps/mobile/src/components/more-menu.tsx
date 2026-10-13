@@ -24,6 +24,7 @@ import { CALENDAR_LABELS } from "@/lib/calendar";
 import { endSession } from "@/lib/auth-session";
 import { openConfirm } from "@/lib/confirm";
 import { setThemePreference } from "@/store/slices/uiSlice";
+import { KycFrost } from "@/components/kyc-frost";
 
 /**
  * The More screen's shape, shared by every portal: a centred face, then groups
@@ -147,10 +148,13 @@ export function MenuGroup({ children, title }: { children: ReactNode; title?: st
 
 /** `<ListRow>` with a filled round glyph in front. */
 export function MenuRow({
+  frozen = false,
   icon,
   tone = "brand",
   ...row
 }: Omit<ComponentProps<typeof ListRow>, "icon" | "iconBgColor" | "iconColor" | "left"> & {
+  /** Iced over with a lock until the hostel's KYC is approved (`KycFrost`). */
+  frozen?: boolean;
   icon: keyof typeof Ionicons.glyphMap;
   tone?: MenuTone;
 }) {
@@ -179,17 +183,19 @@ export function MenuRow({
   }[tone];
 
   return (
-    <ListRow
-      {...row}
-      left={
-        <View
-          className="h-8 w-8 items-center justify-center rounded-full"
-          style={{ backgroundColor: tint }}
-        >
-          <Ionicons color="#FFFFFF" name={icon} size={17} />
-        </View>
-      }
-    />
+    <KycFrost frozen={frozen} label={row.title} radius={0}>
+      <ListRow
+        {...row}
+        left={
+          <View
+            className="h-8 w-8 items-center justify-center rounded-full"
+            style={{ backgroundColor: tint }}
+          >
+            <Ionicons color="#FFFFFF" name={icon} size={17} />
+          </View>
+        }
+      />
+    </KycFrost>
   );
 }
 

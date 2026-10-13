@@ -31,6 +31,7 @@ import {
   updateCommunitySettings,
   updateManagedHostel,
 } from "@/lib/admin-manage-api";
+import { FormDetailsSettings } from "@/components/manage/form-details-settings";
 import { type AdminSettingsData, adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
 import { formatMoney, humanizeEnum } from "@/lib/format";
@@ -547,6 +548,8 @@ export default function ManageSettingsScreen() {
             )}
           </Card>
         </View>
+
+        <FormDetailsSettings />
 
         <CalendarPreferenceCard />
 

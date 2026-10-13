@@ -67,6 +67,9 @@ export const PLAN_DUE_NOTIFICATION_TYPE = "PLAN_DUE";
  */
 export const JOIN_REQUEST_NOTIFICATION_TYPE = "JOIN_REQUEST";
 
+/** Somebody filled the hostel's Form QR; the app lists them on `app/manage/applications.tsx`. */
+export const ADMISSION_FORM_NOTIFICATION_TYPE = "ADMISSION_FORM";
+
 /** The admin app's plan Billing screen, `app/manage/billing.tsx`. */
 const PLAN_BILLING_PATH = "/manage/billing";
 
@@ -100,6 +103,19 @@ export function deepLinkForNotification(input: DeepLinkInput): string {
   if (input.data?.type === JOIN_REQUEST_NOTIFICATION_TYPE) {
     return "/manage/join-requests";
   }
+
+  if (input.data?.type === ADMISSION_FORM_NOTIFICATION_TYPE) {
+    return "/manage/applications";
+  }
+
+  // The quick sign-up (docs/QUICK_SIGNUP_KYC_TRIAL.md); `actionUrl` is the website's.
+  if (input.data?.type === "HOSTEL_KYC") return "/manage/kyc";
+  if (input.data?.type === "HOSTEL_TRIAL") return PLAN_BILLING_PATH;
+  if (input.data?.type === "HOSTEL_PORTAL_OPEN" || input.data?.type === "HOSTEL_KYC_APPROVED") return "/(admin)";
+
+  // Room change requests (docs/FIELD_FIXES_2026_10.md §3.8).
+  if (input.data?.type === "ROOM_CHANGE_REQUEST") return "/manage/floors";
+  if (input.data?.type === "ROOM_CHANGE_ANSWERED") return "/my-room";
 
   /*
    * Also ahead of `actionUrl`: a booking row's `actionUrl` is the website's

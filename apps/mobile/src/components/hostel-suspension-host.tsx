@@ -86,6 +86,7 @@ export function HostelSuspensionHost() {
 
   const staff = STAFF_ROLES.has(account.role);
   const hostel = suspension.hostelName || "Your hostel";
+  const trial = suspension.reason === "TRIAL_ENDED";
 
   if (!counting) {
     return (
@@ -94,14 +95,16 @@ export function HostelSuspensionHost() {
         confirmLabel="Sign out"
         key="suspended"
         message={
-          staff
+          staff && trial
+            ? `${hostel}'s free trial is over. Please check your email to choose a monthly or lifetime plan. The portal opens again as soon as the payment is confirmed.`
+            : staff
             ? `${hostel} has not paid its plan, so the hostel portal is suspended. Please check your email to pay it. The portal opens again as soon as the payment is confirmed.`
             : `${hostel} has not paid its plan price. Please contact your hostel to pay it and continue the service.`
         }
         onClose={checkAgain}
         onConfirm={signOut}
         open
-        title={staff ? "Hostel portal suspended" : "Service paused"}
+        title={staff ? (trial ? "Your free trial has ended" : "Hostel portal suspended") : "Service paused"}
       />
     );
   }
@@ -117,14 +120,18 @@ export function HostelSuspensionHost() {
       cancelLabel={null}
       confirmLabel="OK"
       key="pre-suspension"
-      message={`Please check your email about your plan. Otherwise, access to your hostel portal stops in ${remainingLabel(endsAt - now)}.`}
+      message={
+        trial
+          ? `Your free trial ends in ${remainingLabel(endsAt - now)}. Please check your email to choose a monthly or lifetime plan.`
+          : `Please check your email about your plan. Otherwise, access to your hostel portal stops in ${remainingLabel(endsAt - now)}.`
+      }
       onClose={() => {
         acknowledged.add(warning);
         setAcknowledgements((count) => count + 1);
       }}
       onConfirm={() => undefined}
       open
-      title="Plan payment due"
+      title={trial ? "Free trial ending" : "Plan payment due"}
     />
   );
 }

@@ -20,6 +20,7 @@ import {
   StatusBadge,
 } from "@/app/_components/shared-ui";
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
+import { FloorsPanel } from "@/app/_components/hostel-admin-floors-panel";
 import { useMediaViewer } from "@/components/media-viewer";
 import { Button } from "@/components/ui/button";
 import { browserApi } from "@/lib/browser-api";
@@ -354,6 +355,7 @@ export const HostelAdminRoomsPageContent = memo(function HostelAdminRoomsPageCon
         title="Rooms & Beds"
       />
       <Message value={message} />
+      <FloorsPanel />
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
         <Panel title="Room Types">
           {configurations.length === 0 ? (

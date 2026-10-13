@@ -612,6 +612,22 @@ describe("debits — the owner's expenses on the same statement", () => {
     truncated: false,
   };
 
+  it("starts the running balance from the bank's opening balance", () => {
+    const rows = statementCredits({
+      entries: [entry({ id: "rent", paidAmount: 5000, paidDate: "2026-08-24T07:53:00.000Z" })],
+      expenses: [],
+      openingBalance: { amount: 120000, asOf: "2026-08-01" },
+      truncated: false,
+    });
+
+    expect(rows.at(-1)?.id).toBe("opening");
+    expect(rows.at(-1)?.runningTotal).toBe(120000);
+    expect(rows[0]?.runningTotal).toBe(125000);
+    expect(creditTitle(rows.at(-1)!, "AD")).toBe("Opening balance");
+    // Where the money stood, not money that came in.
+    expect(splitTotals(rows).in).toBe(5000);
+  });
+
   it("lists cash handed to a warden without counting it, and counts what they spend once", () => {
     const warden = { id: "hari", name: "Hari", role: "WARDEN" as const };
     const rows = statementCredits({

@@ -268,3 +268,4 @@ export async function declineResidencyInvite(principal: ApiPrincipal, residentId
 
   return { declined: true };
 }
+

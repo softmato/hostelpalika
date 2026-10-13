@@ -4,6 +4,7 @@ import {
   Check,
   ChevronRight,
   FileText,
+  House,
   IdCard,
   ImageIcon,
   Landmark,
@@ -12,8 +13,11 @@ import {
   PartyPopper,
   QrCode,
   Sparkles,
+  Tags,
   Trash2,
   UtensilsCrossed,
+  Wallet,
+  Building2,
   type LucideIcon,
 } from "lucide-react";
 import Link from "next/link";
@@ -44,19 +48,31 @@ type Kyc = {
   minPhotos: number;
   percent: number;
   photoCount: number;
+  /** A quick sign-up's review (docs/QUICK_SIGNUP_KYC_TRIAL.md); null for every older hostel. */
+  review?: {
+    canSubmit: boolean;
+    missing: string[];
+    note: string | null;
+    status: "DRAFT" | "SUBMITTED" | "APPROVED" | "REJECTED";
+    submittedAt: string | null;
+  } | null;
   rules: string[];
-  steps: { done: boolean; key: string }[];
+  steps: { done: boolean; key: string; required?: boolean }[];
 };
 
 /** One screen per step. `href` is the full editor, for changing a finished step. */
 const STEPS: Record<string, { hint: string; href: string; icon: LucideIcon; title: string }> = {
+  details: { hint: "Who lives here, and the address", href: "/hostel-admin/profile", icon: House, title: "Hostel details" },
+  rates: { hint: "Each room type and its monthly rent", href: "/hostel-admin/fee-schedule", icon: Tags, title: "Room types & rent" },
   documents: { hint: "Owner ID and PAN / VAT", href: "/hostel-admin/kyc", icon: FileText, title: "Documents" },
   facilities: { hint: "Tap what you offer", href: "/hostel-admin/profile", icon: Sparkles, title: "Facilities" },
   food: { hint: "Your weekly menu", href: "/hostel-admin/food", icon: UtensilsCrossed, title: "Weekly food" },
   location: { hint: "Drop the pin on your door", href: "/hostel-admin/profile", icon: MapPin, title: "Map pin" },
   payments: { hint: "Where residents pay rent", href: "/hostel-admin/payment-setup", icon: QrCode, title: "Rent payments" },
   payout: { hint: "Where booking money lands", href: "/hostel-admin/bookings", icon: Landmark, title: "Booking payout" },
+  opening: { hint: "Your bank balance when you start", href: "/hostel-admin/fee-schedule", icon: Wallet, title: "Opening balance" },
   photos: { hint: "Outside and inside", href: "/hostel-admin/rooms", icon: ImageIcon, title: "Photos" },
+  rooms: { hint: "Each floor and its room numbers", href: "/hostel-admin/rooms", icon: Building2, title: "Rooms & floors" },
   rules: { hint: "One rule per line", href: "/hostel-admin/profile", icon: ListChecks, title: "House rules" },
 };
 
@@ -107,7 +123,8 @@ export function HostelKycBanner() {
   const resource = usePortalResource<{ kyc: Kyc }>(ENDPOINT);
   const kyc = resource.data?.kyc;
 
-  if (!kyc || kyc.percent >= 100) {
+  // A quick sign-up's banner stays until our team approves it.
+  if (!kyc || ((!kyc.review || kyc.review.status === "APPROVED") && kyc.percent >= 100)) {
     return null;
   }
 
@@ -175,9 +192,12 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
 
   const setupLinks = <div className="mb-4 flex flex-wrap gap-3 rounded-xl border border-border p-3 text-sm font-semibold text-brand-teal"><Link href={workspaceHref("/hostel-admin/rooms")}>Room types & attached bathrooms</Link><Link href={workspaceHref("/hostel-admin/fee-schedule")}>Rent & form fees</Link></div>;
 
+  const reviewBar = kyc.review ? <KycReviewBar onSubmitted={() => void resource.refreshAsync()} review={kyc.review} /> : null;
+
   if (showFinish) {
     return (
       <div className="mx-auto max-w-xl">
+        {reviewBar}
         {setupLinks}
         <StepFlow className="flex flex-col items-center gap-4 rounded-3xl border border-border bg-card p-8 text-center" stepKey={99}>
           {kyc.percent >= 100 ? (
@@ -217,6 +237,7 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
 
   return (
     <div className="mx-auto max-w-xl space-y-4">
+      {reviewBar}
       {setupLinks}
       <section className="flex items-center gap-4 rounded-b-3xl rounded-t-xl bg-brand-teal p-5 text-white">
         <div className="rounded-full bg-white p-1">
@@ -268,9 +289,11 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
           <RulesStep initial={kyc.rules} onSaved={saved} />
         ) : step.key === "facilities" ? (
           <FacilitiesStep initial={kyc.facilities} onSaved={saved} />
+        ) : step.key === "opening" ? (
+          <OpeningStep onSaved={saved} />
         ) : (
           <button className={PRIMARY} onClick={() => open(meta.href)} type="button">
-            {step.key === "food" ? "Set weekly menu" : step.key === "location" ? "Place the pin" : "Open"}
+            {step.key === "food" ? "Set weekly menu" : step.key === "location" ? "Place the pin" : step.key === "rooms" ? "Add floors and rooms" : step.key === "details" ? "Add your address" : step.key === "rates" ? "Set room types & rent" : "Open"}
           </button>
         )}
       </StepFlow>
@@ -288,6 +311,51 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
     </div>
   );
 });
+
+/**
+ * The bank's closing balance the day they start with us, so the statement's
+ * balance matches the bank (docs/FIELD_FIXES_2026_10.md §4).
+ */
+function OpeningStep({ onSaved }: { onSaved: () => Promise<void> }) {
+  const [amount, setAmount] = useState("");
+  const [asOf, setAsOf] = useState(() => new Date(Date.now() + 345 * 60_000).toISOString().slice(0, 10));
+
+  return (
+    <SaveForm
+      disabled={amount.trim() === "" || !/^\d{4}-\d{2}-\d{2}$/.test(asOf)}
+      onSave={async () => {
+        await browserApi("/api/v1/hostel-admin/finance/money-rules", {
+          body: JSON.stringify({ openingBalance: { amount: Number(amount), asOf } }),
+          method: "PUT",
+        });
+        await onSaved();
+      }}
+    >
+      <label className="grid gap-1.5 text-sm font-semibold text-foreground">
+        Bank balance (Rs)
+        <input
+          className="h-11 rounded-md border border-border bg-background px-3 text-sm font-normal outline-none focus:border-primary"
+          inputMode="numeric"
+          onChange={(event) => setAmount(event.target.value.replace(/[^\d-]/g, ""))}
+          placeholder="250000"
+          value={amount}
+        />
+      </label>
+      <label className="grid gap-1.5 text-sm font-semibold text-foreground">
+        On the day
+        <input
+          className="h-11 rounded-md border border-border bg-background px-3 text-sm font-normal outline-none focus:border-primary"
+          onChange={(event) => setAsOf(event.target.value)}
+          type="date"
+          value={asOf}
+        />
+      </label>
+      <p className="text-xs text-muted-foreground">
+        Your statement starts from this, so the balance here matches your bank. Use minus for an overdraft.
+      </p>
+    </SaveForm>
+  );
+}
 
 /** Save button + inline error, shared by the small forms below. */
 function SaveForm({
@@ -620,5 +688,61 @@ function FacilitiesStep({ initial, onSaved }: { initial: string[]; onSaved: () =
         })}
       </div>
     </SaveForm>
+  );
+}
+
+/**
+ * Where a quick sign-up's KYC stands, and Submit once every required section
+ * is done — asked first, because our team checks what is sent.
+ */
+function KycReviewBar({ onSubmitted, review }: { onSubmitted: () => void; review: NonNullable<Kyc["review"]> }) {
+  const { confirm, confirmDialog } = useConfirm();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const line =
+    review.status === "APPROVED"
+      ? "Verified by our team. Every feature is open."
+      : review.status === "SUBMITTED"
+        ? "In review — we check it within 24 hours. You can still edit anything until then."
+        : review.status === "REJECTED"
+          ? `Sent back: ${review.note ?? "please check and submit again."}`
+          : review.missing.length > 0
+            ? `${review.missing.length} required ${review.missing.length === 1 ? "section" : "sections"} left before you can submit: ${review.missing.map((key) => STEPS[key]?.title ?? key).join(", ")}.`
+            : "Every required section is done. Submit it to our team.";
+
+  async function submit() {
+    const ok = await confirm({
+      actionLabel: "Submit",
+      cancelLabel: "Check again",
+      description: "Our team will verify this within 24 hours. Please make sure everything you entered is correct.",
+      title: "Submit your KYC?",
+    });
+
+    if (!ok) return;
+
+    setBusy(true);
+    setError(null);
+
+    try {
+      await browserApi(`${ENDPOINT}/submit`, { body: "{}", method: "POST" });
+      onSubmitted();
+    } catch (caught) {
+      setError(errorText(caught));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="mb-4 space-y-3 rounded-2xl border border-border bg-card p-4">
+      <p className="text-sm text-foreground">{line}</p>
+      {review.canSubmit ? (
+        <button className={PRIMARY} disabled={busy} onClick={() => void submit()} type="button">
+          {busy ? "Submitting…" : "Submit for verification"}
+        </button>
+      ) : null}
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {confirmDialog}
+    </div>
   );
 }

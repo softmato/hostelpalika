@@ -29,6 +29,9 @@ vi.mock("@hostel/db/models/Hostel", fake("HostelModel"));
 vi.mock("@hostel/db/models/HostelSubscription", fake("HostelSubscriptionModel"));
 vi.mock("@hostel/db/models/User", fake("UserModel"));
 vi.mock("@/modules/hostels/hostel-suspension", () => ({ liftHostelSuspension: vi.fn() }));
+vi.mock("@/modules/platform-config/operations-config", () => ({
+  getOperationsConfig: vi.fn(async () => ({ subscriptionDueGraceDays: 3, trialDays: 15 })),
+}));
 vi.mock("@/modules/hostel-referrals/hostel-referral.service", () => ({
   settleHostelReferrals: vi.fn(),
 }));
@@ -40,6 +43,7 @@ vi.mock("@/modules/hostels/hostel.service", () => ({
 }));
 
 const { startFreeMonths } = await import("./subscription-payment.service");
+const { graceDeadline } = await import("./subscription.service");
 const { FreePlanClaimModel } = await import("@hostel/db/models/FreePlanClaim");
 const { HostelModel } = await import("@hostel/db/models/Hostel");
 const { HostelSubscriptionModel } = await import("@hostel/db/models/HostelSubscription");
@@ -117,5 +121,23 @@ describe("startFreeMonths", () => {
     expect(models.hostels.docs.find((doc) => String(doc._id) === String(hostelB))?.status).toBe("APPROVED");
     expect(models.claims.docs.find((doc) => String(doc.hostelId) === String(hostelB))?.matchedHostelId)
       .toEqual(hostelA);
+  });
+
+  it("starts the trial instead when the plan was chosen without free months", async () => {
+    const from = new Date("2026-10-11T06:00:00Z");
+    const row = models.subscriptions.docs.find((doc) => String(doc.hostelId) === String(hostelA))!;
+    row.freeMonths = 0;
+
+    const result = await startFreeMonths(hostelA.toString(), "actor", from);
+    const endsAt = graceDeadline(from, 15);
+
+    expect(result).toMatchObject({ freeMonths: 0, trialDays: 15 });
+    expect(result?.freeUntil.getTime()).toBe(endsAt.getTime());
+    expect(row).toMatchObject({ freeMonths: 0, status: "ACTIVE", trialDays: 15 });
+    expect((row.trialEndsAt as Date).getTime()).toBe(endsAt.getTime());
+    expect((row.currentPeriodEnd as Date).getTime()).toBe(endsAt.getTime());
+    // The trial is per hostel: no building fingerprint is spent on it.
+    expect(models.claims.docs).toHaveLength(0);
+    expect(granted).toEqual([hostelA.toString()]);
   });
 });

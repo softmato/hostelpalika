@@ -60,11 +60,14 @@ export const PDF_LIB_ROUTES = [
   "/api/v1/hostel-admin/finance/**",
   "/api/v1/hostel-admin/inquiries/**",
   "/api/v1/hostel-admin/kyc/**",
+  // Move-outs bill the leaving month; rooms notify through the bell.
+  "/api/v1/hostel-admin/move-events/**",
   "/api/v1/hostel-admin/payout-account/**",
   "/api/v1/hostel-admin/profile/**",
   "/api/v1/hostel-admin/reports/**",
   "/api/v1/hostel-admin/residents/**",
   "/api/v1/hostel-admin/room-types/**",
+  "/api/v1/hostel-admin/rooms/**",
   // A Bought with an amount writes its expense through the expense service.
   "/api/v1/hostel-admin/stock/**",
   "/api/v1/hostel-admin/subscription/**",

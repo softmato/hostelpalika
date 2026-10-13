@@ -1,5 +1,7 @@
 import { OverallTabScreen } from "@/components/overall-views";
 import { useIsOverall } from "@/components/hostel-switcher";
+import { KycLockedScreen } from "@/components/kyc-frost";
+import { useKycLock } from "@/lib/kyc-lock";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -1234,5 +1236,10 @@ function BranchAdminMoneyScreen() {
  * once (`components/overall-views.tsx`); otherwise it is the one branch's screen.
  */
 export default function AdminMoneyScreen() {
-  return useIsOverall() ? <OverallTabScreen tab="money" /> : <BranchAdminMoneyScreen />;
+  const overall = useIsOverall();
+  const { locked } = useKycLock();
+
+  if (locked) return <KycLockedScreen title="Payments" />;
+
+  return overall ? <OverallTabScreen tab="money" /> : <BranchAdminMoneyScreen />;
 }

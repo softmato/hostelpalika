@@ -3,8 +3,6 @@ import type { NextRequest } from "next/server";
 
 import {
   type ApiPrincipal,
-  assertHostelScopedApiAccess,
-  requireHostelCapability,
   requireTeamPrincipal,
 } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
@@ -31,7 +29,22 @@ import {
   returnJoinRequest,
   updateJoinLink,
 } from "@/modules/residents/resident-join.service";
+import { markAdmissionFormAdded } from "@/modules/residents/admission-form.service";
+import { cardFromAdmissionForm } from "@/modules/residents/card-from-form";
+import {
+  linkResidentAccount,
+  openResidentLogin,
+  type ResidentRecord,
+} from "@/modules/residents/resident.service";
+import {
+  claimAdmissionDocuments,
+  claimApplicantPhoto,
+  saveResidentDocuments,
+} from "@/modules/residents/applicant-photo";
+import { sealDetails } from "@/modules/residents/resident-details";
+import { hostelStaffScope } from "@/modules/residents/hostel-staff-scope";
 import { assertAgentFiledHostel } from "@/modules/team/team.service";
+import { ResidentModel } from "@hostel/db/models/Resident";
 
 /**
  * The existing-residents routes, written once and mounted twice
@@ -46,25 +59,7 @@ type Scope = { hostelId: Types.ObjectId; principal: ApiPrincipal };
 
 type Resolve = (request: NextRequest, context: RouteContext) => Promise<Scope>;
 
-const hostelStaff: Resolve = async (request) => {
-  const principal = await requireHostelCapability(request, "registerResidents");
-  const requested = request.nextUrl.searchParams.get("hostelId");
-
-  if (requested) {
-    assertHostelScopedApiAccess(principal, requested);
-
-    return { hostelId: new Types.ObjectId(requested), principal };
-  }
-
-  if (principal.hostelIds.length === 1) {
-    return { hostelId: new Types.ObjectId(principal.hostelIds[0]), principal };
-  }
-
-  throw Object.assign(new Error("A hostelId is required for this action."), {
-    errorCode: "HOSTEL_SCOPE_REQUIRED",
-    status: 422,
-  });
-};
+const hostelStaff: Resolve = (request) => hostelStaffScope(request);
 
 const fieldTeam: Resolve = async (request, context) => {
   const principal = await requireTeamPrincipal(request);
@@ -124,12 +119,46 @@ function handlers(resolve: Resolve) {
       POST: async (request: NextRequest, context: RouteContext) => {
         try {
           const { hostelId, principal } = await resolve(request, context);
-          const { userResidentId, ...row } = scannedExistingResidentSchema.parse(await request.json());
+          const { admissionFormId, details, documents, photo, userResidentId, ...row } =
+            scannedExistingResidentSchema.parse(await request.json());
+          const photoAssetId = photo ? await claimApplicantPhoto(photo, hostelId) : null;
+          const scans = documents ? await claimAdmissionDocuments(documents, hostelId) : [];
+          const added = await addScannedExistingResident(hostelId, row, userResidentId, principal);
+          const detailsData = sealDetails(details);
 
-          return successResponse(
-            await addScannedExistingResident(hostelId, row, userResidentId, principal),
-            "Resident added",
-          );
+          if (added.residentId && (detailsData || photoAssetId)) {
+            await ResidentModel.updateOne(
+              { _id: added.residentId, hostelId },
+              { $set: { ...(detailsData ? { detailsData } : {}), ...(photoAssetId ? { photoAssetId } : {}) } },
+            );
+          }
+
+          if (added.residentId && scans.length) {
+            await saveResidentDocuments(new Types.ObjectId(added.residentId), hostelId, scans, principal.userId);
+          }
+
+          if (added.residentId && admissionFormId) {
+            await markAdmissionFormAdded(hostelId, admissionFormId, new Types.ObjectId(added.residentId), principal);
+
+            // No card: the form's email becomes their login if it had none, and the form their ID card.
+            const resident = userResidentId
+              ? null
+              : await ResidentModel.findById(added.residentId).lean<ResidentRecord | null>();
+            let holder = resident?.userId ?? null;
+
+            if (resident && !holder && resident.email) {
+              const login = await openResidentLogin(resident.email, `${resident.firstName} ${resident.lastName}`);
+              const link = await linkResidentAccount(resident, hostelId, principal, undefined, false, login);
+
+              holder = link.userId ? new Types.ObjectId(link.userId) : null;
+            }
+
+            if (holder) {
+              await cardFromAdmissionForm(added.residentId, holder);
+            }
+          }
+
+          return successResponse(added, "Resident added");
         } catch (error) {
           return handleRouteError(error);
         }
@@ -220,7 +249,10 @@ export const hostelStaffJoin = {
         const decision = joinDecisionSchema.parse(await request.json());
 
         return decision.action === "add"
-          ? successResponse(await addJoinRequest(hostelId, requestId ?? "", principal), "Resident added")
+          ? successResponse(
+              await addJoinRequest(hostelId, requestId ?? "", principal, decision.roomNumber),
+              "Resident added",
+            )
           : successResponse(
               await returnJoinRequest(hostelId, requestId ?? "", decision.reason, principal),
               "Request sent back",

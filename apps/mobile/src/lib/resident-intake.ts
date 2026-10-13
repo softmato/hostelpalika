@@ -186,8 +186,12 @@ export function intakePeople(prefill: ResidentPrefill): IntakePerson[] {
  * zero there would be quoting a free stay to somebody who is about to pay.
  */
 export function rentBasisNote(
-  basis: "ROOM_CONFIGURATION" | "SCHEDULE" | "UNPRICED",
+  basis: "OVERRIDE" | "ROOM_CONFIGURATION" | "SCHEDULE" | "UNPRICED",
 ): string {
+  if (basis === "OVERRIDE") {
+    return "A special fee for this resident. Every bill uses it, not the rate card.";
+  }
+
   if (basis === "SCHEDULE") {
     return "From the hostel's current rate card. Billing uses the same figure.";
   }

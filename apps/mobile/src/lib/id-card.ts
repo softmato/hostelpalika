@@ -282,6 +282,16 @@ export type IdentityDraft = Record<IdentityTextField, string> & {
 
 export type IdentityTextField =
   | "alternatePhone"
+  | "district"
+  | "wardNo"
+  | "levelOfStudy"
+  | "classTime"
+  | "guardianOccupation"
+  | "secondGuardianOccupation"
+  | "emergencyContactAddress"
+  | "emergencyContactOccupation"
+  | "governmentIdIssuedOn"
+  | "governmentIdIssuedAt"
   | "backupEmail"
   | "budgetRange"
   | "city"
@@ -312,6 +322,16 @@ export type IdentityErrors = Partial<Record<keyof IdentityDraft, string>>;
 export function emptyIdentityDraft(): IdentityDraft {
   return {
     alternatePhone: "",
+    district: "",
+    wardNo: "",
+    levelOfStudy: "",
+    classTime: "",
+    guardianOccupation: "",
+    secondGuardianOccupation: "",
+    emergencyContactAddress: "",
+    emergencyContactOccupation: "",
+    governmentIdIssuedOn: "",
+    governmentIdIssuedAt: "",
     backupEmail: "",
     bloodGroup: "UNKNOWN",
     budgetRange: "",
@@ -360,6 +380,16 @@ export function draftFromProfile(profile: IdentityProfile | null): IdentityDraft
   return {
     ...draft,
     alternatePhone: text(profile.alternatePhone),
+    district: text(profile.district),
+    wardNo: text(profile.wardNo),
+    levelOfStudy: text(profile.levelOfStudy),
+    classTime: text(profile.classTime),
+    guardianOccupation: text(profile.guardianOccupation),
+    secondGuardianOccupation: text(profile.secondGuardianOccupation),
+    emergencyContactAddress: text(profile.emergencyContactAddress),
+    emergencyContactOccupation: text(profile.emergencyContactOccupation),
+    governmentIdIssuedOn: text(profile.governmentIdIssuedOn),
+    governmentIdIssuedAt: text(profile.governmentIdIssuedAt),
     backupEmail: text(profile.backupEmail),
     bloodGroup: profile.bloodGroup,
     budgetRange: text(profile.budgetRange),
@@ -449,11 +479,11 @@ export function validateIdentity(draft: IdentityDraft): IdentityErrors {
    * does not get past step 3 without one.
    */
   if (text("permanentAddress").length < 2) {
-    errors.permanentAddress = "Enter your permanent address.";
+    errors.permanentAddress = "Enter your street or tole.";
   }
 
   if (text("city").length < 2) {
-    errors.city = "Enter your city.";
+    errors.city = "Enter your municipality.";
   }
 
   if (!text("province")) {
@@ -635,7 +665,7 @@ export const IDENTITY_STEPS: readonly {
 export const IDENTITY_STEP_FIELDS: Record<IdentityStep, readonly (keyof IdentityDraft)[]> =
   {
     about: ["fullName", "dateOfBirth", "gender", "bloodGroup"],
-    address: ["permanentAddress", "city", "province"],
+    address: ["province", "district", "city", "wardNo", "permanentAddress"],
     contact: ["primaryPhone", "alternatePhone", "primaryEmail", "backupEmail"],
     guardian: [
       "guardianName",
@@ -649,6 +679,10 @@ export const IDENTITY_STEP_FIELDS: Record<IdentityStep, readonly (keyof Identity
       "emergencyContactName",
       "emergencyContactRelation",
       "emergencyContactPhone",
+      "guardianOccupation",
+      "secondGuardianOccupation",
+      "emergencyContactAddress",
+      "emergencyContactOccupation",
     ],
     photo: [],
     preferences: [
@@ -658,11 +692,13 @@ export const IDENTITY_STEP_FIELDS: Record<IdentityStep, readonly (keyof Identity
       "medicalNotes",
       "governmentIdType",
       "governmentIdNumber",
+      "governmentIdIssuedOn",
+      "governmentIdIssuedAt",
     ],
     /* Nothing of its own: Review shows every step and edits none of them. */
     review: [],
     signature: ["signature", "signatureImageUri"],
-    work: ["occupation", "institution", "courseOrDesignation"],
+    work: ["occupation", "institution", "courseOrDesignation", "levelOfStudy", "classTime"],
   };
 
 /** Just this step's problems, so a Continue press cannot flag a later screen. */
@@ -752,6 +788,16 @@ export function toProfileInput(draft: IdentityDraft): IdentityProfileInput {
 
   return {
     ...(text("alternatePhone") ? { alternatePhone: text("alternatePhone") } : {}),
+    ...(text("district") ? { district: text("district") } : {}),
+    ...(text("wardNo") ? { wardNo: text("wardNo") } : {}),
+    ...(text("levelOfStudy") ? { levelOfStudy: text("levelOfStudy") } : {}),
+    ...(text("classTime") ? { classTime: text("classTime") } : {}),
+    ...(text("guardianOccupation") ? { guardianOccupation: text("guardianOccupation") } : {}),
+    ...(text("secondGuardianOccupation") ? { secondGuardianOccupation: text("secondGuardianOccupation") } : {}),
+    ...(text("emergencyContactAddress") ? { emergencyContactAddress: text("emergencyContactAddress") } : {}),
+    ...(text("emergencyContactOccupation") ? { emergencyContactOccupation: text("emergencyContactOccupation") } : {}),
+    ...(text("governmentIdIssuedOn") ? { governmentIdIssuedOn: text("governmentIdIssuedOn") } : {}),
+    ...(text("governmentIdIssuedAt") ? { governmentIdIssuedAt: text("governmentIdIssuedAt") } : {}),
     ...(text("backupEmail") ? { backupEmail: text("backupEmail") } : {}),
     ...(text("budgetRange") ? { budgetRange: text("budgetRange") } : {}),
     ...(text("city") ? { city: text("city") } : {}),

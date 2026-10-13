@@ -9,6 +9,7 @@ import { ProviderStatusCard } from "@/components/provider-status-card";
 import { SupportContact } from "@/components/support-contact";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { CardRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { readableRole } from "@/constants/roles";
@@ -163,6 +164,28 @@ export default function BrowseProfileScreen() {
           </View>
         ) : null}
 
+        {/*
+          The way in for an owner, first after who you are
+          (docs/QUICK_SIGNUP_KYC_TRIAL.md): three fields and the hostel
+          portal opens on this account.
+        */}
+        {!search && features.publicRegistration ? (
+          <View className="pb-3">
+            <CardRow
+              icon="business"
+              onPress={() =>
+                router.push(
+                  account
+                    ? "/register-hostel"
+                    : { params: { next: "/register-hostel" }, pathname: "/(auth)/login" },
+                )
+              }
+              subtitle="Open your own hostel portal in a minute"
+              title="Register your hostel"
+            />
+          </View>
+        ) : null}
+
         <MenuGroups>
           <MenuGroup>
             {/* Device-local, so it works signed out. `/saved` is the list and nothing else. */}
@@ -219,13 +242,6 @@ export default function BrowseProfileScreen() {
 
           {features.publicRegistration || features.serviceProviderSignup ? (
             <MenuGroup>
-              {features.publicRegistration ? (
-                <MenuRow
-                  icon="business"
-                  onPress={() => router.push("/register-hostel")}
-                  title="Register your hostel"
-                />
-              ) : null}
               {features.serviceProviderSignup ? (
                 <MenuRow
                   icon="construct"

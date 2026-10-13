@@ -9,7 +9,7 @@ import { NotificationBell } from "@/components/notification-bell";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, SectionHeader } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
 import { CardRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
@@ -21,6 +21,7 @@ import { Text } from "@/components/ui/text";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import type { AdminResident } from "@/lib/admin-api";
+import type { AdmissionForms } from "@/lib/admission-form-api";
 import type { JoinRequests } from "@/lib/join-api";
 import { adminQuery, prefetchAdminResident } from "@/lib/admin-queries";
 import {
@@ -30,6 +31,8 @@ import {
   searchResidents,
 } from "@/lib/admin-roster";
 import { humanizeEnum } from "@/lib/format";
+import { KycFrost } from "@/components/kyc-frost";
+import { promptKyc, useKycLock } from "@/lib/kyc-lock";
 
 /**
  * Residents — a directory, and shaped like one.
@@ -113,6 +116,12 @@ function BranchAdminResidentsScreen() {
   });
   const waiting = join.data?.waiting ?? 0;
 
+  const formsQuery = adminQuery.admissionForms();
+  const admissionForms = useResource<AdmissionForms>(formsQuery.load, {
+    cacheKey: formsQuery.key,
+    topics: formsQuery.topics,
+  });
+
   const [query, setQuery] = useState("");
   const [segment, setSegment] = useState<RosterSegment>("active");
 
@@ -162,7 +171,10 @@ function BranchAdminResidentsScreen() {
     />
   );
 
+  const { locked } = useKycLock();
+
   const existingEntry = (
+    <KycFrost frozen={locked} label="Join link and existing residents">
     <View className="gap-3">
       <CardRow
         icon="link-outline"
@@ -183,6 +195,7 @@ function BranchAdminResidentsScreen() {
         title="Add existing residents"
       />
     </View>
+    </KycFrost>
   );
 
   /*
@@ -197,6 +210,47 @@ function BranchAdminResidentsScreen() {
       title={waiting === 1 ? "1 resident wants to join" : `${waiting} residents want to join`}
       tone="warning"
     />
+  ) : null;
+
+  /*
+    People who filled the Form QR and want a bed — a decision, so above the
+    list, heading outside the card. Three at most here; the rest are one tap on.
+    A row opens the intake at their form: pick the bed, register.
+  */
+  const pendingForms = admissionForms.data?.forms ?? [];
+  const formsEntry = pendingForms.length ? (
+    <View>
+      <SectionHeader
+        action={
+          pendingForms.length > 3 ? (
+            <Button
+              label="See all"
+              onPress={() => router.push("/manage/applications")}
+              size="sm"
+              variant="outline"
+            />
+          ) : undefined
+        }
+        subtitle="Filled your Form QR · choose a bed to register"
+        title={pendingForms.length === 1 ? "1 wants to live here" : `${pendingForms.length} want to live here`}
+      />
+      <View className="gap-2">
+        {pendingForms.slice(0, 3).map((form) => {
+          const name = `${form.firstName} ${form.lastName}`.trim();
+
+          return (
+            <CardRow
+              key={form.id}
+              left={<PersonAvatar image={form.photo} name={name} size="md" />}
+              onPress={() => router.push({ params: { application: form.id }, pathname: "/manage/resident/new" })}
+              subtitle={[form.phone, `Sent ${dates.date(form.submittedAt)}`].join(" · ")}
+              title={name}
+              tone="warning"
+            />
+          );
+        })}
+      </View>
+    </View>
   ) : null;
 
   if (residents.loading) {
@@ -223,9 +277,9 @@ function BranchAdminResidentsScreen() {
     <Screen
       floating={
         <FloatingButton
-          icon="person-add-outline"
+          icon={locked ? "lock-closed-outline" : "person-add-outline"}
           label="Register a resident"
-          onPress={() => router.push("/manage/resident/new")}
+          onPress={() => (locked ? promptKyc() : router.push("/manage/resident/new"))}
         />
       }
       header={header}
@@ -233,11 +287,13 @@ function BranchAdminResidentsScreen() {
       onRefresh={() => {
         residents.refresh();
         join.refresh();
+        admissionForms.refresh();
       }}
       refreshing={residents.refreshing}
       scroll
     >
       <View className="gap-4 pt-1">
+        {formsEntry}
         {waitingEntry}
         {roster.total === 0 ? existingEntry : null}
 
@@ -300,7 +356,7 @@ function BranchAdminResidentsScreen() {
                    */
                   left={
                     <PersonAvatar
-                      image={resident.account?.image}
+                      image={resident.account?.image ?? resident.photo}
                       name={`${resident.firstName} ${resident.lastName}`.trim()}
                       size="md"
                     />
@@ -329,7 +385,7 @@ function BranchAdminResidentsScreen() {
                     </View>
                   }
                   subtitle={[
-                    humanizeEnum(resident.roomType),
+                    resident.roomNumber ? `Room ${resident.roomNumber}` : humanizeEnum(resident.roomType),
                     resident.phone,
                     `Since ${dates.date(resident.moveInDate)}`,
                   ]

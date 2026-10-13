@@ -4,7 +4,7 @@ import * as ImagePicker from "expo-image-picker";
 import { usePreventRemove } from "expo-router/react-navigation";
 import { router, useNavigation } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, FileUp, List, LocateFixed, MapPin } from "lucide-react-native";
+import { Camera, FileUp, LocateFixed, MapPin } from "lucide-react-native";
 import { BackHandler, Pressable, View } from "react-native";
 import Animated, { FadeIn, FadeInLeft, FadeInRight, ReduceMotion, useReducedMotion } from "react-native-reanimated";
 
@@ -12,6 +12,7 @@ import { PinPickerModal, PinPreview } from "@/components/hostel-pin-picker";
 import { FoodWeekEditor } from "@/components/manage/food-week-editor";
 import { KycDraftContext, useKycDraft, type KycDraft } from "@/components/manage/kyc-draft";
 import { KycPayments } from "@/components/manage/kyc-payments";
+import { KycOpeningStep, KycRoomsStep } from "@/components/manage/kyc-setup-steps";
 import { Sheet } from "@/components/ui/sheet";
 import { useFoodWeek } from "@/components/manage/food-week";
 import {
@@ -27,6 +28,7 @@ import { isPdfReceipt, PdfPreview, readRemotePdf } from "@/components/receipt-pr
 import { StepSection, StepSkeleton } from "@/components/step-flow";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
+import { IconButton } from "@/components/ui/icon-button";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -38,7 +40,9 @@ import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
-import { addKycDocument, getHostelKyc, removeKycDocument, type HostelKyc } from "@/lib/admin-api";
+import { addKycDocument, getHostelKyc, removeKycDocument, submitHostelKyc, type HostelKyc } from "@/lib/admin-api";
+import { revalidateSession } from "@/lib/auth-session";
+import { ChoiceChips } from "@/components/ui/choice-chips";
 import { openConfirm } from "@/lib/confirm";
 import {
   type GeocodeHit,
@@ -52,7 +56,7 @@ import { readApiError } from "@/lib/api-contract";
 import { requestDeviceLocation } from "@/lib/location";
 import { openAssetViewer, viewerSourceFor } from "@/lib/asset-viewer";
 import { pickDocument, type PickedDocument } from "@/lib/document-picker";
-import { FACILITY_OPTIONS } from "@/lib/hostel-registration";
+import { FACILITY_OPTIONS, HOSTEL_TYPES } from "@/lib/hostel-registration";
 import type { BadgeTone } from "@/lib/status";
 import { uploadPublicFile } from "@/lib/public-uploads";
 import { toastError, toastSuccess } from "@/lib/toast";
@@ -61,13 +65,17 @@ import { useUnloadGuard } from "@/lib/unload-guard";
 const SUCCESS_ANIMATION = require("../../../assets/lottie/success.lottie");
 
 const STEPS: Record<string, { hint: string; icon: keyof typeof Ionicons.glyphMap; short: string; title: string }> = {
+  details: { hint: "Who lives here, and where", icon: "home-outline", short: "Details", title: "Hostel details" },
+  rates: { hint: "Each room type and its monthly rent", icon: "pricetags-outline", short: "Room types & rent", title: "Room types & rent" },
   documents: { hint: "Add your ID", icon: "document-text-outline", short: "Documents", title: "Documents" },
   facilities: { hint: "Tap what you have", icon: "bed-outline", short: "Facilities", title: "Facilities" },
   food: { hint: "", icon: "restaurant-outline", short: "Food", title: "Food menu" },
   location: { hint: "Is this your door?", icon: "location-outline", short: "Map", title: "Map pin" },
   payments: { hint: "", icon: "home-outline", short: "Rent", title: "Rent payments" },
   payout: { hint: "Where we send your money", icon: "card-outline", short: "Booking money", title: "Booking money" },
+  opening: { hint: "Your bank balance when you start", icon: "wallet-outline", short: "Opening balance", title: "Opening balance" },
   photos: { hint: "", icon: "image-outline", short: "Photos", title: "Photos" },
+  rooms: { hint: "Each floor and its room numbers", icon: "business-outline", short: "Rooms", title: "Rooms & floors" },
   rules: { hint: "", icon: "reader-outline", short: "Rules", title: "House rules" },
 };
 
@@ -136,9 +144,30 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
   // Leaving waits a render for `allowLeave`: a discarded or just-saved draft
   // still reads dirty until its step unmounts, and would be stopped again.
   const leave = (action: () => void) => { leaving.current = action; setAllowLeave(true); };
-  usePreventRemove(!allowLeave && (status.dirty || blocked), ({ data }) => {
+  /*
+   * Leaving always works — the close button, the back arrow, a swipe or
+   * Android's back. The section being edited is saved on the way out, so the
+   * KYC keeps everything as a draft until it is submitted. Only a section that
+   * cannot be saved as it stands (a half-typed field) asks once: keep editing,
+   * or leave that one change behind.
+   */
+  const saveAndExit = async (exit: () => void) => {
     if (lock.current || status.busy) { toastError("Please wait", "Your changes are being saved."); return; }
-    setPending(() => () => leave(() => navigation.dispatch(data.action)));
+    if (!status.dirty) { leave(exit); return; }
+    lock.current = true;
+    setSaving(true);
+    let saved = true;
+    try {
+      for (const draft of [...entries.current.values()]) {
+        if (draft.dirty && !(await draft.save())) { saved = false; break; }
+      }
+    } catch { saved = false; }
+    finally { lock.current = false; setSaving(false); }
+    if (saved) { toastSuccess("Saved", "Your KYC is kept as a draft. Finish it any time."); leave(exit); }
+    else setPending(() => () => leave(exit));
+  };
+  usePreventRemove(!allowLeave && (status.dirty || blocked), ({ data }) => {
+    void saveAndExit(() => navigation.dispatch(data.action));
   });
   useEffect(() => {
     if (allowLeave) leaving.current?.();
@@ -146,6 +175,12 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
   useUnloadGuard(status.dirty || blocked);
 
   const steps = kyc.data?.steps ?? [];
+  const reviewStatus = kyc.data?.review?.status ?? null;
+  const account = useAppSelector(state => state.auth.account);
+  // The frozen menus read `/auth/me`; a decision seen here brings them up to date.
+  useEffect(() => {
+    if (reviewStatus && account?.hostelKyc && account.hostelKyc.status !== reviewStatus) void revalidateSession();
+  }, [reviewStatus, account?.hostelKyc]);
   const firstOpen = steps.findIndex(step => !step.done);
   const current = Math.max(0, Math.min(index ?? firstOpen, steps.length - 1));
   const finish = finished || (index === null && firstOpen === -1);
@@ -155,27 +190,55 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
     if (status.dirty) setPending(() => action);
     else action();
   };
-  // Android's back walks the steps like the header arrow; on the first step or
-  // the finish screen it leaves, and `usePreventRemove` guards that exit.
+  // One fixed screen: back closes a sheet, otherwise it leaves, and
+  // `usePreventRemove` guards that exit.
   useEffect(() => {
     const subscription = BackHandler.addEventListener("hardwareBackPress", () => {
       if (overview) { setOverview(false); return true; }
       if (pending) { if (!saving) setPending(null); return true; }
-      if (!steps.length || finish || current === 0) return false;
-      move(() => go(current - 1));
-      return true;
+      return false;
     });
     return () => subscription.remove();
   });
 
-  if (kyc.loading) return <StepSkeleton subtitle="" title="Hostel setup" total={8} />;
+  if (kyc.loading) return <StepSkeleton subtitle="" title="Hostel KYC" total={12} />;
   if (kyc.error || !kyc.data || !steps.length) return <Screen header={<AppBar showBack title="Hostel setup" />}><ErrorState message={kyc.error ?? "Could not load setup."} onRetry={kyc.reload} /></Screen>;
   const data = kyc.data;
   if (index === null && firstOpen >= 0) setIndex(current);
   const step = steps[current];
   const meta = STEPS[step.key];
-  const last = current === steps.length - 1;
+  // Finished sections never open on their own: Next goes to the next unfinished one.
+  const after = steps.findIndex((item, at) => at > current && !item.done);
+  const nextOpen = after >= 0 ? after : steps.findIndex((item, at) => at !== current && !item.done);
+  const last = nextOpen === -1;
   const done = steps.filter(item => item.done).length;
+  const review = data.review ?? null;
+  const requiredLeft = review?.missing.length ?? 0;
+  const statusLine = !review
+    ? `${done} of ${steps.length} done`
+    : review.status === "APPROVED"
+      ? "Verified by our team"
+      : review.status === "SUBMITTED"
+        ? "In review — you can still edit"
+        : review.status === "REJECTED"
+          ? `Sent back: ${review.note ?? "please check and submit again"}`
+          : requiredLeft > 0
+            ? `${requiredLeft} required ${requiredLeft === 1 ? "section" : "sections"} left`
+            : "Ready to submit";
+  const submit = () => openConfirm({
+    cancelLabel: "Check again",
+    confirmLabel: "Submit",
+    message: "Our team will verify this within 24 hours. Please make sure everything you entered is correct.",
+    onConfirm: async () => {
+      try {
+        await submitHostelKyc();
+        await reload();
+        void revalidateSession();
+        toastSuccess("KYC submitted", "We check it within 24 hours. You can still edit it.");
+      } catch (error) { toastError("Not submitted", readApiError(error)); }
+    },
+    title: "Submit your KYC?",
+  });
   const saveAndGo = async (action: () => void) => {
     if (lock.current || status.busy) return;
     // Pin the initial step before its completion changes the first-open index.
@@ -192,16 +255,15 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
     } catch (error) { toastError("Not saved", readApiError(error)); }
     finally { lock.current = false; setSaving(false); }
   };
-  const next = () => last ? setFinished(true) : go(current + 1);
+  const next = () => last ? setFinished(true) : go(nextOpen);
 
   return <KycDraftContext.Provider value={register}>
-    <Screen scroll header={<AppBar title="Hostel setup" showBack onBack={() => move(() => finish || current === 0 ? leave(() => router.back()) : go(current - 1))} actions={<Button icon={List} label="All steps" size="sm" variant="secondary" disabled={blocked} onPress={() => setOverview(true)} />} />}
-      footer={finish ? <View className="gap-1"><Button label={data.percent >= 100 ? "Go home" : "Continue"} onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /><Button label={data.percent >= 100 ? "View steps" : "Go home"} variant="ghost" onPress={() => data.percent >= 100 ? setOverview(true) : router.back()} /></View> : <View className="gap-1"><Button disabled={blocked} label={saving ? "Saving…" : status.busy ? "Please wait…" : status.dirty ? last ? "Save & finish" : "Save & next" : last ? "Finish" : "Next"} onPress={() => void saveAndGo(next)} /><Button label="Skip" variant="ghost" disabled={blocked} onPress={() => move(next)} /></View>}>
-      <View className="mb-3 flex-row flex-wrap gap-2"><Button label="Room types & bathrooms" size="sm" variant="secondary" disabled={blocked} onPress={() => move(() => leave(() => router.push("/manage/rooms")))} /><Button label="Rent & form fees" size="sm" variant="secondary" disabled={blocked} onPress={() => move(() => leave(() => router.push("/manage/finance/rates")))} /></View>
+    <Screen scroll header={<AppBar title="Hostel KYC" showBack onBack={() => void saveAndExit(() => router.back())} actions={<IconButton label="Close KYC" name="close" onPress={() => void saveAndExit(() => router.back())} />} />}
+      footer={finish ? review?.canSubmit ? <View className="gap-1"><Button label="Submit for verification" onPress={submit} /><Button label={data.percent >= 100 ? "Go home" : "Finish the rest"} variant="ghost" onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /></View> : <View className="gap-1"><Button label={data.percent >= 100 ? "Go home" : "Continue"} onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /><Button label={data.percent >= 100 ? "View steps" : "Go home"} variant="ghost" onPress={() => data.percent >= 100 ? setOverview(true) : router.back()} /></View> : <View className="gap-1"><Button disabled={blocked} label={saving ? "Saving…" : status.busy ? "Please wait…" : status.dirty ? last ? "Save & finish" : "Save & next" : last ? "Finish" : "Next"} onPress={() => void saveAndGo(next)} /><Button label="Skip" variant="ghost" disabled={blocked} onPress={() => move(next)} /></View>}>
       {finish ? <Animated.View entering={FadeIn.duration(220).reduceMotion(ReduceMotion.System)} className="items-center gap-5 py-6">
         {data.percent >= 100 ? <View className="items-center">{!reduced && finished ? <Lottie loop={false} size={140} source={SUCCESS_ANIMATION} /> : <Ionicons name="checkmark-circle-outline" color={colors.primary} size={112} />}<Text variant="muted">{done} of {steps.length}</Text></View> : <KycRing percent={data.percent} size={120} />}
-        <Text variant="title">{data.percent >= 100 ? "All done!" : `${data.percent}% done`}</Text>
-        <Text variant="muted">{data.percent >= 100 ? "Your hostel is ready" : "Finish the rest any time"}</Text>
+        <Text variant="title">{review?.status === "SUBMITTED" ? "In review" : review?.status === "APPROVED" ? "Verified" : data.percent >= 100 ? "All done!" : `${data.percent}% done`}</Text>
+        <Text className="text-center" variant="muted">{review?.status === "SUBMITTED" ? "Our team checks it within 24 hours. You can still edit anything until then." : review?.canSubmit ? "Every required section is done. Submit it to our team." : review && requiredLeft > 0 ? `Finish the ${requiredLeft} required ${requiredLeft === 1 ? "section" : "sections"} to submit.` : data.percent >= 100 ? "Your hostel is ready" : "Finish the rest any time"}</Text>
         <View className="w-full flex-row flex-wrap justify-between gap-y-3">{steps.map((item, at) => <Pressable key={item.key} accessibilityRole="button" accessibilityLabel={`${STEPS[item.key]?.title}, ${item.done ? "done" : "to do"}`} onPress={() => go(at)} className={`min-h-16 w-[48.5%] flex-row items-center gap-2 rounded-2xl p-2.5 active:opacity-70 ${item.done ? "bg-brand-soft" : "border border-border"}`}>
           <View className="h-10 w-10 items-center justify-center rounded-xl bg-background"><Ionicons name={STEPS[item.key]?.icon ?? "ellipse-outline"} color={colors.primary} size={20} /></View>
           <Text className="flex-1" numberOfLines={2} variant="label">{STEPS[item.key]?.short}</Text>
@@ -209,23 +271,25 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
         </Pressable>)}</View>
         {data.percent >= 100 ? <View className="flex-row items-center gap-2"><Ionicons name="time-outline" color={colors.warning} size={18} /><Text variant="muted">Some checks may take time</Text></View> : null}
       </Animated.View> : <View className="gap-4 pb-4 pt-1">
-        <View accessibilityLabel={`Step ${current + 1} of ${steps.length}, ${done} done`} className="gap-1.5">
-          <View className="flex-row items-center justify-between">
-            <Text className="text-primary" variant="label">Step {current + 1} of {steps.length}</Text>
-            <Text variant="caption">{done} done</Text>
+        <Pressable accessibilityHint="Shows done and to-do sections" accessibilityLabel={`${done} of ${steps.length} sections done. ${statusLine}`} accessibilityRole="button" className="flex-row items-center gap-3 active:opacity-70" disabled={blocked} onPress={() => setOverview(true)}>
+          <KycRing percent={data.percent} size={56} />
+          <View className="flex-1 gap-0.5">
+            <Text variant="label">{done} of {steps.length} sections done</Text>
+            <Text numberOfLines={2} variant="caption">{statusLine}</Text>
           </View>
-          <View className="flex-row gap-1">
-            {steps.map((item, at) => <View key={item.key} className={`h-1 flex-1 rounded-full ${item.done ? "bg-primary" : at === current ? "bg-primary/40" : "bg-muted"}`} />)}
-          </View>
-        </View>
+          <Ionicons color={colors.mutedForeground} name="chevron-down" size={20} />
+        </Pressable>
         <Animated.View key={step.key} entering={(forward ? FadeInRight : FadeInLeft).duration(220).reduceMotion(ReduceMotion.System)} className="gap-5">
-          <View className="gap-1"><Text variant="title">{meta?.title ?? step.key}</Text>{meta?.hint ? <Text variant="muted">{meta.hint}</Text> : null}</View>
+          <View className="gap-1"><View className="flex-row items-center gap-2"><Text variant="title">{meta?.title ?? step.key}</Text>{step.required ? <Badge label="Required" tone={step.done ? "success" : "warning"} /> : null}</View>{meta?.hint ? <Text variant="muted">{meta.hint}</Text> : null}</View>
           <View pointerEvents={saving ? "none" : "auto"}><StepBody data={data} onSaved={reload} stepKey={step.key} /></View>
         </Animated.View>
       </View>}
     </Screen>
-    <Sheet open={overview} onClose={() => setOverview(false)} title={`${done} of ${steps.length} done`}>
-      <View className="gap-2">{steps.map((item, at) => <Pressable key={item.key} accessibilityRole="button" onPress={() => { setOverview(false); if (at !== current || finish) move(() => go(at)); }} className="min-h-16 flex-row items-center gap-3 rounded-2xl border border-border p-3"><Ionicons name={item.done ? "checkmark-circle" : "ellipse-outline"} size={24} color={item.done ? colors.primary : colors.mutedForeground} /><Text className="flex-1" variant="subtitle">{STEPS[item.key]?.title}</Text><Text variant="muted">{item.done ? "Done" : at === current ? "Here" : "To do"}</Text></Pressable>)}</View>
+    <Sheet open={overview} onClose={() => setOverview(false)} title={`${done} of ${steps.length} done`} footer={review?.canSubmit && !finish ? <Button label="Review & submit" onPress={() => { setOverview(false); move(() => setFinished(true)); }} /> : undefined}>
+      <View className="gap-4">{([["To do", false], ["Done", true]] as const).map(([heading, isDone]) => {
+        const group = steps.map((item, at) => ({ at, item })).filter(({ item }) => item.done === isDone);
+        return group.length === 0 ? null : <View className="gap-2" key={heading}><Text variant="label">{heading}</Text>{group.map(({ at, item }) => <Pressable key={item.key} accessibilityRole="button" onPress={() => { setOverview(false); if (at !== current || finish) move(() => go(at)); }} className={`min-h-16 flex-row items-center gap-3 rounded-2xl p-3 ${item.done ? "bg-brand-soft" : "border border-border"}`}><Ionicons name={item.done ? "checkmark-circle" : "ellipse-outline"} size={24} color={item.done ? colors.primary : colors.mutedForeground} /><Text className="flex-1" variant="subtitle">{STEPS[item.key]?.title}</Text>{!item.done && item.required ? <Badge label="Required" tone="warning" /> : <Text variant="muted">{at === current && !finish ? "Here" : item.done ? "Done" : "To do"}</Text>}</Pressable>)}</View>;
+      })}</View>
     </Sheet>
     <Sheet open={pending !== null} onClose={() => { if (!saving) setPending(null); }} title="Save changes?" footer={<Button disabled={blocked} label={saving ? "Saving…" : "Save & go"} onPress={() => pending && void saveAndGo(pending)} />}>
       <View className="gap-3"><Text variant="muted">Your changes are not saved.</Text><Button label="Keep editing" variant="outline" disabled={blocked} onPress={() => setPending(null)} /><Button label="Discard changes" variant="ghost" disabled={blocked} onPress={() => { const action = pending; setPending(null); action?.(); }} /></View>
@@ -243,6 +307,10 @@ function StepBody({
   stepKey: string;
 }) {
   switch (stepKey) {
+    case "details":
+      return <DetailsStep data={data} onSaved={onSaved} />;
+    case "rates":
+      return <RatesStep />;
     case "photos":
       return <PhotosStep onSaved={onSaved} />;
     case "documents":
@@ -259,6 +327,10 @@ function StepBody({
       return <FacilitiesStep onSaved={onSaved} saved={data.facilities} />;
     case "location":
       return <LocationStep onSaved={onSaved} />;
+    case "rooms":
+      return <KycRoomsStep onSaved={onSaved} />;
+    case "opening":
+      return <KycOpeningStep onSaved={onSaved} />;
     default:
       return null;
   }
@@ -670,5 +742,49 @@ function LocationStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
       open={picking}
       search={geocodeHostelLocation}
     />
+  </View>;
+}
+
+/** Who lives here and the address: the quick sign-up filed a name only. */
+function DetailsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Promise<void> | void }) {
+  const saved = { address: data.details?.address ?? "", area: data.details?.area ?? "", city: data.details?.city || "Kathmandu", hostelType: data.details?.hostelType ?? "CO_LIVING" };
+  const [draft, setDraft] = useState<typeof saved | null>(null);
+  const [saving, setSaving] = useState(false);
+  const form = draft ?? saved;
+  const dirty = JSON.stringify(form) !== JSON.stringify(saved);
+  const set = (patch: Partial<typeof saved>) => setDraft({ ...form, ...patch });
+  const save = async () => {
+    if (form.area.trim().length < 2 || form.city.trim().length < 2) {
+      toastError("Not saved", "Enter the area and the city.");
+      return false;
+    }
+    setSaving(true);
+    try {
+      await updateManagedHostel({ hostelType: form.hostelType, location: { address: form.address.trim(), area: form.area.trim(), city: form.city.trim() } });
+      await onSaved();
+      setDraft(null);
+      return true;
+    } catch (error) { toastError("Not saved", readApiError(error)); return false; }
+    finally { setSaving(false); }
+  };
+  useKycDraft({ dirty, busy: saving, save });
+  return <View className="gap-4">
+    <ChoiceChips columns={3} label="Who lives here" onToggle={(hostelType) => set({ hostelType })} options={HOSTEL_TYPES} value={form.hostelType as (typeof HOSTEL_TYPES)[number]["value"]} />
+    <Input autoCapitalize="words" label="City" onChangeText={(city) => set({ city })} value={form.city} />
+    <Input autoCapitalize="words" label="Area" onChangeText={(area) => set({ area })} placeholder="Baneshwor" value={form.area} />
+    <Input autoCapitalize="sentences" label="Address" onChangeText={(address) => set({ address })} placeholder="Street, near a landmark" value={form.address} />
+  </View>;
+}
+
+/** Room types live on Rooms and their rent on the rate card; this shows both and opens them. */
+function RatesStep() {
+  const hostel = useManagedHostel();
+  useKycDraft({ dirty: false, busy: false, save: async () => true });
+  if (hostel.loading) return <SkeletonCard rows={2} />;
+  const rooms = hostel.data?.roomConfigurations ?? [];
+  return <View className="gap-3">
+    {rooms.length > 0 ? <Card className="gap-2">{rooms.map((room) => <View className="flex-row items-center justify-between" key={room.roomType}><Text variant="label">{room.roomType}</Text><Text variant="caption">{room.bedsPerRoom} {room.bedsPerRoom === 1 ? "bed" : "beds"} · {room.rooms} {room.rooms === 1 ? "room" : "rooms"}</Text></View>)}</Card> : <Text variant="muted">Add each room type first — single, double, triple — then its monthly rent.</Text>}
+    <Button label={rooms.length > 0 ? "Edit room types" : "Add room types"} onPress={() => router.push("/manage/rooms")} variant="outline" />
+    <Button label="Set monthly rent" onPress={() => router.push("/manage/finance/rates")} variant={rooms.length > 0 ? "primary" : "outline"} />
   </View>;
 }

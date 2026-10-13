@@ -127,6 +127,7 @@ describe("reading a filled file", () => {
         oldDues: 2500,
         paidTill: "2083-05",
         phone: "9841234567",
+        roomNumber: "",
         roomType: "Double",
       },
       {
@@ -138,6 +139,7 @@ describe("reading a filled file", () => {
         oldDues: 0,
         paidTill: "2083-06",
         phone: "9801234567",
+        roomNumber: "",
         roomType: "Double",
       },
     ]);

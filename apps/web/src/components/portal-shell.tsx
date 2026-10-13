@@ -18,6 +18,7 @@ import {
   HelpCircle,
   LayoutDashboard,
   LayoutTemplate,
+  Lock,
   MapPin,
   Megaphone,
   Menu,
@@ -52,6 +53,14 @@ import {
 } from "@/components/hostel-suspension-gate";
 import { BrandMark } from "@/components/brand-mark";
 import { GetAppDialog } from "@/components/get-app-dialog";
+import {
+  isKycFrozenPortalPath,
+  KycFrozenPage,
+  TrialEndedOverlay,
+  TrialWelcomeDialog,
+  useKycPortalLock,
+  useTrialEndedBlock,
+} from "@/components/kyc-gate";
 import { NotificationBell } from "@/components/notification-bell";
 import { PortalAccount } from "@/components/portal-account";
 import { PortalSearch, revealField } from "@/components/portal-search";
@@ -324,6 +333,9 @@ export function PortalShell({
   // The hostel's plan suspension, for the hostel's own portals only.
   const suspension = useHostelSuspension(tone);
   const suspended = suspension?.stage === "SUSPENDED";
+  // A quick sign-up's frozen pages, until its KYC is approved (`kyc-gate.tsx`).
+  const { locked: kycLocked } = useKycPortalLock(tone);
+  const trialEnded = useTrialEndedBlock(tone, pathname);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [navPathname, setNavPathname] = useState(pathname);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -396,11 +408,13 @@ export function PortalShell({
     // In the collapsed rail the children are not rendered, so the parent has to
     // carry their highlight or nothing in the sidebar looks active at all.
     const isActive = isActiveHref(item.href) || hasActiveChild(item);
+    const frozen = kycLocked && isKycFrozenPortalPath(item.href);
 
     return (
       <Link
         className={cn(
           "flex min-h-0 items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12.5px] font-medium transition-colors",
+          frozen && "opacity-60",
           styles.navText ?? "text-slate-600 dark:text-slate-300",
           styles.hover,
           isActive && styles.active,
@@ -422,6 +436,7 @@ export function PortalShell({
         {collapsed ? null : (
           <>
             <span className="truncate">{item.label}</span>
+            {frozen ? <Lock aria-label="Locked until KYC is approved" className="ml-auto size-3 shrink-0" /> : null}
             {item.badge && item.badge > 0 ? (
               <Badge
                 className={cn(
@@ -716,7 +731,8 @@ export function PortalShell({
             {suspension && !suspended && tone === "admin" ? (
               <HostelSuspensionNotice suspension={suspension} />
             ) : null}
-            {children}
+            {kycLocked && isKycFrozenPortalPath(pathname) ? <KycFrozenPage /> : children}
+            <TrialWelcomeDialog tone={tone} />
           </main>
         </div>
       </div>
@@ -746,6 +762,7 @@ export function PortalShell({
     {suspension && suspended ? (
       <HostelSuspendedScreen suspension={suspension} tone={tone} />
     ) : null}
+    {trialEnded ? <TrialEndedOverlay status={trialEnded.status} /> : null}
     </RealtimeProvider>
   );
 }

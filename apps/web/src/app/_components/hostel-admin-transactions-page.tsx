@@ -83,6 +83,7 @@ export const HostelAdminTransactionsPageContent = memo(
 
     const paymentsResource = usePortalResource<{
       entries: Payment[];
+      openingBalance?: { amount: number; asOf: string } | null;
       truncated: boolean;
     }>(hostelAdminEndpoints.transactions, {
       errorMessage: "Could not load transactions.",
@@ -189,13 +190,24 @@ export const HostelAdminTransactionsPageContent = memo(
         {state === "ready" ? (
           <>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-              <MetricCard
-                icon={ArrowDownUp}
-                label="Ledger Entries"
-                note="Most recent first"
-                tone="cyan"
-                value={ledger.length}
-              />
+              {paymentsResource.data?.openingBalance ? (
+                // The bank's figure the hostel started from (docs/FIELD_FIXES_2026_10.md §4).
+                <MetricCard
+                  icon={ArrowDownUp}
+                  label="Opening balance"
+                  note={`Bank, ${formatDate(paymentsResource.data.openingBalance.asOf)}`}
+                  tone="cyan"
+                  value={currency(paymentsResource.data.openingBalance.amount)}
+                />
+              ) : (
+                <MetricCard
+                  icon={ArrowDownUp}
+                  label="Ledger Entries"
+                  note="Most recent first"
+                  tone="cyan"
+                  value={ledger.length}
+                />
+              )}
               <MetricCard
                 icon={Wallet}
                 label="Collected"

@@ -94,7 +94,7 @@ export function searchResidents(
   }
 
   return residents.filter((resident) =>
-    [resident.firstName, resident.lastName, resident.phone, resident.roomType]
+    [resident.firstName, resident.lastName, resident.phone, resident.roomType, resident.roomNumber]
       .filter(Boolean)
       .join(" ")
       .toLowerCase()

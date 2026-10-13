@@ -147,6 +147,9 @@ const signature = z
  */
 const optionalSignature = z.preprocess(blankToUndefined, signature.optional());
 
+/** The same signature on the admission form, which becomes the card's. */
+export const residentSignatureSchema = optionalSignature;
+
 /** A `<select>` whose placeholder option carries `value=""`. */
 const optionalEnum = <T extends readonly [string, ...string[]]>(values: T) =>
   z.preprocess(blankToUndefined, z.enum(values).optional());
@@ -183,15 +186,23 @@ export const residentProfileDataSchema = z
     backupEmail: optionalEmail,
 
     /* Where they are from */
+    /**
+     * The paper form's address, in its order: province, district, `city` (shown
+     * as "Metro / Municipality / Rural"), ward, then this as "Street / Tole / Chowk".
+     */
     permanentAddress: optionalText(240),
     city: optionalText(80),
     province: optionalText(80),
+    district: optionalText(60),
+    wardNo: optionalText(10),
 
     /* What they do — maps straight onto Resident.residentType */
     occupation: enumWithDefault(OCCUPATION_VALUES, "STUDENT"),
     institution: optionalText(160),
     /** Course for a student, job title for a working professional. */
     courseOrDesignation: optionalText(120),
+    levelOfStudy: optionalText(80),
+    classTime: optionalText(60),
 
     /*
      * Guardians — the hostel needs at least one reachable adult. Email matters
@@ -201,15 +212,20 @@ export const residentProfileDataSchema = z
     guardianRelation: z.string().trim().min(2).max(60),
     guardianPhone: phone,
     guardianEmail: optionalEmail,
+    guardianOccupation: optionalText(80),
     secondGuardianName: optionalText(120),
     secondGuardianRelation: optionalText(60),
     secondGuardianPhone: optionalPhone,
     secondGuardianEmail: optionalEmail,
+    secondGuardianOccupation: optionalText(80),
 
     /* Emergency contact, when it is someone other than the guardian. */
     emergencyContactName: optionalText(120),
     emergencyContactRelation: optionalText(60),
     emergencyContactPhone: optionalPhone,
+    /** The local guardian on a hostel's paper form is this person. */
+    emergencyContactAddress: optionalText(160),
+    emergencyContactOccupation: optionalText(80),
 
     /* Living preferences and safety notes */
     dietaryPreference: enumWithDefault(DIETARY_PREFERENCE_VALUES, "NO_PREFERENCE"),
@@ -225,6 +241,8 @@ export const residentProfileDataSchema = z
     /* Government ID — hostels are legally required to record one. */
     governmentIdType: optionalEnum(GOVERNMENT_ID_TYPE_VALUES),
     governmentIdNumber: optionalText(40),
+    governmentIdIssuedOn: optionalText(20),
+    governmentIdIssuedAt: optionalText(80),
 
     /*
      * Printed on the back of the card. Personal, so it lives in the blob —

@@ -27,6 +27,7 @@ function row(overrides: Partial<ListRow> = {}): ListRow {
     paidTill: ASWIN,
     phone: "9841234567",
     residentId: null,
+    roomNumber: "",
     roomType: "Double",
     ...overrides,
   };
@@ -48,6 +49,49 @@ function context(overrides: Partial<CheckContext> = {}): CheckContext {
 
 const messages = (result: ReturnType<typeof checkExistingResidents>, index = 0) =>
   result.rows[index]!.problems.map((problem) => problem.message);
+
+describe("floor & room", () => {
+  const numberedRooms = [
+    { beds: 2, floor: 1, free: 1, id: "a", number: "101", roomType: "Double" },
+    { beds: 2, floor: 1, free: 0, id: "b", number: "102", roomType: "Double" },
+    { beds: 1, floor: 2, free: 1, id: "c", number: "201", roomType: "Single" },
+  ];
+  const field = (result: ReturnType<typeof checkExistingResidents>, index = 0) =>
+    result.rows[index]!.problems.filter((problem) => problem.field === "roomNumber").map((problem) => problem.message);
+
+  it("needs a room on every line once the hostel numbers its rooms", () => {
+    expect(field(checkExistingResidents([row()], context({ numberedRooms })))).toEqual(["Pick their room."]);
+    expect(checkExistingResidents([row()], context()).ready).toBe(true);
+  });
+
+  it("takes the room type from the room, and refuses a room that does not fit", () => {
+    const result = checkExistingResidents(
+      [
+        row({ roomNumber: "101", roomType: "" }),
+        row({ id: "r2", phone: "9800000002", roomNumber: "102" }),
+        row({ id: "r3", phone: "9800000003", roomNumber: "201" }),
+        row({ id: "r4", phone: "9800000004", roomNumber: "999" }),
+      ],
+      context({ numberedRooms }),
+    );
+
+    expect(result.rows[0]!.problems).toEqual([]);
+    expect(result.rows[0]!.rent).toBe(12000);
+    expect(field(result, 1)).toEqual(["Room 102 is full."]);
+    expect(field(result, 2)).toEqual(["Room 201 is Single, not Double."]);
+    expect(field(result, 3)).toEqual(["There is no room 999 in this hostel."]);
+  });
+
+  it("counts lines going into the same room against its free beds", () => {
+    const result = checkExistingResidents(
+      [row({ roomNumber: "101" }), row({ id: "r2", phone: "9800000002", roomNumber: "101" })],
+      context({ numberedRooms }),
+    );
+
+    expect(field(result, 0)).toEqual([]);
+    expect(field(result, 1)).toHaveLength(1);
+  });
+});
 
 describe("a clean list", () => {
   it("is ready, and bills nothing for a resident paid up to this month", () => {

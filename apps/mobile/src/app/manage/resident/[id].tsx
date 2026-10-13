@@ -3,17 +3,22 @@ import { LogOut } from "lucide-react-native";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Linking, View } from "react-native";
 
+import { DaysAwaySheet } from "@/components/manage/days-away-sheet";
+import { MoveOutSheet } from "@/components/manage/move-out-sheet";
+import { RoomPicker } from "@/components/manage/room-picker";
+import { type RoomLayout, roomLine, roomsQuery, setResidentRoom } from "@/lib/rooms-api";
 import { AppBar } from "@/components/ui/app-bar";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { Badge, StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { DetailsFacts } from "@/components/manage/details-facts";
+import { openAssetViewer } from "@/lib/asset-viewer";
 import { Input } from "@/components/ui/input";
 import { Chip, FactRow } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
-import { Segmented } from "@/components/ui/segmented";
 import { Select } from "@/components/ui/select";
 import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard, SkeletonRows } from "@/components/ui/skeleton";
@@ -28,7 +33,6 @@ import {
   type ActivationIssue,
   issueActivationCode,
   saveMoveInChecklist,
-  saveMoveOutChecklist,
   setResidentFee,
   setResidentStatus,
   updateResident,
@@ -73,6 +77,8 @@ type Panel =
   | "guardian"
   | "moveIn"
   | "moveOut"
+  | "away"
+  | "room"
   | "roomType"
   | "status"
   | null;
@@ -86,15 +92,6 @@ const STATUS_OPTIONS = [
     value: "SUSPENDED",
   },
   { description: "Gone. Their bed goes back to the pool.", label: "Moved out", value: "MOVED_OUT" },
-] as const;
-
-type DepositDecision = "APPROVED" | "PARTIAL" | "FORFEITED" | "PENDING";
-
-const DEPOSIT_OPTIONS = [
-  { label: "Return all", value: "APPROVED" },
-  { label: "Return part", value: "PARTIAL" },
-  { label: "Keep", value: "FORFEITED" },
-  { label: "Later", value: "PENDING" },
 ] as const;
 
 const DEPOSIT_LABELS: Record<string, string> = {
@@ -152,6 +149,11 @@ export default function ManageResidentScreen() {
   const [issued, setIssued] = useState<ActivationIssue | null>(null);
 
   const resident = data.data?.resident ?? null;
+  const layoutQuery = roomsQuery.layout();
+  const layout = useResource<RoomLayout>(layoutQuery.load, {
+    cacheKey: layoutQuery.key,
+    topics: layoutQuery.topics,
+  });
 
   /*
    * Memoised rather than a bare `??`: the fallback object is a fresh identity on
@@ -229,19 +231,6 @@ export default function ManageResidentScreen() {
         setFlags({ rulesAccepted: checklist?.rulesAccepted ?? false });
       }
 
-      if (next === "moveOut") {
-        const checklist = data.data?.moveOut;
-
-        setForm({
-          damageNotes: checklist?.damageNotes ?? "",
-          depositRefundAmount:
-            checklist?.depositRefundDecision === "PARTIAL"
-              ? String(checklist.depositRefundAmount)
-              : "",
-          depositRefundDecision: checklist?.depositRefundDecision ?? "APPROVED",
-        });
-      }
-
       if (next === "activation") {
         setIssued(null);
         setFlags({ sendEmail: Boolean(resident.email) });
@@ -307,34 +296,6 @@ export default function ManageResidentScreen() {
     }
   }, [flags.sendEmail, id, refresh]);
 
-  /*
-   * No extra "are you sure": the sheet is the confirmation — it shows what they
-   * owe and what happens to the deposit, and this is its one button.
-   */
-  const moveOutNow = useCallback(() => {
-    const hasDeposit = (resident?.depositAmount ?? 0) > 0;
-    // Nothing held means nothing to decide; "return all" of nothing keeps the
-    // resident's notice from mentioning a deposit at all.
-    const decision = (hasDeposit ? form.depositRefundDecision : "APPROVED") as DepositDecision;
-    const holdsBack = decision === "PARTIAL" || decision === "FORFEITED";
-
-    if (decision === "PARTIAL" && toNumber(form.depositRefundAmount ?? "") <= 0) {
-      toastError("How much goes back?", "Type the amount to return, or pick Keep.");
-      return;
-    }
-
-    void run(
-      () =>
-        saveMoveOutChecklist(id, {
-          damageNotes: holdsBack ? form.damageNotes?.trim() || undefined : undefined,
-          depositRefundAmount:
-            decision === "PARTIAL" ? toNumber(form.depositRefundAmount ?? "0") : 0,
-          depositRefundDecision: decision,
-        }),
-      resident?.status === "MOVED_OUT" ? "Deposit updated" : `${fullName} has moved out`,
-    );
-  }, [form, fullName, id, resident, run]);
-
   if (data.loading) {
     return (
       <Screen header={<AppBar accent centerTitle showBack title="Resident" />}>
@@ -372,7 +333,7 @@ export default function ManageResidentScreen() {
               who have not uploaded one.
             */}
             <PersonAvatar
-              image={resident.account?.image}
+              image={resident.account?.image ?? resident.photo}
               name={fullName}
               size="lg"
             />
@@ -395,6 +356,9 @@ export default function ManageResidentScreen() {
               />
             ) : null}
             <Chip icon="bed-outline" label={humanizeEnum(resident.roomType)} />
+            {resident.roomNumber ? (
+              <Chip icon="business-outline" label={roomLine(resident) ?? ""} tone="brand" />
+            ) : null}
             <Chip icon="person-outline" label={humanizeEnum(resident.residentType)} />
             <Chip
               icon="calendar-outline"
@@ -409,7 +373,12 @@ export default function ManageResidentScreen() {
             <FactRow
               label="Monthly fee"
               value={
-                resident.monthlyFee > 0 ? (
+                resident.specialFee ? (
+                  <View className="items-end">
+                    <Money value={resident.specialFee.amount} />
+                    <Text variant="caption">{`Special · ${resident.specialFee.reason || "no reason given"}`}</Text>
+                  </View>
+                ) : resident.monthlyFee > 0 ? (
                   <Money value={resident.monthlyFee} />
                 ) : (
                   <Text variant="muted">On the fee schedule</Text>
@@ -430,6 +399,17 @@ export default function ManageResidentScreen() {
               title="See details"
             />
             <RowDivider inset />
+            {layout.data?.tracking && layout.data.rooms.length > 0 && resident.status !== "MOVED_OUT" ? (
+              <>
+                <ListRow
+                  icon="business-outline"
+                  onPress={() => setPanel("room")}
+                  subtitle={roomLine(resident) ?? "No room yet — pick one"}
+                  title="Floor & room"
+                />
+                <RowDivider inset />
+              </>
+            ) : null}
             <ListRow
               icon="bed-outline"
               onPress={() => openPanel("roomType")}
@@ -448,12 +428,25 @@ export default function ManageResidentScreen() {
               icon="cash-outline"
               onPress={() => openPanel("fee")}
               subtitle={
-                resident.monthlyFee > 0
-                  ? "A per-person override is set"
-                  : "Billed from the hostel's fee schedule"
+                resident.specialFee
+                  ? `Special fee · ${resident.specialFee.reason || "no reason given"}`
+                  : resident.monthlyFee > 0
+                    ? "A per-person override is set"
+                    : "Billed from the hostel's fee schedule"
               }
               title="Monthly fee"
             />
+            {resident.status !== "MOVED_OUT" ? (
+              <>
+                <RowDivider inset />
+                <ListRow
+                  icon="airplane-outline"
+                  onPress={() => setPanel("away")}
+                  subtitle="Home or holiday — money off their bill"
+                  title="Days away"
+                />
+              </>
+            ) : null}
             <RowDivider inset />
             <ListRow
               icon="qr-code-outline"
@@ -615,7 +608,7 @@ export default function ManageResidentScreen() {
         <View className="gap-5 pb-2">
           <View className="flex-row items-center gap-3">
             <PersonAvatar
-              image={resident.account?.image}
+              image={resident.account?.image ?? resident.photo}
               name={fullName}
               size="lg"
             />
@@ -654,6 +647,37 @@ export default function ManageResidentScreen() {
             />
             <FactRow label="They are a" value={humanizeEnum(resident.residentType)} />
           </DetailSection>
+
+          {/* Their admission form — typed at the desk, sent through the Form QR, or read off their ID card. */}
+          <DetailsFacts details={resident.details} variant="sheet" />
+
+          {resident.documents?.length ? (
+            <DetailSection title="Documents">
+              {resident.documents.map((document, index) => (
+                <FactRow
+                  key={document.assetId}
+                  label={document.label}
+                  value={
+                    <Chip
+                      icon="eye-outline"
+                      label="Open"
+                      onPress={() =>
+                        openAssetViewer(
+                          resident.documents!.map((item) => ({
+                            assetId: item.assetId,
+                            caption: item.label,
+                            title: item.label,
+                          })),
+                          index,
+                        )
+                      }
+                      tone="brand"
+                    />
+                  }
+                />
+              ))}
+            </DetailSection>
+          ) : null}
 
           <DetailSection title="Their tenancy">
             <FactRow label="Room type" value={humanizeEnum(resident.roomType)} />
@@ -1072,87 +1096,38 @@ export default function ManageResidentScreen() {
       </Sheet>
 
       {/* ------------------------------------------------------------------ */}
-      <Sheet
-        footer={
-          <Button
-            icon={resident.status === "MOVED_OUT" ? undefined : LogOut}
-            label={resident.status === "MOVED_OUT" ? "Save" : "Move out"}
-            loading={busy}
-            onPress={moveOutNow}
-            variant={resident.status === "MOVED_OUT" ? "primary" : "danger"}
-          />
-        }
-        onClose={() => setPanel(null)}
-        open={panel === "moveOut"}
-        title={resident.status === "MOVED_OUT" ? "Deposit" : `Move out ${resident.firstName}`}
-      >
-        <View className="gap-4 pb-2">
-          {resident.status === "MOVED_OUT" ? null : (
-            <Text variant="caption">
-              Their bed is freed and they get no new bills. What they already owe stays on
-              their record.
-            </Text>
-          )}
-
-          <View className="rounded-2xl border border-border bg-card px-3 py-1">
-            <FactRow
-              label="Still owed"
-              value={
-                data.data?.owed === null || data.data?.owed === undefined ? (
-                  <Text variant="muted">Could not load</Text>
-                ) : data.data.owed > 0 ? (
-                  <Money owed value={data.data.owed} />
-                ) : (
-                  "Nothing"
-                )
+      <Sheet onClose={() => setPanel(null)} open={panel === "room"} tall title="Floor & room">
+        {layout.data ? (
+          <View className="gap-3 pb-2">
+            <Text variant="caption">Any room with a free bed. A different type changes their rent from the next bill.</Text>
+            <RoomPicker
+              onChange={(room) =>
+                void run(() => setResidentRoom(id, room.id).then(() => undefined), `Moved to Room ${room.number}`)
               }
-            />
-            <FactRow
-              label="Deposit held"
-              value={
-                resident.depositAmount > 0 ? <Money value={resident.depositAmount} /> : "None"
-              }
+              rooms={layout.data.rooms}
+              showType
+              value={resident.roomId ?? null}
             />
           </View>
-
-          {resident.depositAmount > 0 ? (
-            <View className="gap-2">
-              <Text variant="label">Deposit</Text>
-              <Segmented
-                onChange={(depositRefundDecision) =>
-                  setForm((prev) => ({ ...prev, depositRefundDecision }))
-                }
-                options={DEPOSIT_OPTIONS}
-                value={(form.depositRefundDecision ?? "APPROVED") as DepositDecision}
-              />
-            </View>
-          ) : null}
-
-          {resident.depositAmount > 0 && form.depositRefundDecision === "PARTIAL" ? (
-            <Input
-              keyboardType="number-pad"
-              label="Amount to return (NPR)"
-              onChangeText={(depositRefundAmount) =>
-                setForm((prev) => ({ ...prev, depositRefundAmount }))
-              }
-              value={form.depositRefundAmount ?? ""}
-            />
-          ) : null}
-
-          {resident.depositAmount > 0 &&
-          (form.depositRefundDecision === "PARTIAL" ||
-            form.depositRefundDecision === "FORFEITED") ? (
-            <Input
-              label="Why it is held back"
-              multiline
-              onChangeText={(damageNotes) => setForm((prev) => ({ ...prev, damageNotes }))}
-              placeholder="Broken chair, unpaid rent, lost key"
-              style={{ height: 72 }}
-              value={form.damageNotes ?? ""}
-            />
-          ) : null}
-        </View>
+        ) : null}
       </Sheet>
+
+      <DaysAwaySheet
+        name={resident.firstName}
+        onChanged={() => void refresh()}
+        onClose={() => setPanel(null)}
+        open={panel === "away"}
+        residentId={id}
+      />
+
+      <MoveOutSheet
+        checklist={moveOut}
+        onClose={() => setPanel(null)}
+        onDone={() => void refresh()}
+        open={panel === "moveOut"}
+        owed={data.data?.owed ?? null}
+        resident={resident}
+      />
 
       {/* ------------------------------------------------------------------ */}
       <Sheet

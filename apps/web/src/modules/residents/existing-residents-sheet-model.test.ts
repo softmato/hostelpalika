@@ -35,6 +35,7 @@ function listRow(patch: Partial<ListRow> = {}): ListRow {
     paidTill: "2083-04",
     phone: "9841234567",
     residentId: null,
+    roomNumber: "",
     roomType: "Double",
     ...patch,
   };
@@ -60,6 +61,7 @@ describe("the residents sheet", () => {
           paidTill: "2083-04",
           partPaid: 0,
           phone: "9841234567",
+          roomNumber: "",
           roomType: "Double",
         },
       ],

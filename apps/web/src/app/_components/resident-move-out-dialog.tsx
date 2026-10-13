@@ -26,6 +26,56 @@ const DECISIONS: { label: string; value: Decision }[] = [
   { label: "Decide later", value: "PENDING" },
 ];
 
+type LastMonthCharge = "FULL_MONTH" | "TILL_DAY";
+
+type MoveOutPreview = {
+  billedDays: number;
+  dateLabel: string;
+  defaultCharge: LastMonthCharge;
+  lastMonth: Record<LastMonthCharge, number> | null;
+  owedAfter: Record<LastMonthCharge, number>;
+  paidBack: Record<LastMonthCharge, number>;
+  periodLabel: string;
+  stayed: number;
+};
+
+/** Today's Nepal date as `YYYY-MM-DD`. */
+function todayInNepal() {
+  return new Date(Date.now() + (5 * 60 + 45) * 60_000).toISOString().slice(0, 10);
+}
+
+/** A two-up pill choice, in the deposit buttons' look. */
+function Choices<T extends string>({
+  onChange,
+  options,
+  value,
+}: {
+  onChange: (value: T) => void;
+  options: { label: string; value: T }[];
+  value: T;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {options.map((option) => (
+        <button
+          aria-pressed={value === option.value}
+          className={cn(
+            "h-10 rounded-lg border text-sm font-medium transition-colors",
+            value === option.value
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border bg-background text-foreground hover:bg-muted",
+          )}
+          key={option.value}
+          onClick={() => onChange(option.value)}
+          type="button"
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 type MoveOutResident = {
   depositAmount: number;
   firstName: string;
@@ -61,6 +111,10 @@ function MoveOutForm({
   resident: MoveOutResident;
 }) {
   const [owed, setOwed] = useState<number | null>(null);
+  const [preview, setPreview] = useState<MoveOutPreview | null>(null);
+  const [date, setDate] = useState(todayInNepal);
+  const [charge, setCharge] = useState<LastMonthCharge | null>(null);
+  const [dues, setDues] = useState<"KEEP" | "WRITE_OFF">("WRITE_OFF");
   const [decision, setDecision] = useState<Decision>("APPROVED");
   const [partAmount, setPartAmount] = useState("");
   const [reason, setReason] = useState("");
@@ -69,19 +123,31 @@ function MoveOutForm({
 
   const residentId = resident.id;
 
+  // The leaving month both ways, for the day picked.
   useEffect(() => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return;
+
     let live = true;
 
-    browserApi<{ pendingFeeAmount?: number }>(
-      `${hostelAdminEndpoints.residents}/${residentId}/move-out`,
+    browserApi<{ pendingFeeAmount?: number; preview?: MoveOutPreview | null }>(
+      `${hostelAdminEndpoints.residents}/${residentId}/move-out?date=${date}`,
     )
-      .then((result) => live && setOwed(result.pendingFeeAmount ?? 0))
+      .then((result) => {
+        if (!live) return;
+        setOwed(result.pendingFeeAmount ?? 0);
+        setPreview(result.preview ?? null);
+        setCharge((current) => current ?? result.preview?.defaultCharge ?? "TILL_DAY");
+      })
       .catch(() => live && setOwed(null));
 
     return () => {
       live = false;
     };
-  }, [residentId]);
+  }, [date, residentId]);
+
+  const chosen: LastMonthCharge = charge ?? preview?.defaultCharge ?? "TILL_DAY";
+  const owedAfter = preview?.owedAfter[chosen] ?? owed;
+  const paidBack = preview?.paidBack[chosen] ?? 0;
 
   const fullName = `${resident.firstName} ${resident.lastName}`.trim();
   const deposit = resident.depositAmount;
@@ -99,6 +165,9 @@ function MoveOutForm({
           depositRefundAmount: decision === "PARTIAL" ? Number(partAmount || 0) : 0,
           // No deposit held: "Return all" of nothing, so the notice says nothing about one.
           depositRefundDecision: deposit > 0 ? decision : "APPROVED",
+          dues: (owedAfter ?? 0) > 0 ? dues : "KEEP",
+          lastMonthCharge: chosen,
+          moveOutDate: date,
         }),
         method: "POST",
       });
@@ -115,25 +184,63 @@ function MoveOutForm({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Move out {fullName}</DialogTitle>
-          <DialogDescription>
-            Their bed is freed and they get no new bills. What they already owe stays on
-            their record.
-          </DialogDescription>
+          <DialogDescription>Their bed is freed and they get no new bills.</DialogDescription>
         </DialogHeader>
 
         <form className="grid gap-4" onSubmit={handleSubmit}>
+          <label className="grid gap-1.5 text-sm font-semibold text-foreground">
+            Leaving on
+            <input
+              className="h-11 rounded-md border border-border bg-background px-3 text-sm font-normal outline-none focus:border-primary"
+              onChange={(event) => setDate(event.target.value)}
+              required
+              type="date"
+              value={date}
+            />
+            {preview?.dateLabel ? (
+              <span className="text-xs font-normal text-muted-foreground">{preview.dateLabel}</span>
+            ) : null}
+          </label>
+
+          <fieldset className="grid gap-2">
+            <legend className="mb-2 text-sm font-semibold text-foreground">
+              {preview ? `Last month · ${preview.periodLabel}` : "Last month"}
+            </legend>
+            <Choices
+              onChange={setCharge}
+              options={[
+                { label: "Full month", value: "FULL_MONTH" },
+                { label: "Till the day", value: "TILL_DAY" },
+              ]}
+              value={chosen}
+            />
+            <p className="text-xs text-muted-foreground">
+              {preview?.lastMonth
+                ? chosen === "FULL_MONTH"
+                  ? `${currency(preview.lastMonth.FULL_MONTH)} for the whole month.`
+                  : `${currency(preview.lastMonth.TILL_DAY)} for ${preview.stayed} of ${preview.billedDays} days.`
+                : "This month is billed this way when they leave."}
+            </p>
+          </fieldset>
+
           <dl className="grid gap-2 rounded-xl border border-border bg-muted/40 p-3 text-sm">
             <div className="flex items-center justify-between">
-              <dt className="text-muted-foreground">Still owed</dt>
+              <dt className="text-muted-foreground">Still unpaid</dt>
               <dd
                 className={cn(
                   "font-semibold",
-                  owed ? "text-warning" : "text-foreground",
+                  owedAfter ? "text-warning" : "text-foreground",
                 )}
               >
-                {owed === null ? "…" : owed > 0 ? currency(owed) : "Nothing"}
+                {owedAfter === null ? "…" : owedAfter > 0 ? currency(owedAfter) : "Nothing"}
               </dd>
             </div>
+            {paidBack > 0 ? (
+              <div className="flex items-center justify-between">
+                <dt className="text-muted-foreground">Back to them as credit</dt>
+                <dd className="font-semibold text-foreground">{currency(paidBack)}</dd>
+              </div>
+            ) : null}
             <div className="flex items-center justify-between">
               <dt className="text-muted-foreground">Deposit held</dt>
               <dd className="font-semibold text-foreground">
@@ -141,6 +248,25 @@ function MoveOutForm({
               </dd>
             </div>
           </dl>
+
+          {(owedAfter ?? 0) > 0 ? (
+            <fieldset className="grid gap-2">
+              <legend className="mb-2 text-sm font-semibold text-foreground">Unpaid</legend>
+              <Choices
+                onChange={setDues}
+                options={[
+                  { label: "Write off", value: "WRITE_OFF" },
+                  { label: "Keep as owed", value: "KEEP" },
+                ]}
+                value={dues}
+              />
+              <p className="text-xs text-muted-foreground">
+                {dues === "WRITE_OFF"
+                  ? "Let go: it leaves the dashboard, Payments and every total."
+                  : "Stays on their record as owed."}
+              </p>
+            </fieldset>
+          ) : null}
 
           {deposit > 0 ? (
             <fieldset className="grid gap-2">

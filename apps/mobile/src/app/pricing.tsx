@@ -70,13 +70,9 @@ export default function PricingScreen() {
   const [cycle, setCycle] = useState<BillingCycle>("annual");
   const closingToRegister = catalog.page.ctaHref.includes("register");
 
-  /*
-   * The registration wizard, in the app. This was a browser tab until 2026-08-19
-   * — see `register-hostel/apply.tsx` for why the "the documents are on a
-   * computer" argument did not survive contact with the device.
-   */
+  // The quick sign-up, in the app (docs/QUICK_SIGNUP_KYC_TRIAL.md).
   const openRegistration = useCallback(() => {
-    router.push("/register-hostel/apply");
+    router.push("/register-hostel");
   }, []);
 
   const empty = catalog.plans.length === 0;
@@ -278,35 +274,11 @@ function PlanCard({
         </View>
 
         <View className="items-start gap-3">
-          {/* Free months lead as the headline price; the plan's own price drops
-              to the "Then" line in the same "NPR x / period" shape. */}
-          {plan.freeMonths ? (
-            <Text className="text-3xl font-bold text-foreground" variant={null}>
-              <Money className="" currencyClassName="text-lg text-foreground" rupees={0} />
-              <Text className="text-base font-semibold text-muted-foreground" variant={null}>
-                {" "}/ {plan.freeMonths} {plan.freeMonths === 1 ? "month" : "months"}
-              </Text>
-            </Text>
-          ) : null}
           {/* Annual keeps the monthly figure beside it, struck through, so the
               discount has something to be compared against. */}
-          <View className={`flex-row flex-wrap items-baseline gap-2 ${plan.freeMonths ? "-mt-2" : ""}`}>
-            {plan.freeMonths ? (
-              <Text className="text-sm font-semibold text-muted-foreground" variant={null}>
-                Then
-              </Text>
-            ) : null}
-            <Text className={`font-bold text-foreground ${plan.freeMonths ? "text-lg" : "text-3xl"}`} variant={null}>
-              <Money
-                className=""
-                currencyClassName={plan.freeMonths ? "text-xs text-foreground" : "text-lg text-foreground"}
-                rupees={monthlyRateFor(plan, cycle)}
-              />
-              {plan.freeMonths ? (
-                <Text className="text-sm font-semibold text-muted-foreground" variant={null}>
-                  {" "}/ month
-                </Text>
-              ) : null}
+          <View className="flex-row flex-wrap items-baseline gap-2">
+            <Text className="text-3xl font-bold text-foreground" variant={null}>
+              <Money className="" currencyClassName="text-lg text-foreground" rupees={monthlyRateFor(plan, cycle)} />
             </Text>
             {struck === null ? null : (
               <Money

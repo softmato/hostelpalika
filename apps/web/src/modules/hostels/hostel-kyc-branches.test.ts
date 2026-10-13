@@ -16,6 +16,14 @@ vi.mock("@hostel/db/models/HostelPayoutAccount", fake("HostelPayoutAccountModel"
 vi.mock("@hostel/db/models/HostelPaymentProfile", fake("HostelPaymentProfileModel"));
 vi.mock("@hostel/db/models/FoodRoutine", fake("FoodRoutineModel"));
 vi.mock("@hostel/db/models/FileAsset", fake("FileAssetModel"));
+vi.mock("@hostel/db/models/HostelRoom", fake("HostelRoomModel"));
+vi.mock("@hostel/db/models/HostelSettings", fake("HostelSettingsModel"));
+vi.mock("@hostel/db/models/FeeSchedule", fake("FeeScheduleModel"));
+vi.mock("@hostel/db/models/AuditLog", fake("AuditLogModel"));
+vi.mock("@hostel/db/models/HostelApplication", fake("HostelApplicationModel"));
+vi.mock("@hostel/db/models/HostelVerification", fake("HostelVerificationModel"));
+vi.mock("@hostel/db/models/User", fake("UserModel"));
+vi.mock("@/modules/hostels/hostel-notify", () => ({ notifyPlatformOfPendingHostel: vi.fn(async () => {}) }));
 const { HostelModel } = await import("@hostel/db/models/Hostel");
 const { HostelDocumentModel } = await import("@hostel/db/models/HostelDocument");
 const { HostelPayoutAccountModel } =

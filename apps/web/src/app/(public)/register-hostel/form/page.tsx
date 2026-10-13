@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { PublicHostelRegistrationPage } from "@/app/_components/public-hostel-registration-page";
+import { QuickHostelRegistrationForm } from "@/app/_components/quick-hostel-registration-form";
 import { AuthGuard } from "@/components/auth-guard";
 import { NOINDEX } from "@/lib/seo";
 
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function RegisterHostelFormPage() {
   return (
     <AuthGuard>
-      <PublicHostelRegistrationPage />
+      <QuickHostelRegistrationForm />
     </AuthGuard>
   );
 }

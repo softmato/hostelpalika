@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 
 import { connectToDatabase } from "@/lib/db";
 import { Role } from "@/lib/roles";
+import { hostelDayEnd } from "@hostel/shared/calendar/bs";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { HostelModel } from "@hostel/db/models/Hostel";
 
@@ -30,8 +31,14 @@ import { HostelModel } from "@hostel/db/models/Hostel";
 /** Pre-suspension, counted like every other due here: to the end of a Nepal day. */
 export const SUSPENSION_GRACE_DAYS = 3;
 
-/** One reason for now. A second one is a new entry here and a new email. */
-export const SUSPENSION_REASONS = ["PLAN_PAYMENT"] as const;
+/**
+ * `PLAN_PAYMENT` is a platform admin's, from Listings. `TRIAL_ENDED` is written
+ * when a quick sign-up's KYC is approved (docs/QUICK_SIGNUP_KYC_TRIAL.md):
+ * dated to start {@link SUSPENSION_GRACE_DAYS} before its trial ends, so it is
+ * nothing until then, a countdown for those days, and a block once the trial is
+ * over. Paying lifts either.
+ */
+export const SUSPENSION_REASONS = ["PLAN_PAYMENT", "TRIAL_ENDED"] as const;
 export type SuspensionReason = (typeof SUSPENSION_REASONS)[number];
 
 export type SuspensionStage = "PRE_SUSPENSION" | "SUSPENDED";
@@ -59,13 +66,34 @@ export function suspensionStage(
   suspension: SuspensionRecord | null | undefined,
   now = new Date(),
 ): SuspensionStage | null {
-  if (!suspension?.startedAt || !suspension.graceEndsAt) {
+  // A start in the future is a trial's end scheduled ahead (`TRIAL_ENDED`).
+  if (
+    !suspension?.startedAt ||
+    !suspension.graceEndsAt ||
+    now.getTime() < new Date(suspension.startedAt).getTime()
+  ) {
     return null;
   }
 
   return now.getTime() < new Date(suspension.graceEndsAt).getTime()
     ? "PRE_SUSPENSION"
     : "SUSPENDED";
+}
+
+/**
+ * When a trial's end bites, set at KYC approval: a countdown for the trial's
+ * last {@link SUSPENSION_GRACE_DAYS}, blocked when it ends — or, approved with
+ * the trial already over or nearly, those days from today. **Pure.**
+ */
+export function trialEndSuspension(trialEndsAt: Date, now = new Date()) {
+  const graceEndsAt = new Date(
+    Math.max(trialEndsAt.getTime(), hostelDayEnd(now, SUSPENSION_GRACE_DAYS).getTime()),
+  );
+  const startedAt = new Date(
+    Math.max(now.getTime(), trialEndsAt.getTime() - SUSPENSION_GRACE_DAYS * 86_400_000),
+  );
+
+  return { graceEndsAt, reason: "TRIAL_ENDED" as const, startedAt, startedBy: null };
 }
 
 /** The suspension as the portals read it. `null` when there is none. */

@@ -25,7 +25,10 @@ const hostelSchema = new Schema(
     // its own — billing, plan limits and suspension are its main hostel's.
     parentHostelId: { default: null, ref: "Hostel", type: Schema.Types.ObjectId },
     location: {
-      area: { type: String, required: true, trim: true },
+      // Required everywhere but the quick sign-up, which files a name only and
+      // fills the address in KYC (docs/QUICK_SIGNUP_KYC_TRIAL.md). Such a
+      // hostel is never published before its KYC — with the address — is approved.
+      area: { type: String, default: "", trim: true },
       city: { type: String, default: "Kathmandu", trim: true },
       province: { type: String, trim: true },
       address: { type: String, trim: true },
@@ -221,7 +224,7 @@ const hostelSchema = new Schema(
      */
     suspension: {
       graceEndsAt: { default: null, type: Date },
-      reason: { default: null, enum: ["PLAN_PAYMENT", null], type: String },
+      reason: { default: null, enum: ["PLAN_PAYMENT", "TRIAL_ENDED", null], type: String },
       startedAt: { default: null, type: Date },
       startedBy: { default: null, ref: "User", type: Schema.Types.ObjectId },
     },
@@ -254,6 +257,33 @@ const hostelSchema = new Schema(
           ),
         ],
       },
+    },
+    /**
+     * KYC our team has to approve before the hostel is listed and its frozen
+     * features open (docs/QUICK_SIGNUP_KYC_TRIAL.md).
+     *
+     * `required` is set only by the quick sign-up. Every hostel registered
+     * before it — public, team or branch — has no `kyc` and is never locked.
+     * `SUBMITTED` stays editable until a platform admin decides; `REJECTED` is
+     * "sent back" with `note`, and the owner submits again.
+     */
+    kyc: {
+      required: { default: false, type: Boolean },
+      status: {
+        default: null,
+        enum: ["DRAFT", "SUBMITTED", "APPROVED", "REJECTED", null],
+        type: String,
+      },
+      submittedAt: { default: null, type: Date },
+      /**
+       * The trial's end, copied from the subscription so the API guard reads it
+       * with the hostel: past it, an unapproved hostel can only finish its KYC
+       * (`hostel-kyc-lock.ts`).
+       */
+      trialEndsAt: { default: null, type: Date },
+      reviewedAt: { default: null, type: Date },
+      reviewedBy: { default: null, ref: "User", type: Schema.Types.ObjectId },
+      note: { default: null, trim: true, type: String },
     },
     bookingPause: {
       pausedAt: { default: null, type: Date },

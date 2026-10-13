@@ -16,17 +16,32 @@ import type { Role } from "@/lib/roles";
  * a first paint can hold back role-dependent chrome instead of guessing.
  */
 /** A hostel's plan suspension, as `/auth/me` reports it — see `hostel-suspension.ts`. */
+/** A quick sign-up's KYC and trial, from `/auth/me` (docs/QUICK_SIGNUP_KYC_TRIAL.md). */
+export type HostelKyc = {
+  hostelId: string;
+  hostelName: string;
+  /** The frozen features are frozen. False once approved — and for every older hostel, which has no `hostelKyc`. */
+  locked: boolean;
+  /** Why it was sent back; only while `REJECTED`. */
+  note: string | null;
+  status: "DRAFT" | "SUBMITTED" | "APPROVED" | "REJECTED";
+  submittedAt: string | null;
+  trialDays: number | null;
+  trialEndsAt: string | null;
+};
+
 export type HostelSuspension = {
   graceEndsAt: string;
   hostelId: string;
   hostelName: string;
-  reason: "PLAN_PAYMENT";
+  reason: "PLAN_PAYMENT" | "TRIAL_ENDED";
   stage: "PRE_SUSPENSION" | "SUSPENDED";
   startedAt: string;
 };
 
 export type SessionUser = {
   email: string | null;
+  hostelKyc?: HostelKyc | null;
   /** Set while the account's hostel is in pre-suspension or suspended. */
   hostelSuspension?: HostelSuspension | null;
   id: string;

@@ -14,6 +14,8 @@ import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { GATEWAY_PROVIDERS } from "@/lib/admin-manage-api";
 import { khataQuery, lateFineRate } from "@/lib/khata-api";
+import { formatMoney } from "@/lib/format";
+import { moneyRulesQuery } from "@/lib/money-rules-api";
 import { type AdminFinanceData, adminQuery, prefetchAdminRoute } from "@/lib/admin-queries";
 
 /**
@@ -67,6 +69,8 @@ export default function ManageFinanceScreen() {
   });
   const khataKey = khataQuery.admin();
   const khata = useResource(khataKey.load, { cacheKey: khataKey.key, topics: khataKey.topics });
+  const rulesQuery = moneyRulesQuery();
+  const rules = useResource(rulesQuery.load, { cacheKey: rulesQuery.key, topics: rulesQuery.topics });
 
   const header = <AppBar accent centerTitle showBack title="Finance" />;
 
@@ -163,6 +167,28 @@ export default function ManageFinanceScreen() {
                       : "No fine for paying late"
               }
               title="Late fine"
+            />
+            <RowDivider inset />
+            <ListRow
+              icon="calendar-outline"
+              onPress={() => router.push("/manage/finance/money-rules")}
+              subtitle={
+                rules.data
+                  ? `Leaving month: ${rules.data.moveOutCharge === "FULL_MONTH" ? "full month" : "till the day"} · Days away ${rules.data.leave.enabled ? "on" : "off"}`
+                  : "…"
+              }
+              title="Move-out & days away"
+            />
+            <RowDivider inset />
+            <ListRow
+              icon="wallet-outline"
+              onPress={() => router.push("/manage/finance/money-rules")}
+              subtitle={
+                rules.data?.openingBalance
+                  ? `${formatMoney(rules.data.openingBalance.amount)} on ${rules.data.openingBalance.asOf}`
+                  : "Not set — your bank balance when you started"
+              }
+              title="Opening balance"
             />
           </Card>
         </View>

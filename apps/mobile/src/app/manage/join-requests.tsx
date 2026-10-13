@@ -2,6 +2,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
+import { RoomPicker } from "@/components/manage/room-picker";
 import { Avatar } from "@/components/ui/avatar";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import { residentCardPhotoSource } from "@/lib/admin-scan-api";
 import { readApiError } from "@/lib/api-contract";
 import { openConfirm } from "@/lib/confirm";
 import { formatMoney } from "@/lib/format";
+import { type RoomLayout, roomsQuery } from "@/lib/rooms-api";
 import {
   addJoinRequest,
   type JoinRequest,
@@ -52,6 +54,11 @@ export default function JoinRequestsScreen() {
   const [sendingBack, setSendingBack] = useState<JoinRequest | null>(null);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
+  // Floor & room on: Add asks which room first (docs/FIELD_FIXES_2026_10.md §3).
+  const layoutQuery = roomsQuery.layout();
+  const layout = useResource<RoomLayout>(layoutQuery.load, { cacheKey: layoutQuery.key, topics: layoutQuery.topics });
+  const numberedRooms = layout.data?.tracking && layout.data.rooms.length ? layout.data.rooms : null;
+  const [placing, setPlacing] = useState<JoinRequest | null>(null);
 
   const header = (
     <AppBar
@@ -82,21 +89,29 @@ export default function JoinRequestsScreen() {
   const returned = requests.filter((request) => request.status === "REJECTED");
   const added = requests.filter((request) => request.status === "ADDED");
 
-  function add(request: JoinRequest) {
+  function add(request: JoinRequest, roomNumber?: string) {
+    if (numberedRooms && !roomNumber) {
+      setPlacing(request);
+      return;
+    }
+
+    setPlacing(null);
+
     const due = request.bills?.total ?? 0;
 
     openConfirm({
       confirmLabel: "Yes, add",
       message: [
-        `${request.roomType} · ${request.rentLabel}.`,
+        `${roomNumber ? `Room ${roomNumber} · ` : ""}${request.roomType} · ${request.rentLabel}.`,
         due > 0 ? `Bills of ${formatMoney(due)} are made now.` : "Nothing is billed now.",
         "They are told by email and in the app.",
       ].join(" "),
       onConfirm: async () => {
         try {
-          await addJoinRequest(request.id);
+          await addJoinRequest(request.id, roomNumber);
           toastSuccess(`${request.fullName} added`);
           list.refresh();
+          layout.refresh();
         } catch (error) {
           toastError("Not added", readApiError(error));
         }
@@ -198,6 +213,22 @@ export default function JoinRequestsScreen() {
           </View>
         ) : null}
       </View>
+
+      <Sheet onClose={() => setPlacing(null)} open={placing !== null} tall title={placing ? `Room for ${placing.fullName}` : "Room"}>
+        {placing && numberedRooms ? (
+          <View className="gap-3 pb-2">
+            <Text variant="muted">{`They asked for ${placing.roomType}. Pick the floor, then the room.`}</Text>
+            {/* Their type's rooms; every room when none of that type is numbered yet. */}
+            <RoomPicker
+              onChange={(room) => add(placing, room.number)}
+              roomType={numberedRooms.some((room) => room.roomType === placing.roomType) ? placing.roomType : null}
+              rooms={numberedRooms}
+              showType={!numberedRooms.some((room) => room.roomType === placing.roomType)}
+              value={null}
+            />
+          </View>
+        ) : null}
+      </Sheet>
 
       <Sheet
         footer={

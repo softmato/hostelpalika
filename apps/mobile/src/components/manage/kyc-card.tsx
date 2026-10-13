@@ -42,27 +42,46 @@ export function KycRing({ percent, size = 96 }: { percent: number; size?: number
   );
 }
 
-/** Home nudge. Renders nothing once KYC is complete, or for a warden (403). */
+/**
+ * Home nudge. Renders nothing once KYC is complete, or for a warden (403).
+ * A quick sign-up's card stays until our team approves it, and says where the
+ * review is (docs/QUICK_SIGNUP_KYC_TRIAL.md).
+ */
 export function KycCard() {
   const { colors } = useAppTheme();
   const kyc = useResource(getHostelKyc, { cacheKey: KYC_CACHE_KEY });
+  const review = kyc.data?.review;
+  const pending = Boolean(review) && review?.status !== "APPROVED";
 
-  if (!kyc.data || kyc.data.percent >= 100) {
+  if (!kyc.data || (!pending && kyc.data.percent >= 100)) {
     return null;
   }
 
+  const title =
+    review?.status === "SUBMITTED"
+      ? "KYC in review"
+      : review?.status === "REJECTED"
+        ? "KYC needs a change"
+        : "Complete hostel KYC";
+  const line =
+    review?.status === "SUBMITTED"
+      ? "We check it within 24 hours. You can still edit it."
+      : review?.status === "REJECTED"
+        ? (review.note ?? "Fix it and submit again")
+        : "Unlock every feature";
+
   return (
     <Pressable
-      accessibilityLabel={`Complete hostel KYC, ${kyc.data.percent}% done`}
+      accessibilityLabel={`${title}, ${kyc.data.percent}% done`}
       accessibilityRole="button"
       className="flex-row items-center gap-4 rounded-3xl border border-border bg-brand-soft p-4 active:opacity-70"
       onPress={() => router.push("/manage/kyc")}
     >
       <KycRing percent={kyc.data.percent} size={52} />
       <View className="flex-1">
-        <Text className="font-bold text-foreground">Complete hostel KYC</Text>
-        <Text className="text-muted-foreground" variant="caption">
-          Unlock every feature
+        <Text className="font-bold text-foreground">{title}</Text>
+        <Text className="text-muted-foreground" numberOfLines={2} variant="caption">
+          {line}
         </Text>
       </View>
       <Ionicons color={colors.primary} name="chevron-forward" size={20} />

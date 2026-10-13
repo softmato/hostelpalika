@@ -735,7 +735,6 @@ function PricingTab({
           description: "",
           eventDiscountPercent: 0,
           featured: false,
-          freeMonths: 0,
           halfYearlyDiscountPercent: 0,
           id,
           listingTier: null,
@@ -859,13 +858,6 @@ function PlanPricingRow({
           onChange={(monthly) => onPatch({ monthly: monthly ?? 0 })}
           prefix="NPR"
           value={plan.monthly}
-        />
-        <NumberField
-          hint="From the day a hostel goes live. Once per building."
-          label="Free months"
-          max={24}
-          onChange={(freeMonths) => onPatch({ freeMonths: freeMonths ?? 0 })}
-          value={plan.freeMonths}
         />
         <NumberField
           hint="Extra hostels under this plan, at no charge. 0 for none."

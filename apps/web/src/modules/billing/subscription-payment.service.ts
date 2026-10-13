@@ -608,20 +608,34 @@ async function applySettlement(
 }
 
 /**
- * Starts a hostel's free months, the moment it goes live.
+ * The trial a hostel registered from 2026-10-11 starts on, in place of free
+ * months: `trialDays` (Platform → Operations) to the end of a Nepal day.
+ */
+export async function trialWindow(from = new Date()) {
+  const { trialDays } = await getOperationsConfig();
+
+  return { days: trialDays, endsAt: graceDeadline(from, trialDays) };
+}
+
+/**
+ * Starts a hostel's free time on its plan, the moment it goes live.
  *
  * Called where a hostel goes live without paying for its plan: a public
- * hostel verified with a plan chosen (either order), and a team filing. The
- * building is matched against every earlier claim first (`claimFreeMonths`);
- * a building that has had its free months gets none, returns `null`, and the
- * caller carries on with the paid flow exactly as before.
+ * hostel verified with a plan chosen (either order), and a team filing.
  *
- * With free months, there is no invoice: the plan simply runs, ACTIVE, until
+ * - **Free months**, when the subscription was snapshotted with them — a plan
+ *   chosen before plans lost them (docs/QUICK_SIGNUP_KYC_TRIAL.md). The
+ *   building is matched against every earlier claim first (`claimFreeMonths`);
+ *   a building that has had its free months gets none, returns `null`, and
+ *   the caller carries on with the paid flow exactly as before.
+ * - **The trial** otherwise: `trialDays`, once per hostel.
+ *
+ * Either way there is no invoice: the plan simply runs, ACTIVE, until
  * `freeUntil`, and is published and opened like a hostel that has paid. The
  * first bill is raised by the renewal sweep as that date comes up.
  *
- * Idempotent: a subscription already given its free months is returned as it
- * is, so an approval retried or a plan re-picked never restarts them.
+ * Idempotent: a subscription already given its free time is returned as it
+ * is, so an approval retried or a plan re-picked never restarts it.
  */
 export async function startFreeMonths(hostelId: string, actorId?: string, from = new Date()) {
   await connectToDatabase();
@@ -637,6 +651,7 @@ export async function startFreeMonths(hostelId: string, actorId?: string, from =
     planId?: string | null;
     source?: string;
     status?: string;
+    trialDays?: number | null;
   } | null>();
 
   if (!subscription?.planId) {
@@ -650,7 +665,11 @@ export async function startFreeMonths(hostelId: string, actorId?: string, from =
   }
 
   if (subscription.freeUntil) {
-    return { freeMonths: subscription.freeMonths ?? 0, freeUntil: subscription.freeUntil };
+    return {
+      freeMonths: subscription.freeMonths ?? 0,
+      freeUntil: subscription.freeUntil,
+      trialDays: subscription.trialDays ?? null,
+    };
   }
 
   // Only a hostel that has not started paying yet. A plan already running or
@@ -659,18 +678,28 @@ export async function startFreeMonths(hostelId: string, actorId?: string, from =
     return null;
   }
 
-  const claim = await claimFreeMonths(subscription.hostelId, {
-    freeMonths: subscription.freeMonths ?? 0,
-    id: subscription.planId,
-  });
+  let free: { freeMonths: number; trialDays: number | null; period: { endsAt: Date; startsAt: Date } };
 
-  if (claim.freeMonths <= 0) {
-    await HostelSubscriptionModel.updateOne({ _id: subscription._id }, { $set: { freeMonths: 0 } });
+  if ((subscription.freeMonths ?? 0) > 0) {
+    const claim = await claimFreeMonths(subscription.hostelId, {
+      freeMonths: subscription.freeMonths ?? 0,
+      id: subscription.planId,
+    });
 
-    return null;
+    if (claim.freeMonths <= 0) {
+      await HostelSubscriptionModel.updateOne({ _id: subscription._id }, { $set: { freeMonths: 0 } });
+
+      return null;
+    }
+
+    free = { freeMonths: claim.freeMonths, period: servicePeriod(claim.freeMonths, null, from), trialDays: null };
+  } else {
+    const trial = await trialWindow(from);
+
+    free = { freeMonths: 0, period: { endsAt: trial.endsAt, startsAt: from }, trialDays: trial.days };
   }
 
-  const period = servicePeriod(claim.freeMonths, null, from);
+  const { period } = free;
 
   await HostelSubscriptionModel.updateOne(
     { _id: subscription._id },
@@ -679,9 +708,10 @@ export async function startFreeMonths(hostelId: string, actorId?: string, from =
         activatedAt: period.startsAt,
         currentPeriodEnd: period.endsAt,
         dueBy: null,
-        freeMonths: claim.freeMonths,
+        freeMonths: free.freeMonths,
         freeUntil: period.endsAt,
         status: "ACTIVE",
+        ...(free.trialDays ? { trialDays: free.trialDays, trialEndsAt: period.endsAt } : {}),
       },
     },
   );
@@ -697,13 +727,14 @@ export async function startFreeMonths(hostelId: string, actorId?: string, from =
     entityType: "HostelSubscription",
     hostelId: subscription.hostelId,
     metadata: {
-      freeMonths: claim.freeMonths,
+      freeMonths: free.freeMonths,
       freeUntil: period.endsAt.toISOString(),
       planId: subscription.planId,
+      trialDays: free.trialDays,
     },
   });
 
-  return { freeMonths: claim.freeMonths, freeUntil: period.endsAt };
+  return { freeMonths: free.freeMonths, freeUntil: period.endsAt, trialDays: free.trialDays };
 }
 
 /**

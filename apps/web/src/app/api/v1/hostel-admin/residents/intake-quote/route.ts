@@ -9,7 +9,11 @@ import { getIntakeQuote } from "@/modules/residents/resident-intake.service";
 export const runtime = "nodejs";
 
 const intakeQuoteQuerySchema = z.object({
+  admissionFee: z.coerce.number().int().min(0).max(10_000_000).optional(),
+  depositAmount: z.coerce.number().int().min(0).max(10_000_000).optional(),
+  formFee: z.coerce.number().int().min(0).max(10_000_000).optional(),
   hostelId: z.string().optional(),
+  monthlyFee: z.coerce.number().int().min(0).max(10_000_000).optional(),
   moveInDate: z.coerce.date().optional(),
   referralCode: z.string().trim().max(32).optional(),
   roomType: z.string().trim().min(1, "Pick a room type."),
@@ -35,6 +39,10 @@ export async function GET(request: NextRequest) {
     return successResponse(
       {
         quote: await getIntakeQuote(hostelId, {
+          admissionFee: query.admissionFee,
+          depositAmount: query.depositAmount,
+          formFee: query.formFee,
+          monthlyFee: query.monthlyFee,
           moveInDate: query.moveInDate,
           referralCode: query.referralCode,
           roomType: query.roomType,

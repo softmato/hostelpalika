@@ -95,11 +95,12 @@ export async function listJoinRequests() {
   return unwrap(await api.get<ApiEnvelope<JoinRequests>>("/hostel-admin/residents/join-requests"));
 }
 
-export async function addJoinRequest(id: string) {
+/** `roomNumber` — their numbered room, needed when the hostel keeps floors and rooms. */
+export async function addJoinRequest(id: string, roomNumber?: string) {
   return unwrap(
     await api.post<ApiEnvelope<{ residentId: string | null }>>(
       `/hostel-admin/residents/join-requests/${id}`,
-      { action: "add" },
+      { action: "add", ...(roomNumber ? { roomNumber } : {}) },
     ),
   );
 }

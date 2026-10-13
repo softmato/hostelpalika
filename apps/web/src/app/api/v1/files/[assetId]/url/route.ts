@@ -29,6 +29,8 @@ const VALID_VARIANTS = new Set(["ORIGINAL", "THUMBNAIL", "MEDIUM", "LARGE"]);
  * hostel's collection QR stays hostel-wide on purpose: residents pay with it.
  */
 const STAFF_ONLY_KINDS = new Set([
+  // A citizenship scan or face off an admission form, once a hostel has claimed it.
+  "REGISTRATION_DOCUMENT",
   "COMPLAINT_NOTE",
   "MAINTENANCE_NOTE",
   "PAYMENT_PROOF",

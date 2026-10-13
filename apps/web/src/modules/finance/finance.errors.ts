@@ -200,6 +200,14 @@ export const FINANCE_ERROR_STATUS = {
   RESIDENT_NOT_FOUND: 404,
   /** The attempt has expired, been paid, or otherwise left the payable state. */
   INTENT_NOT_PAYABLE: 409,
+  /** Days away (docs/FIELD_FIXES_2026_10.md §9). */
+  LEAVE_OFF: 409,
+  LEAVE_DATES: 422,
+  LEAVE_CROSSES_MONTH: 422,
+  LEAVE_TOO_SHORT: 422,
+  LEAVE_OVERLAP: 409,
+  LEAVE_MONTH_NOT_BILLED: 409,
+  LEAVE_NOT_FOUND: 404,
 } as const;
 
 export type FinanceErrorCode = keyof typeof FINANCE_ERROR_STATUS;

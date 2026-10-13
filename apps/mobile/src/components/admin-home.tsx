@@ -37,6 +37,8 @@ import { HostelSwitcher } from "@/components/hostel-switcher";
 import { API_BASE_URL } from "@/lib/api";
 import { formatMoney, heroAmountSize, maskMoney } from "@/lib/format";
 import { absoluteMediaUrl } from "@/lib/media";
+import { isKycFrozenHref, useKycLock } from "@/lib/kyc-lock";
+import { KycFrost } from "@/components/kyc-frost";
 
 /**
  * The parts the admin Home screen is built out of.
@@ -623,10 +625,11 @@ export function ServiceGrid({
   onPrefetch?: (href: string) => void;
 }) {
   const { colors, scheme } = useAppTheme();
+  const { locked } = useKycLock();
 
   // Finance, Expenses and Stock sit in the row above, so no second door here.
   const services = [
-    { href: "/manage/rooms", icon: "bed-outline", label: "Rooms", tone: "brand" },
+    { href: "/manage/floors", icon: "bed-outline", label: "Rooms", tone: "brand" },
     ...(owner
       ? [{ href: "/manage/wardens", icon: "shield-checkmark-outline", label: "Wardens", tone: "admin" } as const]
       : []),
@@ -674,6 +677,7 @@ export function ServiceGrid({
     may never become a `flex-wrap`.
   */
   const tiles: ActionTile[] = services.map((service) => ({
+    frozen: locked && isKycFrozenHref(service.href),
     glyph: glyph[service.tone],
     icon: service.icon,
     key: service.href,
@@ -801,6 +805,7 @@ export function QuickActions({
   onStore?: () => void;
 }) {
   const { colors, scheme } = useAppTheme();
+  const { locked } = useKycLock();
 
   return (
     <View className="px-5">
@@ -822,28 +827,34 @@ export function QuickActions({
             tone="warning"
           />
         )}
-        <ActionCell
-          glyph={roleAccent.ADMIN[scheme]}
-          icon="person-add-outline"
-          label="Add resident"
-          onPress={onNewResident}
-          tone="admin"
-        />
-        <ActionCell
-          glyph={colors.warning}
-          icon="scan-outline"
-          label="Scan resident"
-          onPress={onScan}
-          tone="warning"
-        />
-        {onAddExpense ? (
+        <KycFrost center className="flex-1" frozen={locked} label="Add resident">
           <ActionCell
-            glyph={colors.success}
-            icon="wallet-outline"
-            label="Add expense"
-            onPress={onAddExpense}
-            tone="success"
+            glyph={roleAccent.ADMIN[scheme]}
+            icon="person-add-outline"
+            label="Add resident"
+            onPress={onNewResident}
+            tone="admin"
           />
+        </KycFrost>
+        <KycFrost center className="flex-1" frozen={locked} label="Scan resident">
+          <ActionCell
+            glyph={colors.warning}
+            icon="scan-outline"
+            label="Scan resident"
+            onPress={onScan}
+            tone="warning"
+          />
+        </KycFrost>
+        {onAddExpense ? (
+          <KycFrost center className="flex-1" frozen={locked} label="Add expense">
+            <ActionCell
+              glyph={colors.success}
+              icon="wallet-outline"
+              label="Add expense"
+              onPress={onAddExpense}
+              tone="success"
+            />
+          </KycFrost>
         ) : null}
       </ActionCard>
     </View>
@@ -907,8 +918,11 @@ export function WaitingActions({
   onStock: () => void;
 }) {
   const { colors } = useAppTheme();
+  const { locked } = useKycLock();
 
+  // Every one of these is money or stock: all frozen until the KYC is approved.
   return (
+    <KycFrost frozen={locked} label="Money and stock" radius={24}>
     <ActionCard>
       {/*
         The ledger, wearing the glyph and the tone the Manage grid's tile wore
@@ -936,6 +950,7 @@ export function WaitingActions({
         />
       )}
     </ActionCard>
+    </KycFrost>
   );
 }
 

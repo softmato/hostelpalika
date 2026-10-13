@@ -23,6 +23,7 @@ import { getRentConcession } from "@/modules/finance/rent-concession.service";
 import { markKhataBilled, releaseKhata, unbilledKhata } from "@/modules/finance/khata.service";
 import { fineDueDate, getLateFine } from "@/modules/finance/late-fine.service";
 import { paidBeforeJoining } from "@/modules/finance/paid-till";
+import { applyLeavesAfterBilling } from "@/modules/finance/resident-leave.service";
 import { sumAmounts } from "@/modules/finance/money";
 import { allocateReferenceCode } from "@/modules/finance/reference-sequence.service";
 import { applyPendingFeeOffsQuietly } from "@/modules/offer-program/offer-program.service";
@@ -116,9 +117,27 @@ export type BillingCycleInput = {
 
 type BillableResidentRow = BillableResident & {
   hostelId: Types.ObjectId;
+  lastMonthCharge?: "FULL_MONTH" | "TILL_DAY" | null;
   paidTill?: string | null;
   status?: string;
 };
+
+/**
+ * The move-out day the leaving month is cut at. A hostel that charges the whole
+ * leaving month (`lastMonthCharge: FULL_MONTH`, chosen on the move-out sheet)
+ * bills that month as if they stayed to its end; months after it still read
+ * "already moved out".
+ */
+export function billedMoveOut(
+  resident: Pick<BillableResidentRow, "lastMonthCharge" | "moveOutDate">,
+  period: string,
+): Date | null | undefined {
+  if (resident.lastMonthCharge !== "FULL_MONTH" || !resident.moveOutDate) {
+    return resident.moveOutDate;
+  }
+
+  return resident.moveOutDate >= periodBounds(period).start ? null : resident.moveOutDate;
+}
 
 /**
  * Who gets billed for a period.
@@ -215,7 +234,7 @@ export function planBillingCycle(
       const invoiceAmount = computeInvoiceAmount(
         charge.amount,
         resident.moveInDate,
-        resident.moveOutDate,
+        billedMoveOut(resident, period),
         period,
       );
 
@@ -510,6 +529,13 @@ export async function runBillingCycle(
       skipped.push({ reason: "ALREADY_BILLED", residentId });
     }
   }
+
+  // Days away entered before the bill existed come off it now (resident-leave.service).
+  await applyLeavesAfterBilling(
+    input.hostelId,
+    input.period,
+    billed.map((invoice) => invoice.residentId),
+  );
 
   // Resident Offer Program: a fee-off award waiting for a bill comes off this
   // one, paid by HostelPalika. One query for the whole run, then only the few

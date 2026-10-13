@@ -424,6 +424,13 @@ stored profile permanently unreadable. There is no re-encryption path yet.
 
 Root document for each tenant.
 
+> **2026-10-11 — quick sign-up** (docs/QUICK_SIGNUP_KYC_TRIAL.md): `kyc` {required, status
+> DRAFT|SUBMITTED|APPROVED|REJECTED, submittedAt, reviewedAt, reviewedBy, note} — set only by the quick
+> sign-up, so older hostels have none and are never locked; `location.area` defaults to `""` (a quick
+> hostel fills it in KYC before it can be listed); `suspension.reason` also takes `TRIAL_ENDED`.
+> `HostelSubscription` gained `trialDays`, `trialEndsAt` and `trialReminded`; plan tiers lost `freeMonths`
+> (subscriptions already snapshotted with free months keep them).
+
 ```typescript
 interface INearbyPlace {
   name: string;

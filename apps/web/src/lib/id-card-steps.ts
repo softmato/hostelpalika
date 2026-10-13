@@ -44,6 +44,16 @@ export const IDENTITY_STEPS: readonly {
 
 export type IdentityDraft = {
   alternatePhone: string;
+  district: string;
+  wardNo: string;
+  levelOfStudy: string;
+  classTime: string;
+  guardianOccupation: string;
+  secondGuardianOccupation: string;
+  emergencyContactAddress: string;
+  emergencyContactOccupation: string;
+  governmentIdIssuedOn: string;
+  governmentIdIssuedAt: string;
   backupEmail: string;
   bloodGroup: string;
   budgetRange: string;
@@ -81,6 +91,16 @@ export type IdentityDraft = {
 export function emptyIdentityDraft(): IdentityDraft {
   return {
     alternatePhone: "",
+    district: "",
+    wardNo: "",
+    levelOfStudy: "",
+    classTime: "",
+    guardianOccupation: "",
+    secondGuardianOccupation: "",
+    emergencyContactAddress: "",
+    emergencyContactOccupation: "",
+    governmentIdIssuedOn: "",
+    governmentIdIssuedAt: "",
     backupEmail: "",
     bloodGroup: "UNKNOWN",
     budgetRange: "",
@@ -124,6 +144,16 @@ export function draftFromProfile(
   return {
     ...empty,
     alternatePhone: profile.alternatePhone ?? "",
+    district: profile.district ?? "",
+    wardNo: profile.wardNo ?? "",
+    levelOfStudy: profile.levelOfStudy ?? "",
+    classTime: profile.classTime ?? "",
+    guardianOccupation: profile.guardianOccupation ?? "",
+    secondGuardianOccupation: profile.secondGuardianOccupation ?? "",
+    emergencyContactAddress: profile.emergencyContactAddress ?? "",
+    emergencyContactOccupation: profile.emergencyContactOccupation ?? "",
+    governmentIdIssuedOn: profile.governmentIdIssuedOn ?? "",
+    governmentIdIssuedAt: profile.governmentIdIssuedAt ?? "",
     backupEmail: profile.backupEmail ?? "",
     bloodGroup: profile.bloodGroup ?? "UNKNOWN",
     budgetRange: profile.budgetRange ?? "",
@@ -163,7 +193,7 @@ export type IdentityErrors = Partial<Record<keyof IdentityDraft, string>>;
 
 export const IDENTITY_STEP_FIELDS: Record<IdentityStep, readonly (keyof IdentityDraft)[]> = {
   about: ["fullName", "dateOfBirth", "gender", "bloodGroup"],
-  address: ["permanentAddress", "city", "province"],
+  address: ["province", "district", "city", "wardNo", "permanentAddress"],
   contact: ["primaryPhone", "alternatePhone", "primaryEmail", "backupEmail"],
   guardian: [
     "guardianName",
@@ -177,6 +207,10 @@ export const IDENTITY_STEP_FIELDS: Record<IdentityStep, readonly (keyof Identity
     "emergencyContactName",
     "emergencyContactRelation",
     "emergencyContactPhone",
+    "guardianOccupation",
+    "secondGuardianOccupation",
+    "emergencyContactAddress",
+    "emergencyContactOccupation",
   ],
   photo: [],
   preferences: [
@@ -186,10 +220,12 @@ export const IDENTITY_STEP_FIELDS: Record<IdentityStep, readonly (keyof Identity
     "medicalNotes",
     "governmentIdType",
     "governmentIdNumber",
+    "governmentIdIssuedOn",
+    "governmentIdIssuedAt",
   ],
   review: [],
   signature: ["signature", "signatureImageUri"],
-  work: ["occupation", "institution", "courseOrDesignation"],
+  work: ["occupation", "institution", "courseOrDesignation", "levelOfStudy", "classTime"],
 };
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

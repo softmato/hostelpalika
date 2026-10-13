@@ -4,7 +4,6 @@ import {
   Download,
   FileSpreadsheet,
   Loader2,
-  Lock,
   LogOut,
   MoreHorizontal,
   Plus,
@@ -60,6 +59,7 @@ import { useWorkspaceHref } from "@/hooks/use-workspace-href";
 import { browserApi } from "@/lib/browser-api";
 import { downloadCsv } from "@/lib/downloads/downloader";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
+import { usePortalResource } from "@/lib/portal-query";
 import { toast } from "@/stores/toast-store";
 import { cn } from "@/lib/utils";
 
@@ -74,6 +74,8 @@ import {
   type RegistrationOutcome,
   ResidentRegisteredSummary,
 } from "./resident-registered-summary";
+import { ResidentDaysAway } from "./money-rules-panel";
+import { CHARGE_KEYS, ResidentCharges } from "./resident-charges-field";
 import { ResidentMoveOutDialog } from "./resident-move-out-dialog";
 import { JoinLinkButton, JoinRequestsPanel } from "./resident-join-panel";
 import {
@@ -361,6 +363,16 @@ function ContactCard({ rows, title }: { rows: [string, string][]; title: string 
   );
 }
 
+
+/** "Ground floor", "1st floor", "Basement". */
+function floorName(floor: number) {
+  if (floor === 0) return "Ground floor";
+  if (floor < 0) return floor === -1 ? "Basement" : `Basement ${-floor}`;
+  const tens = floor % 100;
+  const suffix = tens >= 11 && tens <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[floor % 10] ?? "th";
+  return `${floor}${suffix} floor`;
+}
+
 export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage() {
   const residentsQuery = useResidents();
   const roomTypesQuery = useAvailableRoomTypes();
@@ -405,11 +417,42 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
   } | null>(null);
   /** "identify" asks for the resident ID first; "form" is the actual registration. */
   const [addStep, setAddStep] = useState<"identify" | "form">("identify");
-  /** Room type drives the monthly rent, so both are controlled in the form. */ const [
-    roomType,
-    setRoomType,
-  ] = useState("");
-  const [monthlyFee, setMonthlyFee] = useState("");
+  /** Room type drives the charges and the room list, so it is controlled. */
+  const [roomType, setRoomType] = useState("");
+  /** Floors and numbered rooms, when the hostel keeps them (§3). */
+  const roomLayout = usePortalResource<{
+    rooms: { beds: number; floor: number; free: number; id: string; number: string; roomType: string }[];
+    tracking: boolean;
+    unassigned: { id: string }[];
+  }>("/api/v1/hostel-admin/rooms");
+  const [roomBusy, setRoomBusy] = useState(false);
+  /** Puts a resident in a numbered room — residents from before Floor & room was on (§3). */
+  const placeResident = useCallback(
+    async (residentId: string, roomId: string) => {
+      setRoomBusy(true);
+      try {
+        await browserApi(`/api/v1/hostel-admin/residents/${residentId}/room`, {
+          body: JSON.stringify({ roomId }),
+          method: "PUT",
+        });
+        await Promise.all([roomLayout.refreshAsync(), residentsQuery.refreshAsync()]);
+      } catch (error) {
+        toast.error({ title: error instanceof Error ? error.message : "Could not change the room." });
+      } finally {
+        setRoomBusy(false);
+      }
+    },
+    [residentsQuery, roomLayout],
+  );
+  const numberedRooms = useMemo(
+    () =>
+      roomLayout.data?.tracking
+        ? roomLayout.data.rooms
+            .filter((room) => room.roomType === roomType)
+            .sort((left, right) => left.floor - right.floor || left.number.localeCompare(right.number))
+        : [],
+    [roomLayout.data, roomType],
+  );
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [moveOutResident, setMoveOutResident] = useState<Resident | null>(null);
   const { confirm, confirmDialog } = useConfirm();
@@ -559,18 +602,8 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
     setLookupError("");
   }, []);
 
-  /**
-   * Picking a room type fills in that type's rent. The fee field is read-only —
-   * rent is a property of the room type, not something typed per resident.
-   */
-  const handleRoomTypeChange = useCallback(
-    (value: string) => {
-      setRoomType(value);
-      const option = roomTypeOptions.find((entry) => entry.roomType === value);
-      setMonthlyFee(option ? String(option.monthlyRent) : "");
-    },
-    [roomTypeOptions],
-  );
+  /** The Charges block below re-quotes from this room type's rate card. */
+  const handleRoomTypeChange = setRoomType;
 
   const handleDeleteResident = useCallback(
     async (resident: Resident) => {
@@ -605,6 +638,37 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
       }
     },
     [confirm, residentsQuery, roomTypesQuery],
+  );
+
+  // What a moved-out resident still owes, let go: it leaves every total.
+  const handleWriteOff = useCallback(
+    async (resident: Resident) => {
+      const fullName = `${resident.firstName} ${resident.lastName}`.trim();
+      const confirmed = await confirm({
+        actionLabel: "Write off",
+        description: `Everything ${fullName} still owes leaves the dashboard, Payments and every total. Their bills show it as written off.`,
+        title: "Write off what they owe?",
+        tone: "destructive",
+      });
+
+      if (!confirmed) return;
+
+      try {
+        const result = await browserApi<{ writtenOff: number }>(
+          `/api/v1/hostel-admin/residents/${resident.id}/write-off`,
+          { body: JSON.stringify({}), method: "POST" },
+        );
+        setMessage(
+          result.writtenOff > 0
+            ? `Rs ${result.writtenOff.toLocaleString("en-IN")} written off for ${fullName}.`
+            : `${fullName} owed nothing.`,
+        );
+        await residentsQuery.refreshAsync();
+      } catch (error) {
+        setMessage(error instanceof Error ? error.message : "Could not write off.");
+      }
+    },
+    [confirm, residentsQuery],
   );
 
   const handleStatusChange = useCallback(
@@ -682,11 +746,15 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
           resident: { id: string };
         }>("/api/v1/hostel-admin/residents", {
           body: JSON.stringify({
-            // No `monthlyFee`. Intake does not set a rent — the rate card does,
-            // and the field above is a read-only quote of it. Sending zero for a
-            // blank box wrote a permanent free-stay override on every resident
-            // registered here, which is what `Resident.monthlyFee` warns about.
-            depositAmount: Number(field(form, "depositAmount") || 0),
+            // Only the charges the desk changed, each with the one reason — an
+            // untouched charge is left to the rate card (docs/FIELD_FIXES_2026_10.md §2).
+            ...Object.fromEntries(
+              CHARGE_KEYS.flatMap((key) => {
+                const value = optionalField(form, `charge.${key}`);
+                return value === undefined ? [] : [[key, Number(value)]];
+              }),
+            ),
+            feeReason: optionalField(form, "feeReason"),
             email: optionalField(form, "email"),
             firstName: field(form, "firstName"),
             lastName: field(form, "lastName"),
@@ -696,6 +764,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
             residentType: field(form, "residentType"),
             // The server decrements this room type's vacant-bed count.
             roomType: field(form, "roomType"),
+            roomId: optionalField(form, "roomId"),
             // The ID this intake was loaded from, when it was loaded from one.
             // It is how the server knows which account to turn into a resident
             // login — the email on the form is their profile address, which is
@@ -732,7 +801,6 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
 
         formElement.reset();
         setRoomType("");
-        setMonthlyFee("");
         setShowAddForm(false);
         setAddStep("identify");
         const referralNote = created.referral
@@ -905,6 +973,24 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
       ) : null}
 
       <JoinRequestsPanel />
+
+      {/* Floor & room is on and some residents — usually those from before — have no room yet. */}
+      {roomLayout.data?.tracking && roomLayout.data.rooms.length > 0 && roomLayout.data.unassigned.length > 0 ? (
+        <Link
+          className="flex items-center gap-3 rounded-xl border border-warning/40 bg-warning/5 px-4 py-3 text-sm hover:bg-warning/10"
+          href={workspaceHref("/hostel-admin/rooms")}
+        >
+          <span className="mr-auto">
+            <strong>
+              {roomLayout.data.unassigned.length === 1
+                ? "1 resident has no room yet."
+                : `${roomLayout.data.unassigned.length} residents have no room yet.`}
+            </strong>{" "}
+            Pick a floor and room for each in Rooms, or on their own panel here.
+          </span>
+          <span className="font-semibold text-primary">Rooms →</span>
+        </Link>
+      ) : null}
 
       {showAddForm ? (
         <SectionCard
@@ -1111,29 +1197,17 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                   </p>
                 ) : null}
               </div>
-              {/* The rent belongs to the room type, so it is never typed by
-                  hand — change it in Rooms & Beds and every resident follows. */}
-              <FormInput
-                hint={
-                  roomType
-                    ? "Set by the room type. Change it in Rooms & Beds."
-                    : "Select a room type to fill this in."
-                }
-                label={
-                  <span className="flex items-center gap-1.5">
-                    Monthly fee
-                    <Lock className="size-3 text-muted-foreground" />
-                  </span>
-                }
-                min="0"
-                name="monthlyFee"
-                placeholder="—"
-                readOnly
-                type="number"
-                value={monthlyFee}
-              />
+              {numberedRooms.length > 0 ? (
+                <FormSelect label="Floor & room" name="roomId" required>
+                  <option value="">Pick their room</option>
+                  {numberedRooms.map((room) => (
+                    <option disabled={room.free <= 0} key={room.id} value={room.id}>
+                      {`Room ${room.number} · ${floorName(room.floor)} (${room.free > 0 ? `${room.free} of ${room.beds} free` : "full"})`}
+                    </option>
+                  ))}
+                </FormSelect>
+              ) : null}
               <FormInput label="Move-in date" name="moveInDate" required type="date" />
-              <FormInput label="Deposit" name="depositAmount" required type="number" />
               {/* Optional: credits the resident whose code brought this person
                   in. A wrong code is rejected before the bed is taken. */}
               <FormInput
@@ -1144,11 +1218,18 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
               />
             </FormSection>
 
+            <FormSection
+              description="From the rate card. Edit any of them for this resident, with a reason."
+              title="Charges"
+            >
+              <ResidentCharges key={roomType} roomType={roomType} />
+            </FormSection>
+
             <div className="flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-end">
               <p className="mr-auto text-xs text-muted-foreground">
                 {roomType
-                  ? `${roomType} · ${currency(Number(monthlyFee || 0))}/month`
-                  : "Pick a room type to see the monthly rent."}
+                  ? roomType
+                  : "Pick a room type to see the charges."}
               </p>
               <Button
                 onClick={() => {
@@ -1314,6 +1395,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                         </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
+                        {resident.roomNumber ? `Room ${resident.roomNumber} · ` : ""}
                         {resident.roomType}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
@@ -1371,7 +1453,11 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                                 <LogOut className="size-4" />
                                 Move out
                               </DropdownMenuItem>
-                            ) : null}
+                            ) : (
+                              <DropdownMenuItem onSelect={() => void handleWriteOff(resident)}>
+                                Write off what they owe
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               disabled={deleteBusy}
@@ -1419,7 +1505,11 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                       {selectedResident.firstName} {selectedResident.lastName}
                     </p>
                     <p className="text-sm text-muted-foreground">
+                      {selectedResident.roomNumber ? `Room ${selectedResident.roomNumber} · ` : ""}
                       {selectedResident.roomType}
+                      {selectedResident.specialFee
+                        ? ` · Special fee Rs ${selectedResident.specialFee.amount.toLocaleString("en-IN")} (${selectedResident.specialFee.reason})`
+                        : ""}
                     </p>
                     <div className="mt-2">
                       <SoftBadge tone={statusToneFromLabel(selectedResident.status)}>
@@ -1440,6 +1530,10 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                     </Button>
                   ) : null}
                 </div>
+
+                {selectedResident.status !== "MOVED_OUT" ? (
+                  <ResidentDaysAway key={selectedResident.id} residentId={selectedResident.id} />
+                ) : null}
 
                 <PanelSection title="Details">
                   <dl className="space-y-2 rounded-xl border border-border bg-muted/15 p-3 text-sm">
@@ -1508,6 +1602,40 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                         {selectedResident.roomType}
                       </dd>
                     </div>
+                    {roomLayout.data?.tracking && selectedResident.status !== "MOVED_OUT" ? (
+                      <div className="flex items-center justify-between gap-3">
+                        <dt className="text-muted-foreground">Floor & room</dt>
+                        <dd>
+                          <select
+                            aria-label="Floor and room"
+                            className={cn(
+                              "h-8 max-w-56 rounded-md border bg-background px-2 text-sm font-medium outline-none focus:border-primary",
+                              selectedResident.roomId ? "border-border" : "border-warning text-warning",
+                            )}
+                            disabled={roomBusy}
+                            onChange={(event) =>
+                              event.target.value && void placeResident(selectedResident.id, event.target.value)
+                            }
+                            value={selectedResident.roomId ?? ""}
+                          >
+                            <option value="">No room yet</option>
+                            {[...roomLayout.data.rooms]
+                              .sort((left, right) => left.floor - right.floor || left.number.localeCompare(right.number))
+                              .map((room) => (
+                                <option
+                                  disabled={room.free <= 0 && room.id !== selectedResident.roomId}
+                                  key={room.id}
+                                  value={room.id}
+                                >
+                                  {`Room ${room.number} · ${floorName(room.floor)}${
+                                    room.roomType === selectedResident.roomType ? "" : ` · ${room.roomType}`
+                                  }${room.id === selectedResident.roomId ? "" : room.free > 0 ? ` (${room.free} free)` : " (full)"}`}
+                                </option>
+                              ))}
+                          </select>
+                        </dd>
+                      </div>
+                    ) : null}
                   </dl>
                 </PanelSection>
 

@@ -62,6 +62,7 @@ function toPayload(rows: SheetOutRow[]) {
     partPaid: row.partPaid,
     paidTill: row.paidTill,
     phone: row.phone,
+    roomNumber: row.roomNumber,
     roomType: row.roomType,
   }));
 }
@@ -308,6 +309,7 @@ export function ExistingResidentsPanel({ apiBase, tone }: Props) {
           check={check}
           currentPeriod={period}
           hostelName={view.hostel.name}
+          numberedRooms={view.numberedRooms ?? null}
           onClose={() => setSheetAt(null)}
           onSave={async (next) => {
             const result = await save(next);
@@ -463,7 +465,7 @@ export function ExistingResidentsPanel({ apiBase, tone }: Props) {
               <thead className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
                 <tr>
                   <th className="sticky left-0 z-10 bg-card px-2 py-2 pl-4">Resident</th>
-                  <th className="px-2 py-2">Room type</th>
+                  <th className="px-2 py-2">Room</th>
                   <th className="px-2 py-2">Rent</th>
                   <th className="px-2 py-2">Deposit paid</th>
                   <th className="px-2 py-2">Old dues</th>
@@ -478,7 +480,14 @@ export function ExistingResidentsPanel({ apiBase, tone }: Props) {
                   const checked = checkedById.get(row.id);
                   const problems = checked?.problems ?? [];
                   const rent = rentStatusLabel(period, row.paidTill);
-                  const monthly = rentOf.get(row.roomType.trim().toLowerCase());
+                  // A room number alone is enough: its type is the room's.
+                  const roomType =
+                    row.roomType.trim() ||
+                    view.numberedRooms?.find(
+                      (room) => room.number.toLowerCase() === (row.roomNumber ?? "").trim().toLowerCase(),
+                    )?.roomType ||
+                    "";
+                  const monthly = rentOf.get(roomType.toLowerCase());
                   const edge = problems.length ? "" : "border-b border-border/60";
 
                   return [
@@ -502,7 +511,14 @@ export function ExistingResidentsPanel({ apiBase, tone }: Props) {
                           </span>
                         </span>
                       </td>
-                      <td className={cn("px-2 py-2.5", edge)}>{row.roomType || "—"}</td>
+                      <td className={cn("px-2 py-2.5", edge)}>
+                        {roomType || "—"}
+                        {row.roomNumber ? (
+                          <span className="block text-xs text-muted-foreground">Room {row.roomNumber}</span>
+                        ) : view.numberedRooms && !row.residentId ? (
+                          <span className="block text-xs text-warning">No room yet</span>
+                        ) : null}
+                      </td>
                       <td className={cn("px-2 py-2.5", edge)}>
                         {rent ?? <span className="text-warning">Not chosen</span>}
                         {monthly ? (

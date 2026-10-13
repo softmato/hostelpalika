@@ -128,6 +128,15 @@ const hostelSubscriptionSchema = new Schema(
     /** Free months already welcomed by bell + push, claimed one number at a time. */
     freeMonthsWelcomed: { default: [], type: [Number] },
     currency: currencyField,
+    /**
+     * The free trial every hostel registered from 2026-10-11 starts on, in
+     * place of free months (docs/QUICK_SIGNUP_KYC_TRIAL.md). `trialEndsAt` is
+     * also `freeUntil` and, until a plan is paid, `currentPeriodEnd`.
+     */
+    trialDays: { ...nullableCount, default: null },
+    trialEndsAt: { default: null, type: Date },
+    /** Trial-ending reminders already sent, by days-left mark (3, then 0). */
+    trialReminded: { default: [], type: [Number] },
 
     /* ── The lifetime deal ─────────────────────────────────────────────── */
 

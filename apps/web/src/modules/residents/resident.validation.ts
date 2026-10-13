@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import { hostelCalendarDay } from "@/lib/hostel-day";
 import { paginationQuerySchema } from "@/lib/pagination";
+import { admissionDocumentSchema, applicantPhotoSchema } from "@/modules/residents/applicant-photo";
+import { residentDetailsSchema } from "@/modules/residents/resident-details";
 
 const objectIdSchema = z.string().regex(/^[a-f\d]{24}$/i, "Invalid object id.");
 
@@ -54,10 +56,23 @@ export const residentListQuerySchema = z.object({
 export const residentCreateSchema = z.object({
   ...optionalHostelScopeSchema,
   /**
-   * What was actually taken at the door. Omitted means "whatever the rate card
-   * says" — the service fills it from the schedule rather than banking zero.
+   * A special monthly fee instead of the room type's rate — a short stay, a
+   * relative. Every bill uses it, the first month included, and the rate card
+   * never charges this resident. Needs `feeReason`.
    */
-  depositAmount: z.coerce.number().nonnegative().optional(),
+  monthlyFee: z.coerce.number().int().min(0).max(10_000_000).optional(),
+  /** This resident's own admission fee, form fee and deposit — same reason as above. */
+  admissionFee: z.coerce.number().int().min(0).max(10_000_000).optional(),
+  formFee: z.coerce.number().int().min(0).max(10_000_000).optional(),
+  /** "Short stay", "Relative", or the warden's own words. Covers every charge changed here. */
+  feeReason: z.string().trim().min(3).max(120).optional(),
+  /** The numbered room (`HostelRoom`), when the hostel tracks floors and rooms. */
+  roomId: objectIdSchema.optional(),
+  /**
+   * This resident's own deposit. Omitted means "whatever the rate card says" —
+   * the service fills it from the schedule rather than banking zero.
+   */
+  depositAmount: z.coerce.number().int().min(0).max(10_000_000).optional(),
   email: z.string().trim().email().optional(),
   firstName: z.string().trim().min(1).max(80),
   lastName: z.string().trim().min(1).max(80),
@@ -100,7 +115,20 @@ export const residentCreateSchema = z.object({
    * back to matching on email.
    */
   userResidentId: z.string().trim().min(1).max(200).optional(),
-});
+  /** The application form — typed at the desk, sent through the Form QR, or read off their card. */
+  details: residentDetailsSchema.optional(),
+  /** The Form QR submission this intake answers; it is marked ADDED once they exist. */
+  admissionFormId: objectIdSchema.optional(),
+  /** Their face, taken or uploaded at the desk (anonymous upload + claim token). */
+  photo: applicantPhotoSchema.optional(),
+  /** Citizenship or ID scans taken at the desk. */
+  documents: z.array(admissionDocumentSchema).max(4).optional(),
+}).refine(
+  (input) =>
+    [input.monthlyFee, input.admissionFee, input.formFee, input.depositAmount].every((value) => value === undefined) ||
+    Boolean(input.feeReason),
+  { message: "Say why this resident pays a different fee.", path: ["feeReason"] },
+);
 
 export const residentUpdateSchema = z.object({
   ...optionalHostelScopeSchema,

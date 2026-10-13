@@ -30,6 +30,8 @@ export type ListRow = {
   phone: string;
   /** Set once this row has been added as a resident. */
   residentId: string | null;
+  /** `101` — their numbered room, when the hostel keeps floors and rooms. */
+  roomNumber: string;
   roomType: string;
 };
 
@@ -40,8 +42,17 @@ export type RoomTypeContext = {
   vacantBeds: number;
 };
 
+/** A numbered room and its free beds right now (`HostelRoom`). */
+export type NumberedRoom = { beds: number; floor: number; free: number; id: string; number: string; roomType: string };
+
 export type CheckContext = {
   currentPeriod: string;
+  /**
+   * The hostel's numbered rooms when Floor & room is on and any room exists —
+   * then every line needs one (docs/FIELD_FIXES_2026_10.md §3). Left out where
+   * the room is picked later: a resident's own join request.
+   */
+  numberedRooms?: NumberedRoom[] | null;
   /** Residents of *other* hostels, by lower-case email → that hostel's name. */
   livingElsewhere: Map<string, string>;
   roomTypes: RoomTypeContext[];
@@ -59,6 +70,7 @@ export type RowField =
   | "paidTill"
   | "partPaid"
   | "phone"
+  | "roomNumber"
   | "roomType";
 
 export type RowProblem = { field: RowField; message: string };
@@ -118,6 +130,17 @@ export function monthLabel(period: string) {
   return (formatBsPeriod(period) || period).replace(/\s*BS$/, "");
 }
 
+/**
+ * The line's numbered room, and the room type it really is: a room number on its
+ * own is enough — its type is the room's.
+ */
+export function roomOfRow(row: Pick<ListRow, "roomNumber" | "roomType">, rooms: NumberedRoom[] | null | undefined) {
+  const number = row.roomNumber.trim().toLowerCase();
+  const room = number && rooms ? (rooms.find((candidate) => candidate.number.toLowerCase() === number) ?? null) : null;
+
+  return { room, roomType: row.roomType.trim() || room?.roomType || "" };
+}
+
 /** The day billing counts a resident from: their joined date, or the start of the paid month. */
 export function moveInDateFor(row: Pick<ListRow, "joinedDate" | "paidTill">): Date | null {
   if (row.joinedDate) {
@@ -145,6 +168,9 @@ export function checkExistingResidents(rows: ListRow[], context: CheckContext): 
   const firstLineWithEmail = new Map<string, number>();
   const summaries = new Map<string, RoomTypeSummary>();
   const listProblems: string[] = [];
+  const numbered = context.numberedRooms?.length ? context.numberedRooms : null;
+  // Beds this list has already put into each numbered room.
+  const placed = new Map<string, number>();
 
   for (const room of context.roomTypes) {
     summaries.set(room.roomType.toLowerCase(), {
@@ -207,14 +233,38 @@ export function checkExistingResidents(rows: ListRow[], context: CheckContext): 
       }
     }
 
-    const room = context.roomTypes.find((candidate) => sameRoomType(candidate.roomType, row.roomType));
+    const { room: numberedRoom, roomType } = roomOfRow(row, numbered);
+    const room = context.roomTypes.find((candidate) => sameRoomType(candidate.roomType, roomType));
 
-    if (!row.roomType.trim()) {
+    if (!roomType) {
       add("roomType", "Choose a room type.");
     } else if (!room) {
-      add("roomType", `"${row.roomType}" is not a room type in this hostel.`);
+      add("roomType", `"${roomType}" is not a room type in this hostel.`);
     } else {
       summaries.get(room.roomType.toLowerCase())!.inList += 1;
+    }
+
+    if (numbered) {
+      if (!row.roomNumber.trim()) {
+        add("roomNumber", "Pick their room.");
+      } else if (!numberedRoom) {
+        add("roomNumber", `There is no room ${row.roomNumber.trim()} in this hostel.`);
+      } else if (room && !sameRoomType(numberedRoom.roomType, room.roomType)) {
+        add("roomNumber", `Room ${numberedRoom.number} is ${numberedRoom.roomType}, not ${room.roomType}.`);
+      } else {
+        const taken = (placed.get(numberedRoom.id) ?? 0) + 1;
+
+        placed.set(numberedRoom.id, taken);
+
+        if (taken > numberedRoom.free) {
+          add(
+            "roomNumber",
+            numberedRoom.free === 0
+              ? `Room ${numberedRoom.number} is full.`
+              : `Room ${numberedRoom.number} has ${numberedRoom.free} free ${numberedRoom.free === 1 ? "bed" : "beds"}; more lines than that are in it.`,
+          );
+        }
+      }
     }
 
     if (!row.paidTill) {

@@ -13,7 +13,15 @@ import { outstandingForResident } from "@/modules/finance/ledger-read.service";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { releaseBedForRoomType } from "@/modules/hostels/hostel-capacity.service";
 import { releaseResidentAccount } from "@/modules/residents/live-residency";
+import { hostelCalendarDay } from "@/lib/hostel-day";
 import { notifyMoveOutCompleted } from "@/modules/move-checklist/move-out-notify";
+import {
+  defaultLastMonthCharge,
+  moveOutDay,
+  previewMoveOut,
+  settleLeavingMonth,
+  writeOffDues,
+} from "@/modules/move-checklist/move-out-money";
 import {
   findCurrentResident,
   normalizeObjectId,
@@ -317,12 +325,40 @@ export async function createMoveOutChecklist(
       : input.depositRefundDecision === "PARTIAL"
         ? input.depositRefundAmount
         : 0;
+  const { dues, lastMonthCharge, moveOutDate, ...checklistInput } = input;
+  const leavingNow = resident.status !== "MOVED_OUT";
+  const leftOn = moveOutDay(moveOutDate);
+
+  if (leavingNow && resident.moveInDate && leftOn < hostelCalendarDay(resident.moveInDate)) {
+    throw new MoveChecklistServiceError(
+      "They can't leave before the day they moved in.",
+      "MOVE_OUT_BEFORE_MOVE_IN",
+    );
+  }
+
+  /*
+   * The money first, then the snapshot of what is still owed. The leaving
+   * month is billed or cut, later months cancelled, and — when the hostel lets
+   * it go — the unpaid rest written off, so the move-out never leaves a debt on
+   * the dashboard that nobody is going to collect.
+   */
+  if (leavingNow) {
+    const charge = lastMonthCharge ?? (await defaultLastMonthCharge(resident.hostelId));
+
+    await ResidentModel.updateOne(
+      { _id: resident._id },
+      { $set: { lastMonthCharge: charge, moveOutDate: leftOn, updatedBy: principal.userId } },
+    );
+    await settleLeavingMonth(resident, leftOn, charge, principal);
+  }
+
+  const writtenOff = dues === "WRITE_OFF" ? await writeOffDues(resident, principal) : 0;
   const pendingFees = await pendingFeeAmount(resident);
   const checklist = await MoveOutChecklistModel.findOneAndUpdate(
     { hostelId: resident.hostelId, residentId: resident._id },
     {
       $set: {
-        ...input,
+        ...checklistInput,
         depositRefundAmount,
         completedAt: new Date(),
         completedBy: principal.userId,
@@ -379,6 +415,7 @@ export async function createMoveOutChecklist(
     "MOVE_OUT_COMPLETED",
     {
       pendingFeeAmount: pendingFees,
+      writtenOff,
     },
   );
 
@@ -399,7 +436,37 @@ export async function createMoveOutChecklist(
   return {
     checklist: serializeMoveOut(checklist),
     resident: serializeResidentSummary({ ...resident, status: "MOVED_OUT" }),
+    writtenOff,
   };
+}
+
+/** Lets go of what a resident who already left still owes. */
+export async function writeOffResidentDues(
+  residentId: string,
+  input: { hostelId?: string; reason: string },
+  principal: ApiPrincipal,
+) {
+  await connectToDatabase();
+
+  const resident = await findAdminResident(residentId, principal, input.hostelId);
+
+  if (resident.status !== "MOVED_OUT") {
+    throw new MoveChecklistServiceError(
+      "Only what a moved-out resident owes can be written off. Move them out first.",
+      "RESIDENT_STILL_HERE",
+      409,
+    );
+  }
+
+  const writtenOff = await writeOffDues(resident, principal, input.reason);
+
+  await MoveOutChecklistModel.updateOne(
+    { hostelId: resident.hostelId, residentId: resident._id },
+    { $set: { pendingFeeAmount: await pendingFeeAmount(resident), updatedBy: principal.userId } },
+  );
+  await auditMoveAction(principal, resident.hostelId, resident._id, "DUES_WRITTEN_OFF", { writtenOff });
+
+  return { writtenOff };
 }
 
 /**
@@ -452,6 +519,7 @@ export async function getMoveOutChecklist(
   residentId: string,
   principal: ApiPrincipal,
   hostelId?: string,
+  moveOutDate?: string | null,
 ) {
   await connectToDatabase();
 
@@ -468,6 +536,9 @@ export async function getMoveOutChecklist(
     checklist: serializeMoveOut(checklist),
     /** What they owe right now — the move-out screen shows it before anyone confirms. */
     pendingFeeAmount: owed,
+    /** The leaving month both ways, and what is owed after each. Only while they still live here. */
+    preview:
+      resident.status === "MOVED_OUT" ? null : await previewMoveOut(resident, owed, moveOutDate),
     resident: serializeResidentSummary(resident),
   };
 }

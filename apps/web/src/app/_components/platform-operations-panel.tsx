@@ -32,6 +32,7 @@ type OperationsConfig = {
   sendNoticeEmails: boolean;
   sendPaymentEmails: boolean;
   subscriptionDueGraceDays: number;
+  trialDays: number;
 };
 
 /** A money-setting edit parked until the superadmin opens the emailed link. */
@@ -216,6 +217,7 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
             sendNoticeEmails: field(form, "sendNoticeEmails") === "true",
             sendPaymentEmails: field(form, "sendPaymentEmails") === "true",
             subscriptionDueGraceDays: Number(field(form, "subscriptionDueGraceDays")),
+            trialDays: Number(field(form, "trialDays")),
           }),
           method: "PUT",
           },
@@ -279,11 +281,21 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
             */}
             <Input
               defaultValue={config.subscriptionDueGraceDays}
-              hint="Days a new hostel can run before its plan payment is due. Also the due window on every plan invoice."
-              label="Plan trial / payment window (days)"
+              hint="Days an owner has to pay a plan invoice once it is raised."
+              label="Plan payment window (days)"
               max="180"
               min="1"
               name="subscriptionDueGraceDays"
+              required
+              type="number"
+            />
+            <Input
+              defaultValue={config.trialDays}
+              hint="Free days a newly registered hostel gets before it pays monthly or the lifetime deal. Hostels already on a trial keep theirs."
+              label="Free trial (days)"
+              max="90"
+              min="1"
+              name="trialDays"
               required
               type="number"
             />

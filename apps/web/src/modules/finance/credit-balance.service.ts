@@ -235,6 +235,8 @@ export async function setConcessionCredit(input: {
   amount: number;
   hostelId: Types.ObjectId | string;
   invoiceId: Types.ObjectId | string;
+  /** One credit per (kind, invoice); a second call replaces it. Defaults to the festival discount's. */
+  kind?: string;
   note: string;
   residentId: Types.ObjectId | string;
 }): Promise<number> {
@@ -242,7 +244,7 @@ export async function setConcessionCredit(input: {
 
   assertWholeRupees(input.amount, "concession credit");
 
-  const idempotencyKey = `concession:${input.invoiceId.toString()}`;
+  const idempotencyKey = `${input.kind ?? "concession"}:${input.invoiceId.toString()}`;
 
   await CreditBalanceModel.updateOne(
     { hostelId: input.hostelId, residentId: input.residentId },

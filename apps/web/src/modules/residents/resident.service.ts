@@ -24,6 +24,17 @@ import {
   notifyResidentStatusChanged,
 } from "@/modules/residents/resident-changed-notify";
 import { notifyResidentRegistered } from "@/modules/residents/resident-registered-notify";
+import { admissionFormSubmitter, markAdmissionFormAdded } from "@/modules/residents/admission-form.service";
+import { cardFromAdmissionForm } from "@/modules/residents/card-from-form";
+import { openDetails, sealDetails } from "@/modules/residents/resident-details";
+import {
+  claimAdmissionDocuments,
+  claimApplicantPhoto,
+  listResidentDocuments,
+  residentPhotoPath,
+  saveResidentDocuments,
+} from "@/modules/residents/applicant-photo";
+import { streamCardPhoto } from "@/modules/users/resident-identity.service";
 import {
   DEMO_RESIDENT_EMAIL,
   findLiveResidency,
@@ -51,6 +62,13 @@ import {
   raiseAdmissionInvoice,
 } from "@/modules/residents/resident-intake.service";
 import { runBillingCycle } from "@/modules/finance/billing.service";
+import { auditFinanceAction } from "@/modules/finance/audit-finance";
+import { resolveRoom } from "@/modules/hostels/hostel-rooms.service";
+import { hostelToday } from "@/lib/hostel-day";
+import {
+  defaultLastMonthCharge,
+  settleLeavingMonth,
+} from "@/modules/move-checklist/move-out-money";
 import {
   checkInBooking,
   findHeldBooking,
@@ -89,15 +107,25 @@ export type ResidentRecord = {
   createdAt?: Date;
   demoDataLabel?: string;
   depositAmount: number;
+  /** Encrypted application form (`resident-details.ts`). */
+  detailsData?: string | null;
+  /** Their face from the admission form (`applicant-photo.ts`). */
+  photoAssetId?: Types.ObjectId | null;
   email?: string;
   firstName: string;
   hostelId: Types.ObjectId;
   isDemoData?: boolean;
   lastName: string;
-  monthlyFee?: number;
+  feeOverrideReason?: string;
+  floor?: number | null;
+  lastMonthCharge?: "FULL_MONTH" | "TILL_DAY" | null;
+  monthlyFee?: number | null;
   moveInDate: Date;
+  moveOutDate?: Date | null;
   phone: string;
   referralCode?: string;
+  roomId?: Types.ObjectId | null;
+  roomNumber?: string | null;
   residentType?: "STUDENT" | "WORKING_PROFESSIONAL" | "OTHER";
   roomType: string;
   status: ResidentStatus;
@@ -208,8 +236,19 @@ function serializeResident(resident: ResidentRecord) {
     isDemoData: Boolean(resident.isDemoData),
     lastName: resident.lastName,
     monthlyFee: resident.monthlyFee ?? 0,
+    /** A special fee replaces the room type's rate, with the reason it was given. */
+    specialFee:
+      resident.monthlyFee === null || resident.monthlyFee === undefined
+        ? null
+        : { amount: resident.monthlyFee, reason: resident.feeOverrideReason ?? "" },
+    floor: resident.floor ?? null,
+    roomId: resident.roomId?.toString() ?? null,
+    roomNumber: resident.roomNumber ?? null,
+    moveOutDate: resident.moveOutDate?.toISOString() ?? null,
     moveInDate: resident.moveInDate.toISOString(),
     phone: resident.phone,
+    /** Their admission-form photo, through the staff route. The account's own picture wins where there is one. */
+    photo: resident.photoAssetId ? residentPhotoPath(resident._id, resident.photoAssetId) : null,
     referralCode: resident.referralCode ?? "",
     residentType: resident.residentType ?? "STUDENT",
     roomType: resident.roomType,
@@ -317,6 +356,8 @@ export async function findAccountForIntake(
    */
   intakeEmail: string | undefined,
   scannedResidentId?: string,
+  /** Signed in when they sent the hostel's admission form (`admissionFormSubmitter`). */
+  formSubmitter?: Types.ObjectId | null,
 ): Promise<IntakeAccount> {
   const scanned = scannedResidentId ? normalizeResidentId(scannedResidentId) : null;
 
@@ -344,6 +385,17 @@ export async function findAccountForIntake(
 
     // A card that matches nobody — a deleted account, a stale printout — is not
     // fatal. The email below is still worth trying.
+  }
+
+  // The account that sent the form is them, whatever address they typed on it.
+  if (formSubmitter) {
+    const user = await UserModel.findOne({ _id: formSubmitter, isDeleted: { $ne: true } })
+      .select("_id email")
+      .lean<{ _id: Types.ObjectId; email?: string } | null>();
+
+    if (user?.email) {
+      return { email: user.email.trim().toLowerCase(), userId: user._id };
+    }
   }
 
   const email = intakeEmail?.trim().toLowerCase();
@@ -393,6 +445,36 @@ export async function findAccountForIntake(
     email: promotable.email?.trim().toLowerCase() ?? email,
     userId: promotable._id,
   };
+}
+
+/**
+ * A login for somebody registered off the admission form whose email had none.
+ *
+ * No password is made, so none is sent — residents are never handed
+ * credentials. They sign in with Google on that address, or set a password
+ * through "Forgot password", and land on the resident portal; either one proves
+ * the mailbox is theirs. ACTIVE rather than INVITED: an invited row being
+ * promoted reads as an invitation they never opened, and mails them about it.
+ */
+export async function openResidentLogin(email: string, name: string): Promise<IntakeAccount> {
+  // Never a second account on an address: one that has any is answered as is.
+  const existing = await findAccountForIntake(email);
+
+  if (existing.reason !== "NO_ACCOUNT") return existing;
+
+  try {
+    const user = await UserModel.create({
+      email,
+      name: name.trim() || email,
+      role: Role.PUBLIC,
+      status: "ACTIVE",
+    });
+
+    return { email, userId: user._id };
+  } catch {
+    // Their own sign-up landed first: that account is them.
+    return findAccountForIntake(email);
+  }
 }
 
 export type ResidentAccountLink = {
@@ -917,7 +999,11 @@ export async function createResident(
    * hold for them, in any hostel — the same-hostel check above only ever saw
    * this hostel's phone and email.
    */
-  const account = await findAccountForIntake(email, input.userResidentId);
+  const account = await findAccountForIntake(
+    email,
+    input.userResidentId,
+    input.admissionFormId ? await admissionFormSubmitter(hostelId, input.admissionFormId) : null,
+  );
   const residency = await findLiveResidency(
     { emails: [email, account.email], userIds: [account.userId] },
     hostelId,
@@ -945,6 +1031,10 @@ export async function createResident(
    * be the one in force now rather than the one on somebody's screen.
    */
   const quote = await getIntakeQuote(hostelId, {
+    admissionFee: input.admissionFee,
+    depositAmount: input.depositAmount,
+    formFee: input.formFee,
+    monthlyFee: input.monthlyFee,
     moveInDate: input.moveInDate,
     referralCode: input.referralCode,
     roomType: input.roomType,
@@ -959,6 +1049,22 @@ export async function createResident(
     input.userResidentId && account.userId ? await findHeldBooking(hostelId, account.userId) : null;
 
   await assertPlanRoom(hostelId, "residents");
+
+  // The numbered room, checked before any bed is spent: this hostel's, the
+  // room type asked for, and a bed free in it.
+  const room = await resolveRoom(hostelId, input.roomId);
+
+  // The desk's photo, checked before a bed is spent: a bad one refuses the intake, not half of it.
+  const photoAssetId = input.photo ? await claimApplicantPhoto(input.photo, hostelId) : null;
+  const scans = input.documents ? await claimAdmissionDocuments(input.documents, hostelId) : [];
+
+  if (room && room.roomType !== input.roomType) {
+    throw new ResidentServiceError(
+      `Room ${room.number} is ${room.roomType}, not ${input.roomType}.`,
+      "ROOM_TYPE_MISMATCH",
+      409,
+    );
+  }
 
   // Claim the bed before creating the resident: if the room type is full this
   // throws and no half-registered resident is left behind.
@@ -977,14 +1083,40 @@ export async function createResident(
     resident = await ResidentModel.create({
       // `userResidentId` is how the intake identifies the *account*; it is not
       // a field of the resident record and must not be written onto one.
-      ...definedUpdate(input, ["depositAmount", "referralCode", "userResidentId"]),
+      ...definedUpdate(input, [
+        "admissionFee",
+        "depositAmount",
+        "feeReason",
+        "formFee",
+        "monthlyFee",
+        "referralCode",
+        "roomId",
+        "userResidentId",
+        "details",
+        "admissionFormId",
+        "photo",
+        "documents",
+      ]),
+      ...(photoAssetId ? { photoAssetId } : {}),
+      detailsData: sealDetails(input.details),
+      ...(input.admissionFormId ? { admissionFormId: new Types.ObjectId(input.admissionFormId) } : {}),
+      ...(input.monthlyFee !== undefined
+        ? {
+            feeOverrideReason: input.feeReason,
+            feeOverrideSetAt: new Date(),
+            feeOverrideSetBy: principal.userId,
+            monthlyFee: input.monthlyFee,
+          }
+        : {}),
+      ...(room ? { floor: room.floor, roomId: room._id, roomNumber: room.number } : {}),
+      // Typed at the desk with the person there: their first sign-in links straight here.
+      deskIntake: !input.userResidentId && Boolean(email),
       admissionFee: quote.admissionFee > 0 ? quote.admissionFee : null,
       admissionFeeDiscount: quote.referral.discount,
       createdBy: principal.userId,
-      // What was actually collected when it was said, the rate card's figure
-      // otherwise. Not `?? 0`: a schedule that names a deposit is the answer to
-      // a form that left the box alone.
-      depositAmount: input.depositAmount ?? quote.depositAmount,
+      // Their own deposit when the desk set one, the rate card's otherwise —
+      // the same figure the joining invoice charges.
+      depositAmount: quote.depositAmount,
       hostelId,
       isDeleted: false,
       referralCode: quote.referral.code ?? undefined,
@@ -1035,6 +1167,54 @@ export async function createResident(
     }),
   );
 
+  // A special fee is money: on the finance trail, with who set it and why.
+  if (input.monthlyFee !== undefined) {
+    await nonFatal(() =>
+      auditFinanceAction(principal, {
+        action: "RESIDENT_MONTHLY_FEE_SET",
+        amountAfter: input.monthlyFee ?? 0,
+        amountBefore: quote.standardRent ?? 0,
+        entityId: resident._id,
+        entityType: "Resident",
+        hostelId,
+        reason: input.feeReason,
+        source: "RESIDENT_INTAKE",
+      }),
+    );
+  }
+
+  // And each joining charge the desk changed, one row apiece, in order —
+  // the finance chain hashes each row onto the one before it.
+  for (const [action, after, before] of [
+    ["RESIDENT_ADMISSION_FEE_SET", input.admissionFee, quote.standard?.admissionFee],
+    ["RESIDENT_FORM_FEE_SET", input.formFee, quote.standard?.formFee],
+    ["RESIDENT_DEPOSIT_SET", input.depositAmount, quote.standard?.depositAmount],
+  ] as const) {
+    if (after === undefined || after === before) continue;
+    await nonFatal(() =>
+      auditFinanceAction(principal, {
+        action,
+        amountAfter: after,
+        amountBefore: before ?? 0,
+        entityId: resident._id,
+        entityType: "Resident",
+        hostelId,
+        reason: input.feeReason,
+        source: "RESIDENT_INTAKE",
+      }),
+    );
+  }
+
+  if (scans.length) {
+    await nonFatal(() => saveResidentDocuments(resident._id, hostelId, scans, principal.userId));
+  }
+
+  if (input.admissionFormId) {
+    await nonFatal(() =>
+      markAdmissionFormAdded(hostelId, input.admissionFormId as string, resident._id, principal),
+    );
+  }
+
   // The booking closes as moved in: no cancelling from here, the hostel's share falls due.
   if (heldBooking) {
     await nonFatal(() =>
@@ -1065,6 +1245,7 @@ export async function createResident(
         hostelId,
         principal,
         quote,
+        reason: input.feeReason,
         residentId: resident._id,
       });
 
@@ -1082,6 +1263,15 @@ export async function createResident(
         residentId: resident._id,
       });
 
+  /*
+   * No card, and nobody has an account on the form's email: it becomes their
+   * login now, and the form their ID card just below.
+   */
+  const newLogin =
+    account.reason === "NO_ACCOUNT" && email && !input.userResidentId
+      ? await nonFatal(() => openResidentLogin(email, `${input.firstName} ${input.lastName}`))
+      : null;
+
   const accountLink = await linkResidentAccount(
     resident as ResidentRecord,
     hostelId,
@@ -1089,8 +1279,15 @@ export async function createResident(
     input.userResidentId,
     // The registration confirmation below replaces the linked-account mail.
     false,
-    account,
+    newLogin ?? account,
   );
+
+  // No card scanned: the form they filled becomes their ID card.
+  if (accountLink.linked && accountLink.userId && !input.userResidentId) {
+    const cardHolder = accountLink.userId;
+
+    afterResponse(() => cardFromAdmissionForm(resident._id, cardHolder));
+  }
 
   /*
    * Last of all, and after the account link: the notification has to know
@@ -1130,6 +1327,7 @@ export async function createResident(
         roomType: input.roomType,
         userId: resident.userId,
       },
+      newLogin: Boolean(newLogin?.userId && accountLink.linked),
       residentUserId: accountLink.userId ?? null,
     }),
   );
@@ -1295,11 +1493,31 @@ export async function getResidentById(
   return {
     resident: {
       ...serializeResident(resident),
+      /** The application form, opened only here — never on the list. */
+      details: openDetails(resident.detailsData),
+      /** Citizenship / ID scans on file, opened by asset id through the staff-only file route. */
+      documents: await listResidentDocuments(resident._id),
       account: resident.userId
         ? (accounts.get(resident.userId.toString()) ?? null)
         : null,
     },
   };
+}
+
+/** Their admission-form photo, streamed for staff of their hostel. */
+export async function readResidentPhoto(residentId: string, principal: ApiPrincipal) {
+  await connectToDatabase();
+
+  const resident = await findResidentForPrincipal(residentId, principal);
+
+  if (!resident.photoAssetId) {
+    throw new ResidentServiceError("No photo on file.", "PHOTO_MISSING", 404);
+  }
+
+  return streamCardPhoto(resident.photoAssetId, {
+    missing: "That photo is no longer available.",
+    unavailable: "Could not load that photo right now.",
+  });
 }
 
 export async function updateResident(
@@ -1370,6 +1588,11 @@ export async function updateResident(
         // not said "this is not me" yet (`residency-invite.service.ts`).
         ...(nextEmail && nextEmail !== normalizedEmail(resident.email)
           ? { accountLinkDeclinedAt: null, accountLinkDeclinedBy: null }
+          : {}),
+        // A new room type means their numbered room is no longer theirs; they
+        // show under "No room yet" until a room of the new type is picked.
+        ...(input.roomType && input.roomType !== resident.roomType
+          ? { floor: null, roomId: null, roomNumber: null }
           : {}),
         updatedBy: principal.userId,
       },
@@ -1458,6 +1681,16 @@ export async function updateResidentStatus(
   if (input.status === "MOVED_OUT" && resident.status !== "MOVED_OUT") {
     await releaseBedForRoomType(resident.hostelId, resident.roomType);
     await releaseResidentAccount(resident.userId, resident.hostelId);
+
+    // The same leaving-month rule the move-out sheet applies, on the hostel's default.
+    const leftOn = hostelToday();
+    const charge = await defaultLastMonthCharge(resident.hostelId);
+
+    await ResidentModel.updateOne(
+      { _id: resident._id },
+      { $set: { lastMonthCharge: charge, moveOutDate: leftOn } },
+    );
+    await nonFatal(() => settleLeavingMonth(resident, leftOn, charge, principal));
   }
 
   /*

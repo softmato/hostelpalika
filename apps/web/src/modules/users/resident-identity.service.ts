@@ -22,6 +22,7 @@ import { Role } from "@hostel/shared/types/roles";
 import type { PlatformIdCardType } from "@/lib/platform-id-card";
 import { UserResidentProfileModel } from "@hostel/db/models/UserResidentProfile";
 import { findLiveResidency } from "@/modules/residents/live-residency";
+import { detailsFromCard } from "@/modules/residents/resident-details";
 import {
   type ResidentProfileData,
   type residentIdentitySaveSchema,
@@ -841,7 +842,7 @@ export async function clearResidentIdentityPhoto(userId: string) {
  * face, the other somebody else's, and "please upload it again" is nonsense
  * advice to give a warden.
  */
-async function streamCardPhoto(
+export async function streamCardPhoto(
   photoAssetId: Types.ObjectId,
   messages: { missing: string; unavailable: string },
 ) {
@@ -1052,6 +1053,8 @@ function toResidentPrefill(profile: ResidentProfileData) {
 
   return {
     emergencyContact,
+    /** The application-form facts, sent back on the intake as `details` for the record. */
+    form: detailsFromCard(profile),
     guardians,
     resident: {
       email: profile.primaryEmail,

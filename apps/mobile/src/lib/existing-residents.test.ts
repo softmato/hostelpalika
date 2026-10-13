@@ -23,6 +23,7 @@ function row(overrides: Partial<ExistingRow> = {}): ExistingRow {
     paidTill: "2083-06",
     phone: "9841234567",
     residentId: null,
+    roomNumber: "",
     roomType: "Double",
     ...overrides,
   };

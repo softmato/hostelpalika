@@ -28,8 +28,9 @@ export default function LoginScreen() {
    * busywork, and the password is still required either way.
    */
   const params = useLocalSearchParams<{ identifier?: string; next?: string }>();
-  // Only a join link may ask to be returned to — anything else goes home as before.
-  const next = params.next?.startsWith("/join/") ? params.next : null;
+  // Only a join link or hostel sign-up may ask to be returned to — anything else goes home.
+  const next =
+    params.next?.startsWith("/join/") || params.next === "/register-hostel" ? params.next : null;
 
   const [identifier, setIdentifier] = useState(params.identifier?.trim() ?? "");
   const [password, setPassword] = useState("");

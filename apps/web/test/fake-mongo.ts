@@ -149,6 +149,7 @@ export function matches(doc: Doc, filter: Doc = {}): boolean {
 }
 
 type Update = {
+  $addToSet?: Doc;
   $inc?: Doc;
   $push?: Doc;
   $set?: Doc;
@@ -173,6 +174,10 @@ function applyUpdate(doc: Doc, update: Update, inserting: boolean) {
   for (const key of Object.keys(update.$unset ?? {})) unsetPath(doc, key);
   for (const [key, value] of Object.entries(update.$inc ?? {})) {
     setPath(doc, key, ((getPath(doc, key) as number) ?? 0) + (value as number));
+  }
+  for (const [key, value] of Object.entries(update.$addToSet ?? {})) {
+    const list = (getPath(doc, key) as unknown[]) ?? [];
+    if (!list.some((item) => String(item) === String(value))) setPath(doc, key, [...list, value]);
   }
   for (const [key, value] of Object.entries(update.$push ?? {})) {
     const list = (getPath(doc, key) as unknown[]) ?? [];

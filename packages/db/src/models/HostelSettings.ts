@@ -160,6 +160,42 @@ const hostelSettingsSchema = new Schema(
       ],
       default: [],
     },
+    /**
+     * The hostel's bank balance on the day it started with us, so the app's
+     * statement balance matches the bank (docs/FIELD_FIXES_2026_10.md §4).
+     * Absent until the owner sets it; the KYC step asks for it.
+     */
+    openingBalance: {
+      type: {
+        amount: { required: true, type: Number },
+        asOf: { required: true, type: Date },
+        setAt: Date,
+        setBy: { ref: "User", type: Schema.Types.ObjectId },
+      },
+      default: undefined,
+    },
+    /**
+     * Residents are kept by floor and room number (`HostelRoom`). On unless the
+     * owner turns it off; off means room type only, the way it always was. A
+     * hostel with no settings document reads as on.
+     */
+    roomTracking: { default: true, type: Boolean },
+    /** How a leaving month is charged unless the move-out sheet says otherwise. */
+    moveOutCharge: { default: "TILL_DAY", enum: ["FULL_MONTH", "TILL_DAY"], type: String },
+    /**
+     * What a resident gets off for days away (home, holiday) — see
+     * `resident-leave.service`. `FOOD` = `foodPerDay` rupees a day; `FULL_DAY`
+     * = the day's share of their rent. Days fewer than `minDays` earn nothing.
+     */
+    leave: {
+      type: {
+        enabled: { default: false, type: Boolean },
+        mode: { default: "FOOD", enum: ["FOOD", "FULL_DAY"], type: String },
+        foodPerDay: { default: 0, min: 0, type: Number },
+        minDays: { default: 3, max: 31, min: 1, type: Number },
+      },
+      default: () => ({}),
+    },
     createdBy: { ref: "User", type: Schema.Types.ObjectId },
     updatedBy: { ref: "User", type: Schema.Types.ObjectId },
   },

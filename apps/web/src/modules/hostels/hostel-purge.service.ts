@@ -28,6 +28,8 @@ import { ExistingResidentListModel } from "@hostel/db/models/ExistingResidentLis
 import { ExpenseModel } from "@hostel/db/models/Expense";
 import { ResidentApplicationModel } from "@hostel/db/models/ResidentApplication";
 import { ResidentJoinLinkModel } from "@hostel/db/models/ResidentJoinLink";
+import { AdmissionFormModel } from "@hostel/db/models/AdmissionForm";
+import { AdmissionFormLinkModel } from "@hostel/db/models/AdmissionFormLink";
 import { FeeScheduleModel } from "@hostel/db/models/FeeSchedule";
 import { FileAssetModel } from "@hostel/db/models/FileAsset";
 import { FoodFeedbackModel } from "@hostel/db/models/FoodFeedback";
@@ -46,6 +48,9 @@ import { HostelMemberModel } from "@hostel/db/models/HostelMember";
 import { HostelPageViewModel } from "@hostel/db/models/HostelPageView";
 import { HostelPaymentProfileModel } from "@hostel/db/models/HostelPaymentProfile";
 import { HostelPayoutAccountModel } from "@hostel/db/models/HostelPayoutAccount";
+import { HostelRoomModel } from "@hostel/db/models/HostelRoom";
+import { ResidentLeaveModel } from "@hostel/db/models/ResidentLeave";
+import { RoomChangeRequestModel } from "@hostel/db/models/RoomChangeRequest";
 import { HostelSettingsModel } from "@hostel/db/models/HostelSettings";
 import { HostelSubscriptionModel } from "@hostel/db/models/HostelSubscription";
 import { HostelVerificationModel } from "@hostel/db/models/HostelVerification";
@@ -177,6 +182,8 @@ const ERASED_BY_HOSTEL_ID: Array<{ model: PurgeableModel; name: string }> = (
     ["Expense", ExpenseModel],
     ["ResidentApplication", ResidentApplicationModel],
     ["ResidentJoinLink", ResidentJoinLinkModel],
+    ["AdmissionForm", AdmissionFormModel],
+    ["AdmissionFormLink", AdmissionFormLinkModel],
     ["FeeSchedule", FeeScheduleModel],
     ["FileAsset", FileAssetModel],
     ["FoodFeedback", FoodFeedbackModel],
@@ -194,6 +201,7 @@ const ERASED_BY_HOSTEL_ID: Array<{ model: PurgeableModel; name: string }> = (
     ["HostelPageView", HostelPageViewModel],
     ["HostelPaymentProfile", HostelPaymentProfileModel],
     ["HostelPayoutAccount", HostelPayoutAccountModel],
+    ["HostelRoom", HostelRoomModel],
     ["HostelSettings", HostelSettingsModel],
     ["HostelSubscription", HostelSubscriptionModel],
     ["HostelVerification", HostelVerificationModel],
@@ -236,8 +244,10 @@ const ERASED_BY_HOSTEL_ID: Array<{ model: PurgeableModel; name: string }> = (
     ["RentConcession", RentConcessionModel],
     ["Resident", ResidentModel],
     ["ResidentDocument", ResidentDocumentModel],
+    ["ResidentLeave", ResidentLeaveModel],
     ["ReviewModerationLog", ReviewModerationLogModel],
     ["RolePermission", RolePermissionModel],
+    ["RoomChangeRequest", RoomChangeRequestModel],
     ["RoomConditionPhoto", RoomConditionPhotoModel],
     ["SOSAlert", SOSAlertModel],
     ["StatementImport", StatementImportModel],

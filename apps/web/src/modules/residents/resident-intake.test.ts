@@ -53,6 +53,26 @@ describe("intake quote", () => {
     expect(joiningPayable(result)).toBe(12000);
   });
 
+  it("charges one resident's own figures at the desk and keeps the rate card beside them", () => {
+    const result = quoteIntake({
+      admissionFee: 2000,
+      depositAmount: 0,
+      formFee: 100,
+      hostel,
+      monthlyFee: 4000,
+      referralCode: "FRIEND",
+      referralCodeActive: true,
+      roomType: "Four Sharing",
+      schedule: schedule({ formFee: 500 }),
+    });
+    expect([result.monthlyRent, result.admissionFee, result.formFee, result.depositAmount]).toEqual([4000, 2000, 100, 0]);
+    expect(result.rentBasis).toBe("OVERRIDE");
+    // The referral still comes off the admission fee actually charged.
+    expect(result.admissionPayable).toBe(500);
+    expect(joiningPayable(result)).toBe(600);
+    expect(result.standard).toEqual({ admissionFee: 5000, depositAmount: 8000, formFee: 500, monthlyRent: 6000 });
+  });
+
   it("uses the listed form fee before a rate card exists, and allows a card to remove it", () => {
     const input = { hostel: { ...hostel, pricing: { ...hostel.pricing, formFee: 250 } }, roomType: "Four Sharing", referralCodeActive: false };
     expect(quoteIntake({ ...input, schedule: null }).formFee).toBe(250);

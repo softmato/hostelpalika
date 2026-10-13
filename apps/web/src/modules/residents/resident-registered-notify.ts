@@ -56,6 +56,8 @@ export async function notifyResidentRegistered(input: {
   admissionFee: number | null;
   /** Resolved by the intake, when it managed to link an account. */
   residentUserId?: string | null;
+  /** That account was made by this registration, off the form's email. */
+  newLogin?: boolean;
   depositAmount: number | null;
   firstMonth: {
     amount: number;
@@ -239,6 +241,7 @@ async function emailTheResident(input: {
     userId?: Types.ObjectId;
   };
   residentUserId?: string | null;
+  newLogin?: boolean;
 }) {
   /*
    * The account we *just* linked, not the one the record remembers.
@@ -286,7 +289,8 @@ async function emailTheResident(input: {
     residentName: input.resident.firstName,
     roomNumber: input.resident.roomNumber,
     roomType: input.resident.roomType,
-    signIn: input.residentUserId ? "EXISTING_ACCOUNT" : "ACTIVATION_CODE",
+    signIn: input.residentUserId ? (input.newLogin ? "NEW_ACCOUNT" : "EXISTING_ACCOUNT") : "ACTIVATION_CODE",
+    signInEmail: contact.email,
   });
 
   await sendNotificationEmail({

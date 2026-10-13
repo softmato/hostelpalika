@@ -66,6 +66,12 @@ export const operationsConfigSchema = z.object({
    */
   subscriptionDueGraceDays: z.number().int().min(1).max(180).default(3),
   /**
+   * The free trial a new hostel starts on, in days, before it pays monthly or
+   * the lifetime deal — in place of a plan's free months. Read when a hostel
+   * starts it; a hostel already on one keeps the length it was given.
+   */
+  trialDays: z.number().int().min(1).max(90).default(15),
+  /**
    * The QR a field agent shows an owner who wants to pay by wallet.
    *
    * It is one image for the whole platform — our own merchant QR — rather than

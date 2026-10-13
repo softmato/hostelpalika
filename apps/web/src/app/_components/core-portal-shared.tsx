@@ -21,6 +21,8 @@ export type Hostel = {
   hostelCode?: string;
   /** Present on the platform approval queue — see listPlatformHostels. */
   applicationStatus?: string;
+  /** A quick sign-up's KYC review; null for every hostel registered before it. */
+  kyc?: { note: string | null; status: string; submittedAt: string | null } | null;
   /** The business's PAN/VAT number, when one was given. */
   panNumber?: string | null;
   /** Set on a branch: the main hostel whose plan it runs on. */

@@ -210,6 +210,7 @@ one that outlives its expiry, cull the owner's, or enumerate them.
 | GET | `/api/v1/public/hostels/[slug]` | none | — | Full profile: photos, facilities, rooms summary, food, rules, `ratingSummary` (excluding hidden), verification badge |
 | GET | `/api/public/hostels/:id/nearby` | none | — | ↔ **Superseded.** Nearby places are cached on the hostel and returned inside `GET /api/v1/public/hostels/[slug]`. |
 | GET | `/api/v1/public/hostels/compare` | none | `ids=a,b,c` | Max 3 ids. Side-by-side comparison |
+| POST | `/api/v1/public/hostels/quick-register` | signed-in `PUBLIC`, verified email | `{ ownerName, phone, hostelName, referralCode? }` | The quick sign-up (docs/QUICK_SIGNUP_KYC_TRIAL.md): a DRAFT hostel with `kyc.required`, the trial started, the account raised to HOSTEL_ADMIN in place. Returns `{ hostelId, name, slug, trialDays, trialEndsAt }`; the client re-checks its session to pick up the role. 409 `ACCOUNT_HAS_ROLE` / `EMAIL_NOT_VERIFIED` / `ALREADY_REGISTERED` |
 | POST | `/api/v1/public/hostels/[slug]/inquiries` | none or `PUBLIC` | `{ hostelId, name, phone, email?, message? }` | Submit inquiry. Response also carries `shouldCollectProfile` — see §18 |
 | POST | `/api/v1/public/hostels/[slug]/views` | none or any role | — | Records a page view for the hostel's listing stats and returns the resident-profile prompt decision. See §18.3 |
 | GET | `/api/v1/public/service-providers` | none | `category?, area?, city?` | Public provider directory — `status: APPROVED` only (HIDDEN and INACTIVE never surface). **Carries no phone numbers**: contact details are hostel-admin-only (§6). Returns `countsByCategory` computed over the location-scoped set, so the category chips stay correct while a category is selected. |
@@ -309,6 +310,9 @@ All routes require `role IN (HOSTEL_ADMIN, WARDEN)` **and** the resolved `hostel
 
 | Method | Path | Body/Query | Permission Check (Warden) | Notes |
 |---|---|---|---|---|
+| GET | `/api/v1/hostel-admin/kyc` | — | HOSTEL_ADMIN only | KYC sections (`steps[].required`), `details`, and `review` {status, note, missing, canSubmit} — `review` is null for every hostel registered before the quick sign-up |
+| POST | `/api/v1/hostel-admin/kyc/submit` | — | HOSTEL_ADMIN only | Sends a quick sign-up's KYC to the platform queue (`PENDING_APPROVAL`); 422 `KYC_INCOMPLETE` while a required section is missing. Editing stays open until a decision |
+| * | frozen routes (see `modules/hostels/hostel-kyc-lock.ts`) | — | — | Writes answer 423 `KYC_REQUIRED` for a quick sign-up whose KYC is not approved |
 | GET | `/api/v1/hostel-admin/profile` | — | — | Returns hostel profile |
 | PATCH | `/api/v1/hostel-admin/profile` | `{ name?, description?, address?, contactPhone?, rules?, facilities[]?, facilityDetails?: { totalToilets?, parkingCapacity?: { bikes?, cars? }, hasGarden?, hasCCTV?, hasGenerator?, hasElevator?, hasWaterPurifier?, notes? }, photos[]? }` | `editHostelProfile` | Update hostel profile with enhanced facility tracking |
 | GET | `/api/v1/hostel-admin/wardens` | — | — | List wardens (HOSTEL_ADMIN only, wardens cannot see this) |

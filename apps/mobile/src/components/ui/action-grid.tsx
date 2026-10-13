@@ -5,6 +5,7 @@ import { Image, type ImageSourcePropType, Pressable, View } from "react-native";
 import { FLOAT_SHADOW } from "@/components/portal-shared";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { KycFrost } from "@/components/kyc-frost";
 
 /**
  * The four-up card of tinted glyph cells, and the only shape a menu of
@@ -220,6 +221,8 @@ export type ActionTile = {
   icon: keyof typeof Ionicons.glyphMap;
   /** See `<ActionCell image>`. */
   image?: ImageSourcePropType;
+  /** Iced over with a lock until the hostel's KYC is approved (`KycFrost`). */
+  frozen?: boolean;
   /** Stable across renders. The destination's href does fine. */
   key: string;
   label: string;
@@ -255,18 +258,19 @@ export function ActionTiles({ tiles }: { tiles: readonly ActionTile[] }) {
       {rows.map((row) => (
         <ActionRow key={row[0].key}>
           {row.map((tile) => (
-            <ActionCell
-              badge={tile.badge}
-              glyph={tile.glyph}
-              icon={tile.icon}
-              image={tile.image}
-              key={tile.key}
-              label={tile.label}
-              onPress={tile.onPress}
-              onPressIn={tile.onPressIn}
-              selected={tile.selected}
-              tone={tile.tone}
-            />
+            <KycFrost center className="flex-1" frozen={Boolean(tile.frozen)} key={tile.key} label={tile.label}>
+              <ActionCell
+                badge={tile.badge}
+                glyph={tile.glyph}
+                icon={tile.icon}
+                image={tile.image}
+                label={tile.label}
+                onPress={tile.onPress}
+                onPressIn={tile.onPressIn}
+                selected={tile.selected}
+                tone={tile.tone}
+              />
+            </KycFrost>
           ))}
 
           {/*

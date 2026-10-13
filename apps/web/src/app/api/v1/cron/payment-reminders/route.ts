@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { errorResponse, handleRouteError, successResponse } from "@/lib/api-response";
 import { validateCronRequest } from "@/lib/cron-auth";
 import { raiseDueRenewals } from "@/modules/billing/plan-renewal-sweep.service";
+import { sendTrialEndingReminders } from "@/modules/billing/trial-reminders.service";
 import { runPaymentReminders } from "@/modules/finance/dunning.service";
 import { sendAdminPaymentDigest } from "@/modules/finance/finance-notify";
 
@@ -22,7 +23,8 @@ export const maxDuration = 60;
  * are automatic rows on the superadmin Push tab, sent by `platform-push`.
  *
  * First, each plan ending within a week gets its next bill
- * (`raiseDueRenewals`), so the 08:00 plan reminders have it to remind about.
+ * (`raiseDueRenewals`), so the 08:00 plan reminders have it to remind about;
+ * and a trial with no plan bought is told when it ends (`sendTrialEndingReminders`).
  *
  * Auth: `x-cron-secret` (or `Authorization: Bearer <CRON_SECRET>`) header only.
  * Scheduled via cron-job.org with a POST request — see `docs/CRON.md`.
@@ -40,10 +42,11 @@ export async function POST(request: NextRequest) {
     }
 
     const renewals = await raiseDueRenewals();
+    const trials = await sendTrialEndingReminders();
     const reminders = await runPaymentReminders();
     const digest = await sendAdminPaymentDigest();
 
-    return successResponse({ ...reminders, digest, renewals }, "Payment reminders processed");
+    return successResponse({ ...reminders, digest, renewals, trials }, "Payment reminders processed");
   } catch (error) {
     return handleRouteError(error);
   }

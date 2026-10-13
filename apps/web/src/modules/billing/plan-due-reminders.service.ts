@@ -1,6 +1,7 @@
 import type { Types } from "mongoose";
 
 import { connectToDatabase } from "@/lib/db";
+import { planPayLink } from "@/modules/billing/plan-pay-link";
 import { Role } from "@/lib/roles";
 import {
   attach,
@@ -401,7 +402,7 @@ function composeNotice(item: Reminder, now: Date) {
   });
 }
 
-function composeEmail(item: Reminder, now: Date, attached: boolean): EmailContent {
+function composeEmail(item: Reminder, now: Date, attached: boolean, payLink?: string): EmailContent {
   const { hostel, invoice } = item;
   const live = hostel.status === "PUBLISHED";
   const daysUntilDue = hostelDaysBetween(now, invoice.dueAt);
@@ -414,7 +415,7 @@ function composeEmail(item: Reminder, now: Date, attached: boolean): EmailConten
     ownerName: item.ownerName,
     // A live hostel pays from its billing page; one waiting to go live, from
     // the registration progress page that publishes it.
-    payUrl: live && hostel.slug ? hostelBillingUrl(hostel.slug) : registrationStatusUrl(),
+    payUrl: live && hostel.slug ? (payLink ?? hostelBillingUrl(hostel.slug)) : registrationStatusUrl(),
     planName: invoice.planName,
   };
 
@@ -429,7 +430,12 @@ async function deliverEmail(item: Reminder, now: Date) {
   const { invoiceNumber } = item.invoice;
   // A reminder carries the invoice it is chasing, same as the email that raised it.
   const attachments = await attach("invoice", invoiceNumber);
-  const message = composeEmail(item, now, attachments.length > 0);
+  // The emailed link opens the checkout on this hostel, no sign-in (`plan-pay-link.ts`).
+  const payLink =
+    item.hostel.status === "PUBLISHED" && item.hostel.slug
+      ? await planPayLink({ slug: item.hostel.slug }, hostelBillingUrl(item.hostel.slug))
+      : undefined;
+  const message = composeEmail(item, now, attachments.length > 0, payLink);
   const result = await sendEmail({
     ...(attachments.length ? { attachments } : {}),
     category: message.category,

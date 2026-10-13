@@ -34,7 +34,6 @@ const PLAN_TIERS: PlansConfig["plans"] = [
     description: "A single hostel with room to grow into.",
     featured: false,
     eventDiscountPercent: 0,
-    freeMonths: 6,
     halfYearlyDiscountPercent: 8,
     id: "go",
     listingTier: null,
@@ -51,7 +50,6 @@ const PLAN_TIERS: PlansConfig["plans"] = [
     description: "A full house, or two floors of one.",
     featured: true,
     eventDiscountPercent: 0,
-    freeMonths: 4,
     halfYearlyDiscountPercent: 7,
     id: "pro",
     listingTier: {
@@ -73,7 +71,6 @@ const PLAN_TIERS: PlansConfig["plans"] = [
     description: "Large hostels and multi-property operators.",
     featured: false,
     eventDiscountPercent: 0,
-    freeMonths: 3,
     halfYearlyDiscountPercent: 5,
     id: "max",
     listingTier: {

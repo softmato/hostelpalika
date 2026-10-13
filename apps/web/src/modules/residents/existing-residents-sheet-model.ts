@@ -27,6 +27,8 @@ export const SHEET_COLUMNS = [
   { key: "oldDues", label: "Old dues (Rs)", width: 120 },
   { key: "joinedDate", label: "Joined date (Nepali)", width: 160 },
   { key: "email", label: "Email", width: 230 },
+  // Last, like the Excel file: only shown when the hostel keeps floors and rooms.
+  { key: "roomNumber", label: "Room no.", width: 110 },
 ] as const;
 
 export type SheetColumn = (typeof SHEET_COLUMNS)[number]["key"];
@@ -47,6 +49,8 @@ export type CellError = { column: SheetColumn; key: string; message: string };
 /** What the sheet fills in by itself: each room's rent from the rate card, and this month. */
 export type SheetContext = {
   currentPeriod: string;
+  /** Numbered rooms, when the hostel keeps floors and rooms: a room number sets the room type. */
+  numberedRooms?: { number: string; roomType: string }[] | null;
   rooms: { monthlyRent: number | null; roomType: string }[];
 };
 
@@ -79,8 +83,16 @@ export function autoFill(
   before: SheetRow["cells"],
   context: SheetContext,
 ): SheetRow["cells"] {
+  // A room number just typed decides the room type — the room is that type.
+  const numbered =
+    cells.roomNumber !== before.roomNumber
+      ? context.numberedRooms?.find(
+          (candidate) => candidate.number.toLowerCase() === cells.roomNumber.trim().toLowerCase(),
+        )
+      : undefined;
+  const roomType = numbered?.roomType ?? cells.roomType;
   const room = context.rooms.find(
-    (candidate) => candidate.roomType.trim().toLowerCase() === cells.roomType.trim().toLowerCase(),
+    (candidate) => candidate.roomType.trim().toLowerCase() === roomType.trim().toLowerCase(),
   );
   // Untouched by this change, and either empty or the date the sheet wrote itself.
   const joinedIsAuto =
@@ -89,6 +101,7 @@ export function autoFill(
 
   return {
     ...cells,
+    roomType,
     joinedDate: joinedIsAuto
       ? defaultJoinedText(cells.paidTill, context.currentPeriod) || cells.joinedDate
       : cells.joinedDate,
@@ -140,6 +153,7 @@ export function blankSheetRow(): SheetRow {
       oldDues: "0",
       paidTill: "",
       phone: "",
+      roomNumber: "",
       roomType: "",
     },
     key: newKey(),
@@ -157,6 +171,7 @@ export function sheetRowFrom(row: ListRow, context: SheetContext): SheetRow {
     oldDues: String(row.oldDues ?? 0),
     paidTill: row.paidTill ?? "",
     phone: row.phone,
+    roomNumber: row.roomNumber ?? "",
     roomType: row.roomType,
   };
 
@@ -225,6 +240,7 @@ export function readSheet(rows: SheetRow[]): { errors: CellError[]; rows: SheetO
       // No column for it: part paid is taken at the scan desk and on join requests.
       partPaid: 0,
       phone: cells.phone.trim(),
+      roomNumber: cells.roomNumber.trim(),
       roomType: cells.roomType.trim(),
     });
   }

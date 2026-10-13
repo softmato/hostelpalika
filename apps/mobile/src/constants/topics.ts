@@ -14,6 +14,7 @@
 
 export const REALTIME_TOPIC = {
   ATTENDANCE: "attendance",
+  BOOKINGS: "bookings",
   COMMUNITY: "community",
   COMPLAINTS: "complaints",
   FOOD: "food",

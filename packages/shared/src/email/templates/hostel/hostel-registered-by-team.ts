@@ -10,6 +10,7 @@ import {
   type EmailContent,
 } from "../layout";
 import { formatRupees } from "../billing/subscription-invoice";
+import { freeSpan } from "./hostel-verified";
 import { PLATFORM_NAME } from "../../../brand/brand";
 
 /**
@@ -34,7 +35,7 @@ export function hostelRegisteredByTeamEmail(input: {
   billingUrl?: string;
   dueBy?: string | null;
   /** The plan went live on its free months: how many, and the last free day. */
-  free?: { months: number; until: string } | null;
+  free?: { days?: number | null; months: number; until: string } | null;
   hostelName: string;
   listingUrl: string;
   outstanding: number;
@@ -86,7 +87,7 @@ export function hostelRegisteredByTeamEmail(input: {
         ...(input.free
           ? [
               paragraph(
-                `Your plan is free for ${input.free.months} ${input.free.months === 1 ? "month" : "months"}, until ${escapeHtml(input.free.until)}. There is nothing to pay for it until then. After that, recharge this hostel yourself from Billing on the website, or ${call}.`,
+                `Your plan is free for ${freeSpan(input.free)}, until ${escapeHtml(input.free.until)}. There is nothing to pay for it until then. After that, recharge this hostel yourself from Billing on the website, or ${call}.`,
               ),
             ]
           : []),

@@ -191,6 +191,35 @@ export function signedAmount(row: StatementRow): number {
 /** The status every debit carries — expenses have no invoice status. */
 export const SPENT_STATUS = "SPENT";
 
+/** The opening-balance row's id: the bank's figure the statement starts from. */
+export const OPENING_ID = "opening";
+
+/**
+ * The hostel's bank balance on the day it started with us, as the statement's
+ * oldest row — so the running balance is the bank's, not just what moved
+ * since (docs/FIELD_FIXES_2026_10.md §4). An overdraft is a debit.
+ */
+function openingRow(opening: { amount: number; asOf: string }): StatementCredit {
+  return {
+    amount: Math.abs(opening.amount),
+    billed: Math.abs(opening.amount),
+    debit: opening.amount < 0,
+    dueDate: null,
+    expense: null,
+    id: OPENING_ID,
+    method: "BANK",
+    period: null,
+    // The very start of that Nepal day, so every payment that day sorts after it.
+    receivedAt: new Date(`${opening.asOf}T00:00:00+05:45`).toISOString(),
+    remarks: "Bank balance when the hostel started",
+    residentId: "",
+    residentName: "",
+    runningTotal: null,
+    searchTerms: ["opening balance", "bank"],
+    status: "OPENING",
+  };
+}
+
 /**
  * Every credit in the ledger, newest first, with the running total attached.
  *
@@ -211,6 +240,7 @@ export function statementCredits(ledger: AdminLedger | null | undefined): Statem
           expense.status === "RECORDED" && expense.amount > 0 && expense.cashStatus !== "DECLINED",
       )
       .map(toDebit),
+    ...(ledger?.openingBalance ? [openingRow(ledger.openingBalance)] : []),
   ].sort(byNewestFirst);
 
   return ledger?.truncated ? credits : withRunningTotals(credits);
@@ -884,7 +914,8 @@ export function splitTotals(rows: readonly StatementRow[]): {
   const totals = { in: 0, inCount: 0, out: 0, outCount: 0 };
 
   for (const row of rows) {
-    if (row.transfer) continue;
+    // The opening balance is where the money stood, not money that moved.
+    if (row.transfer || row.id === OPENING_ID) continue;
 
     if (row.debit) {
       totals.out += row.amount;
@@ -911,7 +942,7 @@ export function monthlyTotals(rows: readonly StatementRow[]): MonthTotals[] {
   for (const row of rows) {
     const month = receivedMonth(row);
 
-    if (!month || row.transfer) {
+    if (!month || row.transfer || row.id === OPENING_ID) {
       continue;
     }
 
@@ -953,6 +984,10 @@ export function creditTitle(
   credit: StatementCredit,
   calendar: CalendarSystem,
 ): string {
+  if (credit.id === OPENING_ID) {
+    return "Opening balance";
+  }
+
   if (credit.expense?.cashTo) {
     return `Cash to ${credit.expense.cashTo.name}`;
   }

@@ -4,6 +4,7 @@ import type { NextRequest } from "next/server";
 import { getBearerToken, readAccessTokenCookie, verifyAccessToken } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import { isPinUnlocked } from "@/lib/lock-pin-cookie";
+import { announceWrite } from "@/lib/realtime/announce-writes";
 import { HOSTEL_STAFF_ROLES, PLATFORM_ROLES, TEAM_ROLES, assertAllowedRole } from "@/lib/permissions";
 import { assertHostelAccess } from "@/lib/tenant";
 import { Role } from "@/lib/roles";
@@ -11,6 +12,15 @@ import { grantingPermissionKeys } from "@/lib/warden-capability";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { HostelMemberModel } from "@hostel/db/models/HostelMember";
 import { isTemporaryCredentialActive } from "@/modules/auth/temporary-credential.service";
+import {
+  isBlockedAfterTrial,
+  isKycFrozenRequest,
+  isKycLocked,
+  isTrialOverWithoutKyc,
+  KYC_REQUIRED_MESSAGE,
+  type KycRecord,
+  TRIAL_ENDED_KYC_MESSAGE,
+} from "@/modules/hostels/hostel-kyc-lock";
 import {
   HOSTEL_SUSPENDED_MESSAGE,
   isOpenWhileSuspended,
@@ -213,8 +223,10 @@ async function narrowToLiveHostels(
     _id: { $in: validIds.map((id) => new Types.ObjectId(id)) },
     ...(isStaff ? { isDeleted: { $ne: true } } : {}),
   })
-    .select("_id slug suspension")
-    .lean<{ _id: Types.ObjectId; slug?: string; suspension?: SuspensionRecord | null }[]>();
+    .select("_id kyc slug suspension")
+    .lean<
+      { _id: Types.ObjectId; kyc?: KycRecord; slug?: string; suspension?: SuspensionRecord | null }[]
+    >();
 
   const live = new Set(rows.map((row) => row._id.toString()));
   const suspended = suspensionApplies
@@ -223,11 +235,33 @@ async function narrowToLiveHostels(
         .map((row) => row._id.toString())
     : [];
   const open = candidates.filter((id) => (!isStaff || live.has(id)) && !suspended.includes(id));
+  const hostelIds = isStaff ? activeHostel(request, open, rows) : open;
+
+  /*
+   * A quick sign-up's frozen features, refused until its KYC is approved
+   * (`hostel-kyc-lock.ts`). Staff only: nobody else can reach these routes.
+   */
+  if (
+    isStaff &&
+    isKycFrozenRequest(request.method, requestPath(request)) &&
+    rows.some((row) => hostelIds.includes(row._id.toString()) && isKycLocked(row.kyc))
+  ) {
+    throw new ApiAuthError(KYC_REQUIRED_MESSAGE, "KYC_REQUIRED", 423);
+  }
+
+  // Past the trial with the KYC still unapproved: only the KYC itself, and the plan.
+  if (
+    isStaff &&
+    isBlockedAfterTrial(request.method, requestPath(request)) &&
+    rows.some((row) => hostelIds.includes(row._id.toString()) && isTrialOverWithoutKyc(row.kyc, now))
+  ) {
+    throw new ApiAuthError(TRIAL_ENDED_KYC_MESSAGE, "TRIAL_ENDED_KYC", 423);
+  }
 
   return {
     ...principal,
     ...(isStaff ? { allHostelIds: open } : {}),
-    hostelIds: isStaff ? activeHostel(request, open, rows) : open,
+    hostelIds,
     ...(suspended.length > 0 ? { suspendedHostelIds: suspended } : {}),
   } satisfies ApiPrincipal;
 }
@@ -292,7 +326,12 @@ export async function requireApiPrincipal(request: NextRequest) {
     throw new ApiAuthError("Enter your PIN to continue.", "LOCK_PIN_REQUIRED", 423);
   }
 
-  return narrowToLiveHostels(request, principal);
+  const narrowed = await narrowToLiveHostels(request, principal);
+
+  // Every signed-in write to hostel data refreshes that hostel's open screens.
+  announceWrite(request, narrowed.hostelIds);
+
+  return narrowed;
 }
 
 export function assertApiRoles(principal: ApiPrincipal, roles: Role[]) {

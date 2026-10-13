@@ -20,6 +20,8 @@ import {
   type ListRow,
   monthLabel,
   moveInDateFor,
+  type NumberedRoom,
+  roomOfRow,
   type RoomTypeContext,
   sameRoomType,
   splitFullName,
@@ -32,6 +34,7 @@ import {
 } from "@/modules/residents/existing-residents-file";
 import { notifyExistingResidentsAdded } from "@/modules/residents/existing-resident-notify";
 import type { ExistingResidentRowInput } from "@/modules/residents/existing-residents.validation";
+import { getRoomLayout } from "@/modules/hostels/hostel-rooms.service";
 import { getIntakeQuote } from "@/modules/residents/resident-intake.service";
 import {
   auditResidentAction,
@@ -120,6 +123,7 @@ type StoredRow = {
   partPaid?: number;
   phone?: string;
   residentId?: Types.ObjectId | null;
+  roomNumber?: string;
   roomType?: string;
 };
 
@@ -150,6 +154,8 @@ export type ExistingResidentsView = {
   /** What the last "Add all" did, for the screen to say so. */
   lastAdded: (AddResult & { addedAt: string }) | null;
   list: { id: string; rows: ListRow[]; updatedAt: string | null } | null;
+  /** The rooms a line can be put in — null when the hostel keeps room types only. */
+  numberedRooms: NumberedRoom[] | null;
   roomTypes: { freeBeds: number; monthlyRent: number | null; roomType: string }[];
 };
 
@@ -166,8 +172,22 @@ function toListRow(row: StoredRow): ListRow {
     partPaid: row.partPaid ?? 0,
     phone: row.phone ?? "",
     residentId: row.residentId ? row.residentId.toString() : null,
+    roomNumber: row.roomNumber ?? "",
     roomType: row.roomType ?? "",
   };
+}
+
+/**
+ * The numbered rooms each line goes into, when Floor & room is on and the
+ * hostel has rooms (docs/FIELD_FIXES_2026_10.md §3). Null otherwise: room types
+ * only, as before.
+ */
+export async function numberedRoomsFor(hostelId: Types.ObjectId): Promise<NumberedRoom[] | null> {
+  const layout = await getRoomLayout(hostelId);
+
+  return layout.tracking && layout.rooms.length
+    ? layout.rooms.map(({ beds, floor, free, id, number, roomType }) => ({ beds, floor, free, id, number, roomType }))
+    : null;
 }
 
 async function loadHostel(hostelId: Types.ObjectId) {
@@ -212,6 +232,8 @@ export async function contextFor(
   hostelId: Types.ObjectId,
   rows: ListRow[],
   roomTypes: RoomTypeContext[],
+  /** Pass to make every line need a numbered room; leave out where staff pick it later. */
+  numberedRooms?: NumberedRoom[] | null,
 ): Promise<CheckContext> {
   const pending = rows.filter((row) => !row.residentId);
   const phones = [...new Set(pending.map((row) => row.phone).filter(Boolean))];
@@ -283,6 +305,7 @@ export async function contextFor(
           hostelNames.get(row.hostelId.toString()) ?? "another hostel",
         ]),
     ),
+    numberedRooms,
     roomTypes,
     takenEmails,
     takenPhones,
@@ -299,20 +322,23 @@ export async function getExistingResidents(
   await connectToDatabase();
 
   const hostel = await loadHostel(hostelId);
-  const [list, latest, roomTypes] = await Promise.all([
+  const [list, latest, roomTypes, numberedRooms] = await Promise.all([
     findOpenList(hostelId),
     ExistingResidentListModel.findOne({ addedAt: { $ne: null }, hostelId })
       .sort({ addedAt: -1 })
       .select("addedAt result")
       .lean<StoredList | null>(),
     roomTypesFor(hostelId, hostel.roomConfigurations ?? []),
+    numberedRoomsFor(hostelId),
   ]);
 
   const rows = (list?.rows ?? []).map(toListRow);
   const period = hostelPeriodOf(new Date());
 
   return {
-    check: list ? checkExistingResidents(rows, await contextFor(hostelId, rows, roomTypes)) : null,
+    check: list
+      ? checkExistingResidents(rows, await contextFor(hostelId, rows, roomTypes, numberedRooms))
+      : null,
     currentMonth: { label: monthLabel(period), period },
     hostel: { id: hostelId.toString(), name: hostel.name ?? "" },
     lastAdded: latest?.addedAt
@@ -330,6 +356,7 @@ export async function getExistingResidents(
           updatedAt: list.updatedAt ? new Date(list.updatedAt).toISOString() : null,
         }
       : null,
+    numberedRooms,
     roomTypes: roomTypes.map((room) => ({
       freeBeds: room.vacantBeds,
       monthlyRent: room.monthlyRent,
@@ -353,6 +380,7 @@ function storedFromInput(row: ExistingResidentRowInput) {
     partPaid: row.partPaid,
     phone: row.phone,
     residentId: null,
+    roomNumber: row.roomNumber,
     roomType: row.roomType,
   };
 }
@@ -487,12 +515,16 @@ export async function existingResidentsTemplate(hostelId: Types.ObjectId) {
   await connectToDatabase();
 
   const hostel = await loadHostel(hostelId);
-  const roomTypes = await roomTypesFor(hostelId, hostel.roomConfigurations ?? []);
+  const [roomTypes, numberedRooms] = await Promise.all([
+    roomTypesFor(hostelId, hostel.roomConfigurations ?? []),
+    numberedRoomsFor(hostelId),
+  ]);
 
   return {
     body: buildExistingResidentsTemplate({
       currentMonth: monthLabel(hostelPeriodOf(new Date())),
       hostelName: hostel.name ?? "your hostel",
+      roomNumbers: numberedRooms?.map((room) => room.number) ?? null,
       roomTypes,
     }),
     fileName: `${hostel.slug || "hostel"}-existing-residents.xlsx`,
@@ -551,8 +583,11 @@ export async function addExistingResidents(
 
   try {
     const rows = list.rows.map(toListRow).filter((row) => !onlyRowId || row.id === onlyRowId);
-    const roomTypes = await roomTypesFor(hostelId, hostel.roomConfigurations ?? []);
-    const check = checkExistingResidents(rows, await contextFor(hostelId, rows, roomTypes));
+    const [roomTypes, numberedRooms] = await Promise.all([
+      roomTypesFor(hostelId, hostel.roomConfigurations ?? []),
+      numberedRoomsFor(hostelId),
+    ]);
+    const check = checkExistingResidents(rows, await contextFor(hostelId, rows, roomTypes, numberedRooms));
 
     if (check.toAdd > 0 && !check.ready) {
       throw new ExistingResidentsError(
@@ -575,7 +610,9 @@ export async function addExistingResidents(
       }
 
       const checked = check.rows.find((candidate) => candidate.id === row.id)!;
-      const room = roomTypes.find((candidate) => sameRoomType(candidate.roomType, row.roomType))!;
+      // A room number alone is enough: its type is the room's (the check agreed).
+      const placed = roomOfRow(row, numberedRooms);
+      const room = roomTypes.find((candidate) => sameRoomType(candidate.roomType, placed.roomType))!;
       const name = splitFullName(row.fullName)!;
 
       try {
@@ -608,6 +645,9 @@ export async function addExistingResidents(
           moveInDate: moveInDateFor(row),
           paidTill: row.paidTill,
           phone: row.phone,
+          ...(placed.room
+            ? { floor: placed.room.floor, roomId: new Types.ObjectId(placed.room.id), roomNumber: placed.room.number }
+            : {}),
           roomType: room.roomType,
           status: "ACTIVE",
           updatedBy: principal.userId,

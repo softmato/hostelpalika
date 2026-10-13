@@ -29,6 +29,8 @@ import {
   SubscriptionError,
 } from "@/modules/billing/subscription.service";
 import { isSoftmatoConfigured } from "@/modules/billing/softmato/config";
+import { readPlanPayLink } from "@/modules/billing/plan-pay-link";
+import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
 import { FileAssetModel } from "@hostel/db/models/FileAsset";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { HostelSubscriptionModel } from "@hostel/db/models/HostelSubscription";
@@ -77,6 +79,8 @@ export const planCheckoutSchema = z.discriminatedUnion("step", [
     token: z.string().min(1),
   }),
   z.object({ step: z.literal("pay"), token: z.string().min(1) }),
+  /** The emailed "Pay now" link (`plan-pay-link.ts`) in place of email + code. */
+  z.object({ link: z.string().min(1), step: z.literal("link") }),
   /** The pay step's plan and month pickers, on an invoice nothing has touched yet. */
   z.object({
     months: z.coerce.number().int().min(1).max(12),
@@ -429,6 +433,26 @@ export async function runPlanCheckout(
       };
     }
 
+    case "link": {
+      const linked = await readPlanPayLink(input.link);
+
+      if (!linked) {
+        fail(
+          "This payment link has expired. Enter your hostel's email and ID to get a fresh one.",
+          "CHECKOUT_EXPIRED",
+          401,
+        );
+      }
+
+      const hostel = await HostelModel.findById(linked.hostelId).select("name").lean<{ name?: string } | null>();
+
+      return {
+        hostel: await checkoutHostel(linked.hostelId, hostel?.name),
+        token: await signCheckoutToken(linked.hostelId, linked.ownerId),
+        ...(await paymentState(linked.hostelId)),
+      };
+    }
+
     case "invoice": {
       const { hostelId, ownerId } = await readCheckoutToken(input.token);
       const { invoice, reused } = await raiseRenewalInvoice(
@@ -519,5 +543,10 @@ async function currentPlanId(hostelId: string) {
     .select("planId")
     .lean<{ planId?: string | null } | null>();
 
-  return subscription?.planId ?? "";
+  if (subscription?.planId) return subscription.planId;
+
+  // On the trial with no plan bought yet: the featured plan, which the pay step can switch.
+  const { plans } = await getSiteConfigSection("plans");
+
+  return (plans.find((plan) => plan.featured) ?? plans[0])?.id ?? "";
 }

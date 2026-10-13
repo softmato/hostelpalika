@@ -91,6 +91,12 @@ const KNOWN_PATHS = new Set([
   "/manage/bookings",
   /* Join-link requests waiting on staff (`push-routing.ts`, `JOIN_REQUEST`). */
   "/manage/join-requests",
+  /* Admission forms sent through the Form QR (`push-routing.ts`, `ADMISSION_FORM`). */
+  "/manage/applications",
+  /* Floors and rooms; room change requests wait here (`ROOM_CHANGE_REQUEST`). */
+  "/manage/floors",
+  /* A resident's own room and their room change request (`ROOM_CHANGE_ANSWERED`). */
+  "/my-room",
   /*
    * The night-status screen, on the root stack. Reached by a plain tap on the
    * nightly prompt — the notification's own buttons answer it without opening
@@ -403,6 +409,12 @@ export function notificationRoute(notification: {
   if (data && typeof data === "object" && (data as { type?: unknown }).type === "JOIN_REQUEST") {
     return "/manage/join-requests";
   }
+
+  const type = data && typeof data === "object" ? (data as { type?: unknown }).type : undefined;
+
+  if (type === "ADMISSION_FORM") return "/manage/applications";
+  if (type === "ROOM_CHANGE_REQUEST") return "/manage/floors";
+  if (type === "ROOM_CHANGE_ANSWERED") return "/my-room";
 
   const path = resolvePushPath(notification.actionUrl);
 

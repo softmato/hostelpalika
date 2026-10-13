@@ -52,11 +52,15 @@ export const teamPrepaymentSchema = z.object({
   ownerName: z.string().trim().min(1, "Fill in the owner's name first."),
   phone: z.string().trim().min(1, "Fill in the owner's phone first."),
   planId: z.string().trim().min(1, "Pick a plan first."),
-  /** The setup fee to take online; omitted means the configured fee, which is also its ceiling. */
+  /**
+   * The setup fee to take online; omitted means the configured fee, which is
+   * also its ceiling. On the lifetime deal, a part of the price taken today —
+   * omitted means the whole price.
+   */
   amount: z.number().int("Whole rupees only.").positive("Enter an amount above zero.").optional(),
   /**
-   * The lifetime deal on `planId` instead of a setup fee: the amount is the
-   * lifetime price, read from the live offer here — never from the form.
+   * The lifetime deal on `planId` instead of a setup fee: the price is read from
+   * the live offer here — never from the form. `amount` may only take less.
    */
   lifetime: z.boolean().optional(),
   /** The row this form already opened, so a retry reuses it. */
@@ -233,6 +237,21 @@ export async function openTeamPrepayment(
   const { teamSetupFee } = await getOperationsConfig();
   const fee = lifetime ? priced.cycleTotal : (input.amount ?? teamSetupFee);
   const kind = lifetime ? "LIFETIME" : "SETUP_FEE";
+  /*
+   * The lifetime deal may be paid in instalments (docs/FIELD_FIXES_2026_10.md
+   * §8): today's part is charged, the row keeps the full price for the
+   * invoice, and the rest is the hostel's due after publish.
+   */
+  const part =
+    lifetime && input.amount !== undefined && input.amount < priced.cycleTotal ? input.amount : null;
+
+  if (lifetime && input.amount !== undefined && input.amount > priced.cycleTotal) {
+    throw new SubscriptionError(
+      `The lifetime price is Rs ${priced.cycleTotal}. Take that or less now.`,
+      "PREPAYMENT_ABOVE_PRICE",
+      422,
+    );
+  }
 
   if (!lifetime && (fee > teamSetupFee || fee <= 0)) {
     throw new SubscriptionError(
@@ -264,6 +283,7 @@ export async function openTeamPrepayment(
     previous?.status === "OPEN" &&
     previous.kind === kind &&
     previous.amount === fee &&
+    (previous.chargeAmount ?? null) === part &&
     (!lifetime || previous.planId === priced.planId)
       ? previous
       : null;
@@ -291,7 +311,7 @@ export async function openTeamPrepayment(
         hostelName: input.hostelName,
         name: input.ownerName,
       },
-      chargeAmount: null,
+      chargeAmount: part,
       cycle: priced.cycle,
       cycleMonths: priced.cycleMonths,
       hostelId,

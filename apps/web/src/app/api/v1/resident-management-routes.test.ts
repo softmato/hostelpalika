@@ -92,7 +92,6 @@ describe("resident management routes", () => {
 
     const response = await residentsRoute.POST(
       jsonRequest("/api/v1/hostel-admin/residents", {
-        depositAmount: 5000,
         firstName: "Asha",
         lastName: "Rai",
         moveInDate: "2030-01-01",

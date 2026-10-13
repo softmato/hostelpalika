@@ -14,9 +14,9 @@ export async function GET(request: NextRequest) {
   try {
     await requireTeamPrincipal(request);
 
-    const { teamSetupFee } = await getOperationsConfig();
+    const { teamSetupFee, trialDays } = await getOperationsConfig();
 
-    return successResponse({ setupFee: teamSetupFee }, "Setup fee loaded");
+    return successResponse({ setupFee: teamSetupFee, trialDays }, "Setup fee loaded");
   } catch (error) {
     return handleRouteError(error);
   }

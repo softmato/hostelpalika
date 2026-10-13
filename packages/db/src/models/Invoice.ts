@@ -85,6 +85,12 @@ const invoiceLineSchema = new Schema(
      * is the snapshot, as everywhere else here.
      */
     concessionPercent: { max: 100, min: 1, type: Number },
+    /**
+     * A taking-off line written after issue, by kind (`invoice-adjust.ts`):
+     * the unused days of a leaving month, an unpaid balance written off at
+     * move-out, or days away. One line per kind per bill, recomputed whole.
+     */
+    adjust: { type: String, enum: ["MOVE_OUT", "WRITE_OFF", "LEAVE"] },
   },
   { _id: false },
 );

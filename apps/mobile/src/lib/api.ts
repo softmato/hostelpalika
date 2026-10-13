@@ -265,6 +265,15 @@ api.interceptors.response.use(
       | (InternalAxiosRequestConfig & { _retried?: boolean })
       | undefined;
 
+    // A frozen feature reached anyway (a deep link, an old screen): same prompt as its lock.
+    if (
+      error.response?.status === 423 &&
+      (error.response.data as { errorCode?: string } | undefined)?.errorCode === "KYC_REQUIRED"
+    ) {
+      // Loaded on use: `kyc-lock` reaches expo-router, which this module must not.
+      void import("@/lib/kyc-lock").then(({ promptKyc }) => promptKyc());
+    }
+
     if (!request || error.response?.status !== 401 || request._retried) {
       return Promise.reject(error);
     }

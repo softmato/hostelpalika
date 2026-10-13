@@ -105,10 +105,13 @@ export function HostelSuspensionNotice({ suspension }: { suspension: ActiveSuspe
 
         <p className="min-w-0 flex-1 text-sm text-foreground">
           <strong className="font-semibold">
-            {suspension.hostelName || "Your hostel"} has not paid its plan.
+            {suspension.reason === "TRIAL_ENDED"
+              ? `${suspension.hostelName || "Your hostel"}'s free trial is ending.`
+              : `${suspension.hostelName || "Your hostel"} has not paid its plan.`}
           </strong>{" "}
-          Please check your email about your plan. Otherwise, access to your hostel portal
-          stops in{" "}
+          {suspension.reason === "TRIAL_ENDED"
+            ? "Choose a monthly or lifetime plan. Otherwise, access to your hostel portal stops in "
+            : "Please check your email about your plan. Otherwise, access to your hostel portal stops in "}
           <span className="font-semibold tabular-nums">
             {remainingLabel(suspension.endsAt - now)}
           </span>
@@ -149,8 +152,11 @@ export function HostelSuspendedScreen({
   const staff = tone === "admin";
   const owner = staff && role === Role.HOSTEL_ADMIN;
 
-  const title = staff ? "Hostel portal suspended" : "Service paused";
-  const message = owner
+  const trial = suspension.reason === "TRIAL_ENDED";
+  const title = staff ? (trial ? "Your free trial has ended" : "Hostel portal suspended") : "Service paused";
+  const message = trial && owner
+    ? `${hostel}'s free trial is over. Choose a monthly or lifetime plan to keep using the portal — it opens again as soon as the payment is confirmed.`
+    : owner
     ? `${hostel} has not paid its plan, so the portal is suspended. Please pay now. It opens again as soon as the payment is confirmed.`
     : staff
       ? `${hostel} has not paid its plan, so the portal is suspended. Please ask the hostel owner to pay it. It opens again as soon as the payment is confirmed.`

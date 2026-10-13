@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
+import { cn } from "@/lib/utils";
 import { formatBsDate } from "@hostel/shared/calendar/bs";
 import type { JoinLinkView, JoinRequestView } from "@/modules/residents/resident-join.service";
 import { toast } from "@/stores/toast-store";
@@ -240,8 +241,27 @@ function JoinLinkDialog({ onClose }: { onClose: () => void }) {
 }
 
 /** Requests waiting, sent back and added lately. Renders nothing until there is one. */
+/** Numbered rooms, when the hostel keeps floors and rooms (docs/FIELD_FIXES_2026_10.md §3). */
+type RoomLayout = {
+  rooms: { floor: number; free: number; id: string; number: string; roomType: string }[];
+  tracking: boolean;
+};
+
+/** "Ground floor", "1st floor", "Basement". */
+function floorName(floor: number) {
+  if (floor === 0) return "Ground floor";
+  if (floor < 0) return floor === -1 ? "Basement" : `Basement ${-floor}`;
+  const tens = floor % 100;
+  const suffix = tens >= 11 && tens <= 13 ? "th" : ({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[floor % 10] ?? "th";
+  return `${floor}${suffix} floor`;
+}
+
 export function JoinRequestsPanel() {
   const list = usePortalResource<JoinRequests>(REQUESTS_URL, { errorMessage: "Could not load join requests." });
+  const layout = usePortalResource<RoomLayout>("/api/v1/hostel-admin/rooms");
+  const numberedRooms = layout.data?.tracking && layout.data.rooms.length ? layout.data.rooms : null;
+  /** The room picked on each request card, by request id. */
+  const [roomPick, setRoomPick] = useState<Record<string, string>>({});
   const invalidate = useInvalidateResources();
   const { confirm, confirmDialog } = useConfirm();
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -256,10 +276,11 @@ export function JoinRequestsPanel() {
 
   async function add(request: JoinRequestView) {
     const due = request.bills?.total ?? 0;
+    const roomNumber = roomPick[request.id] ?? "";
     const yes = await confirm({
       actionLabel: "Yes, add",
       description: [
-        `${request.roomType} · ${request.rentLabel}.`,
+        `${roomNumber ? `Room ${roomNumber} · ` : ""}${request.roomType} · ${request.rentLabel}.`,
         due > 0 ? `Bills of ${rupees(due)} are made now.` : "Nothing is billed now.",
         "They are told by email and in the app.",
       ].join(" "),
@@ -272,11 +293,11 @@ export function JoinRequestsPanel() {
 
     try {
       await browserApi(`${REQUESTS_URL}/${request.id}`, {
-        body: JSON.stringify({ action: "add" }),
+        body: JSON.stringify({ action: "add", ...(roomNumber ? { roomNumber } : {}) }),
         method: "POST",
       });
       toast.success({ title: `${request.fullName} added` });
-      invalidate(`${REQUESTS_URL}*`, "/api/v1/hostel-admin/residents*", LINK_URL);
+      invalidate(`${REQUESTS_URL}*`, "/api/v1/hostel-admin/residents*", "/api/v1/hostel-admin/rooms*", LINK_URL);
     } catch (error) {
       toast.error({ description: error instanceof Error ? error.message : undefined, title: "Not added" });
     } finally {
@@ -294,9 +315,12 @@ export function JoinRequestsPanel() {
           <RequestCard
             busy={busyId === request.id}
             key={request.id}
+            numberedRooms={numberedRooms}
             onAdd={() => add(request)}
+            onPickRoom={(roomNumber) => setRoomPick((current) => ({ ...current, [request.id]: roomNumber }))}
             onSendBack={() => setSendingBack(request)}
             request={request}
+            roomNumber={roomPick[request.id] ?? ""}
           />
         ))}
 
@@ -342,15 +366,30 @@ export function JoinRequestsPanel() {
 
 function RequestCard({
   busy,
+  numberedRooms,
   onAdd,
+  onPickRoom,
   onSendBack,
   request,
+  roomNumber,
 }: {
   busy: boolean;
+  numberedRooms: RoomLayout["rooms"] | null;
   onAdd: () => void;
+  onPickRoom: (roomNumber: string) => void;
   onSendBack: () => void;
   request: JoinRequestView;
+  roomNumber: string;
 }) {
+  // Their room type's rooms first; any room may be picked — it moves their bed type with it.
+  const roomOptions = numberedRooms
+    ? [...numberedRooms].sort(
+        (left, right) =>
+          Number(right.roomType === request.roomType) - Number(left.roomType === request.roomType) ||
+          left.floor - right.floor ||
+          left.number.localeCompare(right.number),
+      )
+    : [];
   const [photoFailed, setPhotoFailed] = useState(false);
   const facts: [string, string][] = [
     ["Room type", request.roomType],
@@ -444,12 +483,36 @@ function RequestCard({
             </ul>
           ) : null}
 
-          <div className="flex flex-wrap justify-end gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {numberedRooms ? (
+              <select
+                aria-label="Their room"
+                className={cn(
+                  "mr-auto h-9 rounded-md border bg-background px-2 text-sm font-medium outline-none focus:border-primary",
+                  roomNumber ? "border-border" : "border-warning",
+                )}
+                disabled={busy}
+                onChange={(event) => onPickRoom(event.target.value)}
+                value={roomNumber}
+              >
+                <option value="">Pick their room</option>
+                {roomOptions.map((room) => (
+                  <option disabled={room.free <= 0} key={room.id} value={room.number}>
+                    {`Room ${room.number} · ${floorName(room.floor)}${room.roomType === request.roomType ? "" : ` · ${room.roomType}`} (${room.free > 0 ? `${room.free} free` : "full"})`}
+                  </option>
+                ))}
+              </select>
+            ) : null}
             <Button disabled={busy} onClick={onSendBack} variant="outline">
               <RotateCcw className="size-4" />
               Send back
             </Button>
-            <RoleButton disabled={busy || request.problems.length > 0} onClick={onAdd} tone="admin" type="button">
+            <RoleButton
+              disabled={busy || request.problems.length > 0 || Boolean(numberedRooms && !roomNumber)}
+              onClick={onAdd}
+              tone="admin"
+              type="button"
+            >
               <UserCheck className="size-4" />
               {busy ? "Adding…" : "Add as existing resident"}
             </RoleButton>

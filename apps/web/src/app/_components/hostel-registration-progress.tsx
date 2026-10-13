@@ -396,12 +396,7 @@ function PlanPicker({
                 ) : null}
               </div>
 
-              {plan.freeMonths ? (
-                <p className="mt-2 text-xs font-semibold text-brand-teal">
-                  First {plan.freeMonths} {plan.freeMonths === 1 ? "month" : "months"} free, then
-                </p>
-              ) : null}
-              <p className={cn("text-lg font-bold tabular-nums text-foreground", plan.freeMonths ? "mt-0.5" : "mt-2")}>
+              <p className="mt-2 text-lg font-bold tabular-nums text-foreground">
                 {rupees(total)}
                 <span className="ml-1 text-xs font-medium text-muted-foreground">
                   / {cycles.find((option) => option.id === cycle)?.label.toLowerCase()}

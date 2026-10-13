@@ -99,6 +99,8 @@ type SubscriptionRecord = {
   selectedAt?: Date | null;
   source?: "PUBLIC" | "TEAM";
   status: string;
+  trialDays?: number | null;
+  trialEndsAt?: Date | null;
 };
 
 export type InvoiceRecord = {
@@ -223,7 +225,10 @@ export async function pricePlan(
     cycle: months ? cycleForMonths(months) : cycle,
     cycleMonths: bought,
     cycleTotal: total,
-    freeMonths: plan.freeMonths ?? 0,
+    // Plans no longer carry free months (docs/QUICK_SIGNUP_KYC_TRIAL.md): a new
+    // hostel starts on the trial instead. Subscriptions snapshotted with free
+    // months before then keep them.
+    freeMonths: 0,
     monthlyRate: plan.monthly,
     planId: plan.id,
     planName: plan.name,
@@ -557,6 +562,9 @@ export async function getSubscriptionState(hostelId: string) {
       planName: subscription.planName ?? null,
       source: subscription.source ?? "PUBLIC",
       status: subscription.status,
+      /** The free trial (docs/QUICK_SIGNUP_KYC_TRIAL.md); null on hostels from before it. */
+      trialDays: subscription.trialDays ?? null,
+      trialEndsAt: subscription.trialEndsAt?.toISOString() ?? null,
     },
     verified,
   };

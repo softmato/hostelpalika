@@ -132,11 +132,17 @@ function checkout<T>(body: Record<string, unknown>) {
 export function PlanCheckoutPage({
   cycle: initialCycle,
   lifetime = false,
+  link = "",
   planId,
 }: {
   cycle: string;
   /** Arrived from a lifetime card: the invoice is the lifetime deal on `planId`. */
   lifetime?: boolean;
+  /**
+   * The emailed "Pay now" link (`modules/billing/plan-pay-link.ts`): it stands
+   * in for the email-and-code step, so the page opens on the pay step.
+   */
+  link?: string;
   planId: string;
 }) {
   const { lifetime: deal, plans: catalog } = useSiteConfig();
@@ -180,7 +186,8 @@ export function PlanCheckoutPage({
     }
   }, [planId, savedRaw]);
   const [restoreDone, setRestoreDone] = useState(false);
-  const booting = savedRaw === undefined || (Boolean(resumable) && !restoreDone);
+  const [linking, setLinking] = useState(Boolean(link));
+  const booting = savedRaw === undefined || (Boolean(resumable) && !restoreDone) || (linking && !resumable);
 
   function applyCheckout(
     result: PaymentState & {
@@ -273,40 +280,72 @@ export function PlanCheckoutPage({
     requestCode();
   }
 
+  /** A proven checkout token, raised into the invoice for the chosen plan, and the pay step. */
+  async function openCheckout(verified: PaymentState & { hostel: { branches?: number; code: string; name: string }; token: string }) {
+    const raised = await checkout<
+      PaymentState & { afterPayment: AfterPayment; history: History; invoice: Invoice; reused: boolean }
+    >({
+      cycle,
+      ...(lifetimeOffer ? { lifetime: true } : {}),
+      // None from the footer link: the server renews the plan the hostel is on.
+      planId: plan?.id,
+      step: "invoice",
+      token: verified.token,
+    });
+
+    // So the return page can tell a signed-out owner what happened to their money,
+    // and a reload of this one comes back to the pay step.
+    try {
+      sessionStorage.setItem(CHECKOUT_TOKEN_KEY, verified.token);
+      sessionStorage.setItem(
+        CHECKOUT_STATE_KEY,
+        JSON.stringify({ cycle, planId, reused: raised.reused, token: verified.token } satisfies SavedCheckout),
+      );
+    } catch {
+      // Without it the return page asks them to sign in instead.
+    }
+    applyCheckout(raised, { hostel: verified.hostel, reused: raised.reused, token: verified.token });
+  }
+
   function verify(event: FormEvent) {
     event.preventDefault();
     void run("verify", async () => {
-      const verified = await checkout<PaymentState & { hostel: { branches?: number; code: string; name: string }; token: string }>({
-        challengeId,
-        code,
-        hostelCode,
-        step: "verify",
-      });
-      const raised = await checkout<
-        PaymentState & { afterPayment: AfterPayment; history: History; invoice: Invoice; reused: boolean }
-      >({
-        cycle,
-        ...(lifetimeOffer ? { lifetime: true } : {}),
-        // None from the footer link: the server renews the plan the hostel is on.
-        planId: plan?.id,
-        step: "invoice",
-        token: verified.token,
-      });
-
-      // So the return page can tell a signed-out owner what happened to their money,
-      // and a reload of this one comes back to the pay step.
-      try {
-        sessionStorage.setItem(CHECKOUT_TOKEN_KEY, verified.token);
-        sessionStorage.setItem(
-          CHECKOUT_STATE_KEY,
-          JSON.stringify({ cycle, planId, reused: raised.reused, token: verified.token } satisfies SavedCheckout),
-        );
-      } catch {
-        // Without it the return page asks them to sign in instead.
-      }
-      applyCheckout(raised, { hostel: verified.hostel, reused: raised.reused, token: verified.token });
+      await openCheckout(
+        await checkout<PaymentState & { hostel: { branches?: number; code: string; name: string }; token: string }>({
+          challengeId,
+          code,
+          hostelCode,
+          step: "verify",
+        }),
+      );
     });
   }
+
+  // From an emailed link: no email form, no code — straight to paying.
+  useEffect(() => {
+    if (!link || resumable) return;
+
+    let live = true;
+
+    checkout<PaymentState & { hostel: { branches?: number; code: string; name: string }; token: string }>({
+      link,
+      step: "link",
+    })
+      .then((verified) => (live ? openCheckout(verified) : undefined))
+      // An expired link lands on the email form, saying why.
+      .catch((caught: unknown) => {
+        if (live) setError(errorText(caught));
+      })
+      .finally(() => {
+        if (live) setLinking(false);
+      });
+
+    return () => {
+      live = false;
+    };
+    // Once per link; `openCheckout` reads the plan and cycle the page opened with.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [link, resumable]);
 
   // Restoring a checkout from this tab: skeletons, never a flash of the email form.
   if (booting) {
@@ -360,7 +399,7 @@ export function PlanCheckoutPage({
           {!invoice
             ? lifetimeOffer && plan
               ? `${plan.name} for life`
-              : "Pay for your hostel"
+              : "Recharge your hostel"
             : reused
               ? `Pay your ${invoice.planName} ${openRow?.paid ? "balance" : "invoice"}`
               : `Get ${invoice.planName}`}

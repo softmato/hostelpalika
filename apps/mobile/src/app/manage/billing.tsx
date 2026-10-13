@@ -363,7 +363,8 @@ function PlanHead({ plan }: { plan: PlanBillingPlan }) {
   const { colors } = useAppTheme();
   const { config } = useSiteConfig();
   const rank = rankOf(config.plans, plan);
-  const status = statusOf(plan.status);
+  // A trial is ACTIVE on the server; on screen it is the trial, not a paid plan.
+  const status = plan.trialEndsAt ? { label: "Trial", tone: "warning" as const } : statusOf(plan.status);
   const detail = [plan.cycleLabel, plan.price ? formatMoney(plan.price) : null]
     .filter(Boolean)
     .join(" · ");
@@ -388,7 +389,7 @@ function PlanHead({ plan }: { plan: PlanBillingPlan }) {
 
         <View className="flex-1">
           <Text numberOfLines={1} variant="subtitle">
-            {plan.planName ?? "No plan chosen"}
+            {plan.planName ?? (plan.trialEndsAt ? "Free trial" : "No plan chosen")}
           </Text>
           {detail ? (
             <Text numberOfLines={1} variant="caption">

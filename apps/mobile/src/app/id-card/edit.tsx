@@ -1044,20 +1044,6 @@ function AddressStep({ control }: { control: FormControl }) {
 
   return (
     <View className="gap-6">
-      <TextField
-        control={control}
-        label="Permanent address"
-        name="permanentAddress"
-        placeholder="Ward 5, Tinkune"
-        required
-      />
-      <TextField
-        control={control}
-        label="City"
-        name="city"
-        placeholder="Kathmandu"
-        required
-      />
       <Select
         error={control.errors.province}
         label="Province *"
@@ -1066,6 +1052,22 @@ function AddressStep({ control }: { control: FormControl }) {
         placeholder="Select"
         value={current || null}
         variant="line"
+      />
+      <TextField control={control} label="District" name="district" placeholder="Kathmandu" />
+      <TextField
+        control={control}
+        label="Metro / Municipality / Rural"
+        name="city"
+        placeholder="Kathmandu Metropolitan"
+        required
+      />
+      <TextField control={control} keyboardType="number-pad" label="Ward no." name="wardNo" placeholder="32" />
+      <TextField
+        control={control}
+        label="Street / Tole / Chowk"
+        name="permanentAddress"
+        placeholder="Tinkune, house no. 12"
+        required
       />
     </View>
   );
@@ -1092,6 +1094,8 @@ function WorkStep({ control }: { control: FormControl }) {
         name="courseOrDesignation"
         placeholder="BSc. Computer Science"
       />
+      <TextField control={control} label="Level of study" name="levelOfStudy" placeholder="+2, Bachelor" />
+      <TextField control={control} label="Class or work time" name="classTime" placeholder="6 AM – 11 AM" />
     </View>
   );
 }
@@ -1113,6 +1117,8 @@ function GuardianStep({ control }: { control: FormControl }) {
     "emergencyContactName",
     "emergencyContactRelation",
     "emergencyContactPhone",
+    "emergencyContactOccupation",
+    "emergencyContactAddress",
   ] as const;
 
   return (
@@ -1154,6 +1160,7 @@ function GuardianStep({ control }: { control: FormControl }) {
           label="Email"
           name="guardianEmail"
         />
+        <TextField control={control} label="Occupation" name="guardianOccupation" />
       </Accordion>
 
       <Accordion
@@ -1180,13 +1187,14 @@ function GuardianStep({ control }: { control: FormControl }) {
           label="Email"
           name="secondGuardianEmail"
         />
+        <TextField control={control} label="Occupation" name="secondGuardianOccupation" />
       </Accordion>
 
       <Accordion
-        caption="Optional — only if someone other than your guardian should be called in an emergency. Left blank, we call your guardian."
+        caption="Optional — someone near the hostel, called first in an emergency. Left blank, we call your guardian."
         defaultOpen={has(...emergency)}
         forceOpen={failing(...emergency)}
-        title="Emergency contact"
+        title="Local guardian"
       >
         <TextField control={control} label="Name" name="emergencyContactName" />
         <TextField
@@ -1200,6 +1208,8 @@ function GuardianStep({ control }: { control: FormControl }) {
           label="Phone"
           name="emergencyContactPhone"
         />
+        <TextField control={control} label="Occupation" name="emergencyContactOccupation" />
+        <TextField control={control} label="Address" name="emergencyContactAddress" />
       </Accordion>
     </View>
   );
@@ -1322,17 +1332,23 @@ function PreferencesStep({
             // A number with no type is a number nobody can check, so it goes with the type.
             if (clearing) {
               set("governmentIdNumber", "");
+              set("governmentIdIssuedOn", "");
+              set("governmentIdIssuedAt", "");
             }
           }}
           options={ID_TYPE_CHIPS}
           value={draft.governmentIdType}
         />
         {draft.governmentIdType ? (
-          <TextField
-            control={control}
-            label="ID number"
-            name="governmentIdNumber"
-          />
+          <>
+            <TextField
+              control={control}
+              label="ID number"
+              name="governmentIdNumber"
+            />
+            <TextField control={control} label="Date of issue" name="governmentIdIssuedOn" placeholder="2078-04-12" />
+            <TextField control={control} label="Place of issue" name="governmentIdIssuedAt" placeholder="DAO Kathmandu" />
+          </>
         ) : null}
       </StepSection>
     </View>
@@ -1523,9 +1539,11 @@ function ReviewStep({
       ["Blood group", draft.bloodGroup === "UNKNOWN" ? "—" : draft.bloodGroup],
     ],
     address: [
-      ["Permanent address", dash(draft.permanentAddress)],
-      ["City", dash(draft.city)],
       ["Province", dash(draft.province)],
+      ["District", dash(draft.district)],
+      ["Municipality", dash(draft.city)],
+      ["Ward no.", dash(draft.wardNo)],
+      ["Street / Tole", dash(draft.permanentAddress)],
     ],
     contact: [
       ["Main phone", dash(draft.primaryPhone)],
@@ -1538,9 +1556,10 @@ function ReviewStep({
       ["Relation", dash(draft.guardianRelation)],
       ["Phone", dash(draft.guardianPhone)],
       ["Email", dash(draft.guardianEmail)],
+      ["Occupation", dash(draft.guardianOccupation)],
       ["Second guardian", dash(draft.secondGuardianName)],
       [
-        "Emergency contact",
+        "Local guardian",
         draft.emergencyContactName.trim() || "Your guardian",
       ],
     ],
@@ -1556,6 +1575,7 @@ function ReviewStep({
           ? `${ID_TYPE_LABELS.get(draft.governmentIdType) ?? ""} ${draft.governmentIdNumber}`.trim()
           : "Not now",
       ],
+      ["Issued", dash([draft.governmentIdIssuedOn, draft.governmentIdIssuedAt].filter(Boolean).join(", "))],
     ],
     signature: [
       [
@@ -1571,6 +1591,8 @@ function ReviewStep({
       ["Occupation", dash(OCCUPATION_LABELS.get(draft.occupation))],
       ["Institution", dash(draft.institution)],
       ["Course or designation", dash(draft.courseOrDesignation)],
+      ["Level of study", dash(draft.levelOfStudy)],
+      ["Class or work time", dash(draft.classTime)],
     ],
   };
 
@@ -1667,7 +1689,7 @@ function TextField({
 }: {
   control: FormControl;
   hint?: string;
-  keyboardType?: "email-address" | "phone-pad";
+  keyboardType?: "email-address" | "number-pad" | "phone-pad";
   label: string;
   multiline?: boolean;
   name: IdentityTextField;

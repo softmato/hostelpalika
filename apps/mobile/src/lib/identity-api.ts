@@ -76,6 +76,16 @@ export type IdCardType = "HOSTEL_OWNER" | "RESIDENT" | "SERVICE_PROVIDER";
  * `occupation`, `dietaryPreference`). Everything else is genuinely optional.
  */
 export type IdentityProfile = {
+  district?: string;
+  wardNo?: string;
+  levelOfStudy?: string;
+  classTime?: string;
+  guardianOccupation?: string;
+  secondGuardianOccupation?: string;
+  emergencyContactAddress?: string;
+  emergencyContactOccupation?: string;
+  governmentIdIssuedOn?: string;
+  governmentIdIssuedAt?: string;
   alternatePhone?: string;
   /** Derived server-side from `dateOfBirth`; not part of the save payload. */
   age?: number | null;

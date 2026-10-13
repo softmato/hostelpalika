@@ -28,6 +28,13 @@ import {
  * and without one they would have no way to reach the button this email is
  * about.
  */
+/** "15 days" for a trial, "3 months" for free months chosen before trials. */
+export function freeSpan(free: { days?: number | null; months: number }) {
+  return free.days
+    ? `${free.days} ${free.days === 1 ? "day" : "days"}`
+    : `${free.months} ${free.months === 1 ? "month" : "months"}`;
+}
+
 export function hostelVerifiedEmail(input: {
   /**
    * A way to sign in, for an owner who registered without an account and so
@@ -38,7 +45,7 @@ export function hostelVerifiedEmail(input: {
    * The plan went live on its free months at verification: nothing to pay
    * until `until`. Replaces the "pay for it" wording.
    */
-  free?: { months: number; supportPhone?: string; until: string } | null;
+  free?: { days?: number | null; months: number; supportPhone?: string; until: string } | null;
   hostelName: string;
   ownerName?: string;
   /** A public registration: the hostel portal opens with the payment, not before. */
@@ -62,7 +69,7 @@ export function hostelVerifiedEmail(input: {
         input.free
           ? [
               paragraph(
-                `Your hostel is online now on <strong>${escapeHtml(input.selectedPlanName ?? "your plan")}</strong>, free for ${input.free.months} ${input.free.months === 1 ? "month" : "months"} — until ${escapeHtml(input.free.until)}. There is nothing to pay until then.`,
+                `Your hostel is online now on <strong>${escapeHtml(input.selectedPlanName ?? "your plan")}</strong>, free for ${freeSpan(input.free)} — until ${escapeHtml(input.free.until)}. There is nothing to pay until then.`,
               ),
               paragraph(
                 `After that, recharge this hostel yourself from Billing in your dashboard on the website${input.free.supportPhone ? `, or call us on ${escapeHtml(input.free.supportPhone)}` : ""}.`,

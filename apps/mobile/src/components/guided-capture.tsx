@@ -45,9 +45,17 @@ import { APP_NAME } from "@/constants/branding";
  * is taken, on the Use this button.
  */
 
-export type GuideShape = "face" | "signature";
+export type GuideShape = "document" | "face" | "signature";
 
 const GUIDES = {
+  /** A citizenship card or ID — the credit-card ratio, back camera. */
+  document: {
+    aspectRatio: 1.586,
+    facing: "back" as const,
+    hint: "Fit the whole document inside the frame, flat and in good light.",
+    inset: 0.05,
+    title: "Photograph the document",
+  },
   face: {
     /** Square: the card crops it to a circle, and a circle inside a square is safe. */
     aspectRatio: 1,
