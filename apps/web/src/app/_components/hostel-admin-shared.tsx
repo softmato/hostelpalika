@@ -1,6 +1,7 @@
 "use client";
 
-import { type LucideIcon } from "lucide-react";
+import { type IconComponent } from "@/components/icons";
+import { PageHero } from "@/components/page-hero";
 import type { ReactNode } from "react";
 
 export type LoadState = "idle" | "loading" | "ready" | "error";
@@ -175,21 +176,8 @@ export function PageHeader({
 }: {
   action?: ReactNode;
   description: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   title: string;
 }) {
-  return (
-    <div className="flex flex-wrap items-start justify-between gap-4">
-      <div className="flex items-start gap-3">
-        <span className="rounded-lg bg-role-admin-soft p-3 text-role-admin">
-          <Icon className="size-5" />
-        </span>
-        <div>
-          <h1 className="font-heading text-3xl font-bold text-foreground">{title}</h1>
-          <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{description}</p>
-        </div>
-      </div>
-      {action}
-    </div>
-  );
+  return <PageHero actions={action} description={description} icon={Icon} title={title} />;
 }

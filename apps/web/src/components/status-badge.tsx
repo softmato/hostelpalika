@@ -21,7 +21,7 @@ const toneClassName = {
   admin: "bg-role-admin-soft text-role-admin dark:bg-role-admin-soft/50",
   danger: "bg-red-50 text-danger ring-red-200 dark:bg-red-950/40 dark:ring-red-900",
   guardian: "bg-role-guardian-soft text-role-guardian dark:bg-role-guardian-soft/60",
-  info: "bg-cyan-50 text-cyan-700 ring-cyan-200 dark:bg-cyan-950/40 dark:text-cyan-300 dark:ring-cyan-900",
+  info: "bg-muted text-foreground ring-border",
   neutral:
     "bg-slate-100 text-muted-foreground ring-slate-200 dark:bg-slate-800 dark:ring-slate-700",
   platform: "bg-role-platform-soft text-role-platform dark:bg-role-platform-soft/50",

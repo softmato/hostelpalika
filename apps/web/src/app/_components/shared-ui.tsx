@@ -1,6 +1,7 @@
 "use client";
 
-import { RefreshCw } from "lucide-react";
+import { Glyph } from "@/components/glyph";
+import { RefreshCw } from "@/components/icons";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
@@ -196,10 +197,14 @@ export function LoadingRows() {
   );
 }
 
+/** Nothing here yet: one mark and one line, no box. */
 export function EmptyState({ label }: { label: string }) {
   return (
-    <div className="rounded-lg border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-      {label}
+    <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
+      <span className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+        <Glyph className="size-[22px]" name="inbox" />
+      </span>
+      <p className="max-w-xs text-sm font-medium text-muted-foreground">{label}</p>
     </div>
   );
 }

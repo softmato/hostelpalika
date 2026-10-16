@@ -1,11 +1,12 @@
 "use client";
 
 import type { KeyboardEvent } from "react";
-import type { LucideIcon } from "lucide-react";
-import { ChevronDown, Star, TrendingDown, TrendingUp, X } from "lucide-react";
+import type { IconComponent } from "@/components/icons";
+import { ChevronDown, Star, TrendingDown, TrendingUp, X } from "@/components/icons";
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
+import { PageHero } from "@/components/page-hero";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,18 +48,24 @@ export type SoftTone =
   | "purple"
   | "teal";
 
+/*
+ * Green, black and white (2026-10-16). Amber and rose keep their colours because
+ * they mean "needs attention" and "wrong"; green and teal are the brand; blue,
+ * cyan and purple only ever told two neutral states apart, so they are neutral.
+ */
+const BRAND_SOFT = "border-role-team/20 bg-role-team-soft text-role-team";
+const NEUTRAL_SOFT = "border-border bg-muted text-foreground";
+
 const softToneClasses: Record<SoftTone, string> = {
   amber:
     "border-amber-200/80 bg-amber-50 text-amber-700 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300",
-  blue: "border-blue-200/80 bg-blue-50 text-blue-700 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300",
-  cyan: "border-cyan-200/80 bg-cyan-50 text-cyan-700 dark:border-cyan-900 dark:bg-cyan-950/40 dark:text-cyan-300",
-  green:
-    "border-emerald-200/80 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300",
-  purple:
-    "border-violet-200/80 bg-violet-50 text-violet-700 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-300",
+  blue: NEUTRAL_SOFT,
+  cyan: NEUTRAL_SOFT,
+  green: BRAND_SOFT,
+  purple: NEUTRAL_SOFT,
   rose: "border-rose-200/80 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300",
   slate: "border-border bg-muted text-muted-foreground",
-  teal: "border-role-platform/25 bg-role-platform-soft text-role-platform",
+  teal: BRAND_SOFT,
 };
 
 const roleLinkClasses: Record<PortalTone, string> = {
@@ -123,10 +130,11 @@ export function PortalPageHeader({
   title: string;
 }) {
   return (
-    <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between">
-      <div className="min-w-0 space-y-0.5">
-        {breadcrumb && breadcrumb.length > 0 ? (
-          <p className="text-[11px] font-medium text-muted-foreground">
+    <PageHero
+      actions={actions}
+      breadcrumb={
+        breadcrumb && breadcrumb.length > 0 ? (
+          <p className="truncate text-[11px] font-medium text-muted-foreground">
             {breadcrumb.map((item, index) => {
               const href = breadcrumbHref(item);
               const isLast = index === breadcrumb.length - 1;
@@ -149,41 +157,37 @@ export function PortalPageHeader({
               );
             })}
           </p>
-        ) : null}
-        <h1 className="font-heading text-lg font-bold tracking-tight text-foreground md:text-xl">
-          {title}
-        </h1>
-        {description ? (
-          <p className="max-w-2xl text-[12.5px] text-muted-foreground">{description}</p>
-        ) : null}
-      </div>
-      {actions ? (
-        <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
-      ) : null}
-    </div>
+        ) : undefined
+      }
+      description={description}
+      title={title}
+    />
   );
 }
 
 const noteToneClasses: Record<SoftTone, string> = {
   amber: "text-amber-600",
-  blue: "text-blue-600",
-  cyan: "text-cyan-600",
-  green: "text-emerald-600",
-  purple: "text-violet-600",
+  blue: "text-muted-foreground",
+  cyan: "text-muted-foreground",
+  green: "text-role-team",
+  purple: "text-muted-foreground",
   rose: "text-rose-600",
   slate: "text-muted-foreground",
-  teal: "text-role-platform",
+  teal: "text-role-team",
 };
+
+/* A stat tile's mark is decoration, so every non-warning tone is the brand. */
+const BRAND_ICON = "bg-role-team-soft text-role-team";
 
 const iconToneClasses: Record<SoftTone, string> = {
   amber: "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400",
-  blue: "bg-blue-50 text-blue-600 dark:bg-blue-950/40 dark:text-blue-400",
-  cyan: "bg-cyan-50 text-cyan-600 dark:bg-cyan-950/40 dark:text-cyan-400",
-  green: "bg-emerald-50 text-emerald-600 dark:bg-emerald-950/40 dark:text-emerald-400",
-  purple: "bg-violet-50 text-violet-600 dark:bg-violet-950/40 dark:text-violet-400",
+  blue: BRAND_ICON,
+  cyan: BRAND_ICON,
+  green: BRAND_ICON,
+  purple: BRAND_ICON,
   rose: "bg-rose-50 text-rose-600 dark:bg-rose-950/40 dark:text-rose-400",
-  slate: "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
-  teal: "bg-role-platform-soft text-role-platform",
+  slate: "bg-muted text-muted-foreground",
+  teal: BRAND_ICON,
 };
 
 /**
@@ -207,7 +211,7 @@ export function MetricCard({
   value,
 }: {
   active?: boolean;
-  icon: LucideIcon;
+  icon: IconComponent;
   label: string;
   note?: string;
   noteTone?: SoftTone;
@@ -220,9 +224,9 @@ export function MetricCard({
   return (
     <Card
       className={cn(
-        "shadow-sm ring-border/60",
-        onClick && "cursor-pointer transition hover:ring-2 hover:ring-role-admin/40",
-        active && "ring-2 ring-role-admin",
+        "rounded-2xl shadow-none ring-border/50 transition duration-200",
+        onClick && "cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:ring-role-team/40 active:translate-y-0",
+        active && "ring-2 ring-role-team",
       )}
       {...(onClick
         ? {
@@ -241,25 +245,27 @@ export function MetricCard({
       size="sm"
     >
       <CardContent>
-        <div className="flex items-start gap-2.5">
+        <div className="flex items-center gap-3">
           <span
             className={cn(
-              "flex size-9 shrink-0 items-center justify-center rounded-lg",
+              "flex size-10 shrink-0 items-center justify-center rounded-full",
               iconToneClasses[tone],
             )}
           >
-            <Icon className="size-[17px]" />
+            <Icon className="size-[18px]" />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
-            <p className="mt-0.5 truncate text-[19px] font-bold leading-tight tracking-tight text-foreground">
+            <p className="truncate text-[20px] font-bold leading-tight tracking-tight text-foreground">
               {value}
+            </p>
+            <p className="truncate text-[10.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              {label}
             </p>
             {trend ? (
               <p
                 className={cn(
                   "mt-1 inline-flex items-center gap-1 text-[10.5px] font-semibold",
-                  trendDown ? "text-rose-600" : "text-emerald-600",
+                  trendDown ? "text-rose-600" : "text-role-team",
                 )}
               >
                 {trendDown ? (
@@ -295,7 +301,7 @@ export function SectionCard({
   title,
 }: {
   actions?: ReactNode;
-  icon?: LucideIcon;
+  icon?: IconComponent;
   children: ReactNode;
   className?: string;
   description?: string;

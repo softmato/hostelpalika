@@ -68,14 +68,27 @@
   --success: #16a34a;
   --brand-teal: #0a8a4b;
   --brand-teal-soft: rgba(10, 138, 75, 0.1);
-  --role-platform: #0d9488;
-  --role-platform-soft: #ccfbf1;
-  --role-admin: #0891b2;
-  --role-admin-soft: #ecfeff;
-  --role-resident: #16a34a;
-  --role-resident-soft: #dcfce7;
-  --role-guardian: #d97706;
-  --role-guardian-soft: #fffbeb;
+  /*
+   * Every portal wears the product green: black, white and #0a8a4b, nothing
+   * else (2026-10-16). The per-role tokens stay so call sites keep their
+   * meaning, but they all resolve to the brand. Warning and destructive still
+   * carry their own colours because those mean something.
+   */
+  --role-platform: #0a8a4b;
+  --role-platform-soft: #e7f4ec;
+  --role-admin: #0a8a4b;
+  --role-admin-soft: #e7f4ec;
+  --role-resident: #0a8a4b;
+  --role-resident-soft: #e7f4ec;
+  --role-guardian: #0a8a4b;
+  --role-guardian-soft: #e7f4ec;
+  /*
+   * The page header block (`PortalPageHeader`): near-black with a green glow,
+   * the FoneBiz-style hero. Defined only here, not under `.dark`, because the
+   * block wears `.dark` itself to re-theme its buttons and must keep this ground.
+   */
+  --hero: #0f1512;
+  --hero-glow: rgba(18, 169, 93, 0.24);
   /*
    * The field team's tone. An agent works for the platform, but the desk is the
    * one portal an outsider is walked through on a phone in a hostel lobby, and
@@ -87,7 +100,7 @@
    * because it only ever carries text and icons.
    */
   --role-team: #0a8a4b;
-  --role-team-soft: #dcfce7;
+  --role-team-soft: #e7f4ec;
   /*
    * A field's own ground.
    *
@@ -139,6 +152,8 @@
   --color-success: var(--success);
   --color-brand-teal: var(--brand-teal);
   --color-brand-teal-soft: var(--brand-teal-soft);
+  --color-hero: var(--hero);
+  --color-hero-glow: var(--hero-glow);
   --color-role-platform: var(--role-platform);
   --color-role-platform-soft: var(--role-platform-soft);
   --color-role-admin: var(--role-admin);
@@ -240,16 +255,16 @@ body {
   --success: #16a34a;
   --brand-teal: #0a8a4b;
   --brand-teal-soft: rgba(10, 138, 75, 0.18);
-  --role-platform: #2dd4bf;
-  --role-platform-soft: #134e4a;
-  --role-admin: #22d3ee;
-  --role-admin-soft: #164e63;
-  --role-resident: #c4b5fd;
-  --role-resident-soft: #312e81;
-  --role-guardian: #fbbf24;
-  --role-guardian-soft: #451a03;
-  --role-team: #34d399;
-  --role-team-soft: #14532d;
+  --role-platform: #12a95d;
+  --role-platform-soft: #10301f;
+  --role-admin: #12a95d;
+  --role-admin-soft: #10301f;
+  --role-resident: #12a95d;
+  --role-resident-soft: #10301f;
+  --role-guardian: #12a95d;
+  --role-guardian-soft: #10301f;
+  --role-team: #12a95d;
+  --role-team-soft: #10301f;
   --field: oklch(0.262 0.007 56.043);
   --chart-1: oklch(0.432 0.095 166.913);
   --chart-2: oklch(0.274 0.006 286.033);
@@ -573,6 +588,34 @@ body {
   .animate-step-out,
   .animate-marker-settle,
   .animate-rail-grow {
+    animation: none;
+  }
+}
+
+/*
+ * A portal page arriving: a short fade up, the FoneBiz cross-fade. It runs on
+ * every navigation because the shell keys the content by pathname. It is
+ * opacity and a few pixels only, so a list never jumps under the cursor.
+ */
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@layer utilities {
+  .animate-page-in {
+    animation: page-in 240ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-page-in {
     animation: none;
   }
 }

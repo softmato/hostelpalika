@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, Coins, Upload } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Coins, Upload } from "@/components/icons";
 import { memo, useCallback, useRef, useState } from "react";
 
 import { currency, EmptyState, LoadingRows, Select } from "@/app/_components/shared-ui";
@@ -534,12 +534,12 @@ export const HostelAdminReconcilePageContent = memo(
 
             {/* Bucket 3 — money nobody claimed. */}
             {view.buckets.orphans.length > 0 ? (
-              <div className="rounded-lg border border-sky-500/40 bg-sky-500/10 p-4">
-                <p className="flex items-center gap-2 font-semibold text-sky-900 dark:text-sky-300">
+              <div className="rounded-lg border border-border bg-muted/60 p-4">
+                <p className="flex items-center gap-2 font-semibold text-foreground">
                   <Coins aria-hidden="true" className="size-4" />
                   {view.buckets.orphans.length} payment
                   {view.buckets.orphans.length === 1 ? "" : "s"} nobody claimed
-                  <span className="rounded bg-sky-500/20 px-2 py-0.5 text-xs uppercase">
+                  <span className="rounded bg-foreground px-2 py-0.5 text-xs uppercase text-background">
                     Needs you
                   </span>
                 </p>

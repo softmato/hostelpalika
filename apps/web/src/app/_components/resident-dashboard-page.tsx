@@ -14,7 +14,7 @@ import {
   Star,
   Utensils,
   WalletCards,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { memo } from "react";
 
@@ -36,13 +36,8 @@ import {
   ViewAllLink,
 } from "./portal-dashboard-ui";
 
-const quickActionTones = [
-  "bg-emerald-50 text-emerald-600",
-  "bg-violet-50 text-violet-600",
-  "bg-rose-50 text-rose-600",
-  "bg-orange-50 text-orange-600",
-  "bg-amber-50 text-amber-600",
-];
+// One tint for every tile: the portal is green, black and white.
+const quickActionTone = "bg-role-team-soft text-role-team";
 
 export const ResidentDashboardPageContent = memo(function ResidentDashboardPageContent() {
   const dashboardResource = usePortalResource<{ dashboard: ResidentDashboard }>(
@@ -249,7 +244,7 @@ export const ResidentDashboardPageContent = memo(function ResidentDashboardPageC
                     },
                     { href: "/resident/sos", icon: Siren, label: "SOS" },
                     { href: "/resident/reviews", icon: Star, label: "Reviews" },
-                  ].map((item, index) => {
+                  ].map((item) => {
                     const Icon = item.icon;
                     return (
                       <Link
@@ -258,7 +253,7 @@ export const ResidentDashboardPageContent = memo(function ResidentDashboardPageC
                         key={item.href}
                       >
                         <span
-                          className={`flex size-10 items-center justify-center rounded-xl ${quickActionTones[index % quickActionTones.length]}`}
+                          className={`flex size-10 items-center justify-center rounded-xl ${quickActionTone}`}
                         >
                           <Icon className="size-4" />
                         </span>

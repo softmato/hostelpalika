@@ -7,7 +7,7 @@ import {
   MapPin,
   Phone,
   Wrench,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -49,8 +49,8 @@ const STATUS_TONES: Record<string, string> = {
   CANCELLED: "bg-muted text-muted-foreground",
   COMPLETED: "bg-brand-teal/10 text-brand-teal",
   CONTACTED: "bg-amber-500/10 text-amber-600",
-  PENDING: "bg-sky-500/10 text-sky-600",
-  SCHEDULED: "bg-violet-500/10 text-violet-600",
+  PENDING: "bg-muted text-foreground",
+  SCHEDULED: "bg-foreground text-background",
 };
 
 const PRIORITY_TONES: Record<string, string> = {

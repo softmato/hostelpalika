@@ -1,6 +1,7 @@
 "use client";
 
-import { type LucideIcon } from "lucide-react";
+import { type IconComponent } from "@/components/icons";
+import { PageHero } from "@/components/page-hero";
 
 import { currency, EmptyState, Panel, StatusBadge } from "@/app/_components/shared-ui";
 
@@ -191,20 +192,10 @@ export function PageHeader({
   title,
 }: {
   description: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   title: string;
 }) {
-  return (
-    <div className="flex items-start gap-3">
-      <span className="rounded-lg bg-muted p-3 text-foreground">
-        <Icon className="size-5" />
-      </span>
-      <div>
-        <h1 className="font-heading text-3xl font-bold text-foreground">{title}</h1>
-        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{description}</p>
-      </div>
-    </div>
-  );
+  return <PageHero description={description} icon={Icon} title={title} />;
 }
 
 export function ReportGrid({ report }: { report: ReportRecord | null }) {

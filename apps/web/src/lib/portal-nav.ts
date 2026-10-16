@@ -59,9 +59,13 @@ export type PortalNavItem = PortalNavLeaf & {
 };
 
 export type PortalNavGroup = {
+  /** The group's mark in the two-tier rail. Defaults to its first item's icon. */
+  icon?: PortalIconName;
   items: PortalNavItem[];
   /** Small uppercase section heading; omit for an unlabelled first block. */
   label?: string;
+  /** The rail's one-word name when `label` is too long to sit under an icon. */
+  short?: string;
 };
 
 export type PortalSearchEntry = {
@@ -91,6 +95,7 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
         label: "Dashboard",
       },
     ],
+    icon: "dashboard",
     label: "Overview",
   },
   {
@@ -162,6 +167,7 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
         label: "Sponsors",
       },
     ],
+    icon: "building",
     label: "Hostels",
   },
   {
@@ -220,6 +226,7 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
         label: "Team",
       },
     ],
+    icon: "users",
     label: "People",
   },
   {
@@ -320,6 +327,7 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
         label: "Referral settings",
       },
     ],
+    icon: "card",
     label: "Finance",
   },
   {
@@ -341,6 +349,7 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
         label: "Complaints",
       },
     ],
+    icon: "shield",
     label: "Moderation",
   },
   {
@@ -453,6 +462,8 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
         label: "Feature Flags",
       },
     ],
+    icon: "globe",
+    short: "Website",
     label: "Website Config",
   },
   {
@@ -521,6 +532,7 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
         label: "Settings",
       },
     ],
+    icon: "settings",
     label: "System",
   },
 ];
@@ -611,6 +623,7 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         label: "Move-In / Move-Out",
       },
     ],
+    icon: "users",
     label: "Residents",
   },
   {
@@ -712,6 +725,7 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         label: "Fees & Payments",
       },
     ],
+    icon: "card",
     label: "Finance",
   },
   {
@@ -799,6 +813,7 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         label: "Community Reports",
       },
     ],
+    icon: "clipboard",
     label: "Operations",
   },
   {
@@ -864,6 +879,8 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         label: "Settings",
       },
     ],
+    icon: "chart",
+    short: "Growth",
     label: "Growth & System",
   },
 ];

@@ -1,47 +1,5 @@
 "use client";
 
-import {
-  Activity,
-  BedDouble,
-  Bell,
-  Building2,
-  CalendarDays,
-  Camera,
-  ChartNoAxesColumn,
-  ChevronDown,
-  ClipboardList,
-  CreditCard,
-  Flag,
-  FileText,
-  Gift,
-  Globe,
-  HelpCircle,
-  LayoutDashboard,
-  LayoutTemplate,
-  Lock,
-  MapPin,
-  Megaphone,
-  Menu,
-  MessageSquare,
-  Moon,
-  PanelLeftClose,
-  PanelLeftOpen,
-  QrCode,
-  ReceiptText,
-  ScrollText,
-  Settings,
-  ShieldCheck,
-  Siren,
-  Sparkles,
-  Star,
-  Tag,
-  ToggleLeft,
-  UserRound,
-  Users,
-  Utensils,
-  Wrench,
-  type LucideIcon,
-} from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
@@ -53,6 +11,7 @@ import {
 } from "@/components/hostel-suspension-gate";
 import { BrandMark } from "@/components/brand-mark";
 import { GetAppDialog } from "@/components/get-app-dialog";
+import { Glyph, type GlyphName } from "@/components/glyph";
 import {
   isKycFrozenPortalPath,
   KycFrozenPage,
@@ -63,6 +22,7 @@ import {
 } from "@/components/kyc-gate";
 import { NotificationBell } from "@/components/notification-bell";
 import { PortalAccount } from "@/components/portal-account";
+import { PortalPageIconProvider } from "@/components/portal-page-context";
 import { PortalSearch, revealField } from "@/components/portal-search";
 import { RealtimeProvider } from "@/components/realtime-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -96,48 +56,44 @@ type PortalShellProps = {
   workspaceSwitcher?: ReactNode;
 };
 
-const iconMap: Record<PortalIconName, LucideIcon> = {
-  activity: Activity,
-  bed: BedDouble,
-  bell: Bell,
-  building: Building2,
-  calendar: CalendarDays,
-  camera: Camera,
-  card: CreditCard,
-  chart: ChartNoAxesColumn,
-  clipboard: ClipboardList,
-  dashboard: LayoutDashboard,
-  file: FileText,
-  flag: Flag,
-  food: Utensils,
-  gift: Gift,
-  globe: Globe,
-  help: HelpCircle,
-  layout: LayoutTemplate,
-  map: MapPin,
-  megaphone: Megaphone,
-  message: MessageSquare,
-  moon: Moon,
-  qr: QrCode,
-  receipt: ReceiptText,
-  scroll: ScrollText,
-  settings: Settings,
-  shield: ShieldCheck,
-  siren: Siren,
-  sparkles: Sparkles,
-  star: Star,
-  tag: Tag,
-  toggle: ToggleLeft,
-  user: UserRound,
-  users: Users,
-  wrench: Wrench,
+/** The nav's icon vocabulary, drawn with our own glyphs (`glyphs.ts`). */
+const iconMap: Record<PortalIconName, GlyphName> = {
+  activity: "pulse",
+  bed: "bed",
+  bell: "notifications",
+  building: "business",
+  calendar: "calendar",
+  camera: "camera",
+  card: "card",
+  chart: "stats-chart",
+  clipboard: "clipboard",
+  dashboard: "grid",
+  file: "document-text",
+  flag: "flag",
+  food: "restaurant",
+  gift: "gift",
+  globe: "globe",
+  help: "help-circle",
+  layout: "dashboard",
+  map: "location",
+  megaphone: "megaphone",
+  message: "chatbox",
+  moon: "moon",
+  qr: "qr-code",
+  receipt: "receipt",
+  scroll: "reader",
+  settings: "settings",
+  shield: "shield-checkmark",
+  siren: "siren",
+  sparkles: "sparkles",
+  star: "star",
+  tag: "pricetag",
+  toggle: "toggle",
+  user: "person",
+  users: "people",
+  wrench: "build",
 };
 
-/**
- * Where each portal's bell points. Platform admins deliberately have no
- * notifications surface of their own (see MEMORY.md), so they land on the
- * audit log, which is the equivalent feed for that role.
- */
 /**
  * Where each portal's bell sends "View all".
  *
@@ -157,98 +113,22 @@ const NOTIFICATIONS_HREF: Record<PortalTone, string> = {
   team: "/platform/inbox",
 };
 
-const TEAM_TONE = {
-  active: "bg-brand-teal text-white shadow-sm",
-  badge: "border-role-team/25 bg-role-team-soft text-role-team",
-  brand: "text-role-team",
-  brandSoft: "bg-brand-teal",
-  hover: "hover:bg-role-team-soft/70 hover:text-role-team",
-  ring: "ring-role-team/20",
-  softBg: "bg-role-team-soft",
-  text: "text-role-team",
-};
+/*
+ * Every portal wears the same green, black and white (2026-10-16), so there is
+ * one row style rather than a table per tone. `role-team` is the green that
+ * carries text: #0a8a4b in light, #12a95d in dark (`globals.css`).
+ */
+const ROW_IDLE = "text-slate-600 hover:bg-muted hover:text-foreground dark:text-slate-300";
+const ROW_ACTIVE =
+  "bg-role-team-soft font-semibold text-foreground before:absolute before:inset-y-1.5 before:-left-2 before:w-[3px] before:rounded-full before:bg-role-team";
 
-const toneStyles: Record<
-  PortalTone,
-  {
-    active: string;
-    badge: string;
-    brand: string;
-    brandSoft: string;
-    hover: string;
-    /** Idle row text; defaults to the slate every other portal uses. */
-    navText?: string;
-    ring: string;
-    softBg: string;
-    text: string;
-  }
-> = {
-  admin: {
-    active: "bg-role-admin text-white shadow-sm",
-    badge: "border-role-admin/20 bg-role-admin-soft text-role-admin",
-    brand: "text-role-admin",
-    brandSoft: "bg-role-admin",
-    hover: "hover:bg-role-admin-soft/70 hover:text-role-admin",
-    ring: "ring-role-admin/20",
-    softBg: "bg-role-admin-soft",
-    text: "text-role-admin",
-  },
-  guardian: {
-    active: "bg-role-guardian text-white shadow-sm",
-    badge: "border-role-guardian/20 bg-role-guardian-soft text-role-guardian",
-    brand: "text-role-guardian",
-    brandSoft: "bg-role-guardian",
-    hover: "hover:bg-role-guardian-soft/70 hover:text-role-guardian",
-    ring: "ring-role-guardian/20",
-    softBg: "bg-role-guardian-soft",
-    text: "text-role-guardian",
-  },
-  /*
-   * The owner's sidebar is plain dark text: no teal on hover, active or open
-   * parents — a grey wash and weight mark where you are. `navText` replaces the
-   * slate the other portals use for idle rows.
-   */
-  platform: {
-    active: "bg-muted font-semibold text-foreground",
-    badge: "border-role-platform/20 bg-role-platform-soft text-role-platform",
-    brand: "text-brand-teal",
-    brandSoft: "bg-brand-teal",
-    hover: "hover:bg-muted hover:text-foreground",
-    navText: "text-foreground",
-    ring: "ring-role-platform/20",
-    softBg: "bg-muted",
-    text: "text-foreground",
-  },
-  resident: {
-    active: "bg-role-resident text-white shadow-sm",
-    badge: "border-role-resident/20 bg-role-resident-soft text-role-resident",
-    brand: "text-role-resident",
-    brandSoft: "bg-role-resident",
-    hover: "hover:bg-role-resident-soft/70 hover:text-role-resident",
-    ring: "ring-role-resident/20",
-    softBg: "bg-role-resident-soft",
-    text: "text-role-resident",
-  },
-  /*
-   * The field desk wears the product's own green.
-   *
-   * It used to borrow the platform teal on the grounds that an agent works for
-   * the platform. That reasoning holds for who they are and not for who is
-   * looking: the desk is the one portal an owner is walked through in person,
-   * on the agent's phone, minutes before they see the green brand everywhere
-   * else — so the sidebar matching the product is worth more here than the
-   * internal hierarchy the teal was expressing.
-   *
-   * The active pill paints `--brand-teal` (#0a8a4b in both themes, 4.9:1 under
-   * white) rather than `--role-team`, which goes bright in dark mode because it
-   * only ever carries text and icons. Painting the pill with the bright value
-   * would have put white on #34d399 at 1.8:1.
-   */
-  team: TEAM_TONE,
-  // The cook and provider apps wear the product green too.
-  cook: TEAM_TONE,
-  provider: TEAM_TONE,
-};
+/**
+ * Past this many destinations the sidebar splits into two tiers: a rail of
+ * sections and a panel with the chosen section's pages. Platform (35) and the
+ * hostel admin (34) split; resident (17) and the small portals stay one list,
+ * where a rail would only add a click.
+ */
+const TWO_TIER_AFTER = 20;
 
 type PlanState = {
   outstanding: number;
@@ -282,6 +162,15 @@ function planLine(state: NonNullable<PlanState>) {
   }
 
   return status === "PENDING_SELECTION" ? "Choose a plan" : "Not active yet";
+}
+
+function groupIcon(group: PortalNavGroup): GlyphName {
+  return iconMap[group.icon ?? group.items[0]?.icon ?? "dashboard"];
+}
+
+/** The unlabelled first block is the portal's home. */
+function groupName(group: PortalNavGroup, index: number) {
+  return group.short ?? group.label ?? (index === 0 ? "Home" : "More");
 }
 
 /**
@@ -323,7 +212,6 @@ export function PortalShell({
   const { identity } = useSiteConfig();
   // Admin-configured branding wins; the prop is only an explicit override.
   const portalName = portalNameProp ?? identity.siteName;
-  const styles = toneStyles[tone];
   const cleanHeader = tone === "admin" || tone === "resident";
   // Only the hostel workspace buys a plan; the card reads the real subscription.
   const planResource = usePortalResource<{ state: PlanState }>(
@@ -340,17 +228,21 @@ export function PortalShell({
   const [navPathname, setNavPathname] = useState(pathname);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  // A rail section opened to look inside, before anything in it is chosen.
+  const [peekGroup, setPeekGroup] = useState<number | null>(null);
   const isDesktop = useSyncExternalStore(
     subscribeToDesktopBreakpoint,
     getIsDesktopSnapshot,
     getIsDesktopServerSnapshot,
   );
 
-  // Close the mobile nav on navigation (state reset during render, per
-  // react.dev "adjusting state when props change" — avoids an effect).
+  // Close the mobile nav and drop any peeked section on navigation (state reset
+  // during render, per react.dev "adjusting state when props change" — avoids
+  // an effect).
   if (navPathname !== pathname) {
     setNavPathname(pathname);
     setMobileNavOpen(false);
+    setPeekGroup(null);
   }
 
   function handleNavToggle() {
@@ -382,6 +274,32 @@ export function PortalShell({
     }, null);
   }, [navGroups, pathname]);
 
+  const destinations = navGroups.reduce(
+    (count, group) => count + group.items.reduce((n, item) => n + 1 + (item.children?.length ?? 0), 0),
+    0,
+  );
+  const twoTier = destinations > TWO_TIER_AFTER;
+  const activeGroupIndex = navGroups.findIndex((group) =>
+    group.items.some(
+      (item) => item.href === activeHref || (item.children ?? []).some((child) => child.href === activeHref),
+    ),
+  );
+  const shownGroupIndex = peekGroup ?? Math.max(activeGroupIndex, 0);
+  const shownGroup = navGroups[shownGroupIndex];
+
+  // The page header wears its nav row's glyph (`PortalPageHeader`).
+  const pageIcon = useMemo<GlyphName | null>(() => {
+    for (const group of navGroups) {
+      for (const item of group.items) {
+        if (item.href === activeHref) return item.icon ? iconMap[item.icon] : null;
+        const child = (item.children ?? []).find((leaf) => leaf.href === activeHref);
+        if (child) return iconMap[child.icon ?? item.icon ?? "dashboard"];
+      }
+    }
+
+    return null;
+  }, [activeHref, navGroups]);
+
   function isActiveHref(href: string) {
     return href === activeHref;
   }
@@ -390,8 +308,8 @@ export function PortalShell({
     return (item.children ?? []).some((child) => isActiveHref(child.href));
   }
 
-  const roleLabel = subtitle;
   const sidebarSubtitle = workspaceName ?? subtitle;
+  const supportHref = identity.supportEmail ? `mailto:${identity.supportEmail}` : "/contact";
 
   function renderLeaf({
     child = false,
@@ -404,7 +322,6 @@ export function PortalShell({
     item: PortalNavLeaf;
     onNavigate?: () => void;
   }) {
-    const Icon = iconMap[item.icon ?? "dashboard"];
     // In the collapsed rail the children are not rendered, so the parent has to
     // carry their highlight or nothing in the sidebar looks active at all.
     const isActive = isActiveHref(item.href) || hasActiveChild(item);
@@ -412,13 +329,12 @@ export function PortalShell({
 
     return (
       <Link
+        aria-current={isActiveHref(item.href) ? "page" : undefined}
         className={cn(
-          "flex min-h-0 items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12.5px] font-medium transition-colors",
+          "relative flex min-h-0 items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12.5px] font-medium transition-colors duration-150",
           frozen && "opacity-60",
-          styles.navText ?? "text-slate-600 dark:text-slate-300",
-          styles.hover,
-          isActive && styles.active,
-          collapsed && "justify-center px-0",
+          isActive ? ROW_ACTIVE : ROW_IDLE,
+          collapsed && "justify-center px-0 before:hidden",
           child && !collapsed && "py-1.5 pl-8 text-[12px]",
         )}
         href={item.href}
@@ -431,21 +347,21 @@ export function PortalShell({
         title={collapsed ? item.label : undefined}
       >
         {child ? null : (
-          <Icon className="size-[15px] shrink-0" strokeWidth={isActive ? 2.3 : 1.9} />
+          <Glyph
+            className={cn("size-[16px] shrink-0", isActive && "text-role-team")}
+            name={iconMap[item.icon ?? "dashboard"]}
+            variant={isActive ? "solid" : "line"}
+          />
         )}
         {collapsed ? null : (
           <>
             <span className="truncate">{item.label}</span>
-            {frozen ? <Lock aria-label="Locked until KYC is approved" className="ml-auto size-3 shrink-0" /> : null}
+            {frozen ? <Glyph aria-label="Locked until KYC is approved" className="ml-auto size-3 shrink-0" name="lock-closed" /> : null}
             {item.badge && item.badge > 0 ? (
               <Badge
                 className={cn(
-                  "ml-auto h-[18px] min-w-[18px] rounded-full px-1.5 text-[10px] font-bold",
-                  isActive
-                    ? styles.navText
-                      ? "border-transparent bg-foreground text-background"
-                      : "border-white/20 bg-white/20 text-white"
-                    : "border-transparent bg-role-resident text-white",
+                  "ml-auto h-[18px] min-w-[18px] rounded-full border-transparent px-1.5 text-[10px] font-bold",
+                  isActive ? "bg-foreground text-background" : "bg-brand-teal text-white",
                 )}
               >
                 {item.badge}
@@ -466,49 +382,66 @@ export function PortalShell({
       return renderLeaf({ collapsed, item, onNavigate });
     }
 
-    const Icon = iconMap[item.icon ?? "dashboard"];
     const childActive = hasActiveChild(item);
     const isOpen = expanded[item.label] ?? childActive;
 
     return (
       <div key={item.label}>
         <button
+          aria-expanded={isOpen}
           className={cn(
-            "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12.5px] font-medium transition-colors",
-            styles.navText ?? "text-slate-600 dark:text-slate-300",
-            styles.hover,
-            childActive && cn(styles.softBg, styles.text, "font-semibold"),
+            "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12.5px] font-medium transition-colors duration-150",
+            ROW_IDLE,
+            childActive && "font-semibold text-foreground",
           )}
           onClick={() =>
             setExpanded((current) => ({ ...current, [item.label]: !isOpen }))
           }
           type="button"
         >
-          <Icon className="size-[15px] shrink-0" strokeWidth={childActive ? 2.3 : 1.9} />
+          <Glyph
+            className={cn("size-[16px] shrink-0", childActive && "text-role-team")}
+            name={iconMap[item.icon ?? "dashboard"]}
+            variant={childActive ? "solid" : "line"}
+          />
           <span className="truncate">{item.label}</span>
-          <ChevronDown
-            className={cn(
-              "ml-auto size-3.5 shrink-0 transition-transform",
-              isOpen && "rotate-180",
-            )}
+          <Glyph
+            className={cn("ml-auto size-3.5 shrink-0 transition-transform duration-200", isOpen && "rotate-180")}
+            name="chevron-down"
           />
         </button>
 
-        {isOpen ? (
-          <div className="relative mt-0.5 space-y-0.5">
-            <span className="absolute bottom-1 left-[18px] top-1 w-px bg-border" />
-            {children.map((child) =>
-              renderLeaf({ child: true, item: child, onNavigate }),
-            )}
+        {/* Grid-rows 0fr → 1fr: the accordion opens to its own height. */}
+        <div
+          className={cn(
+            "grid transition-[grid-template-rows] duration-200 ease-out",
+            isOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+          )}
+        >
+          <div className="overflow-hidden" inert={!isOpen}>
+            <div className="relative mt-0.5 space-y-0.5">
+              <span className="absolute bottom-1 left-[18px] top-1 w-px bg-border" />
+              {children.map((child) =>
+                renderLeaf({ child: true, item: child, onNavigate }),
+              )}
+            </div>
           </div>
-        ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  function renderGroupItems(group: PortalNavGroup, collapsed = false, onNavigate?: () => void) {
+    return (
+      <div className="space-y-0.5">
+        {group.items.map((item) => renderItem(item, collapsed, onNavigate))}
       </div>
     );
   }
 
   function renderNav(onNavigate?: () => void, collapsed = false) {
     return (
-      <nav className="flex flex-col gap-2.5 px-2 py-2.5">
+      <nav className="flex flex-col gap-3 px-2 py-2.5">
         {navGroups.map((group, groupIndex) => (
           <div key={group.label ?? `group-${groupIndex}`}>
             {group.label && !collapsed ? (
@@ -519,11 +452,72 @@ export function PortalShell({
             {group.label && collapsed && groupIndex > 0 ? (
               <div className="mx-auto mb-2 h-px w-7 bg-border" />
             ) : null}
-            <div className="space-y-0.5">
-              {group.items.map((item) => renderItem(item, collapsed, onNavigate))}
-            </div>
+            {renderGroupItems(group, collapsed, onNavigate)}
           </div>
         ))}
+      </nav>
+    );
+  }
+
+  /**
+   * The first tier: one tile per section. A section with a single page is a
+   * link; any other opens its pages in the panel without navigating, so the
+   * rail can be browsed.
+   */
+  function renderRail() {
+    return (
+      <nav aria-label="Sections" className="flex flex-col items-center gap-1 px-2 py-2">
+        {navGroups.map((group, index) => {
+          const active = index === activeGroupIndex;
+          const shown = index === shownGroupIndex && !sidebarCollapsed;
+          const only = group.items.length === 1 && !(group.items[0].children?.length ?? 0) ? group.items[0] : null;
+          const className = cn(
+            "group/rail flex w-full flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] font-medium transition-colors duration-150",
+            active ? "text-role-team" : "text-slate-500 hover:text-foreground dark:text-slate-400",
+          );
+          const body = (
+            <>
+              <span
+                className={cn(
+                  "flex size-9 items-center justify-center rounded-xl transition-all duration-200",
+                  active ? "bg-role-team-soft" : shown ? "bg-muted text-foreground" : "group-hover/rail:bg-muted",
+                  "group-active/rail:scale-95",
+                )}
+              >
+                <Glyph className="size-[18px]" name={groupIcon(group)} variant={active ? "solid" : "line"} />
+              </span>
+              <span className="max-w-full truncate px-0.5">{groupName(group, index)}</span>
+            </>
+          );
+
+          return only ? (
+            <Link
+              aria-current={active ? "page" : undefined}
+              className={className}
+              href={only.href}
+              key={only.href}
+              onFocus={() => prefetchHref(only.href)}
+              onMouseEnter={() => prefetchHref(only.href)}
+              title={only.label}
+            >
+              {body}
+            </Link>
+          ) : (
+            <button
+              aria-expanded={shown}
+              className={className}
+              key={group.label ?? `group-${index}`}
+              onClick={() => {
+                setPeekGroup(index);
+                setSidebarCollapsed(false);
+              }}
+              title={group.label}
+              type="button"
+            >
+              {body}
+            </button>
+          );
+        })}
       </nav>
     );
   }
@@ -539,7 +533,7 @@ export function PortalShell({
     const owing = plan.outstanding > 0;
 
     return (
-      <div className="border-t border-slate-100 p-2 dark:border-border">
+      <div className="border-t border-border/70 p-2">
         <Link
           className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition hover:bg-muted"
           href="/hostel-admin/billing"
@@ -551,7 +545,7 @@ export function PortalShell({
             )}
           />
           <span className="min-w-0 flex-1 leading-tight">
-            <span className={cn("block truncate text-[12px] font-bold", styles.text)}>
+            <span className="block truncate text-[12px] font-bold text-foreground">
               {plan.subscription.planName ?? "No plan"}
             </span>
             <span className={cn("block truncate text-[10px]", owing ? "text-warning" : "text-muted-foreground")}>
@@ -573,15 +567,10 @@ export function PortalShell({
         <BrandMark adaptive className="h-7" />
         {collapsed ? null : (
           <div className="min-w-0 leading-tight">
-            <p
-              className={cn(
-                "font-heading text-[15px] font-bold tracking-tight",
-                styles.brand,
-              )}
-            >
+            <p className="font-heading text-[15px] font-bold tracking-tight text-foreground">
               {portalName}
             </p>
-            <p className="truncate text-[10.5px] font-medium text-slate-500 dark:text-muted-foreground">
+            <p className="truncate text-[10.5px] font-medium text-muted-foreground">
               {sidebarSubtitle}
             </p>
           </div>
@@ -590,25 +579,70 @@ export function PortalShell({
     );
   }
 
+  const headerHeight = cleanHeader ? "h-16" : "h-14";
+
   return (
     /* One socket per portal tab, opened here rather than in the root layout so
        the public pages never attempt an authenticated subscription. Everything
        inside — the bell and every panel's cached queries — updates from it. */
     <RealtimeProvider>
-    {/* Viewport-height frame: the brand rail, top bar, and copyright bar stay
-        put while only the nav list and the content pane scroll. */}
+    {/* Viewport-height frame: the sidebar and top bar stay put while only the
+        nav list and the content pane scroll. */}
     <div
-      className="relative flex h-dvh flex-col overflow-hidden bg-[#f4f7fb] text-foreground dark:bg-background"
+      className="relative flex h-dvh overflow-hidden bg-muted/60 text-foreground dark:bg-background"
       inert={suspended}
     >
-      <div className="flex min-h-0 flex-1">
+      {twoTier ? (
+        <>
+          <aside className="z-20 hidden w-[76px] shrink-0 flex-col items-center border-r border-border/70 bg-background md:flex dark:bg-card">
+            <Link className={cn("flex shrink-0 items-center justify-center", headerHeight)} href="/" title={portalName}>
+              <BrandMark adaptive className="h-7" />
+            </Link>
+            <div className="no-scrollbar min-h-0 w-full flex-1 overflow-y-auto">{renderRail()}</div>
+            {tone === "platform" ? null : (
+              <a
+                className="mb-3 flex size-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-muted hover:text-foreground dark:text-slate-400"
+                href={supportHref}
+                title="Help & support"
+              >
+                <Glyph className="size-[18px]" name="help-circle" />
+              </a>
+            )}
+          </aside>
+
+          {/* The second tier slides shut instead of shrinking to icons: the
+              rail already is the icon view. */}
+          <aside
+            className={cn(
+              "hidden shrink-0 overflow-hidden border-r border-border/70 bg-background transition-[width] duration-300 ease-out md:block dark:bg-card",
+              sidebarCollapsed ? "w-0 border-r-0" : "w-[220px]",
+            )}
+          >
+            <div className="flex h-full w-[220px] flex-col">
+              <div className={cn("flex shrink-0 flex-col justify-center border-b border-border/70 px-4", headerHeight)}>
+                <p className="truncate font-heading text-[15px] font-bold tracking-tight">
+                  {shownGroup?.label ?? portalName}
+                </p>
+                <p className="truncate text-[10.5px] font-medium text-muted-foreground">{sidebarSubtitle}</p>
+              </div>
+              <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
+                {/* Keyed by section, so switching sections fades the list in. */}
+                <nav className="animate-page-in px-2 py-2.5" key={shownGroupIndex}>
+                  {shownGroup ? renderGroupItems(shownGroup) : null}
+                </nav>
+              </div>
+              <div className="shrink-0">{renderSidebarFooter()}</div>
+            </div>
+          </aside>
+        </>
+      ) : (
         <aside
           className={cn(
-            "hidden shrink-0 flex-col border-r border-slate-200/80 bg-white transition-[width] duration-200 md:flex dark:border-border dark:bg-card",
+            "hidden shrink-0 flex-col border-r border-border/70 bg-background transition-[width] duration-300 ease-out md:flex dark:bg-card",
             sidebarCollapsed ? "w-[68px]" : "w-[236px]",
           )}
         >
-          <div className="shrink-0 border-b border-slate-100 px-3 py-2.5 dark:border-border">
+          <div className={cn("flex shrink-0 items-center border-b border-border/70 px-3", headerHeight)}>
             {renderBrand(sidebarCollapsed)}
           </div>
 
@@ -616,148 +650,133 @@ export function PortalShell({
             {renderNav(undefined, sidebarCollapsed)}
           </div>
 
-          <div className="shrink-0">{renderSidebarFooter(sidebarCollapsed)}</div>
-        </aside>
-
-        <Sheet onOpenChange={setMobileNavOpen} open={mobileNavOpen}>
-          <SheetContent
-            className="flex w-[264px] flex-col gap-0 p-0 sm:max-w-[264px]"
-            side="left"
-          >
-            <SheetHeader className="shrink-0 border-b border-slate-100 px-3 py-3 dark:border-border">
-              <SheetTitle className="sr-only">Navigation</SheetTitle>
-              {renderBrand()}
-            </SheetHeader>
-            <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
-              {renderNav(() => setMobileNavOpen(false))}
-            </div>
-            <div className="shrink-0">{renderSidebarFooter()}</div>
-          </SheetContent>
-        </Sheet>
-
-        <div className="flex min-w-0 flex-1 flex-col">
-          <header className="relative z-30 shrink-0 border-b border-slate-200/80 bg-white/95 backdrop-blur dark:border-border dark:bg-card/95">
-            <div className={cn("flex items-center px-3 md:px-5", cleanHeader ? "h-16 gap-3 md:gap-4" : "h-14 gap-2.5")}>
-              <Button
-                aria-label={
-                  isDesktop
-                    ? sidebarCollapsed
-                      ? "Expand navigation"
-                      : "Collapse navigation"
-                    : "Open navigation"
-                }
-                className="size-8 rounded-lg border-slate-200 bg-white text-slate-600 shadow-sm md:inline-flex"
-                onClick={handleNavToggle}
-                size="icon"
-                type="button"
-                variant="outline"
-              >
-                {isDesktop ? (
-                  sidebarCollapsed ? (
-                    <PanelLeftOpen className="size-4" />
-                  ) : (
-                    <PanelLeftClose className="size-4" />
-                  )
-                ) : (
-                  <Menu className="size-4" />
-                )}
-              </Button>
-
-              <PortalSearch
-                className="hidden max-w-xl md:block"
-                entries={searchEntries}
-                placeholder={searchPlaceholder}
-                tone={tone}
-              />
-
-              <div className="ml-auto flex items-center gap-1.5 md:gap-2">
-                {workspaceSwitcher ? (
-                  <div className="min-w-0 max-w-[45vw] md:max-w-none">{workspaceSwitcher}</div>
-                ) : null}
-                {/* The community is one platform-wide room at `/community`, not
-                    a per-portal feed — so it lives in every header instead of
-                    four sidebars. The field desk is the exception: an agent is
-                    registering somebody else's hostel, often with that owner
-                    watching the screen, and a room full of residents and
-                    wardens is not a door to leave open in the middle of it. */}
-                {tone === "team" || cleanHeader ? null : (
-                  <Link
-                    className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[12.5px] font-medium text-slate-600 transition-colors hover:bg-muted hover:text-foreground dark:text-slate-300"
-                    href="/community"
-                  >
-                    <Users className="size-4" />
-                    <span className="hidden sm:inline">Community</span>
-                  </Link>
-                )}
-
-                {tone === "team" || tone === "platform" || cleanHeader ? null : (
-                  <GetAppDialog className="px-2.5 py-1.5 text-[12.5px]" />
-                )}
-
-                {cleanHeader ? null : <ThemeToggle className="hidden size-8 sm:inline-flex" />}
-
-                <div className={cn("flex shrink-0 items-center", cleanHeader && "mx-1 border-x border-border px-2 md:px-3")}>
-                  <NotificationBell href={NOTIFICATIONS_HREF[tone] ?? "/notifications"} />
-                </div>
-
-                {cleanHeader ? null : <Badge
-                  className={cn(
-                    "hidden h-auto items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold sm:inline-flex",
-                    styles.badge,
-                  )}
-                  variant="outline"
-                >
-                  {roleLabel}
-                </Badge>}
-
-                <PortalAccount tone={tone} showPortalActions={cleanHeader} />
-              </div>
-            </div>
-
-            <div className="border-t border-slate-100 px-3 py-2 md:hidden dark:border-border">
-              <PortalSearch
-                entries={searchEntries}
-                placeholder={searchPlaceholder}
-                tone={tone}
-              />
-            </div>
-          </header>
-
-          {/* `relative` makes this the containing block for absolute children
-              (every `sr-only` file input). Without it they are placed against
-              the page instead, and a long form stretches the document with
-              blank space below the shell. */}
-          <main className="no-scrollbar relative min-h-0 flex-1 overflow-y-auto px-3.5 py-4 md:px-5 md:py-4">
-            {suspension && !suspended && tone === "admin" ? (
-              <HostelSuspensionNotice suspension={suspension} />
-            ) : null}
-            {kycLocked && isKycFrozenPortalPath(pathname) ? <KycFrozenPage /> : children}
-            <TrialWelcomeDialog tone={tone} />
-          </main>
-        </div>
-      </div>
-
-      <footer className="shrink-0 border-t border-slate-200/80 bg-white px-4 py-2 text-[11px] text-slate-500 dark:border-border dark:bg-card dark:text-muted-foreground md:px-5">
-        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 {portalName} Platform. All rights reserved.</p>
-          <div className="flex items-center gap-4">
-            {/* Support moved out of the sidebar card — same entry point, but it
-                sits beside the credit instead of eating nav space. */}
-            {tone !== "platform" && (
+          <div className="shrink-0">
+            {tone === "platform" ? null : (
               <a
-                className="inline-flex items-center gap-1 font-medium text-slate-600 hover:text-foreground dark:text-muted-foreground"
-                href={identity.supportEmail ? `mailto:${identity.supportEmail}` : "/contact"}
+                className={cn(
+                  "mx-2 mb-1 flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12.5px] font-medium",
+                  ROW_IDLE,
+                  sidebarCollapsed && "justify-center px-0",
+                )}
+                href={supportHref}
+                title="Help & support"
               >
-                <HelpCircle className="size-3" />
-                Help &amp; Support
+                <Glyph className="size-[16px] shrink-0" name="help-circle" />
+                {sidebarCollapsed ? null : <span>Help</span>}
               </a>
             )}
-            <p>
-              Made with <span className="text-rose-500">♥</span> in Nepal 🇳🇵
-            </p>
+            {renderSidebarFooter(sidebarCollapsed)}
           </div>
-        </div>
-      </footer>
+        </aside>
+      )}
+
+      <Sheet onOpenChange={setMobileNavOpen} open={mobileNavOpen}>
+        <SheetContent
+          className="flex w-[264px] flex-col gap-0 p-0 sm:max-w-[264px]"
+          side="left"
+        >
+          <SheetHeader className="shrink-0 border-b border-border/70 px-3 py-3">
+            <SheetTitle className="sr-only">Navigation</SheetTitle>
+            {renderBrand()}
+          </SheetHeader>
+          <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
+            {renderNav(() => setMobileNavOpen(false))}
+          </div>
+          <div className="shrink-0">{renderSidebarFooter()}</div>
+        </SheetContent>
+      </Sheet>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <header className="relative z-30 shrink-0 border-b border-border/70 bg-background/90 backdrop-blur dark:bg-card/90">
+          <div className={cn("flex items-center px-3 md:px-5", headerHeight, cleanHeader ? "gap-3 md:gap-4" : "gap-2.5")}>
+            <Button
+              aria-label={
+                isDesktop
+                  ? sidebarCollapsed
+                    ? "Expand navigation"
+                    : "Collapse navigation"
+                  : "Open navigation"
+              }
+              className="size-8 rounded-lg text-slate-600 dark:text-slate-300"
+              onClick={handleNavToggle}
+              size="icon"
+              type="button"
+              variant="ghost"
+            >
+              <Glyph
+                className="size-[18px]"
+                name={isDesktop ? (sidebarCollapsed ? "panel-open" : "panel-close") : "menu"}
+              />
+            </Button>
+
+            <PortalSearch
+              className="hidden max-w-xl md:block"
+              entries={searchEntries}
+              placeholder={searchPlaceholder}
+              tone={tone}
+            />
+
+            <div className="ml-auto flex items-center gap-1.5 md:gap-2">
+              {workspaceSwitcher ? (
+                <div className="min-w-0 max-w-[45vw] md:max-w-none">{workspaceSwitcher}</div>
+              ) : null}
+              {/* The community is one platform-wide room at `/community`, not
+                  a per-portal feed — so it lives in every header instead of
+                  four sidebars. The field desk is the exception: an agent is
+                  registering somebody else's hostel, often with that owner
+                  watching the screen, and a room full of residents and
+                  wardens is not a door to leave open in the middle of it. */}
+              {tone === "team" || cleanHeader ? null : (
+                <Link
+                  aria-label="Community"
+                  className="inline-flex size-8 items-center justify-center rounded-lg text-slate-600 transition-colors hover:bg-muted hover:text-foreground dark:text-slate-300"
+                  href="/community"
+                  title="Community"
+                >
+                  <Glyph className="size-[18px]" name="chatbubbles" />
+                </Link>
+              )}
+
+              {tone === "team" || tone === "platform" || cleanHeader ? null : (
+                <GetAppDialog className="px-2.5 py-1.5 text-[12.5px]" />
+              )}
+
+              {cleanHeader ? null : <ThemeToggle className="hidden size-8 sm:inline-flex" />}
+
+              <div className={cn("flex shrink-0 items-center", cleanHeader && "mx-1 border-x border-border px-2 md:px-3")}>
+                <NotificationBell href={NOTIFICATIONS_HREF[tone] ?? "/notifications"} />
+              </div>
+
+              <PortalAccount tone={tone} showPortalActions={cleanHeader} />
+            </div>
+          </div>
+
+          <div className="border-t border-border/70 px-3 py-2 md:hidden">
+            <PortalSearch
+              entries={searchEntries}
+              placeholder={searchPlaceholder}
+              tone={tone}
+            />
+          </div>
+        </header>
+
+        {/* `relative` makes this the containing block for absolute children
+            (every `sr-only` file input). Without it they are placed against
+            the page instead, and a long form stretches the document with
+            blank space below the shell. */}
+        <main className="no-scrollbar relative min-h-0 flex-1 overflow-y-auto px-3.5 py-4 md:px-6 md:py-5">
+          {suspension && !suspended && tone === "admin" ? (
+            <HostelSuspensionNotice suspension={suspension} />
+          ) : null}
+          <PortalPageIconProvider value={pageIcon}>
+            {/* Keyed by path, so every navigation fades the new page in. */}
+            <div className="animate-page-in" key={pathname}>
+              {kycLocked && isKycFrozenPortalPath(pathname) ? <KycFrozenPage /> : children}
+            </div>
+          </PortalPageIconProvider>
+          <TrialWelcomeDialog tone={tone} />
+        </main>
+      </div>
     </div>
     {suspension && suspended ? (
       <HostelSuspendedScreen suspension={suspension} tone={tone} />

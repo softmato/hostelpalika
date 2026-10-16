@@ -55,16 +55,38 @@ Key tokens as built:
   --brand-teal: #0a8a4b;                   /* the brand green */
   --brand-teal-soft: rgba(10, 138, 75, 0.1);
 
-  /* Per-portal accent, so a screenshot tells you which portal you're in */
-  --role-platform: #0d9488;   --role-platform-soft: #ccfbf1;
-  --role-admin:    #0891b2;   --role-admin-soft:    #ecfeff;
-  --role-resident: #16a34a;   --role-resident-soft: #dcfce7;
-  --role-guardian: #d97706;   --role-guardian-soft: #fffbeb;
+  /* Every portal is green, black and white (2026-10-16): the role tokens all
+     resolve to the brand green (#12a95d in dark). They stay as names so call
+     sites keep saying which portal they belong to. */
+  --role-platform | --role-admin | --role-resident | --role-guardian | --role-team: #0a8a4b;
+  --role-*-soft: #e7f4ec;
+
+  /* The page header block (PageHero) */
+  --hero: #0f1512;   --hero-glow: rgba(18, 169, 93, 0.24);
 }
 ```
 
 Use the **role tokens** for portal chrome and the **brand token** for shared
-product surfaces. Never reach for a raw hex in a component.
+product surfaces. Never reach for a raw hex in a component. No portal gets an
+accent of its own: blue, cyan, purple and teal are not ours. Amber and red stay
+only where they mean warning or wrong.
+
+### Portal shell (web)
+
+- **Two tiers past 20 destinations** (platform and hostel admin). A rail of
+  sections (icon tile plus a one-word name) sits beside a panel with the chosen
+  section's pages. Clicking a section opens its pages without navigating. A
+  section with a single page is a plain link. The panel slides shut, and the
+  rail is the icon view. Smaller portals keep one list.
+- The **active row** is a green-tinted row with a 3px green bar on its edge,
+  and its glyph turns solid. There is no filled colour pill.
+- The **page header** is `PageHero`: a near-black block with a green glow, the
+  page's glyph in a glass tile, the title, one clamped line and actions. Its
+  glyph comes from the page's own sidebar row.
+- **Stat tiles** are an icon in a tinted circle, the number, and a small
+  uppercase label. **Empty states** are one mark and one line, with no dashed
+  box.
+- No footer bar. Help sits at the bottom of the sidebar.
 
 ### Status color mapping (use consistently everywhere)
 
@@ -99,18 +121,30 @@ Tailwind's default scale (4px base unit).
 
 ### Icons
 
-`lucide-react` exclusively. Common ones to standardize early:
-- `MapPin` (location)
-- `Utensils` (food)
-- `ShieldCheck` (verification)
-- `AlertTriangle` (SOS/emergency)
-- `Wrench` (maintenance)
-- `Users` (residents)
-- `Receipt` (payments)
-- `Bell` (notifications)
-- `QrCode` (QR activation)
-- `Home` (hostel/room)
-- `Bed` (bed status)
+**Our own set, one for web and app:** `packages/shared/src/constants/glyphs.ts`.
+No lucide, no Ionicons. Lint blocks both imports.
+
+- **Line** is every icon. It sits on a 24×24 grid with a 3px margin, a 1.6
+  stroke, round caps and joins, and no fills.
+- **Solid** is the selected or active state only: the focused tab, a selected
+  tile, a ticked box, a starred rating. It is fill-only with `evenodd`
+  cut-outs. An icon with no solid drawing falls back to its line, drawn
+  heavier.
+- Colour comes from a theme token (`currentColor` on web), never a hex, so one
+  drawing serves both themes.
+- Render with `<Glyph name="…" variant="line|solid" />`. That is
+  `apps/web/src/components/glyph.tsx` on web and
+  `apps/mobile/src/components/ui/glyph.tsx` in the app. On web,
+  `@/components/icons` also exports the old lucide names, for code that passes
+  icons around as components.
+- Names follow the Ionicons base names (`home`, `people`, `receipt`,
+  `shield-checkmark`, `location`, `restaurant`, `build`, `warning`,
+  `notifications`, `qr-code`, `bed`).
+- To add an icon, draw it in `glyphs.ts`. Then check it beside the rest with
+  `node --experimental-strip-types packages/shared/scripts/glyph-sheet.ts`,
+  which renders `docs/mockups/icons/glyph-sheet.png`.
+- Brand marks are not ours to redraw in our style. The Google button uses
+  Google's own four-colour G.
 
 ---
 
@@ -148,7 +182,7 @@ States:
 - Selected (for comparison - highlighted border)
 
 ### VerificationBadge
-Small, consistent badge component (`ShieldCheck` icon + label) used anywhere a hostel appears.
+Small, consistent badge component (`shield-checkmark` glyph + label) used anywhere a hostel appears.
 
 States:
 - Verified (green bg, "Verified" text)
@@ -332,13 +366,20 @@ Use Tailwind defaults:
 
 **Use sparingly:**
 - Subtle transitions on hover (shadow, border color) — 150ms duration
-- Modal/dialog fade-in — 200ms
+- **Page arrival** — the portal shell fades each new page up 6px over 240ms
+  (`.animate-page-in`, keyed by pathname). Switching sidebar sections fades the
+  panel list the same way.
+- Modal/dialog — fade and zoom from 95% over 200ms, on a dimmed, blurred backdrop
+- Accordions open to their own height (grid rows 0fr → 1fr), 200ms
+- Clickable stat tiles lift 2px on hover
 - Status badge changes (e.g., payment verified) — subtle scale pulse once, 300ms
+- Every animation sits behind `prefers-reduced-motion`
 
 **Don't animate:**
-- Large page transitions
-- List item additions/removals (just appear/disappear)
+- Sliding whole pages sideways (arrival is a fade, not travel)
 - Data loading (use skeleton, not spinner animation)
+
+The app's motion vocabulary is tracked in `docs/MOTION_AND_ICONS.md` (Track M).
 
 **SOS alert exception:**
 - SOS status badge pulses continuously (red glow) to draw attention
@@ -362,7 +403,7 @@ Use Tailwind defaults:
 
 **Don't:**
 - Build a custom date picker, custom dropdown, or custom modal — shadcn/ui already has these
-- Introduce a second icon set alongside lucide-react
+- Import an icon library (lucide, Ionicons, any other). Draw the glyph in `glyphs.ts`
 - Use absolute positioning for layout (use Flexbox/Grid)
 - Hardcode colors (use Tailwind tokens)
 - Mix font families (one variable font for the entire app)
