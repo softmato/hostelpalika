@@ -1,6 +1,7 @@
 "use client";
 
 import { type IconComponent } from "@/components/icons";
+import { PageHero } from "@/components/page-hero";
 
 import { currency, EmptyState, Panel } from "@/app/_components/shared-ui";
 
@@ -90,17 +91,7 @@ function PageHeader({
   icon: IconComponent;
   title: string;
 }) {
-  return (
-    <div className="flex items-start gap-3">
-      <span className="rounded-lg bg-muted p-3 text-foreground">
-        <Icon className="size-5" />
-      </span>
-      <div>
-        <h1 className="font-heading text-3xl font-bold text-foreground">{title}</h1>
-        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{description}</p>
-      </div>
-    </div>
-  );
+  return <PageHero description={description} icon={Icon} title={title} />;
 }
 
 function isCountMap(value: unknown): value is Record<string, number> {

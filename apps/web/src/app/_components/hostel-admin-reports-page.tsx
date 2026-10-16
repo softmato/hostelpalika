@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { BarChart3 } from "@/components/icons";
+import { AlertTriangle, BarChart3, BedDouble, Percent, Wallet } from "@/components/icons";
 import { EmptyState, LoadingRows, Panel, StatusBadge } from "@/app/_components/shared-ui";
 import { downloadFile } from "@/lib/downloads/downloader";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
@@ -138,7 +138,7 @@ export const HostelAdminReportsPageContent = React.memo(
       return (
         <div className="mx-auto max-w-[1448px] space-y-6">
           <PageHeader
-            description="Every service in the hostel, reported from its live records."
+            description="Every service in the hostel, from its live records."
             icon={BarChart3}
             title="Reports"
           />
@@ -153,7 +153,7 @@ export const HostelAdminReportsPageContent = React.memo(
       return (
         <div className="mx-auto max-w-[1448px] space-y-6">
           <PageHeader
-            description="Every service in the hostel, reported from its live records."
+            description="Every service in the hostel, from its live records."
             icon={BarChart3}
             title="Reports"
           />
@@ -181,7 +181,7 @@ export const HostelAdminReportsPageContent = React.memo(
       <div className="mx-auto max-w-[1448px] space-y-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <PageHeader
-            description="Every service in the hostel, reported from its live records — payments, complaints, maintenance, food, occupancy and growth."
+            description="Every service in the hostel, from its live records."
             icon={BarChart3}
             title="Reports"
           />
@@ -237,24 +237,28 @@ export const HostelAdminReportsPageContent = React.memo(
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <StatTile
             hint={`${occupancy.occupiedBeds} of ${occupancy.totalBeds} beds filled`}
+            icon={BedDouble}
             label="Occupancy"
             tone={rateTone(occupancy.occupancyRate)}
             value={`${occupancy.occupancyRate}%`}
           />
           <StatTile
             hint={`${money(payments.totalPaid)} collected of ${money(payments.totalDue)} billed`}
+            icon={Percent}
             label="Collection rate"
             tone={rateTone(payments.collectionRate)}
             value={`${payments.collectionRate}%`}
           />
           <StatTile
             hint={`${payments.pendingProofs} payment proof(s) awaiting review`}
+            icon={Wallet}
             label="Outstanding dues"
             tone={payments.outstanding > 0 ? "warn" : "good"}
             value={money(payments.outstanding)}
           />
           <StatTile
             hint={`${complaints.open} complaints and ${maintenance.open} repairs open`}
+            icon={AlertTriangle}
             label="Open issues"
             tone={complaints.slaBreached > 0 ? "bad" : "default"}
             value={complaints.open + maintenance.open}

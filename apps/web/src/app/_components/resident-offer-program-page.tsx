@@ -161,7 +161,7 @@ export const ResidentOfferProgramPageContent = React.memo(
     return (
       <div className="mx-auto max-w-[900px] space-y-6">
         <PageHeader
-          description="Pay with your reference code. Every verified payment is certified here, and each quarter HostelPalika gives offers to certified residents."
+          description="Certified payments and this quarter's offers."
           icon={Sparkles}
           title="Resident Offer Program"
         />

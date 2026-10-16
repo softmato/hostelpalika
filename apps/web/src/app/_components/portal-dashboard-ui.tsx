@@ -191,6 +191,9 @@ const iconToneClasses: Record<SoftTone, string> = {
 };
 
 /**
+ * `icon` is optional for figures inside a section, where a row of marks would
+ * be noise; a page's own stat row gives every tile one.
+ *
  * `onClick` turns the card into a filter for whatever it counts.
  *
  * Optional, because most metric cards are readouts and nothing more — a card
@@ -211,7 +214,7 @@ export function MetricCard({
   value,
 }: {
   active?: boolean;
-  icon: IconComponent;
+  icon?: IconComponent;
   label: string;
   note?: string;
   noteTone?: SoftTone;
@@ -246,14 +249,16 @@ export function MetricCard({
     >
       <CardContent>
         <div className="flex items-center gap-3">
-          <span
-            className={cn(
-              "flex size-10 shrink-0 items-center justify-center rounded-full",
-              iconToneClasses[tone],
-            )}
-          >
-            <Icon className="size-[18px]" />
-          </span>
+          {Icon ? (
+            <span
+              className={cn(
+                "flex size-10 shrink-0 items-center justify-center rounded-full",
+                iconToneClasses[tone],
+              )}
+            >
+              <Icon className="size-[18px]" />
+            </span>
+          ) : null}
           <div className="min-w-0 flex-1">
             <p className="truncate text-[20px] font-bold leading-tight tracking-tight text-foreground">
               {value}

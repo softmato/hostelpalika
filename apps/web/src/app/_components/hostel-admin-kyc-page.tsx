@@ -25,6 +25,7 @@ import { useRouter } from "next/navigation";
 import { memo, useEffect, useRef, useState, type ReactNode } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";
+import { PortalPageHeader } from "@/app/_components/portal-dashboard-ui";
 import { StepFlow } from "@/app/_components/registration-step-shell";
 import { facilityOptions } from "@/app/_components/registration-fields";
 import {
@@ -192,10 +193,14 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
 
   const setupLinks = <div className="mb-4 flex flex-wrap gap-3 rounded-xl border border-border p-3 text-sm font-semibold text-brand-teal"><Link href={workspaceHref("/hostel-admin/rooms")}>Room types & attached bathrooms</Link><Link href={workspaceHref("/hostel-admin/fee-schedule")}>Rent & form fees</Link></div>;
 
+  const header = <PortalPageHeader description={`${kyc.percent}% done`} title="Hostel KYC" />;
+
   const reviewBar = kyc.review ? <KycReviewBar onSubmitted={() => void resource.refreshAsync()} review={kyc.review} /> : null;
 
   if (showFinish) {
     return (
+      <div className="space-y-4">
+        {header}
       <div className="mx-auto max-w-xl">
         {reviewBar}
         {setupLinks}
@@ -207,9 +212,9 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
           ) : (
             <Ring percent={kyc.percent} size={140} />
           )}
-          <h1 className="text-2xl font-bold text-foreground">
+          <h2 className="text-2xl font-bold text-foreground">
             {kyc.percent >= 100 ? "KYC complete" : `${kyc.percent}% done`}
-          </h1>
+          </h2>
           <p className="text-muted-foreground">
             {kyc.percent >= 100 ? "Every feature is unlocked" : "Finish the rest anytime"}
           </p>
@@ -230,12 +235,15 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
           </div>
         </StepFlow>
       </div>
+      </div>
     );
   }
 
   const Icon = step.done ? Check : meta.icon;
 
   return (
+    <div className="space-y-4">
+      {header}
     <div className="mx-auto max-w-xl space-y-4">
       {reviewBar}
       {setupLinks}
@@ -245,7 +253,7 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
         </div>
         <div className="min-w-0 flex-1 space-y-2">
           <p className="font-bold">
-            Hostel KYC · Step {current + 1} of {steps.length}
+            Step {current + 1} of {steps.length}
           </p>
           <div className="flex gap-1.5">
             {steps.map((item, at) => (
@@ -269,7 +277,7 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
           <span className="flex size-16 items-center justify-center rounded-3xl bg-brand-teal/10 text-brand-teal">
             <Icon className="size-8" strokeWidth={step.done ? 3 : 2} />
           </span>
-          <h1 className="text-xl font-bold text-foreground">{meta.title}</h1>
+          <h2 className="text-xl font-bold text-foreground">{meta.title}</h2>
           <p className="text-sm text-muted-foreground">{step.done ? "Done" : meta.hint}</p>
         </div>
 
@@ -308,6 +316,7 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
           {step.done ? "Next" : "Skip"}
         </button>
       </div>
+    </div>
     </div>
   );
 });

@@ -631,7 +631,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
     return (
       <div className="mx-auto max-w-[1100px] space-y-6">
         <PageHeader
-          description="The one place a rent is set. Your public listing is written from this card, and every invoice is computed from the card that was open on its billing date."
+          description="The one place a rent is set."
           icon={Coins}
           title="Fee Schedule"
         />

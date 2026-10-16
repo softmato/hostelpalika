@@ -9,7 +9,6 @@ import {
   Building2,
   DoorOpen,
   FileText,
-  MapPin,
   Phone,
   ShieldCheck,
   Utensils,
@@ -17,7 +16,7 @@ import {
 import type { ReactNode } from "react";
 import type { getBranchDetails } from "@/modules/hostels/hostel-branch.service";
 import { usePortalResource } from "@/lib/portal-query";
-import { SectionCard, SoftBadge } from "./portal-dashboard-ui";
+import { MetricCard, PortalPageHeader, SectionCard, SoftBadge } from "./portal-dashboard-ui";
 
 type Details = Awaited<ReturnType<typeof getBranchDetails>>;
 const money = (value?: number) =>
@@ -74,28 +73,9 @@ export function HostelBranchDetailPage({ branchId }: { branchId: string }) {
       ) : null}
       {hostel && data ? (
         <>
-          <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div className="flex min-w-0 items-start gap-4">
-                <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-brand-teal/10 text-brand-teal">
-                  <Building2 className="size-7" strokeWidth={1.6} />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {hostel.parentHostelId
-                      ? `Branch of ${data.main.name}`
-                      : "Main hostel"}
-                  </p>
-                  <h1 className="mt-1 text-2xl font-bold">{hostel.name}</h1>
-                  <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <MapPin className="size-4 shrink-0" />
-                    {[hostel.location?.area, hostel.location?.city]
-                      .filter(Boolean)
-                      .join(", ")}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap items-center gap-3">
+          <PortalPageHeader
+            actions={
+              <>
                 <SoftBadge
                   tone={
                     hostel.status === "PUBLISHED"
@@ -115,30 +95,22 @@ export function HostelBranchDetailPage({ branchId }: { branchId: string }) {
                     Open workspace <ArrowUpRight className="size-4" />
                   </Link>
                 ) : null}
-              </div>
-            </div>
-            <div className="mt-6 grid grid-cols-2 gap-3 border-t border-border pt-5 sm:grid-cols-4">
-              {[
-                [Building2, "Floors", hostel.totalFloors],
-                [DoorOpen, "Rooms", hostel.capacitySummary.totalRooms],
-                [BedDouble, "Beds", hostel.capacitySummary.totalBeds],
-                [BedDouble, "Vacant beds", hostel.capacitySummary.vacantBeds],
-              ].map(([Icon, label, value]) => {
-                const Glyph = Icon as typeof Building2;
-                return (
-                  <div key={String(label)} className="rounded-xl bg-muted/40 p-3">
-                    <p className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Glyph className="size-4" />
-                      {String(label)}
-                    </p>
-                    <p className="mt-2 text-xl font-semibold">
-                      {value == null ? "—" : String(value)}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </section>
+              </>
+            }
+            description={[
+              hostel.parentHostelId ? `Branch of ${data.main.name}` : "Main hostel",
+              [hostel.location?.area, hostel.location?.city].filter(Boolean).join(", "),
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+            title={hostel.name}
+          />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <MetricCard icon={Building2} label="Floors" value={hostel.totalFloors ?? "—"} />
+            <MetricCard icon={DoorOpen} label="Rooms" value={hostel.capacitySummary.totalRooms ?? "—"} />
+            <MetricCard icon={BedDouble} label="Beds" value={hostel.capacitySummary.totalBeds ?? "—"} />
+            <MetricCard icon={BedDouble} label="Vacant beds" value={hostel.capacitySummary.vacantBeds ?? "—"} />
+          </div>
           <div className="grid items-start gap-5 lg:grid-cols-2">
             <SectionCard title="About this hostel" icon={Building2}>
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-muted-foreground">

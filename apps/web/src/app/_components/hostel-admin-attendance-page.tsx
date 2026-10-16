@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPinned } from "@/components/icons";
+import { HelpCircle, Home, MapPin, MapPinned, Navigation } from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { EmptyState, LoadingRows, Panel, StatusBadge } from "@/app/_components/shared-ui";
@@ -8,6 +8,7 @@ import { browserApi } from "@/lib/browser-api";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { cn } from "@/lib/utils";
 import { Message, PageHeader } from "./daily-operations-shared";
+import { MetricCard } from "./portal-dashboard-ui";
 
 const ATTENDANCE_ENDPOINT = "/api/v1/hostel-admin/attendance";
 const ALERTS_ENDPOINT = "/api/v1/hostel-admin/attendance/alerts";
@@ -37,6 +38,7 @@ const ZONE_STYLES: Record<Zone, string> = {
 };
 
 const ZONE_ORDER: Zone[] = ["INSIDE", "NEARBY", "OUTSIDE", "UNKNOWN"];
+const ZONE_ICONS = { INSIDE: Home, NEARBY: MapPin, OUTSIDE: Navigation, UNKNOWN: HelpCircle };
 
 /**
  * A resident's last 60 days as a grid — the same day-level view the resident
@@ -200,7 +202,7 @@ export const HostelAdminAttendancePageContent = memo(
     return (
       <div className="mx-auto max-w-[1448px] space-y-6">
         <PageHeader
-          description="Where residents are today, by zone. Exact locations are never stored."
+          description="Where residents are today, by zone. No location is stored."
           icon={MapPinned}
           title="Attendance"
         />
@@ -208,14 +210,13 @@ export const HostelAdminAttendancePageContent = memo(
 
         <div className="grid gap-3 sm:grid-cols-4">
           {ZONE_ORDER.map((zone) => (
-            <div className="rounded-lg border border-border bg-surface p-4" key={zone}>
-              <p className="text-xs font-semibold uppercase text-muted-foreground">
-                {zone}
-              </p>
-              <p className="mt-1 text-3xl font-extrabold text-foreground">
-                {summary[zone] ?? 0}
-              </p>
-            </div>
+            <MetricCard
+              icon={ZONE_ICONS[zone]}
+              key={zone}
+              label={zone.toLowerCase()}
+              tone={zone === "UNKNOWN" ? "slate" : "teal"}
+              value={summary[zone] ?? 0}
+            />
           ))}
         </div>
 

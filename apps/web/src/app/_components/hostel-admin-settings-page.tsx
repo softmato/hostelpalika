@@ -210,7 +210,7 @@ export const HostelAdminSettingsPageContent = memo(
     return (
       <div className="mx-auto max-w-[1100px] space-y-6">
         <PageHeader
-          description="Temporary account access, location tracking, cook portal, and community moderation for this hostel."
+          description="Access, tracking, cook portal and moderation."
           icon={Settings}
           title="Settings"
         />

@@ -96,7 +96,7 @@ export const ResidentAttendancePageContent = memo(
       <div className="mx-auto max-w-[1000px] space-y-6">
         {confirmDialog}
         <ResidentHeader
-          description="Your day-by-day attendance. Only a zone is stored — never your exact location."
+          description="Your attendance by day. Only a zone is stored."
           icon={CalendarCheck}
           title="Attendance"
         />

@@ -2,41 +2,44 @@
 
 import type { ReactNode } from "react";
 
+import { MetricCard } from "@/app/_components/portal-dashboard-ui";
 import { currency, EmptyState } from "@/app/_components/shared-ui";
+import type { IconComponent } from "@/components/icons";
 import { monthLabel } from "@/lib/format-month";
 import { formatBsPeriodMonth } from "@/lib/hostel-day";
 
 export type CountMap = Record<string, number>;
 
-/** Single headline figure with an optional caption underneath. */
+const statTones = {
+  bad: { note: "rose", tone: "rose" },
+  default: { note: "slate", tone: "teal" },
+  good: { note: "green", tone: "green" },
+  warn: { note: "amber", tone: "amber" },
+} as const;
+
+/** Single headline figure with an optional caption underneath: a `MetricCard`. */
 export function StatTile({
   hint,
+  icon,
   label,
   tone = "default",
   value,
 }: {
-  hint?: ReactNode;
+  hint?: string;
+  icon?: IconComponent;
   label: string;
   tone?: "default" | "good" | "warn" | "bad";
   value: ReactNode;
 }) {
-  const toneClass =
-    tone === "good"
-      ? "text-emerald-600 dark:text-emerald-400"
-      : tone === "warn"
-        ? "text-amber-600 dark:text-amber-400"
-        : tone === "bad"
-          ? "text-red-600 dark:text-red-400"
-          : "text-foreground";
-
   return (
-    <div className="rounded-lg border border-border bg-background p-3.5">
-      <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-        {label}
-      </p>
-      <p className={`mt-1.5 text-2xl font-bold ${toneClass}`}>{value}</p>
-      {hint ? <p className="mt-1 text-[11px] text-muted-foreground">{hint}</p> : null}
-    </div>
+    <MetricCard
+      icon={icon}
+      label={label}
+      note={hint}
+      noteTone={statTones[tone].note}
+      tone={statTones[tone].tone}
+      value={value}
+    />
   );
 }
 

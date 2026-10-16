@@ -368,7 +368,7 @@ export const HostelAdminPaymentGatewaysPageContent = memo(
     return (
       <div className="space-y-5">
         <PageHeader
-          description="Let residents pay their rent in one tap. Payments through these settle themselves — no screenshot, no approval queue."
+          description="One-tap rent payments that settle themselves."
           icon={Zap}
           title="Online checkout"
         />

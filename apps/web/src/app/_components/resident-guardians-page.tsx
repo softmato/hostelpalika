@@ -150,7 +150,7 @@ export const ResidentGuardiansPageContent = memo(function ResidentGuardiansPageC
     <div className="mx-auto max-w-[1448px] space-y-6">
       {confirmDialog}
       <ResidentHeader
-        description="Choose what a parent or guardian can see. You can change or withdraw this at any time."
+        description="What a parent or guardian can see."
         icon={ShieldCheck}
         title="Guardians"
       />

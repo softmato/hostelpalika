@@ -555,7 +555,7 @@ export const HostelAdminPaymentProfilePageContent = memo(
     return (
       <div className="mx-auto max-w-[1240px] space-y-6">
         <PageHeader
-          description="The account details, QR and instructions residents see when they open an invoice."
+          description="What residents see when they open an invoice."
           icon={Banknote}
           title="Payment Setup"
         />

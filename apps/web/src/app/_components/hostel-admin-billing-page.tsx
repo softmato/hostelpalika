@@ -17,6 +17,7 @@ import { billingCycles, cycleTotal, planRank, type BillingCycle } from "@hostel/
 
 import { HostelFreeMonthCard } from "@/app/_components/hostel-free-month-card";
 import { PayPlanPanel } from "@/app/_components/hostel-admin-pay-plan";
+import { PortalPageHeader } from "@/app/_components/portal-dashboard-ui";
 import { useSiteConfig } from "@/components/site-config-provider";
 import {
   Dialog,
@@ -142,23 +143,18 @@ export function HostelAdminBillingPageContent() {
 
   return (
     <div className="space-y-8">
-      <header className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="text-xl font-bold text-foreground">Plan billing</h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            What this hostel has been billed for its plan, and what has been
-            received. Every invoice and receipt below can be downloaded — issued
-            by Softmato, who take the payment, or by us directly when they
-            cannot be reached.
-          </p>
-        </div>
-        {hostelCode ? (
-          <p className="rounded-lg border border-border px-3 py-2 text-xs text-muted-foreground">
-            Hostel ID{" "}
-            <strong className="select-all font-mono text-sm text-foreground">{hostelCode}</strong>
-          </p>
-        ) : null}
-      </header>
+      <PortalPageHeader
+        actions={
+          hostelCode ? (
+            <p className="rounded-lg border border-border px-3 py-2 text-xs text-muted-foreground">
+              Hostel ID{" "}
+              <strong className="select-all font-mono text-sm text-foreground">{hostelCode}</strong>
+            </p>
+          ) : null
+        }
+        description="Plan invoices and receipts, all downloadable."
+        title="Plan billing"
+      />
 
       {error ? (
         <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">

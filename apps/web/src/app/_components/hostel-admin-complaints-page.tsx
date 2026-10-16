@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquareWarning } from "@/components/icons";
+import { AlertTriangle, CheckCircle2, Clock, Inbox, MessageSquareWarning, Wrench } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { EmptyState, LoadingRows, Panel, StatusBadge } from "@/app/_components/shared-ui";
@@ -16,6 +16,7 @@ import {
   type Complaint,
   type ComplaintSummary,
 } from "./hostel-admin-shared";
+import { MetricCard } from "./portal-dashboard-ui";
 
 const EMPTY_SUMMARY: ComplaintSummary = {
   inProgress: 0,
@@ -157,22 +158,11 @@ export const HostelAdminComplaintsPage = memo(function HostelAdminComplaintsPage
       ) : null}
 
       <div className="grid gap-3 md:grid-cols-5">
-        {(
-          [
-            ["Total", summary.total],
-            ["Pending", summary.pending],
-            ["In Progress", summary.inProgress],
-            ["Overdue", summary.overdue],
-            ["Resolved", summary.resolved],
-          ] as const
-        ).map(([label, value]) => (
-          <Panel key={label}>
-            <p className="text-xs font-semibold uppercase text-muted-foreground">
-              {label}
-            </p>
-            <p className="mt-2 text-2xl font-bold text-foreground">{value}</p>
-          </Panel>
-        ))}
+        <MetricCard icon={Inbox} label="Total" value={summary.total} />
+        <MetricCard icon={Clock} label="Pending" tone="amber" value={summary.pending} />
+        <MetricCard icon={Wrench} label="In progress" value={summary.inProgress} />
+        <MetricCard icon={AlertTriangle} label="Overdue" tone="rose" value={summary.overdue} />
+        <MetricCard icon={CheckCircle2} label="Resolved" value={summary.resolved} />
       </div>
 
       <Panel title="Complaint Queue">

@@ -1,6 +1,7 @@
 "use client";
 
 import { Home } from "@/components/icons";
+import { PageHero } from "@/components/page-hero";
 
 export type LoadState = "idle" | "loading" | "ready" | "error";
 
@@ -212,17 +213,7 @@ export function ResidentHeader({
   icon: typeof Home;
   title: string;
 }) {
-  return (
-    <div className="flex items-start gap-3">
-      <span className="rounded-lg bg-role-resident-soft p-3 text-role-resident">
-        <Icon className="size-5" />
-      </span>
-      <div>
-        <h1 className="font-heading text-3xl font-bold text-foreground">{title}</h1>
-        <p className="mt-1 max-w-3xl text-sm text-muted-foreground">{description}</p>
-      </div>
-    </div>
-  );
+  return <PageHero description={description} icon={Icon} title={title} />;
 }
 
 export function Message({ value }: { value: string }) {

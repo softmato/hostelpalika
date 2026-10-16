@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo, useState, type FormEvent } from "react";
-import { Gift, Trophy } from "@/components/icons";
+import { BadgeCheck, Gift, HandCoins, Trophy, UserCheck, Users, Wallet } from "@/components/icons";
 import { EmptyState, LoadingRows, Panel, StatusBadge } from "@/app/_components/shared-ui";
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
 import { browserApi } from "@/lib/browser-api";
@@ -132,7 +132,7 @@ export const HostelAdminReferralsPageContent = React.memo(
     return (
       <div className="mx-auto max-w-[1448px] space-y-6">
         <PageHeader
-          description="Track who your residents brought in, confirm the ones who joined, and settle their rewards."
+          description="Who your residents brought in, and their rewards."
           icon={Gift}
           title="Referrals"
         />
@@ -141,11 +141,13 @@ export const HostelAdminReferralsPageContent = React.memo(
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
           <StatTile
             hint={`${summary?.pendingConfirmation ?? 0} awaiting confirmation`}
+            icon={Users}
             label="Referrals received"
             value={summary?.total ?? 0}
           />
           <StatTile
             hint="Referred people who moved in"
+            icon={UserCheck}
             label="Joined"
             tone="good"
             value={summary?.joined ?? 0}
@@ -154,18 +156,21 @@ export const HostelAdminReferralsPageContent = React.memo(
               verified — nothing here is typed by hand. */}
           <StatTile
             hint="First payment verified"
+            icon={BadgeCheck}
             label="Converted"
             tone="good"
             value={summary?.converted ?? 0}
           />
           <StatTile
             hint="Approved but not yet handed over"
+            icon={HandCoins}
             label="Rewards owed"
             tone={(summary?.rewardApprovedAmount ?? 0) > 0 ? "warn" : "default"}
             value={money(summary?.rewardApprovedAmount ?? 0)}
           />
           <StatTile
             hint="Settled with the referrer"
+            icon={Wallet}
             label="Rewards paid"
             tone="good"
             value={money(summary?.rewardPaidAmount ?? 0)}

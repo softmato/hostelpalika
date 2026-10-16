@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useCallback, useMemo, useState } from "react";
-import { Check, Copy, Gift } from "@/components/icons";
+import { BadgeCheck, Check, Copy, Gift, Send, UserCheck } from "@/components/icons";
 import { EmptyState, Panel, StatusBadge, currency } from "@/app/_components/shared-ui";
 import { usePortalResource } from "@/lib/portal-query";
 import { residentEndpoints } from "@/lib/resident-endpoints";
+import { MetricCard } from "./portal-dashboard-ui";
 import { Message, PageHeader, type Referral } from "./portal-shared";
 
 type ReferralCode = {
@@ -30,24 +31,6 @@ const EMPTY_SUMMARY: ReferralSummary = {
   rewardPaidAmount: 0,
   sent: 0,
 };
-
-function StatTile({
-  hint,
-  label,
-  value,
-}: {
-  hint: string;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-lg border border-border p-4">
-      <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-      <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
-    </div>
-  );
-}
 
 export const ResidentReferralPageContent = React.memo(
   function ResidentReferralPageContent() {
@@ -128,19 +111,22 @@ export const ResidentReferralPageContent = React.memo(
               {/* "Converted" is the only number tied to real money: it counts
                   friends whose first payment the hostel has verified. */}
               <div className="grid gap-3 sm:grid-cols-3">
-                <StatTile
-                  hint="Friends you referred"
+                <MetricCard
+                  icon={Send}
                   label="Sent"
+                  note="Friends you referred"
                   value={String(summary.sent)}
                 />
-                <StatTile
-                  hint="Registered at the hostel"
+                <MetricCard
+                  icon={UserCheck}
                   label="Joined"
+                  note="Registered at the hostel"
                   value={String(summary.joined)}
                 />
-                <StatTile
-                  hint="First payment verified"
+                <MetricCard
+                  icon={BadgeCheck}
                   label="Converted"
+                  note="First payment verified"
                   value={String(summary.converted)}
                 />
               </div>

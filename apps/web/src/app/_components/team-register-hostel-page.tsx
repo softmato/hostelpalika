@@ -61,6 +61,7 @@ import {
 import type { TeamOwnerEmailStatus } from "@/modules/hostels/hostel.service";
 import type { TeamPrepaymentView } from "@/modules/team/team-prepayment.service";
 import { DescriptionSuggestions } from "./description-suggestions";
+import { PortalPageHeader } from "./portal-dashboard-ui";
 import { useLifetimeAvailability } from "./lifetime-deal";
 import { billingCycles, bestDiscountPercent, cycleTotal, type BillingCycle } from "./plans-catalog";
 import {
@@ -2343,53 +2344,49 @@ export function TeamRegisterHostelPage() {
     <FieldErrorContext.Provider value={{ clear: clearSubmitError, errors: fieldErrors }}>
     <div className="pb-10">
       {handoff.overlay}
-      <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Register a hostel
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Collect everything the owner would otherwise set up themselves. It
-            publishes on the last step, not before.
-          </p>
-        </div>
+      <div className="mb-5">
+        <PortalPageHeader
+          actions={
+            <div className="flex flex-col items-end gap-1.5">
+              <div className="flex items-center gap-2">
+                <button
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground transition hover:border-brand-teal hover:bg-brand-teal/5"
+                  onClick={() => {
+                    const at = new Date().toLocaleTimeString("en-GB", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    });
 
-        <div className="flex flex-col items-end gap-1.5">
-          <div className="flex items-center gap-2">
-            <button
-              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground transition hover:border-brand-teal hover:bg-brand-teal/5"
-              onClick={() => {
-                const at = new Date().toLocaleTimeString("en-GB", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                });
+                    setDraftNotice(
+                      writeDraft()
+                        ? `Draft saved on this device at ${at}.`
+                        : "This browser will not let us save a draft — do not close the tab.",
+                    );
+                  }}
+                  type="button"
+                >
+                  <Save className="size-3.5" />
+                  Save draft
+                </button>
 
-                setDraftNotice(
-                  writeDraft()
-                    ? `Draft saved on this device at ${at}.`
-                    : "This browser will not let us save a draft — do not close the tab.",
-                );
-              }}
-              type="button"
-            >
-              <Save className="size-3.5" />
-              Save draft
-            </button>
+                <button
+                  className="rounded-lg px-2 py-2 text-xs font-semibold text-muted-foreground transition hover:text-destructive"
+                  onClick={() => void discardDraft()}
+                  type="button"
+                >
+                  Start over
+                </button>
+              </div>
 
-            <button
-              className="rounded-lg px-2 py-2 text-xs font-semibold text-muted-foreground transition hover:text-destructive"
-              onClick={() => void discardDraft()}
-              type="button"
-            >
-              Start over
-            </button>
-          </div>
-
-          {/* Autosave is silent by design; this is the receipt for it. */}
-          <p aria-live="polite" className="text-[11px] text-muted-foreground">
-            {draftNotice || "Saved on this device as you type"}
-          </p>
-        </div>
+              {/* Autosave is silent by design; this is the receipt for it. */}
+              <p aria-live="polite" className="text-[11px] text-muted-foreground">
+                {draftNotice || "Saved on this device as you type"}
+              </p>
+            </div>
+          }
+          description="Everything the owner would set up. Publishes on the last step."
+          title="Register a hostel"
+        />
       </div>
 
       {/*

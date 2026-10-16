@@ -150,7 +150,7 @@ export const HostelAdminMaintenancePageContent = React.memo(
     return (
       <div className="mx-auto max-w-[1448px] space-y-6">
         <PageHeader
-          description="Describe a problem, get the right provider suggested, and track every repair in one place."
+          description="Report a problem and track every repair."
           icon={Wrench}
           title="Maintenance & Providers"
         />

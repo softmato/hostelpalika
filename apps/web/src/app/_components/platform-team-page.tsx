@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { browserApi } from "@/lib/browser-api";
 import { cn } from "@/lib/utils";
+import { PortalPageHeader } from "./portal-dashboard-ui";
 import { TeamCommissionPanel } from "./platform-team-commission";
 import { TeamInviteBox } from "./platform-team-invite-box";
 import { TeamMembersTable } from "./platform-team-members-table";
@@ -66,12 +67,10 @@ export function PlatformTeamPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">Team</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          The field team, and every hostel they have registered.
-        </p>
-      </div>
+      <PortalPageHeader
+        description="The field team and every hostel they registered."
+        title="Team"
+      />
 
       <TeamInviteBox onSent={() => void load()} />
 

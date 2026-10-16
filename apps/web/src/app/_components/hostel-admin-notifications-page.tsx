@@ -130,7 +130,7 @@ export const HostelAdminNotificationsPageContent = memo(
     return (
       <div className="mx-auto max-w-[1100px] space-y-6">
         <PageHeader
-          description="Send targeted notifications to residents, schedule them ahead of time, and track how many were read."
+          description="Send, schedule and track notices to residents."
           icon={Bell}
           title="Notifications"
         />

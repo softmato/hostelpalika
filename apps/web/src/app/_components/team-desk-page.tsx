@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { useCheckoutHandoff } from "@/app/_components/checkout-handoff";
+import { MetricCard, PortalPageHeader } from "@/app/_components/portal-dashboard-ui";
 import { GetAppDialog } from "@/components/get-app-dialog";
 import { browserApi } from "@/lib/browser-api";
 import { cn } from "@/lib/utils";
@@ -15,9 +16,9 @@ import { formatBsAdDate } from "@hostel/shared/calendar/bs";
  * An agent's own desk: what they have filed, and what is still owed on it.
  *
  * Deliberately plain. This is a work surface somebody opens twenty times a day
- * standing in a corridor, so it is a number row and a table — no hero, no
- * illustration, no explanatory prose about what the field team does. The person
- * reading it is the field team.
+ * standing in a corridor, so it is the shared page header, a number row and a
+ * table — no illustration, no explanatory prose about what the field team does.
+ * The person reading it is the field team.
  *
  * ## The order
  *
@@ -198,42 +199,6 @@ function EarningsRow({ entries, wallet }: { entries: WalletEntry[]; wallet: Wall
   );
 }
 
-function Stat({
-  emphasis,
-  icon: Icon,
-  label,
-  value,
-}: {
-  emphasis?: "warning";
-  icon: typeof Wallet;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="app-card p-4">
-      <div className="flex items-center gap-2">
-        <Icon
-          className={cn(
-            "size-4",
-            emphasis === "warning" ? "text-warning" : "text-brand-teal",
-          )}
-        />
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          {label}
-        </p>
-      </div>
-      <p
-        className={cn(
-          "mt-2 text-2xl font-bold tabular-nums",
-          emphasis === "warning" ? "text-warning" : "text-foreground",
-        )}
-      >
-        {value}
-      </p>
-    </div>
-  );
-}
-
 export function TeamDeskPage() {
   const [registrations, setRegistrations] = useState<Registration[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -296,53 +261,51 @@ export function TeamDeskPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">My desk</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Every hostel you have registered, and what it still owes.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {/* Its own tab: the sheet is a full-screen page, kept open beside the desk. */}
-          <a
-            className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted"
-            href="/hostel-registration-track-sheet"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <FileSpreadsheet className="size-4" /> Hostel sheet
-          </a>
-          <GetAppDialog />
-          <Link
-            className="inline-flex items-center gap-2 rounded-lg bg-brand-teal px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
-            href="/team/register"
-          >
-            <Plus className="size-4" /> Register a hostel
-          </Link>
-        </div>
-      </div>
+      <PortalPageHeader
+        actions={
+          <>
+            {/* Its own tab: the sheet is a full-screen page, kept open beside the desk. */}
+            <a
+              className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted"
+              href="/hostel-registration-track-sheet"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <FileSpreadsheet className="size-4" /> Hostel sheet
+            </a>
+            <GetAppDialog />
+            <Link
+              className="inline-flex items-center gap-2 rounded-lg bg-brand-teal px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
+              href="/team/register"
+            >
+              <Plus className="size-4" /> Register a hostel
+            </Link>
+          </>
+        }
+        description="Every hostel you registered, and what it still owes."
+        title="My desk"
+      />
 
       {paidWaiting.length > 0 ? <PaidNotPublished rows={paidWaiting} /> : null}
 
       <EarningsRow entries={entries} wallet={wallet} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Stat
+        <MetricCard
           icon={Building2}
           label="Registered"
           value={String(summary?.hostelsRegistered ?? 0)}
         />
-        <Stat
+        <MetricCard
           icon={Wallet}
           label="Cash in hand"
           value={rupees(summary?.cashCollected ?? 0)}
         />
-        <Stat icon={Wallet} label="Collected" value={rupees(summary?.collected ?? 0)} />
-        <Stat
-          emphasis="warning"
+        <MetricCard icon={Wallet} label="Collected" value={rupees(summary?.collected ?? 0)} />
+        <MetricCard
           icon={AlertTriangle}
           label="Outstanding"
+          tone="amber"
           value={rupees(summary?.outstanding ?? 0)}
         />
       </div>

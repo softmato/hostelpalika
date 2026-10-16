@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
+import { PortalPageHeader } from "@/app/_components/portal-dashboard-ui";
 import { browserApi } from "@/lib/browser-api";
 import { cn } from "@/lib/utils";
 
@@ -249,17 +250,11 @@ export function ProviderJobsPage() {
   return (
     <>
       <div className="mx-auto max-w-3xl py-2">
-        <div className="mb-10">
-          <div className="mb-4 flex size-12 items-center justify-center rounded-2xl bg-brand-teal/10">
-            <Briefcase className="size-6 text-brand-teal" />
-          </div>
-          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground">
-            Your jobs
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Accept an open job to get the hostel&apos;s number, then call them to
-            arrange a time.
-          </p>
+        <div className="mb-8">
+          <PortalPageHeader
+            description="Accept a job to get the hostel's number."
+            title="Your jobs"
+          />
         </div>
 
         {jobs === null && !failed ? (

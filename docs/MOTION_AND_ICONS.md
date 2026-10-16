@@ -135,9 +135,16 @@ white.
   covers about 76 pages.
 - ☑ **W5. Readouts.** `MetricCard` is a bare stat tile (tinted circle, number,
   small uppercase label). `EmptyState` is one mark and one line.
-- ☐ **W6. Pages outside the shared parts.** About 37 page components draw their
-  own `<h1>` or stat rows. Move each onto `PageHero`/`MetricCard` and trim its
-  copy to one line. Go portal by portal: admin, platform, resident.
+- ☑ **W6. Pages outside the shared parts.** Every page inside a portal shell
+  now heads with `PageHero`: billing, KYC, branch detail, platform Team,
+  provider jobs and the team desk, register and residents pages moved onto
+  `PortalPageHeader`, and the last two header helpers (`portal-shared`'s
+  `PageHeader`, `ResidentHeader`) route through it too. Stat rows on
+  complaints, attendance, both referral pages, reports, branch detail and the
+  team desk are `MetricCard`s; `StatTile` (report-widgets) now renders one, and
+  `MetricCard`'s icon is optional for figures inside a section. Long header
+  lines were cut to one. The `<h1>`s left are on public and auth routes
+  (invites, checkout, join, registration), which have no portal shell.
 - ☐ **W7. Browser pass.** The user checks admin, platform and resident in light
   and dark: rail and panel, collapse, page fade, a header with actions, the
   dialogs.
