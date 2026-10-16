@@ -20,6 +20,20 @@ describe("handleRouteError and a Softmato refusal", () => {
     expect(JSON.stringify(body)).toContain("SOFTMATO_REJECTED");
   });
 
+  it("answers a duplicate phone (Mongo E11000) as a plain 409", async () => {
+    const duplicate = Object.assign(new Error("E11000 duplicate key error"), {
+      code: 11000,
+      keyPattern: { phone: 1 },
+      name: "MongoServerError",
+    });
+
+    const response = handleRouteError(duplicate);
+    const body = await response.json();
+
+    expect(response.status).toBe(409);
+    expect(body.message).toBe("This phone number is already used by another account.");
+  });
+
   it("still answers 500 for an error it does not know", async () => {
     expect(handleRouteError(new TypeError("boom")).status).toBe(500);
   });

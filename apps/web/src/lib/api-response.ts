@@ -121,9 +121,31 @@ export function handleRouteError(error: unknown) {
     );
   }
 
+  /*
+   * A unique index said no (Mongo E11000). Any route that writes a phone or an
+   * email can meet one, and it reached the app as "Internal server error".
+   */
+  if (error instanceof Error && "code" in error && error.code === 11000) {
+    const keyPattern = "keyPattern" in error && error.keyPattern ? error.keyPattern : {};
+    const field = Object.keys(keyPattern)[0] ?? "";
+
+    logger.warn("Duplicate value refused", { error });
+
+    return errorResponse(
+      DUPLICATE_MESSAGES[field] ?? "This is already saved. Refresh and check before adding it again.",
+      "DUPLICATE_VALUE",
+      409,
+    );
+  }
+
   logger.error("Unhandled API route error", { error });
   return errorResponse("Internal server error", "INTERNAL_SERVER_ERROR", 500);
 }
+
+const DUPLICATE_MESSAGES: Record<string, string> = {
+  email: "This email is already used by another account.",
+  phone: "This phone number is already used by another account.",
+};
 
 /** What `browserApi(…, onStep)` asks for, and what `progressResponse` streams. */
 export const PROGRESS_CONTENT_TYPE = "application/x-ndjson";

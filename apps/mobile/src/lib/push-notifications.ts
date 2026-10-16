@@ -190,6 +190,10 @@ Notifications.setNotificationHandler({
     // silent here because the socket path already played the drop.
     const isLiveEcho = data?.liveEcho === true;
 
+    // A toast's copy in the shade (`toast.ts`): the toast already showed it, so
+    // no sound and no badge.
+    const isToastEcho = data?.toastEcho === true;
+
     /*
      * A push for a row the socket already drew in the shade. Shown once, not
      * twice: whichever arrived first claimed the banner.
@@ -217,8 +221,9 @@ Notifications.setNotificationHandler({
      */
     return {
       // `urgent` is stamped by `push.service.ts` from the channel it chose.
-      shouldPlaySound: !duplicate && (firstToSound || (!isUploadProgress && data?.urgent === true)),
-      shouldSetBadge: !isUploadProgress,
+      shouldPlaySound:
+        !duplicate && !isToastEcho && (firstToSound || (!isUploadProgress && data?.urgent === true)),
+      shouldSetBadge: !isUploadProgress && !isToastEcho,
       shouldShowBanner: !isUploadProgress && !duplicate,
       shouldShowList: !duplicate,
     };

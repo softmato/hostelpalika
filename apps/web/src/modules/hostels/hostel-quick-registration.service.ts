@@ -110,6 +110,16 @@ export async function quickRegisterHostel(input: QuickHostelRegistrationInput, u
   // Before any write: a mistyped code refuses the form rather than losing its reward.
   const referral = input.referralCode ? await resolveHostelReferralCode(input.referralCode) : null;
 
+  // The account takes this phone below. Held by another account, the unique index
+  // refused that write as a 500 — after the hostel and its trial were already written.
+  if (!user.phone && (await UserModel.exists({ _id: { $ne: user._id }, phone: input.phone }))) {
+    throw new HostelServiceError(
+      `${input.phone} is already on another ${PLATFORM_NAME} account. Use a different phone number.`,
+      "PHONE_IN_USE",
+      409,
+    );
+  }
+
   /*
    * A retry after a half-finished attempt (the hostel written, the role not
    * yet raised) picks the same hostel up rather than filing a second one.

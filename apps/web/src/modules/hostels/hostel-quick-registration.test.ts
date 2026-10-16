@@ -115,6 +115,16 @@ describe("quickRegisterHostel", () => {
     });
   });
 
+  it("refuses a phone another account holds, before writing anything", async () => {
+    await users.create({ _id: new Types.ObjectId(), email: "sita@gmail.com", phone: input.phone, role: "PUBLIC" });
+
+    await expect(quickRegisterHostel(input, userId.toString())).rejects.toMatchObject({
+      errorCode: "PHONE_IN_USE",
+      status: 409,
+    });
+    expect(hostels.docs).toHaveLength(0);
+  });
+
   it("accepts an email-OTP sign-up, which stores only emailVerifiedAt", async () => {
     users.docs[0]!.emailVerified = undefined;
     users.docs[0]!.emailVerifiedAt = new Date();
