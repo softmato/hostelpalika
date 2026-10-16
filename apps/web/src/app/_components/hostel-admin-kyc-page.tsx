@@ -18,8 +18,8 @@ import {
   UtensilsCrossed,
   Wallet,
   Building2,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { memo, useEffect, useRef, useState, type ReactNode } from "react";
@@ -61,7 +61,7 @@ type Kyc = {
 };
 
 /** One screen per step. `href` is the full editor, for changing a finished step. */
-const STEPS: Record<string, { hint: string; href: string; icon: LucideIcon; title: string }> = {
+const STEPS: Record<string, { hint: string; href: string; icon: IconComponent; title: string }> = {
   details: { hint: "Who lives here, and the address", href: "/hostel-admin/profile", icon: House, title: "Hostel details" },
   rates: { hint: "Each room type and its monthly rent", href: "/hostel-admin/fee-schedule", icon: Tags, title: "Room types & rent" },
   documents: { hint: "Owner ID and PAN / VAT", href: "/hostel-admin/kyc", icon: FileText, title: "Documents" },

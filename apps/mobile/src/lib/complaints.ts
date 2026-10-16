@@ -10,7 +10,7 @@
  * 422 after their photos have already uploaded.
  */
 
-import type { Ionicons } from "@expo/vector-icons";
+import type { GlyphName } from "@hostel/constants/glyphs";
 
 import type {
   Complaint,
@@ -39,55 +39,55 @@ import { humanizeEnum } from "@/lib/format";
  */
 export const COMPLAINT_CATEGORY_OPTIONS: {
   description: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   value: ComplaintCategory;
 }[] = [
   {
     description: "Meals, quality, timing",
-    icon: "restaurant-outline",
+    icon: "restaurant",
     label: "Food",
     value: "FOOD",
   },
   {
     description: "Your room, bed or roommates",
-    icon: "bed-outline",
+    icon: "bed",
     label: "Room",
     value: "ROOM",
   },
   {
     description: "Something broken — water, power, furniture",
-    icon: "construct-outline",
+    icon: "construct",
     label: "Maintenance",
     value: "MAINTENANCE",
   },
   {
     description: "Anything that feels unsafe",
-    icon: "shield-checkmark-outline",
+    icon: "shield-checkmark",
     label: "Safety",
     value: "SAFETY",
   },
   {
     description: "Rent, dues, receipts",
-    icon: "card-outline",
+    icon: "card",
     label: "Payment",
     value: "PAYMENT",
   },
   {
     description: "Conduct of hostel staff",
-    icon: "people-outline",
+    icon: "people",
     label: "Staff",
     value: "STAFF",
   },
   {
     description: "Disturbance, late-night noise",
-    icon: "volume-high-outline",
+    icon: "volume-high",
     label: "Noise",
     value: "NOISE",
   },
   {
     description: "Anything else",
-    icon: "ellipsis-horizontal-circle-outline",
+    icon: "ellipsis-horizontal-circle",
     label: "Other",
     value: "OTHER",
   },

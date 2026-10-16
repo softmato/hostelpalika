@@ -142,7 +142,7 @@ export default function JoinRequestsScreen() {
     <Screen header={header} onRefresh={list.refresh} refreshing={list.refreshing} scroll>
       <View className="gap-5">
         <CardRow
-          icon="link-outline"
+          icon="link"
           onPress={() => router.push("/manage/join-link")}
           subtitle="Share it on WhatsApp, or show the QR"
           title="Join link"
@@ -180,7 +180,7 @@ export default function JoinRequestsScreen() {
             <View className="gap-3">
               {returned.map((request) => (
                 <CardRow
-                  icon="arrow-undo-outline"
+                  icon="arrow-undo"
                   key={request.id}
                   subtitle={request.rejectReason}
                   title={request.fullName}
@@ -197,7 +197,7 @@ export default function JoinRequestsScreen() {
             <View className="gap-3">
               {added.map((request) => (
                 <CardRow
-                  icon="checkmark-circle-outline"
+                  icon="checkmark-circle"
                   key={request.id}
                   onPress={
                     request.residentId

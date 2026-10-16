@@ -1,5 +1,4 @@
 import { router } from "expo-router";
-import { Pencil, Trash2 } from "lucide-react-native";
 import { useMemo } from "react";
 import { Pressable, View } from "react-native";
 
@@ -7,6 +6,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { FactRow } from "@/components/ui/layout";
 import { ListRow } from "@/components/ui/list-row";
 import { Money } from "@/components/ui/money";
@@ -193,7 +193,7 @@ export default function ManageRoomRatesScreen() {
             <View className="flex-row gap-2 border-t border-border pt-3">
               <Button
                 className="flex-1"
-                icon={Pencil}
+                icon="pencil"
                 label="Change"
                 onPress={() => router.push("/manage/finance/rates")}
                 size="sm"
@@ -209,7 +209,7 @@ export default function ManageRoomRatesScreen() {
                 className="h-9 flex-1 flex-row items-center justify-center gap-1.5 rounded-lg bg-destructive/10 active:opacity-70"
                 onPress={() => confirmDelete(upcoming)}
               >
-                <Trash2 color={colors.destructive} size={16} />
+                <Glyph name="trash" color={colors.destructive} size={16} />
                 <Text className="text-sm font-semibold text-destructive" variant={null}>
                   Delete
                 </Text>
@@ -221,7 +221,7 @@ export default function ManageRoomRatesScreen() {
         {pastCount > 0 ? (
           <Card padding="px-4 py-1">
             <ListRow
-              icon="time-outline"
+              icon="time"
               iconBgColor="#8E8E93"
               onPress={() => router.push("/manage/finance/history")}
               subtitle={`${pastCount} earlier set${pastCount === 1 ? "" : "s"} of rates`}

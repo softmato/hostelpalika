@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useState } from "react";
 import { View } from "react-native";
@@ -7,6 +6,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { FactRow } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
@@ -170,9 +170,9 @@ export default function ManageGatewayScreen() {
 
   const check = (ok: boolean, label: string) => (
     <View className="flex-row items-center gap-1.5" key={label}>
-      <Ionicons
+      <Glyph
         color={ok ? colors.success : colors.mutedForeground}
-        name={ok ? "checkmark-circle" : "ellipse-outline"}
+        name={ok ? "checkmark-circle" : "ellipse"}
         size={16}
       />
       <Text variant="caption">{label}</Text>
@@ -218,7 +218,7 @@ export default function ManageGatewayScreen() {
           <SectionHeader title="Settings" />
           <Card padding="px-4 py-1">
             <ListRow
-              icon="briefcase-outline"
+              icon="briefcase"
               iconBgColor="#007AFF"
               onPress={() => openSheet("kind")}
               subtitle={merchant ? "Merchant" : "Personal — can't take payments"}
@@ -226,7 +226,7 @@ export default function ManageGatewayScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="barcode-outline"
+              icon="barcode"
               iconBgColor="#FF9500"
               onPress={() => openSheet("code")}
               subtitle={entry?.merchantCode || "Not set"}
@@ -234,7 +234,7 @@ export default function ManageGatewayScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon={live ? "flash-outline" : "flask-outline"}
+              icon={live ? "flash" : "flask"}
               iconBgColor={live ? "#34C759" : "#AF52DE"}
               onPress={() => openSheet("mode")}
               subtitle={live ? "Live — real money" : "Sandbox — test only"}
@@ -242,7 +242,7 @@ export default function ManageGatewayScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="key-outline"
+              icon="key"
               iconBgColor="#FF3B30"
               onPress={() => openSheet("keys")}
               subtitle={

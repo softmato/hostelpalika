@@ -1,6 +1,6 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Pressable, View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { MAX_STARS } from "@/lib/reviews";
@@ -79,9 +79,10 @@ export function StarRating({
               onPress={() => {                onChange(star);
               }}
             >
-              <Ionicons
+              <Glyph
                 color={filled ? colors.warning : colors.border}
-                name={filled ? "star" : "star-outline"}
+                name="star"
+                variant={filled ? "solid" : "line"}
                 size={size}
               />
             </Pressable>

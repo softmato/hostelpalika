@@ -12,7 +12,7 @@ import {
   ShieldHalf,
   Trash2,
   UserPlus,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { memo, useEffect, useState } from "react";
 

@@ -1,5 +1,4 @@
 import { usePathname } from "expo-router";
-import { BellRing } from "lucide-react-native";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Linking, View } from "react-native";
 
@@ -99,7 +98,7 @@ export function PushOffer() {
     <Sheet fitContent onClose={later} open={open && wanted}>
       <View className="pb-2 pt-4">
         <StepHeading
-          icon={BellRing}
+          icon="bell-ring"
           subtitle={
             permission === "blocked"
               ? "Notifications are off for this app. Turn them on in your phone's settings so payments, expenses and notices reach you even when the app is closed."
@@ -111,7 +110,7 @@ export function PushOffer() {
       <View className="gap-3 pt-4">
         <Button label="Not now" onPress={later} variant="outline" />
         <Button
-          icon={BellRing}
+          icon="bell-ring"
           label={permission === "blocked" ? "Open settings" : "Turn on"}
           loading={asking}
           onPress={() => void turnOn()}

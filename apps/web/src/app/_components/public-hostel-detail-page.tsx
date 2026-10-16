@@ -23,8 +23,8 @@ import {
   Utensils,
   Wifi,
   Wrench,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -103,7 +103,7 @@ const CATEGORY_LABELS: Array<[string, string]> = [
  * lookup on the hostel document — see lib/maps/nearby.ts.
  */
 const NEARBY_GROUPS: Array<{
-  icon: LucideIcon;
+  icon: IconComponent;
   label: string;
   type: NearbyPlaceType;
 }> = [
@@ -170,7 +170,7 @@ function titleCaseDay(day: string) {
   return day.charAt(0) + day.slice(1).toLowerCase();
 }
 
-function iconForFacility(label: string): LucideIcon {
+function iconForFacility(label: string): IconComponent {
   if (/wifi|wi-fi|internet/i.test(label)) return Wifi;
   if (/food|meal|mess/i.test(label)) return Utensils;
   if (/security|cctv|warden|safe/i.test(label)) return ShieldCheck;

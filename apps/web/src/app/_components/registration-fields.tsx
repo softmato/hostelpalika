@@ -9,8 +9,8 @@ import {
   Loader2,
   Upload,
   X,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -309,7 +309,7 @@ export function DocRow({
 }: {
   children: React.ReactNode;
   desc: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   title: React.ReactNode;
 }) {
   return (

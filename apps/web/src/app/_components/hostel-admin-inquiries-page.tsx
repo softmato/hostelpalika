@@ -1,6 +1,6 @@
 "use client";
 
-import { Inbox } from "lucide-react";
+import { Inbox } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { EmptyState, Panel, StatusBadge } from "@/app/_components/shared-ui";

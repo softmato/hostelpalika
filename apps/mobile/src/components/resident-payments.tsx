@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { LinearGradient } from "expo-linear-gradient";
 import { Pressable, View } from "react-native";
 
 import { FLOAT_SHADOW, PaintedAmount, usePortalPaint } from "@/components/portal-shared";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { formatMoney, heroAmountSize } from "@/lib/format";
@@ -238,7 +238,7 @@ function PaintPill({
   if (kind === "settled") {
     return (
       <View className="mt-0.5 flex-row items-center gap-1 self-start rounded-full bg-white px-2.5 py-1">
-        <Ionicons color="#0a8a4b" name="checkmark-circle" size={11} />
+        <Glyph color="#0a8a4b" name="checkmark-circle" size={11} />
         <Text className="font-bold text-[#0a8a4b]" numberOfLines={1} style={{ fontSize: 10 }}>
           Settled
         </Text>
@@ -253,9 +253,9 @@ function PaintPill({
       className="mt-0.5 flex-row items-center gap-1 self-start rounded-full px-2.5 py-1"
       style={{ backgroundColor: overdue ? "#fca5a5" : "#fcd34d" }}
     >
-      <Ionicons
+      <Glyph
         color={overdue ? "#7f1d1d" : "#78350f"}
-        name={overdue ? "alert-circle" : "time-outline"}
+        name={overdue ? "alert-circle" : "time"}
         size={11}
       />
       <Text
@@ -376,7 +376,7 @@ export function ReferenceStrip({
           {code}
         </Text>
       </View>
-      <Ionicons color={colors.primary} name="copy-outline" size={18} />
+      <Glyph color={colors.primary} name="copy" size={18} />
     </Pressable>
   );
 }

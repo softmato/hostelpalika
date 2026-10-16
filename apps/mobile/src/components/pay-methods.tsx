@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -141,7 +141,7 @@ export function CopyButton({
         hitSlop={12}
         onPress={copy}
       >
-        <Ionicons color={colors.brand} name="copy-outline" size={22} />
+        <Glyph color={colors.brand} name="copy" size={22} />
       </Pressable>
     );
   }
@@ -153,7 +153,7 @@ export function CopyButton({
       className="flex-row items-center gap-1.5 rounded-lg border border-border px-3 py-2 active:opacity-70"
       onPress={copy}
     >
-      <Ionicons color={colors.mutedForeground} name="copy-outline" size={14} />
+      <Glyph color={colors.mutedForeground} name="copy" size={14} />
       <Text variant="caption">Copy</Text>
     </Pressable>
   );

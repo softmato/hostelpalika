@@ -37,7 +37,7 @@ export default function AdminCommunityScreen() {
             label={
               reported > 0 ? `Reported posts, ${reported} waiting` : "Reported posts"
             }
-            name="shield-checkmark-outline"
+            name="shield-checkmark"
             onPress={() => router.push("/(admin)/community-reports")}
           />
         )

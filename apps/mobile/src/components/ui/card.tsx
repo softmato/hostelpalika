@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import type { ReactNode } from "react";
 import { Pressable, View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -87,7 +87,7 @@ export function SectionLink({
       onPressIn={onPressIn}
     >
       <Text className="text-xs font-semibold text-primary">{label}</Text>
-      <Ionicons color={colors.primary} name="chevron-forward" size={13} />
+      <Glyph color={colors.primary} name="chevron-forward" size={13} />
     </Pressable>
   );
 }

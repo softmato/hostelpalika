@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
@@ -8,6 +7,7 @@ import { BankNameField } from "@/components/manage/bank-name-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Meter } from "@/components/ui/meter";
@@ -334,7 +334,7 @@ export function PaymentQrCard({ setup }: { setup: PaymentSetup }) {
               className="h-28 w-28 items-center justify-center rounded-2xl border border-dashed border-border active:opacity-70"
               onPress={() => void pickQr()}
             >
-              <Ionicons color={colors.mutedForeground} name="qr-code-outline" size={36} />
+              <Glyph color={colors.mutedForeground} name="qr-code" size={36} />
             </Pressable>
           )}
 
@@ -363,7 +363,7 @@ export function PaymentQrCard({ setup }: { setup: PaymentSetup }) {
         {qrSource ? (
           <View className="border-t border-border">
             <ListRow
-              icon="scan-outline"
+              icon="scan"
               iconBgColor="#5E5CE6"
               onPress={() => openSection("qr")}
               subtitle={

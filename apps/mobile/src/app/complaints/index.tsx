@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
@@ -7,6 +6,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge, StatusPill } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
+import { type GlyphName } from "@/components/ui/glyph";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -197,16 +197,16 @@ function FilterChip({
 
 const CATEGORY_LOOK: Record<
   string,
-  { bg: string; icon: keyof typeof Ionicons.glyphMap }
+  { bg: string; icon: GlyphName }
 > = {
-  FOOD: { bg: "#FF9500", icon: "restaurant-outline" },
-  MAINTENANCE: { bg: "#30B0C7", icon: "construct-outline" },
-  NOISE: { bg: "#AF52DE", icon: "volume-high-outline" },
-  OTHER: { bg: "#8E8E93", icon: "chatbox-ellipses-outline" },
-  PAYMENT: { bg: "#34C759", icon: "cash-outline" },
-  ROOM: { bg: "#5E5CE6", icon: "bed-outline" },
-  SAFETY: { bg: "#FF3B30", icon: "shield-outline" },
-  STAFF: { bg: "#007AFF", icon: "people-outline" },
+  FOOD: { bg: "#FF9500", icon: "restaurant" },
+  MAINTENANCE: { bg: "#30B0C7", icon: "construct" },
+  NOISE: { bg: "#AF52DE", icon: "volume-high" },
+  OTHER: { bg: "#8E8E93", icon: "chatbox-ellipses" },
+  PAYMENT: { bg: "#34C759", icon: "cash" },
+  ROOM: { bg: "#5E5CE6", icon: "bed" },
+  SAFETY: { bg: "#FF3B30", icon: "shield" },
+  STAFF: { bg: "#007AFF", icon: "people" },
 };
 
 /**

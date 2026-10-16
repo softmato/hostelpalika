@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown, Search } from "lucide-react";
+import { Check, ChevronDown, Search } from "@/components/icons";
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { roomTypeOptions } from "./registration-fields";

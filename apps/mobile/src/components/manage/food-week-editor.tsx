@@ -1,11 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Copy } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
 import type { FoodWeek } from "@/components/manage/food-week";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Segmented } from "@/components/ui/segmented";
 import { Sheet } from "@/components/ui/sheet";
@@ -15,8 +14,8 @@ import { cellKey, copyMeals, splitItems } from "@/lib/food-draft";
 import { MEAL_TYPES, ROUTINE_DAYS, type MealType, type RoutineDay } from "@/lib/food-week";
 import { humanizeEnum } from "@/lib/format";
 
-const ICONS: Record<MealType, keyof typeof Ionicons.glyphMap> = {
-  BREAKFAST: "cafe-outline", LUNCH: "restaurant-outline", SNACKS: "fast-food-outline", DINNER: "moon-outline",
+const ICONS: Record<MealType, GlyphName> = {
+  BREAKFAST: "cafe", LUNCH: "restaurant", SNACKS: "fast-food", DINNER: "moon",
 };
 const DISHES = ["Dal", "Bhat", "Tarkari", "Achar", "Chiura", "Tea", "Paratha", "Roti", "Anda curry", "Chicken curry", "Momo", "Khir"];
 /** One tap for the usual slots; anything else is typed. */
@@ -80,10 +79,10 @@ function MealTimes({ week }: { week: FoodWeek }) {
               className="min-h-12 flex-row items-center gap-3 px-4 active:opacity-70"
               onPress={() => setOpen(expanded ? null : meal)}
             >
-              <Ionicons color={colors.foreground} name={ICONS[meal]} size={20} />
+              <Glyph color={colors.foreground} name={ICONS[meal]} size={20} />
               <Text className="flex-1" variant="label">{humanizeEnum(meal)}</Text>
               <Text className={time ? "" : "text-primary"} variant={time ? "body" : "label"}>{time || "Set time"}</Text>
-              <Ionicons color={colors.mutedForeground} name={expanded ? "chevron-up" : "chevron-down"} size={18} />
+              <Glyph color={colors.mutedForeground} name={expanded ? "chevron-up" : "chevron-down"} size={18} />
             </Pressable>
             {expanded ? (
               <View className="gap-3 px-4 pb-4">
@@ -147,7 +146,7 @@ function DayMeals({ week }: { week: FoodWeek }) {
 
       <View className="flex-row items-center justify-between">
         <Text variant="subtitle">{humanizeEnum(day)}</Text>
-        <Button icon={Copy} label="Copy day" onPress={() => setCopy("day")} size="sm" variant="ghost" />
+        <Button icon="copy" label="Copy day" onPress={() => setCopy("day")} size="sm" variant="ghost" />
       </View>
 
       <Card padding="p-0" className="overflow-hidden">
@@ -166,7 +165,7 @@ function DayMeals({ week }: { week: FoodWeek }) {
                 onPress={() => setEditing(open ? null : meal)}
               >
                 <View className="h-10 w-10 items-center justify-center rounded-xl bg-brand-soft">
-                  <Ionicons color={colors.primary} name={ICONS[meal]} size={20} />
+                  <Glyph color={colors.primary} name={ICONS[meal]} size={20} />
                 </View>
                 <View className="flex-1">
                   <Text variant="label">{humanizeEnum(meal)}</Text>
@@ -176,7 +175,7 @@ function DayMeals({ week }: { week: FoodWeek }) {
                     </Text>
                   )}
                 </View>
-                <Ionicons color={items.length ? colors.mutedForeground : colors.primary} name={open ? "chevron-up" : items.length ? "pencil-outline" : "add"} size={20} />
+                <Glyph color={items.length ? colors.mutedForeground : colors.primary} name={open ? "chevron-up" : items.length ? "pencil" : "add"} size={20} />
               </Pressable>
 
               {open ? (
@@ -232,7 +231,7 @@ function WeekGrid({ onOpen, week }: { onOpen: () => void; week: FoodWeek }) {
         <View className="w-11" />
         {MEAL_TYPES.map((meal) => (
           <View className="flex-1 items-center gap-0.5 py-2" key={meal}>
-            <Ionicons accessibilityLabel={humanizeEnum(meal)} color={colors.foreground} name={ICONS[meal]} size={20} />
+            <Glyph accessibilityLabel={humanizeEnum(meal)} color={colors.foreground} name={ICONS[meal]} size={20} />
             <Text style={{ fontSize: 10 }} variant="caption">{humanizeEnum(meal)}</Text>
             <Text className="text-center" numberOfLines={2} style={{ fontSize: 9 }} variant="caption">
               {current.timings[meal]?.trim() || "—"}
@@ -254,7 +253,7 @@ function WeekGrid({ onOpen, week }: { onOpen: () => void; week: FoodWeek }) {
                 key={meal}
                 onPress={() => { setDay(item); setEditing(meal); onOpen(); }}
               >
-                <Ionicons color={filled ? colors.primary : colors.mutedForeground} name={filled ? "checkmark" : "add"} size={20} />
+                <Glyph color={filled ? colors.primary : colors.mutedForeground} name={filled ? "checkmark" : "add"} size={20} />
               </Pressable>
             );
           })}
@@ -278,12 +277,12 @@ function MonthEnd({ week }: { week: FoodWeek }) {
         className="min-h-14 flex-row items-center gap-3 px-4 active:opacity-70"
         onPress={() => setOpen(!open)}
       >
-        <Ionicons color={colors.foreground} name="star-outline" size={20} />
+        <Glyph color={colors.foreground} name="star" size={20} />
         <View className="flex-1">
           <Text variant="label">Month-end meal</Text>
           {open ? null : <Text className={items.length ? "" : "text-muted-foreground"} numberOfLines={1}>{items.join(", ") || "Optional"}</Text>}
         </View>
-        <Ionicons color={colors.mutedForeground} name={open ? "chevron-up" : items.length ? "pencil-outline" : "add"} size={20} />
+        <Glyph color={colors.mutedForeground} name={open ? "chevron-up" : items.length ? "pencil" : "add"} size={20} />
       </Pressable>
       {open ? (
         <View className="gap-3 px-4 pb-4">
@@ -340,7 +339,7 @@ function CopySheet({ onClose, target, week }: { onClose: () => void; target: "da
                 key={item}
                 onPress={() => setTargets((previous) => (picked ? previous.filter((day) => day !== item) : [...previous, item]))}
               >
-                <Ionicons color={picked ? colors.primary : colors.mutedForeground} name={picked ? "checkmark-circle" : "ellipse-outline"} size={20} />
+                <Glyph color={picked ? colors.primary : colors.mutedForeground} name={picked ? "checkmark-circle" : "ellipse"} size={20} />
                 <Text variant="label">{short(item)}</Text>
               </Pressable>
             );

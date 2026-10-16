@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, CheckCheck, ChevronRight, Loader2 } from "lucide-react";
+import { Bell, CheckCheck, ChevronRight, Loader2 } from "@/components/icons";
 import Link from "next/link";
 import { memo, useState } from "react";
 

@@ -42,8 +42,8 @@ import {
   WalletCards,
   Wrench,
   X,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -151,7 +151,7 @@ export const toneStyles: Record<
   },
 };
 
-export const metricIcons: LucideIcon[] = [
+export const metricIcons: IconComponent[] = [
   Building2,
   CalendarDays,
   Users,
@@ -285,7 +285,7 @@ export function MetricCard({
   value,
 }: {
   detail: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   label: string;
   tone: Tone;
   value: string;
@@ -369,7 +369,7 @@ export function FormField({
   required,
   type = "text",
 }: {
-  icon?: LucideIcon;
+  icon?: IconComponent;
   label: string;
   name?: string;
   placeholder: string;
@@ -434,7 +434,7 @@ export function PublicShell({
   );
 }
 
-// Extra Lucide icons & hooks for advanced public features
+// Extra icons & hooks for advanced public features
 import {
   ChevronRight,
   PhoneCall,
@@ -446,7 +446,7 @@ import {
   Calendar,
   AlertCircle as AlertIcon,
   HelpCircle,
-} from "lucide-react";
+} from "@/components/icons";
 import { useSearchParams } from "next/navigation";
 import { PublicFooter } from "@/components/public-footer";
 

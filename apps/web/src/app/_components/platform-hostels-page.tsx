@@ -19,8 +19,8 @@ import {
   ShieldCheck,
   Trash2,
   X,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { memo, useCallback, useMemo, useState } from "react";
@@ -124,7 +124,7 @@ function portalSummary(portal: HostelPortal) {
 
 const ACTION_CONFIG: Record<
   ActionKey,
-  { danger?: true; icon: LucideIcon; label: string; variant: "solid" | "outline" }
+  { danger?: true; icon: IconComponent; label: string; variant: "solid" | "outline" }
 > = {
   approve: { icon: Check, label: "Approve", variant: "solid" },
   archive: { danger: true, icon: Archive, label: "Archive", variant: "outline" },

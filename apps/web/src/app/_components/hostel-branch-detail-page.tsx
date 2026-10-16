@@ -13,7 +13,7 @@ import {
   Phone,
   ShieldCheck,
   Utensils,
-} from "lucide-react";
+} from "@/components/icons";
 import type { ReactNode } from "react";
 import type { getBranchDetails } from "@/modules/hostels/hostel-branch.service";
 import { usePortalResource } from "@/lib/portal-query";

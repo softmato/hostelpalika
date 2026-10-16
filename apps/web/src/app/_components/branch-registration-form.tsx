@@ -9,7 +9,7 @@ import {
   MapPin,
   ShieldCheck,
   Sparkles,
-} from "lucide-react";
+} from "@/components/icons";
 import { useRef, useState, type FormEvent, type InputHTMLAttributes } from "react";
 
 import {

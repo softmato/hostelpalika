@@ -9,7 +9,7 @@ import {
   Loader2,
   Receipt,
   RefreshCw,
-} from "lucide-react";
+} from "@/components/icons";
 import { useEffect, useState } from "react";
 
 import { formatBsAdDate } from "@hostel/shared/calendar/bs";

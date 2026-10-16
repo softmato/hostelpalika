@@ -1,4 +1,4 @@
-import { CircleCheck, MailX, TriangleAlert } from "lucide-react";
+import { CircleCheck, MailX, TriangleAlert } from "@/components/icons";
 import type { Metadata } from "next";
 
 import { PublicShell } from "@/app/_components/shared";

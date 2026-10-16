@@ -50,7 +50,7 @@ export default function MyBookingsScreen() {
         <EmptyState
           action={<Button label="Find a hostel" onPress={() => router.push("/hostels")} />}
           description="Book a bed from a hostel's room types."
-          icon="calendar-outline"
+          icon="calendar"
           title="No bookings yet"
         />
       </Screen>
@@ -70,7 +70,7 @@ export default function MyBookingsScreen() {
 
             return (
               <ListRow
-                icon="bed-outline"
+                icon="bed"
                 key={booking.id}
                 left={
                   cover ? (

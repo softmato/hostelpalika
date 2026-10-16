@@ -7,7 +7,7 @@ import {
   LockKeyhole,
   MapPin,
   QrCode,
-} from "lucide-react";
+} from "@/components/icons";
 import { BrandMark } from "@/components/brand-mark";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";

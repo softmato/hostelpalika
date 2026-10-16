@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { Loader2, Lock } from "lucide-react";
+import { Loader2, Lock } from "@/components/icons";
 
 import { Glyph } from "@/components/glyph";
 import { usePathname } from "next/navigation";
@@ -88,7 +88,7 @@ export function HostelBranchesPageContent({ lock = null }: { lock?: string | nul
               onClick={() => setOpen(true)}
               type="button"
             >
-              <Glyph className="size-4" name="plus" strokeWidth={2} />
+              <Glyph className="size-4" name="add" strokeWidth={2} />
               Add a branch
             </button>
           ) : null
@@ -145,7 +145,7 @@ export function HostelBranchesPageContent({ lock = null }: { lock?: string | nul
                         {branch.name}
                       </h3>
                       <p className="mt-2 flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <Glyph className="size-3.5 shrink-0" name="pin" />
+                        <Glyph className="size-3.5 shrink-0" name="location" />
                         {[branch.area, branch.city].filter(Boolean).join(", ") ||
                           "Location not added"}
                       </p>

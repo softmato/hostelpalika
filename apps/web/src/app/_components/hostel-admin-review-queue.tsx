@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Check, FileText, Maximize2, X } from "lucide-react";
+import { AlertTriangle, Check, FileText, Maximize2, X } from "@/components/icons";
 import { memo, useState } from "react";
 
 import { currency, Select as FormSelect } from "@/app/_components/shared-ui";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, KeyRound, ShieldAlert } from "lucide-react";
+import { Copy, KeyRound, ShieldAlert } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import {

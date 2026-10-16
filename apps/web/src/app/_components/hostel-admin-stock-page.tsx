@@ -16,7 +16,7 @@ import {
   Users,
   UtensilsCrossed,
   Wallet,
-} from "lucide-react";
+} from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";

@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Image, Pressable, ScrollView, View } from "react-native";
@@ -12,6 +11,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { FactRow } from "@/components/ui/layout";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
@@ -130,7 +130,7 @@ export default function StoreProductScreen() {
           <Image className="h-full w-full" resizeMode="cover" source={{ uri }} />
         ) : (
           <View className="h-full w-full items-center justify-center">
-            <Ionicons color={colors.primary} name="cube-outline" size={56} />
+            <Glyph color={colors.primary} name="cube" size={56} />
           </View>
         )}
 
@@ -147,7 +147,7 @@ export default function StoreProductScreen() {
           <GlassButton icon="chevron-back" label="Go back" onPress={() => router.back()} />
           <GlassButton
             badge={cart.itemCount}
-            icon="cart-outline"
+            icon="cart"
             label="Open the cart"
             onPress={() => router.push("/(store)/cart")}
           />
@@ -264,7 +264,7 @@ function GlassButton({
   onPress,
 }: {
   badge?: number;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   onPress: () => void;
 }) {
@@ -278,7 +278,7 @@ function GlassButton({
       hitSlop={8}
       onPress={onPress}
     >
-      <Ionicons color={colors.foreground} name={icon} size={20} />
+      <Glyph color={colors.foreground} name={icon} size={20} />
       {badge > 0 ? (
         <View
           className="absolute -right-0.5 -top-0.5 h-4 items-center justify-center rounded-full bg-primary px-1"

@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import { type ReactNode, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import {
@@ -53,11 +53,11 @@ const DAY_LABELS: Record<RoutineDay, string> = {
   WEDNESDAY: "Wed",
 };
 
-const MEAL_ICONS: Record<MealType, keyof typeof Ionicons.glyphMap> = {
-  BREAKFAST: "sunny-outline",
-  DINNER: "moon-outline",
-  LUNCH: "restaurant-outline",
-  SNACKS: "cafe-outline",
+const MEAL_ICONS: Record<MealType, GlyphName> = {
+  BREAKFAST: "sunny",
+  DINNER: "moon",
+  LUNCH: "restaurant",
+  SNACKS: "cafe",
 };
 
 /** One entry of `foodRoutine.meals`, which both APIs return in this shape. */
@@ -153,7 +153,7 @@ export function MealCard({
     <Card className="gap-2">
       <View className="flex-row items-start gap-3">
         <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
-          <Ionicons color={colors.primary} name={MEAL_ICONS[mealType]} size={19} />
+          <Glyph color={colors.primary} name={MEAL_ICONS[mealType]} size={19} />
         </View>
 
         <View className="flex-1 gap-1">
@@ -259,7 +259,7 @@ export function MonthEndSpecial({
   return (
     <Card className="gap-2 bg-brand-soft">
       <View className="flex-row items-center gap-2">
-        <Ionicons color={colors.primary} name="sparkles-outline" size={16} />
+        <Glyph color={colors.primary} name="sparkles" size={16} />
         <Text variant="label">Month-end special</Text>
       </View>
       <Text variant="muted">

@@ -97,7 +97,7 @@ export default function StoreOrdersScreen() {
             <Card padding="px-4 py-1">
               {group.orders.map((order) => (
                 <ListRow
-                  icon="cube-outline"
+                  icon="cube"
                   key={order.id}
                   onPress={() => router.push(`/store/order/${order.id}`)}
                   subtitle={`${order.orderNumber} · ${order.itemCount} ${

@@ -1,11 +1,11 @@
 import * as Application from "expo-application";
 import { requireOptionalNativeModule } from "expo-modules-core";
 import * as Updates from "expo-updates";
-import { ArrowUp } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { Linking, Platform, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Sheet } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
 import { APP_NAME } from "@/constants/branding";
@@ -91,7 +91,7 @@ export function UpdateSheet() {
     <Sheet fitContent onClose={later} open={open}>
       <View className="items-center gap-3 pb-2 pt-4">
         <View className="h-28 w-28 items-center justify-center rounded-full bg-brand-soft">
-          <ArrowUp color={colors.brand} size={56} strokeWidth={2.4} />
+          <Glyph name="arrow-up" color={colors.brand} size={56} strokeWidth={2.4} />
         </View>
         <Text className="text-center" variant="title">
           Update available

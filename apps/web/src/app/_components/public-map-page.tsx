@@ -20,7 +20,7 @@ import {
   Search,
   Star,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Plus, Send, Trash2 } from "lucide-react";
+import { Loader2, Plus, Send, Trash2 } from "@/components/icons";
 import { useState } from "react";
 
 import { browserApi } from "@/lib/browser-api";

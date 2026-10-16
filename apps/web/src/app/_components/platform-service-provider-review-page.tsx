@@ -10,7 +10,7 @@ import {
   Mail,
   Phone,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 import { useParams } from "next/navigation";
 

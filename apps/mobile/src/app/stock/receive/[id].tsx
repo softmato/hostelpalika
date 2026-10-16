@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { TextInput, View } from "react-native";
@@ -7,6 +6,7 @@ import { ItemAvatar, NoStockAccess, readQty, stockChanged, unitLabel, useStock }
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -121,7 +121,7 @@ export default function GotItScreen() {
       <View className="gap-5 pb-4 pt-3">
         <View className="flex-row items-center gap-3 rounded-2xl bg-info-soft p-4">
           <View className="h-10 w-10 items-center justify-center rounded-full bg-card">
-            <Ionicons color={colors.info} name="arrow-down-circle-outline" size={22} />
+            <Glyph color={colors.info} name="arrow-down-circle" size={22} />
           </View>
           <View className="flex-1">
             <Text variant="label">Sent on {bsDayLong(entry.on)}</Text>

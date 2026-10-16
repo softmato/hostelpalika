@@ -180,7 +180,7 @@ export default function AdminTodayScreen() {
                 */}
                 <Card padding="px-4 py-1">
                   <ListRow
-                    icon="moon-outline"
+                    icon="moon"
                     onPress={() => router.push("/manage/roll-call")}
                     subtitle={
                       night.summary.NOT_VERIFIED === 0
@@ -257,7 +257,7 @@ export default function AdminTodayScreen() {
                     .slice(0, 6)
                     .map((request) => (
                       <CardRow
-                        icon="construct-outline"
+                        icon="construct"
                         key={request.id}
                         right={
                           <Badge
@@ -334,7 +334,7 @@ export default function AdminTodayScreen() {
               <View className="gap-3">
                 {notices.slice(0, 5).map((notice) => (
                   <CardRow
-                    icon="megaphone-outline"
+                    icon="megaphone"
                     key={notice.id}
                     right={notice.isUrgent ? <Badge label="Urgent" tone="danger" /> : undefined}
                     subtitle={[

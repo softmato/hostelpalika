@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, BellOff, BellRing, CheckCheck, ChevronRight, Loader2, Zap } from "lucide-react";
+import { Bell, BellOff, BellRing, CheckCheck, ChevronRight, Loader2, Zap } from "@/components/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";

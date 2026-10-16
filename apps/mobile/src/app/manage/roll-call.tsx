@@ -223,7 +223,7 @@ export default function ManageRollCallScreen() {
 
           {promptSettings.data ? (
             <CardRow
-              icon="time-outline"
+              icon="time"
               onPress={() => setEditingTime(true)}
               right={
                 <Text className="text-primary" variant="label">

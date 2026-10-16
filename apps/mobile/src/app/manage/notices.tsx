@@ -1,5 +1,4 @@
 import { NoticeReader } from "@/components/notice-reader";
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
@@ -10,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
@@ -194,15 +194,15 @@ function hasExtraOptions(draft: Draft): boolean {
 /** A tile colour and glyph per category, so the board reads before its titles do. */
 const CATEGORY_LOOK: Record<
   string,
-  { bg: string; icon: keyof typeof Ionicons.glyphMap }
+  { bg: string; icon: GlyphName }
 > = {
-  EVENT: { bg: "#AF52DE", icon: "calendar-outline" },
-  FOOD: { bg: "#FF9500", icon: "restaurant-outline" },
-  GENERAL: { bg: "#007AFF", icon: "megaphone-outline" },
-  MAINTENANCE: { bg: "#30B0C7", icon: "construct-outline" },
-  PAYMENT: { bg: "#34C759", icon: "cash-outline" },
-  RULE: { bg: "#5E5CE6", icon: "document-text-outline" },
-  URGENT: { bg: "#FF3B30", icon: "alert-circle-outline" },
+  EVENT: { bg: "#AF52DE", icon: "calendar" },
+  FOOD: { bg: "#FF9500", icon: "restaurant" },
+  GENERAL: { bg: "#007AFF", icon: "megaphone" },
+  MAINTENANCE: { bg: "#30B0C7", icon: "construct" },
+  PAYMENT: { bg: "#34C759", icon: "cash" },
+  RULE: { bg: "#5E5CE6", icon: "document-text" },
+  URGENT: { bg: "#FF3B30", icon: "alert-circle" },
 };
 
 /** The way into push notices, with how many are still going out. */
@@ -231,7 +231,7 @@ function PushNoticesEntry() {
           {pushes.data ? `${running} running` : "Now, later, daily or weekly"}
         </Text>
       </View>
-      <Ionicons
+      <Glyph
         color={colors.mutedForeground}
         name="chevron-forward"
         size={18}
@@ -418,7 +418,7 @@ export default function ManageNoticesScreen() {
     <Screen
       floating={
         <FloatingButton
-          icon="create-outline"
+          icon="create"
           label="Write a notice"
           onPress={compose}
         />
@@ -664,7 +664,7 @@ export default function ManageNoticesScreen() {
                   {draftSummary(draft)}
                 </Text>
               </View>
-              <Ionicons
+              <Glyph
                 color={colors.mutedForeground}
                 name={showMore ? "chevron-up" : "chevron-down"}
                 size={18}

@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Linking } from "react-native";
@@ -9,6 +8,7 @@ import { NotificationBell } from "@/components/notification-bell";
 import { SupportContact } from "@/components/support-contact";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { StatusPill } from "@/components/ui/badge";
+import { type GlyphName } from "@/components/ui/glyph";
 import { Chip } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
 import { useAppSelector } from "@/hooks/redux";
@@ -31,28 +31,28 @@ import { stayPill } from "@/lib/resident-home";
  * nothing. **Explore** is the discovery entry (agreed 2026-08-16): residents keep
  * their own five tabs, and hostel browsing lives here.
  */
-type Row = { href: string; icon: keyof typeof Ionicons.glyphMap; title: string; tone?: MenuTone };
+type Row = { href: string; icon: GlyphName; title: string; tone?: MenuTone };
 
 /** The doors, in the order Home's `<ResidentServiceGrid>` draws them. */
 const STAY_ROWS: Row[] = [
-  { href: "/profile", icon: "person-outline", title: "Profile" },
-  { href: "/my-room", icon: "bed-outline", title: "My room" },
-  { href: "/night-status", icon: "moon-outline", title: "Night status", tone: "warning" },
+  { href: "/profile", icon: "person", title: "Profile" },
+  { href: "/my-room", icon: "bed", title: "My room" },
+  { href: "/night-status", icon: "moon", title: "Night status", tone: "warning" },
   // Directly under Night status: what the resident says, then what the phone reported.
-  { href: "/attendance", icon: "location-outline", title: "Location & attendance" },
-  { href: "/night-status-history", icon: "time-outline", title: "Night history", tone: "neutral" },
+  { href: "/attendance", icon: "location", title: "Location & attendance" },
+  { href: "/night-status-history", icon: "time", title: "Night history", tone: "neutral" },
   // Its own row: sharing with a parent is a decision people revisit.
-  { href: "/guardians", icon: "shield-outline", title: "Guardians" },
-  { href: "/complaints", icon: "chatbox-ellipses-outline", title: "Complaints", tone: "danger" },
-  { href: "/id-card", icon: "card-outline", title: "Digital ID", tone: "warning" },
-  { href: "/offer-program/mine", icon: "ribbon-outline", title: "Offer Program" },
+  { href: "/guardians", icon: "shield", title: "Guardians" },
+  { href: "/complaints", icon: "chatbox-ellipses", title: "Complaints", tone: "danger" },
+  { href: "/id-card", icon: "card", title: "Digital ID", tone: "warning" },
+  { href: "/offer-program/mine", icon: "ribbon", title: "Offer Program" },
 ];
 
 const DISCOVER_ROWS: Row[] = [
-  { href: "/hostels", icon: "search-outline", title: "Explore hostels" },
-  { href: "/community", icon: "people-outline", title: "Community", tone: "warning" },
-  { href: "/referrals", icon: "gift-outline", title: "Refer a friend", tone: "danger" },
-  { href: "/review", icon: "star-outline", title: "Review your hostel", tone: "warning" },
+  { href: "/hostels", icon: "search", title: "Explore hostels" },
+  { href: "/community", icon: "people", title: "Community", tone: "warning" },
+  { href: "/referrals", icon: "gift", title: "Refer a friend", tone: "danger" },
+  { href: "/review", icon: "star", title: "Review your hostel", tone: "warning" },
 ];
 
 export default function ResidentMoreScreen() {
@@ -113,13 +113,13 @@ export default function ResidentMoreScreen() {
           {resident ? <StatusPill status={resident.status} /> : null}
           {profile?.hostel ? (
             <>
-              <Chip icon="bed-outline" label={humanizeEnum(profile.accommodation.roomType)} />
+              <Chip icon="bed" label={humanizeEnum(profile.accommodation.roomType)} />
               {resident ? (
-                <Chip icon="calendar-outline" label={`Since ${dates.date(resident.moveInDate)}`} />
+                <Chip icon="calendar" label={`Since ${dates.date(resident.moveInDate)}`} />
               ) : null}
               {profile.hostel.contact.phone ? (
                 <Chip
-                  icon="call-outline"
+                  icon="call"
                   label={profile.hostel.contact.phone}
                   onPress={() => void Linking.openURL(`tel:${profile.hostel?.contact.phone}`)}
                   tone="brand"

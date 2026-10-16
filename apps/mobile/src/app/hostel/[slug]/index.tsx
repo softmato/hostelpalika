@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useRef, useState } from "react";
@@ -17,6 +16,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Sheet } from "@/components/ui/sheet";
 import { FactRow } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
@@ -192,7 +192,7 @@ export default function HostelDetailScreen() {
               </Text>
               {rating.kind === "rated" ? (
                 <View className="flex-row items-center gap-1 pt-1">
-                  <Ionicons color={colors.warning} name="star" size={15} />
+                  <Glyph color={colors.warning} name="star" size={15} />
                   <Text className="font-semibold">{rating.value}</Text>
                   <Text variant="caption">{`(${rating.count})`}</Text>
                 </View>
@@ -202,9 +202,9 @@ export default function HostelDetailScreen() {
             </View>
 
             <View className="flex-row items-center gap-1.5">
-              <Ionicons
+              <Glyph
                 color={colors.mutedForeground}
-                name="location-outline"
+                name="location"
                 size={14}
               />
               <Text className="flex-1" variant="caption">
@@ -218,9 +218,9 @@ export default function HostelDetailScreen() {
 
             {campus ? (
               <View className="flex-row items-center gap-1.5">
-                <Ionicons
+                <Glyph
                   color={colors.mutedForeground}
-                  name="school-outline"
+                  name="school"
                   size={14}
                 />
                 <Text variant="caption">{campus}</Text>
@@ -247,7 +247,7 @@ export default function HostelDetailScreen() {
                   className="flex-row items-center gap-1.5 rounded-xl border border-border px-3 py-2"
                   key={facility}
                 >
-                  <Ionicons
+                  <Glyph
                     color={colors.primary}
                     name={facilityIcon(facility)}
                     size={15}
@@ -280,7 +280,7 @@ export default function HostelDetailScreen() {
                 <View key={rule}>
                   {index > 0 ? <RowDivider /> : null}
                   <View className="flex-row items-start gap-2 py-2.5">
-                    <Ionicons
+                    <Glyph
                       color={colors.mutedForeground}
                       name="ellipse"
                       size={6}
@@ -301,13 +301,13 @@ export default function HostelDetailScreen() {
             <SectionHeader title="Other branches" subtitle="More locations from the same hostel owner" />
             {data.otherBranches.map((branch) => (
               <Pressable key={branch.id} accessibilityRole="link" accessibilityLabel={`View ${branch.name}`} onPress={() => router.push({ pathname: "/hostel/[slug]", params: { slug: branch.slug } })} className="flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3 active:bg-muted">
-                {branch.photoUrl ? <Image source={{ uri: branch.photoUrl.startsWith("/") ? `${API_BASE_URL}${branch.photoUrl}` : branch.photoUrl }} style={{ width: 72, height: 72, borderRadius: 12 }} contentFit="cover" accessibilityLabel={branch.name} /> : <View className="h-[72px] w-[72px] items-center justify-center rounded-xl bg-muted"><Ionicons name="business-outline" size={26} color={colors.mutedForeground} /></View>}
+                {branch.photoUrl ? <Image source={{ uri: branch.photoUrl.startsWith("/") ? `${API_BASE_URL}${branch.photoUrl}` : branch.photoUrl }} style={{ width: 72, height: 72, borderRadius: 12 }} contentFit="cover" accessibilityLabel={branch.name} /> : <View className="h-[72px] w-[72px] items-center justify-center rounded-xl bg-muted"><Glyph name="business" size={26} color={colors.mutedForeground} /></View>}
                 <View className="flex-1 gap-1">
                   <Text variant="label">{branch.name}</Text>
                   <Text variant="caption">{[branch.area, branch.city].filter(Boolean).join(", ")}</Text>
                   <Text className="font-semibold text-primary" variant="caption">View branch</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={18} color={colors.mutedForeground} />
+                <Glyph name="chevron-forward" size={18} color={colors.mutedForeground} />
               </Pressable>
             ))}
           </View>
@@ -359,9 +359,9 @@ function Gallery({ hostel }: { hostel: PublicHostelDetail }) {
         className="items-center justify-center"
         style={{ backgroundColor: colors.muted, height: 240 }}
       >
-        <Ionicons
+        <Glyph
           color={colors.mutedForeground}
-          name="image-outline"
+          name="image"
           size={32}
         />
         <Text variant="caption">No photos yet</Text>
@@ -420,7 +420,7 @@ function Gallery({ hostel }: { hostel: PublicHostelDetail }) {
 
         {hostel.verificationStatus === "VERIFIED" ? (
           <View className="absolute left-5 top-3 flex-row items-center gap-1 rounded-full bg-card/95 px-2.5 py-1">
-            <Ionicons
+            <Glyph
               color={colors.success}
               name="shield-checkmark"
               size={12}
@@ -940,7 +940,7 @@ function LocationBlock({ hostel }: { hostel: PublicHostelDetail }) {
           </>
         ) : (
           <Card className="items-center gap-2 py-6">
-            <Ionicons color={colors.primary} name="map-outline" size={28} />
+            <Glyph color={colors.primary} name="map" size={28} />
             <Text className="text-center" variant="label">
               {address || "Address not published"}
             </Text>
@@ -957,9 +957,9 @@ function LocationBlock({ hostel }: { hostel: PublicHostelDetail }) {
             {groups.map((group) => (
               <View className="gap-1.5" key={group.type}>
                 <View className="flex-row items-center gap-2">
-                  <Ionicons
+                  <Glyph
                     color={colors.primary}
-                    name={group.icon as keyof typeof Ionicons.glyphMap}
+                    name={group.icon as GlyphName}
                     size={15}
                   />
                   <Text className="flex-1" variant="label">
@@ -1002,7 +1002,7 @@ function ShareButton({ onPress }: { onPress: () => void }) {
       hitSlop={12}
       onPress={onPress}
     >
-      <Ionicons color={colors.foreground} name="share-social-outline" size={22} />
+      <Glyph color={colors.foreground} name="share-social" size={22} />
     </Pressable>
   );
 }

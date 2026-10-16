@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion, type Variants } from "framer-motion";
-import { ArrowUpRight, Check } from "lucide-react";
+import { ArrowUpRight, Check } from "@/components/icons";
 import Link from "next/link";
 import type { ReactNode } from "react";
 

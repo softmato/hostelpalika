@@ -165,7 +165,7 @@ function RoomChooser({ availability, slug }: { availability: BookingAvailability
   const rooms = availability.rooms.filter((room) => room.bookable);
 
   if (rooms.length === 0) {
-    return <EmptyState description="No room at this hostel can be booked right now." icon="bed-outline" title="Nothing to book" />;
+    return <EmptyState description="No room at this hostel can be booked right now." icon="bed" title="Nothing to book" />;
   }
 
   return (
@@ -177,7 +177,7 @@ function RoomChooser({ availability, slug }: { availability: BookingAvailability
 
           return (
             <ListRow
-              icon="bed-outline"
+              icon="bed"
               key={room.roomType}
               left={photos.length > 0 ? <StackedThumb photos={photos} /> : undefined}
               onPress={() => router.setParams({ room: room.roomType, slug })}
@@ -559,7 +559,7 @@ export default function CheckoutScreen() {
         <StatusCard booking={current} />
       );
   } else if (!data.available) {
-    step = <EmptyState compact description={data.reasonMessage ?? "This room cannot be booked right now."} icon="bed-outline" title="Not bookable" />;
+    step = <EmptyState compact description={data.reasonMessage ?? "This room cannot be booked right now."} icon="bed" title="Not bookable" />;
   } else if (data.openBooking) {
     step = (
       <Card>

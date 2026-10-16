@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, CornerDownLeft, Search } from "lucide-react";
+import { ArrowUpRight, CornerDownLeft, Search } from "@/components/icons";
 import { usePathname, useRouter } from "next/navigation";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 

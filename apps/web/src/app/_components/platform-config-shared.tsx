@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Check, Loader2, Plus, RotateCcw, Trash2 } from "lucide-react";
+import { AlertCircle, Check, Loader2, Plus, RotateCcw, Trash2 } from "@/components/icons";
 import { useCallback, useState, type ReactNode } from "react";
 
 import { LoadingRows } from "@/app/_components/shared-ui";

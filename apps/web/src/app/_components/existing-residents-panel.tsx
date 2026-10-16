@@ -11,7 +11,7 @@ import {
   Trash2,
   Upload,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import { useCallback, useEffect, useMemo, useState, type ComponentType } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";

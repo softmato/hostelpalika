@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
 
 import { Badge } from "@/components/ui/badge";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { humanizeEnum } from "@/lib/format";
@@ -30,15 +30,15 @@ import { humanizeEnum } from "@/lib/format";
  * muted text at the end of a row is where it goes to be missed.
  */
 
-export const MEAL_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  BREAKFAST: "sunny-outline",
-  DINNER: "moon-outline",
-  LUNCH: "restaurant-outline",
-  SNACKS: "cafe-outline",
+export const MEAL_ICONS: Record<string, GlyphName> = {
+  BREAKFAST: "sunny",
+  DINNER: "moon",
+  LUNCH: "restaurant",
+  SNACKS: "cafe",
 };
 
-export function mealIcon(mealType: string): keyof typeof Ionicons.glyphMap {
-  return MEAL_ICONS[mealType] ?? "restaurant-outline";
+export function mealIcon(mealType: string): GlyphName {
+  return MEAL_ICONS[mealType] ?? "restaurant";
 }
 
 export function MealRow({
@@ -60,7 +60,7 @@ export function MealRow({
   return (
     <View className="flex-row items-start gap-3 rounded-xl border border-border bg-muted/20 p-3">
       <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
-        <Ionicons color={colors.primary} name={mealIcon(mealType)} size={19} />
+        <Glyph color={colors.primary} name={mealIcon(mealType)} size={19} />
       </View>
 
       <View className="flex-1 gap-1">

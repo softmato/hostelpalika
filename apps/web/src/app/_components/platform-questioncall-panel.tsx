@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { GraduationCap } from "lucide-react";
+import { GraduationCap } from "@/components/icons";
 
 import { EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import { usePortalResource } from "@/lib/portal-query";

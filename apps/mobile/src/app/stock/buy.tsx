@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
@@ -20,6 +19,7 @@ import {
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
@@ -483,7 +483,7 @@ function LineCard({
         </View>
         {onRemove ? (
           <Pressable accessibilityLabel="Remove" accessibilityRole="button" hitSlop={8} onPress={onRemove}>
-            <Ionicons color={colors.mutedForeground} name="close-circle" size={24} />
+            <Glyph color={colors.mutedForeground} name="close-circle" size={24} />
           </Pressable>
         ) : null}
       </View>
@@ -526,7 +526,7 @@ function LineCard({
                   <Text className="text-sm font-semibold text-primary">
                     {inPacks ? STOCK_UNIT_LABELS[pack.unit].many : unitLabel(unit)}
                   </Text>
-                  <Ionicons color={colors.primary} name="swap-vertical" size={14} />
+                  <Glyph color={colors.primary} name="swap-vertical" size={14} />
                 </Pressable>
               ) : item ? (
                 <Text variant="muted">{unitLabel(unit)}</Text>
@@ -539,7 +539,7 @@ function LineCard({
                   onPress={onPickUnit}
                 >
                   <Text className="text-sm font-semibold">{unitLabel(unit)}</Text>
-                  <Ionicons color={colors.mutedForeground} name="chevron-down" size={14} />
+                  <Glyph color={colors.mutedForeground} name="chevron-down" size={14} />
                 </Pressable>
               )
             }

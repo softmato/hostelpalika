@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck } from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";

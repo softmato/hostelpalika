@@ -1,7 +1,7 @@
 "use client";
 
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
-import { BedDouble, CalendarCheck, ShieldCheck } from "lucide-react";
+import { BedDouble, CalendarCheck, ShieldCheck } from "@/components/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";

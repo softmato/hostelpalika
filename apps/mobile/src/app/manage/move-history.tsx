@@ -73,7 +73,7 @@ export default function MoveHistoryScreen() {
                   <View key={`${event.residentId}-${event.type}-${event.date}`}>
                     {index > 0 ? <RowDivider inset /> : null}
                     <ListRow
-                      icon={event.type === "MOVE_IN" ? "log-in-outline" : "log-out-outline"}
+                      icon={event.type === "MOVE_IN" ? "log-in" : "log-out"}
                       onPress={() => router.push(`/manage/resident/${event.residentId}`)}
                       right={
                         <Badge

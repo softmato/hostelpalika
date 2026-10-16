@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Linking, View } from "react-native";
 
 import { GuardianNotShared } from "@/components/guardian-not-shared";
@@ -7,6 +6,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Chip, FactRow } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
@@ -150,7 +150,7 @@ export default function GuardianSafetyScreen() {
         */}
         <Card className="gap-2">
           <View className="flex-row items-center gap-2">
-            <Ionicons color={colors.warning} name="lock-closed-outline" size={18} />
+            <Glyph color={colors.warning} name="lock-closed" size={18} />
             <Text variant="label">No GPS tracking. No location history.</Text>
           </View>
           <Text variant="muted">
@@ -178,10 +178,10 @@ export default function GuardianSafetyScreen() {
             */}
             {address || email ? (
               <View className="flex-row flex-wrap gap-2">
-                {address ? <Chip icon="location-outline" label={address} /> : null}
+                {address ? <Chip icon="location" label={address} /> : null}
                 {email ? (
                   <Chip
-                    icon="mail-outline"
+                    icon="mail"
                     label={email}
                     onPress={() => void Linking.openURL(`mailto:${email}`)}
                   />

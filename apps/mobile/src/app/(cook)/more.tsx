@@ -108,14 +108,14 @@ export default function CookMoreScreen() {
         <MenuGroups>
           {kitchen.data?.stockEnabled ? (
             <MenuGroup>
-              <MenuRow icon="cube-outline" onPress={() => router.push("/kitchen-stock")} title="Kitchen stock" />
+              <MenuRow icon="cube" onPress={() => router.push("/kitchen-stock")} title="Kitchen stock" />
             </MenuGroup>
           ) : null}
 
           {kitchen.data?.expensesEnabled ? (
             <MenuGroup>
-              <MenuRow icon="add-circle-outline" onPress={() => router.push("/expenses/new")} title="Add expense" />
-              <MenuRow icon="wallet-outline" onPress={() => router.push("/expenses")} title="My expenses" tone="warning" />
+              <MenuRow icon="add-circle" onPress={() => router.push("/expenses/new")} title="Add expense" />
+              <MenuRow icon="wallet" onPress={() => router.push("/expenses")} title="My expenses" tone="warning" />
             </MenuGroup>
           ) : null}
 

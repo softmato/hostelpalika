@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, GraduationCap } from "lucide-react";
+import { ExternalLink, GraduationCap } from "@/components/icons";
 
 import { useSiteConfig } from "@/components/site-config-provider";
 import { browserApi } from "@/lib/browser-api";

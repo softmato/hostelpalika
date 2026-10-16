@@ -1,4 +1,5 @@
 import { addBsMonths } from "@hostel/calendar/bs";
+import { Glyph } from "@/components/ui/glyph";
 import type { AdminLedger } from "@/lib/admin-api";
 import {
   monthlyTotals,
@@ -6,9 +7,7 @@ import {
   statementCredits,
 } from "@/lib/hostel-statement";
 import { ListingArt } from "@/components/listing-art";
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
-import { Download } from "lucide-react-native";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -163,9 +162,9 @@ function MonthCard({
           onPress={onPick}
         >
           <View className="h-10 w-10 items-center justify-center rounded-2xl bg-brand-soft">
-            <Ionicons
+            <Glyph
               color={colors.primary}
-              name="calendar-outline"
+              name="calendar"
               size={18}
             />
           </View>
@@ -181,7 +180,7 @@ function MonthCard({
                 <Text className="shrink" numberOfLines={1} variant="subtitle">
                   {label}
                 </Text>
-                <Ionicons
+                <Glyph
                   color={colors.mutedForeground}
                   name="chevron-down"
                   size={14}
@@ -196,7 +195,7 @@ function MonthCard({
 
         <Button
           disabled={label === null}
-          icon={Download}
+          icon="download"
           label="PDF"
           loading={downloading}
           onPress={onDownload}
@@ -319,9 +318,9 @@ function MonthRow({
       <View
         className={`h-9 w-9 items-center justify-center rounded-xl ${selected ? "bg-primary" : "bg-brand-soft"}`}
       >
-        <Ionicons
+        <Glyph
           color={selected ? colors.primaryForeground : colors.primary}
-          name="calendar-outline"
+          name="calendar"
           size={16}
         />
       </View>
@@ -340,7 +339,7 @@ function MonthRow({
         <Money tone={net < 0 ? "debit" : "default"} value={Math.abs(net)} />
       ) : null}
       {onPress ? (
-        <Ionicons
+        <Glyph
           color={colors.mutedForeground}
           name="chevron-forward"
           size={16}
@@ -609,14 +608,14 @@ export default function ManageReportsScreen() {
           <View className="gap-3">
             <View className="flex-row gap-3">
               <StatTile
-                icon="log-in-outline"
+                icon="log-in"
                 label="Moved in"
                 tone={residents.movedIn > 0 ? "success" : "neutral"}
                 trend={`in ${monthName}`}
                 value={String(residents.movedIn)}
               />
               <StatTile
-                icon="log-out-outline"
+                icon="log-out"
                 label="Moved out"
                 tone="neutral"
                 trend={`in ${monthName}`}
@@ -638,7 +637,7 @@ export default function ManageReportsScreen() {
                     </Text>
                   </View>
                   <Text variant="title">{percent(beds.occupancyRate)}</Text>
-                  <Ionicons
+                  <Glyph
                     name="chevron-forward"
                     size={18}
                     color={colors.mutedForeground}
@@ -673,7 +672,7 @@ export default function ManageReportsScreen() {
                     View inquiries
                   </Text>
                 </View>
-                <Ionicons
+                <Glyph
                   name="chevron-forward"
                   size={18}
                   color={colors.primary}
@@ -682,13 +681,13 @@ export default function ManageReportsScreen() {
             </Pressable>
             <View className="flex-row gap-3">
               <StatTile
-                icon="search-outline"
+                icon="search"
                 label="Seen in search"
                 trend={changeLine(listing.appearances, previousName)}
                 value={listing.appearances.current.toLocaleString("en-IN")}
               />
               <StatTile
-                icon="eye-outline"
+                icon="eye"
                 label="Page views"
                 trend={changeLine(listing.views, previousName)}
                 value={listing.views.current.toLocaleString("en-IN")}
@@ -696,13 +695,13 @@ export default function ManageReportsScreen() {
             </View>
             <View className="flex-row gap-3">
               <StatTile
-                icon="people-outline"
+                icon="people"
                 label="Visitors"
                 trend={changeLine(listing.visitors, previousName)}
                 value={listing.visitors.current.toLocaleString("en-IN")}
               />
               <StatTile
-                icon="chatbubbles-outline"
+                icon="chatbubbles"
                 label="Inquiries"
                 onPress={() => router.push("/manage/inquiries")}
                 tone="brand"
@@ -849,7 +848,7 @@ export default function ManageReportsScreen() {
               subtitle={index === 0 ? "This month so far" : undefined}
               trailing={
                 selected ? (
-                  <Ionicons color={colors.primary} name="checkmark" size={20} />
+                  <Glyph color={colors.primary} name="checkmark" size={20} />
                 ) : undefined
               }
             />
@@ -909,9 +908,9 @@ export default function ManageReportsScreen() {
                       : "Bank-style · every payment received"
                   }
                   trailing={
-                    <Ionicons
+                    <Glyph
                       color={colors.mutedForeground}
-                      name="document-text-outline"
+                      name="document-text"
                       size={20}
                     />
                   }
@@ -925,9 +924,9 @@ export default function ManageReportsScreen() {
                 }}
                 subtitle="Rent, residents and listing for the month"
                 trailing={
-                  <Ionicons
+                  <Glyph
                     color={colors.mutedForeground}
-                    name="bar-chart-outline"
+                    name="bar-chart"
                     size={20}
                   />
                 }
@@ -971,9 +970,9 @@ export default function ManageReportsScreen() {
             }}
             subtitle="CSV, all months. No phone numbers or addresses"
             trailing={
-              <Ionicons
+              <Glyph
                 color={colors.mutedForeground}
-                name="download-outline"
+                name="download"
                 size={20}
               />
             }
@@ -1042,18 +1041,18 @@ export default function ManageReportsScreen() {
           <View className="gap-4 pb-2">
             <View className="flex-row gap-3">
               <StatTile
-                icon="notifications-outline"
+                icon="notifications"
                 label="Announced"
                 value={String(foodTiming.summary.totalAnnouncements)}
               />
               <StatTile
-                icon="checkmark-circle-outline"
+                icon="checkmark-circle"
                 label="On time"
                 tone="success"
                 value={String(foodTiming.summary.onTimeAnnouncements)}
               />
               <StatTile
-                icon="time-outline"
+                icon="time"
                 label="Late"
                 tone={
                   foodTiming.summary.lateAnnouncements > 0

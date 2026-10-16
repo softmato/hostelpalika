@@ -1,6 +1,6 @@
 "use client";
 
-import { Siren } from "lucide-react";
+import { Siren } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";

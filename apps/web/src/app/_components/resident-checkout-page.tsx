@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ArrowLeft, CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { AlertTriangle, ArrowLeft, CheckCircle2, Loader2, XCircle } from "@/components/icons";
 import Link from "next/link";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 

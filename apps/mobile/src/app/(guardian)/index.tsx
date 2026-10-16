@@ -292,7 +292,7 @@ export default function GuardianHomeScreen() {
             <View className="gap-3">
               {safety ? (
                 <CardRow
-                  icon="shield-checkmark-outline"
+                  icon="shield-checkmark"
                   onPress={() => router.push("/(guardian)/safety")}
                   // A day, never a time — `asOf` is truncated by the serializer
                   // and deriving a time from it is the surveillance detail
@@ -308,7 +308,7 @@ export default function GuardianHomeScreen() {
 
               {seesPayments ? (
                 <CardRow
-                  icon="card-outline"
+                  icon="card"
                   onPress={() => router.push("/(guardian)/payments")}
                   subtitle={
                     dashboard.payments.length > 0

@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, RefreshCw, X } from "lucide-react";
+import { Camera, RefreshCw, X } from "@/components/icons";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 

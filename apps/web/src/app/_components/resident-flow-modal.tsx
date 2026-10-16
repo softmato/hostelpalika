@@ -1,6 +1,6 @@
 "use client";
 
-import { X } from "lucide-react";
+import { X } from "@/components/icons";
 import type { ReactNode } from "react";
 
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";

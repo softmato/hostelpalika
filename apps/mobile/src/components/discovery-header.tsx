@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -15,6 +14,7 @@ import Animated, {
 
 import { IdCardPrompt } from "@/components/id-card-prompt";
 import { NotificationBell } from "@/components/notification-bell";
+import { Glyph } from "@/components/ui/glyph";
 import { IconButton } from "@/components/ui/icon-button";
 import { Text } from "@/components/ui/text";
 import { APP_NAME, APP_NAME_PARTS } from "@/constants/branding";
@@ -213,7 +213,7 @@ export function DiscoveryHeader({
                     : `Create my ${cardNoun} ID card`
                 }
                 /*
-                  `id-card-outline`, not `card-outline`. The latter is Ionicons'
+                  `id-card`, not `card`. The latter is the
                   *payment* card — a plain rounded rectangle with a magnetic
                   stripe — which beside a bell in a hostel app reads as billing,
                   not identity. This one draws the portrait and the lines beside
@@ -223,7 +223,7 @@ export function DiscoveryHeader({
                   beside a bell, and the button means "my ID card" whether or not
                   one exists yet — which is what the label and the sheet say.
                 */
-                name="id-card-outline"
+                name="id-card"
                 onPress={() =>
                   hasCard ? router.push("/id-card") : setPromptingIdCard(true)
                 }
@@ -244,7 +244,7 @@ export function DiscoveryHeader({
             className="flex-1 flex-row items-center gap-2 rounded-2xl border border-border bg-card"
             style={{ height: SEARCH_HEIGHT, paddingLeft: 12, paddingRight: 6 }}
           >
-            <Ionicons color={colors.mutedForeground} name="search" size={FIELD_GLYPH} />
+            <Glyph color={colors.mutedForeground} name="search" size={FIELD_GLYPH} />
 
             {/*
               A bare `TextInput`, not the design system's `Input`: that carries a
@@ -275,7 +275,7 @@ export function DiscoveryHeader({
                 hitSlop={8}
                 onPress={() => onQueryChange("")}
               >
-                <Ionicons
+                <Glyph
                   color={colors.mutedForeground}
                   name="close-circle"
                   size={FIELD_GLYPH}
@@ -290,9 +290,9 @@ export function DiscoveryHeader({
               onPress={() => router.push(browseHref)}
               style={{ height: FILTER_BUTTON, width: FILTER_BUTTON }}
             >
-              <Ionicons
+              <Glyph
                 color={colors.primaryForeground}
-                name="options-outline"
+                name="options"
                 size={FIELD_GLYPH}
               />
             </Pressable>
@@ -432,7 +432,7 @@ function MapButton() {
       </Animated.View>
 
       {/* After the band in the tree, so it draws over it. */}
-      <Ionicons color={colors.foreground} name="map-outline" size={MAP_GLYPH} />
+      <Glyph color={colors.foreground} name="map" size={MAP_GLYPH} />
     </Pressable>
   );
 }

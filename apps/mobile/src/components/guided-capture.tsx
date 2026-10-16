@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
@@ -6,6 +5,7 @@ import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, Linking, Modal, Pressable, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useSystemInsets } from "@/hooks/use-system-insets";
 import { centredGuide, cropRectForGuide } from "@/lib/capture-crop";
@@ -173,7 +173,7 @@ export function GuidedCapture({
             hitSlop={12}
             onPress={close}
           >
-            <Ionicons color="#ffffff" name="close" size={26} />
+            <Glyph color="#ffffff" name="close" size={26} />
           </Pressable>
           <Text className="flex-1 text-white" numberOfLines={1} variant="subtitle">
             {guide.title}
@@ -203,7 +203,7 @@ export function GuidedCapture({
             </>
           ) : (
             <View className="flex-1 items-center justify-center gap-4 px-8">
-              <Ionicons color="#ffffff" name="camera-outline" size={32} />
+              <Glyph color="#ffffff" name="camera" size={32} />
               <Text className="text-center text-white/80" variant="body">
                 {permission?.canAskAgain === false
                   ? `Camera access is off for ${APP_NAME}. Turn it on in Settings.`
@@ -267,7 +267,7 @@ export function GuidedCapture({
                     setFacing((current) => (current === "back" ? "front" : "back"))
                   }
                 >
-                  <Ionicons color="#ffffff" name="camera-reverse-outline" size={20} />
+                  <Glyph color="#ffffff" name="camera-reverse" size={20} />
                 </Pressable>
               </View>
             </>

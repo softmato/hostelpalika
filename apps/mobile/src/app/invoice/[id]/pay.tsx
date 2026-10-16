@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { BillExtras } from "@/components/bill-extras";
+import { Glyph } from "@/components/ui/glyph";
 import { Sheet } from "@/components/ui/sheet";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
@@ -90,7 +90,7 @@ import { openPaymentUrl } from "@/lib/wallet";
  *
  * ## Every glyph on this screen is coloured
  *
- * Four `<Ionicons>` here carried **no `color`**, which renders black — so the
+ * Four `<Ionicons>` here (before our own glyphs) carried **no `color`**, which renders black — so the
  * method icon on the primary card, the disclosure chevron, each folded method's
  * icon and the copy glyph were all invisible on a dark card in dark mode. It is
  * the same fault the Payments tab's statement button had, and the same fix: read
@@ -170,7 +170,7 @@ export default function PayInvoiceScreen() {
                 {/*
                   The provider's own mark where a generic glyph used to be. On a
                   card whose whole job is "this is who you are about to pay", a
-                  `phone-portrait-outline` in our green identified nothing —
+                  `phone-portrait` in our green identified nothing —
                   eSewa and Khalti drew the *same* glyph. `<WalletMark>` falls
                   back to one for a method that has no logo (bank, QR).
                 */}
@@ -228,7 +228,7 @@ export default function PayInvoiceScreen() {
               }
               compact
               description="Your hostel has not set up any payment method yet. Ask them how to pay, then submit your receipt so it still reaches your record."
-              icon="card-outline"
+              icon="card"
               title="No payment methods"
               tone="warning"
             />
@@ -248,9 +248,9 @@ export default function PayInvoiceScreen() {
         */}
         {needsReference ? (
           <Card className="flex-row items-start gap-2.5">
-            <Ionicons
+            <Glyph
               color={colors.mutedForeground}
-              name="information-circle-outline"
+              name="information-circle"
               size={16}
             />
             <Text className="flex-1" variant="caption">
@@ -461,13 +461,13 @@ function ReferenceSection({
             text's `flex-1` and ended up hanging in the white space after
             "program" — an icon floating at the margin, which reads as a control
             for the whole block rather than a marker on one phrase. Inline, it
-            wraps with the last word the way a footnote marker does. `<Ionicons>`
+            wraps with the last word the way a footnote marker does. `<Glyph>`
             renders a glyph font inside a `<Text>`, so it nests.
           */}
           <Text variant="caption">
             Fill this code as remark in your payment to get resident offer
             program{" "}
-            <Ionicons color={colors.info} name="information-circle" size={13} />
+            <Glyph color={colors.info} name="information-circle" size={13} />
           </Text>
         </Pressable>
       ) : (

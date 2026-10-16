@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Bell, Megaphone, Send } from "lucide-react";
+import { AlertTriangle, Bell, Megaphone, Send } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { EmptyState, Input, Select, TextArea } from "@/app/_components/shared-ui";

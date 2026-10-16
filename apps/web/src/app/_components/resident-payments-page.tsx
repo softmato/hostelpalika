@@ -9,7 +9,7 @@ import {
   ReceiptText,
   Upload,
   WalletCards,
-} from "lucide-react";
+} from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { currency, EmptyState, LoadingRows } from "@/app/_components/shared-ui";

@@ -403,14 +403,14 @@ export default function ExistingResidentsScreen() {
         <ActionCard>
           <ActionCell
             glyph={colors.primary}
-            icon="download-outline"
+            icon="download"
             label="Download Excel"
             onPress={() => void download()}
             tone="brand"
           />
           <ActionCell
             glyph={colors.primary}
-            icon={uploading ? "hourglass-outline" : "cloud-upload-outline"}
+            icon={uploading ? "hourglass" : "cloud-upload"}
             label={uploading ? "Reading…" : "Upload file"}
             onPress={() => {
               if (!uploading) void upload();
@@ -419,7 +419,7 @@ export default function ExistingResidentsScreen() {
           />
           <ActionCell
             glyph={colors.primary}
-            icon="person-add-outline"
+            icon="person-add"
             label="Add one"
             onPress={() => setDraft(draftFrom(blankRow()))}
             tone="brand"
@@ -458,14 +458,14 @@ export default function ExistingResidentsScreen() {
         ) : (
           <>
             <View className="flex-row gap-3">
-              <StatTile icon="people-outline" label="In list" tone="brand" value={String(pending)} />
+              <StatTile icon="people" label="In list" tone="brand" value={String(pending)} />
               <StatTile
-                icon="alert-circle-outline"
+                icon="alert-circle"
                 label="To fix"
                 tone={check?.withProblems ? "warning" : "neutral"}
                 value={String(check?.withProblems ?? 0)}
               />
-              <StatTile icon="receipt-outline" label="To bill" value={formatMoney(totals.amount)} />
+              <StatTile icon="receipt" label="To bill" value={formatMoney(totals.amount)} />
             </View>
 
             {sections.map((section) => (
@@ -479,10 +479,10 @@ export default function ExistingResidentsScreen() {
                     <CardRow
                       icon={
                         row.residentId
-                          ? "checkmark-circle-outline"
+                          ? "checkmark-circle"
                           : checked?.problems.length
-                            ? "alert-circle-outline"
-                            : "person-outline"
+                            ? "alert-circle"
+                            : "person"
                       }
                       key={row.id}
                       onPress={

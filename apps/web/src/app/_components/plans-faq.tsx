@@ -7,8 +7,8 @@ import {
   Home,
   Plus,
   UserRound,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -36,7 +36,7 @@ type FaqEntry = {
   role: FaqRole;
 };
 
-const ROLES: { icon: LucideIcon; id: FaqRole; label: string }[] = [
+const ROLES: { icon: IconComponent; id: FaqRole; label: string }[] = [
   { icon: Home, id: "hostel", label: "Hostel owners" },
   { icon: UserRound, id: "resident", label: "Residents" },
   { icon: HardHat, id: "provider", label: "Service providers" },

@@ -47,7 +47,7 @@ describe("shipped page content", () => {
 
   it("names an icon both clients can draw", () => {
     // Slugs are shared vocabulary: `apps/mobile/src/lib/site-content.ts` maps the
-    // same names onto Ionicons. A shipped default outside the set would fall
+    // same names onto the same glyph set. A shipped default outside the set would fall
     // back to a generic mark on every surface.
     for (const page of Object.values(DEFAULT_SITE_CONFIG.content)) {
       if (Array.isArray(page)) continue;

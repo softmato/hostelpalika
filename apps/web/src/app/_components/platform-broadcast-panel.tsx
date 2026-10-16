@@ -1,6 +1,6 @@
 "use client";
 
-import { Megaphone } from "lucide-react";
+import { Megaphone } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import {

@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useCallback, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { API_BASE_URL } from "@/lib/api";
@@ -225,7 +225,7 @@ export function PhotoStrip({
       >
         {busy || full ? (
           <View className="flex-1 items-center justify-center gap-1">
-            <Ionicons color={colors.mutedForeground} name={busy ? "hourglass-outline" : "checkmark-circle-outline"} size={20} />
+            <Glyph color={colors.mutedForeground} name={busy ? "hourglass" : "checkmark-circle"} size={20} />
             <Text variant="label">{busy ? "Adding…" : "Full"}</Text>
             <Text variant="caption">{photos.length}/{limit}</Text>
           </View>
@@ -239,7 +239,7 @@ export function PhotoStrip({
               key={source}
               onPress={() => onAdd(source)}
             >
-              <Ionicons color={colors.primary} name={source === "camera" ? "camera-outline" : "images-outline"} size={18} />
+              <Glyph color={colors.primary} name={source === "camera" ? "camera" : "images"} size={18} />
               <Text className="text-primary" variant="label">{source === "camera" ? "Camera" : "Upload"}</Text>
             </Pressable>
           ))
@@ -281,7 +281,7 @@ export function PhotoStrip({
                 disabled={disabled || busy}
                 onPress={() => onRemove(photo.id as string)}
               >
-                <Ionicons color="#ffffff" name="close" size={13} />
+                <Glyph color="#ffffff" name="close" size={13} />
               </Pressable>
             ) : null}
           </View>

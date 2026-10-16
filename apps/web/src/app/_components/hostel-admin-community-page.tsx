@@ -1,6 +1,6 @@
 "use client";
 
-import { Flag, Megaphone } from "lucide-react";
+import { Flag, Megaphone } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import { Panel, TextArea } from "@/app/_components/shared-ui";

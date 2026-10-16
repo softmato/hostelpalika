@@ -1,7 +1,7 @@
 "use client";
 
-import { Coffee, Cookie, Moon, Soup, Upload, Users, UtensilsCrossed } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Coffee, Cookie, Moon, Soup, Upload, Users, UtensilsCrossed } from "@/components/icons";
+import type { IconComponent } from "@/components/icons";
 import { useEffect, useState, type FormEvent } from "react";
 
 import {
@@ -45,7 +45,7 @@ const DAYS = [
   "SATURDAY",
 ] as const;
 
-const MEAL_ICON: Record<MealType, LucideIcon> = {
+const MEAL_ICON: Record<MealType, IconComponent> = {
   BREAKFAST: Coffee,
   DINNER: Moon,
   LUNCH: Soup,

@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert } from "@/components/icons";
 import { memo, useCallback, useState } from "react";
 
 import { Panel } from "@/app/_components/shared-ui";

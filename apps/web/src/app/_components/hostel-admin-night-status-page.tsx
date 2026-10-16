@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { browserApi } from "@/lib/browser-api";

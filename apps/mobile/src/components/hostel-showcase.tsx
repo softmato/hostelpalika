@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -13,6 +12,7 @@ import {
 } from "react-native";
 
 import { SaveButton, TYPE_TAG_SIZE } from "@/components/hostel-card";
+import { Glyph } from "@/components/ui/glyph";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -301,7 +301,7 @@ function ShowcaseCard({
             className="h-full w-full items-center justify-center"
             style={{ backgroundColor: colors.muted }}
           >
-            <Ionicons color={colors.mutedForeground} name="image-outline" size={32} />
+            <Glyph color={colors.mutedForeground} name="image" size={32} />
           </View>
         )}
 
@@ -320,7 +320,7 @@ function ShowcaseCard({
         */}
         <View className="absolute left-2.5 top-2.5 flex-row items-center gap-1 rounded-full bg-primary px-1.5 py-0.5">
           {hostel.verificationStatus === "VERIFIED" ? (
-            <Ionicons color={colors.primaryForeground} name="shield-checkmark" size={8} />
+            <Glyph color={colors.primaryForeground} name="shield-checkmark" size={8} />
           ) : null}
           <Text
             className="font-medium uppercase tracking-wide text-primary-foreground"
@@ -366,7 +366,7 @@ function ShowcaseCard({
           </Text>
 
           <View className="flex-row items-center gap-1">
-            <Ionicons color={colors.mutedForeground} name="location-outline" size={11} />
+            <Glyph color={colors.mutedForeground} name="location" size={11} />
             <Text
               className="flex-1"
               numberOfLines={1}
@@ -395,7 +395,7 @@ function ShowcaseCard({
             >
               {rating.kind === "rated" ? (
                 <>
-                  <Ionicons color={colors.primary} name="star" size={10} />
+                  <Glyph color={colors.primary} name="star" size={10} />
                   <Text style={{ fontSize: TYPE_SCALE.meta, fontWeight: "700" }}>
                     {rating.value}
                   </Text>
@@ -460,7 +460,7 @@ function ShowcaseCard({
           >
             View Details
           </Text>
-          <Ionicons color={colors.primary} name="arrow-forward" size={14} />
+          <Glyph color={colors.primary} name="arrow-forward" size={14} />
         </View>
       </View>
     </Pressable>

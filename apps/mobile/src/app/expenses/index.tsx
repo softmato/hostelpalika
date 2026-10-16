@@ -1,5 +1,4 @@
 import { ReceiptShareSettings } from "@/components/receipt-share-settings";
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
@@ -19,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { FactRow } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
@@ -183,7 +183,7 @@ export default function ExpensesScreen() {
                 hitSlop={6}
                 onPress={() => step(-1)}
               >
-                <Ionicons color={colors.foreground} name="chevron-back" size={18} />
+                <Glyph color={colors.foreground} name="chevron-back" size={18} />
               </Pressable>
               <Text variant="label">
                 {shownPeriod ? (atCurrent ? `This month · ${periodLabel(shownPeriod)}` : periodLabel(shownPeriod)) : " "}
@@ -198,7 +198,7 @@ export default function ExpensesScreen() {
                 hitSlop={6}
                 onPress={() => step(1)}
               >
-                <Ionicons color={colors.foreground} name="chevron-forward" size={18} />
+                <Glyph color={colors.foreground} name="chevron-forward" size={18} />
               </Pressable>
             </View>
 
@@ -236,7 +236,7 @@ export default function ExpensesScreen() {
                 <Figure label="You spent">
                   <Money tone="debit" value={home.mine.out} />
                 </Figure>
-                <Ionicons color={colors.mutedForeground} name="chevron-forward" size={16} />
+                <Glyph color={colors.mutedForeground} name="chevron-forward" size={16} />
               </Pressable>
             ) : (
               <View className="items-center gap-0.5">
@@ -322,7 +322,7 @@ export default function ExpensesScreen() {
                   onPress={() => router.push({ params: { category: "STAFF_CASH" }, pathname: "/expenses/new" })}
                 >
                   <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-soft">
-                    <Ionicons color={colors.primary} name="add" size={22} />
+                    <Glyph color={colors.primary} name="add" size={22} />
                   </View>
                   <Text className="text-primary" variant="label">
                     Give cash

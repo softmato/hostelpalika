@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ShieldCheck, ShieldHalf, Users } from "lucide-react";
+import { CheckCircle2, ShieldCheck, ShieldHalf, Users } from "@/components/icons";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { memo, useCallback, useEffect, useState } from "react";

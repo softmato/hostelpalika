@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { type ReactNode, useState } from "react";
 import { Pressable, Share, View } from "react-native";
@@ -9,6 +8,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { DataCard } from "@/components/ui/data-card";
+import { Glyph } from "@/components/ui/glyph";
 import { RowDivider } from "@/components/ui/list-row";
 import { Meter } from "@/components/ui/meter";
 import { Money } from "@/components/ui/money";
@@ -185,7 +185,7 @@ export default function StockReportsScreen() {
                     onPress={() => row.supplierId && router.push({ params: { id: row.supplierId }, pathname: "/stock/supplier/[id]" })}
                   >
                     <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-soft">
-                      <Ionicons color={colors.primary} name="storefront-outline" size={20} />
+                      <Glyph color={colors.primary} name="storefront" size={20} />
                     </View>
                     <View className="flex-1">
                       <Text numberOfLines={1} variant="label">
@@ -264,7 +264,7 @@ function Arrow({
       hitSlop={6}
       onPress={onPress}
     >
-      <Ionicons color={colors.foreground} name={name} size={18} />
+      <Glyph color={colors.foreground} name={name} size={18} />
     </Pressable>
   );
 }

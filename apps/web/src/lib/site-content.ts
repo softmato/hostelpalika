@@ -31,8 +31,8 @@ import {
   Utensils,
   WalletCards,
   Wrench,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 
 import type { PublicSiteConfig } from "@/modules/platform-config/site-config.service";
 import type { ContentPage } from "@/modules/platform-config/site-config.validation";
@@ -42,7 +42,7 @@ import type { ContentPage } from "@/modules/platform-config/site-config.validati
  *
  * Two things have to happen between the database and the screen, and both of
  * them are here so the phone can mirror them exactly (`apps/mobile/src/lib/
- * site-content.ts` is the same two functions against Ionicons).
+ * site-content.ts` is the same two functions).
  */
 
 type SiteIdentity = PublicSiteConfig["identity"];
@@ -115,7 +115,7 @@ export function resolveContentPage(page: ContentPage, identity: SiteIdentity) {
  * an ordinary typo and has to degrade rather than throw; `Sparkles` is the
  * schema's own default and the neutral choice.
  */
-const CONTENT_ICONS: Record<string, LucideIcon> = {
+const CONTENT_ICONS: Record<string, IconComponent> = {
   "alert-triangle": AlertTriangle,
   "badge-check": BadgeCheck,
   ban: Ban,
@@ -150,7 +150,7 @@ const CONTENT_ICONS: Record<string, LucideIcon> = {
   wrench: Wrench,
 };
 
-export function contentIcon(slug: string): LucideIcon {
+export function contentIcon(slug: string): IconComponent {
   return CONTENT_ICONS[slug] ?? Sparkles;
 }
 

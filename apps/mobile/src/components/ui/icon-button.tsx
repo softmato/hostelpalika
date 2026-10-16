@@ -1,6 +1,6 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Pressable, View } from "react-native";
 
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -39,7 +39,7 @@ export function IconButton({
 }: {
   badge?: number;
   label: string;
-  name: keyof typeof Ionicons.glyphMap;
+  name: GlyphName;
   onPress: () => void;
   /** `sm` for a secondary action beside a primary one in the bar. */
   size?: "md" | "sm";
@@ -59,7 +59,7 @@ export function IconButton({
       hitSlop={6}
       onPress={onPress}
     >
-      <Ionicons color={onAccent ? "#ffffff" : colors.foreground} name={name} size={size === "sm" ? 15 : 19} />
+      <Glyph color={onAccent ? "#ffffff" : colors.foreground} name={name} size={size === "sm" ? 15 : 19} />
 
       {badge > 0 ? (
         <View

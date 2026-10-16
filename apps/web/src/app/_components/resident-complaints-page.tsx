@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquareWarning, Send } from "lucide-react";
+import { MessageSquareWarning, Send } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import {

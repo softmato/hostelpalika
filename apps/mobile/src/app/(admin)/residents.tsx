@@ -177,7 +177,7 @@ function BranchAdminResidentsScreen() {
     <KycFrost frozen={locked} label="Join link and existing residents">
     <View className="gap-3">
       <CardRow
-        icon="link-outline"
+        icon="link"
         onPress={() =>
           router.push(join.data?.requests.length ? "/manage/join-requests" : "/manage/join-link")
         }
@@ -189,7 +189,7 @@ function BranchAdminResidentsScreen() {
         title="Join link"
       />
       <CardRow
-        icon="document-text-outline"
+        icon="document-text"
         onPress={() => router.push("/manage/existing-residents")}
         subtitle="Upload an Excel file or add them one by one"
         title="Add existing residents"
@@ -204,7 +204,7 @@ function BranchAdminResidentsScreen() {
   */
   const waitingEntry = waiting ? (
     <CardRow
-      icon="person-add-outline"
+      icon="person-add"
       onPress={() => router.push("/manage/join-requests")}
       subtitle="Sent through your join link · check and add"
       title={waiting === 1 ? "1 resident wants to join" : `${waiting} residents want to join`}
@@ -277,7 +277,7 @@ function BranchAdminResidentsScreen() {
     <Screen
       floating={
         <FloatingButton
-          icon={locked ? "lock-closed-outline" : "person-add-outline"}
+          icon={locked ? "lock-closed" : "person-add"}
           label="Register a resident"
           onPress={() => (locked ? promptKyc() : router.push("/manage/resident/new"))}
         />

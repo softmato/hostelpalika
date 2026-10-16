@@ -34,7 +34,7 @@ export const STORE_OPEN = false;
 export type StoreProductImage = { assetId: string; url: string };
 
 export type StoreCategory = {
-  /** An Ionicons glyph name, chosen by the platform owner. */
+  /** A glyph name, chosen by the platform owner. Older rows say `bed-outline`; `<Glyph>` resolves that. */
   icon: string;
   id: string;
   imageAssetId: string;

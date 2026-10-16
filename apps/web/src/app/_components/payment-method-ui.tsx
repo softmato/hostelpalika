@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Building2, Check, Copy, QrCode, Smartphone } from "lucide-react";
+import { AlertTriangle, Building2, Check, Copy, QrCode, Smartphone } from "@/components/icons";
 import { useCallback, useState } from "react";
 
 import { cn } from "@/lib/utils";

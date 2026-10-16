@@ -71,7 +71,7 @@ type InputProps = Omit<TextInputProps, "className"> & {
    * A node rather than an icon name, because the marks these forms need are not
    * all one set: `finance/payment-setup` puts a `<WalletMark>` (an image on a
    * white tile) beside an account number while the rest of the form takes a
-   * lucide glyph. Size it for a 48dp field — about 18 to 22 points.
+   * glyph. Size it for a 48dp field — about 18 to 22 points.
    *
    * It is decoration, so it carries no label: the field's own `label` is what a
    * screen reader reads, and an icon that announced itself would make every row

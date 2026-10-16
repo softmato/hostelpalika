@@ -1,6 +1,6 @@
 "use client";
 
-import { BellRing, CalendarDays, Clock3, Repeat, Send, Trash2, Zap } from "lucide-react";
+import { BellRing, CalendarDays, Clock3, Repeat, Send, Trash2, Zap } from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";

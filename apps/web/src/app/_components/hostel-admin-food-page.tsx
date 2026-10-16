@@ -10,8 +10,8 @@ import {
   Sparkles,
   Sun,
   Utensils,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import {
@@ -70,7 +70,7 @@ const DAYS: DayOfWeek[] = [
 
 const MEALS: {
   defaultTiming: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   label: string;
   type: MealType;
 }[] = [
@@ -100,7 +100,7 @@ const MEALS: {
   },
 ];
 
-const TABS: { icon: LucideIcon; id: RoutineTab; label: string }[] = [
+const TABS: { icon: IconComponent; id: RoutineTab; label: string }[] = [
   { icon: CalendarDays, id: "weekly", label: "Weekly Routine" },
   { icon: Sparkles, id: "special", label: "Special Foods" },
   { icon: ChefHat, id: "month-end", label: "Month End Special" },

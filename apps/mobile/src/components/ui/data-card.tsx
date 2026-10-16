@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import type { ReactNode } from "react";
 import { Pressable, View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -166,7 +166,7 @@ export function DataCard({
         {action}
 
         {onPress && !action ? (
-          <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} />
+          <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} />
         ) : null}
       </View>
 

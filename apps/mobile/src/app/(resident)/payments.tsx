@@ -233,7 +233,7 @@ export default function ResidentPaymentsScreen() {
         <View className="flex-row items-center gap-2">
           <IconButton
             label={statementBusy ? "Downloading your statement" : "Download statement"}
-            name={statementBusy ? "hourglass-outline" : "download-outline"}
+            name={statementBusy ? "hourglass" : "download"}
             onPress={() => {
               if (statementBusy) {
                 return;
@@ -449,7 +449,7 @@ export default function ResidentPaymentsScreen() {
           takes — see `(resident)/more.tsx`.
         */}
         <CardRow
-          icon="receipt-outline"
+          icon="receipt"
           onPress={() => router.push("/khata")}
           subtitle="Egg, meals, laundry — on next month's bill"
           title="Khata"
@@ -457,7 +457,7 @@ export default function ResidentPaymentsScreen() {
         />
 
         <CardRow
-          icon="ribbon-outline"
+          icon="ribbon"
           onPress={() => router.push("/offer-program/mine")}
           subtitle="Certified receipts, perks & your offers"
           title="Offer Program"
@@ -515,7 +515,7 @@ export default function ResidentPaymentsScreen() {
               <EmptyState
                 compact
                 description="Your hostel has not billed you yet. Invoices appear here as soon as they do."
-                icon="receipt-outline"
+                icon="receipt"
                 title="No invoices"
               />
             </Card>
@@ -532,7 +532,7 @@ export default function ResidentPaymentsScreen() {
                         ? "Every month billed to you is settled."
                         : "Nothing you have been billed for has settled yet."
                     }
-                    icon={filter === "open" ? "checkmark-circle-outline" : "time-outline"}
+                    icon={filter === "open" ? "checkmark-circle" : "time"}
                     title={filter === "open" ? "Nothing open" : "No settled months"}
                     tone={filter === "open" ? "success" : "muted"}
                   />

@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import type { ReactNode } from "react";
 import { Pressable, TextInput, View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
@@ -96,7 +96,7 @@ export function AdminSearchBar({
           className="flex-row items-center gap-2 rounded-2xl border border-border bg-card"
           style={{ height: FIELD_HEIGHT, paddingLeft: 12, paddingRight: 10 }}
         >
-          <Ionicons color={colors.mutedForeground} name="search" size={FIELD_GLYPH} />
+          <Glyph color={colors.mutedForeground} name="search" size={FIELD_GLYPH} />
 
           <TextInput
             autoCapitalize="none"
@@ -116,7 +116,7 @@ export function AdminSearchBar({
               hitSlop={8}
               onPress={() => onQueryChange("")}
             >
-              <Ionicons
+              <Glyph
                 color={colors.mutedForeground}
                 name="close-circle"
                 size={FIELD_GLYPH}

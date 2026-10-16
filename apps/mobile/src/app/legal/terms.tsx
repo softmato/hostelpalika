@@ -8,7 +8,7 @@ import { DocumentScreen } from "@/components/document-screen";
 export default function TermsScreen() {
   return (
     <DocumentScreen
-      icon="scale-outline"
+      icon="scale"
       legalDocument="terms"
       page="terms"
       webPath="terms"

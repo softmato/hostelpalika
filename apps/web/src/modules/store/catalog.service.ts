@@ -76,7 +76,7 @@ export function storeObjectId(value: string, label = "id") {
 
 export function serializeStoreCategory(category: StoreCategoryRecord) {
   return {
-    icon: category.icon ?? "cube-outline",
+    icon: category.icon ?? "cube",
     id: category._id.toString(),
     imageAssetId: category.imageAssetId ?? "",
     imageUrl: category.imageUrl ?? "",

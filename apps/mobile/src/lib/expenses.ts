@@ -15,7 +15,7 @@
  * Gregorian day (`2026-10-01`), the one shape the API accepts, so neither end
  * has to guess which calendar a string is in.
  */
-import type { Ionicons } from "@expo/vector-icons";
+import type { GlyphName } from "@hostel/constants/glyphs";
 
 import { bsMonthName, hostelToday, toBs } from "@hostel/calendar/bs";
 import {
@@ -139,7 +139,7 @@ export type ExpenseHome = {
 /* Icons                                                                      */
 /* -------------------------------------------------------------------------- */
 
-type IconName = keyof typeof Ionicons.glyphMap;
+type IconName = GlyphName;
 
 /**
  * One glyph per category. Recognised by shape, not colour: every tile is the
@@ -147,22 +147,22 @@ type IconName = keyof typeof Ionicons.glyphMap;
  * of categories would spend colour that means something elsewhere.
  */
 export const EXPENSE_CATEGORY_ICONS: Record<ExpenseCategoryKey, IconName> = {
-  CLEANING: "sparkles-outline",
-  ELECTRICITY: "flash-outline",
-  GAS: "flame-outline",
-  GROCERIES: "basket-outline",
-  INTERNET: "wifi-outline",
-  OTHER: "ellipsis-horizontal-circle-outline",
-  RENT: "business-outline",
-  REPAIR: "construct-outline",
-  SALARY: "people-outline",
-  STAFF_CASH: "wallet-outline",
-  VEGETABLES_MEAT: "leaf-outline",
-  WATER: "water-outline",
+  CLEANING: "sparkles",
+  ELECTRICITY: "flash",
+  GAS: "flame",
+  GROCERIES: "basket",
+  INTERNET: "wifi",
+  OTHER: "ellipsis-horizontal-circle",
+  RENT: "business",
+  REPAIR: "construct",
+  SALARY: "people",
+  STAFF_CASH: "wallet",
+  VEGETABLES_MEAT: "leaf",
+  WATER: "water",
 };
 
 /** A hostel's own categories share one glyph: a tag, because that is what they are. */
-export const CUSTOM_CATEGORY_ICON: IconName = "pricetag-outline";
+export const CUSTOM_CATEGORY_ICON: IconName = "pricetag";
 
 export function expenseIcon(category: ExpenseCategoryValue): IconName {
   return category === "CUSTOM" ? CUSTOM_CATEGORY_ICON : EXPENSE_CATEGORY_ICONS[category];

@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import { Image, Pressable, View } from "react-native";
@@ -12,6 +11,7 @@ import {
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
 import { EmptyState, ErrorState } from "@/components/ui/states";
@@ -278,7 +278,7 @@ function CartRow({
           <Image className="h-full w-full" resizeMode="cover" source={{ uri }} />
         ) : (
           <View className="h-full w-full items-center justify-center">
-            <Ionicons color={colors.primary} name="cube-outline" size={22} />
+            <Glyph color={colors.primary} name="cube" size={22} />
           </View>
         )}
       </Pressable>
@@ -294,7 +294,7 @@ function CartRow({
             hitSlop={10}
             onPress={onRemove}
           >
-            <Ionicons color={colors.mutedForeground} name="trash-outline" size={16} />
+            <Glyph color={colors.mutedForeground} name="trash" size={16} />
           </Pressable>
         </View>
 

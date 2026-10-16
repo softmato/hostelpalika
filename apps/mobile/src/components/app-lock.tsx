@@ -2,14 +2,6 @@ import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
 import { requireOptionalNativeModule } from "expo-modules-core";
 import { router, usePathname } from "expo-router";
-import {
-  Delete,
-  FingerprintPattern,
-  KeyRound,
-  LockKeyhole,
-  type LucideIcon,
-  Mail,
-} from "lucide-react-native";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   ActivityIndicator,
@@ -37,6 +29,7 @@ import { PersonAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { ListRow } from "@/components/ui/list-row";
 import { Sheet } from "@/components/ui/sheet";
@@ -326,9 +319,9 @@ function PinPad({
                 onPressIn={key === "finger" ? undefined : () => press(key)}
               >
                 {key === "back" ? (
-                  <Delete color={colors.mutedForeground} size={26} strokeWidth={1.8} />
+                  <Glyph name="backspace" color={colors.mutedForeground} size={26} strokeWidth={1.8} />
                 ) : key === "finger" ? (
-                  <FingerprintPattern color={colors.brand} size={30} strokeWidth={1.6} />
+                  <Glyph name="finger-print" color={colors.brand} size={30} strokeWidth={1.6} />
                 ) : (
                   <Text className="text-2xl font-semibold text-foreground" variant={null}>
                     {key}
@@ -345,11 +338,11 @@ function PinPad({
 
 /** The tinted icon, one line and the line under it — the head of every lock step. */
 export function StepHeading({
-  icon: Icon,
+  icon,
   subtitle,
   title,
 }: {
-  icon: LucideIcon;
+  icon: GlyphName;
   subtitle?: string;
   title: string;
 }) {
@@ -358,7 +351,7 @@ export function StepHeading({
   return (
     <View className="items-center gap-2">
       <View className="h-16 w-16 items-center justify-center rounded-full bg-brand-soft">
-        <Icon color={colors.brand} size={28} strokeWidth={1.8} />
+        <Glyph color={colors.brand} name={icon} size={28} strokeWidth={1.8} />
       </View>
       <Text className="text-center" variant="title">
         {title}
@@ -404,7 +397,7 @@ function NewPinSteps({
   return (
     <View className="gap-6">
       <StepHeading
-        icon={KeyRound}
+        icon="key"
         subtitle={
           first === null
             ? `4 digits. It opens ${APP_NAME}, and your portal on the website.`
@@ -448,7 +441,7 @@ function RecoveryStep({
 
   return (
     <View className="gap-5">
-      <StepHeading icon={hasMailbox(account) ? Mail : KeyRound} subtitle={then} title="Forgot your PIN?" />
+      <StepHeading icon={hasMailbox(account) ? "mail" : "key"} subtitle={then} title="Forgot your PIN?" />
       {error ? (
         <Text className="text-center text-destructive" variant="caption">
           {error}
@@ -772,7 +765,7 @@ function LockScreen({ account }: { account: ApiUser }) {
               <EmailCodeForm email={account.email} onVerified={onCodeVerified} />
               {status !== "changed" && status !== "saving" ? (
                 <Button
-                  icon={FingerprintPattern}
+                  icon="finger-print"
                   label="Use biometric"
                   onPress={() => {
                     setWithCode(false);
@@ -802,7 +795,7 @@ function LockScreen({ account }: { account: ApiUser }) {
                     className="h-32 w-32 items-center justify-center rounded-full bg-brand-soft active:opacity-80"
                     onPress={() => void tryFingerprint()}
                   >
-                    <FingerprintPattern color={colors.brand} size={60} strokeWidth={1.6} />
+                    <Glyph name="finger-print" color={colors.brand} size={60} strokeWidth={1.6} />
                   </Pressable>
                 </Animated.View>
                 <Text
@@ -815,7 +808,7 @@ function LockScreen({ account }: { account: ApiUser }) {
               <View className="mt-8 gap-3">
                 {mailbox ? (
                   <Button
-                    icon={Mail}
+                    icon="mail"
                     label="Use email code instead"
                     onPress={() => setWithCode(true)}
                     variant="outline"
@@ -912,7 +905,7 @@ export function EmailCodeForm({
             {error}
           </Text>
         ) : null}
-        <Button icon={Mail} label="Send code" loading={sending} onPress={send} />
+        <Button icon="mail" label="Send code" loading={sending} onPress={send} />
       </View>
     );
   }
@@ -1008,7 +1001,7 @@ function LockSetupSheet({
         <>
           <View className="pb-2 pt-4">
             <StepHeading
-              icon={LockKeyhole}
+              icon="lock-closed"
               subtitle={
                 fingerOnPhone
                   ? "Your biometric keeps opening the app. A PIN opens it when biometric will not — and opens your portal on the website."
@@ -1019,7 +1012,7 @@ function LockSetupSheet({
           </View>
           <View className="gap-3 pt-4">
             <Button label="Remind me later" onPress={onClose} variant="outline" />
-            <Button icon={LockKeyhole} label="Set up" onPress={() => setStarted(true)} />
+            <Button icon="lock-closed" label="Set up" onPress={() => setStarted(true)} />
           </View>
         </>
       )}
@@ -1093,7 +1086,7 @@ export function AppLockOffer() {
       <Sheet fitContent onClose={() => setAskFinger(false)} open={askFinger}>
         <View className="pb-2 pt-4">
           <StepHeading
-            icon={FingerprintPattern}
+            icon="finger-print"
             subtitle="Open the app with your fingerprint or face instead of typing the PIN."
             title="Use biometric next time?"
           />
@@ -1101,7 +1094,7 @@ export function AppLockOffer() {
         <View className="gap-3 pt-4">
           <Button label="Not now" onPress={() => setAskFinger(false)} variant="outline" />
           <Button
-            icon={FingerprintPattern}
+            icon="finger-print"
             label="Turn on"
             loading={arming}
             onPress={() => void armFinger()}
@@ -1205,7 +1198,7 @@ function PinProofSheet({
         {step === "current" ? (
           <>
             <StepHeading
-              icon={LockKeyhole}
+              icon="lock-closed"
               subtitle={mode === "off" ? "The lock turns off on every phone and the website." : undefined}
               title={mode === "off" ? "Enter your PIN to turn the lock off" : "Enter your current PIN"}
             />

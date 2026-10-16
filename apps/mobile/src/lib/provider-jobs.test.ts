@@ -179,13 +179,13 @@ describe("jobCategoryIcon", () => {
       expect(jobCategoryIcon(category)).toBeTruthy();
     }
 
-    expect(jobCategoryIcon("PLUMBING")).toBe("water-outline");
-    expect(jobCategoryIcon("ELECTRICAL")).toBe("flash-outline");
+    expect(jobCategoryIcon("PLUMBING")).toBe("water");
+    expect(jobCategoryIcon("ELECTRICAL")).toBe("flash");
   });
 
   it("falls back to a tool rather than nothing for an unknown category", () => {
-    expect(jobCategoryIcon("ROOFING")).toBe("construct-outline");
-    expect(jobCategoryIcon("")).toBe("construct-outline");
+    expect(jobCategoryIcon("ROOFING")).toBe("construct");
+    expect(jobCategoryIcon("")).toBe("construct");
   });
 });
 

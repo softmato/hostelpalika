@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
@@ -45,13 +45,13 @@ export function KhataHomeCard() {
     >
       <View className="flex-row items-center gap-3">
         <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
-          <Ionicons color={colors.primary} name="receipt-outline" size={22} />
+          <Glyph color={colors.primary} name="receipt" size={22} />
         </View>
         <View className="flex-1">
           <Text variant="subtitle">Khata</Text>
           <Text variant="caption">Egg, meals, laundry — on next month&apos;s bill</Text>
         </View>
-        <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} />
+        <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} />
       </View>
 
       {data.status === "ACTIVE" ? (

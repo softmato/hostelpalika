@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Meter } from "@/components/ui/meter";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
@@ -121,7 +121,7 @@ const BUCKETS: Record<
   Bucket,
   {
     empty: string;
-    icon: keyof typeof Ionicons.glyphMap;
+    icon: GlyphName;
     label: string;
     lead: string;
     /** The tile label — two words, so the warden reads a number, not a sentence. */
@@ -134,7 +134,7 @@ const BUCKETS: Record<
   action: {
     short: "Who paid?",
     empty: "Every payment in this file found its resident.",
-    icon: "help-circle-outline",
+    icon: "help-circle",
     label: "Needs your action",
     lead: "Payments arrived without a name.",
     surface: "border-warning/30 bg-warning-soft",
@@ -144,7 +144,7 @@ const BUCKETS: Record<
   missing: {
     short: "Not received",
     empty: "Every approved payment reached your account.",
-    icon: "alert-circle-outline",
+    icon: "alert-circle",
     label: "Not in your account",
     lead: "Approved, but the money never arrived.",
     surface: "border-destructive/30 bg-destructive-soft",
@@ -154,7 +154,7 @@ const BUCKETS: Record<
   norecord: {
     short: "No record",
     empty: "Nothing unaccounted for.",
-    icon: "time-outline",
+    icon: "time",
     label: "No record yet",
     lead: "A resident says they paid.",
     surface: "border-border bg-muted",
@@ -164,7 +164,7 @@ const BUCKETS: Record<
   tied: {
     short: "Matched",
     empty: "Nothing in this file could be tied to a bill.",
-    icon: "shield-checkmark-outline",
+    icon: "shield-checkmark",
     label: "Tied to bills",
     lead: "These payments reached your account.",
     surface: "border-brand/30 bg-brand-soft",
@@ -459,7 +459,7 @@ export default function ManageStatementsScreen() {
           actions={
             <IconButton
               label="What this screen does"
-              name="help-circle-outline"
+              name="help-circle"
               onPress={() => setHelping(true)}
               tone="onAccent"
             />
@@ -668,7 +668,7 @@ export default function ManageStatementsScreen() {
                     onPress={() => setBucket(value)}
                     style={{ flexBasis: "46%", flexGrow: 1 }}
                   >
-                    <Ionicons color={ink} name={look.icon} size={22} />
+                    <Glyph color={ink} name={look.icon} size={22} />
                     <View className="flex-1">
                       <Text className="text-xl font-bold text-foreground">{counts[value]}</Text>
                       <Text numberOfLines={1} variant="caption">
@@ -691,7 +691,7 @@ export default function ManageStatementsScreen() {
               <View className="gap-3">
                 <Group
                   count={settled.length}
-                  icon="checkmark-circle-outline"
+                  icon="checkmark-circle"
                   onToggle={() =>
                     setCollapsed((current) => ({ ...current, settled: !current.settled }))
                   }
@@ -713,7 +713,7 @@ export default function ManageStatementsScreen() {
 
                 <Group
                   count={waiting.length}
-                  icon="time-outline"
+                  icon="time"
                   onToggle={() =>
                     setCollapsed((current) => ({ ...current, waiting: !current.waiting }))
                   }
@@ -753,9 +753,9 @@ export default function ManageStatementsScreen() {
                       }}
                     >
                       <View className="h-9 w-9 items-center justify-center rounded-xl bg-warning-soft">
-                        <Ionicons
+                        <Glyph
                           color={colors.warning}
-                          name="help-circle-outline"
+                          name="help-circle"
                           size={18}
                         />
                       </View>
@@ -788,7 +788,7 @@ export default function ManageStatementsScreen() {
                         )}
                       </View>
 
-                      <Ionicons
+                      <Glyph
                         color={colors.mutedForeground}
                         name="chevron-forward"
                         size={18}
@@ -939,7 +939,7 @@ export default function ManageStatementsScreen() {
                       subtitle={`${humanizeEnum(suggestion.confidence)} match · ${suggestion.why}`}
                       trailing={
                         choice === suggestion.invoiceId ? (
-                          <Ionicons
+                          <Glyph
                             color={colors.primary}
                             name="checkmark-circle"
                             size={22}
@@ -1024,7 +1024,7 @@ function Group({
 }: {
   children: ReactNode;
   count: number;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   onToggle: () => void;
   open: boolean;
   subtitle: string;
@@ -1044,12 +1044,12 @@ function Group({
         className="flex-row items-center gap-3 bg-card p-3 active:opacity-80"
         onPress={onToggle}
       >
-        <Ionicons color={colors.mutedForeground} name={icon} size={20} />
+        <Glyph color={colors.mutedForeground} name={icon} size={20} />
         <View className="flex-1">
           <Text variant="label">{`${title} (${count})`}</Text>
           <Text variant="caption">{subtitle}</Text>
         </View>
-        <Ionicons
+        <Glyph
           color={colors.mutedForeground}
           name={open ? "chevron-up" : "chevron-down"}
           size={18}

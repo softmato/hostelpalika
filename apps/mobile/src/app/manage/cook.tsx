@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -9,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { FactRow } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
@@ -352,7 +352,7 @@ export default function ManageCookScreen() {
   return (
     <Screen
       floating={
-        <FloatingButton icon="person-add-outline" label="Add a cook" onPress={openAdd} />
+        <FloatingButton icon="person-add" label="Add a cook" onPress={openAdd} />
       }
       header={<AppBar accent centerTitle showBack title="Cooks" />}
       onRefresh={roster.refresh}
@@ -367,7 +367,7 @@ export default function ManageCookScreen() {
         <Card className="gap-3">
           <View className="flex-row items-center gap-3">
             <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
-              <Ionicons color={colors.primary} name="restaurant-outline" size={19} />
+              <Glyph color={colors.primary} name="restaurant" size={19} />
             </View>
             <View className="flex-1">
               <Text variant="label">What your cook sees</Text>
@@ -383,7 +383,7 @@ export default function ManageCookScreen() {
         {isOwner ? (
           <Card className="flex-row items-center gap-3">
             <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
-              <Ionicons color={colors.primary} name="cube-outline" size={19} />
+              <Glyph color={colors.primary} name="cube" size={19} />
             </View>
             <View className="flex-1">
               <Text variant="label">Cook enters stock used</Text>
@@ -403,7 +403,7 @@ export default function ManageCookScreen() {
         {isOwner ? (
           <Card className="flex-row items-center gap-3">
             <View className="h-11 w-11 items-center justify-center rounded-xl bg-success-soft">
-              <Ionicons color={colors.success} name="wallet-outline" size={19} />
+              <Glyph color={colors.success} name="wallet" size={19} />
             </View>
             <View className="flex-1">
               <Text variant="label">Cook can add expenses</Text>
@@ -423,7 +423,7 @@ export default function ManageCookScreen() {
         {isOwner ? (
           <Card className="flex-row items-center gap-3">
             <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
-              <Ionicons color={colors.brand} name="finger-print" size={19} />
+              <Glyph color={colors.brand} name="finger-print" size={19} />
             </View>
             <View className="flex-1">
               <Text variant="label">Cooks lock the app with a fingerprint</Text>
@@ -482,7 +482,7 @@ export default function ManageCookScreen() {
                 <View key={cook.id}>
                   {index > 0 ? <RowDivider inset /> : null}
                   <ListRow
-                    icon="time-outline"
+                    icon="time"
                     subtitle={
                       cook.removedAt
                         ? `Was ${cook.name} · removed ${dates.date(cook.removedAt)}`
@@ -508,7 +508,7 @@ export default function ManageCookScreen() {
               <Text className="flex-1 font-mono" numberOfLines={1} variant="label">
                 {acting.loginEmail}
               </Text>
-              <Ionicons color={colors.mutedForeground} name="copy-outline" size={18} />
+              <Glyph color={colors.mutedForeground} name="copy" size={18} />
             </Pressable>
 
             <Card className="gap-1">
@@ -523,7 +523,7 @@ export default function ManageCookScreen() {
 
             <Card padding="px-4 py-1">
               <ListRow
-                icon="create-outline"
+                icon="create"
                 iconBgColor="#007AFF"
                 onPress={() => {
                   setEditing(acting);
@@ -537,7 +537,7 @@ export default function ManageCookScreen() {
                 <>
                   <RowDivider inset />
                   <ListRow
-                    icon="key-outline"
+                    icon="key"
                     iconBgColor="#FF9500"
                     onPress={() => rotate(acting)}
                     title="New password"
@@ -546,7 +546,7 @@ export default function ManageCookScreen() {
               ) : null}
               <RowDivider inset />
               <ListRow
-                icon="trash-outline"
+                icon="trash"
                 iconBgColor="#FF3B30"
                 onPress={() => remove(acting)}
                 title="Remove"

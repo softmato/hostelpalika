@@ -141,7 +141,7 @@ export default function AnnouncementsScreen() {
 
   return (
     <Screen
-      floating={<FloatingButton icon="create-outline" label="New message" onPress={() => setOpen(true)} />}
+      floating={<FloatingButton icon="create" label="New message" onPress={() => setOpen(true)} />}
       header={header}
       onRefresh={campaigns.refresh}
       refreshing={campaigns.refreshing}

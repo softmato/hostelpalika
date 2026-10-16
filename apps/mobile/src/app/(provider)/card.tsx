@@ -158,7 +158,7 @@ export default function ProviderCardScreen() {
 
         <Card>
           <ListRow
-            icon="card-outline"
+            icon="card"
             onPress={() => router.push("/id-card")}
             subtitle="The printable card with your QR, shared across the platform"
             title="Your ID card"

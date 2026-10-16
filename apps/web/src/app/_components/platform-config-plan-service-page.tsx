@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Monitor, Plus, Smartphone, Trash2, Upload } from "lucide-react";
+import { ArrowLeft, Monitor, Plus, Smartphone, Trash2, Upload } from "@/components/icons";
 import Link from "next/link";
 import { memo, useCallback, useId } from "react";
 

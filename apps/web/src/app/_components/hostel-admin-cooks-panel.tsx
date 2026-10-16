@@ -1,6 +1,6 @@
 "use client";
 
-import { ChefHat, KeyRound, Mail, RotateCw, Trash2 } from "lucide-react";
+import { ChefHat, KeyRound, Mail, RotateCw, Trash2 } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import { EmptyState, Input, LoadingRows, Panel } from "@/app/_components/shared-ui";

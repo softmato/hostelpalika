@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -9,6 +8,7 @@ import { HostelCard } from "@/components/hostel-card";
 import { HostelShowcase } from "@/components/hostel-showcase";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { CardRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -150,7 +150,7 @@ function MyJoinRequestFor({ userId }: { userId: string }) {
 
   return (
     <CardRow
-      icon={returned ? "alert-circle-outline" : "time-outline"}
+      icon={returned ? "alert-circle" : "time"}
       onPress={() => router.push(`/join/${request.token}`)}
       subtitle={
         returned
@@ -339,7 +339,7 @@ function RowHeader({
           onPress={onSeeAll}
         >
           <Text className="text-sm font-semibold text-primary">View all</Text>
-          <Ionicons color={colors.primary} name="arrow-forward" size={14} />
+          <Glyph color={colors.primary} name="arrow-forward" size={14} />
         </Pressable>
       ) : null}
     </View>
@@ -453,7 +453,7 @@ function CityCard({ browseHref, city }: { browseHref: string; city: CitySummary 
           className="items-center justify-center bg-brand-soft"
           style={{ height: 112 }}
         >
-          <Ionicons color={colors.primary} name="location-outline" size={26} />
+          <Glyph color={colors.primary} name="location" size={26} />
         </View>
       )}
 
@@ -602,9 +602,9 @@ function NearbyHostels({
         subtitle={
           populated && place ? (
             <View className="mt-0.5 flex-row items-center gap-1">
-              <Ionicons
+              <Glyph
                 color={colors.mutedForeground}
-                name="location-outline"
+                name="location"
                 size={13}
               />
               <Text className="flex-1" numberOfLines={1} variant="caption">
@@ -843,7 +843,7 @@ function SavedCard({
             className="items-center justify-center"
             style={{ backgroundColor: colors.muted, height: 100 }}
           >
-            <Ionicons color={colors.mutedForeground} name="image-outline" size={24} />
+            <Glyph color={colors.mutedForeground} name="image" size={24} />
           </View>
         )}
 
@@ -859,7 +859,7 @@ function SavedCard({
           hitSlop={6}
           onPress={() => onRemove(item.id)}
         >
-          <Ionicons color={colors.primary} name="heart" size={18} />
+          <Glyph color={colors.primary} name="heart" size={18} />
         </Pressable>
       </View>
 

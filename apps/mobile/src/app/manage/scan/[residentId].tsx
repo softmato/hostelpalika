@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
@@ -8,6 +7,7 @@ import { FLOAT_SHADOW, usePortalPaint } from "@/components/portal-shared";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge, StatusPill } from "@/components/ui/badge";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Chip, FactRow, StatTile } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Money } from "@/components/ui/money";
@@ -167,7 +167,7 @@ export default function ScannedResidentScreen() {
         */}
         {data.account.cardType === "RESIDENT" ? null : (
           <Notice
-            icon="alert-circle-outline"
+            icon="alert-circle"
             text={
               data.account.cardType === "SERVICE_PROVIDER"
                 ? `This is a service provider's card${data.account.cardRole ? ` (${data.account.cardRole})` : ""}, not a resident's. They cannot be registered as a resident with it.`
@@ -179,7 +179,7 @@ export default function ScannedResidentScreen() {
 
         {membership?.matchedBy && membership.matchedBy !== "ACCOUNT" ? (
           <Notice
-            icon="link-outline"
+            icon="link"
             text={`Matched to this record by ${membership.matchedBy === "PHONE" ? "phone number" : "email"} — they have never signed in to the app, so the link is not confirmed.`}
             tone="muted"
           />
@@ -187,7 +187,7 @@ export default function ScannedResidentScreen() {
 
         {membership ? null : (
           <Notice
-            icon="person-add-outline"
+            icon="person-add"
             text={data.membershipNotice ?? "They are not on your roll."}
             tone="muted"
           />
@@ -295,7 +295,7 @@ function IdentityBlock({
 
           <View className="flex-row flex-wrap items-center gap-2 pt-0.5">
             <View className="flex-row items-center gap-1.5 rounded-full bg-black/25 px-2.5 py-1">
-              <Ionicons color="rgba(255,255,255,0.8)" name="id-card-outline" size={12} />
+              <Glyph color="rgba(255,255,255,0.8)" name="id-card" size={12} />
               <Text className="text-[11px] font-semibold tracking-wide text-white">
                 {residentId}
               </Text>
@@ -333,20 +333,20 @@ function ActionRow({
     <View className="-mt-9 flex-row gap-2">
       <ActionCell
         disabled={!phone}
-        icon="call-outline"
+        icon="call"
         label="Call"
         onPress={() => phone && void Linking.openURL(`tel:${phone}`)}
       />
       <ActionCell
         disabled={!phone}
-        icon="chatbubble-outline"
+        icon="chatbubble"
         label="Message"
         onPress={() => phone && void Linking.openURL(`sms:${phone}`)}
       />
       {membership && onOpenRecord ? (
-        <ActionCell icon="folder-open-outline" label="Full record" onPress={onOpenRecord} />
+        <ActionCell icon="folder-open" label="Full record" onPress={onOpenRecord} />
       ) : (
-        <ActionCell icon="person-add-outline" label="Register" onPress={onRegister} />
+        <ActionCell icon="person-add" label="Register" onPress={onRegister} />
       )}
     </View>
   );
@@ -359,7 +359,7 @@ function ActionCell({
   onPress,
 }: {
   disabled?: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   onPress: () => void;
 }) {
@@ -377,7 +377,7 @@ function ActionCell({
       onPress={onPress}
       style={FLOAT_SHADOW}
     >
-      <Ionicons color={colors.primary} name={icon} size={19} />
+      <Glyph color={colors.primary} name={icon} size={19} />
       <Text className="text-[11px] font-medium text-foreground">{label}</Text>
     </Pressable>
   );
@@ -395,7 +395,7 @@ function Notice({
   text,
   tone,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   text: string;
   tone: "muted" | "warning";
 }) {
@@ -408,7 +408,7 @@ function Notice({
         warning ? "border-warning/30 bg-warning-soft" : "border-border bg-muted"
       }`}
     >
-      <Ionicons
+      <Glyph
         color={warning ? colors.warning : colors.mutedForeground}
         name={icon}
         size={17}
@@ -450,7 +450,7 @@ function PaymentsSection({ membership }: { membership: ScannedMembership | null 
         <View className="gap-3">
           <View className="flex-row gap-3">
             <StatTile
-              icon="wallet-outline"
+              icon="wallet"
               label="Still owed"
               tone={standing.outstanding > 0 ? "danger" : "success"}
               trend={
@@ -461,7 +461,7 @@ function PaymentsSection({ membership }: { membership: ScannedMembership | null 
               value={formatMoney(standing.outstanding)}
             />
             <StatTile
-              icon="checkmark-done-outline"
+              icon="checkmark-done"
               label="Paid so far"
               tone="brand"
               trend={`${standing.monthsPaid} of ${standing.monthsBilled} months`}
@@ -523,7 +523,7 @@ function PaymentsSection({ membership }: { membership: ScannedMembership | null 
         </View>
       ) : (
         <Notice
-          icon="lock-closed-outline"
+          icon="lock-closed"
           text={
             membership.ledgerDenied
               ? "Your account cannot see payments. Ask the owner for the “view payments” permission and this fills in."
@@ -626,7 +626,7 @@ function PersonSection({
       <View>
         <SectionHeader title="About them" />
         <Notice
-          icon="person-outline"
+          icon="person"
           text={notice ?? "Their profile is not available."}
           tone="muted"
         />
@@ -810,7 +810,7 @@ function ContactsSection({
               <View key={row.label}>
                 {index === 0 ? null : <RowDivider inset />}
                 <ListRow
-                  icon={row.label.includes("mail") ? "mail-outline" : "call-outline"}
+                  icon={row.label.includes("mail") ? "mail" : "call"}
                   onPress={() =>
                     void Linking.openURL(
                       row.label.includes("mail")
@@ -909,7 +909,7 @@ function PersonRow({
 }) {
   return (
     <ListRow
-      icon="call-outline"
+      icon="call"
       onPress={() => void Linking.openURL(`tel:${phone}`)}
       right={
         <View className="items-end gap-1">
@@ -943,7 +943,7 @@ function ComplaintsSection({ membership }: { membership: ScannedMembership }) {
           <View key={complaint.id}>
             {index === 0 ? null : <RowDivider inset />}
             <ListRow
-              icon="chatbox-ellipses-outline"
+              icon="chatbox-ellipses"
               onPress={() => router.push(`/complaints/${complaint.id}`)}
               right={<StatusPill status={complaint.status} />}
               subtitle={`${humanizeEnum(complaint.category)}${
@@ -964,7 +964,7 @@ function NightGlyph() {
 
   return (
     <View className="h-10 w-10 items-center justify-center rounded-full bg-muted">
-      <Ionicons color={colors.mutedForeground} name="moon-outline" size={18} />
+      <Glyph color={colors.mutedForeground} name="moon" size={18} />
     </View>
   );
 }

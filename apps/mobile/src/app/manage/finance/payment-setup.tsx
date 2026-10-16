@@ -60,7 +60,7 @@ export default function ManagePaymentSetupScreen() {
           <SectionHeader title="Settings" />
           <Card padding="px-4 py-1">
             <ListRow
-              icon="storefront-outline"
+              icon="storefront"
               iconBgColor="#007AFF"
               onPress={() => openSection("name")}
               subtitle={profile.displayName || "Not set"}
@@ -68,7 +68,7 @@ export default function ManagePaymentSetupScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="cash-outline"
+              icon="cash"
               iconBgColor="#34C759"
               onPress={() => openSection("cash")}
               subtitle={
@@ -80,7 +80,7 @@ export default function ManagePaymentSetupScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="calendar-outline"
+              icon="calendar"
               iconBgColor="#FF9500"
               onPress={() => openSection("cadence")}
               subtitle={`Every ${profile.statementCadenceDays} days`}
@@ -88,7 +88,7 @@ export default function ManagePaymentSetupScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="chatbubble-ellipses-outline"
+              icon="chatbubble-ellipses"
               iconBgColor="#AF52DE"
               onPress={() => openSection("note")}
               subtitle={profile.paymentInstructions || "None"}

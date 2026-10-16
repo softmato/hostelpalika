@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, ChevronRight, type LucideIcon } from "lucide-react";
+import { ArrowRight, ChevronRight, type IconComponent } from "@/components/icons";
 import {
   AnimatePresence,
   animate,
@@ -55,7 +55,7 @@ const stagger = {
 type Feature = {
   bullets: string[];
   description: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   image: Mockup;
   title: string;
   tone: "teal" | "platform" | "admin" | "resident" | "guardian";

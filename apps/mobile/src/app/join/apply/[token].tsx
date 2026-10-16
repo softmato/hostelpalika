@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -7,6 +6,7 @@ import { ApplicantForm } from "@/components/manage/applicant-form";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
@@ -149,7 +149,7 @@ export default function ApplyScreen() {
         <View className="gap-5">
           {banner}
           <Card className="items-center gap-3 py-6">
-            <Ionicons
+            <Glyph
               color={sent ? colors.success : colors.warning}
               name={sent ? "checkmark-circle" : "alert-circle"}
               size={44}
@@ -196,9 +196,9 @@ export default function ApplyScreen() {
           className="flex-row items-start gap-3 rounded-2xl border border-border bg-card p-4 active:opacity-70"
           onPress={() => setAgreed(!agreed)}
         >
-          <Ionicons
+          <Glyph
             color={agreed ? colors.primary : colors.mutedForeground}
-            name={agreed ? "checkbox" : "square-outline"}
+            name={agreed ? "checkbox" : "square"} variant={agreed ? "solid" : "line"}
             size={22}
           />
           <Text className="flex-1 text-sm">

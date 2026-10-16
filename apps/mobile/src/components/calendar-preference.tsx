@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
 
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -78,9 +78,9 @@ export function CalendarPreferenceCard() {
               <ListRow
                 onPress={() => dispatch(setCalendarPreference(option.value))}
                 right={
-                  <Ionicons
+                  <Glyph
                     color={active ? colors.primary : colors.border}
-                    name={active ? "radio-button-on" : "radio-button-off"}
+                    name={active ? "radio-button-on" : "radio-button-off"} variant={active ? "solid" : "line"}
                     size={20}
                   />
                 }

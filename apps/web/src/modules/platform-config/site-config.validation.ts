@@ -185,7 +185,7 @@ export const socialSchema = z.object({
  * ### Icons are slugs, not components
  *
  * A stored icon is a name like `shield` or `receipt`. The website maps it to a
- * lucide component and the app maps it to an Ionicons glyph, each with a
+ * glyph (`glyphs.ts`) and so does the app, each with a
  * fallback for a slug it does not know. Neither client can store a React
  * component in Mongo, and a slug an editor typed wrong must degrade to a
  * generic icon rather than to a crash.

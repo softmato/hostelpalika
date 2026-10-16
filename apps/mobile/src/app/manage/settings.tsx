@@ -398,7 +398,7 @@ export default function ManageSettingsScreen() {
           <SectionHeader subtitle="What the public listing says" title="The hostel" />
           <Card padding="px-4 py-1">
             <ListRow
-              icon="business-outline"
+              icon="business"
               iconBgColor="#007AFF"
               onPress={() => openPanel("about")}
               subtitle={hostel.description ? "Name, description, type" : "No description yet"}
@@ -406,7 +406,7 @@ export default function ManageSettingsScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="call-outline"
+              icon="call"
               iconBgColor="#34C759"
               onPress={() => openPanel("contact")}
               subtitle={hostel.contact.phone || "No phone on file"}
@@ -414,7 +414,7 @@ export default function ManageSettingsScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="location-outline"
+              icon="location"
               iconBgColor="#FF3B30"
               onPress={() => openPanel("location")}
               subtitle={
@@ -425,7 +425,7 @@ export default function ManageSettingsScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="cash-outline"
+              icon="cash"
               iconBgColor="#30D158"
               onPress={() => router.push("/manage/finance/rates")}
               subtitle={
@@ -437,7 +437,7 @@ export default function ManageSettingsScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="sparkles-outline"
+              icon="sparkles"
               iconBgColor="#AF52DE"
               onPress={() => openPanel("facilities")}
               subtitle={`${hostel.facilities.length} listed`}
@@ -445,7 +445,7 @@ export default function ManageSettingsScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="document-text-outline"
+              icon="document-text"
               iconBgColor="#FF9500"
               onPress={() => openPanel("rules")}
               subtitle={`${hostel.rules.length} listed`}
@@ -453,7 +453,7 @@ export default function ManageSettingsScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="flag-outline"
+              icon="flag"
               iconBgColor="#0a8a4b"
               onPress={() => openPanel("gate")}
               subtitle={
@@ -465,7 +465,7 @@ export default function ManageSettingsScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="bed-outline"
+              icon="bed"
               iconBgColor="#5E5CE6"
               onPress={() => router.push("/manage/rooms")}
               subtitle={`${hostel.roomConfigurations.length} room type(s) · ${hostel.photos.length} photo(s)`}
@@ -478,7 +478,7 @@ export default function ManageSettingsScreen() {
           <SectionHeader subtitle="Who else runs this hostel" title="People" />
           <Card padding="px-4 py-1">
             <ListRow
-              icon="people-outline"
+              icon="people"
               iconBgColor="#30B0C7"
               onPress={() => router.push("/manage/wardens")}
               subtitle="Invite, suspend and set what each one may do"
@@ -486,7 +486,7 @@ export default function ManageSettingsScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="gift-outline"
+              icon="gift"
               iconBgColor="#FF2D55"
               onPress={() => router.push("/manage/referrals")}
               subtitle="Confirm who joined, and record the reward"
@@ -494,7 +494,7 @@ export default function ManageSettingsScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="megaphone-outline"
+              icon="megaphone"
               iconBgColor="#34C759"
               onPress={() => router.push("/manage/invite-hostels")}
               subtitle="Your hostel's code for other hostels"
@@ -636,7 +636,7 @@ export default function ManageSettingsScreen() {
           />
           <Card padding="px-4 py-1">
             <ListRow
-              icon="mail-outline"
+              icon="mail"
               iconBgColor="#8E8E93"
               onPress={() => openPanel("change")}
               subtitle="Hostel name past the limit, owner name, owner email"
@@ -1063,7 +1063,7 @@ export default function ManageSettingsScreen() {
           <View className="flex-row flex-wrap gap-2">
             {listDraft.map((entry, index) => (
               <Chip
-                icon="close-circle-outline"
+                icon="close-circle"
                 key={`${entry}-${index}`}
                 label={entry}
                 onPress={() =>

@@ -1,4 +1,4 @@
-import type { LucideProps } from "lucide-react";
+import type { IconProps } from "@/components/icons";
 import { createElement } from "react";
 
 import { contentIcon } from "@/lib/site-content";
@@ -9,6 +9,6 @@ import { contentIcon } from "@/lib/site-content";
  * but the React compiler cannot see that through a function call and treats
  * `const Icon = contentIcon(…)` in a render as a component created there.
  */
-export function ContentIcon({ slug, ...props }: LucideProps & { slug: string }) {
+export function ContentIcon({ slug, ...props }: IconProps & { slug: string }) {
   return createElement(contentIcon(slug), props);
 }

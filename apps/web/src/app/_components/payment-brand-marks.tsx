@@ -1,4 +1,4 @@
-import { Building2, FileText, QrCode, type LucideIcon } from "lucide-react";
+import { Building2, FileText, QrCode, type IconComponent } from "@/components/icons";
 
 /**
  * Provider marks for the payment method pickers.
@@ -61,7 +61,7 @@ export function KhaltiMark({ className = "size-9" }: MarkProps) {
 }
 
 /** A neutral tile so the QR and bank cards sit at the same weight as the wallets. */
-function NeutralMark({ className = "size-9", icon: Icon }: MarkProps & { icon: LucideIcon }) {
+function NeutralMark({ className = "size-9", icon: Icon }: MarkProps & { icon: IconComponent }) {
   return (
     <span
       className={`inline-flex items-center justify-center rounded-[10px] border border-border bg-muted text-foreground ${className}`}

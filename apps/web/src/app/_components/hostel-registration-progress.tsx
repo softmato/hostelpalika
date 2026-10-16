@@ -9,7 +9,7 @@ import {
   Globe,
   Loader2,
   Upload,
-} from "lucide-react";
+} from "@/components/icons";
 import { useCallback, useEffect, useState } from "react";
 
 import { useSiteConfig } from "@/components/site-config-provider";

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, ReceiptText } from "lucide-react";
+import { CalendarDays, ReceiptText } from "@/components/icons";
 import { memo } from "react";
 
 import { currency, LoadingRows } from "@/app/_components/shared-ui";

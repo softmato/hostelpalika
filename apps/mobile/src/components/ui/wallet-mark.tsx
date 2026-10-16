@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { View } from "react-native";
 
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { type PaymentLogoKey, resolvePaymentLogoKey } from "@/lib/payment-logos";
@@ -15,7 +15,7 @@ import { type PaymentLogoKey, resolvePaymentLogoKey } from "@/lib/payment-logos"
  * statements importer drew a green lettermark and its comment read "a brand's
  * actual logo would be better and there is nowhere in this repo to take one
  * from"; both statement screens mapped eSewa and Khalti to the *same*
- * `phone-portrait-outline` glyph, so the two wallets a resident actually uses
+ * `phone-portrait` glyph, so the two wallets a resident actually uses
  * were indistinguishable on a ledger row. The owner supplied the three wallet
  * marks on 2026-09-05, and the fifty bank marks the same day.
  *
@@ -50,7 +50,7 @@ import { type PaymentLogoKey, resolvePaymentLogoKey } from "@/lib/payment-logos"
  *
  * ## An unmapped provider gets a glyph, never a guess
  *
- * `BANK`, `CASH` and anything a future server adds fall through to an Ionicon in
+ * `BANK`, `CASH` and anything a future server adds fall through to a glyph in
  * the muted tone. Degrading to a *wrong* brand mark would be worse than having
  * none, and the statements screen's original note already made that argument.
  */
@@ -146,12 +146,12 @@ export const WALLET_LABEL: Record<string, string> = {
 };
 
 /** The glyph for a provider with no logo of its own. */
-const FALLBACK_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
-  BANK: "business-outline",
-  BANK_TRANSFER: "business-outline",
-  CASH: "cash-outline",
+const FALLBACK_ICON: Record<string, GlyphName> = {
+  BANK: "business",
+  BANK_TRANSFER: "business",
+  CASH: "cash",
   OTHER: "ellipsis-horizontal",
-  QR: "qr-code-outline",
+  QR: "qr-code",
 };
 
 export function walletLabel(provider: string | null | undefined): string {
@@ -218,9 +218,9 @@ export function WalletMark({
           width: size,
         }}
       >
-        <Ionicons
+        <Glyph
           color={colors[ink]}
-          name={(name ? FALLBACK_ICON[name] : undefined) ?? "wallet-outline"}
+          name={(name ? FALLBACK_ICON[name] : undefined) ?? "wallet"}
           size={Math.round(size * 0.5)}
         />
       </View>

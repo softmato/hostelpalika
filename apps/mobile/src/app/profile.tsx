@@ -1,10 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Linking, Pressable, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge, StatusPill } from "@/components/ui/badge";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard, SkeletonRows } from "@/components/ui/skeleton";
@@ -241,7 +241,7 @@ function CallableRow({ label, value }: { label: string; value: string }) {
       right={
         <View className="flex-row items-center gap-1.5">
           <Text variant="muted">{value}</Text>
-          <Ionicons color={colors.primary} name="call-outline" size={16} />
+          <Glyph color={colors.primary} name="call" size={16} />
         </View>
       }
       title={label}
@@ -341,9 +341,9 @@ function PeopleSection({
                   className="h-10 w-10 items-center justify-center rounded-full"
                   style={{ backgroundColor: colors.muted }}
                 >
-                  <Ionicons
+                  <Glyph
                     color={colors.mutedForeground}
-                    name="person-outline"
+                    name="person"
                     size={18}
                   />
                 </View>
@@ -363,7 +363,7 @@ function PeopleSection({
                 {person.phone ? (
                   <View className="flex-row items-center gap-1.5">
                     <Text variant="muted">{person.phone}</Text>
-                    <Ionicons color={colors.primary} name="call-outline" size={16} />
+                    <Glyph color={colors.primary} name="call" size={16} />
                   </View>
                 ) : null}
               </Pressable>

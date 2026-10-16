@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown, Plus, ShoppingBag, Sparkles } from "lucide-react";
+import { Check, ChevronDown, Plus, ShoppingBag, Sparkles } from "@/components/icons";
 import {
   useCallback,
   useEffect,
@@ -691,7 +691,7 @@ function CategoryPicker({
         "/api/v1/platform/store/categories",
         {
           body: JSON.stringify({
-            icon: "cube-outline",
+            icon: "cube",
             name,
             priority: 0,
             slug: slugify(name),

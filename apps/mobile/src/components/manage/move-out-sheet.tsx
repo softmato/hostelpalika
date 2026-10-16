@@ -1,4 +1,3 @@
-import { LogOut } from "lucide-react-native";
 import { useCallback, useEffect, useState } from "react";
 import { View } from "react-native";
 
@@ -189,7 +188,7 @@ export function MoveOutSheet({
     <Sheet
       footer={
         <Button
-          icon={gone ? undefined : LogOut}
+          icon={gone ? undefined : "log-out"}
           label={gone ? "Save" : "Move out"}
           loading={busy}
           onPress={() => void submit()}

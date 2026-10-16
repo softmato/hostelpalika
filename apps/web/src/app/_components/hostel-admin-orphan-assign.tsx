@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons";
 import { memo, useMemo, useState } from "react";
 
 import { currency } from "@/app/_components/shared-ui";

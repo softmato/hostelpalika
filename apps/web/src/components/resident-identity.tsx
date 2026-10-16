@@ -27,8 +27,8 @@ import {
   Upload,
   User,
   X,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import Link from "next/link";
 import {
   useCallback,
@@ -564,7 +564,7 @@ function SectionTitle({
   label,
 }: {
   hint?: string;
-  icon?: LucideIcon;
+  icon?: IconComponent;
   label: string;
 }) {
   return (

@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
@@ -16,6 +15,7 @@ import {
   type ActionTile,
   ActionTiles,
 } from "@/components/ui/action-grid";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { roleAccent } from "@/constants/theme";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -163,7 +163,7 @@ function DeltaPill({ delta }: { delta: MonthDelta }) {
 
   return (
     <View className="flex-row items-center gap-1 rounded-full border border-white/25 bg-white/20 px-2.5 py-1">
-      <Ionicons color="rgba(255,255,255,0.9)" name={icon} size={11} />
+      <Glyph color="rgba(255,255,255,0.9)" name={icon} size={11} />
       <Text className="font-semibold text-white" numberOfLines={1} style={{ fontSize: 11 }}>
         {delta.label}
       </Text>
@@ -199,7 +199,7 @@ function HeroSosStrip({ count, onPress }: { count: number; onPress: () => void }
       style={FLOAT_SHADOW}
     >
       <View className="h-9 w-9 items-center justify-center rounded-full bg-[#fee2e2]">
-        <Ionicons color="#dc2626" name="warning" size={18} />
+        <Glyph color="#dc2626" name="warning" size={18} />
       </View>
 
       <View className="flex-1">
@@ -211,7 +211,7 @@ function HeroSosStrip({ count, onPress }: { count: number; onPress: () => void }
         </Text>
       </View>
 
-      <Ionicons color="#b91c1c" name="chevron-forward" size={17} />
+      <Glyph color="#b91c1c" name="chevron-forward" size={17} />
     </Pressable>
   );
 }
@@ -407,9 +407,9 @@ export function HostelHero({
           </Text>
 
           <View className="flex-row items-center gap-1.5">
-            <Ionicons
+            <Glyph
               color="rgba(255,255,255,0.75)"
-              name={code ? "id-card-outline" : "albums-outline"}
+              name={code ? "id-card" : "albums"}
               size={12}
             />
             {/*
@@ -464,9 +464,9 @@ export function HostelHero({
                 setShown((current) => !current);
               }}
             >
-              <Ionicons
+              <Glyph
                 color="rgba(255,255,255,0.9)"
-                name={shown ? "eye-outline" : "eye-off-outline"}
+                name={shown ? "eye" : "eye-off"}
                 size={17}
               />
             </Pressable>
@@ -489,7 +489,7 @@ export function HostelHero({
           never configured its rooms.
         */}
         <View className="flex-row items-center gap-1.5">
-          <Ionicons color="rgba(255,255,255,0.8)" name="people-outline" size={13} />
+          <Glyph color="rgba(255,255,255,0.8)" name="people" size={13} />
           <Text className="flex-1 text-white/80" numberOfLines={1} style={{ fontSize: 12 }}>
             {occupancyLine({ occupancy, residents, vacantBeds })}
           </Text>
@@ -629,25 +629,25 @@ export function ServiceGrid({
 
   // Finance, Expenses and Stock sit in the row above, so no second door here.
   const services = [
-    { href: "/manage/floors", icon: "bed-outline", label: "Rooms", tone: "brand" },
+    { href: "/manage/floors", icon: "bed", label: "Rooms", tone: "brand" },
     ...(owner
-      ? [{ href: "/manage/wardens", icon: "shield-checkmark-outline", label: "Wardens", tone: "admin" } as const]
+      ? [{ href: "/manage/wardens", icon: "shield-checkmark", label: "Wardens", tone: "admin" } as const]
       : []),
-    { href: "/manage/cook", icon: "flame-outline", label: "Cooks", tone: "warning" },
-    { href: "/manage/roll-call", icon: "moon-outline", label: "Night status", tone: "warning" },
-    { href: "/manage/food", icon: "restaurant-outline", label: "Food", tone: "warning" },
-    { href: "/manage/notices", icon: "megaphone-outline", label: "Notices", tone: "warning" },
-    { href: "/manage/maintenance", icon: "construct-outline", label: "Repairs", tone: "danger" },
-    { href: "/(admin)/residents", icon: "people-outline", label: "Residents", tone: "admin" },
+    { href: "/manage/cook", icon: "flame", label: "Cooks", tone: "warning" },
+    { href: "/manage/roll-call", icon: "moon", label: "Night status", tone: "warning" },
+    { href: "/manage/food", icon: "restaurant", label: "Food", tone: "warning" },
+    { href: "/manage/notices", icon: "megaphone", label: "Notices", tone: "warning" },
+    { href: "/manage/maintenance", icon: "construct", label: "Repairs", tone: "danger" },
+    { href: "/(admin)/residents", icon: "people", label: "Residents", tone: "admin" },
     {
       href: "/manage/complaints",
-      icon: "chatbox-ellipses-outline",
+      icon: "chatbox-ellipses",
       label: "Complaints",
       tone: "danger",
     },
-    { href: "/manage/reports", icon: "bar-chart-outline", label: "Reports", tone: "admin" },
+    { href: "/manage/reports", icon: "bar-chart", label: "Reports", tone: "admin" },
     // Moved here from the Reports screen: inviting a hostel is a job, not a figure.
-    { href: "/manage/referrals", icon: "gift-outline", label: "Referrals", tone: "brand" },
+    { href: "/manage/referrals", icon: "gift", label: "Referrals", tone: "brand" },
     /*
       The hostel paying *us*, which is the one kind of money on this grid that
       does not belong to Finance.
@@ -659,8 +659,8 @@ export function ServiceGrid({
       Next to Settings deliberately: both are about the account rather than the
       building.
     */
-    { href: "/manage/billing", icon: "card-outline", label: "Billing", tone: "success" },
-    { href: "/manage/settings", icon: "settings-outline", label: "Settings", tone: "brand" },
+    { href: "/manage/billing", icon: "card", label: "Billing", tone: "success" },
+    { href: "/manage/settings", icon: "settings", label: "Settings", tone: "brand" },
   ] as const;
 
   const glyph = {
@@ -813,7 +813,7 @@ export function QuickActions({
         {onStore ? (
           <ActionCell
             glyph={colors.primary}
-            icon="storefront-outline"
+            icon="storefront"
             label="Store"
             onPress={onStore}
             tone="brand"
@@ -821,7 +821,7 @@ export function QuickActions({
         ) : (
           <ActionCell
             glyph={colors.warning}
-            icon="moon-outline"
+            icon="moon"
             label="Night status"
             onPress={onRollCall}
             tone="warning"
@@ -830,7 +830,7 @@ export function QuickActions({
         <KycFrost center className="flex-1" frozen={locked} label="Add resident">
           <ActionCell
             glyph={roleAccent.ADMIN[scheme]}
-            icon="person-add-outline"
+            icon="person-add"
             label="Add resident"
             onPress={onNewResident}
             tone="admin"
@@ -839,7 +839,7 @@ export function QuickActions({
         <KycFrost center className="flex-1" frozen={locked} label="Scan resident">
           <ActionCell
             glyph={colors.warning}
-            icon="scan-outline"
+            icon="scan"
             label="Scan resident"
             onPress={onScan}
             tone="warning"
@@ -849,7 +849,7 @@ export function QuickActions({
           <KycFrost center className="flex-1" frozen={locked} label="Add expense">
             <ActionCell
               glyph={colors.success}
-              icon="wallet-outline"
+              icon="wallet"
               label="Add expense"
               onPress={onAddExpense}
               tone="success"
@@ -931,19 +931,19 @@ export function WaitingActions({
       */}
       <ActionCell
         glyph={colors.success}
-        icon="receipt-outline"
+        icon="receipt"
         label="Statement"
         onPress={onStatement}
         tone="success"
       />
-      <ActionCell glyph={colors.warning} icon="cube-outline" label="Stock" onPress={onStock} tone="warning" />
-      <ActionCell glyph={colors.success} icon="cash-outline" label="Finance" onPress={onFinance} tone="success" />
-      <ActionCell glyph={colors.success} icon="wallet-outline" label="Expenses" onPress={onExpenses} tone="success" />
+      <ActionCell glyph={colors.warning} icon="cube" label="Stock" onPress={onStock} tone="warning" />
+      <ActionCell glyph={colors.success} icon="cash" label="Finance" onPress={onFinance} tone="success" />
+      <ActionCell glyph={colors.success} icon="wallet" label="Expenses" onPress={onExpenses} tone="success" />
       {khataPending === null ? null : (
         <ActionCell
           badge={khataPending || undefined}
           glyph={colors.success}
-          icon="book-outline"
+          icon="book"
           label="Khata"
           onPress={onKhata}
           tone="success"

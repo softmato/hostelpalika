@@ -1,6 +1,6 @@
 "use client";
 
-import { MessageSquareWarning } from "lucide-react";
+import { MessageSquareWarning } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { EmptyState, LoadingRows, Panel, StatusBadge } from "@/app/_components/shared-ui";

@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef } from "react";
 import {
   Image,
@@ -11,6 +10,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Grid } from "@/components/ui/layout";
 import { Money } from "@/components/ui/money";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -93,7 +93,7 @@ function ProductArtwork({
         className="h-full w-full items-center justify-center bg-brand-soft"
         style={{ borderRadius: radius }}
       >
-        <Ionicons color={colors.primary} name="cube-outline" size={26} />
+        <Glyph color={colors.primary} name="cube" size={26} />
       </View>
     );
   }
@@ -188,7 +188,7 @@ function CartStepper({
           onChange(quantity - 1);
         }}
       >
-        <Ionicons color={colors.primaryForeground} name="remove" size={16} />
+        <Glyph color={colors.primaryForeground} name="remove" size={16} />
       </Pressable>
 
       <Text
@@ -212,7 +212,7 @@ function CartStepper({
           onChange(quantity + 1);
         }}
       >
-        <Ionicons color={colors.primaryForeground} name="add" size={16} />
+        <Glyph color={colors.primaryForeground} name="add" size={16} />
       </Pressable>
     </View>
   );
@@ -390,7 +390,7 @@ export function ProductCard({
               }}
             >
               {product.inStock ? (
-                <Ionicons color={colors.primary} name="add" size={15} />
+                <Glyph color={colors.primary} name="add" size={15} />
               ) : null}
               <Text
                 className={`text-[12.5px] font-semibold ${
@@ -502,7 +502,7 @@ export function ProductRow({
             </Text>
           </Pressable>
         ) : (
-          <Ionicons
+          <Glyph
             color={colors.mutedForeground}
             name="chevron-forward"
             size={16}
@@ -613,7 +613,7 @@ export function FeaturedBanner({
             className="mt-0.5 flex-row items-center gap-1.5 self-start rounded-full px-3 py-1"
             style={{ backgroundColor: plate }}
           >
-            <Ionicons
+            <Glyph
               color={colors.primaryForeground}
               name={discount ? "pricetag" : "cube"}
               size={12}
@@ -641,9 +641,9 @@ export function FeaturedBanner({
               style={{ borderRadius: 18 }}
             />
           ) : (
-            <Ionicons
+            <Glyph
               color={colors.primaryForeground}
-              name="cube-outline"
+              name="cube"
               size={34}
             />
           )}
@@ -859,7 +859,7 @@ export function StoreSearchField({
 
   return (
     <View className="h-11 flex-row items-center gap-2 rounded-2xl bg-card px-3.5">
-      <Ionicons color={colors.mutedForeground} name="search" size={17} />
+      <Glyph color={colors.mutedForeground} name="search" size={17} />
       <TextInput
         autoCapitalize="none"
         autoCorrect={false}
@@ -879,7 +879,7 @@ export function StoreSearchField({
           hitSlop={10}
           onPress={() => onChangeText("")}
         >
-          <Ionicons
+          <Glyph
             color={colors.mutedForeground}
             name="close-circle"
             size={17}
@@ -940,13 +940,13 @@ export function QuantityStepper({
           onChange(quantity - 1);
         }}
       >
-        <Ionicons
+        <Glyph
           color={
             busy || (atFloor && !onRemove)
               ? colors.mutedForeground
               : colors.foreground
           }
-          name={atFloor && onRemove ? "trash-outline" : "remove"}
+          name={atFloor && onRemove ? "trash" : "remove"}
           size={16}
         />
       </Pressable>
@@ -969,7 +969,7 @@ export function QuantityStepper({
           onChange(quantity + 1);
         }}
       >
-        <Ionicons
+        <Glyph
           color={busy || atCeiling ? colors.mutedForeground : colors.foreground}
           name="add"
           size={16}
@@ -1001,7 +1001,7 @@ export function FreeDeliveryBar({
   return (
     <View className="gap-2 rounded-2xl border border-primary/25 bg-brand-soft px-3.5 py-3">
       <View className="flex-row items-center gap-2">
-        <Ionicons color={colors.primary} name="bicycle-outline" size={16} />
+        <Glyph color={colors.primary} name="bicycle" size={16} />
         <Text className="flex-1 text-xs font-semibold text-primary">
           {note}
         </Text>
@@ -1103,7 +1103,7 @@ export function StoreHeader({
             hitSlop={12}
             onPress={onBack}
           >
-            <Ionicons
+            <Glyph
               color={colors.primaryForeground}
               name="chevron-back"
               size={26}
@@ -1137,9 +1137,9 @@ export function StoreHeader({
               hitSlop={12}
               onPress={onCart}
             >
-              <Ionicons
+              <Glyph
                 color={colors.primaryForeground}
-                name="cart-outline"
+                name="cart"
                 size={22}
               />
               {cartCount > 0 ? (

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarCheck, Download, HandCoins, Wallet } from "lucide-react";
+import { CalendarCheck, Download, HandCoins, Wallet } from "@/components/icons";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";

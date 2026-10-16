@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import {
   addBsMonths,
   bsPeriodBounds,
@@ -7,13 +6,13 @@ import {
   formatBsPeriod,
 } from "@hostel/calendar/bs";
 import { router } from "expo-router";
-import { BedDouble, DoorOpen, ShieldCheck, Users } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -294,7 +293,7 @@ export default function ManageRatesScreen() {
                  * beside it. The mark says "this box is a rent"; the label says
                  * which room.
                  */
-                leading={<BedDouble color={colors.mutedForeground} size={18} />}
+                leading={<Glyph name="bed" color={colors.mutedForeground} size={18} />}
                 onChangeText={(value) => editRates({ [option.roomType]: value })}
                 placeholder="NPR"
                 value={rates[option.roomType] ?? ""}
@@ -312,7 +311,7 @@ export default function ManageRatesScreen() {
             <Input
               keyboardType="number-pad"
               label="Admission fee"
-              leading={<DoorOpen color={colors.mutedForeground} size={18} />}
+              leading={<Glyph name="door" color={colors.mutedForeground} size={18} />}
               onChangeText={(admissionFee) => editForm({ admissionFee })}
               placeholder="NPR"
               value={form.admissionFee ?? ""}
@@ -320,7 +319,7 @@ export default function ManageRatesScreen() {
 <Input
               keyboardType="number-pad"
               label="Form fee"
-              leading={<DoorOpen color={colors.mutedForeground} size={18} />}
+              leading={<Glyph name="door" color={colors.mutedForeground} size={18} />}
               onChangeText={(formFee) => editForm({ formFee })}
               placeholder="NPR"
               value={form.formFee ?? ""}
@@ -329,7 +328,7 @@ export default function ManageRatesScreen() {
               hint="Off the admission fee for someone a resident referred."
               keyboardType="number-pad"
               label="Referral discount"
-              leading={<Users color={colors.mutedForeground} size={18} />}
+              leading={<Glyph name="people" color={colors.mutedForeground} size={18} />}
               onChangeText={(referralAdmissionDiscount) => editForm({ referralAdmissionDiscount })}
               placeholder="NPR"
               value={form.referralAdmissionDiscount ?? ""}
@@ -337,7 +336,7 @@ export default function ManageRatesScreen() {
             <Input
               keyboardType="number-pad"
               label="Deposit"
-              leading={<ShieldCheck color={colors.mutedForeground} size={18} />}
+              leading={<Glyph name="shield-checkmark" color={colors.mutedForeground} size={18} />}
               onChangeText={(depositAmount) => editForm({ depositAmount })}
               placeholder="NPR"
               value={form.depositAmount ?? ""}
@@ -358,7 +357,7 @@ export default function ManageRatesScreen() {
                 disabled={monthOffset <= (open ? 1 : 0)}
                 onPress={() => setMonthOffset((value) => value - 1)}
               >
-                <Ionicons color={colors.foreground} name="chevron-back" size={18} />
+                <Glyph color={colors.foreground} name="chevron-back" size={18} />
               </Pressable>
               <View className="items-center">
                 <Text className="text-lg font-bold text-foreground">
@@ -378,7 +377,7 @@ export default function ManageRatesScreen() {
                 className="h-10 w-10 items-center justify-center rounded-full border border-border active:opacity-70"
                 onPress={() => setMonthOffset((value) => value + 1)}
               >
-                <Ionicons color={colors.foreground} name="chevron-forward" size={18} />
+                <Glyph color={colors.foreground} name="chevron-forward" size={18} />
               </Pressable>
             </View>
             <Text className="text-center" variant="caption">

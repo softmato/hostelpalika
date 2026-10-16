@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck } from "@/components/icons";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";

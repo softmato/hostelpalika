@@ -1,6 +1,6 @@
 "use client";
 
-import { Globe, ImagePlus, Loader2, Play, Search, Send, Users, X } from "lucide-react";
+import { Globe, ImagePlus, Loader2, Play, Search, Send, Users, X } from "@/components/icons";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 

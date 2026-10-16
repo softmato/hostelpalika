@@ -84,7 +84,7 @@ describe("groupNearbyPlaces", () => {
 
     expect(groups.map((group) => group.type)).toEqual(["college", "supermarket"]);
     expect(groups[1].label).toBe("Supermarket");
-    expect(groups[1].icon).toBe("location-outline");
+    expect(groups[1].icon).toBe("location");
   });
 
   it("returns nothing for a hostel with nothing around it", () => {
@@ -102,7 +102,7 @@ describe("humanizeNearbyType", () => {
 describe("nearbyGlyph and nearbyIcon", () => {
   it("both fall back rather than rendering nothing", () => {
     expect(nearbyGlyph("something-new")).toBe("📍");
-    expect(nearbyIcon("something-new")).toBe("location-outline");
+    expect(nearbyIcon("something-new")).toBe("location");
   });
 
   it("cover the same categories the groups do", () => {
@@ -116,7 +116,7 @@ describe("nearbyGlyph and nearbyIcon", () => {
       "gym",
     ]) {
       expect(nearbyGlyph(type)).not.toBe("📍");
-      expect(nearbyIcon(type)).not.toBe("location-outline");
+      expect(nearbyIcon(type)).not.toBe("location");
     }
   });
 });

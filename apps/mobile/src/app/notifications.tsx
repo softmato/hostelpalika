@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
@@ -6,6 +5,7 @@ import { Pressable, ScrollView, View } from "react-native";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
@@ -556,7 +556,7 @@ function CategoryChipButton({
       }`}
       onPress={onPress}
     >
-      <Ionicons
+      <Glyph
         color={active ? colors.primaryForeground : colors.foreground}
         name={chip.icon}
         size={15}
@@ -658,7 +658,7 @@ function NotificationRow({
               unread ? "bg-card" : TILE_TONES[visual.tone]
             }`}
           >
-            <Ionicons
+            <Glyph
               color={colors[TILE_GLYPH[visual.tone]]}
               name={visual.icon}
               size={19}

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo, useState } from "react";
-import { Check, Copy, Gift } from "lucide-react";
+import { Check, Copy, Gift } from "@/components/icons";
 import { EmptyState, Panel, StatusBadge, currency } from "@/app/_components/shared-ui";
 import { usePortalResource } from "@/lib/portal-query";
 import { residentEndpoints } from "@/lib/resident-endpoints";

@@ -16,6 +16,22 @@ const eslintConfig = defineConfig([
       "react-hooks/static-components": "off",
     },
   },
+  {
+    // One icon set for web and app: `packages/shared/src/constants/glyphs.ts`.
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              message: 'Draw our own: <Glyph name="…" /> or a name from "@/components/icons".',
+              name: "lucide-react",
+            },
+          ],
+        },
+      ],
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:

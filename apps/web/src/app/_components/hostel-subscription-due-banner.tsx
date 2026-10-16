@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Clock, Lock, X } from "lucide-react";
+import { AlertTriangle, Clock, Lock, X } from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 

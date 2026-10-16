@@ -1,6 +1,6 @@
-import type { LucideIcon } from "lucide-react-native";
 import { ActivityIndicator, Pressable, type PressableProps, View } from "react-native";
 
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -42,8 +42,8 @@ type ButtonProps = Omit<PressableProps, "children" | "style"> & {
   className?: string;
   /** Fires a selection tick on press. Off for destructive flows with their own confirm. */
   haptic?: boolean;
-  /** A Lucide glyph ahead of the label, tinted to match it. Hidden while loading. */
-  icon?: LucideIcon;
+  /** One of our glyphs ahead of the label, tinted to match it. Hidden while loading. */
+  icon?: GlyphName;
   label: string;
   /**
    * Replaces the size's own type classes on the label — **both** of them, so a
@@ -66,7 +66,7 @@ export function Button({
   className = "",
   disabled,
   haptic = true,
-  icon: Icon,
+  icon,
   label,
   labelClassName,
   loading = false,
@@ -134,9 +134,9 @@ export function Button({
             size="small"
           />
         </View>
-      ) : Icon ? (
+      ) : icon ? (
         <View className="mr-2">
-          <Icon color={iconColor} size={size === "sm" ? 16 : 18} strokeWidth={2} />
+          <Glyph color={iconColor} name={icon} size={size === "sm" ? 16 : 18} strokeWidth={2} />
         </View>
       ) : null}
 

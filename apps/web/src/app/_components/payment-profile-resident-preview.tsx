@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Building2, Copy, QrCode, Smartphone } from "lucide-react";
+import { AlertTriangle, Building2, Copy, QrCode, Smartphone } from "@/components/icons";
 import { memo, type ReactNode } from "react";
 
 import { EsewaMark, KhaltiMark } from "@/app/_components/payment-brand-marks";

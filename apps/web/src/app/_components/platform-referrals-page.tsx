@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, HandCoins, Link2, Users } from "lucide-react";
+import { Copy, HandCoins, Link2, Users } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";

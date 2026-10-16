@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, Share2 } from "lucide-react";
+import { ChevronDown, Share2 } from "@/components/icons";
 import Image from "next/image";
 import { useState } from "react";
 

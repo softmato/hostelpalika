@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useState } from "react";
 import { Pressable, TextInput, useWindowDimensions, View } from "react-native";
@@ -9,6 +8,7 @@ import { Field, FieldHead, NumberStepper } from "@/components/step-flow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChoiceChips } from "@/components/ui/choice-chips";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import type { SelectOption } from "@/components/ui/select";
 import { Sheet } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
@@ -75,7 +75,7 @@ export function bedsFor(type: string): string {
 function BedMark() {
   const { colors } = useAppTheme();
 
-  return <Ionicons color={colors.mutedForeground} name="bed-outline" size={20} />;
+  return <Glyph color={colors.mutedForeground} name="bed" size={20} />;
 }
 
 /** One saved room type: what it is, in one line, and a ⋯ for Edit / Remove. */
@@ -114,7 +114,7 @@ export function RoomTypeRow({ onMore, onPress, room }: { onMore: () => void; onP
         hitSlop={6}
         onPress={onMore}
       >
-        <Ionicons color={colors.mutedForeground} name="ellipsis-horizontal" size={20} />
+        <Glyph color={colors.mutedForeground} name="ellipsis-horizontal" size={20} />
       </Pressable>
     </Pressable>
   );
@@ -204,7 +204,7 @@ export function RoomTypeEditor({
             <Text className="flex-1" numberOfLines={1}>
               {draft.roomType || "Choose"}
             </Text>
-            <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} />
+            <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} />
           </Pressable>
           {shown?.field === "type" ? (
             <Text className="text-destructive" variant="caption">
@@ -340,19 +340,19 @@ export function BranchShortStays({
   );
 }
 
-const FACILITY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  AC: "snow-outline",
-  "Attached bathroom": "water-outline",
-  CCTV: "videocam-outline",
-  "Common room": "people-outline",
-  Gym: "barbell-outline",
-  "Hot water": "flame-outline",
-  Kitchen: "restaurant-outline",
-  Laundry: "shirt-outline",
-  Parking: "car-outline",
-  "Power backup": "flash-outline",
-  "Study table": "book-outline",
-  WiFi: "wifi-outline",
+const FACILITY_ICONS: Record<string, GlyphName> = {
+  AC: "snow",
+  "Attached bathroom": "water",
+  CCTV: "videocam",
+  "Common room": "people",
+  Gym: "barbell",
+  "Hot water": "flame",
+  Kitchen: "restaurant",
+  Laundry: "shirt",
+  Parking: "car",
+  "Power backup": "flash",
+  "Study table": "book",
+  WiFi: "wifi",
 };
 
 /** One pill with a glyph — on is filled green. */
@@ -362,7 +362,7 @@ export function IconChip({
   on,
   onPress,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   on: boolean;
   onPress: () => void;
@@ -376,7 +376,7 @@ export function IconChip({
       className={`min-h-10 flex-row items-center gap-1.5 rounded-full border px-3.5 active:opacity-70 ${on ? "border-primary bg-primary" : "border-border"}`}
       onPress={onPress}
     >
-      <Ionicons color={on ? colors.primaryForeground : colors.foreground} name={icon} size={16} />
+      <Glyph color={on ? colors.primaryForeground : colors.foreground} name={icon} size={16} />
       <Text className={`text-sm ${on ? "font-semibold text-primary-foreground" : "text-foreground"}`} variant={null}>
         {label}
       </Text>
@@ -411,7 +411,7 @@ export function FacilityChips({
     <View className="flex-row flex-wrap gap-2">
       {all.map((facility) => (
         <IconChip
-          icon={FACILITY_ICONS[facility] ?? "checkmark-circle-outline"}
+          icon={FACILITY_ICONS[facility] ?? "checkmark-circle"}
           key={facility}
           label={facility}
           on={value.includes(facility)}
@@ -469,7 +469,7 @@ export function RulesList({ onChange, rules }: { onChange: (next: string[]) => v
             className="h-10 w-10 items-center justify-center rounded-full active:bg-muted"
             onPress={() => onChange(rules.filter((_, index) => index !== at))}
           >
-            <Ionicons color={colors.mutedForeground} name="trash-outline" size={18} />
+            <Glyph color={colors.mutedForeground} name="trash" size={18} />
           </Pressable>
         </View>
       ))}
@@ -482,7 +482,7 @@ export function RulesList({ onChange, rules }: { onChange: (next: string[]) => v
             onChange([...rules, ""]);
           }}
         >
-          <Ionicons color={colors.primary} name="add" size={20} />
+          <Glyph color={colors.primary} name="add" size={20} />
           <Text className="font-semibold text-primary" variant={null}>
             Add a rule
           </Text>
@@ -555,7 +555,7 @@ export function PhotoGrid({
               onPress={() => onAdd(source)}
               style={tile}
             >
-              <Ionicons color={colors.foreground} name={source === "camera" ? "camera-outline" : "images-outline"} size={22} />
+              <Glyph color={colors.foreground} name={source === "camera" ? "camera" : "images"} size={22} />
               <Text variant="caption">{source === "camera" ? "Camera" : "Gallery"}</Text>
             </Pressable>
           ))

@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { View } from "react-native";
 
 import { FLOAT_SHADOW, usePortalPaint } from "@/components/portal-shared";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 
 /**
@@ -127,9 +127,9 @@ export function CookShiftCard({
               dark.
             */}
             <View className="flex-row items-center gap-1 rounded-full bg-white px-2.5 py-1">
-              <Ionicons
+              <Glyph
                 color={done ? "#0a8a4b" : "#b45309"}
-                name={done ? "checkmark-circle" : "time-outline"}
+                name={done ? "checkmark-circle" : "time"}
                 size={11}
               />
               <Text

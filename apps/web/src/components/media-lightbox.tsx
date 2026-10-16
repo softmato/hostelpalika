@@ -10,7 +10,7 @@ import {
   X,
   ZoomIn,
   ZoomOut,
-} from "lucide-react";
+} from "@/components/icons";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
-import { Building2, ChevronRight, Download, QrCode } from "lucide-react";
+import { Building2, ChevronRight, Download, QrCode } from "@/components/icons";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 

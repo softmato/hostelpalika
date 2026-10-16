@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Minus, Plus, X } from "lucide-react";
+import { Loader2, Minus, Plus, X } from "@/components/icons";
 import {
   useCallback,
   useEffect,

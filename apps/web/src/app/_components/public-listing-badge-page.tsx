@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowUpRight } from "lucide-react";
+import { ArrowLeft, ArrowUpRight } from "@/components/icons";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";

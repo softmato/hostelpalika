@@ -1,6 +1,6 @@
 "use client";
 
-import { Boxes, PackageX, Plus, ShoppingBag, Tags } from "lucide-react";
+import { Boxes, PackageX, Plus, ShoppingBag, Tags } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
@@ -196,7 +196,7 @@ export const PlatformStorePageContent = memo(function PlatformStorePageContent()
       const form = new FormData(formElement);
       const name = text(form, "name");
       const payload = {
-        icon: text(form, "icon") || "cube-outline",
+        icon: text(form, "icon") || "cube",
         imageAssetId: categoryImage[0]?.assetId ?? "",
         imageUrl: categoryImage[0]?.url ?? "",
         name,
@@ -552,8 +552,8 @@ export const PlatformStorePageContent = memo(function PlatformStorePageContent()
                 name="slug"
               />
               <Input
-                defaultValue={editingCategory?.icon ?? "bed-outline"}
-                hint="An Ionicons name — bed-outline, water-outline, restaurant-outline."
+                defaultValue={editingCategory?.icon ?? "bed"}
+                hint="One of our glyph names — bed, water, restaurant. An unknown name shows a plain circle."
                 label="Icon"
                 name="icon"
               />

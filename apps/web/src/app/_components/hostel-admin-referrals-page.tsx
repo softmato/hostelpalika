@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo, useState, type FormEvent } from "react";
-import { Gift, Trophy } from "lucide-react";
+import { Gift, Trophy } from "@/components/icons";
 import { EmptyState, LoadingRows, Panel, StatusBadge } from "@/app/_components/shared-ui";
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
 import { browserApi } from "@/lib/browser-api";

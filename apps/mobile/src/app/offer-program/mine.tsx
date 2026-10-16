@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
@@ -12,6 +11,7 @@ import {
 import { copyReference } from "@/components/resident-payments";
 import { AppBar } from "@/components/ui/app-bar";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Grid, InfoTile } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
@@ -168,7 +168,7 @@ export default function OfferProgramScreen() {
               <EmptyState
                 compact
                 description="Keep paying with your reference code."
-                icon="gift-outline"
+                icon="gift"
                 title="Perks are on their way"
               />
             </Card>
@@ -177,7 +177,7 @@ export default function OfferProgramScreen() {
               {perks.map((item) => (
                 <InfoTile
                   caption={item.kind === "FEE_OFF" ? `${item.percentOff}% off` : "Gift"}
-                  icon={item.kind === "FEE_OFF" ? "pricetag-outline" : "gift-outline"}
+                  icon={item.kind === "FEE_OFF" ? "pricetag" : "gift"}
                   key={item.id}
                   label={item.title}
                   onPress={() => setPerk(item)}
@@ -198,7 +198,7 @@ export default function OfferProgramScreen() {
               <EmptyState
                 compact
                 description="Receipts will appear here after payments are verified."
-                icon="receipt-outline"
+                icon="receipt"
                 title="No receipts yet"
               />
             </Card>
@@ -347,17 +347,17 @@ function CodeLine({ invoice }: { invoice: ResidentInvoice }) {
           {`For ${oneOffLabel(invoice) ?? dates.period(invoice.month)}`}
         </Text>
       </View>
-      <Ionicons color={colors.primary} name="copy-outline" size={20} />
+      <Glyph color={colors.primary} name="copy" size={20} />
     </Pressable>
   );
 }
 
-function Glyph({
+function AwardMark({
   certified,
   name,
 }: {
   certified: boolean;
-  name: keyof typeof Ionicons.glyphMap;
+  name: GlyphName;
 }) {
   const { colors } = useAppTheme();
 
@@ -365,7 +365,7 @@ function Glyph({
     <View
       className={`h-8 w-8 items-center justify-center rounded-full ${certified ? "bg-success-soft" : "bg-muted"}`}
     >
-      <Ionicons
+      <Glyph
         color={certified ? colors.success : colors.mutedForeground}
         name={name}
         size={18}
@@ -386,7 +386,7 @@ function AwardRow({ award }: { award: OfferAward }) {
 
   return (
     <ListRow
-      left={<Glyph certified name={award.kind === "FEE_OFF" ? "pricetag-outline" : "gift-outline"} />}
+      left={<AwardMark certified name={award.kind === "FEE_OFF" ? "pricetag" : "gift"} />}
       subtitle={`${award.quarterLabel} · ${state}`}
       title={award.title}
     />
@@ -426,16 +426,16 @@ function ReceiptRow({ receipt }: { receipt: CertifiedReceipt }) {
   return (
     <ListRow
       left={
-        <Glyph
+        <AwardMark
           certified={Boolean(receipt.certificationCode)}
-          name={receipt.certificationCode ? "shield-checkmark-outline" : "receipt-outline"}
+          name={receipt.certificationCode ? "shield-checkmark" : "receipt"}
         />
       }
       onPress={() => void save()}
       right={
-        <Ionicons
+        <Glyph
           color={busy ? colors.mutedForeground : colors.primary}
-          name={busy ? "hourglass-outline" : "download-outline"}
+          name={busy ? "hourglass" : "download"}
           size={20}
         />
       }

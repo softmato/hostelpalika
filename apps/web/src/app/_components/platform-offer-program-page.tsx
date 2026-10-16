@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Gift, HandCoins, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Gift, HandCoins, Users } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";

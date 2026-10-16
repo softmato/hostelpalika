@@ -1,4 +1,4 @@
-import type { Ionicons } from "@expo/vector-icons";
+import type { GlyphName } from "@hostel/constants/glyphs";
 
 import type { NoticePush, NoticePushRepeat } from "@/lib/admin-manage-api";
 
@@ -7,14 +7,14 @@ export const WEEKDAY_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] a
 export const WEEKDAY_OPTIONS = WEEKDAY_SHORT.map((label, day) => ({ label, value: String(day) }));
 
 export const PUSH_MODES: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   value: NoticePushRepeat;
 }[] = [
-  { icon: "flash-outline", label: "Now", value: "NOW" },
-  { icon: "hourglass-outline", label: "Later", value: "LATER" },
-  { icon: "repeat-outline", label: "Daily", value: "DAILY" },
-  { icon: "calendar-outline", label: "Weekly", value: "WEEKLY" },
+  { icon: "flash", label: "Now", value: "NOW" },
+  { icon: "hourglass", label: "Later", value: "LATER" },
+  { icon: "repeat", label: "Daily", value: "DAILY" },
+  { icon: "calendar", label: "Weekly", value: "WEEKLY" },
 ];
 
 export const DELAY_OPTIONS = [

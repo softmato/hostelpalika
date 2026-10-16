@@ -104,21 +104,21 @@ export function openJobCount(jobs: ProviderJob[]): number {
  * is the failure mode that looks like a broken build.
  */
 const CATEGORY_ICONS: Record<string, string> = {
-  APPLIANCE: "hardware-chip-outline",
-  CARPENTRY: "hammer-outline",
-  CLEANING: "sparkles-outline",
-  ELECTRICAL: "flash-outline",
-  HEALTH: "medkit-outline",
-  INTERNET: "wifi-outline",
-  OTHER: "construct-outline",
-  PAINTING: "color-palette-outline",
-  PLUMBING: "water-outline",
-  ROOM_REPAIR: "bed-outline",
-  WATER: "water-outline",
+  APPLIANCE: "hardware-chip",
+  CARPENTRY: "hammer",
+  CLEANING: "sparkles",
+  ELECTRICAL: "flash",
+  HEALTH: "medkit",
+  INTERNET: "wifi",
+  OTHER: "construct",
+  PAINTING: "color-palette",
+  PLUMBING: "water",
+  ROOM_REPAIR: "bed",
+  WATER: "water",
 };
 
 export function jobCategoryIcon(category: string): string {
-  return CATEGORY_ICONS[category] ?? "construct-outline";
+  return CATEGORY_ICONS[category] ?? "construct";
 }
 
 /** Open jobs whose priority is one somebody should look at today. */

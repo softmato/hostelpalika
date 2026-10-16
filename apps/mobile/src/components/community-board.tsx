@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -23,6 +22,7 @@ import Animated, {
 
 import { CommunityPostCard } from "@/components/community-post-card";
 import { AppBar } from "@/components/ui/app-bar";
+import { Glyph } from "@/components/ui/glyph";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
 import { Screen, useOwnScroll } from "@/components/ui/screen";
 import { Skeleton, SkeletonText } from "@/components/ui/skeleton";
@@ -407,7 +407,7 @@ export function CommunityBoard({
               height: ROW_HEIGHT,
             }}
           >
-            <Ionicons color={colors.primary} name="search" size={14} />
+            <Glyph color={colors.primary} name="search" size={14} />
             <Text
               numberOfLines={1}
               style={{ color: colors.primary, flexShrink: 1, fontSize: 13, fontWeight: "600" }}
@@ -420,7 +420,7 @@ export function CommunityBoard({
               hitSlop={8}
               onPress={cancelSearch}
             >
-              <Ionicons color={colors.primary} name="close" size={14} />
+              <Glyph color={colors.primary} name="close" size={14} />
             </Pressable>
           </Pressable>
         ) : (
@@ -435,7 +435,7 @@ export function CommunityBoard({
               width: ROW_HEIGHT,
             }}
           >
-            <Ionicons color={colors.foreground} name="search" size={17} />
+            <Glyph color={colors.foreground} name="search" size={17} />
           </Pressable>
         )}
 
@@ -562,7 +562,7 @@ export function CommunityBoard({
           searchBarStyle,
         ]}
       >
-        <Ionicons color={colors.primary} name="search" size={FIELD_GLYPH} />
+        <Glyph color={colors.primary} name="search" size={FIELD_GLYPH} />
 
         <TextInput
           className="h-full flex-1 text-base text-foreground"
@@ -584,7 +584,7 @@ export function CommunityBoard({
           onPress={cancelSearch}
           style={{ backgroundColor: colors.muted }}
         >
-          <Ionicons color={colors.foreground} name="close" size={15} />
+          <Glyph color={colors.foreground} name="close" size={15} />
         </Pressable>
       </Animated.View>
     </View>
@@ -760,7 +760,7 @@ function NotificationBell() {
       hitSlop={6}
       onPress={() => router.push("/notifications")}
     >
-      <Ionicons color={colors.foreground} name="notifications-outline" size={22} />
+      <Glyph color={colors.foreground} name="notifications" size={22} />
 
       {unread > 0 ? (
         <View
@@ -975,7 +975,7 @@ function Composer({
                 }
                 style={{ backgroundColor: colors.destructive }}
               >
-                <Ionicons color="#ffffff" name="close" size={13} />
+                <Glyph color="#ffffff" name="close" size={13} />
               </Pressable>
             </View>
           ))}
@@ -991,9 +991,9 @@ function Composer({
             hitSlop={6}
             onPress={() => void addPhoto()}
           >
-            <Ionicons
+            <Glyph
               color={colors.mutedForeground}
-              name={uploading ? "hourglass-outline" : "image-outline"}
+              name={uploading ? "hourglass" : "image"}
               size={18}
             />
             <Text variant="caption">{uploading ? "Adding…" : "Photo"}</Text>
@@ -1008,9 +1008,9 @@ function Composer({
           hitSlop={6}
           onPress={() => setAudienceOpen(true)}
         >
-          <Ionicons
+          <Glyph
             color={colors.mutedForeground}
-            name={membersOnly ? "people-outline" : "globe-outline"}
+            name={membersOnly ? "people" : "globe"}
             size={16}
           />
           <Text
@@ -1020,7 +1020,7 @@ function Composer({
             {audience}
           </Text>
           {target.canChooseAudience ? (
-            <Ionicons color={colors.primary} name="chevron-down" size={13} />
+            <Glyph color={colors.primary} name="chevron-down" size={13} />
           ) : null}
         </Pressable>
 
@@ -1041,7 +1041,7 @@ function Composer({
           {posting ? (
             <ActivityIndicator color={colors.primaryForeground} size="small" />
           ) : (
-            <Ionicons
+            <Glyph
               color={ready ? colors.primaryForeground : colors.mutedForeground}
               name="send"
               size={14}

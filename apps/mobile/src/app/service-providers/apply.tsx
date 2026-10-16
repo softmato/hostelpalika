@@ -1,8 +1,6 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { Camera, FilePlus } from "lucide-react-native";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { View } from "react-native";
 
@@ -20,6 +18,7 @@ import {
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { ChoiceChips } from "@/components/ui/choice-chips";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Lottie } from "@/components/ui/lottie";
 import { Screen } from "@/components/ui/screen";
@@ -635,7 +634,7 @@ function ProviderWizard({
                     transition={150}
                   />
                 ) : (
-                  <Ionicons
+                  <Glyph
                     color={colors.mutedForeground}
                     name="person"
                     size={84}
@@ -648,7 +647,7 @@ function ProviderWizard({
           <View className="gap-2">
             <Button
               disabled={busy !== null}
-              icon={Camera}
+              icon="camera"
               label={form.selfie ? "Take it again" : "Take your photo"}
               loading={busy === "selfie"}
               onPress={() => void takeSelfie()}
@@ -678,7 +677,7 @@ function ProviderWizard({
             />
             <Button
               disabled={busy !== null || form.documents.length >= 7}
-              icon={FilePlus}
+              icon="document-add"
               label="Add a document"
               loading={busy === "document"}
               onPress={() => void pickDocument()}

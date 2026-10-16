@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Pressable, View } from "react-native";
 import Animated, { FadeInUp, FadeOutUp, LinearTransition } from "react-native-reanimated";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
@@ -71,7 +71,7 @@ function UploadCard({ row }: { row: UploadRow }) {
    * the whole readout.
    */
   const moving =
-    row.direction === "download" ? "cloud-download-outline" : "cloud-upload-outline";
+    row.direction === "download" ? "cloud-download" : "cloud-upload";
   // A finished download that landed somewhere openable opens on tap, the same
   // as its notification — see `openSavedFile`.
   const openUri = succeeded ? row.openUri : undefined;
@@ -92,7 +92,7 @@ function UploadCard({ row }: { row: UploadRow }) {
       }}
     >
       <View className="flex-row items-center gap-3 px-4 py-3">
-        <Ionicons
+        <Glyph
           color={failed ? colors.destructive : succeeded ? colors.success : colors.primary}
           name={failed ? "alert-circle" : succeeded ? "checkmark-circle" : moving}
           size={20}
@@ -132,7 +132,7 @@ function UploadCard({ row }: { row: UploadRow }) {
           hitSlop={10}
           onPress={() => dismissUpload(row.id)}
         >
-          <Ionicons color={colors.mutedForeground} name="close" size={18} />
+          <Glyph color={colors.mutedForeground} name="close" size={18} />
         </Pressable>
       </View>
 

@@ -1,12 +1,11 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { Camera, ImagePlus } from "lucide-react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
 import { View } from "react-native";
 
 import { GuidedCapture } from "@/components/guided-capture";
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { readApiError } from "@/lib/api-contract";
@@ -101,21 +100,21 @@ export function ApplicantPhotoPicker({
         {value ? (
           <Image contentFit="cover" source={{ uri: value.uri }} style={{ height: "100%", width: "100%" }} />
         ) : (
-          <Ionicons color={colors.mutedForeground} name="person" size={44} />
+          <Glyph color={colors.mutedForeground} name="person" size={44} />
         )}
       </View>
 
       <View className="flex-1 gap-2">
         <Button
           disabled={uploading}
-          icon={Camera}
+          icon="camera"
           label={value ? "Take again" : "Take photo"}
           onPress={() => setCamera(true)}
           size="sm"
         />
         <Button
           disabled={uploading}
-          icon={ImagePlus}
+          icon="image-add"
           label="Upload photo"
           onPress={() => void pickFromGallery()}
           size="sm"

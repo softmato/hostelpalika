@@ -185,7 +185,7 @@ export default function ResidentFoodScreen() {
                 */
                 <View className="flex-row">
                   <Chip
-                    icon="star-outline"
+                    icon="star"
                     label="Rate this meal"
                     onPress={() => setRating({ day, mealType })}
                     tone="brand"
@@ -303,7 +303,7 @@ function FeedbackSheet({
         {/*
           The kit's `<StarRating>`, not five hand-rolled `Pressable`s around an
           `Ionicons`. This screen had its own copy — the same 26-point amber
-          stars, the same `star` / `star-outline` swap — while `review.tsx` used
+          stars, the same filled / hollow star swap — while `review.tsx` used
           the component, so one resident rated their dinner and their hostel with
           two implementations of one control.
         */}
@@ -329,7 +329,7 @@ function FeedbackSheet({
           A `<ListRow>` carrying a `<Toggle>`, which is how every switch in the
           app is drawn — `settings.tsx` is a screen of them. This form had a
           hand-rolled checkbox instead: a `Pressable` around `checkbox` /
-          `square-outline` glyphs, so one resident met two different controls for
+          `square` glyphs, so one resident met two different controls for
           "turn this on" inside one app.
         */}
         <Card padding="px-4 py-1">

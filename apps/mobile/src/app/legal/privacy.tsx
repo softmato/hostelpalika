@@ -16,7 +16,7 @@ import { DocumentScreen } from "@/components/document-screen";
 export default function PrivacyPolicyScreen() {
   return (
     <DocumentScreen
-      icon="shield-checkmark-outline"
+      icon="shield-checkmark"
       legalDocument="privacy"
       page="privacy"
       webPath="privacy"

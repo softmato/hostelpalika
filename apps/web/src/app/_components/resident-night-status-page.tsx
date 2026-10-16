@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon } from "lucide-react";
+import { Moon } from "@/components/icons";
 import { memo, useCallback, useState } from "react";
 
 import { browserApi } from "@/lib/browser-api";

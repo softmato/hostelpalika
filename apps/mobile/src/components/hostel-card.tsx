@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { API_BASE_URL } from "@/lib/api";
@@ -84,22 +84,22 @@ export const TYPE_TAG_SIZE = 7;
  * an exact-match table gave every one of them the generic tick, so a card ended
  * up showing four identical circles instead of four different facilities.
  */
-const FACILITY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  ac: "snow-outline",
-  airconditioning: "snow-outline",
-  attachedbathroom: "water-outline",
-  cctv: "videocam-outline",
-  gym: "barbell-outline",
-  hotwater: "thermometer-outline",
-  kitchen: "restaurant-outline",
-  laundry: "shirt-outline",
-  meals: "restaurant-outline",
-  parking: "car-outline",
-  powerbackup: "flash-outline",
-  security: "shield-checkmark-outline",
-  studytable: "book-outline",
-  water: "water-outline",
-  wifi: "wifi-outline",
+const FACILITY_ICONS: Record<string, GlyphName> = {
+  ac: "snow",
+  airconditioning: "snow",
+  attachedbathroom: "water",
+  cctv: "videocam",
+  gym: "barbell",
+  hotwater: "thermometer",
+  kitchen: "restaurant",
+  laundry: "shirt",
+  meals: "restaurant",
+  parking: "car",
+  powerbackup: "flash",
+  security: "shield-checkmark",
+  studytable: "book",
+  water: "water",
+  wifi: "wifi",
 };
 
 /** Case, spaces and punctuation all dropped: `Hot Water` and `hot-water` are one key. */
@@ -107,8 +107,8 @@ function facilityKey(facility: string): string {
   return facility.toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-export function facilityIcon(facility: string): keyof typeof Ionicons.glyphMap {
-  return FACILITY_ICONS[facilityKey(facility)] ?? "checkmark-circle-outline";
+export function facilityIcon(facility: string): GlyphName {
+  return FACILITY_ICONS[facilityKey(facility)] ?? "checkmark-circle";
 }
 
 /**
@@ -150,9 +150,10 @@ export function SaveButton({
       onPress={() => onToggle(hostel)}
       style={{ backgroundColor: colors.card }}
     >
-      <Ionicons
+      <Glyph
         color={saved ? colors.primary : colors.mutedForeground}
-        name={saved ? "heart" : "heart-outline"}
+        name="heart"
+        variant={saved ? "solid" : "line"}
         size={18}
       />
     </Pressable>
@@ -256,7 +257,7 @@ export function HostelCard({
             className="items-center justify-center"
             style={{ backgroundColor: colors.muted, height: imageHeight }}
           >
-            <Ionicons color={colors.mutedForeground} name="image-outline" size={28} />
+            <Glyph color={colors.mutedForeground} name="image" size={28} />
           </View>
         )}
 
@@ -289,7 +290,7 @@ export function HostelCard({
           */
           <View className="absolute left-2.5 top-2.5 flex-row items-center gap-1 rounded-full bg-primary px-1.5 py-0.5">
             {hostel.verificationStatus === "VERIFIED" ? (
-              <Ionicons
+              <Glyph
                 color={colors.primaryForeground}
                 name="shield-checkmark"
                 size={8}
@@ -304,7 +305,7 @@ export function HostelCard({
           </View>
         ) : hostel.verificationStatus === "VERIFIED" ? (
           <View className="absolute left-3 top-3 flex-row items-center gap-1 rounded-full bg-card/95 px-2.5 py-1">
-            <Ionicons color={colors.success} name="shield-checkmark" size={12} />
+            <Glyph color={colors.success} name="shield-checkmark" size={12} />
             <Text className="text-xs font-semibold">Verified</Text>
           </View>
         ) : null}
@@ -321,7 +322,7 @@ export function HostelCard({
             onPress={() => router.push(`/map?route=1&slug=${hostel.slug}`)}
             style={{ backgroundColor: colors.card }}
           >
-            <Ionicons color={colors.primary} name="navigate" size={7} />
+            <Glyph color={colors.primary} name="navigate" size={7} />
             {/* The number alone. "away" is the caption's job, and dropping it
                 takes a third off a badge that sits on top of a photograph. */}
             <Text className="text-[8px] font-semibold text-foreground">
@@ -346,9 +347,10 @@ export function HostelCard({
                 onToggleCompare(hostel);
               }}
             >
-              <Ionicons
+              <Glyph
                 color={selectedForCompare ? colors.primary : colors.mutedForeground}
-                name={selectedForCompare ? "git-compare" : "git-compare-outline"}
+                name="git-compare"
+                variant={selectedForCompare ? "solid" : "line"}
                 size={17}
               />
             </Pressable>
@@ -367,7 +369,7 @@ export function HostelCard({
           </Text>
 
           <View className="flex-row items-center gap-1">
-            <Ionicons color={colors.mutedForeground} name="location-outline" size={11} />
+            <Glyph color={colors.mutedForeground} name="location" size={11} />
             <Text className="flex-1" numberOfLines={1} variant="caption">
               {/* The badge above already carries the distance on this shape. */}
               {(measured ? place : subtitle) || "Location not published"}
@@ -383,7 +385,7 @@ export function HostelCard({
             >
               {rating.kind === "rated" ? (
                 <>
-                  <Ionicons color={colors.primary} name="star" size={11} />
+                  <Glyph color={colors.primary} name="star" size={11} />
                   <Text className="text-xs font-bold">{rating.value}</Text>
                   <Text variant="caption">{`(${rating.count})`}</Text>
                 </>
@@ -404,7 +406,7 @@ export function HostelCard({
 
           {showVacancy && vacancy ? (
             <View className="flex-row items-center gap-1">
-              <Ionicons color={colors.primary} name="bed-outline" size={12} />
+              <Glyph color={colors.primary} name="bed" size={12} />
               <Text className="text-xs font-semibold text-primary">{vacancy}</Text>
             </View>
           ) : null}
@@ -420,7 +422,7 @@ export function HostelCard({
                   className="h-7 w-7 items-center justify-center rounded-full border border-border"
                   key={facility}
                 >
-                  <Ionicons
+                  <Glyph
                     color={colors.mutedForeground}
                     name={facilityIcon(facility)}
                     size={13}
@@ -439,7 +441,7 @@ export function HostelCard({
 
           {rating.kind === "rated" ? (
             <View className="flex-row items-center gap-1">
-              <Ionicons color={colors.warning} name="star" size={12} />
+              <Glyph color={colors.warning} name="star" size={12} />
               <Text className="text-sm font-semibold">{rating.value}</Text>
               <Text variant="caption">{`(${rating.count})`}</Text>
             </View>
@@ -466,7 +468,7 @@ export function HostelCard({
         <View className="mt-1 flex-row flex-wrap items-center gap-x-3 gap-y-1">
           {vacancy ? (
             <View className="flex-row items-center gap-1">
-              <Ionicons color={colors.mutedForeground} name="bed-outline" size={12} />
+              <Glyph color={colors.mutedForeground} name="bed" size={12} />
               <Text variant="caption">{vacancy}</Text>
             </View>
           ) : null}
@@ -475,7 +477,7 @@ export function HostelCard({
               sheet, and a wrapped block of chips pushes the price out of view. */}
           {hostel.facilities.slice(0, 2).map((facility) => (
             <View className="flex-row items-center gap-1" key={facility}>
-              <Ionicons
+              <Glyph
                 color={colors.mutedForeground}
                 name={facilityIcon(facility)}
                 size={12}
@@ -486,9 +488,9 @@ export function HostelCard({
 
           {hostel.food?.mealsPerDay ? (
             <View className="flex-row items-center gap-1">
-              <Ionicons
+              <Glyph
                 color={colors.mutedForeground}
-                name="restaurant-outline"
+                name="restaurant"
                 size={12}
               />
               <Text variant="caption">{`${hostel.food.mealsPerDay} meals`}</Text>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, QrCode, SlidersHorizontal, Upload, X } from "lucide-react";
+import { Loader2, QrCode, SlidersHorizontal, Upload, X } from "@/components/icons";
 import Image from "next/image";
 import { memo, useCallback, useState, type FormEvent } from "react";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Banknote, PackageCheck, Truck } from "lucide-react";
+import { Banknote, PackageCheck, Truck } from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";

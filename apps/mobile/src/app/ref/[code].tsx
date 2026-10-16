@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
@@ -7,6 +6,7 @@ import { InquiryFields } from "@/components/inquiry-fields";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
@@ -141,7 +141,7 @@ export default function ReferralInquiryScreen() {
       <View className="gap-4 pt-1">
         <Card className="gap-3">
           <View className="flex-row items-center gap-2">
-            <Ionicons color={colors.primary} name="gift-outline" size={18} />
+            <Glyph color={colors.primary} name="gift" size={18} />
             <Text variant="label">Referral code {code}</Text>
           </View>
           <Text variant="muted">

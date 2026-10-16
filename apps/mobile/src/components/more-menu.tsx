@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import {
   Children,
@@ -13,6 +12,7 @@ import {
 } from "react";
 import { View } from "react-native";
 
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { ListRow } from "@/components/ui/list-row";
 import { EmptyState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
@@ -58,7 +58,7 @@ export function MenuSearch({ children, query }: { children: ReactNode; query: st
             <EmptyState
               compact
               description="Try another word."
-              icon="search-outline"
+              icon="search"
               title={`No matches for “${typed}”`}
             />
           </View>
@@ -155,7 +155,7 @@ export function MenuRow({
 }: Omit<ComponentProps<typeof ListRow>, "icon" | "iconBgColor" | "iconColor" | "left"> & {
   /** Iced over with a lock until the hostel's KYC is approved (`KycFrost`). */
   frozen?: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   tone?: MenuTone;
 }) {
   const { colors } = useAppTheme();
@@ -191,7 +191,7 @@ export function MenuRow({
             className="h-8 w-8 items-center justify-center rounded-full"
             style={{ backgroundColor: tint }}
           >
-            <Ionicons color="#FFFFFF" name={icon} size={17} />
+            <Glyph color="#FFFFFF" name={icon} size={17} />
           </View>
         }
       />
@@ -295,9 +295,9 @@ export function SignOutRow({
       icon="log-out"
       onPress={signOut}
       right={
-        <Ionicons
+        <Glyph
           color={colors.destructive}
-          name={signingOut ? "hourglass-outline" : "chevron-forward"}
+          name={signingOut ? "hourglass" : "chevron-forward"}
           size={18}
         />
       }

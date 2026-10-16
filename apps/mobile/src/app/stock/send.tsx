@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -7,6 +6,7 @@ import { ItemAvatar, NoStockAccess, readQty, stockChanged, unitLabel, useStock }
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
@@ -180,9 +180,9 @@ export default function SendScreen() {
                   key={place.id}
                   onPress={() => setTo(place.id)}
                 >
-                  <Ionicons
+                  <Glyph
                     color={active ? colors.primary : colors.mutedForeground}
-                    name={active ? "checkmark-circle" : "business-outline"}
+                    name={active ? "checkmark-circle" : "business"}
                     size={24}
                   />
                   <Text className="flex-1" numberOfLines={2} variant="label">
@@ -199,7 +199,7 @@ export default function SendScreen() {
           {items.length >= SEARCH_FROM ? (
             <View className="mb-3">
               <Input
-                leading={<Ionicons color={colors.mutedForeground} name="search" size={18} />}
+                leading={<Glyph color={colors.mutedForeground} name="search" size={18} />}
                 onChangeText={setQuery}
                 placeholder="Search"
                 value={query}

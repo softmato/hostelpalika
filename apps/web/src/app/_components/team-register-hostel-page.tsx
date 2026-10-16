@@ -19,8 +19,8 @@ import {
   Save,
   Trash2,
   X,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
@@ -140,7 +140,7 @@ type DocRow = {
 };
 
 /** The same optional slots the public form offers, in the same order. */
-const SUPPORTING_DOCS: { desc: string; icon: LucideIcon; title: string; type: string }[] = [
+const SUPPORTING_DOCS: { desc: string; icon: IconComponent; title: string; type: string }[] = [
   {
     desc: "Property deed, ownership certificate or lease (optional)",
     icon: FileText,

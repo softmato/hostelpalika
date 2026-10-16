@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useCallback, useEffect } from "react";
@@ -6,6 +5,7 @@ import { Alert, Pressable, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Screen } from "@/components/ui/screen";
 import { EmptyState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
@@ -167,7 +167,7 @@ function SavedListRow({
           className="items-center justify-center"
           style={{ backgroundColor: colors.muted, height: 88, width: 88 }}
         >
-          <Ionicons color={colors.mutedForeground} name="image-outline" size={22} />
+          <Glyph color={colors.mutedForeground} name="image" size={22} />
         </View>
       )}
 
@@ -196,7 +196,7 @@ function SavedListRow({
         hitSlop={6}
         onPress={onRemove}
       >
-        <Ionicons color={colors.primary} name="heart" size={22} />
+        <Glyph color={colors.primary} name="heart" size={22} />
       </Pressable>
     </Pressable>
   );

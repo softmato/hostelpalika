@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowRight, ArrowUpRight, Check, PlayCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Check, PlayCircle } from "@/components/icons";
 import Link from "next/link";
 
 import { ContentIcon } from "@/components/content-icon";

@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { type ReactNode, useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { FieldLabel, Input } from "@/components/ui/input";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
@@ -34,7 +34,7 @@ export type SelectOption<T extends string> = {
    * option is the chosen one.
    *
    * A node rather than an icon name, because the one list that needs it draws
-   * `<WalletMark>` (an image on a white tile), not an `<Ionicons>`.
+   * `<WalletMark>` (an image on a white tile), not a `<Glyph>`.
    *
    * **The same node appears in both places, so size it for the trigger.** The
    * trigger is `h-12`, which leaves room for a mark up to about 28 points; pass
@@ -184,7 +184,7 @@ export function Select<T extends string>({
         >
           {selected?.label ?? (line && label ? label : placeholder)}
         </Text>
-        <Ionicons color={colors.mutedForeground} name="chevron-down" size={compact ? 14 : 18} />
+        <Glyph color={colors.mutedForeground} name="chevron-down" size={compact ? 14 : 18} />
       </Pressable>
 
       {error ? (
@@ -257,7 +257,7 @@ export function OptionSheet<T extends string>({
           <Input
             autoCapitalize="none"
             autoCorrect={false}
-            leading={<Ionicons color={colors.mutedForeground} name="search" size={18} />}
+            leading={<Glyph color={colors.mutedForeground} name="search" size={18} />}
             onChangeText={setQuery}
             placeholder={searchPlaceholder}
             returnKeyType="search"
@@ -292,7 +292,7 @@ export function OptionSheet<T extends string>({
                 ) : null}
                 {option.meta ? <Text variant="caption">{option.meta}</Text> : null}
                 {option.value === value ? (
-                  <Ionicons color={colors.primary} name="checkmark" size={20} />
+                  <Glyph color={colors.primary} name="checkmark" size={20} />
                 ) : null}
               </View>
             }
@@ -303,7 +303,7 @@ export function OptionSheet<T extends string>({
       {onCustom && customLabel && needle && !exact ? (
         <SheetRow
           label={customLabel(query.trim())}
-          leading={<Ionicons color={colors.primary} name="add-circle-outline" size={22} />}
+          leading={<Glyph color={colors.primary} name="add-circle" size={22} />}
           onPress={() => {
             const text = query.trim();
             setQuery("");

@@ -150,7 +150,7 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
     );
   const headerImage = overall ? null : cover(current);
   const mark = (on: boolean) =>
-    on ? <Glyph color={colors.primary} name="check" size={18} strokeWidth={2} /> : null;
+    on ? <Glyph color={colors.primary} name="checkmark" size={18} strokeWidth={2} /> : null;
 
   return (
     <View className={compact ? "shrink-0" : "px-5 pt-3"}>
@@ -192,7 +192,7 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
             {overall ? "Overall" : current?.name}
           </Text>
         )}
-        <Glyph color={colors.mutedForeground} name="chevronDown" size={14} />
+        <Glyph color={colors.mutedForeground} name="chevron-down" size={14} />
       </Pressable>
 
       <Sheet bare onClose={() => setOpen(false)} open={open} title={warden ? "Branches" : "Switch hostel"}>
@@ -251,7 +251,7 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
               else router.push("/manage/branches");
             }}
           >
-            <Glyph color={lock ? colors.mutedForeground : colors.primary} name="plus" size={18} />
+            <Glyph color={lock ? colors.mutedForeground : colors.primary} name="add" size={18} />
             <Text className={`font-semibold ${lock ? "text-muted-foreground" : "text-primary"}`} variant={null}>
               Manage branches
             </Text>

@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyRound, Plus, Shield, ShieldOff, UserPlus, Users, X } from "lucide-react";
+import { KeyRound, Plus, Shield, ShieldOff, UserPlus, Users, X } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { EmptyState, Input as FormInput, LoadingRows } from "@/app/_components/shared-ui";

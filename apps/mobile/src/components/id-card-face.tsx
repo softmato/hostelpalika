@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useState } from "react";
 import { View } from "react-native";
 
 import { SignatureInk } from "@/components/signature-pad";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { APP_NAME } from "@/constants/branding";
 import { CARD_ASPECT, CARD_COLORS, type IdCard } from "@/lib/id-card";
@@ -307,7 +307,7 @@ function Header({
           top: (centerY - 22) * s,
         }}
       >
-        <Ionicons color={accent} name="home" size={44 * s} />
+        <Glyph color={accent} name="home" size={44 * s} />
       </View>
 
       <Line

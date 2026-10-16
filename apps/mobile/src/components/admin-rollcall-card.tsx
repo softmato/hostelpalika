@@ -1,6 +1,6 @@
-import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import type { AdminNightStatus } from "@/lib/admin-api";
@@ -56,9 +56,9 @@ export function AdminRollCallCard({
   return (
     <View className="overflow-hidden rounded-2xl border border-border bg-card">
       <View className="flex-row items-center gap-2 border-b border-border bg-muted px-4 py-2.5">
-        <Ionicons
+        <Glyph
           color={settled ? colors.success : colors.warning}
-          name="moon-outline"
+          name="moon"
           size={15}
         />
         <Text className="flex-1 text-sm font-semibold text-foreground">
@@ -84,7 +84,7 @@ export function AdminRollCallCard({
               settled ? "bg-success-soft" : "bg-warning-soft"
             }`}
           >
-            <Ionicons
+            <Glyph
               color={settled ? colors.success : colors.warning}
               name={settled ? "checkmark-circle" : "help-circle"}
               size={12}

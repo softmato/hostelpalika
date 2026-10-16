@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, KeyRound, ShieldCheck, Trash2, Zap } from "lucide-react";
+import { AlertTriangle, KeyRound, ShieldCheck, Trash2, Zap } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import { EmptyState, Input, LoadingRows, Panel } from "@/app/_components/shared-ui";

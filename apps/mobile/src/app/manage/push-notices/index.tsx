@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Fragment, useMemo } from "react";
 import { View } from "react-native";
@@ -7,6 +6,7 @@ import { NoticeArt } from "@/components/notice-art";
 import { AppBar } from "@/components/ui/app-bar";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { ListRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -46,7 +46,7 @@ const GROUPS = [
 
 const MODE_ICON = Object.fromEntries(PUSH_MODES.map((mode) => [mode.value, mode.icon])) as Record<
   NoticePush["repeat"],
-  keyof typeof Ionicons.glyphMap
+  GlyphName
 >;
 
 function Stat({ label, value }: { label: string; value: number }) {
@@ -68,7 +68,7 @@ function Tile({ push }: { push: NoticePush }) {
       className="h-10 w-10 items-center justify-center rounded-xl"
       style={{ backgroundColor: push.status === "ACTIVE" ? `${tint}1F` : colors.muted }}
     >
-      <Ionicons color={tint} name={MODE_ICON[push.repeat]} size={20} />
+      <Glyph color={tint} name={MODE_ICON[push.repeat]} size={20} />
     </View>
   );
 }

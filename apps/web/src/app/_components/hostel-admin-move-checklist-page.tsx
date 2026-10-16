@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardCheck, LogIn, LogOut } from "lucide-react";
+import { ClipboardCheck, LogIn, LogOut } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";

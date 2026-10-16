@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import {
   bestDiscountPercent,
   bestEventPercent,
@@ -25,6 +24,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
 import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
@@ -90,7 +90,7 @@ export default function PricingScreen() {
     >
       <View className="gap-8 pb-4">
         <InfoHeader
-          icon="pricetags-outline"
+          icon="pricetags"
           subtitle={catalog.page.subtitle}
           title={catalog.page.title}
         />
@@ -391,7 +391,7 @@ function PlanLine({
 }) {
   return (
     <View className="flex-row items-start gap-2.5">
-      <Ionicons color={color} name="checkmark" size={16} style={{ marginTop: 2 }} />
+      <Glyph color={color} name="checkmark" size={16} style={{ marginTop: 2 }} />
       {/* Solid foreground for both weights: `text-foreground/80` does not
           compose onto a CSS-variable colour in NativeWind and rendered grey. */}
       <Text

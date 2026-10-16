@@ -181,12 +181,12 @@ export const khataQuery = {
 export function khataIcon(name: string) {
   const word = name.toLowerCase();
 
-  if (/egg|anda/.test(word)) return "egg-outline" as const;
-  if (/tea|coffee|chiya|milk|doodh/.test(word)) return "cafe-outline" as const;
-  if (/wash|laundry|cloth|iron|lugaa/.test(word)) return "shirt-outline" as const;
-  if (/water|pani/.test(word)) return "water-outline" as const;
-  if (/meal|rice|khana|dal|food|chicken|meat|momo/.test(word)) return "restaurant-outline" as const;
-  if (/snack|noodle|chow|biscuit/.test(word)) return "fast-food-outline" as const;
+  if (/egg|anda/.test(word)) return "egg" as const;
+  if (/tea|coffee|chiya|milk|doodh/.test(word)) return "cafe" as const;
+  if (/wash|laundry|cloth|iron|lugaa/.test(word)) return "shirt" as const;
+  if (/water|pani/.test(word)) return "water" as const;
+  if (/meal|rice|khana|dal|food|chicken|meat|momo/.test(word)) return "restaurant" as const;
+  if (/snack|noodle|chow|biscuit/.test(word)) return "fast-food" as const;
 
-  return "basket-outline" as const;
+  return "basket" as const;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { BedDouble, Mail, Phone, ShieldAlert, UserRound, Users } from "lucide-react";
+import { BedDouble, Mail, Phone, ShieldAlert, UserRound, Users } from "@/components/icons";
 import { memo } from "react";
 
 import { EmptyState } from "@/app/_components/shared-ui";

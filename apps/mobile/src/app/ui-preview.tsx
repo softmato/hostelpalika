@@ -101,20 +101,20 @@ export default function UiPreview() {
                 — Money is a tab and notices are a Manage tile — see
                 `WaitingActions`. */}
             <InfoTile
-              icon="document-text-outline"
+              icon="document-text"
               label="Statement"
               onPress={() => {}}
               tone="warning"
             />
             <InfoTile
               badge={2}
-              icon="mail-outline"
+              icon="mail"
               label="New inquiries"
               onPress={() => {}}
               tone="brand"
             />
             <InfoTile
-              icon="today-outline"
+              icon="today"
               label="Today"
               onPress={() => {}}
               tone="success"

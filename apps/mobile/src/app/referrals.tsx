@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { useCallback } from "react";
 import { Pressable, Share, View } from "react-native";
@@ -7,6 +6,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge, StatusPill } from "@/components/ui/badge";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -124,7 +124,7 @@ function ReferralBody({
       <View className="gap-5 pt-1">
         <Card padding="p-6" className="items-center gap-4">
           <View className="h-16 w-16 items-center justify-center rounded-2xl bg-brand-soft">
-            <Ionicons color={colors.primary} name="gift-outline" size={32} />
+            <Glyph color={colors.primary} name="gift" size={32} />
           </View>
           <View className="items-center gap-1">
             <Text variant="title">Invite a friend</Text>
@@ -166,7 +166,7 @@ function ReferralBody({
             onPress={() => void share()}
             style={{ backgroundColor: colors.primary }}
           >
-            <Ionicons
+            <Glyph
               color={colors.primaryForeground}
               name="share-social"
               size={17}

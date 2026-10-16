@@ -1,5 +1,4 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { HandCoins, Plus } from "lucide-react-native";
 import { type ReactNode, useMemo } from "react";
 import { View } from "react-native";
 
@@ -98,7 +97,7 @@ export default function CashBoxScreen() {
         wallet ? (
           isOwner ? (
             <Button
-              icon={HandCoins}
+              icon="hand-coins"
               label="Give cash"
               onPress={() =>
                 router.push({ params: { category: "STAFF_CASH", to: wallet.userId }, pathname: "/expenses/new" })
@@ -106,7 +105,7 @@ export default function CashBoxScreen() {
               size="lg"
             />
           ) : (
-            <Button icon={Plus} label="Add expense" onPress={() => router.push("/expenses/new")} size="lg" />
+            <Button icon="add" label="Add expense" onPress={() => router.push("/expenses/new")} size="lg" />
           )
         ) : undefined
       }

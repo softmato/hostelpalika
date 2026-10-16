@@ -83,7 +83,7 @@ export function NotificationBell({
     <IconButton
       badge={unread}
       label={unread > 0 ? `Notifications, ${unread} unread` : "Notifications"}
-      name="notifications-outline"
+      name="notifications"
       onPress={() => router.push("/notifications")}
       tone={tone}
     />

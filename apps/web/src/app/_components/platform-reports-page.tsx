@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { BarChart3 } from "lucide-react";
+import { BarChart3 } from "@/components/icons";
 import { downloadFile } from "@/lib/downloads/downloader";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { usePortalResource } from "@/lib/portal-query";

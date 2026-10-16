@@ -1,6 +1,6 @@
 "use client";
 
-import { EyeOff, Flag, MessageSquare } from "lucide-react";
+import { EyeOff, Flag, MessageSquare } from "@/components/icons";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 

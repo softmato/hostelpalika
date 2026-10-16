@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useState } from "react";
 import { Platform, Pressable, useWindowDimensions, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Sheet } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -68,11 +68,11 @@ export function ShareReceiptGuide() {
           setOpen(true);
         }}
       >
-        <Ionicons color={colors.primary} name="share-social-outline" size={18} />
+        <Glyph color={colors.primary} name="share-social" size={18} />
         <Text className="flex-1 text-primary" variant="label">
           See how to share your receipt straight to the app
         </Text>
-        <Ionicons color={colors.primary} name="chevron-forward" size={16} />
+        <Glyph color={colors.primary} name="chevron-forward" size={16} />
       </Pressable>
 
       <Sheet

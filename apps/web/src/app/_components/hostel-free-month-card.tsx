@@ -1,6 +1,6 @@
 "use client";
 
-import { Gift, Sparkles } from "lucide-react";
+import { Gift, Sparkles } from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 

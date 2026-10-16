@@ -1,10 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
 import { type ComponentProps, type ReactNode, useEffect, useMemo, useRef } from "react";
 import { Animated, type ColorValue, Easing, View } from "react-native";
 
 import { AnimatedTabBar } from "@/components/tab-bar";
 import { PersonAvatar } from "@/components/ui/avatar";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import type { RoleAccentKey } from "@/constants/theme";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -29,7 +29,7 @@ export type TabDef = {
    * most people glance at once.
    */
   badge?: number;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   name: string;
 };
@@ -296,9 +296,9 @@ export function RoleTabs({
           key={tab.name}
           name={tab.name}
           options={{
-            // Ionicons ships each glyph twice: `home` filled and
-            // `home-outline` hollow. Swapping between them is the whole
-            // selected state, so the tab bar itself needs no icon knowledge.
+            // Line when idle, solid when focused: the one place the solid set
+            // exists for. Swapping the variant is the whole selected state, so
+            // the tab bar itself needs no icon knowledge.
             tabBarIcon: ({ color, focused, size }) =>
               tab.avatar && account ? (
                 <AvatarTabIcon
@@ -307,10 +307,11 @@ export function RoleTabs({
                   tint={color}
                 />
               ) : (
-                <Ionicons
+                <Glyph
                   color={color}
-                  name={focused ? tab.icon : (`${tab.icon}-outline` as typeof tab.icon)}
+                  name={tab.icon}
                   size={size}
+                  variant={focused ? "solid" : "line"}
                 />
               ),
             tabBarBadge: tab.badge && tab.badge > 0 ? tab.badge : undefined,

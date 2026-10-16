@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, CircleAlert, KeyRound, QrCode, Wallet } from "lucide-react";
+import { CheckCircle2, CircleAlert, KeyRound, QrCode, Wallet } from "@/components/icons";
 import { memo, useMemo, useState } from "react";
 
 import {

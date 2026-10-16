@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useAudioPlayer, useAudioPlayerStatus } from "expo-audio";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -120,9 +120,9 @@ export function VoiceNotePlayer({ assetId }: { assetId: string }) {
         {!url && !failed ? (
           <ActivityIndicator color={colors.primaryForeground} size="small" />
         ) : (
-          <Ionicons
+          <Glyph
             color={failed ? colors.mutedForeground : colors.primaryForeground}
-            name={failed ? "alert-circle-outline" : status.playing ? "pause" : "play"}
+            name={failed ? "alert-circle" : status.playing ? "pause" : "play"}
             size={18}
           />
         )}
@@ -139,7 +139,7 @@ export function VoiceNotePlayer({ assetId }: { assetId: string }) {
         </Text>
       </View>
 
-      <Ionicons color={colors.mutedForeground} name="mic-outline" size={16} />
+      <Glyph color={colors.mutedForeground} name="mic" size={16} />
     </View>
   );
 }

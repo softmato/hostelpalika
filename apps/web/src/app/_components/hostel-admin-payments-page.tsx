@@ -11,7 +11,7 @@ import {
   ReceiptText,
   WalletCards,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import {

@@ -17,7 +17,7 @@ import {
   Users,
   WashingMachine,
   Wifi,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {

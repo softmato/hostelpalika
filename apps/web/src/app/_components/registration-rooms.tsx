@@ -1,6 +1,6 @@
 "use client";
 
-import { BedDouble, Info, Plus, Trash2 } from "lucide-react";
+import { BedDouble, Info, Plus, Trash2 } from "@/components/icons";
 import { BEDS_BY_ROOM_TYPE, roomTypeOptions } from "./registration-fields";
 import { RoomTypePicker } from "./room-type-picker";
 

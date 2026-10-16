@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import {
   type BarcodeScanningResult,
   CameraView,
@@ -12,6 +11,7 @@ import { Linking, Pressable, View } from "react-native";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
@@ -267,9 +267,9 @@ export default function ActivateScreen() {
         </Card>
 
         <View className="flex-row items-start gap-2">
-          <Ionicons
+          <Glyph
             color={colors.mutedForeground}
-            name="lock-closed-outline"
+            name="lock-closed"
             size={14}
             style={{ marginTop: 2 }}
           />
@@ -322,7 +322,7 @@ function Scanner({
     return (
       <ScannerFrame>
         <View className="items-center gap-3 px-6">
-          <Ionicons color={colors.mutedForeground} name="camera-outline" size={28} />
+          <Glyph color={colors.mutedForeground} name="camera" size={28} />
           <Text className="text-center" variant="muted">
             {permission.canAskAgain
               ? "Allow the camera to scan your activation code, or type it below."
@@ -378,7 +378,7 @@ function Scanner({
         className="absolute bottom-3 right-3 h-11 w-11 items-center justify-center rounded-full bg-black/60 active:opacity-70"
         onPress={onToggleTorch}
       >
-        <Ionicons color="#ffffff" name={torch ? "flashlight" : "flashlight-outline"} size={20} />
+        <Glyph color="#ffffff" name="flashlight" variant={torch ? "solid" : "line"} size={20} />
       </Pressable>
     </View>
   );

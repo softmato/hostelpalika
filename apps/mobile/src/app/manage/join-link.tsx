@@ -125,14 +125,14 @@ export default function JoinLinkScreen() {
           />
           <ActionCell
             glyph={colors.primary}
-            icon="share-social-outline"
+            icon="share-social"
             label="Share"
             onPress={() => void Share.share({ message }).catch(() => null)}
             tone="brand"
           />
           <ActionCell
             glyph={colors.primary}
-            icon="copy-outline"
+            icon="copy"
             label="Copy link"
             onPress={async () => {
               await Clipboard.setStringAsync(data.url);
@@ -142,7 +142,7 @@ export default function JoinLinkScreen() {
           />
           <ActionCell
             glyph={colors.primary}
-            icon="qr-code-outline"
+            icon="qr-code"
             label="Save QR"
             onPress={async () => {
               if (!data.qrDataUrl) return;
@@ -206,7 +206,7 @@ export default function JoinLinkScreen() {
         </Card>
 
         <CardRow
-          icon="refresh-outline"
+          icon="refresh"
           onPress={() =>
             openConfirm({
               confirmLabel: "Make new link",

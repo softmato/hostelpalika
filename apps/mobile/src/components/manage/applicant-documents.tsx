@@ -1,7 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import { Camera, ImagePlus } from "lucide-react-native";
 import { useState } from "react";
 import { View } from "react-native";
 
@@ -9,6 +7,7 @@ import { GuidedCapture } from "@/components/guided-capture";
 import { type PickedImage, uploadApplicantImage } from "@/components/manage/applicant-photo";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { readApiError } from "@/lib/api-contract";
@@ -90,7 +89,7 @@ export function ApplicantDocumentsPicker({
                 {document ? (
                   <Image contentFit="cover" source={{ uri: document.uri }} style={{ height: "100%", width: "100%" }} />
                 ) : (
-                  <Ionicons color={colors.mutedForeground} name="card-outline" size={24} />
+                  <Glyph color={colors.mutedForeground} name="card" size={24} />
                 )}
               </View>
               <View className="flex-1 gap-1">
@@ -111,7 +110,7 @@ export function ApplicantDocumentsPicker({
               <View className="flex-1">
                 <Button
                   disabled={uploading}
-                  icon={Camera}
+                  icon="camera"
                   label={document ? "Take again" : "Take photo"}
                   onPress={() => setCamera(kind)}
                   size="sm"
@@ -121,7 +120,7 @@ export function ApplicantDocumentsPicker({
               <View className="flex-1">
                 <Button
                   disabled={uploading}
-                  icon={ImagePlus}
+                  icon="image-add"
                   label="Upload"
                   onPress={() => void pickFromGallery(kind)}
                   size="sm"

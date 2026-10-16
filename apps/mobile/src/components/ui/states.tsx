@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import type { ReactNode } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { isOfflineError } from "@/lib/api-contract";
@@ -60,7 +60,7 @@ function StateIcon({
   name,
   tone,
 }: {
-  name: keyof typeof Ionicons.glyphMap;
+  name: GlyphName;
   tone: StateTone;
 }) {
   const { colors } = useAppTheme();
@@ -70,7 +70,7 @@ function StateIcon({
     <View
       className={`h-14 w-14 items-center justify-center rounded-full ${background}`}
     >
-      <Ionicons color={colors[ink]} name={name} size={26} />
+      <Glyph color={colors[ink]} name={name} size={26} />
     </View>
   );
 }
@@ -101,7 +101,7 @@ export function EmptyState({
    * inside a card of rows, where a 56-point circle is taller than the section
    * it is apologising for.
    */
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: GlyphName;
   title: string;
   tone?: StateTone;
 }) {
@@ -130,12 +130,12 @@ export function EmptyState({
 }
 
 export function ErrorState({
-  icon = "close-circle-outline",
+  icon = "close-circle",
   message,
   onRetry,
   title = "Something went wrong",
 }: {
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: GlyphName;
   message: string;
   onRetry?: () => void;
   /**
@@ -183,7 +183,7 @@ export function OfflineState({ onRetry }: { onRetry?: () => void }) {
   return (
     <View className="flex-1 items-center justify-center gap-2 px-8 py-16">
       <View className="pb-1">
-        <StateIcon name="cloud-offline-outline" tone="muted" />
+        <StateIcon name="cloud-offline" tone="muted" />
       </View>
       <Text className="text-center" variant="subtitle">
         You&apos;re offline

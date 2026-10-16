@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
 
@@ -6,6 +5,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Grid, StatTile } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
@@ -192,7 +192,7 @@ export default function AttendanceScreen() {
               "Being away is fine and never flagged",
             ].map((line) => (
               <View className="flex-row items-center gap-2" key={line}>
-                <Ionicons color={colors.success} name="checkmark-circle" size={16} />
+                <Glyph color={colors.success} name="checkmark-circle" size={16} />
                 <Text className="flex-1" variant="muted">
                   {line}
                 </Text>
@@ -204,14 +204,14 @@ export default function AttendanceScreen() {
         {days.length > 0 ? (
           <Grid gap={10} maxColumns={2} minCellWidth={140}>
             <StatTile
-              icon="home-outline"
+              icon="home"
               label="At the hostel"
               tone="brand"
               trend={`of ${stats.recorded} days recorded`}
               value={String(stats.inside)}
             />
             <StatTile
-              icon="calendar-outline"
+              icon="calendar"
               label="Days recorded"
               tone="neutral"
               trend="Last 60 days"

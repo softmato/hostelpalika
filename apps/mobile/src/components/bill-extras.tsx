@@ -1,6 +1,6 @@
-import { Ionicons } from "@expo/vector-icons";
 import { View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { formatMoney } from "@/lib/format";
@@ -33,9 +33,9 @@ export function BillExtras({ lines }: { lines?: BillLine[] | null }) {
             <View
               className={`h-9 w-9 items-center justify-center rounded-xl ${fine ? "bg-warning-soft" : "bg-brand-soft"}`}
             >
-              <Ionicons
+              <Glyph
                 color={fine ? colors.warning : colors.primary}
-                name={fine ? "alarm-outline" : "receipt-outline"}
+                name={fine ? "alarm" : "receipt"}
                 size={18}
               />
             </View>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, MousePointerClick, Megaphone } from "lucide-react";
+import { Eye, MousePointerClick, Megaphone } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";

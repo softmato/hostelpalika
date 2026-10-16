@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/components/icons";
 import Link from "next/link";
 
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";

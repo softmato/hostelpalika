@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Bell, Check, Megaphone } from "lucide-react";
+import { AlertTriangle, Bell, Check, Megaphone } from "@/components/icons";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { EmptyState } from "@/app/_components/shared-ui";

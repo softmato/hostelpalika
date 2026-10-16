@@ -77,7 +77,7 @@ export function KhataAsks({
               <View key={entry.id}>
                 {index > 0 ? <RowDivider inset /> : null}
                 <ListRow
-                  icon="fast-food-outline"
+                  icon="fast-food"
                   iconBgColor="#FF9500"
                   onPress={() => setOpen(entry)}
                   subtitle={`${who(entry)} · ${formatTime(entry.createdAt)}`}
@@ -98,7 +98,7 @@ export function KhataAsks({
               <View key={entry.id}>
                 {index > 0 ? <RowDivider inset /> : null}
                 <ListRow
-                  icon={entry.status === "GIVEN" ? "checkmark-circle-outline" : "close-circle-outline"}
+                  icon={entry.status === "GIVEN" ? "checkmark-circle" : "close-circle"}
                   iconBgColor={entry.status === "GIVEN" ? "#34C759" : "#8E8E93"}
                   right={
                     <Badge

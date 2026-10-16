@@ -1,6 +1,6 @@
 "use client";
 
-import { BedDouble, Building2, Loader2, Wallet } from "lucide-react";
+import { BedDouble, Building2, Loader2, Wallet } from "@/components/icons";
 import { useEffect, useState } from "react";
 
 import {

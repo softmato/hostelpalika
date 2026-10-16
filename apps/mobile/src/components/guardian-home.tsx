@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -9,6 +8,7 @@ import {
   PortalHeroCard,
 } from "@/components/portal-shared";
 import { PersonAvatar } from "@/components/ui/avatar";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { formatMoney, heroAmountSize, maskMoney } from "@/lib/format";
@@ -117,14 +117,14 @@ export function GuardianWardHero({
           */}
           <View className="gap-1.5">
             {[
-              { icon: "business-outline", text: hostelName ?? "Their hostel" },
-              { icon: "bed-outline", text: roomLabel },
-              { icon: "people-outline", text: `You are their ${relation}` },
+              { icon: "business", text: hostelName ?? "Their hostel" },
+              { icon: "bed", text: roomLabel },
+              { icon: "people", text: `You are their ${relation}` },
             ].map((row) => (
               <View className="flex-row items-center gap-1.5" key={row.icon}>
-                <Ionicons
+                <Glyph
                   color="rgba(255,255,255,0.75)"
-                  name={row.icon as keyof typeof Ionicons.glyphMap}
+                  name={row.icon as GlyphName}
                   size={12}
                 />
                 <Text
@@ -190,9 +190,9 @@ export function GuardianWardHero({
                 onToggleAmount?.();
               }}
             >
-              <Ionicons
+              <Glyph
                 color="rgba(255,255,255,0.9)"
-                name={shown ? "eye-outline" : "eye-off-outline"}
+                name={shown ? "eye" : "eye-off"}
                 size={17}
               />
             </Pressable>
@@ -206,7 +206,7 @@ export function GuardianWardHero({
             do nothing.
           */}
           <View className="mt-1.5 flex-row items-center gap-1.5">
-            <Ionicons color="rgba(255,255,255,0.8)" name="receipt-outline" size={13} />
+            <Glyph color="rgba(255,255,255,0.8)" name="receipt" size={13} />
             <Text
               className="flex-1 text-white/80"
               numberOfLines={1}
@@ -277,7 +277,7 @@ export function GuardianCallRegister({
       </View>
 
       <View className="flex-row items-center gap-1.5 rounded-full bg-brand-soft px-3.5 py-2">
-        <Ionicons color={colors.primary} name="call" size={13} />
+        <Glyph color={colors.primary} name="call" size={13} />
         <Text className="font-semibold text-primary" style={{ fontSize: 12 }}>
           Call
         </Text>

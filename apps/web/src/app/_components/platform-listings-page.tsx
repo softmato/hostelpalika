@@ -12,7 +12,7 @@ import {
   Star,
   Trash2,
   Zap,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { memo, useCallback, useMemo, useState } from "react";
 

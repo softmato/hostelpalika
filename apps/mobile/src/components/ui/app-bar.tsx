@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
@@ -163,7 +163,7 @@ export function AppBar({
       hitSlop={12}
       onPress={onBack ?? (() => router.back())}
     >
-      <Ionicons color={ink} name="chevron-back" size={26} />
+      <Glyph color={ink} name="chevron-back" size={26} />
     </Pressable>
   ) : null;
 

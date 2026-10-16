@@ -1,10 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
 import { File } from "expo-file-system";
 import { Image } from "expo-image";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
 import { WebView } from "react-native-webview";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { api, API_BASE_URL } from "@/lib/api";
@@ -274,7 +274,7 @@ function DocumentCard({ onPress }: { onPress?: () => void }) {
       disabled={!onPress}
       onPress={onPress}
     >
-      <Ionicons color={colors.primary} name="document-text" size={24} />
+      <Glyph color={colors.primary} name="document-text" size={24} />
       <Text className="flex-1" variant="label">
         PDF receipt uploaded — tap to open it
       </Text>

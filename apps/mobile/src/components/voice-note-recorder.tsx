@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import {
   AudioQuality,
   IOSOutputFormat,
@@ -14,6 +13,7 @@ import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { toastError } from "@/lib/toast";
@@ -284,7 +284,7 @@ export function VoiceNoteRecorder({
             <RoundButton
               busy={false}
               disabled={disabled}
-              icon="trash-outline"
+              icon="trash"
               label="Delete the recording"
               onPress={remove}
               tone="danger"
@@ -336,7 +336,7 @@ function RoundButton({
 }: {
   busy: boolean;
   disabled?: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   onPress: () => void;
   tone: "brand" | "danger" | "muted";
@@ -360,7 +360,7 @@ function RoundButton({
       hitSlop={6}
       onPress={onPress}
     >
-      <Ionicons color={glyph} name={icon} size={20} />
+      <Glyph color={glyph} name={icon} size={20} />
     </Pressable>
   );
 }

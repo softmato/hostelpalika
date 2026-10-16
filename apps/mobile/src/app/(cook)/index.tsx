@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
@@ -9,6 +8,7 @@ import { PortalBrandHeader } from "@/components/portal-shared";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { CardRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -287,7 +287,7 @@ export default function CookTodayScreen() {
       {/* Khata asks — residents' eggs and extras, answered at the counter. */}
       <View className="px-5 pt-5">
         <CardRow
-          icon="receipt-outline"
+          icon="receipt"
           onPress={() => router.push("/khata-asks")}
           right={khataWaiting > 0 ? <Badge label={`${khataWaiting} waiting`} tone="warning" /> : undefined}
           subtitle={khataWaiting > 0 ? "Tap to give" : "Nothing waiting"}
@@ -300,7 +300,7 @@ export default function CookTodayScreen() {
       {today.data.stockEnabled ? (
         <View className="px-5 pt-5">
           <CardRow
-            icon="cube-outline"
+            icon="cube"
             onPress={() => router.push("/kitchen-stock")}
             subtitle="Tap what you took from the store"
             title="Kitchen stock"
@@ -312,7 +312,7 @@ export default function CookTodayScreen() {
       {today.data.expensesEnabled ? (
         <View className="px-5 pt-5">
           <CardRow
-            icon="wallet-outline"
+            icon="wallet"
             onPress={() => router.push("/expenses/new")}
             subtitle="Vegetables, gas, anything you paid for"
             title="Add expense"
@@ -357,7 +357,7 @@ export default function CookTodayScreen() {
                   breakfast announced at dinner.
                 */}
                 <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
-                  <Ionicons
+                  <Glyph
                     color={colors.primary}
                     name={mealIcon(button.mealType)}
                     size={19}

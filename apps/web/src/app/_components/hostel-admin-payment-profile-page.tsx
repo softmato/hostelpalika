@@ -11,7 +11,7 @@ import {
   Smartphone,
   Wallet,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   memo,
   useCallback,

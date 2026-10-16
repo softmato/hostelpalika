@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, CalendarClock, Pause, Play, Send, Siren, X } from "lucide-react";
+import { Bell, CalendarClock, Pause, Play, Send, Siren, X } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";

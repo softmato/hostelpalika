@@ -49,7 +49,7 @@ const productImage = z
 /* -------------------------------------------------------------------------- */
 
 export const storeCategoryCreateSchema = z.object({
-  icon: z.string().trim().max(60).default("cube-outline"),
+  icon: z.string().trim().max(60).default("cube"),
   imageAssetId: z.string().trim().max(160).optional(),
   imageUrl: linkUrl.optional(),
   isActive: z.boolean().default(true),

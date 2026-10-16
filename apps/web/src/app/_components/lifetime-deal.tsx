@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, ChevronDown, Infinity as InfinityIcon, Sparkles, Timer } from "lucide-react";
+import { Check, ChevronDown, Infinity as InfinityIcon, Sparkles, Timer } from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 

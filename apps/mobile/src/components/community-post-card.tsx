@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -9,6 +8,7 @@ import { ReactionBar } from "@/components/community-reaction-bar";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
@@ -349,7 +349,7 @@ export function CommunityPostCard({
           hitSlop={10}
           onPress={() => setMenuOpen(true)}
         >
-          <Ionicons
+          <Glyph
             color={colors.mutedForeground}
             name="ellipsis-horizontal"
             size={18}
@@ -383,9 +383,9 @@ export function CommunityPostCard({
           onPress={toggleThread}
           onPressIn={warmComments}
         >
-          <Ionicons
+          <Glyph
             color={colors.mutedForeground}
-            name="chatbubble-outline"
+            name="chatbubble"
             size={16}
           />
           <Text variant="caption">{commentCountLabel(post.commentCount)}</Text>
@@ -397,7 +397,7 @@ export function CommunityPostCard({
           hitSlop={6}
           onPress={() => void share()}
         >
-          <Ionicons color={colors.mutedForeground} name="arrow-redo-outline" size={16} />
+          <Glyph color={colors.mutedForeground} name="arrow-redo" size={16} />
           <Text variant="caption">Share</Text>
         </Pressable>
       </View>
@@ -569,7 +569,7 @@ function MediaGrid({ media }: { media: CommunityMedia[] }) {
                   className="h-12 w-12 items-center justify-center rounded-full"
                   style={{ backgroundColor: "rgba(0,0,0,0.45)" }}
                 >
-                  <Ionicons color="#ffffff" name="play" size={22} />
+                  <Glyph color="#ffffff" name="play" size={22} />
                 </View>
               </View>
             ) : null}

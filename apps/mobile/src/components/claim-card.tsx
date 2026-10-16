@@ -1,10 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { Pressable, View } from "react-native";
 
 import type { AlertActions } from "@/components/admin-alerts";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
@@ -144,9 +144,9 @@ export function ClaimCard({
               load, which is a different and much less alarming fact.
             */
             <View className="h-[76px] w-[76px] items-center justify-center gap-1 rounded-xl border border-dashed border-border">
-              <Ionicons
+              <Glyph
                 color={colors.mutedForeground}
-                name="image-outline"
+                name="image"
                 size={20}
               />
               <Text className="text-center text-[10px] text-muted-foreground">
@@ -185,7 +185,7 @@ export function ClaimCard({
       <View className="gap-1.5 border-t border-border pt-3">
         {failed.map((check) => (
           <View className="flex-row items-start gap-2" key={check.key}>
-            <Ionicons
+            <Glyph
               color={colors.warning}
               name="alert-circle"
               size={14}
@@ -202,7 +202,7 @@ export function ClaimCard({
 
         {passed > 0 ? (
           <View className="flex-row items-start gap-2">
-            <Ionicons
+            <Glyph
               color={colors.success}
               name="checkmark-circle"
               size={14}

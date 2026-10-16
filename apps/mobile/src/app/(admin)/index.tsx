@@ -398,7 +398,7 @@ function BranchAdminHomeScreen() {
           */}
           {bookings.data && (payout.data || bookings.data.counts.requests + bookings.data.counts.confirmed > 0) ? (
             <CardRow
-              icon="calendar-outline"
+              icon="calendar"
               onPress={() => router.push("/manage/bookings")}
               right={
                 bookings.data.counts.requests > 0 ? (
@@ -423,7 +423,7 @@ function BranchAdminHomeScreen() {
           */}
           {roomless + roomAsks > 0 ? (
             <CardRow
-              icon="bed-outline"
+              icon="bed"
               onPress={() => router.push("/manage/floors")}
               right={<Badge label={String(roomless + roomAsks)} tone="warning" />}
               subtitle={[
@@ -442,7 +442,7 @@ function BranchAdminHomeScreen() {
           {/* A warden's cash box, one tap from Home: what is left, and cash waiting for "Got it". */}
           {expenses.data?.kind === "ok" && expenses.data.home.wallet ? (
             <CardRow
-              icon="wallet-outline"
+              icon="wallet"
               onPress={() => router.push("/expenses")}
               right={
                 <Money

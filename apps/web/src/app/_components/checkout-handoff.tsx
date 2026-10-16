@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Circle, Loader2, Lock, ShieldCheck, XCircle } from "lucide-react";
+import { CheckCircle2, Circle, Loader2, Lock, ShieldCheck, XCircle } from "@/components/icons";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 

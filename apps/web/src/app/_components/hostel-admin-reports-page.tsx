@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { BarChart3 } from "lucide-react";
+import { BarChart3 } from "@/components/icons";
 import { EmptyState, LoadingRows, Panel, StatusBadge } from "@/app/_components/shared-ui";
 import { downloadFile } from "@/lib/downloads/downloader";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";

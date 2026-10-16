@@ -1,10 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Linking, Pressable, View } from "react-native";
 
 import { InfoHeader, type InfoIcon } from "@/components/info-page";
 import { AppBar } from "@/components/ui/app-bar";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -49,7 +49,7 @@ const buildContactMethods = (identity: SiteIdentity): ContactMethod[] =>
       description: "We respond within 24 hours on business days.",
       details: [identity.supportEmail].filter(Boolean),
       href: identity.supportEmail ? `mailto:${identity.supportEmail}` : undefined,
-      icon: "mail-outline" as const,
+      icon: "mail" as const,
       title: "Email",
     },
     {
@@ -58,19 +58,19 @@ const buildContactMethods = (identity: SiteIdentity): ContactMethod[] =>
       href: identity.supportPhone
         ? `tel:${identity.supportPhone.replace(/\s/g, "")}`
         : undefined,
-      icon: "call-outline" as const,
+      icon: "call" as const,
       title: "Phone",
     },
     {
       description: "Walk-ins welcome during business hours.",
       details: [identity.address].filter(Boolean),
-      icon: "location-outline" as const,
+      icon: "location" as const,
       title: "Office",
     },
     {
       description: "Nepal Time (NPT, UTC+5:45).",
       details: ["Sunday — Friday: 9 AM — 5 PM", "Saturday: Closed"],
-      icon: "time-outline" as const,
+      icon: "time" as const,
       title: "Business Hours",
     },
   ].filter((method) => method.details.length > 0);
@@ -96,7 +96,7 @@ function MethodCard({ description, details, href, icon, title }: ContactMethod) 
   const body = (
     <Card className="gap-2">
       <View className="h-10 w-10 items-center justify-center rounded-xl bg-brand-soft">
-        <Ionicons color={colors.primary} name={icon} size={20} />
+        <Glyph color={colors.primary} name={icon} size={20} />
       </View>
       <Text variant="subtitle">{title}</Text>
       {details.map((detail) => (
@@ -145,11 +145,11 @@ function FaqRow({
         className="flex-row items-center gap-3 p-4 active:opacity-70"
         onPress={onToggle}
       >
-        <Ionicons color={colors.primary} name="help-circle-outline" size={18} />
+        <Glyph color={colors.primary} name="help-circle" size={18} />
         <Text className="flex-1" variant="label">
           {question}
         </Text>
-        <Ionicons
+        <Glyph
           color={colors.mutedForeground}
           name={open ? "chevron-up" : "chevron-down"}
           size={18}
@@ -187,7 +187,7 @@ export default function ContactScreen() {
     >
       <View className="gap-8 pb-4">
         <InfoHeader
-          icon="chatbubbles-outline"
+          icon="chatbubbles"
           subtitle={`We are here to help — get in touch with the ${identity.siteName} team`}
           title="Contact Us"
         />

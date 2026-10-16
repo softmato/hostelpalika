@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import type { ReactNode } from "react";
 import { ActivityIndicator, Pressable, View } from "react-native";
 
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -29,7 +29,7 @@ export function ListRow({
 }: {
   busy?: boolean;
   className?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: GlyphName;
   /** Background color for iOS-style colorful square icon tile (e.g. "#FF9500") */
   iconBgColor?: string;
   /** Foreground icon color override (defaults to white if iconBgColor is present) */
@@ -54,7 +54,7 @@ export function ListRow({
             }`}
             style={iconBgColor ? { backgroundColor: iconBgColor } : undefined}
           >
-            <Ionicons
+            <Glyph
               color={iconColor ?? (iconBgColor ? "#FFFFFF" : colors.mutedForeground)}
               name={icon}
               size={18}
@@ -80,7 +80,7 @@ export function ListRow({
           <View className="flex-row items-center gap-1">
             {value ? <Text variant="muted">{value}</Text> : null}
             {onPress ? (
-              <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} />
+              <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} />
             ) : null}
           </View>
         ))
@@ -169,7 +169,7 @@ export function CardRow({
   tone = "brand",
   value,
 }: {
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: GlyphName;
   /**
    * Replaces the tinted icon square — an `<Avatar>`, a thumbnail.
    *
@@ -220,7 +220,7 @@ export function CardRow({
           <View
             className={`h-10 w-10 items-center justify-center rounded-xl ${CARD_ROW_TONES[tone]}`}
           >
-            <Ionicons color={colors[CARD_ROW_GLYPH[tone]]} name={icon} size={19} />
+            <Glyph color={colors[CARD_ROW_GLYPH[tone]]} name={icon} size={19} />
           </View>
         ) : null)}
 
@@ -243,7 +243,7 @@ export function CardRow({
         <View className="flex-row items-center gap-1">
           {value ? <Text variant="muted">{value}</Text> : null}
           {onPress ? (
-            <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} />
+            <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} />
           ) : null}
         </View>
       )}

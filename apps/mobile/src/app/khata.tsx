@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -7,6 +6,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Grid, InfoTile, StatTile } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
@@ -136,7 +136,7 @@ export default function KhataScreen() {
           {status === "REQUESTED" ? (
             <EmptyState
               description="You'll get a notification when it opens."
-              icon="hourglass-outline"
+              icon="hourglass"
               title="Waiting for the warden"
               tone="warning"
             />
@@ -157,7 +157,7 @@ export default function KhataScreen() {
                     ? "Not opened last time — you can ask again."
                     : "Take now, pay with next month's rent."
               }
-              icon="receipt-outline"
+              icon="receipt"
               title="Your khata"
               tone="success"
             />
@@ -179,13 +179,13 @@ export default function KhataScreen() {
       <View className="gap-5 pt-1">
         <View className="flex-row gap-3">
           <View className="flex-1">
-            <StatTile icon="receipt-outline" label="On next bill" tone="brand" value={formatMoney(unbilled)} />
+            <StatTile icon="receipt" label="On next bill" tone="brand" value={formatMoney(unbilled)} />
           </View>
           <View className="flex-1">
-            <StatTile icon="hourglass-outline" label="Waiting" value={String(waiting)} />
+            <StatTile icon="hourglass" label="Waiting" value={String(waiting)} />
           </View>
           <View className="flex-1">
-            <StatTile icon="document-text-outline" label="Bills" value={String(bills.length)} />
+            <StatTile icon="document-text" label="Bills" value={String(bills.length)} />
           </View>
         </View>
 
@@ -210,7 +210,7 @@ export default function KhataScreen() {
                 <View key={bill.invoiceId}>
                   {index > 0 ? <RowDivider inset /> : null}
                   <ListRow
-                    icon="document-text-outline"
+                    icon="document-text"
                     iconBgColor={bill.paid ? "#34C759" : "#FF9500"}
                     onPress={() => router.push(`/invoice/${bill.invoiceId}`)}
                     right={<Badge label={bill.paid ? "Paid" : "Due"} tone={bill.paid ? "success" : "warning"} />}
@@ -273,7 +273,7 @@ export default function KhataScreen() {
                 hitSlop={8}
                 onPress={() => setQuantity((value) => Math.max(1, value - 1))}
               >
-                <Ionicons
+                <Glyph
                   color={quantity <= 1 ? colors.mutedForeground : colors.primary}
                   name="remove-circle"
                   size={44}
@@ -286,7 +286,7 @@ export default function KhataScreen() {
                 hitSlop={8}
                 onPress={() => setQuantity((value) => Math.min(20, value + 1))}
               >
-                <Ionicons color={colors.primary} name="add-circle" size={44} />
+                <Glyph color={colors.primary} name="add-circle" size={44} />
               </Pressable>
             </View>
             <Text className="text-center" variant="caption">

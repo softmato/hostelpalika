@@ -1,7 +1,7 @@
 "use client";
 
-import { Coffee, Cookie, Moon, Send, Soup, Upload, Utensils } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Coffee, Cookie, Moon, Send, Soup, Upload, Utensils } from "@/components/icons";
+import type { IconComponent } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { EmptyState, Input, Select, TextArea } from "@/app/_components/shared-ui";
@@ -26,7 +26,7 @@ import {
 
 const MEAL_META: Record<
   string,
-  { icon: LucideIcon; tone: "amber" | "green" | "purple" | "cyan" }
+  { icon: IconComponent; tone: "amber" | "green" | "purple" | "cyan" }
 > = {
   BREAKFAST: { icon: Coffee, tone: "amber" },
   LUNCH: { icon: Soup, tone: "green" },

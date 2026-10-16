@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ShieldCheck, TriangleAlert } from "lucide-react";
+import { CheckCircle2, ShieldCheck, TriangleAlert } from "@/components/icons";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";

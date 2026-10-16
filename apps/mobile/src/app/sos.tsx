@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Linking, Pressable, Switch, View } from "react-native";
 
@@ -7,6 +6,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
@@ -76,7 +76,7 @@ function ContactRow({ contact }: { contact: EmergencyContact }) {
         className="h-10 w-10 items-center justify-center rounded-full"
         style={{ backgroundColor: `${colors.destructive}1A` }}
       >
-        <Ionicons color={colors.destructive} name="call" size={18} />
+        <Glyph color={colors.destructive} name="call" size={18} />
       </View>
 
       <View className="flex-1">
@@ -93,7 +93,7 @@ function ContactRow({ contact }: { contact: EmergencyContact }) {
         </Text>
       </View>
 
-      <Ionicons color={colors.destructive} name="chevron-forward" size={18} />
+      <Glyph color={colors.destructive} name="chevron-forward" size={18} />
     </Pressable>
   );
 }

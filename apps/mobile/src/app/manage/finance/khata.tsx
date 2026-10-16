@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
@@ -9,6 +8,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
@@ -240,7 +240,7 @@ export default function KhataScreen() {
                 <View key={row.id}>
                   {index > 0 ? <RowDivider inset /> : null}
                   <ListRow
-                    icon="person-add-outline"
+                    icon="person-add"
                     iconBgColor={colors.warning}
                     onPress={() => setRequest(row)}
                     right={<Badge label="New" tone="warning" />}
@@ -265,7 +265,7 @@ export default function KhataScreen() {
                 <View key={row.id}>
                   {index > 0 ? <RowDivider inset /> : null}
                   <ListRow
-                    icon="person-outline"
+                    icon="person"
                     iconBgColor={colors.primary}
                     onPress={() => setAccount(row)}
                     subtitle={room(row)}
@@ -391,7 +391,7 @@ export default function KhataScreen() {
                     style={{ height: 64, width: 64 }}
                   />
                 ) : (
-                  <Ionicons color={colors.mutedForeground} name="camera-outline" size={22} />
+                  <Glyph color={colors.mutedForeground} name="camera" size={22} />
                 )}
               </Pressable>
               <View className="flex-1 gap-1">
@@ -428,7 +428,7 @@ export default function KhataScreen() {
             />
             <Card padding="px-4 py-1">
               <ListRow
-                icon="eye-outline"
+                icon="eye"
                 iconBgColor={colors.primary}
                 right={
                   <Toggle

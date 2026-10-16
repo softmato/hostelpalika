@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, Linking, View } from "react-native";
@@ -8,6 +7,7 @@ import { CalendarPreferenceCard } from "@/components/calendar-preference";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
@@ -79,10 +79,10 @@ import { ROLE } from "@/constants/roles";
  * that no such model existed until 2026-08-18; every switch in it is now real.
  */
 
-const THEME_OPTIONS: { icon: keyof typeof Ionicons.glyphMap; iconBgColor: string; hint: string; label: string; value: ThemePreference }[] = [
-  { icon: "sunny-outline", iconBgColor: "#FF9500", hint: "The product's own look", label: "Light", value: "light" },
-  { icon: "moon-outline", iconBgColor: "#5E5CE6", hint: "Easier at night", label: "Dark", value: "dark" },
-  { icon: "phone-portrait-outline", iconBgColor: "#8E8E93", hint: "Follow your phone", label: "System", value: "system" },
+const THEME_OPTIONS: { icon: GlyphName; iconBgColor: string; hint: string; label: string; value: ThemePreference }[] = [
+  { icon: "sunny", iconBgColor: "#FF9500", hint: "The product's own look", label: "Light", value: "light" },
+  { icon: "moon", iconBgColor: "#5E5CE6", hint: "Easier at night", label: "Dark", value: "dark" },
+  { icon: "phone-portrait", iconBgColor: "#8E8E93", hint: "Follow your phone", label: "System", value: "system" },
 ];
 
 /**
@@ -137,7 +137,7 @@ export default function SettingsScreen() {
         {showAll && account ? (
           <Card className="flex-row items-center gap-3 bg-card p-3.5 shadow-sm">
             <View className="h-14 w-14 items-center justify-center rounded-full bg-primary/10">
-              <Ionicons color={colors.primary} name="person" size={28} />
+              <Glyph color={colors.primary} name="person" size={28} />
             </View>
             <View className="flex-1 gap-0.5">
               <Text className="text-lg font-bold text-foreground" numberOfLines={1}>
@@ -147,7 +147,7 @@ export default function SettingsScreen() {
                 {account.email || "Account & Security settings"}
               </Text>
             </View>
-            <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} />
+            <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} />
           </Card>
         ) : null}
 
@@ -166,9 +166,9 @@ export default function SettingsScreen() {
                       iconBgColor={option.iconBgColor}
                       onPress={() => dispatch(setThemePreference(option.value))}
                       right={
-                        <Ionicons
+                        <Glyph
                           color={active ? colors.primary : colors.border}
-                          name={active ? "radio-button-on" : "radio-button-off"}
+                          name={active ? "radio-button-on" : "radio-button-off"} variant={active ? "solid" : "line"}
                           size={20}
                         />
                       }
@@ -198,7 +198,7 @@ export default function SettingsScreen() {
             />
             <Card>
               <ListRow
-                icon="document-text-outline"
+                icon="document-text"
                 iconBgColor="#AF52DE"
                 onPress={openPrivacyPolicy}
                 subtitle="What we collect, why, and for how long"
@@ -206,7 +206,7 @@ export default function SettingsScreen() {
               />
               <RowDivider inset />
               <ListRow
-                icon="location-outline"
+                icon="location"
                 iconBgColor="#34C759"
                 onPress={() => router.push("/attendance")}
                 subtitle="See what has been recorded, stop it, or delete it"
@@ -232,9 +232,9 @@ export default function SettingsScreen() {
         {/* Search Affordance Bar matching iOS Settings layout */}
         {showAll ? (
           <View className="mt-2 flex-row items-center gap-2 rounded-2xl border border-border/80 bg-card px-4 py-2.5 shadow-sm">
-            <Ionicons color={colors.mutedForeground} name="search-outline" size={18} />
+            <Glyph color={colors.mutedForeground} name="search" size={18} />
             <Text className="flex-1 text-sm text-muted-foreground">Search settings</Text>
-            <Ionicons color={colors.mutedForeground} name="mic-outline" size={18} />
+            <Glyph color={colors.mutedForeground} name="mic" size={18} />
           </View>
         ) : null}
       </View>
@@ -429,7 +429,7 @@ function NotificationSettings() {
 
       <Card>
         <ListRow
-          icon="notifications-outline"
+          icon="notifications"
           iconBgColor="#FF3B30"
           right={
             <Toggle
@@ -446,7 +446,7 @@ function NotificationSettings() {
         <RowDivider inset />
 
         <ListRow
-          icon="moon-outline"
+          icon="moon"
           iconBgColor="#5E5CE6"
           right={
             <Toggle
@@ -491,16 +491,16 @@ function NotificationSettings() {
 
           {MUTABLE_CATEGORIES.map((category, index) => {
             const muted = preference.mutedCategories.includes(category.value);
-            const categoryIcons: Record<string, { bg: string; icon: keyof typeof Ionicons.glyphMap }> = {
-              ANNOUNCEMENT: { bg: "#007AFF", icon: "megaphone-outline" },
-              ATTENDANCE: { bg: "#34C759", icon: "location-outline" },
-              COMPLAINT: { bg: "#FF9500", icon: "chatbox-ellipses-outline" },
-              FINANCE: { bg: "#30D158", icon: "cash-outline" },
-              MAINTENANCE: { bg: "#8E8E93", icon: "construct-outline" },
-              FOOD: { bg: "#FF2D55", icon: "restaurant-outline" },
+            const categoryIcons: Record<string, { bg: string; icon: GlyphName }> = {
+              ANNOUNCEMENT: { bg: "#007AFF", icon: "megaphone" },
+              ATTENDANCE: { bg: "#34C759", icon: "location" },
+              COMPLAINT: { bg: "#FF9500", icon: "chatbox-ellipses" },
+              FINANCE: { bg: "#30D158", icon: "cash" },
+              MAINTENANCE: { bg: "#8E8E93", icon: "construct" },
+              FOOD: { bg: "#FF2D55", icon: "restaurant" },
             };
 
-            const config = categoryIcons[category.value] ?? { bg: "#5856D6", icon: "notifications-outline" };
+            const config = categoryIcons[category.value] ?? { bg: "#5856D6", icon: "notifications" };
 
             return (
               <View key={category.value}>
@@ -618,13 +618,13 @@ function EmailSettings({ audience }: { audience: EmailAudience }) {
     return null;
   }
 
-  const topicIcons: Record<string, { bg: string; icon: keyof typeof Ionicons.glyphMap }> = {
-    ATTENDANCE_ALERTS: { bg: "#34C759", icon: "location-outline" },
-    COMPLAINT_ALERTS: { bg: "#FF9500", icon: "chatbox-ellipses-outline" },
-    COMPLAINT_UPDATES: { bg: "#FF9500", icon: "chatbox-ellipses-outline" },
-    NOTICES: { bg: "#007AFF", icon: "megaphone-outline" },
-    PAYMENT_SUMMARY: { bg: "#30D158", icon: "cash-outline" },
-    RENT_REMINDERS: { bg: "#30D158", icon: "calendar-outline" },
+  const topicIcons: Record<string, { bg: string; icon: GlyphName }> = {
+    ATTENDANCE_ALERTS: { bg: "#34C759", icon: "location" },
+    COMPLAINT_ALERTS: { bg: "#FF9500", icon: "chatbox-ellipses" },
+    COMPLAINT_UPDATES: { bg: "#FF9500", icon: "chatbox-ellipses" },
+    NOTICES: { bg: "#007AFF", icon: "megaphone" },
+    PAYMENT_SUMMARY: { bg: "#30D158", icon: "cash" },
+    RENT_REMINDERS: { bg: "#30D158", icon: "calendar" },
   };
 
   return (
@@ -632,7 +632,7 @@ function EmailSettings({ audience }: { audience: EmailAudience }) {
       <SectionHeader subtitle="Turning one off keeps it in the app" title="Emails" />
       <Card>
         {EMAIL_TOPICS.filter((topic) => topic.audience === audience).map((topic, index) => {
-          const config = topicIcons[topic.value] ?? { bg: "#5856D6", icon: "mail-outline" };
+          const config = topicIcons[topic.value] ?? { bg: "#5856D6", icon: "mail" };
 
           return (
             <View key={topic.value}>
@@ -800,7 +800,7 @@ function DeletionPanel({
             className="h-10 w-10 items-center justify-center rounded-full"
             style={{ backgroundColor: `${colors.destructive}1A` }}
           >
-            <Ionicons color={colors.destructive} name="shield-outline" size={19} />
+            <Glyph color={colors.destructive} name="shield" size={19} />
           </View>
 
           <View className="flex-1 gap-2">

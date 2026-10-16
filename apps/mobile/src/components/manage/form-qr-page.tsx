@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { Pressable, Share, View } from "react-native";
 
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useResource } from "@/hooks/use-resource";
 import type { AdmissionFormLink, AdmissionForms } from "@/lib/admission-form-api";
@@ -75,7 +75,7 @@ export function FormQrPage() {
         {data ? (
           <View className="flex-row gap-3">
             <GlassAction
-              icon="share-social-outline"
+              icon="share-social"
               label="Share link"
               onPress={() =>
                 void Share.share({
@@ -84,7 +84,7 @@ export function FormQrPage() {
               }
             />
             <GlassAction
-              icon="copy-outline"
+              icon="copy"
               label="Copy link"
               onPress={async () => {
                 await Clipboard.setStringAsync(data.url);
@@ -101,11 +101,11 @@ export function FormQrPage() {
           className="w-full max-w-sm flex-row items-center gap-3 rounded-2xl border border-white/25 bg-white/10 px-4 py-3.5 active:opacity-70"
           onPress={() => router.push("/manage/applications")}
         >
-          <Ionicons color="#ffffff" name="document-text-outline" size={20} />
+          <Glyph color="#ffffff" name="document-text" size={20} />
           <Text className="flex-1 text-sm font-semibold text-white">
             {waiting === 1 ? "1 form waiting for a bed" : `${waiting} forms waiting for a bed`}
           </Text>
-          <Ionicons color="rgba(255,255,255,0.7)" name="chevron-forward" size={18} />
+          <Glyph color="rgba(255,255,255,0.7)" name="chevron-forward" size={18} />
         </Pressable>
       ) : (
         <Text className="text-center text-xs text-white/55">
@@ -121,7 +121,7 @@ function GlassAction({
   label,
   onPress,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   onPress: () => void;
 }) {
@@ -132,7 +132,7 @@ function GlassAction({
       className="flex-row items-center gap-2 rounded-full border border-white/25 bg-white/10 px-4 py-2.5 active:opacity-70"
       onPress={onPress}
     >
-      <Ionicons color="#ffffff" name={icon} size={16} />
+      <Glyph color="#ffffff" name={icon} size={16} />
       <Text className="text-sm font-semibold text-white">{label}</Text>
     </Pressable>
   );

@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { type ReactNode, useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -10,6 +9,7 @@ import { type ActionTile, ActionTiles } from "@/components/ui/action-grid";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { RowDivider } from "@/components/ui/list-row";
@@ -77,7 +77,7 @@ export default function StockScreen() {
         actions={
           <View className="flex-row items-center gap-2">
             <HostelSwitcher compact />
-            <IconButton label="History" name="time-outline" onPress={() => router.push("/stock/history")} size="sm" />
+            <IconButton label="History" name="time" onPress={() => router.push("/stock/history")} size="sm" />
           </View>
         }
         showBack
@@ -185,7 +185,7 @@ export default function StockScreen() {
             <View className="gap-4">
               {items.length >= SEARCH_FROM ? (
                 <Input
-                  leading={<Ionicons color={colors.mutedForeground} name="search" size={18} />}
+                  leading={<Glyph color={colors.mutedForeground} name="search" size={18} />}
                   onChangeText={setQuery}
                   placeholder="Search items"
                   value={query}
@@ -267,11 +267,11 @@ function tilesFor(
 
   if (!overall) {
     tiles.push(
-      { glyph: colors.primary, icon: "restaurant-outline", key: "use", label: "Use", onPress: go("/stock/use"), tone: "brand" },
-      { glyph: colors.success, icon: "cart-outline", key: "buy", label: "Buy", onPress: go("/stock/buy"), tone: "success" },
+      { glyph: colors.primary, icon: "restaurant", key: "use", label: "Use", onPress: go("/stock/use"), tone: "brand" },
+      { glyph: colors.success, icon: "cart", key: "buy", label: "Buy", onPress: go("/stock/buy"), tone: "success" },
       {
         glyph: colors.destructive,
-        icon: "trash-outline",
+        icon: "trash",
         key: "waste",
         label: "Waste",
         onPress: go({ params: { mode: "waste" }, pathname: "/stock/use" }),
@@ -280,7 +280,7 @@ function tilesFor(
       {
         badge: home.canApprove && home.toApprove.length > 0 ? home.toApprove.length : undefined,
         glyph: colors.warning,
-        icon: "clipboard-outline",
+        icon: "clipboard",
         key: "count",
         label: "Count",
         onPress: go("/stock/count"),
@@ -292,7 +292,7 @@ function tilesFor(
       tiles.push({
         badge: home.waiting.length > 0 ? home.waiting.length : undefined,
         glyph: colors.primary,
-        icon: "arrow-redo-outline",
+        icon: "arrow-redo",
         key: "send",
         label: "Send",
         onPress: go("/stock/send"),
@@ -303,7 +303,7 @@ function tilesFor(
 
   tiles.push({
     glyph: colors.success,
-    icon: "storefront-outline",
+    icon: "storefront",
     key: "suppliers",
     label: "Suppliers",
     onPress: go("/stock/suppliers"),
@@ -313,7 +313,7 @@ function tilesFor(
   if (home.money) {
     tiles.push({
       glyph: colors.primary,
-      icon: "bar-chart-outline",
+      icon: "bar-chart",
       key: "reports",
       label: "Reports",
       onPress: go("/stock/reports"),
@@ -324,7 +324,7 @@ function tilesFor(
   if (home.owner && !overall) {
     tiles.push({
       glyph: colors.warning,
-      icon: "archive-outline",
+      icon: "archive",
       key: "opening",
       label: "Opening",
       onPress: go({ params: { mode: "opening" }, pathname: "/stock/buy" }),
@@ -356,7 +356,7 @@ function UsedToday() {
       onPress={() => router.push("/stock/usage")}
     >
       <View className="h-11 w-11 items-center justify-center rounded-xl bg-brand-soft">
-        <Ionicons color={colors.primary} name="today-outline" size={21} />
+        <Glyph color={colors.primary} name="today" size={21} />
       </View>
       <View className="flex-1 gap-0.5">
         <Text variant="label">Used today</Text>
@@ -369,7 +369,7 @@ function UsedToday() {
         )}
       </View>
       {usage?.money && value > 0 ? <Text variant="label">{formatMoney(value)}</Text> : null}
-      <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} />
+      <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} />
     </Pressable>
   );
 }
@@ -388,7 +388,7 @@ function Waiting({ home, overall }: { home: StockHome; overall: boolean }) {
           <WaitRow
             action="Got it"
             detail={namesSummary(entry.lines)}
-            icon="cube-outline"
+            icon="cube"
             iconColor={colors.warning}
             key={entry.id}
             onPress={() => router.push({ params: { id: entry.id }, pathname: "/stock/receive/[id]" })}
@@ -402,7 +402,7 @@ function Waiting({ home, overall }: { home: StockHome; overall: boolean }) {
             <WaitRow
               action="Check"
               detail={off.length === 1 ? countGap(off[0]!) : `${off.length} items different`}
-              icon="clipboard-outline"
+              icon="clipboard"
               iconColor={colors.warning}
               key={entry.id}
               onPress={() => router.push({ params: { id: entry.id }, pathname: "/stock/entry/[id]" })}
@@ -425,14 +425,14 @@ function WaitRow({
 }: {
   action: string;
   detail: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   iconColor: string;
   onPress: () => void;
   title: string;
 }) {
   return (
     <View className="flex-row items-center gap-3">
-      <Ionicons color={iconColor} name={icon} size={24} />
+      <Glyph color={iconColor} name={icon} size={24} />
       <View className="flex-1">
         <Text variant="label">{title}</Text>
         <Text numberOfLines={1} variant="caption">
@@ -492,7 +492,7 @@ function StockRow({ home, item }: { home: StockHome; item: StockItem }) {
       <Text className={low ? "text-destructive" : undefined} variant="subtitle">
         {formatQty(total, item.unit)}
       </Text>
-      <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} />
+      <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} />
     </Pressable>
   );
 }

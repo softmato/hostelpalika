@@ -16,7 +16,7 @@ import {
   Phone,
   ShieldQuestion,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type ReactNode } from "react";
 import { useParams } from "next/navigation";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Lock } from "lucide-react";
+import { Loader2, Lock } from "@/components/icons";
 import { Glyph } from "@/components/glyph";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -62,7 +62,7 @@ export function HostelWorkspaceSwitcher({
           <span className="block max-w-[7rem] truncate text-xs font-semibold md:max-w-[11rem]">
             {switching ? "Switching…" : selected?.name ?? current}
           </span>
-          <Glyph className="size-3.5 shrink-0 text-muted-foreground" name="chevronDown" />
+          <Glyph className="size-3.5 shrink-0 text-muted-foreground" name="chevron-down" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72 max-w-[calc(100vw-2rem)] p-1.5">
@@ -78,7 +78,7 @@ export function HostelWorkspaceSwitcher({
                   {`All ${hostels.length} branches together`}
                 </span>
               </span>
-              {inOverall ? <Glyph className="size-4 text-brand-teal" name="check" strokeWidth={2} /> : null}
+              {inOverall ? <Glyph className="size-4 text-brand-teal" name="checkmark" strokeWidth={2} /> : null}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
@@ -110,7 +110,7 @@ export function HostelWorkspaceSwitcher({
                   {hostel.isBranch ? "Branch" : "Main hostel"}
                 </span>
               </span>
-              {active ? <Glyph className="size-4 text-brand-teal" name="check" strokeWidth={2} /> : null}
+              {active ? <Glyph className="size-4 text-brand-teal" name="checkmark" strokeWidth={2} /> : null}
             </DropdownMenuItem>
           );
         })}
@@ -132,7 +132,7 @@ export function HostelWorkspaceSwitcher({
               className="gap-3 rounded-lg px-2 py-2.5 font-semibold text-brand-teal"
             >
               <span className="flex size-9 items-center justify-center rounded-lg border border-dashed border-border">
-                <Glyph className="size-4" name="plus" />
+                <Glyph className="size-4" name="add" />
               </span>
               Manage branches
             </Link>

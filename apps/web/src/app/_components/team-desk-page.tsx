@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ArrowRight, Building2, FileSpreadsheet, Phone, Plus, QrCode, Users, Wallet } from "lucide-react";
+import { AlertTriangle, ArrowRight, Building2, FileSpreadsheet, Phone, Plus, QrCode, Users, Wallet } from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 

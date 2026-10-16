@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, Share, TextInput, View } from "react-native";
@@ -8,6 +7,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge, StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { FactRow } from "@/components/ui/layout";
 import { Money } from "@/components/ui/money";
@@ -233,7 +233,7 @@ function ClearFilters({ count, onPress }: { count: number; onPress: () => void }
       hitSlop={6}
       onPress={onPress}
     >
-      <Ionicons color={colors.mutedForeground} name="close-circle" size={14} />
+      <Glyph color={colors.mutedForeground} name="close-circle" size={14} />
       <Text className="text-xs font-semibold text-muted-foreground">Clear</Text>
     </Pressable>
   );
@@ -317,7 +317,7 @@ function CreditRow({
           */}
           <View className="flex-row items-center gap-1 pt-0.5">
             {/* Cash handed to a warden moves money, it does not spend it. */}
-            <Ionicons
+            <Glyph
               color={credit.transfer ? colors.mutedForeground : debit ? colors.destructive : colors.success}
               name={credit.transfer ? "swap-horizontal" : debit ? "caret-down" : "caret-up"}
               size={12}
@@ -551,7 +551,7 @@ export default function ManageStatementScreen() {
               hitSlop={4}
               onPress={() => void share()}
             >
-              <Ionicons color={colors.primaryForeground} name="share-social-outline" size={20} />
+              <Glyph color={colors.primaryForeground} name="share-social" size={20} />
             </Pressable>
 
             <Pressable
@@ -564,7 +564,7 @@ export default function ManageStatementScreen() {
               hitSlop={4}
               onPress={() => setFormatOpen(true)}
             >
-              <Ionicons color={colors.primaryForeground} name="document-text-outline" size={20} />
+              <Glyph color={colors.primaryForeground} name="document-text" size={20} />
             </Pressable>
           </View>
         }
@@ -606,7 +606,7 @@ export default function ManageStatementScreen() {
           }}
         >
           <View className="h-10 w-10 items-center justify-center rounded-2xl bg-brand-soft">
-            <Ionicons color={colors.primary} name="stats-chart-outline" size={18} />
+            <Glyph color={colors.primary} name="stats-chart" size={18} />
           </View>
 
           {/*
@@ -651,7 +651,7 @@ export default function ManageStatementScreen() {
             )}
           </View>
 
-          <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} />
+          <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} />
         </Pressable>
       </View>
 
@@ -685,10 +685,10 @@ export default function ManageStatementScreen() {
                 hitSlop={8}
                 onPress={() => setFilter((current) => ({ ...current, query: "" }))}
               >
-                <Ionicons color={colors.mutedForeground} name="close-circle" size={16} />
+                <Glyph color={colors.mutedForeground} name="close-circle" size={16} />
               </Pressable>
             ) : (
-              <Ionicons color={colors.mutedForeground} name="search" size={16} />
+              <Glyph color={colors.mutedForeground} name="search" size={16} />
             )}
           </View>
 
@@ -704,7 +704,7 @@ export default function ManageStatementScreen() {
             hitSlop={6}
             onPress={openFilters}
           >
-            <Ionicons color={colors.foreground} name="options-outline" size={21} />
+            <Glyph color={colors.foreground} name="options" size={21} />
 
             {filterCount > 0 ? (
               <View
@@ -777,7 +777,7 @@ export default function ManageStatementScreen() {
           }}
           style={{ height: PILL, width: PILL }}
         >
-          <Ionicons
+          <Glyph
             color={colors.primaryForeground}
             name={rangesOpen ? "chevron-up" : "chevron-down"}
             size={16}
@@ -922,7 +922,7 @@ export default function ManageStatementScreen() {
           }}
           subtitle="Laid out to read, print or send on"
           trailing={
-            <Ionicons color={colors.mutedForeground} name="document-text-outline" size={20} />
+            <Glyph color={colors.mutedForeground} name="document-text" size={20} />
           }
         />
         {overall ? null : <SheetRow
@@ -932,7 +932,7 @@ export default function ManageStatementScreen() {
             void exportAs("csv");
           }}
           subtitle="A CSV your accountant can open in Excel"
-          trailing={<Ionicons color={colors.mutedForeground} name="grid-outline" size={20} />}
+          trailing={<Glyph color={colors.mutedForeground} name="grid" size={20} />}
         />}
       </Sheet>
 

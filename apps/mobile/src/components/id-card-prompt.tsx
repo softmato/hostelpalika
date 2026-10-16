@@ -41,12 +41,12 @@ export function IdCardPrompt({
         <View className="gap-3">
           <IconPoint
             delay={250}
-            icon="shield-checkmark-outline"
+            icon="shield-checkmark"
             text="Stored encrypted against your account. A hostel only sees it when you show them the code."
           />
           <IconPoint
             delay={400}
-            icon="qr-code-outline"
+            icon="qr-code"
             text="Your card is ready the moment you save — QR code, ID number and all."
           />
         </View>

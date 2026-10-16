@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Building2, MapPin } from "lucide-react";
+import { ArrowRight, Building2, MapPin } from "@/components/icons";
 import type { PublicBranch } from "@hostel/shared/types/public-branch";
 
 export function PublicHostelBranches({ branches }: { branches: PublicBranch[] }) {

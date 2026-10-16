@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink } from "lucide-react";
+import { ExternalLink } from "@/components/icons";
 
 import type { Hostel } from "@/app/_components/core-portal-shared";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";

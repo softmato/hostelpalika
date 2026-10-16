@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPinned } from "lucide-react";
+import { MapPinned } from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { EmptyState, LoadingRows, Panel, StatusBadge } from "@/app/_components/shared-ui";

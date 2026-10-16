@@ -1,6 +1,6 @@
 "use client";
 
-import { ImagePlus, X } from "lucide-react";
+import { ImagePlus, X } from "@/components/icons";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 

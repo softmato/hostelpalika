@@ -1,4 +1,4 @@
-import type { Ionicons } from "@expo/vector-icons";
+import type { GlyphName } from "@hostel/constants/glyphs";
 import { useMemo, useState } from "react";
 import { View } from "react-native";
 
@@ -43,16 +43,16 @@ const OPEN = ["PENDING", "IN_PROGRESS"];
 
 const CATEGORY_ICON: Record<
   string,
-  { bg: string; icon: keyof typeof Ionicons.glyphMap }
+  { bg: string; icon: GlyphName }
 > = {
-  FOOD: { bg: "#FF9500", icon: "restaurant-outline" },
-  MAINTENANCE: { bg: "#30B0C7", icon: "construct-outline" },
-  NOISE: { bg: "#AF52DE", icon: "volume-high-outline" },
-  OTHER: { bg: "#8E8E93", icon: "chatbox-ellipses-outline" },
-  PAYMENT: { bg: "#34C759", icon: "cash-outline" },
-  ROOM: { bg: "#5E5CE6", icon: "bed-outline" },
-  SAFETY: { bg: "#FF3B30", icon: "shield-outline" },
-  STAFF: { bg: "#007AFF", icon: "people-outline" },
+  FOOD: { bg: "#FF9500", icon: "restaurant" },
+  MAINTENANCE: { bg: "#30B0C7", icon: "construct" },
+  NOISE: { bg: "#AF52DE", icon: "volume-high" },
+  OTHER: { bg: "#8E8E93", icon: "chatbox-ellipses" },
+  PAYMENT: { bg: "#34C759", icon: "cash" },
+  ROOM: { bg: "#5E5CE6", icon: "bed" },
+  SAFETY: { bg: "#FF3B30", icon: "shield" },
+  STAFF: { bg: "#007AFF", icon: "people" },
 };
 
 export default function ManageComplaintsScreen() {
@@ -287,7 +287,7 @@ export default function ManageComplaintsScreen() {
                   {open.status === "PENDING" ? (
                     <Chip
                       busy={busy === "IN_PROGRESS"}
-                      icon="time-outline"
+                      icon="time"
                       label="Mark in progress"
                       onPress={() =>
                         void act("IN_PROGRESS", "Marked in progress")
@@ -296,7 +296,7 @@ export default function ManageComplaintsScreen() {
                   ) : null}
                   <Chip
                     busy={busy === "REJECTED"}
-                    icon="close-circle-outline"
+                    icon="close-circle"
                     label="Reject with the reply as reason"
                     onPress={() => void act("REJECTED", "Complaint rejected")}
                   />

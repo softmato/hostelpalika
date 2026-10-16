@@ -119,7 +119,7 @@ function LateFineForm({
       <View className="gap-5 pt-1">
         <Card padding="px-4 py-1">
           <ListRow
-            icon="alarm-outline"
+            icon="alarm"
             iconBgColor="#FF3B30"
             right={
               <Toggle accessibilityLabel="Charge a late fine" onChange={setEnabled} value={enabled} />
@@ -169,7 +169,7 @@ function LateFineForm({
               <View className="flex-row flex-wrap gap-2">
                 {FREE_DAYS.map((days) => (
                   <Chip
-                    icon="calendar-outline"
+                    icon="calendar"
                     key={days}
                     label={`${days} days`}
                     onPress={() => setGraceDays(days)}

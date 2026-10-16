@@ -1,6 +1,6 @@
 "use client";
 
-import { Siren } from "lucide-react";
+import { Siren } from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { browserApi } from "@/lib/browser-api";

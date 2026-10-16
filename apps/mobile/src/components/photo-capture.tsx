@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Haptics from "expo-haptics";
 import { Image } from "expo-image";
@@ -7,6 +6,7 @@ import { useCallback, useRef, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { toastError } from "@/lib/toast";
@@ -165,9 +165,9 @@ export function PhotoCapture({
 
           {permission?.granted ? null : (
             <View className="flex-1 items-center justify-center gap-3 px-6">
-              <Ionicons
+              <Glyph
                 color={colors.mutedForeground}
-                name="camera-outline"
+                name="camera"
                 size={28}
               />
               <Text className="text-center" variant="caption">
@@ -210,14 +210,14 @@ export function PhotoCapture({
                   {facing === "back" ? (
                     <GlassButton
                       active={torch}
-                      icon={torch ? "flashlight" : "flashlight-outline"}
+                      icon="flashlight"
                       label={torch ? "Turn off the light" : "Turn on the light"}
                       onPress={() => setTorch((current) => !current)}
                     />
                   ) : null}
 
                   <GlassButton
-                    icon="camera-reverse-outline"
+                    icon="camera-reverse"
                     label="Switch camera"
                     onPress={() => {
                       setTorch(false);
@@ -231,7 +231,7 @@ export function PhotoCapture({
                 <View className="w-11">
                   {onPickFromLibrary && !full ? (
                     <GlassButton
-                      icon="images-outline"
+                      icon="images"
                       label="Attach a photo you already have"
                       onPress={onPickFromLibrary}
                     />
@@ -285,7 +285,7 @@ export function PhotoCapture({
                 onPress={() => onRemove(photo.uri)}
                 style={{ backgroundColor: colors.destructive }}
               >
-                <Ionicons color="#ffffff" name="close" size={14} />
+                <Glyph color="#ffffff" name="close" size={14} />
               </Pressable>
             </View>
           ))}
@@ -343,7 +343,7 @@ function GlassButton({
   onPress,
 }: {
   active?: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   onPress: () => void;
 }) {
@@ -358,7 +358,7 @@ function GlassButton({
       hitSlop={6}
       onPress={onPress}
     >
-      <Ionicons color={active ? "#000000" : "#ffffff"} name={icon} size={18} />
+      <Glyph color={active ? "#000000" : "#ffffff"} name={icon} size={18} variant={active ? "solid" : "line"} />
     </Pressable>
   );
 }

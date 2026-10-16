@@ -111,10 +111,10 @@ export default function ManageFoodScreen() {
 
         <Card padding="px-4 py-1">
           {cook === null ? (
-            <ListRow icon="flame-outline" subtitle="No access" title="Cooks" />
+            <ListRow icon="flame" subtitle="No access" title="Cooks" />
           ) : (
             <ListRow
-              icon="flame-outline"
+              icon="flame"
               iconBgColor="#FF3B30"
               onPress={() => router.push("/manage/cook")}
               onPressIn={() => prefetchAdminRoute("/manage/cook")}

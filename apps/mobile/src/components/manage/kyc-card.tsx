@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
@@ -84,7 +84,7 @@ export function KycCard() {
           {line}
         </Text>
       </View>
-      <Ionicons color={colors.primary} name="chevron-forward" size={20} />
+      <Glyph color={colors.primary} name="chevron-forward" size={20} />
     </Pressable>
   );
 }

@@ -5,7 +5,7 @@ import {
   useSiteConfig,
   type PublicSiteConfig,
 } from "@/components/site-config-provider";
-import { Mail, Phone, MapPin, Clock, MessageSquare, HelpCircle } from "lucide-react";
+import { Mail, Phone, MapPin, Clock, MessageSquare, HelpCircle } from "@/components/icons";
 
 import { resolveWebFaq } from "@/lib/site-content";
 

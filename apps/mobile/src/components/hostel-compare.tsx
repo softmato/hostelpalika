@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback } from "react";
@@ -7,6 +6,7 @@ import { Pressable, ScrollView, View } from "react-native";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonText, SkeletonTiles } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
@@ -270,7 +270,7 @@ function HeadCell({ hostel }: { hostel: ComparedHostel }) {
           className="items-center justify-center"
           style={{ backgroundColor: colors.muted, height: 96 }}
         >
-          <Ionicons color={colors.mutedForeground} name="image-outline" size={22} />
+          <Glyph color={colors.mutedForeground} name="image" size={22} />
         </View>
       )}
 
@@ -280,7 +280,7 @@ function HeadCell({ hostel }: { hostel: ComparedHostel }) {
         </Text>
         {rating.kind === "rated" ? (
           <View className="flex-row items-center gap-1">
-            <Ionicons color={colors.warning} name="star" size={11} />
+            <Glyph color={colors.warning} name="star" size={11} />
             <Text variant="caption">{`${rating.value} (${rating.count})`}</Text>
           </View>
         ) : (

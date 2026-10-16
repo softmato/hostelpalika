@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { ROOM_TYPE_OPTIONS } from "@hostel/constants/room-types";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
@@ -16,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Chip, StatTile } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
@@ -365,14 +365,14 @@ export default function ManageRoomsScreen() {
         */}
         <View className="flex-row gap-3">
           <StatTile
-            icon="business-outline"
+            icon="business"
             label="Room types"
             tone="brand"
             value={String(configurations.length)}
           />
-          <StatTile icon="bed-outline" label="Beds" value={String(totalBeds)} />
+          <StatTile icon="bed" label="Beds" value={String(totalBeds)} />
           <StatTile
-            icon="checkmark-circle-outline"
+            icon="checkmark-circle"
             label="Vacant"
             tone={vacant > 0 ? "success" : "neutral"}
             value={String(vacant)}
@@ -409,7 +409,7 @@ export default function ManageRoomsScreen() {
                 <Card className="gap-3">
                   <View className="flex-row flex-wrap gap-2">
                     <Chip
-                      icon="cash-outline"
+                      icon="cash"
                       label={
                         config.monthlyRent
                           ? `${formatMoney(config.monthlyRent)} / month`
@@ -418,7 +418,7 @@ export default function ManageRoomsScreen() {
                       tone={config.monthlyRent ? "brand" : "neutral"}
                     />
                     <Chip
-                      icon="restaurant-outline"
+                      icon="restaurant"
                       label={`Meals ${config.mealInclusion.toLowerCase()}`}
                     />
                   </View>
@@ -449,9 +449,9 @@ export default function ManageRoomsScreen() {
                       className="h-9 items-center justify-center rounded-lg border border-border px-3"
                       onPress={() => remove(config.roomType)}
                     >
-                      <Ionicons
+                      <Glyph
                         color={colors.destructive}
-                        name="trash-outline"
+                        name="trash"
                         size={16}
                       />
                     </Pressable>

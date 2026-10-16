@@ -1,6 +1,6 @@
 "use client";
 
-import { type LucideIcon } from "lucide-react";
+import { type IconComponent } from "@/components/icons";
 
 import { currency, EmptyState, Panel } from "@/app/_components/shared-ui";
 
@@ -87,7 +87,7 @@ function PageHeader({
   title,
 }: {
   description: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   title: string;
 }) {
   return (

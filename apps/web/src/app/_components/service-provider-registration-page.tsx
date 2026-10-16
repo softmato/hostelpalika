@@ -27,8 +27,8 @@ import {
   UserRound,
   Wrench,
   X,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
 import { Suspense, useCallback, useEffect, useState, type FormEvent } from "react";
@@ -108,7 +108,7 @@ const HERO_WASH =
 const HERO_IMAGE = "/service-provider-hero.png";
 
 /** The 11 trades, in the order the enum declares them, with a face each. */
-const TRADE_ICONS: Record<(typeof CATEGORIES)[number], LucideIcon> = {
+const TRADE_ICONS: Record<(typeof CATEGORIES)[number], IconComponent> = {
   APPLIANCE_REPAIR: Plug,
   CARPENTER: Hammer,
   CLEANER: Trash2,
@@ -208,7 +208,7 @@ function StatCard({
   label,
   value,
 }: {
-  icon: LucideIcon;
+  icon: IconComponent;
   label: string;
   value: string;
 }) {
@@ -226,7 +226,7 @@ function StatCard({
 }
 
 /** A short claim beside the headline — icon, two or three words, no box. */
-function HeroPill({ icon: Icon, label }: { icon: LucideIcon; label: string }) {
+function HeroPill({ icon: Icon, label }: { icon: IconComponent; label: string }) {
   return (
     <span className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 px-3.5 py-2 text-[13px] font-semibold text-foreground backdrop-blur-sm">
       <Icon aria-hidden className="size-4 text-brand-teal" />
@@ -289,7 +289,7 @@ function ValueCard({
   badge: string;
   body: string;
   children?: React.ReactNode;
-  icon: LucideIcon;
+  icon: IconComponent;
   title: string;
 }) {
   return (
@@ -327,7 +327,7 @@ const MIN_PROVIDERS_TO_SHOW = 12;
 const MIN_AREAS_TO_SHOW = 4;
 
 function HeroStats({ stats }: { stats?: ProviderStats }) {
-  const cards: { icon: LucideIcon; label: string; value: string }[] = [];
+  const cards: { icon: IconComponent; label: string; value: string }[] = [];
 
   if (stats && stats.totalProviders >= MIN_PROVIDERS_TO_SHOW) {
     cards.push({

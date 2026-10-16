@@ -4,7 +4,6 @@ import {
   BottomSheetModal,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
-import { Ionicons } from "@expo/vector-icons";
 import { Component, type ReactNode, useCallback, useEffect, useRef } from "react";
 import { Pressable, useWindowDimensions, View } from "react-native";
 import {
@@ -12,6 +11,7 @@ import {
   type KeyboardAwareScrollViewProps,
 } from "react-native-keyboard-controller";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
@@ -322,7 +322,7 @@ export function Sheet({
                   hitSlop={8}
                   onPress={onClose}
                 >
-                  <Ionicons color={colors.mutedForeground} name="close" size={18} />
+                  <Glyph color={colors.mutedForeground} name="close" size={18} />
                 </Pressable>
               </View>
             ) : null}

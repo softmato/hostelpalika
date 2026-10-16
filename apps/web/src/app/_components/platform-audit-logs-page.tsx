@@ -1,6 +1,6 @@
 "use client";
 
-import { ScrollText } from "lucide-react";
+import { ScrollText } from "@/components/icons";
 import { memo } from "react";
 
 import { EmptyState, Panel } from "@/app/_components/shared-ui";

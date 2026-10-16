@@ -63,7 +63,7 @@ export default function ServiceProvidersScreen() {
         />
       }
       comingSoon="More about working with hostels is being designed — it arrives in an upcoming update."
-      icon="construct-outline"
+      icon="construct"
       extra={<JobSource />}
       page="serviceProviders"
       webPath="service-providers"
@@ -168,17 +168,17 @@ function ApplyBlock({
         <View className="gap-3">
           <IconPoint
             delay={250}
-            icon="construct-outline"
+            icon="construct"
             text="Pick every trade you work in and the area you cover."
           />
           <IconPoint
             delay={400}
-            icon="camera-outline"
+            icon="camera"
             text="A photo taken on this phone becomes your provider ID card."
           />
           <IconPoint
             delay={550}
-            icon="cloud-done-outline"
+            icon="cloud-done"
             text="Your progress saves as you go, so you can finish later."
           />
         </View>

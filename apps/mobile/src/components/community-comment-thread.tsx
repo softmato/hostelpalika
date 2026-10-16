@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, TextInput, View } from "react-native";
 
 import { PersonAvatar } from "@/components/ui/avatar";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { readApiError } from "@/lib/api-contract";
@@ -214,7 +214,7 @@ export function CommentThread({
                             hitSlop={8}
                             onPress={() => void vote(comment, 1)}
                           >
-                            <Ionicons
+                            <Glyph
                               color={viewerVote === 1 ? colors.primary : colors.mutedForeground}
                               name="arrow-up"
                               size={15}
@@ -230,7 +230,7 @@ export function CommentThread({
                             hitSlop={8}
                             onPress={() => void vote(comment, -1)}
                           >
-                            <Ionicons
+                            <Glyph
                               color={
                                 viewerVote === -1 ? colors.destructive : colors.mutedForeground
                               }
@@ -262,9 +262,9 @@ export function CommentThread({
                             hitSlop={6}
                             onPress={() => removeComment(comment.id)}
                           >
-                            <Ionicons
+                            <Glyph
                               color={colors.mutedForeground}
-                              name="trash-outline"
+                              name="trash"
                               size={15}
                             />
                           </Pressable>
@@ -359,7 +359,7 @@ export function CommentInput({
         {busy ? (
           <ActivityIndicator color={colors.primary} size="small" />
         ) : (
-          <Ionicons
+          <Glyph
             color={ready ? colors.primaryForeground : colors.mutedForeground}
             name="send"
             size={15}

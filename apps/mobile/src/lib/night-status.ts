@@ -31,25 +31,25 @@ import { sosIsOpen, type SosStanding } from "@/lib/sos";
  */
 export const NIGHT_STATUS_OPTIONS: {
   description: string;
-  icon: "home-outline" | "moon-outline" | "shield-checkmark-outline";
+  icon: "home" | "moon" | "shield-checkmark";
   label: string;
   value: Extract<NightStatusValue, "INSIDE_HOSTEL" | "MARKED_SAFE" | "OUTSIDE_HOSTEL">;
 }[] = [
   {
     description: "In for the night.",
-    icon: "home-outline",
+    icon: "home",
     label: "Inside the hostel",
     value: "INSIDE_HOSTEL",
   },
   {
     description: "Staying elsewhere tonight — your hostel will not chase you.",
-    icon: "moon-outline",
+    icon: "moon",
     label: "Out for the night",
     value: "OUTSIDE_HOSTEL",
   },
   {
     description: "Somewhere else, and fine. Use this after an incident.",
-    icon: "shield-checkmark-outline",
+    icon: "shield-checkmark",
     label: "I am safe",
     value: "MARKED_SAFE",
   },

@@ -31,7 +31,7 @@ import type { NearbyPlace } from "@/lib/public-api";
  *
  * Emoji rather than an icon font, and this is the one place in the app that uses
  * them. The dots are drawn inside the Leaflet WebView, which is a plain HTML
- * page with no access to the Ionicons font the rest of the app loads — the
+ * page with no access to the `<Glyph>` components the rest of the app draws — the
  * alternatives were inlining an SVG path per category into the generated string,
  * or shipping a font file to a page that already needs a network for its tiles.
  * A 9px emoji in a 16px circle is legible on both platforms and costs nothing.
@@ -50,19 +50,19 @@ export function nearbyGlyph(type: string): string {
   return NEARBY_GLYPHS[type] ?? "📍";
 }
 
-/** Ionicons name per category, for the list under the map. */
+/** Glyph name per category, for the list under the map. */
 const NEARBY_ICONS: Record<string, string> = {
-  bus_stop: "bus-outline",
-  college: "school-outline",
-  gym: "barbell-outline",
-  hospital: "medkit-outline",
-  park: "leaf-outline",
-  pharmacy: "medical-outline",
-  restaurant: "restaurant-outline",
+  bus_stop: "bus",
+  college: "school",
+  gym: "barbell",
+  hospital: "medkit",
+  park: "leaf",
+  pharmacy: "medical",
+  restaurant: "restaurant",
 };
 
 export function nearbyIcon(type: string): string {
-  return NEARBY_ICONS[type] ?? "location-outline";
+  return NEARBY_ICONS[type] ?? "location";
 }
 
 /** The website's order and its labels, to the word. */

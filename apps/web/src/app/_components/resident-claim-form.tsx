@@ -12,7 +12,7 @@ import {
   ScanLine,
   Upload,
   XCircle,
-} from "lucide-react";
+} from "@/components/icons";
 import { memo, useCallback, useEffect, useState, type FormEvent } from "react";
 
 import { currency, Input as FormInput } from "@/app/_components/shared-ui";

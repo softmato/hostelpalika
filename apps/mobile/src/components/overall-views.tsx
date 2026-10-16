@@ -237,7 +237,7 @@ export function OverallTabScreen({ tab }: { tab: OverallTab }) {
 
         {tab === "more" ? (
           <Card padding="px-4 py-1">
-            <ListRow icon="git-branch-outline" onPress={() => router.push("/manage/branches")} title="Manage branches" />
+            <ListRow icon="git-branch" onPress={() => router.push("/manage/branches")} title="Manage branches" />
           </Card>
         ) : null}
       </View>
@@ -410,7 +410,7 @@ function OverallHome({ period, rows }: { period: string; rows: BranchOverall[] }
                     {[branch.isBranch ? "Branch" : "Main", branch.area || branch.city].filter(Boolean).join(" · ")}
                   </Text>
                 </View>
-                <Glyph color={colors.mutedForeground} name="chevron" size={16} />
+                <Glyph color={colors.mutedForeground} name="chevron-forward" size={16} />
               </View>
               <Meter
                 label={`${branch.residents} of ${branch.beds} beds`}
@@ -503,8 +503,8 @@ function OverallDownloads({ period }: { period: string }) {
 
   return (
     <View className="flex-row gap-3">
-      {tile("report", "reports", "Report")}
-      {tile("statement", "money", "Statement")}
+      {tile("report", "stats-chart", "Report")}
+      {tile("statement", "wallet", "Statement")}
     </View>
   );
 }
@@ -695,7 +695,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
       return <>
         <Issue label="Residents" state={state} />
         {state?.data ? <Preview empty="No residents yet." total={state.data.pagination?.total} items={state.data.residents.map((person) =>
-          <ListRow icon="person-outline" key={person.id} onPress={() => open(`/manage/resident/${person.id}`)}
+          <ListRow icon="person" key={person.id} onPress={() => open(`/manage/resident/${person.id}`)}
             subtitle={[humanizeEnum(person.roomType), humanizeEnum(person.status)].filter(Boolean).join(" · ")}
             title={`${person.firstName} ${person.lastName}`.trim()} />)} /> : null}
       </>;
@@ -705,7 +705,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
       return <>
         <Issue label="Wardens" state={state} />
         {state?.data ? <Preview empty="No wardens yet." total={state.data.pagination?.total} items={state.data.wardens.map((person) =>
-          <ListRow icon="shield-outline" key={person.id} onPress={() => open(TOPIC_ROUTES.wardens)}
+          <ListRow icon="shield" key={person.id} onPress={() => open(TOPIC_ROUTES.wardens)}
             subtitle={humanizeEnum(person.status)} title={person.name} />)} /> : null}
       </>;
     }
@@ -714,7 +714,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
       return <>
         <Issue label="Cooks" state={state} />
         {state?.data ? <Preview empty="No cooks yet." items={state.data.cooks.map((person) =>
-          <ListRow icon="restaurant-outline" key={person.id} onPress={() => open(TOPIC_ROUTES.cooks)}
+          <ListRow icon="restaurant" key={person.id} onPress={() => open(TOPIC_ROUTES.cooks)}
             subtitle={humanizeEnum(person.status)} title={person.name} />)} /> : null}
       </>;
     }
@@ -732,7 +732,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
           <Meter label={null} percent={totals.due > 0 ? Math.round((totals.collected / totals.due) * 100) : null} />
           <Preview empty="Everyone has paid." items={invoices.data!.rows
             .filter((item) => item.payment && item.payment.dueAmount > item.payment.paidAmount)
-            .map((item) => <ListRow icon="person-outline" key={item.resident.id} onPress={() => open(TOPIC_ROUTES.payments)}
+            .map((item) => <ListRow icon="person" key={item.resident.id} onPress={() => open(TOPIC_ROUTES.payments)}
               subtitle={item.resident.roomNumber ?? item.resident.roomType ?? ""}
               title={item.resident.fullName}
               right={<Money owed value={(item.payment?.dueAmount ?? 0) - (item.payment?.paidAmount ?? 0)} />} />)} />
@@ -774,7 +774,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
               value={wallet.left < 0 ? `Owes ${formatMoney(-wallet.left)}` : `${formatMoney(wallet.left)} left`} />
           ))}
           <Preview empty="Nothing spent this month." items={home.expenses.filter(isSpending).map((item) =>
-            <ListRow icon="wallet-outline" key={item.id} onPress={() => open(TOPIC_ROUTES.expenses)}
+            <ListRow icon="wallet" key={item.id} onPress={() => open(TOPIC_ROUTES.expenses)}
               subtitle={[item.categoryLabel, item.payer === "STAFF" ? item.recordedBy.name : null].filter(Boolean).join(" · ")}
               title={expenseTitle(item)} right={<Money tone="debit" value={item.amount} />} />)} />
         </> : null}
@@ -802,7 +802,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
             <Figure label="Not checked"><Text variant="subtitle">{String(night.data.summary.NOT_VERIFIED)}</Text></Figure>
           </View>
           <Preview empty="Everyone is inside." items={night.data.statuses.filter((item) => item.status.status !== "INSIDE_HOSTEL").map((item) =>
-            <ListRow icon="moon-outline" key={item.resident.id} onPress={() => open(TOPIC_ROUTES.night)}
+            <ListRow icon="moon" key={item.resident.id} onPress={() => open(TOPIC_ROUTES.night)}
               subtitle={humanizeEnum(item.status.status)} title={item.resident.fullName} />)} />
         </> : null}
       </>;
@@ -812,7 +812,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
       return <>
         <Issue label="Complaints" state={state} />
         {state?.data ? <Preview empty="No complaints." total={state.data.pagination?.total} items={state.data.complaints.map((item) =>
-          <ListRow icon="chatbox-outline" key={item.id} onPress={() => open(TOPIC_ROUTES.complaints)}
+          <ListRow icon="chatbox" key={item.id} onPress={() => open(TOPIC_ROUTES.complaints)}
             subtitle={`${humanizeEnum(item.status)}${item.isOverdue ? " · Overdue" : ""}`} title={item.title} />)} /> : null}
       </>;
     }
@@ -821,7 +821,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
       return <>
         <Issue label="Repairs" state={state} />
         {state?.data ? <Preview empty="No repairs." items={state.data.requests.map((item) =>
-          <ListRow icon="construct-outline" key={item.id} onPress={() => open(TOPIC_ROUTES.maintenance)}
+          <ListRow icon="construct" key={item.id} onPress={() => open(TOPIC_ROUTES.maintenance)}
             subtitle={`${humanizeEnum(item.status)} · ${item.location}`} title={item.title} />)} /> : null}
       </>;
     }
@@ -830,7 +830,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
       return <>
         <Issue label="Inquiries" state={state} />
         {state?.data ? <Preview empty="No inquiries." total={state.data.pagination?.total} items={state.data.inquiries.map((item) =>
-          <ListRow icon="mail-outline" key={item.id} onPress={() => open(TOPIC_ROUTES.inquiries)}
+          <ListRow icon="mail" key={item.id} onPress={() => open(TOPIC_ROUTES.inquiries)}
             subtitle={humanizeEnum(item.status)} title={item.name} />)} /> : null}
       </>;
     }
@@ -839,7 +839,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
       return <>
         <Issue label="Bookings" state={state} />
         {state?.data ? <Preview empty="No requests." items={state.data.bookings.map((item) =>
-          <ListRow icon="calendar-outline" key={item.id} onPress={() => open(TOPIC_ROUTES.bookings)}
+          <ListRow icon="calendar" key={item.id} onPress={() => open(TOPIC_ROUTES.bookings)}
             subtitle={`${item.roomType} · ${item.statusLabel}`} title={item.guest.name} />)} /> : null}
       </>;
     }
@@ -848,7 +848,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
       return <>
         <Issue label="Notices" state={state} />
         {state?.data ? <Preview empty="No notices." total={state.data.pagination?.total} items={state.data.notices.map((item) =>
-          <ListRow icon="megaphone-outline" key={item.id} onPress={() => open(TOPIC_ROUTES.notices)}
+          <ListRow icon="megaphone" key={item.id} onPress={() => open(TOPIC_ROUTES.notices)}
             subtitle={humanizeEnum(item.category)} title={item.title} />)} /> : null}
       </>;
     }

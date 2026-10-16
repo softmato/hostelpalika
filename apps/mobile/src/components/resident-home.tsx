@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -12,6 +11,7 @@ import {
 } from "@/components/portal-shared";
 import { SosHeaderButton } from "@/components/sos-header-button";
 import { type ActionTile, ActionTiles } from "@/components/ui/action-grid";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { roleAccent } from "@/constants/theme";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -173,7 +173,7 @@ function UrgentNoticeStrip({ count, onPress }: { count: number; onPress: () => v
       style={FLOAT_SHADOW}
     >
       <View className="h-9 w-9 items-center justify-center rounded-full bg-[#fef3c7]">
-        <Ionicons color="#b45309" name="megaphone" size={18} />
+        <Glyph color="#b45309" name="megaphone" size={18} />
       </View>
 
       <View className="flex-1">
@@ -185,7 +185,7 @@ function UrgentNoticeStrip({ count, onPress }: { count: number; onPress: () => v
         </Text>
       </View>
 
-      <Ionicons color="#92400e" name="chevron-forward" size={17} />
+      <Glyph color="#92400e" name="chevron-forward" size={17} />
     </Pressable>
   );
 }
@@ -216,9 +216,9 @@ function HeroAction({ onPress, owes }: { onPress: () => void; owes: boolean }) {
       hitSlop={6}
       onPress={onPress}
     >
-      <Ionicons
+      <Glyph
         color={owes ? "#ffffff" : colors.mutedForeground}
-        name={owes ? "card" : "time-outline"}
+        name={owes ? "card" : "time"}
         size={14}
       />
       <Text
@@ -389,13 +389,13 @@ export function ResidentStayHero({
           */}
           <View className="gap-1.5">
             {[
-              { icon: "bed-outline", text: roomLabel },
-              { icon: "calendar-outline", text: `Since ${sinceLabel}` },
+              { icon: "bed", text: roomLabel },
+              { icon: "calendar", text: `Since ${sinceLabel}` },
             ].map((row) => (
               <View className="flex-row items-center gap-1.5" key={row.icon}>
-                <Ionicons
+                <Glyph
                   color="rgba(255,255,255,0.75)"
-                  name={row.icon as keyof typeof Ionicons.glyphMap}
+                  name={row.icon as GlyphName}
                   size={12}
                 />
                 <Text
@@ -447,9 +447,9 @@ export function ResidentStayHero({
               setShown((current) => !current);
             }}
           >
-            <Ionicons
+            <Glyph
               color="rgba(255,255,255,0.9)"
-              name={shown ? "eye-outline" : "eye-off-outline"}
+              name={shown ? "eye" : "eye-off"}
               size={17}
             />
           </Pressable>
@@ -462,7 +462,7 @@ export function ResidentStayHero({
           this line can say that costs them money.
         */}
         <View className="mt-1.5 flex-row items-center gap-1.5">
-          <Ionicons color="rgba(255,255,255,0.8)" name="receipt-outline" size={13} />
+          <Glyph color="rgba(255,255,255,0.8)" name="receipt" size={13} />
           <Text className="flex-1 text-white/80" numberOfLines={1} style={{ fontSize: 12 }}>
             {duesNote}
           </Text>
@@ -557,7 +557,7 @@ export function ResidentHomeActions({
   const tiles: ActionTile[] = [
     {
       glyph: colors.primary,
-      icon: "card-outline",
+      icon: "card",
       key: "id-card",
       label: "Digital ID",
       onPress: onIdCard,
@@ -571,7 +571,7 @@ export function ResidentHomeActions({
       ? [
           {
             glyph: colors.warning,
-            icon: "call-outline",
+            icon: "call",
             key: "call",
             label: "Call hostel",
             onPress: onCall,
@@ -582,7 +582,7 @@ export function ResidentHomeActions({
     {
       badge: unreadNotices,
       glyph: colors.success,
-      icon: "megaphone-outline",
+      icon: "megaphone",
       key: "notices",
       label: "Notices",
       onPress: onNotices,
@@ -592,7 +592,7 @@ export function ResidentHomeActions({
       ? [
           {
             glyph: colors.primary,
-            icon: "school-outline",
+            icon: "school",
             image: QUESTIONCALL_LOGO,
             key: "questioncall",
             label: questionCall.label,
@@ -656,34 +656,34 @@ export function ResidentServiceGrid({
   const { colors, scheme } = useAppTheme();
 
   const services = [
-    { href: "/profile", icon: "person-outline", label: "Profile", tone: "resident" },
+    { href: "/profile", icon: "person", label: "Profile", tone: "resident" },
     /*
       Directly beside Profile, because sharing your record with a parent is a
       decision people revisit — after a fee goes unpaid, after an argument — and
       it must not be something you can only reach two screens deep.
     */
-    { href: "/guardians", icon: "shield-outline", label: "Guardians", tone: "brand" },
+    { href: "/guardians", icon: "shield", label: "Guardians", tone: "brand" },
     {
       href: "/attendance",
-      icon: "location-outline",
+      icon: "location",
       label: "Location",
       tone: "warning",
     },
     {
       href: "/night-status-history",
-      icon: "moon-outline",
+      icon: "moon",
       label: "Night history",
       tone: "brand",
     },
     {
       href: "/offer-program/mine",
-      icon: "ribbon-outline",
+      icon: "ribbon",
       label: "Offer Program",
       tone: "success",
     },
-    { href: "/hostels", icon: "search-outline", label: "Explore", tone: "brand" },
-    { href: "/referrals", icon: "gift-outline", label: "Refer", tone: "success" },
-    { href: "/review", icon: "star-outline", label: "Review", tone: "warning" },
+    { href: "/hostels", icon: "search", label: "Explore", tone: "brand" },
+    { href: "/referrals", icon: "gift", label: "Refer", tone: "success" },
+    { href: "/review", icon: "star", label: "Review", tone: "warning" },
   ] as const;
 
   const glyph = {

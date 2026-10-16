@@ -8,7 +8,7 @@ import {
   Hash,
   TrendingUp,
   Wallet,
-} from "lucide-react";
+} from "@/components/icons";
 import { memo, useMemo, useState } from "react";
 
 import { currency, EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";

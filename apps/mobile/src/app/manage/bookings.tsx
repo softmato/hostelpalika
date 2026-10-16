@@ -233,7 +233,7 @@ export default function ManageBookingsScreen() {
                   ? "No bed is held right now."
                   : "Finished bookings show here."
             }
-            icon="calendar-outline"
+            icon="calendar"
             title={tab === "requests" ? "No requests" : tab === "confirmed" ? "Nothing held" : "No history yet"}
           />
         ) : (

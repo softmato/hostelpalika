@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { type ReactNode, useState } from "react";
 import { Linking, Pressable, View } from "react-native";
@@ -8,6 +7,7 @@ import { MoneyInput, NoStockAccess, readRupees, useStock } from "@/components/st
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { RowDivider } from "@/components/ui/list-row";
 import { Money } from "@/components/ui/money";
@@ -116,7 +116,7 @@ export default function SuppliersScreen() {
           <View className="gap-4 pb-6 pt-5">
             {suppliers.length > 8 ? (
               <Input
-                leading={<Ionicons color={colors.mutedForeground} name="search" size={18} />}
+                leading={<Glyph color={colors.mutedForeground} name="search" size={18} />}
                 onChangeText={setQuery}
                 placeholder="Search suppliers"
                 value={query}
@@ -172,7 +172,7 @@ function SupplierRow({ money, supplier }: { money: boolean; supplier: StockSuppl
       onPress={() => router.push({ params: { id: supplier.id }, pathname: "/stock/supplier/[id]" })}
     >
       <View className="h-10 w-10 items-center justify-center rounded-full bg-brand-soft">
-        <Ionicons color={colors.primary} name="storefront-outline" size={20} />
+        <Glyph color={colors.primary} name="storefront" size={20} />
       </View>
       <View className="flex-1">
         <Text numberOfLines={1} variant="label">
@@ -213,10 +213,10 @@ function SupplierRow({ money, supplier }: { money: boolean; supplier: StockSuppl
           className="h-10 w-10 items-center justify-center rounded-full bg-brand-soft active:opacity-70"
           onPress={() => void Linking.openURL(`tel:${supplier.phone}`)}
         >
-          <Ionicons color={colors.primary} name="call-outline" size={18} />
+          <Glyph color={colors.primary} name="call" size={18} />
         </Pressable>
       ) : null}
-      {money ? <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} /> : null}
+      {money ? <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} /> : null}
     </Pressable>
   );
 }

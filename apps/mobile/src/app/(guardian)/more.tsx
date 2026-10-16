@@ -131,7 +131,7 @@ export default function GuardianMoreScreen() {
 
           <MenuGroup>
             <MenuRow
-              icon="people-outline"
+              icon="people"
               onPress={() => router.push("/community")}
               onPressIn={prefetchCommunity}
               title="Community"

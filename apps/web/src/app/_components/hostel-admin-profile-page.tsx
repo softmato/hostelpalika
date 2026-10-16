@@ -10,8 +10,8 @@ import {
   Phone,
   ShieldAlert,
   Trash2,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import {
   memo,
   useCallback,
@@ -67,7 +67,7 @@ type SectionId =
 
 type SectionDef = {
   description: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   id: SectionId;
   label: string;
 };

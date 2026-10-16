@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { View } from "react-native";
@@ -7,6 +6,7 @@ import { Avatar } from "@/components/ui/avatar";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Chip, FactRow } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
@@ -354,7 +354,7 @@ function JoinForm({
     <View className="gap-5">
       {initial?.status === "REJECTED" ? (
         <Card className="flex-row gap-3 bg-warning-soft">
-          <Ionicons color={colors.warning} name="arrow-undo" size={20} />
+          <Glyph color={colors.warning} name="arrow-undo" size={20} />
           <View className="flex-1">
             <Text className="font-semibold">{view.hostel.name} sent it back</Text>
             <Text variant="muted">{initial.rejectReason}</Text>
@@ -368,7 +368,7 @@ function JoinForm({
           <View className="flex-row flex-wrap gap-2">
             {view.roomTypes.map((candidate) => (
               <Chip
-                icon="bed-outline"
+                icon="bed"
                 key={candidate.roomType}
                 label={
                   candidate.monthlyRent
@@ -389,7 +389,7 @@ function JoinForm({
           <View className="flex-row flex-wrap gap-2">
             {options.slice(0, 6).map((option, index) => (
               <Chip
-                icon={index === 0 ? "checkmark-circle-outline" : "time-outline"}
+                icon={index === 0 ? "checkmark-circle" : "time"}
                 key={option.value}
                 label={index === 0 ? "Paid" : option.label}
                 onPress={() => set({ paidTill: option.value })}
@@ -453,7 +453,7 @@ function JoinForm({
       ) : null}
 
       <Card className="flex-row gap-3 bg-warning-soft">
-        <Ionicons color={colors.warning} name="alert-circle" size={20} />
+        <Glyph color={colors.warning} name="alert-circle" size={20} />
         <Text className="flex-1 text-sm">
           Your hostel owner or warden checks this against their own book. Fill it in correctly —
           wrong details can mean extra charges.

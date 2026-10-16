@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Flag, Megaphone, MoreHorizontal, Play, Trash2 } from "lucide-react";
+import { ExternalLink, Flag, Megaphone, MoreHorizontal, Play, Trash2 } from "@/components/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";

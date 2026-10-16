@@ -1,6 +1,6 @@
 "use client";
 
-import { Wallet } from "lucide-react";
+import { Wallet } from "@/components/icons";
 import { useState, type FormEvent } from "react";
 
 import {

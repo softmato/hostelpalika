@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Pressable, View } from "react-native";
 
 import { HERO_AMOUNT_LEAD_TRIM, HERO_LINE_GAP, PortalHeroCard } from "@/components/portal-shared";
 import { StatusText } from "@/components/ui/badge";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import type { ProviderJob } from "@/lib/provider-api";
@@ -109,9 +109,9 @@ export function ProviderHero({
           */}
           <View className="gap-1.5">
             {[
-              { icon: "construct-outline", text: "Service provider" },
+              { icon: "construct", text: "Service provider" },
               {
-                icon: "business-outline",
+                icon: "business",
                 text:
                   hostelCount === 0
                     ? "No hostel has sent you work yet"
@@ -119,9 +119,9 @@ export function ProviderHero({
               },
             ].map((row) => (
               <View className="flex-row items-center gap-1.5" key={row.icon}>
-                <Ionicons
+                <Glyph
                   color="rgba(255,255,255,0.75)"
-                  name={row.icon as keyof typeof Ionicons.glyphMap}
+                  name={row.icon as GlyphName}
                   size={12}
                 />
                 <Text
@@ -174,9 +174,9 @@ export function ProviderHero({
         </Text>
 
         <View className="mt-1.5 flex-row items-center gap-1.5">
-          <Ionicons
+          <Glyph
             color="rgba(255,255,255,0.8)"
-            name={overdue > 0 ? "alert-circle-outline" : "time-outline"}
+            name={overdue > 0 ? "alert-circle" : "time"}
             size={13}
           />
           <Text className="flex-1 text-white/80" numberOfLines={1} style={{ fontSize: 12 }}>
@@ -350,9 +350,9 @@ export function ProviderJobRow({
         className={`items-center justify-center rounded-xl ${TILE_TINT[tone]}`}
         style={{ height: TILE, width: TILE }}
       >
-        <Ionicons
+        <Glyph
           color={colors[TILE_INK[tone]]}
-          name={jobCategoryIcon(job.category) as keyof typeof Ionicons.glyphMap}
+          name={jobCategoryIcon(job.category) as GlyphName}
           size={19}
         />
       </View>

@@ -1,11 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Plus } from "lucide-react-native";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { Accordion, StepSection } from "@/components/step-flow";
 import { Button } from "@/components/ui/button";
 import { ChoiceChips } from "@/components/ui/choice-chips";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Text } from "@/components/ui/text";
 import { Toggle } from "@/components/ui/toggle";
@@ -187,7 +186,7 @@ export function CustomFacility({ onAdd }: { onAdd: (name: string) => void }) {
     return (
       <Button
         className="self-start"
-        icon={Plus}
+        icon="add"
         label="Add your own"
         onPress={() => setOpen(true)}
         size="sm"
@@ -262,9 +261,9 @@ export function RoomSection({
             hitSlop={10}
             onPress={onRemove}
           >
-            <Ionicons
+            <Glyph
               color={colors.destructive}
-              name="trash-outline"
+              name="trash"
               size={18}
             />
           </Pressable>

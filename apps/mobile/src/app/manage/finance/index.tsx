@@ -128,7 +128,7 @@ export default function ManageFinanceScreen() {
           <SectionHeader title="Rates" />
           <Card padding="px-4 py-1">
             <ListRow
-              icon="pricetags-outline"
+              icon="pricetags"
               iconBgColor="#34C759"
               onPress={schedules === null ? undefined : () => router.push("/manage/finance/room-rates")}
               onPressIn={warm("/manage/finance/room-rates")}
@@ -137,7 +137,7 @@ export default function ManageFinanceScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="gift-outline"
+              icon="gift"
               iconBgColor="#FF9500"
               onPress={concessions === null ? undefined : () => router.push("/manage/finance/month-discounts")}
               onPressIn={warm("/manage/finance/month-discounts")}
@@ -146,7 +146,7 @@ export default function ManageFinanceScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="alarm-outline"
+              icon="alarm"
               iconBgColor="#FF3B30"
               onPress={lateFine.error ? undefined : () => router.push("/manage/finance/late-fine")}
               right={
@@ -170,7 +170,7 @@ export default function ManageFinanceScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="calendar-outline"
+              icon="calendar"
               onPress={() => router.push("/manage/finance/money-rules")}
               subtitle={
                 rules.data
@@ -181,7 +181,7 @@ export default function ManageFinanceScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="wallet-outline"
+              icon="wallet"
               onPress={() => router.push("/manage/finance/money-rules")}
               subtitle={
                 rules.data?.openingBalance
@@ -197,7 +197,7 @@ export default function ManageFinanceScreen() {
           <SectionHeader title="Khata" />
           <Card padding="px-4 py-1">
             <ListRow
-              icon="receipt-outline"
+              icon="receipt"
               iconBgColor="#AF52DE"
               onPress={khata.error ? undefined : () => router.push("/manage/finance/khata")}
               right={
@@ -224,7 +224,7 @@ export default function ManageFinanceScreen() {
           <SectionHeader title="Getting paid" />
           <Card padding="px-4 py-1">
             <ListRow
-              icon="qr-code-outline"
+              icon="qr-code"
               iconBgColor="#007AFF"
               onPress={profile === null ? undefined : () => router.push("/manage/finance/payment-setup")}
               onPressIn={warm("/manage/finance/payment-setup")}
@@ -239,7 +239,7 @@ export default function ManageFinanceScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="documents-outline"
+              icon="documents"
               iconBgColor="#5E5CE6"
               onPress={() => router.push("/manage/statements")}
               subtitle="Match payments to your bank and wallet"
@@ -247,7 +247,7 @@ export default function ManageFinanceScreen() {
             />
             <RowDivider inset />
             <ListRow
-              icon="wallet-outline"
+              icon="wallet"
               iconBgColor="#34C759"
               onPress={payout.error ? undefined : () => router.push("/manage/finance/payouts")}
               subtitle={

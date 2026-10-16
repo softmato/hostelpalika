@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
-import { X } from "lucide-react-native";
 import { Pressable, ScrollView, View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { API_BASE_URL } from "@/lib/api";
@@ -35,7 +35,7 @@ export function RemoveButton({ label, onPress }: { label: string; onPress: () =>
       hitSlop={8}
       onPress={onPress}
     >
-      <X color={colors.destructive} size={16} strokeWidth={2.5} />
+      <Glyph name="close" color={colors.destructive} size={16} strokeWidth={2.5} />
     </Pressable>
   );
 }

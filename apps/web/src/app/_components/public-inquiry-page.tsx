@@ -13,7 +13,7 @@ import {
   UserRound,
   Loader2,
   Utensils,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";

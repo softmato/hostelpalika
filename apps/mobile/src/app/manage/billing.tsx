@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { planRank } from "@hostel/plans/catalog";
 import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
@@ -9,6 +8,7 @@ import { FreeMonthCard } from "@/components/subscription-due";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { IconButton } from "@/components/ui/icon-button";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Meter } from "@/components/ui/meter";
@@ -377,9 +377,9 @@ function PlanHead({ plan }: { plan: PlanBillingPlan }) {
       >
         <View className="h-12 w-12 items-center justify-center rounded-2xl bg-brand-soft">
           {rank === null ? (
-            <Ionicons
+            <Glyph
               color={colors.primary}
-              name="pricetag-outline"
+              name="pricetag"
               size={22}
             />
           ) : (
@@ -653,7 +653,7 @@ function InvoiceCard({
       */}
       <ListRow
         busy={busy}
-        icon="download-outline"
+        icon="download"
         onPress={onDownload}
         subtitle="PDF"
         title="Download invoice"
@@ -732,14 +732,14 @@ function ReceiptCard({
       {settled ? (
         <ListRow
           busy={busy}
-          icon="receipt-outline"
+          icon="receipt"
           onPress={onDownload}
           subtitle={payment.providerRef ? `Ref ${payment.providerRef}` : "PDF"}
           title="Download receipt"
         />
       ) : (
         <View className="flex-row items-center gap-2 py-2">
-          <Ionicons color={iconColor} name="time-outline" size={16} />
+          <Glyph color={iconColor} name="time" size={16} />
           <Text className="flex-1" variant="caption">
             {reviewing
               ? "We are checking your proof. The receipt is issued once it is confirmed."

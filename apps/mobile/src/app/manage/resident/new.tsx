@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { addBsMonths, currentBsPeriod } from "@hostel/calendar/bs";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -10,6 +9,7 @@ import { FormQrPage } from "@/components/manage/form-qr-page";
 import { IdScanner } from "@/components/manage/id-scanner";
 import { RoomPicker } from "@/components/manage/room-picker";
 import { type Charges, ChargesSheet } from "@/components/manage/charges-sheet";
+import { Glyph } from "@/components/ui/glyph";
 import { type Room, type RoomLayout, roomsQuery } from "@/lib/rooms-api";
 import { ManualMethodPanel, methodLabel, methodProvider } from "@/components/pay-methods";
 import { ReferenceStrip } from "@/components/resident-payments";
@@ -701,7 +701,7 @@ export default function NewResidentScreen() {
               setStep("confirm");
             }}
           >
-            <Ionicons color="rgba(255,255,255,0.8)" name="create-outline" size={16} />
+            <Glyph color="rgba(255,255,255,0.8)" name="create" size={16} />
             <Text className="text-sm font-semibold text-white/80">
               They have no card — fill it in by hand
             </Text>
@@ -996,7 +996,7 @@ function ConfirmStep({
           className="flex-row items-center justify-center gap-2 py-2 active:opacity-60"
           onPress={onRescan}
         >
-          <Ionicons color={colors.primary} name="qr-code-outline" size={16} />
+          <Glyph color={colors.primary} name="qr-code" size={16} />
           <Text className="text-sm font-semibold text-primary">
             They do have a card — scan it instead
           </Text>
@@ -1134,7 +1134,7 @@ function ConfirmStep({
         className="flex-row items-center justify-center gap-2 py-2 active:opacity-60"
         onPress={onRescan}
       >
-        <Ionicons color={colors.primary} name="qr-code-outline" size={16} />
+        <Glyph color={colors.primary} name="qr-code" size={16} />
         <Text className="text-sm font-semibold text-primary">
           Not them — scan another card
         </Text>
@@ -1183,7 +1183,7 @@ function SentFormStep({ form, onDecline }: { form: AdmissionForm; onDecline: () 
             label="Contact no."
             value={
               <Chip
-                icon="call-outline"
+                icon="call"
                 label={form.phone}
                 onPress={() => void Linking.openURL(`tel:${form.phone}`)}
                 tone="brand"
@@ -1201,7 +1201,7 @@ function SentFormStep({ form, onDecline }: { form: AdmissionForm; onDecline: () 
           <Card padding="px-4 py-1">
             {form.documents.map((document, index) => (
               <ListRow
-                icon="card-outline"
+                icon="card"
                 key={document.assetId}
                 onPress={() =>
                   openAssetViewer(
@@ -1351,7 +1351,7 @@ function TermsStep({
             <View className="flex-row flex-wrap gap-2">
               {rooms.map((config) => (
                 <Chip
-                  icon="bed-outline"
+                  icon="bed"
                   key={config.roomType}
                   label={`${config.roomType} · ${config.vacantBeds} free`}
                   onPress={() => onPickRoom(config.roomType)}
@@ -1393,7 +1393,7 @@ function TermsStep({
             <View className="flex-row flex-wrap gap-2">
               {rentOptions.slice(0, 7).map((option, index) => (
                 <Chip
-                  icon={index === 0 ? "checkmark-circle-outline" : "time-outline"}
+                  icon={index === 0 ? "checkmark-circle" : "time"}
                   key={option.value}
                   label={index === 0 ? "Paid" : option.label}
                   onPress={() => existing.setPaidTill(option.value)}
@@ -1413,7 +1413,7 @@ function TermsStep({
 
             {rentPick ? (
               <View className="flex-row items-center gap-2">
-                <Ionicons
+                <Glyph
                   color={allPaid ? colors.success : colors.warning}
                   name={allPaid ? "checkmark-circle" : "alert-circle"}
                   size={18}
@@ -1447,9 +1447,9 @@ function TermsStep({
               className="flex-row items-center gap-2 py-1 active:opacity-70"
               onPress={() => setExtras(!extrasOpen)}
             >
-              <Ionicons
+              <Glyph
                 color={colors.mutedForeground}
-                name={extrasOpen ? "chevron-up" : "add-circle-outline"}
+                name={extrasOpen ? "chevron-up" : "add-circle"}
                 size={16}
               />
               <Text variant="muted">
@@ -1870,7 +1870,7 @@ function HowToPay({
            */
           <View className="flex-row items-start gap-2.5">
             {/*
-              The provider's mark, not `phone-portrait-outline`. The glyph was
+              The provider's mark, not `phone-portrait`. The glyph was
               the same for eSewa as for Khalti on a card whose sentence names
               one of them — see the same fix on the resident's own pay screen.
             */}

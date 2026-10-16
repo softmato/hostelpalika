@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useMemo, useState } from "react";
 import { Linking, Pressable, ScrollView, View } from "react-native";
 import Animated, {
@@ -10,6 +9,7 @@ import Animated, {
 import { Image } from "expo-image";
 
 import { ServiceCarousel, type ServiceCard } from "@/components/service-carousel";
+import { Glyph } from "@/components/ui/glyph";
 import { VoiceNotePlayer } from "@/components/voice-note-player";
 import { VoiceNoteRecorder, type VoiceNote } from "@/components/voice-note-recorder";
 import { AppBar } from "@/components/ui/app-bar";
@@ -511,7 +511,7 @@ export default function ManageMaintenanceScreen() {
     <Screen
       floating={
         <FloatingButton
-          icon="build-outline"
+          icon="build"
           label="Raise a request"
           onPress={() => {
             setDraft(BLANK_NEW);
@@ -531,7 +531,7 @@ export default function ManageMaintenanceScreen() {
               */}
               <IconButton
                 label="Call-out charges"
-                name="pricetag-outline"
+                name="pricetag"
                 onPress={() => setChargesOpen(true)}
                 size="sm"
                 tone="onAccent"
@@ -691,7 +691,7 @@ export default function ManageMaintenanceScreen() {
                   className="mt-2 flex-row items-center justify-center gap-2 rounded-2xl border border-border py-3 active:opacity-70"
                   onPress={() => setProblemMode("type")}
                 >
-                  <Ionicons color={colors.mutedForeground} name="create-outline" size={16} />
+                  <Glyph color={colors.mutedForeground} name="create" size={16} />
                   <Text className="text-sm font-semibold text-muted-foreground">
                     Type it instead
                   </Text>
@@ -720,7 +720,7 @@ export default function ManageMaintenanceScreen() {
                   className="mt-2 flex-row items-center justify-center gap-2 rounded-2xl border border-primary bg-brand-soft py-3 active:opacity-70"
                   onPress={() => setProblemMode("speak")}
                 >
-                  <Ionicons color={colors.primary} name="mic" size={16} />
+                  <Glyph color={colors.primary} name="mic" size={16} />
                   <Text className="text-sm font-semibold text-primary">
                     Speak the problem
                   </Text>
@@ -732,7 +732,7 @@ export default function ManageMaintenanceScreen() {
           {suggestions.length > 0 ? (
             <View className="gap-2 rounded-xl border border-primary/30 bg-brand-soft p-3">
               <View className="flex-row items-center gap-2">
-                <Ionicons color={colors.primary} name="sparkles-outline" size={14} />
+                <Glyph color={colors.primary} name="sparkles" size={14} />
                 <Text className="text-primary" variant="label">
                   Sounds like a job for
                 </Text>
@@ -953,7 +953,7 @@ export default function ManageMaintenanceScreen() {
             </Text>
             {voiceNote ? (
               <View className="flex-row items-center gap-1.5 pb-0.5">
-                <Ionicons color={colors.primary} name="mic" size={12} />
+                <Glyph color={colors.primary} name="mic" size={12} />
                 <Text className="text-xs font-semibold text-primary">
                   {`Voice note · ${formatDuration(voiceNote.durationMs)}`}
                 </Text>
@@ -986,7 +986,7 @@ export default function ManageMaintenanceScreen() {
                   label={humanizeEnum(open.priority)}
                   tone={PRIORITY_TONE[open.priority] ?? "neutral"}
                 />
-                <Chip icon="construct-outline" label={humanizeEnum(open.category)} />
+                <Chip icon="construct" label={humanizeEnum(open.category)} />
               </View>
               {open.description ? <Text variant="muted">{open.description}</Text> : null}
               {/* Under the typed description, because it is the same statement
@@ -1018,7 +1018,7 @@ export default function ManageMaintenanceScreen() {
                 {providerFor(open.providerId) ? (
                   <View className="flex-row flex-wrap gap-2">
                     <Chip
-                      icon="person-outline"
+                      icon="person"
                       label={providerFor(open.providerId)?.fullName ?? "Assigned"}
                       tone="brand"
                     />
@@ -1037,7 +1037,7 @@ export default function ManageMaintenanceScreen() {
                     {assignableProviders.map((provider) => (
                       <Chip
                         busy={assigning === provider.id}
-                        icon="person-add-outline"
+                        icon="person-add"
                         key={provider.id}
                         label={`${provider.fullName} · ${provider.area}`}
                         onPress={() => void assignProvider(provider.id)}
@@ -1133,13 +1133,13 @@ export default function ManageMaintenanceScreen() {
 
               <View className="flex-row flex-wrap gap-2">
                 <Chip
-                  icon="lock-closed-outline"
+                  icon="lock-closed"
                   label="Internal"
                   onPress={() => setCommentInternal(true)}
                   tone={commentInternal ? "brand" : "neutral"}
                 />
                 <Chip
-                  icon="share-outline"
+                  icon="share"
                   label="For the provider"
                   onPress={() => setCommentInternal(false)}
                   tone={commentInternal ? "neutral" : "brand"}
@@ -1204,7 +1204,7 @@ export default function ManageMaintenanceScreen() {
                 >
                   {provider.phone ? (
                     <Chip
-                      icon="call-outline"
+                      icon="call"
                       label={provider.phone}
                       onPress={() => void Linking.openURL(`tel:${provider.phone}`)}
                       tone="brand"
@@ -1289,7 +1289,7 @@ function RequestRow({
 
         {provider ? (
           <View className="flex-row items-center gap-2 rounded-xl bg-muted px-3 py-2">
-            <Ionicons color={colors.mutedForeground} name="person-circle-outline" size={18} />
+            <Glyph color={colors.mutedForeground} name="person-circle" size={18} />
             <Text className="flex-1" numberOfLines={1} variant="label">
               {provider.fullName}
             </Text>
@@ -1301,7 +1301,7 @@ function RequestRow({
                 hitSlop={6}
                 onPress={() => void Linking.openURL(`tel:${provider.phone}`)}
               >
-                <Ionicons color={colors.primary} name="call" size={15} />
+                <Glyph color={colors.primary} name="call" size={15} />
               </Pressable>
             ) : null}
           </View>
@@ -1315,11 +1315,11 @@ function RequestRow({
             />
           ) : null}
           {request.voiceNoteAssetId ? (
-            <Ionicons color={colors.primary} name="mic" size={14} />
+            <Glyph color={colors.primary} name="mic" size={14} />
           ) : null}
           {request.comments.length > 0 ? (
             <View className="flex-row items-center gap-1">
-              <Ionicons color={colors.mutedForeground} name="chatbubble-outline" size={13} />
+              <Glyph color={colors.mutedForeground} name="chatbubble" size={13} />
               <Text variant="caption">{request.comments.length}</Text>
             </View>
           ) : null}

@@ -52,14 +52,14 @@ export function FormDetailsSettings() {
       <SectionHeader subtitle="What the admission form asks for" title="Form details" />
       <Card padding="px-4 py-1">
         <ListRow
-          icon="card-outline"
+          icon="card"
           right={<Badge label="Required" tone="success" />}
           subtitle="Their citizenship or ID — always asked"
           title="Resident's ID document"
         />
         <RowDivider inset />
         <ListRow
-          icon="people-outline"
+          icon="people"
           right={
             <Toggle
               accessibilityLabel="Guardian's ID document required"

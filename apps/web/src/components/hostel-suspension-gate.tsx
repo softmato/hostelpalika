@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Loader2 } from "lucide-react";
+import { Clock, Loader2 } from "@/components/icons";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useState } from "react";

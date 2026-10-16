@@ -1,6 +1,6 @@
 "use client";
 
-import { Home } from "lucide-react";
+import { Home } from "@/components/icons";
 
 export type LoadState = "idle" | "loading" | "ready" | "error";
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Check, ChevronDown } from "lucide-react";
+import { CalendarDays, Check, ChevronDown } from "@/components/icons";
 import { memo, useMemo, useState, type ReactNode } from "react";
 
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

@@ -8,11 +8,11 @@ import {
   ClipboardList,
   FileDown,
   HandCoins,
-  type LucideIcon,
+  type IconComponent,
   MessageSquareWarning,
   Users,
   Wallet,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { type ReactNode, useState } from "react";
 
@@ -246,7 +246,7 @@ function PdfButtons({ kinds, period }: { kinds: ("report" | "statement")[]; peri
   );
 }
 
-function Metrics({ items }: { items: { icon: LucideIcon; label: string; note?: string; tone: SoftTone; value: string }[] }) {
+function Metrics({ items }: { items: { icon: IconComponent; label: string; note?: string; tone: SoftTone; value: string }[] }) {
   return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {items.map((item) => (

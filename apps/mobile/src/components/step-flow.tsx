@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { type ComponentProps, useState, type ReactNode } from "react";
 import { Pressable, TextInput, View } from "react-native";
@@ -11,6 +10,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { AppBar } from "@/components/ui/app-bar";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -127,7 +127,7 @@ function StepBar({
         className="h-11 w-11 items-center justify-center rounded-full active:bg-muted"
         onPress={onBack}
       >
-        <Ionicons color={colors.foreground} name="arrow-back" size={22} />
+        <Glyph color={colors.foreground} name="arrow-back" size={22} />
       </Pressable>
       <View
         accessibilityLabel={label}
@@ -227,7 +227,7 @@ export function NumberStepper({
         disabled={off}
         onPress={() => onChange(String(Math.min(max ?? Infinity, Math.max(min, count + by))))}
       >
-        <Ionicons color={off ? colors.border : colors.foreground} name={by < 0 ? "remove" : "add"} size={20} />
+        <Glyph color={off ? colors.border : colors.foreground} name={by < 0 ? "remove" : "add"} size={20} />
       </Pressable>
     );
   };
@@ -336,7 +336,7 @@ export function Accordion({
           <Text variant="subtitle">{title}</Text>
           <Text variant="caption">{caption}</Text>
         </View>
-        <Ionicons
+        <Glyph
           color={colors.mutedForeground}
           name={shown ? "chevron-up" : "chevron-down"}
           size={20}
@@ -416,7 +416,7 @@ export function ReviewFold({
           className="flex-1 flex-row items-center gap-3 active:opacity-70"
           onPress={onToggle}
         >
-          <Ionicons
+          <Glyph
             color={complete ? colors.primary : colors.warning}
             name={complete ? "checkmark-circle" : "alert-circle"}
             size={22}
@@ -424,7 +424,7 @@ export function ReviewFold({
           <Text className="flex-1" variant="label">
             {title}
           </Text>
-          <Ionicons
+          <Glyph
             color={colors.mutedForeground}
             name={open ? "chevron-up" : "chevron-down"}
             size={18}
@@ -487,14 +487,14 @@ export function ReviewVerdict({
       className="flex-row items-center gap-2 rounded-xl bg-warning-soft px-4 py-3 active:opacity-70"
       onPress={onFix}
     >
-      <Ionicons color={colors.warning} name="alert-circle" size={18} />
+      <Glyph color={colors.warning} name="alert-circle" size={18} />
       <Text className="flex-1 text-warning" variant="label">
         Some details need fixing — {incomplete}
       </Text>
     </Pressable>
   ) : (
     <View className="flex-row items-center gap-2 rounded-xl bg-brand-soft px-4 py-3">
-      <Ionicons color={colors.primary} name="checkmark-circle" size={18} />
+      <Glyph color={colors.primary} name="checkmark-circle" size={18} />
       <Text className="flex-1 text-primary" variant="label">
         All details look good!
       </Text>
@@ -530,9 +530,9 @@ export function TermsAgreement({
           hitSlop={10}
           onPress={() => onChange(!agreed)}
         >
-          <Ionicons
+          <Glyph
             color={agreed ? colors.primary : colors.mutedForeground}
-            name={agreed ? "checkbox" : "square-outline"}
+            name={agreed ? "checkbox" : "square"} variant={agreed ? "solid" : "line"}
             size={22}
           />
         </Pressable>
@@ -576,7 +576,7 @@ export function IconPoint({
   text,
 }: {
   delay: number;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   text: string;
 }) {
   const { colors } = useAppTheme();
@@ -588,7 +588,7 @@ export function IconPoint({
           .springify()
           .reduceMotion(ReduceMotion.System)}
       >
-        <Ionicons color={colors.primary} name={icon} size={18} />
+        <Glyph color={colors.primary} name={icon} size={18} />
       </Animated.View>
       <Text className="flex-1" variant="muted">
         {text}

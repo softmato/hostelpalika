@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
@@ -8,6 +7,7 @@ import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanim
 import { PhotoCapture } from "@/components/photo-capture";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Grid } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
@@ -373,7 +373,7 @@ export default function NewComplaintScreen() {
               />
 
               <SwapButton
-                icon="create-outline"
+                icon="create"
                 label="Type instead"
                 onPress={() => setMode("type")}
               />
@@ -397,7 +397,7 @@ export default function NewComplaintScreen() {
               />
 
               <SwapButton
-                icon="mic-outline"
+                icon="mic"
                 label={voiceNote ? "Back to recording" : "Say instead"}
                 onPress={() => setMode("speak")}
               />
@@ -421,9 +421,9 @@ export default function NewComplaintScreen() {
           className="flex-row items-center gap-3 rounded-2xl border border-border bg-card px-3 py-3 active:opacity-70"
           onPress={() => setIsAnonymous((value) => !value)}
         >
-          <Ionicons
+          <Glyph
             color={isAnonymous ? colors.primary : colors.mutedForeground}
-            name={isAnonymous ? "checkbox" : "square-outline"}
+            name={isAnonymous ? "checkbox" : "square"} variant={isAnonymous ? "solid" : "line"}
             size={22}
           />
 
@@ -454,7 +454,7 @@ function CategoryTile({
   onPress,
   selected,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   onPress: () => void;
   selected: boolean;
@@ -471,7 +471,7 @@ function CategoryTile({
       }`}
       onPress={onPress}
     >
-      <Ionicons
+      <Glyph
         color={selected ? colors.primaryForeground : colors.mutedForeground}
         name={icon}
         size={20}
@@ -508,7 +508,7 @@ function SwapButton({
   label,
   onPress,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   onPress: () => void;
 }) {
@@ -520,7 +520,7 @@ function SwapButton({
       className="mt-2 h-11 flex-row items-center justify-center gap-2 rounded-2xl border border-border active:opacity-70"
       onPress={onPress}
     >
-      <Ionicons color={colors.mutedForeground} name={icon} size={16} />
+      <Glyph color={colors.mutedForeground} name={icon} size={16} />
       <Text className="text-sm font-medium text-muted-foreground" variant={null}>
         {label}
       </Text>

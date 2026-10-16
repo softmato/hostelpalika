@@ -155,7 +155,7 @@ export default function InvoiceDetailScreen() {
         <EmptyState
           action={<Button label="Go back" onPress={() => router.back()} variant="outline" />}
           description="This invoice does not exist or has been removed."
-          icon="document-outline"
+          icon="document"
           title="Invoice not found"
         />
       </Screen>
@@ -544,7 +544,7 @@ function ReceiptsCard({ invoice }: { invoice: ResidentInvoice }) {
               {index > 0 ? <RowDivider /> : null}
               <ListRow
                 busy={busyId === receipt.id}
-                icon="download-outline"
+                icon="download"
                 onPress={() => void save(receipt)}
                 subtitle={
                   [

@@ -1,5 +1,4 @@
 import * as Clipboard from "expo-clipboard";
-import { Link2, MessageCircle, Share2 } from "lucide-react-native";
 import { useCallback, useState } from "react";
 import { Linking, Pressable, Share, View } from "react-native";
 
@@ -158,12 +157,12 @@ function InviteBody({
             {data.link}
           </Text>
 
-          <Button className="w-full" icon={Share2} label="Share" onPress={() => void share()} />
+          <Button className="w-full" icon="share-social" label="Share" onPress={() => void share()} />
           <View className="w-full flex-row gap-2">
-            <Button className="flex-1" icon={MessageCircle} label="WhatsApp" onPress={whatsapp} variant="outline" />
+            <Button className="flex-1" icon="chatbubble" label="WhatsApp" onPress={whatsapp} variant="outline" />
             <Button
               className="flex-1"
-              icon={Link2}
+              icon="link"
               label="Copy link"
               onPress={() => void copy(data.link, "Link copied")}
               variant="outline"
@@ -184,7 +183,7 @@ function InviteBody({
 
         <Card padding="px-4 py-1">
           <ListRow
-            icon="mail-outline"
+            icon="mail"
             iconBgColor={colors.primary}
             onPress={() => setEmailOpen(true)}
             subtitle="We email them your link and code"
@@ -205,7 +204,7 @@ function InviteBody({
                 <View key={referral.id}>
                   {index > 0 ? <RowDivider inset /> : null}
                   <ListRow
-                    icon="business-outline"
+                    icon="business"
                     right={
                       <Badge
                         label={

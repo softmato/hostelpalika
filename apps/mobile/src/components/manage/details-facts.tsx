@@ -30,7 +30,7 @@ export function DetailsFacts({
                 <View className="items-end gap-1.5">
                   <Text className="text-right text-sm font-medium text-foreground">{fact.value}</Text>
                   <Chip
-                    icon="call-outline"
+                    icon="call"
                     label={fact.phone}
                     onPress={() => void Linking.openURL(`tel:${fact.phone}`)}
                     tone="brand"

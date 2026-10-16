@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -11,6 +10,7 @@ import { IdCardFace } from "@/components/id-card-face";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Lottie } from "@/components/ui/lottie";
 import { Screen } from "@/components/ui/screen";
@@ -464,7 +464,7 @@ function IdCardDetail({
         ) : null}
 
         <View className="flex-row items-center justify-center gap-2">
-          <Ionicons color={colors.mutedForeground} name="sync-outline" size={14} />
+          <Glyph color={colors.mutedForeground} name="sync" size={14} />
           <Text variant="caption">
             Tap the card to see the {face === "front" ? "back" : "front"}
           </Text>
@@ -478,7 +478,7 @@ function IdCardDetail({
         {identity.sharingEnabled ? null : (
           <Card className="gap-2 border-l-4 border-l-warning">
             <View className="flex-row items-center gap-2">
-              <Ionicons color={colors.warning} name="eye-off-outline" size={18} />
+              <Glyph color={colors.warning} name="eye-off" size={18} />
               <Text variant="label">Sharing is off</Text>
             </View>
             <Text variant="muted">
@@ -499,28 +499,28 @@ function IdCardDetail({
           <SectionHeader title="Your ID" />
           <Card>
             <ListRow
-              icon="finger-print-outline"
+              icon="finger-print"
               onPress={() => void copyId()}
               subtitle="Tap to copy"
               title={identity.residentId ?? "—"}
             />
             <RowDivider inset />
             <ListRow
-              icon="share-social-outline"
+              icon="share-social"
               onPress={() => void shareLink()}
               subtitle="Send the link that opens your details"
               title="Share my ID"
             />
             <RowDivider inset />
             <ListRow
-              icon="image-outline"
+              icon="image"
               onPress={() => void saveCard()}
               subtitle="Saves both sides as pictures in your gallery"
               title="Save this card"
             />
             <RowDivider inset />
             <ListRow
-              icon="download-outline"
+              icon="download"
               onPress={() => void saveQr()}
               subtitle="Saves the QR as a picture in your gallery"
               title="Save my QR code"
@@ -533,7 +533,7 @@ function IdCardDetail({
           <Card>
             <ListRow
               busy={busy === "photo"}
-              icon="camera-outline"
+              icon="camera"
               onPress={() => void pickPhoto()}
               subtitle="Square, and cropped before it uploads"
               title={identity.hasPhoto ? "Replace photo" : "Add a photo"}
@@ -543,7 +543,7 @@ function IdCardDetail({
                 <RowDivider inset />
                 <ListRow
                   busy={busy === "remove"}
-                  icon="trash-outline"
+                  icon="trash"
                   onPress={removePhoto}
                   subtitle="Your card falls back to your initial"
                   title="Remove photo"
@@ -560,7 +560,7 @@ function IdCardDetail({
           />
           <Card>
             <ListRow
-              icon="qr-code-outline"
+              icon="qr-code"
               right={
                 <Switch
                   disabled={busy !== null}
@@ -580,7 +580,7 @@ function IdCardDetail({
             />
             <RowDivider inset />
             <ListRow
-              icon="create-outline"
+              icon="create"
               onPress={() => router.push("/id-card/edit")}
               subtitle="Name, contacts, guardian, blood group"
               title="Edit my details"

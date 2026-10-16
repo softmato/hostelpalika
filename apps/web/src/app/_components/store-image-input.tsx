@@ -1,6 +1,6 @@
 "use client";
 
-import { GripVertical, ImagePlus, Link2, Loader2, X } from "lucide-react";
+import { GripVertical, ImagePlus, Link2, Loader2, X } from "@/components/icons";
 import { useCallback, useId, useRef, useState, type DragEvent } from "react";
 
 import { uploadFiles } from "@/lib/uploads/uploader";

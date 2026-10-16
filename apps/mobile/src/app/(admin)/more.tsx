@@ -1,6 +1,5 @@
 import { OverallTabScreen } from "@/components/overall-views";
 import { useBranchesLock, useIsOverall } from "@/components/hostel-switcher";
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 
@@ -10,6 +9,7 @@ import { NotificationBell } from "@/components/notification-bell";
 import { SupportContact } from "@/components/support-contact";
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { type GlyphName } from "@/components/ui/glyph";
 import { Screen } from "@/components/ui/screen";
 import { useAppSelector } from "@/hooks/redux";
 import { useResource } from "@/hooks/use-resource";
@@ -37,7 +37,7 @@ import { isKycFrozenHref, useKycLock } from "@/lib/kyc-lock";
  */
 type ManageRow = {
   href: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   /** Routes are `requireHostelAdminPrincipal` — hidden from wardens. */
   ownerOnly?: boolean;
   title: string;
@@ -46,36 +46,36 @@ type ManageRow = {
 
 const MANAGE_GROUPS: ManageRow[][] = [
   [
-    { href: "/manage/finance/statement", icon: "receipt-outline", title: "Statement" },
-    { href: "/stock", icon: "cube-outline", title: "Stock", tone: "warning" },
-    { href: "/manage/finance", icon: "cash-outline", title: "Finance" },
-    { href: "/expenses", icon: "wallet-outline", title: "Expenses" },
+    { href: "/manage/finance/statement", icon: "receipt", title: "Statement" },
+    { href: "/stock", icon: "cube", title: "Stock", tone: "warning" },
+    { href: "/manage/finance", icon: "cash", title: "Finance" },
+    { href: "/expenses", icon: "wallet", title: "Expenses" },
   ],
   [
-    { href: "/manage/floors", icon: "bed-outline", title: "Rooms" },
-    { href: "/manage/wardens", icon: "shield-checkmark-outline", ownerOnly: true, title: "Wardens" },
-    { href: "/manage/cook", icon: "flame-outline", title: "Cooks", tone: "warning" },
-    { href: "/manage/roll-call", icon: "moon-outline", title: "Night status", tone: "warning" },
-    { href: "/manage/food", icon: "restaurant-outline", title: "Food", tone: "warning" },
-    { href: "/manage/notices", icon: "megaphone-outline", title: "Notices", tone: "warning" },
-    { href: "/manage/maintenance", icon: "construct-outline", title: "Repairs", tone: "danger" },
+    { href: "/manage/floors", icon: "bed", title: "Rooms" },
+    { href: "/manage/wardens", icon: "shield-checkmark", ownerOnly: true, title: "Wardens" },
+    { href: "/manage/cook", icon: "flame", title: "Cooks", tone: "warning" },
+    { href: "/manage/roll-call", icon: "moon", title: "Night status", tone: "warning" },
+    { href: "/manage/food", icon: "restaurant", title: "Food", tone: "warning" },
+    { href: "/manage/notices", icon: "megaphone", title: "Notices", tone: "warning" },
+    { href: "/manage/maintenance", icon: "construct", title: "Repairs", tone: "danger" },
   ],
   [
-    { href: "/(admin)/residents", icon: "people-outline", title: "Residents" },
-    { href: "/manage/complaints", icon: "chatbox-ellipses-outline", title: "Complaints", tone: "danger" },
-    { href: "/manage/bookings", icon: "calendar-outline", title: "Bookings" },
-    { href: "/manage/attendance", icon: "location-outline", title: "Attendance" },
-    { href: "/manage/move-history", icon: "swap-horizontal-outline", title: "Move in / out", tone: "neutral" },
-    { href: "/manage/reports", icon: "bar-chart-outline", title: "Reports" },
+    { href: "/(admin)/residents", icon: "people", title: "Residents" },
+    { href: "/manage/complaints", icon: "chatbox-ellipses", title: "Complaints", tone: "danger" },
+    { href: "/manage/bookings", icon: "calendar", title: "Bookings" },
+    { href: "/manage/attendance", icon: "location", title: "Attendance" },
+    { href: "/manage/move-history", icon: "swap-horizontal", title: "Move in / out", tone: "neutral" },
+    { href: "/manage/reports", icon: "bar-chart", title: "Reports" },
   ],
   [
-    { href: "/manage/push-notices", icon: "notifications-outline", title: "Push notices", tone: "warning" },
-    { href: "/manage/announcements", icon: "send-outline", title: "Send a notification", tone: "warning" },
-    { href: "/manage/invite-hostels", icon: "gift-outline", title: "Invite hostels" },
-    { href: "/manage/kyc", icon: "ribbon-outline", ownerOnly: true, title: "Hostel KYC" },
-    { href: "/manage/branches", icon: "business-outline", title: "Branches" },
-    { href: "/manage/billing", icon: "card-outline", title: "Billing", tone: "danger" },
-    { href: "/manage/settings", icon: "settings-outline", title: "Settings", tone: "neutral" },
+    { href: "/manage/push-notices", icon: "notifications", title: "Push notices", tone: "warning" },
+    { href: "/manage/announcements", icon: "send", title: "Send a notification", tone: "warning" },
+    { href: "/manage/invite-hostels", icon: "gift", title: "Invite hostels" },
+    { href: "/manage/kyc", icon: "ribbon", ownerOnly: true, title: "Hostel KYC" },
+    { href: "/manage/branches", icon: "business", title: "Branches" },
+    { href: "/manage/billing", icon: "card", title: "Billing", tone: "danger" },
+    { href: "/manage/settings", icon: "settings", title: "Settings", tone: "neutral" },
   ],
 ];
 
@@ -147,9 +147,9 @@ function BranchAdminMoreScreen() {
           ))}
 
           <MenuGroup>
-            <MenuRow icon="search-outline" onPress={() => router.push("/hostels")} title="Browse hostels" />
+            <MenuRow icon="search" onPress={() => router.push("/hostels")} title="Browse hostels" />
             <MenuRow
-              icon="people-outline"
+              icon="people"
               onPress={() => router.push("/community")}
               onPressIn={prefetchCommunity}
               title="Community"

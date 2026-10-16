@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2 } from "@/components/icons";
 import Link from "next/link";
 
 import { ExistingResidentsPanel } from "@/app/_components/existing-residents-panel";

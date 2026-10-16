@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, Mail, MessageCircle, Share2 } from "lucide-react";
+import { Copy, Mail, MessageCircle, Share2 } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";

@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck, UserPlus } from "lucide-react";
+import { ShieldCheck, UserPlus } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import {

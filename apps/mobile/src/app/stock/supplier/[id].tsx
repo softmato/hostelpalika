@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { type ReactNode, useMemo, useState } from "react";
 import { Linking, Pressable, View } from "react-native";
@@ -17,6 +16,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
 import { Chip, FactRow } from "@/components/ui/layout";
@@ -94,7 +94,7 @@ export default function SupplierScreen() {
       <AppBar
         accent
         actions={
-          ledger ? <IconButton label="Edit supplier" name="create-outline" onPress={() => setEditing(true)} size="sm" /> : undefined
+          ledger ? <IconButton label="Edit supplier" name="create" onPress={() => setEditing(true)} size="sm" /> : undefined
         }
         centerTitle
         showBack
@@ -258,9 +258,9 @@ function LedgerRow({ onPress, row }: { onPress?: () => void; row: SupplierLedger
   return (
     <Pressable accessibilityRole="button" className="min-h-16 flex-row items-center gap-3 py-3 active:opacity-70" disabled={!onPress} onPress={onPress}>
       <View className={`h-10 w-10 items-center justify-center rounded-full ${isPayment ? "bg-success-soft" : "bg-warning-soft"}`}>
-        <Ionicons
+        <Glyph
           color={isPayment ? colors.success : colors.warning}
-          name={isPayment ? "arrow-up-outline" : row.kind === "OPENING" ? "flag-outline" : "receipt-outline"}
+          name={isPayment ? "arrow-up" : row.kind === "OPENING" ? "flag" : "receipt"}
           size={20}
         />
       </View>
@@ -464,7 +464,7 @@ function EditSheet({
         ) : null}
         <Card padding="px-4 py-1">
           <ListRow
-            icon="eye-outline"
+            icon="eye"
             iconBgColor={colors.primary}
             right={<Toggle accessibilityLabel="Still buying from them" onChange={setActive} value={active} />}
             subtitle="Off hides them from Buy. Their bills and payments stay."

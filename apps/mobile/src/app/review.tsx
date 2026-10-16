@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
@@ -6,6 +5,7 @@ import { View } from "react-native";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -183,7 +183,7 @@ function ReviewForm({
       <View className="gap-5 pt-1">
         <Card className="gap-2">
           <View className="flex-row items-center gap-2">
-            <Ionicons color={colors.primary} name="star-outline" size={18} />
+            <Glyph color={colors.primary} name="star" size={18} />
             <Text className="flex-1" variant="label">
               {hostelName ? `How was ${hostelName}?` : "How was your hostel?"}
             </Text>

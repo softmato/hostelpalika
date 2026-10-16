@@ -10,7 +10,7 @@ import {
   RotateCcw,
   X,
   XCircle,
-} from "lucide-react";
+} from "@/components/icons";
 import { memo, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 

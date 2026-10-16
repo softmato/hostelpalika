@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, Loader2, X } from "lucide-react";
+import { CheckCircle2, Loader2, X } from "@/components/icons";
 import Link from "next/link";
 import { useState, type FormEvent, type ReactNode } from "react";
 import { createPortal } from "react-dom";

@@ -121,7 +121,7 @@ export default function OfferProgramScreen() {
        * without reading them.
        */
       action={<ApplyBlock />}
-      icon="sparkles-outline"
+      icon="sparkles"
       page="offerProgram"
       webPath="resident-offer-program"
       title="Resident Offer Program"

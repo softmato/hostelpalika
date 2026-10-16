@@ -4,7 +4,7 @@
  * ## Why inline SVG and not an icon or an image file
  *
  * The owner asked for cards carrying pictures of the tradespeople — a plumber, a
- * doctor — rather than eleven variations of the same grey glyph. An Ionicons
+ * doctor — rather than eleven variations of the same grey glyph. A glyph
  * wrench is not a plumber, and there are no illustration assets in this repo to
  * reach for.
  *

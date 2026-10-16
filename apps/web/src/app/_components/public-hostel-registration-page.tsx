@@ -35,8 +35,8 @@ import {
   Utensils,
   Wifi,
   X,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 
@@ -225,7 +225,7 @@ function markerToApplication(marker: SubmittedMarker): OwnerApplication {
 const PORTALS: {
   app: boolean;
   desc: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   title: string;
   web: boolean;
 }[] = [
@@ -2745,7 +2745,7 @@ function ReviewCard({
   title,
 }: {
   children: React.ReactNode;
-  icon: LucideIcon;
+  icon: IconComponent;
   onEdit: () => void;
   title: string;
 }) {

@@ -1,7 +1,7 @@
+import { Glyph } from "@/components/ui/glyph";
 import { takeSharedPayment } from "@/lib/shared-payment";
 import { api } from "@/lib/api";
 import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
@@ -607,9 +607,9 @@ export default function AddExpenseScreen() {
                     setOtherDay(true);
                   }}
                 >
-                  <Ionicons
+                  <Glyph
                     color={otherDay ? colors.primaryForeground : colors.foreground}
-                    name="calendar-outline"
+                    name="calendar"
                     size={18}
                   />
                   <Text
@@ -667,7 +667,7 @@ export default function AddExpenseScreen() {
                   hitSlop={6}
                   onPress={removePhoto}
                 >
-                  <Ionicons color={colors.mutedForeground} name="close-circle" size={22} />
+                  <Glyph color={colors.mutedForeground} name="close-circle" size={22} />
                 </Pressable>
               </View>
             ) : (

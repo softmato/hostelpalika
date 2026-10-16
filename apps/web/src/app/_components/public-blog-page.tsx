@@ -2,7 +2,7 @@
 
 import { PublicShell } from "@/app/_components/shared";
 import { useSiteConfig } from "@/components/site-config-provider";
-import { Calendar, Clock, Tag, User } from "lucide-react";
+import { Calendar, Clock, Tag, User } from "@/components/icons";
 
 const buildPosts = (siteName: string) => [
   {

@@ -1,6 +1,6 @@
 "use client";
 
-import { ExternalLink, Eye, Plus, Trash2 } from "lucide-react";
+import { ExternalLink, Eye, Plus, Trash2 } from "@/components/icons";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 

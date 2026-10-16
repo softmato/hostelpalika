@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarClock, CheckCircle2, FileText, Info, Loader2, Mail, Receipt, ShieldCheck } from "lucide-react";
+import { CalendarClock, CheckCircle2, FileText, Info, Loader2, Mail, Receipt, ShieldCheck } from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useMemo, useState, useSyncExternalStore, type FormEvent } from "react";
 

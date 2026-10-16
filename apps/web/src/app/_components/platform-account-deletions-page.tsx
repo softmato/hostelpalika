@@ -1,6 +1,6 @@
 "use client";
 
-import { UserMinus } from "lucide-react";
+import { UserMinus } from "@/components/icons";
 import { memo, useCallback, useState } from "react";
 
 import { EmptyState, Panel, StatusBadge } from "@/app/_components/shared-ui";

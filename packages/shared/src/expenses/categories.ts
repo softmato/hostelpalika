@@ -5,8 +5,8 @@
  * `@hostel/expenses/*` alias in `apps/mobile/metro.config.js`), so a category the
  * add screen offers is always one the API accepts and the totals group by.
  *
- * **No icons here.** The app draws Ionicons and the web draws lucide; each side
- * maps a key to its own glyph. Labels are A1 English and stay short enough to
+ * **No icons here.** Each client maps a key to a glyph from
+ * `constants/glyphs.ts`. Labels are A1 English and stay short enough to
  * sit under a tile on a small phone.
  *
  * Order is the tile order: the daily kitchen spend first, because that is what

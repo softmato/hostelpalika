@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import { Linking, View } from "react-native";
@@ -9,6 +8,7 @@ import { ProviderStatusCard } from "@/components/provider-status-card";
 import { SupportContact } from "@/components/support-contact";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { CardRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
@@ -139,7 +139,7 @@ export default function BrowseProfileScreen() {
             <MenuProfile
               avatar={
                 <View className="h-24 w-24 items-center justify-center rounded-full bg-brand-soft">
-                  <Ionicons color={colors.primary} name="person-outline" size={40} />
+                  <Glyph color={colors.primary} name="person" size={40} />
                 </View>
               }
               lines={["Sign in to send inquiries, post in the community and keep your shortlist across devices."]}
@@ -297,7 +297,7 @@ export default function BrowseProfileScreen() {
             <MenuGroup>
               {socialLinks.map(([label, href]) => (
                 <MenuRow
-                  icon="open-outline"
+                  icon="open"
                   key={label}
                   onPress={() => void Linking.openURL(href)}
                   title={label}

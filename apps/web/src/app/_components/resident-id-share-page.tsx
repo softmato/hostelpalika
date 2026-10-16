@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Copy, ShieldCheck } from "lucide-react";
+import { Check, Copy, ShieldCheck } from "@/components/icons";
 import { useState } from "react";
 
 import { PublicShell } from "./shared";

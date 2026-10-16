@@ -1,4 +1,4 @@
-import { BadgeCheck, SearchX, ShieldAlert } from "lucide-react";
+import { BadgeCheck, SearchX, ShieldAlert } from "@/components/icons";
 import type { Metadata } from "next";
 
 import { PublicShell } from "@/app/_components/shared";

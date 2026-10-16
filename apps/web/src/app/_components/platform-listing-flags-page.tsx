@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useState, useMemo, type FormEvent } from "react";
-import { AlertOctagon, CheckCircle2, Flag, XCircle } from "lucide-react";
+import { AlertOctagon, CheckCircle2, Flag, XCircle } from "@/components/icons";
 
 import { EmptyState, Panel } from "@/app/_components/shared-ui";
 import { browserApi } from "@/lib/browser-api";

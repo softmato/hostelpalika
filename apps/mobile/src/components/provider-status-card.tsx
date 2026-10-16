@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -106,9 +106,9 @@ export function ProviderStatusCard({
         <View
           className={`h-10 w-10 items-center justify-center rounded-xl ${TILE_TINT[panel.tone]}`}
         >
-          <Ionicons
+          <Glyph
             color={colors[TILE_INK[panel.tone]]}
-            name={panel.icon as keyof typeof Ionicons.glyphMap}
+            name={panel.icon as GlyphName}
             size={19}
           />
         </View>

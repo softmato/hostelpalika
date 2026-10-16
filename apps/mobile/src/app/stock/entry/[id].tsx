@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
+import { Glyph } from "@/components/ui/glyph";
 import { palette } from "@/constants/theme";
 import { ItemAvatar, NoStockAccess, stockChanged, unitLabel, useStock } from "@/components/stock/stock-parts";
 import { AppBar } from "@/components/ui/app-bar";
@@ -55,44 +55,44 @@ function banner(entry: StockEntry) {
   const short = entry.lines.some((line) => line.receivedQty !== null && line.receivedQty < line.qty);
 
   if (entry.status === "CANCELLED") {
-    return { color: palette.light.mutedForeground, icon: "close-circle-outline" as const, line: entry.cancelReason ?? day, title: "Cancelled" };
+    return { color: palette.light.mutedForeground, icon: "close-circle" as const, line: entry.cancelReason ?? day, title: "Cancelled" };
   }
 
   if (entry.kind === "SEND") {
     if (entry.status === "PENDING") {
-      return { color: palette.light.warning, icon: "arrow-redo-outline" as const, line: `Sent to ${entry.toHostelName} · ${day}`, title: "On the way" };
+      return { color: palette.light.warning, icon: "arrow-redo" as const, line: `Sent to ${entry.toHostelName} · ${day}`, title: "On the way" };
     }
 
     return short
-      ? { color: palette.light.destructive, icon: "alert-circle-outline" as const, line: `Less came at ${entry.toHostelName}`, title: "Short" }
-      : { color: palette.light.primary, icon: "checkmark-done-outline" as const, line: `Arrived at ${entry.toHostelName}`, title: "Got it" };
+      ? { color: palette.light.destructive, icon: "alert-circle" as const, line: `Less came at ${entry.toHostelName}`, title: "Short" }
+      : { color: palette.light.primary, icon: "checkmark-done" as const, line: `Arrived at ${entry.toHostelName}`, title: "Got it" };
   }
 
   const at = `At ${entry.hostelName} · ${day}`;
 
   switch (entry.kind) {
     case "BUY":
-      return { color: palette.light.primary, icon: "cart-outline" as const, line: at, title: entry.supplier || "Bought" };
+      return { color: palette.light.primary, icon: "cart" as const, line: at, title: entry.supplier || "Bought" };
     case "OPENING":
-      return { color: palette.light.primary, icon: "archive-outline" as const, line: at, title: "Opening stock" };
+      return { color: palette.light.primary, icon: "archive" as const, line: at, title: "Opening stock" };
     case "USE":
       return {
         color: palette.light.foreground,
-        icon: "restaurant-outline" as const,
+        icon: "restaurant" as const,
         line: at,
         title: `Used · ${STOCK_USE_FOR_LABELS[entry.useFor ?? "KITCHEN"]}`,
       };
     case "WASTE":
       return {
         color: palette.light.destructive,
-        icon: "trash-outline" as const,
+        icon: "trash" as const,
         line: at,
         title: `Wasted · ${STOCK_WASTE_LABELS[entry.wasteReason ?? "OTHER"]}`,
       };
     default:
       return entry.status === "PENDING"
-        ? { color: palette.light.warning, icon: "hourglass-outline" as const, line: at, title: "Count · waiting for approval" }
-        : { color: palette.light.mutedForeground, icon: "clipboard-outline" as const, line: at, title: "Counted" };
+        ? { color: palette.light.warning, icon: "hourglass" as const, line: at, title: "Count · waiting for approval" }
+        : { color: palette.light.mutedForeground, icon: "clipboard" as const, line: at, title: "Counted" };
   }
 }
 
@@ -215,7 +215,7 @@ export default function EntryDetailScreen() {
         <View className="gap-5 pb-4 pt-3">
           <View className="flex-row items-center gap-3 rounded-2xl p-4" style={{ backgroundColor: `${look.color}1A` }}>
             <View className="h-11 w-11 items-center justify-center rounded-full bg-card">
-              <Ionicons color={look.color} name={look.icon} size={22} />
+              <Glyph color={look.color} name={look.icon} size={22} />
             </View>
             <View className="flex-1">
               <Text style={{ color: look.color }} variant="subtitle">
@@ -319,7 +319,7 @@ export default function EntryDetailScreen() {
 
           {pendingCount && !entry.canApprove ? (
             <View className="flex-row items-center gap-2 rounded-xl bg-muted px-3 py-2.5">
-              <Ionicons color={colors.mutedForeground} name="information-circle-outline" size={18} />
+              <Glyph color={colors.mutedForeground} name="information-circle" size={18} />
               <Text className="flex-1" variant="caption">
                 The book changes only when the owner approves this count.
               </Text>
@@ -330,7 +330,7 @@ export default function EntryDetailScreen() {
             <View className="gap-3">
               {entry.status === "PENDING" ? (
                 <View className="flex-row items-center gap-2 rounded-xl bg-muted px-3 py-2.5">
-                  <Ionicons color={colors.mutedForeground} name="information-circle-outline" size={18} />
+                  <Glyph color={colors.mutedForeground} name="information-circle" size={18} />
                   <Text className="flex-1" variant="caption">
                     The receiving building confirms when the stock arrives.
                   </Text>

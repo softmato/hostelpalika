@@ -7,7 +7,7 @@ import {
   Loader2,
   Smartphone,
   Sparkles,
-} from "lucide-react";
+} from "@/components/icons";
 import { memo, useCallback, useState } from "react";
 
 import {

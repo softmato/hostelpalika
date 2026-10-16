@@ -1,10 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
 import { Avatar } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Meter } from "@/components/ui/meter";
 import { Money } from "@/components/ui/money";
 import { Text } from "@/components/ui/text";
@@ -62,7 +62,7 @@ export function ExpenseGlyph({
       className={`items-center justify-center rounded-xl ${muted ? "bg-muted" : "bg-brand-soft"}`}
       style={{ height: size, width: size }}
     >
-      <Ionicons
+      <Glyph
         color={muted ? colors.mutedForeground : colors.primary}
         name={expenseIcon(category)}
         size={Math.round(size * 0.48)}
@@ -114,7 +114,7 @@ export function ExpenseListRow({
             {cancelled ? "Cancelled" : expenseSubtitle(row, showWho)}
           </Text>
           {row.photoAssetId && !cancelled ? (
-            <Ionicons color={colors.mutedForeground} name="image-outline" size={12} />
+            <Glyph color={colors.mutedForeground} name="image" size={12} />
           ) : null}
         </View>
       </View>
@@ -124,7 +124,7 @@ export function ExpenseListRow({
       ) : row.cashTo ? (
         // Cash handed over: a transfer to the owner, money in to the warden.
         <View className="flex-row items-center gap-1">
-          <Ionicons
+          <Glyph
             color={showWho ? colors.mutedForeground : colors.success}
             name={showWho ? "swap-horizontal" : "caret-up"}
             size={12}
@@ -133,7 +133,7 @@ export function ExpenseListRow({
         </View>
       ) : (
         <View className="flex-row items-center gap-1">
-          <Ionicons color={colors.destructive} name="caret-down" size={12} />
+          <Glyph color={colors.destructive} name="caret-down" size={12} />
           <Money tone="debit" value={row.amount} />
         </View>
       )}

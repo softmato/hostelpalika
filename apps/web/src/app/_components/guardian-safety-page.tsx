@@ -10,7 +10,7 @@ import {
   Phone,
   RefreshCw,
   ShieldCheck,
-} from "lucide-react";
+} from "@/components/icons";
 import { memo, useCallback, useEffect, useState } from "react";
 
 import { LoadingRows } from "@/app/_components/shared-ui";

@@ -114,9 +114,9 @@ export default function ManageAttendanceScreen() {
     <Screen header={header} onRefresh={data.refresh} refreshing={data.refreshing} scroll>
       <View className="gap-5 pt-1">
         <View className="flex-row gap-3">
-          <StatTile icon="home-outline" label="Inside" tone="success" value={String(summary.INSIDE ?? 0)} />
-          <StatTile icon="walk-outline" label="Nearby" tone="warning" value={String(summary.NEARBY ?? 0)} />
-          <StatTile icon="navigate-outline" label="Outside" tone="danger" value={String(summary.OUTSIDE ?? 0)} />
+          <StatTile icon="home" label="Inside" tone="success" value={String(summary.INSIDE ?? 0)} />
+          <StatTile icon="walk" label="Nearby" tone="warning" value={String(summary.NEARBY ?? 0)} />
+          <StatTile icon="navigate" label="Outside" tone="danger" value={String(summary.OUTSIDE ?? 0)} />
         </View>
 
         {openAlerts.length > 0 ? (
@@ -127,7 +127,7 @@ export default function ManageAttendanceScreen() {
                 <View key={alert.id}>
                   {index > 0 ? <RowDivider inset /> : null}
                   <ListRow
-                    icon="alert-circle-outline"
+                    icon="alert-circle"
                     onPress={() => setResolving(alert)}
                     right={<Badge label="Resolve" tone="warning" />}
                     subtitle={`Away ${alert.consecutiveDays} days in a row`}

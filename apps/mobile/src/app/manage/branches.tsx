@@ -38,7 +38,7 @@ export default function BranchesScreen() {
   if (lock) {
     return (
       <Screen header={header}>
-        <EmptyState icon="lock-closed-outline" title={lock} tone="warning" />
+        <EmptyState icon="lock-closed" title={lock} tone="warning" />
       </Screen>
     );
   }

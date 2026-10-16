@@ -1,6 +1,6 @@
 "use client";
 
-import { MapPin, Sparkles } from "lucide-react";
+import { MapPin, Sparkles } from "@/components/icons";
 import Link from "next/link";
 
 import { mapPublicHostelToSummary } from "@/app/_components/public-hostel-data";

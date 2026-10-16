@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
@@ -16,6 +15,7 @@ import {
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Chip, Grid } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
@@ -244,7 +244,7 @@ export default function UseStockScreen() {
           <Text variant="caption">Tap what you took</Text>
           {store.length > TILES ? (
             <Input
-              leading={<Ionicons color={colors.mutedForeground} name="search" size={18} />}
+              leading={<Glyph color={colors.mutedForeground} name="search" size={18} />}
               onChangeText={setQuery}
               placeholder="Search items"
               value={query}
@@ -320,7 +320,7 @@ export default function UseStockScreen() {
                       hitSlop={8}
                       onPress={() => setLines((prev) => prev.filter((entry) => entry.itemId !== line.itemId))}
                     >
-                      <Ionicons color={colors.mutedForeground} name="close-circle" size={24} />
+                      <Glyph color={colors.mutedForeground} name="close-circle" size={24} />
                     </Pressable>
                   </View>
                   <QuickQty
@@ -379,7 +379,7 @@ function ItemTile({
       </Text>
       {picked ? (
         <View className="absolute right-1 top-1">
-          <Ionicons color={colors.primary} name="checkmark-circle" size={16} />
+          <Glyph color={colors.primary} name="checkmark-circle" size={16} />
         </View>
       ) : null}
     </Pressable>

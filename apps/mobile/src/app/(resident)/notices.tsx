@@ -1,6 +1,6 @@
 import { NoticeReader } from "@/components/notice-reader";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Sheet } from "@/components/ui/sheet";
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
@@ -379,15 +379,15 @@ export default function ResidentNoticesScreen() {
 /** A tile colour and glyph per category — the same set the office's board uses. */
 const CATEGORY_LOOK: Record<
   string,
-  { bg: string; icon: keyof typeof Ionicons.glyphMap }
+  { bg: string; icon: GlyphName }
 > = {
-  EVENT: { bg: "#AF52DE", icon: "calendar-outline" },
-  FOOD: { bg: "#FF9500", icon: "restaurant-outline" },
-  GENERAL: { bg: "#007AFF", icon: "megaphone-outline" },
-  MAINTENANCE: { bg: "#30B0C7", icon: "construct-outline" },
-  PAYMENT: { bg: "#34C759", icon: "cash-outline" },
-  RULE: { bg: "#5E5CE6", icon: "document-text-outline" },
-  URGENT: { bg: "#FF3B30", icon: "alert-circle-outline" },
+  EVENT: { bg: "#AF52DE", icon: "calendar" },
+  FOOD: { bg: "#FF9500", icon: "restaurant" },
+  GENERAL: { bg: "#007AFF", icon: "megaphone" },
+  MAINTENANCE: { bg: "#30B0C7", icon: "construct" },
+  PAYMENT: { bg: "#34C759", icon: "cash" },
+  RULE: { bg: "#5E5CE6", icon: "document-text" },
+  URGENT: { bg: "#FF3B30", icon: "alert-circle" },
 };
 
 /**
@@ -441,7 +441,7 @@ function NoticeCard({
               className="h-9 w-9 items-center justify-center rounded-[10px]"
               style={{ backgroundColor: look.bg }}
             >
-              <Ionicons color="#FFFFFF" name={look.icon} size={18} />
+              <Glyph color="#FFFFFF" name={look.icon} size={18} />
             </View>
 
             <View className="flex-1 gap-2">
@@ -461,7 +461,7 @@ function NoticeCard({
                   {notice.title}
                 </Text>
 
-                <Ionicons
+                <Glyph
                   color={colors.mutedForeground}
                   name="chevron-forward"
                   size={18}

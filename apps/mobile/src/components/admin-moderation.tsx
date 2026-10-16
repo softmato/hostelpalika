@@ -1,10 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 
 import { Pressable, View } from "react-native";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -119,7 +119,7 @@ function ReportedMedia({ media }: { media: AdminModeratedPost["media"] }) {
           {item.kind === "VIDEO" ? (
             <View className="absolute inset-0 items-center justify-center">
               <View className="h-7 w-7 items-center justify-center rounded-full bg-black/55">
-                <Ionicons color="#ffffff" name="play" size={14} />
+                <Glyph color="#ffffff" name="play" size={14} />
               </View>
             </View>
           ) : null}
@@ -228,7 +228,7 @@ export function ReportedPostCard({
           {showStatus && hidden ? <Badge label="Taken down" tone="neutral" /> : null}
           {post.reportCount ? (
             <View className="flex-row items-center gap-1 rounded-full bg-destructive/10 px-2 py-1">
-              <Ionicons color={colors.destructive} name="flag" size={11} />
+              <Glyph color={colors.destructive} name="flag" size={11} />
               <Text className="text-xs font-bold text-destructive">
                 {String(post.reportCount)}
               </Text>

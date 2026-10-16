@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock } from "lucide-react";
+import { Clock } from "@/components/icons";
 
 import { CheckoutHandoffButton } from "@/app/_components/checkout-handoff";
 import { usePortalResource } from "@/lib/portal-query";

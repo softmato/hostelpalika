@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
@@ -6,6 +5,7 @@ import { View } from "react-native";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -91,7 +91,7 @@ export default function CookInviteScreen() {
         <View className="gap-4 pt-1">
           <Card className="gap-3">
             <View className="flex-row items-center gap-2">
-              <Ionicons color={colors.success} name="checkmark-circle" size={22} />
+              <Glyph color={colors.success} name="checkmark-circle" size={22} />
               <Text variant="subtitle">Invitation accepted</Text>
             </View>
             <Text variant="muted">
@@ -131,7 +131,7 @@ export default function CookInviteScreen() {
       <View className="gap-4 pt-1">
         <Card className="gap-3">
           <View className="flex-row items-center gap-2">
-            <Ionicons color={colors.primary} name="flame-outline" size={22} />
+            <Glyph color={colors.primary} name="flame" size={22} />
             <Text variant="subtitle">You have been invited to run a kitchen</Text>
           </View>
           <Text variant="muted">

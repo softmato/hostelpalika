@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
@@ -15,6 +14,7 @@ import {
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
@@ -221,7 +221,7 @@ function LeftNow({ at, item, onEditLow }: { at: StockAt; item: StockItem; onEdit
           {at.low ? <Pill color={colors.destructive} label="Low" /> : null}
           {onEditLow ? (
             <Pressable accessibilityLabel="Change the low mark" accessibilityRole="button" hitSlop={8} onPress={onEditLow}>
-              <Ionicons color={colors.mutedForeground} name="pencil" size={16} />
+              <Glyph color={colors.mutedForeground} name="pencil" size={16} />
             </Pressable>
           ) : null}
         </View>

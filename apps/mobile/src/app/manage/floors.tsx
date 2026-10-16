@@ -130,7 +130,7 @@ export default function FloorsScreen() {
       <View className="gap-5 pt-1">
         {owner ? (
           <CardRow
-            icon="grid-outline"
+            icon="grid"
             right={
               <Toggle
                 accessibilityLabel="Keep residents by floor and room"
@@ -151,9 +151,9 @@ export default function FloorsScreen() {
         ) : (
           <>
             <View className="flex-row gap-3">
-              <StatTile icon="business-outline" label="Rooms" tone="brand" value={String(data.rooms.length)} />
-              <StatTile icon="bed-outline" label="Beds" value={String(beds)} />
-              <StatTile icon="checkmark-circle-outline" label="Free" tone={free > 0 ? "success" : "neutral"} value={String(free)} />
+              <StatTile icon="business" label="Rooms" tone="brand" value={String(data.rooms.length)} />
+              <StatTile icon="bed" label="Beds" value={String(beds)} />
+              <StatTile icon="checkmark-circle" label="Free" tone={free > 0 ? "success" : "neutral"} value={String(free)} />
             </View>
 
             {pending.length > 0 ? (
@@ -200,7 +200,7 @@ export default function FloorsScreen() {
                     <View key={person.id}>
                       {index > 0 ? <RowDivider /> : null}
                       <CardRow
-                        icon="person-outline"
+                        icon="person"
                         onPress={() => setAssign(person)}
                         subtitle={person.roomType}
                         title={person.name}
@@ -257,7 +257,7 @@ export default function FloorsScreen() {
         )}
 
         <CardRow
-          icon="pricetags-outline"
+          icon="pricetags"
           onPress={() => router.push("/manage/rooms")}
           subtitle="Types, rent, photos"
           title="Room types"

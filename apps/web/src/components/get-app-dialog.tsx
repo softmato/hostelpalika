@@ -1,6 +1,6 @@
 "use client";
 
-import { Smartphone } from "lucide-react";
+import { Smartphone } from "@/components/icons";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 

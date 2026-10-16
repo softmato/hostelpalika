@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, Undo2 } from "lucide-react";
+import { Sparkles, Undo2 } from "@/components/icons";
 import { useState } from "react";
 
 import { cn } from "@/lib/utils";

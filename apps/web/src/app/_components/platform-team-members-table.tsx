@@ -9,7 +9,7 @@ import {
   Trash2,
   UserMinus,
   Users,
-} from "lucide-react";
+} from "@/components/icons";
 import { useState } from "react";
 
 import {

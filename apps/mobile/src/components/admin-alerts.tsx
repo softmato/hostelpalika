@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import {
   createContext,
   type ReactNode,
@@ -12,6 +11,7 @@ import { Linking, View } from "react-native";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
 import { ListRow } from "@/components/ui/list-row";
@@ -496,10 +496,10 @@ export type AlertActions = ReturnType<typeof useAlertActions>;
 /* One row                                                                    */
 /* -------------------------------------------------------------------------- */
 
-const ICONS: Record<AlertKind, keyof typeof Ionicons.glyphMap> = {
-  claim: "card-outline",
-  complaint: "chatbox-ellipses-outline",
-  inquiry: "mail-outline",
+const ICONS: Record<AlertKind, GlyphName> = {
+  claim: "card",
+  complaint: "chatbox-ellipses",
+  inquiry: "mail",
   sos: "alert-circle",
 };
 
@@ -665,9 +665,9 @@ export function AlertCard({
 
       {row.kind === "inquiry" && !inquiry ? (
         <View className="flex-row items-center gap-2">
-          <Ionicons
+          <Glyph
             color={colors.mutedForeground}
-            name="information-circle-outline"
+            name="information-circle"
             size={16}
           />
           <Text className="flex-1" variant="caption">

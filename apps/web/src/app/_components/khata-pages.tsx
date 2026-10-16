@@ -16,7 +16,7 @@ import {
   UserPlus,
   Users,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { useMemo, useState, type FormEvent } from "react";
 

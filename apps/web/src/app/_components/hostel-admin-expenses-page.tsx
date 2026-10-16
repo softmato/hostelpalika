@@ -11,7 +11,7 @@ import {
   HandCoins,
   ImageIcon,
   Leaf,
-  type LucideIcon,
+  type IconComponent,
   MoreHorizontal,
   Plus,
   ShoppingBasket,
@@ -22,7 +22,7 @@ import {
   Wifi,
   Wrench,
   Zap,
-} from "lucide-react";
+} from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -129,7 +129,7 @@ const CASH_STATE: Record<NonNullable<Row["cashStatus"]>, string> = {
   PENDING: "Waiting",
 };
 
-const ICONS: Record<ExpenseCategoryKey, LucideIcon> = {
+const ICONS: Record<ExpenseCategoryKey, IconComponent> = {
   CLEANING: Sparkles,
   ELECTRICITY: Zap,
   GAS: Flame,
@@ -144,7 +144,7 @@ const ICONS: Record<ExpenseCategoryKey, LucideIcon> = {
   WATER: Droplets,
 };
 
-function iconFor(category: ExpenseCategoryValue): LucideIcon {
+function iconFor(category: ExpenseCategoryValue): IconComponent {
   return category === "CUSTOM" ? Tag : ICONS[category];
 }
 
@@ -165,7 +165,7 @@ function newRequestId() {
   return `web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-function Glyph({ icon: Icon, muted = false }: { icon: LucideIcon; muted?: boolean }) {
+function Glyph({ icon: Icon, muted = false }: { icon: IconComponent; muted?: boolean }) {
   return (
     <span
       className={cn(
@@ -749,7 +749,7 @@ function AddExpenseDialog({
     }
   };
 
-  const tiles: { choice: Choice; icon: LucideIcon; key: string; label: string }[] = [
+  const tiles: { choice: Choice; icon: IconComponent; key: string; label: string }[] = [
     // Only the owner hands cash to a warden.
     ...EXPENSE_CATEGORY_KEYS.filter((key) => owner || key !== "STAFF_CASH").map((key) => ({
       choice: { category: key } as Choice,

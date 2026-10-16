@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
@@ -20,6 +19,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { isPdfReceipt, PdfPreview, readRemotePdf } from "@/components/receipt-preview";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
 import { useSystemInsets } from "@/hooks/use-system-insets";
@@ -333,7 +333,7 @@ function ViewerBody({
           hitSlop={8}
           onPress={closeAssetViewer}
         >
-          <Ionicons color="#ffffff" name="close" size={22} />
+          <Glyph color="#ffffff" name="close" size={22} />
         </Pressable>
 
         <View className="flex-1">
@@ -355,7 +355,7 @@ function ViewerBody({
           {saving ? (
             <ActivityIndicator color="#ffffff" size="small" />
           ) : (
-            <Ionicons color="#ffffff" name="share-outline" size={20} />
+            <Glyph color="#ffffff" name="share" size={20} />
           )}
         </Pressable>
       </Animated.View>
@@ -453,7 +453,7 @@ function StripThumb({
         <Image contentFit="cover" source={source} style={cell} />
       ) : (
         <View className="items-center justify-center" style={cell}>
-          <Ionicons color="#ffffff" name="document-outline" size={16} />
+          <Glyph color="#ffffff" name="document" size={16} />
         </View>
       )}
     </Pressable>
@@ -576,7 +576,7 @@ function ViewerPage({
   if (!source || !isPreviewable(item)) {
     return (
       <View className="items-center justify-center gap-2 px-8" style={{ height, width }}>
-        <Ionicons color="#ffffff" name="document-outline" size={40} />
+        <Glyph color="#ffffff" name="document" size={40} />
         <Text className="text-center text-sm text-white/70">
           {isPreviewable(item)
             ? "This file could not be found."
@@ -595,7 +595,7 @@ function ViewerPage({
 
         {status === "failed" ? (
           <View className="absolute items-center gap-2 px-8">
-            <Ionicons color="#ffffff" name="image-outline" size={40} />
+            <Glyph color="#ffffff" name="image" size={40} />
             <Text className="text-center text-sm text-white/70">
               That image could not be loaded.
             </Text>

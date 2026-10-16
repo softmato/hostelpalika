@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, LogOut } from "lucide-react";
+import { Loader2, LogOut } from "@/components/icons";
 import { useEffect, useState, type FormEvent } from "react";
 
 import { currency } from "@/app/_components/shared-ui";

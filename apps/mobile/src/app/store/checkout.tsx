@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
@@ -7,6 +6,7 @@ import { useStoreCart } from "@/components/store/store-cart";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
@@ -244,7 +244,7 @@ export default function StoreCheckoutScreen() {
           {(checkout.data?.paymentMethods ?? []).map((method) => (
             <Card className="flex-row items-center gap-3" key={method.id}>
               <View className="h-10 w-10 items-center justify-center rounded-2xl bg-brand-soft">
-                <Ionicons color={colors.primary} name="cash-outline" size={20} />
+                <Glyph color={colors.primary} name="cash" size={20} />
               </View>
 
               <View className="flex-1">
@@ -252,7 +252,7 @@ export default function StoreCheckoutScreen() {
                 <Text variant="caption">{method.description}</Text>
               </View>
 
-              <Ionicons color={colors.primary} name="radio-button-on" size={20} />
+              <Glyph color={colors.primary} name="radio-button-on" size={20} />
             </Card>
           ))}
         </View>

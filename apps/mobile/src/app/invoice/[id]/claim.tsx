@@ -1,5 +1,5 @@
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { takeSharedPayment } from "@/lib/shared-payment";
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router, useLocalSearchParams } from "expo-router";
@@ -478,7 +478,7 @@ export default function SubmitClaimScreen() {
         leading:
           option.value === AUTO_METHOD ? (
             <View className="h-7 w-7 items-center justify-center rounded-lg bg-brand-soft">
-              <Ionicons color={colors.primary} name="scan-outline" size={16} />
+              <Glyph color={colors.primary} name="scan" size={16} />
             </View>
           ) : (
             // 28, not 32: the same node is drawn on the `<Select>` trigger, which
@@ -1037,7 +1037,7 @@ export default function SubmitClaimScreen() {
           to ride along here; the code has its own row below, and a resident
           who hits the limit is told so by the refusal itself.
         */}
-        <Notice icon="receipt-outline" title={`${formatMoney(data.amountDue)} due`} />
+        <Notice icon="receipt" title={`${formatMoney(data.amountDue)} due`} />
 
         {/* Sharing from the bank app skips this whole form. */}
         <ShareReceiptGuide />
@@ -1228,7 +1228,7 @@ export default function SubmitClaimScreen() {
                   hitSlop={8}
                   onPress={() => setWhereOpen(true)}
                 >
-                  <Ionicons color={colors.primary} name="help-circle-outline" size={14} />
+                  <Glyph color={colors.primary} name="help-circle" size={14} />
                   <Text className="text-primary" variant="caption">
                     Show me where to find this
                   </Text>
@@ -1322,7 +1322,7 @@ function SubmittedScreen({
       <View className="gap-6 pt-6">
         <View className="items-center gap-3">
           <View className="h-24 w-24 items-center justify-center rounded-full bg-success-soft">
-            <Ionicons color={colors.success} name="checkmark-circle" size={56} />
+            <Glyph color={colors.success} name="checkmark-circle" size={56} />
           </View>
 
           <Text className="text-center" variant="title">
@@ -1375,7 +1375,7 @@ function NotSentScreen({
     >
       <View className="items-center gap-3 pt-6">
         <View className="h-24 w-24 items-center justify-center rounded-full bg-destructive-soft">
-          <Ionicons color={colors.destructive} name="alert-circle" size={56} />
+          <Glyph color={colors.destructive} name="alert-circle" size={56} />
         </View>
 
         <Text className="text-center" variant="title">
@@ -1426,7 +1426,7 @@ function RefusedScreen({
             carries just as far around the heading it belongs to. */}
         <View className="items-center gap-3 rounded-2xl bg-destructive-soft px-5 py-7">
           <View className="h-20 w-20 items-center justify-center rounded-full bg-background">
-            <Ionicons color={colors.destructive} name="alert-circle" size={44} />
+            <Glyph color={colors.destructive} name="alert-circle" size={44} />
           </View>
 
           <Text className="text-center" variant="title">
@@ -1588,9 +1588,9 @@ function AttachedFile({
     >
       {isPdf || !uri ? (
         <View className="h-11 w-11 items-center justify-center rounded-xl bg-muted">
-          <Ionicons
+          <Glyph
             color={colors.mutedForeground}
-            name={isPdf ? "document-text-outline" : "image-outline"}
+            name={isPdf ? "document-text" : "image"}
             size={20}
           />
         </View>
@@ -1620,7 +1620,7 @@ function AttachedFile({
         hitSlop={8}
         onPress={onRemove}
       >
-        <Ionicons color={colors.mutedForeground} name="close" size={18} />
+        <Glyph color={colors.mutedForeground} name="close" size={18} />
       </Pressable>
     </Pressable>
   );
@@ -1768,7 +1768,7 @@ function EvidenceStatus({
     />
   ) : (
     <Notice
-      icon="scan-outline"
+      icon="scan"
       title="Uploaded. Fill in the amount and ID."
     />
   );
@@ -1804,7 +1804,7 @@ function ReferenceState({
     },
     reminder: {
       body: "Add it to the remarks when you pay.",
-      icon: "pricetag-outline" as const,
+      icon: "pricetag" as const,
       title: `Reference ${code}`,
       tone: "plain" as const,
     },
@@ -1860,7 +1860,7 @@ function Notice({
 }: {
   action?: { label: string; onPress: () => void };
   body?: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   title: string;
   tone?: keyof typeof NOTICE_TONES;
 }) {
@@ -1870,7 +1870,7 @@ function Notice({
   return (
     <View className={`gap-3 rounded-2xl border p-4 ${palette.wrap}`}>
       <View className="flex-row items-start gap-2.5">
-        <Ionicons color={colors[palette.icon]} name={icon} size={18} />
+        <Glyph color={colors[palette.icon]} name={icon} size={18} />
         <View className="flex-1 gap-0.5">
           <Text variant="label">{title}</Text>
           {body ? <Text variant="caption">{body}</Text> : null}
@@ -1896,7 +1896,7 @@ function ReadOffReceipt({ text }: { text: string }) {
 
   return (
     <View className="flex-row items-center gap-1.5">
-      <Ionicons color={colors.success} name="scan" size={13} />
+      <Glyph color={colors.success} name="scan" size={13} />
       <Text className="flex-1 text-success" variant="caption">
         {text}
       </Text>
@@ -1937,7 +1937,7 @@ function Dropzone({
     <View className="gap-2.5">
       <View className="items-center gap-3 rounded-2xl border-2 border-dashed border-border bg-muted/20 px-5 py-7">
         <View className="h-12 w-12 items-center justify-center rounded-full bg-brand-soft">
-          <Ionicons color={colors.primary} name="cloud-upload-outline" size={24} />
+          <Glyph color={colors.primary} name="cloud-upload" size={24} />
         </View>
 
         <View className="items-center gap-1">
@@ -1964,10 +1964,10 @@ function Dropzone({
       </View>
 
       <View className="flex-row gap-2.5">
-        <SourceTile icon="images-outline" label="Photos" onPress={onLibrary} />
-        <SourceTile icon="camera-outline" label="Camera" onPress={onCamera} />
+        <SourceTile icon="images" label="Photos" onPress={onLibrary} />
+        <SourceTile icon="camera" label="Camera" onPress={onCamera} />
         {canPickDocument ? (
-          <SourceTile icon="folder-open-outline" label="Files" onPress={onDocument} />
+          <SourceTile icon="folder-open" label="Files" onPress={onDocument} />
         ) : null}
       </View>
     </View>
@@ -1980,7 +1980,7 @@ function SourceTile({
   label,
   onPress,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   onPress: () => void;
 }) {
@@ -1993,7 +1993,7 @@ function SourceTile({
       className="flex-1 items-center gap-1.5 rounded-2xl border border-border bg-card py-3 active:opacity-70"
       onPress={onPress}
     >
-      <Ionicons color={colors.primary} name={icon} size={20} />
+      <Glyph color={colors.primary} name={icon} size={20} />
       <Text variant="caption">{label}</Text>
     </Pressable>
   );

@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { View } from "react-native";
 
 import { FLOAT_SHADOW, PaintedAmount, usePortalPaint } from "@/components/portal-shared";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { collectionRate } from "@/lib/admin-home";
 import { formatMoney, heroAmountSize } from "@/lib/format";
@@ -94,7 +94,7 @@ export function AdminMoneyCard({
 
             {proofs > 0 ? (
               <View className="flex-row items-center gap-1 rounded-full bg-white px-2.5 py-1">
-                <Ionicons color="#b45309" name="time-outline" size={11} />
+                <Glyph color="#b45309" name="time" size={11} />
                 <Text
                   className="font-bold text-[#b45309]"
                   numberOfLines={1}

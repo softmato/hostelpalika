@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Camera, CheckCircle2, FileText, ImagePlus, Smartphone, UserRound } from "lucide-react";
+import { AlertTriangle, Camera, CheckCircle2, FileText, ImagePlus, Smartphone, UserRound } from "@/components/icons";
 import Link from "next/link";
 import { useRef, useState } from "react";
 

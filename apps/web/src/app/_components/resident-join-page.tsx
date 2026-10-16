@@ -10,7 +10,7 @@ import {
   RotateCcw,
   ShieldCheck,
   Smartphone,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 

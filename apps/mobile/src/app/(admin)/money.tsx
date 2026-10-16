@@ -1,11 +1,10 @@
 import { OverallTabScreen } from "@/components/overall-views";
 import { useIsOverall } from "@/components/hostel-switcher";
 import { KycLockedScreen } from "@/components/kyc-frost";
+import { Glyph } from "@/components/ui/glyph";
 import { useKycLock } from "@/lib/kyc-lock";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { Banknote } from "lucide-react-native";
 import { Linking, Pressable, View } from "react-native";
 
 import {
@@ -872,7 +871,7 @@ function BranchAdminMoneyScreen() {
                   {listed.length > visible.length ? (
                     <Card padding="px-4 py-1">
                       <ListRow
-                        icon="chevron-down-outline"
+                        icon="chevron-down"
                         onPress={() => setShowAll(true)}
                         title={`Show all ${listed.length}`}
                       />
@@ -916,7 +915,7 @@ function BranchAdminMoneyScreen() {
           <View className="px-5">
             <Card padding="px-4 py-1">
               <ListRow
-                icon="options-outline"
+                icon="options"
                 onPress={() => router.push("/manage/finance")}
                 subtitle="Rate card, the monthly billing run, payment details, statements"
                 title="Finance settings"
@@ -934,7 +933,7 @@ function BranchAdminMoneyScreen() {
         {open && done ? (
           <View className="items-center gap-3 pb-2 pt-2">
             {done.pending ? (
-              <Ionicons color={colors.warning} name="hourglass-outline" size={72} />
+              <Glyph color={colors.warning} name="hourglass" size={72} />
             ) : (
               <Lottie loop={false} size={140} source={SUCCESS_ANIMATION} />
             )}
@@ -1005,7 +1004,7 @@ function BranchAdminMoneyScreen() {
                 */
                 <View className="flex-row flex-wrap gap-2">
                   <Chip
-                    icon="pricetag-outline"
+                    icon="pricetag"
                     label={`Would be ${formatMoney(projectedAmount(open)!)}`}
                   />
                 </View>
@@ -1037,7 +1036,7 @@ function BranchAdminMoneyScreen() {
               <View className="flex-row flex-wrap gap-2">
                 {open.resident.phone ? (
                   <Chip
-                    icon="call-outline"
+                    icon="call"
                     label={open.resident.phone}
                     onPress={() =>
                       void Linking.openURL(`tel:${open.resident.phone}`)
@@ -1046,7 +1045,7 @@ function BranchAdminMoneyScreen() {
                   />
                 ) : null}
                 <Chip
-                  icon="person-outline"
+                  icon="person"
                   label="Open their record"
                   onPress={() => {
                     const residentId = open.resident.id;
@@ -1066,7 +1065,7 @@ function BranchAdminMoneyScreen() {
                     {open.payment.status !== "PAID" &&
                     open.payment.lines.some((line) => line.basis === "FINE") ? (
                       <View className="flex-row">
-                        <Chip icon="close-circle-outline" label="Waive fine" onPress={waiveFine} />
+                        <Chip icon="close-circle" label="Waive fine" onPress={waiveFine} />
                       </View>
                     ) : null}
                   </View>
@@ -1148,7 +1147,7 @@ function BranchAdminMoneyScreen() {
                   ) : (
                     <View className="flex-row">
                       <Chip
-                        icon="create-outline"
+                        icon="create"
                         label="Add a note"
                         onPress={() => setShowNote(true)}
                       />
@@ -1162,7 +1161,7 @@ function BranchAdminMoneyScreen() {
                   ) : null}
                   <Button
                     disabled={busy === "void"}
-                    icon={Banknote}
+                    icon="cash"
                     label={
                       Number(cash.amount) > 0
                         ? `Collect ${formatMoney(Number(cash.amount))}`
@@ -1183,7 +1182,7 @@ function BranchAdminMoneyScreen() {
                     onPress={() => setVoidOpen((value) => !value)}
                   >
                     <Text variant="muted">Void this invoice</Text>
-                    <Ionicons
+                    <Glyph
                       color={colors.mutedForeground}
                       name={voidOpen ? "chevron-up" : "chevron-down"}
                       size={18}

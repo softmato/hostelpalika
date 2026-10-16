@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarClock, Coins, Layers, PartyPopper, Trash2 } from "lucide-react";
+import { CalendarClock, Coins, Layers, PartyPopper, Trash2 } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import {

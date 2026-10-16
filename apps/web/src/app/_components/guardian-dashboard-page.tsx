@@ -10,7 +10,7 @@ import {
   Phone,
   ReceiptText,
   WalletCards,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
 

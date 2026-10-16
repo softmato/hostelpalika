@@ -1,4 +1,3 @@
-import { Percent, Tag } from "lucide-react-native";
 import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 
@@ -6,6 +5,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
@@ -322,7 +322,7 @@ export default function ManageMonthDiscountsScreen() {
               <View key={row._id}>
                 {index > 0 ? <RowDivider inset /> : null}
                 <ListRow
-                  icon="gift-outline"
+                  icon="gift"
                   iconBgColor={row.standing === "past" ? "#8E8E93" : "#FF9500"}
                   onPress={() => setActing(row)}
                   right={
@@ -386,7 +386,7 @@ export default function ManageMonthDiscountsScreen() {
           <Input
             keyboardType="number-pad"
             label="Or type a percentage"
-            leading={<Percent color={colors.mutedForeground} size={18} />}
+            leading={<Glyph name="percent" color={colors.mutedForeground} size={18} />}
             onChangeText={setPercentOff}
             placeholder="%"
             value={percentOff}
@@ -394,7 +394,7 @@ export default function ManageMonthDiscountsScreen() {
           <Input
             hint="Printed on the bill."
             label="Reason"
-            leading={<Tag color={colors.mutedForeground} size={18} />}
+            leading={<Glyph name="pricetag" color={colors.mutedForeground} size={18} />}
             onChangeText={setReason}
             placeholder="Dashain"
             value={reason}

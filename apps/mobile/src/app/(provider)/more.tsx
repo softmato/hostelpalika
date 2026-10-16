@@ -33,9 +33,9 @@ export default function ProviderMoreScreen() {
 
         <MenuGroups>
           <MenuGroup>
-            <MenuRow icon="search-outline" onPress={() => router.push("/hostels")} title="Explore hostels" />
+            <MenuRow icon="search" onPress={() => router.push("/hostels")} title="Explore hostels" />
             <MenuRow
-              icon="people-outline"
+              icon="people"
               onPress={() => router.push("/community")}
               onPressIn={prefetchCommunity}
               title="Community"

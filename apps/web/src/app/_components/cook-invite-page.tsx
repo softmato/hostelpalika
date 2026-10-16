@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, ChefHat } from "lucide-react";
+import { CheckCircle2, ChefHat } from "@/components/icons";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { memo, useCallback, useState } from "react";

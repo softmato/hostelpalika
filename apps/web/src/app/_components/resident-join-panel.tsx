@@ -10,7 +10,7 @@ import {
   RefreshCw,
   RotateCcw,
   UserCheck,
-} from "lucide-react";
+} from "@/components/icons";
 import { useState } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";

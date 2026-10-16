@@ -166,7 +166,7 @@ function GuardianRow({ link, onPress }: { link: GuardianLink; onPress: () => voi
 
   return (
     <ListRow
-      icon="shield-outline"
+      icon="shield"
       onPress={onPress}
       right={
         pending ? (
@@ -313,13 +313,13 @@ function PermissionSheet({
           <View className="flex-row flex-wrap gap-2">
             {link.phone ? (
               <Chip
-                icon="call-outline"
+                icon="call"
                 label={link.phone}
                 onPress={() => void Linking.openURL(`tel:${link.phone}`)}
                 tone="brand"
               />
             ) : null}
-            {link.email ? <Chip icon="mail-outline" label={link.email} /> : null}
+            {link.email ? <Chip icon="mail" label={link.email} /> : null}
           </View>
 
           {pending ? (

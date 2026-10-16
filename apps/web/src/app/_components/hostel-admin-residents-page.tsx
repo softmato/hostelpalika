@@ -14,7 +14,7 @@ import {
   UserPlus,
   Users,
   X,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import {
   memo,

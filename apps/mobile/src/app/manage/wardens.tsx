@@ -281,7 +281,7 @@ export default function ManageWardensScreen() {
     <Screen
       floating={
         <FloatingButton
-          icon="person-add-outline"
+          icon="person-add"
           label="Invite a warden"
           onPress={() => {
             setDraft(BLANK_DRAFT);
@@ -356,7 +356,7 @@ export default function ManageWardensScreen() {
 
             <Card padding="px-4 py-1">
               <ListRow
-                icon="key-outline"
+                icon="key"
                 iconBgColor="#007AFF"
                 onPress={() => openPermissions(acting)}
                 title="Permissions"
@@ -364,7 +364,7 @@ export default function ManageWardensScreen() {
               <RowDivider inset />
               <ListRow
                 busy={busy}
-                icon={acting.status === "SUSPENDED" ? "play-outline" : "pause-outline"}
+                icon={acting.status === "SUSPENDED" ? "play" : "pause"}
                 iconBgColor="#FF9500"
                 onPress={() =>
                   void setStatus(acting, acting.status === "SUSPENDED" ? "ACTIVE" : "SUSPENDED")
@@ -373,7 +373,7 @@ export default function ManageWardensScreen() {
               />
               <RowDivider inset />
               <ListRow
-                icon="trash-outline"
+                icon="trash"
                 iconBgColor="#FF3B30"
                 onPress={() => remove(acting)}
                 title="Remove"

@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { type ReactNode, useState } from "react";
 import { Linking, Pressable, View } from "react-native";
 
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { contentIcon } from "@/lib/site-content";
@@ -32,15 +32,15 @@ import { contentIcon } from "@/lib/site-content";
 
 /**
  * A masthead glyph, named directly. Screen chrome rather than content, so it is
- * an Ionicons name in the screen file and not a slug from the database.
+ * a glyph name in the screen file and not a slug from the database.
  */
-export type InfoIcon = keyof typeof Ionicons.glyphMap;
+export type InfoIcon = GlyphName;
 
 /**
  * One section as the site config stores it. `icon` is the platform's own slug —
  * `shield`, `receipt`, `map-pin` — resolved through `lib/site-content.ts`, not
- * an Ionicons name: the same slug has to mean the same thing to the website's
- * lucide set and to this one.
+ * a glyph name: the same slug has to mean the same thing on the website and
+ * here.
  */
 /**
  * `bullets` for the legal and programme pages, whose copy is written as
@@ -76,7 +76,7 @@ export function InfoHeader({
   return (
     <View className="items-center gap-3 pb-2 pt-4">
       <View className="h-14 w-14 items-center justify-center rounded-2xl bg-brand-soft">
-        <Ionicons color={colors.primary} name={icon} size={26} />
+        <Glyph color={colors.primary} name={icon} size={26} />
       </View>
 
       <Text className="text-center" variant="title">
@@ -273,13 +273,13 @@ export function InfoSection({
   const heading = (
     <View className="flex-row items-center gap-3">
       <View className="h-9 w-9 items-center justify-center rounded-xl bg-brand-soft">
-        <Ionicons color={colors.primary} name={contentIcon(icon)} size={18} />
+        <Glyph color={colors.primary} name={contentIcon(icon)} size={18} />
       </View>
       <Text className="flex-1" variant="subtitle">
         {title}
       </Text>
       {collapsible ? (
-        <Ionicons
+        <Glyph
           color={colors.mutedForeground}
           name={expanded ? "chevron-up" : "chevron-down"}
           size={18}

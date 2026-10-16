@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -7,6 +6,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -250,7 +250,7 @@ function NightStatusForm({
         {standing.sosNotice ? (
           <Card className="gap-2 border-l-4 border-l-destructive">
             <View className="flex-row items-center gap-2">
-              <Ionicons color={colors.destructive} name="warning-outline" size={18} />
+              <Glyph color={colors.destructive} name="warning" size={18} />
               <Text variant="label">An SOS is on your record</Text>
             </View>
             <Text variant="muted">{standing.sosNotice}</Text>
@@ -279,7 +279,7 @@ function NightStatusForm({
                     className="h-12 w-12 items-center justify-center rounded-full"
                     style={{ backgroundColor: selected ? colors.primary : colors.muted }}
                   >
-                    <Ionicons
+                    <Glyph
                       color={selected ? colors.primaryForeground : colors.mutedForeground}
                       name={option.icon}
                       size={22}

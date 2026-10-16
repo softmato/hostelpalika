@@ -20,7 +20,7 @@ describe("notificationVisual", () => {
       title: "Promo",
     });
 
-    expect(visual.icon).toBe("notifications-outline");
+    expect(visual.icon).toBe("notifications");
     expect(visual.tone).toBe("neutral");
     // The server's own word, not "Update" — `category` is free text there.
     expect(visual.label).toBe("Store promo");
@@ -28,7 +28,7 @@ describe("notificationVisual", () => {
 
   it("falls back to a bell when there is no category at all", () => {
     expect(notificationVisual({ title: "Hello" })).toEqual({
-      icon: "notifications-outline",
+      icon: "notifications",
       label: "Update",
       tone: "neutral",
     });
@@ -46,7 +46,7 @@ describe("notificationVisual", () => {
       title: "Lunch is served",
     });
 
-    expect(visual).toEqual({ icon: "restaurant-outline", label: "Food", tone: "brand" });
+    expect(visual).toEqual({ icon: "restaurant", label: "Food", tone: "brand" });
   });
 
   it("keeps the category's label when an event changes the glyph", () => {
@@ -59,7 +59,7 @@ describe("notificationVisual", () => {
     // The chip answers "which part of the product", which the outcome has not
     // changed — only the picture and the colour move.
     expect(visual.label).toBe("Complaint");
-    expect(visual.icon).toBe("checkmark-circle-outline");
+    expect(visual.icon).toBe("checkmark-circle");
     expect(visual.tone).toBe("success");
   });
 });
@@ -96,7 +96,7 @@ describe("words whose meaning inverts", () => {
       title: "Payment received",
     });
 
-    expect(visual.icon).toBe("wallet-outline");
+    expect(visual.icon).toBe("wallet");
     expect(visual.tone).toBe("success");
   });
 
@@ -107,7 +107,7 @@ describe("words whose meaning inverts", () => {
       title: "Rent overdue",
     });
 
-    expect(visual.icon).toBe("alert-circle-outline");
+    expect(visual.icon).toBe("alert-circle");
     expect(visual.tone).toBe("danger");
   });
 
@@ -118,7 +118,7 @@ describe("words whose meaning inverts", () => {
       title: "Rent reminder",
     });
 
-    expect(visual.icon).toBe("alarm-outline");
+    expect(visual.icon).toBe("alarm");
     expect(visual.tone).toBe("warning");
   });
 
@@ -129,7 +129,7 @@ describe("words whose meaning inverts", () => {
       title: "Refund issued",
     });
 
-    expect(visual.icon).toBe("arrow-undo-outline");
+    expect(visual.icon).toBe("arrow-undo");
     expect(visual.tone).toBe("neutral");
   });
 });
@@ -142,7 +142,7 @@ describe("the events with their own picture", () => {
       title: "New resident registered",
     });
 
-    expect(visual.icon).toBe("person-add-outline");
+    expect(visual.icon).toBe("person-add");
     expect(visual.tone).toBe("success");
   });
 
@@ -153,7 +153,7 @@ describe("the events with their own picture", () => {
       title: "Registration successful",
     });
 
-    expect(visual.icon).toBe("person-add-outline");
+    expect(visual.icon).toBe("person-add");
     expect(visual.tone).toBe("success");
   });
 
@@ -164,7 +164,7 @@ describe("the events with their own picture", () => {
         category: "RESIDENT",
         title: "Resident moved out",
       }).icon,
-    ).toBe("person-remove-outline");
+    ).toBe("person-remove");
   });
 
   it("marks a shared post", () => {
@@ -174,7 +174,7 @@ describe("the events with their own picture", () => {
       title: "Your post was shared",
     });
 
-    expect(visual.icon).toBe("share-social-outline");
+    expect(visual.icon).toBe("share-social");
   });
 
   it("tells a mention from a comment from a reaction", () => {
@@ -194,9 +194,9 @@ describe("the events with their own picture", () => {
       title: "Reactions",
     });
 
-    expect(mention.icon).toBe("at-outline");
-    expect(comment.icon).toBe("chatbubble-ellipses-outline");
-    expect(reaction.icon).toBe("heart-outline");
+    expect(mention.icon).toBe("at");
+    expect(comment.icon).toBe("chatbubble-ellipses");
+    expect(reaction.icon).toBe("heart");
   });
 
   it("tells a delivered order from one still on its way", () => {
@@ -206,7 +206,7 @@ describe("the events with their own picture", () => {
         category: "STORE_ORDER",
         title: "Order delivered",
       }).icon,
-    ).toBe("bag-check-outline");
+    ).toBe("bag-check");
 
     expect(
       notificationVisual({
@@ -214,7 +214,7 @@ describe("the events with their own picture", () => {
         category: "STORE_ORDER",
         title: "Order shipped",
       }).icon,
-    ).toBe("cube-outline");
+    ).toBe("cube");
   });
 
   it("treats a new sign-in as amber rather than red", () => {
@@ -224,7 +224,7 @@ describe("the events with their own picture", () => {
       title: "Security alert",
     });
 
-    expect(visual.icon).toBe("shield-outline");
+    expect(visual.icon).toBe("shield");
     expect(visual.tone).toBe("warning");
   });
 });
@@ -239,7 +239,7 @@ describe("scoping", () => {
       title: "Tank cleaning",
     });
 
-    expect(visual.icon).toBe("megaphone-outline");
+    expect(visual.icon).toBe("megaphone");
     expect(visual.tone).toBe("brand");
   });
 
@@ -262,7 +262,7 @@ describe("scoping", () => {
 
     // Green here would be the one row on the screen that has to still read as an
     // alarm when the day is scanned.
-    expect(visual.icon).toBe("warning-outline");
+    expect(visual.icon).toBe("warning");
     expect(visual.tone).toBe("danger");
   });
 

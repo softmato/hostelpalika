@@ -1,6 +1,6 @@
 "use client";
 
-import { Crosshair, Link2, Loader2, MapPin, Search } from "lucide-react";
+import { Crosshair, Link2, Loader2, MapPin, Search } from "@/components/icons";
 import dynamic from "next/dynamic";
 import { useCallback, useRef, useState } from "react";
 

@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import { Alert, View } from "react-native";
@@ -7,6 +6,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { FactRow } from "@/components/ui/layout";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
@@ -148,9 +148,9 @@ export default function StoreOrderScreen() {
           </View>
 
           <View className="flex-row items-center gap-2 rounded-xl bg-muted px-3 py-2.5">
-            <Ionicons
+            <Glyph
               color={order.paymentStatus === "PAID" ? colors.success : colors.mutedForeground}
-              name={order.paymentStatus === "PAID" ? "checkmark-circle" : "cash-outline"}
+              name={order.paymentStatus === "PAID" ? "checkmark-circle" : "cash"}
               size={18}
             />
             <Text className="flex-1 text-xs text-muted-foreground">
@@ -271,9 +271,10 @@ function TimelineRow({
   return (
     <View className="flex-row items-start gap-3">
       <View className="pt-1">
-        <Ionicons
+        <Glyph
           color={latest ? colors.primary : colors.mutedForeground}
-          name={latest ? "ellipse" : "ellipse-outline"}
+          name="ellipse"
+          variant={latest ? "solid" : "line"}
           size={11}
         />
       </View>

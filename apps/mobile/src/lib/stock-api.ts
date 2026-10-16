@@ -1,4 +1,4 @@
-import type { Ionicons } from "@expo/vector-icons";
+import type { GlyphName } from "@hostel/constants/glyphs";
 
 import { palette } from "@/constants/theme";
 import { REALTIME_TOPIC } from "@/constants/topics";
@@ -496,7 +496,7 @@ export function usageTotals(usage: StockUsage, place: string | null, day: string
 /* Look                                                                       */
 /* -------------------------------------------------------------------------- */
 
-type IconName = keyof typeof Ionicons.glyphMap;
+type IconName = GlyphName;
 
 /**
  * An item's picture: an emoji, read from the
@@ -601,7 +601,7 @@ export function entryView(entry: StockEntry, mine: ReadonlySet<string>): EntryVi
     return {
       color: cancelled ? grey : palette.light.primary,
       detail: entry.supplier || namesSummary(entry.lines),
-      icon: "cart-outline",
+      icon: "cart",
       kind: "BOUGHT",
       label: entry.bill?.billNo ? `Bill ${entry.bill.billNo}` : "Bought",
     };
@@ -611,7 +611,7 @@ export function entryView(entry: StockEntry, mine: ReadonlySet<string>): EntryVi
     return {
       color: cancelled ? grey : palette.light.primary,
       detail: namesSummary(entry.lines),
-      icon: "archive-outline",
+      icon: "archive",
       kind: "OPENING",
       label: "Opening stock",
     };
@@ -621,7 +621,7 @@ export function entryView(entry: StockEntry, mine: ReadonlySet<string>): EntryVi
     return {
       color: cancelled ? grey : palette.light.foreground,
       detail: `${entry.useFor ? STOCK_USE_FOR_LABELS[entry.useFor] : "Kitchen"} · ${namesSummary(entry.lines)}`,
-      icon: "restaurant-outline",
+      icon: "restaurant",
       kind: "USED",
       label: "Used",
     };
@@ -631,7 +631,7 @@ export function entryView(entry: StockEntry, mine: ReadonlySet<string>): EntryVi
     return {
       color: cancelled ? grey : palette.light.destructive,
       detail: `${entry.wasteReason ? STOCK_WASTE_LABELS[entry.wasteReason] : "Wasted"} · ${namesSummary(entry.lines)}`,
-      icon: "trash-outline",
+      icon: "trash",
       kind: "WASTED",
       label: "Wasted",
     };
@@ -648,7 +648,7 @@ export function entryView(entry: StockEntry, mine: ReadonlySet<string>): EntryVi
         : off.length > 1
           ? `${off.length} items different`
           : `${entry.lines.length} item${entry.lines.length === 1 ? "" : "s"} · all match`,
-      icon: "clipboard-outline",
+      icon: "clipboard",
       kind: "COUNT",
       label: entry.status === "PENDING" ? "Count · to approve" : "Count",
     };
@@ -662,7 +662,7 @@ export function entryView(entry: StockEntry, mine: ReadonlySet<string>): EntryVi
     return {
       color: cancelled ? grey : waiting ? palette.light.warning : palette.light.success,
       detail: `From ${entry.hostelName}`,
-      icon: waiting ? "time-outline" : "checkmark-done-outline",
+      icon: waiting ? "time" : "checkmark-done",
       kind: waiting ? "ON_THE_WAY" : "GOT_IT",
       label: waiting ? "Coming to you" : "Got it",
     };
@@ -671,7 +671,7 @@ export function entryView(entry: StockEntry, mine: ReadonlySet<string>): EntryVi
   return {
     color: cancelled ? grey : palette.light.primary,
     detail: `To ${entry.toHostelName ?? ""}`,
-    icon: "arrow-redo-outline",
+    icon: "arrow-redo",
     kind: "SEND",
     label: "Send",
   };

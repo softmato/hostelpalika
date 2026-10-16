@@ -1,10 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
 import { type ReactNode, useCallback, useRef } from "react";
 import { Pressable, View } from "react-native";
 import Swipeable, {
   type SwipeableMethods,
 } from "react-native-gesture-handler/ReanimatedSwipeable";
 
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -42,7 +42,7 @@ export function SwipeRow({
   onAction,
   tone = "primary",
 }: {
-  actionIcon: keyof typeof Ionicons.glyphMap;
+  actionIcon: GlyphName;
   /** One short word. It sits under the glyph, so it has room for one. */
   actionLabel: string;
   children: ReactNode;
@@ -72,7 +72,7 @@ export function SwipeRow({
             width: 84,
           }}
         >
-          <Ionicons color="#ffffff" name={actionIcon} size={20} />
+          <Glyph color="#ffffff" name={actionIcon} size={20} />
           {/* White on the filled action in both themes — `button.tsx` writes the
               same literal for the same reason: the palette has no foreground
               token for these fills. */}

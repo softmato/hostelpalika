@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Image, Pressable, View } from "react-native";
@@ -7,6 +6,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { ChoiceChips } from "@/components/ui/choice-chips";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -140,7 +140,7 @@ function ModeTiles({
               className="h-9 w-9 items-center justify-center rounded-full"
               style={{ backgroundColor: on ? colors.primary : colors.muted }}
             >
-              <Ionicons
+              <Glyph
                 color={on ? colors.primaryForeground : colors.mutedForeground}
                 name={mode.icon}
                 size={18}

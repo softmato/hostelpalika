@@ -1,6 +1,6 @@
 "use client";
 
-import { AlarmClock, CheckCircle2, MessageSquare, TimerOff } from "lucide-react";
+import { AlarmClock, CheckCircle2, MessageSquare, TimerOff } from "@/components/icons";
 import Link from "next/link";
 import { memo, useMemo, useState } from "react";
 

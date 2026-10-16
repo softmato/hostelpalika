@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { type ReactNode, useState } from "react";
 import {
@@ -8,6 +7,7 @@ import {
   View,
 } from "react-native";
 
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { cellWidth, columnsThatFit } from "@/lib/responsive";
@@ -164,7 +164,7 @@ export function InfoTile({
   /** A count in the corner. Omit entirely for a tile that is not a queue. */
   badge?: number;
   caption?: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   /** A photo URI drawn in the glyph's square instead of the icon. */
   image?: string | null;
   label: string;
@@ -198,7 +198,7 @@ export function InfoTile({
         <View
           className={`h-12 w-12 items-center justify-center rounded-2xl ${palette.surface}`}
         >
-          <Ionicons color={colors[TONE_COLOR[tone]]} name={icon} size={21} />
+          <Glyph color={colors[TONE_COLOR[tone]]} name={icon} size={21} />
         </View>
       )}
 
@@ -274,7 +274,7 @@ export function StatTile({
   trend,
   value,
 }: {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   onPress?: () => void;
   tone?: TileTone;
@@ -308,7 +308,7 @@ export function StatTile({
         <View
           className={`h-6 w-6 shrink-0 items-center justify-center rounded-lg ${palette.surface}`}
         >
-          <Ionicons color={colors[TONE_COLOR[tone]]} name={icon} size={13} />
+          <Glyph color={colors[TONE_COLOR[tone]]} name={icon} size={13} />
         </View>
       </View>
 
@@ -368,7 +368,7 @@ export function Chip({
    * press is refused while it spins.
    */
   busy?: boolean;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: GlyphName;
   label: string;
   onPress?: () => void;
   tone?: "brand" | "neutral";
@@ -391,7 +391,7 @@ export function Chip({
           style={{ height: 13, transform: [{ scale: 0.62 }], width: 13 }}
         />
       ) : icon ? (
-        <Ionicons
+        <Glyph
           color={brand ? colors.primary : colors.mutedForeground}
           name={icon}
           size={13}

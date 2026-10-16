@@ -48,7 +48,7 @@ export type ProviderStatusPanel = {
    */
   canApply: boolean;
   body: string;
-  /** Ionicons glyph for the panel's leading tile. */
+  /** Glyph for the panel's leading tile. */
   icon: string;
   /** True once there is work to go and look at. */
   showJobs: boolean;
@@ -60,7 +60,7 @@ const PANELS: Record<ProviderApplicationStatus, ProviderStatusPanel> = {
   APPROVED: {
     canApply: false,
     body: "You're listed as a verified provider. Work a hostel assigns you by name arrives in this app, and you'll be notified when it does.",
-    icon: "checkmark-circle-outline",
+    icon: "checkmark-circle",
     showJobs: true,
     title: "You're an approved provider",
     tone: "success",
@@ -68,7 +68,7 @@ const PANELS: Record<ProviderApplicationStatus, ProviderStatusPanel> = {
   HIDDEN: {
     canApply: false,
     body: "The platform has hidden your listing, so hostels cannot find you or send you new work. Contact support if that is unexpected.",
-    icon: "eye-off-outline",
+    icon: "eye-off",
     showJobs: false,
     title: "Your listing is hidden",
     tone: "neutral",
@@ -76,7 +76,7 @@ const PANELS: Record<ProviderApplicationStatus, ProviderStatusPanel> = {
   INACTIVE: {
     canApply: false,
     body: "Your listing is marked inactive, so no new work will be assigned to you. Contact support to bring it back.",
-    icon: "pause-circle-outline",
+    icon: "pause-circle",
     showJobs: false,
     title: "Your listing is inactive",
     tone: "neutral",
@@ -91,7 +91,7 @@ const PANELS: Record<ProviderApplicationStatus, ProviderStatusPanel> = {
      * mention them reads as a queue rather than as a check.
      */
     body: `We're verifying your details and documents. It usually takes ${PROVIDER_REVIEW_WINDOW}, and we'll email you either way — no jobs can be assigned to you until it's done.`,
-    icon: "time-outline",
+    icon: "time",
     showJobs: false,
     title: "Your application is under review",
     tone: "warning",
@@ -99,7 +99,7 @@ const PANELS: Record<ProviderApplicationStatus, ProviderStatusPanel> = {
   REJECTED: {
     canApply: true,
     body: "Your application wasn't approved. You can correct the details and send it again.",
-    icon: "close-circle-outline",
+    icon: "close-circle",
     showJobs: false,
     title: "Not approved",
     tone: "danger",
@@ -110,7 +110,7 @@ const PANELS: Record<ProviderApplicationStatus, ProviderStatusPanel> = {
 const UNAPPLIED: ProviderStatusPanel = {
   canApply: true,
   body: "Five short steps, right here in the app — your trades, where you work, and a photo of yourself for your provider ID card.",
-  icon: "construct-outline",
+  icon: "construct",
   showJobs: false,
   title: "Apply to join",
   tone: "neutral",

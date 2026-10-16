@@ -1,4 +1,4 @@
-import type { LucideIcon } from "lucide-react";
+import type { IconComponent } from "@/components/icons";
 import Link from "next/link";
 
 type PortalPlaceholderAction = {
@@ -9,7 +9,7 @@ type PortalPlaceholderAction = {
 type PortalPlaceholderPageProps = {
   actions?: PortalPlaceholderAction[];
   description: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   items: string[];
   title: string;
 };

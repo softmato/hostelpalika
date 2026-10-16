@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
+import { Glyph } from "@/components/ui/glyph";
 import { FactRow } from "@/components/ui/layout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -141,7 +141,7 @@ export default function CheckoutStatusScreen() {
       <View className="flex-1 items-center justify-center gap-4">
         <View className="items-center gap-3">
           {done ? (
-            <Ionicons
+            <Glyph
               color={settled ? colors.success : colors.warning}
               name={settled ? "checkmark-circle" : "alert-circle"}
               size={64}

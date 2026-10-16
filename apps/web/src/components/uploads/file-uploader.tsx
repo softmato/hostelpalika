@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, ImageIcon, Loader2, Paperclip, Upload, X } from "lucide-react";
+import { FileText, ImageIcon, Loader2, Paperclip, Upload, X } from "@/components/icons";
 import { useCallback, useId, useState, type DragEvent } from "react";
 
 import { PhotoCropper } from "@/components/photo-cropper";

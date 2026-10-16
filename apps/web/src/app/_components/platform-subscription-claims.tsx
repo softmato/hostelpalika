@@ -1,6 +1,6 @@
 "use client";
 
-import { Banknote, Check, ExternalLink, ReceiptText, RefreshCw, X } from "lucide-react";
+import { Banknote, Check, ExternalLink, ReceiptText, RefreshCw, X } from "@/components/icons";
 import { useState } from "react";
 
 import { currency, EmptyState } from "@/app/_components/shared-ui";

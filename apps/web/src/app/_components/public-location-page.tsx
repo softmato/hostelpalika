@@ -1,4 +1,4 @@
-import { ArrowUpRight, MapPin } from "lucide-react";
+import { ArrowUpRight, MapPin } from "@/components/icons";
 import Link from "next/link";
 
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";

@@ -1,5 +1,4 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -8,6 +7,7 @@ import { useReducedMotion } from "react-native-reanimated";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { ListRow } from "@/components/ui/list-row";
 import { Money } from "@/components/ui/money";
 import { Text } from "@/components/ui/text";
@@ -99,7 +99,7 @@ export function SubscriptionDueCard({
   return (
     <Card className="gap-3 border-warning/40 bg-warning/5">
       <ListRow
-        icon={reviewing ? "time-outline" : "alert-circle-outline"}
+        icon={reviewing ? "time" : "alert-circle"}
         right={<Money owed size="large" value={state.outstanding} />}
         subtitle={
           reviewing
@@ -234,13 +234,13 @@ export function FreeMonthCard({
       <View className="gap-3 p-4">
         <View className="flex-row items-start gap-3">
           <View className="h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-warning/20 bg-card/70">
-            <Ionicons color={colors.warning} name="gift-outline" size={21} />
+            <Glyph color={colors.warning} name="gift" size={21} />
           </View>
           <View className="flex-1 gap-1">
             <View className="flex-row items-start gap-1.5">
-              <Ionicons
+              <Glyph
                 color={colors.warning}
-                name="sparkles-outline"
+                name="sparkles"
                 size={16}
                 style={{ marginTop: 1 }}
               />

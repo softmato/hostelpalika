@@ -281,7 +281,7 @@ export default function ManageReferralsScreen() {
             <View className="flex-row flex-wrap gap-2">
               {referral.phone ? (
                 <Chip
-                  icon="call-outline"
+                  icon="call"
                   label={referral.phone}
                   onPress={() => void Linking.openURL(`tel:${referral.phone}`)}
                   tone="brand"
@@ -415,7 +415,7 @@ export default function ManageReferralsScreen() {
 
             {open.referrerPhone ? (
               <Chip
-                icon="call-outline"
+                icon="call"
                 label={`Call ${open.referrerName || "the referrer"}`}
                 onPress={() =>
                   void Linking.openURL(`tel:${open.referrerPhone}`)

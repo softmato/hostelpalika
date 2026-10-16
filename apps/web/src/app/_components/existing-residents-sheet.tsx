@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, Loader2 } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Loader2 } from "@/components/icons";
 import { useMemo, useState } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";

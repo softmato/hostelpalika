@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgePlus, ChevronDown, LogOut, QrCode, Smartphone, Users } from "lucide-react";
+import { BadgePlus, ChevronDown, LogOut, QrCode, Smartphone, Users } from "@/components/icons";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 

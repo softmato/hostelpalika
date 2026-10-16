@@ -8,7 +8,7 @@ import { DocumentScreen } from "@/components/document-screen";
 export default function AboutScreen() {
   return (
     <DocumentScreen
-      icon="business-outline"
+      icon="business"
       page="about"
       webPath="about"
       title="About {siteName}"

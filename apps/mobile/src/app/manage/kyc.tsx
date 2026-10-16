@@ -1,10 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { usePreventRemove } from "expo-router/react-navigation";
 import { router, useNavigation } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, FileUp, LocateFixed, MapPin } from "lucide-react-native";
 import { BackHandler, Pressable, View } from "react-native";
 import Animated, { FadeIn, FadeInLeft, FadeInRight, ReduceMotion, useReducedMotion } from "react-native-reanimated";
 
@@ -13,6 +11,7 @@ import { FoodWeekEditor } from "@/components/manage/food-week-editor";
 import { KycDraftContext, useKycDraft, type KycDraft } from "@/components/manage/kyc-draft";
 import { KycPayments } from "@/components/manage/kyc-payments";
 import { KycOpeningStep, KycRoomsStep } from "@/components/manage/kyc-setup-steps";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Sheet } from "@/components/ui/sheet";
 import { useFoodWeek } from "@/components/manage/food-week";
 import {
@@ -64,19 +63,19 @@ import { useUnloadGuard } from "@/lib/unload-guard";
 
 const SUCCESS_ANIMATION = require("../../../assets/lottie/success.lottie");
 
-const STEPS: Record<string, { hint: string; icon: keyof typeof Ionicons.glyphMap; short: string; title: string }> = {
-  details: { hint: "Who lives here, and where", icon: "home-outline", short: "Details", title: "Hostel details" },
-  rates: { hint: "Each room type and its monthly rent", icon: "pricetags-outline", short: "Room types & rent", title: "Room types & rent" },
-  documents: { hint: "Add your ID", icon: "document-text-outline", short: "Documents", title: "Documents" },
-  facilities: { hint: "Tap what you have", icon: "bed-outline", short: "Facilities", title: "Facilities" },
-  food: { hint: "", icon: "restaurant-outline", short: "Food", title: "Food menu" },
-  location: { hint: "Is this your door?", icon: "location-outline", short: "Map", title: "Map pin" },
-  payments: { hint: "", icon: "home-outline", short: "Rent", title: "Rent payments" },
-  payout: { hint: "Where we send your money", icon: "card-outline", short: "Booking money", title: "Booking money" },
-  opening: { hint: "Your bank balance when you start", icon: "wallet-outline", short: "Opening balance", title: "Opening balance" },
-  photos: { hint: "", icon: "image-outline", short: "Photos", title: "Photos" },
-  rooms: { hint: "Each floor and its room numbers", icon: "business-outline", short: "Rooms", title: "Rooms & floors" },
-  rules: { hint: "", icon: "reader-outline", short: "Rules", title: "House rules" },
+const STEPS: Record<string, { hint: string; icon: GlyphName; short: string; title: string }> = {
+  details: { hint: "Who lives here, and where", icon: "home", short: "Details", title: "Hostel details" },
+  rates: { hint: "Each room type and its monthly rent", icon: "pricetags", short: "Room types & rent", title: "Room types & rent" },
+  documents: { hint: "Add your ID", icon: "document-text", short: "Documents", title: "Documents" },
+  facilities: { hint: "Tap what you have", icon: "bed", short: "Facilities", title: "Facilities" },
+  food: { hint: "", icon: "restaurant", short: "Food", title: "Food menu" },
+  location: { hint: "Is this your door?", icon: "location", short: "Map", title: "Map pin" },
+  payments: { hint: "", icon: "home", short: "Rent", title: "Rent payments" },
+  payout: { hint: "Where we send your money", icon: "card", short: "Booking money", title: "Booking money" },
+  opening: { hint: "Your bank balance when you start", icon: "wallet", short: "Opening balance", title: "Opening balance" },
+  photos: { hint: "", icon: "image", short: "Photos", title: "Photos" },
+  rooms: { hint: "Each floor and its room numbers", icon: "business", short: "Rooms", title: "Rooms & floors" },
+  rules: { hint: "", icon: "reader", short: "Rules", title: "House rules" },
 };
 
 const DOCUMENTS = [
@@ -261,15 +260,15 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
     <Screen scroll header={<AppBar title="Hostel KYC" showBack onBack={() => void saveAndExit(() => router.back())} actions={<IconButton label="Close KYC" name="close" onPress={() => void saveAndExit(() => router.back())} />} />}
       footer={finish ? review?.canSubmit ? <View className="gap-1"><Button label="Submit for verification" onPress={submit} /><Button label={data.percent >= 100 ? "Go home" : "Finish the rest"} variant="ghost" onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /></View> : <View className="gap-1"><Button label={data.percent >= 100 ? "Go home" : "Continue"} onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /><Button label={data.percent >= 100 ? "View steps" : "Go home"} variant="ghost" onPress={() => data.percent >= 100 ? setOverview(true) : router.back()} /></View> : <View className="gap-1"><Button disabled={blocked} label={saving ? "Saving…" : status.busy ? "Please wait…" : status.dirty ? last ? "Save & finish" : "Save & next" : last ? "Finish" : "Next"} onPress={() => void saveAndGo(next)} /><Button label="Skip" variant="ghost" disabled={blocked} onPress={() => move(next)} /></View>}>
       {finish ? <Animated.View entering={FadeIn.duration(220).reduceMotion(ReduceMotion.System)} className="items-center gap-5 py-6">
-        {data.percent >= 100 ? <View className="items-center">{!reduced && finished ? <Lottie loop={false} size={140} source={SUCCESS_ANIMATION} /> : <Ionicons name="checkmark-circle-outline" color={colors.primary} size={112} />}<Text variant="muted">{done} of {steps.length}</Text></View> : <KycRing percent={data.percent} size={120} />}
+        {data.percent >= 100 ? <View className="items-center">{!reduced && finished ? <Lottie loop={false} size={140} source={SUCCESS_ANIMATION} /> : <Glyph name="checkmark-circle" color={colors.primary} size={112} />}<Text variant="muted">{done} of {steps.length}</Text></View> : <KycRing percent={data.percent} size={120} />}
         <Text variant="title">{review?.status === "SUBMITTED" ? "In review" : review?.status === "APPROVED" ? "Verified" : data.percent >= 100 ? "All done!" : `${data.percent}% done`}</Text>
         <Text className="text-center" variant="muted">{review?.status === "SUBMITTED" ? "Our team checks it within 24 hours. You can still edit anything until then." : review?.canSubmit ? "Every required section is done. Submit it to our team." : review && requiredLeft > 0 ? `Finish the ${requiredLeft} required ${requiredLeft === 1 ? "section" : "sections"} to submit.` : data.percent >= 100 ? "Your hostel is ready" : "Finish the rest any time"}</Text>
         <View className="w-full flex-row flex-wrap justify-between gap-y-3">{steps.map((item, at) => <Pressable key={item.key} accessibilityRole="button" accessibilityLabel={`${STEPS[item.key]?.title}, ${item.done ? "done" : "to do"}`} onPress={() => go(at)} className={`min-h-16 w-[48.5%] flex-row items-center gap-2 rounded-2xl p-2.5 active:opacity-70 ${item.done ? "bg-brand-soft" : "border border-border"}`}>
-          <View className="h-10 w-10 items-center justify-center rounded-xl bg-background"><Ionicons name={STEPS[item.key]?.icon ?? "ellipse-outline"} color={colors.primary} size={20} /></View>
+          <View className="h-10 w-10 items-center justify-center rounded-xl bg-background"><Glyph name={STEPS[item.key]?.icon ?? "ellipse"} color={colors.primary} size={20} /></View>
           <Text className="flex-1" numberOfLines={2} variant="label">{STEPS[item.key]?.short}</Text>
-          <Ionicons name={item.done ? "checkmark-circle" : "ellipse-outline"} color={item.done ? colors.primary : colors.mutedForeground} size={22} />
+          <Glyph name={item.done ? "checkmark-circle" : "ellipse"} color={item.done ? colors.primary : colors.mutedForeground} size={22} />
         </Pressable>)}</View>
-        {data.percent >= 100 ? <View className="flex-row items-center gap-2"><Ionicons name="time-outline" color={colors.warning} size={18} /><Text variant="muted">Some checks may take time</Text></View> : null}
+        {data.percent >= 100 ? <View className="flex-row items-center gap-2"><Glyph name="time" color={colors.warning} size={18} /><Text variant="muted">Some checks may take time</Text></View> : null}
       </Animated.View> : <View className="gap-4 pb-4 pt-1">
         <Pressable accessibilityHint="Shows done and to-do sections" accessibilityLabel={`${done} of ${steps.length} sections done. ${statusLine}`} accessibilityRole="button" className="flex-row items-center gap-3 active:opacity-70" disabled={blocked} onPress={() => setOverview(true)}>
           <KycRing percent={data.percent} size={56} />
@@ -277,7 +276,7 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
             <Text variant="label">{done} of {steps.length} sections done</Text>
             <Text numberOfLines={2} variant="caption">{statusLine}</Text>
           </View>
-          <Ionicons color={colors.mutedForeground} name="chevron-down" size={20} />
+          <Glyph color={colors.mutedForeground} name="chevron-down" size={20} />
         </Pressable>
         <Animated.View key={step.key} entering={(forward ? FadeInRight : FadeInLeft).duration(220).reduceMotion(ReduceMotion.System)} className="gap-5">
           <View className="gap-1"><View className="flex-row items-center gap-2"><Text variant="title">{meta?.title ?? step.key}</Text>{step.required ? <Badge label="Required" tone={step.done ? "success" : "warning"} /> : null}</View>{meta?.hint ? <Text variant="muted">{meta.hint}</Text> : null}</View>
@@ -288,7 +287,7 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
     <Sheet open={overview} onClose={() => setOverview(false)} title={`${done} of ${steps.length} done`} footer={review?.canSubmit && !finish ? <Button label="Review & submit" onPress={() => { setOverview(false); move(() => setFinished(true)); }} /> : undefined}>
       <View className="gap-4">{([["To do", false], ["Done", true]] as const).map(([heading, isDone]) => {
         const group = steps.map((item, at) => ({ at, item })).filter(({ item }) => item.done === isDone);
-        return group.length === 0 ? null : <View className="gap-2" key={heading}><Text variant="label">{heading}</Text>{group.map(({ at, item }) => <Pressable key={item.key} accessibilityRole="button" onPress={() => { setOverview(false); if (at !== current || finish) move(() => go(at)); }} className={`min-h-16 flex-row items-center gap-3 rounded-2xl p-3 ${item.done ? "bg-brand-soft" : "border border-border"}`}><Ionicons name={item.done ? "checkmark-circle" : "ellipse-outline"} size={24} color={item.done ? colors.primary : colors.mutedForeground} /><Text className="flex-1" variant="subtitle">{STEPS[item.key]?.title}</Text>{!item.done && item.required ? <Badge label="Required" tone="warning" /> : <Text variant="muted">{at === current && !finish ? "Here" : item.done ? "Done" : "To do"}</Text>}</Pressable>)}</View>;
+        return group.length === 0 ? null : <View className="gap-2" key={heading}><Text variant="label">{heading}</Text>{group.map(({ at, item }) => <Pressable key={item.key} accessibilityRole="button" onPress={() => { setOverview(false); if (at !== current || finish) move(() => go(at)); }} className={`min-h-16 flex-row items-center gap-3 rounded-2xl p-3 ${item.done ? "bg-brand-soft" : "border border-border"}`}><Glyph name={item.done ? "checkmark-circle" : "ellipse"} size={24} color={item.done ? colors.primary : colors.mutedForeground} /><Text className="flex-1" variant="subtitle">{STEPS[item.key]?.title}</Text>{!item.done && item.required ? <Badge label="Required" tone="warning" /> : <Text variant="muted">{at === current && !finish ? "Here" : item.done ? "Done" : "To do"}</Text>}</Pressable>)}</View>;
       })}</View>
     </Sheet>
     <Sheet open={pending !== null} onClose={() => { if (!saving) setPending(null); }} title="Save changes?" footer={<Button disabled={blocked} label={saving ? "Saving…" : "Save & go"} onPress={() => pending && void saveAndGo(pending)} />}>
@@ -380,7 +379,7 @@ function PhotosStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
           return <View className="flex-row items-center gap-3" key={group.name}>
             <Text className="w-24" numberOfLines={1} variant="label">{group.name}</Text>
             <View className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted"><View className="h-full rounded-full bg-primary" style={{ width: `${Math.min(100, (group.count / group.limit) * 100)}%` }} /></View>
-            {full ? <Ionicons color={colors.primary} name="checkmark-circle" size={18} /> : <Text className="w-12 text-right" variant="caption">{group.count}/{group.limit}</Text>}
+            {full ? <Glyph color={colors.primary} name="checkmark-circle" size={18} /> : <Text className="w-12 text-right" variant="caption">{group.count}/{group.limit}</Text>}
           </View>;
         })}
       </Card>
@@ -518,8 +517,8 @@ function DocumentsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Prom
                 />
               ))}
               <View className="flex-row gap-2">
-                <Button className="flex-1" disabled={Boolean(busy)} icon={Camera} label={busy === doc.type ? "Uploading…" : "Camera"} onPress={() => void upload(doc.type, doc.label, "camera")} variant="outline" />
-                <Button className="flex-1" disabled={Boolean(busy)} icon={FileUp} label="Upload file" onPress={() => void upload(doc.type, doc.label, "file")} variant="outline" />
+                <Button className="flex-1" disabled={Boolean(busy)} icon="camera" label={busy === doc.type ? "Uploading…" : "Camera"} onPress={() => void upload(doc.type, doc.label, "camera")} variant="outline" />
+                <Button className="flex-1" disabled={Boolean(busy)} icon="document-upload" label="Upload file" onPress={() => void upload(doc.type, doc.label, "file")} variant="outline" />
               </View>
             </View>
           </StepSection>
@@ -527,7 +526,7 @@ function DocumentsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Prom
       })}
 
       <View className="flex-row items-center gap-2">
-        <Ionicons color={colors.mutedForeground} name="lock-closed-outline" size={18} />
+        <Glyph color={colors.mutedForeground} name="lock-closed" size={18} />
         <Text variant="muted">Only you and our team see these</Text>
       </View>
     </View>
@@ -558,7 +557,7 @@ function DocumentRow({ onOpen, onRemove, row }: { onOpen: () => void; onRemove?:
           onPress={onOpen}
         >
           {/* Under the image, so a file that will not load still reads as a document. */}
-          <Ionicons color={colors.mutedForeground} name="document-text-outline" size={32} />
+          <Glyph color={colors.mutedForeground} name="document-text" size={32} />
           {source ? (
             <Image
               contentFit="contain"
@@ -576,7 +575,7 @@ function DocumentRow({ onOpen, onRemove, row }: { onOpen: () => void; onRemove?:
         </Text>
         {onRemove ? (
           <Pressable accessibilityLabel={`Remove ${row.fileName ?? row.type}`} accessibilityRole="button" className="size-9 items-center justify-center rounded-full active:opacity-70" hitSlop={8} onPress={onRemove}>
-            <Ionicons color={colors.destructive} name="trash-outline" size={18} />
+            <Glyph color={colors.destructive} name="trash" size={18} />
           </Pressable>
         ) : null}
       </View>
@@ -637,7 +636,7 @@ function RulesStep({ onSaved, saved }: { onSaved: () => Promise<void> | void; sa
     {rules.length ? <Card padding="p-0">{rules.map((rule, at) => <View key={at} className={`flex-row items-center gap-3 p-4 ${at ? "border-t border-border" : ""}`}>
       <View className="h-8 w-8 items-center justify-center rounded-full bg-muted"><Text variant="label">{at + 1}</Text></View>
       {editing === at ? <View className="flex-1"><Input accessibilityLabel={`Rule ${at + 1}`} multiline autoFocus value={rule} placeholder="Add a rule" onChangeText={text => setDraft(rules.map((value, index) => index === at ? text : value))} /></View> : <Pressable accessibilityRole="button" accessibilityLabel={`Edit rule ${at + 1}`} onPress={() => setEditing(at)} className="min-h-11 flex-1 justify-center"><Text>{rule || "Add a rule"}</Text></Pressable>}
-      <Pressable accessibilityRole="button" accessibilityLabel={`Rule ${at + 1} options`} onPress={() => setMenu(at)} className="h-11 w-11 items-center justify-center"><Ionicons name="ellipsis-vertical" color={colors.foreground} size={20} /></Pressable>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Rule ${at + 1} options`} onPress={() => setMenu(at)} className="h-11 w-11 items-center justify-center"><Glyph name="ellipsis-vertical" color={colors.foreground} size={20} /></Pressable>
     </View>)}</Card> : null}
     <Button label="+ Add rule" variant="outline" onPress={() => { setDraft([...rules, ""]); setEditing(rules.length); }} />
     <Text variant="subtitle">Tap to add</Text>
@@ -646,8 +645,8 @@ function RulesStep({ onSaved, saved }: { onSaved: () => Promise<void> | void; sa
   </View>;
 }
 
-const FACILITY_ICONS: Record<string, keyof typeof Ionicons.glyphMap> = {
-  WiFi: "wifi-outline", "Hot water": "water-outline", Parking: "car-outline", Laundry: "shirt-outline", Gym: "barbell-outline", "Study table": "reader-outline", "Attached bathroom": "water-outline", AC: "snow-outline", CCTV: "videocam-outline", "Power backup": "battery-charging-outline", Kitchen: "restaurant-outline", "Common room": "people-outline",
+const FACILITY_ICONS: Record<string, GlyphName> = {
+  WiFi: "wifi", "Hot water": "water", Parking: "car", Laundry: "shirt", Gym: "barbell", "Study table": "reader", "Attached bathroom": "water", AC: "snow", CCTV: "videocam", "Power backup": "battery-charging", Kitchen: "restaurant", "Common room": "people",
 };
 function FacilitiesStep({ onSaved, saved }: { onSaved: () => Promise<void> | void; saved: string[] }) {
   const { colors } = useAppTheme();
@@ -666,7 +665,7 @@ function FacilitiesStep({ onSaved, saved }: { onSaved: () => Promise<void> | voi
   return <View className="gap-4"><Text variant="muted">{picked.length} picked</Text><View className="flex-row flex-wrap gap-3">{options.map(option => {
     const selected = picked.includes(option);
     return <Pressable key={option} accessibilityRole="checkbox" accessibilityState={{ checked: selected }} onPress={() => setDraft(selected ? picked.filter(item => item !== option) : [...picked, option])} className={`min-h-20 w-[48%] flex-row items-center gap-2 rounded-2xl border p-3 ${selected ? "border-primary/30 bg-brand-soft" : "border-border"}`}>
-      <Ionicons name={FACILITY_ICONS[option] ?? "checkmark-circle-outline"} color={selected ? colors.primary : colors.foreground} size={24} /><Text className="flex-1" variant="label">{option === "WiFi" ? "Wi-Fi" : option}</Text>{selected ? <Ionicons name="checkmark-circle" color={colors.primary} size={16} /> : null}
+      <Glyph name={FACILITY_ICONS[option] ?? "checkmark-circle"} color={selected ? colors.primary : colors.foreground} size={24} /><Text className="flex-1" variant="label">{option === "WiFi" ? "Wi-Fi" : option}</Text>{selected ? <Glyph name="checkmark-circle" color={colors.primary} size={16} /> : null}
     </Pressable>;
   })}</View></View>;
 }
@@ -727,14 +726,14 @@ function LocationStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
         <PinPreview key={`${pin.lat},${pin.lng}`} pin={pin} />
       </Pressable>
       <View className="flex-row items-center gap-2">
-        <Ionicons color={colors.foreground} name="location-outline" size={20} />
+        <Glyph color={colors.foreground} name="location" size={20} />
         <Text className="flex-1" numberOfLines={1} variant="subtitle">{[location.area, location.city].filter(Boolean).join(", ") || "Your hostel"}</Text>
         <Badge label={selected ? "Not saved" : placed ? "Placed by you" : "Check this pin"} tone={placed && !selected ? "success" : "warning"} />
       </View>
-      {!placed || selected ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: selected !== null }} onPress={() => setSelected(selected ? null : pin)} className={`min-h-14 flex-row items-center gap-3 rounded-xl border p-4 ${selected ? "border-primary bg-brand-soft" : "border-border"}`}><Ionicons name={selected ? "checkbox" : "square-outline"} color={colors.primary} size={24} /><Text className="flex-1" variant="label">Yes, this is my door</Text></Pressable> : null}
-    </> : <Card className="items-center gap-2 py-8"><Ionicons name="location-outline" size={36} color={colors.primary} /><Text variant="muted">Find your hostel on the map</Text></Card>}
-    <Button icon={LocateFixed} label={locating ? "Finding you…" : "Use my location"} disabled={locating} onPress={() => void locateMe()} />
-    <Button icon={MapPin} label={pin ? "Move pin" : "Find on map"} variant="outline" onPress={() => setPicking(true)} />
+      {!placed || selected ? <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: selected !== null }} onPress={() => setSelected(selected ? null : pin)} className={`min-h-14 flex-row items-center gap-3 rounded-xl border p-4 ${selected ? "border-primary bg-brand-soft" : "border-border"}`}><Glyph name={selected ? "checkbox" : "square"} variant={selected ? "solid" : "line"} color={colors.primary} size={24} /><Text className="flex-1" variant="label">Yes, this is my door</Text></Pressable> : null}
+    </> : <Card className="items-center gap-2 py-8"><Glyph name="location" size={36} color={colors.primary} /><Text variant="muted">Find your hostel on the map</Text></Card>}
+    <Button icon="locate" label={locating ? "Finding you…" : "Use my location"} disabled={locating} onPress={() => void locateMe()} />
+    <Button icon="location" label={pin ? "Move pin" : "Find on map"} variant="outline" onPress={() => setPicking(true)} />
     <PinPickerModal
       initial={pin}
       onClose={() => setPicking(false)}

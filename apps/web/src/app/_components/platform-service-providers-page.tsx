@@ -13,8 +13,8 @@ import {
   SlidersHorizontal,
   Users,
   X,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import React, { useCallback, useMemo, useState } from "react";
@@ -141,7 +141,7 @@ function ModerationButton({
   action: ModerationAction;
   busyAction: { action: ModerationAction; providerId: string } | null;
   className: string;
-  icon: LucideIcon;
+  icon: IconComponent;
   label: string;
   onRun: (providerId: string, action: ModerationAction) => void;
   providerId: string;

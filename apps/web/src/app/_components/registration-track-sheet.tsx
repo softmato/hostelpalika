@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2 } from "@/components/icons";
 import type { PresenceChannel } from "pusher-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 

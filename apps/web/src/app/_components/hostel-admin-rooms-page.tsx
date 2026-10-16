@@ -1,7 +1,7 @@
 "use client";
 
 import { ROOM_TYPE_OPTIONS } from "@hostel/shared/constants/room-types";
-import { BedDouble, ImagePlus, Loader2, Trash2 } from "lucide-react";
+import { BedDouble, ImagePlus, Loader2, Trash2 } from "@/components/icons";
 import {
   memo,
   useCallback,

@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight, Plus, Trash2 } from "lucide-react";
+import { ArrowUpRight, Plus, Trash2 } from "@/components/icons";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { memo, useCallback, useMemo, useState } from "react";
@@ -536,8 +536,8 @@ function ModuleRow({
             value={module.description}
           />
         </div>
-        {/* A slug, not a component: the website resolves it to a lucide icon
-            and the app to an Ionicon, so the list is the set both clients
+        {/* A slug, not a component: the website and the app both resolve it to
+            one of our glyphs, so the list is the set both clients
             know. Anything else would render as the generic fallback. */}
         <select
           className="h-7 w-32 shrink-0 rounded-md border border-border bg-background px-1.5 text-[11px] outline-none transition focus:border-role-platform"

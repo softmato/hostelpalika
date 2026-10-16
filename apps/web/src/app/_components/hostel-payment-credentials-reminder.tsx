@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldAlert, Wallet, X } from "lucide-react";
+import { ShieldAlert, Wallet, X } from "@/components/icons";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 

@@ -1,10 +1,10 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { AppState, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { FactRow } from "@/components/ui/layout";
 import { Sheet } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
@@ -148,7 +148,7 @@ export function ResidencyInviteHost() {
     >
       <View className="items-center gap-2 pb-3">
         <View className="h-14 w-14 items-center justify-center rounded-full bg-brand-soft">
-          <Ionicons color={colors.primary} name="business-outline" size={26} />
+          <Glyph color={colors.primary} name="business" size={26} />
         </View>
         <Text className="text-center" variant="title">
           {invite.hostelName} added you as a resident

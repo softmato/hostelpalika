@@ -1,4 +1,3 @@
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
 import { type ErrorBoundaryProps, router, useLocalSearchParams } from "expo-router";
@@ -8,6 +7,7 @@ import { Keyboard, Pressable, ScrollView, TextInput, View } from "react-native";
 import { facilityIcon, SaveButton } from "@/components/hostel-card";
 import { MapExplorer, type MapHandle, type MapMarker } from "@/components/map-explorer";
 import { Button } from "@/components/ui/button";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Sheet } from "@/components/ui/sheet";
 import { ErrorState } from "@/components/ui/states";
@@ -165,7 +165,7 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
   return (
     <View className="flex-1" style={{ backgroundColor: colors.background }}>
       <ErrorState
-        icon="map-outline"
+        icon="map"
         message="Something on the map failed to draw. Try again, or go back and open it later."
         onRetry={() => void retry()}
         title="The map stopped"
@@ -629,7 +629,7 @@ export default function MapScreen() {
               hitSlop={8}
               onPress={() => router.back()}
             >
-              <Ionicons color={colors.foreground} name="arrow-back" size={20} />
+              <Glyph color={colors.foreground} name="arrow-back" size={20} />
             </Pressable>
 
             <TextInput
@@ -651,10 +651,10 @@ export default function MapScreen() {
                 hitSlop={8}
                 onPress={() => setQuery("")}
               >
-                <Ionicons color={colors.mutedForeground} name="close-circle" size={18} />
+                <Glyph color={colors.mutedForeground} name="close-circle" size={18} />
               </Pressable>
             ) : (
-              <Ionicons color={colors.mutedForeground} name="search" size={18} />
+              <Glyph color={colors.mutedForeground} name="search" size={18} />
             )}
           </View>
 
@@ -691,7 +691,7 @@ export default function MapScreen() {
               onPress={() => setPlaceSheet(true)}
               style={{ backgroundColor: colors.card, maxWidth: 220 }}
             >
-              <Ionicons color={colors.primary} name="school-outline" size={14} />
+              <Glyph color={colors.primary} name="school" size={14} />
               <Text className="text-xs font-semibold text-foreground" numberOfLines={1} variant={null}>
                 {commute ? `To ${commute.name}` : "My college / office"}
               </Text>
@@ -707,9 +707,9 @@ export default function MapScreen() {
                   borderColor: within ? colors.primary : colors.border,
                 }}
               >
-                <Ionicons
+                <Glyph
                   color={within ? colors.primary : colors.mutedForeground}
-                  name={mode === "foot" ? "walk-outline" : "car-outline"}
+                  name={mode === "foot" ? "walk" : "car"}
                   size={14}
                 />
                 <Text
@@ -809,7 +809,7 @@ export default function MapScreen() {
         {navigating ? null : (
           <MapButton
             label="Show every hostel"
-            name="scan-outline"
+            name="scan"
             onPress={() => map.current?.fitAll()}
           />
         )}
@@ -817,7 +817,7 @@ export default function MapScreen() {
         <MapButton
           active={layersOpen}
           label="Map style"
-          name="layers-outline"
+          name="layers"
           onPress={() => setLayersOpen((open) => !open)}
         />
 
@@ -829,7 +829,7 @@ export default function MapScreen() {
         {navigating ? (
           <MapButton
             label={voiceMuted ? "Turn voice on" : "Mute voice"}
-            name={voiceMuted ? "volume-mute-outline" : "volume-high-outline"}
+            name={voiceMuted ? "volume-mute" : "volume-high"}
             onPress={() => dispatch(setNavigationVoiceMuted(!voiceMuted))}
           />
         ) : null}
@@ -864,9 +864,9 @@ export default function MapScreen() {
                   setLayersOpen(false);
                 }}
               >
-                <Ionicons
+                <Glyph
                   color={option.id === layer ? colors.primary : colors.mutedForeground}
-                  name={option.id === layer ? "radio-button-on" : "radio-button-off"}
+                  name={option.id === layer ? "radio-button-on" : "radio-button-off"} variant={option.id === layer ? "solid" : "line"}
                   size={15}
                 />
 
@@ -886,9 +886,9 @@ export default function MapScreen() {
               className="flex-row items-center gap-2 px-3 py-2.5 active:opacity-70"
               onPress={() => setShowAround((on) => !on)}
             >
-              <Ionicons
+              <Glyph
                 color={showAround ? colors.primary : colors.mutedForeground}
-                name={showAround ? "checkbox" : "square-outline"}
+                name={showAround ? "checkbox" : "square"} variant={showAround ? "solid" : "line"}
                 size={15}
               />
               <Text className={showAround ? "font-semibold text-primary" : ""} variant="label">
@@ -912,7 +912,7 @@ export default function MapScreen() {
               onPress={recentre}
               style={{ backgroundColor: colors.card }}
             >
-              <Ionicons color={colors.primary} name="navigate" size={16} />
+              <Glyph color={colors.primary} name="navigate" size={16} />
               <Text className="font-semibold text-primary" variant="label">
                 Re-centre
               </Text>
@@ -1081,7 +1081,7 @@ function PlaceSheet({
             key={`${place.lat},${place.lng}`}
             onPress={() => onPick({ ...place, name: place.name.split(",")[0] ?? place.name })}
           >
-            <Ionicons color={colors.primary} name="school-outline" size={16} />
+            <Glyph color={colors.primary} name="school" size={16} />
             <Text className="flex-1" numberOfLines={2} variant="label">
               {place.name}
             </Text>
@@ -1134,11 +1134,11 @@ function Compass({
       onPress={onPress}
       style={{ backgroundColor: colors.card }}
     >
-      <Ionicons
+      <Glyph
         color={colors.primary}
         name="navigate"
         size={15}
-        // Ionicons' navigate glyph points up-right; the -45 makes it point up,
+        // The navigate glyph points up-right; the -45 makes it point up,
         // and the needle rotation is applied on top of that.
         style={{ transform: [{ rotate: `${needle - 45}deg` }] }}
       />
@@ -1161,7 +1161,7 @@ function MapButton({
   active?: boolean;
   disabled?: boolean;
   label: string;
-  name: keyof typeof Ionicons.glyphMap;
+  name: GlyphName;
   onPress: () => void;
 }) {
   const { colors } = useAppTheme();
@@ -1179,7 +1179,7 @@ function MapButton({
         opacity: disabled ? 0.6 : 1,
       }}
     >
-      <Ionicons color={active ? colors.primary : colors.foreground} name={name} size={19} />
+      <Glyph color={active ? colors.primary : colors.foreground} name={name} size={19} />
     </Pressable>
   );
 }
@@ -1227,7 +1227,7 @@ function ResultRow({
         className="h-8 w-8 items-center justify-center rounded-full"
         style={{ backgroundColor: colors.brandSoft }}
       >
-        <Ionicons color={colors.primary} name="location" size={15} />
+        <Glyph color={colors.primary} name="location" size={15} />
       </View>
 
       <View className="flex-1 gap-0.5">
@@ -1322,7 +1322,7 @@ function PreviewCard({
               width: 148,
             }}
           >
-            <Ionicons color={colors.mutedForeground} name="image-outline" size={22} />
+            <Glyph color={colors.mutedForeground} name="image" size={22} />
           </View>
         )}
       </ScrollView>
@@ -1334,7 +1334,7 @@ function PreviewCard({
           </Text>
 
           <View className="flex-row items-center gap-1">
-            <Ionicons color={colors.mutedForeground} name="location-outline" size={12} />
+            <Glyph color={colors.mutedForeground} name="location" size={12} />
             <Text className="flex-1" numberOfLines={1} variant="caption">
               {locationLabel(hostel.location) || "Location not published"}
             </Text>
@@ -1351,7 +1351,7 @@ function PreviewCard({
           onPress={onClose}
           style={{ backgroundColor: colors.muted }}
         >
-          <Ionicons color={colors.foreground} name="close" size={16} />
+          <Glyph color={colors.foreground} name="close" size={16} />
         </Pressable>
       </View>
 
@@ -1362,7 +1362,7 @@ function PreviewCard({
         >
           {rating.kind === "rated" ? (
             <>
-              <Ionicons color={colors.primary} name="star" size={11} />
+              <Glyph color={colors.primary} name="star" size={11} />
               <Text className="text-xs font-bold">{rating.value}</Text>
               <Text variant="caption">{`(${rating.count})`}</Text>
             </>
@@ -1381,7 +1381,7 @@ function PreviewCard({
 
         {commute ? (
           <View className="flex-row items-center gap-1">
-            <Ionicons color={colors.primary} name="school-outline" size={11} />
+            <Glyph color={colors.primary} name="school" size={11} />
             <Text className="text-xs font-semibold text-primary" variant={null}>
               {commute}
             </Text>
@@ -1395,7 +1395,7 @@ function PreviewCard({
 
         {hostel.facilities.slice(0, 3).map((facility) => (
           <View className="flex-row items-center gap-1" key={facility}>
-            <Ionicons
+            <Glyph
               color={colors.mutedForeground}
               name={facilityIcon(facility)}
               size={11}
@@ -1514,7 +1514,7 @@ function RouteCard({
           onPress={onBack}
           style={{ backgroundColor: colors.muted }}
         >
-          <Ionicons color={colors.foreground} name="arrow-back" size={16} />
+          <Glyph color={colors.foreground} name="arrow-back" size={16} />
         </Pressable>
 
         <Text className="flex-1 font-bold" numberOfLines={1} variant="label">
@@ -1529,7 +1529,7 @@ function RouteCard({
           onPress={onClose}
           style={{ backgroundColor: colors.muted }}
         >
-          <Ionicons color={colors.foreground} name="close" size={16} />
+          <Glyph color={colors.foreground} name="close" size={16} />
         </Pressable>
       </View>
 
@@ -1549,8 +1549,8 @@ function RouteCard({
           className="flex-1 flex-row gap-1 rounded-2xl p-1"
           style={{ backgroundColor: colors.muted }}
         >
-          <ModeTab active={mode === "car"} icon="car-outline" label="Vehicle" onPress={() => onMode("car")} />
-          <ModeTab active={mode === "foot"} icon="walk-outline" label="Walk" onPress={() => onMode("foot")} />
+          <ModeTab active={mode === "car"} icon="car" label="Vehicle" onPress={() => onMode("car")} />
+          <ModeTab active={mode === "foot"} icon="walk" label="Walk" onPress={() => onMode("foot")} />
         </View>
 
         <Button
@@ -1599,9 +1599,9 @@ function RouteCard({
 
       {trouble ? (
         <View className="flex-row items-start gap-2">
-          <Ionicons
+          <Glyph
             color={colors.mutedForeground}
-            name="alert-circle-outline"
+            name="alert-circle"
             size={14}
             style={{ marginTop: 2 }}
           />
@@ -1625,7 +1625,7 @@ function RouteCard({
       {me ? (
         <View className="gap-0.5">
           <View className="flex-row items-center gap-2">
-            <Ionicons color={colors.primary} name="navigate" size={15} />
+            <Glyph color={colors.primary} name="navigate" size={15} />
             <Text className="text-lg font-bold text-foreground">
               {distance === null
                 ? "—"
@@ -1715,7 +1715,7 @@ function NavCard({
             className="h-12 w-12 items-center justify-center rounded-2xl"
             style={{ backgroundColor: colors.brandSoft }}
           >
-            <Ionicons color={colors.primary} name="flag" size={26} />
+            <Glyph color={colors.primary} name="flag" size={26} />
           </View>
 
           <View className="flex-1 gap-0.5">
@@ -1764,7 +1764,7 @@ function NavCard({
             className="h-12 w-12 items-center justify-center rounded-2xl"
             style={{ backgroundColor: colors.brandSoft }}
           >
-            <Ionicons color={colors.primary} name="business-outline" size={22} />
+            <Glyph color={colors.primary} name="business" size={22} />
           </View>
         )}
 
@@ -1849,7 +1849,7 @@ function NavBanner({
       onLayout={(event) => onHeight(event.nativeEvent.layout.height)}
       style={{ backgroundColor: colors.primary, paddingTop: insets.top + 12 }}
     >
-      <MaterialIcons color={colors.primaryForeground} name={maneuverIcon(step?.step)} size={44} />
+      <Glyph color={colors.primaryForeground} name={maneuverIcon(step?.step)} size={44} strokeWidth={2} />
 
       <View className="flex-1 gap-0.5">
         <Text className="text-2xl font-bold text-primary-foreground" variant={null}>
@@ -1896,7 +1896,7 @@ function GateCard({ guide }: { guide: { note: string; photoUrl: string } }) {
           className="h-16 w-16 items-center justify-center rounded-2xl"
           style={{ backgroundColor: colors.brandSoft }}
         >
-          <Ionicons color={colors.primary} name="flag" size={24} />
+          <Glyph color={colors.primary} name="flag" size={24} />
         </View>
       )}
 
@@ -1913,11 +1913,11 @@ function GateCard({ guide }: { guide: { note: string; photoUrl: string } }) {
 }
 
 /**
- * The maneuver as a Material turn arrow — Google's own set, the one Maps
- * draws: slight, plain and sharp turns, forks, merges, roundabouts. The words
+ * The maneuver as one of our turn arrows (`glyphs.ts`, Directions) — the set
+ * Maps draws: slight, plain and sharp turns, forks, merges, roundabouts. The words
  * underneath still carry the street and the exit number.
  */
-function maneuverIcon(step: RouteStep | undefined): keyof typeof MaterialIcons.glyphMap {
+function maneuverIcon(step: RouteStep | undefined): GlyphName {
   if (!step) {
     return "straight";
   }
@@ -1926,7 +1926,7 @@ function maneuverIcon(step: RouteStep | undefined): keyof typeof MaterialIcons.g
   const side = modifier.includes("left") ? "left" : "right";
 
   if (type === "arrive") {
-    return "place";
+    return "location";
   }
 
   if (type === "roundabout" || type === "rotary") {
@@ -1934,7 +1934,7 @@ function maneuverIcon(step: RouteStep | undefined): keyof typeof MaterialIcons.g
   }
 
   if (modifier === "uturn") {
-    return "u-turn-left";
+    return "u-turn";
   }
 
   if (type === "fork") {
@@ -1967,7 +1967,7 @@ function ModeTab({
   onPress,
 }: {
   active: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   onPress: () => void;
 }) {
@@ -1982,7 +1982,7 @@ function ModeTab({
       onPress={onPress}
       style={{ backgroundColor: active ? colors.card : "transparent" }}
     >
-      <Ionicons
+      <Glyph
         color={active ? colors.primary : colors.mutedForeground}
         name={icon}
         size={15}

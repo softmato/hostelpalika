@@ -579,7 +579,7 @@ export function PortalBrandHeader({
         {actions}
 
         {onHostelPage ? (
-          <IconButton label={hostelPageLabel} name="eye-outline" onPress={onHostelPage} />
+          <IconButton label={hostelPageLabel} name="eye" onPress={onHostelPage} />
         ) : null}
 
         <NotificationBell />

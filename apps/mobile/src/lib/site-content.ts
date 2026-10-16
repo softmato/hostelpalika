@@ -1,4 +1,4 @@
-import type { Ionicons } from "@expo/vector-icons";
+import type { GlyphName } from "@hostel/constants/glyphs";
 
 import type { ContentPage, SiteIdentity } from "@/lib/site-config-api";
 
@@ -6,14 +6,12 @@ import type { ContentPage, SiteIdentity } from "@/lib/site-config-api";
  * Reading the page copy the superadmin authors, on the phone.
  *
  * This is the counterpart of `apps/web/src/lib/site-content.ts` — the same two
- * operations, against Ionicons instead of lucide. Both files exist because the
+ * operations. Both now land on the same glyph set (`glyphs.ts`). Both files exist because the
  * app does not link the web workspace (it has its own `node_modules` and its own
  * Metro resolver), so what is shared between the two clients is the *payload*,
  * not the module. The payload is the thing that has to agree; a second twenty-line
  * mapping table is not a second privacy policy.
  */
-
-type IoniconName = keyof typeof Ionicons.glyphMap;
 
 /**
  * Stored copy cannot interpolate, so it carries `{siteName}` and
@@ -68,41 +66,41 @@ export function resolveContentPage(
  * The outline variants are deliberate — every icon elsewhere in the app is an
  * outline glyph, and a filled mark in a document would read as an alert.
  */
-const CONTENT_ICONS: Record<string, IoniconName> = {
-  "alert-triangle": "warning-outline",
-  "badge-check": "checkmark-circle-outline",
-  ban: "ban-outline",
-  bed: "bed-outline",
-  bell: "notifications-outline",
-  building: "business-outline",
-  "credit-card": "card-outline",
-  database: "server-outline",
-  eye: "eye-outline",
-  "file-text": "document-text-outline",
-  gift: "gift-outline",
-  globe: "globe-outline",
-  heart: "heart-outline",
-  home: "home-outline",
-  "layout-dashboard": "grid-outline",
-  lock: "lock-closed-outline",
-  mail: "mail-outline",
-  "map-pin": "location-outline",
-  "qr-code": "qr-code-outline",
-  receipt: "receipt-outline",
-  scale: "scale-outline",
-  shield: "shield-outline",
-  "shield-check": "shield-checkmark-outline",
-  sparkles: "sparkles-outline",
-  target: "locate-outline",
-  "user-check": "person-circle-outline",
-  "user-plus": "person-add-outline",
-  "user-round": "person-outline",
-  users: "people-outline",
-  utensils: "restaurant-outline",
-  wallet: "wallet-outline",
-  wrench: "construct-outline",
+const CONTENT_ICONS: Record<string, GlyphName> = {
+  "alert-triangle": "warning",
+  "badge-check": "checkmark-circle",
+  ban: "ban",
+  bed: "bed",
+  bell: "notifications",
+  building: "business",
+  "credit-card": "card",
+  database: "server",
+  eye: "eye",
+  "file-text": "document-text",
+  gift: "gift",
+  globe: "globe",
+  heart: "heart",
+  home: "home",
+  "layout-dashboard": "grid",
+  lock: "lock-closed",
+  mail: "mail",
+  "map-pin": "location",
+  "qr-code": "qr-code",
+  receipt: "receipt",
+  scale: "scale",
+  shield: "shield",
+  "shield-check": "shield-checkmark",
+  sparkles: "sparkles",
+  target: "locate",
+  "user-check": "person-circle",
+  "user-plus": "person-add",
+  "user-round": "person",
+  users: "people",
+  utensils: "restaurant",
+  wallet: "wallet",
+  wrench: "construct",
 };
 
-export function contentIcon(slug: string): IoniconName {
-  return CONTENT_ICONS[slug] ?? "sparkles-outline";
+export function contentIcon(slug: string): GlyphName {
+  return CONTENT_ICONS[slug] ?? "sparkles";
 }

@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -20,6 +19,7 @@ import {
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { ChoiceChips } from "@/components/ui/choice-chips";
+import { Glyph } from "@/components/ui/glyph";
 import { FieldLabel, Input } from "@/components/ui/input";
 import { Lottie } from "@/components/ui/lottie";
 import { Screen } from "@/components/ui/screen";
@@ -985,7 +985,7 @@ function ContactStep({
           ? "Your account's phone"
           : undefined;
   const checkMark = (
-    <Ionicons color={colors.primary} name="checkmark-circle" size={18} />
+    <Glyph color={colors.primary} name="checkmark-circle" size={18} />
   );
 
   return (
@@ -1383,7 +1383,7 @@ function PhotoStep({
                 style={{ height: "100%", width: "100%" }}
               />
             ) : (
-              <Ionicons
+              <Glyph
                 color={colors.mutedForeground}
                 name="person"
                 size={84}
@@ -1409,9 +1409,9 @@ function PhotoStep({
       </View>
 
       <View className="flex-row items-center gap-2">
-        <Ionicons
+        <Glyph
           color={colors.mutedForeground}
-          name="information-circle-outline"
+          name="information-circle"
           size={18}
         />
         <Text className="flex-1" variant="caption">
@@ -1763,7 +1763,7 @@ function DatePickerField({
         >
           {formatDate(rawValue) ?? "Date of birth *"}
         </Text>
-        <Ionicons color={colors.primary} name="calendar-outline" size={20} />
+        <Glyph color={colors.primary} name="calendar" size={20} />
       </Pressable>
       {control.errors[name] ? (
         <Text className="text-destructive" variant="caption">

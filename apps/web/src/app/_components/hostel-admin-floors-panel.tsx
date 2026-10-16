@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Loader2, Plus, Trash2 } from "lucide-react";
+import { Building2, Loader2, Plus, Trash2 } from "@/components/icons";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";

@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useMemo, useRef, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
@@ -17,6 +16,7 @@ import {
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
@@ -182,7 +182,7 @@ export default function CountScreen() {
               className="flex-row items-center gap-1 rounded-full border border-primary px-3 py-1.5 active:bg-brand-soft"
               onPress={() => setPicking(true)}
             >
-              <Ionicons color={colors.primary} name="add" size={18} />
+              <Glyph color={colors.primary} name="add" size={18} />
               <Text className="font-semibold text-primary" variant="label">
                 Add Item
               </Text>

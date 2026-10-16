@@ -149,7 +149,7 @@ export default function AdminCommunityReportsScreen() {
       actions={
         <IconButton
           label="Post an announcement"
-          name="megaphone-outline"
+          name="megaphone"
           onPress={() => setAnnouncing(true)}
         />
       }

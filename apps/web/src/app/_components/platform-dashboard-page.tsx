@@ -10,7 +10,7 @@ import {
   Users,
   WalletCards,
   Wrench,
-} from "lucide-react";
+} from "@/components/icons";
 import { memo, useState } from "react";
 
 import { LoadingRows } from "@/app/_components/shared-ui";

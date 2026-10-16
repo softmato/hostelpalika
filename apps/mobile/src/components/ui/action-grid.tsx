@@ -1,8 +1,8 @@
-import { Ionicons } from "@expo/vector-icons";
 import type { ReactNode } from "react";
 import { Image, type ImageSourcePropType, Pressable, View } from "react-native";
 
 import { FLOAT_SHADOW } from "@/components/portal-shared";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { KycFrost } from "@/components/kyc-frost";
@@ -115,10 +115,10 @@ export function ActionCell({
    */
   badge?: number;
   glyph: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   /**
    * Drawn instead of `icon`, for a door to somebody else's product — their logo
-   * is how people recognise it. Ours stay Ionicons.
+   * is how people recognise it. Ours stay glyphs.
    */
   image?: ImageSourcePropType;
   label: string;
@@ -170,7 +170,7 @@ export function ActionCell({
         {image ? (
           <Image resizeMode="contain" source={image} style={{ height: 28, width: 28 }} />
         ) : (
-          <Ionicons color={selected ? colors.primaryForeground : glyph} name={icon} size={21} />
+          <Glyph color={selected ? colors.primaryForeground : glyph} name={icon} size={21} variant={selected ? "solid" : "line"} />
         )}
 
         {/*
@@ -218,7 +218,7 @@ export function ActionCell({
 export type ActionTile = {
   badge?: number;
   glyph: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   /** See `<ActionCell image>`. */
   image?: ImageSourcePropType;
   /** Iced over with a lock until the hostel's KYC is approved (`KycFrost`). */

@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, TextInput, View } from "react-native";
@@ -8,6 +7,7 @@ import { HostelMap } from "@/components/hostel-map";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Screen } from "@/components/ui/screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
@@ -296,7 +296,7 @@ export function HostelBrowser({
       <View className={`gap-4 px-5 ${view === "map" ? "flex-1" : ""}`}>
         <View className="flex-row items-center gap-2">
           <View className="h-12 flex-1 flex-row items-center gap-2 rounded-xl border border-border bg-card px-3">
-            <Ionicons color={colors.mutedForeground} name="search" size={17} />
+            <Glyph color={colors.mutedForeground} name="search" size={17} />
             <TextInput
               className="h-full flex-1 text-base text-foreground"
               onChangeText={setSearch}
@@ -318,7 +318,7 @@ export function HostelBrowser({
                   setFilters((current) => ({ ...current, q: undefined }));
                 }}
               >
-                <Ionicons color={colors.mutedForeground} name="close-circle" size={17} />
+                <Glyph color={colors.mutedForeground} name="close-circle" size={17} />
               </Pressable>
             ) : null}
           </View>
@@ -329,7 +329,7 @@ export function HostelBrowser({
             className="h-12 flex-row items-center gap-1.5 rounded-xl border border-border px-3 active:opacity-70"
             onPress={() => setSheetOpen(true)}
           >
-            <Ionicons color={colors.foreground} name="options-outline" size={18} />
+            <Glyph color={colors.foreground} name="options" size={18} />
             {activeCount > 0 ? (
               <View className="h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1">
                 <Text className="text-[11px] font-bold text-primary-foreground">
@@ -489,8 +489,8 @@ function ViewSwitch({
   const { colors } = useAppTheme();
 
   const options = [
-    { icon: "list-outline", label: "List", value: "list" },
-    { icon: "map-outline", label: "Map", value: "map" },
+    { icon: "list", label: "List", value: "list" },
+    { icon: "map", label: "Map", value: "map" },
   ] as const;
 
   return (
@@ -509,7 +509,7 @@ function ViewSwitch({
             key={option.value}
             onPress={() => onChange(option.value)}
           >
-            <Ionicons
+            <Glyph
               color={selected ? colors.primaryForeground : colors.mutedForeground}
               name={option.icon}
               size={14}
@@ -565,9 +565,10 @@ function NearestToggle({ nearby }: { nearby: ReturnType<typeof useNearby> }) {
           void nearby.enable();
         }}
       >
-        <Ionicons
+        <Glyph
           color={nearby.isActive ? colors.primary : colors.mutedForeground}
-          name={nearby.isActive ? "navigate" : "navigate-outline"}
+          name="navigate"
+          variant={nearby.isActive ? "solid" : "line"}
           size={14}
         />
         <Text
@@ -674,7 +675,7 @@ function ActiveFilterChips({
           <Text className="text-xs font-semibold text-primary-foreground">
             {chip.label}
           </Text>
-          <Ionicons color="#ffffff" name="close" size={12} />
+          <Glyph color="#ffffff" name="close" size={12} />
         </Pressable>
       ))}
     </ScrollView>
@@ -700,6 +701,7 @@ function FilterSheet({
   open: boolean;
 }) {
   const insets = useSystemInsets();
+  const { colors } = useAppTheme();
   const [draft, setDraft] = useState(filters);
 
   const patch = useCallback((next: Partial<HostelFilters>) => {
@@ -717,7 +719,7 @@ function FilterSheet({
       <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
         <View className="flex-row items-center gap-3 border-b border-border px-5 pb-3 pt-2">
           <Pressable accessibilityLabel="Close" accessibilityRole="button" hitSlop={10} onPress={onClose}>
-            <Ionicons name="close" size={24} />
+            <Glyph color={colors.foreground} name="close" size={24} />
           </Pressable>
           <Text className="flex-1" variant="subtitle">
             Filters

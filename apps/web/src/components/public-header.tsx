@@ -10,7 +10,7 @@ import {
   Menu,
   QrCode,
   Smartphone,
-} from "lucide-react";
+} from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";

@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -40,6 +39,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChoiceChips } from "@/components/ui/choice-chips";
+import { Glyph } from "@/components/ui/glyph";
 import { Screen } from "@/components/ui/screen";
 import { OptionSheet, Select } from "@/components/ui/select";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
@@ -570,7 +570,7 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
             className="h-20 w-20 items-center justify-center rounded-full bg-primary"
             entering={ZoomIn.springify().reduceMotion(ReduceMotion.System)}
           >
-            <Ionicons color={colors.primaryForeground} name="checkmark" size={40} />
+            <Glyph color={colors.primaryForeground} name="checkmark" size={40} />
           </Animated.View>
           <Animated.View className="items-center gap-2" entering={FadeIn.delay(120).reduceMotion(ReduceMotion.System)}>
             <Text className="text-center" variant="title">
@@ -730,7 +730,7 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
               </View>
             ) : (
               <View className="items-center gap-2 rounded-2xl bg-muted px-6 py-7">
-                <Ionicons color={colors.foreground} name="location-outline" size={32} />
+                <Glyph color={colors.foreground} name="location" size={32} />
                 <Text variant="subtitle">Place the pin</Text>
                 <Text className="text-center" variant="caption">
                   Add the exact spot so people can find it.
@@ -845,7 +845,7 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
                   className="min-h-14 flex-row items-center justify-center gap-2 rounded-2xl border border-dashed border-primary active:bg-muted"
                   onPress={() => setPicker("add")}
                 >
-                  <Ionicons color={colors.primary} name="add" size={20} />
+                  <Glyph color={colors.primary} name="add" size={20} />
                   <Text className="font-semibold text-primary" variant={null}>
                     Add room type
                   </Text>
@@ -871,8 +871,8 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
                     <FieldHead label="Meals served" />
                     <View className="flex-row flex-wrap gap-2">
                       {/* One of the two always stays on: a kitchen serves something. */}
-                      <IconChip icon="leaf-outline" label="Veg" on={hasVeg} onPress={() => (hasNonVeg || !hasVeg ? setHasVeg(!hasVeg) : null)} />
-                      <IconChip icon="restaurant-outline" label="Non-veg" on={hasNonVeg} onPress={() => (hasVeg || !hasNonVeg ? setHasNonVeg(!hasNonVeg) : null)} />
+                      <IconChip icon="leaf" label="Veg" on={hasVeg} onPress={() => (hasNonVeg || !hasVeg ? setHasVeg(!hasVeg) : null)} />
+                      <IconChip icon="restaurant" label="Non-veg" on={hasNonVeg} onPress={() => (hasVeg || !hasNonVeg ? setHasNonVeg(!hasNonVeg) : null)} />
                     </View>
                   </View>
                   <View className="gap-2">
@@ -940,7 +940,7 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
                       key={kind}
                       onPress={() => void attachDocument(kind)}
                     >
-                      <Ionicons color={file ? colors.primary : colors.mutedForeground} name={file ? "document-attach" : "document-outline"} size={20} />
+                      <Glyph color={file ? colors.primary : colors.mutedForeground} name={file ? "document-attach" : "document"} size={20} />
                       <View className="flex-1">
                         <Text variant="label">{kind}</Text>
                         {file ? <Text numberOfLines={1} variant="caption">{file.fileName}</Text> : null}
@@ -959,7 +959,7 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
                             })
                           }
                         >
-                          <Ionicons color={colors.mutedForeground} name="close" size={20} />
+                          <Glyph color={colors.mutedForeground} name="close" size={20} />
                         </Pressable>
                       ) : (
                         <Text className="font-semibold text-primary" variant={null}>
@@ -1034,13 +1034,13 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
                         <Text className="flex-1" variant="label">{`${position + 1}. ${entry.title}`}</Text>
                         {problem ? (
                           <View className="flex-row items-center gap-1">
-                            <Ionicons color={colors.warning} name="alert-circle" size={18} />
+                            <Glyph color={colors.warning} name="alert-circle" size={18} />
                             <Text className="text-warning" variant="caption">
                               Needs a fix
                             </Text>
                           </View>
                         ) : (
-                          <Ionicons accessibilityLabel="Complete" color={colors.primary} name="checkmark" size={20} />
+                          <Glyph accessibilityLabel="Complete" color={colors.primary} name="checkmark" size={20} />
                         )}
                       </Pressable>
                       <Pressable
@@ -1062,7 +1062,7 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
                         <FactRows facts={facts[entry.key]} />
                         {problem ? (
                           <View className="flex-row items-center gap-1.5 pt-1">
-                            <Ionicons color={colors.destructive} name="alert-circle" size={16} />
+                            <Glyph color={colors.destructive} name="alert-circle" size={16} />
                             <Text className="flex-1 text-destructive" variant="caption">
                               {problem}
                             </Text>
@@ -1172,7 +1172,7 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
         <View className="pb-2">
           <SheetRow
             label="Edit"
-            leading={<Ionicons color={colors.foreground} name="create-outline" size={20} />}
+            leading={<Glyph color={colors.foreground} name="create" size={20} />}
             onPress={() => {
               const room = roomMenu;
               setRoomMenu(null);
@@ -1181,7 +1181,7 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
           />
           <SheetRow
             label="Remove"
-            leading={<Ionicons color={colors.destructive} name="trash-outline" size={20} />}
+            leading={<Glyph color={colors.destructive} name="trash" size={20} />}
             onPress={() => {
               const room = roomMenu;
               setRoomMenu(null);

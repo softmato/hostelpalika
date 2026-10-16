@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import { Pressable, Share, TextInput, View } from "react-native";
@@ -7,6 +6,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge, StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { FactRow } from "@/components/ui/layout";
 import { Money } from "@/components/ui/money";
@@ -114,7 +114,7 @@ const FIELD_HEIGHT = 46;
  *
  * A table mapping each channel to an Ionicon, with a comment explaining that a
  * glyph "carries what a brand logo would" because the repo had none. It also
- * gave **eSewa and Khalti the same glyph** — `phone-portrait-outline` — so on a
+ * gave **eSewa and Khalti the same glyph** — `phone-portrait` — so on a
  * ledger of a resident's own payments the two wallets they actually use were
  * indistinguishable pictures.
  *
@@ -199,7 +199,7 @@ function ClearFilters({ count, onPress }: { count: number; onPress: () => void }
       hitSlop={6}
       onPress={onPress}
     >
-      <Ionicons color={colors.mutedForeground} name="close-circle" size={14} />
+      <Glyph color={colors.mutedForeground} name="close-circle" size={14} />
       <Text className="text-xs font-semibold text-muted-foreground">Clear</Text>
     </Pressable>
   );
@@ -257,7 +257,7 @@ function DebitRow({
           {/*
             The wallet's own mark, falling back to the tinted glyph tile for a
             method that has none. eSewa and Khalti both mapped to
-            `phone-portrait-outline`, so the two wallets a resident actually
+            `phone-portrait`, so the two wallets a resident actually
             uses were the same picture on a ledger of their own payments.
           */}
           <WalletMark name={debit.method} size={40} square tone="danger" />
@@ -279,7 +279,7 @@ function DebitRow({
             reference.
           */}
           <View className="flex-row items-center gap-1 pt-0.5">
-            <Ionicons color={colors.destructive} name="caret-down" size={12} />
+            <Glyph color={colors.destructive} name="caret-down" size={12} />
             <Money tone="debit" value={debit.amount} />
           </View>
         </View>
@@ -455,7 +455,7 @@ export default function ResidentStatementScreen() {
               hitSlop={4}
               onPress={() => void share()}
             >
-              <Ionicons color={colors.primaryForeground} name="share-social-outline" size={20} />
+              <Glyph color={colors.primaryForeground} name="share-social" size={20} />
             </Pressable>
 
             <Pressable
@@ -468,7 +468,7 @@ export default function ResidentStatementScreen() {
               hitSlop={4}
               onPress={() => void exportPdf()}
             >
-              <Ionicons color={colors.primaryForeground} name="document-text-outline" size={20} />
+              <Glyph color={colors.primaryForeground} name="document-text" size={20} />
             </Pressable>
           </View>
         }
@@ -506,7 +506,7 @@ export default function ResidentStatementScreen() {
           }}
         >
           <View className="h-10 w-10 items-center justify-center rounded-2xl bg-brand-soft">
-            <Ionicons color={colors.primary} name="stats-chart-outline" size={18} />
+            <Glyph color={colors.primary} name="stats-chart" size={18} />
           </View>
 
           {/*
@@ -543,7 +543,7 @@ export default function ResidentStatementScreen() {
             )}
           </View>
 
-          <Ionicons color={colors.mutedForeground} name="chevron-forward" size={18} />
+          <Glyph color={colors.mutedForeground} name="chevron-forward" size={18} />
         </Pressable>
       </View>
 
@@ -576,10 +576,10 @@ export default function ResidentStatementScreen() {
                 hitSlop={8}
                 onPress={() => setFilter((current) => ({ ...current, query: "" }))}
               >
-                <Ionicons color={colors.mutedForeground} name="close-circle" size={16} />
+                <Glyph color={colors.mutedForeground} name="close-circle" size={16} />
               </Pressable>
             ) : (
-              <Ionicons color={colors.mutedForeground} name="search" size={16} />
+              <Glyph color={colors.mutedForeground} name="search" size={16} />
             )}
           </View>
 
@@ -597,7 +597,7 @@ export default function ResidentStatementScreen() {
             hitSlop={6}
             onPress={openFilters}
           >
-            <Ionicons color={colors.foreground} name="options-outline" size={21} />
+            <Glyph color={colors.foreground} name="options" size={21} />
 
             {filterCount > 0 ? (
               <View
@@ -667,7 +667,7 @@ export default function ResidentStatementScreen() {
           }}
           style={{ height: PILL, width: PILL }}
         >
-          <Ionicons
+          <Glyph
             color={colors.primaryForeground}
             name={rangesOpen ? "chevron-up" : "chevron-down"}
             size={16}

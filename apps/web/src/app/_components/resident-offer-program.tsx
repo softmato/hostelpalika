@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, BadgeCheck, Copy, Check, Sparkles } from "lucide-react";
+import { AlertTriangle, BadgeCheck, Copy, Check, Sparkles } from "@/components/icons";
 import { useCallback, useState } from "react";
 
 import { cn } from "@/lib/utils";

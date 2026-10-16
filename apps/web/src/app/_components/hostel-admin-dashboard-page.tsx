@@ -14,7 +14,7 @@ import {
   Utensils,
   WalletCards,
   Wrench,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 import { memo } from "react";
 

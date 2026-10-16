@@ -16,8 +16,8 @@ import { cn } from "@/lib/utils";
  * what the plan above is selling.
  *
  * Drawn on one 40×40 grid at one stroke weight in `currentColor`, so it takes
- * the card's own colour and stays sharp at any size. Deliberately not a Lucide
- * import — no stock icon says "more people under one roof".
+ * the card's own colour and stays sharp at any size. Deliberately not a
+ * glyph — no stock icon says "more people under one roof".
  */
 
 /** Rows fill downward from the roof, widening as they go. */

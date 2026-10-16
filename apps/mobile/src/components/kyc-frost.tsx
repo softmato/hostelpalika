@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { router } from "expo-router";
 import type { ReactNode } from "react";
@@ -6,6 +5,7 @@ import { Pressable, View } from "react-native";
 
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -61,10 +61,12 @@ export function KycFrost({
         className="absolute inset-0 active:opacity-80"
         onPress={promptKyc}
       >
-        <BlurView className="flex-1" intensity={14} tint={isDark ? "dark" : "light"}>
+        {/* `style`, not `className`: BlurView has no cssInterop, so `flex-1` was
+            dropped, the frost collapsed to 0 height and the lock sat half off the top. */}
+        <BlurView intensity={14} style={{ flex: 1 }} tint={isDark ? "dark" : "light"}>
           <View className={`flex-1 justify-center bg-background/60 ${center ? "items-center" : "items-end px-4"}`}>
             <View className="h-8 w-8 items-center justify-center rounded-full border border-border bg-card">
-              <Ionicons color={colors.foreground} name="lock-closed" size={15} />
+              <Glyph color={colors.foreground} name="lock-closed" size={15} />
             </View>
           </View>
         </BlurView>

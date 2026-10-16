@@ -1,7 +1,7 @@
-import { Ionicons } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { ActivityIndicator, Pressable, View } from "react-native";
 
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -30,7 +30,7 @@ export function FloatingButton({
 }: {
   /** Shrink to fit the label — for a secondary action sharing the row. */
   compact?: boolean;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: GlyphName;
   label: string;
   loading?: boolean;
   onPress: () => void;
@@ -71,7 +71,7 @@ export function FloatingButton({
           {loading ? (
             <ActivityIndicator color="#ffffff" size="small" />
           ) : icon ? (
-            <Ionicons color="#ffffff" name={icon} size={19} />
+            <Glyph color="#ffffff" name={icon} size={19} />
           ) : null}
 
           <Text className="text-base font-semibold text-white">{label}</Text>

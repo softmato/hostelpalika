@@ -10,7 +10,7 @@ import {
   Gift,
   Percent,
   Sparkles,
-} from "lucide-react";
+} from "@/components/icons";
 import Link from "next/link";
 
 import {

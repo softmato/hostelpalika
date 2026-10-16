@@ -1,9 +1,9 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useCallback, useRef, useState } from "react";
 import { Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
@@ -343,13 +343,13 @@ export function PinPickerModal<Hit extends PinSearchHit>({
       <View className="flex-1 bg-background" style={{ paddingBottom: insets.bottom, paddingTop: insets.top }}>
         <View className="flex-row items-center gap-2 px-3 py-2">
           <Pressable accessibilityLabel="Close" accessibilityRole="button" className="h-11 w-11 items-center justify-center" onPress={onClose}>
-            <Ionicons color={colors.foreground} name="close" size={24} />
+            <Glyph color={colors.foreground} name="close" size={24} />
           </Pressable>
           <View className="flex-1">
             <Input
               autoCapitalize="none"
               autoCorrect={false}
-              leading={<Ionicons color={colors.mutedForeground} name="search" size={18} />}
+              leading={<Glyph color={colors.mutedForeground} name="search" size={18} />}
               onChangeText={setQuery}
               onSubmitEditing={() => void runSearch()}
               placeholder="Place, map link or lat, lng"
@@ -386,7 +386,7 @@ export function PinPickerModal<Hit extends PinSearchHit>({
           {/* The pin is ours, not the map's: its tip sits on the centre. */}
           <View className="absolute inset-0 items-center justify-center" style={{ pointerEvents: "none" }}>
             <View style={{ marginTop: -40 }}>
-              <Ionicons color={colors.primary} name="location" size={44} />
+              <Glyph color={colors.primary} name="location" size={44} />
             </View>
           </View>
 
@@ -397,7 +397,7 @@ export function PinPickerModal<Hit extends PinSearchHit>({
             disabled={busy !== null}
             onPress={() => void locate()}
           >
-            <Ionicons color={colors.primary} name={busy === "locate" ? "hourglass-outline" : "locate"} size={22} />
+            <Glyph color={colors.primary} name={busy === "locate" ? "hourglass" : "locate"} size={22} />
           </Pressable>
 
           <View className="absolute bottom-1 left-1 rounded bg-card px-1.5 py-0.5" style={{ pointerEvents: "none" }}>
@@ -423,7 +423,7 @@ export function PinPickerModal<Hit extends PinSearchHit>({
                         setHits([]);
                       }}
                     >
-                      <Ionicons color={colors.mutedForeground} name="location-outline" size={20} />
+                      <Glyph color={colors.mutedForeground} name="location" size={20} />
                       <Text className="flex-1" numberOfLines={2}>{hit.displayName ?? `${hit.lat.toFixed(5)}, ${hit.lng.toFixed(5)}`}</Text>
                     </Pressable>
                   ))}

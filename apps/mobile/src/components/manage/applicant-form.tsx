@@ -166,7 +166,7 @@ export function ApplicantForm({
             <View className="flex-row flex-wrap gap-2">
               {FOOD_OPTIONS.map((option) => (
                 <Chip
-                  icon="restaurant-outline"
+                  icon="restaurant"
                   key={option.value}
                   label={option.label}
                   onPress={() => toggle("food", option.value)}

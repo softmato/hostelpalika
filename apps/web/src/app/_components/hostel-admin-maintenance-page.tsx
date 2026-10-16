@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useMemo, useState, type FormEvent } from "react";
-import { Sparkles, Wrench } from "lucide-react";
+import { Sparkles, Wrench } from "@/components/icons";
 import {
   EmptyState,
   Input,

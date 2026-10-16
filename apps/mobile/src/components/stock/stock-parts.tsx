@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
@@ -7,6 +6,7 @@ import { Pressable, ScrollView, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
@@ -153,7 +153,7 @@ export function EntryRow({
           className="h-10 w-10 items-center justify-center rounded-full"
           style={{ backgroundColor: `${view.color}1F` }}
         >
-          <Ionicons color={view.color} name={view.icon} size={20} />
+          <Glyph color={view.color} name={view.icon} size={20} />
         </View>
         <View className="flex-1">
           <Text className={entry.status === "CANCELLED" ? "line-through opacity-60" : ""} variant="label">
@@ -272,7 +272,7 @@ export function DateField({
           }}
         >
           <Text variant="body">{bsDayLong(value)}</Text>
-          <Ionicons color={colors.mutedForeground} name="calendar-outline" size={20} />
+          <Glyph color={colors.mutedForeground} name="calendar" size={20} />
         </Pressable>
       </View>
 
@@ -433,7 +433,7 @@ export function BillPhotoBox({
             {bill.uploading ? "Adding photo…" : "Bill photo added"}
           </Text>
           <Pressable accessibilityLabel="Remove the photo" accessibilityRole="button" hitSlop={8} onPress={bill.clear}>
-            <Ionicons color={colors.mutedForeground} name="close-circle" size={24} />
+            <Glyph color={colors.mutedForeground} name="close-circle" size={24} />
           </Pressable>
         </View>
       ) : (
@@ -444,7 +444,7 @@ export function BillPhotoBox({
           }`}
           onPress={() => setChoosing(true)}
         >
-          <Ionicons color={colors.primary} name="camera-outline" size={28} />
+          <Glyph color={colors.primary} name="camera" size={28} />
           <Text variant="muted">Tap to add bill photo</Text>
         </Pressable>
       )}
@@ -530,7 +530,7 @@ export function ItemPicker({
     >
       <View className="gap-3 pb-2">
         <Input
-          leading={<Ionicons color={colors.mutedForeground} name="search" size={18} />}
+          leading={<Glyph color={colors.mutedForeground} name="search" size={18} />}
           onChangeText={setQuery}
           placeholder="Search items…"
           value={query}
@@ -559,9 +559,9 @@ export function ItemPicker({
                       {already ? "Already added" : `${item.kind === "DAILY" ? "Daily" : "Store"} · ${unitLabel(item.unit)}`}
                     </Text>
                   </View>
-                  <Ionicons
+                  <Glyph
                     color={on ? colors.primary : colors.border}
-                    name={on ? "checkmark-circle" : "ellipse-outline"}
+                    name={on ? "checkmark-circle" : "ellipse"}
                     size={24}
                   />
                 </Pressable>
@@ -897,7 +897,7 @@ export function ItemSettings({ item, onSaved }: { item: StockItem; onSaved: () =
       <ItemFields draft={draft} onChange={(change) => setDraft((prev) => ({ ...prev, ...change }))} />
       <Card padding="px-4 py-1">
         <ListRow
-          icon="eye-outline"
+          icon="eye"
           iconBgColor={colors.primary}
           right={<Toggle accessibilityLabel="Still buying it" onChange={setActive} value={active} />}
           subtitle="Off hides it from Buy, Use, Send and Count. Its history stays."
@@ -1066,11 +1066,11 @@ export function SupplierField({
             setOpen(true);
           }}
         >
-          <Ionicons color={colors.primary} name="storefront-outline" size={20} />
+          <Glyph color={colors.primary} name="storefront" size={20} />
           <Text className={`flex-1 ${picked ? "" : "text-muted-foreground"}`} numberOfLines={1} variant="body">
             {picked?.name ?? "Pick the shop (optional when paid)"}
           </Text>
-          <Ionicons color={colors.mutedForeground} name="chevron-down" size={18} />
+          <Glyph color={colors.mutedForeground} name="chevron-down" size={18} />
         </Pressable>
         {error ? (
           <Text className="text-destructive" variant="caption">
@@ -1095,7 +1095,7 @@ export function SupplierField({
           <View className="gap-3 pb-2">
             {suppliers.length > 6 ? (
               <Input
-                leading={<Ionicons color={colors.mutedForeground} name="search" size={18} />}
+                leading={<Glyph color={colors.mutedForeground} name="search" size={18} />}
                 onChangeText={setQuery}
                 placeholder="Search suppliers"
                 value={query}

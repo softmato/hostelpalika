@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useCameraPermissions } from "expo-camera";
 import * as Haptics from "expo-haptics";
 import { useFocusEffect } from "expo-router";
@@ -24,6 +23,7 @@ import Animated, {
 
 import { Button } from "@/components/ui/button";
 import { QrCamera } from "@/components/qr-camera";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Sheet } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
@@ -304,7 +304,7 @@ export function IdScanner({
 
           {permission && !permission.granted ? (
             <View className="w-full max-w-sm items-center gap-3 rounded-3xl bg-white/10 px-5 py-6">
-              <Ionicons color="#ffffff" name="camera-outline" size={26} />
+              <Glyph color="#ffffff" name="camera" size={26} />
               <Text className="text-center text-sm text-white/80">
                 {permission.canAskAgain
                   ? "Allow the camera to read their card, or type the ID underneath it."
@@ -352,7 +352,7 @@ export function IdScanner({
               setManualOpen(true);
             }}
           >
-            <Ionicons color="#ffffff" name="keypad-outline" size={18} />
+            <Glyph color="#ffffff" name="keypad" size={18} />
             <Text className="text-base font-semibold text-white">
               Type the ID instead
             </Text>
@@ -361,9 +361,9 @@ export function IdScanner({
           {extraAction}
 
           <View className="flex-row items-start justify-center gap-2">
-            <Ionicons
+            <Glyph
               color="rgba(255,255,255,0.55)"
-              name="lock-closed-outline"
+              name="lock-closed"
               size={13}
               style={{ marginTop: 2 }}
             />
@@ -424,7 +424,7 @@ export function IdScanner({
         {permission?.granted && page === 0 ? (
           <GlassButton
             active={torch}
-            icon={torch ? "flashlight" : "flashlight-outline"}
+            icon="flashlight"
             label={torch ? "Turn off the torch" : "Turn on the torch"}
             onPress={() => setTorch((current) => !current)}
           />
@@ -535,7 +535,7 @@ function GlassButton({
   onPress,
 }: {
   active?: boolean;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   label: string;
   onPress: () => void;
 }) {
@@ -550,7 +550,7 @@ function GlassButton({
       hitSlop={8}
       onPress={onPress}
     >
-      <Ionicons color={active ? "#000000" : "#ffffff"} name={icon} size={20} />
+      <Glyph color={active ? "#000000" : "#ffffff"} name={icon} size={20} variant={active ? "solid" : "line"} />
     </Pressable>
   );
 }

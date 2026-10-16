@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, BellOff, BellRing, Loader2 } from "lucide-react";
+import { Bell, BellOff, BellRing, Loader2 } from "@/components/icons";
 import { useEffect, useState } from "react";
 
 import {

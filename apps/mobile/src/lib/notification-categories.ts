@@ -51,7 +51,7 @@
  * ordinary event at a high priority, the alarm *is* the content.
  */
 
-import type { Ionicons } from "@expo/vector-icons";
+import type { GlyphName } from "@hostel/constants/glyphs";
 
 import { humanizeEnum } from "@/lib/format";
 
@@ -67,7 +67,7 @@ import { humanizeEnum } from "@/lib/format";
 export type NotificationTone = "brand" | "danger" | "neutral" | "success" | "warning";
 
 export type NotificationVisual = {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   /** The word on the row's chip — the category as a person would say it. */
   label: string;
   tone: NotificationTone;
@@ -82,30 +82,30 @@ export type NotificationVisual = {
  */
 const CATEGORY_VISUALS: Record<string, NotificationVisual> = {
   /** The account itself: profile, sign-in, credentials. */
-  ACCOUNT: { icon: "person-circle-outline", label: "Account", tone: "brand" },
-  ACCOUNT_DELETION: { icon: "trash-outline", label: "Account", tone: "danger" },
-  ANNOUNCEMENT: { icon: "megaphone-outline", label: "Notice", tone: "brand" },
-  ATTENDANCE: { icon: "finger-print-outline", label: "Attendance", tone: "brand" },
+  ACCOUNT: { icon: "person-circle", label: "Account", tone: "brand" },
+  ACCOUNT_DELETION: { icon: "trash", label: "Account", tone: "danger" },
+  ANNOUNCEMENT: { icon: "megaphone", label: "Notice", tone: "brand" },
+  ATTENDANCE: { icon: "finger-print", label: "Attendance", tone: "brand" },
   /** A room booking: the guest's own, or a request to the hostel. */
-  BOOKING: { icon: "calendar-outline", label: "Booking", tone: "brand" },
-  COMMUNITY: { icon: "chatbubbles-outline", label: "Community", tone: "brand" },
-  COMPLAINT: { icon: "chatbox-ellipses-outline", label: "Complaint", tone: "warning" },
+  BOOKING: { icon: "calendar", label: "Booking", tone: "brand" },
+  COMMUNITY: { icon: "chatbubbles", label: "Community", tone: "brand" },
+  COMPLAINT: { icon: "chatbox-ellipses", label: "Complaint", tone: "warning" },
   /** A trade. The provider portal's own jobs use the same two glyphs. */
-  ELECTRICAL: { icon: "flash-outline", label: "Electrical", tone: "warning" },
-  ELECTRICIAN: { icon: "flash-outline", label: "Electrical", tone: "warning" },
-  FOOD: { icon: "restaurant-outline", label: "Food", tone: "brand" },
-  GENERAL: { icon: "notifications-outline", label: "Update", tone: "neutral" },
+  ELECTRICAL: { icon: "flash", label: "Electrical", tone: "warning" },
+  ELECTRICIAN: { icon: "flash", label: "Electrical", tone: "warning" },
+  FOOD: { icon: "restaurant", label: "Food", tone: "brand" },
+  GENERAL: { icon: "notifications", label: "Update", tone: "neutral" },
   /** Platform to owner: a listing cleared for publication, or refused. */
   HOSTEL_APPROVAL: {
-    icon: "shield-checkmark-outline",
+    icon: "shield-checkmark",
     label: "Approval",
     tone: "brand",
   },
   /** Khata: a request to open one, an ask, an answer. The Khata card's own glyph. */
-  KHATA: { icon: "receipt-outline", label: "Khata", tone: "brand" },
-  /** A lead. `mail-outline` is what the portal's own Inquiries door uses. */
-  INQUIRY: { icon: "mail-outline", label: "Inquiry", tone: "warning" },
-  MAINTENANCE: { icon: "construct-outline", label: "Maintenance", tone: "warning" },
+  KHATA: { icon: "receipt", label: "Khata", tone: "brand" },
+  /** A lead. `mail` is what the portal's own Inquiries door uses. */
+  INQUIRY: { icon: "mail", label: "Inquiry", tone: "warning" },
+  MAINTENANCE: { icon: "construct", label: "Maintenance", tone: "warning" },
   /*
    * The nightly "are you in tonight?" prompt. A moon rather than the
    * fingerprint `ATTENDANCE` carries: the two are different signals — one is
@@ -113,29 +113,29 @@ const CATEGORY_VISUALS: Record<string, NotificationVisual> = {
    * shared glyph would put them in the same visual bucket in the one list where
    * they arrive side by side.
    */
-  NIGHT_STATUS: { icon: "moon-outline", label: "Night status", tone: "brand" },
-  NOTICE: { icon: "megaphone-outline", label: "Notice", tone: "brand" },
-  PAYMENT: { icon: "wallet-outline", label: "Payment", tone: "brand" },
-  PLUMBER: { icon: "water-outline", label: "Plumbing", tone: "warning" },
-  PLUMBING: { icon: "water-outline", label: "Plumbing", tone: "warning" },
-  RESIDENT: { icon: "people-outline", label: "Resident", tone: "brand" },
-  REVIEW: { icon: "star-outline", label: "Review", tone: "brand" },
-  ROOM: { icon: "bed-outline", label: "Room", tone: "brand" },
-  SERVICE_PROVIDER: { icon: "briefcase-outline", label: "Provider", tone: "brand" },
+  NIGHT_STATUS: { icon: "moon", label: "Night status", tone: "brand" },
+  NOTICE: { icon: "megaphone", label: "Notice", tone: "brand" },
+  PAYMENT: { icon: "wallet", label: "Payment", tone: "brand" },
+  PLUMBER: { icon: "water", label: "Plumbing", tone: "warning" },
+  PLUMBING: { icon: "water", label: "Plumbing", tone: "warning" },
+  RESIDENT: { icon: "people", label: "Resident", tone: "brand" },
+  REVIEW: { icon: "star", label: "Review", tone: "brand" },
+  ROOM: { icon: "bed", label: "Room", tone: "brand" },
+  SERVICE_PROVIDER: { icon: "briefcase", label: "Provider", tone: "brand" },
   /**
    * The one category whose tile is red on its own account. Everything else earns
    * its colour from what happened.
    */
-  SOS: { icon: "warning-outline", label: "SOS", tone: "danger" },
+  SOS: { icon: "warning", label: "SOS", tone: "danger" },
   /** Stock sent between buildings, and Got it. The Stock door's cube. */
-  STOCK: { icon: "cube-outline", label: "Stock", tone: "warning" },
-  STORE_ORDER: { icon: "bag-handle-outline", label: "Order", tone: "brand" },
-  URGENT: { icon: "alert-circle-outline", label: "Urgent", tone: "danger" },
+  STOCK: { icon: "cube", label: "Stock", tone: "warning" },
+  STORE_ORDER: { icon: "bag-handle", label: "Order", tone: "brand" },
+  URGENT: { icon: "alert-circle", label: "Urgent", tone: "danger" },
 };
 
 /** Anything the server sends that nobody has mapped. A bell, and no colour. */
 const FALLBACK_VISUAL: NotificationVisual = {
-  icon: "notifications-outline",
+  icon: "notifications",
   label: "Update",
   tone: "neutral",
 };
@@ -143,7 +143,7 @@ const FALLBACK_VISUAL: NotificationVisual = {
 type EventVariant = {
   /** Limits the variant to these categories. Absent means every category. */
   categories?: readonly string[];
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: GlyphName;
   match: RegExp;
   tone: NotificationTone;
 };
@@ -168,25 +168,25 @@ const EVENT_VARIANTS: readonly EventVariant[] = [
   /* Money that has not arrived — before any of the good news below it. */
   {
     categories: ["PAYMENT"],
-    icon: "alert-circle-outline",
+    icon: "alert-circle",
     match: /\b(overdue|unpaid|not paid|failed|declined|bounced)\b/i,
     tone: "danger",
   },
   {
     categories: ["PAYMENT"],
-    icon: "arrow-undo-outline",
+    icon: "arrow-undo",
     match: /\b(refund|refunded|reversed|reversal)\b/i,
     tone: "neutral",
   },
   {
     categories: ["PAYMENT"],
-    icon: "alarm-outline",
+    icon: "alarm",
     match: /\b(due|reminder|pending|awaiting|outstanding)\b/i,
     tone: "warning",
   },
   {
     categories: ["PAYMENT"],
-    icon: "wallet-outline",
+    icon: "wallet",
     match: /\b(received|paid|settled|cleared|credited|confirmed)\b/i,
     tone: "success",
   },
@@ -194,13 +194,13 @@ const EVENT_VARIANTS: readonly EventVariant[] = [
   /* Somebody joined, or left. The registration case, in both its categories. */
   {
     categories: ["ACCOUNT", "RESIDENT"],
-    icon: "person-add-outline",
+    icon: "person-add",
     match: /\b(registered|registration|signed up|welcome|joined|moved in|onboarded)\b/i,
     tone: "success",
   },
   {
     categories: ["RESIDENT"],
-    icon: "person-remove-outline",
+    icon: "person-remove",
     match: /\b(moved out|move-out|checked out|vacated)\b/i,
     tone: "neutral",
   },
@@ -208,13 +208,13 @@ const EVENT_VARIANTS: readonly EventVariant[] = [
   /* An order: on its way, and then there. */
   {
     categories: ["STORE_ORDER"],
-    icon: "bag-check-outline",
+    icon: "bag-check",
     match: /\b(delivered|received)\b/i,
     tone: "success",
   },
   {
     categories: ["STORE_ORDER"],
-    icon: "cube-outline",
+    icon: "cube",
     match: /\b(shipped|dispatched|on its way|out for delivery|packed)\b/i,
     tone: "brand",
   },
@@ -222,25 +222,25 @@ const EVENT_VARIANTS: readonly EventVariant[] = [
   /* Community, where the verb is the whole message. */
   {
     categories: ["COMMUNITY"],
-    icon: "share-social-outline",
+    icon: "share-social",
     match: /\b(shared|shares|reposted)\b/i,
     tone: "brand",
   },
   {
     categories: ["COMMUNITY"],
-    icon: "at-outline",
+    icon: "at",
     match: /\b(mentioned|tagged)\b/i,
     tone: "brand",
   },
   {
     categories: ["COMMUNITY"],
-    icon: "chatbubble-ellipses-outline",
+    icon: "chatbubble-ellipses",
     match: /\b(commented|replied|reply|answered)\b/i,
     tone: "brand",
   },
   {
     categories: ["COMMUNITY"],
-    icon: "heart-outline",
+    icon: "heart",
     match: /\b(reacted|reaction|liked|likes)\b/i,
     tone: "brand",
   },
@@ -252,36 +252,36 @@ const EVENT_VARIANTS: readonly EventVariant[] = [
    */
   {
     categories: ["ACCOUNT"],
-    icon: "key-outline",
+    icon: "key",
     match: /\b(otp|verification code|one-?time)\b/i,
     tone: "warning",
   },
   {
     categories: ["ACCOUNT"],
-    icon: "shield-outline",
+    icon: "shield",
     match: /\b(sign-?in|signed in|log-?in|logged in|new device|password|security)\b/i,
     tone: "warning",
   },
 
   /* Outcomes, which read the same whichever queue they came out of. */
   {
-    icon: "close-circle-outline",
+    icon: "close-circle",
     match: /\b(rejected|declined|denied|refused)\b/i,
     tone: "danger",
   },
   {
-    icon: "trending-up-outline",
+    icon: "trending-up",
     match: /\b(escalated|breached|overdue)\b/i,
     tone: "danger",
   },
   {
-    icon: "close-outline",
+    icon: "close",
     match: /\b(cancelled|canceled|withdrawn)\b/i,
     tone: "neutral",
   },
-  { icon: "time-outline", match: /\b(expired|lapsed)\b/i, tone: "neutral" },
+  { icon: "time", match: /\b(expired|lapsed)\b/i, tone: "neutral" },
   {
-    icon: "shield-checkmark-outline",
+    icon: "shield-checkmark",
     match: /\b(approved|verified|accepted|activated)\b/i,
     tone: "success",
   },
@@ -291,17 +291,17 @@ const EVENT_VARIANTS: readonly EventVariant[] = [
    * meal call was arriving as a green tick with no plate on it.
    */
   {
-    icon: "checkmark-circle-outline",
+    icon: "checkmark-circle",
     match: /\b(resolved|completed|closed)\b/i,
     tone: "success",
   },
   {
-    icon: "calendar-outline",
+    icon: "calendar",
     match: /\b(scheduled|assigned|booked|arriving)\b/i,
     tone: "brand",
   },
   {
-    icon: "mail-open-outline",
+    icon: "mail-open",
     match: /\b(invited|invitation|invite)\b/i,
     tone: "brand",
   },

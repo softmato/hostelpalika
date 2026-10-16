@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Upload } from "lucide-react";
+import { Loader2, Upload } from "@/components/icons";
 import { memo, useState } from "react";
 
 import { ToggleSwitch } from "@/app/_components/portal-dashboard-ui";

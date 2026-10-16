@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useMemo, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 
@@ -6,6 +5,7 @@ import { ItemAvatar, qtyText, readQty } from "@/components/stock/stock-parts";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Grid } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
@@ -111,12 +111,12 @@ export default function KitchenStockScreen() {
           <View className="gap-6 pb-8 pt-3">
             <View className="gap-3">
               <View className="flex-row items-center gap-2">
-                <Ionicons color={colors.primary} name="hand-left-outline" size={20} />
+                <Glyph color={colors.primary} name="hand-left" size={20} />
                 <Text variant="subtitle">Tap what you took</Text>
               </View>
               {stock.items.length >= SEARCH_FROM ? (
                 <Input
-                  leading={<Ionicons color={colors.mutedForeground} name="search" size={18} />}
+                  leading={<Glyph color={colors.mutedForeground} name="search" size={18} />}
                   onChangeText={setSearch}
                   placeholder="Search"
                   value={search}
@@ -334,7 +334,7 @@ function UseSheet({
                 className="h-14 w-14 items-center justify-center rounded-2xl active:opacity-70"
                 onPress={() => setQty("")}
               >
-                <Ionicons color={colors.mutedForeground} name="backspace-outline" size={26} />
+                <Glyph color={colors.mutedForeground} name="backspace" size={26} />
               </Pressable>
             ) : null}
           </View>

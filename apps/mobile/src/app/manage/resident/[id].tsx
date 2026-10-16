@@ -1,5 +1,4 @@
 import { useLocalSearchParams } from "expo-router";
-import { LogOut } from "lucide-react-native";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Linking, View } from "react-native";
 
@@ -349,19 +348,19 @@ export default function ManageResidentScreen() {
           <View className="flex-row flex-wrap gap-2">
             {resident.phone ? (
               <Chip
-                icon="call-outline"
+                icon="call"
                 label={resident.phone}
                 onPress={() => void Linking.openURL(`tel:${resident.phone}`)}
                 tone="brand"
               />
             ) : null}
-            <Chip icon="bed-outline" label={humanizeEnum(resident.roomType)} />
+            <Chip icon="bed" label={humanizeEnum(resident.roomType)} />
             {resident.roomNumber ? (
-              <Chip icon="business-outline" label={roomLine(resident) ?? ""} tone="brand" />
+              <Chip icon="business" label={roomLine(resident) ?? ""} tone="brand" />
             ) : null}
-            <Chip icon="person-outline" label={humanizeEnum(resident.residentType)} />
+            <Chip icon="person" label={humanizeEnum(resident.residentType)} />
             <Chip
-              icon="calendar-outline"
+              icon="calendar"
               label={`Since ${dates.date(resident.moveInDate)}`}
             />
             {resident.userId ? null : (
@@ -393,7 +392,7 @@ export default function ManageResidentScreen() {
           <SectionHeader title="The record" />
           <Card padding="px-4 py-1">
             <ListRow
-              icon="person-circle-outline"
+              icon="person-circle"
               onPress={() => openPanel("details")}
               subtitle="Everything on file, and what they have paid"
               title="See details"
@@ -402,7 +401,7 @@ export default function ManageResidentScreen() {
             {layout.data?.tracking && layout.data.rooms.length > 0 && resident.status !== "MOVED_OUT" ? (
               <>
                 <ListRow
-                  icon="business-outline"
+                  icon="business"
                   onPress={() => setPanel("room")}
                   subtitle={roomLine(resident) ?? "No room yet — pick one"}
                   title="Floor & room"
@@ -411,21 +410,21 @@ export default function ManageResidentScreen() {
               </>
             ) : null}
             <ListRow
-              icon="bed-outline"
+              icon="bed"
               onPress={() => openPanel("roomType")}
               subtitle={humanizeEnum(resident.roomType)}
               title="Room type"
             />
             <RowDivider inset />
             <ListRow
-              icon="swap-horizontal-outline"
+              icon="swap-horizontal"
               onPress={() => openPanel("status")}
               subtitle={humanizeEnum(resident.status)}
               title="Status"
             />
             <RowDivider inset />
             <ListRow
-              icon="cash-outline"
+              icon="cash"
               onPress={() => openPanel("fee")}
               subtitle={
                 resident.specialFee
@@ -440,7 +439,7 @@ export default function ManageResidentScreen() {
               <>
                 <RowDivider inset />
                 <ListRow
-                  icon="airplane-outline"
+                  icon="airplane"
                   onPress={() => setPanel("away")}
                   subtitle="Home or holiday — money off their bill"
                   title="Days away"
@@ -449,7 +448,7 @@ export default function ManageResidentScreen() {
             ) : null}
             <RowDivider inset />
             <ListRow
-              icon="qr-code-outline"
+              icon="qr-code"
               onPress={() => openPanel("activation")}
               subtitle={
                 resident.userId
@@ -468,7 +467,7 @@ export default function ManageResidentScreen() {
           />
           <Card padding="px-4 py-1">
             <ListRow
-              icon="log-in-outline"
+              icon="log-in"
               onPress={() => openPanel("moveIn")}
               subtitle={
                 data.data?.moveIn?.completedAt
@@ -481,7 +480,7 @@ export default function ManageResidentScreen() {
               <>
                 <RowDivider inset />
                 <ListRow
-                  icon="log-out-outline"
+                  icon="log-out"
                   onPress={() => openPanel("moveOut")}
                   subtitle={`${dates.date(moveOut.completedAt)} · Deposit ${
                     DEPOSIT_LABELS[moveOut.depositRefundDecision] ?? "not settled yet"
@@ -530,7 +529,7 @@ export default function ManageResidentScreen() {
                   <View className="flex-row flex-wrap gap-2">
                     {guardian.phone ? (
                       <Chip
-                        icon="call-outline"
+                        icon="call"
                         label={guardian.phone}
                         onPress={() => void Linking.openURL(`tel:${guardian.phone}`)}
                         tone="brand"
@@ -568,7 +567,7 @@ export default function ManageResidentScreen() {
                   </View>
                   {contact.isPrimary ? <Badge label="First" tone="info" /> : null}
                   <Chip
-                    icon="call-outline"
+                    icon="call"
                     label={contact.phone}
                     onPress={() => void Linking.openURL(`tel:${contact.phone}`)}
                     tone="brand"
@@ -581,7 +580,7 @@ export default function ManageResidentScreen() {
 
         {resident.status !== "MOVED_OUT" ? (
           <Button
-            icon={LogOut}
+            icon="log-out"
             label="Move out"
             onPress={() => openPanel("moveOut")}
             variant="danger"
@@ -631,7 +630,7 @@ export default function ManageResidentScreen() {
               value={
                 resident.phone ? (
                   <Chip
-                    icon="call-outline"
+                    icon="call"
                     label={resident.phone}
                     onPress={() => void Linking.openURL(`tel:${resident.phone}`)}
                     tone="brand"
@@ -659,7 +658,7 @@ export default function ManageResidentScreen() {
                   label={document.label}
                   value={
                     <Chip
-                      icon="eye-outline"
+                      icon="eye"
                       label="Open"
                       onPress={() =>
                         openAssetViewer(

@@ -233,7 +233,7 @@ export default function ProviderJobScreen() {
           <SectionHeader title="Where" />
           <Card>
             <ListRow
-              icon="location-outline"
+              icon="location"
               onPress={
                 address
                   ? () =>
@@ -254,7 +254,7 @@ export default function ProviderJobScreen() {
               <>
                 <RowDivider inset />
                 <ListRow
-                  icon="call-outline"
+                  icon="call"
                   onPress={() => void Linking.openURL(`tel:${job.hostelPhone}`)}
                   subtitle={job.hostelPhone}
                   title="Call the hostel"

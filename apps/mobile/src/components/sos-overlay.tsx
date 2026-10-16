@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import {
   ActivityIndicator,
   Modal,
@@ -7,6 +6,7 @@ import {
 } from "react-native";
 
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import type { useSos } from "@/hooks/use-sos";
@@ -116,7 +116,7 @@ export function SosOverlay({
 
         {phase === "done" ? (
           <View className="w-full items-center gap-5">
-            <Ionicons
+            <Glyph
               color={
                 failed
                   ? colors.destructive

@@ -12,8 +12,8 @@ import {
   UserRound,
   Utensils,
   Wrench,
-  type LucideIcon,
-} from "lucide-react";
+  type IconComponent,
+} from "@/components/icons";
 
 /**
  * How a notification *looks*, derived from the `category` its service wrote.
@@ -36,7 +36,7 @@ export type NotificationTone =
   | "violet";
 
 type CategoryDisplay = {
-  icon: LucideIcon;
+  icon: IconComponent;
   label: string;
   tone: NotificationTone;
 };

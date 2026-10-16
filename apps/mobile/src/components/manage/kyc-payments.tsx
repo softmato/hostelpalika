@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
@@ -9,6 +8,7 @@ import { ExtraAccountRows, ExtraAccountSheet, usePaymentSetup } from "@/componen
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
@@ -64,7 +64,7 @@ export function KycPayments({ onSaved }: { onSaved: () => Promise<void> | void }
   return <View className="gap-4">
     <View className="flex-row"><Badge label={profile.usable ? "Ready to pay" : "Add a way to pay"} tone={profile.usable ? "success" : "neutral"} /></View>
     <Card className="items-center gap-3">
-      {setup.qrSource ? <Image source={setup.qrSource} contentFit="contain" style={{ width: 176, height: 176 }} /> : <Ionicons name="qr-code-outline" color={colors.mutedForeground} size={72} />}
+      {setup.qrSource ? <Image source={setup.qrSource} contentFit="contain" style={{ width: 176, height: 176 }} /> : <Glyph name="qr-code" color={colors.mutedForeground} size={72} />}
       {profile.qrPayeeName ? <Text variant="subtitle">{profile.qrPayeeName}</Text> : null}
       {profile.qrPayeeNumber ? <Text variant="muted">{mask(profile.qrPayeeNumber)}</Text> : null}
       <View className="w-full flex-row gap-2"><Button className="flex-1" label={setup.qrBusy ? "Uploading…" : setup.qrSource ? "Change QR" : "Add QR"} disabled={Boolean(setup.qrBusy)} variant="outline" onPress={() => void setup.pickQr()} />{setup.qrSource ? <Button className="flex-1" label="Edit name" variant="outline" onPress={() => setEditing(editing === "qr" ? null : "qr")} /> : null}</View>
@@ -78,14 +78,14 @@ export function KycPayments({ onSaved }: { onSaved: () => Promise<void> | void }
           <Pressable accessibilityRole="button" accessibilityState={{ expanded: editing === group.key }} onPress={() => setEditing(editing === group.key ? null : group.key)} className="min-h-20 flex-row items-center gap-3 p-4 active:opacity-70">
             <WalletMark name={group.key === "bank" ? value("bankName") || "BANK" : group.mark} size={44} square />
             <View className="flex-1 gap-1"><Text variant="subtitle">{group.key === "bank" && value("bankName") ? value("bankName") : group.title}</Text><Text variant="muted">{summary(group)}</Text></View>
-            <Ionicons name={editing === group.key ? "chevron-up" : added ? "checkmark" : "add"} size={22} color={colors.primary} />
+            <Glyph name={editing === group.key ? "chevron-up" : added ? "checkmark" : "add"} size={22} color={colors.primary} />
           </Pressable>
           {editing === group.key ? <View className="gap-3 px-4 pb-4">{group.fields.map(field)}</View> : null}
         </View>;
       })}
       <View className="px-4"><ExtraAccountRows accounts={profile.extraAccounts ?? []} onOpen={setAccount} /></View>
     </Card>
-    <View className="flex-row items-center gap-2"><Ionicons name="shield-checkmark-outline" size={20} color={profile.payeeVerifiable ? colors.primary : colors.warning} /><Text variant="muted">{profile.payeeVerifiable ? "We can check receipts" : "Receipts need a check"}</Text></View>
+    <View className="flex-row items-center gap-2"><Glyph name="shield-checkmark" size={20} color={profile.payeeVerifiable ? colors.primary : colors.warning} /><Text variant="muted">{profile.payeeVerifiable ? "We can check receipts" : "Receipts need a check"}</Text></View>
     {dirty ? <Text variant="muted" className="text-warning">Not saved</Text> : null}
     <ExtraAccountSheet editing={account} onClose={() => setAccount(null)} setup={setup} />
   </View>;
