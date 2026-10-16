@@ -33,8 +33,9 @@ import { hostelPortalOpenEmail } from "@hostel/shared/email/templates/hostel/hos
  * `registerOrUpgradeUserByEmail` rotates the password of a PUBLIC account it
  * raises to HOSTEL_ADMIN — a platform admin raising *somebody else* must not
  * leave a password nobody verified in charge of a hostel. Here the account
- * raises itself, signed in, with a proven mailbox (`emailVerified` is
- * required below), so the role changes in place and the session carries on.
+ * raises itself, signed in, with a proven mailbox (`emailVerified` or
+ * `emailVerifiedAt` is required below), so the role changes in place and the
+ * session carries on.
  *
  * ## Not listed, not verified
  *
@@ -55,11 +56,12 @@ export async function quickRegisterHostel(input: QuickHostelRegistrationInput, u
   await connectToDatabase();
 
   const user = await UserModel.findOne({ _id: userId, isDeleted: { $ne: true } })
-    .select("email emailVerified name phone role")
+    .select("email emailVerified emailVerifiedAt name phone role")
     .lean<{
       _id: Types.ObjectId;
       email?: string;
       emailVerified?: boolean;
+      emailVerifiedAt?: Date | null;
       name?: string;
       phone?: string;
       role: string;
@@ -79,7 +81,8 @@ export async function quickRegisterHostel(input: QuickHostelRegistrationInput, u
     );
   }
 
-  if (!user.email || !user.emailVerified) {
+  // An email-OTP sign-up stores only `emailVerifiedAt`: either one is a proven mailbox.
+  if (!user.email || !(user.emailVerified || user.emailVerifiedAt)) {
     throw new HostelServiceError(
       "Verify your email first, then register your hostel.",
       "EMAIL_NOT_VERIFIED",

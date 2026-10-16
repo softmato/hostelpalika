@@ -33,6 +33,7 @@ type SsoUser = {
   _id: Types.ObjectId;
   email?: string;
   emailVerified?: boolean;
+  emailVerifiedAt?: Date | null;
   name: string;
   phone?: string;
   status?: string;
@@ -44,7 +45,9 @@ type SsoUser = {
  * it in here.
  */
 function canSignInToQuestionCall(user: SsoUser | null): user is SsoUser & { email: string } {
-  return Boolean(user?.email && user.emailVerified && (user.status ?? "ACTIVE") === "ACTIVE");
+  return Boolean(
+    user?.email && (user.emailVerified || user.emailVerifiedAt) && (user.status ?? "ACTIVE") === "ACTIVE",
+  );
 }
 
 export class QuestionCallServiceError extends Error {
@@ -88,7 +91,7 @@ export async function trackQuestionCallClick(
 
   const userId = resident.userId ?? principal.userId;
   const user = await UserModel.findById(userId)
-    .select("email emailVerified name status")
+    .select("email emailVerified emailVerifiedAt name status")
     .lean<SsoUser | null>();
   const clickId = new Types.ObjectId();
   const ssoSecret = canSignInToQuestionCall(user)
@@ -154,7 +157,7 @@ export async function exchangeQuestionCallSsoCode(input: QuestionCallSsoExchange
   }
 
   const user = await UserModel.findById(click.userId)
-    .select("email emailVerified name phone status")
+    .select("email emailVerified emailVerifiedAt name phone status")
     .lean<SsoUser | null>();
 
   if (!canSignInToQuestionCall(user)) {

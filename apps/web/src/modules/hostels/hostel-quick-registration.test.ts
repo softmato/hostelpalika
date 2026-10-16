@@ -115,6 +115,15 @@ describe("quickRegisterHostel", () => {
     });
   });
 
+  it("accepts an email-OTP sign-up, which stores only emailVerifiedAt", async () => {
+    users.docs[0]!.emailVerified = undefined;
+    users.docs[0]!.emailVerifiedAt = new Date();
+
+    await quickRegisterHostel(input, userId.toString());
+
+    expect(users.docs[0]!.role).toBe("HOSTEL_ADMIN");
+  });
+
   it("finishes a half-done attempt on the same hostel instead of filing a second", async () => {
     await hostels.create({ kyc: { required: true }, name: "Study Sanjal", ownerId: userId, slug: "study-sanjal" });
 

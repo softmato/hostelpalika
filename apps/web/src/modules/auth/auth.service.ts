@@ -640,6 +640,8 @@ export async function registerPublicAccount(
   const now = new Date();
   const user = await UserModel.create({
     email,
+    // The challenge is email-only (findVerifiedRegistrationChallenge), so the mailbox is proven.
+    emailVerified: challenge.channel === "email",
     emailVerifiedAt: challenge.channel === "email" ? now : undefined,
     name: input.name,
     passwordHash: await hashPassword(input.password),
