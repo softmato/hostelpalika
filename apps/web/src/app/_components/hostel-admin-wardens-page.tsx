@@ -1,11 +1,19 @@
 "use client";
 
-import { KeyRound, Plus, Shield, ShieldOff, UserPlus, Users, X } from "@/components/icons";
+import { Check, KeyRound, Plus, Shield, ShieldOff, UserPlus } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { EmptyState, Input as FormInput, LoadingRows } from "@/app/_components/shared-ui";
+import { Glyph, type GlyphName } from "@/components/glyph";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import { useHostelWardens, type Warden } from "@/hooks/use-hostel-admin";
 import { browserApi } from "@/lib/browser-api";
 import {
@@ -16,7 +24,6 @@ import {
 
 import { field, optionalField } from "./hostel-admin-shared";
 import {
-  DataTable,
   EmptyInline,
   InitialsAvatar,
   ListPager,
@@ -26,11 +33,6 @@ import {
   SectionCard,
   SoftBadge,
   statusToneFromLabel,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
 } from "./portal-dashboard-ui";
 
 type CreateWardenResult = {
@@ -41,23 +43,23 @@ type CreateWardenResult = {
 };
 
 const PERMISSION_LABELS: Record<WardenPermissionKey, string> = {
-  approvePayments: "Approve payment claims",
+  approvePayments: "Approve claims",
   editHostelProfile: "Edit hostel profile",
-  manageFeeSchedule: "Set fees & bill residents",
-  manageFood: "Manage food",
-  manageMaintenance: "Manage maintenance",
-  manageNotices: "Manage notices",
-  managePaymentProfile: "Edit payment details",
-  manageRooms: "Manage rooms & beds",
-  manageStock: "Stock (buy, use, send, count)",
-  approveStockCount: "Approve stock counts",
-  recordCash: "Record cash payments",
+  manageFeeSchedule: "Set fees & bill",
+  manageFood: "Food menu",
+  manageMaintenance: "Maintenance",
+  manageNotices: "Notices",
+  managePaymentProfile: "Payment details",
+  manageRooms: "Rooms & beds",
+  manageStock: "Stock",
+  approveStockCount: "Approve counts",
+  recordCash: "Record cash",
   recordExpenses: "Add expenses",
-  // Shown inverted below: the box reads "Bill photo needed" and is ticked while
+  // Shown inverted below: the chip reads "Bill photo needed" and is on while
   // this waiver is absent.
-  expenseWithoutProof: "Bill photo needed for expenses",
+  expenseWithoutProof: "Bill photo needed",
   registerResidents: "Register residents",
-  reversePayments: "Reverse & void payments",
+  reversePayments: "Reverse & void",
   updateComplaints: "Update complaints",
   updateNightStatus: "Update night status",
   viewComplaints: "View complaints",
@@ -65,9 +67,35 @@ const PERMISSION_LABELS: Record<WardenPermissionKey, string> = {
   viewNightStatus: "View night status",
 };
 
+/** The permissions in four areas, each a card with its own mark. */
+const PERMISSION_GROUPS: { glyph: GlyphName; keys: WardenPermissionKey[]; title: string }[] = [
+  { glyph: "people", keys: ["registerResidents", "manageRooms", "editHostelProfile"], title: "Residents & rooms" },
+  {
+    glyph: "wallet",
+    keys: ["viewPayments", "approvePayments", "recordCash", "reversePayments", "manageFeeSchedule", "managePaymentProfile"],
+    title: "Money",
+  },
+  {
+    glyph: "clipboard",
+    keys: ["manageFood", "manageNotices", "viewComplaints", "updateComplaints", "viewNightStatus", "updateNightStatus", "manageMaintenance"],
+    title: "Daily work",
+  },
+  { glyph: "cube", keys: ["recordExpenses", "expenseWithoutProof", "manageStock", "approveStockCount"], title: "Spending & stock" },
+];
+
 /** Stored as a waiver, offered as a rule — on by default for every warden. */
 const PROOF_WAIVER: WardenPermissionKey = "expenseWithoutProof";
 
+/** Whether a permission chip reads "on". The proof waiver is shown inverted. */
+function isOn(key: WardenPermissionKey, selected: Set<string>) {
+  return key === PROOF_WAIVER ? !selected.has(key) : selected.has(key);
+}
+
+/**
+ * Permissions as four area cards of toggle chips. A chip is on when it is green
+ * with a tick; "All" flips the whole area. Any key added later that no area
+ * names lands in "Other", so nothing silently disappears from the screen.
+ */
 function PermissionGrid({
   onToggle,
   selected,
@@ -75,27 +103,60 @@ function PermissionGrid({
   onToggle: (key: WardenPermissionKey, checked: boolean) => void;
   selected: Set<string>;
 }) {
+  const grouped = new Set(PERMISSION_GROUPS.flatMap((group) => group.keys));
+  const other = WARDEN_PERMISSION_KEYS.filter((key) => !grouped.has(key));
+  const groups = other.length > 0 ? [...PERMISSION_GROUPS, { glyph: "ellipsis-horizontal" as GlyphName, keys: other, title: "Other" }] : PERMISSION_GROUPS;
+
   return (
-    <div className="grid gap-2 sm:grid-cols-2">
-      {WARDEN_PERMISSION_KEYS.map((key) => (
-        <label
-          className="flex items-center gap-2 rounded-lg border border-border bg-muted/15 px-3 py-2 text-sm text-foreground"
-          key={key}
-        >
-          <Checkbox
-            checked={key === PROOF_WAIVER ? !selected.has(key) : selected.has(key)}
-            onCheckedChange={(value) =>
-              onToggle(key, key === PROOF_WAIVER ? value !== true : value === true)
-            }
-          />
-          {PERMISSION_LABELS[key]}
-          {key === "recordExpenses" ? (
-            <span className="ml-auto rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-              Recommended
-            </span>
-          ) : null}
-        </label>
-      ))}
+    <div className="grid gap-3 sm:grid-cols-2">
+      {groups.map((group) => {
+        const onCount = group.keys.filter((key) => isOn(key, selected)).length;
+        const allOn = onCount === group.keys.length;
+
+        return (
+          <div className="rounded-2xl border border-border/70 bg-card p-3.5" key={group.title}>
+            <div className="mb-3 flex items-center gap-2.5">
+              <span className="flex size-8 items-center justify-center rounded-full bg-role-team-soft text-role-team">
+                <Glyph className="size-4" name={group.glyph} />
+              </span>
+              <p className="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-foreground">{group.title}</p>
+              <span className="text-[11.5px] font-semibold text-muted-foreground">
+                {onCount}/{group.keys.length}
+              </span>
+              <button
+                className="rounded-full px-2 py-0.5 text-[11.5px] font-semibold text-role-team transition hover:bg-role-team-soft"
+                onClick={() => group.keys.forEach((key) => onToggle(key, key === PROOF_WAIVER ? allOn : !allOn))}
+                type="button"
+              >
+                {allOn ? "None" : "All"}
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {group.keys.map((key) => {
+                const on = isOn(key, selected);
+
+                return (
+                  <button
+                    aria-pressed={on}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12.5px] font-medium transition duration-150 active:scale-95",
+                      on
+                        ? "border-transparent bg-role-team-soft text-role-team"
+                        : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
+                    )}
+                    key={key}
+                    onClick={() => onToggle(key, key === PROOF_WAIVER ? on : !on)}
+                    type="button"
+                  >
+                    {on ? <Check className="size-3.5" strokeWidth={2.2} /> : null}
+                    {PERMISSION_LABELS[key]}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -250,7 +311,7 @@ export const HostelAdminWardensPage = memo(function HostelAdminWardensPage() {
       <PortalPageHeader
         actions={
           <RoleButton
-            onClick={() => setShowAddForm((value) => !value)}
+            onClick={() => setShowAddForm(true)}
             tone="admin"
             type="button"
           >
@@ -258,7 +319,7 @@ export const HostelAdminWardensPage = memo(function HostelAdminWardensPage() {
             Add Warden
           </RoleButton>
         }
-        description="Create warden accounts and control what each warden can do."
+        description="Who helps run the hostel, and what each of them can do."
         title="Wardens"
       />
 
@@ -283,22 +344,12 @@ export const HostelAdminWardensPage = memo(function HostelAdminWardensPage() {
         </div>
       ) : null}
 
-      {showAddForm ? (
-        <SectionCard
-          actions={
-            <Button
-              className="size-8"
-              onClick={() => setShowAddForm(false)}
-              size="icon"
-              type="button"
-              variant="ghost"
-            >
-              <X className="size-4" />
-            </Button>
-          }
-          description="An account is created or upgraded in place — no duplicate users."
-          title="Add Warden"
-        >
+      <Dialog onOpenChange={setShowAddForm} open={showAddForm}>
+        <DialogContent className="max-h-[calc(100dvh-2rem)] sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Add a warden</DialogTitle>
+            <DialogDescription>An existing account is upgraded in place, never duplicated.</DialogDescription>
+          </DialogHeader>
           <form className="space-y-4" onSubmit={handleCreateWarden}>
             <div className="grid gap-3 md:grid-cols-2">
               <FormInput label="Full name" name="name" required />
@@ -306,7 +357,6 @@ export const HostelAdminWardensPage = memo(function HostelAdminWardensPage() {
               <FormInput label="Phone" name="phone" />
             </div>
             <div>
-              <p className="mb-2 text-sm font-semibold text-foreground">Permissions</p>
               <PermissionGrid
                 onToggle={(key, checked) =>
                   setFormPermissions((current) => {
@@ -322,26 +372,24 @@ export const HostelAdminWardensPage = memo(function HostelAdminWardensPage() {
                 selected={formPermissions}
               />
             </div>
-            <RoleButton loading={saving} tone="admin" type="submit">
-              {saving ? null : <UserPlus className="size-4" />}
-              Save Warden
-            </RoleButton>
+            <div className="flex justify-end">
+              <RoleButton loading={saving} tone="admin" type="submit">
+                {saving ? null : <UserPlus className="size-4" />}
+                Save warden
+              </RoleButton>
+            </div>
           </form>
-        </SectionCard>
-      ) : null}
+        </DialogContent>
+      </Dialog>
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
+      <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)]">
         <SectionCard>
-          <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="mb-3">
             <SearchField
               onChange={setSearch}
-              placeholder="Search by name, email, phone..."
+              placeholder="Search wardens"
               value={search}
             />
-            <SoftBadge tone="cyan">
-              <Users className="size-3" />
-              Wardens: {filteredWardens.length}
-            </SoftBadge>
           </div>
 
           {isPending ? <LoadingRows /> : null}
@@ -353,64 +401,42 @@ export const HostelAdminWardensPage = memo(function HostelAdminWardensPage() {
           ) : null}
 
           {!isPending && !isError && filteredWardens.length > 0 ? (
-            <DataTable className="min-w-[560px]">
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Warden
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Phone
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Permissions
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Status
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredWardens.map((warden) => {
-                  const selected = selectedWarden?.id === warden.id;
-                  return (
-                    <TableRow
-                      className={
-                        selected
-                          ? "cursor-pointer bg-role-admin-soft/50 data-[state=selected]:bg-role-admin-soft/50"
-                          : "cursor-pointer"
-                      }
-                      data-state={selected ? "selected" : undefined}
-                      key={warden.id}
-                      onClick={() => setSelectedWardenId(warden.id)}
-                    >
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <InitialsAvatar name={warden.name} size="sm" tone="admin" />
-                          <div className="min-w-0">
-                            <p className="font-semibold text-foreground">{warden.name}</p>
-                            <p className="truncate text-xs text-muted-foreground">
-                              {warden.email || "—"}
-                            </p>
-                          </div>
+            <div className="space-y-1.5">
+              {filteredWardens.map((warden) => {
+                const selected = selectedWarden?.id === warden.id;
+                const share = Math.round((warden.permissions.length / WARDEN_PERMISSION_KEYS.length) * 100);
+
+                return (
+                  <button
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-xl p-2.5 text-left transition duration-150",
+                      selected ? "bg-role-team-soft" : "hover:bg-muted",
+                    )}
+                    key={warden.id}
+                    onClick={() => setSelectedWardenId(warden.id)}
+                    type="button"
+                  >
+                    <InitialsAvatar name={warden.name} size="sm" tone="admin" />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-[13.5px] font-semibold text-foreground">{warden.name}</p>
+                        {warden.status === "ACTIVE" ? null : (
+                          <SoftBadge tone={statusToneFromLabel(warden.status)}>{warden.status.replaceAll("_", " ")}</SoftBadge>
+                        )}
+                      </div>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-muted">
+                          <div className="h-full rounded-full bg-brand-teal" style={{ width: `${share}%` }} />
                         </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {warden.phone || "—"}
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {warden.permissions.length}
-                      </TableCell>
-                      <TableCell>
-                        <SoftBadge tone={statusToneFromLabel(warden.status)}>
-                          {warden.status.replaceAll("_", " ")}
-                        </SoftBadge>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </DataTable>
+                        <span className="text-[11px] font-semibold text-muted-foreground">
+                          {warden.permissions.length}/{WARDEN_PERMISSION_KEYS.length}
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           ) : null}
 
           {wardensResource.pagination && wardensResource.pagination.totalPages > 1 ? (
@@ -447,9 +473,6 @@ export const HostelAdminWardensPage = memo(function HostelAdminWardensPage() {
                 </div>
 
                 <div>
-                  <p className="mb-2 text-sm font-semibold text-foreground">
-                    Permissions
-                  </p>
                   <PermissionGrid
                     onToggle={(key, checked) => {
                       const next = new Set(editPermissions);
@@ -467,7 +490,7 @@ export const HostelAdminWardensPage = memo(function HostelAdminWardensPage() {
                 <div className="flex flex-wrap gap-2">
                   <RoleButton onClick={handleSavePermissions} tone="admin" type="button">
                     <Shield className="size-4" />
-                    Save Permissions
+                    Save
                   </RoleButton>
                   <Button
                     className="gap-2 rounded-xl"
@@ -481,7 +504,7 @@ export const HostelAdminWardensPage = memo(function HostelAdminWardensPage() {
                 </div>
               </div>
             ) : (
-              <EmptyInline label="Select a warden to manage permissions." />
+              <EmptyInline label="Pick a warden to set what they can do." />
             )}
           </SectionCard>
         </div>

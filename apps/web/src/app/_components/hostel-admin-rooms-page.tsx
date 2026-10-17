@@ -1,7 +1,7 @@
 "use client";
 
 import { ROOM_TYPE_OPTIONS } from "@hostel/shared/constants/room-types";
-import { BedDouble, ImagePlus, Loader2, Trash2 } from "@/components/icons";
+import { BedDouble, DoorOpen, ImagePlus, Loader2, Pencil, Plus, Sparkles, Trash2 } from "@/components/icons";
 import {
   memo,
   useCallback,
@@ -17,12 +17,21 @@ import {
   Input,
   Panel,
   Select,
-  StatusBadge,
 } from "@/app/_components/shared-ui";
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
 import { FloorsPanel } from "@/app/_components/hostel-admin-floors-panel";
+import { MetricCard } from "@/app/_components/portal-dashboard-ui";
+import { Glyph, type GlyphName } from "@/components/glyph";
 import { useMediaViewer } from "@/components/media-viewer";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import {
   photosOfKind,
@@ -33,6 +42,7 @@ import { acceptAttribute } from "@/lib/uploads/accepts";
 import { uploadFiles } from "@/lib/uploads/uploader";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
+import { cn } from "@/lib/utils";
 import {
   field,
   Message,
@@ -56,11 +66,55 @@ type PendingPhoto = {
   uploaded?: boolean;
 };
 
+/** Beds taken out of beds there are, as a bar: the card's one graphic. */
+function OccupancyBar({ occupied, total }: { occupied: number; total: number }) {
+  const share = total > 0 ? Math.round((occupied / total) * 100) : 0;
+
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-baseline justify-between text-[12.5px]">
+        <span className="font-semibold text-foreground">
+          {occupied}
+          <span className="font-normal text-muted-foreground"> / {total} beds taken</span>
+        </span>
+        <span className="font-semibold text-muted-foreground">{share}%</span>
+      </div>
+      <div className="h-2 overflow-hidden rounded-full bg-muted">
+        <div
+          className={cn(
+            "h-full rounded-full transition-[width] duration-700 ease-out",
+            share >= 100 ? "bg-foreground" : "bg-brand-teal",
+          )}
+          style={{ width: `${share}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function Fact({ glyph, children, warn = false }: { children: string; glyph: GlyphName; warn?: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium",
+        warn ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300" : "bg-muted text-foreground",
+      )}
+    >
+      <Glyph className="size-3.5" name={glyph} />
+      {children}
+    </span>
+  );
+}
+
 /**
- * Rooms are tracked as counts per type, not as individual records. Each row is
- * "how many rooms of this type, how many beds each, how many beds free right
- * now" — the same numbers the owner gave at registration, and the same ones
- * that admitting or moving out a resident adjusts.
+ * Rooms are tracked as counts per type, not as individual records. Each type is
+ * "how many rooms, how many beds each, how many beds free right now" — the same
+ * numbers the owner gave at registration, and the same ones that admitting or
+ * moving out a resident adjusts.
+ *
+ * The page shows those counts as cards — cover photo, occupancy bar, facts — and
+ * keeps every edit in a dialog, so nothing on the page is an open form until the
+ * owner asks for one.
  *
  * Photos hang off the same room type: up to ten shots the public listing shows
  * when a visitor opens that room type, which also stand in as fallback imagery
@@ -74,6 +128,9 @@ export const HostelAdminRoomsPageContent = memo(function HostelAdminRoomsPageCon
   const [deletingIds, setDeletingIds] = useState<string[]>([]);
   const [uploadingFor, setUploadingFor] = useState("");
   const [actionMessage, setActionMessage] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [photosFor, setPhotosFor] = useState<string | null>(null);
 
   // Same cache entry as the Profile and Fee Plans screens.
   const profileResource = usePortalResource<{
@@ -91,6 +148,7 @@ export const HostelAdminRoomsPageContent = memo(function HostelAdminRoomsPageCon
   const message = actionMessage || profileResource.message;
   const { refreshAsync: reloadProfile } = profileResource;
 
+  /** Writes the whole list; `true` when the server took it. */
   const save = useCallback(
     async (next: RoomConfiguration[], successMessage: string) => {
       try {
@@ -109,10 +167,12 @@ export const HostelAdminRoomsPageContent = memo(function HostelAdminRoomsPageCon
         });
         setActionMessage(successMessage);
         await reloadProfile();
+        return true;
       } catch (error) {
         setActionMessage(
           error instanceof Error ? error.message : "Could not save room types.",
         );
+        return false;
       }
     },
     [reloadProfile],
@@ -121,8 +181,7 @@ export const HostelAdminRoomsPageContent = memo(function HostelAdminRoomsPageCon
   const addRoomType = useCallback(
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      const formElement = event.currentTarget;
-      const form = new FormData(formElement);
+      const form = new FormData(event.currentTarget);
       const roomType = field(form, "roomType");
       const rooms = numberField(form, "rooms") ?? 0;
       const bedsPerRoom = numberField(form, "bedsPerRoom") ?? 1;
@@ -148,8 +207,7 @@ export const HostelAdminRoomsPageContent = memo(function HostelAdminRoomsPageCon
         },
       ];
 
-      formElement.reset();
-      await save(next, `Added ${roomType}.`);
+      if (await save(next, `Added ${roomType}.`)) setAdding(false);
     },
     [configurations, save],
   );
@@ -176,8 +234,10 @@ export const HostelAdminRoomsPageContent = memo(function HostelAdminRoomsPageCon
               ...config,
               bedsPerRoom,
               // Carried through, never read from the form — there is no rent
-              // field on this page any more. The server drops it anyway once a
-              // rate card exists; this keeps a hostel that has no card yet from
+              // field on this page. The rate card is the single source of rent
+              // (one hostel once advertised 18,000 while invoicing 174,000
+              // because this page had its own box), and the server drops this
+              // once a card exists; it only keeps a hostel with no card yet from
               // losing the price it listed at signup.
               monthlyRent: config.monthlyRent,
               rooms,
@@ -186,7 +246,7 @@ export const HostelAdminRoomsPageContent = memo(function HostelAdminRoomsPageCon
           : config,
       );
 
-      await save(next, `Updated ${roomType}.`);
+      if (await save(next, `Updated ${roomType}.`)) setEditing(null);
     },
     [configurations, save],
   );
@@ -195,7 +255,7 @@ export const HostelAdminRoomsPageContent = memo(function HostelAdminRoomsPageCon
     async (roomType: string) => {
       const next = configurations.filter((config) => config.roomType !== roomType);
 
-      await save(next, `Removed ${roomType}.`);
+      if (await save(next, `Removed ${roomType}.`)) setEditing(null);
     },
     [configurations, save],
   );
@@ -336,6 +396,7 @@ export const HostelAdminRoomsPageContent = memo(function HostelAdminRoomsPageCon
     }),
     { beds: 0, rooms: 0, vacant: 0 },
   );
+  const fullShare = totals.beds > 0 ? Math.round(((totals.beds - totals.vacant) / totals.beds) * 100) : 0;
 
   // A type already on the list is edited in place, so it has no business
   // sitting in the "add" dropdown.
@@ -347,313 +408,298 @@ export const HostelAdminRoomsPageContent = memo(function HostelAdminRoomsPageCon
     [configurations],
   );
 
+  const editingConfig = configurations.find((config) => config.roomType === editing) ?? null;
+  const photosRoomPhotos = photosFor ? photosOfKind(photos, "ROOM", photosFor) : [];
+  const photosPending = photosFor ? (pendingByRoom[photosFor] ?? []) : [];
+  const photosFree = ROOM_PHOTO_LIMIT - photosRoomPhotos.length - photosPending.length;
+
   return (
-    <div className="mx-auto max-w-[1448px] space-y-6">
+    <div className="mx-auto max-w-[1448px] space-y-5">
       <PageHeader
-        description="Room types with their room, bed, and vacancy counts. Registering a resident reduces the vacant count for their room type."
+        action={
+          <Button
+            className="bg-brand-teal text-white hover:bg-brand-teal/90"
+            disabled={addableRoomTypes.length === 0}
+            onClick={() => setAdding(true)}
+            title={addableRoomTypes.length === 0 ? "Every room type is already on your list." : undefined}
+            type="button"
+          >
+            <Plus className="size-4" />
+            Add room type
+          </Button>
+        }
+        description="Room types, their beds, and what is free right now."
         icon={BedDouble}
         title="Rooms & Beds"
       />
       <Message value={message} />
+
+      {configurations.length > 0 ? (
+        <div className="grid gap-3 sm:grid-cols-3">
+          <MetricCard icon={DoorOpen} label="Rooms" value={totals.rooms} />
+          <MetricCard icon={BedDouble} label="Beds" note={`${fullShare}% taken`} value={totals.beds} />
+          <MetricCard icon={Sparkles} label="Beds free" value={totals.vacant} />
+        </div>
+      ) : null}
+
+      {configurations.length === 0 ? (
+        <Panel>
+          <EmptyState label="No room types yet. Add your first one from the header." />
+        </Panel>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+          {configurations.map((config) => {
+            const totalBeds = config.rooms * config.bedsPerRoom;
+            const roomPhotos = photosOfKind(photos, "ROOM", config.roomType);
+            const pending = pendingByRoom[config.roomType] ?? [];
+            // What the public page falls back to while this room type has no
+            // photos of its own.
+            const cover = roomPhotos[0]?.url ?? resolveHostelPhotoUrls(photos, "ROOM", config.roomType)[0];
+            const standIn = roomPhotos.length === 0;
+            const state =
+              config.vacantBeds === 0 ? "Full" : config.vacantBeds === totalBeds ? "Empty" : `${config.vacantBeds} free`;
+
+            return (
+              <article
+                className="group overflow-hidden rounded-2xl border border-border/70 bg-card transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                key={config.roomType}
+              >
+                <button
+                  aria-label={`${config.roomType} photos`}
+                  className="relative block aspect-[16/9] w-full overflow-hidden bg-muted"
+                  onClick={() => setPhotosFor(config.roomType)}
+                  type="button"
+                >
+                  {cover ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      alt=""
+                      className={cn(
+                        "size-full object-cover transition duration-500 group-hover:scale-[1.03]",
+                        standIn && "opacity-60 grayscale",
+                      )}
+                      src={cover}
+                    />
+                  ) : (
+                    <span className="flex size-full items-center justify-center text-muted-foreground">
+                      <Glyph className="size-8" name="image-add" />
+                    </span>
+                  )}
+                  {standIn ? (
+                    <span className="absolute left-2.5 top-2.5 rounded-full bg-black/60 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
+                      Stand-in photo
+                    </span>
+                  ) : null}
+                  <span className="absolute bottom-2.5 right-2.5 inline-flex items-center gap-1 rounded-full bg-black/60 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
+                    <Glyph className="size-3.5" name="images" />
+                    {roomPhotos.length + pending.length}/{ROOM_PHOTO_LIMIT}
+                  </span>
+                </button>
+
+                <div className="space-y-3.5 p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-heading text-[16px] font-bold tracking-tight text-foreground">
+                      {config.roomType}
+                    </h3>
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold",
+                        config.vacantBeds === 0 ? "bg-foreground text-background" : "bg-role-team-soft text-role-team",
+                      )}
+                    >
+                      {state}
+                    </span>
+                  </div>
+
+                  <OccupancyBar occupied={totalBeds - config.vacantBeds} total={totalBeds} />
+
+                  <div className="flex flex-wrap gap-1.5">
+                    <Fact glyph="door">{`${config.rooms} rooms`}</Fact>
+                    <Fact glyph="bed">{`${config.bedsPerRoom} per room`}</Fact>
+                    {/* The rent is a fact, never a field: the rate card prices it. */}
+                    <Fact glyph="cash" warn={!config.monthlyRent}>
+                      {config.monthlyRent ? `${currency(config.monthlyRent)}/mo` : "Not priced"}
+                    </Fact>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button onClick={() => setEditing(config.roomType)} size="sm" type="button" variant="outline">
+                      <Pencil className="size-3.5" />
+                      Edit
+                    </Button>
+                    <Button onClick={() => setPhotosFor(config.roomType)} size="sm" type="button" variant="ghost">
+                      <ImagePlus className="size-3.5" />
+                      Photos
+                    </Button>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+
       <FloorsPanel />
-      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <Panel title="Room Types">
-          {configurations.length === 0 ? (
-            <EmptyState label="No room types yet. Add one on the right." />
-          ) : (
+
+      {/* Add a room type. */}
+      <Dialog onOpenChange={setAdding} open={adding}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add a room type</DialogTitle>
+            <DialogDescription>It starts with every bed free. Price it on the Fee Schedule.</DialogDescription>
+          </DialogHeader>
+          <BusyForm className="grid gap-3" onSubmit={addRoomType}>
+            <Select label="Room type" name="roomType" required>
+              <option value="">Select type</option>
+              {addableRoomTypes.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </Select>
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="Rooms" min="1" name="rooms" required type="number" />
+              <Input label="Beds per room" min="1" name="bedsPerRoom" required type="number" />
+            </div>
+            <DialogFooter>
+              <SubmitButton className="bg-brand-teal text-white hover:bg-brand-teal/90">Add room type</SubmitButton>
+            </DialogFooter>
+          </BusyForm>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit counts. Keyed by type so the inputs reset to the row being edited. */}
+      <Dialog onOpenChange={(open) => (open ? null : setEditing(null))} open={editingConfig !== null}>
+        <DialogContent className="sm:max-w-md">
+          {editingConfig ? (
             <>
-              <p className="mb-4 text-sm text-muted-foreground">
-                {totals.rooms} room(s) · {totals.beds} bed(s) ·{" "}
-                <span className="font-semibold text-foreground">
-                  {totals.vacant} vacant
-                </span>
-              </p>
-              <div className="space-y-4">
-                {configurations.map((config) => {
-                  const totalBeds = config.rooms * config.bedsPerRoom;
-                  const roomPhotos = photosOfKind(photos, "ROOM", config.roomType);
-                  const pending = pendingByRoom[config.roomType] ?? [];
-                  // Previews count against the limit while they are in flight.
-                  const atPhotoLimit =
-                    roomPhotos.length + pending.length >= ROOM_PHOTO_LIMIT;
-                  // What the public page falls back to while this room type
-                  // has no photos of its own.
-                  const fallbackUrl = resolveHostelPhotoUrls(
-                    photos,
-                    "ROOM",
-                    config.roomType,
-                  )[0];
-                  const uploading = uploadingFor === config.roomType;
+              <DialogHeader>
+                <DialogTitle>{editingConfig.roomType}</DialogTitle>
+                <DialogDescription>Rooms, beds per room, and beds free right now.</DialogDescription>
+              </DialogHeader>
+              <BusyForm
+                className="grid gap-3"
+                key={editingConfig.roomType}
+                onSubmit={(event) => updateRoomType(editingConfig.roomType, event)}
+              >
+                <div className="grid grid-cols-3 gap-3">
+                  <Input defaultValue={editingConfig.rooms} label="Rooms" min="0" name="rooms" required type="number" />
+                  <Input defaultValue={editingConfig.bedsPerRoom} label="Beds / room" min="1" name="bedsPerRoom" required type="number" />
+                  <Input defaultValue={editingConfig.vacantBeds} label="Free beds" min="0" name="vacantBeds" required type="number" />
+                </div>
+                <DialogFooter className="sm:justify-between">
+                  <Button
+                    className="text-muted-foreground hover:text-destructive"
+                    onClick={() => void removeRoomType(editingConfig.roomType)}
+                    type="button"
+                    variant="ghost"
+                  >
+                    <Trash2 className="size-4" />
+                    Remove
+                  </Button>
+                  <SubmitButton className="bg-brand-teal text-white hover:bg-brand-teal/90">Save</SubmitButton>
+                </DialogFooter>
+              </BusyForm>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
+
+      {/* Photos for one room type. */}
+      <Dialog onOpenChange={(open) => (open ? null : setPhotosFor(null))} open={photosFor !== null}>
+        <DialogContent className="sm:max-w-2xl">
+          {photosFor ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>{photosFor} photos</DialogTitle>
+                <DialogDescription>
+                  {photosRoomPhotos.length + photosPending.length} of {ROOM_PHOTO_LIMIT}. Visitors see these when they open this room type.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4">
+                {photosRoomPhotos.map((photo, photoIndex) => {
+                  const deleting = photo.id != null && deletingIds.includes(photo.id);
 
                   return (
-                    <div
-                      className="rounded-lg border border-border p-4"
-                      key={config.roomType}
-                    >
-                      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <h3 className="font-semibold text-foreground">
-                            {config.roomType}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {totalBeds - config.vacantBeds} of {totalBeds} bed(s) occupied
-                          </p>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-2">
-                          <StatusBadge>
-                            {config.vacantBeds === 0
-                              ? "FULL"
-                              : config.vacantBeds === totalBeds
-                                ? "VACANT"
-                                : "PARTIAL"}
-                          </StatusBadge>
-                          <label
-                            className={
-                              atPhotoLimit || uploading
-                                ? "inline-flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground"
-                                : "inline-flex cursor-pointer items-center gap-2 rounded-md border border-role-admin px-3 py-1.5 text-xs font-semibold text-role-admin transition hover:bg-role-admin/10"
-                            }
-                            title={
-                              atPhotoLimit
-                                ? `This room type already has ${ROOM_PHOTO_LIMIT} photos.`
-                                : undefined
-                            }
-                          >
-                            <ImagePlus className="size-4" />
-                            {uploading
-                              ? "Uploading..."
-                              : `Photos (${roomPhotos.length + pending.length}/${ROOM_PHOTO_LIMIT})`}
-                            <input
-                              accept={acceptAttribute("image")}
-                              className="hidden"
-                              disabled={uploading || atPhotoLimit}
-                              multiple
-                              onChange={(event) =>
-                                void uploadRoomPhotos(
-                                  event,
-                                  config.roomType,
-                                  ROOM_PHOTO_LIMIT - roomPhotos.length - pending.length,
-                                )
-                              }
-                              type="file"
-                            />
-                          </label>
-                        </div>
-                      </div>
-
-                      {/* Always shown, so the card makes plain what a visitor
-                          sees for this room type — its own photos, or whatever
-                          is standing in for them. */}
-                      <div className="mb-4">
-                        {roomPhotos.length > 0 || pending.length > 0 ? (
-                          <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-8">
-                            {roomPhotos.map((photo, photoIndex) => {
-                              const deleting =
-                                photo.id != null && deletingIds.includes(photo.id);
-
-                              return (
-                                <div
-                                  className="group relative"
-                                  key={photo.id ?? photo.url}
-                                >
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img
-                                    alt={photo.alt || `${config.roomType} photo`}
-                                    className={
-                                      deleting
-                                        ? "h-20 w-full rounded-md border border-border object-cover blur-[2px] brightness-90 transition"
-                                        : "h-20 w-full cursor-zoom-in rounded-md border border-border object-cover transition"
-                                    }
-                                    onClick={() =>
-                                      deleting
-                                        ? undefined
-                                        : openViewer(
-                                            roomPhotos.map((item) => ({
-                                              src: item.url ?? "",
-                                              title: config.roomType,
-                                            })),
-                                            photoIndex,
-                                          )
-                                    }
-                                    src={photo.url}
-                                  />
-                                  {deleting ? (
-                                    <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black/25">
-                                      <Loader2 className="size-5 animate-spin text-white" />
-                                    </div>
-                                  ) : (
-                                    <Button
-                                      className="absolute right-1 top-1 size-6 opacity-0 transition group-hover:opacity-100"
-                                      onClick={() => void deleteRoomPhoto(photo.id)}
-                                      size="icon"
-                                      type="button"
-                                      variant="destructive"
-                                    >
-                                      <Trash2 className="size-3" />
-                                    </Button>
-                                  )}
-                                </div>
-                              );
-                            })}
-                            {pending.map((item) => (
-                              <div className="relative" key={item.id}>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
-                                  alt=""
-                                  className={
-                                    item.uploaded
-                                      ? "h-20 w-full rounded-md border border-border object-cover transition"
-                                      : "h-20 w-full rounded-md border border-border object-cover blur-[2px] brightness-90 transition"
-                                  }
-                                  src={item.previewUrl}
-                                />
-                                {item.uploaded ? null : (
-                                  <div className="absolute inset-0 flex items-center justify-center rounded-md bg-black/25">
-                                    <Loader2 className="size-5 animate-spin text-white" />
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-3 rounded-md border border-dashed border-border p-3">
-                            {fallbackUrl ? (
-                              /* eslint-disable-next-line @next/next/no-img-element */
-                              <img
-                                alt=""
-                                className="h-20 w-28 shrink-0 rounded-md border border-border object-cover opacity-60"
-                                src={fallbackUrl}
-                              />
-                            ) : (
-                              <div className="flex h-20 w-28 shrink-0 items-center justify-center rounded-md border border-border bg-muted">
-                                <ImagePlus className="size-5 text-muted-foreground" />
-                              </div>
-                            )}
-                            <p className="text-sm text-muted-foreground">
-                              No photos for {config.roomType} yet —{" "}
-                              {fallbackUrl
-                                ? "visitors see this stand-in photo."
-                                : "visitors see a stock photo."}{" "}
-                              Add up to {ROOM_PHOTO_LIMIT} to show the real room.
-                            </p>
-                          </div>
+                    <div className="group/photo relative" key={photo.id ?? photo.url}>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        alt={photo.alt || `${photosFor} photo`}
+                        className={cn(
+                          "aspect-[4/3] w-full rounded-xl object-cover transition",
+                          deleting ? "blur-[2px] brightness-90" : "cursor-zoom-in",
                         )}
-                      </div>
-
-                      <BusyForm
-                        className="space-y-3"
-                        onSubmit={(event) => updateRoomType(config.roomType, event)}
-                      >
-                        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                          <Input
-                            defaultValue={config.rooms}
-                            label="Rooms"
-                            min="0"
-                            name="rooms"
-                            required
-                            type="number"
-                          />
-                          <Input
-                            defaultValue={config.bedsPerRoom}
-                            label="Beds / room"
-                            min="1"
-                            name="bedsPerRoom"
-                            required
-                            type="number"
-                          />
-                          <Input
-                            defaultValue={config.vacantBeds}
-                            label="Vacant beds"
-                            min="0"
-                            name="vacantBeds"
-                            required
-                            type="number"
-                          />
-                          {/*
-                            The rent is a fact here, not a field.
-
-                            It was a second box a person could type a rent into,
-                            and that is what this whole page's worst bug was made
-                            of: the rate card said one number, this said another,
-                            the public listing read this one and billing read the
-                            card, and nothing compared them — one hostel
-                            advertised 18,000 while invoicing 174,000. The rate
-                            card is the single source now and this figure is
-                            written from it, so showing it as editable would
-                            promise an edit that the next rate change silently
-                            undoes.
-                          */}
-                          <div className="grid content-start gap-1.5">
-                            <span className="text-sm font-medium text-foreground">
-                              Monthly rent
-                            </span>
-                            <p className="flex h-10 items-center text-sm font-semibold text-foreground">
-                              {config.monthlyRent
-                                ? currency(config.monthlyRent)
-                                : "Not priced yet"}
-                            </p>
-                            <span className="text-xs text-muted-foreground">
-                              Set on Fees &amp; Payments → Fee Schedule.
-                            </span>
-                          </div>
+                        onClick={() =>
+                          deleting
+                            ? undefined
+                            : openViewer(
+                                photosRoomPhotos.map((item) => ({ src: item.url ?? "", title: photosFor })),
+                                photoIndex,
+                              )
+                        }
+                        src={photo.url}
+                      />
+                      {deleting ? (
+                        <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/25">
+                          <Loader2 className="size-5 animate-spin text-white" />
                         </div>
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <button
-                            className="h-10 rounded-md border border-border px-4 text-sm font-semibold text-muted-foreground transition hover:text-destructive"
-                            onClick={() => removeRoomType(config.roomType)}
-                            type="button"
-                          >
-                            Remove
-                          </button>
-                          <SubmitButton className="h-10 rounded-md bg-role-admin px-6 text-sm font-semibold text-white transition hover:bg-role-admin/85">
-                            Save
-                          </SubmitButton>
-                        </div>
-                      </BusyForm>
+                      ) : (
+                        <Button
+                          aria-label="Remove photo"
+                          className="absolute right-1.5 top-1.5 size-7 opacity-0 transition group-hover/photo:opacity-100"
+                          onClick={() => void deleteRoomPhoto(photo.id)}
+                          size="icon"
+                          type="button"
+                          variant="destructive"
+                        >
+                          <Trash2 className="size-3.5" />
+                        </Button>
+                      )}
                     </div>
                   );
                 })}
+                {photosPending.map((item) => (
+                  <div className="relative" key={item.id}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      alt=""
+                      className={cn(
+                        "aspect-[4/3] w-full rounded-xl object-cover transition",
+                        !item.uploaded && "blur-[2px] brightness-90",
+                      )}
+                      src={item.previewUrl}
+                    />
+                    {item.uploaded ? null : (
+                      <div className="absolute inset-0 flex items-center justify-center rounded-xl bg-black/25">
+                        <Loader2 className="size-5 animate-spin text-white" />
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {photosFree > 0 ? (
+                  <label
+                    className={cn(
+                      "flex aspect-[4/3] w-full flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-border text-[12px] font-semibold text-muted-foreground transition",
+                      uploadingFor === photosFor ? "opacity-60" : "cursor-pointer hover:border-brand-teal hover:text-brand-teal",
+                    )}
+                  >
+                    <Glyph className="size-6" name="image-add" />
+                    Add
+                    <input
+                      accept={acceptAttribute("image")}
+                      className="hidden"
+                      disabled={uploadingFor === photosFor}
+                      multiple
+                      onChange={(event) => void uploadRoomPhotos(event, photosFor, photosFree)}
+                      type="file"
+                    />
+                  </label>
+                ) : null}
               </div>
             </>
-          )}
-        </Panel>
-        <Panel title="Add Room Type">
-          <p className="mb-3 text-sm text-muted-foreground">
-            New room types start fully vacant. Vacancy then moves on its own as residents
-            are registered and moved out.
-          </p>
-          <p className="mb-3 text-sm text-muted-foreground">
-            Price it afterwards on Fees &amp; Payments → Fee Schedule. Until you do,
-            nobody in it can be billed and your public page shows it without a price —
-            which is the honest state, and a loud one.
-          </p>
-          {addableRoomTypes.length === 0 ? (
-            <EmptyState label="Every room type is already on your list. Edit one on the left." />
-          ) : (
-            <BusyForm className="grid gap-3" onSubmit={addRoomType}>
-              <Select label="Room type" name="roomType" required>
-                <option value="">Select type</option>
-                {addableRoomTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </Select>
-              <Input label="How many rooms" min="1" name="rooms" required type="number" />
-              <Input
-                label="Beds per room"
-                min="1"
-                name="bedsPerRoom"
-                required
-                type="number"
-              />
-              <SubmitButton className="h-10 rounded-md bg-role-admin text-sm font-semibold text-white transition hover:bg-role-admin/85">
-                Add Room Type
-              </SubmitButton>
-            </BusyForm>
-          )}
-        </Panel>
-      </div>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });

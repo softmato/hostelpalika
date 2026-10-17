@@ -43,13 +43,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import {
   useAvailableRoomTypes,
   useResidentContacts,
@@ -931,21 +925,25 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
         actions={
           <>
             <JoinLinkButton />
-            <RoleButton asChild tone="admin" variant="outline">
-              <Link href={workspaceHref("/hostel-admin/existing-residents")}>
-                <FileSpreadsheet className="size-4" />
-                Add existing residents
-              </Link>
-            </RoleButton>
-            <RoleButton
-              onClick={() => handleGenerateActivation(activeResidentId)}
-              tone="admin"
-              type="button"
-              variant="outline"
-            >
-              <QrCode className="size-4" />
-              Generate Activation Code
-            </RoleButton>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button aria-label="More resident actions" className="size-9 rounded-xl" size="icon" type="button" variant="outline">
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem asChild>
+                  <Link href={workspaceHref("/hostel-admin/existing-residents")}>
+                    <FileSpreadsheet className="size-4" />
+                    Add existing residents
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => handleGenerateActivation(activeResidentId)}>
+                  <QrCode className="size-4" />
+                  Activation code
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <RoleButton
               onClick={() => {
                 // Always reopen on the "ask for the resident ID" step — that is
@@ -958,11 +956,11 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
               type="button"
             >
               <Plus className="size-4" />
-              Add Resident
+              Add resident
             </RoleButton>
           </>
         }
-        description="Manage hostel residents, their details, and status."
+        description="Everyone living here, their room and their status."
         title="Residents"
       />
 
@@ -1268,40 +1266,44 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
               value={search}
             />
             <div className="flex flex-wrap items-center gap-2">
-              <Select onValueChange={setStatusFilter} value={statusFilter}>
-                <SelectTrigger className="h-10 w-[160px] rounded-xl">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">All statuses</SelectItem>
-                  <SelectItem value="ACTIVE">Active</SelectItem>
-                  <SelectItem value="PENDING">Pending</SelectItem>
-                  <SelectItem value="SUSPENDED">Suspended</SelectItem>
-                  <SelectItem value="MOVED_OUT">Moved out</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select onValueChange={setTypeFilter} value={typeFilter}>
-                <SelectTrigger className="h-10 w-[190px] rounded-xl">
-                  <SelectValue placeholder="Resident type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ALL">All types</SelectItem>
-                  <SelectItem value="STUDENT">Student</SelectItem>
-                  <SelectItem value="WORKING_PROFESSIONAL">
-                    Working professional
-                  </SelectItem>
-                  <SelectItem value="OTHER">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              <SoftBadge tone="cyan">
-                <Users className="size-3" />
-                {/* The server total, not the page — the badge is the one place
-                    an admin checks "how many residents do I have". The filters
-                    below still narrow only the current page; pushing them into
-                    the query is tracked in TODO.md B1. */}
-                Total Residents:{" "}
-                {residentsQuery.pagination?.total ?? filteredResidents.length}
-              </SoftBadge>
+              <FilterButton
+                active={(statusFilter === "ALL" ? 0 : 1) + (typeFilter === "ALL" ? 0 : 1)}
+                onClear={() => {
+                  setStatusFilter("ALL");
+                  setTypeFilter("ALL");
+                }}
+              >
+                <FilterChoice
+                  label="Status"
+                  onChange={setStatusFilter}
+                  options={[
+                    { label: "All", value: "ALL" },
+                    { label: "Active", value: "ACTIVE" },
+                    { label: "Pending", value: "PENDING" },
+                    { label: "Suspended", value: "SUSPENDED" },
+                    { label: "Moved out", value: "MOVED_OUT" },
+                  ]}
+                  value={statusFilter}
+                />
+                <FilterChoice
+                  label="Resident type"
+                  onChange={setTypeFilter}
+                  options={[
+                    { label: "All", value: "ALL" },
+                    { label: "Student", value: "STUDENT" },
+                    { label: "Working", value: "WORKING_PROFESSIONAL" },
+                    { label: "Other", value: "OTHER" },
+                  ]}
+                  value={typeFilter}
+                />
+              </FilterButton>
+              {/* The server total, not the page — the one place an admin checks
+                  "how many residents do I have". The filters still narrow only
+                  the current page; pushing them into the query is TODO.md B1. */}
+              <span className="inline-flex items-center gap-1.5 text-[12.5px] font-medium text-muted-foreground">
+                <Users className="size-3.5" />
+                {residentsQuery.pagination?.total ?? filteredResidents.length} residents
+              </span>
               <Button
                 className="ml-auto h-10 gap-2 rounded-xl"
                 disabled={exporting}

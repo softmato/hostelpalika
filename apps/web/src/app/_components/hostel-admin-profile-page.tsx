@@ -35,6 +35,7 @@ import { acceptAttribute } from "@/lib/uploads/accepts";
 import { uploadFile, uploadFiles } from "@/lib/uploads/uploader";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
+import { Glyph } from "@/components/glyph";
 import {
   csvField,
   DemoDataBadge,
@@ -85,7 +86,7 @@ type SectionDef = {
  */
 const SECTIONS: SectionDef[] = [
   {
-    description: "Read-only summary of what the platform has on file.",
+    description: "What the platform has on file.",
     icon: LayoutDashboard,
     id: "overview",
     label: "Overview",
@@ -732,56 +733,88 @@ export const HostelAdminProfilePageContent = memo(
           <div className="min-w-0 space-y-5">
             <Panel className={activeSection === "overview" ? "" : "hidden"}>
               <SectionBody active section={sectionById.overview}>
-                <dl className="text-sm">
-                  {[
-                    ["Status", hostel.status ?? "—"],
-                    ["Slug", hostel.slug ?? "—"],
-                    ["Type", hostel.hostelType ?? "—"],
-                    [
-                      "Location",
+                {/* The facts as a picture: counts as tiles, the rest as icon rows
+                    and chips — nothing here is editable, so nothing reads as a form. */}
+                <div className="space-y-5">
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+                    {(
                       [
-                        hostel.location?.address,
-                        hostel.location?.area,
-                        hostel.location?.city,
-                      ]
-                        .filter(Boolean)
-                        .join(", ") || "—",
-                    ],
-                    [
-                      "Map pin",
-                      hostel.location?.lat != null && hostel.location?.lng != null
-                        ? `${hostel.location.lat.toFixed(5)}, ${hostel.location.lng.toFixed(5)} (${
-                            hostel.location.locationSource === "MANUAL"
-                              ? "placed by you"
-                              : "estimated from address"
-                          })`
-                        : "Not set",
-                    ],
-                    ["Phone", hostel.contact?.phone || "—"],
-                    ["Email", hostel.contact?.email || "—"],
-                    ["Floors", String(hostel.totalFloors ?? 0)],
-                    ["PAN/VAT", hostel.panNumber || "Not given"],
-                    ["Total rooms", String(hostel.capacitySummary?.totalRooms ?? 0)],
-                    ["Total beds", String(hostel.capacitySummary?.totalBeds ?? 0)],
-                    ["Vacant beds", String(hostel.capacitySummary?.vacantBeds ?? 0)],
-                    [
-                      "Name changes used",
-                      `${hostel.nameChangeCount ?? 0} of ${NAME_CHANGE_LIMIT}`,
-                    ],
-                    ["Facilities", hostel.facilities.join(", ") || "—"],
-                    ["Room types", hostel.roomTypes.join(", ") || "—"],
-                  ].map(([label, value]) => (
-                    <div
-                      className="flex flex-col gap-1 border-b border-border/60 py-2.5 last:border-b-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-8"
-                      key={label}
-                    >
-                      <dt className="font-medium text-muted-foreground">{label}</dt>
-                      <dd className="text-foreground sm:max-w-[60%] sm:text-right">
-                        {value}
-                      </dd>
+                        ["layers", "Floors", hostel.totalFloors ?? 0],
+                        ["door", "Rooms", hostel.capacitySummary?.totalRooms ?? 0],
+                        ["bed", "Beds", hostel.capacitySummary?.totalBeds ?? 0],
+                        ["sparkles", "Beds free", hostel.capacitySummary?.vacantBeds ?? 0],
+                      ] as const
+                    ).map(([glyph, label, value]) => (
+                      <div className="rounded-2xl bg-muted/60 p-3.5" key={label}>
+                        <Glyph className="size-[18px] text-role-team" name={glyph} />
+                        <p className="mt-2 text-[20px] font-bold leading-none tracking-tight text-foreground">{value}</p>
+                        <p className="mt-1 text-[10.5px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="rounded-full bg-role-team-soft px-2.5 py-1 text-[12px] font-semibold text-role-team">
+                      {(hostel.status ?? "—").replaceAll("_", " ")}
+                    </span>
+                    <span className="rounded-full bg-muted px-2.5 py-1 text-[12px] font-semibold text-foreground">
+                      {hostel.hostelType ?? "—"}
+                    </span>
+                    {hostel.slug ? (
+                      <span className="truncate rounded-full bg-muted px-2.5 py-1 font-mono text-[11.5px] text-muted-foreground">
+                        /{hostel.slug}
+                      </span>
+                    ) : null}
+                  </div>
+
+                  <ul className="divide-y divide-border/60 text-[13.5px]">
+                    {(
+                      [
+                        [
+                          "location",
+                          [hostel.location?.address, hostel.location?.area, hostel.location?.city].filter(Boolean).join(", ") || "No address yet",
+                        ],
+                        [
+                          "navigate",
+                          hostel.location?.lat != null && hostel.location?.lng != null
+                            ? `${hostel.location.lat.toFixed(5)}, ${hostel.location.lng.toFixed(5)} · ${
+                                hostel.location.locationSource === "MANUAL" ? "placed by you" : "estimated"
+                              }`
+                            : "Map pin not set",
+                        ],
+                        ["call", hostel.contact?.phone || "No phone"],
+                        ["mail", hostel.contact?.email || "No email"],
+                        ["document-text", hostel.panNumber ? `PAN/VAT ${hostel.panNumber}` : "PAN/VAT not given"],
+                        ["pencil", `Name changes ${hostel.nameChangeCount ?? 0} of ${NAME_CHANGE_LIMIT}`],
+                      ] as const
+                    ).map(([glyph, value]) => (
+                      <li className="flex items-center gap-3 py-2.5" key={glyph}>
+                        <Glyph className="size-4 shrink-0 text-muted-foreground" name={glyph} />
+                        <span className="min-w-0 truncate text-foreground">{value}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {[
+                    ["Facilities", hostel.facilities],
+                    ["Room types", hostel.roomTypes],
+                  ].map(([label, items]) => (
+                    <div key={label as string}>
+                      <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label as string}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {(items as string[]).length > 0 ? (
+                          (items as string[]).map((item) => (
+                            <span className="rounded-full border border-border px-2.5 py-1 text-[12.5px] text-foreground" key={item}>
+                              {item}
+                            </span>
+                          ))
+                        ) : (
+                          <span className="text-[12.5px] text-muted-foreground">None yet</span>
+                        )}
+                      </div>
                     </div>
                   ))}
-                </dl>
+                </div>
               </SectionBody>
             </Panel>
 

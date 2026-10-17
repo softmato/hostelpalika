@@ -149,6 +149,31 @@ white.
   and dark: rail and panel, collapse, page fade, a header with actions, the
   dialogs.
 
+## Track P — portal page redesign (2026-10-17)
+
+From the user's walk-through of the admin portal: every tab page gets the clean,
+graphical treatment. The rules are in `docs/DESIGN.md` under "Portal page
+patterns".
+
+- ☑ **P0. Shell.** Rail tiles navigate to their section's first page. Sidebar
+  type is a size up. Panels are white (no cream `--surface`).
+- ☑ **P1. Rooms & Beds.** "Add room type" is in the header and opens a dialog.
+  Rooms, beds and free beds are tiles. Room types are cover-photo cards with an
+  occupancy bar and fact chips. Edit and Photos are dialogs.
+- ☑ **P2. Wardens.** Permissions are four area cards of toggle chips with
+  All/None. Add warden is a dialog. Wardens are avatar rows with a permission
+  bar.
+- ☑ **P3. Residents.** The header has Join link, a ⋯ menu and Add resident.
+  Status and type sit behind `FilterButton`, and the count is quiet text.
+- ☑ **P4. Hostel Profile → Overview.** Count tiles, status and type chips, icon
+  rows, and facility and room-type chips.
+- ☐ **P5. Hostel admin, the rest.** Floors panel, Bookings, Inquiries,
+  Move-in/out, the Finance pages, Operations (food, stock, night status,
+  notices, complaints, maintenance, SOS, attendance), Growth & System.
+- ☐ **P6. Platform portal pages.**
+- ☐ **P7. Resident, guardian, cook, provider and team pages.**
+- ☐ **P8. Browser pass** by the user after each portal.
+
 **Order:** M0 → M1 → M2 → M3 → M4 → M5 → M6 → M7 → M8 → M9 → M10.
 I1 → I2 → I3 → (I4 ∥ I5) → I6 → I8, with I7 alongside.
 

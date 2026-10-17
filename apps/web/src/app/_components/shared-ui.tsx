@@ -48,13 +48,13 @@ export function Panel({
   return (
     <section
       className={cn(
-        "rounded-xl border border-border bg-surface p-3.5 shadow-sm",
+        "rounded-2xl border border-border/70 bg-card p-4",
         className,
       )}
     >
       {title ? (
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <h2 className="font-heading text-[13.5px] font-bold text-foreground">
+        <div className="mb-3.5 flex items-center justify-between gap-3">
+          <h2 className="font-heading text-[15px] font-semibold tracking-tight text-foreground">
             {title}
           </h2>
           {action ? <div className="shrink-0">{action}</div> : null}

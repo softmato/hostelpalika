@@ -87,6 +87,33 @@ only where they mean warning or wrong.
   uppercase label. **Empty states** are one mark and one line, with no dashed
   box.
 - No footer bar. Help sits at the bottom of the sidebar.
+- Rail tiles are links to their section's first page. Sidebar rows are 13.5px.
+
+### Portal page patterns (web, 2026-10-17)
+
+Set by Rooms & Beds, Wardens, Residents and Hostel Profile. Every portal page
+follows them:
+
+- **The page's main create action is a button in `PageHero`.** Its form opens
+  in a dialog. No page keeps a standing "Add X" form column beside its list.
+- **Edits happen in dialogs**, not in inputs that are always open on a card. A
+  card shows facts; an Edit button opens the form.
+- **At most three header actions**: the primary one, one or two secondary, and
+  a "⋯" menu for the rest.
+- **Filters**: the search box stays visible. Everything else that narrows a list
+  goes behind `FilterButton` (`components/filter-panel.tsx`) as
+  `FilterChoice` chips, and the button shows a count.
+- **Counts are pictures**: `MetricCard` tiles for totals, a thin bar for a
+  share (beds taken, permissions granted), and chips for short lists
+  (facilities, room types, permissions).
+- **Many on/off settings are toggle chips** grouped by area, each group a small
+  card with its glyph, an "n/m" count and All/None. They are not a wall of
+  checkboxes.
+- **Text**: the page line is one sentence. A section title is 15px semibold.
+  Body copy is 13.5px. Labels are 11px uppercase. Explanatory paragraphs go;
+  if a rule matters, it is one line in the dialog where it applies.
+- **Surfaces** are white cards (`--surface` is white now, no cream) with a
+  quiet border and a 16px radius. Hover lifts a clickable card 2px.
 
 ### Status color mapping (use consistently everywhere)
 

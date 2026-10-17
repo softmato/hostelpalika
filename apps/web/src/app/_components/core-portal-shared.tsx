@@ -2,6 +2,7 @@
 
 import { type IconComponent } from "@/components/icons";
 import { PageHero } from "@/components/page-hero";
+import type { ReactNode } from "react";
 
 import { currency, EmptyState, Panel, StatusBadge } from "@/app/_components/shared-ui";
 
@@ -187,15 +188,18 @@ export function DemoDataBadge({ label }: { label?: string }) {
 }
 
 export function PageHeader({
+  action,
   description,
   icon: Icon,
   title,
 }: {
+  /** Header buttons, on the right of the block. */
+  action?: ReactNode;
   description: string;
   icon: IconComponent;
   title: string;
 }) {
-  return <PageHero description={description} icon={Icon} title={title} />;
+  return <PageHero actions={action} description={description} icon={Icon} title={title} />;
 }
 
 export function ReportGrid({ report }: { report: ReportRecord | null }) {

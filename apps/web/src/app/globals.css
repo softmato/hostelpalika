@@ -62,8 +62,8 @@
   --input: oklch(0.923 0.003 48.717);
   --ring: oklch(0.709 0.01 56.259);
   --radius: 0.625rem;
-  --surface: rgba(255, 250, 244, 0.78);
-  --surface-strong: #fff8ef;
+  --surface: #ffffff;
+  --surface-strong: #fafafa;
   --warning: #d97706;
   --success: #16a34a;
   --brand-teal: #0a8a4b;

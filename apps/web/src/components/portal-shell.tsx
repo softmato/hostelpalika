@@ -228,21 +228,17 @@ export function PortalShell({
   const [navPathname, setNavPathname] = useState(pathname);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  // A rail section opened to look inside, before anything in it is chosen.
-  const [peekGroup, setPeekGroup] = useState<number | null>(null);
   const isDesktop = useSyncExternalStore(
     subscribeToDesktopBreakpoint,
     getIsDesktopSnapshot,
     getIsDesktopServerSnapshot,
   );
 
-  // Close the mobile nav and drop any peeked section on navigation (state reset
-  // during render, per react.dev "adjusting state when props change" — avoids
-  // an effect).
+  // Close the mobile nav on navigation (state reset during render, per
+  // react.dev "adjusting state when props change" — avoids an effect).
   if (navPathname !== pathname) {
     setNavPathname(pathname);
     setMobileNavOpen(false);
-    setPeekGroup(null);
   }
 
   function handleNavToggle() {
@@ -284,7 +280,7 @@ export function PortalShell({
       (item) => item.href === activeHref || (item.children ?? []).some((child) => child.href === activeHref),
     ),
   );
-  const shownGroupIndex = peekGroup ?? Math.max(activeGroupIndex, 0);
+  const shownGroupIndex = Math.max(activeGroupIndex, 0);
   const shownGroup = navGroups[shownGroupIndex];
 
   // The page header wears its nav row's glyph (`PortalPageHeader`).
@@ -331,11 +327,11 @@ export function PortalShell({
       <Link
         aria-current={isActiveHref(item.href) ? "page" : undefined}
         className={cn(
-          "relative flex min-h-0 items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12.5px] font-medium transition-colors duration-150",
+          "relative flex min-h-0 items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors duration-150",
           frozen && "opacity-60",
           isActive ? ROW_ACTIVE : ROW_IDLE,
           collapsed && "justify-center px-0 before:hidden",
-          child && !collapsed && "py-1.5 pl-8 text-[12px]",
+          child && !collapsed && "py-1.5 pl-9 text-[13px]",
         )}
         href={item.href}
         key={item.href}
@@ -348,7 +344,7 @@ export function PortalShell({
       >
         {child ? null : (
           <Glyph
-            className={cn("size-[16px] shrink-0", isActive && "text-role-team")}
+            className={cn("size-[17px] shrink-0", isActive && "text-role-team")}
             name={iconMap[item.icon ?? "dashboard"]}
             variant={isActive ? "solid" : "line"}
           />
@@ -390,7 +386,7 @@ export function PortalShell({
         <button
           aria-expanded={isOpen}
           className={cn(
-            "flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12.5px] font-medium transition-colors duration-150",
+            "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium transition-colors duration-150",
             ROW_IDLE,
             childActive && "font-semibold text-foreground",
           )}
@@ -400,7 +396,7 @@ export function PortalShell({
           type="button"
         >
           <Glyph
-            className={cn("size-[16px] shrink-0", childActive && "text-role-team")}
+            className={cn("size-[17px] shrink-0", childActive && "text-role-team")}
             name={iconMap[item.icon ?? "dashboard"]}
             variant={childActive ? "solid" : "line"}
           />
@@ -420,7 +416,7 @@ export function PortalShell({
         >
           <div className="overflow-hidden" inert={!isOpen}>
             <div className="relative mt-0.5 space-y-0.5">
-              <span className="absolute bottom-1 left-[18px] top-1 w-px bg-border" />
+              <span className="absolute bottom-1 left-[20px] top-1 w-px bg-border" />
               {children.map((child) =>
                 renderLeaf({ child: true, item: child, onNavigate }),
               )}
@@ -445,7 +441,7 @@ export function PortalShell({
         {navGroups.map((group, groupIndex) => (
           <div key={group.label ?? `group-${groupIndex}`}>
             {group.label && !collapsed ? (
-              <p className="px-2.5 pb-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-muted-foreground">
+              <p className="px-3 pb-1.5 text-[10.5px] font-bold uppercase tracking-[0.14em] text-slate-400 dark:text-muted-foreground">
                 {group.label}
               </p>
             ) : null}
@@ -460,62 +456,41 @@ export function PortalShell({
   }
 
   /**
-   * The first tier: one tile per section. A section with a single page is a
-   * link; any other opens its pages in the panel without navigating, so the
-   * rail can be browsed.
+   * The first tier: one tile per section. Every tile is a link to the section's
+   * first page, so a click lands somewhere and the panel follows the route.
    */
   function renderRail() {
     return (
       <nav aria-label="Sections" className="flex flex-col items-center gap-1 px-2 py-2">
         {navGroups.map((group, index) => {
           const active = index === activeGroupIndex;
-          const shown = index === shownGroupIndex && !sidebarCollapsed;
-          const only = group.items.length === 1 && !(group.items[0].children?.length ?? 0) ? group.items[0] : null;
-          const className = cn(
-            "group/rail flex w-full flex-col items-center gap-1 rounded-xl py-1.5 text-[10px] font-medium transition-colors duration-150",
-            active ? "text-role-team" : "text-slate-500 hover:text-foreground dark:text-slate-400",
-          );
-          const body = (
-            <>
+          const first = group.items[0];
+
+          if (!first) return null;
+
+          return (
+            <Link
+              aria-current={active ? "true" : undefined}
+              className={cn(
+                "group/rail flex w-full flex-col items-center gap-1 rounded-xl py-1.5 text-[11px] font-medium transition-colors duration-150",
+                active ? "text-role-team" : "text-slate-500 hover:text-foreground dark:text-slate-400",
+              )}
+              href={first.href}
+              key={group.label ?? `group-${index}`}
+              onFocus={() => prefetchHref(first.href)}
+              onMouseEnter={() => prefetchHref(first.href)}
+              title={group.label ?? first.label}
+            >
               <span
                 className={cn(
-                  "flex size-9 items-center justify-center rounded-xl transition-all duration-200",
-                  active ? "bg-role-team-soft" : shown ? "bg-muted text-foreground" : "group-hover/rail:bg-muted",
-                  "group-active/rail:scale-95",
+                  "flex size-10 items-center justify-center rounded-xl transition-all duration-200 group-active/rail:scale-95",
+                  active ? "bg-role-team-soft" : "group-hover/rail:bg-muted",
                 )}
               >
-                <Glyph className="size-[18px]" name={groupIcon(group)} variant={active ? "solid" : "line"} />
+                <Glyph className="size-[19px]" name={groupIcon(group)} variant={active ? "solid" : "line"} />
               </span>
               <span className="max-w-full truncate px-0.5">{groupName(group, index)}</span>
-            </>
-          );
-
-          return only ? (
-            <Link
-              aria-current={active ? "page" : undefined}
-              className={className}
-              href={only.href}
-              key={only.href}
-              onFocus={() => prefetchHref(only.href)}
-              onMouseEnter={() => prefetchHref(only.href)}
-              title={only.label}
-            >
-              {body}
             </Link>
-          ) : (
-            <button
-              aria-expanded={shown}
-              className={className}
-              key={group.label ?? `group-${index}`}
-              onClick={() => {
-                setPeekGroup(index);
-                setSidebarCollapsed(false);
-              }}
-              title={group.label}
-              type="button"
-            >
-              {body}
-            </button>
           );
         })}
       </nav>
@@ -594,7 +569,7 @@ export function PortalShell({
     >
       {twoTier ? (
         <>
-          <aside className="z-20 hidden w-[76px] shrink-0 flex-col items-center border-r border-border/70 bg-background md:flex dark:bg-card">
+          <aside className="z-20 hidden w-[80px] shrink-0 flex-col items-center border-r border-border/70 bg-background md:flex dark:bg-card">
             <Link className={cn("flex shrink-0 items-center justify-center", headerHeight)} href="/" title={portalName}>
               <BrandMark adaptive className="h-7" />
             </Link>
@@ -615,15 +590,15 @@ export function PortalShell({
           <aside
             className={cn(
               "hidden shrink-0 overflow-hidden border-r border-border/70 bg-background transition-[width] duration-300 ease-out md:block dark:bg-card",
-              sidebarCollapsed ? "w-0 border-r-0" : "w-[220px]",
+              sidebarCollapsed ? "w-0 border-r-0" : "w-[232px]",
             )}
           >
-            <div className="flex h-full w-[220px] flex-col">
+            <div className="flex h-full w-[232px] flex-col">
               <div className={cn("flex shrink-0 flex-col justify-center border-b border-border/70 px-4", headerHeight)}>
-                <p className="truncate font-heading text-[15px] font-bold tracking-tight">
+                <p className="truncate font-heading text-[16px] font-bold tracking-tight">
                   {shownGroup?.label ?? portalName}
                 </p>
-                <p className="truncate text-[10.5px] font-medium text-muted-foreground">{sidebarSubtitle}</p>
+                <p className="truncate text-[11.5px] font-medium text-muted-foreground">{sidebarSubtitle}</p>
               </div>
               <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
                 {/* Keyed by section, so switching sections fades the list in. */}
@@ -639,7 +614,7 @@ export function PortalShell({
         <aside
           className={cn(
             "hidden shrink-0 flex-col border-r border-border/70 bg-background transition-[width] duration-300 ease-out md:flex dark:bg-card",
-            sidebarCollapsed ? "w-[68px]" : "w-[236px]",
+            sidebarCollapsed ? "w-[68px]" : "w-[248px]",
           )}
         >
           <div className={cn("flex shrink-0 items-center border-b border-border/70 px-3", headerHeight)}>
@@ -654,14 +629,14 @@ export function PortalShell({
             {tone === "platform" ? null : (
               <a
                 className={cn(
-                  "mx-2 mb-1 flex items-center gap-2.5 rounded-lg px-2.5 py-[7px] text-[12.5px] font-medium",
+                  "mx-2 mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium",
                   ROW_IDLE,
                   sidebarCollapsed && "justify-center px-0",
                 )}
                 href={supportHref}
                 title="Help & support"
               >
-                <Glyph className="size-[16px] shrink-0" name="help-circle" />
+                <Glyph className="size-[17px] shrink-0" name="help-circle" />
                 {sidebarCollapsed ? null : <span>Help</span>}
               </a>
             )}
