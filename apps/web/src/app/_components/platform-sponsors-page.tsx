@@ -1,6 +1,17 @@
 "use client";
 
-import { Eye, MousePointerClick, Megaphone } from "@/components/icons";
+import {
+  ChevronDown,
+  ChevronUp,
+  Eye,
+  Megaphone,
+  MousePointerClick,
+  PauseCircle,
+  Pencil,
+  PlayCircle,
+  Plus,
+  Trash2,
+} from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
@@ -8,8 +19,7 @@ import { useConfirm } from "@/app/_components/confirm-dialog";
 import {
   MetricCard,
   PortalPageHeader,
-  SoftBadge,
-  TabBar,
+  RoleButton,
 } from "@/app/_components/portal-dashboard-ui";
 import {
   EmptyState,
@@ -18,9 +28,20 @@ import {
   Panel,
   Select,
 } from "@/app/_components/shared-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { Message } from "./core-portal-shared";
+import { FactChip, ShareBar } from "./platform-page-ui";
 
 const SPONSORS_ENDPOINT = "/api/v1/platform/sponsors";
 
@@ -73,6 +94,7 @@ export const PlatformSponsorsPageContent = memo(function PlatformSponsorsPageCon
   const [filter, setFilter] = useState<"all" | "active" | "inactive">("all");
   const [message, setMessage] = useState("");
   const [editing, setEditing] = useState<Sponsor | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
   const invalidate = useInvalidateResources();
   const { confirm, confirmDialog } = useConfirm();
 
@@ -118,6 +140,7 @@ export const PlatformSponsorsPageContent = memo(function PlatformSponsorsPageCon
         });
         formElement.reset();
         setEditing(null);
+        setFormOpen(false);
         setMessage(editing ? "Sponsor updated." : "Sponsor created.");
         refresh();
       } catch (error) {
@@ -182,228 +205,221 @@ export const PlatformSponsorsPageContent = memo(function PlatformSponsorsPageCon
     [confirm, refresh],
   );
 
+  const openForm = (sponsor: Sponsor | null) => {
+    setEditing(sponsor);
+    setFormOpen(true);
+  };
+
   return (
     <div className="mx-auto max-w-[1448px] space-y-5">
       {confirmDialog}
       <PortalPageHeader
-        description="Paid placements in the community sidebar — colleges, hostels and local businesses. Higher priority shows first."
+        actions={
+          <RoleButton onClick={() => openForm(null)} tone="team" type="button">
+            <Plus className="size-4" />
+            New sponsor
+          </RoleButton>
+        }
+        description="Paid cards in the community sidebar. Higher priority shows first."
         title="Sponsors"
       />
       <Message value={message || resource.message} />
 
       {summary ? (
         <div className="grid gap-3 sm:grid-cols-3">
-          <MetricCard icon={Megaphone} label="Live now" tone="green" value={summary.live} />
-          <MetricCard icon={Eye} label="Total sponsors" value={summary.total} />
+          <MetricCard icon={Megaphone} label="Live now" value={summary.live} />
+          <MetricCard icon={Eye} label="Sponsors" value={summary.total} />
           <MetricCard
             icon={MousePointerClick}
-            label="Clicks (all time)"
-            tone="amber"
+            label="Clicks, all time"
             value={sponsors.reduce((sum, sponsor) => sum + sponsor.clickCount, 0)}
           />
         </div>
       ) : null}
 
-      <TabBar
-        onChange={(key) => setFilter(key as typeof filter)}
-        tabs={[
-          { key: "all", label: "All" },
-          { key: "active", label: "Active" },
-          { key: "inactive", label: "Paused" },
-        ]}
-        tone="platform"
-        value={filter}
-      />
+      <Panel
+        action={
+          <FilterButton active={filter === "all" ? 0 : 1} onClear={() => setFilter("all")}>
+            <FilterChoice
+              label="Status"
+              onChange={setFilter}
+              options={[
+                { label: "All", value: "all" },
+                { label: "Live", value: "active" },
+                { label: "Paused", value: "inactive" },
+              ]}
+              value={filter}
+            />
+          </FilterButton>
+        }
+        title="Sponsors"
+      >
+        {resource.state === "loading" ? <LoadingRows /> : null}
+        {resource.state === "ready" && sponsors.length === 0 ? (
+          <EmptyState label="No sponsors yet. Add one from the header." />
+        ) : null}
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
-        <Panel title="Sponsors">
-          {resource.state === "loading" ? <LoadingRows /> : null}
-          {resource.state === "ready" && sponsors.length === 0 ? (
-            <EmptyState label="No sponsors yet. Create one on the right." />
-          ) : null}
-
-          <div className="space-y-3">
-            {sponsors.map((sponsor) => (
-              <div className="rounded-lg border border-border p-4" key={sponsor.id}>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="flex min-w-0 gap-3">
-                    <span
-                      className="size-10 shrink-0 rounded-lg"
-                      style={{ backgroundColor: sponsor.accentColor }}
-                    />
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold text-foreground">
-                        {sponsor.name}
-                      </p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {sponsor.kind}
-                        {sponsor.subtitle ? ` · ${sponsor.subtitle}` : ""}
-                        {sponsor.highlight ? ` · ${sponsor.highlight}` : ""}
-                      </p>
-                      <p className="mt-1 text-[11px] text-muted-foreground">
-                        {sponsor.impressionCount} impressions · {sponsor.clickCount} clicks
-                        {sponsor.startsAt || sponsor.endsAt
-                          ? ` · ${sponsor.startsAt ? new Date(sponsor.startsAt).toLocaleDateString() : "—"} → ${
-                              sponsor.endsAt
-                                ? new Date(sponsor.endsAt).toLocaleDateString()
-                                : "—"
-                            }`
-                          : ""}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <SoftBadge tone={sponsor.isActive ? "green" : "slate"}>
-                      {sponsor.isActive ? "Live" : "Paused"}
-                    </SoftBadge>
-                    <div className="flex items-center gap-1 rounded-md border border-border">
-                      <button
-                        aria-label="Lower priority"
-                        className="px-2 py-1 text-sm text-muted-foreground hover:text-foreground"
-                        onClick={() => void changePriority(sponsor, -1)}
-                        type="button"
-                      >
-                        ▼
-                      </button>
-                      <span className="min-w-6 text-center text-xs font-bold text-foreground">
-                        {sponsor.priority}
-                      </span>
-                      <button
-                        aria-label="Raise priority"
-                        className="px-2 py-1 text-sm text-muted-foreground hover:text-foreground"
-                        onClick={() => void changePriority(sponsor, 1)}
-                        type="button"
-                      >
-                        ▲
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-3 flex flex-wrap gap-2">
+        <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
+          {sponsors.map((sponsor) => (
+            <article
+              className="group overflow-hidden rounded-2xl border border-border/70 bg-card transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+              key={sponsor.id}
+            >
+              {/* The sponsor's own banner, or its name on its own colour — this
+                  is their brand on show, not ours. */}
+              <div className="relative flex h-28 items-center justify-center overflow-hidden" style={{ backgroundColor: sponsor.accentColor }}>
+                {sponsor.imageUrl ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img alt="" className="size-full object-cover" src={sponsor.imageUrl} />
+                ) : (
+                  <span className="px-4 text-center font-heading text-[16px] font-bold text-white">{sponsor.name}</span>
+                )}
+                <span className="absolute left-2.5 top-2.5 rounded-full bg-black/60 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
+                  {sponsor.isActive ? "Live" : "Paused"}
+                </span>
+                <div className="absolute bottom-2.5 right-2.5 flex items-center rounded-full bg-black/60 text-white backdrop-blur">
                   <button
-                    className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted"
-                    onClick={() => setEditing(sponsor)}
+                    aria-label="Lower priority"
+                    className="rounded-full p-1 transition hover:bg-white/15"
+                    onClick={() => void changePriority(sponsor, -1)}
                     type="button"
                   >
-                    Edit
+                    <ChevronDown className="size-3.5" />
                   </button>
+                  <span className="min-w-5 text-center text-[11px] font-bold" title="Priority">
+                    {sponsor.priority}
+                  </span>
                   <button
-                    className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted"
-                    onClick={() => void toggleActive(sponsor)}
+                    aria-label="Raise priority"
+                    className="rounded-full p-1 transition hover:bg-white/15"
+                    onClick={() => void changePriority(sponsor, 1)}
                     type="button"
                   >
-                    {sponsor.isActive ? "Pause" : "Make live"}
-                  </button>
-                  <button
-                    className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-destructive transition hover:bg-destructive/10"
-                    onClick={() => void remove(sponsor)}
-                    type="button"
-                  >
-                    Delete
+                    <ChevronUp className="size-3.5" />
                   </button>
                 </div>
               </div>
-            ))}
-          </div>
-        </Panel>
 
-        <Panel title={editing ? `Edit ${editing.name}` : "New sponsor"}>
+              <div className="space-y-3 p-4">
+                <div className="min-w-0">
+                  <h3 className="truncate font-heading text-[15px] font-bold tracking-tight text-foreground">{sponsor.name}</h3>
+                  {sponsor.subtitle ? <p className="truncate text-[12.5px] text-muted-foreground">{sponsor.subtitle}</p> : null}
+                </div>
+
+                <ShareBar label="views clicked" part={sponsor.clickCount} total={sponsor.impressionCount} />
+
+                <div className="flex flex-wrap gap-1.5">
+                  <FactChip glyph="pricetag">{sponsor.kind.charAt(0) + sponsor.kind.slice(1).toLowerCase()}</FactChip>
+                  {sponsor.highlight ? <FactChip glyph="sparkles">{sponsor.highlight}</FactChip> : null}
+                  {sponsor.startsAt || sponsor.endsAt ? (
+                    <FactChip glyph="calendar">
+                      {`${sponsor.startsAt ? new Date(sponsor.startsAt).toLocaleDateString() : "—"} → ${
+                        sponsor.endsAt ? new Date(sponsor.endsAt).toLocaleDateString() : "—"
+                      }`}
+                    </FactChip>
+                  ) : null}
+                </div>
+
+                <div className="flex gap-2">
+                  <Button onClick={() => openForm(sponsor)} size="sm" type="button" variant="outline">
+                    <Pencil className="size-3.5" />
+                    Edit
+                  </Button>
+                  <Button onClick={() => void toggleActive(sponsor)} size="sm" type="button" variant="ghost">
+                    {sponsor.isActive ? <PauseCircle className="size-3.5" /> : <PlayCircle className="size-3.5" />}
+                    {sponsor.isActive ? "Pause" : "Make live"}
+                  </Button>
+                  <Button
+                    className="ml-auto text-muted-foreground hover:text-destructive"
+                    onClick={() => void remove(sponsor)}
+                    size="sm"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <Trash2 className="size-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      </Panel>
+
+      <Dialog onOpenChange={setFormOpen} open={formOpen}>
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>{editing ? `Edit ${editing.name}` : "New sponsor"}</DialogTitle>
+            <DialogDescription>A /path link stays on site; http(s) opens a new tab.</DialogDescription>
+          </DialogHeader>
           {/* Keyed on the sponsor so switching which one is being edited
-              remounts the fields with that sponsor's values, rather than
-              leaving the previous one's text in place. */}
+              remounts the fields with that sponsor's values. */}
           <BusyForm className="grid gap-3" key={editing?.id ?? "new"} onSubmit={save}>
-            <Input
-              defaultValue={editing?.name}
-              label="Name"
-              name="name"
-              placeholder="Trinity International College"
-              required
-            />
-            <Select defaultValue={editing?.kind ?? "COLLEGE"} label="Type" name="kind">
-              {KINDS.map((kind) => (
-                <option key={kind} value={kind}>
-                  {kind.charAt(0) + kind.slice(1).toLowerCase()}
-                </option>
-              ))}
-            </Select>
-            <Input
-              defaultValue={editing?.subtitle}
-              label="Subtitle"
-              name="subtitle"
-              placeholder="Dillibazar, Kathmandu"
-            />
-            <Input
-              defaultValue={editing?.highlight}
-              hint="The bold line above the button — a price, a deadline, an offer."
-              label="Highlight"
-              name="highlight"
-              placeholder="Admissions open"
-            />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input
+                defaultValue={editing?.name}
+                label="Name"
+                name="name"
+                placeholder="Trinity International College"
+                required
+              />
+              <Select defaultValue={editing?.kind ?? "COLLEGE"} label="Type" name="kind">
+                {KINDS.map((kind) => (
+                  <option key={kind} value={kind}>
+                    {kind.charAt(0) + kind.slice(1).toLowerCase()}
+                  </option>
+                ))}
+              </Select>
+              <Input defaultValue={editing?.subtitle} label="Subtitle" name="subtitle" placeholder="Dillibazar, Kathmandu" />
+              <Input
+                defaultValue={editing?.highlight}
+                label="Highlight"
+                name="highlight"
+                placeholder="Admissions open"
+              />
+            </div>
             <Input
               defaultValue={editing?.imageUrl}
-              hint="Banner image. Leave blank to show the name on the accent colour."
+              hint="Blank shows the name on the accent colour."
               label="Image URL"
               name="imageUrl"
               placeholder="https://…"
             />
-            <Input
-              defaultValue={editing?.accentColor ?? "#0a8a4b"}
-              label="Accent colour"
-              name="accentColor"
-              type="color"
-            />
-            <Input
-              defaultValue={editing?.linkUrl}
-              hint="Where the card goes. A /path stays on site; http(s) opens a new tab."
-              label="Link"
-              name="linkUrl"
-              placeholder="https://college.edu.np"
-            />
-            <Input
-              defaultValue={editing?.ctaLabel ?? "View"}
-              label="Button label"
-              name="ctaLabel"
-            />
-            <Input
-              defaultValue={editing?.priority ?? 0}
-              hint="Higher shows first. Ties break by newest."
-              label="Priority"
-              name="priority"
-              type="number"
-            />
-            <Input
-              defaultValue={editing?.startsAt?.slice(0, 10)}
-              hint="Optional. Blank means it runs as soon as it is live."
-              label="Starts"
-              name="startsAt"
-              type="date"
-            />
-            <Input
-              defaultValue={editing?.endsAt?.slice(0, 10)}
-              hint="Optional. Blank means it runs until paused."
-              label="Ends"
-              name="endsAt"
-              type="date"
-            />
-
-            <div className="flex gap-2">
-              <SubmitButton className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-role-platform text-sm font-semibold text-white">
+            <div className="grid gap-3 sm:grid-cols-[1fr_120px]">
+              <Input defaultValue={editing?.linkUrl} label="Link" name="linkUrl" placeholder="https://college.edu.np" />
+              <Input defaultValue={editing?.accentColor ?? "#0a8a4b"} label="Accent" name="accentColor" type="color" />
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Input defaultValue={editing?.ctaLabel ?? "View"} label="Button label" name="ctaLabel" />
+              <Input
+                defaultValue={editing?.priority ?? 0}
+                hint="Higher shows first."
+                label="Priority"
+                name="priority"
+                type="number"
+              />
+              <Input
+                defaultValue={editing?.startsAt?.slice(0, 10)}
+                hint="Blank: as soon as it is live."
+                label="Starts"
+                name="startsAt"
+                type="date"
+              />
+              <Input
+                defaultValue={editing?.endsAt?.slice(0, 10)}
+                hint="Blank: until paused."
+                label="Ends"
+                name="endsAt"
+                type="date"
+              />
+            </div>
+            <DialogFooter>
+              <SubmitButton className="bg-brand-teal text-white hover:bg-brand-teal/90">
                 {editing ? "Save changes" : "Create sponsor"}
               </SubmitButton>
-              {editing ? (
-                <button
-                  className="h-11 rounded-md border border-border px-4 text-sm font-semibold text-foreground"
-                  onClick={() => setEditing(null)}
-                  type="button"
-                >
-                  Cancel
-                </button>
-              ) : null}
-            </div>
+            </DialogFooter>
           </BusyForm>
-        </Panel>
-      </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });

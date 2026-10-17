@@ -26,13 +26,12 @@ import { useRouter } from "next/navigation";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import {
   DataTable,
   DetailField,
   DetailPanel,
   DetailSection,
-  FilterBar,
-  FilterSelect,
   InitialsAvatar,
   ListPager,
   MetricCard,
@@ -586,48 +585,50 @@ A new temporary password is issued. Any earlier one stops working.`,
     return hostels.filter((hostel) => matchesTab(hostel, key)).length;
   };
 
+  const switchTab = (next: string) => {
+    setTab(next);
+    setPage(1);
+  };
+
   const selectedHostel = hostels.find((hostel) => hostel.id === selectedId) ?? null;
   const documents = detail?.documents ?? [];
 
   return (
     <div className="mx-auto max-w-[1448px] space-y-4">
-      <PortalPageHeader
-        breadcrumb={["Home", "Hostel Approvals"]}
-        description="One queue for listing decisions and document KYC — read the paperwork, then approve, reject, publish, unpublish or archive."
-        title="Hostel Approvals"
-      />
+      <PortalPageHeader description="Read the paperwork, then decide." title="Hostel Approvals" />
       <Message value={message} />
 
+      {/* Each tile opens the tab it counts. */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
+          active={tab === "ALL"}
           icon={Building2}
-          label="Total Hostels"
-          note="On the platform"
-          tone="blue"
+          label="Hostels"
+          onClick={() => switchTab("ALL")}
           value={counts.total}
         />
         <MetricCard
+          active={tab === "PENDING"}
           icon={Clock3}
-          label="Pending Approval"
-          note="Awaiting a decision"
-          noteTone="amber"
-          tone="amber"
+          label="Waiting approval"
+          onClick={() => switchTab("PENDING")}
+          tone={counts.pendingApproval > 0 ? "amber" : "teal"}
           value={counts.pendingApproval}
         />
         <MetricCard
+          active={tab === "KYC"}
           icon={FileSearch}
-          label="KYC Pending"
-          note="Documents to check"
-          noteTone="cyan"
-          tone="cyan"
+          label="Documents to check"
+          onClick={() => switchTab("KYC")}
+          tone={counts.kycPending > 0 ? "amber" : "teal"}
           value={counts.kycPending}
         />
         <MetricCard
+          active={tab === "PUBLISHED"}
           icon={BadgeCheck}
-          label="Approved & Live"
-          note="Cleared for listing"
-          noteTone="green"
-          tone="green"
+          label="Approved & live"
+          note={counts.total > 0 ? `${Math.round((counts.approvedLive / counts.total) * 100)}% of all` : undefined}
+          onClick={() => switchTab("PUBLISHED")}
           value={counts.approvedLive}
         />
       </div>
@@ -636,33 +637,38 @@ A new temporary password is issued. Any earlier one stops working.`,
         <Panel>
           <TabBar
             className="mb-3"
-            onChange={(next) => {
-              setTab(next);
-              setPage(1);
-            }}
+            onChange={switchTab}
             tabs={TABS.map((item) => ({ ...item, count: tabCount(item.key) }))}
             value={tab}
           />
 
-          <FilterBar>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
             <SearchField
               onChange={(next) => {
                 setQuery(next);
                 setPage(1);
               }}
-              placeholder="Search hostels by name or area..."
+              placeholder="Search hostels"
               value={query}
             />
-            <FilterSelect
-              defaultLabel="All Cities"
-              onChange={(next) => {
-                setCity(next);
+            <FilterButton
+              active={city ? 1 : 0}
+              onClear={() => {
+                setCity("");
                 setPage(1);
               }}
-              options={cities}
-              value={city}
-            />
-          </FilterBar>
+            >
+              <FilterChoice
+                label="City"
+                onChange={(next) => {
+                  setCity(next);
+                  setPage(1);
+                }}
+                options={[{ label: "All", value: "" }, ...cities.map((name) => ({ label: name, value: name }))]}
+                value={city}
+              />
+            </FilterButton>
+          </div>
 
           {state === "loading" ? <LoadingRows /> : null}
           {state === "error" ? <EmptyState label="Hostels could not be loaded." /> : null}
@@ -672,13 +678,12 @@ A new temporary password is issued. Any earlier one stops working.`,
 
           {state === "ready" && filtered.length > 0 ? (
             <>
-              <DataTable className="min-w-[760px]">
+              <DataTable className="min-w-[640px]">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
                     <Th>Hostel</Th>
-                    <Th>Location</Th>
                     <Th>Listing</Th>
-                    <Th>KYC Status</Th>
+                    <Th>KYC</Th>
                     <Th>Portals</Th>
                     <Th align="right" />
                   </TableRow>
@@ -688,7 +693,7 @@ A new temporary password is issued. Any earlier one stops working.`,
                     <TableRow
                       className={
                         hostel.id === selectedId
-                          ? "bg-role-platform-soft/40"
+                          ? "bg-role-team-soft/60"
                           : "cursor-pointer"
                       }
                       key={hostel.id}
@@ -696,10 +701,10 @@ A new temporary password is issued. Any earlier one stops working.`,
                     >
                       <TableCell>
                         <div className="flex items-center gap-2.5">
-                          <InitialsAvatar name={hostel.name} size="sm" tone="platform" />
+                          <InitialsAvatar name={hostel.name} size="sm" tone="team" />
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-1.5">
-                              <p className="truncate font-semibold text-foreground">
+                              <p className="truncate text-[13.5px] font-semibold text-foreground">
                                 {hostel.name}
                               </p>
                               {hostel.isDemoData ? (
@@ -707,15 +712,13 @@ A new temporary password is issued. Any earlier one stops working.`,
                               ) : null}
                               {hostel.branchOf ? <SoftBadge tone="amber">BRANCH</SoftBadge> : null}
                             </div>
-                            <p className="truncate text-[11px] text-muted-foreground">
-                              {hostel.branchOf ? `Branch of ${hostel.branchOf.name}` : hostel.slug}
+                            <p className="truncate text-[12px] text-muted-foreground">
+                              {hostel.branchOf
+                                ? `Branch of ${hostel.branchOf.name}`
+                                : [hostel.location.area, hostel.location.city].filter(Boolean).join(", ")}
                             </p>
                           </div>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {hostel.location.area}
-                        {hostel.location.city ? `, ${hostel.location.city}` : ""}
                       </TableCell>
                       <TableCell>
                         {hostel.isArchived ? (
@@ -763,7 +766,7 @@ A new temporary password is issued. Any earlier one stops working.`,
                       <TableCell>
                         <div className="flex items-center justify-end">
                           <button
-                            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-role-platform transition hover:bg-role-platform-soft"
+                            className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-semibold text-role-team transition hover:bg-role-team-soft"
                             onClick={(event) => {
                               event.stopPropagation();
                               router.push(`/platform/hostels/${hostel.id}`);
@@ -814,7 +817,7 @@ A new temporary password is issued. Any earlier one stops working.`,
                         disabled={busy}
                         key={nextAction}
                         onClick={() => void action(selectedHostel.id, nextAction)}
-                        tone="platform"
+                        tone="team"
                         variant={variant}
                       >
                         <Icon className="size-3.5" />
@@ -825,7 +828,7 @@ A new temporary password is issued. Any earlier one stops working.`,
                 </div>
                 <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold">
                   <Link
-                    className="inline-flex items-center gap-1 text-role-platform hover:underline"
+                    className="inline-flex items-center gap-1 text-role-team hover:underline"
                     href={`/platform/hostels/${selectedHostel.id}`}
                   >
                     <ExternalLink className="size-3" />
@@ -1089,16 +1092,11 @@ A new temporary password is issued. Any earlier one stops working.`,
           </DetailPanel>
         ) : (
           <Panel className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-            <span className="flex size-10 items-center justify-center rounded-full bg-role-platform-soft text-role-platform">
-              <Fingerprint className="size-5" />
+            <span className="flex size-12 items-center justify-center rounded-full bg-role-team-soft text-role-team">
+              <Fingerprint className="size-[22px]" />
             </span>
-            <p className="text-[13px] font-semibold text-foreground">
-              Select a hostel to review it
-            </p>
-            <p className="max-w-xs text-[11.5px] text-muted-foreground">
-              Its submitter, document checklist, and upload history appear here, along
-              with the approve, reject, and publish controls.
-            </p>
+            <p className="text-[13.5px] font-semibold text-foreground">Pick a hostel to review it</p>
+            <p className="text-[12px] text-muted-foreground">Its papers and the decision buttons open here.</p>
           </Panel>
         )}
       </div>
