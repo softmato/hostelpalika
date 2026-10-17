@@ -94,9 +94,7 @@ export function HostelPayoutAccountPanel() {
 
   return (
     <Panel title="Booking payouts">
-      <p className="mb-3 text-xs text-muted-foreground">
-        Where we send your share when someone books a bed here. The Book button shows only once this is verified.
-      </p>
+      <p className="mb-3 text-[12.5px] text-muted-foreground">Your Book button shows once this account is verified.</p>
       {account && !editing ? (
         <div className="space-y-2 text-sm">
           {status ? <SoftBadge tone={status.tone}>{status.label}</SoftBadge> : null}

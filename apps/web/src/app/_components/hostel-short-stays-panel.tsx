@@ -79,10 +79,9 @@ function ShortStaysForm({ settings }: { settings: ShortStaySettingsView }) {
         ))}
       </div>
 
-      <p className="text-xs text-muted-foreground">
-        Up to {settings.limits.maxNights} nights. The guest pays the nights and the booking fee to us upfront. You get{" "}
-        {settings.limits.hostelSharePercent}% of the nights once they check in by card scan. They are never billed monthly
-        rent.
+      <p className="text-[12.5px] text-muted-foreground">
+        Up to {settings.limits.maxNights} nights, paid to us upfront; you get {settings.limits.hostelSharePercent}% at
+        check-in. No monthly rent.
       </p>
 
       <RoleButton
