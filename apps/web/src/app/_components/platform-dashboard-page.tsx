@@ -13,8 +13,7 @@ import {
 } from "@/components/icons";
 import { memo, useState } from "react";
 
-import { LoadingRows } from "@/app/_components/shared-ui";
-import { Button } from "@/components/ui/button";
+import { LoadingRows, Panel } from "@/app/_components/shared-ui";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { combineResources, usePortalResource } from "@/lib/portal-query";
 import { DemoDataBadge, Hostel, Message } from "./core-portal-shared";
@@ -25,17 +24,11 @@ import {
   ListPager,
   MetricCard,
   PortalPageHeader,
-  SectionCard,
   SoftBadge,
   statusToneFromLabel,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
   ViewAllLink,
-  DataTable,
 } from "./portal-dashboard-ui";
+import { ShareBar } from "./platform-page-ui";
 
 type MetricTrend = {
   changePercent: number | null;
@@ -197,15 +190,14 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
   const metrics = [
     {
       icon: Building2,
-      label: "Total Hostels",
-      tone: "blue" as const,
+      label: "Hostels",
       trend: trendLabel(trends.totalHostels, windowDays),
       trendDown: trendIsDown(trends.totalHostels),
       value: (report?.totalHostels ?? 0).toLocaleString(),
     },
     {
       icon: Clock3,
-      label: "Pending Approvals",
+      label: "Waiting approval",
       tone: "amber" as const,
       trend: trendLabel(trends.pendingApprovals, windowDays),
       trendDown: trendIsDown(trends.pendingApprovals),
@@ -213,63 +205,55 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
     },
     {
       icon: Users,
-      label: "Active Residents",
-      tone: "green" as const,
+      label: "Active residents",
       trend: trendLabel(trends.activeResidents, windowDays),
       trendDown: trendIsDown(trends.activeResidents),
       value: (report?.activeResidents ?? 0).toLocaleString(),
     },
     {
+      icon: WalletCards,
+      label: "Collected",
+      trend: trendLabel(trends.platformPayments, windowDays),
+      trendDown: trendIsDown(trends.platformPayments),
+      value: npr(report?.platformPayments ?? 0),
+    },
+    {
       icon: MessageSquare,
       label: "Inquiries",
-      tone: "purple" as const,
       trend: trendLabel(trends.inquiries, windowDays),
       trendDown: trendIsDown(trends.inquiries),
       value: (report?.inquiries ?? 0).toLocaleString(),
     },
     {
       icon: Wrench,
-      label: "Service Providers",
-      tone: "blue" as const,
+      label: "Service providers",
       trend: trendLabel(trends.serviceProviders, windowDays),
       trendDown: trendIsDown(trends.serviceProviders),
       value: (report?.serviceProviders ?? 0).toLocaleString(),
     },
     {
       icon: ShieldCheck,
-      label: "Complaints & Flags",
+      label: "Complaints & flags",
       tone: "rose" as const,
       trend: trendLabel(trends.complaints, windowDays),
       trendDown: trendIsDown(trends.complaints),
-      value: (
-        (report?.complaints ?? 0) + (report?.openListingFlags ?? 0)
-      ).toLocaleString(),
-    },
-    {
-      icon: WalletCards,
-      label: "Collected Payments",
-      note: report ? `${npr(report.outstandingPayments)} outstanding` : undefined,
-      tone: "green" as const,
-      trend: trendLabel(trends.platformPayments, windowDays),
-      trendDown: trendIsDown(trends.platformPayments),
-      value: npr(report?.platformPayments ?? 0),
+      value: ((report?.complaints ?? 0) + (report?.openListingFlags ?? 0)).toLocaleString(),
     },
   ];
+
+  const collected = Math.round(report?.platformPayments ?? 0);
+  const outstanding = Math.round(report?.outstandingPayments ?? 0);
 
   return (
     <div className="mx-auto max-w-[1448px] space-y-5">
       <PortalPageHeader
         actions={
-          <Button
-            className="h-9 gap-2 rounded-lg border-border bg-card px-3 text-xs font-semibold text-muted-foreground shadow-sm"
-            type="button"
-            variant="outline"
-          >
-            <CalendarRange className="size-3.5 text-role-platform" />
+          <span className="inline-flex h-9 items-center gap-2 rounded-xl border border-border px-3 text-[12.5px] font-semibold text-muted-foreground">
+            <CalendarRange className="size-3.5 text-role-team" />
             {windowRangeLabel(windowDays)}
-          </Button>
+          </span>
         }
-        breadcrumb={["Home", "Dashboard"]}
+        description="Hostels, money and flags across the platform."
         title="Dashboard"
       />
 
@@ -278,179 +262,98 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
 
       {state !== "loading" ? (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {metrics.slice(0, 4).map((metric) => (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {metrics.map((metric) => (
               <MetricCard key={metric.label} {...metric} />
             ))}
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            {metrics.slice(4).map((metric) => (
-              <MetricCard key={metric.label} {...metric} />
-            ))}
+            <Panel className="flex flex-col justify-center">
+              <ShareBar label="NPR in" part={collected} total={collected + outstanding} />
+              <p className="mt-1.5 text-[11.5px] text-muted-foreground">{npr(outstanding)} still owed</p>
+            </Panel>
           </div>
 
           <div className="grid gap-5 xl:grid-cols-2">
-            <SectionCard
-              actions={<ViewAllLink href="/platform/hostels" tone="platform" />}
-              title="Recent Hostel Applications"
-            >
+            <Panel action={<ViewAllLink href="/platform/hostels" tone="team" />} title="New hostels">
               {hostels.length === 0 ? (
                 <EmptyInline label="No hostel applications yet." />
               ) : (
                 <>
-                  <DataTable className="min-w-[560px]">
-                    <TableHeader>
-                      <TableRow className="hover:bg-transparent">
-                        <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          Hostel Name
-                        </TableHead>
-                        <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          Location
-                        </TableHead>
-                        <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          Owner
-                        </TableHead>
-                        <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          Status
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {hostels.map((hostel) => (
-                        <TableRow key={hostel.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <InitialsAvatar
-                                name={hostel.name}
-                                size="sm"
-                                tone="platform"
-                              />
-                              <div className="min-w-0">
-                                <p className="truncate font-semibold text-foreground">
-                                  {hostel.name}
-                                </p>
-                                {hostel.isDemoData ? (
-                                  <DemoDataBadge label={hostel.demoDataLabel} />
-                                ) : null}
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {hostel.location.area}
-                            {hostel.location.city ? `, ${hostel.location.city}` : ""}
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {hostel.owner?.name || "—"}
-                          </TableCell>
-                          <TableCell>
-                            <SoftBadge tone={statusToneFromLabel(hostel.status)}>
-                              {hostel.status.replaceAll("_", " ")}
-                            </SoftBadge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </DataTable>
+                  <div className="space-y-1">
+                    {hostels.map((hostel) => (
+                      <div className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-muted" key={hostel.id}>
+                        <InitialsAvatar name={hostel.name} size="sm" tone="team" />
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate text-[13.5px] font-semibold text-foreground">{hostel.name}</p>
+                            {hostel.isDemoData ? <DemoDataBadge label={hostel.demoDataLabel} /> : null}
+                          </div>
+                          <p className="truncate text-[12px] text-muted-foreground">
+                            {[hostel.location.area, hostel.location.city].filter(Boolean).join(", ")}
+                            {hostel.owner?.name ? ` · ${hostel.owner.name}` : ""}
+                          </p>
+                        </div>
+                        <SoftBadge tone={statusToneFromLabel(hostel.status)}>{hostel.status.replaceAll("_", " ")}</SoftBadge>
+                      </div>
+                    ))}
+                  </div>
                   <ListPager page={hostelPage} onPageChange={setHostelPage} pageSize={RECENT_ROW_LIMIT} total={totalHostelCount} />
                 </>
               )}
-            </SectionCard>
+            </Panel>
 
-            <SectionCard
-              actions={<ViewAllLink href="/platform/payments" tone="platform" />}
-              title="Recent Payments"
-            >
+            <Panel action={<ViewAllLink href="/platform/payments" tone="team" />} title="Recent payments">
               {payments.length === 0 ? (
                 <EmptyInline label="No payments recorded yet." />
               ) : (
                 <>
-                  <DataTable className="min-w-[560px]">
-                    <TableHeader>
-                      <TableRow className="hover:bg-transparent">
-                        <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          Hostel / Organization
-                        </TableHead>
-                        <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          Method
-                        </TableHead>
-                        <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          Amount
-                        </TableHead>
-                        <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          Status
-                        </TableHead>
-                        <TableHead className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                          Paid Date
-                        </TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {payments.map((payment) => (
-                        <TableRow key={payment.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-3">
-                              <InitialsAvatar
-                                name={payment.hostelName}
-                                size="sm"
-                                tone="platform"
-                              />
-                              <p className="truncate font-semibold text-foreground">
-                                {payment.hostelName}
-                              </p>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {payment.provider.replaceAll("_", " ")}
-                          </TableCell>
-                          <TableCell className="font-semibold text-foreground">
-                            {npr(payment.paidAmount)}
-                          </TableCell>
-                          <TableCell>
-                            <SoftBadge tone={statusToneFromLabel(payment.status)}>
-                              {payment.status.replaceAll("_", " ")}
-                            </SoftBadge>
-                          </TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {shortDate(payment.paidAt)}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </DataTable>
+                  <div className="space-y-1">
+                    {payments.map((payment) => (
+                      <div className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-muted" key={payment.id}>
+                        <InitialsAvatar name={payment.hostelName} size="sm" tone="team" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[13.5px] font-semibold text-foreground">{payment.hostelName}</p>
+                          <p className="truncate text-[12px] text-muted-foreground">
+                            {payment.provider.replaceAll("_", " ")} · {shortDate(payment.paidAt)}
+                          </p>
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <p className="text-[13.5px] font-semibold tabular-nums text-foreground">{npr(payment.paidAmount)}</p>
+                          <SoftBadge tone={statusToneFromLabel(payment.status)}>{payment.status.replaceAll("_", " ")}</SoftBadge>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                   <ListPager page={paymentPage} onPageChange={setPaymentPage} pageSize={RECENT_ROW_LIMIT} total={paymentsResource.data?.pagination.total ?? 0} />
                 </>
               )}
-            </SectionCard>
+            </Panel>
           </div>
 
           <div className="grid gap-5 xl:grid-cols-[1.55fr_1fr]">
-            <SectionCard
-              actions={
-                <span className="text-[11px] font-semibold text-muted-foreground">
+            <Panel
+              action={
+                <span className="text-[11.5px] font-semibold text-muted-foreground">
                   Last {(series?.bucketDays ?? 7) * (series?.labels.length ?? 5)} days
                 </span>
               }
-              title="Analytics Overview"
+              title="Trends"
             >
-              <div className="grid gap-4 md:grid-cols-3">
+              <div className="grid gap-3 md:grid-cols-3">
                 {[
                   {
-                    label: "Hostel Registrations",
-                    stroke: "#2563eb",
+                    label: "Hostels joined",
                     trend: trends.totalHostels,
                     value: (report?.totalHostels ?? 0).toLocaleString(),
                     values: series?.hostels ?? [],
                   },
                   {
                     label: "Inquiries",
-                    stroke: "#10b981",
                     trend: trends.inquiries,
                     value: (report?.inquiries ?? 0).toLocaleString(),
                     values: series?.inquiries ?? [],
                   },
                   {
                     label: "Revenue (NPR)",
-                    stroke: "#8b5cf6",
                     trend: trends.platformPayments,
                     value: compactNpr(report?.platformPayments ?? 0),
                     values: series?.revenue ?? [],
@@ -459,23 +362,12 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
                   const change = chart.trend?.changePercent ?? null;
 
                   return (
-                    <div
-                      className="rounded-xl border border-border/70 bg-muted/15 p-4"
-                      key={chart.label}
-                    >
-                      <p className="text-xs font-medium text-muted-foreground">
-                        {chart.label}
-                      </p>
+                    <div className="rounded-xl bg-muted/40 p-3.5" key={chart.label}>
+                      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{chart.label}</p>
                       <p className="mt-1 flex items-baseline gap-1.5">
-                        <span className="text-xl font-bold text-foreground">
-                          {chart.value}
-                        </span>
+                        <span className="text-xl font-bold text-foreground">{chart.value}</span>
                         {change === null ? null : (
-                          <span
-                            className={`text-[11px] font-semibold ${
-                              change < 0 ? "text-rose-600" : "text-emerald-600"
-                            }`}
-                          >
+                          <span className={`text-[11px] font-semibold ${change < 0 ? "text-rose-600" : "text-role-team"}`}>
                             {change < 0 ? "↓" : "↑"} {Math.abs(change)}%
                           </span>
                         )}
@@ -483,57 +375,41 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
                       <div className="mt-3">
                         <AreaSparkline
                           labels={chartLabels}
-                          stroke={chart.stroke}
-                          values={
-                            chart.values.length > 0 ? chart.values : [0, 0, 0, 0, 0]
-                          }
+                          stroke="var(--role-team)"
+                          values={chart.values.length > 0 ? chart.values : [0, 0, 0, 0, 0]}
                         />
                       </div>
                     </div>
                   );
                 })}
               </div>
-            </SectionCard>
+            </Panel>
 
-            <SectionCard
-              actions={
-                <ViewAllLink
-                  href="/platform/audit-logs"
-                  label="View all"
-                  tone="platform"
-                />
-              }
-              title="Recent Audit Activity"
-            >
+            <Panel action={<ViewAllLink href="/platform/audit-logs" tone="team" />} title="Latest activity">
               {auditLogs.length === 0 ? (
                 <EmptyInline label="No audit activity recorded yet." />
               ) : (
-                <div className="space-y-2.5">
+                <div className="space-y-1">
                   {auditLogs.map((log) => (
-                    <div
-                      className="flex items-start gap-3 rounded-xl border border-border/60 bg-muted/10 px-3 py-2.5"
-                      key={log.id}
-                    >
-                      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-role-platform-soft text-role-platform">
+                    <div className="flex items-start gap-3 rounded-xl px-2 py-2" key={log.id}>
+                      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-role-team-soft text-role-team">
                         <ScrollText className="size-4" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-semibold leading-snug text-foreground">
+                        <p className="truncate text-[13.5px] font-semibold text-foreground">
                           {humanizeAction(log.action)}
                           {log.hostelLabel ? ` — ${log.hostelLabel}` : ""}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          by {log.actorLabel} · {log.entityType.toLowerCase()}
+                        <p className="truncate text-[12px] text-muted-foreground">
+                          {log.actorLabel} · {log.entityType.toLowerCase()}
                         </p>
                       </div>
-                      <span className="shrink-0 text-[11px] text-muted-foreground">
-                        {relativeTime(log.createdAt)}
-                      </span>
+                      <span className="shrink-0 text-[11px] text-muted-foreground">{relativeTime(log.createdAt)}</span>
                     </div>
                   ))}
                 </div>
               )}
-            </SectionCard>
+            </Panel>
           </div>
         </>
       ) : null}
