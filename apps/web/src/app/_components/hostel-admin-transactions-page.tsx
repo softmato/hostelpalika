@@ -5,23 +5,22 @@ import { ArrowDownUp, BadgeDollarSign, Download, Hash, Wallet } from "@/componen
 import { memo, useMemo, useState } from "react";
 
 import { currency, EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
+import { ShareBar } from "@/app/_components/hostel-admin-page-ui";
 import {
   DataTable,
-  FilterBar,
-  FilterSelect,
   ListPager,
   MetricCard,
   PortalPageHeader,
   RoleButton,
   SearchField,
   SoftBadge,
-  TabBar,
   TableBody,
   TableCell,
   TableHeader,
   TableRow,
   Th,
 } from "@/app/_components/portal-dashboard-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import { monthLabel } from "@/lib/format-month";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
@@ -177,7 +176,7 @@ export const HostelAdminTransactionsPageContent = memo(
             </RoleButton>
           }
           breadcrumb={["Home", "Fees & Payments", "Transactions"]}
-          description="Complete payment ledger for this hostel with method, reference, and settlement state."
+          description="Every bill, what came in against it, and what is still owed."
           title="Transactions"
         />
         <Message value={message} />
@@ -196,7 +195,7 @@ export const HostelAdminTransactionsPageContent = memo(
                   icon={ArrowDownUp}
                   label="Opening balance"
                   note={`Bank, ${formatDate(paymentsResource.data.openingBalance.asOf)}`}
-                  tone="cyan"
+                  tone="teal"
                   value={currency(paymentsResource.data.openingBalance.amount)}
                 />
               ) : (
@@ -204,7 +203,7 @@ export const HostelAdminTransactionsPageContent = memo(
                   icon={ArrowDownUp}
                   label="Ledger Entries"
                   note="Most recent first"
-                  tone="cyan"
+                  tone="teal"
                   value={ledger.length}
                 />
               )}
@@ -234,56 +233,79 @@ export const HostelAdminTransactionsPageContent = memo(
               />
             </div>
 
-            <Panel>
-              <TabBar
-                className="mb-3"
-                onChange={(next) => {
-                  setTab(next);
-                  setPage(1);
-                }}
-                tabs={TABS.map((item) => ({ ...item, count: tabCount(item.key) }))}
-                tone="admin"
-                value={tab}
+            <div className="rounded-2xl border border-border/70 bg-card px-4 py-3">
+              <ShareBar
+                label="collected of billed"
+                total={totals.collected + totals.outstanding}
+                value={totals.collected}
               />
+            </div>
 
-              <FilterBar>
+            <Panel>
+              <div className="mb-4 flex flex-wrap items-center gap-2">
                 <SearchField
                   onChange={(next) => {
                     setQuery(next);
                     setPage(1);
                   }}
                   placeholder="Search by resident, month, or reference..."
+                  size="lg"
                   value={query}
                 />
-                <div className="flex flex-wrap gap-2">
-                  <FilterSelect
-                    defaultLabel="All Methods"
+                <FilterButton
+                  active={(tab === "ALL" ? 0 : 1) + (methodFilter ? 1 : 0) + (monthFilter ? 1 : 0)}
+                  onClear={() => {
+                    setTab("ALL");
+                    setMethodFilter("");
+                    setMonthFilter("");
+                    setPage(1);
+                  }}
+                >
+                  <FilterChoice
+                    label="Settlement"
+                    onChange={(next) => {
+                      setTab(next);
+                      setPage(1);
+                    }}
+                    options={TABS.map((item) => ({ label: `${item.label} ${tabCount(item.key)}`, value: item.key }))}
+                    value={tab}
+                  />
+                  <FilterChoice
+                    label="Method"
                     onChange={(next) => {
                       setMethodFilter(next);
                       setPage(1);
                     }}
-                    options={
-                      Array.from(
-                        new Set(
-                          ledger.map((entry) => entry.paymentMethod).filter(Boolean),
-                        ),
-                      ) as string[]
-                    }
+                    options={[
+                      { label: "All", value: "" },
+                      ...(
+                        Array.from(
+                          new Set(ledger.map((entry) => entry.paymentMethod).filter(Boolean)),
+                        ) as string[]
+                      ).map((method) => ({ label: method, value: method })),
+                    ]}
                     value={methodFilter}
                   />
-                  <FilterSelect
-                    defaultLabel="All Months"
+                  <FilterChoice
+                    label="Month"
                     onChange={(next) => {
                       setMonthFilter(next);
                       setPage(1);
                     }}
-                    options={Array.from(
-                      new Set(ledger.map((entry) => entry.period)),
-                    ).map((period) => ({ label: monthLabel(period), value: period }))}
+                    options={[
+                      { label: "All", value: "" },
+                      ...Array.from(new Set(ledger.map((entry) => entry.period))).map((period) => ({
+                        label: monthLabel(period),
+                        value: period,
+                      })),
+                    ]}
                     value={monthFilter}
                   />
-                </div>
-              </FilterBar>
+                </FilterButton>
+                <span className="text-[12.5px] font-medium text-muted-foreground">
+                  {rows.length} of {ledger.length}
+                </span>
+              </div>
 
               {rows.length === 0 ? (
                 <EmptyState label="No transactions match these filters." />

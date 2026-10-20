@@ -56,7 +56,10 @@ import {
   todayKey,
 } from "@hostel/shared/expenses/input";
 
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+
 import { EmptyState, LoadingRows, currency } from "./shared-ui";
+import { MoreMenu } from "./hostel-admin-page-ui";
 import { MetricCard, PortalPageHeader, SectionCard } from "./portal-dashboard-ui";
 
 /**
@@ -186,6 +189,7 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
   const owner = home?.canSeeTotals === true;
 
   const [adding, setAdding] = useState(false);
+  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [message, setMessage] = useState("");
@@ -304,12 +308,20 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
   );
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-[1448px] space-y-5">
       <PortalPageHeader
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {monthSwitcher}
-            <Button onClick={() => setAdding(true)}>
+            {owner ? (
+              <MoreMenu label="More expense actions">
+                <DropdownMenuItem onSelect={() => setCategoriesOpen(true)}>
+                  <Tag className="size-4" />
+                  Your categories
+                </DropdownMenuItem>
+              </MoreMenu>
+            ) : null}
+            <Button className="h-9 rounded-xl bg-brand-teal text-white hover:bg-brand-teal/90" onClick={() => setAdding(true)}>
               <Plus />
               Add expense
             </Button>
@@ -318,7 +330,7 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
         breadcrumb={["Finance", "Expenses"]}
         description={
           owner
-            ? "Money spent for the hostel, by day and by category, beside the money that came in."
+            ? "Money out by day and category, beside the money in."
             : "Money you spent for the hostel. Only you and the owner see these."
         }
         title="Expenses"
@@ -345,7 +357,7 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
                 ? `Last month ${currency(home.totals.lastMonthOut)}`
                 : undefined
             }
-            tone="rose"
+            tone="slate"
             value={currency(home.totals.out)}
           />
           <MetricCard
@@ -370,7 +382,7 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
             icon={ArrowUpRight}
             label="You spent"
             note={home.mine.count === 1 ? "1 expense" : `${home.mine.count} expenses`}
-            tone="rose"
+            tone="slate"
             value={currency(home.mine.out)}
           />
         </div>
@@ -457,7 +469,7 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
                           <span className="font-semibold tabular-nums">{currency(row.amount)}</span>
                         </div>
                         <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                          <div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} />
+                          <div className="h-full rounded-full bg-brand-teal" style={{ width: `${percent}%` }} />
                         </div>
                       </li>
                     );
@@ -466,10 +478,16 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
               )}
             </SectionCard>
 
-            <SectionCard
-              description="Your own tiles on Add expense. Hiding one keeps its old expenses."
-              title="Your categories"
-            >
+          </div>
+        ) : null}
+
+        {owner && home?.totals ? (
+          <Dialog onOpenChange={setCategoriesOpen} open={categoriesOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Your categories</DialogTitle>
+                <DialogDescription>Your own tiles on Add expense. Hiding one keeps its old expenses.</DialogDescription>
+              </DialogHeader>
               <div className="space-y-2">
                 {home.categories.map((category) => (
                   <div className="flex items-center gap-2 text-sm" key={category.id}>
@@ -506,8 +524,8 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
                   </Button>
                 </form>
               </div>
-            </SectionCard>
-          </div>
+            </DialogContent>
+          </Dialog>
         ) : null}
 
         <SectionCard title={owner ? "Every expense" : "Your expenses"}>

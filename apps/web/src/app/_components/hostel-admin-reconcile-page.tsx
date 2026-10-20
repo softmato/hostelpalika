@@ -1,10 +1,12 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, Coins, Upload } from "@/components/icons";
+import { AlertTriangle, CheckCircle2, Coins, FileSpreadsheet, Upload } from "@/components/icons";
 import { memo, useCallback, useRef, useState } from "react";
 
-import { currency, EmptyState, LoadingRows, Select } from "@/app/_components/shared-ui";
+import { currency, EmptyState, LoadingRows } from "@/app/_components/shared-ui";
+import { Chip, Eyebrow, RowMark } from "@/app/_components/hostel-admin-page-ui";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { monthLabel } from "@/lib/format-month";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
@@ -13,7 +15,7 @@ import { uploadFile } from "@/lib/uploads/uploader";
 import { cn } from "@/lib/utils";
 import { mimeTypeForStatement } from "@hostel/shared/utils/file-assets";
 import { OrphanAssignPicker } from "./hostel-admin-orphan-assign";
-import { PortalPageHeader, SectionCard } from "./portal-dashboard-ui";
+import { MetricCard, PortalPageHeader, RoleButton, SectionCard } from "./portal-dashboard-ui";
 
 /**
  * Re-labels a picked file with the MIME type its extension implies.
@@ -145,6 +147,7 @@ export const HostelAdminReconcilePageContent = memo(
     const [provider, setProvider] = useState("ESEWA");
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [showAllMatched, setShowAllMatched] = useState(false);
+    const [uploadOpen, setUploadOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const imports = usePortalResource<{ imports: StatementImportRow[] }>(
@@ -197,6 +200,7 @@ export const HostelAdminReconcilePageContent = memo(
 
           setSelectedId(result?.statementImportId ?? null);
           setMessage(`Read ${result?.rowCount ?? 0} transactions.`);
+          setUploadOpen(false);
           await imports.refreshAsync();
         } catch (error) {
           // The parser's own message names the row it stopped at — far more
@@ -244,35 +248,62 @@ export const HostelAdminReconcilePageContent = memo(
       ).length ?? 0;
 
     return (
-      <div className="mx-auto max-w-[1100px] space-y-6">
+      <div className="mx-auto max-w-[1448px] space-y-5">
         <PortalPageHeader
+          actions={
+            <RoleButton className="h-9 rounded-xl" onClick={() => setUploadOpen(true)} tone="admin" type="button">
+              <Upload aria-hidden="true" className="size-4" />
+              Upload statement
+            </RoleButton>
+          }
           breadcrumb={["Payments", "Reconcile"]}
-          description="Upload your eSewa, Khalti or bank statement and settle the month against what actually arrived."
+          description="Settle the month against what actually reached your account."
           title="Reconcile"
         />
 
-        {message ? (
-          <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm">
+        {message && !uploadOpen ? (
+          <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-[13.5px]">
             {message}
           </div>
         ) : null}
 
-        <SectionCard title="Upload a statement">
-          <div className="flex flex-wrap items-end gap-3">
-            <Select
-              label="Provider"
-              name="provider"
-              onChange={(event) => setProvider(event.target.value)}
-              value={provider}
+        <Dialog onOpenChange={setUploadOpen} open={uploadOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Upload a statement</DialogTitle>
+              {/* As exported from the wallet or bank, no converting. Overlapping
+                  ranges are fine: a transaction already read is never counted twice. */}
+              <DialogDescription>CSV, XLS or XLSX, as it came. Overlaps are never counted twice.</DialogDescription>
+            </DialogHeader>
+            {message ? <p className="text-[12.5px] text-muted-foreground">{message}</p> : null}
+            <div>
+              <Eyebrow className="mb-2">From</Eyebrow>
+              <div className="flex gap-1.5">
+                {PROVIDERS.map((option) => (
+                  <button
+                    aria-pressed={provider === option.value}
+                    className={cn(
+                      "flex-1 rounded-full border px-3 py-1.5 text-[12.5px] font-semibold transition active:scale-95",
+                      provider === option.value
+                        ? "border-transparent bg-foreground text-background"
+                        : "border-border text-muted-foreground hover:text-foreground",
+                    )}
+                    key={option.value}
+                    onClick={() => setProvider(option.value)}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <label
+              className={cn(
+                "flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border py-8 text-[13px] font-semibold text-muted-foreground transition",
+                busy ? "opacity-60" : "cursor-pointer hover:border-brand-teal hover:text-brand-teal",
+              )}
             >
-              {PROVIDERS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </Select>
-            <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold">
-              <Upload aria-hidden="true" className="size-4" />
+              <Upload aria-hidden="true" className="size-6" />
               {busy ? "Working…" : "Choose file"}
               <input
                 accept=".csv,.xls,.xlsx,text/csv,text/plain,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -283,45 +314,35 @@ export const HostelAdminReconcilePageContent = memo(
                 type="file"
               />
             </label>
-          </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Export the statement from your own wallet or bank and upload it as it came —
-            CSV, XLS or XLSX all work, no converting. Overlapping date ranges are fine: a
-            transaction already read is never counted twice.
-          </p>
-        </SectionCard>
+          </DialogContent>
+        </Dialog>
 
         {rows.length > 0 ? (
-          <SectionCard title="Past uploads">
-            <ul className="grid gap-2">
-              {rows.map((row) => (
-                <li key={row.statementImportId}>
-                  <button
-                    className={`flex w-full flex-wrap items-center justify-between gap-3 rounded-lg border px-3 py-2 text-left text-sm ${
-                      row.statementImportId === activeId
-                        ? "border-primary bg-primary/5"
-                        : "border-border"
-                    }`}
-                    disabled={row.status !== "READY"}
-                    onClick={() => setSelectedId(row.statementImportId)}
-                    type="button"
-                  >
-                    <span className="font-medium">
-                      {row.fileName ?? `${row.provider} statement`}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {shortDate(row.uploadedAt)} ·{" "}
-                      {row.status === "READY"
-                        ? `${row.rowCount} transactions read`
-                        : row.status === "FAILED"
-                          ? (row.errorDetail ?? "Could not be read")
-                          : "Reading…"}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </SectionCard>
+          <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+            {rows.map((row) => (
+              <button
+                className={cn(
+                  "flex shrink-0 items-center gap-2 rounded-full border px-3 py-1.5 text-left text-[12.5px] transition",
+                  row.statementImportId === activeId
+                    ? "border-transparent bg-role-team-soft text-role-team"
+                    : "border-border text-foreground hover:border-foreground/30",
+                  row.status === "FAILED" && "text-rose-700 dark:text-rose-300",
+                )}
+                disabled={row.status !== "READY"}
+                key={row.statementImportId}
+                onClick={() => setSelectedId(row.statementImportId)}
+                title={row.status === "FAILED" ? (row.errorDetail ?? "Could not be read") : undefined}
+                type="button"
+              >
+                <FileSpreadsheet className="size-3.5 shrink-0" />
+                <span className="max-w-[14rem] truncate font-semibold">{row.fileName ?? `${row.provider} statement`}</span>
+                <span className="text-muted-foreground">
+                  {shortDate(row.uploadedAt)} ·{" "}
+                  {row.status === "READY" ? `${row.rowCount} read` : row.status === "FAILED" ? "failed" : "reading…"}
+                </span>
+              </button>
+            ))}
+          </div>
         ) : null}
 
         {reconciliation.state === "loading" ? <LoadingRows /> : null}
@@ -331,21 +352,43 @@ export const HostelAdminReconcilePageContent = memo(
 
         {view ? (
           <>
-            <p className="text-sm text-muted-foreground">
-              {view.fileName ?? "Statement"} · {view.rowCount} transactions read ·
-              uploaded {shortDate(view.uploadedAt)}
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <MetricCard
+                icon={CheckCircle2}
+                label="Matched"
+                note={currency(view.matchedTotal)}
+                noteTone="green"
+                value={view.buckets.matched.length}
+              />
+              <MetricCard
+                icon={AlertTriangle}
+                label="Claimed, not found"
+                tone={view.buckets.claimedNoTransaction.length > 0 ? "amber" : "slate"}
+                value={view.buckets.claimedNoTransaction.length}
+              />
+              <MetricCard
+                icon={AlertTriangle}
+                label="Approved, not in statement"
+                tone={view.buckets.approvedNotInStatement.length > 0 ? "rose" : "slate"}
+                value={view.buckets.approvedNotInStatement.length}
+              />
+              <MetricCard
+                icon={Coins}
+                label="Nobody claimed"
+                tone={view.buckets.orphans.length > 0 ? "amber" : "slate"}
+                value={view.buckets.orphans.length}
+              />
+            </div>
+            <p className="text-[12.5px] text-muted-foreground">
+              {view.fileName ?? "Statement"} · {view.rowCount} transactions read · uploaded{" "}
+              {shortDate(view.uploadedAt)}
             </p>
 
             {/* Bucket 1 — read, not worked. */}
-            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="flex items-center gap-2 font-semibold text-emerald-800 dark:text-emerald-300">
-                  <CheckCircle2 aria-hidden="true" className="size-4" />
-                  {view.buckets.matched.length} matched · {currency(view.matchedTotal)}
-                </p>
-                {pendingMatched > 0 ? (
-                  <button
-                    className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+            <SectionCard
+              actions={
+                pendingMatched > 0 ? (
+                  <RoleButton
                     disabled={busy}
                     onClick={() =>
                       void act(
@@ -356,15 +399,17 @@ export const HostelAdminReconcilePageContent = memo(
                         "Matched payments approved.",
                       )
                     }
+                    tone="admin"
                     type="button"
                   >
                     Approve all {pendingMatched}
-                  </button>
-                ) : null}
-              </div>
-              <p className="mt-1 text-sm text-emerald-900/80 dark:text-emerald-200/80">
-                Real transaction found. Amount and reference agree.
-              </p>
+                  </RoleButton>
+                ) : null
+              }
+              icon={CheckCircle2}
+              title={`${view.buckets.matched.length} matched · ${currency(view.matchedTotal)}`}
+            >
+              <p className="mb-2 text-[12.5px] text-muted-foreground">Real transaction found. Amount and reference agree.</p>
               {/* **Read, not worked** — but readable in full. It used to stop at
                   eight rows with nothing saying so, which turns the one bucket
                   the owner is meant to believe into one they cannot check: the
@@ -372,7 +417,7 @@ export const HostelAdminReconcilePageContent = memo(
                   count instead, so the default is still a glance. */}
               <ul
                 className={cn(
-                  "mt-3 grid gap-1 text-sm",
+                  "divide-y divide-border/60 text-[13.5px]",
                   showAllMatched ? "max-h-80 overflow-y-auto pr-1" : "",
                 )}
               >
@@ -380,13 +425,15 @@ export const HostelAdminReconcilePageContent = memo(
                   ? view.buckets.matched
                   : view.buckets.matched.slice(0, 8)
                 ).map((row) => (
-                  <li className="flex flex-wrap justify-between gap-2" key={row.eventId}>
-                    <span>
-                      {row.residentName || "Unknown"}
-                      {row.period ? ` · ${monthLabel(row.period)}` : ""}
+                  <li className="flex flex-wrap items-center justify-between gap-2 py-2" key={row.eventId}>
+                    <span className="flex items-center gap-2">
+                      <CheckCircle2 aria-hidden="true" className="size-3.5 text-role-team" />
+                      <span className="font-medium text-foreground">{row.residentName || "Unknown"}</span>
+                      {row.period ? <span className="text-muted-foreground">{monthLabel(row.period)}</span> : null}
                     </span>
-                    <span className="text-muted-foreground">
-                      {currency(row.amount)} · {row.referenceCode ?? row.why}
+                    <span className="text-[12.5px] text-muted-foreground">
+                      <span className="font-semibold text-foreground">{currency(row.amount)}</span> ·{" "}
+                      {row.referenceCode ?? row.why}
                       {/* Said plainly, because otherwise this row reads as one
                           the sweep skipped. It is the good news: money a warden
                           took on trust has turned up in the account. */}
@@ -397,7 +444,7 @@ export const HostelAdminReconcilePageContent = memo(
               </ul>
               {view.buckets.matched.length > 8 ? (
                 <button
-                  className="mt-2 text-sm font-semibold text-emerald-800 underline-offset-2 hover:underline dark:text-emerald-300"
+                  className="mt-2 text-[12.5px] font-semibold text-role-team underline-offset-2 hover:underline"
                   onClick={() => setShowAllMatched((value) => !value)}
                   type="button"
                 >
@@ -406,32 +453,28 @@ export const HostelAdminReconcilePageContent = memo(
                     : `Show all ${view.buckets.matched.length}`}
                 </button>
               ) : null}
-            </div>
+            </SectionCard>
 
             {/* Bucket 2 — a resident says they paid, the statement disagrees. */}
             {view.buckets.claimedNoTransaction.length > 0 ? (
-              <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4">
-                <p className="flex items-center gap-2 font-semibold text-amber-900 dark:text-amber-300">
-                  <AlertTriangle aria-hidden="true" className="size-4" />
-                  {view.buckets.claimedNoTransaction.length} claimed, no transaction found
-                  <span className="rounded bg-amber-500/20 px-2 py-0.5 text-xs uppercase">
-                    Needs you
-                  </span>
-                </p>
-                <ul className="mt-3 grid gap-3">
+              <SectionCard
+                actions={<Chip tone="warn">Needs you</Chip>}
+                icon={AlertTriangle}
+                title={`${view.buckets.claimedNoTransaction.length} claimed, no transaction found`}
+              >
+                <ul className="divide-y divide-border/60">
                   {view.buckets.claimedNoTransaction.map((row) => (
-                    <li
-                      className="rounded-lg border border-border bg-background p-3"
-                      key={row.claimEventId}
-                    >
-                      <p className="text-sm font-medium">
-                        {row.residentName}
-                        {row.bedLabel ? ` · ${row.bedLabel}` : ""}
-                      </p>
-                      <p className="mt-0.5 text-sm text-muted-foreground">{row.why}</p>
-                      <div className="mt-2 flex flex-wrap gap-2">
+                    <li className="flex flex-wrap items-center gap-3 py-3" key={row.claimEventId}>
+                      <RowMark glyph="warning" tone="warn" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[13.5px] font-semibold text-foreground">
+                          {row.residentName}
+                          {row.bedLabel ? <span className="font-normal text-muted-foreground"> · {row.bedLabel}</span> : null}
+                        </p>
+                        <p className="text-[12.5px] text-muted-foreground">{row.why}</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
                         <Button
-                          className="h-9 rounded-lg"
                           disabled={busy}
                           onClick={() =>
                             void act(
@@ -443,6 +486,7 @@ export const HostelAdminReconcilePageContent = memo(
                               "Claim rejected. The resident has been told why.",
                             )
                           }
+                          size="sm"
                           type="button"
                           variant="outline"
                         >
@@ -453,7 +497,6 @@ export const HostelAdminReconcilePageContent = memo(
                             question abandons the feature. The server records who
                             pressed it. */}
                         <Button
-                          className="h-9 rounded-lg"
                           disabled={busy}
                           onClick={() =>
                             void act(
@@ -462,13 +505,13 @@ export const HostelAdminReconcilePageContent = memo(
                               "Approved. Recorded against your name.",
                             )
                           }
+                          size="sm"
                           type="button"
                           variant="outline"
                         >
                           Approve anyway
                         </Button>
                         <Button
-                          className="h-9 rounded-lg"
                           disabled={busy}
                           onClick={() =>
                             void act(
@@ -477,6 +520,7 @@ export const HostelAdminReconcilePageContent = memo(
                               "Asked the resident for clearer details.",
                             )
                           }
+                          size="sm"
                           type="button"
                           variant="outline"
                         >
@@ -486,92 +530,86 @@ export const HostelAdminReconcilePageContent = memo(
                     </li>
                   ))}
                 </ul>
-              </div>
+              </SectionCard>
             ) : null}
 
             {/* Bucket 2b — approved on trust, and still not in the account.
                 Read-only on purpose (item E.6): the money is already credited
                 and the resident already told it landed, so there is no one-tap
                 correction here that would not be worse than the problem. What
-                the owner needs is the names, so they can go and ask. */}
+                the owner needs is the names, so they can go and ask. Usually
+                statement lag — but this is the list a forged receipt ends up on. */}
             {view.buckets.approvedNotInStatement.length > 0 ? (
-              <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-4">
-                <p className="flex items-center gap-2 font-semibold text-rose-900 dark:text-rose-300">
-                  <AlertTriangle aria-hidden="true" className="size-4" />
-                  {view.buckets.approvedNotInStatement.length} approved, never in a
-                  statement
-                  <span className="rounded bg-rose-500/20 px-2 py-0.5 text-xs uppercase">
-                    Check
-                  </span>
-                </p>
-                <p className="mt-1 text-sm text-rose-900/80 dark:text-rose-200/80">
-                  These were approved on the strength of a screenshot and the money
-                  has not appeared in this statement. Usually statement lag — but this
-                  is the list a forged receipt ends up on.
-                </p>
-                <ul className="mt-3 grid gap-3">
+              <SectionCard
+                actions={<Chip tone="bad">Check</Chip>}
+                icon={AlertTriangle}
+                title={`${view.buckets.approvedNotInStatement.length} approved, never in a statement`}
+              >
+                <p className="mb-2 text-[12.5px] text-muted-foreground">Approved from a screenshot; the money has not shown up.</p>
+                <ul className="divide-y divide-border/60">
                   {view.buckets.approvedNotInStatement.map((row) => (
-                    <li
-                      className="rounded-lg border border-border bg-background p-3"
-                      key={row.claimEventId}
-                    >
-                      <p className="text-sm font-medium">
-                        {row.residentName} · {currency(row.amount)}
-                        {row.period ? ` · ${monthLabel(row.period)}` : ""}
-                      </p>
-                      <p className="mt-0.5 text-sm text-muted-foreground">{row.why}</p>
-                      <p className="mt-0.5 text-sm text-muted-foreground">
-                        Approved
-                        {row.approvedAt ? ` ${shortDate(row.approvedAt)}` : ""}
-                        {row.approvedByName ? ` by ${row.approvedByName}` : ""}
-                        {row.transactionCode ? ` · txn ${row.transactionCode}` : ""}
-                      </p>
+                    <li className="flex items-center gap-3 py-3" key={row.claimEventId}>
+                      <RowMark glyph="alert-circle" tone="bad" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-[13.5px] font-semibold text-foreground">
+                          {row.residentName} · {currency(row.amount)}
+                          {row.period ? <span className="font-normal text-muted-foreground"> · {monthLabel(row.period)}</span> : null}
+                        </p>
+                        <p className="text-[12.5px] text-muted-foreground">{row.why}</p>
+                        <p className="text-[12px] text-muted-foreground">
+                          Approved
+                          {row.approvedAt ? ` ${shortDate(row.approvedAt)}` : ""}
+                          {row.approvedByName ? ` by ${row.approvedByName}` : ""}
+                          {row.transactionCode ? ` · txn ${row.transactionCode}` : ""}
+                        </p>
+                      </div>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </SectionCard>
             ) : null}
 
             {/* Bucket 3 — money nobody claimed. */}
             {view.buckets.orphans.length > 0 ? (
-              <div className="rounded-lg border border-border bg-muted/60 p-4">
-                <p className="flex items-center gap-2 font-semibold text-foreground">
-                  <Coins aria-hidden="true" className="size-4" />
-                  {view.buckets.orphans.length} payment
-                  {view.buckets.orphans.length === 1 ? "" : "s"} nobody claimed
-                  <span className="rounded bg-foreground px-2 py-0.5 text-xs uppercase text-background">
-                    Needs you
-                  </span>
-                </p>
-                <ul className="mt-3 grid gap-3">
+              <SectionCard
+                actions={<Chip tone="warn">Needs you</Chip>}
+                icon={Coins}
+                title={`${view.buckets.orphans.length} payment${view.buckets.orphans.length === 1 ? "" : "s"} nobody claimed`}
+              >
+                <ul className="divide-y divide-border/60">
                   {view.buckets.orphans.map((row) => (
-                    <li
-                      className="rounded-lg border border-border bg-background p-3"
-                      key={row.eventId}
-                    >
-                      <p className="text-sm font-medium">
-                        {currency(row.amount)} · {shortDate(row.occurredAt)}
-                        {row.counterpartyName ? ` · from "${row.counterpartyName}"` : ""}
-                      </p>
-                      <p className="mt-0.5 text-sm text-muted-foreground">
-                        {row.providerTxnId ? `Txn ${row.providerTxnId}. ` : ""}
-                        Remarks: {row.remarks?.trim() || "(empty)"}
-                      </p>
+                    <li className="space-y-2 py-3" key={row.eventId}>
+                      <div className="flex items-center gap-3">
+                        <RowMark glyph="cash" tone="neutral" />
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[13.5px] font-semibold text-foreground">
+                            {currency(row.amount)}
+                            <span className="font-normal text-muted-foreground">
+                              {" "}
+                              · {shortDate(row.occurredAt)}
+                              {row.counterpartyName ? ` · from "${row.counterpartyName}"` : ""}
+                            </span>
+                          </p>
+                          <p className="text-[12.5px] text-muted-foreground">
+                            {row.providerTxnId ? `Txn ${row.providerTxnId}. ` : ""}
+                            Remarks: {row.remarks?.trim() || "(empty)"}
+                          </p>
+                        </div>
+                      </div>
                       {row.suggestions.length > 0 ? (
-                        <ul className="mt-2 grid gap-2">
+                        <ul className="grid gap-2 pl-12">
                           {row.suggestions.map((suggestion) => (
                             <li
-                              className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border px-3 py-2"
+                              className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted/60 px-3 py-2"
                               key={suggestion.invoiceId}
                             >
-                              <span className="text-sm">
+                              <span className="text-[13px]">
                                 Suggested: {suggestion.why}
-                                <span className="ml-2 text-xs uppercase text-muted-foreground">
+                                <span className="ml-2 text-[11px] font-semibold uppercase text-muted-foreground">
                                   {suggestion.confidence}
                                 </span>
                               </span>
-                              <button
-                                className="rounded-lg bg-primary px-3 py-1.5 text-sm font-semibold text-primary-foreground disabled:opacity-60"
+                              <RoleButton
                                 disabled={busy}
                                 onClick={() =>
                                   void act(
@@ -580,10 +618,11 @@ export const HostelAdminReconcilePageContent = memo(
                                     `Assigned to ${suggestion.residentName}.`,
                                   )
                                 }
+                                tone="admin"
                                 type="button"
                               >
                                 Assign
-                              </button>
+                              </RoleButton>
                             </li>
                           ))}
                         </ul>
@@ -594,20 +633,22 @@ export const HostelAdminReconcilePageContent = memo(
                           owner who knows the transfer came from a resident's
                           parent needs a way to say so that does not depend on us
                           having guessed. */}
-                      <OrphanAssignPicker
-                        busy={busy}
-                        onAssign={(invoiceId, residentName) =>
-                          void act(
-                            hostelAdminEndpoints.paymentEventAssign(row.eventId),
-                            { invoiceId },
-                            `Assigned to ${residentName}.`,
-                          )
-                        }
-                      />
+                      <div className="pl-12">
+                        <OrphanAssignPicker
+                          busy={busy}
+                          onAssign={(invoiceId, residentName) =>
+                            void act(
+                              hostelAdminEndpoints.paymentEventAssign(row.eventId),
+                              { invoiceId },
+                              `Assigned to ${residentName}.`,
+                            )
+                          }
+                        />
+                      </div>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </SectionCard>
             ) : null}
           </>
         ) : null}
