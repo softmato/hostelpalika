@@ -1,17 +1,40 @@
 "use client";
 
-import { ShieldCheck } from "@/components/icons";
+import { AlertTriangle, Home, MapPin, ShieldCheck, Users } from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { browserApi } from "@/lib/browser-api";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
-import { type NightStatusRow, Message, PageHeader } from "./daily-operations-shared";
-import { EmptyState, LoadingRows, Panel, StatusBadge } from "@/app/_components/shared-ui";
+import { type NightStatusRow, Message } from "./daily-operations-shared";
+import { PageHeader } from "./core-portal-shared";
+import { EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import { useConfirm } from "@/app/_components/confirm-dialog";
+import { Chip, MoreMenu, ShareBar, type ChipTone } from "@/app/_components/hostel-admin-page-ui";
+import { InitialsAvatar, MetricCard, RoleButton, SearchField } from "@/app/_components/portal-dashboard-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
+import { Button } from "@/components/ui/button";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
+
+/** docs/DESIGN.md status colours: outside is normal life, not a warning; only SOS is red. */
+const STATUS_TONE: Record<string, ChipTone> = {
+  INSIDE_HOSTEL: "brand",
+  MARKED_SAFE: "brand",
+  NOT_VERIFIED: "warn",
+  OUTSIDE_HOSTEL: "neutral",
+  SOS: "bad",
+};
+
+function label(status: string) {
+  const text = status.replaceAll("_", " ").toLowerCase();
+
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
 
 export const HostelAdminNightStatusPage = memo(function HostelAdminNightStatusPage() {
   const [actionMessage, setActionMessage] = useState("");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
   const invalidate = useInvalidateResources();
   const { confirm, confirmDialog } = useConfirm();
   const statusResource = usePortalResource<{ statuses: NightStatusRow[] }>(
@@ -22,6 +45,19 @@ export const HostelAdminNightStatusPage = memo(function HostelAdminNightStatusPa
   const rows = useMemo(() => statusResource.data?.statuses ?? [], [statusResource.data]);
   const state = statusResource.state;
   const message = actionMessage || statusResource.message;
+
+  const count = (status: string) => rows.filter((row) => row.status.status === status).length;
+  const statuses = useMemo(() => [...new Set(rows.map((row) => row.status.status))], [rows]);
+  const shown = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return rows.filter(
+      (row) =>
+        (statusFilter === "ALL" || row.status.status === statusFilter) &&
+        (!query ||
+          `${row.resident.firstName} ${row.resident.lastName} ${row.resident.phone}`.toLowerCase().includes(query)),
+    );
+  }, [rows, search, statusFilter]);
 
   const override = useCallback(
     async (residentId: string, statusValue: string) => {
@@ -101,62 +137,106 @@ export const HostelAdminNightStatusPage = memo(function HostelAdminNightStatusPa
   );
 
   return (
-    <div className="mx-auto max-w-[1448px] space-y-6">
+    <div className="mx-auto max-w-[1448px] space-y-5">
       {confirmDialog}
       <PageHeader
-        description="Status-only safety summary for residents in this hostel."
+        action={
+          <>
+            <MoreMenu label="More bulk actions">
+              <DropdownMenuItem onSelect={() => void bulkMark("OUTSIDE_HOSTEL")}>
+                <MapPin className="size-4" />
+                Mark all outside
+              </DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => void bulkMark("NOT_VERIFIED")}>
+                <AlertTriangle className="size-4" />
+                Mark all not verified
+              </DropdownMenuItem>
+            </MoreMenu>
+            <RoleButton className="h-9 rounded-xl" onClick={() => void bulkMark("INSIDE_HOSTEL")} tone="admin" type="button">
+              <Home className="size-4" />
+              Mark all inside
+            </RoleButton>
+          </>
+        }
+        description="Where every resident is tonight. Status only, never a location."
         icon={ShieldCheck}
         title="Night Status"
       />
       <Message value={message} />
-      <Panel title="Bulk actions">
-        <div className="flex flex-wrap gap-2">
-          {["INSIDE_HOSTEL", "OUTSIDE_HOSTEL", "NOT_VERIFIED"].map((item) => (
-            <button
-              className="rounded-md bg-role-admin px-3 py-2 text-sm font-semibold text-white"
-              key={item}
-              onClick={() => void bulkMark(item)}
-              type="button"
-            >
-              Mark all {item.replaceAll("_", " ").toLowerCase()}
-            </button>
-          ))}
+
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard icon={Home} label="Inside" value={count("INSIDE_HOSTEL") + count("MARKED_SAFE")} />
+        <MetricCard icon={MapPin} label="Outside" tone="slate" value={count("OUTSIDE_HOSTEL")} />
+        <MetricCard
+          icon={AlertTriangle}
+          label="Not verified"
+          tone={count("NOT_VERIFIED") > 0 ? "amber" : "slate"}
+          value={count("NOT_VERIFIED")}
+        />
+        <MetricCard icon={Users} label="Residents" value={rows.length} />
+      </div>
+
+      {rows.length > 0 ? (
+        <div className="rounded-2xl border border-border/70 bg-card px-4 py-3">
+          <ShareBar
+            label="inside or safe"
+            total={rows.length}
+            value={count("INSIDE_HOSTEL") + count("MARKED_SAFE")}
+          />
         </div>
-      </Panel>
+      ) : null}
+
       <Panel>
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <SearchField onChange={setSearch} placeholder="Search name or phone" size="lg" value={search} />
+          <FilterButton active={statusFilter === "ALL" ? 0 : 1} onClear={() => setStatusFilter("ALL")}>
+            <FilterChoice
+              label="Status"
+              onChange={setStatusFilter}
+              options={[
+                { label: "All", value: "ALL" },
+                ...statuses.map((status) => ({ label: label(status), value: status })),
+              ]}
+              value={statusFilter}
+            />
+          </FilterButton>
+        </div>
+
         {state === "loading" ? <LoadingRows /> : null}
         {state === "error" ? (
           <EmptyState label="Night status could not be loaded." />
         ) : null}
-        {state === "ready" && rows.length === 0 ? (
-          <EmptyState label="No residents." />
+        {state === "ready" && shown.length === 0 ? (
+          <EmptyState label={rows.length === 0 ? "No residents." : "Nothing matches."} />
         ) : null}
-        <div className="space-y-3">
-          {rows.map((row) => (
-            <div className="rounded-lg border border-border p-4" key={row.resident.id}>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-semibold text-foreground">
-                    {row.resident.firstName} {row.resident.lastName}
-                  </p>
-                  <p className="text-sm text-muted-foreground">{row.resident.phone}</p>
+        <div className="divide-y divide-border/60">
+          {shown.map((row) => {
+            const name = `${row.resident.firstName} ${row.resident.lastName}`;
+
+            return (
+              <div className="flex flex-wrap items-center gap-3 py-2.5" key={row.resident.id}>
+                <InitialsAvatar name={name} size="sm" tone="admin" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-[13.5px] font-semibold text-foreground">{name}</p>
+                  <p className="text-[12px] text-muted-foreground">{row.resident.phone}</p>
                 </div>
-                <StatusBadge>{row.status.status}</StatusBadge>
+                <Chip tone={STATUS_TONE[row.status.status] ?? "neutral"}>{label(row.status.status)}</Chip>
+                <div className="flex gap-1">
+                  {["INSIDE_HOSTEL", "OUTSIDE_HOSTEL", "MARKED_SAFE"].map((item) => (
+                    <Button
+                      key={item}
+                      onClick={() => void override(row.resident.id, item)}
+                      size="sm"
+                      type="button"
+                      variant="ghost"
+                    >
+                      {item === "INSIDE_HOSTEL" ? "Inside" : item === "OUTSIDE_HOSTEL" ? "Outside" : "Safe"}
+                    </Button>
+                  ))}
+                </div>
               </div>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {["INSIDE_HOSTEL", "OUTSIDE_HOSTEL", "MARKED_SAFE"].map((item) => (
-                  <button
-                    className="rounded-md border border-role-admin px-3 py-2 text-sm font-semibold text-role-admin"
-                    key={item}
-                    onClick={() => void override(row.resident.id, item)}
-                    type="button"
-                  >
-                    {item.replaceAll("_", " ")}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Panel>
     </div>

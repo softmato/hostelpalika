@@ -3,12 +3,15 @@
 import { Flag, Megaphone } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
-import { Panel, TextArea } from "@/app/_components/shared-ui";
+import { TextArea } from "@/app/_components/shared-ui";
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
 import { CommunityModerationPanel } from "@/app/_components/community-moderation-panel";
+import { RoleButton } from "@/app/_components/portal-dashboard-ui";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { useInvalidateResources } from "@/lib/portal-query";
-import { Message, PageHeader, field } from "./daily-operations-shared";
+import { Message, field } from "./daily-operations-shared";
+import { PageHeader } from "./core-portal-shared";
 
 const COMMUNITY_ENDPOINT = "/api/v1/hostel-admin/community";
 
@@ -21,6 +24,7 @@ const COMMUNITY_ENDPOINT = "/api/v1/hostel-admin/community";
 export const HostelAdminCommunityPageContent = memo(
   function HostelAdminCommunityPageContent() {
     const [actionMessage, setActionMessage] = useState("");
+    const [announcing, setAnnouncing] = useState(false);
     const invalidate = useInvalidateResources();
 
     const announce = useCallback(
@@ -35,6 +39,7 @@ export const HostelAdminCommunityPageContent = memo(
             method: "POST",
           });
           formElement.reset();
+          setAnnouncing(false);
           setActionMessage("Announcement posted.");
           invalidate(`${COMMUNITY_ENDPOINT}?filter=all`);
         } catch (error) {
@@ -47,27 +52,40 @@ export const HostelAdminCommunityPageContent = memo(
     );
 
     return (
-      <div className="mx-auto max-w-[1448px] space-y-6">
+      <div className="mx-auto max-w-[1448px] space-y-5">
         <PageHeader
-          description="Review posts your residents reported, and post official announcements to your hostel's community space."
+          action={
+            <RoleButton className="h-9 rounded-xl" onClick={() => setAnnouncing(true)} tone="admin" type="button">
+              <Megaphone className="size-4" />
+              Post announcement
+            </RoleButton>
+          }
+          description="Posts your residents reported, and your official announcements."
           icon={Flag}
           title="Community Reports"
         />
-        <Message value={actionMessage} />
+        {announcing ? null : <Message value={actionMessage} />}
 
-        <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
-          <CommunityModerationPanel endpoint={COMMUNITY_ENDPOINT} tone="admin" />
+        <CommunityModerationPanel endpoint={COMMUNITY_ENDPOINT} tone="admin" />
 
-          <Panel title="Post an Announcement">
+        <Dialog onOpenChange={setAnnouncing} open={announcing}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Post an announcement</DialogTitle>
+              <DialogDescription>Pinned to the top of your hostel&apos;s community space.</DialogDescription>
+            </DialogHeader>
+            <Message value={actionMessage} />
             <BusyForm className="grid gap-3" onSubmit={announce}>
               <TextArea label="Announcement" name="body" />
-              <SubmitButton className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-role-admin text-sm font-semibold text-white">
-                <Megaphone className="size-4" />
-                Publish
-              </SubmitButton>
+              <DialogFooter>
+                <SubmitButton className="h-10 gap-2 rounded-xl bg-brand-teal px-5 text-white hover:bg-brand-teal/90">
+                  <Megaphone className="size-4" />
+                  Publish
+                </SubmitButton>
+              </DialogFooter>
             </BusyForm>
-          </Panel>
-        </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   },

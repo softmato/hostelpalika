@@ -1,10 +1,14 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, Clock, Inbox, MessageSquareWarning, Wrench } from "@/components/icons";
+import { AlertTriangle, CheckCircle2, Clock, Inbox, MessageSquareWarning, Pencil, Wrench } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
-import { EmptyState, LoadingRows, Panel, StatusBadge } from "@/app/_components/shared-ui";
+import { EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
+import { Chip, RowMark, ShareBar, type ChipTone } from "@/app/_components/hostel-admin-page-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
@@ -16,7 +20,30 @@ import {
   type Complaint,
   type ComplaintSummary,
 } from "./hostel-admin-shared";
-import { MetricCard } from "./portal-dashboard-ui";
+import { MetricCard, SearchField } from "./portal-dashboard-ui";
+
+const STATUSES = ["PENDING", "IN_PROGRESS", "RESOLVED", "REJECTED"] as const;
+
+const STATUS_LABEL: Record<(typeof STATUSES)[number], string> = {
+  IN_PROGRESS: "In progress",
+  PENDING: "Pending",
+  REJECTED: "Rejected",
+  RESOLVED: "Resolved",
+};
+
+/** docs/DESIGN.md: resolved green, in progress amber, rejected red, pending grey. */
+const STATUS_TONE: Record<string, ChipTone> = {
+  IN_PROGRESS: "warn",
+  PENDING: "neutral",
+  REJECTED: "bad",
+  RESOLVED: "brand",
+};
+
+const CATEGORIES = ["FOOD", "ROOM", "MAINTENANCE", "SAFETY", "PAYMENT", "STAFF", "NOISE", "OTHER"];
+
+function titleCase(value: string) {
+  return value.charAt(0) + value.slice(1).toLowerCase();
+}
 
 const EMPTY_SUMMARY: ComplaintSummary = {
   inProgress: 0,
@@ -31,6 +58,8 @@ export const HostelAdminComplaintsPage = memo(function HostelAdminComplaintsPage
   const [categoryFilter, setCategoryFilter] = useState("");
   const [filter, setFilter] = useState("");
   const [actionMessage, setActionMessage] = useState("");
+  const [search, setSearch] = useState("");
+  const [respondingId, setRespondingId] = useState<string | null>(null);
   const invalidate = useInvalidateResources();
 
   // Each filter combination is its own cache entry, so flipping back to a
@@ -107,89 +136,106 @@ export const HostelAdminComplaintsPage = memo(function HostelAdminComplaintsPage
     [invalidate],
   );
 
+  const shown = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return query
+      ? complaints.filter((complaint) =>
+          `${complaint.title} ${complaint.description ?? ""}`.toLowerCase().includes(query),
+        )
+      : complaints;
+  }, [complaints, search]);
+  const responding = complaints.find((complaint) => complaint.id === respondingId) ?? null;
+
   return (
-    <div className="mx-auto max-w-[1448px] space-y-6">
+    <div className="mx-auto max-w-[1448px] space-y-5">
       <PageHeader
-        action={
-          <div className="flex flex-wrap gap-2">
-            <select
-              className="h-11 rounded-md border border-border bg-background px-3 text-sm"
-              onChange={(event) => setFilter(event.target.value)}
-              value={filter}
-            >
-              <option value="">All statuses</option>
-              <option value="PENDING">Pending</option>
-              <option value="IN_PROGRESS">In progress</option>
-              <option value="RESOLVED">Resolved</option>
-              <option value="REJECTED">Rejected</option>
-            </select>
-            <select
-              className="h-11 rounded-md border border-border bg-background px-3 text-sm"
-              onChange={(event) => setCategoryFilter(event.target.value)}
-              value={categoryFilter}
-            >
-              <option value="">All categories</option>
-              {[
-                "FOOD",
-                "ROOM",
-                "MAINTENANCE",
-                "SAFETY",
-                "PAYMENT",
-                "STAFF",
-                "NOISE",
-                "OTHER",
-              ].map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-        }
-        description="Triage resident issues, reply privately, and track SLA pressure."
+        description="Resident issues, your replies, and what is past its deadline."
         icon={MessageSquareWarning}
         title="Complaints"
       />
 
-      {message ? (
-        <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+      {message && !responding ? (
+        <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-[13.5px]">
           {message}
         </div>
       ) : null}
 
-      <div className="grid gap-3 md:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
         <MetricCard icon={Inbox} label="Total" value={summary.total} />
-        <MetricCard icon={Clock} label="Pending" tone="amber" value={summary.pending} />
-        <MetricCard icon={Wrench} label="In progress" value={summary.inProgress} />
-        <MetricCard icon={AlertTriangle} label="Overdue" tone="rose" value={summary.overdue} />
+        <MetricCard icon={Clock} label="Pending" tone="slate" value={summary.pending} />
+        <MetricCard icon={Wrench} label="In progress" tone="amber" value={summary.inProgress} />
+        <MetricCard icon={AlertTriangle} label="Overdue" tone={summary.overdue > 0 ? "rose" : "slate"} value={summary.overdue} />
         <MetricCard icon={CheckCircle2} label="Resolved" value={summary.resolved} />
       </div>
 
-      <Panel title="Complaint Queue">
+      {summary.total > 0 ? (
+        <div className="rounded-2xl border border-border/70 bg-card px-4 py-3">
+          <ShareBar label="resolved" total={summary.total} value={summary.resolved} />
+        </div>
+      ) : null}
+
+      <Panel title="Queue">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <SearchField onChange={setSearch} placeholder="Search complaints" size="lg" value={search} />
+          <FilterButton
+            active={(filter ? 1 : 0) + (categoryFilter ? 1 : 0)}
+            onClear={() => {
+              setFilter("");
+              setCategoryFilter("");
+            }}
+          >
+            <FilterChoice
+              label="Status"
+              onChange={setFilter}
+              options={[
+                { label: "All", value: "" },
+                ...STATUSES.map((status) => ({ label: STATUS_LABEL[status], value: status })),
+              ]}
+              value={filter}
+            />
+            <FilterChoice
+              label="Category"
+              onChange={setCategoryFilter}
+              options={[
+                { label: "All", value: "" },
+                ...CATEGORIES.map((category) => ({ label: titleCase(category), value: category })),
+              ]}
+              value={categoryFilter}
+            />
+          </FilterButton>
+          <span className="text-[12.5px] font-medium text-muted-foreground">{shown.length} shown</span>
+        </div>
+
         {state === "loading" ? <LoadingRows /> : null}
         {state === "error" ? (
           <EmptyState label="Complaints could not be loaded." />
         ) : null}
-        {state === "ready" && complaints.length === 0 ? (
+        {state === "ready" && shown.length === 0 ? (
           <EmptyState label="No complaints in this queue." />
         ) : null}
-        <div className="grid gap-4 xl:grid-cols-2">
-          {complaints.map((complaint) => (
-            <div className="rounded-lg border border-border p-4" key={complaint.id}>
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <p className="font-semibold text-foreground">{complaint.title}</p>
+        <div className="grid gap-3 xl:grid-cols-2">
+          {shown.map((complaint) => (
+            <article
+              className="space-y-3 rounded-2xl border border-border/70 p-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+              key={complaint.id}
+            >
+              <div className="flex items-start gap-3">
+                <RowMark
+                  glyph={complaint.isOverdue ? "alarm" : "chatbox-alert"}
+                  tone={complaint.isOverdue ? "bad" : "brand"}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13.5px] font-semibold text-foreground">{complaint.title}</p>
                   {complaint.description ? (
-                    <p className="mt-1 text-sm text-muted-foreground">
+                    <p className="mt-0.5 line-clamp-3 text-[13px] text-muted-foreground">
                       {complaint.description}
                     </p>
                   ) : null}
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <StatusBadge>{complaint.status}</StatusBadge>
-                  <StatusBadge>{complaint.category}</StatusBadge>
-                  {complaint.isOverdue ? <StatusBadge>OVERDUE</StatusBadge> : null}
-                </div>
+                <Chip tone={STATUS_TONE[complaint.status] ?? "neutral"}>
+                  {STATUS_LABEL[complaint.status as (typeof STATUSES)[number]] ?? complaint.status}
+                </Chip>
               </div>
 
               {/*
@@ -204,7 +250,7 @@ export const HostelAdminComplaintsPage = memo(function HostelAdminComplaintsPage
               */}
               {complaint.voiceNoteAssetId ? (
                 <audio
-                  className="mt-3 w-full"
+                  className="w-full"
                   controls
                   preload="none"
                   src={`/api/v1/files/${complaint.voiceNoteAssetId}/url`}
@@ -213,91 +259,110 @@ export const HostelAdminComplaintsPage = memo(function HostelAdminComplaintsPage
                 </audio>
               ) : null}
 
-              <div className="mt-4 grid gap-2 text-sm text-muted-foreground md:grid-cols-3">
-                <span>
-                  Resident: {complaint.isAnonymous ? "Anonymous" : complaint.residentId}
-                </span>
-                <span>SLA: {new Date(complaint.slaDueAt).toLocaleString()}</span>
-                <span className="flex flex-wrap items-center gap-2">
-                  Photos:{" "}
-                  {complaint.attachments.length > 0 ? (
-                    complaint.attachments.map((item) => (
-                      /*
-                       * The thumbnail variant, which the route serves when one
-                       * exists and silently falls back to the original when it
-                       * does not. This row used to print the raw asset ids,
-                       * which told an admin a photograph existed and gave them
-                       * no way at all to look at it.
-                       */
-                      <a
-                        className="inline-block"
-                        href={`/api/v1/files/${item.fileAssetId}/url`}
-                        key={item.id}
-                        rel="noreferrer"
-                        target="_blank"
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element -- private asset served through our own authorizing route */}
-                        <img
-                          alt="Complaint photo"
-                          className="h-12 w-12 rounded-md border border-border object-cover"
-                          src={`/api/v1/files/${item.fileAssetId}/url?variant=THUMBNAIL`}
-                        />
-                      </a>
-                    ))
-                  ) : (
-                    <>None</>
-                  )}
-                </span>
+              <div className="flex flex-wrap gap-1.5">
+                <Chip glyph="pricetag">{titleCase(complaint.category)}</Chip>
+                <Chip glyph="person">{complaint.isAnonymous ? "Anonymous" : complaint.residentId}</Chip>
+                <Chip glyph="alarm" tone={complaint.isOverdue ? "bad" : "neutral"}>
+                  {`${complaint.isOverdue ? "Overdue · " : "Due "}${new Date(complaint.slaDueAt).toLocaleString()}`}
+                </Chip>
               </div>
 
+              {complaint.attachments.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {complaint.attachments.map((item) => (
+                    /*
+                     * The thumbnail variant, which the route serves when one
+                     * exists and silently falls back to the original when it
+                     * does not. This row used to print the raw asset ids,
+                     * which told an admin a photograph existed and gave them
+                     * no way at all to look at it.
+                     */
+                    <a
+                      className="inline-block"
+                      href={`/api/v1/files/${item.fileAssetId}/url`}
+                      key={item.id}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element -- private asset served through our own authorizing route */}
+                      <img
+                        alt="Complaint photo"
+                        className="size-14 rounded-xl border border-border object-cover"
+                        src={`/api/v1/files/${item.fileAssetId}/url?variant=THUMBNAIL`}
+                      />
+                    </a>
+                  ))}
+                </div>
+              ) : null}
+
               {complaint.adminResponse ? (
-                <div className="mt-4 rounded-md bg-muted p-3 text-sm text-foreground">
+                <div className="rounded-xl bg-muted/60 px-3 py-2.5 text-[13px] text-foreground">
                   {complaint.adminResponse}
                 </div>
               ) : null}
 
-              <div className="mt-4 grid gap-3 lg:grid-cols-2">
-                <BusyForm
-                  className="grid gap-2"
-                  onSubmit={(event) => handleReply(event, complaint.id)}
-                >
-                  <textarea
-                    className="min-h-20 rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-role-admin"
-                    name="message"
-                    placeholder="Reply to resident"
-                  />
-                  <SubmitButton className="h-10 rounded-md border border-role-admin px-3 text-sm font-semibold text-role-admin">
-                    Save Reply
-                  </SubmitButton>
-                </BusyForm>
-                <BusyForm
-                  className="grid gap-2"
-                  onSubmit={(event) => handleStatus(event, complaint.id)}
-                >
-                  <select
-                    className="h-10 rounded-md border border-border bg-background px-3 text-sm"
-                    defaultValue={complaint.status}
-                    name="status"
-                  >
-                    <option value="PENDING">Pending</option>
-                    <option value="IN_PROGRESS">In progress</option>
-                    <option value="RESOLVED">Resolved</option>
-                    <option value="REJECTED">Rejected</option>
-                  </select>
-                  <textarea
-                    className="min-h-20 rounded-md border border-border bg-background px-3 py-2 text-sm outline-none focus:border-role-admin"
-                    name="response"
-                    placeholder="Optional response"
-                  />
-                  <SubmitButton className="h-10 rounded-md bg-role-admin px-3 text-sm font-semibold text-white">
-                    Update Status
-                  </SubmitButton>
-                </BusyForm>
-              </div>
-            </div>
+              <Button onClick={() => setRespondingId(complaint.id)} size="sm" type="button" variant="outline">
+                <Pencil className="size-3.5" />
+                Respond
+              </Button>
+            </article>
           ))}
         </div>
       </Panel>
+
+      <Dialog onOpenChange={(open) => (open ? null : setRespondingId(null))} open={responding !== null}>
+        <DialogContent className="sm:max-w-lg">
+          {responding ? (
+            <>
+              <DialogHeader>
+                <DialogTitle>{responding.title}</DialogTitle>
+                <DialogDescription>Reply privately, or move it along with a note.</DialogDescription>
+              </DialogHeader>
+              {message ? <p className="text-[12.5px] text-muted-foreground">{message}</p> : null}
+              <BusyForm
+                className="grid gap-2"
+                key={`reply-${responding.id}`}
+                onSubmit={(event) => handleReply(event, responding.id)}
+              >
+                <textarea
+                  className="min-h-20 rounded-xl border border-border bg-background px-3 py-2 text-[13.5px] outline-none focus:border-brand-teal"
+                  name="message"
+                  placeholder="Reply to resident"
+                />
+                <SubmitButton className="h-10 rounded-xl" variant="outline">
+                  Save reply
+                </SubmitButton>
+              </BusyForm>
+              <BusyForm
+                className="grid gap-2 border-t border-border/60 pt-4"
+                key={`status-${responding.id}`}
+                onSubmit={(event) => handleStatus(event, responding.id)}
+              >
+                <select
+                  aria-label="Status"
+                  className="h-10 rounded-xl border border-border bg-background px-3 text-[13.5px]"
+                  defaultValue={responding.status}
+                  name="status"
+                >
+                  {STATUSES.map((status) => (
+                    <option key={status} value={status}>
+                      {STATUS_LABEL[status]}
+                    </option>
+                  ))}
+                </select>
+                <textarea
+                  className="min-h-20 rounded-xl border border-border bg-background px-3 py-2 text-[13.5px] outline-none focus:border-brand-teal"
+                  name="response"
+                  placeholder="Optional response"
+                />
+                <SubmitButton className="h-10 rounded-xl bg-brand-teal text-white hover:bg-brand-teal/90">
+                  Update status
+                </SubmitButton>
+              </BusyForm>
+            </>
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });

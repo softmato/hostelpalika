@@ -20,6 +20,7 @@ import {
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -61,6 +62,7 @@ import {
 import type { StockEntryRow, StockHome, StockItemRow, StockUsage, StockUsageRange } from "@/modules/stock/stock.service";
 
 import { EmptyState, LoadingRows, currency } from "./shared-ui";
+import { MoreMenu } from "./hostel-admin-page-ui";
 import { MetricCard, PortalPageHeader, SectionCard } from "./portal-dashboard-ui";
 
 /**
@@ -259,49 +261,56 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
   );
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-[1448px] space-y-5">
       <PortalPageHeader
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {monthSwitcher}
-            <Button disabled={!home} onClick={() => setEntryMode("USE")}>
-              <UtensilsCrossed />
-              Use
-            </Button>
-            <Button disabled={!home} onClick={() => setEntryMode("BUY")} variant="outline">
+            <Button className="h-9 rounded-xl" disabled={!home} onClick={() => setEntryMode("BUY")} variant="outline">
               <PackagePlus />
               Bought
             </Button>
-            <Button disabled={!home} onClick={() => setEntryMode("WASTE")} variant="outline">
-              <Trash2 />
-              Waste
+            <Button
+              className="h-9 rounded-xl bg-brand-teal text-white hover:bg-brand-teal/90"
+              disabled={!home}
+              onClick={() => setEntryMode("USE")}
+            >
+              <UtensilsCrossed />
+              Use
             </Button>
-            {(home?.places.length ?? 0) > 1 ? (
-              <Button disabled={!home} onClick={() => setEntryMode("SEND")} variant="outline">
-                <Send />
-                Send
-              </Button>
-            ) : null}
-            <Button disabled={!home} onClick={() => setEntryMode("COUNT")} variant="outline">
-              <ClipboardList />
-              Count
-            </Button>
-            <Button disabled={!home} onClick={() => setItemDialog("new")} variant="ghost">
-              <Plus />
-              New item
-            </Button>
-            <Button disabled={!home} onClick={() => home && downloadCsv(home)} variant="ghost">
-              <Download />
-              Export
-            </Button>
+            <MoreMenu label="More stock actions">
+              <DropdownMenuItem disabled={!home} onSelect={() => setEntryMode("WASTE")}>
+                <Trash2 className="size-4" />
+                Waste
+              </DropdownMenuItem>
+              {(home?.places.length ?? 0) > 1 ? (
+                <DropdownMenuItem disabled={!home} onSelect={() => setEntryMode("SEND")}>
+                  <Send className="size-4" />
+                  Send to a branch
+                </DropdownMenuItem>
+              ) : null}
+              <DropdownMenuItem disabled={!home} onSelect={() => setEntryMode("COUNT")}>
+                <ClipboardList className="size-4" />
+                Count
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem disabled={!home} onSelect={() => setItemDialog("new")}>
+                <Plus className="size-4" />
+                New item
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled={!home} onSelect={() => home && downloadCsv(home)}>
+                <Download className="size-4" />
+                Export
+              </DropdownMenuItem>
+            </MoreMenu>
           </div>
         }
         breadcrumb={["Operations", "Stock"]}
-        description="Every bill, every use and every count — what is left, what it is worth, and what you owe."
+        description="What is left, what it is worth, and what you owe."
         title="Stock"
       />
 
-      {message ? <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-sm">{message}</div> : null}
+      {message ? <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-[13.5px]">{message}</div> : null}
 
       {resource.state === "error" ? (
         <SectionCard>
@@ -327,13 +336,13 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
                   icon={Users}
                   label="Per student per day"
                   note={`Used, wasted and missing · ${home.summary.residents} students`}
-                  tone="amber"
+                  tone="teal"
                   value={home.summary.costPerResidentDay === null ? "—" : currency(home.summary.costPerResidentDay)}
                 />
                 <MetricCard
                   icon={Store}
                   label="You owe suppliers"
-                  tone={(home.summary.dueTotal ?? 0) > 0 ? "rose" : "green"}
+                  tone={(home.summary.dueTotal ?? 0) > 0 ? "amber" : "green"}
                   value={currency(home.summary.dueTotal ?? 0)}
                 />
               </>
@@ -342,11 +351,11 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
                 icon={Truck}
                 label="On the way"
                 note="Waiting for Got it"
-                tone="amber"
+                tone="teal"
                 value={home.waiting.length + home.sentWaiting.length}
               />
             )}
-            <MetricCard icon={AlertTriangle} label="Running low" tone={low > 0 ? "rose" : "green"} value={low} />
+            <MetricCard icon={AlertTriangle} label="Running low" tone={low > 0 ? "amber" : "green"} value={low} />
           </div>
 
           {home.toApprove.length > 0 ? (
@@ -409,11 +418,8 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
             </SectionCard>
           ) : null}
 
-          <SectionCard
-            description="Store items show what is left; daily items show what came in this month."
-            icon={Package}
-            title="Items"
-          >
+          {/* Store items show what is left; daily items show what came in this month. */}
+          <SectionCard icon={Package} title="Items">
             {items.length === 0 ? (
               <EmptyState label="No items yet. Add Rice, Daal, Vegetables…" />
             ) : (
@@ -452,7 +458,7 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
 
                           return (
                             <td className="py-2.5 pr-3 text-right" key={place.id}>
-                              <p className={cn("font-semibold", at.low && "text-destructive")}>
+                              <p className={cn("font-semibold", at.low && "text-amber-600 dark:text-amber-400")}>
                                 {formatQty(item.kind === "DAILY" ? at.in : at.left, item.unit)}
                               </p>
                               <p className="text-xs text-muted-foreground">
@@ -1330,7 +1336,14 @@ function SuppliersCard({
   return (
     <SectionCard
       actions={
-        <Button onClick={() => setAdding((value) => !value)} size="sm" variant="outline">
+        <Button
+          onClick={() => {
+            setError("");
+            setAdding(true);
+          }}
+          size="sm"
+          variant="outline"
+        >
           <Plus />
           New supplier
         </Button>
@@ -1339,26 +1352,37 @@ function SuppliersCard({
       icon={Store}
       title="Suppliers"
     >
-      {adding ? (
-        <div className="mb-4 flex flex-wrap items-end gap-2 rounded-xl border border-border p-3">
-          <input className={cn(input, "min-w-48 flex-1")} maxLength={60} onChange={(event) => setName(event.target.value)} placeholder="Shop or person" value={name} />
-          <input className={cn(input, "w-40")} maxLength={20} onChange={(event) => setPhone(event.target.value)} placeholder="Phone" value={phone} />
-          {home.owner ? (
-            <input
-              className={cn(input, "w-40")}
-              inputMode="numeric"
-              onChange={(event) => setOwedText(event.target.value)}
-              placeholder="Already owed Rs"
-              value={owedText}
-            />
-          ) : null}
-          <Button disabled={busy} onClick={() => void add()} size="sm">
-            Add
-          </Button>
-        </div>
-      ) : null}
+      <Dialog onOpenChange={setAdding} open={adding}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>New supplier</DialogTitle>
+            <DialogDescription>Pick them on a bill later.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-2">
+            <input className={cn(input, "h-10 w-full rounded-xl")} maxLength={60} onChange={(event) => setName(event.target.value)} placeholder="Shop or person" value={name} />
+            <div className="grid grid-cols-2 gap-2">
+              <input className={cn(input, "h-10 rounded-xl")} maxLength={20} onChange={(event) => setPhone(event.target.value)} placeholder="Phone" value={phone} />
+              {home.owner ? (
+                <input
+                  className={cn(input, "h-10 rounded-xl")}
+                  inputMode="numeric"
+                  onChange={(event) => setOwedText(event.target.value)}
+                  placeholder="Already owed Rs"
+                  value={owedText}
+                />
+              ) : null}
+            </div>
+          </div>
+          {error ? <p className="text-[12.5px] text-destructive">{error}</p> : null}
+          <DialogFooter>
+            <Button className="bg-brand-teal text-white hover:bg-brand-teal/90" disabled={busy} onClick={() => void add()}>
+              Add supplier
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {error && !paying ? <p className="mb-3 text-sm text-destructive">{error}</p> : null}
+      {error && !paying && !adding ? <p className="mb-3 text-sm text-destructive">{error}</p> : null}
 
       {suppliers.length === 0 ? (
         <EmptyState label="No suppliers yet. Add the shops you buy from, then pick one on a bill." />

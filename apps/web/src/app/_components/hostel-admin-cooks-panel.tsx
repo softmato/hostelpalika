@@ -1,10 +1,19 @@
 "use client";
 
-import { ChefHat, KeyRound, Mail, RotateCw, Trash2 } from "@/components/icons";
+import { Plus, RotateCw, Trash2 } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import { EmptyState, Input, LoadingRows, Panel } from "@/app/_components/shared-ui";
+import { Chip, RowMark } from "@/app/_components/hostel-admin-page-ui";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
@@ -64,6 +73,7 @@ export const HostelAdminCooksPanel = memo(function HostelAdminCooksPanel() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [issued, setIssued] = useState<Issued | null>(null);
+  const [adding, setAdding] = useState(false);
 
   const cooks = resource.data?.cooks ?? [];
   const live = cooks.filter((cook) => cook.status !== "REMOVED");
@@ -73,7 +83,10 @@ export const HostelAdminCooksPanel = memo(function HostelAdminCooksPanel() {
     async (event: FormEvent<HTMLFormElement>) => {
       event.preventDefault();
 
-      const form = new FormData(event.currentTarget);
+      // Held before the await: React clears `currentTarget` once the handler
+      // returns, so reading it after the request would throw.
+      const formElement = event.currentTarget;
+      const form = new FormData(formElement);
       const name = String(form.get("name") ?? "").trim();
       const email = String(form.get("email") ?? "").trim();
 
@@ -98,7 +111,8 @@ export const HostelAdminCooksPanel = memo(function HostelAdminCooksPanel() {
 
         invalidate(hostelAdminEndpoints.cooks);
         invalidate(hostelAdminEndpoints.cookPortal);
-        event.currentTarget.reset();
+        formElement.reset();
+        setAdding(false);
 
         if (result.credentials) {
           setIssued({ cookName: name, credentials: result.credentials, rotated: false });
@@ -178,53 +192,57 @@ export const HostelAdminCooksPanel = memo(function HostelAdminCooksPanel() {
   );
 
   return (
-    <Panel title="Cooks">
-      <p className="mb-3 text-sm text-muted-foreground">
-        A cook can announce that a meal is ready and post photos of it — nothing else.
-        No resident records, no money, no complaints.
-      </p>
+    <Panel
+      action={
+        <Button onClick={() => setAdding(true)} size="sm" type="button" variant="outline">
+          <Plus className="size-3.5" />
+          Add cook
+        </Button>
+      }
+      title="Cooks"
+    >
+      {/* A cook can announce that a meal is ready and post photos of it —
+          nothing else. No resident records, no money, no complaints. */}
+      <p className="mb-3 text-[12.5px] text-muted-foreground">They post that a meal is ready, with photos. Nothing else.</p>
 
-      {message ? (
-        <div className="mb-3 rounded-lg border border-border bg-muted/40 p-3 text-sm">
+      {message && !adding ? (
+        <div className="mb-3 rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-[13.5px]">
           {message}
         </div>
       ) : null}
 
       {issued ? (
-        <div className="mb-3 grid gap-2 rounded-lg border border-role-admin/40 bg-role-admin/5 p-3 text-sm">
+        <div className="mb-3 grid gap-2 rounded-2xl bg-role-team-soft p-4 text-[13.5px]">
           <p className="font-semibold text-foreground">
             {issued.rotated
               ? `New password for ${issued.cookName}. The old one no longer works.`
               : `Sign-in for ${issued.cookName}`}
           </p>
-          <div className="grid gap-0.5">
-            <span className="text-xs font-semibold uppercase text-muted-foreground">
-              Sign-in
-            </span>
-            <code className="break-all font-mono text-sm text-foreground">
-              {issued.credentials.email}
-            </code>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-0.5">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                Sign-in
+              </span>
+              <code className="break-all font-mono text-[13.5px] text-foreground">
+                {issued.credentials.email}
+              </code>
+            </div>
+            <div className="grid gap-0.5">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                First-time password
+              </span>
+              <code className="break-all font-mono text-[13.5px] font-bold text-foreground">
+                {issued.credentials.temporaryPassword}
+              </code>
+            </div>
           </div>
-          <div className="grid gap-0.5">
-            <span className="text-xs font-semibold uppercase text-muted-foreground">
-              First-time password
-            </span>
-            <code className="break-all font-mono text-sm font-bold text-foreground">
-              {issued.credentials.temporaryPassword}
-            </code>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Write it down now. A copy has been emailed to you, and once this is
-            dismissed nobody can read it back — only a rotation issues a new one.
-          </p>
+          {/* A copy is emailed to the admin; once dismissed nobody can read it
+              back — only a rotation issues a new one. */}
+          <p className="text-[12px] text-muted-foreground">Write it down now. It cannot be shown again.</p>
           <div>
-            <button
-              className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-muted/50"
-              onClick={() => setIssued(null)}
-              type="button"
-            >
+            <Button onClick={() => setIssued(null)} size="sm" type="button" variant="outline">
               I have written it down
-            </button>
+            </Button>
           </div>
         </div>
       ) : null}
@@ -234,74 +252,62 @@ export const HostelAdminCooksPanel = memo(function HostelAdminCooksPanel() {
       ) : live.length === 0 ? (
         <EmptyState label="Nobody has the kitchen yet." />
       ) : (
-        <ul className="grid gap-2">
+        <ul className="divide-y divide-border/60">
           {live.map((cook) => (
-            <li
-              className="flex flex-wrap items-center gap-3 rounded-lg border border-border p-3"
-              key={cook.id}
-            >
-              <ChefHat className="size-4 shrink-0 text-role-admin" />
+            <li className="flex flex-wrap items-center gap-3 py-2.5" key={cook.id}>
+              <RowMark glyph="chef-hat" />
 
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">
+                <p className="truncate text-[13.5px] font-semibold text-foreground">
                   {cook.name}
                 </p>
-                <code className="block truncate font-mono text-xs text-muted-foreground">
+                <code className="block truncate font-mono text-[12px] text-muted-foreground">
                   {cook.loginEmail}
                 </code>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-muted-foreground">
-                  {cook.kind === "CREDENTIAL" ? (
-                    <KeyRound className="size-3" />
-                  ) : (
-                    <Mail className="size-3" />
-                  )}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Chip glyph={cook.kind === "CREDENTIAL" ? "key" : "mail"}>
                   {cook.kind === "CREDENTIAL" ? "Sign-in issued" : "Own email"}
-                </span>
+                </Chip>
                 {cook.invitationPending ? (
-                  <span className="rounded-full bg-warning/15 px-2 py-0.5 font-semibold text-warning">
-                    Not accepted
-                    {cook.invitationExpiresAt
-                      ? ` · expires ${shortDate(cook.invitationExpiresAt)}`
-                      : ""}
-                  </span>
+                  <Chip tone="warn">
+                    {`Not accepted${cook.invitationExpiresAt ? ` · expires ${shortDate(cook.invitationExpiresAt)}` : ""}`}
+                  </Chip>
                 ) : null}
-                {cook.initialPasswordPending ? (
-                  <span className="rounded-full bg-warning/15 px-2 py-0.5 font-semibold text-warning">
-                    First password unused
-                  </span>
-                ) : null}
+                {cook.initialPasswordPending ? <Chip tone="warn">First password unused</Chip> : null}
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 {/*
                   Rotation is offered only for a generated sign-in. An invited
                   cook's password is on their own account; a button here would
                   promise a reset we are not allowed to perform.
                 */}
                 {cook.kind === "CREDENTIAL" ? (
-                  <button
-                    className="inline-flex items-center gap-1 rounded-md border border-border px-2.5 py-1.5 text-xs font-semibold text-foreground hover:bg-muted/50 disabled:opacity-60"
+                  <Button
                     disabled={busy}
                     onClick={() => void rotate(cook)}
+                    size="sm"
                     title="Issue a new first-time password"
                     type="button"
+                    variant="ghost"
                   >
-                    <RotateCw className="size-3" />
+                    <RotateCw className="size-3.5" />
                     New password
-                  </button>
+                  </Button>
                 ) : null}
-                <button
-                  className="inline-flex items-center gap-1 rounded-md border border-destructive/40 px-2.5 py-1.5 text-xs font-semibold text-destructive hover:bg-destructive/10 disabled:opacity-60"
+                <Button
+                  className="text-muted-foreground hover:text-destructive"
                   disabled={busy}
                   onClick={() => void remove(cook)}
+                  size="sm"
                   type="button"
+                  variant="ghost"
                 >
-                  <Trash2 className="size-3" />
+                  <Trash2 className="size-3.5" />
                   Remove
-                </button>
+                </Button>
               </div>
             </li>
           ))}
@@ -309,85 +315,87 @@ export const HostelAdminCooksPanel = memo(function HostelAdminCooksPanel() {
       )}
 
       {past.length > 0 ? (
-        <div className="mt-3 border-t border-border pt-3">
-          <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">
+        <div className="mt-3 border-t border-border/60 pt-3">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
             No longer here
           </p>
-          <ul className="grid gap-1 text-sm text-muted-foreground">
+          <div className="flex flex-wrap gap-1.5">
             {past.map((cook) => (
-              <li key={cook.id}>
+              <span
+                className="rounded-full bg-muted px-2.5 py-1 text-[12px] text-muted-foreground"
+                key={cook.id}
+                title={cook.removedAt ? `Removed ${shortDate(cook.removedAt)}` : undefined}
+              >
                 {/*
                   The frozen label, not the person's name: this is what their
                   announcements and photos are attributed to from here on, and
                   this list is the only place an admin can see it.
                 */}
-                <span className="text-foreground">
-                  {cook.historicalName || cook.name}
-                </span>
+                <span className="font-medium text-foreground">{cook.historicalName || cook.name}</span>
                 {` — was ${cook.name}`}
-                {cook.removedAt ? `, removed ${shortDate(cook.removedAt)}` : ""}
-              </li>
+              </span>
             ))}
-          </ul>
+          </div>
         </div>
       ) : null}
 
-      <form className="mt-3 grid gap-3 border-t border-border pt-3" onSubmit={add}>
-        <div className="flex flex-wrap gap-1.5">
-          {(
-            [
-              { hint: "We make the login. No email needed.", label: "Create a sign-in", value: "CREDENTIAL" },
-              { hint: "They accept from their own inbox.", label: "Invite by email", value: "INVITE" },
-            ] as const
-          ).map((option) => (
-            <button
-              className={cn(
-                "rounded-md border px-3 py-1.5 text-xs font-semibold transition",
-                mode === option.value
-                  ? "border-role-admin bg-role-admin/10 text-role-admin"
-                  : "border-border text-muted-foreground hover:bg-muted/50",
-              )}
-              key={option.value}
-              onClick={() => setMode(option.value)}
-              title={option.hint}
-              type="button"
-            >
-              {option.label}
-            </button>
-          ))}
-        </div>
+      <Dialog onOpenChange={setAdding} open={adding}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add a cook</DialogTitle>
+            <DialogDescription>Their name shows beside the food photos and the ready call.</DialogDescription>
+          </DialogHeader>
+          {message ? <p className="text-[12.5px] text-muted-foreground">{message}</p> : null}
+          <form className="grid gap-3" onSubmit={add}>
+            <div className="flex gap-1 rounded-xl bg-muted p-1">
+              {(
+                [
+                  { label: "Create a sign-in", value: "CREDENTIAL" },
+                  { label: "Invite by email", value: "INVITE" },
+                ] as const
+              ).map((option) => (
+                <button
+                  className={cn(
+                    "flex-1 rounded-lg px-3 py-1.5 text-[12.5px] font-semibold transition",
+                    mode === option.value
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                  key={option.value}
+                  onClick={() => setMode(option.value)}
+                  type="button"
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Input
-            hint="Shown to residents beside food photos and the ready announcement."
-            label="Cook name"
-            name="name"
-          />
-          {mode === "INVITE" ? (
-            <Input
-              hint="They open the link and their own account becomes the cook account."
-              label="Their email"
-              name="email"
-              type="email"
-            />
-          ) : (
-            <p className="self-end text-xs text-muted-foreground">
-              A short sign-in and a first-time password are generated and shown here
-              once. The cook needs no email at all.
-            </p>
-          )}
-        </div>
+            <Input label="Cook name" name="name" />
+            {mode === "INVITE" ? (
+              <Input
+                hint="Their own account becomes the cook account."
+                label="Their email"
+                name="email"
+                type="email"
+              />
+            ) : (
+              <p className="text-[12.5px] text-muted-foreground">
+                We make a sign-in and a first-time password, shown once. No email needed.
+              </p>
+            )}
 
-        <div>
-          <Button
-            className="h-11 bg-role-admin px-5 text-sm font-semibold text-white hover:bg-role-admin/85"
-            loading={busy}
-            type="submit"
-          >
-            {mode === "CREDENTIAL" ? "Create the sign-in" : "Send the invitation"}
-          </Button>
-        </div>
-      </form>
+            <DialogFooter>
+              <Button
+                className="h-10 rounded-xl bg-brand-teal px-5 text-white hover:bg-brand-teal/90"
+                loading={busy}
+                type="submit"
+              >
+                {mode === "CREDENTIAL" ? "Create the sign-in" : "Send the invitation"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </Panel>
   );
 });
