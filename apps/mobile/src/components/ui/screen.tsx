@@ -1,20 +1,26 @@
 import { useFocusEffect } from "expo-router";
 import { cssInterop } from "nativewind";
-import { type ReactNode, useCallback, useState } from "react";
+import {
+  createContext,
+  type ReactNode,
+  useCallback,
+  useContext,
+  useState,
+} from "react";
 import { RefreshControl, View } from "react-native";
 import {
   KeyboardAwareScrollView,
   KeyboardStickyView,
 } from "react-native-keyboard-controller";
 import Animated, {
-  FadeInDown,
-  ReduceMotion,
+  type SharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useSharedValue,
 } from "react-native-reanimated";
 
 import { useBottomChrome } from "@/components/bottom-chrome";
-import { MOTION } from "@/constants/motion";
+import { riseIn } from "@/constants/motion";
 import { TAB_BAR_HEIGHT } from "@/components/tab-bar";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
@@ -22,9 +28,7 @@ import { useSystemInsets } from "@/hooks/use-system-insets";
 // Third-party scroll view: NativeWind has to be told which props carry classes.
 // The body rises in once when the screen mounts (M4). Refreshes and tab
 // switches don't remount, so they don't replay it.
-const BODY_ENTER = FadeInDown.duration(MOTION.base)
-  .withInitialValues({ opacity: 0, transform: [{ translateY: 10 }] })
-  .reduceMotion(ReduceMotion.System);
+const BODY_ENTER = riseIn();
 
 cssInterop(KeyboardAwareScrollView, {
   className: "style",
@@ -70,17 +74,31 @@ const MIN_BOTTOM_PAD = 16;
 const FLOATING_CLEARANCE = 56 + 20;
 
 /**
+ * This page's scroll offset, for the `AppBar` in its `header` — the large title
+ * collapses against it (M3). Per screen, not app-wide like the bottom chrome: a
+ * stacked screen underneath keeps its own offset for when you come back to it.
+ * `null` outside a `Screen`, and stuck at 0 on one that isn't `scroll`.
+ */
+const ScreenScrollContext = createContext<SharedValue<number> | null>(null);
+
+export function useScreenScroll() {
+  return useContext(ScreenScrollContext);
+}
+
+/**
  * The one piece of `<Screen scroll>` that a screen bringing its own scroller
- * still needs: the handler that drives the bottom chrome.
+ * still needs: the handler that drives the bottom chrome. `offset`, when given,
+ * is fed from the same handler, so there is still one handler per list.
  *
  * A worklet, so it runs on the UI thread — see `BottomChromeProvider`.
  */
-function useChromeScroll() {
+function useChromeScroll(offset?: SharedValue<number>) {
   const chrome = useBottomChrome();
 
   return useAnimatedScrollHandler({
     onScroll: (event) => {
       chrome?.onScroll(event.contentOffset.y);
+      offset?.set(event.contentOffset.y);
     },
   });
 }
@@ -196,7 +214,8 @@ export function Screen({
    * so the signed-out home with its Log in pill behaves exactly like a tabbed
    * screen.
    */
-  const scrollHandler = useChromeScroll();
+  const scrollY = useSharedValue(0);
+  const scrollHandler = useChromeScroll(scrollY);
 
   const reset = chrome?.reset;
 
@@ -287,7 +306,9 @@ export function Screen({
         screen reserves it itself — otherwise the first line of content renders
         under the clock.
       */}
-      {header ?? (bleedTop ? null : <View style={{ height: insets.top }} />)}
+      <ScreenScrollContext.Provider value={scrollY}>
+        {header ?? (bleedTop ? null : <View style={{ height: insets.top }} />)}
+      </ScreenScrollContext.Provider>
 
       {/*
         Keyboard handling, owned by react-native-keyboard-controller.

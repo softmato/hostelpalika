@@ -89,11 +89,23 @@ pulse their opacity. Sheets are gorhom, which already springs. Presses only dim
 - ☑ **M2. Tab bar.** Done 2026-10-20, **no haptic** on tab switches (user). Was: The tinted pill slides to the tapped tab on a spring. The
   icon switches line → solid with a small pop. Selection haptic. (FoneBiz
   0:14–0:20.) Needs I2 if the style is line + solid when active.
-- ☐ **M3. Collapsing title.** The large screen title shrinks into the `AppBar`
+- ☑ **M3. Collapsing title.** Done 2026-10-20: `Screen` feeds its page offset
+  from the same scroll handler as the tab bar into a per-screen value
+  (`useScreenScroll`); a `large` `AppBar` scales its title to bar size
+  (`MOTION.titleCollapse`) and fades a hairline in under itself. Used by every
+  `large` tab: admin Payments + Overall tabs, cook Menu/Photos, guardian
+  Payments/Safety, resident Food/Payments. Was: The large screen title shrinks into the `AppBar`
   as the list scrolls under it. `Screen` and `AppBar` share one scroll value,
   which `BottomChromeProvider` already tracks for the tab bar.
-- ◐ **M4. Lists.** 2026-10-20: the whole screen body rises in once on mount
-  (`Screen`). Per-row stagger and collapse-on-delete are still to do. Was: On first load, the first ~8 rows fade up one after another.
+- ☑ **M4. Lists.** Done 2026-10-20: the screen body rises in once on mount
+  (`Screen`), and `<Stagger>` (`ui/layout.tsx`) replaces a list's
+  `<View className="gap-3">`: each direct child gets a wrapper, the first
+  `MOTION.staggerRows` rise in `MOTION.stagger` ms apart, and a row leaving
+  fades while the rest slide up (`LinearTransition`). Mounted rows keep their
+  wrapper, so refreshes replay nothing; `from` carries the count across date
+  groups. On admin Residents, Money and Alerts, Notifications, resident
+  Notices, Complaints (list + manage, the latter by day) and Expenses (by day).
+  Not on the community `FlatList`: recycled cells mount mid-scroll. Was: On first load, the first ~8 rows fade up one after another.
   A deleted or swiped-away row collapses instead of vanishing (`LinearTransition`).
   Refreshes don't re-animate.
 - ◐ **M5. Swipe.** 2026-10-20: a light haptic when the swipe action fires. The

@@ -6,6 +6,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Glyph } from "@/components/ui/glyph";
+import { Stagger } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
@@ -503,8 +504,13 @@ export default function NotificationsScreen() {
           />
         ) : (
           <View className="gap-5">
-            {groups.map((group) => (
-              <View className="gap-2.5" key={group.bucket}>
+            {groups.map((group, g) => (
+              <Stagger
+                className="gap-2.5"
+                // Rows above this day, its heading included, so the fade runs on down the page.
+                from={groups.slice(0, g).reduce((n, earlier) => n + earlier.rows.length + 1, 0)}
+                key={group.bucket}
+              >
                 {/*
                   On the page, not in a card — NOTES §5. The day is stated once
                   for the rows under it instead of once on every row.
@@ -523,7 +529,7 @@ export default function NotificationsScreen() {
                     onOpen={markRead}
                   />
                 ))}
-              </View>
+              </Stagger>
             ))}
           </View>
         )}

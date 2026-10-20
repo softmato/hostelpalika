@@ -1,14 +1,20 @@
 import { Image } from "expo-image";
-import { type ReactNode, useState } from "react";
+import { Children, type ReactNode, useState } from "react";
 import {
   ActivityIndicator,
   type LayoutChangeEvent,
   Pressable,
   View,
 } from "react-native";
+import Animated, {
+  FadeOut,
+  LinearTransition,
+  ReduceMotion,
+} from "react-native-reanimated";
 
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
+import { MOTION, riseIn } from "@/constants/motion";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { cellWidth, columnsThatFit } from "@/lib/responsive";
 
@@ -85,6 +91,49 @@ export function Grid({
               {child}
             </View>
           ))}
+    </View>
+  );
+}
+
+const ROW_EXIT = FadeOut.duration(MOTION.fast).reduceMotion(ReduceMotion.System);
+const ROW_LAYOUT = LinearTransition.duration(MOTION.base).reduceMotion(ReduceMotion.System);
+
+/**
+ * A list whose rows fade up one after another when it first fills, and close
+ * the gap when one leaves instead of jumping (M4). Use it where a list would
+ * be a `<View className="gap-3">` of rows.
+ *
+ * Each direct child gets a wrapper, so a row's index is its place here and the
+ * rows themselves take no prop. A row that stays mounted keeps its wrapper, so
+ * a refresh replays nothing: only rows new to the list enter, and past
+ * `MOTION.staggerRows` they simply appear. Not for a `FlatList` — its cells
+ * mount mid-scroll and would animate as you go.
+ */
+export function Stagger({
+  children,
+  className = "",
+  from = 0,
+}: {
+  children: ReactNode;
+  className?: string;
+  /** Rows already counted above, for a list split into date groups. */
+  from?: number;
+}) {
+  return (
+    <View className={className}>
+      {Children.map(children, (child, index) => {
+        const at = from + index;
+
+        return child ? (
+          <Animated.View
+            entering={at < MOTION.staggerRows ? riseIn(at * MOTION.stagger) : undefined}
+            exiting={ROW_EXIT}
+            layout={ROW_LAYOUT}
+          >
+            {child}
+          </Animated.View>
+        ) : null;
+      })}
     </View>
   );
 }

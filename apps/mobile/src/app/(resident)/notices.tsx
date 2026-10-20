@@ -10,7 +10,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Chip } from "@/components/ui/layout";
+import { Chip, Stagger } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
 import { Skeleton, SkeletonRows } from "@/components/ui/skeleton";
@@ -331,7 +331,7 @@ export default function ResidentNoticesScreen() {
           />
         ) : (
           <View className="gap-5">
-            {days.map((day) => (
+            {days.map((day, d) => (
               <View className="gap-2" key={day.key || "undated"}>
                 {/*
                   Outside the cards, on the page background — `NOTES.md` §5. The
@@ -343,7 +343,11 @@ export default function ResidentNoticesScreen() {
                   {day.iso ? dates.relativeDay(day.iso) : "Date not recorded"}
                 </Text>
 
-                <View className="gap-3">
+                <Stagger
+                  className="gap-3"
+                  // Cards above this day, so the fade runs on down the page.
+                  from={days.slice(0, d).reduce((n, earlier) => n + earlier.notices.length, 0)}
+                >
                   {day.notices.map((notice) => (
                     <NoticeCard
                       key={notice.id}
@@ -351,7 +355,7 @@ export default function ResidentNoticesScreen() {
                       onOpen={markRead}
                     />
                   ))}
-                </View>
+                </Stagger>
               </View>
             ))}
           </View>

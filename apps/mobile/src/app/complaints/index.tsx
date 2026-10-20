@@ -5,6 +5,7 @@ import { Pressable, ScrollView, View } from "react-native";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge, StatusPill } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { Stagger } from "@/components/ui/layout";
 import { FloatingButton } from "@/components/ui/floating-button";
 import { type GlyphName } from "@/components/ui/glyph";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
@@ -151,12 +152,14 @@ export default function ComplaintsScreen() {
               <EmptyState title="Nothing needs you" />
             ) : (
               <Card padding="px-4 py-1">
-                {visible.map((complaint, index) => (
-                  <View key={complaint.id}>
-                    {index > 0 ? <RowDivider inset /> : null}
-                    <ComplaintRow complaint={complaint} />
-                  </View>
-                ))}
+                <Stagger>
+                  {visible.map((complaint, index) => (
+                    <View key={complaint.id}>
+                      {index > 0 ? <RowDivider inset /> : null}
+                      <ComplaintRow complaint={complaint} />
+                    </View>
+                  ))}
+                </Stagger>
               </Card>
             )}
           </>

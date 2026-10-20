@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { BillExtras } from "@/components/bill-extras";
-import { Chip } from "@/components/ui/layout";
+import { Chip, Stagger } from "@/components/ui/layout";
 import { Lottie } from "@/components/ui/lottie";
 import { Meter } from "@/components/ui/meter";
 import { PersonAvatar } from "@/components/ui/avatar";
@@ -755,7 +755,7 @@ function BranchAdminMoneyScreen() {
                   visual break than a hairline, so the eye lands on one person at
                   a time instead of reading a table.
                 */
-                <View className="gap-3">
+                <Stagger className="gap-3">
                   {visible.map((row) => (
                     <CardRow
                       key={row.resident.id}
@@ -877,7 +877,7 @@ function BranchAdminMoneyScreen() {
                       />
                     </Card>
                   ) : null}
-                </View>
+                </Stagger>
               )}
             </View>
           </View>

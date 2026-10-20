@@ -1,9 +1,17 @@
 import { router } from "expo-router";
 import type { ReactNode } from "react";
-import { Pressable, View } from "react-native";
+import { Pressable, StyleSheet, View } from "react-native";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useReducedMotion,
+} from "react-native-reanimated";
 
 import { Glyph } from "@/components/ui/glyph";
+import { useScreenScroll } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
+import { MOTION } from "@/constants/motion";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
 
@@ -128,6 +136,34 @@ export function AppBar({
   const { colors } = useAppTheme();
 
   /*
+   * M3: a `large` title shrinks to the bar's own size as the page scrolls under
+   * it, and a hairline fades in to mark the edge the content is passing. Driven
+   * by the `Screen`'s scroll value, so it tracks the finger on the UI thread;
+   * with reduce-motion on, the title keeps its size and only the hairline shows.
+   */
+  const scrollY = useScreenScroll();
+  const reduceMotion = useReducedMotion();
+  const { distance, scale } = MOTION.titleCollapse;
+
+  const titleMotion = useAnimatedStyle(() => ({
+    transform: [
+      {
+        scale:
+          large && scrollY && !reduceMotion
+            ? interpolate(scrollY.get(), [0, distance], [1, scale], Extrapolation.CLAMP)
+            : 1,
+      },
+    ],
+  }));
+
+  const edgeMotion = useAnimatedStyle(() => ({
+    opacity:
+      large && scrollY
+        ? interpolate(scrollY.get(), [0, distance], [0, 1], Extrapolation.CLAMP)
+        : 0,
+  }));
+
+  /*
    * Resolved colours, not `text-*` classes — and this is a fixed bug, not a
    * preference.
    *
@@ -169,14 +205,24 @@ export function AppBar({
 
   const heading = (
     <>
-      <Text
-        className={centerTitle ? "text-center" : ""}
-        numberOfLines={1}
-        style={{ color: ink }}
-        variant={large ? "title" : "subtitle"}
+      <Animated.View
+        style={[
+          {
+            // Shrinks toward the start of the line; onto the subtitle when there is one.
+            transformOrigin: centerTitle ? "center" : subtitle ? "left bottom" : "left center",
+          },
+          titleMotion,
+        ]}
       >
-        {title}
-      </Text>
+        <Text
+          className={centerTitle ? "text-center" : ""}
+          numberOfLines={1}
+          style={{ color: ink }}
+          variant={large ? "title" : "subtitle"}
+        >
+          {title}
+        </Text>
+      </Animated.View>
       {subtitle ? (
         <Text
           className={centerTitle ? "text-center" : ""}
@@ -218,6 +264,25 @@ export function AppBar({
     paddingTop: insets.top,
   };
 
+  // The hairline the collapsing title leaves behind; an accented bar's paint is edge enough.
+  const edge =
+    large && !accent ? (
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          {
+            backgroundColor: colors.border,
+            bottom: 0,
+            height: StyleSheet.hairlineWidth,
+            left: 0,
+            position: "absolute",
+            right: 0,
+          },
+          edgeMotion,
+        ]}
+      />
+    ) : null;
+
   if (centerTitle) {
     return (
       <View style={paint}>
@@ -244,6 +309,7 @@ export function AppBar({
             {actions}
           </View>
         </View>
+        {edge}
       </View>
     );
   }
@@ -257,6 +323,7 @@ export function AppBar({
 
         {actions}
       </View>
+      {edge}
     </View>
   );
 }

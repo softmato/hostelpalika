@@ -10,6 +10,7 @@ import {
 } from "@/components/admin-alerts";
 import { AppBar } from "@/components/ui/app-bar";
 import { Card } from "@/components/ui/card";
+import { Stagger } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
 import { Skeleton, SkeletonRows } from "@/components/ui/skeleton";
@@ -172,7 +173,7 @@ export default function AdminAlertsScreen() {
                 Most urgent first, then longest waiting
               </Text>
 
-              <View className="gap-3">
+              <Stagger className="gap-3">
                 {listed.map((row) => (
                   <AlertCard
                     actions={actions}
@@ -183,7 +184,7 @@ export default function AdminAlertsScreen() {
                     showKind
                   />
                 ))}
-              </View>
+              </Stagger>
             </>
           )}
         </View>

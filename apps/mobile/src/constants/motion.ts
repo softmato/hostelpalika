@@ -1,4 +1,4 @@
-import { ReduceMotion, type WithSpringConfig } from "react-native-reanimated";
+import { FadeInDown, ReduceMotion, type WithSpringConfig } from "react-native-reanimated";
 
 /**
  * How the app moves, in one place (tracker: `docs/MOTION_AND_ICONS.md`, Track M).
@@ -28,4 +28,17 @@ export const MOTION = {
   /** Gap between list rows fading up, and how many rows get it. */
   stagger: 45,
   staggerRows: 8,
+  /**
+   * A large `AppBar` title shrinks to the bar's own size (`text-base` over
+   * `text-2xl`) across this much page scroll, and a hairline fades in under it.
+   */
+  titleCollapse: { distance: 48, scale: 16 / 24 },
 } as const;
+
+/** Rise 10px and fade in: a screen body on mount, a list row on first load. */
+export function riseIn(delay = 0) {
+  return FadeInDown.delay(delay)
+    .duration(MOTION.base)
+    .withInitialValues({ opacity: 0, transform: [{ translateY: 10 }] })
+    .reduceMotion(ReduceMotion.System);
+}
