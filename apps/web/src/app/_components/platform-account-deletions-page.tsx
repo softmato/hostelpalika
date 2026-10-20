@@ -1,10 +1,20 @@
 "use client";
 
-import { UserMinus } from "@/components/icons";
+import { Clock3, UserMinus } from "@/components/icons";
 import { memo, useCallback, useState } from "react";
 
 import { EmptyState, Panel, StatusBadge } from "@/app/_components/shared-ui";
-import { ListPager } from "@/app/_components/portal-dashboard-ui";
+import { InitialsAvatar, ListPager, MetricCard, RoleButton } from "@/app/_components/portal-dashboard-ui";
+import { FactChip } from "@/app/_components/platform-page-ui";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import { browserApi } from "@/lib/browser-api";
 import { usePagedPortalResource } from "@/lib/portal-pagination";
@@ -47,6 +57,7 @@ export const PlatformAccountDeletionsPageContent = memo(
     const [message, setMessage] = useState("");
     const [note, setNote] = useState<Record<string, string>>({});
     const [busyId, setBusyId] = useState<string | null>(null);
+    const [decidingId, setDecidingId] = useState<string | null>(null);
     const { confirm, confirmDialog } = useConfirm();
 
     const { refreshAsync } = queue;
@@ -96,95 +107,80 @@ export const PlatformAccountDeletionsPageContent = memo(
 
     const requests = queue.data?.requests ?? [];
     const pending = queue.data?.pendingCount ?? 0;
+    const deciding = requests.find((request) => request.id === decidingId) ?? null;
+
+    /** Closes the dialog first, so Approve's own confirm is the only modal up. */
+    const decide = (id: string, decision: "APPROVED" | "REJECTED") => {
+      setDecidingId(null);
+      void review(id, decision);
+    };
 
     return (
-      <div className="mx-auto max-w-[1448px] space-y-6">
+      <div className="mx-auto max-w-[1448px] space-y-5">
         {confirmDialog}
         <PageHeader
-          description={
-            pending > 0
-              ? `${pending} request${pending === 1 ? "" : "s"} waiting on you. Approving closes the account and starts a 60-day countdown they can still cancel.`
-              : "Hostel owners who have asked for their account to be deleted. Nothing happens to an account until you approve it."
-          }
+          description="Owners who asked to close their account; nothing happens until you approve."
           icon={UserMinus}
           title="Account Deletion Requests"
         />
         <Message value={message} />
+
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <MetricCard
+            icon={Clock3}
+            label="Waiting on you"
+            tone={pending > 0 ? "amber" : "teal"}
+            value={pending}
+          />
+          <MetricCard icon={UserMinus} label="Requests" value={queue.pagination?.total ?? requests.length} />
+        </div>
+
         <Panel>
           {requests.length === 0 ? (
             <EmptyState label="No account deletion requests." />
           ) : null}
-          <div className="space-y-4">
+          <div className="grid gap-3 lg:grid-cols-2">
             {requests.map((request) => (
               <div
-                className="rounded-xl border border-border p-4"
+                className="space-y-3 rounded-2xl border border-border/70 bg-card p-4"
                 key={request.id}
               >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-medium text-foreground">
-                      {request.requestedName ?? request.requestedEmail}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {request.requestedEmail} · {request.requestedRole} · asked{" "}
-                      {formatDate(request.requestedAt)}
-                    </p>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <InitialsAvatar name={request.requestedName ?? request.requestedEmail} size="sm" tone="team" />
+                    <div className="min-w-0">
+                      <p className="truncate text-[13.5px] font-semibold text-foreground">
+                        {request.requestedName ?? request.requestedEmail}
+                      </p>
+                      <p className="truncate text-[12px] text-muted-foreground">{request.requestedEmail}</p>
+                    </div>
                   </div>
                   <StatusBadge>{request.reviewStatus ?? "PENDING"}</StatusBadge>
                 </div>
 
-                <p className="mt-3 text-sm text-foreground">“{request.reason}”</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <FactChip glyph="person">{request.requestedRole.replaceAll("_", " ").toLowerCase()}</FactChip>
+                  <FactChip glyph="calendar">{`Asked ${formatDate(request.requestedAt)}`}</FactChip>
+                  {request.hostelIds.length > 0 ? (
+                    <FactChip glyph="business" tone="amber">
+                      {`${request.hostelIds.length} hostel${request.hostelIds.length === 1 ? "" : "s"} attached`}
+                    </FactChip>
+                  ) : null}
+                  {request.scheduledDeletionAt ? (
+                    <FactChip glyph="time" tone="rose">{`Erases ${formatDate(request.scheduledDeletionAt)}`}</FactChip>
+                  ) : null}
+                </div>
 
-                {request.hostelIds.length > 0 ? (
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {request.hostelIds.length} hostel
-                    {request.hostelIds.length === 1 ? "" : "s"} attached to this account —
-                    check they have been handed over before approving.
-                  </p>
-                ) : null}
+                <p className="text-[13.5px] text-foreground">“{request.reason}”</p>
 
                 {request.reviewStatus === "PENDING" ? (
-                  <div className="mt-4 space-y-3">
-                    <label className="block text-sm">
-                      <span className="text-muted-foreground">Note (optional)</span>
-                      <textarea
-                        className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                        onChange={(event) =>
-                          setNote((current) => ({
-                            ...current,
-                            [request.id]: event.target.value,
-                          }))
-                        }
-                        rows={2}
-                        value={note[request.id] ?? ""}
-                      />
-                    </label>
-                    <div className="flex flex-wrap gap-2">
-                      <button
-                        className="rounded-lg bg-destructive px-4 py-2 text-sm font-medium text-destructive-foreground disabled:opacity-50"
-                        disabled={busyId === request.id}
-                        onClick={() => review(request.id, "APPROVED")}
-                        type="button"
-                      >
-                        Approve deletion
-                      </button>
-                      <button
-                        className="rounded-lg border border-border px-4 py-2 text-sm font-medium disabled:opacity-50"
-                        disabled={busyId === request.id}
-                        onClick={() => review(request.id, "REJECTED")}
-                        type="button"
-                      >
-                        Decline
-                      </button>
-                    </div>
-                  </div>
+                  <RoleButton disabled={busyId === request.id} onClick={() => setDecidingId(request.id)} type="button">
+                    Decide
+                  </RoleButton>
                 ) : (
-                  <p className="mt-3 text-xs text-muted-foreground">
+                  <p className="text-[12px] text-muted-foreground">
                     Reviewed {formatDate(request.reviewedAt)}
                     {request.reviewNote ? ` — “${request.reviewNote}”` : ""}
-                    {request.scheduledDeletionAt
-                      ? ` · erases ${formatDate(request.scheduledDeletionAt)}`
-                      : ""}
                   </p>
                 )}
               </div>
@@ -198,6 +194,46 @@ export const PlatformAccountDeletionsPageContent = memo(
             unit="requests"
           />
         </Panel>
+
+        <Dialog onOpenChange={(open) => (open ? null : setDecidingId(null))} open={deciding !== null}>
+          <DialogContent className="sm:max-w-md">
+            {deciding ? (
+              <>
+                <DialogHeader>
+                  <DialogTitle>{deciding.requestedName ?? deciding.requestedEmail}</DialogTitle>
+                  <DialogDescription>
+                    {deciding.hostelIds.length > 0
+                      ? "Check their hostels are handed over first; approving closes the account now and erases it in 60 days."
+                      : "Approving closes the account now and erases it in 60 days."}
+                  </DialogDescription>
+                </DialogHeader>
+                <p className="text-[13.5px] text-foreground">“{deciding.reason}”</p>
+                <label className="block text-[12px] font-semibold text-foreground">
+                  Note (optional)
+                  <textarea
+                    className="mt-1 w-full rounded-xl border border-border bg-background px-3 py-2 text-[13.5px] font-normal"
+                    onChange={(event) =>
+                      setNote((current) => ({
+                        ...current,
+                        [deciding.id]: event.target.value,
+                      }))
+                    }
+                    rows={2}
+                    value={note[deciding.id] ?? ""}
+                  />
+                </label>
+                <DialogFooter className="sm:justify-between">
+                  <Button onClick={() => decide(deciding.id, "REJECTED")} type="button" variant="outline">
+                    Decline
+                  </Button>
+                  <Button onClick={() => decide(deciding.id, "APPROVED")} type="button" variant="destructive">
+                    Approve deletion
+                  </Button>
+                </DialogFooter>
+              </>
+            ) : null}
+          </DialogContent>
+        </Dialog>
       </div>
     );
   },

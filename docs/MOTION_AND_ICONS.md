@@ -170,7 +170,10 @@ patterns".
 - ☐ **P5. Hostel admin, the rest.** Floors panel, Bookings, Inquiries,
   Move-in/out, the Finance pages, Operations (food, stock, night status,
   notices, complaints, maintenance, SOS, attendance), Growth & System.
-- ☐ **P6. Platform portal pages.**
+- ☑ **P6. Platform portal pages.** Every PLATFORM_NAV page: header actions open dialogs,
+  filters sit behind FilterButton, totals are tiles, shares are bars, facts are chips
+  (`platform-page-ui.tsx`). Still to do: the Audit Log page is unchanged (a plain table),
+  and the hostel / provider review sub-pages only kept their old layout.
 - ☐ **P7. Resident, guardian, cook, provider and team pages.**
 - ☐ **P8. Browser pass** by the user after each portal.
 

@@ -2,16 +2,22 @@
 
 import {
   AlertCircle,
+  Building2,
   Check,
+  Clock3,
   Copy,
+  Flag,
   KeyRound,
   Loader2,
   Mail,
   MailX,
   ShieldCheck,
   ShieldHalf,
+  Star,
   Trash2,
   UserPlus,
+  Users,
+  Wrench,
 } from "@/components/icons";
 import Link from "next/link";
 import { memo, useEffect, useState } from "react";
@@ -23,6 +29,7 @@ import {
   DetailField,
   FilterSelect,
   InitialsAvatar,
+  MetricCard,
   PortalPageHeader,
   RoleButton,
   SoftBadge,
@@ -34,6 +41,13 @@ import {
   statusToneFromLabel,
 } from "@/app/_components/portal-dashboard-ui";
 import { TextField } from "@/app/_components/platform-config-shared";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { Role } from "@/lib/roles";
 import { platformEndpoints } from "@/lib/platform-endpoints";
@@ -106,7 +120,7 @@ const CHECK_TONES: Record<
 > = {
   AVAILABLE: {
     className:
-      "border-emerald-200/80 bg-emerald-50 text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300",
+      "border-role-team/20 bg-role-team-soft text-role-team",
     icon: Check,
   },
   TAKEN: {
@@ -241,6 +255,7 @@ export const PlatformSettingsPageContent = memo(function PlatformSettingsPageCon
   const [grantMode, setGrantMode] = useState<GrantMode>("invite");
   const [creating, setCreating] = useState(false);
   const [temporaryPassword, setTemporaryPassword] = useState("");
+  const [addingAdmin, setAddingAdmin] = useState(false);
   /*
    * The verdict is stored *with the address it was about*, not on its own.
    * Keying it that way is what lets "are we still checking?" be derived from a
@@ -426,6 +441,7 @@ export const PlatformSettingsPageContent = memo(function PlatformSettingsPageCon
           : `The invitation was created, but the email could not be sent (${result.deliveryReason ?? "unknown"}). Withdraw it below and issue a temporary password instead until email delivery is configured.`,
       );
       resetForm();
+      setAddingAdmin(false);
       invalidate(platformEndpoints.adminInvites);
     } catch (inviteError) {
       setError(
@@ -512,19 +528,33 @@ export const PlatformSettingsPageContent = memo(function PlatformSettingsPageCon
     <div className="mx-auto max-w-[1100px] space-y-4">
       {confirmDialog}
       <PortalPageHeader
-        breadcrumb={["Home", "Settings"]}
-        description="Your account, platform access control, and a workspace snapshot."
+        actions={
+          canManageAdmins ? (
+            <RoleButton
+              onClick={() => {
+                setTemporaryPassword("");
+                setAddingAdmin(true);
+              }}
+              tone="platform"
+              type="button"
+            >
+              <UserPlus className="size-3.5" />
+              Add admin
+            </RoleButton>
+          ) : null
+        }
+        description="Your account, who runs the platform, and how it behaves."
         title="Settings"
       />
 
       {message ? (
-        <div className="flex items-center gap-2 rounded-lg border border-emerald-200/80 bg-emerald-50 px-3 py-2 text-[12.5px] font-medium text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
+        <div className="flex items-center gap-2 rounded-xl border border-role-team/20 bg-role-team-soft px-3 py-2 text-[12.5px] font-medium text-role-team">
           <Check className="size-3.5 shrink-0" />
           {message}
         </div>
       ) : null}
       {pageError ? (
-        <div className="flex items-center gap-2 rounded-lg border border-rose-200/80 bg-rose-50 px-3 py-2 text-[12.5px] font-medium text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
+        <div className="flex items-center gap-2 rounded-xl border border-rose-200/80 bg-rose-50 px-3 py-2 text-[12.5px] font-medium text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
           <AlertCircle className="size-3.5 shrink-0" />
           {pageError}
         </div>
@@ -589,48 +619,42 @@ export const PlatformSettingsPageContent = memo(function PlatformSettingsPageCon
               </div>
             </Panel>
 
-            <Panel title="Platform Snapshot">
-              <div className="space-y-1">
-                <DetailField
-                  label="Total hostels"
-                  value={String(report?.totalHostels ?? 0)}
-                />
-                <DetailField
-                  label="Pending approvals"
-                  value={String(report?.pendingApprovals ?? 0)}
-                />
-                <DetailField
-                  label="Active residents"
-                  value={String(report?.activeResidents ?? 0)}
-                />
-                <DetailField
-                  label="Service providers"
-                  value={String(report?.serviceProviders ?? 0)}
-                />
-                <DetailField label="Reviews" value={String(report?.reviews ?? 0)} />
-                <DetailField
-                  label="Open listing flags"
-                  value={String(report?.openListingFlags ?? 0)}
-                />
+            <Panel title="Platform snapshot">
+              <div className="grid grid-cols-2 gap-2.5">
+                {[
+                  { icon: Building2, label: "Hostels", value: report?.totalHostels },
+                  { icon: Clock3, label: "Waiting approval", value: report?.pendingApprovals },
+                  { icon: Users, label: "Active residents", value: report?.activeResidents },
+                  { icon: Wrench, label: "Service providers", value: report?.serviceProviders },
+                  { icon: Star, label: "Reviews", value: report?.reviews },
+                  { icon: Flag, label: "Open listing flags", value: report?.openListingFlags },
+                ].map((item) => (
+                  <MetricCard
+                    icon={item.icon}
+                    key={item.label}
+                    label={item.label}
+                    value={Number(item.value ?? 0).toLocaleString()}
+                  />
+                ))}
               </div>
             </Panel>
           </div>
 
           {/* ── Platform access ─────────────────────────────────────── */}
           {canManageAdmins ? (
-            <section className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-              <header className="border-b border-border/60 px-3.5 py-2.5">
-                <h2 className="font-heading text-[13.5px] font-bold text-foreground">
-                  Add a Platform Admin
-                </h2>
-                <p className="mt-0.5 text-[11.5px] text-muted-foreground">
-                  {grantMode === "invite"
-                    ? "They get an emailed link, confirm on one screen, and sign in with Google — no password to set. Nothing appears on the roster until they accept."
-                    : "The account is created now with a temporary password, emailed and shown once here. They must change it on first login."}
-                </p>
-              </header>
+            <Dialog onOpenChange={setAddingAdmin} open={addingAdmin}>
+              <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Add a platform admin</DialogTitle>
+                  <DialogDescription>
+                    {grantMode === "invite"
+                      ? "They accept an emailed link and sign in with Google; the roster shows them once they do."
+                      : "Created now with a temporary password, shown once; they change it on first login."}
+                  </DialogDescription>
+                </DialogHeader>
 
-              <div className="space-y-3 p-3.5">
+              <div className="space-y-3">
+                {pageError ? <p className="text-[12.5px] font-medium text-destructive">{pageError}</p> : null}
                 <GrantModeSwitch onChange={setGrantMode} value={grantMode} />
 
                 <div className="grid gap-3 sm:grid-cols-3">
@@ -674,7 +698,7 @@ export const PlatformSettingsPageContent = memo(function PlatformSettingsPageCon
                     value={inviteRole}
                   />
                   <div className="flex items-end">
-                    <p className="pb-2 text-[11.5px] leading-4 text-muted-foreground">
+                    <p className="pb-2 text-[12px] leading-4 text-muted-foreground">
                       {ROLE_COPY[inviteRole]?.description}
                     </p>
                   </div>
@@ -711,14 +735,12 @@ export const PlatformSettingsPageContent = memo(function PlatformSettingsPageCon
                       <Copy className="size-3" />
                       Copy
                     </button>
-                    <span className="w-full text-[11px]">
-                      Shown once so you can hand it over if email delivery is not
-                      configured. It must be changed on first login.
-                    </span>
+                    <span className="w-full text-[11px]">Shown once; it must be changed on first login.</span>
                   </div>
                 ) : null}
               </div>
-            </section>
+              </DialogContent>
+            </Dialog>
           ) : null}
 
           {/* ── Outstanding invitations ──────────────────────────────
@@ -726,7 +748,7 @@ export const PlatformSettingsPageContent = memo(function PlatformSettingsPageCon
               permanent reminder of a thing that has not happened, on a screen
               whose other cards all state facts. */}
           {canManageAdmins && invites.length > 0 ? (
-            <Panel title={`Invitations Awaiting Acceptance (${invites.length})`}>
+            <Panel title={`Invitations waiting · ${invites.length}`}>
               <DataTable className="min-w-[620px]">
                 <TableHeader>
                   <TableRow className="hover:bg-transparent">
@@ -761,7 +783,7 @@ export const PlatformSettingsPageContent = memo(function PlatformSettingsPageCon
                       </TableCell>
                       <TableCell>
                         <SoftBadge
-                          tone={invite.role === Role.SUPERADMIN ? "teal" : "purple"}
+                          tone={invite.role === Role.SUPERADMIN ? "teal" : "slate"}
                         >
                           <span className="inline-flex items-center gap-1">
                             {invite.role === Role.SUPERADMIN ? (
@@ -809,7 +831,7 @@ export const PlatformSettingsPageContent = memo(function PlatformSettingsPageCon
             </Panel>
           ) : null}
 
-          <Panel title={`Platform Admins (${admins.length})`}>
+          <Panel title={`Platform admins · ${admins.length}`}>
             {admins.length === 0 ? (
               <EmptyState
                 label={
@@ -841,7 +863,7 @@ export const PlatformSettingsPageContent = memo(function PlatformSettingsPageCon
                             <InitialsAvatar name={admin.name} size="sm" tone="platform" />
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-1.5">
-                                <span className="truncate font-semibold text-foreground">
+                                <span className="truncate text-[13.5px] font-semibold text-foreground">
                                   {admin.name}
                                 </span>
                                 {isSelf ? <SoftBadge tone="slate">You</SoftBadge> : null}
@@ -854,7 +876,7 @@ export const PlatformSettingsPageContent = memo(function PlatformSettingsPageCon
                         </TableCell>
                         <TableCell>
                           <SoftBadge
-                            tone={admin.role === Role.SUPERADMIN ? "teal" : "purple"}
+                            tone={admin.role === Role.SUPERADMIN ? "teal" : "slate"}
                           >
                             <span className="inline-flex items-center gap-1">
                               {admin.role === Role.SUPERADMIN ? (
