@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, QrCode, SlidersHorizontal, Upload, X } from "@/components/icons";
+import { Loader2, Pencil, QrCode, SlidersHorizontal, Upload, X } from "@/components/icons";
 import Image from "next/image";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
@@ -11,10 +11,19 @@ import {
   Panel,
   Select,
 } from "@/app/_components/shared-ui";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { usePortalResource } from "@/lib/portal-query";
 import { acceptAttribute } from "@/lib/uploads/accepts";
 import { uploadFile } from "@/lib/uploads/uploader";
+import { FactChip } from "./platform-page-ui";
 import { field } from "./portal-shared";
 
 type OperationsConfig = {
@@ -142,7 +151,7 @@ function CollectionQrField({
 
         <Input
           defaultValue={defaultLabel}
-          hint="Read out while they scan, so the owner can check the name on their own screen before confirming."
+          hint="Read out while they scan, so the owner can check it."
           label="Account name on the QR"
           name="collectionQrLabel"
           placeholder="HostelDays Pvt. Ltd. — Fonepay"
@@ -162,6 +171,7 @@ function CollectionQrField({
 export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [editing, setEditing] = useState(false);
 
   const resource = usePortalResource<{
     config: OperationsConfig;
@@ -232,6 +242,7 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
             ? `Saved. The QR change waits for the confirm link we emailed to ${saved.pendingQrChange.sentTo}.`
             : "Operations configuration saved.",
         );
+        setEditing(false);
         await resource.refreshAsync();
       } catch (error) {
         setMessage(
@@ -245,18 +256,104 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
   );
 
   return (
-    <Panel title="Operations configuration">
+    <Panel
+      action={
+        config ? (
+          <Button onClick={() => setEditing(true)} size="sm" type="button" variant="outline">
+            <Pencil className="size-3.5" />
+            Edit
+          </Button>
+        ) : null
+      }
+      title="Operations configuration"
+    >
       {resource.state === "loading" ? <LoadingRows /> : null}
       {resource.state === "error" ? (
         <EmptyState label="Operations configuration could not be loaded." />
       ) : null}
 
       {config ? (
+        <div className="space-y-4">
+          {message && !editing ? <p className="text-[12.5px] text-muted-foreground">{message}</p> : null}
+
+          {/* The settings as facts; Edit opens the form. */}
+          <div className="grid gap-4 sm:grid-cols-[auto_1fr]">
+            <div className="flex size-24 items-center justify-center overflow-hidden rounded-xl border border-border bg-surface">
+              {config.collectionQrUrl ? (
+                <Image alt="Collection QR" height={96} src={config.collectionQrUrl} unoptimized width={96} />
+              ) : (
+                <QrCode className="size-7 text-muted-foreground/40" />
+              )}
+            </div>
+            <div className="space-y-3">
+              <div>
+                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Timing</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <FactChip glyph="gift">{`${config.trialDays}-day free trial`}</FactChip>
+                  <FactChip glyph="time">{`${config.subscriptionDueGraceDays} days to pay a plan`}</FactChip>
+                  <FactChip glyph="notifications">{`Reminder ${config.paymentReminderDaysBefore} days before`}</FactChip>
+                  <FactChip glyph="qr-code">{`Activation code ${config.qrActivationExpiryDays} days`}</FactChip>
+                  <FactChip glyph="chatbox-alert">{`Complaint SLA ${config.complaintSlaHours} h`}</FactChip>
+                  <FactChip glyph="restaurant">{`Food-ready cooldown ${config.foodReadyCooldownMinutes} min`}</FactChip>
+                  <FactChip glyph="receipt">{`Receipts ${config.receiptNumberPrefix}…`}</FactChip>
+                </div>
+              </div>
+              <div>
+                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Limits hostels tune within</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <FactChip glyph="locate">{`Inside ≤ ${config.maxInsideZoneRadiusMeters} m`}</FactChip>
+                  <FactChip glyph="navigate">{`Nearby ≤ ${config.maxNearbyZoneRadiusMeters} m`}</FactChip>
+                  <FactChip glyph="archive">{`Attendance kept ≤ ${config.maxAttendanceRetentionDays} days`}</FactChip>
+                </div>
+              </div>
+              <div>
+                <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Emails</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {[
+                    { label: "Payment", on: config.sendPaymentEmails },
+                    { label: "Notice", on: config.sendNoticeEmails },
+                    { label: "Complaint", on: config.sendComplaintEmails },
+                  ].map((item) => (
+                    <FactChip glyph={item.on ? "mail" : "mail-x"} key={item.label} tone={item.on ? "brand" : "neutral"}>
+                      {`${item.label} ${item.on ? "on" : "off"}`}
+                    </FactChip>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {pendingQrChange ? (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-warning/40 bg-warning/10 px-3 py-2 text-[13.5px]">
+              <p className="text-foreground">
+                The QR change waits for the confirm link sent to{" "}
+                <span className="font-semibold">{pendingQrChange.sentTo}</span>.
+              </p>
+              <button
+                className="rounded-lg border border-border px-3 py-1.5 text-[12.5px] font-semibold text-foreground transition hover:bg-muted disabled:opacity-60"
+                disabled={busy}
+                onClick={() => void cancelQrChange()}
+                type="button"
+              >
+                Cancel change
+              </button>
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
+      <Dialog onOpenChange={setEditing} open={editing && config !== null}>
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Operations configuration</DialogTitle>
+            <DialogDescription>How activation, payments, complaints and attendance behave, not what the site says.</DialogDescription>
+          </DialogHeader>
+      {config ? (
         <form className="grid gap-4" key={JSON.stringify(config)} onSubmit={handleSubmit}>
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
             <Input
               defaultValue={config.qrActivationExpiryDays}
-              hint="Days a resident activation code stays valid."
+              hint="How long an activation code stays valid."
               label="QR activation expiry (days)"
               min="1"
               name="qrActivationExpiryDays"
@@ -265,7 +362,7 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
             />
             <Input
               defaultValue={config.paymentReminderDaysBefore}
-              hint="How early the reminder cron emails a due payment."
+              hint="How early a due payment is emailed."
               label="Payment reminder lead (days)"
               min="0"
               name="paymentReminderDaysBefore"
@@ -281,7 +378,7 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
             */}
             <Input
               defaultValue={config.subscriptionDueGraceDays}
-              hint="Days an owner has to pay a plan invoice once it is raised."
+              hint="Days to pay a plan invoice once raised."
               label="Plan payment window (days)"
               max="180"
               min="1"
@@ -291,7 +388,7 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
             />
             <Input
               defaultValue={config.trialDays}
-              hint="Free days a newly registered hostel gets before it pays monthly or the lifetime deal. Hostels already on a trial keep theirs."
+              hint="For new hostels; running trials keep theirs."
               label="Free trial (days)"
               max="90"
               min="1"
@@ -301,7 +398,7 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
             />
             <Input
               defaultValue={config.complaintSlaHours}
-              hint="Response window every complaint is measured against."
+              hint="Every complaint is measured against it."
               label="Complaint SLA (hours)"
               min="1"
               name="complaintSlaHours"
@@ -310,14 +407,14 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
             />
             <Input
               defaultValue={config.receiptNumberPrefix}
-              hint="Leading text on generated receipt numbers."
+              hint="Leads every receipt number."
               label="Receipt prefix"
               name="receiptNumberPrefix"
               required
             />
             <Input
               defaultValue={config.foodReadyCooldownMinutes}
-              hint="Blast-radius limit on a shared cook login."
+              hint="Limits a shared cook login."
               label="Food-ready cooldown (minutes)"
               min="0"
               name="foodReadyCooldownMinutes"
@@ -326,13 +423,12 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
             />
           </div>
 
-          <fieldset className="grid gap-4 rounded-lg border border-border p-3 sm:grid-cols-3">
+          <fieldset className="grid gap-4 rounded-xl border border-border p-3 sm:grid-cols-3">
             <legend className="px-1 text-xs font-semibold text-muted-foreground">
               Limits hostels tune within
             </legend>
             <Input
               defaultValue={config.maxInsideZoneRadiusMeters}
-              hint="Ceiling on a hostel's inside-zone radius."
               label="Max inside radius (m)"
               min="10"
               name="maxInsideZoneRadiusMeters"
@@ -341,7 +437,6 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
             />
             <Input
               defaultValue={config.maxNearbyZoneRadiusMeters}
-              hint="Ceiling on a hostel's nearby-zone radius."
               label="Max nearby radius (m)"
               min="20"
               name="maxNearbyZoneRadiusMeters"
@@ -350,7 +445,6 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
             />
             <Input
               defaultValue={config.maxAttendanceRetentionDays}
-              hint="Longest a hostel may keep raw attendance logs."
               label="Max attendance retention (days)"
               min="30"
               name="maxAttendanceRetentionDays"
@@ -358,24 +452,6 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
               type="number"
             />
           </fieldset>
-
-          {pendingQrChange ? (
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-warning/40 bg-warning/10 px-3 py-2 text-sm">
-              <p className="text-foreground">
-                A QR change is waiting for the confirm link sent to{" "}
-                <span className="font-semibold">{pendingQrChange.sentTo}</span>. It is not live
-                until you open that link.
-              </p>
-              <button
-                className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold text-foreground transition hover:bg-muted disabled:opacity-60"
-                disabled={busy}
-                onClick={() => void cancelQrChange()}
-                type="button"
-              >
-                Cancel change
-              </button>
-            </div>
-          ) : null}
 
           <CollectionQrField
             defaultLabel={config.collectionQrLabel}
@@ -414,7 +490,7 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
               {message}
             </p>
             <button
-              className="inline-flex items-center gap-2 rounded-md bg-role-platform px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-platform disabled:opacity-60"
+              className="inline-flex items-center gap-2 rounded-xl bg-brand-teal px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-platform disabled:opacity-60"
               disabled={busy}
               type="submit"
             >
@@ -424,6 +500,8 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
           </div>
         </form>
       ) : null}
+        </DialogContent>
+      </Dialog>
     </Panel>
   );
 });

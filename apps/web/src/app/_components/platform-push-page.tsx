@@ -1,15 +1,24 @@
 "use client";
 
-import { Bell, CalendarClock, Pause, Play, Send, Siren, X } from "@/components/icons";
+import { Bell, CalendarClock, Pause, Play, Repeat as Repeat2, Send, Siren, Smartphone, X } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";
+import { Message } from "@/app/_components/core-portal-shared";
+import { FactChip } from "@/app/_components/platform-page-ui";
 import {
+  MetricCard,
   PortalPageHeader,
   RoleButton,
-  SectionCard,
 } from "@/app/_components/portal-dashboard-ui";
-import { EmptyState, Input, LoadingRows, Select, TextArea } from "@/app/_components/shared-ui";
+import { EmptyState, Input, LoadingRows, Panel, Select, TextArea } from "@/app/_components/shared-ui";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { usePortalResource } from "@/lib/portal-query";
 import { cn } from "@/lib/utils";
@@ -154,6 +163,7 @@ export const PlatformPushPageContent = memo(function PlatformPushPageContent() {
   const [endsOn, setEndsOn] = useState("");
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [composing, setComposing] = useState(false);
 
   const resource = usePortalResource<{
     automatic: ScheduleRecord[];
@@ -223,6 +233,7 @@ export const PlatformPushPageContent = memo(function PlatformPushPageContent() {
         setTitle("");
         setBody("");
         setUrgency("NORMAL");
+        setComposing(false);
         await resource.refreshAsync();
       } catch (error) {
         setMessage(error instanceof Error ? error.message : "Could not send the push.");
@@ -260,16 +271,51 @@ export const PlatformPushPageContent = memo(function PlatformPushPageContent() {
     [confirm, resource],
   );
 
+  const reached = pushes.reduce((sum, push) => sum + push.devices, 0);
+  const pausedAutomatic = automatic.filter((schedule) => schedule.status === "PAUSED").length;
+
   return (
     <div className="mx-auto max-w-[1448px] space-y-5">
       {confirmDialog}
       <PortalPageHeader
-        description="Goes to the app on phones and to browsers with notifications on. Times are Nepal time."
+        actions={
+          <RoleButton
+            onClick={() => {
+              setMessage("");
+              setComposing(true);
+            }}
+            type="button"
+          >
+            <Send className="size-3.5" />
+            New push
+          </RoleButton>
+        }
+        description="To phones with the app and browsers with notifications on, in Nepal time."
         title="Push Notification"
       />
+      <Message value={composing ? "" : message} />
 
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <SectionCard title="Compose">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          icon={Repeat2}
+          label="Automatic"
+          note={pausedAutomatic > 0 ? `${pausedAutomatic} paused` : undefined}
+          noteTone="amber"
+          value={automatic.length}
+        />
+        <MetricCard icon={CalendarClock} label="Scheduled" value={schedules.length} />
+        <MetricCard icon={Send} label="Sent" value={pushes.length} />
+        <MetricCard icon={Smartphone} label="Devices reached" value={reached.toLocaleString()} />
+      </div>
+
+      <Dialog onOpenChange={setComposing} open={composing}>
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>New push</DialogTitle>
+            <DialogDescription>Times are Nepal time.</DialogDescription>
+          </DialogHeader>
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <div>
           <form className="grid gap-4" onSubmit={handleSubmit}>
             <Input
               label="Heading"
@@ -317,7 +363,7 @@ export const PlatformPushPageContent = memo(function PlatformPushPageContent() {
               </Select>
             </div>
 
-            <div className="grid gap-3 rounded-lg border border-border p-3">
+            <div className="grid gap-3 rounded-xl border border-border p-3">
               <div className="grid gap-2 text-sm font-semibold text-foreground">
                 When
                 <Segmented
@@ -405,9 +451,10 @@ export const PlatformPushPageContent = memo(function PlatformPushPageContent() {
               </RoleButton>
             </div>
           </form>
-        </SectionCard>
+        </div>
 
-        <SectionCard title="Preview">
+        <div className="space-y-2">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Preview</p>
           <div className="rounded-2xl border border-border bg-card p-3 shadow-sm">
             <div className="flex items-start gap-3">
               <span
@@ -432,10 +479,12 @@ export const PlatformPushPageContent = memo(function PlatformPushPageContent() {
               </div>
             </div>
           </div>
-        </SectionCard>
+        </div>
       </div>
+        </DialogContent>
+      </Dialog>
 
-      <SectionCard title="Automatic">
+      <Panel title="Automatic">
         {resource.state === "loading" ? <LoadingRows /> : null}
         <div className="divide-y divide-border">
           {automatic.map((schedule) => (
@@ -443,20 +492,22 @@ export const PlatformPushPageContent = memo(function PlatformPushPageContent() {
               className="flex flex-wrap items-start justify-between gap-3 py-3"
               key={schedule.id}
             >
-              <div className="min-w-0 max-w-3xl">
-                <p className="font-semibold text-foreground">{schedule.title}</p>
-                <p className="mt-0.5 text-[13px] text-muted-foreground">{schedule.body}</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {describeSchedule(schedule)} ·{" "}
-                  {schedule.status === "PAUSED"
-                    ? "Paused"
-                    : schedule.nextRunAt
-                      ? `Next ${nepalDateTime(schedule.nextRunAt)}`
-                      : ""}
-                  {schedule.lastRunAt
-                    ? ` · last ${nepalDateTime(schedule.lastRunAt)} to ${schedule.lastRecipients} account(s), ${schedule.lastDevices} device(s)`
-                    : ""}
-                </p>
+              <div className="min-w-0 max-w-3xl space-y-1.5">
+                <p className="text-[13.5px] font-semibold text-foreground">{schedule.title}</p>
+                <p className="line-clamp-1 text-[13px] text-muted-foreground">{schedule.body}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <FactChip glyph="repeat">{describeSchedule(schedule)}</FactChip>
+                  {schedule.status === "PAUSED" ? (
+                    <FactChip glyph="pause" tone="amber">Paused</FactChip>
+                  ) : schedule.nextRunAt ? (
+                    <FactChip glyph="time" tone="brand">{`Next ${nepalDateTime(schedule.nextRunAt)}`}</FactChip>
+                  ) : null}
+                  {schedule.lastRunAt ? (
+                    <FactChip glyph="phone-portrait">
+                      {`Last ${nepalDateTime(schedule.lastRunAt)} · ${schedule.lastRecipients} accounts · ${schedule.lastDevices} devices`}
+                    </FactChip>
+                  ) : null}
+                </div>
               </div>
               <RoleButton
                 onClick={() =>
@@ -475,9 +526,9 @@ export const PlatformPushPageContent = memo(function PlatformPushPageContent() {
             </div>
           ))}
         </div>
-      </SectionCard>
+      </Panel>
 
-      <SectionCard title="Scheduled">
+      <Panel title="Scheduled">
         {resource.state === "loading" ? <LoadingRows /> : null}
         {resource.state !== "loading" && schedules.length === 0 ? (
           <EmptyState label="Nothing scheduled." />
@@ -488,8 +539,8 @@ export const PlatformPushPageContent = memo(function PlatformPushPageContent() {
               className="flex flex-wrap items-start justify-between gap-3 py-3"
               key={schedule.id}
             >
-              <div className="min-w-0">
-                <p className="font-semibold text-foreground">
+              <div className="min-w-0 space-y-1.5">
+                <p className="text-[13.5px] font-semibold text-foreground">
                   {schedule.title}
                   {schedule.urgency === "URGENT" ? (
                     <span className="ml-2 rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive">
@@ -497,17 +548,16 @@ export const PlatformPushPageContent = memo(function PlatformPushPageContent() {
                     </span>
                   ) : null}
                 </p>
-                <p className="mt-0.5 text-[13px] text-muted-foreground">
-                  {describeSchedule(schedule)} · {AUDIENCE_LABEL[schedule.audience]}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {schedule.status === "PAUSED"
-                    ? "Paused"
-                    : schedule.nextRunAt
-                      ? `Next ${nepalDateTime(schedule.nextRunAt)}`
-                      : ""}
-                  {schedule.runCount > 0 ? ` · sent ${schedule.runCount} time(s)` : ""}
-                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  <FactChip glyph="repeat">{describeSchedule(schedule)}</FactChip>
+                  <FactChip glyph="people">{AUDIENCE_LABEL[schedule.audience] ?? schedule.audience}</FactChip>
+                  {schedule.status === "PAUSED" ? (
+                    <FactChip glyph="pause" tone="amber">Paused</FactChip>
+                  ) : schedule.nextRunAt ? (
+                    <FactChip glyph="time" tone="brand">{`Next ${nepalDateTime(schedule.nextRunAt)}`}</FactChip>
+                  ) : null}
+                  {schedule.runCount > 0 ? <FactChip glyph="send">{`Sent ${schedule.runCount}×`}</FactChip> : null}
+                </div>
               </div>
               <div className="flex gap-1.5">
                 {schedule.repeat === "ONCE" ? null : (
@@ -538,25 +588,24 @@ export const PlatformPushPageContent = memo(function PlatformPushPageContent() {
             </div>
           ))}
         </div>
-      </SectionCard>
+      </Panel>
 
-      <SectionCard title="Sent">
+      <Panel title="Sent">
         {resource.state !== "loading" && pushes.length === 0 ? (
           <EmptyState label="No push notifications sent yet." />
         ) : null}
         <div className="divide-y divide-border">
           {pushes.map((push) => (
             <div className="flex flex-wrap items-start justify-between gap-3 py-3" key={push.id}>
-              <div className="min-w-0">
-                <p className="font-semibold text-foreground">{push.title}</p>
-                <p className="mt-0.5 line-clamp-2 text-[13px] text-muted-foreground">
-                  {push.body}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {nepalDateTime(push.sentAt)} · {AUDIENCE_LABEL[push.audience] ?? push.audience}
-                  {push.scheduled ? " · scheduled" : ""} · {push.recipients} account(s) ·{" "}
-                  {push.devices} device(s)
-                </p>
+              <div className="min-w-0 space-y-1.5">
+                <p className="text-[13.5px] font-semibold text-foreground">{push.title}</p>
+                <p className="line-clamp-1 text-[13px] text-muted-foreground">{push.body}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  <FactChip glyph="time">{nepalDateTime(push.sentAt)}</FactChip>
+                  <FactChip glyph="people">{AUDIENCE_LABEL[push.audience] ?? push.audience}</FactChip>
+                  <FactChip glyph="phone-portrait">{`${push.recipients} accounts · ${push.devices} devices`}</FactChip>
+                  {push.scheduled ? <FactChip glyph="calendar-clock">Scheduled</FactChip> : null}
+                </div>
               </div>
               {push.urgency === "URGENT" ? (
                 <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-[11px] font-semibold text-destructive">
@@ -566,7 +615,7 @@ export const PlatformPushPageContent = memo(function PlatformPushPageContent() {
             </div>
           ))}
         </div>
-      </SectionCard>
+      </Panel>
     </div>
   );
 });

@@ -2,13 +2,13 @@
 
 import {
   Loader2,
+  Mail,
   MailX,
   MoreHorizontal,
   PauseCircle,
   PlayCircle,
   Trash2,
   UserMinus,
-  Users,
 } from "@/components/icons";
 import { useState } from "react";
 
@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { browserApi } from "@/lib/browser-api";
 import { cn } from "@/lib/utils";
+import { InitialsAvatar } from "./portal-dashboard-ui";
+import { EmptyState, Panel } from "./shared-ui";
 import { toast } from "@/stores/toast-store";
 import { useConfirm } from "./confirm-dialog";
 import {
@@ -71,7 +73,7 @@ type Props = {
 
 function statusTone(status: string) {
   if (status === "ACTIVE") {
-    return "bg-success/10 text-success";
+    return "bg-role-team-soft text-role-team";
   }
 
   if (status === "SUSPENDED") {
@@ -285,19 +287,20 @@ function PendingInvites({
   }
 
   return (
-    <div className="border-t border-border">
-      <div className="px-5 py-3">
-        <h3 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          Invited, not yet accepted ({invites.length})
-        </h3>
-      </div>
+    <div className="mt-4 border-t border-border pt-3">
+      <h3 className="px-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+        Invited, not yet accepted · {invites.length}
+      </h3>
 
       <ul className="divide-y divide-border">
         {invites.map((invite) => (
           <li
-            className="flex flex-wrap items-center gap-3 px-5 py-3 text-sm"
+            className="flex flex-wrap items-center gap-3 px-1 py-2.5 text-[13px]"
             key={invite.id}
           >
+            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <Mail className="size-4" />
+            </span>
             <div className="min-w-0 flex-1">
               <p className="truncate font-semibold text-foreground">
                 {invite.name || invite.email}
@@ -340,42 +343,31 @@ function PendingInvites({
 
 export function TeamMembersTable({ invites, loading, members, onChanged }: Props) {
   return (
-    <div className="app-card overflow-hidden">
-      <div className="border-b border-border px-5 py-3">
-        <h2 className="text-sm font-bold text-foreground">
-          Members{members.length > 0 ? ` (${members.length})` : ""}
-        </h2>
-      </div>
-
+    <Panel title="Members">
       {loading ? (
-        <div className="space-y-2 p-5">
+        <div className="space-y-2">
           {[0, 1].map((row) => (
             <div className="h-9 animate-pulse rounded bg-muted" key={row} />
           ))}
         </div>
       ) : members.length === 0 ? (
-        <div className="p-8 text-center">
-          <Users className="mx-auto size-7 text-muted-foreground/40" />
-          <p className="mt-2 text-sm text-muted-foreground">
-            Nobody has accepted a team invitation yet.
-          </p>
-        </div>
+        <EmptyState label="Nobody has accepted a team invitation yet." />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[720px] text-sm">
+          <table className="w-full min-w-[720px] text-[13px]">
             <thead>
               <tr className="border-b border-border text-left">
                 {["Member", "Hostels", "Cash collected", "Joined", "Status"].map(
                   (heading) => (
                     <th
-                      className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                      className="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-muted-foreground"
                       key={heading}
                     >
                       {heading}
                     </th>
                   ),
                 )}
-                <th className="px-4 py-2.5">
+                <th className="px-3 py-2.5">
                   <span className="sr-only">Actions</span>
                 </th>
               </tr>
@@ -383,28 +375,30 @@ export function TeamMembersTable({ invites, loading, members, onChanged }: Props
             <tbody className="divide-y divide-border">
               {members.map((member) => (
                 <tr key={member.id}>
-                  <td className="px-4 py-3">
-                    <p className="font-semibold text-foreground">{member.name}</p>
-                    <p className="text-xs text-muted-foreground">{member.email}</p>
-                    {member.previousRole ? (
-                      <p className="mt-0.5 text-[11px] text-muted-foreground">
-                        Was a{" "}
-                        {ROLE_LABELS[member.previousRole] ??
-                          member.previousRole.toLowerCase()}{" "}
-                        before joining
-                      </p>
-                    ) : null}
+                  <td className="px-3 py-3">
+                    <div className="flex items-center gap-2.5">
+                      <InitialsAvatar name={member.name} size="sm" tone="team" />
+                      <div className="min-w-0">
+                        <p className="truncate text-[13.5px] font-semibold text-foreground">{member.name}</p>
+                        <p className="truncate text-[12px] text-muted-foreground">
+                          {member.email}
+                          {member.previousRole
+                            ? ` · was a ${ROLE_LABELS[member.previousRole] ?? member.previousRole.toLowerCase()}`
+                            : ""}
+                        </p>
+                      </div>
+                    </div>
                   </td>
-                  <td className="px-4 py-3 tabular-nums text-foreground">
+                  <td className="px-3 py-3 tabular-nums text-foreground">
                     {member.hostelsRegistered}
                   </td>
-                  <td className="px-4 py-3 font-semibold tabular-nums text-foreground">
+                  <td className="px-3 py-3 font-semibold tabular-nums text-foreground">
                     {rupees(member.cashCollected)}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-3 py-3 text-muted-foreground">
                     {shortDate(member.joinedAt)}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-3">
                     <span
                       className={cn(
                         "inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold",
@@ -414,7 +408,7 @@ export function TeamMembersTable({ invites, loading, members, onChanged }: Props
                       {member.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-3 py-3 text-right">
                     <MemberActions member={member} onChanged={onChanged} />
                   </td>
                 </tr>
@@ -425,6 +419,6 @@ export function TeamMembersTable({ invites, loading, members, onChanged }: Props
       )}
 
       <PendingInvites invites={invites} onChanged={onChanged} />
-    </div>
+    </Panel>
   );
 }

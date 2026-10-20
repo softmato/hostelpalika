@@ -1,20 +1,24 @@
 "use client";
 
-import { Banknote, PackageCheck, Truck } from "@/components/icons";
+import { Banknote, PackageCheck, ShoppingBag, Truck } from "@/components/icons";
+import Link from "next/link";
 import { memo, useCallback, useMemo, useState } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import {
   MetricCard,
   PortalPageHeader,
+  RoleButton,
   SoftBadge,
   TabBar,
-  ViewAllLink,
 } from "@/app/_components/portal-dashboard-ui";
 import { EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
+import { Button } from "@/components/ui/button";
 import { browserApi } from "@/lib/browser-api";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { Message } from "./core-portal-shared";
+import { FactChip, WalletChip } from "./platform-page-ui";
+import { walletLabel } from "@/components/wallet-mark";
 
 const ORDERS_ENDPOINT = "/api/v1/platform/store/orders";
 
@@ -99,6 +103,9 @@ function formatPaisa(paisa: number) {
   }).format(paisa / 100);
 }
 
+/** The road an order travels, drawn as a stepped bar on each card. */
+const STEPS: OrderStatus[] = ["PLACED", "CONFIRMED", "PACKED", "SHIPPED", "DELIVERED"];
+
 const STATUS_TONE: Record<OrderStatus, "amber" | "green" | "rose" | "slate"> = {
   CANCELLED: "rose",
   CONFIRMED: "amber",
@@ -179,7 +186,15 @@ export const PlatformStoreOrdersPageContent = memo(
       <div className="mx-auto max-w-[1448px] space-y-5">
         {confirmDialog}
         <PortalPageHeader
-          description="Supply orders placed by hostels. Cash on delivery — marking an order delivered is what records it as paid."
+          actions={
+            <RoleButton asChild variant="outline">
+              <Link href="/platform/store">
+                <ShoppingBag className="size-3.5" />
+                Catalogue
+              </Link>
+            </RoleButton>
+          }
+          description="Cash on delivery: marking an order delivered records it as paid."
           title="Store Orders"
         />
         <Message value={message || resource.message} />
@@ -192,30 +207,22 @@ export const PlatformStoreOrdersPageContent = memo(
               tone={summary.open > 0 ? "amber" : "slate"}
               value={summary.open}
             />
-            <MetricCard icon={PackageCheck} label="Orders (this view)" value={summary.total} />
-            <MetricCard
-              icon={Banknote}
-              label="Collected on delivery"
-              tone="green"
-              value={formatPaisa(summary.deliveredRevenue)}
-            />
+            <MetricCard icon={PackageCheck} label="Orders in view" value={summary.total} />
+            <MetricCard icon={Banknote} label="Collected on delivery" value={formatPaisa(summary.deliveredRevenue)} />
           </div>
         ) : null}
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <TabBar
-            onChange={(key) => setFilter(key as typeof filter)}
-            tabs={[
-              { key: "open", label: "To fulfil" },
-              { key: "DELIVERED", label: "Delivered" },
-              { key: "CANCELLED", label: "Cancelled" },
-              { key: "all", label: "All" },
-            ]}
-            tone="platform"
-            value={filter}
-          />
-          <ViewAllLink href="/platform/store" label="Catalogue" />
-        </div>
+        <TabBar
+          onChange={(key) => setFilter(key as typeof filter)}
+          tabs={[
+            { key: "open", label: "To fulfil" },
+            { key: "DELIVERED", label: "Delivered" },
+            { key: "CANCELLED", label: "Cancelled" },
+            { key: "all", label: "All" },
+          ]}
+          tone="platform"
+          value={filter}
+        />
 
         <Panel title="Orders">
           {resource.state === "loading" ? <LoadingRows /> : null}
@@ -232,29 +239,29 @@ export const PlatformStoreOrdersPageContent = memo(
           <div className="space-y-3">
             {orders.map((order) => {
               const isOpen = expanded === order.id;
+              const reached = STEPS.indexOf(order.status);
 
               return (
-                <div className="rounded-lg border border-border p-4" key={order.id}>
+                <div className="rounded-2xl border border-border/70 bg-card p-4" key={order.id}>
                   <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold text-foreground">
+                    <div className="min-w-0 space-y-2">
+                      <p className="truncate text-[13.5px] font-semibold text-foreground">
                         {order.orderNumber}
                         <span className="ml-2 font-normal text-muted-foreground">
                           {order.hostelName}
                         </span>
                       </p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {order.itemCount} {order.itemCount === 1 ? "item" : "items"} ·{" "}
-                        {formatPaisa(order.total)} · {order.paymentMethod}
-                        {order.createdAt
-                          ? ` · ${new Date(order.createdAt).toLocaleString()}`
-                          : ""}
-                      </p>
-                      <p className="mt-1 truncate text-[11px] text-muted-foreground">
-                        {order.delivery.contactName} · {order.delivery.phone} ·{" "}
-                        {order.delivery.addressLine}
-                        {order.delivery.city ? `, ${order.delivery.city}` : ""}
-                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        <FactChip glyph="cube">{`${order.itemCount} ${order.itemCount === 1 ? "item" : "items"}`}</FactChip>
+                        <FactChip glyph="cash">{formatPaisa(order.total)}</FactChip>
+                        <WalletChip name={order.paymentMethod}>{walletLabel(order.paymentMethod)}</WalletChip>
+                        {order.createdAt ? (
+                          <FactChip glyph="time">{new Date(order.createdAt).toLocaleString()}</FactChip>
+                        ) : null}
+                        <FactChip glyph="location">
+                          {`${order.delivery.contactName} · ${order.delivery.phone} · ${order.delivery.addressLine}${order.delivery.city ? `, ${order.delivery.city}` : ""}`}
+                        </FactChip>
+                      </div>
                     </div>
                     <div className="flex flex-wrap items-center gap-2">
                       <SoftBadge tone={STATUS_TONE[order.status]}>
@@ -266,28 +273,60 @@ export const PlatformStoreOrdersPageContent = memo(
                     </div>
                   </div>
 
+                  {/* Where the order is on its road; a cancelled one has no step. */}
+                  {order.status === "CANCELLED" ? null : (
+                    <div className="mt-3 grid grid-cols-5 gap-1.5">
+                      {STEPS.map((step, index) => (
+                        <div key={step}>
+                          <div className={index <= reached ? "h-1.5 rounded-full bg-brand-teal" : "h-1.5 rounded-full bg-muted"} />
+                          <p
+                            className={
+                              index <= reached
+                                ? "mt-1 text-[10.5px] font-semibold uppercase tracking-wide text-foreground"
+                                : "mt-1 text-[10.5px] font-semibold uppercase tracking-wide text-muted-foreground"
+                            }
+                          >
+                            {step.charAt(0) + step.slice(1).toLowerCase()}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {(NEXT_STATUSES[order.status] ?? []).map((next) => (
-                      <button
-                        className={
-                          next.value === "CANCELLED"
-                            ? "rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-destructive transition hover:bg-destructive/10"
-                            : "rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted"
-                        }
-                        key={next.value}
-                        onClick={() => void move(order, next.value, next.label)}
-                        type="button"
-                      >
-                        {next.label}
-                      </button>
-                    ))}
-                    <button
-                      className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground transition hover:bg-muted"
+                    {(NEXT_STATUSES[order.status] ?? []).map((next) =>
+                      next.value === "CANCELLED" ? (
+                        <Button
+                          className="text-muted-foreground hover:text-destructive"
+                          key={next.value}
+                          onClick={() => void move(order, next.value, next.label)}
+                          size="sm"
+                          type="button"
+                          variant="ghost"
+                        >
+                          {next.label}
+                        </Button>
+                      ) : (
+                        <Button
+                          key={next.value}
+                          onClick={() => void move(order, next.value, next.label)}
+                          size="sm"
+                          type="button"
+                          variant="outline"
+                        >
+                          {next.label}
+                        </Button>
+                      ),
+                    )}
+                    <Button
+                      className="ml-auto"
                       onClick={() => setExpanded(isOpen ? null : order.id)}
+                      size="sm"
                       type="button"
+                      variant="ghost"
                     >
                       {isOpen ? "Hide detail" : "Show detail"}
-                    </button>
+                    </Button>
                   </div>
 
                   {isOpen ? (

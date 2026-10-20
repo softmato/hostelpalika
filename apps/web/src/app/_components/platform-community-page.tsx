@@ -14,7 +14,7 @@ export const PlatformCommunityPageContent = memo(function PlatformCommunityPageC
   return (
     <div className="mx-auto max-w-[1448px] space-y-5">
       <PortalPageHeader
-        description="Reported posts across every community space, including the public space that belongs to no hostel."
+        description="Reported posts from every community space."
         title="Community Reports"
       />
       <CommunityModerationPanel endpoint="/api/v1/platform/community" tone="platform" />

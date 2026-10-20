@@ -97,7 +97,7 @@ export const PlatformConfigSeoPageContent = memo(function PlatformConfigSeoPageC
   return (
     <ConfigPage
       breadcrumb={["Home", "Website Config", "SEO"]}
-      description="What Google and Bing show for every page, and the pages written for people searching for hostels and hostel software."
+      description="What search engines show, and the pages written for people searching for us."
       error={error}
       message={message}
       state={state}
@@ -140,7 +140,7 @@ export const PlatformConfigSeoPageContent = memo(function PlatformConfigSeoPageC
 
       <ConfigCard
         {...card}
-        description={`The title and description shown in search results. Blank uses the shipped text. ${FILL_HINT}`}
+        description={`Title and description in search results; blank uses the shipped text. ${FILL_HINT}`}
         title="Page Titles & Descriptions"
       >
         <div className="space-y-3">
@@ -184,7 +184,7 @@ export const PlatformConfigSeoPageContent = memo(function PlatformConfigSeoPageC
 
       <ConfigCard
         {...card}
-        description={`/hostel-management-software — the page for owners searching for hostel software. ${FILL_HINT}`}
+        description={`/hostel-management-software, for owners searching for hostel software. ${FILL_HINT}`}
         title="Hostel Management Software Page"
       >
         <TextField
@@ -271,7 +271,7 @@ export const PlatformConfigSeoPageContent = memo(function PlatformConfigSeoPageC
 
       <ConfigCard
         {...card}
-        description={`/features/[slug] — one page per plan module, named the way owners search. Module ids: ${moduleIds.join(", ")}.`}
+        description={`/features/[slug], one page per plan module. Module ids: ${moduleIds.join(", ")}.`}
         title="Feature Pages"
       >
         <Repeater<SeoModulePage>
@@ -328,7 +328,7 @@ export const PlatformConfigSeoPageContent = memo(function PlatformConfigSeoPageC
 
       <ConfigCard
         {...card}
-        description={`/vs/[slug] — honest comparisons with how hostels run today. ${FILL_HINT}`}
+        description={`/vs/[slug], comparisons with how hostels run today. ${FILL_HINT}`}
         title="Comparison Pages"
       >
         <Repeater<SeoComparison>

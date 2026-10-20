@@ -64,7 +64,7 @@ export const PlatformConfigFeaturesPageContent = memo(
     return (
       <ConfigPage
         breadcrumb={["Home", "Website Config", "Feature Flags"]}
-        description="Kill switches for public surfaces. Changes take effect on the public site within a minute — no redeploy needed."
+        description="Kill switches for public surfaces; changes reach the site within a minute."
         error={error}
         message={message}
         state={state}

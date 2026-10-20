@@ -12,8 +12,17 @@ import {
   StatusBadge,
   TextArea,
 } from "@/app/_components/shared-ui";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { usePortalResource } from "@/lib/portal-query";
+import { ShareBar } from "./platform-page-ui";
 import { field, optionalField } from "./portal-shared";
 
 type Campaign = {
@@ -52,6 +61,7 @@ function shortDateTime(value?: string) {
 export const PlatformBroadcastPanel = memo(function PlatformBroadcastPanel() {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [composing, setComposing] = useState(false);
   const [scope, setScope] = useState("ALL");
   const [hostelIds, setHostelIds] = useState<string[]>([]);
 
@@ -98,6 +108,7 @@ export const PlatformBroadcastPanel = memo(function PlatformBroadcastPanel() {
         formElement.reset();
         setScope("ALL");
         setHostelIds([]);
+        setComposing(false);
         await campaignsResource.refreshAsync();
       } catch (error) {
         setMessage(
@@ -111,7 +122,31 @@ export const PlatformBroadcastPanel = memo(function PlatformBroadcastPanel() {
   );
 
   return (
-    <Panel title="Platform announcements">
+    <Panel
+      action={
+        <Button
+          onClick={() => {
+            setMessage("");
+            setComposing(true);
+          }}
+          size="sm"
+          type="button"
+          variant="outline"
+        >
+          <Megaphone className="size-3.5" />
+          New announcement
+        </Button>
+      }
+      title="Platform announcements"
+    >
+      {message && !composing ? <p className="mb-3 text-[12.5px] text-muted-foreground">{message}</p> : null}
+
+      <Dialog onOpenChange={setComposing} open={composing}>
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>New announcement</DialogTitle>
+            <DialogDescription>To every resident of the hostels you pick; empty schedule sends now.</DialogDescription>
+          </DialogHeader>
       <form className="grid gap-4" onSubmit={handleSubmit}>
         <div className="grid gap-4 sm:grid-cols-2">
           <Input label="Title" name="title" required />
@@ -143,7 +178,7 @@ export const PlatformBroadcastPanel = memo(function PlatformBroadcastPanel() {
         </div>
 
         {scope === "SPECIFIC" ? (
-          <fieldset className="rounded-lg border border-border p-3">
+          <fieldset className="rounded-xl border border-border p-3">
             <legend className="px-1 text-xs font-semibold text-muted-foreground">
               Hostels ({hostelIds.length} selected)
             </legend>
@@ -180,7 +215,7 @@ export const PlatformBroadcastPanel = memo(function PlatformBroadcastPanel() {
             {message}
           </p>
           <button
-            className="inline-flex items-center gap-2 rounded-md bg-role-platform px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-platform disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-xl bg-brand-teal px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-platform disabled:opacity-60"
             disabled={busy}
             type="submit"
           >
@@ -189,27 +224,31 @@ export const PlatformBroadcastPanel = memo(function PlatformBroadcastPanel() {
           </button>
         </div>
       </form>
+        </DialogContent>
+      </Dialog>
 
-      <div className="mt-5 border-t border-border pt-4">
+      <div>
         {campaignsResource.state === "loading" ? <LoadingRows /> : null}
         {campaignsResource.state !== "loading" && campaigns.length === 0 ? (
           <EmptyState label="No platform announcements sent yet." />
         ) : null}
         <div className="space-y-3">
           {campaigns.map((campaign) => (
-            <div className="rounded-lg border border-border p-3.5" key={campaign.id}>
+            <div className="space-y-2.5 rounded-xl border border-border/70 p-3.5" key={campaign.id}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-semibold text-foreground">{campaign.title}</p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="text-[13.5px] font-semibold text-foreground">{campaign.title}</p>
+                  <p className="text-[12px] text-muted-foreground">
                     {campaign.status === "SCHEDULED"
-                      ? `scheduled ${shortDateTime(campaign.scheduledFor)}`
-                      : `sent ${shortDateTime(campaign.sentAt)}`}{" "}
-                    · {campaign.stats.read} of {campaign.stats.sent} read
+                      ? `Scheduled ${shortDateTime(campaign.scheduledFor)}`
+                      : `Sent ${shortDateTime(campaign.sentAt)}`}
                   </p>
                 </div>
                 <StatusBadge>{campaign.status}</StatusBadge>
               </div>
+              {campaign.status === "SCHEDULED" ? null : (
+                <ShareBar label="read" part={campaign.stats.read} total={campaign.stats.sent} />
+              )}
             </div>
           ))}
         </div>

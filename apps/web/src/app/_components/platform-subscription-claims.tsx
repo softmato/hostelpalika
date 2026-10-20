@@ -57,11 +57,7 @@ export function SubscriptionClaimQueue({
 
   return (
     <div className="space-y-3">
-      <p className="text-[12px] leading-5 text-muted-foreground">
-        Hostels that paid us by QR and sent proof. Nothing here has moved a
-        balance yet — confirming one records the payment, issues the receipt and
-        clears the hostel&apos;s due.
-      </p>
+      <p className="text-[12.5px] text-muted-foreground">Confirming one records the payment, issues the receipt and clears the due.</p>
 
       {claims.map((claim) => (
         <ClaimCard claim={claim} key={claim.id} onReviewed={onReviewed} />

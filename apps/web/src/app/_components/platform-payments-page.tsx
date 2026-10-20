@@ -17,8 +17,6 @@ import { currency, EmptyState, LoadingRows, Panel } from "@/app/_components/shar
 import {
   DataTable,
   DetailField,
-  FilterBar,
-  FilterSelect,
   InitialsAvatar,
   ListPager,
   MetricCard,
@@ -35,9 +33,11 @@ import {
   Th,
   statusToneFromLabel,
 } from "@/app/_components/portal-dashboard-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
 import { Message } from "./core-portal-shared";
+import { MoneyHero, SplitBar } from "./platform-page-ui";
 
 type PlatformPayment = {
   dueAmount: number;
@@ -111,6 +111,8 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
   const { data, message, state } = payments;
   const [tab, setTab] = useState("ALL");
   const [query, setQuery] = useState("");
+  const [hostelFilter, setHostelFilter] = useState("");
+  const [monthFilter, setMonthFilter] = useState("");
   const [page, setPage] = useState(1);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
 
@@ -123,10 +125,19 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
 
     return recent.filter((payment) => {
       if (tab !== "ALL" && payment.status !== tab) return false;
+      if (hostelFilter && payment.hostelName !== hostelFilter) return false;
+      if (monthFilter && payment.month !== monthFilter) return false;
       if (!term) return true;
       return `${payment.hostelName} ${payment.month}`.toLowerCase().includes(term);
     });
-  }, [query, recent, tab]);
+  }, [hostelFilter, monthFilter, query, recent, tab]);
+
+  const hostelNames = useMemo(() => Array.from(new Set(recent.map((payment) => payment.hostelName))), [recent]);
+  const months = useMemo(() => Array.from(new Set(recent.map((payment) => payment.month))), [recent]);
+  const switchTab = (next: string) => {
+    setTab(next);
+    setPage(1);
+  };
 
   const paged = useMemo(
     () => rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
@@ -155,22 +166,21 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
                   { key: "dueDate", label: "Due date" },
                   { key: "id", label: "Reference" },
                 ], rows)}
-              tone="platform"
+              tone="team"
               variant="outline"
             >
               <Download className="size-3.5" />
               Export
             </RoleButton>
-            <RoleButton asChild tone="platform">
+            <RoleButton asChild tone="team">
               <Link href="/platform/transactions">
                 <ReceiptText className="size-3.5" />
-                View Ledger
+                Ledger
               </Link>
             </RoleButton>
           </>
         }
-        breadcrumb={["Home", "Fees & Payments", "Payments"]}
-        description="Platform-wide roll-up of resident payments recorded across every hostel."
+        description="Resident payments across every hostel."
         title="Payments"
       />
       <Message value={message} />
@@ -180,37 +190,53 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
 
       {state === "ready" ? (
         <>
+          <div className="grid gap-3 lg:grid-cols-[1.2fr_1fr]">
+            <MoneyHero
+              label="Collected"
+              note={`of ${currency(overview?.totalDue ?? 0)} billed · ${currency(overview?.outstanding ?? 0)} still owed`}
+              part={overview?.totalPaid ?? 0}
+              total={overview?.totalDue ?? 0}
+              value={currency(overview?.totalPaid ?? 0)}
+            />
+            <SplitBar
+              parts={[
+                { label: "Paid", tone: "brand", value: overview?.statusCounts.PAID ?? 0 },
+                { label: "Partial", tone: "amber", value: overview?.statusCounts.PARTIAL ?? 0 },
+                { label: "Unpaid", tone: "muted", value: overview?.statusCounts.UNPAID ?? 0 },
+                { label: "Overdue", tone: "rose", value: overview?.statusCounts.OVERDUE ?? 0 },
+              ]}
+              title="Bills by state"
+            />
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
+              active={tab === "PAID"}
               icon={WalletCards}
-              label="Total Collection"
-              note="Across all hostels"
-              noteTone="green"
-              tone="green"
+              label="Collected"
+              onClick={() => switchTab("PAID")}
               value={currency(overview?.totalPaid ?? 0)}
             />
             <MetricCard
+              active={tab === "UNPAID"}
               icon={FileText}
-              label="Due Amount"
-              note="Outstanding balance"
-              noteTone="amber"
-              tone="teal"
+              label="Still due"
+              onClick={() => switchTab("UNPAID")}
+              tone={(overview?.outstanding ?? 0) > 0 ? "amber" : "teal"}
               value={currency(overview?.outstanding ?? 0)}
             />
             <MetricCard
               icon={Clock3}
-              label="Pending Proofs"
-              note="Awaiting approval"
-              noteTone="amber"
-              tone="amber"
+              label="Proofs waiting"
+              tone={(overview?.pendingProofs ?? 0) > 0 ? "amber" : "teal"}
               value={overview?.pendingProofs ?? 0}
             />
             <MetricCard
+              active={tab === "OVERDUE"}
               icon={AlertTriangle}
               label="Overdue"
-              note="Needs follow-up"
-              noteTone="rose"
-              tone="rose"
+              onClick={() => switchTab("OVERDUE")}
+              tone={(overview?.statusCounts.OVERDUE ?? 0) > 0 ? "rose" : "teal"}
               value={overview?.statusCounts.OVERDUE ?? 0}
             />
           </div>
@@ -219,40 +245,48 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
             <Panel>
               <TabBar
                 className="mb-3"
-                onChange={(next) => {
-                  setTab(next);
-                  setPage(1);
-                }}
+                onChange={switchTab}
                 tabs={TABS.map((item) => ({ ...item, count: tabCount(item.key) }))}
                 value={tab}
               />
 
-              <FilterBar>
+              <div className="mb-3 flex flex-wrap items-center gap-2">
                 <SearchField
                   onChange={(next) => {
                     setQuery(next);
                     setPage(1);
                   }}
-                  placeholder="Search by hostel or month..."
+                  placeholder="Search hostel or month"
                   value={query}
                 />
-                <div className="flex flex-wrap gap-2">
-                  <FilterSelect
-                    defaultLabel="All Hostels"
-                    options={Array.from(
-                      new Set(recent.map((payment) => payment.hostelName)),
-                    )}
+                <FilterButton
+                  active={(hostelFilter ? 1 : 0) + (monthFilter ? 1 : 0)}
+                  onClear={() => {
+                    setHostelFilter("");
+                    setMonthFilter("");
+                    setPage(1);
+                  }}
+                >
+                  <FilterChoice
+                    label="Month"
+                    onChange={(next) => {
+                      setMonthFilter(next);
+                      setPage(1);
+                    }}
+                    options={[{ label: "All", value: "" }, ...months.map((month) => ({ label: month, value: month }))]}
+                    value={monthFilter}
                   />
-                  <FilterSelect
-                    defaultLabel="All Methods"
-                    options={["eSewa", "Khalti", "Fonepay", "Bank Transfer", "Cash"]}
+                  <FilterChoice
+                    label="Hostel"
+                    onChange={(next) => {
+                      setHostelFilter(next);
+                      setPage(1);
+                    }}
+                    options={[{ label: "All", value: "" }, ...hostelNames.map((name) => ({ label: name, value: name }))]}
+                    value={hostelFilter}
                   />
-                  <FilterSelect
-                    defaultLabel="All Months"
-                    options={Array.from(new Set(recent.map((payment) => payment.month)))}
-                  />
-                </div>
-              </FilterBar>
+                </FilterButton>
+              </div>
 
               {rows.length === 0 ? (
                 <EmptyState label="No payments in this view." />
@@ -274,7 +308,7 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
                         <TableRow
                           className={
                             payment.id === selectedPaymentId
-                              ? "bg-role-platform-soft/40"
+                              ? "bg-role-team-soft/60"
                               : "cursor-pointer"
                           }
                           key={payment.id}
@@ -285,9 +319,9 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
                               <InitialsAvatar
                                 name={payment.hostelName}
                                 size="sm"
-                                tone="platform"
+                                tone="team"
                               />
-                              <p className="truncate font-semibold text-foreground">
+                              <p className="truncate text-[13.5px] font-semibold text-foreground">
                                 {payment.hostelName}
                               </p>
                             </div>
@@ -326,11 +360,11 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
             <div className="space-y-4">
               <RailCard
                 action={
-                  <span className="text-[11px] font-semibold text-muted-foreground">
+                  <span className="text-[11.5px] font-semibold text-muted-foreground">
                     {overview?.pendingProofs ?? 0} pending
                   </span>
                 }
-                title={`Payment Proofs (${proofs.length})`}
+                title="Payment proofs"
               >
                 {proofs.length === 0 ? (
                   <p className="px-1 py-4 text-center text-[12px] text-muted-foreground">
@@ -339,20 +373,20 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
                 ) : (
                   proofs.map((proof) => (
                     <div
-                      className="flex items-start gap-2.5 rounded-lg border border-border/70 bg-muted/15 p-2"
+                      className="flex items-start gap-2.5 rounded-xl border border-border/70 p-2.5"
                       key={proof.id}
                     >
-                      <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-role-platform-soft text-role-platform">
+                      <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-role-team-soft text-role-team">
                         <ReceiptText className="size-4" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-[12px] font-semibold text-foreground">
+                        <p className="truncate text-[13px] font-semibold text-foreground">
                           {proof.hostelName}
                         </p>
-                        <p className="text-[10.5px] text-muted-foreground">
+                        <p className="text-[11.5px] text-muted-foreground">
                           {proof.month} · {currency(proof.amount)}
                         </p>
-                        <p className="text-[10.5px] text-muted-foreground">
+                        <p className="text-[11.5px] text-muted-foreground">
                           {proof.transactionCode ? `${proof.transactionCode} · ` : ""}
                           {relativeTime(proof.submittedAt)}
                         </p>
@@ -369,17 +403,14 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
                     </div>
                   ))
                 )}
-                <p className="px-1 pt-1 text-[10.5px] leading-4 text-muted-foreground">
-                  Proofs are approved by the hostel admin who owns the record — the
-                  platform view is read-only.
-                </p>
+                <p className="px-1 pt-1 text-[11.5px] text-muted-foreground">The hostel approves these; read only here.</p>
               </RailCard>
 
-              <RailCard title="Receipt Preview">
+              <RailCard title="Receipt">
                 {selectedPayment ? (
-                  <div className="space-y-1.5 rounded-lg border border-border/70 bg-muted/15 p-2.5">
+                  <div className="space-y-1.5 rounded-xl border border-border/70 p-2.5">
                     <div className="mb-1.5 flex items-center justify-between gap-2">
-                      <p className="truncate text-[12.5px] font-bold text-foreground">
+                      <p className="truncate text-[13px] font-bold text-foreground">
                         {selectedPayment.hostelName}
                       </p>
                       <SoftBadge tone={statusToneFromLabel(selectedPayment.status)}>
@@ -412,35 +443,10 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
                       label="Due date"
                       value={formatDate(selectedPayment.dueDate)}
                     />
-                    <p className="border-t border-border/50 pt-1.5 text-[10px] text-muted-foreground">
-                      Generated from the payment record. Select a row to preview it.
-                    </p>
                   </div>
                 ) : (
-                  <p className="px-1 py-4 text-center text-[12px] text-muted-foreground">
-                    Select a payment row to preview its receipt.
-                  </p>
+                  <p className="px-1 py-4 text-center text-[12px] text-muted-foreground">Pick a row to see its receipt.</p>
                 )}
-              </RailCard>
-
-              <RailCard title="Collection Summary">
-                {[
-                  { label: "Total collected", value: currency(overview?.totalPaid ?? 0) },
-                  { label: "Outstanding", value: currency(overview?.outstanding ?? 0) },
-                  { label: "Total billed", value: currency(overview?.totalDue ?? 0) },
-                ].map((item) => (
-                  <div
-                    className="flex items-center justify-between border-b border-border/50 pb-1.5 last:border-0 last:pb-0"
-                    key={item.label}
-                  >
-                    <span className="text-[12px] text-muted-foreground">
-                      {item.label}
-                    </span>
-                    <span className="text-[12.5px] font-semibold text-foreground">
-                      {item.value}
-                    </span>
-                  </div>
-                ))}
               </RailCard>
             </div>
           </div>

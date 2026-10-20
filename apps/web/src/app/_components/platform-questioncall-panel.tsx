@@ -47,7 +47,7 @@ export const PlatformQuestionCallPanel = React.memo(function PlatformQuestionCal
       action={
         canExport ? (
           <a
-            className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-platform"
+            className="inline-flex items-center rounded-lg border border-border px-3 py-1.5 text-[12.5px] font-semibold text-foreground transition hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-platform"
             href={`${QUESTIONCALL_ANALYTICS_ENDPOINT}?format=csv`}
           >
             Export CSV
@@ -91,7 +91,7 @@ export const PlatformQuestionCallPanel = React.memo(function PlatformQuestionCal
             {rows.length === 0 ? (
               <EmptyState label="No QuestionCall clicks recorded yet." />
             ) : (
-              <table className="w-full min-w-[480px] text-sm">
+              <table className="w-full min-w-[480px] text-[13px]">
                 <caption className="sr-only">
                   QuestionCall clicks and conversions per hostel
                 </caption>
@@ -125,7 +125,15 @@ export const PlatformQuestionCallPanel = React.memo(function PlatformQuestionCal
                         {row.conversions}
                       </td>
                       <td className="py-2 text-right tabular-nums">
-                        {percent(row.conversionRate)}
+                        <span className="inline-flex items-center justify-end gap-2">
+                          <span className="h-1.5 w-16 overflow-hidden rounded-full bg-muted">
+                            <span
+                              className="block h-full rounded-full bg-brand-teal"
+                              style={{ width: `${Math.min(100, Math.round(row.conversionRate * 100))}%` }}
+                            />
+                          </span>
+                          {percent(row.conversionRate)}
+                        </span>
                       </td>
                     </tr>
                   ))}

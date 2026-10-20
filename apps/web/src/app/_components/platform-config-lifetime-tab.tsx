@@ -82,7 +82,7 @@ export function LifetimeTab({
       />
 
       <ConfigPanel
-        description="One payment buys a plan for life — every feature of that plan, no renewals, no free months. Kept apart from the regular plans: nothing on this tab changes a tier, a cycle discount or an event offer. Seats are taken when a hostel's payment settles."
+        description="One payment buys a plan for life; nothing here changes the regular plans."
         title="Lifetime deal"
       >
         <div className="space-y-3">
@@ -149,7 +149,7 @@ export function LifetimeTab({
       </ConfigPanel>
 
       <ConfigPanel
-        description="A price and a number of seats for each plan. A seat is taken when a hostel's lifetime payment settles; the seats left is what the pricing page and the team form show."
+        description="A price and seat count per plan; a seat is taken when a lifetime payment settles."
         title="Price & seats per plan"
       >
         <div className="space-y-2.5">
@@ -255,7 +255,7 @@ export function LifetimeTab({
       </ConfigPanel>
 
       <ConfigPanel
-        description="The words on the lifetime block of the pricing page. {siteName} is replaced with the platform's name on the live page."
+        description="The lifetime block on the pricing page; {siteName} becomes the platform's name."
         title="Wording"
       >
         <div className="grid gap-2.5 sm:grid-cols-2">

@@ -1,25 +1,19 @@
 "use client";
 import { downloadCsv } from "@/lib/downloads/downloader";
 
-import {
-  Download,
-  MoreVertical,
-  ShieldCheck,
-  SlidersHorizontal,
-  UserPlus,
-  Users,
-} from "@/components/icons";
+import { Download, ShieldCheck, UserPlus, UserRound, Users, X } from "@/components/icons";
 import Link from "next/link";
 import { memo, useMemo, useState } from "react";
 
 import { EmptyState, LoadingRows } from "@/app/_components/shared-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import {
   DataTable,
   DetailField,
   DetailSection,
-  FilterSelect,
   InitialsAvatar,
   ListPager,
+  MetricCard,
   PanelTabs,
   PortalPageHeader,
   RoleButton,
@@ -210,6 +204,28 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
     };
   }
 
+  // The three biggest roles get a tile each; a tile filters the list to its role.
+  const topRoles = Object.entries(data?.roleCounts ?? {})
+    .sort((left, right) => right[1] - left[1])
+    .slice(0, 3);
+  const activeFilters = [roleFilter, statusFilter, hostelFilter, activationFilter].filter(Boolean).length;
+  const exportUsers = () =>
+    downloadCsv(
+      "users",
+      [
+        { key: "name", label: "Name" },
+        { key: "email", label: "Email" },
+        { key: "phone", label: "Phone" },
+        { key: "role", label: "Role" },
+        { key: "status", label: "Status" },
+        { key: "hostelName", label: "Hostel" },
+        { key: "activationStatus", label: "Activation" },
+        { key: "createdAt", label: "Joined" },
+        { key: "lastLoginAt", label: "Last login" },
+      ],
+      filtered,
+    );
+
   return (
     <div className="mx-auto max-w-[1448px]">
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_312px]">
@@ -218,117 +234,107 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
           <PortalPageHeader
             actions={
               <>
+                <RoleButton disabled={filtered.length === 0} onClick={exportUsers} tone="team" variant="outline">
+                  <Download className="size-3.5" />
+                  Export
+                </RoleButton>
                 {/* Residents join through their hostel's activation codes; the
                     platform adds people by invitation, on the Team screen. */}
-                <RoleButton asChild tone="platform">
+                <RoleButton asChild tone="team">
                   <Link href="/platform/team">
                     <UserPlus className="size-3.5" />
-                    Add User
+                    Add user
                   </Link>
                 </RoleButton>
               </>
             }
-            description="Every account on the platform — owners, wardens, residents, and guardians."
+            description="Every account on the platform."
             title="Users"
           />
           <Message value={message} />
 
-          {/* Filter card */}
-          <section className="rounded-xl border border-border bg-card p-3 shadow-sm">
-            <SearchField
-              className="max-w-none"
-              onChange={resetPage(setQuery)}
-              placeholder="Search by name, phone, email, room..."
-              value={query}
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <MetricCard
+              active={!roleFilter}
+              icon={Users}
+              label="Users"
+              onClick={() => resetPage(setRoleFilter)("")}
+              value={(data?.total ?? 0).toLocaleString()}
             />
-            <div className="mt-2.5 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-              <FilterSelect
-                defaultLabel="All"
-                label="Role"
-                onChange={resetPage(setRoleFilter)}
-                options={roles.map((role) => ({
-                  label: readableRole(role),
-                  value: role,
-                }))}
-                value={roleFilter}
+            {topRoles.map(([role, count]) => (
+              <MetricCard
+                active={roleFilter === role}
+                icon={UserRound}
+                key={role}
+                label={readableRole(role)}
+                onClick={() => resetPage(setRoleFilter)(roleFilter === role ? "" : role)}
+                value={count.toLocaleString()}
               />
-              <FilterSelect
-                defaultLabel="All"
-                label="Status"
-                onChange={resetPage(setStatusFilter)}
-                options={["ACTIVE", "INVITED", "SUSPENDED", "ARCHIVED", "PENDING"]}
-                value={statusFilter}
-              />
-              <FilterSelect
-                defaultLabel="All Hostels"
-                label="Hostel"
-                onChange={resetPage(setHostelFilter)}
-                options={hostels}
-                value={hostelFilter}
-              />
-              <FilterSelect
-                defaultLabel="All"
-                label="Activation Status"
-                onChange={resetPage(setActivationFilter)}
-                options={[
-                  { label: "Activated", value: "USED" },
-                  { label: "Code Sent", value: "PENDING" },
-                  { label: "Not Generated", value: "NOT_GENERATED" },
-                  { label: "Expired", value: "EXPIRED" },
-                ]}
-                value={activationFilter}
-              />
-              <div className="flex items-end">
-                <button
-                  className="inline-flex h-9 w-full items-center justify-center gap-1.5 rounded-lg border border-border bg-card text-[12.5px] font-semibold text-muted-foreground shadow-sm transition hover:text-foreground"
-                  onClick={() => {
-                    setQuery("");
-                    setRoleFilter("");
-                    setStatusFilter("");
-                    setHostelFilter("");
-                    setActivationFilter("");
-                    setPage(1);
-                  }}
-                  type="button"
-                >
-                  <SlidersHorizontal className="size-3.5" />
-                  Reset Filters
-                </button>
-              </div>
-            </div>
-          </section>
+            ))}
+          </div>
 
-          {/* Table card */}
-          <section className="rounded-xl border border-border bg-card p-3 shadow-sm">
-            <div className="mb-2.5 flex items-center justify-between gap-2">
-              <p className="text-[12.5px] font-semibold text-foreground">
-                Total Users: {data?.total ?? 0}
-              </p>
-              <RoleButton
-                disabled={filtered.length === 0}
-                onClick={() =>
-                  downloadCsv(
-                    "users",
-                    [
-                      { key: "name", label: "Name" },
-                      { key: "email", label: "Email" },
-                      { key: "phone", label: "Phone" },
-                      { key: "role", label: "Role" },
-                      { key: "status", label: "Status" },
-                      { key: "hostelName", label: "Hostel" },
-                      { key: "activationStatus", label: "Activation" },
-                      { key: "createdAt", label: "Joined" },
-                      { key: "lastLoginAt", label: "Last login" },
-                    ],
-                    filtered,
-                  )
-                }
-                tone="platform"
-                variant="outline"
+          <section className="rounded-2xl border border-border/70 bg-card p-4">
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <SearchField onChange={resetPage(setQuery)} placeholder="Search name, phone, email, room" value={query} />
+              <FilterButton
+                active={activeFilters}
+                onClear={() => {
+                  setRoleFilter("");
+                  setStatusFilter("");
+                  setHostelFilter("");
+                  setActivationFilter("");
+                  setPage(1);
+                }}
               >
-                <Download className="size-3.5" />
-                Export
-              </RoleButton>
+                <FilterChoice
+                  label="Role"
+                  onChange={resetPage(setRoleFilter)}
+                  options={[{ label: "All", value: "" }, ...roles.map((role) => ({ label: readableRole(role), value: role }))]}
+                  value={roleFilter}
+                />
+                <FilterChoice
+                  label="Status"
+                  onChange={resetPage(setStatusFilter)}
+                  options={[
+                    { label: "All", value: "" },
+                    { label: "Active", value: "ACTIVE" },
+                    { label: "Invited", value: "INVITED" },
+                    { label: "Suspended", value: "SUSPENDED" },
+                    { label: "Archived", value: "ARCHIVED" },
+                    { label: "Pending", value: "PENDING" },
+                  ]}
+                  value={statusFilter}
+                />
+                <FilterChoice
+                  label="Activation"
+                  onChange={resetPage(setActivationFilter)}
+                  options={[
+                    { label: "All", value: "" },
+                    { label: "Activated", value: "USED" },
+                    { label: "Code sent", value: "PENDING" },
+                    { label: "Not generated", value: "NOT_GENERATED" },
+                    { label: "Expired", value: "EXPIRED" },
+                  ]}
+                  value={activationFilter}
+                />
+                {/* Hostels can run long, so this one is a list, not chips. */}
+                <label className="block">
+                  <span className="mb-2 block text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Hostel</span>
+                  <select
+                    className="h-9 w-full rounded-xl border border-border bg-background px-3 text-[13px]"
+                    onChange={(event) => resetPage(setHostelFilter)(event.target.value)}
+                    value={hostelFilter}
+                  >
+                    <option value="">All hostels</option>
+                    {hostels.map((name) => (
+                      <option key={name} value={name}>
+                        {name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </FilterButton>
+              <span className="ml-auto text-[12.5px] font-medium text-muted-foreground">{filtered.length} shown</span>
             </div>
 
             {state === "loading" ? <LoadingRows /> : null}
@@ -339,18 +345,14 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
 
             {state === "ready" && filtered.length > 0 ? (
               <>
-                <DataTable className="min-w-[1000px]">
+                <DataTable className="min-w-[720px]">
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <Th className="w-8" />
                       <Th>User</Th>
                       <Th>Room / Bed</Th>
-                      <Th>Guardian Contact</Th>
-                      <Th>Emergency Contact</Th>
-                      <Th>Fee Status</Th>
-                      <Th>Night Status</Th>
+                      <Th>Fee</Th>
+                      <Th>Night</Th>
                       <Th>Activation</Th>
-                      <Th className="w-8" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -362,7 +364,7 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
                           className={cn(
                             "cursor-pointer",
                             isSelected &&
-                              "bg-role-platform-soft/50 [&>td:first-child]:relative [&>td:first-child]:before:absolute [&>td:first-child]:before:inset-y-0 [&>td:first-child]:before:left-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-role-platform",
+                              "bg-role-team-soft/60 [&>td:first-child]:relative [&>td:first-child]:before:absolute [&>td:first-child]:before:inset-y-0 [&>td:first-child]:before:left-0 [&>td:first-child]:before:w-[3px] [&>td:first-child]:before:bg-role-team",
                           )}
                           key={person.id}
                           onClick={() => {
@@ -371,34 +373,22 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
                           }}
                         >
                           <TableCell>
-                            <input
-                              aria-label={`Select ${person.name}`}
-                              checked={isSelected}
-                              className="size-3.5 accent-role-platform"
-                              onChange={() =>
-                                setSelectedId(isSelected ? null : person.id)
-                              }
-                              onClick={(event) => event.stopPropagation()}
-                              type="checkbox"
-                            />
-                          </TableCell>
-                          <TableCell>
                             <div className="flex items-center gap-2.5">
                               <InitialsAvatar
                                 name={person.name}
                                 size="sm"
-                                tone="platform"
+                                tone="team"
                               />
                               <div className="min-w-0">
                                 <div className="flex flex-wrap items-center gap-1.5">
-                                  <span className="truncate font-semibold text-foreground">
+                                  <span className="truncate text-[13.5px] font-semibold text-foreground">
                                     {person.name}
                                   </span>
                                   {person.isDemoData ? (
                                     <DemoDataBadge label={person.demoDataLabel} />
                                   ) : null}
                                 </div>
-                                <p className="truncate text-[11px] text-muted-foreground">
+                                <p className="truncate text-[12px] text-muted-foreground">
                                   {readableRole(person.role)}
                                   {person.hostelName ? ` · ${person.hostelName}` : ""}
                                 </p>
@@ -407,32 +397,6 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
                           </TableCell>
                           <TableCell className="text-muted-foreground">
                             {roomLabel(person)}
-                          </TableCell>
-                          <TableCell>
-                            {person.guardian ? (
-                              <>
-                                <p className="text-foreground">{person.guardian.name}</p>
-                                <p className="text-[11px] text-muted-foreground">
-                                  {person.guardian.phone}
-                                </p>
-                              </>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {person.emergencyContact ? (
-                              <>
-                                <p className="text-foreground">
-                                  {person.emergencyContact.name}
-                                </p>
-                                <p className="text-[11px] text-muted-foreground">
-                                  {person.emergencyContact.phone}
-                                </p>
-                              </>
-                            ) : (
-                              <span className="text-muted-foreground">—</span>
-                            )}
                           </TableCell>
                           <TableCell>
                             {person.feeStatus ? (
@@ -471,16 +435,6 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
                               </SoftBadge>
                             )}
                           </TableCell>
-                          <TableCell>
-                            <button
-                              aria-label={`Actions for ${person.name}`}
-                              className="rounded p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                              onClick={(event) => event.stopPropagation()}
-                              type="button"
-                            >
-                              <MoreVertical className="size-3.5" />
-                            </button>
-                          </TableCell>
                         </TableRow>
                       );
                     })}
@@ -501,7 +455,7 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
 
         {/* ── Right inspector ─────────────────────────────────────── */}
         {selected ? (
-          <aside className="flex max-h-[calc(100vh-8.5rem)] flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm xl:sticky xl:top-0">
+          <aside className="flex max-h-[calc(100vh-8.5rem)] flex-col overflow-hidden rounded-2xl border border-border/70 bg-card xl:sticky xl:top-0">
             <div className="no-scrollbar min-h-0 flex-1 overflow-y-auto">
               <div className="flex justify-end p-2 pb-0">
                 <button
@@ -510,20 +464,12 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
                   onClick={() => setSelectedId(null)}
                   type="button"
                 >
-                  <svg
-                    className="size-4"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                  >
-                    <path d="M18 6 6 18M6 6l12 12" />
-                  </svg>
+                  <X className="size-4" />
                 </button>
               </div>
 
               <div className="flex items-center gap-3 px-3.5 pb-3">
-                <InitialsAvatar name={selected.name} size="lg" tone="platform" />
+                <InitialsAvatar name={selected.name} size="lg" tone="team" />
                 <div className="min-w-0">
                   <p className="truncate font-heading text-[16px] font-bold text-foreground">
                     {selected.name}
@@ -533,7 +479,7 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
                       ? roomLabel(selected).replace(" / ", " • ")
                       : readableRole(selected.role)}
                   </p>
-                  <span className="mt-1 inline-flex items-center gap-1.5 rounded-full border border-emerald-200/80 bg-emerald-50 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
+                  <span className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-role-team-soft px-2 py-0.5 text-[10.5px] font-semibold text-role-team">
                     <span className="size-1.5 rounded-full bg-current" />
                     {selected.nightStatus
                       ? nightStatusLabel(selected.nightStatus)
@@ -575,9 +521,7 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
                           <DetailField label="Phone" value={selected.guardian.phone} />
                         </>
                       ) : (
-                        <p className="py-1 text-[11.5px] text-muted-foreground">
-                          No guardian linked to this account.
-                        </p>
+                        <p className="py-1 text-[12px] text-muted-foreground">No guardian linked.</p>
                       )}
                     </DetailSection>
 
@@ -598,9 +542,7 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
                           />
                         </>
                       ) : (
-                        <p className="py-1 text-[11.5px] text-muted-foreground">
-                          No emergency contact on file.
-                        </p>
+                        <p className="py-1 text-[12px] text-muted-foreground">No emergency contact.</p>
                       )}
                     </DetailSection>
 
@@ -637,21 +579,12 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
                             </SoftBadge>
                           }
                         />
-                        <p className="pt-1.5 text-[11px] leading-4 text-muted-foreground">
-                          The full ledger for this hostel lives under{" "}
-                          <Link
-                            className="font-semibold text-role-platform"
-                            href="/platform/transactions"
-                          >
-                            Transactions
-                          </Link>
-                          .
-                        </p>
+                        <Link className="inline-block pt-1.5 text-[12px] font-semibold text-role-team" href="/platform/transactions">
+                          Full ledger in Transactions
+                        </Link>
                       </>
                     ) : (
-                      <p className="py-1 text-[11.5px] text-muted-foreground">
-                        No payment records for this account.
-                      </p>
+                      <p className="py-1 text-[12px] text-muted-foreground">No payments yet.</p>
                     )}
                   </DetailSection>
                 ) : null}
@@ -678,28 +611,17 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
                       label="Linked hostels"
                       value={String(selected.hostelCount)}
                     />
-                    <p className="pt-1.5 text-[11px] leading-4 text-muted-foreground">
-                      Full action history is in the{" "}
-                      <Link
-                        className="font-semibold text-role-platform"
-                        href="/platform/audit-logs"
-                      >
-                        Audit Log
-                      </Link>
-                      .
-                    </p>
+                    <Link className="inline-block pt-1.5 text-[12px] font-semibold text-role-team" href="/platform/audit-logs">
+                      Full history in the Audit Log
+                    </Link>
                   </DetailSection>
                 ) : null}
 
                 {detailTab === "documents" ? (
                   <DetailSection title="Documents">
-                    <p className="py-1 text-[11.5px] leading-4 text-muted-foreground">
-                      Resident documents are uploaded and reviewed by the hostel that owns
-                      this record. Hostel-level paperwork is reviewed under{" "}
-                      <Link
-                        className="font-semibold text-role-platform"
-                        href="/platform/hostels"
-                      >
+                    <p className="py-1 text-[12px] text-muted-foreground">
+                      The hostel keeps resident papers; hostel papers are in{" "}
+                      <Link className="font-semibold text-role-team" href="/platform/hostels">
                         Hostel Approvals
                       </Link>
                       .
@@ -710,20 +632,14 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
             </div>
           </aside>
         ) : (
-          <aside className="hidden flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border bg-card/50 p-8 text-center xl:flex">
-            <span className="flex size-10 items-center justify-center rounded-full bg-role-platform-soft text-role-platform">
-              <Users className="size-5" />
+          <aside className="hidden flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-card/50 p-8 text-center xl:flex">
+            <span className="flex size-12 items-center justify-center rounded-full bg-role-team-soft text-role-team">
+              <Users className="size-[22px]" />
             </span>
-            <p className="text-[13px] font-semibold text-foreground">
-              Select a user to see their profile
-            </p>
-            <p className="text-[11.5px] text-muted-foreground">
-              Personal details, guardian, emergency contact, and hostel information appear
-              here.
-            </p>
-            <span className="mt-1 inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <p className="text-[13.5px] font-semibold text-foreground">Pick a user to see their profile</p>
+            <span className="inline-flex items-center gap-1.5 text-[12px] text-muted-foreground">
               <ShieldCheck className="size-3.5" />
-              Read-only platform view
+              Read only
             </span>
           </aside>
         )}

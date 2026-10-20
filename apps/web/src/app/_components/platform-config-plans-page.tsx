@@ -147,7 +147,7 @@ export const PlatformConfigPlansPageContent = memo(
     return (
       <ConfigPage
         breadcrumb={["Home", "Website Config", "Plans & Pricing"]}
-        description="The public Plans & Pricing page, edited on the page itself. Type into any label below; prices and the catalogue are in the tabs underneath, and everything moves the preview as you change it."
+        description="The public Plans & Pricing page, edited in place; prices and the catalogue are in the tabs below."
         error={error}
         message={message}
         state={state}
@@ -399,7 +399,7 @@ function CatalogueTab({
   return (
     <div className="space-y-3">
       <ConfigPanel
-        description="The nine groups the product is sold in, and every service inside them. Names and one-liners are typed in place; open a service for its walkthrough clips and its what / how / why."
+        description="The nine groups and every service in them; open a service for its clips and its what, how and why."
         title="Modules & services"
       >
         <div className="space-y-3">
@@ -751,7 +751,7 @@ function PricingTab({
   return (
     <div className="space-y-3">
       <ConfigPanel
-        description="One monthly price per plan, and a percentage off each longer commitment. The six-month and annual totals are worked out from those two numbers rather than typed, so the figure on the card and the saving advertised beside it can never disagree."
+        description="A monthly price per plan and a percentage off each longer commitment; the longer totals are worked out."
         title="Prices & discounts"
       >
         <div className="space-y-3">
@@ -946,7 +946,7 @@ function OfferTab({
   return (
     <div className="space-y-3">
       <ConfigPanel
-        description="Standard runs the prices set on the Pricing tab. Event takes a percentage off each of them until the month you name, and the six-month and annual prices follow on their own. Switching back to Standard restores the full prices — an event never edits them."
+        description="Standard runs the Pricing tab; Event takes a percentage off until the month you name."
         title="Plan mode"
       >
         <div className="space-y-3">
@@ -1002,7 +1002,7 @@ function OfferTab({
       </ConfigPanel>
 
       <ConfigPanel
-        description="A percentage off each plan's monthly price, and the only discount that applies while the event runs — the six-month and annual discounts are set aside, so a hostel is given one offer rather than two stacked on each other. Six months and a year are simply the offer price times six and twelve."
+        description="A percentage off each monthly price, the only discount while the event runs."
         title="Discount per plan"
       >
         <div className="space-y-2.5">
@@ -1221,7 +1221,7 @@ function LinksTab({
 }) {
   return (
     <ConfigPanel
-      description="Where the buttons go. The words on them are edited on the page above."
+      description="Where the buttons go; their words are edited above."
       title="Links"
     >
       <div className="grid gap-2.5 sm:grid-cols-2">

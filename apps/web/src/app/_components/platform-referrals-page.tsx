@@ -1,13 +1,16 @@
 "use client";
 
-import { Copy, HandCoins, Link2, Users } from "@/components/icons";
+import { Copy, HandCoins, Link2, Plus, Users } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
 import { useConfirm } from "@/app/_components/confirm-dialog";
+import { FactChip, ShareBar } from "@/app/_components/platform-page-ui";
 import {
+  InitialsAvatar,
   MetricCard,
   PortalPageHeader,
+  RoleButton,
   SoftBadge,
   TabBar,
   ToggleSwitch,
@@ -21,6 +24,15 @@ import {
   TextArea,
   currency,
 } from "@/app/_components/shared-ui";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { Message } from "./core-portal-shared";
@@ -96,6 +108,7 @@ export const PlatformReferralsPageContent = memo(function PlatformReferralsPageC
   const [tab, setTab] = useState<"referrals" | "partners" | "program">("referrals");
   const [message, setMessage] = useState("");
   const [editing, setEditing] = useState<PartnerCode | null>(null);
+  const [codeFormOpen, setCodeFormOpen] = useState(false);
   const [commissionType, setCommissionType] = useState<"AMOUNT" | "PERCENT">("AMOUNT");
   const [enabled, setEnabled] = useState<boolean | null>(null);
   const invalidate = useInvalidateResources();
@@ -146,6 +159,7 @@ export const PlatformReferralsPageContent = memo(function PlatformReferralsPageC
         });
         formElement.reset();
         setEditing(null);
+        setCodeFormOpen(false);
       }, editing ? "Partner code updated." : "Partner code issued.");
     },
     [editing, run],
@@ -196,23 +210,46 @@ export const PlatformReferralsPageContent = memo(function PlatformReferralsPageC
     [confirm, run],
   );
 
+  const openCodeForm = (code: PartnerCode | null) => {
+    setEditing(code);
+    setCommissionType(code?.commissionType ?? "AMOUNT");
+    setCodeFormOpen(true);
+  };
+
   return (
     <div className="mx-auto max-w-[1448px] space-y-5">
       {confirmDialog}
       <PortalPageHeader
-        description="Hostels that registered with another hostel's code or a partner's code, the partner codes you issue for marketing, and what each side gets."
+        actions={
+          <RoleButton
+            onClick={() => {
+              setTab("partners");
+              openCodeForm(null);
+            }}
+            type="button"
+          >
+            <Plus className="size-3.5" />
+            Issue partner code
+          </RoleButton>
+        }
+        description="Hostels that joined with a code, the partner codes you issue, and what each side gets."
         title="Referral settings"
       />
       <Message value={message || resource.message} />
 
       {data ? (
         <div className="grid gap-3 sm:grid-cols-3">
-          <MetricCard icon={Users} label="Registered with a code" value={data.totals.registered} />
-          <MetricCard icon={Link2} label="Live" tone="green" value={data.totals.live} />
+          <MetricCard icon={Users} label="Joined with a code" value={data.totals.registered} />
+          <MetricCard
+            icon={Link2}
+            label="Live"
+            note={data.totals.registered > 0 ? `${Math.round((data.totals.live / data.totals.registered) * 100)}% of joined` : undefined}
+            value={data.totals.live}
+          />
           <MetricCard
             icon={HandCoins}
             label="Commission owed"
-            tone="amber"
+            tone={data.totals.commissionOwed > 0 ? "amber" : "teal"}
             value={currency(data.totals.commissionOwed)}
           />
         </div>
@@ -237,16 +274,23 @@ export const PlatformReferralsPageContent = memo(function PlatformReferralsPageC
           <div className="divide-y divide-border">
             {data.referrals.map((referral) => (
               <div className="flex flex-wrap items-center justify-between gap-3 py-3" key={referral.id}>
-                <div className="min-w-0">
-                  <p className="truncate font-semibold text-foreground">{referral.hostelName}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {referral.kind === "PARTNER" ? "Partner" : "Hostel"} · {referral.from} · {referral.code} ·{" "}
-                    {referral.createdAt.slice(0, 10)}
-                  </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    New hostel gets {referral.refereeReward || "nothing extra"}
-                    {referral.kind === "HOSTEL" ? ` · referrer gets ${referral.referrerReward || "nothing extra"}` : ""}
-                  </p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <InitialsAvatar name={referral.hostelName} size="sm" tone="team" />
+                  <div className="min-w-0 space-y-1">
+                    <p className="truncate text-[13.5px] font-semibold text-foreground">
+                      {referral.hostelName}
+                      <span className="ml-1.5 font-normal text-muted-foreground">
+                        via {referral.from} · {referral.createdAt.slice(0, 10)}
+                      </span>
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      <FactChip glyph={referral.kind === "PARTNER" ? "briefcase" : "business"}>{`${referral.kind === "PARTNER" ? "Partner" : "Hostel"} · ${referral.code}`}</FactChip>
+                      <FactChip glyph="gift">{`New hostel: ${referral.refereeReward || "nothing extra"}`}</FactChip>
+                      {referral.kind === "HOSTEL" ? (
+                        <FactChip glyph="gift">{`Referrer: ${referral.referrerReward || "nothing extra"}`}</FactChip>
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <SoftBadge tone={referral.status === "LIVE" ? "green" : "amber"}>
@@ -269,41 +313,38 @@ export const PlatformReferralsPageContent = memo(function PlatformReferralsPageC
       ) : null}
 
       {data && tab === "partners" ? (
-        <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
           <Panel title="Partner codes">
             {data.partnerCodes.length === 0 ? (
-              <EmptyState label="No partner codes yet. Issue one on the right." />
+              <EmptyState label="No partner codes yet. Issue one from the header." />
             ) : null}
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {data.partnerCodes.map((code) => (
-                <div className="rounded-lg border border-border p-4" key={code.id}>
+                <div
+                  className="space-y-3 rounded-2xl border border-border/70 bg-card p-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                  key={code.id}
+                >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="truncate font-semibold text-foreground">{code.name}</p>
-                      <p className="font-mono text-sm tracking-wide text-foreground">{code.code}</p>
+                      <p className="truncate text-[15px] font-semibold text-foreground">{code.name}</p>
+                      <p className="font-mono text-[13px] tracking-wide text-role-team">{code.code}</p>
                     </div>
                     <SoftBadge tone={code.status === "ACTIVE" ? "green" : "slate"}>
                       {code.status === "ACTIVE" ? "Active" : "Paused"}
                     </SoftBadge>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Hostel gets {bonusText(code.offerMonths, code.offerDays).toLowerCase()} · partner earns{" "}
-                    {commissionText(code)}
-                  </p>
-                  <p className="mt-1 text-xs tabular-nums text-muted-foreground">
-                    {code.stats.registered} registered · {code.stats.live} live ·{" "}
-                    {currency(code.stats.commission - code.stats.paid)} owed · {currency(code.stats.paid)} paid
-                  </p>
-                  {code.contact ? <p className="mt-1 text-xs text-muted-foreground">{code.contact}</p> : null}
-                  <div className="mt-3 flex flex-wrap gap-2">
+                  <ShareBar label="live" part={code.stats.live} total={code.stats.registered} />
+                  <div className="flex flex-wrap gap-1.5">
+                    <FactChip glyph="gift">{`Hostel gets ${bonusText(code.offerMonths, code.offerDays).toLowerCase()}`}</FactChip>
+                    <FactChip glyph="hand-coins">{`Earns ${commissionText(code)}`}</FactChip>
+                    <FactChip glyph="time" tone={code.stats.commission - code.stats.paid > 0 ? "amber" : "neutral"}>
+                      {`${currency(code.stats.commission - code.stats.paid)} owed`}
+                    </FactChip>
+                    <FactChip glyph="checkmark-circle">{`${currency(code.stats.paid)} paid`}</FactChip>
+                    {code.contact ? <FactChip glyph="call">{code.contact}</FactChip> : null}
+                  </div>
+                  <div className="flex flex-wrap gap-2">
                     <ActionButton icon label="Copy link" onClick={() => copy(code.link)} />
-                    <ActionButton
-                      label="Edit"
-                      onClick={() => {
-                        setEditing(code);
-                        setCommissionType(code.commissionType);
-                      }}
-                    />
+                    <ActionButton label="Edit" onClick={() => openCodeForm(code)} />
                     <ActionButton
                       label={code.status === "ACTIVE" ? "Pause" : "Activate"}
                       onClick={() =>
@@ -324,8 +365,20 @@ export const PlatformReferralsPageContent = memo(function PlatformReferralsPageC
               ))}
             </div>
           </Panel>
+      ) : null}
 
-          <Panel title={editing ? `Edit ${editing.code}` : "Issue a partner code"}>
+      <Dialog
+        onOpenChange={(open) => {
+          setCodeFormOpen(open);
+          if (!open) setEditing(null);
+        }}
+        open={codeFormOpen}
+      >
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editing ? `Edit ${editing.code}` : "Issue a partner code"}</DialogTitle>
+            <DialogDescription>Commission is paid once the hostel goes live.</DialogDescription>
+          </DialogHeader>
             <BusyForm className="grid gap-3" key={editing?.id ?? "new"} onSubmit={saveCode}>
               <Input defaultValue={editing?.name} label="Partner name" name="name" placeholder="Ram Sharma" required />
               {editing ? null : (
@@ -366,11 +419,7 @@ export const PlatformReferralsPageContent = memo(function PlatformReferralsPageC
               </Select>
               <Input
                 defaultValue={editing?.commissionValue ?? 0}
-                hint={
-                  commissionType === "PERCENT"
-                    ? "Of one billing cycle of the plan the hostel chose. Paid once it goes live."
-                    : "Rupees, once the hostel goes live."
-                }
+                hint={commissionType === "PERCENT" ? "Of one billing cycle of the chosen plan." : undefined}
                 label={commissionType === "PERCENT" ? "Percent" : "Amount (NPR)"}
                 max={commissionType === "PERCENT" ? "100" : undefined}
                 min="0"
@@ -378,31 +427,21 @@ export const PlatformReferralsPageContent = memo(function PlatformReferralsPageC
                 type="number"
               />
               <TextArea defaultValue={editing?.note} label="Note" name="note" placeholder="Campaign, city, bank details…" />
-              <div className="flex gap-2">
-                <SubmitButton className="inline-flex h-11 flex-1 items-center justify-center rounded-md bg-role-platform text-sm font-semibold text-white">
+              <DialogFooter>
+                <SubmitButton className="bg-brand-teal text-white hover:bg-brand-teal/90">
                   {editing ? "Save changes" : "Issue code"}
                 </SubmitButton>
-                {editing ? (
-                  <button
-                    className="h-11 rounded-md border border-border px-4 text-sm font-semibold text-foreground"
-                    onClick={() => setEditing(null)}
-                    type="button"
-                  >
-                    Cancel
-                  </button>
-                ) : null}
-              </div>
+              </DialogFooter>
             </BusyForm>
-          </Panel>
-        </div>
-      ) : null}
+        </DialogContent>
+      </Dialog>
 
       {data && tab === "program" ? (
         <Panel title="Hostel invites hostel">
           <BusyForm className="grid max-w-xl gap-4" onSubmit={saveProgram}>
             <ToggleSwitch
               checked={enabled ?? data.settings.enabled}
-              description="Every hostel's owner and wardens can share their hostel's code. Paused, the codes stop working at registration."
+              description="Owners and wardens share their hostel's code; paused, codes stop working."
               label="Hostel referral codes are on"
               onChange={setEnabled}
             />
@@ -440,13 +479,10 @@ export const PlatformReferralsPageContent = memo(function PlatformReferralsPageC
                 type="number"
               />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Added to each hostel&apos;s plan once the new hostel goes live. A change here applies to hostels that
-              register from now on.
-            </p>
-            <SubmitButton className="inline-flex h-11 items-center justify-center rounded-md bg-role-platform px-5 text-sm font-semibold text-white">
-              Save
-            </SubmitButton>
+            <p className="text-[12.5px] text-muted-foreground">Added once the new hostel goes live; applies to new registrations.</p>
+            <div>
+              <SubmitButton className="bg-brand-teal text-white hover:bg-brand-teal/90">Save</SubmitButton>
+            </div>
           </BusyForm>
         </Panel>
       ) : null}
@@ -456,13 +492,9 @@ export const PlatformReferralsPageContent = memo(function PlatformReferralsPageC
 
 function ActionButton({ icon = false, label, onClick }: { icon?: boolean; label: string; onClick: () => void }) {
   return (
-    <button
-      className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted"
-      onClick={onClick}
-      type="button"
-    >
+    <Button onClick={onClick} size="sm" type="button" variant="outline">
       {icon ? <Copy className="size-3.5" /> : null}
       {label}
-    </button>
+    </Button>
   );
 }

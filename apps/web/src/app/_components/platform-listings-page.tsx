@@ -20,8 +20,6 @@ import { useConfirm } from "@/app/_components/confirm-dialog";
 import { currency, EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import {
   DataTable,
-  FilterBar,
-  FilterSelect,
   InitialsAvatar,
   ListPager,
   MetricCard,
@@ -36,10 +34,13 @@ import {
   Th,
   statusToneFromLabel,
 } from "@/app/_components/portal-dashboard-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
+import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { browserApi } from "@/lib/browser-api";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { DemoDataBadge, Hostel, Message } from "./core-portal-shared";
+import { MoreMenu } from "./platform-page-ui";
 
 /**
  * The Archived tab reads a different endpoint, not a different slice of this
@@ -89,6 +90,7 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState("PUBLISHED");
   const [cityFilter, setCityFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
   const [page, setPage] = useState(1);
   const [busy, setBusy] = useState(false);
 
@@ -397,12 +399,13 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
       // on `status` here would filter all of them out.
       if (tab !== "ALL" && !showingArchived && hostel.status !== tab) return false;
       if (cityFilter && hostel.location.city !== cityFilter) return false;
+      if (typeFilter && hostel.hostelType !== typeFilter) return false;
       if (!term) return true;
       return `${hostel.name} ${hostel.slug} ${hostel.location.area}`
         .toLowerCase()
         .includes(term);
     });
-  }, [cityFilter, hostels, query, showingArchived, tab]);
+  }, [cityFilter, hostels, query, showingArchived, tab, typeFilter]);
 
   const paged = useMemo(
     () => filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
@@ -422,46 +425,42 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
     return liveHostels.filter((hostel) => hostel.status === key).length;
   };
 
+  const switchTab = (next: string) => {
+    setTab(next);
+    setPage(1);
+  };
+
   return (
     <div className="mx-auto max-w-[1448px] space-y-4">
-      <PortalPageHeader
-        breadcrumb={["Home", "Listings"]}
-        description="Manage what the public actually sees — live listings, their completeness, and visibility."
-        title="Listings"
-      />
+      <PortalPageHeader description="What the public sees, and how complete it is." title="Listings" />
       <Message value={message} />
 
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
+          active={tab === "PUBLISHED"}
           icon={Globe}
-          label="Live Listings"
-          note="Visible to the public"
-          noteTone="green"
-          tone="green"
+          label="Live"
+          onClick={() => switchTab("PUBLISHED")}
           value={counts.published}
         />
         <MetricCard
+          active={tab === "APPROVED"}
           icon={Star}
-          label="Approved, Not Live"
-          note="Ready to publish"
-          noteTone="amber"
-          tone="amber"
+          label="Approved, not live"
+          onClick={() => switchTab("APPROVED")}
+          tone={counts.approved > 0 ? "amber" : "teal"}
           value={counts.approved}
         />
         <MetricCard
           icon={ImageIcon}
-          label="Missing Photos"
-          note="Hurts conversion"
-          noteTone="rose"
-          tone="rose"
+          label="No photos"
+          tone={counts.noPhotos > 0 ? "rose" : "teal"}
           value={counts.noPhotos}
         />
         <MetricCard
           icon={MapPin}
-          label="Thin Listings"
-          note="Under 60% complete"
-          noteTone="amber"
-          tone="teal"
+          label="Under 60% complete"
+          tone={counts.lowQuality > 0 ? "amber" : "teal"}
           value={counts.lowQuality}
         />
       </div>
@@ -469,39 +468,53 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
       <Panel>
         <TabBar
           className="mb-3"
-          onChange={(next) => {
-            setTab(next);
-            setPage(1);
-          }}
+          onChange={switchTab}
           tabs={TABS.map((item) => ({ ...item, count: tabCount(item.key) }))}
           value={tab}
         />
 
-        <FilterBar>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
           <SearchField
             onChange={(next) => {
               setQuery(next);
               setPage(1);
             }}
-            placeholder="Search listings by name or area..."
+            placeholder="Search listings"
             value={query}
           />
-          <div className="flex flex-wrap gap-2">
-            <FilterSelect
-              defaultLabel="All Cities"
+          <FilterButton
+            active={(cityFilter ? 1 : 0) + (typeFilter ? 1 : 0)}
+            onClear={() => {
+              setCityFilter("");
+              setTypeFilter("");
+              setPage(1);
+            }}
+          >
+            <FilterChoice
+              label="City"
               onChange={(next) => {
                 setCityFilter(next);
                 setPage(1);
               }}
-              options={cities}
+              options={[{ label: "All", value: "" }, ...cities.map((name) => ({ label: name, value: name }))]}
               value={cityFilter}
             />
-            <FilterSelect
-              defaultLabel="All Types"
-              options={["BOYS", "GIRLS", "CO_LIVING"]}
+            <FilterChoice
+              label="Type"
+              onChange={(next) => {
+                setTypeFilter(next);
+                setPage(1);
+              }}
+              options={[
+                { label: "All", value: "" },
+                { label: "Boys", value: "BOYS" },
+                { label: "Girls", value: "GIRLS" },
+                { label: "Co-living", value: "CO_LIVING" },
+              ]}
+              value={typeFilter}
             />
-          </div>
-        </FilterBar>
+          </FilterButton>
+        </div>
 
         {state === "loading" ? <LoadingRows /> : null}
         {state === "error" ? <EmptyState label="Listings could not be loaded." /> : null}
@@ -511,17 +524,16 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
 
         {state === "ready" && filtered.length > 0 ? (
           <>
-            <DataTable className="min-w-[900px]">
+            <DataTable className="min-w-[820px]">
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <Th>Listing</Th>
-                  <Th>Location</Th>
                   <Th>Type</Th>
                   <Th align="right">From</Th>
                   <Th align="center">Photos</Th>
-                  <Th>Completeness</Th>
+                  <Th>Complete</Th>
                   <Th>Status</Th>
-                  <Th align="right">Actions</Th>
+                  <Th align="right" />
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -532,11 +544,11 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
                     <TableRow key={hostel.id}>
                       <TableCell>
                         <div className="flex items-center gap-2.5">
-                          <InitialsAvatar name={hostel.name} size="sm" tone="platform" />
+                          <InitialsAvatar name={hostel.name} size="sm" tone="team" />
                           <div className="min-w-0">
                             <div className="flex flex-wrap items-center gap-1.5">
                               <Link
-                                className="truncate font-semibold text-foreground hover:text-role-platform"
+                                className="truncate text-[13.5px] font-semibold text-foreground hover:text-role-team"
                                 href={`/platform/hostels/${hostel.id}`}
                               >
                                 {hostel.name}
@@ -545,20 +557,14 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
                                 <DemoDataBadge label={hostel.demoDataLabel} />
                               ) : null}
                             </div>
-                            <p className="truncate text-[11px] text-muted-foreground">
-                              /{hostel.slug}
+                            <p className="truncate text-[12px] text-muted-foreground">
+                              {[hostel.location.area, hostel.location.city].filter(Boolean).join(", ")}
                             </p>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {hostel.location.area}
-                        {hostel.location.city ? `, ${hostel.location.city}` : ""}
-                      </TableCell>
                       <TableCell>
-                        <SoftBadge tone="teal">
-                          {hostel.hostelType.replaceAll("_", " ")}
-                        </SoftBadge>
+                        <SoftBadge tone="slate">{hostel.hostelType.replaceAll("_", " ")}</SoftBadge>
                       </TableCell>
                       <TableCell className="text-right font-medium text-foreground">
                         {hostel.pricing?.monthlyRentMin
@@ -574,7 +580,7 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
                             <span
                               className={
                                 quality >= 80
-                                  ? "block h-full rounded-full bg-emerald-500"
+                                  ? "block h-full rounded-full bg-brand-teal"
                                   : quality >= 60
                                     ? "block h-full rounded-full bg-amber-500"
                                     : "block h-full rounded-full bg-rose-500"
@@ -631,51 +637,32 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
                         )}
                       </TableCell>
                       <TableCell>
+                        {/* The one move that fits the row's state stays out;
+                            the rest wait in the row's ⋯ menu. */}
                         <div className="flex items-center justify-end gap-1">
                           {hostel.isArchived ? (
-                            <>
-                              <button
-                                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-role-platform transition hover:bg-role-platform-soft disabled:opacity-40"
-                                disabled={busy}
-                                onClick={() => void archiveAction(hostel, "restore")}
-                                type="button"
-                              >
-                                <ArchiveRestore className="size-3.5" />
-                                Restore
-                              </button>
-                              <button
-                                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-destructive transition hover:bg-destructive/10 disabled:opacity-40"
-                                disabled={busy}
-                                onClick={() => void purgeNow(hostel)}
-                                type="button"
-                              >
-                                <Trash2 className="size-3.5" />
-                                Erase now
-                              </button>
-                            </>
+                            <button
+                              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-semibold text-role-team transition hover:bg-role-team-soft disabled:opacity-40"
+                              disabled={busy}
+                              onClick={() => void archiveAction(hostel, "restore")}
+                              type="button"
+                            >
+                              <ArchiveRestore className="size-3.5" />
+                              Restore
+                            </button>
                           ) : hostel.status === "PUBLISHED" ? (
-                            <>
-                              <a
-                                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-role-platform transition hover:bg-role-platform-soft"
-                                href={`/hostels/${hostel.slug}`}
-                                rel="noreferrer noopener"
-                                target="_blank"
-                              >
-                                <Globe className="size-3.5" />
-                                View
-                              </a>
-                              <button
-                                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-amber-700 transition hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-950/40"
-                                onClick={() => action(hostel.id, "unpublish")}
-                                type="button"
-                              >
-                                <EyeOff className="size-3.5" />
-                                Unpublish
-                              </button>
-                            </>
+                            <a
+                              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-semibold text-role-team transition hover:bg-role-team-soft"
+                              href={`/hostels/${hostel.slug}`}
+                              rel="noreferrer noopener"
+                              target="_blank"
+                            >
+                              <Globe className="size-3.5" />
+                              View
+                            </a>
                           ) : hostel.status === "APPROVED" ? (
                             <button
-                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-semibold text-role-team transition hover:bg-role-team-soft"
                               onClick={() => action(hostel.id, "publish")}
                               type="button"
                             >
@@ -683,56 +670,55 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
                               Publish
                             </button>
                           ) : null}
-                          {/* A suspension is for a hostel with a portal to
-                              lose: one that is live, or approved and waiting. */}
-                          {hostel.isArchived ||
-                          (hostel.status !== "PUBLISHED" &&
-                            hostel.status !== "APPROVED") ? null : hostel.suspension ? (
-                            <button
-                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-role-platform transition hover:bg-role-platform-soft disabled:opacity-40"
-                              disabled={busy}
-                              onClick={() => void suspensionAction(hostel, "lift")}
-                              type="button"
-                            >
-                              <LockOpen className="size-3.5" />
-                              Lift
-                            </button>
-                          ) : (
-                            <button
-                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-destructive transition hover:bg-destructive/10 disabled:opacity-40"
-                              disabled={busy}
-                              onClick={() => void suspensionAction(hostel, "suspend")}
-                              type="button"
-                            >
-                              <Ban className="size-3.5" />
-                              Suspend
-                            </button>
-                          )}
-                          {hostel.isArchived ? null : (
-                            <button
-                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-emerald-700 transition hover:bg-emerald-50 disabled:opacity-40 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
-                              disabled={busy}
-                              onClick={() => void rechargeAction(hostel)}
-                              type="button"
-                            >
-                              <Zap className="size-3.5" />
-                              Recharge
-                            </button>
-                          )}
-                          {/* Offered at every stage — a listing can be a
-                              mistaken draft as easily as a closed business —
-                              and never on a row that is already archived. */}
-                          {hostel.isArchived ? null : (
-                            <button
-                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-destructive transition hover:bg-destructive/10 disabled:opacity-40"
-                              disabled={busy}
-                              onClick={() => void archiveAction(hostel, "archive")}
-                              type="button"
-                            >
-                              <Archive className="size-3.5" />
-                              Archive
-                            </button>
-                          )}
+                          <MoreMenu label={`More for ${hostel.name}`} row>
+                            {hostel.isArchived ? (
+                              <DropdownMenuItem disabled={busy} onSelect={() => void purgeNow(hostel)} variant="destructive">
+                                <Trash2 className="size-4" />
+                                Erase now
+                              </DropdownMenuItem>
+                            ) : (
+                              <>
+                                {hostel.status === "PUBLISHED" ? (
+                                  <DropdownMenuItem onSelect={() => void action(hostel.id, "unpublish")}>
+                                    <EyeOff className="size-4" />
+                                    Unpublish
+                                  </DropdownMenuItem>
+                                ) : null}
+                                <DropdownMenuItem disabled={busy} onSelect={() => void rechargeAction(hostel)}>
+                                  <Zap className="size-4" />
+                                  Recharge plan
+                                </DropdownMenuItem>
+                                {/* A suspension is for a hostel with a portal to
+                                    lose: one that is live, or approved and waiting. */}
+                                {hostel.status !== "PUBLISHED" && hostel.status !== "APPROVED" ? null : hostel.suspension ? (
+                                  <DropdownMenuItem disabled={busy} onSelect={() => void suspensionAction(hostel, "lift")}>
+                                    <LockOpen className="size-4" />
+                                    Lift suspension
+                                  </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem
+                                    disabled={busy}
+                                    onSelect={() => void suspensionAction(hostel, "suspend")}
+                                    variant="destructive"
+                                  >
+                                    <Ban className="size-4" />
+                                    Suspend
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuSeparator />
+                                {/* Offered at every stage — a listing can be a
+                                    mistaken draft as easily as a closed business. */}
+                                <DropdownMenuItem
+                                  disabled={busy}
+                                  onSelect={() => void archiveAction(hostel, "archive")}
+                                  variant="destructive"
+                                >
+                                  <Archive className="size-4" />
+                                  Archive
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                          </MoreMenu>
                         </div>
                       </TableCell>
                     </TableRow>

@@ -109,7 +109,7 @@ export const PlatformConfigSitePageContent = memo(
     return (
       <ConfigPage
         breadcrumb={["Home", "Website Config", "Site Content"]}
-        description="Brand details, homepage hero copy, headline numbers, and trust points shown to every public visitor."
+        description="Brand details, the homepage hero, headline numbers and trust points."
         error={error}
         message={message}
         state={state}
@@ -161,7 +161,7 @@ export const PlatformConfigSitePageContent = memo(
           </ConfigCard>
 
           <ConfigCard
-            description="Who transactional email comes from. Every field can be left blank — blank uses the sensible fallback shown in its hint, so this section only needs touching to override something."
+            description="Who transactional email comes from; a blank field uses the fallback in its hint."
             dirty={isDirty("email")}
             onReset={() => reset("email")}
             onSave={() => save("email")}
@@ -315,7 +315,7 @@ export const PlatformConfigSitePageContent = memo(
           </ConfigCard>
 
           <ConfigCard
-            description="The counter strip under the hero. Values are shown exactly as typed."
+            description="The counter strip under the hero; values show exactly as typed."
             dirty={isDirty("stats")}
             onReset={() => reset("stats")}
             onSave={() => save("stats")}
@@ -395,7 +395,7 @@ export const PlatformConfigSitePageContent = memo(
           </ConfigCard>
 
           <ConfigCard
-            description="Where the phone app comes from. Android visitors and the team's QR go to the Play listing; the APK is used only when the Play link is blank. iOS installs the website as an app until the iPhone app ships."
+            description="Where the phone app comes from: the Play listing first, the APK only when Play is blank."
             dirty={isDirty("apps")}
             onReset={() => reset("apps")}
             onSave={() => save("apps")}
@@ -456,7 +456,7 @@ export const PlatformConfigSitePageContent = memo(
           </ConfigCard>
 
           <ConfigCard
-            description="A row on the home of every student resident, on the website and in the app. It opens QuestionCall's installed app, or its install page."
+            description="A row on every student resident's home that opens QuestionCall."
             dirty={isDirty("questionCall")}
             onReset={() => reset("questionCall")}
             onSave={() => save("questionCall")}
@@ -465,7 +465,7 @@ export const PlatformConfigSitePageContent = memo(
           >
             <ToggleSwitch
               checked={questionCall.enabled}
-              description="When off, the row is removed for every resident."
+              description="Off removes the row for every resident."
               label="Show the row"
               onChange={(enabled) => setValue("questionCall", { ...questionCall, enabled })}
             />

@@ -29,14 +29,14 @@ export const PlatformConfigLegalPageContent = memo(
     return (
       <ConfigPage
         breadcrumb={["Home", "Website Config", "Legal Pages"]}
-        description="Terms of service and privacy policy text served at /terms and /privacy. Leave a body empty to keep the built-in default copy."
+        description="Text for /terms and /privacy; an empty body keeps the built-in copy."
         error={error}
         message={message}
         state={state}
         title="Legal Pages"
       >
         <ConfigCard
-          description="Plain text with blank lines between paragraphs. Lines starting with # render as headings."
+          description="Blank lines split paragraphs; lines starting with # are headings."
           dirty={isDirty("legal")}
           onReset={() => reset("legal")}
           onSave={() => save("legal")}
