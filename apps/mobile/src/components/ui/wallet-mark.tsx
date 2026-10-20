@@ -1,10 +1,19 @@
 import { Image } from "expo-image";
 import { View } from "react-native";
 
-import { Glyph, type GlyphName } from "@/components/ui/glyph";
+import { Glyph } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { type PaymentLogoKey, resolvePaymentLogoKey } from "@/lib/payment-logos";
+import {
+  PAYMENT_FALLBACK_GLYPH,
+  type PaymentLogoKey,
+  resolvePaymentLogoKey,
+  WALLET_LABEL,
+  walletLabel,
+} from "@/lib/payment-logos";
+
+// Shared with the web portals (`packages/shared/src/constants/payment-logos.ts`).
+export { WALLET_LABEL, walletLabel };
 
 /**
  * A payment provider or bank's own logo, in a tile.
@@ -128,39 +137,6 @@ export function hasWalletLogo(name: string | null | undefined): boolean {
   return resolvePaymentLogoKey(name) !== null;
 }
 
-/**
- * How each provider is spelled.
- *
- * `eSewa` is lower-e, capital-S. It is their own casing and the one every
- * resident sees a dozen times a day, so getting it wrong on a screen about
- * their money is the kind of small wrongness that costs trust. Kept here rather
- * than in three screens, which is where it was.
- */
-export const WALLET_LABEL: Record<string, string> = {
-  BANK: "Bank",
-  BANK_TRANSFER: "Bank transfer",
-  CASH: "Cash",
-  ESEWA: "eSewa",
-  FONEPAY: "Fonepay",
-  KHALTI: "Khalti",
-};
-
-/** The glyph for a provider with no logo of its own. */
-const FALLBACK_ICON: Record<string, GlyphName> = {
-  BANK: "business",
-  BANK_TRANSFER: "business",
-  CASH: "cash",
-  OTHER: "ellipsis-horizontal",
-  QR: "qr-code",
-};
-
-export function walletLabel(provider: string | null | undefined): string {
-  if (!provider) {
-    return "—";
-  }
-
-  return WALLET_LABEL[provider] ?? provider;
-}
 
 /**
  * The fallback tile's tint, for a caller whose row is also saying which way the
@@ -220,7 +196,7 @@ export function WalletMark({
       >
         <Glyph
           color={colors[ink]}
-          name={(name ? FALLBACK_ICON[name] : undefined) ?? "wallet"}
+          name={(name ? PAYMENT_FALLBACK_GLYPH[name] : undefined) ?? "wallet"}
           size={Math.round(size * 0.5)}
         />
       </View>
