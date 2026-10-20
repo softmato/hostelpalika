@@ -7,8 +7,6 @@ import { memo, useMemo, useState } from "react";
 import { EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import {
   DataTable,
-  FilterBar,
-  FilterSelect,
   InitialsAvatar,
   ListPager,
   MetricCard,
@@ -23,6 +21,7 @@ import {
   Th,
   statusToneFromLabel,
 } from "@/app/_components/portal-dashboard-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
 import { Message } from "./core-portal-shared";
@@ -117,103 +116,116 @@ export const PlatformComplaintsPageContent = memo(
 
     const tabCount = (key: string) =>
       key === "ALL" ? complaints.length : (statusCounts[key] ?? 0);
+    const switchTab = (next: string) => {
+      setTab(next);
+      setPage(1);
+    };
+    const resolvedCount = statusCounts.RESOLVED ?? 0;
 
     return (
       <div className="mx-auto max-w-[1448px] space-y-4">
-        <PortalPageHeader
-          breadcrumb={["Home", "Complaints"]}
-          description="Platform-level oversight of resident complaints — spot hostels breaching their resolution SLA."
-          title="Complaints"
-        />
+        <PortalPageHeader description="Resident complaints everywhere, and which hostels miss their deadline." title="Complaints" />
         <Message value={message} />
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
+            active={tab === "ALL" && !overdueOnly}
             icon={MessageSquare}
-            label="Total Complaints"
-            note="Across all hostels"
-            tone="teal"
+            label="Complaints"
+            onClick={() => {
+              switchTab("ALL");
+              setOverdueOnly(false);
+            }}
             value={data?.total ?? 0}
           />
           <MetricCard
+            active={tab === "PENDING"}
             icon={AlarmClock}
             label="Open"
-            note="Pending or in progress"
-            noteTone="amber"
-            tone="amber"
+            note={`${statusCounts.IN_PROGRESS ?? 0} in progress`}
+            onClick={() => switchTab("PENDING")}
+            tone={(statusCounts.PENDING ?? 0) + (statusCounts.IN_PROGRESS ?? 0) > 0 ? "amber" : "teal"}
             value={(statusCounts.PENDING ?? 0) + (statusCounts.IN_PROGRESS ?? 0)}
           />
           <MetricCard
+            active={overdueOnly}
             icon={TimerOff}
-            label="SLA Breached"
-            note="Past deadline, unresolved"
-            noteTone="rose"
-            tone="rose"
+            label="Past deadline"
+            onClick={() => {
+              setOverdueOnly(!overdueOnly);
+              setPage(1);
+            }}
+            tone={overdue > 0 ? "rose" : "teal"}
             value={overdue}
           />
           <MetricCard
+            active={tab === "RESOLVED"}
             icon={CheckCircle2}
             label="Resolved"
-            note="Closed successfully"
-            noteTone="green"
-            tone="green"
-            value={statusCounts.RESOLVED ?? 0}
+            note={complaints.length > 0 ? `${Math.round((resolvedCount / complaints.length) * 100)}% of all` : undefined}
+            onClick={() => switchTab("RESOLVED")}
+            value={resolvedCount}
           />
         </div>
 
         <Panel>
           <TabBar
             className="mb-3"
-            onChange={(next) => {
-              setTab(next);
-              setPage(1);
-            }}
+            onChange={switchTab}
             tabs={TABS.map((item) => ({ ...item, count: tabCount(item.key) }))}
             value={tab}
           />
 
-          <FilterBar>
+          <div className="mb-3 flex flex-wrap items-center gap-2">
             <SearchField
               onChange={(next) => {
                 setQuery(next);
                 setPage(1);
               }}
-              placeholder="Search complaints by title, hostel, category..."
+              placeholder="Search title, hostel or category"
               value={query}
             />
-            <div className="flex flex-wrap items-center gap-2">
-              <FilterSelect
-                defaultLabel="All Categories"
+            <FilterButton
+              active={(categoryFilter ? 1 : 0) + (hostelFilter ? 1 : 0) + (overdueOnly ? 1 : 0)}
+              onClear={() => {
+                setCategoryFilter("");
+                setHostelFilter("");
+                setOverdueOnly(false);
+                setPage(1);
+              }}
+            >
+              <FilterChoice
+                label="Deadline"
+                onChange={(next) => {
+                  setOverdueOnly(next === "late");
+                  setPage(1);
+                }}
+                options={[
+                  { label: "Any", value: "any" },
+                  { label: "Past deadline", value: "late" },
+                ]}
+                value={overdueOnly ? "late" : "any"}
+              />
+              <FilterChoice
+                label="Category"
                 onChange={(next) => {
                   setCategoryFilter(next);
                   setPage(1);
                 }}
-                options={categories}
+                options={[{ label: "All", value: "" }, ...categories.map((item) => ({ label: item, value: item }))]}
                 value={categoryFilter}
               />
-              <FilterSelect
-                defaultLabel="All Hostels"
+              <FilterChoice
+                label="Hostel"
                 onChange={(next) => {
                   setHostelFilter(next);
                   setPage(1);
                 }}
-                options={hostels}
+                options={[{ label: "All", value: "" }, ...hostels.map((item) => ({ label: item, value: item }))]}
                 value={hostelFilter}
               />
-              <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11.5px] font-semibold text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
-                <input
-                  checked={overdueOnly}
-                  className="size-3.5 accent-current"
-                  onChange={(event) => {
-                    setOverdueOnly(event.target.checked);
-                    setPage(1);
-                  }}
-                  type="checkbox"
-                />
-                SLA breached only
-              </label>
-            </div>
-          </FilterBar>
+            </FilterButton>
+          </div>
 
           {state === "loading" ? <LoadingRows /> : null}
           {state === "error" ? (
@@ -242,13 +254,11 @@ export const PlatformComplaintsPageContent = memo(
                     <TableRow key={complaint.id}>
                       <TableCell>
                         <div className="min-w-0">
-                          <p className="truncate font-semibold text-foreground">
+                          <p className="truncate text-[13.5px] font-semibold text-foreground">
                             {complaint.title}
                           </p>
                           {complaint.isAnonymous ? (
-                            <p className="text-[11px] text-muted-foreground">
-                              Submitted anonymously
-                            </p>
+                            <p className="text-[12px] text-muted-foreground">Anonymous</p>
                           ) : null}
                         </div>
                       </TableCell>
@@ -268,7 +278,7 @@ export const PlatformComplaintsPageContent = memo(
                         </div>
                       </TableCell>
                       <TableCell>
-                        <SoftBadge tone="teal">{complaint.category}</SoftBadge>
+                        <SoftBadge tone="slate">{complaint.category}</SoftBadge>
                       </TableCell>
                       <TableCell>
                         <SoftBadge tone={statusToneFromLabel(complaint.status)}>
@@ -277,7 +287,7 @@ export const PlatformComplaintsPageContent = memo(
                       </TableCell>
                       <TableCell>
                         {complaint.isOverdue ? (
-                          <SoftBadge tone="rose">Breached</SoftBadge>
+                          <SoftBadge tone="rose">Past deadline</SoftBadge>
                         ) : (
                           <span className="text-[11.5px] text-muted-foreground">
                             {formatDate(complaint.slaDueAt)}
