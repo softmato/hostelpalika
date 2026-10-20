@@ -1,17 +1,20 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Gift, HandCoins, Users } from "@/components/icons";
+import { ChevronLeft, ChevronRight, Gift, HandCoins, Percent, Plus, Users } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import {
+  InitialsAvatar,
   MetricCard,
   PortalPageHeader,
+  RoleButton,
   SoftBadge,
   TabBar,
   type SoftTone,
 } from "@/app/_components/portal-dashboard-ui";
+import { FactChip } from "@/app/_components/platform-page-ui";
 import {
   EmptyState,
   Input,
@@ -21,6 +24,15 @@ import {
   TextArea,
   currency,
 } from "@/app/_components/shared-ui";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { Message } from "./core-portal-shared";
@@ -110,6 +122,7 @@ export const PlatformOfferProgramPageContent = memo(function PlatformOfferProgra
   const [tab, setTab] = useState<"eligible" | "awards" | "perks">("eligible");
   const [message, setMessage] = useState("");
   const [editing, setEditing] = useState<Perk | null>(null);
+  const [perkFormOpen, setPerkFormOpen] = useState(false);
   const [perkKind, setPerkKind] = useState<"FEE_OFF" | "GIFT">("FEE_OFF");
   const [choice, setChoice] = useState<Record<string, string>>({});
   const invalidate = useInvalidateResources();
@@ -223,6 +236,7 @@ export const PlatformOfferProgramPageContent = memo(function PlatformOfferProgra
         });
         formElement.reset();
         setEditing(null);
+        setPerkFormOpen(false);
       }, editing ? "Perk updated." : "Perk added.");
     },
     [editing, run],
@@ -244,13 +258,20 @@ export const PlatformOfferProgramPageContent = memo(function PlatformOfferProgra
     [confirm, run],
   );
 
+  const openPerkForm = (perk: Perk | null) => {
+    setEditing(perk);
+    setPerkKind(perk?.kind ?? "FEE_OFF");
+    setPerkFormOpen(true);
+  };
+
   return (
     <div className="mx-auto max-w-[1448px] space-y-5">
       {confirmDialog}
       <PortalPageHeader
         actions={
           data ? (
-            <div className="flex items-center gap-1 rounded-md border border-border">
+            <>
+            <div className="flex items-center gap-1 rounded-xl border border-border">
               <button
                 aria-label="Previous quarter"
                 className="p-2 text-muted-foreground hover:text-foreground"
@@ -272,22 +293,40 @@ export const PlatformOfferProgramPageContent = memo(function PlatformOfferProgra
                 <ChevronRight className="size-4" />
               </button>
             </div>
+            <RoleButton onClick={() => openPerkForm(null)} type="button">
+              <Plus className="size-3.5" />
+              New perk
+            </RoleButton>
+            </>
           ) : null
         }
-        description="Residents whose payments quoted their reference code and were verified. Each quarter, give some of them a fee off or a gift from HostelPalika."
+        description="Each quarter, give certified residents a fee off or a gift."
         title="Resident Offer Program"
       />
       <Message value={message || resource.message} />
 
       {data ? (
         <div className="grid gap-3 sm:grid-cols-3">
-          <MetricCard icon={Users} label="Certified residents" tone="green" value={data.eligible.length} />
-          <MetricCard icon={Gift} label="Offers this quarter" value={data.awards.length} />
+          <MetricCard
+            active={tab === "eligible"}
+            icon={Users}
+            label="Certified residents"
+            onClick={() => setTab("eligible")}
+            value={data.eligible.length}
+          />
+          <MetricCard
+            active={tab === "awards"}
+            icon={Gift}
+            label="Offers this quarter"
+            note={data.eligible.length > 0 ? `${Math.round((data.awards.length / data.eligible.length) * 100)}% of certified` : undefined}
+            onClick={() => setTab("awards")}
+            value={data.awards.length}
+          />
           <MetricCard
             icon={HandCoins}
-            label="HostelPalika owes hostels"
-            note={`${data.owedToHostels.count} fee-off payments to settle`}
-            tone="amber"
+            label="We owe hostels"
+            note={`${data.owedToHostels.count} to settle`}
+            tone={data.owedToHostels.amount > 0 ? "amber" : "teal"}
             value={currency(data.owedToHostels.amount)}
           />
         </div>
@@ -316,16 +355,22 @@ export const PlatformOfferProgramPageContent = memo(function PlatformOfferProgra
           <div className="divide-y divide-border">
             {data.eligible.map((row) => (
               <div className="flex flex-wrap items-center justify-between gap-3 py-3" key={row.residentId}>
-                <div className="min-w-0">
-                  <p className="truncate font-semibold text-foreground">{row.residentName}</p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {row.hostelName}
-                    {row.residentStatus !== "ACTIVE" ? ` · ${row.residentStatus.toLowerCase()}` : ""}
-                  </p>
-                  <p className="mt-0.5 text-xs tabular-nums text-muted-foreground">
-                    {row.bills} {row.bills === 1 ? "bill" : "bills"} · {row.certifiedCount} receipts ·{" "}
-                    {currency(row.certifiedAmount)}
-                  </p>
+                <div className="flex min-w-0 items-center gap-3">
+                  <InitialsAvatar name={row.residentName} size="sm" tone="team" />
+                  <div className="min-w-0 space-y-1">
+                    <p className="truncate text-[13.5px] font-semibold text-foreground">
+                      {row.residentName}
+                      <span className="ml-1.5 font-normal text-muted-foreground">
+                        {row.hostelName}
+                        {row.residentStatus !== "ACTIVE" ? ` · ${row.residentStatus.toLowerCase()}` : ""}
+                      </span>
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                      <FactChip glyph="document-text">{`${row.bills} ${row.bills === 1 ? "bill" : "bills"}`}</FactChip>
+                      <FactChip glyph="receipt">{`${row.certifiedCount} receipts`}</FactChip>
+                      <FactChip glyph="cash">{currency(row.certifiedAmount)}</FactChip>
+                    </div>
+                  </div>
                 </div>
                 {row.award ? (
                   <SoftBadge tone={STATUS_TONE[row.award.status]}>{row.award.title}</SoftBadge>
@@ -333,7 +378,7 @@ export const PlatformOfferProgramPageContent = memo(function PlatformOfferProgra
                   <div className="flex items-center gap-2">
                     <select
                       aria-label={`Perk for ${row.residentName}`}
-                      className="h-9 rounded-md border border-border bg-background px-2 text-sm text-foreground"
+                      className="h-9 rounded-xl border border-border bg-background px-2 text-sm text-foreground"
                       onChange={(event) => setChoice((prev) => ({ ...prev, [row.residentId]: event.target.value }))}
                       value={choice[row.residentId] ?? activePerks[0].id}
                     >
@@ -343,13 +388,10 @@ export const PlatformOfferProgramPageContent = memo(function PlatformOfferProgra
                         </option>
                       ))}
                     </select>
-                    <button
-                      className="h-9 rounded-md bg-role-platform px-3 text-xs font-semibold text-white"
-                      onClick={() => void give(row)}
-                      type="button"
-                    >
+                    <RoleButton className="h-9" onClick={() => void give(row)} type="button">
+                      <Gift className="size-3.5" />
                       Give offer
-                    </button>
+                    </RoleButton>
                   </div>
                 ) : null}
               </div>
@@ -364,17 +406,20 @@ export const PlatformOfferProgramPageContent = memo(function PlatformOfferProgra
           <div className="divide-y divide-border">
             {data.awards.map((award) => (
               <div className="flex flex-wrap items-center justify-between gap-3 py-3" key={award.id}>
-                <div className="min-w-0">
-                  <p className="truncate font-semibold text-foreground">
+                <div className="min-w-0 space-y-1">
+                  <p className="truncate text-[13.5px] font-semibold text-foreground">
                     {award.title} · {award.residentName}
+                    <span className="ml-1.5 font-normal text-muted-foreground">{award.hostelName}</span>
                   </p>
-                  <p className="truncate text-xs text-muted-foreground">
-                    {award.hostelName} · {perkTerms(award)}
-                    {award.appliedAmount != null
-                      ? ` · ${currency(award.appliedAmount)} paid on ${award.appliedPeriod ?? "a bill"}`
-                      : ""}
-                    {award.hostelPaidAt ? ` · settled with hostel ${award.hostelPaidAt.slice(0, 10)}` : ""}
-                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    <FactChip glyph="gift">{perkTerms(award)}</FactChip>
+                    {award.appliedAmount != null ? (
+                      <FactChip glyph="cash">{`${currency(award.appliedAmount)} on ${award.appliedPeriod ?? "a bill"}`}</FactChip>
+                    ) : null}
+                    {award.hostelPaidAt ? (
+                      <FactChip glyph="checkmark-circle" tone="brand">{`Settled ${award.hostelPaidAt.slice(0, 10)}`}</FactChip>
+                    ) : null}
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <SoftBadge tone={STATUS_TONE[award.status]}>
@@ -397,23 +442,31 @@ export const PlatformOfferProgramPageContent = memo(function PlatformOfferProgra
       ) : null}
 
       {data && tab === "perks" ? (
-        <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
           <Panel title="Catalogue">
-            {data.perks.length === 0 ? <EmptyState label="No perks yet. Add one on the right." /> : null}
-            <div className="grid gap-3 sm:grid-cols-2">
+            {data.perks.length === 0 ? <EmptyState label="No perks yet. Add one from the header." /> : null}
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {data.perks.map((perk) => (
-                <div className="rounded-lg border border-border p-4" key={perk.id}>
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="font-semibold text-foreground">{perk.title}</p>
+                <div
+                  className="space-y-3 rounded-2xl border border-border/70 bg-card p-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                  key={perk.id}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-role-team-soft text-role-team">
+                      {perk.kind === "FEE_OFF" ? <Percent className="size-4" /> : <Gift className="size-4" />}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[15px] font-semibold text-foreground">{perk.title}</p>
+                      <p className="truncate text-[12.5px] text-muted-foreground">{perk.partner || "HostelPalika"}</p>
+                    </div>
                     <SoftBadge tone={perk.isActive ? "green" : "slate"}>{perk.isActive ? "Live" : "Hidden"}</SoftBadge>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    {perkTerms(perk)} · {perk.partner}
-                    {perk.giftValue ? ` · worth ${currency(perk.giftValue)}` : ""}
-                  </p>
-                  {perk.description ? <p className="mt-2 text-sm text-muted-foreground">{perk.description}</p> : null}
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <ActionButton label="Edit" onClick={() => { setEditing(perk); setPerkKind(perk.kind); }} />
+                  <div className="flex flex-wrap gap-1.5">
+                    <FactChip glyph="gift">{perkTerms(perk)}</FactChip>
+                    {perk.giftValue ? <FactChip glyph="cash">{`Worth ${currency(perk.giftValue)}`}</FactChip> : null}
+                  </div>
+                  {perk.description ? <p className="line-clamp-2 text-[13px] text-muted-foreground">{perk.description}</p> : null}
+                  <div className="flex flex-wrap gap-2">
+                    <ActionButton label="Edit" onClick={() => openPerkForm(perk)} />
                     <ActionButton
                       label={perk.isActive ? "Hide" : "Make live"}
                       onClick={() =>
@@ -433,8 +486,20 @@ export const PlatformOfferProgramPageContent = memo(function PlatformOfferProgra
               ))}
             </div>
           </Panel>
+      ) : null}
 
-          <Panel title={editing ? `Edit ${editing.title}` : "New perk"}>
+      <Dialog
+        onOpenChange={(open) => {
+          setPerkFormOpen(open);
+          if (!open) setEditing(null);
+        }}
+        open={perkFormOpen}
+      >
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editing ? `Edit ${editing.title}` : "New perk"}</DialogTitle>
+            <DialogDescription>A fee off is paid by HostelPalika to the hostel; 100% is a free month.</DialogDescription>
+          </DialogHeader>
             <BusyForm className="grid gap-3" key={editing?.id ?? "new"} onSubmit={savePerk}>
               <Input defaultValue={editing?.title} label="Title" name="title" placeholder="Next month 50% off" required />
               <Select
@@ -449,7 +514,6 @@ export const PlatformOfferProgramPageContent = memo(function PlatformOfferProgra
               {perkKind === "FEE_OFF" ? (
                 <Input
                   defaultValue={editing?.percentOff ?? 50}
-                  hint="Share of the next monthly fee HostelPalika pays. 100 is a free month."
                   label="Percent off"
                   max="100"
                   min="1"
@@ -469,26 +533,18 @@ export const PlatformOfferProgramPageContent = memo(function PlatformOfferProgra
               )}
               <Input defaultValue={editing?.partner} hint="Blank means HostelPalika." label="Given by" name="partner" />
               <TextArea defaultValue={editing?.description} label="Description" name="description" placeholder="What it is and how the resident gets it." />
-              <Input defaultValue={editing?.imageUrl} label="Image URL" name="imageUrl" placeholder="https://…" />
-              <Input defaultValue={editing?.sortOrder ?? 0} hint="Lower shows first." label="Order" name="sortOrder" type="number" />
-              <div className="flex gap-2">
-                <SubmitButton className="inline-flex h-11 flex-1 items-center justify-center rounded-md bg-role-platform text-sm font-semibold text-white">
+              <div className="grid grid-cols-[1fr_110px] gap-3">
+                <Input defaultValue={editing?.imageUrl} label="Image URL" name="imageUrl" placeholder="https://…" />
+                <Input defaultValue={editing?.sortOrder ?? 0} hint="Lower first." label="Order" name="sortOrder" type="number" />
+              </div>
+              <DialogFooter>
+                <SubmitButton className="bg-brand-teal text-white hover:bg-brand-teal/90">
                   {editing ? "Save changes" : "Add perk"}
                 </SubmitButton>
-                {editing ? (
-                  <button
-                    className="h-11 rounded-md border border-border px-4 text-sm font-semibold text-foreground"
-                    onClick={() => setEditing(null)}
-                    type="button"
-                  >
-                    Cancel
-                  </button>
-                ) : null}
-              </div>
+              </DialogFooter>
             </BusyForm>
-          </Panel>
-        </div>
-      ) : null}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });
@@ -503,14 +559,14 @@ function ActionButton({
   onClick: () => void;
 }) {
   return (
-    <button
-      className={`rounded-md border border-border px-3 py-1.5 text-xs font-semibold transition hover:bg-muted ${
-        destructive ? "text-destructive hover:bg-destructive/10" : "text-foreground"
-      }`}
+    <Button
+      className={destructive ? "text-muted-foreground hover:text-destructive" : undefined}
       onClick={onClick}
+      size="sm"
       type="button"
+      variant={destructive ? "ghost" : "outline"}
     >
       {label}
-    </button>
+    </Button>
   );
 }

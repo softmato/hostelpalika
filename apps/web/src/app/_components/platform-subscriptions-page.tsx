@@ -13,8 +13,6 @@ import { memo, useMemo, useState } from "react";
 import { currency, EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import {
   DataTable,
-  FilterBar,
-  FilterSelect,
   InitialsAvatar,
   ListPager,
   MetricCard,
@@ -30,6 +28,7 @@ import {
   Th,
   statusToneFromLabel,
 } from "@/app/_components/portal-dashboard-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import { downloadFile } from "@/lib/downloads/downloader";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
@@ -141,6 +140,7 @@ export const PlatformSubscriptionsPageContent = memo(
 
     const [tab, setTab] = useState("INVOICES");
     const [query, setQuery] = useState("");
+    const [hostelFilter, setHostelFilter] = useState("");
     const [page, setPage] = useState(1);
 
     const invoices = useMemo(() => data?.invoices ?? [], [data]);
@@ -152,25 +152,29 @@ export const PlatformSubscriptionsPageContent = memo(
     const invoiceRows = useMemo(
       () =>
         invoices.filter((invoice) =>
-          term
+          hostelFilter && invoice.hostelName !== hostelFilter
+            ? false
+            : term
             ? `${invoice.hostelName} ${invoice.invoiceNumber} ${invoice.printedNumber} ${invoice.planName}`
                 .toLowerCase()
                 .includes(term)
             : true,
         ),
-      [invoices, term],
+      [hostelFilter, invoices, term],
     );
 
     const paymentRows = useMemo(
       () =>
         payments.filter((payment) =>
-          term
+          hostelFilter && payment.hostelName !== hostelFilter
+            ? false
+            : term
             ? `${payment.hostelName} ${payment.invoiceNumber} ${payment.receiptNumber ?? ""} ${payment.printedNumber ?? ""}`
                 .toLowerCase()
                 .includes(term)
             : true,
         ),
-      [payments, term],
+      [hostelFilter, payments, term],
     );
 
     const claims = useMemo(
@@ -181,14 +185,22 @@ export const PlatformSubscriptionsPageContent = memo(
     const claimRows = useMemo(
       () =>
         claims.filter((claim) =>
-          term
+          hostelFilter && claim.hostelName !== hostelFilter
+            ? false
+            : term
             ? `${claim.hostelName} ${claim.invoiceNumber} ${claim.reference ?? ""}`
                 .toLowerCase()
                 .includes(term)
             : true,
         ),
-      [claims, term],
+      [claims, hostelFilter, term],
     );
+
+    const hostelNames = useMemo(() => Array.from(new Set(invoices.map((invoice) => invoice.hostelName))), [invoices]);
+    const switchTab = (next: string) => {
+      setTab(next);
+      setPage(1);
+    };
 
     const rows =
       tab === "INVOICES"
@@ -215,11 +227,7 @@ export const PlatformSubscriptionsPageContent = memo(
 
     return (
       <div className="mx-auto max-w-[1448px] space-y-4">
-        <PortalPageHeader
-          breadcrumb={["Home", "Fees & Payments", "Plan Billing"]}
-          description="Every plan invoice raised to a hostel and every payment received against one. Resident rent lives on Payments — this is what hostels pay the platform."
-          title="Plan Billing"
-        />
+        <PortalPageHeader description="What hostels owe and pay the platform for their plan." title="Plan Billing" />
         <Message value={message} />
 
         {state === "loading" ? <LoadingRows /> : null}
@@ -231,39 +239,37 @@ export const PlatformSubscriptionsPageContent = memo(
           <>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <MetricCard
+                active={tab === "PAYMENTS"}
                 icon={WalletCards}
                 label="Collected"
-                note="Settled payments only"
-                noteTone="green"
-                tone="green"
+                note={
+                  totals?.billed ? `${Math.round(((totals.collected ?? 0) / totals.billed) * 100)}% of billed` : undefined
+                }
+                onClick={() => switchTab("PAYMENTS")}
                 value={currency(totals?.collected ?? 0)}
               />
               <MetricCard
+                active={tab === "INVOICES"}
                 icon={FileText}
                 label="Billed"
-                note="Every invoice ever raised"
-                noteTone="teal"
-                tone="teal"
+                onClick={() => switchTab("INVOICES")}
                 value={currency(totals?.billed ?? 0)}
               />
               <MetricCard
                 icon={TrendingUp}
                 label="Outstanding"
-                note="Open and partly paid"
-                noteTone="amber"
-                tone="amber"
+                tone={(totals?.outstanding ?? 0) > 0 ? "amber" : "teal"}
                 value={currency(totals?.outstanding ?? 0)}
               />
               <MetricCard
                 icon={Building2}
-                label="Active Plans"
+                label="Active plans"
                 note={
                   totals?.issuedByPlatform
                     ? `${totals.issuedByPlatform} invoice${totals.issuedByPlatform === 1 ? "" : "s"} issued by us`
-                    : "All documents issued by Softmato"
+                    : undefined
                 }
-                noteTone={totals?.issuedByPlatform ? "amber" : "green"}
-                tone="green"
+                noteTone="amber"
                 value={totals?.activePlans ?? 0}
               />
             </div>
@@ -271,10 +277,7 @@ export const PlatformSubscriptionsPageContent = memo(
             <Panel>
               <TabBar
                 className="mb-3"
-                onChange={(next) => {
-                  setTab(next);
-                  setPage(1);
-                }}
+                onChange={switchTab}
                 tabs={TABS.map((item) => ({
                   ...item,
                   count:
@@ -287,27 +290,38 @@ export const PlatformSubscriptionsPageContent = memo(
                 value={tab}
               />
 
-              <FilterBar>
+              <div className="mb-3 flex flex-wrap items-center gap-2">
                 <SearchField
                   onChange={(next) => {
                     setQuery(next);
                     setPage(1);
                   }}
-                  placeholder="Search by hostel, invoice or receipt number..."
+                  placeholder="Search hostel, invoice or receipt"
                   value={query}
                 />
-                <FilterSelect
-                  defaultLabel="All Hostels"
-                  options={Array.from(
-                    new Set(invoices.map((invoice) => invoice.hostelName)),
-                  )}
-                />
-              </FilterBar>
+                <FilterButton
+                  active={hostelFilter ? 1 : 0}
+                  onClear={() => {
+                    setHostelFilter("");
+                    setPage(1);
+                  }}
+                >
+                  <FilterChoice
+                    label="Hostel"
+                    onChange={(next) => {
+                      setHostelFilter(next);
+                      setPage(1);
+                    }}
+                    options={[{ label: "All", value: "" }, ...hostelNames.map((name) => ({ label: name, value: name }))]}
+                    value={hostelFilter}
+                  />
+                </FilterButton>
+              </div>
 
               {tab === "REVIEW" ? (
                 <div className="space-y-5">
                   <section className="space-y-2">
-                    <h3 className="text-[12.5px] font-bold text-foreground">Cash from field agents</h3>
+                    <h3 className="font-heading text-[15px] font-semibold tracking-tight text-foreground">Cash from field agents</h3>
                     <FieldCashQueue
                       confirmUrl={cashQueue.data?.confirmUrl ?? "https://admin.softmato.com/cash"}
                       onChecked={() => {
@@ -318,7 +332,7 @@ export const PlatformSubscriptionsPageContent = memo(
                     />
                   </section>
                   <section className="space-y-2">
-                    <h3 className="text-[12.5px] font-bold text-foreground">QR payments with proof</h3>
+                    <h3 className="font-heading text-[15px] font-semibold tracking-tight text-foreground">QR payments with proof</h3>
                 <SubscriptionClaimQueue
                   claims={claimRows}
                   onReviewed={() => {
@@ -369,7 +383,7 @@ export const PlatformSubscriptionsPageContent = memo(
                                   size="sm"
                                   tone="platform"
                                 />
-                                <p className="truncate font-semibold text-foreground">
+                                <p className="truncate text-[13.5px] font-semibold text-foreground">
                                   {invoice.hostelName}
                                 </p>
                               </div>
@@ -454,7 +468,7 @@ export const PlatformSubscriptionsPageContent = memo(
                                   size="sm"
                                   tone="platform"
                                 />
-                                <p className="truncate font-semibold text-foreground">
+                                <p className="truncate text-[13.5px] font-semibold text-foreground">
                                   {payment.hostelName}
                                 </p>
                               </div>

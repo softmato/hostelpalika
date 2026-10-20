@@ -1,6 +1,18 @@
 "use client";
 
-import { ExternalLink, Eye, Plus, Trash2 } from "@/components/icons";
+import {
+  Clock3,
+  ExternalLink,
+  Eye,
+  List as List2,
+  PauseCircle,
+  Plus,
+  ReceiptText,
+  RotateCcw,
+  Send,
+  Settings,
+  Trash2,
+} from "@/components/icons";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -15,13 +27,25 @@ import {
 } from "@/app/_components/booking-admin-ui";
 import { at, rupees } from "@/app/_components/booking-ui";
 import { useConfirm } from "@/app/_components/confirm-dialog";
+import { FactChip, MoreMenu } from "@/app/_components/platform-page-ui";
 import {
+  MetricCard,
   PortalPageHeader,
   RoleButton,
   SoftBadge,
   TabBar,
+  ToggleSwitch,
 } from "@/app/_components/portal-dashboard-ui";
 import { LoadingRows, Panel } from "@/app/_components/shared-ui";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { usePortalResource } from "@/lib/portal-query";
 import { uploadFile } from "@/lib/uploads/uploader";
 import type { BookingConfig } from "@/modules/bookings/booking-config";
@@ -102,17 +126,20 @@ function PaymentsTab() {
               </>
             }
           >
-            <p className="font-bold text-foreground">
+            <p className="text-[13.5px] font-semibold text-foreground">
               {rupees(payment.amount)} · {payment.bookingCode}
             </p>
-            <p className="text-muted-foreground">
+            <p className="text-[12.5px] text-muted-foreground">
               {payment.guest.name} ({payment.guest.phone || payment.guest.email}) → {payment.hostelName}, {payment.roomType}
             </p>
-            <p className="text-muted-foreground">
-              Reference {payment.reference || "none"} · sent {at(payment.submittedAt)} · check by {at(payment.checkBy)}{" "}
-              <SoftBadge tone={timeLeft(payment.checkBy, now) === "overdue" ? "rose" : "amber"}>{timeLeft(payment.checkBy, now)}</SoftBadge>
-            </p>
-            {payment.note ? <p className="text-muted-foreground">Note: {payment.note}</p> : null}
+            <div className="flex flex-wrap gap-1.5 pt-0.5">
+              <FactChip glyph="hash">{payment.reference || "No reference"}</FactChip>
+              <FactChip glyph="time">{`Sent ${at(payment.submittedAt)}`}</FactChip>
+              <FactChip glyph="hourglass" tone={timeLeft(payment.checkBy, now) === "overdue" ? "rose" : "amber"}>
+                {`Check by ${at(payment.checkBy)} · ${timeLeft(payment.checkBy, now)}`}
+              </FactChip>
+            </div>
+            {payment.note ? <p className="text-[12.5px] text-muted-foreground">Note: {payment.note}</p> : null}
           </Row>
         )}
         state={resource.state}
@@ -177,30 +204,30 @@ function BookingsTab({ tab }: { tab: "all" | "holds" | "waiting" }) {
               }
               key={booking.id}
             >
-              <p className="font-bold text-foreground">
+              <p className="text-[13.5px] font-semibold text-foreground">
                 {booking.code} · {booking.statusLabel}{" "}
                 {booking.strike ? <SoftBadge tone="rose">strike</SoftBadge> : null}
               </p>
-              <p className="text-muted-foreground">
+              <p className="text-[12.5px] text-muted-foreground">
                 {booking.guest.name} ({booking.guest.phone || booking.guest.email}) → {booking.hostel.name}
                 {booking.hostel.phone ? ` · ${booking.hostel.phone}` : ""}, {booking.roomType}
               </p>
-              <p className="text-muted-foreground">
-                Fee {rupees(booking.fee)} · hostel share if kept {rupees(booking.hostelShareIfKept)} · booked {at(booking.createdAt)}
-              </p>
-              {deadline ? (
-                <p className="text-muted-foreground">
-                  {booking.status === "AWAITING_HOSTEL" ? "Answer by" : "Hold ends"} {at(deadline)}{" "}
-                  <SoftBadge tone={timeLeft(deadline, now) === "overdue" ? "rose" : "amber"}>{timeLeft(deadline, now)}</SoftBadge>
-                </p>
-              ) : null}
-              {booking.platformSettlement ? (
-                <p className="text-muted-foreground">
-                  Refund {rupees(booking.platformSettlement.refund)} · hostel {rupees(booking.platformSettlement.hostelShare)} · us{" "}
-                  {rupees(booking.platformSettlement.platformShare)}
-                </p>
-              ) : null}
-              {booking.endReason ? <p className="text-muted-foreground">Reason: {booking.endReason}</p> : null}
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
+                <FactChip glyph="cash">{`Fee ${rupees(booking.fee)}`}</FactChip>
+                <FactChip glyph="business">{`Hostel keeps ${rupees(booking.hostelShareIfKept)}`}</FactChip>
+                <FactChip glyph="calendar">{`Booked ${at(booking.createdAt)}`}</FactChip>
+                {deadline ? (
+                  <FactChip glyph="hourglass" tone={timeLeft(deadline, now) === "overdue" ? "rose" : "amber"}>
+                    {`${booking.status === "AWAITING_HOSTEL" ? "Answer by" : "Hold ends"} ${at(deadline)} · ${timeLeft(deadline, now)}`}
+                  </FactChip>
+                ) : null}
+                {booking.platformSettlement ? (
+                  <FactChip glyph="swap-horizontal">
+                    {`Refund ${rupees(booking.platformSettlement.refund)} · hostel ${rupees(booking.platformSettlement.hostelShare)} · us ${rupees(booking.platformSettlement.platformShare)}`}
+                  </FactChip>
+                ) : null}
+              </div>
+              {booking.endReason ? <p className="text-[12.5px] text-muted-foreground">Reason: {booking.endReason}</p> : null}
             </Row>
           );
         }}
@@ -219,51 +246,55 @@ function MarkSent({ busy, onSubmit }: { busy: boolean; onSubmit: (input: { note:
   const [proof, setProof] = useState<string | undefined>();
   const [uploading, setUploading] = useState(false);
 
-  if (!open) {
-    return <RoleButton onClick={() => setOpen(true)}>Mark sent</RoleButton>;
-  }
-
   return (
-    <div className="grid w-full gap-2">
-      <input className={FIELD} maxLength={64} onChange={(event) => setTransactionId(event.target.value)} placeholder="Transaction ID" value={transactionId} />
-      <input className={FIELD} maxLength={500} onChange={(event) => setNote(event.target.value)} placeholder="Note (optional)" value={note} />
-      <label className="text-xs text-muted-foreground">
-        {uploading ? "Uploading…" : proof ? "Screenshot attached" : "Screenshot of the transfer (optional)"}
-        <input
-          accept="image/*"
-          className="mt-1 block text-xs"
-          onChange={async (event) => {
-            const file = event.target.files?.[0];
+    <>
+      <RoleButton onClick={() => setOpen(true)}>Mark sent</RoleButton>
+      <Dialog onOpenChange={setOpen} open={open}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Mark sent</DialogTitle>
+            <DialogDescription>The person is emailed the transaction ID.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-3">
+            <input className={FIELD} maxLength={64} onChange={(event) => setTransactionId(event.target.value)} placeholder="Transaction ID" value={transactionId} />
+            <input className={FIELD} maxLength={500} onChange={(event) => setNote(event.target.value)} placeholder="Note (optional)" value={note} />
+            <label className="text-xs text-muted-foreground">
+              {uploading ? "Uploading…" : proof ? "Screenshot attached" : "Screenshot of the transfer (optional)"}
+              <input
+                accept="image/*"
+                className="mt-1 block text-xs"
+                onChange={async (event) => {
+                  const file = event.target.files?.[0];
 
-            if (!file) return;
+                  if (!file) return;
 
-            setUploading(true);
+                  setUploading(true);
 
-            const result = await uploadFile(file, {
-              accessLevel: "PRIVATE",
-              assetKind: "BOOKING_TRANSFER_PROOF",
-              kind: "image",
-              label: "Transfer screenshot",
-              silent: true,
-            }).finally(() => setUploading(false));
+                  const result = await uploadFile(file, {
+                    accessLevel: "PRIVATE",
+                    assetKind: "BOOKING_TRANSFER_PROOF",
+                    kind: "image",
+                    label: "Transfer screenshot",
+                    silent: true,
+                  }).finally(() => setUploading(false));
 
-            setProof(result?.assetId ?? undefined);
-          }}
-          type="file"
-        />
-      </label>
-      <div className="flex gap-2">
-        <RoleButton
-          disabled={busy || uploading || transactionId.trim().length < 3}
-          onClick={() => onSubmit({ note: note.trim(), proofAssetId: proof, transactionId: transactionId.trim() })}
-        >
-          Mark sent
-        </RoleButton>
-        <RoleButton onClick={() => setOpen(false)} variant="outline">
-          Close
-        </RoleButton>
-      </div>
-    </div>
+                  setProof(result?.assetId ?? undefined);
+                }}
+                type="file"
+              />
+            </label>
+          </div>
+          <DialogFooter>
+            <RoleButton
+              disabled={busy || uploading || transactionId.trim().length < 3}
+              onClick={() => onSubmit({ note: note.trim(), proofAssetId: proof, transactionId: transactionId.trim() })}
+            >
+              Mark sent
+            </RoleButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -313,18 +344,20 @@ function TransfersTab({ kind }: { kind: "PAYOUT" | "REFUND" }) {
             }
             key={transfer.id}
           >
-            <p className="font-bold text-foreground">
+            <p className="text-[13.5px] font-semibold text-foreground">
               {rupees(transfer.amount)} · {transfer.bookingCode}
             </p>
-            <p className="text-muted-foreground">
-              {kind === "REFUND" ? transfer.guestName : transfer.hostelName} · {transfer.roomType} · due since {at(transfer.dueSince)}
+            <p className="text-[12.5px] text-muted-foreground">
+              {kind === "REFUND" ? transfer.guestName : transfer.hostelName} · {transfer.roomType}
             </p>
-            {transfer.destination ? (
-              <p className="text-muted-foreground">
-                {transfer.destination.methodLabel} {transfer.destination.bankName} {revealed[transfer.id] ?? transfer.destination.maskedNumber} (
-                {transfer.destination.holderName})
-              </p>
-            ) : null}
+            <div className="flex flex-wrap gap-1.5 pt-0.5">
+              <FactChip glyph="time">{`Due since ${at(transfer.dueSince)}`}</FactChip>
+              {transfer.destination ? (
+                <FactChip glyph="card">
+                  {`${transfer.destination.methodLabel} ${transfer.destination.bankName} ${revealed[transfer.id] ?? transfer.destination.maskedNumber} (${transfer.destination.holderName})`}
+                </FactChip>
+              ) : null}
+            </div>
           </Row>
         )}
         state={resource.state}
@@ -384,14 +417,17 @@ function AccountsTab() {
             }
             key={account.hostelId}
           >
-            <p className="font-bold text-foreground">{account.hostelName}</p>
-            <p className="text-muted-foreground">
-              {account.methodLabel} {account.bankName} {account.branch} · {revealed[account.hostelId] ?? account.maskedNumber} · {account.holderName}
-            </p>
-            <p className="text-muted-foreground">Submitted {at(account.submittedAt)}</p>
-            {account.sharedWith.length > 0 ? (
-              <SoftBadge tone="rose">Same number as {account.sharedWith.join(", ")}</SoftBadge>
-            ) : null}
+            <p className="text-[13.5px] font-semibold text-foreground">{account.hostelName}</p>
+            <div className="flex flex-wrap gap-1.5 pt-0.5">
+              <FactChip glyph="card">
+                {`${account.methodLabel} ${account.bankName} ${account.branch} · ${revealed[account.hostelId] ?? account.maskedNumber}`}
+              </FactChip>
+              <FactChip glyph="person">{account.holderName}</FactChip>
+              <FactChip glyph="time">{`Sent ${at(account.submittedAt)}`}</FactChip>
+              {account.sharedWith.length > 0 ? (
+                <FactChip glyph="warning" tone="rose">{`Same number as ${account.sharedWith.join(", ")}`}</FactChip>
+              ) : null}
+            </div>
           </Row>
         )}
         state={resource.state}
@@ -423,10 +459,10 @@ function PausedTab() {
             }
             key={hostel.id}
           >
-            <p className="font-bold text-foreground">
+            <p className="text-[13.5px] font-semibold text-foreground">
               {hostel.name} <SoftBadge tone={hostel.automatic ? "amber" : "slate"}>{hostel.automatic ? "strikes" : "by a superadmin"}</SoftBadge>
             </p>
-            <p className="text-muted-foreground">
+            <p className="text-[12.5px] text-muted-foreground">
               Since {at(hostel.pausedAt)}
               {hostel.reason ? ` · ${hostel.reason}` : ""}
             </p>
@@ -473,10 +509,9 @@ function SettingsForm({ config }: { config: BookingConfig }) {
 
   return (
     <div className="space-y-4">
-      <label className="flex items-center gap-3 text-sm font-semibold text-foreground">
-        <input checked={draft.enabled} onChange={(event) => set("enabled", event.target.checked)} type="checkbox" />
-        Bookings are switched on
-      </label>
+      <div className="max-w-sm">
+        <ToggleSwitch checked={draft.enabled} label="Bookings are switched on" onChange={(next) => set("enabled", next)} />
+      </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
         {NUMBER_FIELDS.map((field) => (
@@ -498,7 +533,7 @@ function SettingsForm({ config }: { config: BookingConfig }) {
       </div>
 
       <div>
-        <p className="text-sm font-semibold text-foreground">If the person cancels after confirmation</p>
+        <p className="font-heading text-[15px] font-semibold tracking-tight text-foreground">If the person cancels after confirmation</p>
         <div className="mt-2 space-y-2">
           {draft.cancelSteps.map((step, index) => (
             <div className="flex items-center gap-2 text-sm text-muted-foreground" key={index}>
@@ -587,10 +622,9 @@ function SettingsTab() {
       ) : (
         <div className="space-y-5">
           {pending ? (
-            <div className="flex flex-col gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-3 text-[13.5px] sm:flex-row sm:items-center sm:justify-between">
               <p>
-                A change is waiting for the confirm link sent to {pending.sentTo}, until {at(pending.expiresAt)}. Nothing changes before
-                it is opened.
+                Waiting for the confirm link sent to {pending.sentTo}, until {at(pending.expiresAt)}.
               </p>
               <RoleButton
                 disabled={busy === "cancel-change"}
@@ -622,26 +656,77 @@ export function PlatformBookingsPageContent() {
   const tab: Tab = requested && (TABS as readonly string[]).includes(requested) ? requested : "payments";
   const counts = usePortalResource<BookingsResponse>(`${BASE}?tab=waiting`).data?.counts;
   const accounts = usePortalResource<{ accounts: PayoutAccountForReview[] }>(`${BASE}/payout-accounts?status=PENDING_REVIEW`).data?.accounts;
+  const open = (key: Tab) => router.replace(`${pathname}?tab=${key}`, { scroll: false });
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-[1448px] space-y-4">
       <PortalPageHeader
-        breadcrumb={["Platform", "Finance", "Bookings"]}
-        description="Room bookings paid to us: check payments, chase hostels, send refunds and payouts."
+        actions={
+          <>
+            <RoleButton onClick={() => open("all")} variant="outline">
+              <List2 className="size-3.5" />
+              All bookings
+            </RoleButton>
+            <RoleButton onClick={() => open("settings")} variant="outline">
+              <Settings className="size-3.5" />
+              Settings
+            </RoleButton>
+            <MoreMenu>
+              <DropdownMenuItem onSelect={() => open("paused")}>
+                <PauseCircle className="size-4" />
+                Paused hostels
+              </DropdownMenuItem>
+            </MoreMenu>
+          </>
+        }
+        description="Bookings paid to us: check, chase, refund and pay out."
         title="Bookings"
       />
+
+      {/* The four queues with money in them; each tile opens its queue. */}
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <MetricCard
+          active={tab === "payments"}
+          icon={ReceiptText}
+          label="Payments to check"
+          onClick={() => open("payments")}
+          tone={(counts?.payments ?? 0) > 0 ? "amber" : "teal"}
+          value={counts?.payments ?? 0}
+        />
+        <MetricCard
+          active={tab === "waiting"}
+          icon={Clock3}
+          label="Waiting on hostels"
+          onClick={() => open("waiting")}
+          value={counts?.waiting ?? 0}
+        />
+        <MetricCard
+          active={tab === "refunds"}
+          icon={RotateCcw}
+          label="Refunds to send"
+          onClick={() => open("refunds")}
+          tone={(counts?.refundsDue ?? 0) > 0 ? "amber" : "teal"}
+          value={counts?.refundsDue ?? 0}
+        />
+        <MetricCard
+          active={tab === "payouts"}
+          icon={Send}
+          label="Payouts to send"
+          onClick={() => open("payouts")}
+          tone={(counts?.payoutsDue ?? 0) > 0 ? "amber" : "teal"}
+          value={counts?.payoutsDue ?? 0}
+        />
+      </div>
+
       <TabBar
-        onChange={(key) => router.replace(`${pathname}?tab=${key}`, { scroll: false })}
+        onChange={(key) => open(key as Tab)}
         tabs={[
           { count: counts?.payments, key: "payments", label: "Payments to check" },
           { count: counts?.waiting, key: "waiting", label: "Waiting on hostels" },
           { count: counts?.holds, key: "holds", label: "Holds" },
-          { count: counts?.refundsDue, key: "refunds", label: "Refunds to send" },
-          { count: counts?.payoutsDue, key: "payouts", label: "Payouts to send" },
+          { count: counts?.refundsDue, key: "refunds", label: "Refunds" },
+          { count: counts?.payoutsDue, key: "payouts", label: "Payouts" },
           { count: accounts?.length, key: "accounts", label: "Payout accounts" },
-          { key: "paused", label: "Paused hostels" },
-          { key: "all", label: "All bookings" },
-          { key: "settings", label: "Settings" },
         ]}
         value={tab}
       />

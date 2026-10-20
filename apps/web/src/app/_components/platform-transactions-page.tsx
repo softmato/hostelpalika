@@ -14,8 +14,6 @@ import { memo, useMemo, useState } from "react";
 import { currency, EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import {
   DataTable,
-  FilterBar,
-  FilterSelect,
   InitialsAvatar,
   ListPager,
   MetricCard,
@@ -30,6 +28,7 @@ import {
   TableRow,
   Th,
 } from "@/app/_components/portal-dashboard-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
 import { Message } from "./core-portal-shared";
@@ -94,6 +93,7 @@ export const PlatformTransactionsPageContent = memo(
     const [tab, setTab] = useState("ALL");
     const [query, setQuery] = useState("");
     const [hostelFilter, setHostelFilter] = useState("");
+    const [monthFilter, setMonthFilter] = useState("");
     const [page, setPage] = useState(1);
 
     const ledger = useMemo(
@@ -111,12 +111,20 @@ export const PlatformTransactionsPageContent = memo(
       return ledger.filter((entry) => {
         if (tab !== "ALL" && entry.settlement !== tab) return false;
         if (hostelFilter && entry.hostelName !== hostelFilter) return false;
+        if (monthFilter && entry.month !== monthFilter) return false;
         if (!term) return true;
         return `${entry.hostelName} ${entry.month} ${entry.id}`
           .toLowerCase()
           .includes(term);
       });
-    }, [hostelFilter, ledger, query, tab]);
+    }, [hostelFilter, ledger, monthFilter, query, tab]);
+
+    const hostelNames = useMemo(() => Array.from(new Set(ledger.map((entry) => entry.hostelName))), [ledger]);
+    const months = useMemo(() => Array.from(new Set(ledger.map((entry) => entry.month))), [ledger]);
+    const switchTab = (next: string) => {
+      setTab(next);
+      setPage(1);
+    };
 
     const paged = useMemo(
       () => rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
@@ -151,15 +159,14 @@ export const PlatformTransactionsPageContent = memo(
                   { key: "dueDate", label: "Due date" },
                   { key: "id", label: "Reference" },
                 ], rows)}
-              tone="platform"
+              tone="team"
               variant="outline"
             >
               <Download className="size-3.5" />
               Export CSV
             </RoleButton>
           }
-          breadcrumb={["Home", "Fees & Payments", "Transactions"]}
-          description="Every money movement recorded across the platform, with its reference, settlement state, and hostel."
+          description="Every money movement, its reference and whether it is settled."
           title="Transactions"
         />
         <Message value={message} />
@@ -173,34 +180,27 @@ export const PlatformTransactionsPageContent = memo(
           <>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <MetricCard
+                active={tab === "ALL"}
                 icon={ArrowDownUp}
-                label="Ledger Entries"
-                note="Most recent first"
-                tone="teal"
+                label="Entries"
+                onClick={() => switchTab("ALL")}
                 value={ledger.length}
               />
+              <MetricCard icon={Wallet} label="Received" value={currency(totals.volume)} />
               <MetricCard
-                icon={Wallet}
-                label="Settled Volume"
-                note="Money actually received"
-                noteTone="green"
-                tone="green"
-                value={currency(totals.volume)}
-              />
-              <MetricCard
+                active={tab === "SETTLED"}
                 icon={BadgeDollarSign}
-                label="Fully Settled"
-                note="Nothing outstanding"
-                noteTone="green"
-                tone="cyan"
+                label="Fully settled"
+                note={ledger.length > 0 ? `${Math.round((totals.settled / ledger.length) * 100)}% of entries` : undefined}
+                onClick={() => switchTab("SETTLED")}
                 value={totals.settled}
               />
               <MetricCard
+                active={tab === "OUTSTANDING"}
                 icon={TrendingUp}
                 label="Outstanding"
-                note="Still owed"
-                noteTone="amber"
-                tone="amber"
+                onClick={() => switchTab("OUTSTANDING")}
+                tone={(data?.overview.outstanding ?? 0) > 0 ? "amber" : "teal"}
                 value={currency(data?.overview.outstanding ?? 0)}
               />
             </div>
@@ -208,39 +208,48 @@ export const PlatformTransactionsPageContent = memo(
             <Panel>
               <TabBar
                 className="mb-3"
-                onChange={(next) => {
-                  setTab(next);
-                  setPage(1);
-                }}
+                onChange={switchTab}
                 tabs={TABS.map((item) => ({ ...item, count: tabCount(item.key) }))}
                 value={tab}
               />
 
-              <FilterBar>
+              <div className="mb-3 flex flex-wrap items-center gap-2">
                 <SearchField
                   onChange={(next) => {
                     setQuery(next);
                     setPage(1);
                   }}
-                  placeholder="Search by hostel, month, or reference..."
+                  placeholder="Search hostel, month or reference"
                   value={query}
                 />
-                <div className="flex flex-wrap gap-2">
-                  <FilterSelect
-                    defaultLabel="All Hostels"
+                <FilterButton
+                  active={(hostelFilter ? 1 : 0) + (monthFilter ? 1 : 0)}
+                  onClear={() => {
+                    setHostelFilter("");
+                    setMonthFilter("");
+                    setPage(1);
+                  }}
+                >
+                  <FilterChoice
+                    label="Month"
+                    onChange={(next) => {
+                      setMonthFilter(next);
+                      setPage(1);
+                    }}
+                    options={[{ label: "All", value: "" }, ...months.map((month) => ({ label: month, value: month }))]}
+                    value={monthFilter}
+                  />
+                  <FilterChoice
+                    label="Hostel"
                     onChange={(next) => {
                       setHostelFilter(next);
                       setPage(1);
                     }}
-                    options={Array.from(new Set(ledger.map((entry) => entry.hostelName)))}
+                    options={[{ label: "All", value: "" }, ...hostelNames.map((name) => ({ label: name, value: name }))]}
                     value={hostelFilter}
                   />
-                  <FilterSelect
-                    defaultLabel="All Months"
-                    options={Array.from(new Set(ledger.map((entry) => entry.month)))}
-                  />
-                </div>
-              </FilterBar>
+                </FilterButton>
+              </div>
 
               {rows.length === 0 ? (
                 <EmptyState label="No transactions match these filters." />
@@ -273,9 +282,9 @@ export const PlatformTransactionsPageContent = memo(
                               <InitialsAvatar
                                 name={entry.hostelName}
                                 size="sm"
-                                tone="platform"
+                                tone="team"
                               />
-                              <span className="truncate font-semibold text-foreground">
+                              <span className="truncate text-[13.5px] font-semibold text-foreground">
                                 {entry.hostelName}
                               </span>
                             </div>
@@ -304,6 +313,15 @@ export const PlatformTransactionsPageContent = memo(
                             >
                               {entry.settlement}
                             </SoftBadge>
+                            {/* How much of the bill is in, as a hairline under the badge. */}
+                            <div className="mt-1.5 h-1 w-20 overflow-hidden rounded-full bg-muted">
+                              <div
+                                className={entry.settlement === "SETTLED" ? "h-full bg-brand-teal" : "h-full bg-amber-500"}
+                                style={{
+                                  width: `${entry.dueAmount > 0 ? Math.min(100, Math.round((entry.paidAmount / entry.dueAmount) * 100)) : 0}%`,
+                                }}
+                              />
+                            </div>
                           </TableCell>
                           <TableCell className="whitespace-nowrap text-muted-foreground">
                             {formatDate(entry.dueDate)}

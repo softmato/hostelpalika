@@ -1,6 +1,19 @@
 "use client";
 
-import { Boxes, PackageX, Plus, ShoppingBag, Tags } from "@/components/icons";
+import {
+  Boxes,
+  Eye,
+  EyeOff,
+  Package,
+  PackageX,
+  Pencil,
+  Plus,
+  ShoppingBag,
+  Tags,
+  Trash2,
+} from "@/components/icons";
+import { resolveGlyph } from "@hostel/shared/constants/glyphs";
+import Link from "next/link";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
@@ -8,11 +21,22 @@ import { useConfirm } from "@/app/_components/confirm-dialog";
 import {
   MetricCard,
   PortalPageHeader,
+  RoleButton,
   SoftBadge,
   TabBar,
   ToggleSwitch,
-  ViewAllLink,
 } from "@/app/_components/portal-dashboard-ui";
+import { FactChip } from "@/app/_components/platform-page-ui";
+import { Glyph } from "@/components/glyph";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   EmptyState,
   Input,
@@ -91,6 +115,7 @@ export const PlatformStorePageContent = memo(function PlatformStorePageContent()
   const [editingProduct, setEditingProduct] = useState<StoreProduct | null>(null);
   const [editingCategory, setEditingCategory] = useState<StoreCategory | null>(null);
   const [categoryImage, setCategoryImage] = useState(() => storeImageRows([]));
+  const [categoryFormOpen, setCategoryFormOpen] = useState(false);
 
   /*
    * Picking a category to edit and loading its tile picture are one action, so
@@ -213,6 +238,7 @@ export const PlatformStorePageContent = memo(function PlatformStorePageContent()
         );
         formElement.reset();
         editCategory(null);
+        setCategoryFormOpen(false);
         setMessage(editingCategory ? "Category updated." : "Category added.");
         refresh();
       } catch (error) {
@@ -290,12 +316,34 @@ export const PlatformStorePageContent = memo(function PlatformStorePageContent()
   );
 
   const counts = summary.data?.summary;
+  const openProductForm = (product: StoreProduct | null) => {
+    setEditingProduct(product);
+    setTab("add");
+  };
+  const openCategoryForm = (category: StoreCategory | null) => {
+    editCategory(category);
+    setCategoryFormOpen(true);
+  };
 
   return (
     <div className="mx-auto max-w-[1448px] space-y-5">
       {confirmDialog}
       <PortalPageHeader
-        description="The supply catalogue every hostel orders from — products, the departments they sit in, and what delivery costs."
+        actions={
+          <>
+            <RoleButton asChild variant="outline">
+              <Link href="/platform/store/orders">
+                <Package className="size-3.5" />
+                {counts?.openOrders ? `${counts.openOrders} to fulfil` : "Orders"}
+              </Link>
+            </RoleButton>
+            <RoleButton onClick={() => openProductForm(null)} type="button">
+              <Plus className="size-3.5" />
+              New product
+            </RoleButton>
+          </>
+        }
+        description="The catalogue every hostel orders from, and what delivery costs."
         title="Supply Store"
       />
       <Message value={message || products.message} />
@@ -305,10 +353,10 @@ export const PlatformStorePageContent = memo(function PlatformStorePageContent()
           <MetricCard
             icon={ShoppingBag}
             label="Live products"
-            tone="green"
+            note={counts.products > 0 ? `${Math.round((counts.live / counts.products) * 100)}% of all` : undefined}
             value={counts.live}
           />
-          <MetricCard icon={Boxes} label="Total products" value={counts.products} />
+          <MetricCard icon={Boxes} label="Products" value={counts.products} />
           <MetricCard icon={Tags} label="Categories" value={counts.categories} />
           <MetricCard
             icon={PackageX}
@@ -319,278 +367,262 @@ export const PlatformStorePageContent = memo(function PlatformStorePageContent()
         </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <TabBar
-          onChange={(key) => setTab(key as typeof tab)}
-          tabs={[
-            { key: "products", label: "Products" },
-            { key: "add", label: editingProduct ? "Edit product" : "Add product" },
-            { key: "categories", label: "Categories" },
-            { key: "settings", label: "Delivery & fees" },
-          ]}
-          tone="platform"
-          value={tab}
-        />
-        <ViewAllLink
-          href="/platform/store/orders"
-          label={
-            counts?.openOrders
-              ? `${counts.openOrders} order${counts.openOrders === 1 ? "" : "s"} to fulfil`
-              : "Orders"
-          }
-        />
-      </div>
+      <TabBar
+        onChange={(key) => setTab(key as typeof tab)}
+        tabs={[
+          { key: "products", label: "Products" },
+          { key: "categories", label: "Categories" },
+          { key: "settings", label: "Delivery & fees" },
+        ]}
+        tone="platform"
+        value={tab === "add" ? "products" : tab}
+      />
 
-      {tab === "products" ? (
-        <div className="grid gap-5">
-          <Panel
-            action={
-              <button
-                className="inline-flex h-8 items-center gap-1.5 rounded-md bg-role-platform px-3 text-xs font-semibold text-white"
-                onClick={() => {
-                  setEditingProduct(null);
-                  setTab("add");
-                }}
-                type="button"
+      {tab === "products" || tab === "add" ? (
+        <Panel title="Catalogue">
+          {products.state === "loading" ? <LoadingRows /> : null}
+          {products.state === "ready" && productRows.length === 0 ? (
+            <EmptyState label="Nothing in the shop yet. Add a category first, then a product." />
+          ) : null}
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            {productRows.map((product) => (
+              <article
+                className="group overflow-hidden rounded-2xl border border-border/70 bg-card transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                key={product.id}
               >
-                <Plus className="size-3.5" />
-                New product
-              </button>
-            }
-            title="Catalogue"
-          >
-            {products.state === "loading" ? <LoadingRows /> : null}
-            {products.state === "ready" && productRows.length === 0 ? (
-              <EmptyState label="Nothing in the shop yet. Add a category first, then a product." />
-            ) : null}
-
-            <div className="space-y-3">
-              {productRows.map((product) => (
-                <div className="rounded-lg border border-border p-4" key={product.id}>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div className="flex min-w-0 gap-3">
-                      {product.images[0]?.url ? (
-                        /* A catalogue thumbnail from whatever host the supplier
-                           gave us. `next/image` would need every one of those
-                           hosts added to `remotePatterns`, which turns adding a
-                           product into a deploy. */
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          alt=""
-                          className="size-12 shrink-0 rounded-lg object-cover"
-                          src={product.images[0].url}
-                        />
-                      ) : (
-                        <span className="grid size-12 shrink-0 place-items-center rounded-lg bg-muted text-muted-foreground">
-                          <ShoppingBag className="size-5" />
-                        </span>
-                      )}
-                      <div className="min-w-0">
-                        <p className="truncate font-semibold text-foreground">
-                          {product.name}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground">
-                          {product.categoryName || "No category"} · per {product.unit}
-                          {product.summary ? ` · ${product.summary}` : ""}
-                        </p>
-                        <p className="mt-1 text-[11px] text-muted-foreground">
-                          {formatPaisa(product.price)}
-                          {product.compareAtPrice
-                            ? ` (was ${formatPaisa(product.compareAtPrice)})`
-                            : ""}
-                          {product.trackStock
-                            ? ` · ${product.stockOnHand} in stock`
-                            : " · stock not tracked"}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {product.images.length === 0 ? (
-                        <SoftBadge tone="amber">No photo</SoftBadge>
-                      ) : null}
-                      {product.isFeatured ? (
-                        <SoftBadge tone="amber">Featured</SoftBadge>
-                      ) : null}
-                      <SoftBadge tone={product.isActive ? "green" : "slate"}>
-                        {product.isActive ? "Live" : "Hidden"}
-                      </SoftBadge>
-                      {product.trackStock && product.stockOnHand <= 0 ? (
-                        <SoftBadge tone="rose">Out of stock</SoftBadge>
-                      ) : null}
-                      {/* Visible to the one person who can fix it. A product
-                          with no photograph draws a glyph on the phone, which
-                          reads as a failed image rather than as a gap in the
-                          catalogue. */}
-                      {product.images.length === 0 ? (
-                        <SoftBadge tone="amber">No photo</SoftBadge>
-                      ) : null}
-                    </div>
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    <button
-                      className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted"
-                      onClick={() => {
-                        setEditingProduct(product);
-                        setTab("add");
-                      }}
-                      type="button"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted"
-                      onClick={() => void toggleProduct(product)}
-                      type="button"
-                    >
-                      {product.isActive ? "Hide" : "Make live"}
-                    </button>
-                    <button
-                      className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-destructive transition hover:bg-destructive/10"
-                      onClick={() => void removeProduct(product)}
-                      type="button"
-                    >
-                      Delete
-                    </button>
-                  </div>
+                <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                  {product.images[0]?.url ? (
+                    /* A catalogue thumbnail from whatever host the supplier
+                       gave us. `next/image` would need every one of those
+                       hosts added to `remotePatterns`, which turns adding a
+                       product into a deploy. */
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      alt=""
+                      className="size-full object-cover transition duration-500 group-hover:scale-[1.03]"
+                      src={product.images[0].url}
+                    />
+                  ) : (
+                    <span className="flex size-full items-center justify-center text-muted-foreground">
+                      <ShoppingBag className="size-8" />
+                    </span>
+                  )}
+                  <span className="absolute left-2.5 top-2.5 rounded-full bg-black/60 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
+                    {product.isActive ? "Live" : "Hidden"}
+                  </span>
                 </div>
-              ))}
-            </div>
-          </Panel>
-        </div>
-      ) : null}
 
-      {tab === "add" ? (
-        <StoreProductForm
-          categories={categoryRows}
-          editing={editingProduct}
-          key={editingProduct?.id ?? "new"}
-          onCancelEdit={() => {
-            setEditingProduct(null);
-            setTab("products");
-          }}
-          onCategoryCreated={refresh}
-          onSaved={(verb) => {
-            setMessage(verb === "added" ? "Product added." : "Product updated.");
-            setEditingProduct(null);
-            refresh();
-
-            if (verb === "updated") {
-              // An edit is finished business — go back to the list it was
-              // started from. A create is not: stocking a shop is a run of
-              // them, so the form stays put, cleared and ready.
-              setTab("products");
-            }
-          }}
-          setMessage={setMessage}
-        />
-      ) : null}
-
-      {tab === "categories" ? (
-        <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
-          <Panel title="Departments">
-            {categories.state === "loading" ? <LoadingRows /> : null}
-            {categories.state === "ready" && categoryRows.length === 0 ? (
-              <EmptyState label="No categories yet. Create one on the right." />
-            ) : null}
-
-            <div className="space-y-3">
-              {categoryRows.map((category) => (
-                <div
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-4"
-                  key={category.id}
-                >
+                <div className="space-y-3 p-4">
                   <div className="min-w-0">
-                    <p className="truncate font-semibold text-foreground">{category.name}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {category.slug} · {category.productCount}{" "}
-                      {category.productCount === 1 ? "product" : "products"} · glyph{" "}
-                      {category.icon}
+                    <h3 className="truncate font-heading text-[15px] font-bold tracking-tight text-foreground">{product.name}</h3>
+                    <p className="truncate text-[12.5px] text-muted-foreground">
+                      {product.categoryName || "No category"} · per {product.unit}
                     </p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <SoftBadge tone={category.isActive ? "green" : "slate"}>
-                      {category.isActive ? "Live" : "Hidden"}
-                    </SoftBadge>
-                    <button
-                      className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-foreground transition hover:bg-muted"
-                      onClick={() => editCategory(category)}
-                      type="button"
-                    >
+
+                  <p className="text-[15px] font-bold tabular-nums text-foreground">
+                    {formatPaisa(product.price)}
+                    {product.compareAtPrice ? (
+                      <span className="ml-1.5 text-[12px] font-normal text-muted-foreground line-through">
+                        {formatPaisa(product.compareAtPrice)}
+                      </span>
+                    ) : null}
+                  </p>
+
+                  <div className="flex flex-wrap gap-1.5">
+                    {product.trackStock ? (
+                      <FactChip glyph="cube" tone={product.stockOnHand <= 0 ? "rose" : "neutral"}>
+                        {product.stockOnHand <= 0 ? "Out of stock" : `${product.stockOnHand} in stock`}
+                      </FactChip>
+                    ) : (
+                      <FactChip glyph="cube">Stock not tracked</FactChip>
+                    )}
+                    {product.isFeatured ? <FactChip glyph="star" tone="brand">Featured</FactChip> : null}
+                    {/* Visible to the one person who can fix it. A product
+                        with no photograph draws a glyph on the phone, which
+                        reads as a failed image rather than as a gap in the
+                        catalogue. */}
+                    {product.images.length === 0 ? <FactChip glyph="image-off" tone="amber">No photo</FactChip> : null}
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button onClick={() => openProductForm(product)} size="sm" type="button" variant="outline">
+                      <Pencil className="size-3.5" />
                       Edit
-                    </button>
-                    <button
-                      className="rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-destructive transition hover:bg-destructive/10"
-                      onClick={() => void removeCategory(category)}
+                    </Button>
+                    <Button onClick={() => void toggleProduct(product)} size="sm" type="button" variant="ghost">
+                      {product.isActive ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                      {product.isActive ? "Hide" : "Make live"}
+                    </Button>
+                    <Button
+                      aria-label={`Delete ${product.name}`}
+                      className="ml-auto text-muted-foreground hover:text-destructive"
+                      onClick={() => void removeProduct(product)}
+                      size="sm"
                       type="button"
+                      variant="ghost"
                     >
-                      Delete
-                    </button>
+                      <Trash2 className="size-3.5" />
+                    </Button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </Panel>
+              </article>
+            ))}
+          </div>
+        </Panel>
+      ) : null}
 
-          <Panel title={editingCategory ? `Edit ${editingCategory.name}` : "New category"}>
-            <BusyForm
-              className="grid gap-3"
-              key={editingCategory?.id ?? "new"}
-              onSubmit={saveCategory}
-            >
-              <Input
-                defaultValue={editingCategory?.name}
-                label="Name"
-                name="name"
-                placeholder="Bedding"
-                required
-              />
-              <Input
-                defaultValue={editingCategory?.slug}
-                hint="Leave blank to build one from the name. The app filters by this."
-                label="Handle"
-                name="slug"
-              />
+      {/* The product studio — the form, its example and its preview — in one
+          wide dialog. A create keeps it open, cleared, for the next product. */}
+      <Dialog
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingProduct(null);
+            setTab("products");
+          }
+        }}
+        open={tab === "add"}
+      >
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-6xl">
+          <DialogHeader>
+            <DialogTitle>{editingProduct ? `Edit ${editingProduct.name}` : "New product"}</DialogTitle>
+            <DialogDescription>Prices are in rupees; stock and order limits are per unit.</DialogDescription>
+          </DialogHeader>
+          <StoreProductForm
+            categories={categoryRows}
+            editing={editingProduct}
+            key={editingProduct?.id ?? "new"}
+            onCancelEdit={() => {
+              setEditingProduct(null);
+              setTab("products");
+            }}
+            onCategoryCreated={refresh}
+            onSaved={(verb) => {
+              setMessage(verb === "added" ? "Product added." : "Product updated.");
+              setEditingProduct(null);
+              refresh();
+
+              if (verb === "updated") {
+                // An edit is finished business — go back to the list it was
+                // started from. A create is not: stocking a shop is a run of
+                // them, so the form stays put, cleared and ready.
+                setTab("products");
+              }
+            }}
+            setMessage={setMessage}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {tab === "categories" ? (
+        <Panel
+          action={
+            <Button onClick={() => openCategoryForm(null)} size="sm" type="button" variant="outline">
+              <Plus className="size-3.5" />
+              New category
+            </Button>
+          }
+          title="Departments"
+        >
+          {categories.state === "loading" ? <LoadingRows /> : null}
+          {categories.state === "ready" && categoryRows.length === 0 ? (
+            <EmptyState label="No categories yet." />
+          ) : null}
+
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {categoryRows.map((category) => (
+              <div
+                className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-3.5 transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                key={category.id}
+              >
+                <span className="flex size-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-role-team-soft text-role-team">
+                  {category.imageUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img alt="" className="size-full object-cover" src={category.imageUrl} />
+                  ) : (
+                    <Glyph className="size-5" name={resolveGlyph(category.icon)} />
+                  )}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-[13.5px] font-semibold text-foreground">{category.name}</p>
+                    {category.isActive ? null : <SoftBadge tone="slate">Hidden</SoftBadge>}
+                  </div>
+                  <p className="truncate text-[12px] text-muted-foreground">
+                    {category.productCount} {category.productCount === 1 ? "product" : "products"} · /{category.slug}
+                  </p>
+                </div>
+                <Button
+                  aria-label={`Edit ${category.name}`}
+                  onClick={() => openCategoryForm(category)}
+                  size="icon"
+                  type="button"
+                  variant="ghost"
+                >
+                  <Pencil className="size-3.5" />
+                </Button>
+                <Button
+                  aria-label={`Delete ${category.name}`}
+                  className="text-muted-foreground hover:text-destructive"
+                  onClick={() => void removeCategory(category)}
+                  size="icon"
+                  type="button"
+                  variant="ghost"
+                >
+                  <Trash2 className="size-3.5" />
+                </Button>
+              </div>
+            ))}
+          </div>
+        </Panel>
+      ) : null}
+
+      <Dialog
+        onOpenChange={(open) => {
+          setCategoryFormOpen(open);
+          if (!open) editCategory(null);
+        }}
+        open={categoryFormOpen}
+      >
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{editingCategory ? `Edit ${editingCategory.name}` : "New category"}</DialogTitle>
+            <DialogDescription>Higher priority shows first in the shop grid.</DialogDescription>
+          </DialogHeader>
+          <BusyForm className="grid gap-3" key={editingCategory?.id ?? "new"} onSubmit={saveCategory}>
+            <Input defaultValue={editingCategory?.name} label="Name" name="name" placeholder="Bedding" required />
+            <Input
+              defaultValue={editingCategory?.slug}
+              hint="Blank builds one from the name."
+              label="Handle"
+              name="slug"
+            />
+            <div className="grid grid-cols-2 gap-3">
               <Input
                 defaultValue={editingCategory?.icon ?? "bed"}
-                hint="One of our glyph names — bed, water, restaurant. An unknown name shows a plain circle."
+                hint="A glyph name: bed, water, restaurant."
                 label="Icon"
                 name="icon"
               />
-              <StoreImageInput
-                hint="Optional photograph for the tile. The icon above is used when there is none."
-                label="Tile image"
-                maxImages={1}
-                onChange={setCategoryImage}
-                rows={categoryImage}
-                scope="store-category-image"
-              />
-              <Input
-                defaultValue={editingCategory?.priority ?? 0}
-                hint="Higher shows first in the shop's grid."
-                label="Priority"
-                name="priority"
-                type="number"
-              />
-
-              <div className="flex gap-2">
-                <SubmitButton className="inline-flex h-11 flex-1 items-center justify-center gap-2 rounded-md bg-role-platform text-sm font-semibold text-white">
-                  {editingCategory ? "Save changes" : "Add category"}
-                </SubmitButton>
-                {editingCategory ? (
-                  <button
-                    className="h-11 rounded-md border border-border px-4 text-sm font-semibold text-foreground"
-                    onClick={() => editCategory(null)}
-                    type="button"
-                  >
-                    Cancel
-                  </button>
-                ) : null}
-              </div>
-            </BusyForm>
-          </Panel>
-        </div>
-      ) : null}
+              <Input defaultValue={editingCategory?.priority ?? 0} label="Priority" name="priority" type="number" />
+            </div>
+            <StoreImageInput
+              hint="Optional; the icon shows when there is none."
+              label="Tile image"
+              maxImages={1}
+              onChange={setCategoryImage}
+              rows={categoryImage}
+              scope="store-category-image"
+            />
+            <DialogFooter>
+              <SubmitButton className="bg-brand-teal text-white hover:bg-brand-teal/90">
+                {editingCategory ? "Save changes" : "Add category"}
+              </SubmitButton>
+            </DialogFooter>
+          </BusyForm>
+        </DialogContent>
+      </Dialog>
 
       {tab === "settings" ? (
         <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
@@ -601,7 +633,7 @@ export const PlatformStorePageContent = memo(function PlatformStorePageContent()
               <BusyForm className="grid max-w-xl gap-3" onSubmit={saveSettings}>
                 <Input
                   defaultValue={toRupees(config.deliveryFee)}
-                  hint="Charged on every order that misses the free-delivery threshold."
+                  hint="On every order under the free-delivery line."
                   label="Delivery fee (NPR)"
                   min="0"
                   name="deliveryFee"
@@ -610,7 +642,7 @@ export const PlatformStorePageContent = memo(function PlatformStorePageContent()
                 />
                 <Input
                   defaultValue={toRupees(config.freeDeliveryThreshold)}
-                  hint="Spend this much and delivery is free. Set 0 to turn the rule off entirely — it does not make delivery free."
+                  hint="0 turns the rule off; it does not make delivery free."
                   label="Free delivery over (NPR)"
                   min="0"
                   name="freeDeliveryThreshold"
@@ -626,7 +658,7 @@ export const PlatformStorePageContent = memo(function PlatformStorePageContent()
                 <DeliveryWindowFields schedule={config.deliverySchedule} />
                 <Input
                   defaultValue={toRupees(config.maxOrderTotal)}
-                  hint="A guard against a mistyped quantity. Orders above this are refused."
+                  hint="Orders above this are refused."
                   label="Single-order limit (NPR)"
                   min="0"
                   name="maxOrderTotal"
@@ -640,9 +672,9 @@ export const PlatformStorePageContent = memo(function PlatformStorePageContent()
                   name="closedMessage"
                 />
 
-                <SubmitButton className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-role-platform text-sm font-semibold text-white">
-                  Save settings
-                </SubmitButton>
+                <div>
+                  <SubmitButton className="bg-brand-teal text-white hover:bg-brand-teal/90">Save settings</SubmitButton>
+                </div>
               </BusyForm>
             )}
           </Panel>
@@ -651,7 +683,7 @@ export const PlatformStorePageContent = memo(function PlatformStorePageContent()
             {config ? (
               <ToggleSwitch
                 checked={config.isOpen}
-                description="Closing keeps the catalogue intact and stops new orders. The app shows the closed message rather than hiding the Store button — a button that vanishes reads as a bug."
+                description="Closed stops new orders and shows the closed message."
                 label="Store is open"
                 onChange={(next) => void patchSettings({ isOpen: next })}
               />
