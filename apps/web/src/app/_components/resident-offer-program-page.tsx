@@ -9,20 +9,24 @@ import {
   Download,
   Gift,
   Percent,
-  Sparkles,
+  ReceiptText,
 } from "@/components/icons";
 import Link from "next/link";
 
-import {
-  EmptyState,
-  LoadingRows,
-  Panel,
-  StatusBadge,
-  currency,
-} from "@/app/_components/shared-ui";
+import { EmptyState, LoadingRows, currency } from "@/app/_components/shared-ui";
+import { Button } from "@/components/ui/button";
+import { dayMonthYear, monthLabel } from "@/lib/format-month";
 import { usePortalResource } from "@/lib/portal-query";
 import { residentEndpoints } from "@/lib/resident-endpoints";
-import { Message, PageHeader } from "./portal-shared";
+import { CardSkeletons, SectionTitle, titleCase } from "./daily-portal-ui";
+import {
+  MetricCard,
+  PortalPageHeader,
+  SectionCard,
+  SoftBadge,
+  statusToneFromLabel,
+} from "./portal-dashboard-ui";
+import { Message } from "./resident-shared";
 
 /**
  * The resident's own view of the Resident Offer Program.
@@ -119,7 +123,7 @@ function ReferenceCode({ code }: { code: string }) {
 
   return (
     <button
-      className="inline-flex items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 font-mono text-sm font-semibold tracking-wider text-role-resident transition hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-resident"
+      className="inline-flex items-center gap-2 rounded-xl border border-border bg-muted/40 px-3 py-1.5 font-mono text-[13px] font-semibold tracking-wider text-role-team transition hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-team"
       onClick={handleCopy}
       type="button"
     >
@@ -159,181 +163,177 @@ export const ResidentOfferProgramPageContent = React.memo(
     const perks = programme.data?.perks ?? [];
 
     return (
-      <div className="mx-auto max-w-[900px] space-y-6">
-        <PageHeader
+      <div className="mx-auto max-w-[1000px] space-y-5">
+        <PortalPageHeader
+          actions={
+            <Button asChild className="h-9 gap-2 rounded-xl" variant="outline">
+              <Link href="/resident-offer-program">
+                Rules
+                <ArrowUpRight className="size-4" />
+              </Link>
+            </Button>
+          }
           description="Certified payments and this quarter's offers."
-          icon={Sparkles}
-          title="Resident Offer Program"
+          title="Offer Program"
         />
         <Message value={finance.message || programme.message} />
 
-        <Panel
-          action={
-            <Link
-              className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
-              href="/resident-offer-program"
-            >
-              Programme rules
-              <ArrowUpRight className="size-3.5" />
-            </Link>
-          }
-          title={quarter ? `This quarter · ${quarter.label}` : "This quarter"}
-        >
-          {programme.state === "loading" ? (
-            <LoadingRows />
-          ) : (
-            <div className="flex items-start gap-3">
-              <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-lg bg-role-resident/10">
-                <BadgeCheck className="size-4.5 text-role-resident" />
-              </span>
-              <div>
-                <p className="text-2xl font-semibold tabular-nums text-foreground">
-                  {currency(quarter?.certifiedAmount ?? 0)}
-                </p>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  {quarter?.certifiedCount === 1
-                    ? "1 certified payment this quarter"
-                    : `${quarter?.certifiedCount ?? 0} certified payments this quarter`}
-                </p>
-              </div>
-            </div>
-          )}
-        </Panel>
+        {programme.state === "loading" ? (
+          <CardSkeletons />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-3">
+            <MetricCard
+              icon={BadgeCheck}
+              label={quarter ? `Certified · ${quarter.label}` : "Certified"}
+              value={currency(quarter?.certifiedAmount ?? 0)}
+            />
+            <MetricCard icon={Check} label="Certified payments" value={quarter?.certifiedCount ?? 0} />
+            <MetricCard icon={Gift} label="Your offers" value={awards.length} />
+          </div>
+        )}
 
         {awards.length > 0 ? (
-          <Panel title="Your offers">
-            <div className="space-y-2">
+          <section className="space-y-3">
+            <SectionTitle>Your offers</SectionTitle>
+            <div className="grid gap-3 sm:grid-cols-2">
               {awards.map((award) => (
-                <div className="flex items-center gap-3 rounded-lg border border-border p-3" key={award.id}>
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-role-resident/10">
-                    {award.kind === "FEE_OFF" ? (
-                      <Percent className="size-4 text-role-resident" />
-                    ) : (
-                      <Gift className="size-4 text-role-resident" />
-                    )}
+                <div className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-4" key={award.id}>
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-role-team-soft text-role-team">
+                    {award.kind === "FEE_OFF" ? <Percent className="size-5" /> : <Gift className="size-5" />}
                   </span>
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-foreground">{award.title}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="truncate font-heading text-[15px] font-semibold text-foreground">{award.title}</p>
+                    <p className="truncate text-[12.5px] text-muted-foreground">
                       {award.quarterLabel} · {awardState(award)}
                     </p>
                   </div>
                 </div>
               ))}
             </div>
-          </Panel>
+          </section>
         ) : null}
 
-        <Panel title="Perks you can get">
+        <section className="space-y-3">
+          <SectionTitle>Perks you can get</SectionTitle>
           {programme.state === "loading" ? (
-            <LoadingRows />
+            <CardSkeletons count={2} />
           ) : perks.length === 0 ? (
-            <EmptyState label="Perks are on their way. Keep paying with your code." />
+            <SectionCard>
+              <EmptyState label="Perks are on their way. Keep paying with your code." />
+            </SectionCard>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {perks.map((perk) => (
-                <div className="flex gap-3 rounded-lg border border-border p-3" key={perk.id}>
-                  {perk.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img alt="" className="size-12 shrink-0 rounded-lg object-cover" src={perk.imageUrl} />
-                  ) : (
-                    <span className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-role-resident/10">
-                      {perk.kind === "FEE_OFF" ? (
-                        <Percent className="size-5 text-role-resident" />
-                      ) : (
-                        <Gift className="size-5 text-role-resident" />
-                      )}
+                <article
+                  className="overflow-hidden rounded-2xl border border-border/70 bg-card transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                  key={perk.id}
+                >
+                  <div className="relative aspect-[16/9] bg-muted">
+                    {perk.imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img alt="" className="size-full object-cover" src={perk.imageUrl} />
+                    ) : (
+                      <span className="flex size-full items-center justify-center text-role-team">
+                        {perk.kind === "FEE_OFF" ? <Percent className="size-8" /> : <Gift className="size-8" />}
+                      </span>
+                    )}
+                    <span className="absolute left-2.5 top-2.5 rounded-full bg-black/60 px-2.5 py-0.5 text-[11px] font-semibold text-white backdrop-blur">
+                      {perk.kind === "FEE_OFF" ? `${perk.percentOff}% off` : "Gift"}
                     </span>
-                  )}
-                  <div className="min-w-0">
-                    <p className="font-medium text-foreground">{perk.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {perkTerms(perk)} · from {perk.partner}
+                  </div>
+                  <div className="p-4">
+                    <p className="font-heading text-[15px] font-semibold text-foreground">{perk.title}</p>
+                    <p className="text-[12.5px] text-muted-foreground">
+                      {perkTerms(perk)} · {perk.partner}
                     </p>
                     {perk.description ? (
-                      <p className="mt-1 text-xs text-muted-foreground">{perk.description}</p>
+                      <p className="mt-1 line-clamp-2 text-[13px] text-muted-foreground">{perk.description}</p>
                     ) : null}
                   </div>
-                </div>
+                </article>
               ))}
             </div>
           )}
-        </Panel>
+        </section>
 
-        <Panel title="Your active reference codes">
-          {finance.state === "loading" ? (
-            <LoadingRows />
-          ) : activeCodes.length === 0 ? (
-            <EmptyState label="Nothing is due right now, so there is no code to quote." />
-          ) : (
-            <div className="space-y-3">
-              {activeCodes.map((invoice) => (
-                <div
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3"
-                  key={invoice.id}
-                >
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{invoice.month}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {currency(invoice.dueAmount - invoice.paidAmount)} outstanding
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <StatusBadge>{invoice.status}</StatusBadge>
-                    <ReferenceCode code={invoice.referenceCode!} />
-                  </div>
-                </div>
-              ))}
-              <p className="text-xs text-muted-foreground">
-                Paste the code into the remarks or purpose field when you transfer. Only
-                payments with the code are certified.
-              </p>
-            </div>
-          )}
-        </Panel>
-
-        <Panel title="Your receipts">
-          {finance.state === "loading" ? (
-            <LoadingRows />
-          ) : receipts.length === 0 ? (
-            <EmptyState label="No receipts yet. One is issued each time your hostel verifies a payment." />
-          ) : (
-            <div className="space-y-2">
-              {receipts.map((receipt) => (
-                <div
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border p-3"
-                  key={receipt.id}
-                >
-                  <div className="min-w-0">
-                    <p className="truncate font-mono text-sm font-medium text-foreground">{receipt.number}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {receipt.month ?? "One-off"} · {currency(receipt.amount)}
-                      {receipt.issuedAt ? ` · issued ${receipt.issuedAt.slice(0, 10)}` : ""}
-                    </p>
-                    {receipt.certificationCode ? (
-                      <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-role-resident">
-                        <BadgeCheck className="size-3.5" />
-                        Certified · {receipt.certificationCode}
+        <section className="space-y-3">
+          <SectionTitle>Your codes</SectionTitle>
+          <SectionCard>
+            {finance.state === "loading" ? (
+              <LoadingRows />
+            ) : activeCodes.length === 0 ? (
+              <EmptyState label="Nothing is due, so there is no code to quote." />
+            ) : (
+              <div className="divide-y divide-border/60">
+                {activeCodes.map((invoice) => (
+                  <div className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0" key={invoice.id}>
+                    <div className="min-w-0">
+                      <p className="text-[13.5px] font-semibold text-foreground">{monthLabel(invoice.month)}</p>
+                      <p className="text-[12px] text-muted-foreground">
+                        {currency(invoice.dueAmount - invoice.paidAmount)} to pay
                       </p>
-                    ) : null}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <SoftBadge tone={statusToneFromLabel(invoice.status)}>{titleCase(invoice.status)}</SoftBadge>
+                      <ReferenceCode code={invoice.referenceCode!} />
+                    </div>
                   </div>
-                  <a
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border px-3 py-2 text-xs font-medium text-foreground transition hover:bg-muted"
-                    href={residentEndpoints.receiptPdf(receipt.id)}
-                  >
-                    <Download className="size-3.5" />
-                    PDF
-                  </a>
-                </div>
-              ))}
-              <p className="text-xs text-muted-foreground">
-                Anyone can check a certified receipt at hostelpalika.com/verify-receipt. A
-                receipt cannot be uploaded back as proof of a payment — for that, use the
-                confirmation from the app or bank you paid with.
-              </p>
-            </div>
-          )}
-        </Panel>
+                ))}
+                <p className="pt-3 text-[12.5px] text-muted-foreground">
+                  Paste the code into the remarks when you pay. Only coded payments are certified.
+                </p>
+              </div>
+            )}
+          </SectionCard>
+        </section>
+
+        <section className="space-y-3">
+          <SectionTitle>Receipts</SectionTitle>
+          <SectionCard>
+            {finance.state === "loading" ? (
+              <LoadingRows />
+            ) : receipts.length === 0 ? (
+              <EmptyState label="No receipts yet. One comes each time your hostel confirms a payment." />
+            ) : (
+              <div className="divide-y divide-border/60">
+                {receipts.map((receipt) => (
+                  <div className="flex items-center gap-3 py-3 first:pt-0" key={receipt.id}>
+                    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
+                      <ReceiptText className="size-[18px]" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-mono text-[13px] font-medium text-foreground">{receipt.number}</p>
+                      <p className="truncate text-[12px] text-muted-foreground">
+                        {receipt.month ? monthLabel(receipt.month) : "One-off"} · {currency(receipt.amount)}
+                        {receipt.issuedAt ? ` · ${dayMonthYear(receipt.issuedAt)}` : ""}
+                      </p>
+                    </div>
+                    {receipt.certificationCode ? (
+                      <span
+                        className="hidden items-center gap-1 rounded-full bg-role-team-soft px-2 py-0.5 text-[11px] font-semibold text-role-team sm:inline-flex"
+                        title={receipt.certificationCode}
+                      >
+                        <BadgeCheck className="size-3.5" />
+                        Certified
+                      </span>
+                    ) : null}
+                    <a
+                      aria-label={`Download receipt ${receipt.number}`}
+                      className="flex size-9 items-center justify-center rounded-xl border border-border text-foreground transition hover:bg-muted"
+                      href={residentEndpoints.receiptPdf(receipt.id)}
+                    >
+                      <Download className="size-4" />
+                    </a>
+                  </div>
+                ))}
+                {/* A receipt is not proof of a payment: that is the bank's own confirmation. */}
+                <p className="pt-3 text-[12.5px] text-muted-foreground">
+                  Anyone can check a certified receipt at hostelpalika.com/verify-receipt.
+                </p>
+              </div>
+            )}
+          </SectionCard>
+        </section>
       </div>
     );
   },

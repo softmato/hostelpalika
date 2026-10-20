@@ -29,6 +29,14 @@ import {
 } from "@/app/_components/portal-dashboard-ui";
 import { mediaUrl } from "@/app/_components/community-post-card";
 import { currency, EmptyState, Input, LoadingRows, Panel } from "@/app/_components/shared-ui";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useUploader } from "@/components/uploads";
 import type { PortalTone } from "@/app/_components/portal-dashboard-ui";
 import { browserApi } from "@/lib/browser-api";
@@ -768,6 +776,8 @@ export function ResidentKhataPage() {
   const khata = usePortalResource<ResidentKhata>(RESIDENT_KHATA_URL, {
     errorMessage: "Khata could not be loaded.",
   });
+  // The ask dialog: open with no item is the picker, with an item the amount.
+  const [askOpen, setAskOpen] = useState(false);
   const [asking, setAsking] = useState<KhataItem | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [note, setNote] = useState("");
@@ -792,6 +802,7 @@ export function ResidentKhataPage() {
       await browserApi(RESIDENT_KHATA_URL, { body: JSON.stringify(body), method: "POST" });
       setMessage(done);
       setAsking(null);
+      setAskOpen(false);
       await khata.refreshAsync();
     } catch (error) {
       setMessage(errorText(error, "Could not send."));
@@ -800,16 +811,23 @@ export function ResidentKhataPage() {
     }
   }
 
+  function startAsk(item: KhataItem | null) {
+    setAsking(item);
+    setQuantity(1);
+    setNote("");
+    setAskOpen(true);
+  }
+
   const data = khata.data;
+  const active = data?.status === "ACTIVE";
 
   const tiles = (onPick?: (item: KhataItem) => void) => (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {data?.items.map((item) => (
         <button
           className={cn(
-            "flex flex-col items-start gap-2 rounded-xl border bg-card p-4 text-left transition",
-            asking?.id === item.id ? "border-primary ring-2 ring-primary/20" : "border-border",
-            onPick ? "hover:border-primary/50" : "cursor-default",
+            "flex flex-col items-start gap-2.5 rounded-2xl border border-border/70 bg-card p-4 text-left transition duration-200",
+            onPick ? "hover:-translate-y-0.5 hover:shadow-md" : "cursor-default",
           )}
           disabled={!onPick}
           key={item.id}
@@ -820,14 +838,14 @@ export function ResidentKhataPage() {
         >
           {item.imageAssetId ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img alt="" className="size-9 rounded-lg object-cover" src={mediaUrl(item.imageAssetId, "THUMBNAIL")} />
+            <img alt="" className="size-11 rounded-xl object-cover" src={mediaUrl(item.imageAssetId, "THUMBNAIL")} />
           ) : (
-            <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <ShoppingBasket className="size-4" />
+            <span className="flex size-11 items-center justify-center rounded-xl bg-role-team-soft text-role-team">
+              <ShoppingBasket className="size-5" />
             </span>
           )}
-          <span className="font-semibold text-foreground">{item.name}</span>
-          <span className="text-[12.5px] text-muted-foreground">{currency(item.price)}</span>
+          <span className="font-heading text-[15px] font-semibold text-foreground">{item.name}</span>
+          <span className="text-[13.5px] font-semibold text-muted-foreground tabular-nums">{currency(item.price)}</span>
         </button>
       ))}
     </div>
@@ -835,23 +853,48 @@ export function ResidentKhataPage() {
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <PortalPageHeader description="Take now, pay with next month's rent." title="Khata" />
+      <PortalPageHeader
+        actions={
+          !data ? null : active ? (
+            <RoleButton
+              className="h-9 px-4"
+              disabled={data.items.length === 0}
+              onClick={() => startAsk(null)}
+              tone="team"
+            >
+              <Plus className="size-4" />
+              Ask
+            </RoleButton>
+          ) : data.status !== "REQUESTED" ? (
+            <RoleButton
+              className="h-9 px-4"
+              disabled={busy || data.items.length === 0}
+              onClick={() => void run({ action: "OPEN" }, "Asked the warden.")}
+              tone="team"
+            >
+              Open my khata
+            </RoleButton>
+          ) : null
+        }
+        description="Take now, pay with next month's rent."
+        title="Khata"
+      />
 
-      {message ? <p className="text-[12.5px] text-muted-foreground">{message}</p> : null}
+      {message ? <p className="text-[13px] text-muted-foreground">{message}</p> : null}
 
       {!data ? (
         khata.state === "error" ? <EmptyState label={khata.message || "Could not load."} /> : <LoadingRows />
-      ) : data.status !== "ACTIVE" ? (
+      ) : !active ? (
         <>
           <SectionCard>
             <div className="flex flex-col items-center gap-3 py-6 text-center">
-              <span className="flex size-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+              <span className="flex size-14 items-center justify-center rounded-2xl bg-role-team-soft text-role-team">
                 {data.status === "REQUESTED" ? <Clock className="size-6" /> : <ReceiptText className="size-6" />}
               </span>
-              <p className="font-heading text-lg font-bold text-foreground">
-                {data.status === "REQUESTED" ? "Waiting for the warden" : "Your khata"}
+              <p className="font-heading text-[15px] font-semibold text-foreground">
+                {data.status === "REQUESTED" ? "Waiting for the warden" : "Your khata is closed"}
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-[13.5px] text-muted-foreground">
                 {data.status === "REQUESTED"
                   ? "You'll get a notification when it opens."
                   : data.items.length === 0
@@ -860,124 +903,76 @@ export function ResidentKhataPage() {
                       ? "Not opened last time — you can ask again."
                       : "Egg, meals, laundry — on next month's bill."}
               </p>
-              {data.status !== "REQUESTED" ? (
-                <RoleButton
-                  disabled={busy || data.items.length === 0}
-                  onClick={() => void run({ action: "OPEN" }, "Asked the warden.")}
-                  tone="resident"
-                >
-                  Open my khata
-                </RoleButton>
-              ) : null}
             </div>
           </SectionCard>
-          {data.items.length > 0 ? <SectionCard title="On the list">{tiles()}</SectionCard> : null}
+          {data.items.length > 0 ? (
+            <section className="space-y-3">
+              <h2 className="font-heading text-[15px] font-semibold text-foreground">On the list</h2>
+              {tiles()}
+            </section>
+          ) : null}
         </>
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-3">
-            <MetricCard icon={ReceiptText} label="On next bill" tone="green" value={currency(data.unbilled)} />
+            <MetricCard icon={ReceiptText} label="On next bill" value={currency(data.unbilled)} />
             <MetricCard
               icon={Clock}
               label="Waiting"
               tone="amber"
               value={data.entries.filter((row) => row.status === "REQUESTED").length}
             />
-            <MetricCard icon={FileText} label="Bills" tone="purple" value={data.bills?.length ?? 0} />
+            <MetricCard icon={FileText} label="Bills" value={data.bills?.length ?? 0} />
           </div>
 
-          <SectionCard title="Ask for">
+          <section className="space-y-3">
+            <h2 className="font-heading text-[15px] font-semibold text-foreground">Ask for</h2>
             {data.items.length === 0 ? (
-              <EmptyState label="Nothing on the list right now." />
+              <SectionCard>
+                <EmptyState label="Nothing on the list right now." />
+              </SectionCard>
             ) : (
-              <div className="space-y-4">
-                {tiles((item) => {
-                  setAsking(item);
-                  setQuantity(1);
-                  setNote("");
-                })}
-                {asking ? (
-                  <div className="flex flex-wrap items-end gap-4 rounded-xl border border-border bg-muted/40 p-4">
-                    <div>
-                      <p className="mb-1.5 text-[12px] font-semibold text-muted-foreground">{asking.name}</p>
-                      <div className="flex items-center gap-3">
-                        <button
-                          aria-label="Fewer"
-                          className="flex size-9 items-center justify-center rounded-full border border-border bg-card disabled:opacity-40"
-                          disabled={quantity <= 1}
-                          onClick={() => setQuantity((value) => Math.max(1, value - 1))}
-                          type="button"
-                        >
-                          <Minus className="size-4" />
-                        </button>
-                        <span className="w-6 text-center font-heading text-xl font-bold">{quantity}</span>
-                        <button
-                          aria-label="More"
-                          className="flex size-9 items-center justify-center rounded-full border border-border bg-card disabled:opacity-40"
-                          disabled={quantity >= 20}
-                          onClick={() => setQuantity((value) => Math.min(20, value + 1))}
-                          type="button"
-                        >
-                          <Plus className="size-4" />
-                        </button>
-                      </div>
-                    </div>
-                    <div className="min-w-[200px] flex-1">
-                      <Input
-                        label="Note"
-                        name="note"
-                        onChange={(event) => setNote(event.target.value)}
-                        placeholder="Boiled, after 7 pm…"
-                        value={note}
-                      />
-                    </div>
-                    <RoleButton
-                      className="h-9"
-                      disabled={busy}
-                      onClick={() =>
-                        void run(
-                          { action: "ASK", itemId: asking.id, note: note.trim() || undefined, quantity },
-                          "Sent to the kitchen.",
-                        )
-                      }
-                      tone="resident"
-                    >
-                      {`Ask · ${currency(asking.price * quantity)}`}
-                    </RoleButton>
-                  </div>
-                ) : null}
-              </div>
+              tiles((item) => startAsk(item))
             )}
-          </SectionCard>
+          </section>
 
           {data.bills && data.bills.length > 0 ? (
-            <SectionCard icon={FileText} title="Bills">
-              <ul className="divide-y divide-border">
+            <section className="space-y-3">
+              <h2 className="font-heading text-[15px] font-semibold text-foreground">Bills</h2>
+              <div className="grid gap-3 sm:grid-cols-2">
                 {data.bills.map((bill) => (
-                  <li key={bill.invoiceId}>
-                    <Link className="flex items-center gap-3 py-2.5 hover:opacity-80" href="/resident/payments">
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-medium text-foreground">{bill.label}</span>
-                        <span className="block text-[12px] text-muted-foreground">
-                          {`${bill.items} ${bill.items === 1 ? "item" : "items"} · ${currency(bill.amount)}`}
-                        </span>
+                  <Link
+                    className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                    href="/resident/payments"
+                    key={bill.invoiceId}
+                  >
+                    <span className="flex size-10 items-center justify-center rounded-xl bg-muted text-foreground">
+                      <FileText className="size-[18px]" />
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13.5px] font-semibold text-foreground">{bill.label}</span>
+                      <span className="block text-[12px] text-muted-foreground">
+                        {`${bill.items} ${bill.items === 1 ? "item" : "items"}`}
                       </span>
+                    </span>
+                    <span className="text-right">
+                      <span className="block text-[15px] font-bold text-foreground tabular-nums">{currency(bill.amount)}</span>
                       <SoftBadge tone={bill.paid ? "green" : "amber"}>{bill.paid ? "Paid" : "Due"}</SoftBadge>
-                    </Link>
-                  </li>
+                    </span>
+                  </Link>
                 ))}
-              </ul>
-            </SectionCard>
+              </div>
+            </section>
           ) : null}
 
           {days.map(([label, rows]) => (
             <section className="space-y-2" key={label}>
-              <h2 className="text-[11.5px] font-bold uppercase tracking-wide text-muted-foreground">{label}</h2>
-              <ul className="divide-y divide-border rounded-xl border border-border bg-card px-4">
+              <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</h2>
+              <ul className="divide-y divide-border/60 rounded-2xl border border-border/70 bg-card px-4">
                 {rows.map((row) => (
                   <li className="flex items-center gap-3 py-2.5" key={row.id}>
                     <span className="min-w-0 flex-1">
-                      <span className="block font-medium text-foreground">{`${row.name} ×${row.quantity}`}</span>
+                      <span className="block text-[13.5px] font-medium text-foreground">{`${row.name} ×${row.quantity}`}</span>
                       <span className="block text-[12px] text-muted-foreground">
                         {`${currency(row.amount)}${row.billed ? " · on bill" : ""}`}
                       </span>
@@ -1000,6 +995,66 @@ export function ResidentKhataPage() {
           ))}
         </>
       )}
+
+      <Dialog onOpenChange={(open) => (open ? null : setAskOpen(false))} open={askOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{asking ? asking.name : "Ask for"}</DialogTitle>
+            <DialogDescription>
+              {asking ? `${currency(asking.price)} each, on next month's bill.` : "Pick what you want."}
+            </DialogDescription>
+          </DialogHeader>
+          {!asking ? (
+            tiles((item) => setAsking(item))
+          ) : (
+            <div className="grid gap-4">
+              <div className="flex items-center justify-center gap-4">
+                <button
+                  aria-label="Fewer"
+                  className="flex size-10 items-center justify-center rounded-full border border-border bg-card disabled:opacity-40"
+                  disabled={quantity <= 1}
+                  onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+                  type="button"
+                >
+                  <Minus className="size-4" />
+                </button>
+                <span className="w-10 text-center font-heading text-3xl font-bold tabular-nums">{quantity}</span>
+                <button
+                  aria-label="More"
+                  className="flex size-10 items-center justify-center rounded-full border border-border bg-card disabled:opacity-40"
+                  disabled={quantity >= 20}
+                  onClick={() => setQuantity((value) => Math.min(20, value + 1))}
+                  type="button"
+                >
+                  <Plus className="size-4" />
+                </button>
+              </div>
+              <Input
+                label="Note"
+                name="note"
+                onChange={(event) => setNote(event.target.value)}
+                placeholder="Boiled, after 7 pm…"
+                value={note}
+              />
+              <DialogFooter>
+                <RoleButton
+                  className="h-10 px-5"
+                  disabled={busy}
+                  onClick={() =>
+                    void run(
+                      { action: "ASK", itemId: asking.id, note: note.trim() || undefined, quantity },
+                      "Sent to the kitchen.",
+                    )
+                  }
+                  tone="team"
+                >
+                  {`Ask · ${currency(asking.price * quantity)}`}
+                </RoleButton>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

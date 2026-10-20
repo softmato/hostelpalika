@@ -6,29 +6,16 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { EmptyState } from "@/app/_components/shared-ui";
 import {
   EmptyInline,
+  MetricCard,
   PortalPageHeader,
-  RoleButton,
-  SectionCard,
-  SoftBadge,
-  TabBar,
 } from "@/app/_components/portal-dashboard-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import { browserApi } from "@/lib/browser-api";
+import { dayMonthYear } from "@/lib/format-month";
 import { usePortalResource, useUpdateResource } from "@/lib/portal-query";
 import { residentEndpoints } from "@/lib/resident-endpoints";
+import { CardSkeletons, NoticeCard, SectionTitle } from "./daily-portal-ui";
 import { type Notice, Message } from "./resident-shared";
-
-function NoticeSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div
-          className="h-20 animate-pulse rounded-xl border border-border/60 bg-muted/30"
-          key={index}
-        />
-      ))}
-    </div>
-  );
-}
 
 export const ResidentNoticesPageContent = memo(function ResidentNoticesPageContent() {
   const [actionMessage, setActionMessage] = useState("");
@@ -102,96 +89,88 @@ export const ResidentNoticesPageContent = memo(function ResidentNoticesPageConte
     return notices;
   }, [notices, tab]);
 
+  // Grouped by the day it went up, the heading outside the cards.
+  const groups = useMemo(() => {
+    const byDay = new Map<string, Notice[]>();
+
+    for (const notice of visible) {
+      const key = notice.publishedAt ? dayMonthYear(notice.publishedAt) : "Earlier";
+      byDay.set(key, [...(byDay.get(key) ?? []), notice]);
+    }
+
+    return [...byDay];
+  }, [visible]);
+
   return (
     <div className="mx-auto max-w-[1100px] space-y-5">
-      <PortalPageHeader
-        breadcrumb={[{ href: "/resident/dashboard", label: "Home" }, "Notices"]}
-        description="Stay up to date with announcements from your hostel."
-        title="Notices"
-      />
+      <PortalPageHeader description="Announcements from your hostel." title="Notices" />
       <Message value={message} />
 
-      <SectionCard>
-        <TabBar
-          className="mb-4"
-          onChange={(key) => setTab(key as typeof tab)}
-          tabs={[
-            { key: "all", label: "All", count: counts.all },
-            { key: "unread", label: "Unread", count: counts.unread },
-            { key: "urgent", label: "Urgent", count: counts.urgent },
-          ]}
-          tone="resident"
-          value={tab}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <MetricCard icon={Megaphone} label="Notices" value={counts.all} />
+        <MetricCard icon={Bell} label="New" value={counts.unread} />
+        <MetricCard
+          icon={AlertTriangle}
+          label="Urgent"
+          tone={counts.urgent > 0 ? "rose" : "teal"}
+          value={counts.urgent}
         />
+      </div>
 
-        {state === "loading" ? <NoticeSkeleton /> : null}
-        {state === "error" ? <EmptyState label="Notices could not be loaded." /> : null}
-        {state === "ready" && visible.length === 0 ? (
-          <EmptyInline label="No notices in this view." />
-        ) : null}
+      <div className="flex items-center justify-between gap-3">
+        <SectionTitle>{tab === "all" ? "All notices" : tab === "unread" ? "New" : "Urgent"}</SectionTitle>
+        <FilterButton active={tab === "all" ? 0 : 1} onClear={() => setTab("all")}>
+          <FilterChoice
+            label="Show"
+            onChange={setTab}
+            options={[
+              { label: `All ${counts.all}`, value: "all" },
+              { label: `New ${counts.unread}`, value: "unread" },
+              { label: `Urgent ${counts.urgent}`, value: "urgent" },
+            ]}
+            value={tab}
+          />
+        </FilterButton>
+      </div>
 
-        <div className="space-y-2.5">
-          {visible.map((notice) => (
-            <div
-              className={`flex items-start gap-3 rounded-xl border p-3 transition ${
-                notice.isRead
-                  ? "border-border/60 bg-card"
-                  : "border-role-resident/25 bg-role-resident-soft/20"
-              }`}
-              key={notice.id}
-            >
-              <span
-                className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${
-                  notice.isUrgent
-                    ? "bg-rose-50 text-rose-600"
-                    : "bg-role-resident-soft text-role-resident"
-                }`}
-              >
-                {notice.isUrgent ? (
-                  <AlertTriangle className="size-[17px]" />
-                ) : (
-                  <Megaphone className="size-[17px]" />
-                )}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex flex-wrap items-center gap-2">
-                  <p className="text-[13px] font-bold text-foreground">{notice.title}</p>
-                  {notice.isUrgent ? <SoftBadge tone="rose">Urgent</SoftBadge> : null}
-                  <SoftBadge tone="slate">{notice.category}</SoftBadge>
-                  {!notice.isRead ? <SoftBadge tone="green">New</SoftBadge> : null}
-                </div>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-                  {notice.content}
-                </p>
-                {notice.publishedAt ? (
-                  <p className="mt-1.5 text-[10.5px] text-muted-foreground/70">
-                    {new Date(notice.publishedAt).toLocaleDateString(undefined, {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </p>
-                ) : null}
-              </div>
-              {notice.isRead ? (
-                <span className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
-                  <Check className="size-3.5" /> Read
-                </span>
-              ) : (
-                <RoleButton
-                  className="mt-0.5 shrink-0"
-                  onClick={() => void markRead(notice.id)}
-                  tone="resident"
-                  variant="soft"
-                >
-                  <Bell className="size-3.5" />
-                  Mark read
-                </RoleButton>
-              )}
-            </div>
-          ))}
-        </div>
-      </SectionCard>
+      {state === "loading" ? <CardSkeletons count={4} /> : null}
+      {state === "error" ? <EmptyState label="Notices could not be loaded." /> : null}
+      {state === "ready" && visible.length === 0 ? (
+        <EmptyInline label="No notices in this view." />
+      ) : null}
+
+      {groups.map(([label, rows]) => (
+        <section className="space-y-2" key={label}>
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</h3>
+          <div className="grid gap-3">
+            {rows.map((notice) => (
+              <NoticeCard
+                action={
+                  notice.isRead ? (
+                    <span className="inline-flex shrink-0 items-center gap-1 text-[11.5px] font-medium text-muted-foreground">
+                      <Check className="size-3.5" /> Read
+                    </span>
+                  ) : (
+                    <button
+                      className="shrink-0 rounded-full bg-role-team-soft px-2.5 py-0.5 text-[11.5px] font-semibold text-role-team transition hover:bg-role-team/15"
+                      onClick={() => void markRead(notice.id)}
+                      type="button"
+                    >
+                      Mark read
+                    </button>
+                  )
+                }
+                category={notice.category}
+                content={notice.content}
+                isNew={!notice.isRead}
+                isUrgent={notice.isUrgent}
+                key={notice.id}
+                title={notice.title}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   );
 });

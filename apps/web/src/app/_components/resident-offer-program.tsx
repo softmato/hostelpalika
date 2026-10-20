@@ -242,17 +242,17 @@ export function OfferProgramCallout({
  */
 export function OfferProgramBanner({ code }: { code?: string | null }) {
   return (
-    <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-role-resident/30 bg-role-resident/5 px-4 py-3">
-      <div className="flex min-w-0 items-start gap-2.5">
-        <Sparkles aria-hidden className="mt-0.5 size-4 shrink-0 text-role-resident" />
+    <section className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/70 bg-card px-4 py-3">
+      <div className="flex min-w-0 items-center gap-3">
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-role-team-soft text-role-team">
+          <Sparkles aria-hidden className="size-5" />
+        </span>
         <div className="min-w-0">
-          <p className="text-[13px] font-bold text-foreground">
+          <p className="font-heading text-[15px] font-semibold text-foreground">
             {OFFER_PROGRAM_NAME}
           </p>
-          <p className="text-[12px] leading-4 text-muted-foreground">
-            {code
-              ? "Send every payment with your reference code in the remarks. Coded payments are confirmed faster — and they keep you in the programme."
-              : "Send every payment with the reference code shown on the pay screen. Coded payments are confirmed faster — and they keep you in the programme."}
+          <p className="truncate text-[13px] text-muted-foreground">
+            Put your reference code in the payment remarks.
           </p>
         </div>
       </div>

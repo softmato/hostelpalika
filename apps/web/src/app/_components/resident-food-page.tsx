@@ -1,7 +1,6 @@
 "use client";
 
-import { Coffee, Cookie, Moon, Send, Soup, Upload, Utensils } from "@/components/icons";
-import type { IconComponent } from "@/components/icons";
+import { Camera, Send, Sparkles, Star, Upload } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { EmptyState, Input, Select, TextArea } from "@/app/_components/shared-ui";
@@ -10,13 +9,24 @@ import {
   EmptyInline,
   PortalPageHeader,
   RoleButton,
-  SectionCard,
-  SoftBadge,
 } from "@/app/_components/portal-dashboard-ui";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
+import { dayMonthYear } from "@/lib/format-month";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { residentEndpoints } from "@/lib/resident-endpoints";
+import { cn } from "@/lib/utils";
+import { CardSkeletons, MealTile, SectionTitle, titleCase } from "./daily-portal-ui";
 import {
+  type FoodMenu,
   type FoodPhoto,
   type FoodRoutine,
   Message,
@@ -24,19 +34,9 @@ import {
   optionalField,
 } from "./resident-shared";
 
-const MEAL_META: Record<
-  string,
-  { icon: IconComponent; tone: "amber" | "green" | "purple" | "cyan" }
-> = {
-  BREAKFAST: { icon: Coffee, tone: "amber" },
-  LUNCH: { icon: Soup, tone: "green" },
-  SNACKS: { icon: Cookie, tone: "purple" },
-  DINNER: { icon: Moon, tone: "cyan" },
-};
-
 const MEAL_ORDER = ["BREAKFAST", "LUNCH", "SNACKS", "DINNER"];
 
-const DAY_ORDER = [
+const DAY_ORDER: FoodMenu["dayOfWeek"][] = [
   "SUNDAY",
   "MONDAY",
   "TUESDAY",
@@ -46,25 +46,12 @@ const DAY_ORDER = [
   "SATURDAY",
 ];
 
-function titleCase(value: string) {
-  return value.charAt(0) + value.slice(1).toLowerCase();
-}
-
-function MealSkeleton() {
-  return (
-    <div className="grid gap-3 md:grid-cols-2">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div
-          className="h-24 animate-pulse rounded-xl border border-border/60 bg-muted/30"
-          key={index}
-        />
-      ))}
-    </div>
-  );
-}
-
 export const ResidentFoodPageContent = memo(function ResidentFoodPageContent() {
   const [actionMessage, setActionMessage] = useState("");
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [photoOpen, setPhotoOpen] = useState(false);
+  const today = DAY_ORDER[new Date().getDay()];
+  const [day, setDay] = useState(today);
   const invalidate = useInvalidateResources();
   // Progress and upload errors surface in the global toaster; this only holds
   // the resulting asset id for the form submit.
@@ -98,6 +85,7 @@ export const ResidentFoodPageContent = memo(function ResidentFoodPageContent() {
       ),
     [menus],
   );
+  const dayMenus = useMemo(() => sortedMenus.filter((menu) => menu.dayOfWeek === day), [day, sortedMenus]);
 
   const handleFeedback = useCallback(async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -116,6 +104,7 @@ export const ResidentFoodPageContent = memo(function ResidentFoodPageContent() {
         method: "POST",
       });
       formElement.reset();
+      setFeedbackOpen(false);
       setActionMessage("Feedback submitted. Thank you!");
     } catch (error) {
       setActionMessage(
@@ -147,6 +136,7 @@ export const ResidentFoodPageContent = memo(function ResidentFoodPageContent() {
         });
         formElement.reset();
         clearPhoto();
+        setPhotoOpen(false);
         setActionMessage("Food photo uploaded.");
         invalidate(residentEndpoints.food);
       } catch (error) {
@@ -161,170 +151,194 @@ export const ResidentFoodPageContent = memo(function ResidentFoodPageContent() {
   return (
     <div className="mx-auto max-w-[1448px] space-y-5">
       <PortalPageHeader
-        breadcrumb={[{ href: "/resident/dashboard", label: "Home" }, "Food Menu"]}
-        description="Browse the current menu, view food photos, and share your feedback."
+        actions={
+          <>
+            <Button className="h-9 gap-2 rounded-xl" onClick={() => setPhotoOpen(true)} type="button" variant="outline">
+              <Camera className="size-4" />
+              Share photo
+            </Button>
+            <RoleButton className="h-9 px-4" onClick={() => setFeedbackOpen(true)} tone="team">
+              <Star className="size-4" />
+              Rate a meal
+            </RoleButton>
+          </>
+        }
+        description="The week's menu and photos from the kitchen."
         title="Food Menu"
       />
       <Message value={message} />
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
-        <div className="space-y-5">
-          <SectionCard title="Weekly Menu">
-            {state === "loading" ? <MealSkeleton /> : null}
-            {state === "error" ? <EmptyState label="Food could not be loaded." /> : null}
-            {state === "ready" && sortedMenus.length === 0 ? (
-              <EmptyInline label="No menu has been posted yet." />
-            ) : null}
-            {sortedMenus.length > 0 ? (
-              <div className="grid gap-3 md:grid-cols-2">
-                {sortedMenus.map((menu) => {
-                  const meta = MEAL_META[menu.mealType] ?? {
-                    icon: Utensils,
-                    tone: "green",
-                  };
-                  const Icon = meta.icon;
-                  return (
-                    <div
-                      className="flex items-start gap-3 rounded-xl border border-border/70 bg-muted/15 p-3 transition hover:border-role-resident/40"
-                      key={`${menu.dayOfWeek}:${menu.mealType}`}
-                    >
-                      <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-role-resident-soft text-role-resident">
-                        <Icon className="size-5" />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-[13px] font-bold text-foreground">
-                            {menu.mealType}
-                          </p>
-                          <SoftBadge tone={meta.tone}>{menu.timing}</SoftBadge>
-                        </div>
-                        <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
-                          {menu.items.join(", ")}
-                        </p>
-                        <p className="mt-1.5 text-[10.5px] text-muted-foreground/70">
-                          Every {titleCase(menu.dayOfWeek)}
-                          {menu.note ? ` · ${menu.note}` : ""}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : null}
-          </SectionCard>
+      <section className="space-y-3">
+        {/* The routine repeats weekly, so it reads by day: one day's meals at a time. */}
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
+          {DAY_ORDER.map((dayName) => {
+            const on = dayName === day;
 
-          <SectionCard title="Food Photos">
-            {photos.length === 0 ? (
-              <EmptyInline label="No food photos shared yet." />
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
-                {photos.map((photo) => (
-                  <div
-                    className="overflow-hidden rounded-xl border border-border/70 bg-card"
-                    key={photo.id}
-                  >
-                    {photo.photoAssetId ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        alt={photo.caption ?? `${photo.mealType} photo`}
-                        className="h-32 w-full object-cover"
-                        onError={(event) => {
-                          (event.currentTarget as HTMLImageElement).style.display =
-                            "none";
-                        }}
-                        src={`/api/v1/files/${photo.photoAssetId}/url?variant=THUMBNAIL`}
-                      />
-                    ) : null}
-                    <div className="p-2.5">
-                      <div className="flex items-center justify-between gap-2">
-                        <p className="text-[12px] font-bold text-foreground">
-                          {photo.mealType}
-                        </p>
-                        <span className="text-[10px] text-muted-foreground">
-                          {new Date(photo.date).toLocaleDateString()}
-                        </span>
-                      </div>
-                      {photo.caption ? (
-                        <p className="mt-1 line-clamp-2 text-[11.5px] text-muted-foreground">
-                          {photo.caption}
-                        </p>
-                      ) : null}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </SectionCard>
-        </div>
-
-        <div className="space-y-5">
-          <SectionCard title="Rate a Meal">
-            <form className="grid gap-3" onSubmit={handleFeedback}>
-              <Input label="Date" name="date" required type="date" />
-              <Select label="Meal" name="mealType" required>
-                {MEAL_ORDER.map((meal) => (
-                  <option key={meal} value={meal}>
-                    {meal}
-                  </option>
-                ))}
-              </Select>
-              <Select label="Rating" name="rating" required>
-                {[5, 4, 3, 2, 1].map((value) => (
-                  <option key={value} value={value}>
-                    {"★".repeat(value)} ({value})
-                  </option>
-                ))}
-              </Select>
-              <TextArea label="Comment" name="comment" />
-              <label className="flex items-center gap-2 text-[12.5px] font-medium text-foreground">
-                <input
-                  className="accent-role-resident"
-                  name="isAnonymous"
-                  type="checkbox"
-                />
-                Submit anonymously
-              </label>
-              <RoleButton className="w-full" tone="resident" type="submit">
-                <Send className="size-3.5" />
-                Submit Feedback
-              </RoleButton>
-            </form>
-          </SectionCard>
-
-          <SectionCard title="Share a Photo">
-            <form className="grid gap-3" onSubmit={handlePhoto}>
-              <div className="grid gap-1.5">
-                <span className="text-[12.5px] font-semibold text-foreground">Photo</span>
-                <FileUploaderView
-                  label="Upload meal photo"
-                  tone="resident"
-                  uploader={photoUpload}
-                />
-              </div>
-              <input name="photoAssetId" type="hidden" value={photoAssetId} />
-              <Input label="Date" name="date" required type="date" />
-              <Select label="Meal" name="mealType" required>
-                {MEAL_ORDER.map((meal) => (
-                  <option key={meal} value={meal}>
-                    {meal}
-                  </option>
-                ))}
-              </Select>
-              <Input label="Caption" name="caption" />
-              <RoleButton
-                className="w-full"
-                disabled={photoUpload.isUploading || !photoAssetId}
-                tone="resident"
-                type="submit"
-                variant="outline"
+            return (
+              <button
+                aria-pressed={on}
+                className={cn(
+                  "shrink-0 rounded-full border px-3.5 py-1.5 text-[12.5px] font-semibold transition active:scale-95",
+                  on
+                    ? "border-transparent bg-foreground text-background"
+                    : "border-border text-muted-foreground hover:text-foreground",
+                )}
+                key={dayName}
+                onClick={() => setDay(dayName)}
+                type="button"
               >
-                <Upload className="size-3.5" />
-                Upload Photo
-              </RoleButton>
-            </form>
-          </SectionCard>
+                {titleCase(dayName).slice(0, 3)}
+                {dayName === today ? <span className="ml-1 text-[10px] opacity-70">today</span> : null}
+              </button>
+            );
+          })}
         </div>
-      </div>
+        {state === "loading" ? <CardSkeletons count={4} /> : null}
+        {state === "error" ? <EmptyState label="Food could not be loaded." /> : null}
+        {state === "ready" && sortedMenus.length === 0 ? (
+          <EmptyInline label="No menu has been posted yet." />
+        ) : null}
+        {state === "ready" && sortedMenus.length > 0 && dayMenus.length === 0 ? (
+          <EmptyInline label={`Nothing set for ${titleCase(day)}.`} />
+        ) : null}
+        {dayMenus.length > 0 ? (
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            {dayMenus.map((menu) => (
+              <MealTile
+                items={menu.items}
+                key={`${menu.dayOfWeek}:${menu.mealType}`}
+                mealType={menu.mealType}
+                note={menu.note}
+                timing={menu.timing}
+              />
+            ))}
+          </div>
+        ) : null}
+        {routine?.monthEndSpecial && routine.monthEndSpecial.items.length > 0 ? (
+          <div className="flex items-center gap-3 rounded-2xl border border-border/70 bg-card p-4">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-role-team-soft text-role-team">
+              <Sparkles className="size-5" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-heading text-[15px] font-semibold text-foreground">Month-end special</p>
+              <p className="truncate text-[13.5px] text-muted-foreground">
+                {routine.monthEndSpecial.items.join(", ")}
+              </p>
+            </div>
+          </div>
+        ) : null}
+      </section>
+
+      <section className="space-y-3">
+        <SectionTitle>Photos</SectionTitle>
+        {photos.length === 0 ? (
+          <EmptyInline label="No food photos shared yet." />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+            {photos.map((photo) => (
+              <div
+                className="overflow-hidden rounded-2xl border border-border/70 bg-card transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                key={photo.id}
+              >
+                {photo.photoAssetId ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    alt={photo.caption ?? `${photo.mealType} photo`}
+                    className="aspect-[4/3] w-full object-cover"
+                    onError={(event) => {
+                      (event.currentTarget as HTMLImageElement).style.display = "none";
+                    }}
+                    src={`/api/v1/files/${photo.photoAssetId}/url?variant=THUMBNAIL`}
+                  />
+                ) : null}
+                <div className="p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-[13px] font-semibold text-foreground">{titleCase(photo.mealType)}</p>
+                    <span className="text-[11.5px] text-muted-foreground">{dayMonthYear(photo.date)}</span>
+                  </div>
+                  {photo.caption ? (
+                    <p className="mt-0.5 line-clamp-2 text-[12.5px] text-muted-foreground">{photo.caption}</p>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <Dialog onOpenChange={setFeedbackOpen} open={feedbackOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rate a meal</DialogTitle>
+            <DialogDescription>The kitchen sees every rating.</DialogDescription>
+          </DialogHeader>
+          <form className="grid gap-3" onSubmit={handleFeedback}>
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="Date" name="date" required type="date" />
+              <Select label="Meal" name="mealType" required>
+                {MEAL_ORDER.map((meal) => (
+                  <option key={meal} value={meal}>
+                    {titleCase(meal)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <Select label="Rating" name="rating" required>
+              {[5, 4, 3, 2, 1].map((value) => (
+                <option key={value} value={value}>
+                  {"★".repeat(value)} ({value})
+                </option>
+              ))}
+            </Select>
+            <TextArea label="Comment" name="comment" />
+            <label className="flex items-center gap-2 text-[13px] font-medium text-foreground">
+              <input className="accent-brand-teal" name="isAnonymous" type="checkbox" />
+              Send without my name
+            </label>
+            <DialogFooter>
+              <RoleButton className="h-10 px-5" tone="team" type="submit">
+                <Send className="size-4" />
+                Send rating
+              </RoleButton>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog onOpenChange={setPhotoOpen} open={photoOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share a photo</DialogTitle>
+            <DialogDescription>Your plate, for everyone at the hostel.</DialogDescription>
+          </DialogHeader>
+          <form className="grid gap-3" onSubmit={handlePhoto}>
+            <FileUploaderView label="Upload meal photo" tone="resident" uploader={photoUpload} />
+            <input name="photoAssetId" type="hidden" value={photoAssetId} />
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="Date" name="date" required type="date" />
+              <Select label="Meal" name="mealType" required>
+                {MEAL_ORDER.map((meal) => (
+                  <option key={meal} value={meal}>
+                    {titleCase(meal)}
+                  </option>
+                ))}
+              </Select>
+            </div>
+            <Input label="Caption" name="caption" />
+            <DialogFooter>
+              <RoleButton
+                className="h-10 px-5"
+                disabled={photoUpload.isUploading || !photoAssetId}
+                tone="team"
+                type="submit"
+              >
+                <Upload className="size-4" />
+                Share photo
+              </RoleButton>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });
