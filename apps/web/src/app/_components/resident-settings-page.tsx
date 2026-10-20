@@ -16,11 +16,7 @@ import { TemporaryCredentialsPanel } from "@/app/_components/temporary-credentia
 export const ResidentSettingsPageContent = memo(function ResidentSettingsPageContent() {
   return (
     <div className="mx-auto max-w-[1100px] space-y-5">
-      <PortalPageHeader
-        breadcrumb={[{ href: "/resident/dashboard", label: "Home" }, "Settings"]}
-        description="Account access controls for your resident login."
-        title="Settings"
-      />
+      <PortalPageHeader description="Who else can sign in to your account." title="Settings" />
       <TemporaryCredentialsPanel tone="resident" />
     </div>
   );

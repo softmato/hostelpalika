@@ -1,21 +1,21 @@
 "use client";
 
-import { BedDouble, Mail, Phone, ShieldAlert, UserRound, Users } from "@/components/icons";
+import Link from "next/link";
 import { memo } from "react";
 
 import { EmptyState } from "@/app/_components/shared-ui";
 import {
   EmptyInline,
   InitialsAvatar,
-  MetricCard,
   PortalPageHeader,
+  RoleButton,
   SectionCard,
-  SoftBadge,
-  statusToneFromLabel,
 } from "@/app/_components/portal-dashboard-ui";
+import { Glyph, type GlyphName } from "@/components/glyph";
 import { ResidentIdCard } from "@/components/resident-identity";
 import { usePortalResource } from "@/lib/portal-query";
 import { residentEndpoints } from "@/lib/resident-endpoints";
+import { CardSkeletons, FactChip, SectionTitle, titleCase } from "./daily-portal-ui";
 import { type ResidentDashboard, type ResidentSummary, Message } from "./resident-shared";
 
 type Profile = {
@@ -37,26 +37,42 @@ type Profile = {
   resident: ResidentSummary;
 };
 
-function InfoRow({
-  icon: Icon,
-  label,
-  value,
+/** One person in the contacts list: avatar, name, relation, a call link. */
+function ContactRow({
+  kind,
+  name,
+  phone,
+  relation,
 }: {
-  icon: typeof Mail;
-  label: string;
-  value?: string;
+  kind: "Guardian" | "Emergency";
+  name: string;
+  phone: string;
+  relation: string;
 }) {
   return (
-    <div className="flex items-center gap-2.5 py-1.5">
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-        <Icon className="size-4" />
-      </span>
-      <div className="min-w-0">
-        <p className="text-[10.5px] font-medium text-muted-foreground">{label}</p>
-        <p className="truncate text-[12.5px] font-semibold text-foreground">
-          {value || "—"}
-        </p>
+    <div className="flex items-center gap-3 py-2.5">
+      <InitialsAvatar name={name} size="md" tone="team" />
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[13.5px] font-semibold text-foreground">{name}</p>
+        <p className="truncate text-[12px] text-muted-foreground">{relation}</p>
       </div>
+      <span
+        className={
+          kind === "Emergency"
+            ? "rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+            : "rounded-full bg-role-team-soft px-2 py-0.5 text-[11px] font-semibold text-role-team"
+        }
+      >
+        {kind}
+      </span>
+      <a
+        aria-label={`Call ${name}`}
+        className="flex size-9 items-center justify-center rounded-xl border border-border text-foreground transition hover:bg-muted"
+        href={`tel:${phone}`}
+        title={phone}
+      >
+        <Glyph className="size-4" name="call" />
+      </a>
     </div>
   );
 }
@@ -71,141 +87,109 @@ export const ResidentProfilePageContent = memo(function ResidentProfilePageConte
   const state = profileResource.state;
   const message = profileResource.message;
   const bedTypeLabel = profile?.accommodation.roomType?.replaceAll("_", " ") || "—";
+  const fullName = profile ? `${profile.resident.firstName} ${profile.resident.lastName}` : "";
+  const contactCount = (profile?.guardians.length ?? 0) + (profile?.emergencyContacts.length ?? 0);
 
   return (
     <div className="mx-auto max-w-[1100px] space-y-5">
       <PortalPageHeader
-        breadcrumb={[{ href: "/resident/dashboard", label: "Home" }, "My Profile"]}
-        description="Your resident record and hostel contact information."
+        actions={
+          <RoleButton asChild className="h-9 px-4" tone="team" variant="outline">
+            <Link href="/resident/guardians">
+              <Glyph className="size-4" name="shield" />
+              Guardians
+            </Link>
+          </RoleButton>
+        }
+        description="Your record, your ID card and your contacts."
         title="My Profile"
       />
       <Message value={message} />
+      {state === "loading" ? <CardSkeletons count={2} /> : null}
       {state === "error" ? <EmptyState label="Profile could not be loaded." /> : null}
 
       {profile ? (
-        <>
-          <SectionCard>
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div className="flex items-center gap-3.5">
-                <InitialsAvatar
-                  name={`${profile.resident.firstName} ${profile.resident.lastName}`}
-                  size="lg"
-                  tone="resident"
-                />
-                <div>
-                  <p className="text-lg font-bold text-foreground">
-                    {profile.resident.firstName} {profile.resident.lastName}
+        <div className="grid gap-5 lg:grid-cols-[1fr_1.1fr]">
+          <div className="space-y-5">
+            <SectionCard>
+              <div className="flex items-center gap-4">
+                <InitialsAvatar name={fullName} size="lg" tone="team" />
+                <div className="min-w-0">
+                  <p className="truncate font-heading text-[18px] font-bold tracking-tight text-foreground">
+                    {fullName}
                   </p>
-                  <div className="mt-1 flex flex-wrap items-center gap-2">
-                    <SoftBadge tone={statusToneFromLabel(profile.resident.status)}>
-                      {profile.resident.status}
-                    </SoftBadge>
-                    {/* The resident ID lives on the ID card below — the record's
-                        own _id is an internal key, not something to label as one. */}
-                    <span className="text-[11.5px] text-muted-foreground">
-                      {profile.hostel?.name ?? "Your hostel"}
-                    </span>
-                  </div>
+                  <p className="truncate text-[13px] text-muted-foreground">
+                    {profile.hostel?.name ?? "Your hostel"}
+                  </p>
                 </div>
               </div>
-            </div>
-          </SectionCard>
-
-          <div className="grid gap-4 sm:grid-cols-3">
-            <MetricCard
-              icon={BedDouble}
-              label="Bed Type"
-              note="Your allotment"
-              tone="green"
-              value={bedTypeLabel}
-            />
-            <MetricCard
-              icon={Users}
-              label="Guardians"
-              note="Linked contacts"
-              tone="purple"
-              value={String(profile.guardians.length)}
-            />
-            <MetricCard
-              icon={ShieldAlert}
-              label="Emergency Contacts"
-              note="On record"
-              tone="amber"
-              value={String(profile.emergencyContacts.length)}
-            />
-          </div>
-
-          <SectionCard title="My Resident ID Card">
-            <ResidentIdCard />
-          </SectionCard>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            <SectionCard title="Personal Information">
-              <div className="divide-y divide-border/50">
-                <InfoRow
-                  icon={UserRound}
-                  label="Full name"
-                  value={profile.resident.fullName}
-                />
-                <InfoRow icon={Phone} label="Phone" value={profile.resident.phone} />
-                <InfoRow icon={Mail} label="Email" value={profile.resident.email} />
-                <InfoRow
-                  icon={BedDouble}
-                  label="Bed type"
-                  value={bedTypeLabel}
-                />
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                <FactChip
+                  glyph="checkmark-circle"
+                  tone={profile.resident.status === "ACTIVE" ? "brand" : "neutral"}
+                >
+                  {titleCase(profile.resident.status)}
+                </FactChip>
+                <FactChip glyph="bed">{bedTypeLabel}</FactChip>
+                {profile.resident.residentType ? (
+                  <FactChip glyph="school">{titleCase(profile.resident.residentType)}</FactChip>
+                ) : null}
               </div>
+              <ul className="mt-3 divide-y divide-border/60 text-[13.5px]">
+                {(
+                  [
+                    ["call", profile.resident.phone || "No phone"],
+                    ["mail", profile.resident.email || "No email"],
+                  ] as [GlyphName, string][]
+                ).map(([glyph, value]) => (
+                  <li className="flex items-center gap-3 py-2.5" key={glyph}>
+                    <Glyph className="size-4 shrink-0 text-muted-foreground" name={glyph} />
+                    <span className="min-w-0 truncate text-foreground">{value}</span>
+                  </li>
+                ))}
+              </ul>
             </SectionCard>
 
-            <SectionCard title="Contacts">
-              {profile.guardians.length === 0 &&
-              profile.emergencyContacts.length === 0 ? (
-                <EmptyInline label="No guardians or emergency contacts yet." />
-              ) : (
-                <div className="space-y-2.5">
-                  {profile.guardians.map((guardian) => (
-                    <div
-                      className="flex items-center gap-3 rounded-xl border border-border/70 bg-muted/15 p-2.5"
-                      key={guardian.id}
-                    >
-                      <InitialsAvatar
+            <div className="space-y-3">
+              <SectionTitle>
+                Contacts <span className="font-normal text-muted-foreground">· {contactCount}</span>
+              </SectionTitle>
+              <SectionCard>
+                {contactCount === 0 ? (
+                  <EmptyInline label="No guardians or emergency contacts yet." />
+                ) : (
+                  <div className="divide-y divide-border/60">
+                    {profile.guardians.map((guardian) => (
+                      <ContactRow
+                        key={guardian.id}
+                        kind="Guardian"
                         name={`${guardian.firstName} ${guardian.lastName}`}
-                        size="sm"
-                        tone="guardian"
+                        phone={guardian.phone}
+                        relation={guardian.relation}
                       />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[12.5px] font-semibold text-foreground">
-                          {guardian.firstName} {guardian.lastName}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {guardian.relation} · {guardian.phone}
-                        </p>
-                      </div>
-                      <SoftBadge tone="purple">Guardian</SoftBadge>
-                    </div>
-                  ))}
-                  {profile.emergencyContacts.map((contact) => (
-                    <div
-                      className="flex items-center gap-3 rounded-xl border border-border/70 bg-muted/15 p-2.5"
-                      key={contact.id}
-                    >
-                      <InitialsAvatar name={contact.name} size="sm" tone="resident" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[12.5px] font-semibold text-foreground">
-                          {contact.name}
-                        </p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {contact.relation} · {contact.phone}
-                        </p>
-                      </div>
-                      <SoftBadge tone="amber">Emergency</SoftBadge>
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                    {profile.emergencyContacts.map((contact) => (
+                      <ContactRow
+                        key={contact.id}
+                        kind="Emergency"
+                        name={contact.name}
+                        phone={contact.phone}
+                        relation={contact.relation}
+                      />
+                    ))}
+                  </div>
+                )}
+              </SectionCard>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <SectionTitle>ID card</SectionTitle>
+            <SectionCard>
+              <ResidentIdCard />
             </SectionCard>
           </div>
-        </>
+        </div>
       ) : null}
     </div>
   );

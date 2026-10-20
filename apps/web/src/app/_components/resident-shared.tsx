@@ -2,6 +2,7 @@
 
 import { Home } from "@/components/icons";
 import { PageHero } from "@/components/page-hero";
+import type { ReactNode } from "react";
 
 export type LoadState = "idle" | "loading" | "ready" | "error";
 
@@ -205,15 +206,17 @@ export function optionalField(form: FormData, name: string) {
 }
 
 export function ResidentHeader({
+  actions,
   description,
   icon: Icon,
   title,
 }: {
+  actions?: ReactNode;
   description: string;
   icon: typeof Home;
   title: string;
 }) {
-  return <PageHero description={description} icon={Icon} title={title} />;
+  return <PageHero actions={actions} description={description} icon={Icon} title={title} />;
 }
 
 export function Message({ value }: { value: string }) {

@@ -1,17 +1,17 @@
 "use client";
 
-import { Bell, CheckCheck, ChevronRight, Loader2 } from "@/components/icons";
+import { Bell, BellRing, CheckCheck, ChevronRight, Loader2 } from "@/components/icons";
 import Link from "next/link";
-import { memo, useState } from "react";
+import { memo, useMemo, useState } from "react";
 
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   TONE_CHIP,
   notificationDisplay,
   relativeTime,
 } from "@/lib/notification-display";
+import { dayMonthYear } from "@/lib/format-month";
 import {
   useNotifications,
   type NotificationFilter,
@@ -19,16 +19,17 @@ import {
 } from "@/lib/use-notifications";
 import { cn } from "@/lib/utils";
 import { Message, PageHeader } from "./daily-operations-shared";
-import { EmptyState, Panel } from "@/app/_components/shared-ui";
+import { EmptyState } from "@/app/_components/shared-ui";
+import { CardSkeletons, SectionTitle } from "./daily-portal-ui";
+import { MetricCard } from "./portal-dashboard-ui";
 
 /**
- * The full notification archive, shared by the resident, guardian and hostel
- * admin portals.
+ * The full notification archive, shared by every portal that has a bell.
  *
- * Same data, same hook and the same three tabs as the header bell, so the two
- * never disagree about what is unread or what is still waiting on a decision.
- * This page is the roomier view: full body text, and the action buttons laid
- * out rather than squeezed under a dropdown row.
+ * Same data, same hook and the same three filters as the header bell, so the
+ * two never disagree about what is unread or what is still waiting on a
+ * decision. This page is the roomier view: full body text, and the action
+ * buttons laid out rather than squeezed under a dropdown row.
  */
 
 const FILTERS: { label: string; value: NotificationFilter }[] = [
@@ -57,11 +58,9 @@ const NotificationCard = memo(function NotificationCard({
     // Clicking anywhere on an unread card acknowledges it, the same as the bell.
     <div
       className={cn(
-        "relative overflow-hidden rounded-xl border p-4 transition-colors",
-        notification.needsAction
-          ? "border-amber-300 bg-amber-50/40 dark:border-amber-500/40 dark:bg-amber-500/5"
-          : "border-border",
-        notification.isRead ? "" : "cursor-pointer",
+        "relative overflow-hidden rounded-2xl border bg-card p-4 transition duration-200",
+        notification.needsAction ? "border-amber-300 dark:border-amber-500/40" : "border-border/70",
+        notification.isRead ? "" : "cursor-pointer hover:-translate-y-0.5 hover:shadow-md",
       )}
       onClick={notification.isRead ? undefined : () => onMarkRead(notification.id)}
     >
@@ -69,113 +68,112 @@ const NotificationCard = memo(function NotificationCard({
       <span
         aria-hidden
         className={cn(
-          "pointer-events-none absolute inset-0 bg-linear-to-r from-primary/15 via-primary/5 to-transparent transition-opacity duration-300",
+          "pointer-events-none absolute inset-0 bg-linear-to-r from-primary/10 via-primary/[0.03] to-transparent transition-opacity duration-300",
           notification.isRead ? "opacity-0" : "opacity-100",
         )}
       />
       <div className="relative flex items-start gap-3">
         <span
           className={cn(
-            "flex size-9 shrink-0 items-center justify-center rounded-lg",
+            "flex size-10 shrink-0 items-center justify-center rounded-xl",
             TONE_CHIP[display.tone],
           )}
         >
-          <Icon className="size-4.5" />
+          <Icon className="size-[18px]" />
         </span>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="font-semibold text-foreground">{notification.title}</p>
-
-            <Badge className="h-5 rounded px-1.5 text-[10px] font-semibold" variant="outline">
-              {display.label}
-            </Badge>
-
-            {notification.needsAction ? (
-              <Badge className="h-5 rounded px-1.5 text-[10px] font-bold" variant="default">
-                ACTION NEEDED
-              </Badge>
-            ) : null}
-
-            {notification.actionState === "COMPLETED" ? (
-              <Badge
-                className="h-5 rounded border-emerald-300 px-1.5 text-[10px] font-semibold text-emerald-600 dark:border-emerald-500/40 dark:text-emerald-400"
-                variant="outline"
-              >
-                RESOLVED
-              </Badge>
-            ) : null}
-
-            {!notification.isRead ? (
-              <span className="size-1.5 rounded-full bg-rose-500" />
-            ) : null}
-
-            <span className="ml-auto text-[11px] text-muted-foreground">
+          <div className="flex items-start gap-2">
+            <p className="min-w-0 flex-1 font-heading text-[15px] font-semibold text-foreground">
+              {notification.title}
+              {!notification.isRead ? (
+                <span aria-label="Unread" className="ml-2 inline-block size-2 rounded-full bg-brand-teal align-middle" />
+              ) : null}
+            </p>
+            <span className="shrink-0 text-[11.5px] text-muted-foreground">
               {relativeTime(notification.createdAt)}
             </span>
           </div>
 
-          <p className="mt-1 text-sm text-muted-foreground">{notification.body}</p>
+          <p className="mt-0.5 text-[13.5px] text-muted-foreground">{notification.body}</p>
 
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {notification.needsAction
-              ? notification.actions.map((action) => (
-                  <Button
-                    disabled={busy !== null}
-                    key={action.key}
-                    onClick={() => onRun(notification, action.key)}
-                    size="sm"
-                    variant={
-                      action.tone === "danger"
-                        ? "destructive"
-                        : action.tone === "primary"
-                          ? "default"
-                          : "outline"
-                    }
-                  >
-                    {busy === `${notification.id}:${action.key}` ? (
-                      <Loader2 className="size-3.5 animate-spin" />
-                    ) : null}
-                    {action.label}
-                  </Button>
-                ))
-              : null}
-
-            {notification.actionUrl ? (
-              <Button asChild size="sm" variant="ghost">
-                <Link href={notification.actionUrl}>
-                  Open
-                  <ChevronRight className="size-3.5" />
-                </Link>
-              </Button>
-            ) : null}
-
+          <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+              {display.label}
+            </span>
             {notification.needsAction ? (
-              <Button
-                className="text-muted-foreground"
-                disabled={busy !== null}
-                onClick={() => onDismiss(notification.id)}
-                size="sm"
-                variant="ghost"
-              >
-                Dismiss
-              </Button>
+              <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+                Needs action
+              </span>
             ) : null}
-
-            {!notification.isRead ? (
-              <Button
-                className="ml-auto text-muted-foreground"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onMarkRead(notification.id);
-                }}
-                size="sm"
-                variant="ghost"
-              >
-                Mark read
-              </Button>
+            {notification.actionState === "COMPLETED" ? (
+              <span className="rounded-full bg-role-team-soft px-2 py-0.5 text-[11px] font-semibold text-role-team">
+                Done
+              </span>
             ) : null}
           </div>
+
+          {notification.needsAction || notification.actionUrl || !notification.isRead ? (
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              {notification.needsAction
+                ? notification.actions.map((action) => (
+                    <Button
+                      disabled={busy !== null}
+                      key={action.key}
+                      onClick={() => onRun(notification, action.key)}
+                      size="sm"
+                      variant={
+                        action.tone === "danger"
+                          ? "destructive"
+                          : action.tone === "primary"
+                            ? "default"
+                            : "outline"
+                      }
+                    >
+                      {busy === `${notification.id}:${action.key}` ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : null}
+                      {action.label}
+                    </Button>
+                  ))
+                : null}
+
+              {notification.actionUrl ? (
+                <Button asChild size="sm" variant="ghost">
+                  <Link href={notification.actionUrl}>
+                    Open
+                    <ChevronRight className="size-3.5" />
+                  </Link>
+                </Button>
+              ) : null}
+
+              {notification.needsAction ? (
+                <Button
+                  className="text-muted-foreground"
+                  disabled={busy !== null}
+                  onClick={() => onDismiss(notification.id)}
+                  size="sm"
+                  variant="ghost"
+                >
+                  Dismiss
+                </Button>
+              ) : null}
+
+              {!notification.isRead ? (
+                <Button
+                  className="ml-auto text-muted-foreground"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onMarkRead(notification.id);
+                  }}
+                  size="sm"
+                  variant="ghost"
+                >
+                  Mark read
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
@@ -197,6 +195,18 @@ export const NotificationsPageContent = memo(function NotificationsPageContent()
     unacknowledgedCount,
   } = useNotifications(filter, { autoMarkRead: true });
 
+  // Grouped by day, the heading outside the cards.
+  const groups = useMemo(() => {
+    const byDay = new Map<string, NotificationItem[]>();
+
+    for (const notification of notifications) {
+      const key = dayMonthYear(notification.createdAt) || "Earlier";
+      byDay.set(key, [...(byDay.get(key) ?? []), notification]);
+    }
+
+    return [...byDay];
+  }, [notifications]);
+
   async function handleRun(notification: NotificationItem, actionKey: string) {
     const action = notification.actions.find((item) => item.key === actionKey);
 
@@ -216,74 +226,85 @@ export const NotificationsPageContent = memo(function NotificationsPageContent()
   }
 
   return (
-    <div className="mx-auto max-w-[900px] space-y-6">
+    <div className="mx-auto max-w-[900px] space-y-5">
       <PageHeader
-        description="In-app notification feed."
+        description="Everything the bell has told you."
         icon={Bell}
         title="Notifications"
       />
       <Message value={message} />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Tabs
-          onValueChange={(value) => setFilter(value as NotificationFilter)}
-          value={filter}
-        >
-          <TabsList>
-            {FILTERS.map((item) => (
-              <TabsTrigger key={item.value} value={item.value}>
-                {item.label}
-                {item.value === "action" && actionCount > 0 ? (
-                  <span className="ml-1.5 rounded bg-amber-500 px-1 text-[10px] font-bold text-white">
-                    {actionCount}
-                  </span>
-                ) : null}
-                {item.value === "unread" && unacknowledgedCount > 0 ? (
-                  <span className="ml-1.5 rounded bg-rose-500 px-1 text-[10px] font-bold text-white">
-                    {unacknowledgedCount}
-                  </span>
-                ) : null}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-
-        {unacknowledgedCount > 0 ? (
-          <Button onClick={() => void markAllRead()} size="sm" variant="outline">
-            <CheckCheck className="size-3.5" />
-            Mark all read
-          </Button>
-        ) : null}
+      <div className="grid gap-3 sm:grid-cols-2">
+        <MetricCard icon={Bell} label="Unread" value={unacknowledgedCount} />
+        <MetricCard
+          icon={BellRing}
+          label="Needs action"
+          tone={actionCount > 0 ? "amber" : "teal"}
+          value={actionCount}
+        />
       </div>
 
-      <Panel>
-        {notifications.length === 0 ? (
+      <div className="flex items-center justify-between gap-3">
+        <SectionTitle>{FILTERS.find((item) => item.value === filter)?.label ?? "All"}</SectionTitle>
+        <div className="flex items-center gap-2">
+          {unacknowledgedCount > 0 ? (
+            <Button className="h-10 gap-2 rounded-xl" onClick={() => void markAllRead()} variant="outline">
+              <CheckCheck className="size-4" />
+              Mark all read
+            </Button>
+          ) : null}
+          <FilterButton active={filter === "all" ? 0 : 1} onClear={() => setFilter("all")}>
+            <FilterChoice
+              label="Show"
+              onChange={setFilter}
+              options={FILTERS.map((item) => ({
+                label:
+                  item.value === "unread"
+                    ? `Unread ${unacknowledgedCount}`
+                    : item.value === "action"
+                      ? `Needs action ${actionCount}`
+                      : item.label,
+                value: item.value,
+              }))}
+              value={filter}
+            />
+          </FilterButton>
+        </div>
+      </div>
+
+      {notifications.length === 0 ? (
+        state === "loading" ? (
+          <CardSkeletons className="sm:grid-cols-1 xl:grid-cols-1" count={3} />
+        ) : (
           <EmptyState
             label={
-              state === "loading"
-                ? "Loading…"
-                : filter === "action"
-                  ? "Nothing needs your attention."
-                  : filter === "unread"
-                    ? "You're all caught up."
-                    : "No notifications."
+              filter === "action"
+                ? "Nothing needs your attention."
+                : filter === "unread"
+                  ? "You're all caught up."
+                  : "No notifications."
             }
           />
-        ) : null}
+        )
+      ) : null}
 
-        <div className="space-y-3">
-          {notifications.map((notification) => (
-            <NotificationCard
-              busy={busy}
-              key={notification.id}
-              notification={notification}
-              onDismiss={(id) => void handleDismiss(id)}
-              onMarkRead={(id) => void markRead(id)}
-              onRun={(item, key) => void handleRun(item, key)}
-            />
-          ))}
-        </div>
-      </Panel>
+      {groups.map(([label, rows]) => (
+        <section className="space-y-2" key={label}>
+          <h3 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</h3>
+          <div className="grid gap-3">
+            {rows.map((notification) => (
+              <NotificationCard
+                busy={busy}
+                key={notification.id}
+                notification={notification}
+                onDismiss={(id) => void handleDismiss(id)}
+                onMarkRead={(id) => void markRead(id)}
+                onRun={(item, key) => void handleRun(item, key)}
+              />
+            ))}
+          </div>
+        </section>
+      ))}
     </div>
   );
 });

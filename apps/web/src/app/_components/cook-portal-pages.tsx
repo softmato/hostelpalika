@@ -1,16 +1,23 @@
 "use client";
 
-import { Coffee, Cookie, Moon, Soup, Upload, Users, UtensilsCrossed } from "@/components/icons";
-import type { IconComponent } from "@/components/icons";
+import { Camera, Clock, Upload, Users, UtensilsCrossed } from "@/components/icons";
 import { useEffect, useState, type FormEvent } from "react";
 
 import {
   MetricCard,
   PortalPageHeader,
   RoleButton,
-  SectionCard,
 } from "@/app/_components/portal-dashboard-ui";
 import { EmptyState, Input, Select } from "@/app/_components/shared-ui";
+import { Glyph } from "@/components/glyph";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { FileUploaderView, useUploader } from "@/components/uploads";
 import { browserApi } from "@/lib/browser-api";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
@@ -25,6 +32,7 @@ import {
   nepalWeekday,
   type MealAnnounceState,
 } from "@hostel/shared/food/meal-window";
+import { MEAL_GLYPH, MealTile, ShareBar } from "./daily-portal-ui";
 
 /**
  * The cook app's Today, Menu and Photos tabs, on the web. Same endpoints and
@@ -44,13 +52,6 @@ const DAYS = [
   "FRIDAY",
   "SATURDAY",
 ] as const;
-
-const MEAL_ICON: Record<MealType, IconComponent> = {
-  BREAKFAST: Coffee,
-  DINNER: Moon,
-  LUNCH: Soup,
-  SNACKS: Cookie,
-};
 
 const TODAY_URL = "/api/v1/cook/today";
 const PHOTOS_URL = "/api/v1/cook/food-photos";
@@ -177,18 +178,16 @@ function Skeletons({ count, height }: { count: number; height: string }) {
   return (
     <div className="grid gap-3 md:grid-cols-2">
       {Array.from({ length: count }, (_, index) => (
-        <div className={cn("animate-pulse rounded-xl bg-muted/50", height)} key={index} />
+        <div className={cn("animate-pulse rounded-2xl bg-muted", height)} key={index} />
       ))}
     </div>
   );
 }
 
 function MealIcon({ mealType }: { mealType: MealType }) {
-  const Icon = MEAL_ICON[mealType];
-
   return (
-    <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-role-admin-soft text-role-admin">
-      <Icon className="size-[18px]" />
+    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-role-team-soft text-role-team">
+      <Glyph className="size-5" name={MEAL_GLYPH[mealType]} />
     </span>
   );
 }
@@ -234,11 +233,12 @@ export function CookTodayPage() {
   const data = today.data?.today;
   const buttons = data ? mealButtons(data, now) : [];
   const next = buttons.find((button) => !button.sent) ?? null;
+  const sentCount = buttons.filter((button) => button.sent).length;
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
       <PortalPageHeader
-        description="Tap when the food is out — residents get a notification, and so does the office."
+        description="Tap Food ready when it is out. Residents and the office are told."
         title={data?.hostel.name ?? "Today"}
       />
 
@@ -252,21 +252,18 @@ export function CookTodayPage() {
         <>
           <div className="grid gap-3 sm:grid-cols-3">
             <MetricCard icon={Users} label="Residents" value={data.residentCount} />
+            <MetricCard icon={UtensilsCrossed} label="Announced today" value={`${sentCount} of 4`} />
             <MetricCard
-              icon={UtensilsCrossed}
-              label="Announced today"
-              value={`${buttons.filter((button) => button.sent).length} of 4`}
-            />
-            <MetricCard
-              icon={MEAL_ICON[next?.mealType ?? "DINNER"]}
+              icon={Clock}
               label="Next meal"
               note={next?.timing || undefined}
               value={next ? humanize(next.mealType) : "All done"}
             />
           </div>
+          <ShareBar label={`${sentCount} of 4 meals announced`} total={4} value={sentCount} />
 
           {notice ? (
-            <p className="rounded-lg border border-border bg-muted/40 px-3 py-2 text-[12.5px] text-foreground">
+            <p className="rounded-xl border border-border bg-muted/40 px-3 py-2 text-[13px] text-foreground">
               {notice}
             </p>
           ) : null}
@@ -278,20 +275,20 @@ export function CookTodayPage() {
               return (
                 <div
                   className={cn(
-                    "space-y-3 rounded-xl border bg-card p-4 shadow-sm",
+                    "space-y-3 rounded-2xl border bg-card p-4",
                     button.state === "MISSED"
-                      ? "border-warning/40"
+                      ? "border-amber-300 dark:border-amber-500/40"
                       : next?.mealType === button.mealType && !button.locked
-                        ? "border-role-admin/50"
-                        : "border-border",
+                        ? "border-transparent ring-2 ring-role-team"
+                        : "border-border/70",
                   )}
                   key={button.mealType}
                 >
                   <div className="flex items-start gap-3">
                     <MealIcon mealType={button.mealType} />
                     <div className="min-w-0 flex-1">
-                      <p className="font-heading text-[14px] font-bold">{humanize(button.mealType)}</p>
-                      <p className="text-[12px] text-muted-foreground">
+                      <p className="font-heading text-[15px] font-semibold text-foreground">{humanize(button.mealType)}</p>
+                      <p className="line-clamp-2 text-[13.5px] text-muted-foreground">
                         {button.sent
                           ? button.sent.message
                           : button.items.join(", ") || "Nothing planned for today"}
@@ -299,11 +296,11 @@ export function CookTodayPage() {
                     </div>
                     <span
                       className={cn(
-                        "shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                        "shrink-0 rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold",
                         button.sent
-                          ? "bg-role-admin-soft text-role-admin"
+                          ? "bg-role-team-soft text-role-team"
                           : button.locked
-                            ? "bg-warning/10 text-warning"
+                            ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
                             : "bg-muted text-muted-foreground",
                       )}
                     >
@@ -321,28 +318,27 @@ export function CookTodayPage() {
                     className="h-10 w-full"
                     disabled={button.locked || busy !== null}
                     onClick={() => void announce(button.mealType)}
-                    tone="admin"
+                    tone="team"
                     variant={button.sent || button.state === "MISSED" ? "outline" : "solid"}
                   >
                     {busy === button.mealType ? "Announcing…" : buttonLabel(button)}
                   </RoleButton>
 
                   {button.sent ? (
-                    <p className="text-[11.5px] text-muted-foreground">
+                    <p className="text-[12px] text-muted-foreground">
                       {button.sent.notifiedCount} resident(s) notified.
                     </p>
                   ) : note ? (
-                    <p className="text-[11.5px] text-muted-foreground">{note}</p>
+                    <p className="text-[12px] text-muted-foreground">{note}</p>
                   ) : null}
                 </div>
               );
             })}
           </div>
 
-          <p className="text-[11.5px] text-muted-foreground">
-            The message is built from today&apos;s menu. If you cooked something else,
-            announce it and tell residents in person — the menu is the office&apos;s to change.
-          </p>
+          {/* The menu is the office's to change: a cook who made something else
+              announces it and tells residents in person. */}
+          <p className="text-[12.5px] text-muted-foreground">The message is built from today&apos;s menu.</p>
         </>
       )}
     </div>
@@ -358,13 +354,15 @@ export function CookMenuPage() {
   const start = nepalWeekday(now);
   // Today first, then the rest of the week in order.
   const days = DAYS.map((_, index) => DAYS[(start + index) % 7]!);
+  const [picked, setPicked] = useState<(typeof DAYS)[number] | null>(null);
+  const day = picked ?? days[0]!;
+  const dayMeals = MEAL_TYPES.map((mealType) =>
+    meals.find((meal) => meal.dayOfWeek === day && meal.mealType === mealType),
+  ).filter((meal): meal is Meal => Boolean(meal));
 
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <PortalPageHeader
-        description="The hostel's weekly routine. The office changes it; you cook from it."
-        title="Menu"
-      />
+      <PortalPageHeader description="The weekly routine. The office sets it; you cook from it." title="Menu" />
 
       {!today.data ? (
         today.state === "error" ? (
@@ -375,46 +373,45 @@ export function CookMenuPage() {
       ) : meals.length === 0 ? (
         <EmptyState label="The office has not set a weekly menu yet." />
       ) : (
-        <div className="space-y-5">
-          {days.map((day, index) => {
-            const dayMeals = MEAL_TYPES.map((mealType) =>
-              meals.find((meal) => meal.dayOfWeek === day && meal.mealType === mealType),
-            ).filter((meal): meal is Meal => Boolean(meal));
+        <section className="space-y-3">
+          <div className="flex gap-1.5 overflow-x-auto pb-1">
+            {days.map((dayName, index) => {
+              const on = dayName === day;
 
-            if (dayMeals.length === 0) return null;
-
-            return (
-              <section className="space-y-2" key={day}>
-                <h2 className="text-[11.5px] font-bold uppercase tracking-wide text-muted-foreground">
-                  {index === 0 ? `Today · ${humanize(day)}` : humanize(day)}
-                </h2>
-                <SectionCard>
-                  <ul className="divide-y divide-border/60">
-                    {dayMeals.map((meal) => (
-                      <li className="flex items-start gap-3 py-2.5" key={meal.mealType}>
-                        <MealIcon mealType={meal.mealType} />
-                        <div className="min-w-0 flex-1">
-                          <p className="text-[13px] font-semibold">
-                            {humanize(meal.mealType)}
-                            {meal.timing ? (
-                              <span className="ml-2 font-normal text-muted-foreground">
-                                {meal.timing}
-                              </span>
-                            ) : null}
-                          </p>
-                          <p className="text-[12px] text-muted-foreground">
-                            {meal.items.join(", ") || "—"}
-                            {meal.note ? ` · ${meal.note}` : ""}
-                          </p>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </SectionCard>
-              </section>
-            );
-          })}
-        </div>
+              return (
+                <button
+                  aria-pressed={on}
+                  className={cn(
+                    "shrink-0 rounded-full border px-3.5 py-1.5 text-[12.5px] font-semibold transition active:scale-95",
+                    on
+                      ? "border-transparent bg-foreground text-background"
+                      : "border-border text-muted-foreground hover:text-foreground",
+                  )}
+                  key={dayName}
+                  onClick={() => setPicked(dayName)}
+                  type="button"
+                >
+                  {index === 0 ? "Today" : humanize(dayName).slice(0, 3)}
+                </button>
+              );
+            })}
+          </div>
+          {dayMeals.length === 0 ? (
+            <EmptyState label={`Nothing set for ${humanize(day)}.`} />
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {dayMeals.map((meal) => (
+                <MealTile
+                  items={meal.items}
+                  key={meal.mealType}
+                  mealType={meal.mealType}
+                  note={meal.note}
+                  timing={meal.timing}
+                />
+              ))}
+            </div>
+          )}
+        </section>
       )}
     </div>
   );
@@ -429,6 +426,7 @@ export function CookPhotosPage() {
   const [older, setOlder] = useState<PhotoFeed | null>(null);
   const [loadingMore, setLoadingMore] = useState(false);
   const [notice, setNotice] = useState("");
+  const [sharing, setSharing] = useState(false);
   const upload = useUploader({
     accessLevel: "PRIVATE",
     kind: "image",
@@ -458,6 +456,7 @@ export function CookPhotosPage() {
       });
       upload.clear();
       setOlder(null);
+      setSharing(false);
       setNotice("Photo shared. Residents can see it on their food screen.");
       invalidate(PHOTOS_URL);
     } catch (error) {
@@ -482,35 +481,16 @@ export function CookPhotosPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-5">
       <PortalPageHeader
-        description="Photograph the meal as it goes out. Residents see it on their food screen."
-        title="Photos"
-      />
-
-      <SectionCard title="Share a photo">
-        <form className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end" onSubmit={share}>
-          <div className="md:col-span-3">
-            <FileUploaderView label="Upload meal photo" tone="admin" uploader={upload} />
-          </div>
-          <Select defaultValue={mealNow(now)} label="Meal" name="mealType" required>
-            {MEAL_TYPES.map((meal) => (
-              <option key={meal} value={meal}>
-                {humanize(meal)}
-              </option>
-            ))}
-          </Select>
-          <Input label="Caption" name="caption" />
-          <RoleButton
-            className="h-9"
-            disabled={upload.isUploading || !photoAssetId}
-            tone="admin"
-            type="submit"
-          >
-            <Upload className="size-3.5" />
+        actions={
+          <RoleButton className="h-9 px-4" onClick={() => setSharing(true)} tone="team">
+            <Camera className="size-4" />
             Share photo
           </RoleButton>
-        </form>
-        {notice ? <p className="mt-3 text-[12px] text-muted-foreground">{notice}</p> : null}
-      </SectionCard>
+        }
+        description="The meal as it goes out. Residents see it on their food screen."
+        title="Photos"
+      />
+      {notice ? <p className="text-[13px] text-muted-foreground">{notice}</p> : null}
 
       {!feed.data ? (
         feed.state === "error" ? (
@@ -522,46 +502,53 @@ export function CookPhotosPage() {
         <EmptyState label="No meal photos yet. The first one you share appears here." />
       ) : (
         <div className="space-y-5">
-          {days.map((day) => (
-            <section className="space-y-2" key={day.day}>
-              <h2 className="flex items-baseline justify-between text-[11.5px] font-bold uppercase tracking-wide text-muted-foreground">
-                {new Date(day.day).toLocaleDateString("en-GB", {
-                  day: "numeric",
-                  month: "long",
-                  weekday: "long",
-                })}
-                <span className="font-medium normal-case tracking-normal">
-                  {new Set(day.photos.map((photo) => photo.mealType)).size} of 4 meals
-                </span>
-              </h2>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                {day.photos.map((photo) => (
-                  <figure className="overflow-hidden rounded-xl border border-border bg-card" key={photo.id}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      alt={`${humanize(photo.mealType)} photo`}
-                      className="aspect-square w-full object-cover"
-                      loading="lazy"
-                      src={`/api/v1/files/${photo.photoAssetId}/url?variant=THUMBNAIL`}
-                    />
-                    <figcaption className="px-2.5 py-2 text-[11.5px] text-muted-foreground">
-                      <span className="font-semibold text-foreground">{humanize(photo.mealType)}</span>
-                      {` · ${clock(photo.uploadedAt)}`}
-                      {photo.source === "RESIDENT" ? " · By a resident" : ""}
-                      {photo.caption ? <span className="block truncate">{photo.caption}</span> : null}
-                    </figcaption>
-                  </figure>
-                ))}
-              </div>
-            </section>
-          ))}
+          {days.map((day) => {
+            const covered = new Set(day.photos.map((photo) => photo.mealType)).size;
+
+            return (
+              <section className="space-y-2" key={day.day}>
+                <div className="flex items-center justify-between gap-3">
+                  <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                    {new Date(day.day).toLocaleDateString("en-GB", {
+                      day: "numeric",
+                      month: "long",
+                      weekday: "long",
+                    })}
+                  </h2>
+                  <ShareBar className="w-32" label={`${covered} of 4 meals`} total={4} value={covered} />
+                </div>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+                  {day.photos.map((photo) => (
+                    <figure
+                      className="overflow-hidden rounded-2xl border border-border/70 bg-card transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                      key={photo.id}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        alt={`${humanize(photo.mealType)} photo`}
+                        className="aspect-square w-full object-cover"
+                        loading="lazy"
+                        src={`/api/v1/files/${photo.photoAssetId}/url?variant=THUMBNAIL`}
+                      />
+                      <figcaption className="px-3 py-2 text-[12px] text-muted-foreground">
+                        <span className="font-semibold text-foreground">{humanize(photo.mealType)}</span>
+                        {` · ${clock(photo.uploadedAt)}`}
+                        {photo.source === "RESIDENT" ? " · By a resident" : ""}
+                        {photo.caption ? <span className="block truncate">{photo.caption}</span> : null}
+                      </figcaption>
+                    </figure>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
 
           {hasMore ? (
             <RoleButton
               className="w-full"
               disabled={loadingMore}
               onClick={() => void loadMore()}
-              tone="admin"
+              tone="team"
               variant="outline"
             >
               {loadingMore ? "Loading…" : "Show older photos"}
@@ -569,6 +556,39 @@ export function CookPhotosPage() {
           ) : null}
         </div>
       )}
+
+      <Dialog onOpenChange={setSharing} open={sharing}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share a photo</DialogTitle>
+            <DialogDescription>Today&apos;s meal, as it goes out.</DialogDescription>
+          </DialogHeader>
+          <form className="grid gap-3" onSubmit={share}>
+            <FileUploaderView label="Upload meal photo" tone="admin" uploader={upload} />
+            <div className="grid grid-cols-2 gap-3">
+              <Select defaultValue={mealNow(now)} label="Meal" name="mealType" required>
+                {MEAL_TYPES.map((meal) => (
+                  <option key={meal} value={meal}>
+                    {humanize(meal)}
+                  </option>
+                ))}
+              </Select>
+              <Input label="Caption" name="caption" />
+            </div>
+            <DialogFooter>
+              <RoleButton
+                className="h-10 px-5"
+                disabled={upload.isUploading || !photoAssetId}
+                tone="team"
+                type="submit"
+              >
+                <Upload className="size-4" />
+                Share photo
+              </RoleButton>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

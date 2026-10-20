@@ -1,27 +1,57 @@
 "use client";
 
-import { MessageSquareWarning, Send } from "@/components/icons";
+import { AlarmClock, CheckCircle2, MessageSquareWarning, Plus, Send } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
-import {
-  EmptyState,
-  Input,
-  LoadingRows,
-  Panel,
-  Select,
-  StatusBadge,
-  TextArea,
-} from "@/app/_components/shared-ui";
+import { EmptyState, Input, Select, TextArea } from "@/app/_components/shared-ui";
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
+import { Glyph, type GlyphName } from "@/components/glyph";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { FileUploaderView, useUploader } from "@/components/uploads";
 import { browserApi } from "@/lib/browser-api";
+import { dayMonthYear } from "@/lib/format-month";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { residentEndpoints } from "@/lib/resident-endpoints";
+import { cn } from "@/lib/utils";
+import { CardSkeletons, FactChip, SectionTitle, titleCase } from "./daily-portal-ui";
+import { EmptyInline, MetricCard, RoleButton } from "./portal-dashboard-ui";
 import { type Complaint, ResidentHeader, Message, field } from "./resident-shared";
+
+const CATEGORY_GLYPH: Record<string, GlyphName> = {
+  FOOD: "restaurant",
+  MAINTENANCE: "build",
+  NOISE: "volume-high",
+  OTHER: "chatbubble",
+  PAYMENT: "card",
+  ROOM: "bed",
+  SAFETY: "shield",
+  STAFF: "people",
+};
+
+/* Complaint status → colour, per DESIGN.md: resolved green, in progress amber,
+   rejected rose, pending grey. */
+const STATUS_CHIP: Record<Complaint["status"], string> = {
+  IN_PROGRESS: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
+  PENDING: "bg-muted text-muted-foreground",
+  REJECTED: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
+  RESOLVED: "bg-role-team-soft text-role-team",
+};
+
+type StatusFilter = "ALL" | "OPEN" | "RESOLVED" | "REJECTED";
 
 export const ResidentComplaintsPageContent = memo(
   function ResidentComplaintsPageContent() {
     const [actionMessage, setActionMessage] = useState("");
+    const [creating, setCreating] = useState(false);
+    const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
     // Evidence photos/documents for the complaint. Progress shows in the global
     // toaster; the form only needs the resulting asset ids.
     const attachments = useUploader({
@@ -45,6 +75,23 @@ export const ResidentComplaintsPageContent = memo(
     const state = complaintsResource.state;
     const message = actionMessage || complaintsResource.message;
 
+    const counts = useMemo(
+      () => ({
+        open: complaints.filter((item) => item.status === "PENDING" || item.status === "IN_PROGRESS").length,
+        overdue: complaints.filter((item) => item.isOverdue).length,
+        resolved: complaints.filter((item) => item.status === "RESOLVED").length,
+      }),
+      [complaints],
+    );
+
+    const visible = useMemo(() => {
+      if (statusFilter === "OPEN") {
+        return complaints.filter((item) => item.status === "PENDING" || item.status === "IN_PROGRESS");
+      }
+
+      return statusFilter === "ALL" ? complaints : complaints.filter((item) => item.status === statusFilter);
+    }, [complaints, statusFilter]);
+
     const handleCreateComplaint = useCallback(
       async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -66,6 +113,7 @@ export const ResidentComplaintsPageContent = memo(
           });
           formElement.reset();
           clearAttachments();
+          setCreating(false);
           setActionMessage("Complaint submitted.");
           invalidate(residentEndpoints.complaints, residentEndpoints.dashboard);
         } catch (error) {
@@ -101,43 +149,76 @@ export const ResidentComplaintsPageContent = memo(
     );
 
     return (
-      <div className="mx-auto max-w-[1448px] space-y-6">
+      <div className="mx-auto max-w-[1100px] space-y-5">
         <ResidentHeader
-          description="Report hostel issues and track staff responses."
+          actions={
+            <RoleButton className="h-9 px-4" onClick={() => setCreating(true)} tone="team">
+              <Plus className="size-4" />
+              New complaint
+            </RoleButton>
+          }
+          description="Report a problem and follow it to the end."
           icon={MessageSquareWarning}
           title="Complaints"
         />
         <Message value={message} />
 
-        <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
-          <Panel title="My Complaints">
-            {state === "loading" ? <LoadingRows /> : null}
-            {state === "error" ? (
-              <EmptyState label="Complaints could not be loaded." />
-            ) : null}
-            {state === "ready" && complaints.length === 0 ? (
-              <EmptyState label="No complaints submitted." />
-            ) : null}
-            <div className="space-y-3">
-              {complaints.map((complaint) => (
-                <div className="rounded-lg border border-border p-4" key={complaint.id}>
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <p className="font-semibold text-foreground">{complaint.title}</p>
-                      {complaint.description ? (
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {complaint.description}
-                        </p>
-                      ) : null}
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      <StatusBadge>{complaint.status}</StatusBadge>
-                      <StatusBadge>{complaint.category}</StatusBadge>
-                      {complaint.isAnonymous ? (
-                        <StatusBadge>ANONYMOUS</StatusBadge>
-                      ) : null}
-                    </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <MetricCard icon={MessageSquareWarning} label="Open" value={counts.open} />
+          <MetricCard icon={CheckCircle2} label="Resolved" value={counts.resolved} />
+          <MetricCard
+            icon={AlarmClock}
+            label="Past due"
+            tone={counts.overdue > 0 ? "rose" : "teal"}
+            value={counts.overdue}
+          />
+        </div>
+
+        <div className="flex items-center justify-between gap-3">
+          <SectionTitle>My complaints</SectionTitle>
+          <FilterButton active={statusFilter === "ALL" ? 0 : 1} onClear={() => setStatusFilter("ALL")}>
+            <FilterChoice
+              label="Status"
+              onChange={setStatusFilter}
+              options={[
+                { label: "All", value: "ALL" },
+                { label: "Open", value: "OPEN" },
+                { label: "Resolved", value: "RESOLVED" },
+                { label: "Rejected", value: "REJECTED" },
+              ]}
+              value={statusFilter}
+            />
+          </FilterButton>
+        </div>
+
+        {state === "loading" ? <CardSkeletons count={2} /> : null}
+        {state === "error" ? <EmptyState label="Complaints could not be loaded." /> : null}
+        {state === "ready" && visible.length === 0 ? (
+          <EmptyInline label={complaints.length === 0 ? "No complaints yet." : "None in this filter."} />
+        ) : null}
+
+        <div className="grid gap-3">
+          {visible.map((complaint) => (
+            <article className="rounded-2xl border border-border/70 bg-card p-4" key={complaint.id}>
+              <div className="flex gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-muted text-foreground">
+                  <Glyph className="size-5" name={CATEGORY_GLYPH[complaint.category] ?? "chatbubble"} />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="font-heading text-[15px] font-semibold text-foreground">{complaint.title}</p>
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold",
+                        STATUS_CHIP[complaint.status],
+                      )}
+                    >
+                      {titleCase(complaint.status)}
+                    </span>
                   </div>
+                  {complaint.description ? (
+                    <p className="mt-0.5 line-clamp-3 text-[13.5px] text-muted-foreground">{complaint.description}</p>
+                  ) : null}
                   {/*
                     Their own recording, when they raised it from the app by
                     speaking. Cookie-authenticated, so a plain `<audio>` pointed
@@ -146,7 +227,7 @@ export const ResidentComplaintsPageContent = memo(
                   */}
                   {complaint.voiceNoteAssetId ? (
                     <audio
-                      className="mt-3 w-full"
+                      className="mt-2 w-full"
                       controls
                       preload="none"
                       src={`/api/v1/files/${complaint.voiceNoteAssetId}/url`}
@@ -154,83 +235,71 @@ export const ResidentComplaintsPageContent = memo(
                       Your browser cannot play this recording.
                     </audio>
                   ) : null}
-
-                  <div className="mt-4 grid gap-2 text-sm text-muted-foreground md:grid-cols-3">
-                    <span>
-                      Created:{" "}
-                      {complaint.createdAt
-                        ? new Date(complaint.createdAt).toLocaleDateString()
-                        : "-"}
-                    </span>
-                    <span>SLA: {new Date(complaint.slaDueAt).toLocaleDateString()}</span>
-                    <span>
-                      Attachments:{" "}
-                      {complaint.attachments.length > 0
-                        ? complaint.attachments.map((item) => item.fileAssetId).join(", ")
-                        : "None"}
-                    </span>
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
+                    <FactChip glyph="pricetag">{titleCase(complaint.category)}</FactChip>
+                    {complaint.createdAt ? (
+                      <FactChip glyph="calendar">{dayMonthYear(complaint.createdAt)}</FactChip>
+                    ) : null}
+                    <FactChip glyph="time" tone={complaint.isOverdue ? "wrong" : "neutral"}>
+                      {`Answer by ${dayMonthYear(complaint.slaDueAt)}`}
+                    </FactChip>
+                    {complaint.attachments.length > 0 ? (
+                      <FactChip glyph="attach">{`${complaint.attachments.length} attached`}</FactChip>
+                    ) : null}
+                    {complaint.isAnonymous ? <FactChip glyph="eye-off">Anonymous</FactChip> : null}
                   </div>
                   {complaint.adminResponse ? (
-                    <div className="mt-4 rounded-md bg-muted p-3 text-sm text-foreground">
+                    <div className="mt-3 flex gap-2 rounded-xl bg-muted/60 p-3 text-[13.5px] text-foreground">
+                      <Glyph className="mt-0.5 size-4 shrink-0 text-muted-foreground" name="chatbubble-ellipses" />
                       {complaint.adminResponse}
                     </div>
                   ) : null}
                   {complaint.status === "RESOLVED" && !complaint.confirmedAt ? (
-                    <button
-                      className="mt-4 rounded-md bg-role-resident px-3 py-2 text-sm font-semibold text-white"
+                    <RoleButton
+                      className="mt-3"
                       onClick={() => void confirmResolution(complaint.id)}
-                      type="button"
+                      tone="team"
                     >
-                      Confirm Resolution
-                    </button>
+                      <CheckCircle2 className="size-4" />
+                      Confirm it is fixed
+                    </RoleButton>
                   ) : null}
                 </div>
-              ))}
-            </div>
-          </Panel>
+              </div>
+            </article>
+          ))}
+        </div>
 
-          <Panel title="Submit Complaint">
+        <Dialog onOpenChange={setCreating} open={creating}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>New complaint</DialogTitle>
+              <DialogDescription>Your hostel has to answer by its deadline.</DialogDescription>
+            </DialogHeader>
             <BusyForm className="grid gap-3" onSubmit={handleCreateComplaint}>
               <Input label="Title" name="title" required />
               <Select label="Category" name="category" required>
-                {[
-                  "FOOD",
-                  "ROOM",
-                  "MAINTENANCE",
-                  "SAFETY",
-                  "PAYMENT",
-                  "STAFF",
-                  "NOISE",
-                  "OTHER",
-                ].map((category) => (
+                {["FOOD", "ROOM", "MAINTENANCE", "SAFETY", "PAYMENT", "STAFF", "NOISE", "OTHER"].map((category) => (
                   <option key={category} value={category}>
-                    {category}
+                    {titleCase(category)}
                   </option>
                 ))}
               </Select>
-              <TextArea label="Description" name="description" />
-              <div className="grid gap-2">
-                <span className="text-sm font-semibold text-foreground">
-                  Attachments{" "}
-                  <span className="font-normal text-muted-foreground">(optional)</span>
-                </span>
-                <FileUploaderView
-                  label="Add a photo or document"
-                  tone="resident"
-                  uploader={attachments}
-                />
-              </div>
-              <label className="flex items-center gap-2 text-sm text-foreground">
-                <input name="isAnonymous" type="checkbox" />
-                Submit anonymously
+              <TextArea label="What happened" name="description" />
+              <FileUploaderView label="Add a photo or document" tone="resident" uploader={attachments} />
+              <label className="flex items-center gap-2 text-[13px] text-foreground">
+                <input className="accent-brand-teal" name="isAnonymous" type="checkbox" />
+                Send without my name
               </label>
-              <SubmitButton className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-role-resident text-sm font-semibold text-white">
-                <Send className="size-4" />
-                Submit
-              </SubmitButton>
+              <DialogFooter>
+                <SubmitButton className="bg-brand-teal text-white hover:bg-brand-teal/90">
+                  <Send className="size-4" />
+                  Submit
+                </SubmitButton>
+              </DialogFooter>
             </BusyForm>
-          </Panel>
-        </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   },

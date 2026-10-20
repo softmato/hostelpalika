@@ -1,20 +1,27 @@
 "use client";
 
-import { ShieldCheck, UserPlus } from "@/components/icons";
+import { ShieldCheck, Trash2, UserPlus } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
-import {
-  EmptyState,
-  Input,
-  LoadingRows,
-  Panel,
-  StatusBadge,
-} from "@/app/_components/shared-ui";
+import { EmptyState, Input } from "@/app/_components/shared-ui";
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
 import { useConfirm } from "@/app/_components/confirm-dialog";
+import { Glyph, type GlyphName } from "@/components/glyph";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { residentEndpoints } from "@/lib/resident-endpoints";
+import { cn } from "@/lib/utils";
+import { CardSkeletons, ShareBar, titleCase } from "./daily-portal-ui";
+import { EmptyInline, InitialsAvatar, RoleButton, SectionCard } from "./portal-dashboard-ui";
 import { Message, ResidentHeader, field } from "./resident-shared";
 
 type GuardianPermissions = {
@@ -38,21 +45,27 @@ type GuardianLink = {
 };
 
 /**
- * One row per shareable field. The copy is deliberately concrete about the
- * limit of each grant — a guardian seeing "complaint status" must not be
- * imagined by the resident as seeing the complaint text (PRD.md §10).
+ * One chip per shareable field. The labels stay concrete about the limit of
+ * each grant — a guardian seeing "complaint titles" must not be imagined by
+ * the resident as seeing the complaint text (PRD.md §10).
  */
-const PERMISSION_FIELDS: Array<{ key: keyof GuardianPermissions; label: string }> = [
-  { key: "canViewPayments", label: "Fee status (paid / unpaid / due)" },
-  { key: "canViewReceipts", label: "Payment receipts" },
-  { key: "canViewNotices", label: "Hostel notices" },
-  { key: "canViewFood", label: "Food menu" },
-  { key: "canViewSafety", label: "Night safety summary (day-level only)" },
-  { key: "canViewComplaintStatus", label: "Complaint status (titles only)" },
+const PERMISSION_FIELDS: Array<{ glyph: GlyphName; key: keyof GuardianPermissions; label: string }> = [
+  { glyph: "wallet", key: "canViewPayments", label: "Fee status" },
+  { glyph: "receipt", key: "canViewReceipts", label: "Receipts" },
+  { glyph: "megaphone", key: "canViewNotices", label: "Notices" },
+  { glyph: "restaurant", key: "canViewFood", label: "Food menu" },
+  { glyph: "moon", key: "canViewSafety", label: "Night safety · day only" },
+  { glyph: "chatbox-alert", key: "canViewComplaintStatus", label: "Complaint titles only" },
 ];
+
+const CHIP_BASE =
+  "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] font-medium transition duration-150 active:scale-95";
+const CHIP_ON = "border-transparent bg-foreground text-background";
+const CHIP_OFF = "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground";
 
 export const ResidentGuardiansPageContent = memo(function ResidentGuardiansPageContent() {
   const [actionMessage, setActionMessage] = useState("");
+  const [inviting, setInviting] = useState(false);
   const invalidate = useInvalidateResources();
   const { confirm, confirmDialog } = useConfirm();
   const guardiansResource = usePortalResource<{ guardians: GuardianLink[] }>(
@@ -88,6 +101,7 @@ export const ResidentGuardiansPageContent = memo(function ResidentGuardiansPageC
           method: "POST",
         });
         formElement.reset();
+        setInviting(false);
         setActionMessage("Invitation sent.");
         invalidate(residentEndpoints.guardians);
       } catch (error) {
@@ -147,113 +161,137 @@ export const ResidentGuardiansPageContent = memo(function ResidentGuardiansPageC
   );
 
   return (
-    <div className="mx-auto max-w-[1448px] space-y-6">
+    <div className="mx-auto max-w-[1100px] space-y-5">
       {confirmDialog}
       <ResidentHeader
+        actions={
+          <RoleButton className="h-9 px-4" onClick={() => setInviting(true)} tone="team">
+            <UserPlus className="size-4" />
+            Invite guardian
+          </RoleButton>
+        }
         description="What a parent or guardian can see."
         icon={ShieldCheck}
         title="Guardians"
       />
       <Message value={message} />
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
-        <Panel title="My Guardians">
-          {state === "loading" ? <LoadingRows /> : null}
-          {state === "error" ? (
-            <EmptyState label="Guardians could not be loaded." />
-          ) : null}
-          {state === "ready" && guardians.length === 0 ? (
-            <EmptyState label="No guardian linked yet." />
-          ) : null}
-          <div className="space-y-3">
-            {guardians.map((guardian) => (
-              <div
-                className="rounded-lg border border-border p-4"
-                key={guardian.accessId}
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-foreground">{guardian.name}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {guardian.relation} · {guardian.email || guardian.phone}
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <StatusBadge>{guardian.status}</StatusBadge>
-                    {guardian.invitationPending ? (
-                      <StatusBadge>INVITE PENDING</StatusBadge>
-                    ) : null}
-                  </div>
-                </div>
-                <div className="mt-4 grid gap-2">
-                  {PERMISSION_FIELDS.map(({ key, label }) => (
-                    <label
-                      className="flex items-center gap-2 text-sm text-foreground"
-                      key={key}
-                    >
-                      <input
-                        checked={guardian.permissions[key]}
-                        onChange={(event) =>
-                          void togglePermission(
-                            guardian.accessId,
-                            key,
-                            event.target.checked,
-                          )
-                        }
-                        type="checkbox"
-                      />
-                      {label}
-                    </label>
-                  ))}
-                </div>
-                <button
-                  className="mt-4 rounded-md border border-border px-3 py-2 text-sm font-semibold text-foreground"
-                  onClick={() => void revoke(guardian.accessId)}
-                  type="button"
-                >
-                  Remove access
-                </button>
-              </div>
-            ))}
-          </div>
-        </Panel>
+      {state === "loading" ? <CardSkeletons count={2} /> : null}
+      {state === "error" ? <EmptyState label="Guardians could not be loaded." /> : null}
+      {state === "ready" && guardians.length === 0 ? (
+        <SectionCard>
+          <EmptyInline label="No guardian linked yet." />
+        </SectionCard>
+      ) : null}
 
-        <Panel title="Invite a Guardian">
-          <BusyForm className="grid gap-3" onSubmit={handleInvite}>
-            <Input label="First name" name="firstName" required />
-            <Input label="Last name" name="lastName" required />
-            <Input label="Email" name="email" required type="email" />
-            <Input label="Phone" name="phone" required />
-            <Input
-              label="Relation"
-              name="relation"
-              placeholder="Mother, father, uncle…"
-              required
-            />
-            <div className="grid gap-2">
-              <span className="text-sm font-semibold text-foreground">
-                What they can see
-              </span>
-              {PERMISSION_FIELDS.map(({ key, label }) => (
-                <label
-                  className="flex items-center gap-2 text-sm text-foreground"
-                  key={key}
+      <div className="grid gap-4 lg:grid-cols-2">
+        {guardians.map((guardian) => {
+          const shared = PERMISSION_FIELDS.filter(({ key }) => guardian.permissions[key]).length;
+
+          return (
+            <article className="space-y-4 rounded-2xl border border-border/70 bg-card p-4" key={guardian.accessId}>
+              <div className="flex items-center gap-3">
+                <InitialsAvatar name={guardian.name} tone="team" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-heading text-[15px] font-semibold text-foreground">{guardian.name}</p>
+                  <p className="truncate text-[12.5px] text-muted-foreground">
+                    {guardian.relation} · {guardian.email || guardian.phone}
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold",
+                    guardian.invitationPending
+                      ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
+                      : "bg-role-team-soft text-role-team",
+                  )}
                 >
-                  <input name={key} type="checkbox" />
-                  {label}
-                </label>
-              ))}
-              <p className="text-xs text-muted-foreground">
-                Anything left unchecked is never sent to them.
-              </p>
-            </div>
-            <SubmitButton className="inline-flex h-11 items-center justify-center gap-2 rounded-md bg-role-resident text-sm font-semibold text-white">
-              <UserPlus className="size-4" />
-              Send invitation
-            </SubmitButton>
-          </BusyForm>
-        </Panel>
+                  {guardian.invitationPending ? "Invite pending" : titleCase(guardian.status)}
+                </span>
+              </div>
+
+              <ShareBar label={`Sees ${shared} of ${PERMISSION_FIELDS.length}`} total={PERMISSION_FIELDS.length} value={shared} />
+
+              <div className="flex flex-wrap gap-1.5">
+                {PERMISSION_FIELDS.map(({ glyph, key, label }) => {
+                  const on = guardian.permissions[key];
+
+                  return (
+                    <button
+                      aria-pressed={on}
+                      className={cn(CHIP_BASE, on ? CHIP_ON : CHIP_OFF)}
+                      key={key}
+                      onClick={() => void togglePermission(guardian.accessId, key, !on)}
+                      type="button"
+                    >
+                      <Glyph className="size-3.5" name={glyph} />
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <Button
+                className="text-muted-foreground hover:text-destructive"
+                onClick={() => void revoke(guardian.accessId)}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                <Trash2 className="size-3.5" />
+                Remove access
+              </Button>
+            </article>
+          );
+        })}
       </div>
+
+      <Dialog onOpenChange={setInviting} open={inviting}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Invite a guardian</DialogTitle>
+            <DialogDescription>Anything you leave off is never sent to them.</DialogDescription>
+          </DialogHeader>
+          <BusyForm className="grid gap-3" onSubmit={handleInvite}>
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="First name" name="firstName" required />
+              <Input label="Last name" name="lastName" required />
+              <Input label="Email" name="email" required type="email" />
+              <Input label="Phone" name="phone" required />
+            </div>
+            <Input label="Relation" name="relation" placeholder="Mother, father, uncle…" required />
+            <div>
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                What they can see
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {PERMISSION_FIELDS.map(({ glyph, key, label }) => (
+                  // A real checkbox under the chip, so the form still posts "on".
+                  <label className="cursor-pointer" key={key}>
+                    <input className="peer sr-only" name={key} type="checkbox" />
+                    <span
+                      className={cn(
+                        CHIP_BASE,
+                        CHIP_OFF,
+                        "peer-checked:border-transparent peer-checked:bg-foreground peer-checked:text-background peer-focus-visible:ring-2 peer-focus-visible:ring-role-team",
+                      )}
+                    >
+                      <Glyph className="size-3.5" name={glyph} />
+                      {label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            <DialogFooter>
+              <SubmitButton className="bg-brand-teal text-white hover:bg-brand-teal/90">
+                <UserPlus className="size-4" />
+                Send invitation
+              </SubmitButton>
+            </DialogFooter>
+          </BusyForm>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });

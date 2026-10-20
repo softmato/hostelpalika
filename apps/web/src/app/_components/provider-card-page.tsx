@@ -2,9 +2,16 @@
 
 import Link from "next/link";
 
-import { PortalPageHeader, SectionCard } from "@/app/_components/portal-dashboard-ui";
+import {
+  InitialsAvatar,
+  PortalPageHeader,
+  RoleButton,
+  SectionCard,
+} from "@/app/_components/portal-dashboard-ui";
+import { Glyph, type GlyphName } from "@/components/glyph";
 import { usePortalResource } from "@/lib/portal-query";
 import { cn } from "@/lib/utils";
+import { CardSkeletons, FactChip, SectionTitle, titleCase } from "./daily-portal-ui";
 
 /**
  * The provider app's My card tab, on the web: the application as the platform
@@ -28,13 +35,14 @@ type ProviderRecord = {
   submittedAt?: string;
 };
 
-function titleCase(value: string) {
-  return value
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
+/* Service provider status → colour, per DESIGN.md: approved green, pending
+   amber, rejected rose, hidden grey. */
+const STATUS_CHIP: Record<string, string> = {
+  APPROVED: "bg-role-team-soft text-role-team",
+  HIDDEN: "bg-muted text-muted-foreground",
+  PENDING: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
+  REJECTED: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
+};
 
 export function ProviderCardPage() {
   const resource = usePortalResource<{ provider: ProviderRecord | null }>(
@@ -45,86 +53,97 @@ export function ProviderCardPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-5">
-      <PortalPageHeader title="My card" />
+      <PortalPageHeader
+        actions={
+          resource.data !== undefined && !record ? (
+            <RoleButton asChild className="h-9 px-4" tone="team">
+              <Link href="/service-providers/register">Apply now</Link>
+            </RoleButton>
+          ) : null
+        }
+        description="Your application as the platform holds it."
+        title="My card"
+      />
 
       {resource.data === undefined ? (
         resource.state === "error" ? (
-          <p className="text-sm text-muted-foreground">{resource.message}</p>
+          <p className="text-[13px] text-muted-foreground">{resource.message}</p>
         ) : (
-          <div className="h-48 animate-pulse rounded-xl bg-muted/50" />
+          <CardSkeletons className="sm:grid-cols-1 xl:grid-cols-1" count={2} />
         )
       ) : !record ? (
         <SectionCard>
-          <p className="text-sm text-foreground">You have not applied as a service provider.</p>
-          <Link
-            className="mt-2 inline-block text-sm font-semibold text-brand-teal"
-            href="/service-providers/register"
-          >
-            Apply now
-          </Link>
+          <p className="text-[13.5px] text-foreground">You have not applied as a service provider.</p>
         </SectionCard>
       ) : (
         <>
-          <SectionCard>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="font-heading text-base font-bold">{record.fullName}</p>
-                <p className="text-[12px] text-muted-foreground">
-                  {[titleCase(record.category), record.area, record.city]
-                    .filter(Boolean)
-                    .join(" · ")}
+          <section className="space-y-4 rounded-2xl border border-border/70 bg-card p-5">
+            <div className="flex items-center gap-4">
+              <InitialsAvatar name={record.fullName} size="lg" tone="team" />
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-heading text-[18px] font-bold tracking-tight text-foreground">
+                  {record.fullName}
+                </p>
+                <p className="truncate text-[13px] text-muted-foreground">
+                  {[titleCase(record.category), record.area, record.city].filter(Boolean).join(" · ")}
                 </p>
               </div>
               <span
                 className={cn(
-                  "shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide",
-                  record.status === "APPROVED"
-                    ? "bg-brand-teal/10 text-brand-teal"
-                    : "bg-amber-500/10 text-amber-600",
+                  "shrink-0 rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold",
+                  STATUS_CHIP[record.status] ?? STATUS_CHIP.PENDING,
                 )}
               >
                 {titleCase(record.status)}
               </span>
             </div>
             {record.rejectionReason ? (
-              <p className="mt-3 text-[12.5px] text-muted-foreground">{record.rejectionReason}</p>
+              <p className="rounded-xl bg-rose-50 px-3 py-2.5 text-[13px] text-rose-800 dark:bg-rose-950/40 dark:text-rose-300">
+                {record.rejectionReason}
+              </p>
             ) : null}
-          </SectionCard>
-
-          <section className="space-y-2">
-            <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-              What the platform holds
-            </h2>
-            <SectionCard>
-              <dl className="divide-y divide-border/60 text-[13px]">
-                {[
-                  ["Phone", record.phone],
-                  ["Email", record.email],
-                  ["Services", record.categories.map(titleCase).join(", ")],
-                  ["Availability", record.availability],
-                  ["Experience", record.experience],
-                  ["Documents on file", String(record.documentCount)],
-                  [
-                    "Applied",
-                    record.submittedAt
-                      ? new Date(record.submittedAt).toLocaleDateString("en-GB", {
-                          day: "numeric",
-                          month: "short",
-                          year: "numeric",
-                        })
-                      : "",
-                  ],
-                ].map(([label, value]) => (
-                  <div className="flex justify-between gap-4 py-2" key={label}>
-                    <dt className="text-muted-foreground">{label}</dt>
-                    <dd className="text-right font-medium">{value || "—"}</dd>
-                  </div>
+            {record.categories.length > 0 ? (
+              <div className="flex flex-wrap gap-1.5">
+                {record.categories.map((category) => (
+                  <FactChip glyph="build" key={category}>
+                    {titleCase(category)}
+                  </FactChip>
                 ))}
-              </dl>
+              </div>
+            ) : null}
+          </section>
+
+          <section className="space-y-3">
+            <SectionTitle>What the platform holds</SectionTitle>
+            <SectionCard>
+              <ul className="divide-y divide-border/60 text-[13.5px]">
+                {(
+                  [
+                    ["call", record.phone],
+                    ["mail", record.email],
+                    ["time", record.availability],
+                    ["ribbon", record.experience],
+                    ["documents", `${record.documentCount} document${record.documentCount === 1 ? "" : "s"} on file`],
+                    [
+                      "calendar",
+                      record.submittedAt
+                        ? `Applied ${new Date(record.submittedAt).toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}`
+                        : "",
+                    ],
+                  ] as [GlyphName, string][]
+                ).map(([glyph, value]) => (
+                  <li className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0" key={glyph}>
+                    <Glyph className="size-4 shrink-0 text-muted-foreground" name={glyph} />
+                    <span className="min-w-0 truncate text-foreground">{value || "—"}</span>
+                  </li>
+                ))}
+              </ul>
             </SectionCard>
-            <p className="px-1 text-[11.5px] text-muted-foreground">
-              Contact support if something here is wrong.
-            </p>
+            <p className="text-[12.5px] text-muted-foreground">Contact support if something here is wrong.</p>
           </section>
         </>
       )}
