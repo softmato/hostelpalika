@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { ResidentClaimForm } from "@/app/_components/resident-claim-form";
 import { ShareReceiptSteps } from "@/app/_components/share-receipt-steps";
 import { ResidentPayInvoicePanel } from "@/app/_components/resident-pay-invoice-panel";
+import { MethodIcon, methodKey, methodLabel, type PayMethod } from "@/app/_components/payment-method-ui";
+import { WalletMark } from "@/components/wallet-mark";
 import { dayMonthYear, dayMonthYearBs, monthLabel } from "@/lib/format-month";
 import { bsPeriodOf } from "@hostel/shared/calendar/bs";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
@@ -93,6 +95,42 @@ function openOrder(payment: Payment): string {
  * Shows nothing when everything is settled — an empty focus card that says
  * "NPR 0" reads as a bill for zero rupees, which is a support question.
  */
+/**
+ * The hostel's ways to pay, as the logos the resident knows, each one opening
+ * the pay dialog. It reads the same pay-instructions request that dialog does,
+ * so opening it afterwards costs nothing.
+ */
+function WaysToPay({ invoiceId, onPick }: { invoiceId: string; onPick: () => void }) {
+  const resource = usePortalResource<{ methods: PayMethod[]; usable: boolean }>(
+    residentEndpoints.payInstructions(invoiceId),
+    { errorMessage: "Could not load payment instructions." },
+  );
+  const methods = resource.data?.usable ? resource.data.methods : [];
+
+  if (methods.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="rounded-2xl border border-border/70 bg-card p-4">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Ways to pay</p>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3">
+        {methods.map((method) => (
+          <button
+            className="flex items-center gap-2.5 rounded-xl border border-border/70 bg-card p-2.5 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0"
+            key={methodKey(method)}
+            onClick={onPick}
+            type="button"
+          >
+            <MethodIcon method={method} size={32} />
+            <span className="min-w-0 truncate text-[13px] font-semibold text-foreground">{methodLabel(method)}</span>
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
 function FocusCard({
   credit,
   payment,
@@ -148,7 +186,11 @@ function FocusCard({
           one most likely to pay twice. */}
       {pendingClaim ? (
         <p className="flex items-center gap-2 rounded-xl bg-amber-50 px-3 py-2.5 text-[13px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-          <Loader2 className="size-4 shrink-0 animate-spin" />
+          {pendingClaim.method ? (
+            <WalletMark name={pendingClaim.method} size={22} />
+          ) : (
+            <Loader2 className="size-4 shrink-0 animate-spin" />
+          )}
           {currency(pendingClaim.amount)} sent — your hostel is checking it. No need to pay again.
         </p>
       ) : null}
@@ -160,7 +202,11 @@ function FocusCard({
       {rejectedClaim ? (
         <div className="rounded-xl bg-rose-50 px-3 py-2.5 text-[13px] text-rose-800 dark:bg-rose-950/40 dark:text-rose-300">
           <p className="flex items-center gap-2 font-semibold">
-            <CircleAlert className="size-4 shrink-0" />
+            {rejectedClaim.method ? (
+              <WalletMark name={rejectedClaim.method} size={22} />
+            ) : (
+              <CircleAlert className="size-4 shrink-0" />
+            )}
             {currency(rejectedClaim.amount)} was not accepted. {currency(outstanding)} is still to pay.
           </p>
           {rejectedClaim.rejectionReason ? (
@@ -382,6 +428,13 @@ export const ResidentPaymentsPageContent = memo(function ResidentPaymentsPageCon
                 is to pay from a banking app having never seen the code. Hidden
                 when nothing is owed: a code with no invoice is an instruction
                 with no occasion. */}
+            <WaysToPay
+              invoiceId={stats.nextDue.id}
+              onPick={() => {
+                setPayingInvoiceId(stats.nextDue!.id);
+                setClaimInvoice(null);
+              }}
+            />
             <OfferProgramBanner code={stats.nextDue.referenceCode} />
             <ShareReceiptSteps />
           </div>

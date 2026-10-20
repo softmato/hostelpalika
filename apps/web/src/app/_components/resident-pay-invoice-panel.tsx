@@ -3,9 +3,8 @@
 import {
   AlertTriangle,
   Banknote,
-  ChevronDown,
+  Check,
   Loader2,
-  Smartphone,
   Sparkles,
 } from "@/components/icons";
 import { memo, useCallback, useState } from "react";
@@ -13,18 +12,19 @@ import { memo, useCallback, useState } from "react";
 import {
   CopyButton,
   ManualMethodPanel,
-  MethodIcon,
   methodKey,
   methodLabel,
   type PayMethod,
   PROVIDER_LABEL,
 } from "@/app/_components/payment-method-ui";
 import { currency, EmptyState, LoadingRows } from "@/app/_components/shared-ui";
+import { WalletMark } from "@/components/wallet-mark";
 import { browserApi } from "@/lib/browser-api";
-import { dayMonthYearBoth, daysLeftLabel, monthLabel } from "@/lib/format-month";
+import { monthLabel } from "@/lib/format-month";
 import { usePortalResource } from "@/lib/portal-query";
 import { residentEndpoints } from "@/lib/resident-endpoints";
 import { cn } from "@/lib/utils";
+import { DueBar } from "./daily-portal-ui";
 import { ModalAmount, ResidentFlowModal } from "./resident-flow-modal";
 import {
   OFFER_PROGRAM_NAME,
@@ -54,10 +54,11 @@ import { BillExtraRows, type BillLine } from "@/app/_components/khata-pages";
  * nobody can attribute. It is large, monospaced, one tap to copy, and it sits in
  * the rail that stays put.
  *
- * **One method is shown at a time.** Six panels of account numbers open at once
- * is how somebody pays the right hostel from the wrong app. Picking a method
- * first mirrors how they already think — "I'll use eSewa" — and means the
- * details on screen are only ever the ones they need.
+ * **One method is shown at a time.** Each way to pay is a card with the
+ * provider's own logo; the picked one opens below. Six panels of account
+ * numbers open at once is how somebody pays the right hostel from the wrong
+ * app. Picking a logo first mirrors how they already think — "I'll use eSewa"
+ * — and means the details on screen are only ever the ones they need.
  *
  * Methods come from the server already ordered and already filtered to the ones
  * the hostel actually configured, so this renders what it is given rather than
@@ -158,35 +159,32 @@ function GatewayPanel({
   return (
     <div className="space-y-3">
       <button
-        className="flex w-full items-center justify-center gap-2 rounded-xl bg-role-resident px-4 py-3.5 text-sm font-bold text-white transition hover:opacity-90 disabled:opacity-60"
+        className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-teal px-4 py-3 text-[14px] font-bold text-white transition hover:bg-brand-teal/90 disabled:opacity-60"
         disabled={busy}
         onClick={start}
         type="button"
       >
         {busy ? (
-          <Loader2 aria-hidden className="size-4 animate-spin" />
+          <Loader2 aria-hidden className="size-5 animate-spin" />
         ) : (
-          <Smartphone aria-hidden className="size-4" />
+          <WalletMark name={method.provider} size={28} />
         )}
         {busy ? `Opening ${label}…` : `Pay ${currency(amount)} with ${label}`}
       </button>
-      <p className="text-center text-xs text-muted-foreground">
-        Confirms automatically — no screenshot needed.
-      </p>
+      <p className="text-center text-[12.5px] text-muted-foreground">Confirms itself. No screenshot needed.</p>
       {method.sandbox ? (
-        <p className="flex items-start gap-1.5 rounded-lg bg-amber-500/15 p-2.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
+        <p className="flex items-start gap-1.5 rounded-xl bg-amber-50 p-2.5 text-[12px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
           <AlertTriangle aria-hidden className="mt-0.5 size-3.5 shrink-0" />
-          Test mode — this is a sandbox merchant and moves no real money.
+          Test mode — a sandbox merchant, no real money moves.
         </p>
       ) : null}
       {error ? (
-        <p className="text-center text-xs font-semibold text-destructive">{error}</p>
+        <p className="text-center text-[12.5px] font-semibold text-rose-600">{error}</p>
       ) : null}
     </div>
   );
 }
 
-/** One labelled value with its own copy button — an account number, a wallet ID. */
 /**
  * One method, expanded.
  *
@@ -210,6 +208,30 @@ function MethodPanel({
   return <ManualMethodPanel method={method} />;
 }
 
+/** The method's name on its card, and one short line of what it is. */
+function methodCaption(method: PayMethod) {
+  switch (method.kind) {
+    case "GATEWAY":
+      return "Confirms itself";
+    case "BANK":
+      return method.bankName
+        ? `${method.bankName} · ••${method.accountNumber.slice(-4)}`
+        : `Account ••${method.accountNumber.slice(-4)}`;
+    case "QR":
+      return "Any payment app";
+    default:
+      return method.id;
+  }
+}
+
+function methodMarkName(method: PayMethod) {
+  return method.kind === "GATEWAY"
+    ? method.provider
+    : method.kind === "BANK"
+      ? method.bankName || "BANK"
+      : method.kind;
+}
+
 export const ResidentPayInvoicePanel = memo(function ResidentPayInvoicePanel({
   invoiceId,
   onClose,
@@ -222,22 +244,20 @@ export const ResidentPayInvoicePanel = memo(function ResidentPayInvoicePanel({
     { errorMessage: "Could not load payment instructions." },
   );
   const instructions = resource.data ?? null;
-  const [showOthers, setShowOthers] = useState(false);
+  const [picked, setPicked] = useState<string | null>(null);
 
   const methods = instructions?.methods ?? [];
-  // **One primary path, everything else folded away** (target §11.1). The server
-  // already ranks the methods — live checkouts, then QR, then wallet ids, then
-  // bank — so the primary is simply the one it put first, and no client-side
-  // opinion about which method is best can drift out of step with it. At Tier 0
-  // that lands on the QR the mockup leads with; at Tier 1 it lands on the
-  // gateway, which is the same argument one tier up: the shortest path that
-  // settles itself goes on top.
-  const primary = methods[0] ?? null;
-  const others = methods.slice(1);
+  // **One method shown at a time** (target §11.1). The server already ranks the
+  // methods — live checkouts, then QR, then wallet ids, then bank — so the one
+  // open on arrival is simply the one it put first, and no client-side opinion
+  // about which method is best can drift out of step with it. The rest are
+  // logo cards a tap away: six panels of account numbers open at once is how
+  // somebody pays the right hostel from the wrong app.
+  const selected = methods.find((method) => methodKey(method) === picked) ?? methods[0] ?? null;
   // Needed unless every route on this screen settles itself. Scoping it to the
-  // primary would hide the instruction from a resident who opened the fold and
-  // paid by bank transfer — the one case where an unreferenced payment costs the
-  // owner a manual match.
+  // selected one would hide the instruction from a resident who switched to a
+  // bank transfer — the one case where an unreferenced payment costs the owner
+  // a manual match.
   const needsReference = methods.some((method) => method.kind !== "GATEWAY");
 
   return (
@@ -270,71 +290,60 @@ export const ResidentPayInvoicePanel = memo(function ResidentPayInvoicePanel({
               {instructions.usable ? (
                 <>
                   <div>
-                    <h3 className="text-sm font-bold text-foreground">Pay with</h3>
+                    <h3 className="font-heading text-[15px] font-semibold text-foreground">Pay with</h3>
                     {instructions.displayName ? (
-                      <p className="mt-0.5 text-[12px] text-muted-foreground">
-                        Paying{" "}
-                        <span className="font-semibold text-foreground">
-                          {instructions.displayName}
-                        </span>
+                      <p className="text-[12.5px] text-muted-foreground">
+                        To <span className="font-semibold text-foreground">{instructions.displayName}</span>
                       </p>
                     ) : null}
                   </div>
 
-                  {primary ? (
-                    <div className="rounded-xl border-2 border-role-resident/40 bg-role-resident/5 p-4">
+                  {/* A logo card per way to pay: the brand's own mark is what
+                      tells eSewa from Khalti at a glance. */}
+                  <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+                    {methods.map((method) => {
+                      const on = selected !== null && methodKey(method) === methodKey(selected);
+
+                      return (
+                        <button
+                          aria-pressed={on}
+                          className={cn(
+                            "flex flex-col items-start gap-2.5 rounded-2xl border bg-card p-3.5 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0",
+                            on ? "border-transparent ring-2 ring-brand-teal" : "border-border/70",
+                          )}
+                          key={methodKey(method)}
+                          onClick={() => setPicked(methodKey(method))}
+                          type="button"
+                        >
+                          <span className="flex w-full items-start justify-between gap-2">
+                            <WalletMark name={methodMarkName(method)} size={40} />
+                            {on ? (
+                              <span className="flex size-5 items-center justify-center rounded-full bg-brand-teal text-white">
+                                <Check aria-hidden className="size-3" />
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-[13.5px] font-semibold text-foreground">{methodLabel(method)}</span>
+                            <span className="block truncate text-[11.5px] text-muted-foreground">{methodCaption(method)}</span>
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {selected ? (
+                    <div className="rounded-2xl border border-border/70 bg-muted/30 p-4" key={methodKey(selected)}>
                       <MethodPanel
                         amount={instructions.amountDue}
                         invoiceId={instructions.invoiceId}
-                        method={primary}
+                        method={selected}
                       />
                     </div>
                   ) : null}
 
-                  {/* Collapsed by default (§11.1). Six panels of account numbers
-                      open at once is how somebody pays the right hostel from the
-                      wrong app — and the resident who needs the fold already
-                      knows they want it, because they came here intending to use
-                      their bank. */}
-                  {others.length > 0 ? (
-                    <div className="rounded-xl border border-border">
-                      <button
-                        aria-expanded={showOthers}
-                        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-[12.5px] font-semibold text-foreground"
-                        onClick={() => setShowOthers((value) => !value)}
-                        type="button"
-                      >
-                        Other ways to pay
-                        <ChevronDown
-                          aria-hidden
-                          className={cn(
-                            "size-4 shrink-0 text-muted-foreground transition-transform",
-                            showOthers ? "rotate-180" : "",
-                          )}
-                        />
-                      </button>
-                      {showOthers ? (
-                        <div className="space-y-4 border-t border-border/60 p-4">
-                          {others.map((method) => (
-                            <div key={methodKey(method)}>
-                              <p className="mb-2 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-                                <MethodIcon method={method} />
-                                {methodLabel(method)}
-                              </p>
-                              <MethodPanel
-                                amount={instructions.amountDue}
-                                invoiceId={instructions.invoiceId}
-                                method={method}
-                              />
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  ) : null}
-
                   {instructions.instructions ? (
-                    <p className="rounded-xl bg-muted/40 p-3 text-[12.5px] leading-5">
+                    <p className="rounded-xl bg-muted/40 p-3 text-[13px] leading-5">
                       {instructions.instructions}
                     </p>
                   ) : null}
@@ -343,26 +352,21 @@ export const ResidentPayInvoicePanel = memo(function ResidentPayInvoicePanel({
                       settles itself, and telling a resident who just paid
                       through one to wait for approval is how they pay twice. */}
                   {needsReference ? (
-                    <p className="flex items-start gap-2 text-[12px] leading-5 text-muted-foreground">
-                      <Banknote aria-hidden className="mt-0.5 size-3.5 shrink-0" />
+                    <p className="flex items-center gap-2 text-[12.5px] text-muted-foreground">
+                      <Banknote aria-hidden className="size-4 shrink-0" />
                       <span>
-                        Once you have paid, close this and tap{" "}
-                        <span className="font-semibold text-foreground">
-                          I&apos;ve paid — submit proof
-                        </span>{" "}
-                        so your hostel can confirm it.
+                        Paid by QR, wallet or bank? Close this and tap{" "}
+                        <span className="font-semibold text-foreground">I&apos;ve paid</span>.
                       </span>
                     </p>
                   ) : null}
                 </>
               ) : (
-                <div className="rounded-xl border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-300">
-                  <p className="font-semibold">
-                    Your hostel has not set up online payment details yet.
-                  </p>
-                  <p className="mt-1 leading-5">
-                    Ask them how to pay, then submit your payment screenshot so it
-                    still reaches your record.
+                <div className="flex items-start gap-3 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-[13.5px] text-amber-800 dark:border-amber-500/40 dark:bg-amber-950/30 dark:text-amber-300">
+                  <AlertTriangle aria-hidden className="mt-0.5 size-4 shrink-0" />
+                  <p>
+                    <span className="font-semibold">No payment details set up yet.</span> Ask your hostel how to
+                    pay, then send your screenshot with I&apos;ve paid.
                   </p>
                 </div>
               )}
@@ -370,28 +374,31 @@ export const ResidentPayInvoicePanel = memo(function ResidentPayInvoicePanel({
 
             {/* ── Right: the summary that does not move ──────────────── */}
             <aside className="lg:sticky lg:top-4 lg:self-start">
-              <div className="space-y-4 rounded-2xl border border-border bg-muted/20 p-4">
+              <div className="space-y-4 rounded-2xl border border-border/70 bg-card p-4">
                 <div>
-                  {/* Above the amount, never below it (§11.1). A credit that
-                      surfaces after the resident has read the number is a credit
-                      they have already decided to ignore. */}
-                  {instructions.credit > 0 ? (
-                    <p className="mb-1.5 inline-block rounded-md bg-emerald-500/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-800 dark:text-emerald-300">
-                      {currency(instructions.credit)} credit applied
-                    </p>
-                  ) : null}
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                     Amount to pay
                   </p>
-                  <p className="mt-0.5 font-heading text-3xl font-bold text-foreground">
+                  <p className="mt-1 font-heading text-[34px] font-bold leading-none tracking-tight text-foreground tabular-nums">
                     {currency(instructions.amountDue)}
                   </p>
                   {/* Next to the amount so they can sanity-check their own bill
                       before paying it — "is this the right rent" is answerable
                       only if the screen says what it is rent for. */}
                   {instructions.bedLabel ? (
-                    <p className="mt-1 text-[12px] font-semibold text-muted-foreground">
-                      {instructions.bedLabel}
+                    <p className="mt-1.5 text-[12.5px] font-medium text-muted-foreground">
+                      {instructions.bedLabel} · {monthLabel(instructions.period)}
+                    </p>
+                  ) : (
+                    <p className="mt-1.5 text-[12.5px] font-medium text-muted-foreground">
+                      {monthLabel(instructions.period)}
+                    </p>
+                  )}
+                  {/* Beside the amount, never after it is decided on: a credit
+                      read too late is a credit already ignored. */}
+                  {instructions.credit > 0 ? (
+                    <p className="mt-2 inline-block rounded-full bg-role-team-soft px-2.5 py-0.5 text-[11.5px] font-semibold text-role-team">
+                      {currency(instructions.credit)} credit applied
                     </p>
                   ) : null}
                   <div className="mt-3">
@@ -399,25 +406,7 @@ export const ResidentPayInvoicePanel = memo(function ResidentPayInvoicePanel({
                   </div>
                 </div>
 
-                <dl className="space-y-1.5 border-t border-border/60 pt-3 text-[12.5px]">
-                  <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">Period</dt>
-                    <dd className="font-semibold text-foreground">
-                      {monthLabel(instructions.period)}
-                    </dd>
-                  </div>
-                  <div className="flex justify-between gap-3">
-                    <dt className="text-muted-foreground">Due by</dt>
-                    <dd className="text-right font-semibold text-foreground">
-                      {dayMonthYearBoth(instructions.dueDate)}
-                      {daysLeftLabel(instructions.dueDate) ? (
-                        <span className="block text-[11px] font-medium text-muted-foreground">
-                          {daysLeftLabel(instructions.dueDate)}
-                        </span>
-                      ) : null}
-                    </dd>
-                  </div>
-                </dl>
+                {instructions.dueDate ? <DueBar dueDate={instructions.dueDate} /> : null}
 
                 {/* The single most important element on the screen. It stays in
                     the rail so it is still visible while they are typing it into
@@ -425,57 +414,27 @@ export const ResidentPayInvoicePanel = memo(function ResidentPayInvoicePanel({
                 {instructions.referenceCode ? (
                   <div
                     className={cn(
-                      "rounded-xl border-2 p-3 transition",
-                      needsReference
-                        ? "border-role-resident/50 bg-role-resident/5"
-                        : "border-border bg-card",
+                      "rounded-2xl border-2 p-3 transition",
+                      needsReference ? "border-brand-teal/50 bg-role-team-soft/40" : "border-border bg-card",
                     )}
                   >
-                    <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+                    <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
                       {needsReference ? "Put this in the remarks" : "Your reference"}
                     </p>
                     <div className="mt-1.5 flex items-center justify-between gap-2">
                       <span className="font-mono text-xl font-bold tracking-widest text-foreground">
                         {instructions.referenceCode}
                       </span>
-                      <CopyButton
-                        label="reference code"
-                        size="lg"
-                        value={instructions.referenceCode}
-                      />
+                      <CopyButton label="reference code" size="lg" value={instructions.referenceCode} />
                     </div>
                     {/* The programme is what makes this instruction worth
-                        following, so it is said *here* — attached to the code, at
-                        the moment they are about to type it — rather than only in
-                        the banner at the top of the page they have scrolled past. */}
-                    <p className="mt-2 flex items-start gap-1.5 text-[11px] leading-4 text-muted-foreground">
-                      <Sparkles
-                        aria-hidden
-                        className="mt-0.5 size-3 shrink-0 text-role-resident"
-                      />
-                      <span>
-                        {needsReference ? (
-                          <>
-                            Payments carrying it are confirmed faster and keep you in
-                            the{" "}
-                            <span className="font-semibold text-foreground">
-                              {OFFER_PROGRAM_NAME}
-                            </span>
-                            . Without it your hostel has to match the payment by
-                            hand, which is slower and sometimes wrong.
-                          </>
-                        ) : (
-                          <>
-                            Added automatically when you pay through{" "}
-                            {primary ? methodLabel(primary) : "the app"}, so this
-                            payment counts towards the{" "}
-                            <span className="font-semibold text-foreground">
-                              {OFFER_PROGRAM_NAME}
-                            </span>{" "}
-                            on its own.
-                          </>
-                        )}
-                      </span>
+                        following, so it is said here, at the moment they are
+                        about to type it. */}
+                    <p className="mt-2 flex items-center gap-1.5 text-[12px] text-muted-foreground">
+                      <Sparkles aria-hidden className="size-3.5 shrink-0 text-role-team" />
+                      {needsReference
+                        ? `Faster to confirm, and keeps you in the ${OFFER_PROGRAM_NAME}.`
+                        : `Added for you, so it counts for the ${OFFER_PROGRAM_NAME}.`}
                     </p>
                   </div>
                 ) : (

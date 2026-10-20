@@ -2,9 +2,7 @@
 
 import {
   AlertTriangle,
-  Banknote,
   Check,
-  ChevronDown,
   Copy,
   FileText,
   HelpCircle,
@@ -17,6 +15,7 @@ import { memo, useCallback, useEffect, useState, type FormEvent } from "react";
 
 import { currency, Input as FormInput } from "@/app/_components/shared-ui";
 import { useMediaViewer } from "@/components/media-viewer";
+import { WalletMark } from "@/components/wallet-mark";
 import { FileUploaderView, useUploader } from "@/components/uploads";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -915,50 +914,50 @@ export const ResidentClaimForm = memo(function ResidentClaimForm({
         </div>
 
         <fieldset className="grid gap-2">
-          <legend className="mb-1 text-sm font-semibold text-foreground">
+          <legend className="mb-1 text-[13.5px] font-semibold text-foreground">
             How did you pay?
           </legend>
-          {/* One row, two controls, and the split is the question itself: which
-              app (a list, so Auto can lead it) or cash (not an app at all). */}
-          <div className="flex items-stretch gap-2">
-            <div className="relative flex-1">
-              <select
-                aria-label="Which app did you pay with?"
-                className={cn(
-                  "h-11 w-full appearance-none rounded-xl border bg-background px-3.5 pr-9 text-sm font-semibold transition",
-                  isCash
-                    ? "border-border text-muted-foreground"
-                    : "border-role-resident bg-role-resident/5 text-foreground",
-                )}
-                onChange={(event) => {
-                  setEdits((current) => ({ ...current, method: event.target.value }));
-                  setShowWhere(false);
-                }}
-                value={isCash ? AUTO_METHOD : selection}
-              >
-                <option value={AUTO_METHOD}>Auto — read it from my receipt</option>
-                {APP_METHODS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown
-                aria-hidden
-                className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-              />
-            </div>
-            {/* Cash stands apart because it *is* apart: no receipt to read, no
-                transaction ID to find, and the field beside it asks for a
-                person's name instead. Folding it into the list would put a
-                payment with no evidence one tap from four that have some. */}
+          {/* The app's own logo per choice, so the resident picks the mark they
+              just paid with. Auto leads the row; Cash stands apart at the end
+              because it *is* apart: no receipt to read, no transaction ID to
+              find, and the field below asks for a person's name instead. */}
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
+            {[
+              { label: "Auto", mark: null, value: AUTO_METHOD },
+              ...APP_METHODS.map((option) => ({ label: option.label, mark: option.value, value: option.value })),
+            ].map((option) => {
+              const on = !isCash && selection === option.value;
+
+              return (
+                <button
+                  aria-pressed={on}
+                  className={cn(
+                    "flex flex-col items-center gap-1.5 rounded-2xl border bg-card px-1.5 py-2.5 text-center transition duration-150 active:scale-95",
+                    on ? "border-transparent ring-2 ring-brand-teal" : "border-border/70 hover:border-foreground/30",
+                  )}
+                  key={option.value}
+                  onClick={() => {
+                    setEdits((current) => ({ ...current, method: option.value }));
+                    setShowWhere(false);
+                  }}
+                  type="button"
+                >
+                  {option.mark ? (
+                    <WalletMark name={option.mark} size={34} />
+                  ) : (
+                    <span className="flex size-[34px] items-center justify-center rounded-[10px] bg-role-team-soft text-role-team">
+                      <ScanLine aria-hidden className="size-[18px]" />
+                    </span>
+                  )}
+                  <span className="w-full truncate text-[11.5px] font-semibold text-foreground">{option.label}</span>
+                </button>
+              );
+            })}
             <button
               aria-pressed={isCash}
               className={cn(
-                "flex h-11 items-center gap-1.5 rounded-xl border px-4 text-sm font-semibold transition",
-                isCash
-                  ? "border-role-resident bg-role-resident/10 text-role-resident"
-                  : "border-border text-muted-foreground hover:bg-muted",
+                "flex flex-col items-center gap-1.5 rounded-2xl border bg-card px-1.5 py-2.5 text-center transition duration-150 active:scale-95",
+                isCash ? "border-transparent ring-2 ring-brand-teal" : "border-border/70 hover:border-foreground/30",
               )}
               onClick={() => {
                 setEdits((current) => ({
@@ -969,16 +968,16 @@ export const ResidentClaimForm = memo(function ResidentClaimForm({
               }}
               type="button"
             >
-              <Banknote aria-hidden className="size-4" />
-              Cash
+              <WalletMark name="CASH" size={34} />
+              <span className="w-full truncate text-[11.5px] font-semibold text-foreground">Cash</span>
             </button>
           </div>
           {/* One line, and only when it says something. Auto that has resolved
               reports what it read; Auto that has not stays silent rather than
               explaining itself before there is a file to explain. */}
           {!isCash && selection === AUTO_METHOD && detected ? (
-            <p className="flex items-center gap-1.5 text-[11.5px] font-semibold text-emerald-700 dark:text-emerald-400">
-              <ScanLine aria-hidden className="size-3.5" />
+            <p className="flex items-center gap-1.5 text-[12px] font-semibold text-role-team">
+              <WalletMark name={detected} size={18} />
               Read from your receipt: {methodLabel(detected)}
             </p>
           ) : null}
