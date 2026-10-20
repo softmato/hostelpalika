@@ -1,19 +1,15 @@
 "use client";
 
-import {
-  Briefcase,
-  CalendarClock,
-  Loader2,
-  MapPin,
-  Phone,
-  Wrench,
-} from "@/components/icons";
+import { Briefcase, Check, CheckCircle2, Loader2, Wrench } from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { PortalPageHeader } from "@/app/_components/portal-dashboard-ui";
+import { MetricCard, PortalPageHeader, RoleButton } from "@/app/_components/portal-dashboard-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
+import { Glyph, type GlyphName } from "@/components/glyph";
 import { browserApi } from "@/lib/browser-api";
 import { cn } from "@/lib/utils";
+import { FactChip, titleCase } from "./daily-portal-ui";
 
 /**
  * The service provider's job feed — their only screen on the website.
@@ -46,28 +42,30 @@ type ProviderJob = {
 /** Open work first — a completed job is a record, not a task. */
 const OPEN_STATUSES = new Set(["PENDING", "CONTACTED", "SCHEDULED"]);
 
+/* Maintenance status → colour, per DESIGN.md: completed green, scheduled or
+   contacted amber, cancelled grey, pending neutral. */
 const STATUS_TONES: Record<string, string> = {
   CANCELLED: "bg-muted text-muted-foreground",
-  COMPLETED: "bg-brand-teal/10 text-brand-teal",
-  CONTACTED: "bg-amber-500/10 text-amber-600",
+  COMPLETED: "bg-role-team-soft text-role-team",
+  CONTACTED: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
   PENDING: "bg-muted text-foreground",
-  SCHEDULED: "bg-foreground text-background",
+  SCHEDULED: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
 };
 
-const PRIORITY_TONES: Record<string, string> = {
-  HIGH: "bg-danger/10 text-danger",
-  LOW: "bg-muted text-muted-foreground",
-  MEDIUM: "bg-amber-500/10 text-amber-600",
-  URGENT: "bg-danger/15 text-danger",
+const TRADE_GLYPH: Record<string, GlyphName> = {
+  APPLIANCE_REPAIR: "plug",
+  CARPENTER: "hammer",
+  CLEANER: "brush",
+  DOCTOR_CLINIC: "medkit",
+  ELECTRICIAN: "flash",
+  INTERNET_TECHNICIAN: "wifi",
+  PAINTER: "color-palette",
+  PLUMBER: "water",
+  ROOM_REPAIR: "construct",
+  WATER_SUPPLIER: "water",
 };
 
-function titleCase(value: string) {
-  return value
-    .toLowerCase()
-    .split("_")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
+type Show = "ALL" | "AVAILABLE" | "OPEN" | "PAST";
 
 function formatDate(value: string | null) {
   if (!value) {
@@ -81,19 +79,6 @@ function formatDate(value: string | null) {
     : date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
-function Pill({ className, label }: { className: string; label: string }) {
-  return (
-    <span
-      className={cn(
-        "rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide",
-        className,
-      )}
-    >
-      {label}
-    </span>
-  );
-}
-
 function JobCard({
   accepting,
   job,
@@ -103,87 +88,61 @@ function JobCard({
   job: ProviderJob;
   onAccept?: () => void;
 }) {
-  const where = [job.hostelArea, job.hostelCity].filter(Boolean).join(", ");
+  const where = [job.location, job.hostelArea, job.hostelCity].filter(Boolean).join(" · ");
+  const urgent = job.priority === "URGENT" || job.priority === "HIGH";
 
   return (
-    <article className="rounded-xl border border-border bg-surface p-5 transition hover:border-brand-teal/40">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="font-heading text-base font-extrabold text-foreground">
-            {job.title}
-          </h2>
-          <p className="mt-1 text-sm font-semibold text-brand-teal">{job.hostelName}</p>
+    <article className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-card p-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      <div className="flex items-start gap-3">
+        <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-role-team-soft text-role-team">
+          <Glyph className="size-5" name={TRADE_GLYPH[job.category] ?? "build"} />
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="font-heading text-[15px] font-semibold text-foreground">{job.title}</h3>
+          <p className="truncate text-[13px] font-medium text-muted-foreground">{job.hostelName}</p>
         </div>
-        <div className="flex shrink-0 flex-wrap gap-1.5">
-          <Pill
-            className={PRIORITY_TONES[job.priority] ?? PRIORITY_TONES.MEDIUM!}
-            label={titleCase(job.priority)}
-          />
-          <Pill
-            className={STATUS_TONES[job.status] ?? STATUS_TONES.PENDING!}
-            label={titleCase(job.status)}
-          />
-        </div>
+        <span
+          className={cn(
+            "shrink-0 rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold",
+            STATUS_TONES[job.status] ?? STATUS_TONES.PENDING!,
+          )}
+        >
+          {titleCase(job.status)}
+        </span>
       </div>
 
       {job.description ? (
-        <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-          {job.description}
-        </p>
+        <p className="line-clamp-3 text-[13.5px] text-muted-foreground">{job.description}</p>
       ) : null}
 
-      <dl className="mt-4 grid gap-2 text-xs text-muted-foreground sm:grid-cols-2">
-        <div className="flex items-center gap-2">
-          <Wrench className="size-3.5 shrink-0 text-brand-teal" />
-          <dd>{titleCase(job.category)}</dd>
-        </div>
-        {where || job.location ? (
-          <div className="flex items-center gap-2">
-            <MapPin className="size-3.5 shrink-0 text-brand-teal" />
-            <dd className="truncate">{[job.location, where].filter(Boolean).join(" · ")}</dd>
-          </div>
-        ) : null}
+      <div className="flex flex-wrap gap-1.5">
+        <FactChip glyph="flag" tone={job.priority === "URGENT" ? "wrong" : urgent ? "warn" : "neutral"}>
+          {titleCase(job.priority)}
+        </FactChip>
+        <FactChip glyph="build">{titleCase(job.category)}</FactChip>
+        {where ? <FactChip glyph="location">{where}</FactChip> : null}
         {job.minimumCharge !== null ? (
-          <div className="flex items-center gap-2">
-            <Briefcase className="size-3.5 shrink-0 text-brand-teal" />
-            <dd>Minimum fee NPR {job.minimumCharge.toLocaleString("en-US")}</dd>
-          </div>
+          <FactChip glyph="cash">{`Min NPR ${job.minimumCharge.toLocaleString("en-US")}`}</FactChip>
         ) : null}
-        {job.scheduledFor ? (
-          <div className="flex items-center gap-2">
-            <CalendarClock className="size-3.5 shrink-0 text-brand-teal" />
-            <dd>Scheduled {formatDate(job.scheduledFor)}</dd>
-          </div>
-        ) : null}
+        {job.scheduledFor ? <FactChip glyph="calendar-clock">{formatDate(job.scheduledFor)}</FactChip> : null}
         {job.hostelPhone ? (
-          <div className="flex items-center gap-2">
-            <Phone className="size-3.5 shrink-0 text-brand-teal" />
-            <dd>
-              <a className="hover:text-brand-teal" href={`tel:${job.hostelPhone}`}>
-                {job.hostelPhone}
-              </a>
-            </dd>
-          </div>
+          <FactChip glyph="call" href={`tel:${job.hostelPhone}`} tone="brand">
+            {job.hostelPhone}
+          </FactChip>
         ) : null}
-      </dl>
+      </div>
 
-      {job.createdAt ? (
-        <p className="mt-3 text-[11px] text-muted-foreground">
-          Raised {formatDate(job.createdAt)}
-        </p>
-      ) : null}
-
-      {onAccept ? (
-        <button
-          className="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-teal px-4 py-2 text-sm font-bold text-white disabled:opacity-60"
-          disabled={accepting}
-          onClick={onAccept}
-          type="button"
-        >
-          {accepting ? <Loader2 className="size-4 animate-spin" /> : null}
-          Accept job
-        </button>
-      ) : null}
+      <div className="mt-auto flex items-center justify-between gap-3">
+        <span className="text-[12px] text-muted-foreground">
+          {job.createdAt ? `Raised ${formatDate(job.createdAt)}` : ""}
+        </span>
+        {onAccept ? (
+          <RoleButton className="h-9 px-4" disabled={accepting} onClick={onAccept} tone="team">
+            {accepting ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+            Accept job
+          </RoleButton>
+        ) : null}
+      </div>
     </article>
   );
 }
@@ -199,6 +158,7 @@ export function ProviderJobsPage() {
   const [failed, setFailed] = useState(false);
   const [accepting, setAccepting] = useState<string | null>(null);
   const [acceptError, setAcceptError] = useState("");
+  const [show, setShow] = useState<Show>("ALL");
 
   useEffect(() => {
     let isMounted = true;
@@ -246,93 +206,93 @@ export function ProviderJobsPage() {
 
   const open = jobs?.filter((job) => OPEN_STATUSES.has(job.status)) ?? [];
   const closed = jobs?.filter((job) => !OPEN_STATUSES.has(job.status)) ?? [];
+  const sections = [
+    { accept: true, heading: "In your trade", list: available.filter((job) => job.inMyTrade), show: "AVAILABLE" },
+    { accept: true, heading: "Other trades", list: available.filter((job) => !job.inMyTrade), show: "AVAILABLE" },
+    { accept: false, heading: "Your open jobs", list: open, show: "OPEN" },
+    { accept: false, heading: "Past work", list: closed, show: "PAST" },
+  ].filter((section) => section.list.length > 0 && (show === "ALL" || show === section.show));
 
   return (
-    <>
-      <div className="mx-auto max-w-3xl py-2">
-        <div className="mb-8">
-          <PortalPageHeader
-            description="Accept a job to get the hostel's number."
-            title="Your jobs"
-          />
+    <div className="mx-auto max-w-[1100px] space-y-5">
+      <PortalPageHeader description="Accept a job to get the hostel's number." title="Your jobs" />
+
+      {jobs === null && !failed ? (
+        <div className="grid gap-3 md:grid-cols-2">
+          {Array.from({ length: 4 }, (_, index) => (
+            <div className="h-40 animate-pulse rounded-2xl bg-muted" key={index} />
+          ))}
         </div>
+      ) : failed ? (
+        <section className="rounded-2xl border border-border/70 bg-card p-8 text-center">
+          <p className="font-heading text-[15px] font-semibold text-foreground">Your jobs could not be loaded.</p>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            Refresh, or{" "}
+            <Link className="font-semibold text-role-team" href="/login">
+              sign in again
+            </Link>
+            .
+          </p>
+        </section>
+      ) : (
+        <>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <MetricCard icon={Briefcase} label="Available" value={available.length} />
+            <MetricCard icon={Wrench} label="Your open jobs" value={open.length} />
+            <MetricCard icon={CheckCircle2} label="Past work" value={closed.length} />
+          </div>
 
-        {jobs === null && !failed ? (
-          <div className="flex justify-center py-16">
-            <Loader2 className="size-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : failed ? (
-          <div className="rounded-xl border border-border bg-surface p-8 text-center">
-            <p className="text-sm font-semibold text-foreground">
-              Your jobs could not be loaded.
-            </p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Check your connection and refresh. If you are signed out,{" "}
-              <Link className="font-semibold text-brand-teal" href="/login">
-                sign in again
-              </Link>
-              .
-            </p>
-          </div>
-        ) : jobs === null || (jobs.length === 0 && available.length === 0) ? (
-          <div className="rounded-xl border border-dashed border-border bg-surface p-6 text-center sm:p-10">
-            <p className="text-sm font-semibold text-foreground">No jobs yet</p>
-            <p className="mt-1 text-xs text-muted-foreground">
-              When a hostel raises work in your trade, you&apos;ll be notified and it
-              appears here.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {acceptError ? (
-              <p className="text-sm font-semibold text-danger">{acceptError}</p>
-            ) : null}
+          {acceptError ? <p className="text-[13px] font-semibold text-rose-600">{acceptError}</p> : null}
 
-            {[
-              { heading: "In your trade", list: available.filter((job) => job.inMyTrade) },
-              { heading: "Other trades", list: available.filter((job) => !job.inMyTrade) },
-            ].map(({ heading, list }) =>
-              list.length > 0 ? (
-                <section className="space-y-3" key={heading}>
-                  <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                    {heading} · {list.length}
+          {jobs === null || (jobs.length === 0 && available.length === 0) ? (
+            <section className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-card p-8 text-center">
+              <span className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+                <Wrench className="size-6" />
+              </span>
+              <p className="font-heading text-[15px] font-semibold text-foreground">No jobs yet</p>
+              <p className="text-[13px] text-muted-foreground">Work in your trade appears here, and we tell you.</p>
+            </section>
+          ) : (
+            <>
+              <div className="flex justify-end">
+                <FilterButton active={show === "ALL" ? 0 : 1} onClear={() => setShow("ALL")}>
+                  <FilterChoice
+                    label="Show"
+                    onChange={setShow}
+                    options={[
+                      { label: "All", value: "ALL" },
+                      { label: `Available ${available.length}`, value: "AVAILABLE" },
+                      { label: `Open ${open.length}`, value: "OPEN" },
+                      { label: `Past ${closed.length}`, value: "PAST" },
+                    ]}
+                    value={show}
+                  />
+                </FilterButton>
+              </div>
+              {sections.length === 0 ? (
+                <p className="text-[13px] text-muted-foreground">Nothing here.</p>
+              ) : null}
+              {sections.map((section) => (
+                <section className="space-y-3" key={section.heading}>
+                  <h2 className="font-heading text-[15px] font-semibold text-foreground">
+                    {section.heading} <span className="font-normal text-muted-foreground">· {section.list.length}</span>
                   </h2>
-                  {list.map((job) => (
-                    <JobCard
-                      accepting={accepting === job.id}
-                      job={job}
-                      key={job.id}
-                      onAccept={() => void accept(job.id)}
-                    />
-                  ))}
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {section.list.map((job) => (
+                      <JobCard
+                        accepting={accepting === job.id}
+                        job={job}
+                        key={job.id}
+                        onAccept={section.accept ? () => void accept(job.id) : undefined}
+                      />
+                    ))}
+                  </div>
                 </section>
-              ) : null,
-            )}
-
-            {open.length > 0 ? (
-              <section className="space-y-3">
-                <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                  Your open jobs · {open.length}
-                </h2>
-                {open.map((job) => (
-                  <JobCard job={job} key={job.id} />
-                ))}
-              </section>
-            ) : null}
-
-            {closed.length > 0 ? (
-              <section className="space-y-3">
-                <h2 className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-                  Past work · {closed.length}
-                </h2>
-                {closed.map((job) => (
-                  <JobCard job={job} key={job.id} />
-                ))}
-              </section>
-            ) : null}
-          </div>
-        )}
-      </div>
-    </>
+              ))}
+            </>
+          )}
+        </>
+      )}
+    </div>
   );
 }
