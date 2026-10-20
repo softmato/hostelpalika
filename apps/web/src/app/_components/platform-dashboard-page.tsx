@@ -29,6 +29,7 @@ import {
   ViewAllLink,
 } from "./portal-dashboard-ui";
 import { ShareBar } from "./platform-page-ui";
+import { WalletMark } from "@/components/wallet-mark";
 
 type MetricTrend = {
   changePercent: number | null;
@@ -309,7 +310,7 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
                   <div className="space-y-1">
                     {payments.map((payment) => (
                       <div className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-muted" key={payment.id}>
-                        <InitialsAvatar name={payment.hostelName} size="sm" tone="team" />
+                        <WalletMark name={payment.provider} size={36} />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-[13.5px] font-semibold text-foreground">{payment.hostelName}</p>
                           <p className="truncate text-[12px] text-muted-foreground">
