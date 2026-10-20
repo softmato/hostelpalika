@@ -475,13 +475,31 @@ export function CookKhataPage() {
     errorMessage: "Khata asks could not be loaded.",
   });
 
+  const given = (orders.data?.recent ?? []).filter((entry) => entry.status === "GIVEN");
+
   return (
     <div className="mx-auto max-w-5xl space-y-5">
-      <PortalPageHeader description="Residents' asks on khata. Give, or mark not available." title="Khata asks" />
+      <PortalPageHeader description="Residents' asks. Give, or mark not available." title="Khata asks" />
       {!orders.data ? (
         orders.state === "error" ? <EmptyState label={orders.message || "Could not load."} /> : <LoadingRows />
       ) : (
-        <KhataAsksList onChanged={orders.refresh} orders={orders.data} showRecent tone="admin" />
+        <>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <MetricCard
+              icon={Clock}
+              label="Waiting"
+              tone={orders.data.waiting.length > 0 ? "amber" : "teal"}
+              value={orders.data.waiting.length}
+            />
+            <MetricCard icon={Check} label="Given · 24 h" value={given.length} />
+            <MetricCard
+              icon={ReceiptText}
+              label="Khata · 24 h"
+              value={currency(given.reduce((sum, entry) => sum + entry.amount, 0))}
+            />
+          </div>
+          <KhataAsksList onChanged={orders.refresh} orders={orders.data} showRecent tone="team" />
+        </>
       )}
     </div>
   );
