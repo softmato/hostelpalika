@@ -3,11 +3,11 @@
 import {
   Banknote,
   Check,
-  ChevronDown,
   Eye,
   HandCoins,
   QrCode,
   ShieldCheck,
+  Pencil,
   Smartphone,
   Wallet,
   X,
@@ -36,11 +36,15 @@ import {
   type ProfileDraft,
 } from "@/app/_components/payment-profile-resident-preview";
 import { EmptyState, Input, LoadingRows, Panel, TextArea } from "@/app/_components/shared-ui";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { WalletMark } from "@/components/wallet-mark";
+import { Chip, ShareBar } from "./hostel-admin-page-ui";
 import { browserApi } from "@/lib/browser-api";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
 import { uploadFile } from "@/lib/uploads/uploader";
-import { Message, PageHeader } from "./portal-shared";
+import { PageHeader } from "./core-portal-shared";
+import { Message } from "./portal-shared";
 
 /**
  * How this hostel takes money (target §11.8, plan item 3.1).
@@ -260,14 +264,22 @@ function SaveRow({
   );
 }
 
+/**
+ * A way to pay as a tile: its mark, whether it is set, and what is on file.
+ * The form opens in a dialog with the resident preview beside it, so a
+ * mistyped number still looks wrong before it is saved. Closing the dialog
+ * any way but Save is a cancel.
+ */
 function MethodCard({
   children,
   configured,
   description,
   liveCheckout,
   mark,
+  onClose,
   onToggle,
   open,
+  preview,
   title,
 }: {
   children: ReactNode;
@@ -276,55 +288,60 @@ function MethodCard({
   /** Online checkout is live for this provider — the wallet id is not shown to residents. */
   liveCheckout?: boolean;
   mark: ReactNode;
+  onClose: () => void;
   onToggle: () => void;
   open: boolean;
+  preview: ReactNode;
   title: string;
 }) {
   return (
-    <div
-      className={`overflow-hidden rounded-xl border transition ${
-        open ? "border-role-admin/50 bg-surface shadow-sm" : "border-border bg-surface"
-      }`}
-    >
+    <>
       <button
-        aria-expanded={open}
-        className="flex w-full items-center gap-3 p-3.5 text-left transition hover:bg-muted/50"
+        className="flex w-full items-center gap-3 rounded-2xl border border-border/70 bg-card p-3.5 text-left transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
         onClick={onToggle}
         type="button"
       >
         {mark}
         <span className="min-w-0 flex-1">
-          <span className="flex flex-wrap items-center gap-2">
-            <span className="font-heading text-sm font-bold text-foreground">{title}</span>
+          <span className="flex flex-wrap items-center gap-1.5">
+            <span className="font-heading text-[14px] font-bold text-foreground">{title}</span>
             {configured ? (
-              <span className="inline-flex items-center gap-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+              <span className="inline-flex items-center gap-1 rounded-full bg-role-team-soft px-2 py-0.5 text-[11px] font-semibold text-role-team">
                 <Check aria-hidden="true" className="size-3" />
                 Set up
               </span>
             ) : (
-              <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-semibold text-muted-foreground">
                 Not set
               </span>
             )}
             {liveCheckout ? (
-              <span className="rounded-full border border-role-resident/30 bg-role-resident/10 px-2 py-0.5 text-[11px] font-semibold text-role-resident">
+              <span className="rounded-full bg-foreground px-2 py-0.5 text-[11px] font-semibold text-background">
                 Checkout live
               </span>
             ) : null}
           </span>
-          <span className="mt-0.5 block truncate text-xs text-muted-foreground">
+          <span className="mt-0.5 block truncate text-[12.5px] text-muted-foreground">
             {description}
           </span>
         </span>
-        <ChevronDown
-          aria-hidden="true"
-          className={`size-4 shrink-0 text-muted-foreground transition ${open ? "rotate-180" : ""}`}
-        />
+        <Pencil aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
       </button>
-      {open ? (
-        <div className="border-t border-border p-3.5">{children}</div>
-      ) : null}
-    </div>
+      <Dialog onOpenChange={(next) => (next ? null : onClose())} open={open}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2.5">
+              {mark}
+              {title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-5 md:grid-cols-[minmax(0,1fr)_280px]">
+            <div>{children}</div>
+            <div className="hidden md:block">{preview}</div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -551,15 +568,42 @@ export const HostelAdminPaymentProfilePageContent = memo(
     );
 
     const live = new Set((profile?.enabledProviders ?? []).map((p) => p.toUpperCase()));
+    const preview = profile ? (
+      <PaymentProfileResidentPreview
+        draft={draft}
+        enabledProviders={profile.enabledProviders}
+        staticQrAssetId={profile.staticQrAssetId}
+      />
+    ) : null;
+    const closeExtras = () => setExtraOpen(false);
+    const waysSet = profile
+      ? Math.min(
+          4,
+          [profile.staticQrAssetId, profile.bankAccountNumber, profile.esewaId, profile.khaltiId].filter(Boolean)
+            .length + (profile.extraAccounts?.length ?? 0),
+        )
+      : 0;
 
     return (
-      <div className="mx-auto max-w-[1240px] space-y-6">
+      <div className="mx-auto max-w-[1448px] space-y-5">
         <PageHeader
+          action={
+            profile ? (
+              <button
+                className="inline-flex h-9 items-center gap-2 rounded-xl border border-input bg-input/30 px-3 text-[13px] font-medium transition hover:bg-input/50"
+                onClick={() => setResidentMode(true)}
+                type="button"
+              >
+                <Eye aria-hidden="true" className="size-4" />
+                Resident view
+              </button>
+            ) : undefined
+          }
           description="What residents see when they open an invoice."
           icon={Banknote}
           title="Payment Setup"
         />
-        <Message value={message} />
+        {open || extraOpen ? null : <Message value={message} />}
 
         {resource.state === "loading" ? <LoadingRows /> : null}
         {resource.state === "error" ? (
@@ -569,42 +613,45 @@ export const HostelAdminPaymentProfilePageContent = memo(
         {profile ? (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="space-y-4">
-              <div
-                className={`rounded-lg border p-4 text-sm ${
-                  profile.usable
-                    ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-                    : "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300"
-                }`}
-              >
-                <p className="flex items-center gap-2 font-semibold">
-                  <ShieldCheck aria-hidden="true" className="size-4" />
-                  {profile.usable
-                    ? "Residents can see how to pay you."
-                    : "Residents cannot see how to pay you yet."}
-                </p>
-                <p className="mt-1 leading-5">
-                  {profile.usable
-                    ? `Payments below are collected manually — you confirm each one from the review queue. ${
-                        profile.enabledProviders.length > 0
-                          ? `Online checkout is live for ${profile.enabledProviders.join(", ").toLowerCase()}, and settles without your review.`
-                          : ""
-                      }`
-                    : "Pick a method below and fill it in. Until then their pay screen says your hostel has not set this up."}
-                </p>
+              {/* Methods below are collected by hand — each payment is confirmed
+                  from the review queue. Online checkout settles without review.
+                  Anything left unset is simply not shown to residents. */}
+              <div className="space-y-3 rounded-2xl border border-border/70 bg-card p-4">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <ShieldCheck aria-hidden="true" className="mr-1 size-5 shrink-0 text-role-team" />
+                  <Chip tone={profile.usable ? "brand" : "warn"}>
+                    {profile.usable ? "Residents can pay" : "Not set up yet"}
+                  </Chip>
+                  <Chip tone={profile.payeeVerifiable ? "brand" : "warn"}>
+                    {profile.payeeVerifiable ? "Receipts checked" : "Receipts not checked"}
+                  </Chip>
+                  {profile.enabledProviders.map((provider) => (
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-full bg-muted py-0.5 pl-0.5 pr-2.5 text-[12px] font-medium text-foreground"
+                      key={provider}
+                    >
+                      <WalletMark name={provider} size={22} />
+                      Checkout live
+                    </span>
+                  ))}
+                </div>
+                {/* The app counts the same four: QR, bank, eSewa, Khalti (extra accounts fill in). */}
+                <ShareBar label="ways to pay set up" total={4} value={waysSet} />
               </div>
 
-              <p className="text-sm text-muted-foreground">
-                Choose the ways you accept rent. Anything you leave unset is simply
-                not shown to residents.
-              </p>
-
-              <div className="space-y-3">
+              <div className="grid gap-3 sm:grid-cols-2">
                 <MethodCard
                   configured={Boolean(profile.staticQrAssetId)}
-                  description="Scan-to-pay image exported from your bank or wallet app"
-                  mark={<QrMark className="size-10" />}
+                  description={
+                    profile.staticQrAssetId
+                      ? (profile.qrPayeeName ?? "QR uploaded")
+                      : "Scan-to-pay image from your bank or wallet app"
+                  }
+                  mark={<QrMark className="size-12" />}
+                  onClose={cancel}
                   onToggle={() => toggle("QR")}
                   open={open === "QR"}
+                  preview={preview}
                   title="Payment QR"
                 >
                   <div className="flex flex-wrap items-start gap-5">
@@ -621,11 +668,12 @@ export const HostelAdminPaymentProfilePageContent = memo(
                         <span className="text-xs">No QR uploaded</span>
                       </div>
                     )}
-                    <div className="min-w-[220px] flex-1 space-y-3">
-                      <p className="text-sm text-muted-foreground">
-                        Residents scan it and then upload their payment screenshot,
+                    {/* Residents scan it and then upload their payment screenshot,
                         so the name on the QR should match the account display name
-                        or they will hesitate to pay.
+                        or they will hesitate to pay. */}
+                    <div className="min-w-[180px] flex-1 space-y-3">
+                      <p className="text-[12.5px] text-muted-foreground">
+                        The name on the QR should match your display name.
                       </p>
                       <div className="flex flex-wrap gap-2">
                         <input
@@ -696,10 +744,10 @@ export const HostelAdminPaymentProfilePageContent = memo(
                           </span>
                         ) : null}
                       </div>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-[12.5px] text-muted-foreground">
                         {profile.qrPayeeSource
-                          ? "We match this against every payment receipt your residents upload, so we can tell you whether the money actually reached you. Correct it if it is wrong."
-                          : "We could not read the name and number printed on your QR. Type them in once and we can check that each payment receipt was really paid to you."}
+                          ? "Every receipt is checked against this. Correct it if it is wrong."
+                          : "We could not read your QR. Type these once so receipts can be checked."}
                       </p>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <Input
@@ -724,11 +772,13 @@ export const HostelAdminPaymentProfilePageContent = memo(
 
                 <MethodCard
                   configured={Boolean(profile.esewaId)}
-                  description="Your eSewa mobile number or ID"
+                  description={profile.esewaId || "Your eSewa mobile number or ID"}
                   liveCheckout={live.has("ESEWA")}
-                  mark={<EsewaMark className="size-10" />}
+                  mark={<EsewaMark className="size-12" />}
+                  onClose={cancel}
                   onToggle={() => toggle("ESEWA")}
                   open={open === "ESEWA"}
+                  preview={preview}
                   title="eSewa"
                 >
                   <form className="grid gap-4" onSubmit={submitSection("ESEWA")}>
@@ -740,11 +790,11 @@ export const HostelAdminPaymentProfilePageContent = memo(
                       placeholder="98XXXXXXXX"
                       value={draft.esewaId}
                     />
+                    {/* Checkout live means residents get the "Pay with eSewa"
+                        button instead; the ID stays saved for when it is off. */}
                     {live.has("ESEWA") ? (
-                      <p className="rounded-md bg-muted/50 p-2.5 text-xs text-muted-foreground">
-                        Online eSewa checkout is live, so residents get the
-                        &ldquo;Pay with eSewa&rdquo; button instead of this ID. It stays
-                        saved and reappears if you turn checkout off.
+                      <p className="rounded-xl bg-muted/60 px-3 py-2 text-[12.5px] text-muted-foreground">
+                        Checkout is live, so residents get the Pay with eSewa button instead.
                       </p>
                     ) : null}
                     <SaveRow onCancel={cancel} saving={saving} />
@@ -753,11 +803,13 @@ export const HostelAdminPaymentProfilePageContent = memo(
 
                 <MethodCard
                   configured={Boolean(profile.khaltiId)}
-                  description="Your Khalti mobile number or ID"
+                  description={profile.khaltiId || "Your Khalti mobile number or ID"}
                   liveCheckout={live.has("KHALTI")}
-                  mark={<KhaltiMark className="size-10" />}
+                  mark={<KhaltiMark className="size-12" />}
+                  onClose={cancel}
                   onToggle={() => toggle("KHALTI")}
                   open={open === "KHALTI"}
+                  preview={preview}
                   title="Khalti"
                 >
                   <form className="grid gap-4" onSubmit={submitSection("KHALTI")}>
@@ -770,10 +822,8 @@ export const HostelAdminPaymentProfilePageContent = memo(
                       value={draft.khaltiId}
                     />
                     {live.has("KHALTI") ? (
-                      <p className="rounded-md bg-muted/50 p-2.5 text-xs text-muted-foreground">
-                        Online Khalti checkout is live, so residents get the
-                        &ldquo;Pay with Khalti&rdquo; button instead of this ID. It stays
-                        saved and reappears if you turn checkout off.
+                      <p className="rounded-xl bg-muted/60 px-3 py-2 text-[12.5px] text-muted-foreground">
+                        Checkout is live, so residents get the Pay with Khalti button instead.
                       </p>
                     ) : null}
                     <SaveRow onCancel={cancel} saving={saving} />
@@ -782,10 +832,16 @@ export const HostelAdminPaymentProfilePageContent = memo(
 
                 <MethodCard
                   configured={Boolean(profile.bankAccountNumber)}
-                  description="Account name, number and bank for direct transfers"
-                  mark={<BankMark className="size-10" />}
+                  description={
+                    profile.bankAccountNumber
+                      ? [profile.bankName, profile.bankAccountNumber].filter(Boolean).join(" · ")
+                      : "Account name, number and bank for direct transfers"
+                  }
+                  mark={<BankMark className="size-12" name={profile.bankName} />}
+                  onClose={cancel}
                   onToggle={() => toggle("BANK")}
                   open={open === "BANK"}
+                  preview={preview}
                   title="Bank transfer"
                 >
                   <form className="grid gap-4" onSubmit={submitSection("BANK")}>
@@ -818,15 +874,32 @@ export const HostelAdminPaymentProfilePageContent = memo(
 
                 <MethodCard
                   configured={(profile.extraAccounts ?? []).length > 0}
-                  description="A second bank, eSewa or Khalti account"
-                  mark={<BankMark className="size-10" />}
+                  description={
+                    (profile.extraAccounts ?? []).length > 0
+                      ? `${(profile.extraAccounts ?? []).length} more account(s)`
+                      : "A second bank, eSewa or Khalti account"
+                  }
+                  mark={
+                    <BankMark
+                      className="size-12"
+                      name={
+                        profile.extraAccounts?.[0]
+                          ? profile.extraAccounts[0].kind === "BANK"
+                            ? profile.extraAccounts[0].bankName
+                            : profile.extraAccounts[0].kind
+                          : "BANK"
+                      }
+                    />
+                  }
+                  onClose={closeExtras}
                   onToggle={() => setExtraOpen((value) => !value)}
                   open={extraOpen}
+                  preview={preview}
                   title="More accounts"
                 >
                   <ExtraAccountsForm
                     initial={profile.extraAccounts ?? []}
-                    onCancel={() => setExtraOpen(false)}
+                    onCancel={closeExtras}
                     onSave={async (extraAccounts) => {
                       await patch({ extraAccounts }, "Saved. Residents see every account.");
                       setExtraOpen(false);
@@ -836,24 +909,26 @@ export const HostelAdminPaymentProfilePageContent = memo(
 
                 <MethodCard
                   configured={Boolean(profile.displayName)}
-                  description="Account display name, resident instructions, cash approval"
-                  mark={<NotesMark className="size-10" />}
+                  description={profile.displayName || "Display name, instructions, cash approval"}
+                  mark={<NotesMark className="size-12" />}
+                  onClose={cancel}
                   onToggle={() => toggle("GENERAL")}
                   open={open === "GENERAL"}
+                  preview={preview}
                   title="Name & instructions"
                 >
                   <form className="grid gap-4" onSubmit={submitSection("GENERAL")}>
                     <div className="grid gap-4 sm:grid-cols-2">
                       <Input
-                        hint="Must match the registered name on the QR, or residents abandon the payment."
+                        hint="Must match the name on the QR."
                         label="Account display name"
                         name="displayName"
                         onChange={(event) => set("displayName")(event.target.value)}
                         value={draft.displayName}
                       />
                       <Input
-                        hint="Cash above this needs a second person to approve it. 0 means every cash entry does."
-                        label="Cash second-approval threshold (NPR)"
+                        hint="Cash above this needs a second approver. 0 = all."
+                        label="Second approval above (NPR)"
                         min="0"
                         name="cashApprovalThreshold"
                         onChange={(event) =>
@@ -880,44 +955,29 @@ export const HostelAdminPaymentProfilePageContent = memo(
             </div>
 
             <div className="lg:sticky lg:top-4 lg:self-start">
-              <Panel
-                action={
-                  <button
-                    className="inline-flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs font-semibold transition hover:bg-muted"
-                    onClick={() => setResidentMode(true)}
-                    type="button"
-                  >
-                    <Eye aria-hidden="true" className="size-3.5" />
-                    Resident mode
-                  </button>
-                }
-                title="What your resident sees"
-              >
-                <PaymentProfileResidentPreview
-                  draft={draft}
-                  enabledProviders={profile.enabledProviders}
-                  staticQrAssetId={profile.staticQrAssetId}
-                />
-                <p className="mt-3 flex items-start gap-1.5 text-xs text-muted-foreground">
+              <Panel title="What your resident sees">
+                {preview}
+                {/* Amount and reference code are stand-ins — the real ones come
+                    from each resident's bill. */}
+                <p className="mt-3 flex items-start gap-1.5 text-[12px] text-muted-foreground">
                   <Smartphone aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-                  Example invoice, updating as you type. Amount and reference code
-                  are stand-ins — the real ones come from each resident&rsquo;s bill.
+                  Example invoice, updating as you type.
                 </p>
               </Panel>
 
-              <p className="mt-3 flex items-start gap-1.5 px-1 text-xs text-muted-foreground">
-                <Wallet aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-                Online checkout, where the payment settles without your review, is
-                set up separately under Payment Gateways.
-              </p>
-
-              {/* Money going the other way — what we pay you for a booking — is
+              {/* Online checkout (settles without review) is its own screen, and
+                  money going the other way — what we pay you for a booking — is
                   set under Bookings, beside the bookings it pays for. */}
-              <p className="mt-2 flex items-start gap-1.5 px-1 text-xs text-muted-foreground">
-                <HandCoins aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-                The account we send your share of booking fees to is under
-                Bookings → Settings.
-              </p>
+              <div className="mt-3 flex flex-wrap gap-1.5 px-1">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[12px] text-muted-foreground">
+                  <Wallet aria-hidden="true" className="size-3.5" />
+                  Online checkout: Payment Gateways
+                </span>
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-[12px] text-muted-foreground">
+                  <HandCoins aria-hidden="true" className="size-3.5" />
+                  Booking payouts: Bookings → Settings
+                </span>
+              </div>
             </div>
           </div>
         ) : null}

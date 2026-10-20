@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Send } from "@/components/icons";
+import { Bell, Check, Send } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import {
@@ -12,11 +12,16 @@ import {
   StatusBadge,
   TextArea,
 } from "@/app/_components/shared-ui";
+import { Chip, ShareBar } from "@/app/_components/hostel-admin-page-ui";
+import { RoleButton } from "@/app/_components/portal-dashboard-ui";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
+import { cn } from "@/lib/utils";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { NotificationsPageContent } from "./notifications-page";
-import { Message, PageHeader, field, optionalField } from "./portal-shared";
+import { Message, field, optionalField } from "./portal-shared";
+import { PageHeader } from "./core-portal-shared";
 
 type Campaign = {
   audience: string;
@@ -60,6 +65,7 @@ export const HostelAdminNotificationsPageContent = memo(
     const [busy, setBusy] = useState(false);
     const [audience, setAudience] = useState("ALL");
     const [selectedResidents, setSelectedResidents] = useState<string[]>([]);
+    const [composing, setComposing] = useState(false);
     const invalidate = useInvalidateResources();
 
     const campaignsResource = usePortalResource<{ campaigns: Campaign[] }>(
@@ -112,6 +118,7 @@ export const HostelAdminNotificationsPageContent = memo(
               : `Sent to ${result.campaign.recipientCount} recipient(s).`,
           );
           formElement.reset();
+          setComposing(false);
           setAudience("ALL");
           setSelectedResidents([]);
           invalidate(CAMPAIGNS_ENDPOINT);
@@ -128,15 +135,27 @@ export const HostelAdminNotificationsPageContent = memo(
     );
 
     return (
-      <div className="mx-auto max-w-[1100px] space-y-6">
+      <div className="mx-auto max-w-[1448px] space-y-5">
         <PageHeader
+          action={
+            <RoleButton className="h-9 rounded-xl" onClick={() => setComposing(true)} tone="admin" type="button">
+              <Send className="size-4" />
+              Compose
+            </RoleButton>
+          }
           description="Send, schedule and track notices to residents."
           icon={Bell}
           title="Notifications"
         />
-        <Message value={actionMessage} />
+        {composing ? null : <Message value={actionMessage} />}
 
-        <Panel title="Compose">
+        <Dialog onOpenChange={setComposing} open={composing}>
+          <DialogContent className="sm:max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Compose</DialogTitle>
+              <DialogDescription>Send now, or pick a time to schedule it.</DialogDescription>
+            </DialogHeader>
+            <Message value={actionMessage} />
           <form className="grid gap-4" onSubmit={handleSubmit}>
             <div className="grid gap-4 sm:grid-cols-2">
               <Input label="Title" name="title" required />
@@ -175,60 +194,60 @@ export const HostelAdminNotificationsPageContent = memo(
             </div>
 
             {audience === "SPECIFIC" ? (
-              <fieldset className="rounded-lg border border-border p-3">
-                <legend className="px-1 text-xs font-semibold text-muted-foreground">
-                  Recipients ({selectedResidents.length} selected)
-                </legend>
-                <div className="max-h-48 space-y-1 overflow-y-auto">
+              <div className="rounded-xl bg-muted/50 p-3">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  Recipients · {selectedResidents.length} picked
+                </p>
+                <div className="flex max-h-48 flex-wrap gap-1.5 overflow-y-auto">
                   {residents.length === 0 ? (
-                    <p className="p-2 text-sm text-muted-foreground">
+                    <p className="text-[13px] text-muted-foreground">
                       No active residents to pick from.
                     </p>
                   ) : (
-                    residents.map((resident) => (
-                      <label
-                        className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted"
-                        key={resident.id}
-                      >
-                        <input
-                          checked={selectedResidents.includes(resident.id)}
-                          onChange={(event) =>
+                    residents.map((resident) => {
+                      const on = selectedResidents.includes(resident.id);
+
+                      return (
+                        <button
+                          aria-pressed={on}
+                          className={cn(
+                            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12.5px] font-medium transition active:scale-95",
+                            on
+                              ? "border-transparent bg-role-team-soft text-role-team"
+                              : "border-border bg-card text-muted-foreground hover:text-foreground",
+                          )}
+                          key={resident.id}
+                          onClick={() =>
                             setSelectedResidents((current) =>
-                              event.target.checked
-                                ? [...current, resident.id]
-                                : current.filter((id) => id !== resident.id),
+                              on ? current.filter((id) => id !== resident.id) : [...current, resident.id],
                             )
                           }
-                          type="checkbox"
-                        />
-                        <span>
-                          {resident.fullName ??
-                            `${resident.firstName} ${resident.lastName}`.trim()}
-                        </span>
-                        {resident.roomType ? (
-                          <span className="text-xs text-muted-foreground">
-                            {resident.roomType}
-                          </span>
-                        ) : null}
-                      </label>
-                    ))
+                          title={resident.roomType}
+                          type="button"
+                        >
+                          {on ? <Check className="size-3.5" /> : null}
+                          {resident.fullName ?? `${resident.firstName} ${resident.lastName}`.trim()}
+                        </button>
+                      );
+                    })
                   )}
                 </div>
-              </fieldset>
+              </div>
             ) : null}
 
-            <div className="flex justify-end">
+            <DialogFooter>
               <button
-                className="inline-flex items-center gap-2 rounded-md bg-role-admin px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-admin disabled:opacity-60"
+                className="inline-flex h-10 items-center gap-2 rounded-xl bg-brand-teal px-4 text-[13.5px] font-semibold text-white transition hover:bg-brand-teal/90 disabled:opacity-60"
                 disabled={busy}
                 type="submit"
               >
                 <Send aria-hidden="true" className="size-4" />
                 {busy ? "Sending…" : "Send notification"}
               </button>
-            </div>
+            </DialogFooter>
           </form>
-        </Panel>
+          </DialogContent>
+        </Dialog>
 
         <Panel title="Sent & scheduled">
           {campaignsResource.state === "loading" ? <LoadingRows /> : null}
@@ -236,50 +255,36 @@ export const HostelAdminNotificationsPageContent = memo(
             <EmptyState label="Campaigns could not be loaded." />
           ) : null}
           {campaignsResource.state !== "loading" && campaigns.length === 0 ? (
-            <EmptyState label="Nothing sent yet. Compose your first notification above." />
+            <EmptyState label="Nothing sent yet. Compose your first one from the header." />
           ) : null}
 
-          <div className="space-y-3">
+          <div className="grid gap-3 lg:grid-cols-2">
             {campaigns.map((campaign) => (
-              <div className="rounded-lg border border-border p-4" key={campaign.id}>
-                <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="space-y-2.5 rounded-2xl border border-border/70 p-4" key={campaign.id}>
+                <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="font-semibold text-foreground">{campaign.title}</p>
-                    <p className="mt-1 text-sm text-muted-foreground">{campaign.body}</p>
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {campaign.category} · {campaign.audience} ·{" "}
-                      {campaign.status === "SCHEDULED"
-                        ? `scheduled ${shortDateTime(campaign.scheduledFor)}`
-                        : `sent ${shortDateTime(campaign.sentAt)}`}
-                    </p>
+                    <p className="text-[13.5px] font-semibold text-foreground">{campaign.title}</p>
+                    <p className="mt-0.5 line-clamp-2 text-[13px] text-muted-foreground">{campaign.body}</p>
                   </div>
-                  <div className="flex shrink-0 flex-wrap gap-1.5">
-                    <StatusBadge>{campaign.priority}</StatusBadge>
-                    <StatusBadge>{campaign.status}</StatusBadge>
-                  </div>
+                  <StatusBadge>{campaign.status}</StatusBadge>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  <Chip glyph="pricetag">{campaign.category}</Chip>
+                  <Chip glyph="people">{campaign.audience}</Chip>
+                  <Chip glyph="flag" tone={campaign.priority === "URGENT" || campaign.priority === "HIGH" ? "warn" : "neutral"}>
+                    {campaign.priority}
+                  </Chip>
+                  <Chip glyph="time">
+                    {campaign.status === "SCHEDULED"
+                      ? `Scheduled ${shortDateTime(campaign.scheduledFor)}`
+                      : `Sent ${shortDateTime(campaign.sentAt)}`}
+                  </Chip>
                 </div>
                 {/* Read counts come from the receipts themselves, so they stay
                     right even if a campaign is re-read months later. */}
-                <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground">
-                  <div className="flex gap-1.5">
-                    <dt>Sent</dt>
-                    <dd className="font-semibold text-foreground">
-                      {campaign.stats.sent}
-                    </dd>
-                  </div>
-                  <div className="flex gap-1.5">
-                    <dt>Delivered</dt>
-                    <dd className="font-semibold text-foreground">
-                      {campaign.stats.delivered}
-                    </dd>
-                  </div>
-                  <div className="flex gap-1.5">
-                    <dt>Read</dt>
-                    <dd className="font-semibold text-foreground">
-                      {campaign.stats.read}
-                    </dd>
-                  </div>
-                </dl>
+                {campaign.stats.sent > 0 ? (
+                  <ShareBar label={`read · ${campaign.stats.delivered} delivered`} total={campaign.stats.sent} value={campaign.stats.read} />
+                ) : null}
               </div>
             ))}
           </div>

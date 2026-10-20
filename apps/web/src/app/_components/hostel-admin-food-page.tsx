@@ -19,9 +19,16 @@ import {
   Input,
   LoadingRows,
   Panel,
-  StatusBadge,
 } from "@/app/_components/shared-ui";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { MEAL_TIMING_DEFAULTS } from "@hostel/shared/food/meal-window";
 import { browserApi } from "@/lib/browser-api";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
@@ -30,6 +37,7 @@ import { cn } from "@/lib/utils";
 
 import { HostelAdminCooksPanel } from "./hostel-admin-cooks-panel";
 import { field, optionalField, PageHeader } from "./hostel-admin-shared";
+import { Chip } from "./hostel-admin-page-ui";
 
 type MealType = "BREAKFAST" | "LUNCH" | "SNACKS" | "DINNER";
 type DayOfWeek =
@@ -213,18 +221,6 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
     [invalidate],
   );
 
-  const editButton =
-    hasRoutine && !isEditing ? (
-      <button
-        className="flex h-11 items-center gap-2 rounded-md border border-role-admin px-4 text-sm font-semibold text-role-admin hover:bg-role-admin/10"
-        onClick={() => setIsEditing(true)}
-        type="button"
-      >
-        <Pencil className="size-4" />
-        Edit Routine
-      </button>
-    ) : null;
-
   function renderRoutineCard() {
     if (state === "loading") {
       return (
@@ -242,18 +238,157 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
       );
     }
 
-    if (isEditing) {
+    if (!hasRoutine) {
       return (
         <Panel>
-          <div>
-            <h2 className="font-heading text-lg font-bold text-foreground">
-              Configure Food Routine
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              This routine repeats every week. Leave a meal blank to skip it.
+          <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+            <span className="rounded-full bg-role-team-soft p-4 text-role-team">
+              <ChefHat className="size-8" />
+            </span>
+            <p className="font-heading text-[15px] font-bold text-foreground">
+              No food routine yet
+            </p>
+            <p className="max-w-md text-[13.5px] text-muted-foreground">
+              Set it once — it repeats every week until you change it.
             </p>
           </div>
-          <form className="mt-5 grid gap-5" onSubmit={handleSaveRoutine}>
+        </Panel>
+      );
+    }
+
+    return (
+      <Panel>
+        <div className="flex gap-1 rounded-xl bg-muted p-1 sm:w-fit">
+          {TABS.map((entry) => (
+            <button
+              className={cn(
+                "flex flex-1 items-center justify-center gap-2 rounded-lg px-3.5 py-1.5 text-[12.5px] font-semibold transition",
+                tab === entry.id
+                  ? "bg-card text-foreground shadow-sm"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+              key={entry.id}
+              onClick={() => setTab(entry.id)}
+              type="button"
+            >
+              <entry.icon className="size-4" />
+              {entry.label}
+            </button>
+          ))}
+        </div>
+
+        {tab === "weekly" ? (
+          <div className="mt-4 overflow-x-auto">
+            <div className="grid min-w-[860px] grid-cols-[110px_repeat(4,minmax(0,1fr))] gap-2">
+              <span />
+              {MEALS.map((meal) => (
+                <div className="flex items-center gap-2 px-1 pb-1" key={meal.type}>
+                  <span className="flex size-8 items-center justify-center rounded-full bg-role-team-soft text-role-team">
+                    <meal.icon className="size-4" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[13px] font-semibold text-foreground">{meal.label}</span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      {routine?.timings?.[meal.type] || meal.defaultTiming}
+                    </span>
+                  </span>
+                </div>
+              ))}
+              {DAYS.map((day) => (
+                <div className="contents" key={day}>
+                  <div className="flex items-center px-1 text-[12px] font-semibold uppercase tracking-[0.06em] text-muted-foreground">
+                    {titleCase(day).slice(0, 3)}
+                  </div>
+                  {MEALS.map((meal) => {
+                    const cell = cells.get(`${day}:${meal.type}`);
+
+                    return (
+                      <div
+                        className={cn(
+                          "min-h-14 rounded-xl p-2.5 text-[13px]",
+                          cell ? "bg-muted/60 text-foreground" : "border border-dashed border-border text-muted-foreground",
+                        )}
+                        key={meal.type}
+                      >
+                        {cell ? (
+                          <>
+                            <span className="line-clamp-2">{cell.items.join(", ")}</span>
+                            {cell.note ? (
+                              <span className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-role-team">
+                                <Sparkles className="size-3" />
+                                {cell.note}
+                              </span>
+                            ) : null}
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        {tab === "special" ? (
+          <div className="mt-4">
+            {notedMeals.length === 0 ? (
+              <EmptyState label="No special foods noted yet. Add a note to a meal in the routine." />
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {notedMeals.map((meal) => (
+                  <div
+                    className="space-y-2 rounded-2xl border border-border/70 p-3.5"
+                    key={`${meal.dayOfWeek}:${meal.mealType}`}
+                  >
+                    <p className="text-[13.5px] font-semibold text-foreground">{meal.items.join(", ")}</p>
+                    <p className="text-[12.5px] text-muted-foreground">{meal.note}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      <Chip glyph="restaurant" tone="brand">{titleCase(meal.mealType)}</Chip>
+                      <Chip glyph="calendar">{`Every ${titleCase(meal.dayOfWeek)}`}</Chip>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ) : null}
+
+        {tab === "month-end" ? (
+          <div className="mt-4">
+            {monthEndSpecial ? (
+              <div className="flex items-start gap-3 rounded-2xl border border-border/70 p-4">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-role-team-soft text-role-team">
+                  <ChefHat className="size-5" />
+                </span>
+                <div>
+                  <p className="font-heading text-[15px] font-bold text-foreground">
+                    {monthEndSpecial.items.join(", ")}
+                  </p>
+                  <p className="text-[12.5px] text-muted-foreground">
+                    Last day of every month{monthEndSpecial.note ? ` · ${monthEndSpecial.note}` : ""}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <EmptyState label="No month end special set." />
+            )}
+          </div>
+        ) : null}
+      </Panel>
+    );
+  }
+
+  const routineEditor = (
+    <Dialog onOpenChange={setIsEditing} open={isEditing}>
+      <DialogContent className="sm:max-w-6xl">
+        <DialogHeader>
+          <DialogTitle>Food routine</DialogTitle>
+          <DialogDescription>Repeats every week. Leave a meal blank to skip it.</DialogDescription>
+        </DialogHeader>
+          <form className="grid gap-5" onSubmit={handleSaveRoutine}>
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {MEALS.map((meal) => (
                 <Input
@@ -318,15 +453,14 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
               </table>
             </div>
 
-            <div className="grid gap-3 rounded-lg border border-border bg-muted/30 p-4">
+            {/* Stored on its own, so it never replaces that day's dinner. */}
+            <div className="grid gap-3 rounded-xl bg-muted/50 p-4">
               <div>
-                <p className="font-heading text-sm font-bold text-foreground">
+                <p className="font-heading text-[13.5px] font-bold text-foreground">
                   Month End Special
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  An optional extra served on the last day of every month. It is stored on
-                  its own, so it never replaces that day&apos;s dinner. Leave it blank to
-                  remove it.
+                <p className="text-[12px] text-muted-foreground">
+                  An extra on the last day of every month. Blank removes it.
                 </p>
               </div>
               <div className="grid gap-3 md:grid-cols-2">
@@ -347,260 +481,41 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <DialogFooter>
               <Button
-                className="h-11 bg-role-admin px-6 text-sm font-semibold text-white hover:bg-role-admin/85"
+                className="h-10 rounded-xl bg-brand-teal px-5 text-white hover:bg-brand-teal/90"
                 loading={busyForm === "routine"}
                 type="submit"
               >
-                Save Food Routine
+                Save food routine
               </Button>
-              <button
-                className="h-11 rounded-md border border-border px-6 text-sm font-semibold text-foreground hover:bg-muted/50"
-                onClick={() => setIsEditing(false)}
-                type="button"
-              >
-                Cancel
-              </button>
-            </div>
+            </DialogFooter>
           </form>
-        </Panel>
-      );
-    }
+      </DialogContent>
+    </Dialog>
+  );
 
-    if (!hasRoutine) {
-      return (
-        <Panel>
-          <div>
-            <h2 className="font-heading text-lg font-bold text-foreground">
-              Food &amp; Menu
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Plan and manage the weekly food routine for residents.
-            </p>
-          </div>
-          <div className="mt-6 flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-6 py-14 text-center">
-            <span className="rounded-full bg-role-admin-soft p-4 text-role-admin">
-              <ChefHat className="size-8" />
-            </span>
-            <p className="font-heading text-lg font-bold text-foreground">
-              No food routine configured
-            </p>
-            <p className="max-w-md text-sm text-muted-foreground">
-              Set the weekly routine once — it repeats every week until you change it.
-            </p>
+  return (
+    <div className="mx-auto max-w-[1448px] space-y-5">
+      <PageHeader
+        action={
+          state === "ready" ? (
             <Button
-              className="mt-2 h-11 bg-role-admin px-6 text-sm font-semibold text-white hover:bg-role-admin/85"
+              className="h-9 gap-2 rounded-xl bg-brand-teal px-3.5 text-white hover:bg-brand-teal/90"
               onClick={() => setIsEditing(true)}
               type="button"
             >
-              <Plus className="size-4" />
-              Configure Food Routine
+              {hasRoutine ? <Pencil className="size-4" /> : <Plus className="size-4" />}
+              {hasRoutine ? "Edit routine" : "Set routine"}
             </Button>
-          </div>
-        </Panel>
-      );
-    }
-
-    return (
-      <Panel>
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h2 className="font-heading text-lg font-bold text-foreground">
-              Food &amp; Menu
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              The weekly routine, repeating every week.
-            </p>
-          </div>
-          {editButton}
-        </div>
-
-        <div className="mt-5 flex gap-6 border-b border-border">
-          {TABS.map((entry) => (
-            <button
-              className={cn(
-                "-mb-px flex items-center gap-2 border-b-2 pb-3 text-sm font-semibold",
-                tab === entry.id
-                  ? "border-role-admin text-role-admin"
-                  : "border-transparent text-muted-foreground hover:text-foreground",
-              )}
-              key={entry.id}
-              onClick={() => setTab(entry.id)}
-              type="button"
-            >
-              <entry.icon className="size-4" />
-              {entry.label}
-            </button>
-          ))}
-        </div>
-
-        {tab === "weekly" ? (
-          <div className="mt-5 overflow-x-auto rounded-lg border border-border">
-            <table className="w-full min-w-[900px] border-collapse text-sm">
-              <thead>
-                <tr className="bg-muted/50 text-left">
-                  <th className="w-32 px-4 py-3 font-semibold text-foreground">Day</th>
-                  {MEALS.map((meal) => (
-                    <th
-                      className="px-4 py-3 font-semibold text-foreground"
-                      key={meal.type}
-                    >
-                      <span className="flex items-center gap-2">
-                        <meal.icon className="size-4 text-role-admin" />
-                        {meal.label}
-                      </span>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {DAYS.map((day) => (
-                  <tr className="border-t border-border align-top" key={day}>
-                    <td className="px-4 py-3 font-semibold text-foreground">
-                      {titleCase(day)}
-                    </td>
-                    {MEALS.map((meal) => {
-                      const cell = cells.get(`${day}:${meal.type}`);
-
-                      return (
-                        <td className="px-4 py-3 text-foreground" key={meal.type}>
-                          {cell ? (
-                            <>
-                              <span>{cell.items.join(", ")}</span>
-                              <span className="mt-1 block text-xs text-muted-foreground">
-                                {cell.timing}
-                              </span>
-                            </>
-                          ) : (
-                            <span className="text-muted-foreground">—</span>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : null}
-
-        {tab === "special" ? (
-          <div className="mt-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-heading text-sm font-bold text-foreground">
-                  Special Foods
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  Meals in the routine carrying a note. Clear the note to remove one.
-                </p>
-              </div>
-              <button
-                className="flex h-10 items-center gap-2 rounded-md bg-role-admin px-4 text-sm font-semibold text-white hover:bg-role-admin/85"
-                onClick={() => setIsEditing(true)}
-                type="button"
-              >
-                <Pencil className="size-4" />
-                Edit Routine
-              </button>
-            </div>
-            {notedMeals.length === 0 ? (
-              <div className="mt-4">
-                <EmptyState label="No special foods noted yet." />
-              </div>
-            ) : (
-              <div className="mt-4 overflow-x-auto rounded-lg border border-border">
-                <table className="w-full min-w-[640px] border-collapse text-sm">
-                  <thead>
-                    <tr className="bg-muted/50 text-left">
-                      <th className="px-4 py-3 font-semibold text-foreground">
-                        Food Item
-                      </th>
-                      <th className="px-4 py-3 font-semibold text-foreground">
-                        Description / Notes
-                      </th>
-                      <th className="w-44 px-4 py-3 font-semibold text-foreground">
-                        Served
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {notedMeals.map((meal) => (
-                      <tr
-                        className="border-t border-border"
-                        key={`${meal.dayOfWeek}:${meal.mealType}`}
-                      >
-                        <td className="px-4 py-3 text-foreground">
-                          {meal.items.join(", ")}
-                        </td>
-                        <td className="px-4 py-3 text-muted-foreground">{meal.note}</td>
-                        <td className="px-4 py-3">
-                          <StatusBadge>{meal.mealType}</StatusBadge>
-                          <span className="mt-1 block text-xs text-muted-foreground">
-                            Every {titleCase(meal.dayOfWeek)}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        ) : null}
-
-        {tab === "month-end" ? (
-          <div className="mt-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="font-heading text-sm font-bold text-foreground">
-                  Month End Special
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  An optional extra served on the last day of every month.
-                </p>
-              </div>
-              <button
-                className="flex h-10 items-center gap-2 rounded-md bg-role-admin px-4 text-sm font-semibold text-white hover:bg-role-admin/85"
-                onClick={() => setIsEditing(true)}
-                type="button"
-              >
-                <Pencil className="size-4" />
-                Edit Routine
-              </button>
-            </div>
-            {monthEndSpecial ? (
-              <div className="mt-4 rounded-lg border border-border p-4">
-                <p className="font-heading text-base font-bold text-foreground">
-                  {monthEndSpecial.items.join(", ")}
-                </p>
-                {monthEndSpecial.note ? (
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {monthEndSpecial.note}
-                  </p>
-                ) : null}
-              </div>
-            ) : (
-              <div className="mt-4">
-                <EmptyState label="No month end special configured." />
-              </div>
-            )}
-          </div>
-        ) : null}
-      </Panel>
-    );
-  }
-
-  return (
-    <div className="mx-auto max-w-[1448px] space-y-6">
-      <PageHeader
-        description="Plan and manage the weekly food routine for residents."
+          ) : undefined
+        }
+        description="The weekly menu residents see, and who cooks it."
         icon={ChefHat}
         title="Food"
       />
       {message ? (
-        <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
+        <div className="rounded-xl border border-border bg-muted/40 px-4 py-3 text-[13.5px]">
           {message}
         </div>
       ) : null}
@@ -617,6 +532,7 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
       <HostelAdminCooksPanel />
 
       {renderRoutineCard()}
+      {routineEditor}
     </div>
   );
 });

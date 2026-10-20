@@ -4,6 +4,7 @@ import { AlertTriangle, Bell, Megaphone, Send } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { EmptyState, Input, Select, TextArea } from "@/app/_components/shared-ui";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   EmptyInline,
   PortalPageHeader,
@@ -31,6 +32,7 @@ const CATEGORIES = [
 
 export const HostelAdminNoticesPage = memo(function HostelAdminNoticesPage() {
   const [actionMessage, setActionMessage] = useState("");
+  const [creating, setCreating] = useState(false);
   const workspaceHref = useWorkspaceHref();
   const invalidate = useInvalidateResources();
   const noticesResource = usePortalResource<{ notices: Notice[] }>(
@@ -63,6 +65,7 @@ export const HostelAdminNoticesPage = memo(function HostelAdminNoticesPage() {
           method: "POST",
         });
         formElement.reset();
+        setCreating(false);
         setActionMessage("Notice published — residents notified.");
         invalidate(hostelAdminEndpoints.notices);
       } catch (error) {
@@ -77,8 +80,14 @@ export const HostelAdminNoticesPage = memo(function HostelAdminNoticesPage() {
   return (
     <div className="mx-auto max-w-[1448px] space-y-5">
       <PortalPageHeader
+        actions={
+          <RoleButton className="h-9 rounded-xl" onClick={() => setCreating(true)} tone="admin" type="button">
+            <Megaphone className="size-4" />
+            New notice
+          </RoleButton>
+        }
         breadcrumb={[{ href: workspaceHref("/hostel-admin"), label: "Home" }, "Notices"]}
-        description="Publish announcements — residents are emailed and notified in-app."
+        description="Announcements residents get by email and in the app."
         title="Notices"
       />
       {message ? (
@@ -89,8 +98,8 @@ export const HostelAdminNoticesPage = memo(function HostelAdminNoticesPage() {
 
       <HostelAdminNoticePushes />
 
-      <div className="grid gap-5 xl:grid-cols-[1fr_380px]">
-        <SectionCard title="Published Notices">
+      <div>
+        <SectionCard title={`Published · ${notices.length}`}>
           {state === "loading" ? (
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, index) => (
@@ -105,17 +114,17 @@ export const HostelAdminNoticesPage = memo(function HostelAdminNoticesPage() {
           {state === "ready" && notices.length === 0 ? (
             <EmptyInline label="No notices published yet." />
           ) : null}
-          <div className="space-y-2.5">
+          <div className="grid gap-2.5 lg:grid-cols-2">
             {notices.map((notice) => (
               <div
-                className="flex items-start gap-3 rounded-xl border border-border/70 bg-muted/15 p-3"
+                className="flex items-start gap-3 rounded-2xl border border-border/70 p-3.5 transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
                 key={notice.id}
               >
                 <span
-                  className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${
+                  className={`flex size-9 shrink-0 items-center justify-center rounded-full ${
                     notice.isUrgent
-                      ? "bg-rose-50 text-rose-600"
-                      : "bg-role-admin-soft text-role-admin"
+                      ? "bg-amber-50 text-amber-600 dark:bg-amber-950/40 dark:text-amber-400"
+                      : "bg-role-team-soft text-role-team"
                   }`}
                 >
                   {notice.isUrgent ? (
@@ -126,13 +135,13 @@ export const HostelAdminNoticesPage = memo(function HostelAdminNoticesPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <p className="text-[13px] font-bold text-foreground">
+                    <p className="text-[13.5px] font-bold text-foreground">
                       {notice.title}
                     </p>
-                    {notice.isUrgent ? <SoftBadge tone="rose">Urgent</SoftBadge> : null}
+                    {notice.isUrgent ? <SoftBadge tone="amber">Urgent</SoftBadge> : null}
                     <SoftBadge tone="slate">{notice.category}</SoftBadge>
                   </div>
-                  <p className="mt-1 text-[12.5px] leading-relaxed text-muted-foreground">
+                  <p className="mt-1 line-clamp-3 text-[13px] leading-relaxed text-muted-foreground">
                     {notice.content}
                   </p>
                 </div>
@@ -141,7 +150,14 @@ export const HostelAdminNoticesPage = memo(function HostelAdminNoticesPage() {
           </div>
         </SectionCard>
 
-        <SectionCard title="Create Notice">
+      </div>
+
+      <Dialog onOpenChange={setCreating} open={creating}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>New notice</DialogTitle>
+            <DialogDescription>Every resident is emailed and notified in the app.</DialogDescription>
+          </DialogHeader>
           <form className="grid gap-3" onSubmit={handleCreateNotice}>
             <Input label="Title" name="title" required />
             <Select label="Category" name="category" required>
@@ -153,19 +169,21 @@ export const HostelAdminNoticesPage = memo(function HostelAdminNoticesPage() {
             </Select>
             <TextArea label="Content" name="content" />
             <Input label="Expires at" name="expiresAt" type="date" />
-            <label className="flex items-center gap-2 text-[12.5px] font-medium text-foreground">
-              <input className="accent-role-admin" name="isUrgent" type="checkbox" />
+            <label className="flex items-center gap-2 text-[13px] font-medium text-foreground">
+              <input className="accent-brand-teal" name="isUrgent" type="checkbox" />
               <span className="inline-flex items-center gap-1">
-                <Bell className="size-3.5 text-rose-500" /> Mark as urgent
+                <Bell className="size-3.5 text-amber-500" /> Mark as urgent
               </span>
             </label>
-            <RoleButton className="w-full" tone="admin" type="submit">
-              <Send className="size-3.5" />
-              Publish Notice
-            </RoleButton>
+            <DialogFooter>
+              <RoleButton tone="admin" type="submit">
+                <Send className="size-3.5" />
+                Publish notice
+              </RoleButton>
+            </DialogFooter>
           </form>
-        </SectionCard>
-      </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });

@@ -142,13 +142,13 @@ export function HostelAdminBillingPageContent() {
   }, [version]);
 
   return (
-    <div className="space-y-8">
+    <div className="mx-auto max-w-[1448px] space-y-5">
       <PortalPageHeader
         actions={
           hostelCode ? (
-            <p className="rounded-lg border border-border px-3 py-2 text-xs text-muted-foreground">
-              Hostel ID{" "}
-              <strong className="select-all font-mono text-sm text-foreground">{hostelCode}</strong>
+            <p className="inline-flex items-center gap-2 rounded-full bg-white/[0.08] px-3 py-1.5 text-[12px] text-muted-foreground ring-1 ring-white/10">
+              Hostel ID
+              <strong className="select-all font-mono text-[13px] text-foreground">{hostelCode}</strong>
             </p>
           ) : null
         }

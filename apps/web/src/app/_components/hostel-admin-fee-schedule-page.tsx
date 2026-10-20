@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarClock, Coins, Layers, PartyPopper, Trash2 } from "@/components/icons";
+import { CalendarClock, Coins, Layers, PartyPopper, Pencil, Plus, Trash2 } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import {
@@ -19,6 +19,16 @@ import {
   TableRow,
   Th,
 } from "@/app/_components/portal-dashboard-ui";
+import { Chip, ShareBar } from "@/app/_components/hostel-admin-page-ui";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { dayMonthYearBoth, periodKey } from "@/lib/format-month";
 import { addBsMonths, bsPeriodBounds } from "@/lib/hostel-day";
@@ -29,7 +39,8 @@ import { BED_TYPE_LABELS, type BedType } from "@hostel/shared/types/bed-type";
 import { MonthField } from "./hostel-admin-month-picker";
 import { LateFinePanel } from "./khata-pages";
 import { MoneyRulesPanel } from "./money-rules-panel";
-import { Message, PageHeader, field } from "./portal-shared";
+import { PageHeader } from "./core-portal-shared";
+import { Message, field } from "./portal-shared";
 
 /**
  * The rate card editor (target §11.9, plan item 3.2).
@@ -241,6 +252,7 @@ function describeApplied(applied: ConcessionBackfill, verb: "reduced" | "restore
 const MonthDiscounts = memo(function MonthDiscounts() {
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
+  const [adding, setAdding] = useState(false);
 
   const resource = usePortalResource<{ concessions: RentConcession[] }>(
     CONCESSIONS_ENDPOINT,
@@ -284,6 +296,7 @@ const MonthDiscounts = memo(function MonthDiscounts() {
          * reason a discount decided after the 1st used to feel broken.
          */
         setMessage(`Saved. ${describeApplied(saved.concession.applied, "reduced")}`);
+        setAdding(false);
         await resource.refreshAsync();
       } catch (error) {
         setMessage(
@@ -330,79 +343,84 @@ const MonthDiscounts = memo(function MonthDiscounts() {
   );
 
   return (
-    <Panel title="Festival discounts">
-      <Message value={message} />
+    <Panel
+      action={
+        <Button onClick={() => setAdding(true)} size="sm" type="button" variant="outline">
+          <Plus className="size-3.5" />
+          Add discount
+        </Button>
+      }
+      title="Festival discounts"
+    >
+      {adding ? null : <Message value={message} />}
 
-      <form className="grid gap-4" onSubmit={save}>
-        <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <PartyPopper aria-hidden="true" className="size-4" />
-          A percentage off every resident&rsquo;s rent, for one month only. The rates
-          above do not change &mdash; Dashain at 50% is half of whatever each room
-          type already costs.
-        </p>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MonthField
-            defaultValue={monthStartPeriod(1)}
-            hint="Nepali month. Saving over a month that already has a discount replaces it."
-            label="Month"
-            name="period"
-          />
-          <Input
-            hint="1&ndash;100. Use 50 for half fee."
-            label="Off the rent (%)"
-            max="100"
-            min="1"
-            name="percentOff"
-            step="1"
-            type="number"
-          />
-          <Input
-            hint="Printed on the resident's bill beside the amount."
-            label="Reason"
-            name="reason"
-            placeholder="Dashain"
-          />
-          <div className="flex items-end">
-            <button
-              className="h-11 w-full rounded-md bg-role-admin px-4 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
-              disabled={saving}
-              type="submit"
-            >
-              {saving ? "Saving…" : "Save discount"}
-            </button>
-          </div>
-        </div>
-      </form>
+      {/* A percentage off every resident's rent for one month. The rate card
+          does not change — Dashain at 50% is half of whatever each room type
+          already costs. */}
+      <Dialog onOpenChange={setAdding} open={adding}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Festival discount</DialogTitle>
+            <DialogDescription>A percentage off everyone&rsquo;s rent, for one Nepali month.</DialogDescription>
+          </DialogHeader>
+          <Message value={message} />
+          <form className="grid gap-3" onSubmit={save}>
+            <MonthField
+              defaultValue={monthStartPeriod(1)}
+              hint="Saving over a month that has one replaces it."
+              label="Month"
+              name="period"
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                hint="50 is half fee."
+                label="Off the rent (%)"
+                max="100"
+                min="1"
+                name="percentOff"
+                step="1"
+                type="number"
+              />
+              <Input
+                hint="Printed on the bill."
+                label="Reason"
+                name="reason"
+                placeholder="Dashain"
+              />
+            </div>
+            <DialogFooter>
+              <button
+                className="h-10 rounded-xl bg-brand-teal px-4 text-[13.5px] font-semibold text-white transition hover:bg-brand-teal/90 disabled:opacity-60"
+                disabled={saving}
+                type="submit"
+              >
+                {saving ? "Saving…" : "Save discount"}
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
-      <div className="mt-5">
+      <div>
         {resource.state === "loading" ? <LoadingRows /> : null}
         {resource.state === "ready" && concessions.length === 0 ? (
-          <EmptyState label="No month is discounted. Every month is charged at the rates above." />
+          <p className="flex items-center gap-2 py-2 text-[13.5px] text-muted-foreground">
+            <PartyPopper aria-hidden="true" className="size-4" />
+            No month is discounted.
+          </p>
         ) : null}
         {concessions.length > 0 ? (
-          <DataTable className="min-w-[560px]">
-            <TableHeader>
-              <TableRow className="hover:bg-transparent">
-                <Th>Month</Th>
-                <Th align="right">Off the rent</Th>
-                <Th>Reason</Th>
-                <Th>Status</Th>
-                <Th align="right">&nbsp;</Th>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
+          <div className="divide-y divide-border/60">
               {concessions.map((row) => (
-                <TableRow key={row._id}>
-                  <TableCell className="whitespace-nowrap font-semibold text-foreground">
-                    {row.label}
-                  </TableCell>
-                  <TableCell className="text-right font-semibold text-foreground">
+                <div className="flex items-center gap-3 py-2.5 text-[13.5px]" key={row._id}>
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-role-team-soft text-[13px] font-bold text-role-team">
                     {row.percentOff}%
-                  </TableCell>
-                  <TableCell>
-                    {row.reason ?? <span className="text-muted-foreground">&mdash;</span>}
-                  </TableCell>
-                  <TableCell>
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-foreground">{row.label}</p>
+                    <p className="truncate text-[12px] text-muted-foreground">{row.reason ?? "No reason given"}</p>
+                  </div>
+                  <span>
                     {row.standing === "past" ? (
                       /*
                        * Not an error, and not hidden. The month is billed and its
@@ -414,24 +432,21 @@ const MonthDiscounts = memo(function MonthDiscounts() {
                     ) : row.standing === "current" ? (
                       <SoftBadge tone="green">This month</SoftBadge>
                     ) : (
-                      <SoftBadge tone="amber">Upcoming</SoftBadge>
+                      <SoftBadge tone="slate">Upcoming</SoftBadge>
                     )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <button
-                      aria-label={`Remove the ${row.label} discount`}
-                      className="rounded-md p-1.5 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive disabled:opacity-60"
-                      disabled={saving}
-                      onClick={() => void remove(row)}
-                      type="button"
-                    >
-                      <Trash2 aria-hidden="true" className="size-4" />
-                    </button>
-                  </TableCell>
-                </TableRow>
+                  </span>
+                  <button
+                    aria-label={`Remove the ${row.label} discount`}
+                    className="rounded-md p-1.5 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive disabled:opacity-60"
+                    disabled={saving}
+                    onClick={() => void remove(row)}
+                    type="button"
+                  >
+                    <Trash2 aria-hidden="true" className="size-4" />
+                  </button>
+                </div>
               ))}
-            </TableBody>
-          </DataTable>
+          </div>
         ) : null}
       </div>
     </Panel>
@@ -442,6 +457,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
   function HostelAdminFeeSchedulePageContent() {
     const [message, setMessage] = useState("");
     const [saving, setSaving] = useState(false);
+    const [editing, setEditing] = useState(false);
 
     const resource = usePortalResource<{
       roomTypes: RoomTypeOption[];
@@ -509,9 +525,9 @@ export const HostelAdminFeeSchedulePageContent = memo(
      * invented. Falls back to the bed type for a card saved before rates were
      * keyed by room type, so an owner opening this screen sees what they set.
      */
-    const rateFor = useCallback(
-      (roomType: string) => {
-        const byRoomType = open?.rates.find(
+    const rateOn = useCallback(
+      (schedule: FeeSchedule | null, roomType: string) => {
+        const byRoomType = schedule?.rates.find(
           (rate) => roomTypeKey(rate.roomType) === roomTypeKey(roomType),
         );
 
@@ -521,12 +537,17 @@ export const HostelAdminFeeSchedulePageContent = memo(
 
         const bedType = normalizeBedType(roomType);
         const legacy = bedType
-          ? open?.rates.find((rate) => !rate.roomType && rate.bedType === bedType)
+          ? schedule?.rates.find((rate) => !rate.roomType && rate.bedType === bedType)
           : undefined;
 
         return legacy?.monthlyAmount ?? "";
       },
-      [open],
+      [],
+    );
+    const rateFor = useCallback((roomType: string) => rateOn(open, roomType), [open, rateOn]);
+    const dearestRate = Math.max(
+      1,
+      ...roomTypes.map((option) => Number(rateOn(current, option.roomType)) || 0),
     );
 
     /**
@@ -616,6 +637,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
           setMessage(
             "New rate card saved. Your public listing now shows these rents, and the previous card is closed and stays readable below.",
           );
+          setEditing(false);
           await resource.refreshAsync();
         } catch (error) {
           setMessage(
@@ -629,13 +651,25 @@ export const HostelAdminFeeSchedulePageContent = memo(
     );
 
     return (
-      <div className="mx-auto max-w-[1100px] space-y-6">
+      <div className="mx-auto max-w-[1448px] space-y-5">
         <PageHeader
+          action={
+            resource.state === "ready" ? (
+              <button
+                className="inline-flex h-9 items-center gap-2 rounded-xl bg-brand-teal px-3.5 text-[13px] font-semibold text-white transition hover:bg-brand-teal/90"
+                onClick={() => setEditing(true)}
+                type="button"
+              >
+                {upcoming ? <Pencil className="size-4" /> : <Plus className="size-4" />}
+                {upcoming ? "Change next month" : current ? "New rates" : "Set rates"}
+              </button>
+            ) : undefined
+          }
           description="The one place a rent is set."
           icon={Coins}
           title="Fee Schedule"
         />
-        <Message value={message} />
+        {editing ? null : <Message value={message} />}
 
         {resource.state === "loading" ? <LoadingRows /> : null}
         {resource.state === "error" ? (
@@ -644,31 +678,87 @@ export const HostelAdminFeeSchedulePageContent = memo(
 
         {resource.state === "ready" ? (
           <>
+            {/* With no running card, billing fails for every resident —
+                deliberately, because a guessed rate is worse than a run that
+                stops and says why. Running rates cannot be changed, so a gap
+                before booked rates start is the platform team's to fill. */}
             {current ? null : (
-              <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm text-amber-800 dark:text-amber-300">
-                <p className="font-semibold">
-                  {upcoming
-                    ? "No rates are running this month."
-                    : "This hostel has no rate card."}
-                </p>
-                <p className="mt-1 leading-5">
-                  {upcoming
-                    ? `Billing fails for every resident until ${formatDate(upcoming.effectiveFrom)}, when the rates below start. Rates already running cannot be changed, so this gap has to be filled by the platform team.`
-                    : "Billing will fail for every resident until one exists — deliberately, because a guessed rate is worse than a run that stops and says why."}
-                </p>
-              </div>
+              <p className="rounded-xl bg-amber-50 px-4 py-3 text-[13.5px] text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+                <span className="font-semibold">
+                  {upcoming ? "No rates are running this month." : "This hostel has no rate card."}
+                </span>{" "}
+                {upcoming
+                  ? `Billing fails until ${formatDate(upcoming.effectiveFrom)}; ask the platform team to fill the gap.`
+                  : "Billing fails until you set one."}
+              </p>
             )}
 
+            {/* The rates billing residents now, beside what the public page
+                lists, with next month's booked rate when there is one. */}
+            {roomTypes.length > 0 ? (
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {/* Each rate's bar is against the dearest room, so the spread reads at a glance. */}
+                {roomTypes.map((option) => {
+                  const now = rateOn(current, option.roomType);
+                  const next = upcoming ? rateOn(upcoming, option.roomType) : "";
+
+                  return (
+                    <div className="space-y-2.5 rounded-2xl border border-border/70 bg-card p-4" key={option.roomType}>
+                      <div className="flex items-center gap-2.5">
+                        <span className="flex size-9 items-center justify-center rounded-full bg-role-team-soft text-role-team">
+                          <Layers className="size-[18px]" />
+                        </span>
+                        <p className="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-foreground">{option.roomType}</p>
+                      </div>
+                      <p className="font-heading text-[22px] font-bold leading-none tracking-tight text-foreground">
+                        {now === "" ? <span className="text-[15px] text-amber-700 dark:text-amber-300">Not priced</span> : currency(now)}
+                        {now === "" ? null : <span className="text-[12px] font-medium text-muted-foreground"> / month</span>}
+                      </p>
+                      {now === "" ? null : <ShareBar total={dearestRate} value={Number(now)} />}
+                      <div className="flex flex-wrap gap-1.5">
+                        <Chip glyph="globe">
+                          {option.monthlyRent > 0 ? `Listed ${currency(option.monthlyRent)}` : "Not listed"}
+                        </Chip>
+                        {upcoming ? (
+                          <Chip glyph="calendar" tone="brand">
+                            {`From ${formatDate(upcoming.effectiveFrom)}: ${next === "" ? "not priced" : currency(next)}`}
+                          </Chip>
+                        ) : null}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : null}
+
+            {open ? (
+              <div className="flex flex-wrap gap-1.5">
+                {(
+                  [
+                    ["Admission", open.admissionFee],
+                    ["Form", open.formFee],
+                    ["Referral off", open.referralAdmissionDiscount],
+                    ["Deposit", open.depositAmount],
+                  ] as const
+                ).map(([label, value]) => (
+                  <Chip glyph="receipt" key={label} tone={value ? "neutral" : "neutral"}>
+                    {`${label} ${value ? currency(value) : "—"}`}
+                  </Chip>
+                ))}
+              </div>
+            ) : null}
+
             {upcoming ? (
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-muted/30 p-4 text-sm">
-                <p className="leading-5">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-muted/60 px-4 py-3 text-[13.5px]">
+                <p className="flex items-center gap-2">
+                  <CalendarClock className="size-4 text-role-team" />
                   <span className="font-semibold text-foreground">
-                    Rates are booked for {formatDate(upcoming.effectiveFrom)}.
-                  </span>{" "}
-                  They have not started, so you can change them below or delete them.
+                    Rates booked for {formatDate(upcoming.effectiveFrom)}.
+                  </span>
+                  <span className="text-muted-foreground">Not started yet.</span>
                 </p>
                 <button
-                  className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-1.5 text-sm font-semibold text-destructive transition hover:bg-destructive/20 disabled:opacity-60"
+                  className="rounded-lg px-3 py-1.5 text-[12.5px] font-semibold text-destructive transition hover:bg-destructive/10 disabled:opacity-60"
                   disabled={saving}
                   onClick={() => void removeUpcoming(upcoming._id)}
                   type="button"
@@ -678,25 +768,26 @@ export const HostelAdminFeeSchedulePageContent = memo(
               </div>
             ) : null}
 
-            <Panel
-              title={
-                upcoming
-                  ? "Change next month's rates"
-                  : current
-                    ? "Set rates for a future month"
-                    : "Set your first rates"
-              }
-            >
+            <Dialog onOpenChange={setEditing} open={editing}>
+              <DialogContent className="sm:max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>
+                    {upcoming
+                      ? "Change next month's rates"
+                      : current
+                        ? "Set rates for a future month"
+                        : "Set your first rates"}
+                  </DialogTitle>
+                  <DialogDescription>
+                    One rate per room type. A blank is not free — billing stops and names who it could not price.
+                  </DialogDescription>
+                </DialogHeader>
+                <Message value={message} />
               <form className="grid gap-4" key={open?._id ?? "new"} onSubmit={save}>
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Layers aria-hidden="true" className="size-4" />
-                  One rate per room type you offer. A blank is not free — billing
-                  stops and names the resident it could not price.
-                </p>
                 {roomTypes.length === 0 ? (
                   <EmptyState label="Add your room types on the hostel profile first — a rate is set against one." />
                 ) : (
-                  <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                     {roomTypes.map((option) => {
                       const bedType = normalizeBedType(option.roomType);
 
@@ -728,10 +819,10 @@ export const HostelAdminFeeSchedulePageContent = memo(
                     })}
                   </div>
                 )}
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   <Input
                     defaultValue={open?.admissionFee ?? ""}
-                    hint="One-time charge at move-in. Blank if you do not levy one."
+                    hint="Once, at move-in."
                     label="Admission fee (NPR)"
                     min="0"
                     name="admissionFee"
@@ -739,7 +830,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
                   />
 <Input
                     defaultValue={open?.formFee ?? ""}
-                    hint="One-time form charge, separate from admission. Blank means no fee."
+                    hint="Once, separate from admission."
                     label="Form fee (NPR)"
                     min="0"
                     name="formFee"
@@ -747,7 +838,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
                   />
                   <Input
                     defaultValue={open?.referralAdmissionDiscount ?? ""}
-                    hint="Comes off the admission fee when someone arrives on a resident's referral code. Never off the rent."
+                    hint="Off admission on a referral. Never off rent."
                     label="Referral discount (NPR)"
                     min="0"
                     name="referralAdmissionDiscount"
@@ -755,7 +846,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
                   />
                   <Input
                     defaultValue={open?.depositAmount ?? ""}
-                    hint="Refundable security deposit."
+                    hint="Refundable."
                     label="Deposit (NPR)"
                     min="0"
                     name="depositAmount"
@@ -767,22 +858,23 @@ export const HostelAdminFeeSchedulePageContent = memo(
                         ? periodKey(new Date(upcoming.effectiveFrom))
                         : monthStartPeriod(1)
                     }
-                    hint="Rates start on the first day of a Nepali month. This month cannot change — those residents are already being billed."
+                    hint="From the 1st of a Nepali month. Not this one."
                     label="Starts from"
                     name="effectiveFrom"
                   />
                 </div>
-                <div className="flex justify-end">
+                <DialogFooter>
                   <button
-                    className="rounded-md bg-role-admin px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+                    className="h-10 rounded-xl bg-brand-teal px-4 text-[13.5px] font-semibold text-white transition hover:bg-brand-teal/90 disabled:opacity-60"
                     disabled={saving}
                     type="submit"
                   >
                     {saving ? "Saving…" : "Save new rate card"}
                   </button>
-                </div>
+                </DialogFooter>
               </form>
-            </Panel>
+              </DialogContent>
+            </Dialog>
 
             <MonthDiscounts />
             <LateFinePanel />

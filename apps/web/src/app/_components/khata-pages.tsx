@@ -30,6 +30,8 @@ import {
 import { mediaUrl } from "@/app/_components/community-post-card";
 import { currency, EmptyState, Input, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import { useUploader } from "@/components/uploads";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ShareBar } from "@/app/_components/hostel-admin-page-ui";
 import type { PortalTone } from "@/app/_components/portal-dashboard-ui";
 import { browserApi } from "@/lib/browser-api";
 import { usePortalResource } from "@/lib/portal-query";
@@ -490,6 +492,7 @@ export function HostelAdminKhataPageContent() {
     errorMessage: "Khata could not be loaded.",
   });
   const [draft, setDraft] = useState<ItemDraft>({ name: "", price: "" });
+  const [itemOpen, setItemOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   // PUBLIC: residents see the photo on their item tiles.
@@ -509,6 +512,8 @@ export function HostelAdminKhataPageContent() {
     () => (data?.accounts ?? []).reduce((sum, row) => sum + row.unbilled, 0),
     [data],
   );
+  // Each khata's bar is against the biggest one, so who owes most reads at a glance.
+  const maxUnbilled = Math.max(1, ...(data?.accounts ?? []).map((row) => row.unbilled));
 
   async function saveItems(items: (Omit<KhataItem, "id"> & { id?: string })[], done: string) {
     setBusy(true);
@@ -518,6 +523,7 @@ export function HostelAdminKhataPageContent() {
       await browserApi(ADMIN_KHATA_URL, { body: JSON.stringify({ items }), method: "PUT" });
       setMessage(done);
       setDraft({ name: "", price: "" });
+      setItemOpen(false);
       await khata.refreshAsync();
     } catch (error) {
       setMessage(errorText(error, "Could not save."));
@@ -566,17 +572,41 @@ export function HostelAdminKhataPageContent() {
   }
 
   return (
-    <div className="space-y-5">
-      <PortalPageHeader description="Residents take items now; it goes on next month's bill." title="Khata" />
+    <div className="mx-auto max-w-[1448px] space-y-5">
+      <PortalPageHeader
+        actions={
+          data ? (
+            <RoleButton
+              className="h-9 rounded-xl"
+              onClick={() => {
+                setDraft({ name: "", price: "" });
+                setItemOpen(true);
+              }}
+              tone="admin"
+              type="button"
+            >
+              <Plus className="size-4" />
+              Add item
+            </RoleButton>
+          ) : null
+        }
+        description="Residents take items now; it goes on next month's bill."
+        title="Khata"
+      />
 
       {!data ? (
         khata.state === "error" ? <EmptyState label={khata.message || "Could not load."} /> : <LoadingRows />
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-3">
-            <MetricCard icon={Clock} label="Waiting asks" tone="amber" value={data.waiting.length + data.requests.length} />
+            <MetricCard
+              icon={Clock}
+              label="Waiting asks"
+              tone={data.waiting.length + data.requests.length > 0 ? "amber" : "teal"}
+              value={data.waiting.length + data.requests.length}
+            />
             <MetricCard icon={Users} label="Open khatas" tone="green" value={data.accounts.length} />
-            <MetricCard icon={ReceiptText} label="On next bills" tone="purple" value={currency(totalOnBills)} />
+            <MetricCard icon={ReceiptText} label="On next bills" tone="teal" value={currency(totalOnBills)} />
           </div>
 
           {message ? <p className="text-[12.5px] text-muted-foreground">{message}</p> : null}
@@ -614,9 +644,10 @@ export function HostelAdminKhataPageContent() {
                 <ul className="divide-y divide-border">
                   {data.accounts.map((row) => (
                     <li className="flex items-center gap-3 py-2.5" key={row.id}>
-                      <span className="min-w-0 flex-1">
+                      <span className="min-w-0 flex-1 space-y-1">
                         <span className="block font-medium text-foreground">{row.name}</span>
                         {row.roomNumber ? <span className="block text-[12px] text-muted-foreground">{`Room ${row.roomNumber}`}</span> : null}
+                        <ShareBar total={maxUnbilled} value={row.unbilled} />
                       </span>
                       <span className="font-semibold text-foreground">{row.unbilled > 0 ? currency(row.unbilled) : "—"}</span>
                       <button
@@ -633,11 +664,77 @@ export function HostelAdminKhataPageContent() {
               )}
             </SectionCard>
 
-            <SectionCard icon={ShoppingBasket} title="Items">
-              <form className="mb-4 grid grid-cols-[auto_1fr_120px_auto] items-end gap-2" onSubmit={submitItem}>
+            <SectionCard icon={ShoppingBasket} title={`Items · ${data.items.length}`}>
+              {data.items.length === 0 ? (
+                <EmptyState label="No items yet — egg, extra meal, laundry…" />
+              ) : (
+                <ul className="divide-y divide-border">
+                  {data.items.map((item) => (
+                    <li className="flex items-center gap-3 py-2.5" key={item.id}>
+                      {item.imageAssetId ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img alt="" className="size-9 rounded-lg object-cover" src={mediaUrl(item.imageAssetId, "THUMBNAIL")} />
+                      ) : (
+                        <span className="flex size-9 items-center justify-center rounded-lg bg-role-team-soft text-role-team">
+                          <ShoppingBasket className="size-4" />
+                        </span>
+                      )}
+                      <span className={cn("min-w-0 flex-1 text-[13.5px] font-medium", item.active ? "text-foreground" : "text-muted-foreground line-through")}>
+                        {item.name}
+                      </span>
+                      <span className="text-[13.5px] font-semibold text-foreground">{currency(item.price)}</span>
+                      <Switch
+                        checked={item.active}
+                        label={`Residents can ask for ${item.name}`}
+                        onChange={(active) =>
+                          void saveItems(
+                            data.items.map((row) => (row.id === item.id ? { ...row, active } : row)),
+                            active ? `${item.name} is on.` : `${item.name} is off.`,
+                          )
+                        }
+                      />
+                      <button
+                        aria-label={`Edit ${item.name}`}
+                        className="rounded-md p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                        onClick={() => {
+                          setDraft({ id: item.id, imageAssetId: item.imageAssetId, name: item.name, price: String(item.price) });
+                          setItemOpen(true);
+                        }}
+                        type="button"
+                      >
+                        <Pencil className="size-4" />
+                      </button>
+                      <button
+                        aria-label={`Remove ${item.name}`}
+                        className="rounded-md p-1.5 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive disabled:opacity-60"
+                        disabled={busy}
+                        onClick={() => {
+                          if (window.confirm(`Remove ${item.name}? What was already taken stays on the bill.`)) {
+                            void saveItems(data.items.filter((row) => row.id !== item.id), `${item.name} removed.`);
+                          }
+                        }}
+                        type="button"
+                      >
+                        <Trash2 className="size-4" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </SectionCard>
+          </div>
+
+          <Dialog onOpenChange={setItemOpen} open={itemOpen}>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>{draft.id ? "Edit item" : "Add an item"}</DialogTitle>
+                <DialogDescription>Whole rupees. A photo is optional.</DialogDescription>
+              </DialogHeader>
+              {message && itemOpen ? <p className="text-[12.5px] text-muted-foreground">{message}</p> : null}
+              <form className="grid grid-cols-[auto_1fr_110px] items-end gap-2" onSubmit={submitItem}>
                 <span className="relative">
                   <label
-                    className="flex size-9 cursor-pointer items-center justify-center overflow-hidden rounded-lg border border-dashed border-border bg-muted text-muted-foreground hover:text-foreground"
+                    className="flex size-10 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-border bg-muted text-muted-foreground hover:text-foreground"
                     title={draft.imageAssetId ? "Change photo (optional)" : "Add a photo (optional)"}
                   >
                     {draft.imageAssetId ? (
@@ -669,7 +766,7 @@ export function HostelAdminKhataPageContent() {
                   ) : null}
                 </span>
                 <Input
-                  label={draft.id ? "Edit item" : "New item"}
+                  label="Item"
                   name="name"
                   onChange={(event) => setDraft((prev) => ({ ...prev, name: event.target.value }))}
                   placeholder="Egg"
@@ -683,70 +780,15 @@ export function HostelAdminKhataPageContent() {
                   type="number"
                   value={draft.price}
                 />
-                <span className="flex gap-1.5">
+                <DialogFooter className="col-span-3">
                   <RoleButton className="h-9" disabled={busy || photo.isUploading} tone="admin" type="submit">
                     {draft.id ? <Check className="size-3.5" /> : <Plus className="size-3.5" />}
                     {draft.id ? "Save" : "Add"}
                   </RoleButton>
-                  {draft.id ? (
-                    <RoleButton className="h-9" onClick={() => setDraft({ name: "", price: "" })} tone="admin" type="button" variant="outline">
-                      Cancel
-                    </RoleButton>
-                  ) : null}
-                </span>
+                </DialogFooter>
               </form>
-
-              {data.items.length === 0 ? (
-                <EmptyState label="No items yet — egg, extra meal, laundry…" />
-              ) : (
-                <ul className="divide-y divide-border">
-                  {data.items.map((item) => (
-                    <li className="flex items-center gap-3 py-2.5" key={item.id}>
-                      {item.imageAssetId ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img alt="" className="size-8 rounded-md object-cover" src={mediaUrl(item.imageAssetId, "THUMBNAIL")} />
-                      ) : null}
-                      <span className={cn("min-w-0 flex-1 font-medium", item.active ? "text-foreground" : "text-muted-foreground line-through")}>
-                        {item.name}
-                      </span>
-                      <span className="font-semibold text-foreground">{currency(item.price)}</span>
-                      <Switch
-                        checked={item.active}
-                        label={`Residents can ask for ${item.name}`}
-                        onChange={(active) =>
-                          void saveItems(
-                            data.items.map((row) => (row.id === item.id ? { ...row, active } : row)),
-                            active ? `${item.name} is on.` : `${item.name} is off.`,
-                          )
-                        }
-                      />
-                      <button
-                        aria-label={`Edit ${item.name}`}
-                        className="rounded-md p-1.5 text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                        onClick={() => setDraft({ id: item.id, imageAssetId: item.imageAssetId, name: item.name, price: String(item.price) })}
-                        type="button"
-                      >
-                        <Pencil className="size-4" />
-                      </button>
-                      <button
-                        aria-label={`Remove ${item.name}`}
-                        className="rounded-md p-1.5 text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive disabled:opacity-60"
-                        disabled={busy}
-                        onClick={() => {
-                          if (window.confirm(`Remove ${item.name}? What was already taken stays on the bill.`)) {
-                            void saveItems(data.items.filter((row) => row.id !== item.id), `${item.name} removed.`);
-                          }
-                        }}
-                        type="button"
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </SectionCard>
-          </div>
+            </DialogContent>
+          </Dialog>
         </>
       )}
     </div>

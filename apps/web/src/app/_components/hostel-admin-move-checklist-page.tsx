@@ -1,9 +1,15 @@
 "use client";
 
-import { ClipboardCheck, LogIn, LogOut } from "@/components/icons";
+import { ClipboardCheck, Home, LogIn, LogOut } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
+import { Chip, RowMark } from "@/app/_components/hostel-admin-page-ui";
+import { MetricCard, RoleButton, SearchField } from "@/app/_components/portal-dashboard-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 import { browserApi } from "@/lib/browser-api";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import {
@@ -16,8 +22,9 @@ import {
   type Resident,
   Message,
   optionalNumber,
-  PageHeader,
 } from "./daily-operations-shared";
+// This one takes header actions; the daily-operations header is shared with other portals.
+import { PageHeader } from "./core-portal-shared";
 import { Input, Panel, Select, TextArea } from "@/app/_components/shared-ui";
 import {
   Sheet,
@@ -45,6 +52,7 @@ export const HostelAdminMoveChecklistPage = memo(function HostelAdminMoveCheckli
   const [drawerResidentId, setDrawerResidentId] = useState("");
   const [drawerTab, setDrawerTab] = useState<"MOVE_IN" | "MOVE_OUT">("MOVE_IN");
   const [actionMessage, setActionMessage] = useState("");
+  const [pickerOpen, setPickerOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [yearFilter, setYearFilter] = useState("ALL");
@@ -97,6 +105,11 @@ export const HostelAdminMoveChecklistPage = memo(function HostelAdminMoveCheckli
       return true;
     });
   }, [events, search, typeFilter, yearFilter]);
+
+  const movedInCount = events.filter((event) => event.type === "MOVE_IN").length;
+  const livingHere = events.filter(
+    (event) => event.type === "MOVE_IN" && !movedOutIds.has(event.residentId),
+  ).length;
 
   const openChecklist = useCallback((residentId: string, tab: "MOVE_IN" | "MOVE_OUT") => {
     setActionMessage("");
@@ -178,76 +191,75 @@ export const HostelAdminMoveChecklistPage = memo(function HostelAdminMoveCheckli
   );
 
   return (
-    <div className="mx-auto max-w-[1448px] space-y-6">
+    <div className="mx-auto max-w-[1448px] space-y-5">
       <PageHeader
-        description="Record move-in condition and move-out settlement."
+        action={
+          <RoleButton className="h-9 rounded-xl" onClick={() => setPickerOpen(true)} tone="admin" type="button">
+            <ClipboardCheck className="size-4" />
+            Open checklist
+          </RoleButton>
+        }
+        description="Move-in condition and move-out settlement, per resident."
         icon={ClipboardCheck}
         title="Move-In/Move-Out"
       />
       <Message value={message} />
 
-      <Panel title="Move History (automatic)">
-        <p className="mb-3 text-sm text-muted-foreground">
-          Move-ins are logged automatically when a resident is registered; move-outs are
-          logged once their settlement checklist is completed. Open a row to record the
-          condition checklist or settle a deposit.
-        </p>
-        <div className="mb-4 grid gap-3 sm:grid-cols-3">
-          <Input
-            label="Search resident"
-            name="moveSearch"
-            onChange={(event) => setSearch(event.target.value)}
-            value={search}
-          />
-          <Select
-            label="Type"
-            name="moveType"
-            onChange={(event) => setTypeFilter(event.target.value)}
-            value={typeFilter}
+      <div className="grid gap-3 sm:grid-cols-3">
+        <MetricCard icon={LogIn} label="Moved in" value={movedInCount} />
+        <MetricCard icon={LogOut} label="Moved out" tone="slate" value={movedOutIds.size} />
+        <MetricCard icon={Home} label="Still living here" value={livingHere} />
+      </div>
+
+      {/* Move-ins are logged when a resident is registered; move-outs once their
+          settlement checklist is saved. */}
+      <Panel title="Move history">
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <SearchField onChange={setSearch} placeholder="Search resident" size="lg" value={search} />
+          <FilterButton
+            active={(typeFilter === "ALL" ? 0 : 1) + (yearFilter === "ALL" ? 0 : 1)}
+            onClear={() => {
+              setTypeFilter("ALL");
+              setYearFilter("ALL");
+            }}
           >
-            <option value="ALL">All</option>
-            <option value="MOVE_IN">Move-in</option>
-            <option value="MOVE_OUT">Move-out</option>
-          </Select>
-          <Select
-            label="Year"
-            name="moveYear"
-            onChange={(event) => setYearFilter(event.target.value)}
-            value={yearFilter}
-          >
-            <option value="ALL">All years</option>
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </Select>
+            <FilterChoice
+              label="Type"
+              onChange={setTypeFilter}
+              options={[
+                { label: "All", value: "ALL" },
+                { label: "Move-in", value: "MOVE_IN" },
+                { label: "Move-out", value: "MOVE_OUT" },
+              ]}
+              value={typeFilter}
+            />
+            <FilterChoice
+              label="Year"
+              onChange={setYearFilter}
+              options={[{ label: "All years", value: "ALL" }, ...years.map((year) => ({ label: year, value: year }))]}
+              value={yearFilter}
+            />
+          </FilterButton>
         </div>
         {filteredEvents.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No move events found.</p>
+          <p className="py-6 text-center text-[13.5px] text-muted-foreground">No move events found.</p>
         ) : (
-          <div className="divide-y divide-border overflow-x-auto rounded-lg border border-border">
+          <div className="divide-y divide-border/60">
             {filteredEvents.map((event) => (
               <div
-                className="flex items-center gap-3 px-4 py-3 text-sm"
+                className="flex items-center gap-3 py-2.5 text-[13.5px]"
                 key={`${event.residentId}-${event.type}`}
               >
-                {event.type === "MOVE_IN" ? (
-                  <LogIn className="size-4 shrink-0 text-emerald-600" />
-                ) : (
-                  <LogOut className="size-4 shrink-0 text-rose-600" />
-                )}
-                <span className="min-w-0 flex-1 truncate font-semibold text-foreground">
-                  {event.residentName}
-                </span>
-                <span className="text-muted-foreground">
-                  {event.type === "MOVE_IN" ? "Moved in" : "Moved out"}
-                </span>
-                <span className="whitespace-nowrap font-medium text-foreground">
-                  {new Date(event.date).toLocaleDateString()}
-                </span>
-                <button
-                  className="whitespace-nowrap rounded-md border border-border px-2.5 py-1 text-xs font-semibold text-foreground hover:border-role-admin hover:text-role-admin"
+                <RowMark glyph={event.type === "MOVE_IN" ? "log-in" : "log-out"} tone={event.type === "MOVE_IN" ? "brand" : "neutral"} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-foreground">{event.residentName}</p>
+                  <p className="text-[12px] text-muted-foreground">
+                    {event.type === "MOVE_IN" ? "Moved in" : "Moved out"}
+                    {event.roomType ? ` · ${event.roomType}` : ""}
+                  </p>
+                </div>
+                <Chip glyph="calendar">{new Date(event.date).toLocaleDateString()}</Chip>
+                <Button
                   onClick={() =>
                     // A move-in row for someone still living here is really an
                     // invitation to settle their move-out.
@@ -258,47 +270,54 @@ export const HostelAdminMoveChecklistPage = memo(function HostelAdminMoveCheckli
                         : event.type,
                     )
                   }
+                  size="sm"
                   type="button"
+                  variant="outline"
                 >
                   {event.type === "MOVE_IN" && !movedOutIds.has(event.residentId)
                     ? "Settle move-out"
                     : "Checklist"}
-                </button>
+                </Button>
               </div>
             ))}
           </div>
         )}
       </Panel>
 
-      <Panel title="Open a checklist directly">
-        <p className="mb-3 text-sm text-muted-foreground">
-          Filters hide rows — use this to reach any resident regardless of the list above.
-        </p>
-        <div className="flex flex-wrap items-end gap-3">
-          <label className="grid min-w-[16rem] flex-1 gap-2 text-sm font-semibold text-foreground">
-            Resident
-            <select
-              className="h-11 rounded-md border border-border bg-background px-3 text-sm font-normal outline-none focus:border-role-admin"
-              onChange={(event) => setPickedResidentId(event.target.value)}
-              value={selectedResidentId}
-            >
-              {residents.map((resident) => (
-                <option key={resident.id} value={resident.id}>
-                  {resident.firstName} {resident.lastName}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button
-            className="h-11 rounded-md bg-role-admin px-4 text-sm font-semibold text-white disabled:opacity-50"
-            disabled={!selectedResidentId}
-            onClick={() => openChecklist(selectedResidentId, "MOVE_IN")}
-            type="button"
+      {/* Filters hide rows; this reaches any resident regardless of the list. */}
+      <Dialog onOpenChange={setPickerOpen} open={pickerOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Open a checklist</DialogTitle>
+            <DialogDescription>Any resident, whatever the list shows.</DialogDescription>
+          </DialogHeader>
+          <Select
+            label="Resident"
+            name="checklistResident"
+            onChange={(event) => setPickedResidentId(event.target.value)}
+            value={selectedResidentId}
           >
-            Open checklist
-          </button>
-        </div>
-      </Panel>
+            {residents.map((resident) => (
+              <option key={resident.id} value={resident.id}>
+                {resident.firstName} {resident.lastName}
+              </option>
+            ))}
+          </Select>
+          <DialogFooter>
+            <RoleButton
+              disabled={!selectedResidentId}
+              onClick={() => {
+                setPickerOpen(false);
+                openChecklist(selectedResidentId, "MOVE_IN");
+              }}
+              tone="admin"
+              type="button"
+            >
+              Open checklist
+            </RoleButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Sheet
         onOpenChange={(open) => {
@@ -313,20 +332,16 @@ export const HostelAdminMoveChecklistPage = memo(function HostelAdminMoveCheckli
                 ? `${drawerResident.firstName} ${drawerResident.lastName}`
                 : "Resident"}
             </SheetTitle>
-            <SheetDescription>
-              Move-in records the handover condition; move-out settles the deposit against
-              it.
-            </SheetDescription>
+            <SheetDescription>Move-in records the handover; move-out settles the deposit.</SheetDescription>
           </SheetHeader>
 
-          <div className="flex gap-2 px-4">
+          <div className="mx-4 flex gap-1 rounded-xl bg-muted p-1">
             {(["MOVE_IN", "MOVE_OUT"] as const).map((tab) => (
               <button
-                className={
-                  drawerTab === tab
-                    ? "rounded-md bg-role-admin px-3 py-1.5 text-xs font-semibold text-white"
-                    : "rounded-md border border-border px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground"
-                }
+                className={cn(
+                  "flex-1 rounded-lg px-3 py-1.5 text-[12.5px] font-semibold transition",
+                  drawerTab === tab ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                )}
                 key={tab}
                 onClick={() => setDrawerTab(tab)}
                 type="button"
@@ -349,7 +364,7 @@ export const HostelAdminMoveChecklistPage = memo(function HostelAdminMoveCheckli
                   <input name="rulesAccepted" type="checkbox" />
                   Rules accepted
                 </label>
-                <SubmitButton className="h-11 rounded-md bg-role-admin text-sm font-semibold text-white">
+                <SubmitButton className="h-10 rounded-xl bg-brand-teal text-white hover:bg-brand-teal/90">
                   Save Move-In
                 </SubmitButton>
               </BusyForm>
@@ -366,7 +381,7 @@ export const HostelAdminMoveChecklistPage = memo(function HostelAdminMoveCheckli
                   ))}
                 </Select>
                 <Input label="Final receipt asset id" name="finalReceiptAssetId" />
-                <SubmitButton className="h-11 rounded-md bg-role-admin text-sm font-semibold text-white">
+                <SubmitButton className="h-10 rounded-xl bg-brand-teal text-white hover:bg-brand-teal/90">
                   Save Move-Out
                 </SubmitButton>
               </BusyForm>

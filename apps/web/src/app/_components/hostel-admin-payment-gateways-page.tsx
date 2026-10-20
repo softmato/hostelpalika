@@ -1,12 +1,17 @@
 "use client";
 
-import { AlertTriangle, KeyRound, ShieldCheck, Trash2, Zap } from "@/components/icons";
+import { AlertTriangle, KeyRound, Pencil, ShieldCheck, Trash2, Zap } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
-import { EmptyState, Input, LoadingRows, Panel } from "@/app/_components/shared-ui";
+import { EmptyState, Input, LoadingRows } from "@/app/_components/shared-ui";
+import { Chip, ShareBar } from "@/app/_components/hostel-admin-page-ui";
+import { WalletMark } from "@/components/wallet-mark";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
+import { cn } from "@/lib/utils";
 import { Message, PageHeader, field } from "./portal-shared";
 
 /**
@@ -63,21 +68,19 @@ const HEALTH_STYLE: Record<
   { className: string; label: string }
 > = {
   DEGRADED: {
-    className:
-      "border-amber-500/40 bg-amber-500/10 text-amber-800 dark:text-amber-300",
+    className: "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
     label: "Some payments are failing",
   },
   FAILING: {
-    className: "border-destructive/40 bg-destructive/10 text-destructive",
+    className: "bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300",
     label: "Payments are not going through",
   },
   HEALTHY: {
-    className:
-      "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+    className: "bg-role-team-soft text-role-team",
     label: "Working",
   },
   QUIET: {
-    className: "border-border bg-muted/50 text-muted-foreground",
+    className: "bg-muted text-muted-foreground",
     label: "No payments lately",
   },
 };
@@ -90,7 +93,7 @@ function HealthBanner({ health }: { health: GatewayConfig["health"] }) {
   const style = HEALTH_STYLE[health.status];
 
   return (
-    <div className={`rounded-lg border p-3 text-sm ${style.className}`}>
+    <div className={cn("rounded-xl px-3 py-2.5 text-[13px]", style.className)}>
       <p className="flex items-center gap-2 font-semibold">
         {health.status === "HEALTHY" ? (
           <ShieldCheck aria-hidden="true" className="size-4" />
@@ -140,14 +143,14 @@ const PROVIDER_COPY: Record<
 function SecretState({ secret }: { secret: SecretView }) {
   if (!secret.configured) {
     return (
-      <p className="text-xs text-muted-foreground">
+      <p className="text-[12px] text-muted-foreground">
         No key stored yet. Test mode does not need one.
       </p>
     );
   }
 
   return (
-    <p className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+    <p className="flex items-center gap-1.5 text-[12px] font-semibold text-role-team">
       <KeyRound aria-hidden="true" className="size-3.5" />
       Key installed · {secret.fingerprint}
       {secret.rotatedAt
@@ -165,11 +168,21 @@ function GatewayCard({
 }: {
   config: GatewayConfig;
   onDelete: (provider: GatewayConfig["provider"]) => void;
-  onSave: (body: Record<string, unknown>) => void;
+  /** `true` when the server took it, so the dialog can close. */
+  onSave: (body: Record<string, unknown>) => Promise<boolean>;
   saving: boolean;
 }) {
   const copy = PROVIDER_COPY[config.provider];
   const [accountKind, setAccountKind] = useState(config.accountKind);
+  const [open, setOpen] = useState(false);
+  const set = config.secret.configured || Boolean(config.merchantCode);
+  // The app's gateway screen counts the same four steps.
+  const ready = [
+    config.accountKind === "MERCHANT",
+    config.secret.configured,
+    config.mode === "LIVE",
+    config.enabled,
+  ].filter(Boolean).length;
 
   const submit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -177,7 +190,7 @@ function GatewayCard({
       const form = new FormData(event.currentTarget);
       const secret = field(form, "secret");
 
-      onSave({
+      void onSave({
         accountKind,
         enabled: form.get("enabled") === "on",
         merchantCode: field(form, "merchantCode"),
@@ -186,37 +199,70 @@ function GatewayCard({
         // Omitted rather than sent empty: an empty field means "leave the stored
         // key alone", which is what an owner editing a merchant code intends.
         ...(secret ? { secret } : {}),
+      }).then((ok) => {
+        if (ok) setOpen(false);
       });
     },
     [accountKind, config.provider, onSave],
   );
 
   return (
-    <Panel
-      action={
-        config.payable ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-400">
-            <Zap aria-hidden="true" className="size-3" />
-            Live
-          </span>
+    <article className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-card p-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <WalletMark name={config.provider} size={44} />
+          <h3 className="font-heading text-[15px] font-bold text-foreground">{copy.name}</h3>
+        </div>
+        {config.payable ? (
+          <Chip glyph="flash" tone="brand">Live</Chip>
         ) : config.enabled ? (
-          <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">
-            Not shown to residents
-          </span>
-        ) : null
-      }
-      title={copy.name}
-    >
-      <form className="space-y-3" onSubmit={submit}>
-        <HealthBanner health={config.health} />
-        <p className="text-sm text-muted-foreground">{copy.help}</p>
+          <Chip tone="warn">Not shown to residents</Chip>
+        ) : (
+          <Chip>{set ? "Off" : "Not set"}</Chip>
+        )}
+      </div>
+      <ShareBar label="ready" total={4} value={ready} />
+      <HealthBanner health={config.health} />
+      <div className="flex flex-wrap gap-1.5">
+        <Chip glyph="key" tone={config.secret.configured ? "brand" : "neutral"}>
+          {config.secret.configured ? `Key ${config.secret.fingerprint ?? "installed"}` : "No key"}
+        </Chip>
+        <Chip glyph={config.mode === "LIVE" ? "cash" : "flask"}>{config.mode === "LIVE" ? "Real money" : "Test mode"}</Chip>
+        {config.merchantCode ? <Chip glyph="pricetag">{config.merchantCode}</Chip> : null}
+      </div>
+      <div className="mt-auto flex gap-2 pt-1">
+        <Button onClick={() => setOpen(true)} size="sm" type="button" variant="outline">
+          <Pencil aria-hidden="true" className="size-3.5" />
+          {set ? "Edit" : "Set up"}
+        </Button>
+        {set ? (
+          <Button
+            className="text-muted-foreground hover:text-destructive"
+            disabled={saving}
+            onClick={() => onDelete(config.provider)}
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
+            <Trash2 aria-hidden="true" className="size-3.5" />
+            Remove
+          </Button>
+        ) : null}
+      </div>
 
+      <Dialog onOpenChange={setOpen} open={open}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{copy.name}</DialogTitle>
+            <DialogDescription>{copy.where}</DialogDescription>
+          </DialogHeader>
+      <form className="space-y-3" onSubmit={submit}>
         {config.provider === "FONEPAY" ? (
-          <fieldset className="rounded-lg border border-border p-3">
-            <legend className="px-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">
+          <fieldset className="rounded-xl border border-border p-3">
+            <legend className="px-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
               Account type
             </legend>
-            <div className="flex flex-wrap gap-4 text-sm">
+            <div className="flex flex-wrap gap-4 text-[13.5px]">
               {(["MERCHANT", "PERSONAL"] as const).map((kind) => (
                 <label className="flex items-center gap-2" key={kind}>
                   <input
@@ -229,14 +275,13 @@ function GatewayCard({
                 </label>
               ))}
             </div>
+            {/* A personal Fonepay account receives about NPR 5,000 a day, so rent
+                would start failing partway through the month. It is stored but
+                never switched on; the personal QR belongs on Payment Setup. */}
             {accountKind === "PERSONAL" ? (
-              <p className="mt-2 flex items-start gap-2 rounded-md bg-amber-500/15 p-2 text-xs leading-4 font-semibold text-amber-800 dark:text-amber-300">
+              <p className="mt-2 flex items-start gap-2 rounded-lg bg-amber-50 p-2 text-[12px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
                 <AlertTriangle aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-                A personal Fonepay account can only receive about NPR 5,000 per day, so
-                rent payments would start failing partway through the month. It cannot be
-                used for online checkout — collect through your bank account instead, and
-                upload your personal QR on the payment details page if you want residents
-                to see it.
+                About NPR 5,000 a day only — it cannot run online checkout.
               </p>
             ) : null}
           </fieldset>
@@ -252,16 +297,15 @@ function GatewayCard({
         ) : null}
 
         <Input
-          hint="Leave blank to keep the key already stored. It can be replaced, never read back."
+          hint="Blank keeps the stored key. It can be replaced, never read back."
           label={copy.secretLabel}
           name="secret"
           placeholder="••••••••••••"
           type="password"
         />
         <SecretState secret={config.secret} />
-        <p className="text-xs leading-4 text-muted-foreground">{copy.where}</p>
 
-        <div className="flex flex-wrap items-center gap-4 text-sm">
+        <div className="flex flex-wrap items-center gap-4 text-[13.5px]">
           <label className="flex items-center gap-2">
             <input
               defaultChecked={config.mode === "LIVE"}
@@ -278,33 +322,25 @@ function GatewayCard({
         </div>
 
         {config.blockedReason ? (
-          <p className="flex items-start gap-2 rounded-md bg-amber-500/15 p-2 text-xs leading-4 font-semibold text-amber-800 dark:text-amber-300">
+          <p className="flex items-start gap-2 rounded-lg bg-amber-50 p-2 text-[12px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
             <AlertTriangle aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
             {config.blockedReason}
           </p>
         ) : null}
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex justify-end">
           <button
-            className="rounded-md bg-role-hostel-admin px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
+            className="h-10 rounded-xl bg-brand-teal px-4 text-[13.5px] font-semibold text-white transition hover:bg-brand-teal/90 disabled:opacity-60"
             disabled={saving}
             type="submit"
           >
             Save {copy.name}
           </button>
-          {config.secret.configured || config.merchantCode ? (
-            <button
-              className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 px-3 py-2 text-sm font-semibold text-destructive transition hover:bg-destructive/10"
-              onClick={() => onDelete(config.provider)}
-              type="button"
-            >
-              <Trash2 aria-hidden="true" className="size-3.5" />
-              Remove
-            </button>
-          ) : null}
         </div>
       </form>
-    </Panel>
+        </DialogContent>
+      </Dialog>
+    </article>
   );
 }
 
@@ -331,10 +367,12 @@ export const HostelAdminPaymentGatewaysPageContent = memo(
           });
           setMessage("Saved.");
           await resource.refreshAsync();
+          return true;
         } catch (error) {
           setMessage(
             error instanceof Error ? error.message : "Could not save this gateway.",
           );
+          return false;
         } finally {
           setSaving(false);
         }
@@ -366,7 +404,7 @@ export const HostelAdminPaymentGatewaysPageContent = memo(
     );
 
     return (
-      <div className="space-y-5">
+      <div className="mx-auto max-w-[1448px] space-y-5">
         <PageHeader
           description="One-tap rent payments that settle themselves."
           icon={Zap}
@@ -375,33 +413,30 @@ export const HostelAdminPaymentGatewaysPageContent = memo(
 
         <Message value={message} />
 
-        <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm leading-5">
-          <p className="flex items-center gap-2 font-semibold">
-            <ShieldCheck aria-hidden="true" className="size-4" />
-            Money goes straight to your own account.
-          </p>
-          <p className="mt-1 text-muted-foreground">
-            We hold a merchant code and a signing key — enough to request a payment and
-            check one, and nothing else. We never ask for your bank login, your banking
-            password, or card details, and a key you enter here can be replaced but never
-            read back, by us or by anyone.
-          </p>
-        </div>
+        {/* We hold a merchant code and a signing key — enough to request a
+            payment and check one, nothing else. No bank login, banking password
+            or card details, and a key can be replaced but never read back. */}
+        <p className="flex items-center gap-2 rounded-xl bg-role-team-soft px-4 py-3 text-[13.5px] font-semibold text-role-team">
+          <ShieldCheck aria-hidden="true" className="size-4 shrink-0" />
+          Money goes straight to your own account. We never see your bank login.
+        </p>
 
         {resource.state === "loading" ? <LoadingRows /> : null}
         {resource.state === "error" ? (
           <EmptyState label="Payment gateways could not be loaded." />
         ) : null}
 
-        {gateways.map((config) => (
-          <GatewayCard
-            config={config}
-            key={config.provider}
-            onDelete={remove}
-            onSave={save}
-            saving={saving}
-          />
-        ))}
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {gateways.map((config) => (
+            <GatewayCard
+              config={config}
+              key={config.provider}
+              onDelete={remove}
+              onSave={save}
+              saving={saving}
+            />
+          ))}
+        </div>
       </div>
     );
   },

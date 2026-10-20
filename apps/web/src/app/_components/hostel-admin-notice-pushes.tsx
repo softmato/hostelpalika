@@ -11,6 +11,7 @@ import {
   ToggleSwitch,
 } from "@/app/_components/portal-dashboard-ui";
 import { Input } from "@/app/_components/shared-ui";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
@@ -300,8 +301,8 @@ export const HostelAdminNoticePushes = memo(function HostelAdminNoticePushes() {
         </div>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="space-y-2">
+      <div>
+        <div className="grid gap-2 lg:grid-cols-2">
           {resource.state === "loading" ? (
             Array.from({ length: 2 }).map((_, index) => (
               <div
@@ -355,8 +356,13 @@ export const HostelAdminNoticePushes = memo(function HostelAdminNoticePushes() {
           )}
         </div>
 
-        {selected ? (
-          <div className="space-y-3 rounded-xl border border-border/70 p-4">
+        <Dialog onOpenChange={(next) => (next ? null : setSelected(null))} open={selected !== null}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>{existing ? existing.title : "New push notice"}</DialogTitle>
+              <DialogDescription>Pushed to residents&apos; phones, now or on a schedule.</DialogDescription>
+            </DialogHeader>
+          <div className="space-y-3">
             <Input
               label="Title"
               name="push-title"
@@ -526,11 +532,8 @@ export const HostelAdminNoticePushes = memo(function HostelAdminNoticePushes() {
               </RoleButton>
             </div>
           </div>
-        ) : (
-          <div className="flex items-center justify-center rounded-xl border border-dashed border-border/70 p-6 text-[12.5px] text-muted-foreground">
-            Pick a push notice to change its day and time.
-          </div>
-        )}
+          </DialogContent>
+        </Dialog>
       </div>
     </SectionCard>
   );

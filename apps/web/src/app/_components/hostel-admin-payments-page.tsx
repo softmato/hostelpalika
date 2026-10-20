@@ -10,7 +10,6 @@ import {
   Plus,
   ReceiptText,
   WalletCards,
-  X,
 } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
@@ -31,7 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import { browserApi } from "@/lib/browser-api";
 import {
   dayMonthYear,
@@ -76,6 +75,8 @@ import {
   TableRow,
 } from "./portal-dashboard-ui";
 import { BillExtraTags, type BillLine } from "./khata-pages";
+import { ShareBar } from "./hostel-admin-page-ui";
+import { WalletMark } from "@/components/wallet-mark";
 
 type MatrixRow = {
   displayStatus:
@@ -568,7 +569,7 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
             </RoleButton>
           </>
         }
-        description="Manage hostel fee collections, payments and approvals."
+        description="Rent collected, still owed, and claims waiting on you."
         title="Payments"
       />
 
@@ -581,13 +582,13 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
       {/* Lifetime figures for the hostel, not for the month in the table —
           "how are we doing" is not a question about August. Each card filters
           the table below to the rows it counts. */}
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           active={filter === "PAID"}
           icon={WalletCards}
           label="Collected (all time)"
           onClick={() => filterBy("PAID")}
-          tone="blue"
+          tone="teal"
           trend={`${overall?.paid ?? 0} month(s) settled`}
           value={currency(overall?.collected ?? 0)}
         />
@@ -596,7 +597,7 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
           icon={ReceiptText}
           label="Outstanding (all time)"
           onClick={() => filterBy("UNPAID")}
-          tone="cyan"
+          tone="teal"
           trend={`${(overall?.unpaid ?? 0) + (overall?.partial ?? 0)} open records`}
           value={currency(overall?.outstanding ?? 0)}
         />
@@ -621,21 +622,22 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
         />
       </div>
 
-      {showCreate ? (
-        <SectionCard
-          actions={
-            <Button
-              className="size-8"
-              onClick={() => setShowCreate(false)}
-              size="icon"
-              type="button"
-              variant="ghost"
-            >
-              <X className="size-4" />
-            </Button>
-          }
-          title="Create Payment Record"
-        >
+      {overall && overall.collected + overall.outstanding > 0 ? (
+        <div className="rounded-2xl border border-border/70 bg-card px-4 py-3">
+          <ShareBar
+            label="rupees collected of everything billed"
+            total={overall.collected + overall.outstanding}
+            value={overall.collected}
+          />
+        </div>
+      ) : null}
+
+      <Dialog onOpenChange={setShowCreate} open={showCreate}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Record a payment</DialogTitle>
+            <DialogDescription>A one-off record for one resident and month.</DialogDescription>
+          </DialogHeader>
           <form className="grid gap-3 md:grid-cols-2" onSubmit={handleCreatePayment}>
             <FormSelect label="Resident" name="residentId" required>
               <option value="">Select resident</option>
@@ -651,15 +653,15 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
             <div className="md:col-span-2">
               <TextArea label="Remarks" name="remarks" />
             </div>
-            <div className="md:col-span-2">
-              <RoleButton className="w-full sm:w-auto" tone="admin" type="submit">
+            <DialogFooter className="md:col-span-2">
+              <RoleButton tone="admin" type="submit">
                 <CreditCard className="size-4" />
-                Create Record
+                Create record
               </RoleButton>
-            </div>
+            </DialogFooter>
           </form>
-        </SectionCard>
-      ) : null}
+        </DialogContent>
+      </Dialog>
 
       {/* Billing is a monthly event, not a control panel: it was a permanent
           card taking a third of the screen for a job done once a month, and it
@@ -671,8 +673,7 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
           <DialogHeader>
             <DialogTitle>Generate monthly invoices</DialogTitle>
             <DialogDescription>
-              Issues one rent invoice per active resident for the month you pick,
-              priced from your fee schedule and each resident&apos;s bed type.
+              One rent invoice per active resident, priced from your fee schedule.
             </DialogDescription>
           </DialogHeader>
 
@@ -705,36 +706,28 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
               type="number"
             />
 
-            <ul className="space-y-1.5 rounded-lg border border-border/70 bg-muted/20 p-3 text-[12px] text-muted-foreground">
-              {/* The count comes from the table, which is loaded for one month.
-                  Pick a different month to bill and the number no longer
-                  describes it — so it is dropped rather than restated under the
-                  wrong heading. A confident "0 residents" about a month nobody
-                  has counted is the sentence that stops an owner billing. */}
-              <li>
-                {billMonth === month ? (
-                  <>
-                    <span className="font-semibold text-foreground">
-                      {stats.notBilled} resident(s)
-                    </span>{" "}
-                    have no invoice for {monthLabel(month)} yet — only they will be
-                    billed.
-                  </>
-                ) : (
-                  <>
-                    Every active resident with no invoice for{" "}
-                    <span className="font-semibold text-foreground">
-                      {monthLabel(billMonth)}
-                    </span>{" "}
-                    will be billed.
-                  </>
-                )}
-              </li>
-              <li>Residents who already have one are skipped, so running it twice is safe.</li>
-              <li>
-                Anyone your fee schedule cannot price is reported instead of billed zero.
-              </li>
-            </ul>
+            {/* The count comes from the table, which is loaded for one month.
+                Pick a different month to bill and the number no longer
+                describes it — so it is dropped rather than restated under the
+                wrong heading. A confident "0 residents" about a month nobody
+                has counted is the sentence that stops an owner billing.
+                Already-billed residents are skipped, so running it twice is
+                safe; anyone the fee schedule cannot price is reported, never
+                billed zero. */}
+            <p className="flex items-center gap-2 rounded-xl bg-muted/60 px-3 py-2.5 text-[12.5px] text-muted-foreground">
+              <CalendarPlus className="size-4 shrink-0 text-role-team" />
+              {billMonth === month ? (
+                <span>
+                  <span className="font-semibold text-foreground">{stats.notBilled} resident(s)</span> have no
+                  invoice for {monthLabel(month)} yet. Only they are billed.
+                </span>
+              ) : (
+                <span>
+                  Everyone with no invoice for{" "}
+                  <span className="font-semibold text-foreground">{monthLabel(billMonth)}</span> is billed.
+                </span>
+              )}
+            </p>
 
             <DialogFooter>
               <Button
@@ -776,50 +769,44 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
 
       <div className="grid gap-5">
         <SectionCard>
-          <Tabs onValueChange={setFilter} value={filter}>
-            <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-              <TabsList
-                className="h-auto flex-wrap rounded-none bg-transparent p-0"
-                variant="line"
-              >
-                <TabsTrigger className="rounded-none px-3 pb-2" value="ALL">
-                  All ({rows.length})
-                </TabsTrigger>
-                <TabsTrigger className="rounded-none px-3 pb-2" value="PAID">
-                  Paid ({stats.paid})
-                </TabsTrigger>
-                <TabsTrigger className="rounded-none px-3 pb-2" value="UNPAID">
-                  Unpaid ({stats.unpaid})
-                </TabsTrigger>
-                <TabsTrigger className="rounded-none px-3 pb-2" value="PARTIAL">
-                  Partial ({stats.partial})
-                </TabsTrigger>
-                <TabsTrigger className="rounded-none px-3 pb-2" value="OVERDUE">
-                  Overdue ({stats.overdue})
-                </TabsTrigger>
-                {/* The bucket target §11.4 opens with. Reachable from the
-                    Pending Proofs card, so the filter it sets has a tab that
-                    can show as active. */}
-                <TabsTrigger className="rounded-none px-3 pb-2" value="PENDING_PROOF">
-                  To review ({stats.toReview})
-                </TabsTrigger>
-              </TabsList>
-              <MonthPicker
-                months={periods}
-                onChange={setMonth}
-                value={month}
+          <div>
+            <div className="mb-4 flex flex-wrap items-center gap-2">
+              <SearchField
+                onChange={setSearch}
+                placeholder="Search by resident name or room type…"
+                size="lg"
+                value={search}
               />
+              {/* "To review" is the bucket target §11.4 opens with, and the one
+                  the Pending Proofs card sets — so it has a chip that shows as on. */}
+              <FilterButton active={filter === "ALL" ? 0 : 1} onClear={() => setFilter("ALL")}>
+                <FilterChoice
+                  label="Status"
+                  onChange={setFilter}
+                  options={[
+                    { label: `All ${rows.length}`, value: "ALL" },
+                    { label: `Paid ${stats.paid}`, value: "PAID" },
+                    { label: `Unpaid ${stats.unpaid}`, value: "UNPAID" },
+                    { label: `Partial ${stats.partial}`, value: "PARTIAL" },
+                    { label: `Overdue ${stats.overdue}`, value: "OVERDUE" },
+                    { label: `To review ${stats.toReview}`, value: "PENDING_PROOF" },
+                  ]}
+                  value={filter}
+                />
+              </FilterButton>
+              <span className="text-[12.5px] font-medium text-muted-foreground">
+                {filteredRows.length} of {rows.length} residents
+              </span>
+              <div className="ml-auto">
+                <MonthPicker
+                  months={periods}
+                  onChange={setMonth}
+                  value={month}
+                />
+              </div>
             </div>
 
-            <SearchField
-              className="mb-4 max-w-none"
-              onChange={setSearch}
-              placeholder="Search by resident name or room type…"
-              size="lg"
-              value={search}
-            />
-
-            <TabsContent className="mt-0" value={filter}>
+            <div>
               {state === "loading" ? <LoadingRows /> : null}
               {state === "error" ? (
                 <EmptyState label="Payments could not be loaded." />
@@ -913,7 +900,12 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
                             ) : null}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {row.payment ? currency(row.payment.paidAmount) : "—"}
+                            <span className="inline-flex items-center gap-2">
+                              {row.payment?.paymentMethod && row.payment.paidAmount > 0 ? (
+                                <WalletMark name={row.payment.paymentMethod} size={22} />
+                              ) : null}
+                              {row.payment ? currency(row.payment.paidAmount) : "—"}
+                            </span>
                           </TableCell>
                           <TableCell>
                             <SoftBadge
@@ -955,8 +947,8 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
                   </TableBody>
                 </DataTable>
               ) : null}
-            </TabsContent>
-          </Tabs>
+            </div>
+          </div>
         </SectionCard>
       </div>
 

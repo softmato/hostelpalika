@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarCheck, Download, HandCoins, Wallet } from "@/components/icons";
+import { CalendarCheck, Download, HandCoins, Settings, Wallet } from "@/components/icons";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
@@ -8,6 +8,7 @@ import { useState } from "react";
 import { List, ReasonAction, Row, timeLeft, useAction, useNow } from "@/app/_components/booking-admin-ui";
 import { at, rupees } from "@/app/_components/booking-ui";
 import { useConfirm } from "@/app/_components/confirm-dialog";
+import { Chip } from "@/app/_components/hostel-admin-page-ui";
 import { HostelPayoutAccountPanel } from "@/app/_components/hostel-payout-account-panel";
 import { HostelShortStaysPanel } from "@/app/_components/hostel-short-stays-panel";
 import {
@@ -18,6 +19,8 @@ import {
   TabBar,
 } from "@/app/_components/portal-dashboard-ui";
 import { Panel } from "@/app/_components/shared-ui";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { downloadFile } from "@/lib/downloads/downloader";
 import { usePortalResource } from "@/lib/portal-query";
 import type { HostelBookingView } from "@/modules/bookings/booking-views";
@@ -34,7 +37,7 @@ import type { HostelBookingView } from "@/modules/bookings/booking-views";
 const BASE = "/api/v1/hostel-admin/bookings";
 const REFRESH = [`${BASE}*`];
 
-type Tab = "confirmed" | "history" | "requests" | "settings";
+type Tab = "confirmed" | "history" | "requests";
 
 type BookingsResponse = {
   bookings: HostelBookingView[];
@@ -46,10 +49,10 @@ type BookingsResponse = {
 export function HostelAdminBookingsPage() {
   const { hostelSlug } = useParams<{ hostelSlug: string }>();
   const [tab, setTab] = useState<Tab>("requests");
-  // Settings is not a list: it still reads the requests tab, because the
-  // counts, what is owed and any pause sit above every tab including this one.
-  const listTab = tab === "settings" ? "requests" : tab;
-  const resource = usePortalResource<BookingsResponse>(`${BASE}?tab=${listTab}`, {
+  // Payout account and short stays are a dialog over whichever list is open,
+  // so the counts, what is owed and any pause stay in view.
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const resource = usePortalResource<BookingsResponse>(`${BASE}?tab=${tab}`, {
     errorMessage: "Could not load bookings.",
   });
   const { busy, run } = useAction(REFRESH);
@@ -94,20 +97,17 @@ export function HostelAdminBookingsPage() {
           }
           key={booking.id}
         >
-          <p className="font-bold text-foreground">
-            {booking.roomType} · {booking.code}
+          <p className="text-[13.5px] font-semibold text-foreground">
+            {booking.roomType} <span className="font-mono text-[12px] font-normal text-muted-foreground">{booking.code}</span>
           </p>
-          <p className="text-muted-foreground">{guest}</p>
-          <p className="text-muted-foreground">
-            Answer by {at(booking.hostelAnswerBy)}{" "}
-            <SoftBadge tone={timeLeft(booking.hostelAnswerBy, now) === "overdue" ? "rose" : "amber"}>
-              {timeLeft(booking.hostelAnswerBy, now)}
-            </SoftBadge>
-          </p>
-          <p className="text-muted-foreground">
-            Your share after they move in: {rupees(booking.hostelShareIfKept)}
-            {booking.plannedMoveIn ? ` · plans to arrive ${booking.plannedMoveIn}` : ""}
-          </p>
+          <p className="text-[12.5px] text-muted-foreground">{guest}</p>
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            <Chip glyph="timer" tone={timeLeft(booking.hostelAnswerBy, now) === "overdue" ? "bad" : "warn"}>
+              {`Answer by ${at(booking.hostelAnswerBy)}${now ? ` · ${timeLeft(booking.hostelAnswerBy, now)}` : ""}`}
+            </Chip>
+            <Chip glyph="cash" tone="brand">{`Your share ${rupees(booking.hostelShareIfKept)}`}</Chip>
+            {booking.plannedMoveIn ? <Chip glyph="calendar">{`Arrives ${booking.plannedMoveIn}`}</Chip> : null}
+          </div>
         </Row>
       );
     }
@@ -134,16 +134,15 @@ export function HostelAdminBookingsPage() {
           }
           key={booking.id}
         >
-          <p className="font-bold text-foreground">
-            {booking.roomType} · {booking.code}
+          <p className="text-[13.5px] font-semibold text-foreground">
+            {booking.roomType} <span className="font-mono text-[12px] font-normal text-muted-foreground">{booking.code}</span>
           </p>
-          <p className="text-muted-foreground">{guest}</p>
-          <p className="text-muted-foreground">
-            Bed held until {at(booking.holdEndsAt)}{" "}
-            <SoftBadge tone={timeLeft(booking.holdEndsAt, now) === "overdue" ? "rose" : "green"}>
-              {timeLeft(booking.holdEndsAt, now)}
-            </SoftBadge>
-          </p>
+          <p className="text-[12.5px] text-muted-foreground">{guest}</p>
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            <Chip glyph="bed" tone={timeLeft(booking.holdEndsAt, now) === "overdue" ? "bad" : "brand"}>
+              {`Held until ${at(booking.holdEndsAt)}${now ? ` · ${timeLeft(booking.holdEndsAt, now)}` : ""}`}
+            </Chip>
+          </div>
         </Row>
       );
     }
@@ -171,37 +170,47 @@ export function HostelAdminBookingsPage() {
         }
         key={booking.id}
       >
-        <p className="font-bold text-foreground">
-          {booking.statusLabel} · {booking.code} {booking.strike ? <SoftBadge tone="rose">missed booking</SoftBadge> : null}
+        <p className="flex flex-wrap items-center gap-2 text-[13.5px] font-semibold text-foreground">
+          {booking.statusLabel}
+          <span className="font-mono text-[12px] font-normal text-muted-foreground">{booking.code}</span>
+          {booking.strike ? <SoftBadge tone="rose">missed booking</SoftBadge> : null}
         </p>
-        <p className="text-muted-foreground">
+        <p className="text-[12.5px] text-muted-foreground">
           {guest} · {booking.roomType} · {at(booking.endedAt)}
         </p>
-        {booking.endReason ? <p className="text-muted-foreground">Reason: {booking.endReason}</p> : null}
+        {booking.endReason ? <p className="text-[12.5px] text-muted-foreground">Reason: {booking.endReason}</p> : null}
         {booking.payout ? (
-          <p className="text-muted-foreground">
-            Your share {rupees(booking.payout.amount)} ·{" "}
-            {booking.payout.status === "SENT"
-              ? `sent ${at(booking.payout.sentAt)}, transaction ${booking.payout.transactionId ?? ""}`
-              : "to be sent"}
-          </p>
+          <div className="flex flex-wrap gap-1.5 pt-1">
+            <Chip glyph="cash" tone={booking.payout.status === "SENT" ? "brand" : "neutral"}>
+              {`Your share ${rupees(booking.payout.amount)} · ${
+                booking.payout.status === "SENT"
+                  ? `sent ${at(booking.payout.sentAt)}, transaction ${booking.payout.transactionId ?? ""}`
+                  : "to be sent"
+              }`}
+            </Chip>
+          </div>
         ) : null}
       </Row>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-[1448px] space-y-5">
       {confirmDialog}
       <PortalPageHeader
-        description="People who booked a bed and paid the booking fee to us. Answer each request before its countdown ends."
+        actions={
+          <Button className="h-9 gap-2 rounded-xl" onClick={() => setSettingsOpen(true)} type="button" variant="outline">
+            <Settings className="size-4" />
+            Settings
+          </Button>
+        }
+        description="Answer each bed booking before its countdown ends."
         title="Bookings"
       />
 
       {data?.pause.pausedAt ? (
-        <p className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-300">
-          People cannot book your hostel right now{data.pause.reason ? `: ${data.pause.reason}` : ""}. Contact us to turn
-          bookings back on.
+        <p className="rounded-xl bg-amber-50 px-4 py-3 text-[13.5px] text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+          Bookings are paused{data.pause.reason ? `: ${data.pause.reason}` : ""}. Contact us to turn them back on.
         </p>
       ) : null}
 
@@ -217,39 +226,41 @@ export function HostelAdminBookingsPage() {
           { count: data?.counts.requests, key: "requests", label: "Requests" },
           { count: data?.counts.confirmed, key: "confirmed", label: "Confirmed" },
           { key: "history", label: "History" },
-          { key: "settings", label: "Settings" },
         ]}
         tone="admin"
         value={tab}
       />
 
-      {tab === "settings" ? (
-        <div className="space-y-3">
+      <Panel>
+        <List
+          empty={
+            tab === "requests"
+              ? "No booking is waiting for your answer."
+              : tab === "confirmed"
+                ? "No bed is held right now."
+                : "No finished bookings yet."
+          }
+          items={data?.bookings}
+          render={render}
+          state={resource.state}
+        />
+      </Panel>
+
+      <Dialog onOpenChange={setSettingsOpen} open={settingsOpen}>
+        <DialogContent className="sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Booking settings</DialogTitle>
+            <DialogDescription>
+              Where your share is paid, and short stays.{" "}
+              <Link className="font-semibold text-role-team hover:underline" href="/how-booking-works" target="_blank">
+                How booking works
+              </Link>
+            </DialogDescription>
+          </DialogHeader>
           <HostelPayoutAccountPanel />
           <HostelShortStaysPanel />
-          <p className="px-1 text-xs text-muted-foreground">
-            <Link className="font-semibold text-primary hover:underline" href="/how-booking-works" target="_blank">
-              How booking works
-            </Link>{" "}
-            explains the answer window, the hold, your share and what counts as a missed booking.
-          </p>
-        </div>
-      ) : (
-        <Panel>
-          <List
-            empty={
-              tab === "requests"
-                ? "No booking is waiting for your answer."
-                : tab === "confirmed"
-                  ? "No bed is held right now."
-                  : "No finished bookings yet."
-            }
-            items={data?.bookings}
-            render={render}
-            state={resource.state}
-          />
-        </Panel>
-      )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

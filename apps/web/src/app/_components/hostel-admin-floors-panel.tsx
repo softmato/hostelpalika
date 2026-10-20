@@ -3,7 +3,16 @@
 import { Building2, Loader2, Plus, Trash2 } from "@/components/icons";
 import { useState } from "react";
 
+import { Glyph } from "@/components/glyph";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { usePortalResource } from "@/lib/portal-query";
 import { cn } from "@/lib/utils";
@@ -60,19 +69,23 @@ function numbersFrom(first: string, count: number) {
   );
 }
 
-const INPUT = "h-10 rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-primary";
+const INPUT = "h-10 rounded-xl border border-border bg-background px-3 text-[13.5px] outline-none focus:border-brand-teal";
+const LABEL = "grid gap-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground";
+const SUBHEAD = "text-[11px] font-semibold uppercase tracking-[0.08em]";
 
 export function FloorsPanel() {
   const layout = usePortalResource<Layout>(BASE);
   const requests = usePortalResource<{ requests: Request[] }>(`${BASE}/requests`);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [adding, setAdding] = useState(false);
   const [floor, setFloor] = useState("1");
   const [roomType, setRoomType] = useState("");
   const [first, setFirst] = useState("101");
   const [count, setCount] = useState("1");
   const [beds, setBeds] = useState("2");
 
+  /** `true` when the work went through, so a dialog knows to close. */
   const run = async (work: () => Promise<unknown>, done: string) => {
     setBusy(true);
     setMessage("");
@@ -80,8 +93,10 @@ export function FloorsPanel() {
       await work();
       setMessage(done);
       await Promise.all([layout.refreshAsync(), requests.refreshAsync()]);
+      return true;
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "That did not work.");
+      return false;
     } finally {
       setBusy(false);
     }
@@ -91,7 +106,7 @@ export function FloorsPanel() {
 
   if (!data) {
     return (
-      <section className="rounded-2xl border border-border bg-card p-5 text-sm text-muted-foreground">
+      <section className="rounded-2xl border border-border/70 bg-card p-4 text-[13.5px] text-muted-foreground">
         {layout.state === "error" ? "Rooms could not be loaded." : "Loading floors…"}
       </section>
     );
@@ -102,43 +117,63 @@ export function FloorsPanel() {
   const pending = requests.data?.requests ?? [];
 
   return (
-    <section className="space-y-5 rounded-2xl border border-border bg-card p-5">
+    <section className="space-y-4 rounded-2xl border border-border/70 bg-card p-4">
       <header className="flex flex-wrap items-center gap-3">
-        <Building2 className="size-5 text-primary" />
-        <div className="mr-auto">
-          <h2 className="font-semibold text-foreground">Floors & room numbers</h2>
-          <p className="text-xs text-muted-foreground">
-            {data.tracking ? "Every resident has a floor and a room." : "Off — residents are kept by room type only."}
+        <span className="flex size-9 items-center justify-center rounded-full bg-role-team-soft text-role-team">
+          <Building2 className="size-[18px]" />
+        </span>
+        <div className="mr-auto min-w-0">
+          <h2 className="font-heading text-[15px] font-semibold tracking-tight text-foreground">Floors & room numbers</h2>
+          <p className="text-[12.5px] text-muted-foreground">
+            {data.tracking ? `${floors.length} floors · ${data.rooms.length} rooms` : "Off — residents are kept by room type only."}
           </p>
         </div>
-        <label className="flex items-center gap-2 text-sm font-medium">
-          <input
-            checked={data.tracking}
-            disabled={busy}
-            onChange={(event) =>
-              void run(
-                () => browserApi(`${BASE}/tracking`, { body: JSON.stringify({ enabled: event.target.checked }), method: "PUT" }),
-                event.target.checked ? "Floor & room is on." : "Room type only.",
-              )
-            }
-            type="checkbox"
+        {data.tracking ? (
+          <Button disabled={busy} onClick={() => setAdding(true)} size="sm" type="button" variant="outline">
+            <Plus className="size-3.5" />
+            Add rooms
+          </Button>
+        ) : null}
+        <button
+          aria-checked={data.tracking}
+          aria-label="Floor & room"
+          className={cn(
+            "relative h-5 w-9 shrink-0 rounded-full transition-colors disabled:opacity-60",
+            data.tracking ? "bg-brand-teal" : "bg-muted-foreground/30",
+          )}
+          disabled={busy}
+          onClick={() =>
+            void run(
+              () => browserApi(`${BASE}/tracking`, { body: JSON.stringify({ enabled: !data.tracking }), method: "PUT" }),
+              data.tracking ? "Room type only." : "Floor & room is on.",
+            )
+          }
+          role="switch"
+          title="Floor & room"
+          type="button"
+        >
+          <span
+            className={cn(
+              "absolute top-0.5 size-4 rounded-full bg-white shadow transition-all",
+              data.tracking ? "left-[18px]" : "left-0.5",
+            )}
           />
-          Floor & room
-        </label>
+        </button>
       </header>
 
-      {message ? <p className="text-sm text-muted-foreground">{message}</p> : null}
+      {message ? <p className="text-[13.5px] text-muted-foreground">{message}</p> : null}
 
       {data.tracking ? (
         <>
           {pending.length > 0 ? (
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold">Room change requests</h3>
+              <p className={cn(SUBHEAD, "text-muted-foreground")}>Room change requests · {pending.length}</p>
               {pending.map((request) => (
-                <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border p-3 text-sm" key={request.id}>
-                  <div className="mr-auto">
-                    <p className="font-semibold">{request.resident.name}</p>
-                    <p className="text-xs text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-3 rounded-xl bg-muted/50 p-3 text-[13.5px]" key={request.id}>
+                  <Glyph className="size-4 shrink-0 text-role-team" name="swap-horizontal" />
+                  <div className="mr-auto min-w-0">
+                    <p className="font-semibold text-foreground">{request.resident.name}</p>
+                    <p className="truncate text-[12.5px] text-muted-foreground">
                       {place(request.from)} → {place(request.to)}
                       {request.note ? ` · “${request.note}”` : ""}
                     </p>
@@ -157,6 +192,7 @@ export function FloorsPanel() {
                     Decline
                   </Button>
                   <Button
+                    className="bg-brand-teal text-white hover:bg-brand-teal/90"
                     disabled={busy || !request.to || (request.to.free ?? 0) <= 0}
                     onClick={() =>
                       void run(
@@ -175,11 +211,14 @@ export function FloorsPanel() {
 
           {data.rooms.length > 0 && data.unassigned.length > 0 ? (
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold">No room yet · {data.unassigned.length}</h3>
+              <p className={cn(SUBHEAD, "text-amber-700 dark:text-amber-300")}>No room yet · {data.unassigned.length}</p>
               {data.unassigned.map((person) => (
-                <div className="flex flex-wrap items-center gap-3 rounded-xl border border-warning/40 bg-warning/5 p-3 text-sm" key={person.id}>
-                  <span className="mr-auto font-medium">
-                    {person.name} <span className="text-xs text-muted-foreground">· {person.roomType}</span>
+                <div
+                  className="flex flex-wrap items-center gap-3 rounded-xl bg-amber-50 p-3 text-[13.5px] dark:bg-amber-950/30"
+                  key={person.id}
+                >
+                  <span className="mr-auto font-medium text-foreground">
+                    {person.name} <span className="text-[12.5px] text-muted-foreground">· {person.roomType}</span>
                   </span>
                   <select
                     className={INPUT}
@@ -211,43 +250,71 @@ export function FloorsPanel() {
             </div>
           ) : null}
 
+          {floors.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-border py-6 text-center text-[13.5px] text-muted-foreground">
+              No numbered rooms yet.
+            </p>
+          ) : null}
+
           {floors.map((value) => {
             const onFloor = data.rooms.filter((room) => room.floor === value);
             return (
               <div className="space-y-2" key={value}>
-                <h3 className="text-sm font-semibold">
-                  {floorName(value)}{" "}
-                  <span className="font-normal text-muted-foreground">
-                    · {onFloor.length} rooms · {onFloor.reduce((sum, room) => sum + room.free, 0)} beds free
+                <div className="flex items-baseline gap-2">
+                  <h3 className="text-[13.5px] font-semibold text-foreground">{floorName(value)}</h3>
+                  <span className="text-[12px] text-muted-foreground">
+                    {onFloor.length} rooms · {onFloor.reduce((sum, room) => sum + room.free, 0)} beds free
                   </span>
-                </h3>
+                </div>
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
-                  {onFloor.map((room) => (
-                    <div className="group relative rounded-xl border border-border p-2.5" key={room.id} title={room.residents.map((person) => person.name).join(", ")}>
-                      <p className="font-bold">{room.number}</p>
-                      <p className="truncate text-xs text-muted-foreground">{room.roomType}</p>
-                      <p className={cn("text-xs", room.free > 0 ? "text-success" : "text-muted-foreground")}>
-                        {room.free > 0 ? `${room.free} of ${room.beds} free` : "Full"}
-                      </p>
-                      {room.residents.length === 0 ? (
-                        <button
-                          aria-label={`Remove room ${room.number}`}
-                          className="absolute right-1.5 top-1.5 hidden text-muted-foreground hover:text-destructive group-hover:block"
-                          onClick={() => void run(() => browserApi(`${BASE}/${room.id}`, { method: "DELETE" }), `Room ${room.number} removed.`)}
-                          type="button"
-                        >
-                          <Trash2 className="size-3.5" />
-                        </button>
-                      ) : null}
-                    </div>
-                  ))}
+                  {onFloor.map((room) => {
+                    const share = room.beds > 0 ? Math.round(((room.beds - room.free) / room.beds) * 100) : 0;
+
+                    return (
+                      <div
+                        className="group relative rounded-xl border border-border/70 p-2.5 transition duration-200 hover:-translate-y-0.5 hover:shadow-sm"
+                        key={room.id}
+                        title={room.residents.map((person) => person.name).join(", ")}
+                      >
+                        <p className="font-heading text-[15px] font-bold leading-tight text-foreground">{room.number}</p>
+                        <p className="truncate text-[11.5px] text-muted-foreground">{room.roomType}</p>
+                        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
+                          <div
+                            className={cn("h-full rounded-full", room.free > 0 ? "bg-brand-teal" : "bg-foreground")}
+                            style={{ width: `${share}%` }}
+                          />
+                        </div>
+                        <p className={cn("mt-1 text-[11.5px] font-medium", room.free > 0 ? "text-role-team" : "text-muted-foreground")}>
+                          {room.free > 0 ? `${room.free} of ${room.beds} free` : "Full"}
+                        </p>
+                        {room.residents.length === 0 ? (
+                          <button
+                            aria-label={`Remove room ${room.number}`}
+                            className="absolute right-1.5 top-1.5 hidden text-muted-foreground hover:text-destructive group-hover:block"
+                            onClick={() => void run(() => browserApi(`${BASE}/${room.id}`, { method: "DELETE" }), `Room ${room.number} removed.`)}
+                            type="button"
+                          >
+                            <Trash2 className="size-3.5" />
+                          </button>
+                        ) : null}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             );
           })}
+        </>
+      ) : null}
 
+      <Dialog onOpenChange={setAdding} open={adding}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add rooms</DialogTitle>
+            <DialogDescription>One floor at a time. Numbers count up from the first.</DialogDescription>
+          </DialogHeader>
           <form
-            className="grid gap-3 rounded-xl border border-dashed border-border p-4 sm:grid-cols-[repeat(5,minmax(0,1fr))_auto] sm:items-end"
+            className="grid gap-3"
             onSubmit={(event) => {
               event.preventDefault();
               void run(
@@ -257,43 +324,55 @@ export function FloorsPanel() {
                     method: "POST",
                   }),
                 `${numbers.length} rooms added.`,
-              );
+              ).then((ok) => {
+                if (ok) setAdding(false);
+              });
             }}
           >
-            <label className="grid gap-1 text-xs font-semibold">
-              Floor (0 = ground)
-              <input className={INPUT} onChange={(event) => setFloor(event.target.value)} required type="number" value={floor} />
-            </label>
-            <label className="grid gap-1 text-xs font-semibold">
-              Room type
-              <select className={INPUT} onChange={(event) => setRoomType(event.target.value)} required value={roomType}>
-                <option value="">Pick</option>
-                {data.roomTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {type}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="grid gap-1 text-xs font-semibold">
-              First room no.
-              <input className={INPUT} onChange={(event) => setFirst(event.target.value)} required value={first} />
-            </label>
-            <label className="grid gap-1 text-xs font-semibold">
-              How many
-              <input className={INPUT} min={1} max={100} onChange={(event) => setCount(event.target.value)} required type="number" value={count} />
-            </label>
-            <label className="grid gap-1 text-xs font-semibold">
-              Beds each
-              <input className={INPUT} min={1} max={40} onChange={(event) => setBeds(event.target.value)} required type="number" value={beds} />
-            </label>
-            <Button disabled={busy || numbers.length === 0 || !roomType} type="submit">
-              {busy ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-              {numbers.length > 1 ? `Add ${numbers[0]}–${numbers.at(-1)}` : "Add room"}
-            </Button>
+            <div className="grid grid-cols-2 gap-3">
+              <label className={LABEL}>
+                Floor (0 = ground)
+                <input className={INPUT} onChange={(event) => setFloor(event.target.value)} required type="number" value={floor} />
+              </label>
+              <label className={LABEL}>
+                Room type
+                <select className={INPUT} onChange={(event) => setRoomType(event.target.value)} required value={roomType}>
+                  <option value="">Pick</option>
+                  {data.roomTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {type}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="grid grid-cols-3 gap-3">
+              <label className={LABEL}>
+                First no.
+                <input className={INPUT} onChange={(event) => setFirst(event.target.value)} required value={first} />
+              </label>
+              <label className={LABEL}>
+                How many
+                <input className={INPUT} max={100} min={1} onChange={(event) => setCount(event.target.value)} required type="number" value={count} />
+              </label>
+              <label className={LABEL}>
+                Beds each
+                <input className={INPUT} max={40} min={1} onChange={(event) => setBeds(event.target.value)} required type="number" value={beds} />
+              </label>
+            </div>
+            <DialogFooter>
+              <Button
+                className="bg-brand-teal text-white hover:bg-brand-teal/90"
+                disabled={busy || numbers.length === 0 || !roomType}
+                type="submit"
+              >
+                {busy ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
+                {numbers.length > 1 ? `Add ${numbers[0]}–${numbers.at(-1)}` : "Add room"}
+              </Button>
+            </DialogFooter>
           </form>
-        </>
-      ) : null}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 }
