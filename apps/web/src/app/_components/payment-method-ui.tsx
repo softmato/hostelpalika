@@ -1,8 +1,9 @@
 "use client";
 
-import { AlertTriangle, Building2, Check, Copy, QrCode, Smartphone } from "@/components/icons";
+import { AlertTriangle, Check, Copy, QrCode } from "@/components/icons";
 import { useCallback, useState } from "react";
 
+import { WalletMark } from "@/components/wallet-mark";
 import { cn } from "@/lib/utils";
 
 /**
@@ -77,16 +78,16 @@ export function methodLabel(method: PayMethod) {
   }
 }
 
-export function MethodIcon({ method }: { method: PayMethod }) {
-  if (method.kind === "BANK") {
-    return <Building2 aria-hidden className="size-4 shrink-0" />;
-  }
+/** The method's real mark: eSewa, Khalti, Fonepay, the bank's own logo, or a QR tile. */
+export function MethodIcon({ method, size = 20 }: { method: PayMethod; size?: number }) {
+  const name =
+    method.kind === "GATEWAY"
+      ? method.provider
+      : method.kind === "BANK"
+        ? method.bankName || "BANK"
+        : method.kind;
 
-  if (method.kind === "QR") {
-    return <QrCode aria-hidden className="size-4 shrink-0" />;
-  }
-
-  return <Smartphone aria-hidden className="size-4 shrink-0" />;
+  return <WalletMark name={name} size={size} />;
 }
 
 export function CopyButton({
