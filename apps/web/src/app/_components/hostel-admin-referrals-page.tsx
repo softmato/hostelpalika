@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import React, { useCallback, useMemo, useState, type FormEvent } from "react";
 import { BadgeCheck, Gift, HandCoins, Trophy, UserCheck, Users, Wallet } from "@/components/icons";
 import { EmptyState, LoadingRows, Panel, StatusBadge } from "@/app/_components/shared-ui";
@@ -61,11 +63,7 @@ const FILTERS = [
 
 function shortDate(value?: string) {
   return value
-    ? new Date(value).toLocaleDateString("en", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      })
+    ? formatHostelDate(value)
     : "—";
 }
 

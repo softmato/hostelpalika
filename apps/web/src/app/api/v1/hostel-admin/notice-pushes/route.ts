@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { createNoticePush, listNoticePushes } from "@/modules/notices/notice-push.service";
 import {
   noticePushCreateSchema,
@@ -17,10 +18,10 @@ export async function GET(request: NextRequest) {
       Object.fromEntries(request.nextUrl.searchParams.entries()),
     );
 
-    return successResponse(
+    return withEtag(request, successResponse(
       await listNoticePushes(principal, query.hostelId),
       "Push notices loaded",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

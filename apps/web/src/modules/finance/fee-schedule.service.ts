@@ -4,6 +4,7 @@ import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
 import { auditFinanceAction } from "@/modules/finance/audit-finance";
 import {
+  addBsMonths,
   bsPeriodBounds,
   bsPeriodOf,
   formatBsDayRange,
@@ -875,4 +876,103 @@ function totalOfRates(rates: FeeScheduleRate[]) {
 
 function dayBefore(date: Date) {
   return new Date(date.getTime() - MS_PER_DAY);
+}
+
+/**
+ * The rents and fees typed on Hostel KYC's "Room types & rent" step — the
+ * hostel's first-time defaults, set without leaving KYC.
+ *
+ * - No card yet: one opens from this month.
+ * - A card that has priced no invoice yet is corrected in place. It has billed
+ *   nobody, so there is no basis to protect — which is the normal KYC case.
+ * - A card that has billed: room types and fees it never priced are filled in
+ *   on it (nobody was charged at a price that did not exist), and a changed
+ *   price is booked from next month, the same rule the rate editor follows.
+ */
+export async function saveKycRates(
+  hostelId: Types.ObjectId | string,
+  input: { admissionFee?: number; depositAmount?: number; rates: { monthlyAmount: number; roomType: string }[] },
+  principal: ApiPrincipal,
+) {
+  await connectToDatabase();
+
+  const open = await FeeScheduleModel.findOne({ effectiveTo: null, hostelId }).lean<FeeScheduleRecord | null>();
+  const key = (roomType?: string | null) => (roomType ?? "").toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const toRates = (rates: { monthlyAmount: number; roomType?: string | null }[]) =>
+    rates.map((rate) => ({
+      bedType: rate.roomType ? normalizeBedType(rate.roomType) : null,
+      monthlyAmount: rate.monthlyAmount,
+      roomType: rate.roomType,
+    }));
+  const createFrom = (effectiveFrom: Date, base: FeeScheduleRecord | null) =>
+    createFeeSchedule(
+      hostelId,
+      {
+        admissionFee: input.admissionFee ?? base?.admissionFee,
+        depositAmount: input.depositAmount ?? base?.depositAmount,
+        effectiveFrom,
+        formFee: base?.formFee ?? 0,
+        // Room types the step did not send keep their price.
+        rates: [
+          ...(base?.rates ?? [])
+            .filter((rate) => !input.rates.some((typed) => key(typed.roomType) === key(rate.roomType)))
+            .map((rate) => ({ monthlyAmount: rate.monthlyAmount, roomType: rate.roomType ?? undefined })),
+          ...input.rates,
+        ],
+        referralAdmissionDiscount: Math.min(base?.referralAdmissionDiscount ?? 0, input.admissionFee ?? base?.admissionFee ?? 0) || undefined,
+      },
+      principal,
+    );
+
+  if (!open) return { nextMonth: false, schedule: await createFrom(hostelMonthStart(new Date()), null) };
+  if (scheduleStanding(open) === "upcoming") return { nextMonth: false, schedule: await createFrom(open.effectiveFrom, open) };
+
+  const invoiced = await InvoiceModel.countDocuments({ "lines.feeScheduleId": open._id });
+  const priced = new Map(open.rates.map((rate) => [key(rate.roomType), rate.monthlyAmount]));
+  const changed = invoiced > 0 && (
+    input.rates.some((rate) => priced.has(key(rate.roomType)) && priced.get(key(rate.roomType)) !== rate.monthlyAmount) ||
+    (input.admissionFee !== undefined && Boolean(open.admissionFee) && input.admissionFee !== open.admissionFee) ||
+    (input.depositAmount !== undefined && Boolean(open.depositAmount) && input.depositAmount !== open.depositAmount)
+  );
+
+  // In place: everything when nothing was billed, only the gaps otherwise.
+  const rates = [
+    ...open.rates.map((rate) => {
+      const typed = input.rates.find((item) => key(item.roomType) === key(rate.roomType));
+      return invoiced === 0 && typed ? { ...rate, monthlyAmount: typed.monthlyAmount } : rate;
+    }),
+    ...toRates(input.rates.filter((rate) => !priced.has(key(rate.roomType)))),
+  ];
+  const admissionFee = invoiced === 0 || !open.admissionFee ? (input.admissionFee ?? open.admissionFee) : open.admissionFee;
+  const depositAmount = invoiced === 0 || !open.depositAmount ? (input.depositAmount ?? open.depositAmount) : open.depositAmount;
+
+  await FeeScheduleModel.updateOne(
+    { _id: open._id },
+    {
+      $set: {
+        admissionFee,
+        depositAmount,
+        rates,
+        referralAdmissionDiscount: Math.min(open.referralAdmissionDiscount ?? 0, admissionFee ?? 0),
+      },
+    },
+  );
+  await projectScheduleOntoListing(hostelId, { admissionFee, formFee: open.formFee ?? 0, rates });
+  await auditFinanceAction(principal, {
+    action: "FEE_SCHEDULE_CREATED",
+    amountAfter: totalOfRates(rates),
+    amountBefore: totalOfRates(open.rates),
+    entityId: open._id,
+    entityType: "FeeSchedule",
+    hostelId,
+    reason: "Rates set on Hostel KYC.",
+    source: "FEE_SCHEDULE_EDITOR",
+  });
+
+  if (!changed) return { nextMonth: false, schedule: open._id };
+
+  const updated = { ...open, admissionFee, depositAmount, rates };
+  const next = bsPeriodBounds(addBsMonths(bsPeriodOf(new Date()), 1)).start;
+
+  return { nextMonth: true, schedule: await createFrom(next, updated) };
 }

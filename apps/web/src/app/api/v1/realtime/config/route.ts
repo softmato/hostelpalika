@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { realtimeChannelsFor } from "@/lib/realtime/access";
 import { isRealtimeConfigured } from "@/lib/realtime/server";
 
@@ -23,13 +24,13 @@ export async function GET(request: NextRequest) {
     const principal = await requireApiPrincipal(request);
 
     if (!isRealtimeConfigured()) {
-      return successResponse(
+      return withEtag(request, successResponse(
         { channels: [], cluster: "", enabled: false, key: "" },
         "Realtime is not configured",
-      );
+      ));
     }
 
-    return successResponse(
+    return withEtag(request, successResponse(
       {
         channels: realtimeChannelsFor(principal),
         cluster: process.env.PUSHER_CLUSTER ?? "",
@@ -37,7 +38,7 @@ export async function GET(request: NextRequest) {
         key: process.env.PUSHER_KEY ?? "",
       },
       "Realtime configuration loaded",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

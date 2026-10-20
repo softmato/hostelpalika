@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { loadApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { connectToDatabase } from "@/lib/db";
 import { listTrendingTags } from "@/modules/community/community.service";
 import { listLiveSponsors } from "@/modules/sponsors/sponsor.service";
@@ -34,10 +35,10 @@ export async function GET(request: NextRequest) {
       loadPopularHostels(),
     ]);
 
-    return successResponse(
+    return withEtag(request, successResponse(
       { popularHostels, sponsors, trendingTags },
       "Community sidebar loaded",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

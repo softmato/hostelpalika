@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import { Pencil, Settings } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
@@ -243,7 +245,7 @@ export const HostelAdminSettingsPageContent = memo(
                 ? [
                     cook.cookName ? `Name ${cook.cookName}` : "No cook name",
                     cook.cookCredentialIssuedAt
-                      ? `Login issued ${new Date(cook.cookCredentialIssuedAt).toLocaleDateString()}`
+                      ? `Login issued ${formatHostelDate(cook.cookCredentialIssuedAt)}`
                       : "No login issued",
                   ]
                 : []

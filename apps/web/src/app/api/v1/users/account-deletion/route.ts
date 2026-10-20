@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   getAccountDeletionStatus,
   requestAccountDeletion,
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireApiPrincipal(request);
     const result = await getAccountDeletionStatus(principal);
 
-    return successResponse(result, "Account deletion status loaded");
+    return withEtag(request, successResponse(result, "Account deletion status loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

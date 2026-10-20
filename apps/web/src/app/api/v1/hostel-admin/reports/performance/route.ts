@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelStaffPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getHostelPerformanceReport } from "@/modules/reports/performance-report.service";
 import { performanceReportQuerySchema } from "@/modules/reports/report.validation";
 
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
     );
     const report = await getHostelPerformanceReport(query, principal);
 
-    return successResponse({ report }, "Performance report loaded");
+    return withEtag(request, successResponse({ report }, "Performance report loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

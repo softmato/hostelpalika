@@ -169,6 +169,7 @@ export function MoveOutSheet({
     openConfirm({
       confirmLabel: "Write off",
       destructive: true,
+      pin: true,
       message: `${formatMoney(owed ?? 0)} leaves the hostel's totals. Their bills show it as written off.`,
       onConfirm: async () => {
         try {

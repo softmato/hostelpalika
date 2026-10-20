@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   listPausedHostels,
   listPlatformBookings,
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
     });
     const pausedHostels = params.get("tab") === "paused" ? await listPausedHostels() : undefined;
 
-    return successResponse({ ...list, pausedHostels }, "Bookings");
+    return withEtag(request, successResponse({ ...list, pausedHostels }, "Bookings"));
   } catch (error) {
     return handleRouteError(error);
   }

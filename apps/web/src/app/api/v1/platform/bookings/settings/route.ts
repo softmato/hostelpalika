@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getBookingConfig, mergeBookingConfig } from "@/modules/bookings/booking-config";
 import {
   getPendingSettingChange,
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
       getPendingSettingChange("bookings"),
     ]);
 
-    return successResponse({ config, pending }, "Booking settings loaded");
+    return withEtag(request, successResponse({ config, pending }, "Booking settings loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

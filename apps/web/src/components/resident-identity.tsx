@@ -1,3 +1,4 @@
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
 import {
   AlertCircle,
   Briefcase,
@@ -2204,11 +2205,7 @@ function formatCardDate(value?: string | null) {
 
   return Number.isNaN(date.getTime())
     ? ""
-    : date.toLocaleDateString(undefined, {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
+    : formatHostelDate(date);
 }
 
 /**
@@ -2707,7 +2704,7 @@ function IdCardPanel({
                       identity.shareCount === 1 ? "time" : "times"
                     }${
                       identity.lastSharedAt
-                        ? `, last on ${new Date(identity.lastSharedAt).toLocaleDateString()}`
+                        ? `, last on ${formatHostelDate(identity.lastSharedAt)}`
                         : ""
                     }.`
                   : ""}

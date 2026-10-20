@@ -16,6 +16,15 @@ export const identitySchema = z.object({
   siteName: z.string().optional().transform((): string => PLATFORM_NAME),
   supportEmail: trimmed.email().or(z.literal("")).default(""),
   supportPhone: trimmed.max(40).default(""),
+  /**
+   * Up to two numbers for the Help & support dialog, each with a note saying
+   * what to call it for and when ("Billing · 10am–5pm"). Blank rows are dropped.
+   */
+  supportLines: z
+    .array(z.object({ note: trimmed.max(80).default(""), phone: trimmed.max(40).default("") }))
+    .max(2)
+    .default([])
+    .transform((lines) => lines.filter((line) => line.phone)),
   tagline: trimmed.max(160).default(""),
 });
 
@@ -116,6 +125,27 @@ export const announcementSchema = z.object({
   linkLabel: trimmed.max(40).default(""),
   message: trimmed.max(240).default(""),
   tone: z.enum(["info", "success", "warning"]).default("info"),
+});
+
+/**
+ * A superadmin message drawn like the app's "Update available" sheet — a big
+ * icon, a heading, a few lines and a button — on the app's open and on every
+ * web portal. `id` changes with each send, and a person who closed one id is
+ * not shown it again. Https-only link: it lands in front of every audience.
+ */
+export const APP_NOTICE_AUDIENCES = ["EVERYONE", "HOSTEL_STAFF", "RESIDENTS", "GUARDIANS"] as const;
+
+export const appNoticeSchema = z.object({
+  audience: z.enum(APP_NOTICE_AUDIENCES).default("EVERYONE"),
+  buttonLabel: trimmed.max(30).default(""),
+  enabled: z.boolean().default(false),
+  id: trimmed.max(40).default(""),
+  link: trimmed
+    .max(300)
+    .refine((value) => value === "" || value.startsWith("https://"), "Use an https:// link.")
+    .default(""),
+  message: trimmed.max(400).default(""),
+  title: trimmed.max(80).default(""),
 });
 
 /**
@@ -716,6 +746,7 @@ export type PlansConfig = z.infer<typeof plansSchema>;
 
 export const siteConfigSectionSchemas = {
   announcement: announcementSchema,
+  appNotice: appNoticeSchema,
   apps: appsSchema,
   content: contentSchema,
   email: emailSchema,

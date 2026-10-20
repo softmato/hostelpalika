@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import {
   ArrowRight,
   BadgeCheck,
@@ -498,7 +500,7 @@ function ApplicationStatusPanel({
           <div>
             <dt className="text-muted-foreground">Submitted</dt>
             <dd className="mt-0.5 font-semibold text-foreground">
-              {new Date(application.submittedAt).toLocaleDateString()}
+              {formatHostelDate(application.submittedAt)}
             </dd>
           </div>
         ) : null}

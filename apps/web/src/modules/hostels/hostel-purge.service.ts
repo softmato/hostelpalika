@@ -26,6 +26,7 @@ import { EmergencyContactModel } from "@hostel/db/models/EmergencyContact";
 import { EncryptedSecretModel } from "@hostel/db/models/EncryptedSecret";
 import { ExistingResidentListModel } from "@hostel/db/models/ExistingResidentList";
 import { ExpenseModel } from "@hostel/db/models/Expense";
+import { FeedbackModel } from "@hostel/db/models/Feedback";
 import { ResidentApplicationModel } from "@hostel/db/models/ResidentApplication";
 import { ResidentJoinLinkModel } from "@hostel/db/models/ResidentJoinLink";
 import { AdmissionFormModel } from "@hostel/db/models/AdmissionForm";
@@ -180,6 +181,8 @@ const ERASED_BY_HOSTEL_ID: Array<{ model: PurgeableModel; name: string }> = (
     ["EncryptedSecret", EncryptedSecretModel],
     ["ExistingResidentList", ExistingResidentListModel],
     ["Expense", ExpenseModel],
+    // Help & support feedback sent from inside the hostel: it quotes the hostel's own data.
+    ["Feedback", FeedbackModel],
     ["ResidentApplication", ResidentApplicationModel],
     ["ResidentJoinLink", ResidentJoinLinkModel],
     ["AdmissionForm", AdmissionFormModel],

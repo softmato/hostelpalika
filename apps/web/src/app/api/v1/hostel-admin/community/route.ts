@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelStaffPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   createCommunityAnnouncement,
   listCommunityModeration,
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     );
     const result = await listCommunityModeration(query, principal);
 
-    return successResponse(result, "Community posts loaded");
+    return withEtag(request, successResponse(result, "Community posts loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

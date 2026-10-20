@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import { Banknote, PackageCheck, ShoppingBag, Truck } from "@/components/icons";
 import Link from "next/link";
 import { memo, useCallback, useMemo, useState } from "react";
@@ -256,7 +258,7 @@ export const PlatformStoreOrdersPageContent = memo(
                         <FactChip glyph="cash">{formatPaisa(order.total)}</FactChip>
                         <WalletChip name={order.paymentMethod}>{walletLabel(order.paymentMethod)}</WalletChip>
                         {order.createdAt ? (
-                          <FactChip glyph="time">{new Date(order.createdAt).toLocaleString()}</FactChip>
+                          <FactChip glyph="time">{formatHostelDateTime(order.createdAt)}</FactChip>
                         ) : null}
                         <FactChip glyph="location">
                           {`${order.delivery.contactName} · ${order.delivery.phone} · ${order.delivery.addressLine}${order.delivery.city ? `, ${order.delivery.city}` : ""}`}
@@ -389,7 +391,7 @@ export const PlatformStoreOrdersPageContent = memo(
                               <span className="font-semibold text-foreground">
                                 {entry.statusLabel}
                               </span>
-                              {entry.at ? ` · ${new Date(entry.at).toLocaleString()}` : ""}
+                              {entry.at ? ` · ${formatHostelDateTime(entry.at)}` : ""}
                               {entry.note ? ` · ${entry.note}` : ""}
                             </li>
                           ))}

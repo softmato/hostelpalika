@@ -14,8 +14,11 @@ import { DEFAULT_SITE_CONFIG } from "@/modules/platform-config/site-config.defau
  * without a redeploy. Saves revalidate on demand (site-config route, setting
  * changes), so the window only covers data pages like /hostels; each expiry
  * bills ISR writes, and 600s blew the Hobby quota (233K/200K, 2026-09-22).
+ * 2026-10-20: 6h, not 1h — each hourly re-render of /, /hostels/[slug] and the
+ * city pages was half the project's CPU. Profile, rate and bed changes clear
+ * it on demand (`revalidatePublicPages`).
  */
-export const revalidate = 3600;
+export const revalidate = 21600;
 
 export default async function PublicLayout({
   children,

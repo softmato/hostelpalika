@@ -2509,6 +2509,24 @@ export async function createFeeSchedule(input: {
   await api.post("/hostel-admin/finance/fee-schedules", input);
 }
 
+/**
+ * KYC's rent step: rents by room type plus the joining fees, saved to the rate
+ * card. The server corrects a card that has billed nobody in place; once it
+ * has, a changed price starts next month (`nextMonth: true`).
+ */
+export async function saveKycRates(input: {
+  admissionFee?: number;
+  depositAmount?: number;
+  rates: { monthlyAmount: number; roomType: string }[];
+}) {
+  const response = await api.post<ApiEnvelope<{ nextMonth: boolean }>>(
+    "/hostel-admin/finance/fee-schedules/kyc",
+    input,
+  );
+
+  return unwrap(response);
+}
+
 export async function closeFeeSchedule(id: string, effectiveTo: string) {
   await api.post(`/hostel-admin/finance/fee-schedules/${id}/close`, {
     effectiveTo,

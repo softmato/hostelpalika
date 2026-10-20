@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { createSponsor, listSponsors } from "@/modules/sponsors/sponsor.service";
 import {
   sponsorCreateSchema,
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
     );
     const result = await listSponsors(query);
 
-    return successResponse(result, "Sponsors loaded");
+    return withEtag(request, successResponse(result, "Sponsors loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

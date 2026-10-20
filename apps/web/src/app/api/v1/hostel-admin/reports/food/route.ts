@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getFoodAnalytics } from "@/modules/reports/operations-analytics.service";
 
 export const runtime = "nodejs";
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
       hostelId: params.get("hostelId") ?? undefined,
     });
 
-    return successResponse(result, "Food analytics loaded");
+    return withEtag(request, successResponse(result, "Food analytics loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

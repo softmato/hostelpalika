@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   listPayoutAccounts,
   type PayoutAccountStatus,
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
     const status = params.get("status") as PayoutAccountStatus | null;
     const hostelId = params.get("hostelId");
 
-    return successResponse(
+    return withEtag(request, successResponse(
       {
         accounts: await listPayoutAccounts({
           ...(status && STATUSES.has(status) ? { status } : {}),
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
         }),
       },
       "Payout accounts",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -688,6 +688,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
      */
     supportEmail: "support@softmato.com",
     supportPhone: "+977-1-5432123",
+    supportLines: [],
     tagline: "Find & manage hostels in Nepal",
   },
   /**
@@ -748,6 +749,15 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
    * component constant.
    */
   plans: DEFAULT_PLANS,
+  appNotice: {
+    audience: "EVERYONE",
+    buttonLabel: "",
+    enabled: false,
+    id: "",
+    link: "",
+    message: "",
+    title: "",
+  },
   questionCall: {
     enabled: true,
     label: "QuestionCall",

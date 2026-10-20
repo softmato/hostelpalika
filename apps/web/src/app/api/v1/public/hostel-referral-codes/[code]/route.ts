@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { previewHostelReferralCode } from "@/modules/hostel-referrals/hostel-referral.service";
 
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     const { code } = await context.params;
 
-    return successResponse(await previewHostelReferralCode(code), "Referral code");
+    return withEtag(request, successResponse(await previewHostelReferralCode(code), "Referral code"));
   } catch (error) {
     return handleRouteError(error);
   }

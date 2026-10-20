@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import {
   Archive,
   ArchiveRestore,
@@ -247,13 +249,13 @@ function documentHref(document: VerificationDocument) {
 function formatDate(value: string | null | undefined) {
   if (!value) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
+  return Number.isNaN(date.getTime()) ? "—" : formatHostelDate(date);
 }
 
 function formatDateTime(value: string | null | undefined) {
   if (!value) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? "—" : formatHostelDateTime(date);
 }
 
 export const PlatformHostelsPageContent = memo(function PlatformHostelsPageContent() {

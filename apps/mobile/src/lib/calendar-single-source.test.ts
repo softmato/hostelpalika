@@ -162,19 +162,16 @@ describe("the app has one source of truth for dates", () => {
     expect(offenders).toEqual([]);
   });
 
-  it("offers the calendar setting to every role, not just the owner", () => {
-    // The default is Bikram Sambat for everybody, so everybody needs the switch
-    // back. `app/manage/settings.tsx` is the owner's own settings screen and
-    // `app/settings.tsx` is the one every other role reaches from their More tab;
-    // both render the same card, off the same slice.
+  it("offers no calendar setting: there is one date format", () => {
+    // `Baisakh · 2083-01-15` everywhere (docs/PORTAL_POLISH_2026_10.md). A
+    // picker back on a settings screen would be a switch that changes nothing.
     const screens = ["app/settings.tsx", "app/manage/settings.tsx"];
 
-    const missing = screens.filter(
-      (screen) =>
-        !readFileSync(join(SRC, screen), "utf8").includes("<CalendarPreferenceCard />"),
+    const offering = screens.filter((screen) =>
+      readFileSync(join(SRC, screen), "utf8").includes("<CalendarPreferenceCard />"),
     );
 
-    expect(missing).toEqual([]);
+    expect(offering).toEqual([]);
   });
 
   it("converts to Bikram Sambat in exactly one place", () => {

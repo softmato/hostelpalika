@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 
 import { logger } from "@/lib/logger";
 import type { FeeScheduleRecord } from "@/modules/finance/fee-schedule.service";
+import { revalidatePublicPages } from "@/lib/revalidate-public";
 import { HostelModel } from "@hostel/db/models/Hostel";
 
 /**
@@ -170,6 +171,8 @@ export async function projectScheduleOntoListing(
         },
       },
     );
+
+    revalidatePublicPages();
 
     if (projection.unmatched.onCardOnly.length > 0) {
       // Worth a line: a rate nobody can book is usually a room type renamed on

@@ -5,6 +5,7 @@ import { Role } from "@/lib/roles";
 import { hostelDayEnd } from "@hostel/shared/calendar/bs";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { HostelModel } from "@hostel/db/models/Hostel";
+import { revalidatePublicPages } from "@/lib/revalidate-public";
 
 /**
  * A hostel's portal taken away for an unpaid plan: the stage, who it reaches,
@@ -248,5 +249,6 @@ export async function liftHostelSuspension(
     },
   });
 
+  revalidatePublicPages();
   return true;
 }

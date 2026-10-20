@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireHostelAdminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { assertHostelScopedApiAccess } from "@/lib/api-auth";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { HostelSettingsModel } from "@hostel/db/models/HostelSettings";
@@ -50,10 +51,10 @@ export async function GET(request: NextRequest) {
 
     await connectToDatabase();
 
-    return successResponse(
+    return withEtag(request, successResponse(
       { hostelId, settings: await getCommunitySettings(hostelId) },
       "Community settings loaded",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

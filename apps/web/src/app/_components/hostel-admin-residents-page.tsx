@@ -1,7 +1,8 @@
 "use client";
 
+import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import {
-  Download,
   FileSpreadsheet,
   Loader2,
   LogOut,
@@ -51,9 +52,10 @@ import {
 } from "@/hooks/use-hostel-admin";
 import { useWorkspaceHref } from "@/hooks/use-workspace-href";
 import { browserApi } from "@/lib/browser-api";
-import { downloadCsv } from "@/lib/downloads/downloader";
+import { ExportMenu } from "@/components/export-menu";
+import { downloadTable, type TableFormat } from "@/lib/downloads/downloader";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
-import { usePortalResource } from "@/lib/portal-query";
+import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { toast } from "@/stores/toast-store";
 import { cn } from "@/lib/utils";
 
@@ -72,6 +74,13 @@ import { ResidentDaysAway } from "./money-rules-panel";
 import { CHARGE_KEYS, ResidentCharges } from "./resident-charges-field";
 import { ResidentMoveOutDialog } from "./resident-move-out-dialog";
 import { JoinLinkButton, JoinRequestsPanel } from "./resident-join-panel";
+import {
+  ADMISSION_FORMS_URL,
+  AdmissionFormsPanel,
+  detailsContacts,
+  FormQrDialog,
+  type AdmissionForm,
+} from "./admission-forms-panel";
 import {
   DataTable,
   EmptyInline,
@@ -393,7 +402,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
    */
   const [registered, setRegistered] = useState<RegistrationOutcome | null>(null);
   const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("ALL");
+  const [statusFilter, setStatusFilter] = useState("ACTIVE");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [showAddForm, setShowAddForm] = useState(false);
   const [lookupId, setLookupId] = useState("");
@@ -409,6 +418,10 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
     holdEndsAt: string | null;
     roomType: string;
   } | null>(null);
+  /** The Form QR submission this registration answers, when it came from one. */
+  const [fromForm, setFromForm] = useState<AdmissionForm | null>(null);
+  const [formQrOpen, setFormQrOpen] = useState(false);
+  const invalidate = useInvalidateResources();
   /** "identify" asks for the resident ID first; "form" is the actual registration. */
   const [addStep, setAddStep] = useState<"identify" | "form">("identify");
   /** Room type drives the charges and the room list, so it is controlled. */
@@ -472,7 +485,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
   const [exporting, setExporting] = useState(false);
 
   /** Every resident, not the page on screen — the list is paginated server-side. */
-  async function exportResidents() {
+  async function exportResidents(format: TableFormat) {
     setExporting(true);
 
     try {
@@ -489,7 +502,8 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
         if (residents.length < 100) break;
       }
 
-      downloadCsv(
+      await downloadTable(
+        format,
         "residents",
         [
           { key: "name", label: "Name" },
@@ -588,6 +602,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
   }, [lookupId]);
 
   const clearPrefill = useCallback(() => {
+    setFromForm(null);
     setPrefill(null);
     setPrefillPhoto(null);
     setPrefillOccupancy(null);
@@ -595,6 +610,18 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
     setLookupId("");
     setLookupError("");
   }, []);
+
+  /** A Form QR row's Register: their own answers fill the form; staff pick the bed. */
+  const registerFromForm = useCallback(
+    (form: AdmissionForm) => {
+      clearPrefill();
+      setFromForm(form);
+      setShowAddForm(true);
+      setAddStep("form");
+      window.scrollTo({ behavior: "smooth", top: 0 });
+    },
+    [clearPrefill],
+  );
 
   /** The Charges block below re-quotes from this room type's rate card. */
   const handleRoomTypeChange = setRoomType;
@@ -606,6 +633,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
       const confirmed = await confirm({
         actionLabel: "Remove resident",
         description: `${fullName}'s bed is freed and they disappear from every list in this hostel.`,
+        pin: true,
         title: "Remove this resident?",
         tone: "destructive",
       });
@@ -641,6 +669,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
       const confirmed = await confirm({
         actionLabel: "Write off",
         description: `Everything ${fullName} still owes leaves the dashboard, Payments and every total. Their bills show it as written off.`,
+        pin: true,
         title: "Write off what they owe?",
         tone: "destructive",
       });
@@ -764,6 +793,10 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
             // login — the email on the form is their profile address, which is
             // not necessarily the one they sign in with.
             userResidentId: prefill ? lookupId.trim() : undefined,
+            // The Form QR they filled: the server files their paper details and
+            // marks the form added.
+            admissionFormId: fromForm?.id,
+            details: fromForm?.details ?? undefined,
           }),
           method: "POST",
         });
@@ -793,6 +826,30 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
           ).length;
         }
 
+        // Their family and local guardian from the form — what the app writes too.
+        if (fromForm) {
+          const residentId = created.resident.id;
+          const { emergencyContact, guardians } = detailsContacts(fromForm.details);
+          const outcomes = await Promise.allSettled([
+            ...guardians.map((guardian) =>
+              browserApi(`/api/v1/hostel-admin/residents/${residentId}/guardians`, {
+                body: JSON.stringify(guardian),
+                method: "POST",
+              }),
+            ),
+            ...(emergencyContact
+              ? [
+                  browserApi(`/api/v1/hostel-admin/residents/${residentId}/emergency-contacts`, {
+                    body: JSON.stringify(emergencyContact),
+                    method: "POST",
+                  }),
+                ]
+              : []),
+          ]);
+          attachedContacts = outcomes.filter((outcome) => outcome.status === "fulfilled").length;
+          invalidate(ADMISSION_FORMS_URL);
+        }
+
         formElement.reset();
         setRoomType("");
         setShowAddForm(false);
@@ -803,7 +860,9 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
         setMessage(
           (prefill
             ? `Resident created from ID ${lookupId.trim().toUpperCase()} — ${attachedContacts} contact record(s) added automatically.`
-            : "Resident created.") + referralNote,
+            : fromForm
+              ? `Resident created from their Form QR — ${attachedContacts} contact record(s) added automatically.`
+              : "Resident created.") + referralNote,
         );
 
         /*
@@ -864,7 +923,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
         setSaveBusy(false);
       }
     },
-    [clearPrefill, lookupId, prefill, residentsQuery, roomTypesQuery],
+    [clearPrefill, fromForm, invalidate, lookupId, prefill, residentsQuery, roomTypesQuery],
   );
 
   const handleGenerateActivation = useCallback(async (residentId: string) => {
@@ -938,6 +997,10 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                     Add existing residents
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem onSelect={() => setFormQrOpen(true)}>
+                  <QrCode className="size-4" />
+                  Form QR
+                </DropdownMenuItem>
                 <DropdownMenuItem onSelect={() => handleGenerateActivation(activeResidentId)}>
                   <QrCode className="size-4" />
                   Activation code
@@ -956,7 +1019,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
               type="button"
             >
               <Plus className="size-4" />
-              Add resident
+              Register a resident
             </RoleButton>
           </>
         }
@@ -969,6 +1032,10 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
           {message}
         </div>
       ) : null}
+
+      {formQrOpen ? <FormQrDialog onClose={() => setFormQrOpen(false)} /> : null}
+
+      <AdmissionFormsPanel onRegister={registerFromForm} />
 
       <JoinRequestsPanel />
 
@@ -1008,7 +1075,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
               ? "Start with the resident's ID — their saved details fill the form for you."
               : "Review the details, assign a room, then save."
           }
-          title="Register New Resident"
+          title="Register a resident"
         >
           {addStep === "identify" ? (
             <div className="space-y-4 rounded-xl border border-dashed border-role-admin/40 bg-role-admin-soft/15 p-5">
@@ -1070,6 +1137,20 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
             </div>
           ) : null}
 
+          {addStep === "form" && fromForm ? (
+            <div className="mb-4 flex items-center gap-3 rounded-xl border border-brand-teal/30 bg-brand-teal/5 p-3">
+              <InitialsAvatar
+                image={fromForm.photo}
+                name={`${fromForm.firstName} ${fromForm.lastName}`.trim()}
+                size="md"
+                tone="admin"
+              />
+              <p className="min-w-0 flex-1 text-sm text-foreground">
+                <strong>From their Form QR.</strong> Their details and family are filled in — pick the room and save.
+              </p>
+            </div>
+          ) : null}
+
           {addStep === "form" && prefill ? (
             <div className="mb-4 space-y-3">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -1104,11 +1185,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                   <strong>This card holds booking {cardBooking.code}.</strong> One {cardBooking.roomType} bed is held for{" "}
                   {cardBooking.guestName}
                   {cardBooking.holdEndsAt
-                    ? ` until ${new Date(cardBooking.holdEndsAt).toLocaleString("en-GB", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                        timeZone: "Asia/Kathmandu",
-                      })}`
+                    ? ` until ${formatHostelDateTime(cardBooking.holdEndsAt)}`
                     : ""}
                   . Registering them uses that bed and completes the booking; choosing another room type moves it.
                 </p>
@@ -1119,7 +1196,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
 
           <form
             className={cn("space-y-6", addStep === "identify" && "hidden")}
-            key={prefill ? `prefill-${lookupId}` : "blank"}
+            key={prefill ? `prefill-${lookupId}` : fromForm ? `form-${fromForm.id}` : "blank"}
             onSubmit={handleCreateResident}
           >
             <FormSection
@@ -1127,19 +1204,19 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
               title="Resident"
             >
               <FormInput
-                defaultValue={prefill?.resident.firstName}
+                defaultValue={prefill?.resident.firstName ?? fromForm?.firstName}
                 label="First name"
                 name="firstName"
                 required
               />
               <FormInput
-                defaultValue={prefill?.resident.lastName}
+                defaultValue={prefill?.resident.lastName ?? fromForm?.lastName}
                 label="Last name"
                 name="lastName"
                 required
               />
               <FormSelect
-                defaultValue={prefill?.resident.residentType ?? "STUDENT"}
+                defaultValue={prefill?.resident.residentType ?? fromForm?.residentType ?? "STUDENT"}
                 label="Resident type"
                 name="residentType"
               >
@@ -1148,13 +1225,13 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                 <option value="OTHER">Other</option>
               </FormSelect>
               <FormInput
-                defaultValue={prefill?.resident.phone}
+                defaultValue={prefill?.resident.phone ?? fromForm?.phone}
                 label="Phone"
                 name="phone"
                 required
               />
               <FormInput
-                defaultValue={prefill?.resident.email}
+                defaultValue={prefill?.resident.email ?? (fromForm?.email || undefined)}
                 label="Email"
                 name="email"
                 type="email"
@@ -1265,26 +1342,36 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
               placeholder="Search by name, phone, room..."
               value={search}
             />
+            {/* The app's three lists, in its words. */}
+            <div className="grid grid-cols-3 gap-1 rounded-xl bg-muted p-1 sm:w-fit">
+              {(
+                [
+                  ["ACTIVE", "Living here"],
+                  ["PENDING", "To move in"],
+                  ["ALL", "Everyone"],
+                ] as const
+              ).map(([value, label]) => (
+                <button
+                  className={cn(
+                    "inline-flex h-8 items-center justify-center gap-1.5 rounded-lg px-3 text-[13px] font-semibold transition",
+                    statusFilter === value ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground",
+                  )}
+                  key={value}
+                  onClick={() => setStatusFilter(value)}
+                  type="button"
+                >
+                  {label}
+                  <span className="text-[11px] font-medium text-muted-foreground">
+                    {value === "ALL" ? residents.length : residents.filter((resident) => resident.status === value).length}
+                  </span>
+                </button>
+              ))}
+            </div>
             <div className="flex flex-wrap items-center gap-2">
               <FilterButton
-                active={(statusFilter === "ALL" ? 0 : 1) + (typeFilter === "ALL" ? 0 : 1)}
-                onClear={() => {
-                  setStatusFilter("ALL");
-                  setTypeFilter("ALL");
-                }}
+                active={typeFilter === "ALL" ? 0 : 1}
+                onClear={() => setTypeFilter("ALL")}
               >
-                <FilterChoice
-                  label="Status"
-                  onChange={setStatusFilter}
-                  options={[
-                    { label: "All", value: "ALL" },
-                    { label: "Active", value: "ACTIVE" },
-                    { label: "Pending", value: "PENDING" },
-                    { label: "Suspended", value: "SUSPENDED" },
-                    { label: "Moved out", value: "MOVED_OUT" },
-                  ]}
-                  value={statusFilter}
-                />
                 <FilterChoice
                   label="Resident type"
                   onChange={setTypeFilter}
@@ -1304,16 +1391,11 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                 <Users className="size-3.5" />
                 {residentsQuery.pagination?.total ?? filteredResidents.length} residents
               </span>
-              <Button
-                className="ml-auto h-10 gap-2 rounded-xl"
+              <ExportMenu
                 disabled={exporting}
-                onClick={() => void exportResidents()}
-                type="button"
-                variant="outline"
-              >
-                <Download className="size-4" />
-                {exporting ? "Exporting…" : "Export"}
-              </Button>
+                label={exporting ? "Exporting…" : "Export"}
+                onExport={({ format }) => void exportResidents(format)}
+              />
             </div>
           </div>
 
@@ -1594,7 +1676,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                       <dt className="text-muted-foreground">Move-in</dt>
                       <dd className="font-medium text-foreground">
                         {selectedResident.moveInDate
-                          ? new Date(selectedResident.moveInDate).toLocaleDateString()
+                          ? formatHostelDate(selectedResident.moveInDate)
                           : "—"}
                       </dd>
                     </div>

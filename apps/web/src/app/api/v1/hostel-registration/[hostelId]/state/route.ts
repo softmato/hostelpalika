@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { isSoftmatoConfigured } from "@/modules/billing/softmato/config";
 import { resolveOwnedHostel } from "@/modules/billing/subscription-access";
 import { getSubscriptionState } from "@/modules/billing/subscription.service";
@@ -25,10 +26,10 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     // `onlinePayment` is false until Softmato is configured; the page then
     // offers the manual QR lane instead of a checkout that cannot open.
-    return successResponse(
+    return withEtag(request, successResponse(
       { onlinePayment: isSoftmatoConfigured(), state },
       "Registration state loaded",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

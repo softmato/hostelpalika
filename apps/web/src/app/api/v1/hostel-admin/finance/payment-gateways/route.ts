@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   deleteGatewayConfig,
   listGatewayConfigs,
@@ -38,10 +39,10 @@ export async function GET(request: NextRequest) {
       new URL(request.url).searchParams.get("hostelId") ?? undefined,
     );
 
-    return successResponse(
+    return withEtag(request, successResponse(
       { gateways: await listGatewayConfigs(hostelId) },
       "Payment gateways",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireTeamPrincipal } from "@/lib/api-auth";
 import { handleRouteError, progressResponse, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { assertTeamRegistrationIsNew } from "@/modules/hostels/hostel.service";
 import {
   listUnpublishedPrepayments,
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
   try {
     const principal = await requireTeamPrincipal(request);
 
-    return successResponse({ prepayments: await listUnpublishedPrepayments(principal) }, "Paid, not published");
+    return withEtag(request, successResponse({ prepayments: await listUnpublishedPrepayments(principal) }, "Paid, not published"));
   } catch (error) {
     return handleRouteError(error);
   }

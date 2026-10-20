@@ -1,8 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 
 import { HOSTEL_ADMIN_SCREENS } from "@/app/_components/hostel-admin-screens";
-import { HostelAdminOverallPage, OVERALL_SCREENS } from "@/app/_components/hostel-admin-overall-page";
-import { OVERALL_SLUG } from "@/lib/branch-cache";
+import { HostelAdminOverallPage } from "@/app/_components/hostel-admin-overall-page";
+import { OVERALL_SCREENS, OVERALL_SLUG } from "@/lib/branch-cache";
 
 type HostelAdminWorkspacePageProps = {
   params: Promise<{ hostelSlug: string; screen?: string[] }>;

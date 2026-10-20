@@ -24,7 +24,7 @@ const NOON_NPT = "2026-08-18T06:00:00.000Z";
 describe("formatDateIn", () => {
   it("writes the same instant in either calendar", () => {
     expect(formatDateIn("AD", NOON_NPT)).toBe("18 Aug 2026");
-    expect(formatDateIn("BS", NOON_NPT)).toBe("Bhadra 2, 2083 BS");
+    expect(formatDateIn("BS", NOON_NPT)).toBe("Bhadra · 2083-05-02");
   });
 
   it("keeps the em dash for a missing date in both", () => {
@@ -37,7 +37,7 @@ describe("formatDateLongIn", () => {
   it("names the weekday after the date, in either calendar", () => {
     // 18 Aug 2026 was a Tuesday. Bikram Sambat renumbers the days; it does not
     // reorder them, so both calendars must agree on the weekday.
-    expect(formatDateLongIn("BS", NOON_NPT)).toBe("Bhadra 2, 2083 BS · Tuesday");
+    expect(formatDateLongIn("BS", NOON_NPT)).toBe("Bhadra · 2083-05-02 · Tuesday");
     expect(formatDateLongIn("AD", NOON_NPT)).toBe("18 Aug 2026 · Tuesday");
   });
 
@@ -46,7 +46,7 @@ describe("formatDateLongIn", () => {
     // the date half says so — the weekday must move with it rather than being
     // taken from the phone's own idea of the day.
     expect(formatDateLongIn("BS", "2026-08-18T18:30:00.000Z")).toBe(
-      "Bhadra 3, 2083 BS · Wednesday",
+      "Bhadra · 2083-05-03 · Wednesday",
     );
   });
 
@@ -61,7 +61,7 @@ describe("formatDateTimeIn", () => {
     // Bikram Sambat is a calendar, not a way of telling the time — the same
     // 12-hour clock is read in both, so only the half before the comma moves.
     expect(formatDateTimeIn("AD", NOON_NPT)).toBe("18 Aug 2026, 11:45 am");
-    expect(formatDateTimeIn("BS", NOON_NPT)).toBe("Bhadra 2, 2083 BS, 11:45 am");
+    expect(formatDateTimeIn("BS", NOON_NPT)).toBe("Bhadra · 2083-05-02, 11:45 am");
   });
 
   it("does not staple a time onto a missing date", () => {
@@ -100,7 +100,7 @@ describe("formatRelativeDayIn", () => {
     const old = "2026-08-01T06:00:00.000Z";
 
     expect(formatRelativeDayIn("AD", old, now)).toBe("1 Aug 2026");
-    expect(formatRelativeDayIn("BS", old, now)).toBe("Shrawan 16, 2083 BS");
+    expect(formatRelativeDayIn("BS", old, now)).toBe("Shrawan · 2083-04-16");
   });
 });
 
@@ -118,7 +118,7 @@ describe("formatAgoIn", () => {
     const lastMonth = "2026-07-20T06:00:00.000Z";
 
     expect(formatAgoIn("AD", lastMonth, now)).toBe("20 Jul 2026");
-    expect(formatAgoIn("BS", lastMonth, now)).toBe("Shrawan 4, 2083 BS");
+    expect(formatAgoIn("BS", lastMonth, now)).toBe("Shrawan · 2083-04-04");
   });
 
   it("does not mistake a six-day-old row for a date", () => {
@@ -137,11 +137,11 @@ describe("calendarExample", () => {
     // and the Dates section went on offering "18 Aug 2026" all the way into
     // Bhadra.
     expect(calendarExample("AD", new Date(NOON_NPT))).toBe("18 Aug 2026");
-    expect(calendarExample("BS", new Date(NOON_NPT))).toBe("Bhadra 2, 2083 BS");
+    expect(calendarExample("BS", new Date(NOON_NPT))).toBe("Bhadra · 2083-05-02");
 
     const later = new Date("2026-09-02T06:00:00.000Z");
 
     expect(calendarExample("AD", later)).toBe("2 Sep 2026");
-    expect(calendarExample("BS", later)).toBe("Bhadra 17, 2083 BS");
+    expect(calendarExample("BS", later)).toBe("Bhadra · 2083-05-17");
   });
 });

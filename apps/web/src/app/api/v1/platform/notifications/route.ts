@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requirePlatformPrincipal, requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   createPlatformNotificationCampaign,
   listPlatformNotificationCampaigns,
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     await requirePlatformPrincipal(request);
     const result = await listPlatformNotificationCampaigns();
 
-    return successResponse(result, "Platform notification campaigns loaded");
+    return withEtag(request, successResponse(result, "Platform notification campaigns loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

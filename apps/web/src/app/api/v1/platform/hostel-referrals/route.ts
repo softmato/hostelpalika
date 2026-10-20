@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   getPlatformReferralOverview,
   saveHostelReferralSettings,
@@ -14,7 +15,7 @@ export async function GET(request: NextRequest) {
   try {
     await requireSuperadminPrincipal(request);
 
-    return successResponse(await getPlatformReferralOverview(), "Hostel referrals");
+    return withEtag(request, successResponse(await getPlatformReferralOverview(), "Hostel referrals"));
   } catch (error) {
     return handleRouteError(error);
   }

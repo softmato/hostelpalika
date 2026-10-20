@@ -348,6 +348,13 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
         keywords: ["complaint", "escalation", "grievance", "sla", "resolution"],
         label: "Complaints",
       },
+      {
+        description: "Feedback, bug reports and ideas sent from Help & support in every portal.",
+        href: "/platform/feedback",
+        icon: "flag",
+        keywords: ["feedback", "bug", "report", "improvement", "idea", "support", "screenshot"],
+        label: "Feedback",
+      },
     ],
     icon: "shield",
     label: "Moderation",
@@ -620,13 +627,15 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         href: "/hostel-admin/move-in-out",
         icon: "clipboard",
         keywords: ["move in", "move out", "checklist", "deposit", "refund", "handover"],
-        label: "Move-In / Move-Out",
+        label: "Move in / out",
       },
     ],
     icon: "users",
     label: "Residents",
   },
   {
+    // Named as the app names them: the Finance tab, and Finance settings for
+    // everything that sets how money is charged and collected.
     items: [
       {
         children: [
@@ -638,63 +647,10 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
           },
           {
             description:
-              "The rate card every invoice is computed from, by bed type, with history.",
-            href: "/hostel-admin/fee-schedule",
-            keywords: [
-              "fee",
-              "rent",
-              "rate card",
-              "schedule",
-              "deposit",
-              "charges",
-              "pricing",
-            ],
-            label: "Fee Schedule",
-          },
-          {
-            description:
               "Eggs, extra meals, laundry taken on account — open khatas, asks to give, and the price list.",
             href: "/hostel-admin/khata",
             keywords: ["khata", "account", "egg", "laundry", "extra", "credit", "tab", "items"],
-            label: "Khata",
-          },
-          {
-            description:
-              "Upload your wallet or bank statement and settle the month against what arrived.",
-            href: "/hostel-admin/reconcile",
-            keywords: [
-              "reconcile",
-              "statement",
-              "esewa",
-              "khalti",
-              "bank",
-              "csv",
-              "import",
-              "unmatched",
-            ],
-            label: "Reconcile",
-          },
-          {
-            description:
-              "Your QR, wallet IDs and bank account — what residents see when they pay.",
-            href: "/hostel-admin/payment-setup",
-            keywords: ["qr", "esewa", "khalti", "bank", "account", "payment setup"],
-            label: "Payment Setup",
-          },
-          {
-            description:
-              "Let residents pay in one tap through eSewa or Khalti — settles itself, no approval queue.",
-            href: "/hostel-admin/payment-gateways",
-            keywords: [
-              "esewa",
-              "khalti",
-              "fonepay",
-              "gateway",
-              "online",
-              "checkout",
-              "merchant",
-            ],
-            label: "Online Checkout",
+            label: "Resident khata",
           },
           {
             description:
@@ -713,6 +669,12 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
             label: "Expenses",
           },
           {
+            description: "Money in and out, newest first, grouped by day, with the net.",
+            href: "/hostel-admin/statement",
+            keywords: ["statement", "money in", "money out", "net", "cash", "bank", "expense"],
+            label: "Statement",
+          },
+          {
             description:
               "Full payment ledger with method, reference, and reconciliation status.",
             href: "/hostel-admin/transactions",
@@ -722,7 +684,67 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         ],
         href: "/hostel-admin/payments",
         icon: "card",
-        label: "Fees & Payments",
+        label: "Finance",
+      },
+      {
+        children: [
+          {
+            description:
+              "The rate card every invoice is computed from, by bed type, with history.",
+            href: "/hostel-admin/fee-schedule",
+            keywords: [
+              "fee",
+              "rent",
+              "rate card",
+              "schedule",
+              "deposit",
+              "charges",
+              "pricing",
+            ],
+            label: "Room rates",
+          },
+          {
+            description:
+              "Your QR, wallet IDs and bank account — what residents see when they pay.",
+            href: "/hostel-admin/payment-setup",
+            keywords: ["qr", "esewa", "khalti", "bank", "account", "payment setup"],
+            label: "Payment setup",
+          },
+          {
+            description:
+              "Let residents pay in one tap through eSewa or Khalti — settles itself, no approval queue.",
+            href: "/hostel-admin/payment-gateways",
+            keywords: [
+              "esewa",
+              "khalti",
+              "fonepay",
+              "gateway",
+              "online",
+              "checkout",
+              "merchant",
+            ],
+            label: "Online checkout",
+          },
+          {
+            description:
+              "Upload your wallet or bank statement and settle the month against what arrived.",
+            href: "/hostel-admin/reconcile",
+            keywords: [
+              "reconcile",
+              "statement",
+              "esewa",
+              "khalti",
+              "bank",
+              "csv",
+              "import",
+              "unmatched",
+            ],
+            label: "Bank and wallet statements",
+          },
+        ],
+        href: "/hostel-admin/fee-schedule",
+        icon: "settings",
+        label: "Finance settings",
       },
     ],
     icon: "card",
@@ -735,7 +757,7 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         href: "/hostel-admin/food",
         icon: "food",
         keywords: ["food", "menu", "meal", "kitchen", "feedback"],
-        label: "Food & Menu",
+        label: "Food",
       },
       {
         description: "Rice, daal, vegetables — what was bought, what went to each branch, what is left.",
@@ -783,7 +805,7 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
           "plumber",
           "book visit",
         ],
-        label: "Maintenance & Providers",
+        label: "Repairs",
       },
       {
         description: "Live SOS alerts raised by residents with escalation history.",
@@ -907,8 +929,15 @@ export const RESIDENT_NAV: PortalNavGroup[] = [
         label: "Fees & Payments",
       },
       {
+        // What they have paid, by day — the app's Statement screen.
+        href: "/resident/statement",
+        icon: "receipt",
+        keywords: ["statement", "paid", "history", "money", "receipt"],
+        label: "Statement",
+      },
+      {
         href: "/resident/khata",
-        icon: "card",
+        icon: "receipt",
         keywords: ["khata", "egg", "laundry", "extra", "meal"],
         label: "Khata",
       },
@@ -930,16 +959,16 @@ export const RESIDENT_NAV: PortalNavGroup[] = [
         ],
         label: "Offer Program",
       },
+    ],
+    icon: "card",
+    label: "Money",
+  },
+  {
+    items: [
       { href: "/resident/food", icon: "food", label: "Food Menu" },
       // No Community entry: it is one platform-wide room at `/community`,
       // linked from the portal header instead of each portal's sidebar.
       { href: "/resident/notices", icon: "megaphone", label: "Notices" },
-    ],
-    label: "Daily",
-  },
-  {
-    items: [
-      { href: "/resident/complaints", icon: "message", label: "Complaints" },
       { href: "/resident/night-status", icon: "moon", label: "Night Status" },
       {
         href: "/resident/attendance",
@@ -947,6 +976,13 @@ export const RESIDENT_NAV: PortalNavGroup[] = [
         keywords: ["location", "tracking", "consent", "present", "absent"],
         label: "Attendance",
       },
+    ],
+    icon: "calendar",
+    label: "Daily",
+  },
+  {
+    items: [
+      { href: "/resident/complaints", icon: "message", label: "Complaints" },
       { href: "/resident/sos", icon: "siren", label: "SOS" },
       {
         href: "/resident/guardians",
@@ -956,7 +992,9 @@ export const RESIDENT_NAV: PortalNavGroup[] = [
       },
       { href: "/resident/reviews", icon: "star", label: "Reviews" },
     ],
+    icon: "shield",
     label: "Safety & Feedback",
+    short: "Safety",
   },
   {
     items: [
@@ -969,6 +1007,7 @@ export const RESIDENT_NAV: PortalNavGroup[] = [
         label: "Settings",
       },
     ],
+    icon: "settings",
     label: "Account",
   },
 ];
@@ -1217,7 +1256,7 @@ export function hostelAdminHref(slug: string, href: string) {
 /**
  * The Overall workspace's sidebar — the same subjects as a branch, each page
  * answering for every branch at once (`hostel-admin-overall-page.tsx`).
- * `OVERALL_SCREENS` in that file is the list of pages these point at.
+ * `OVERALL_SCREENS` in `lib/branch-cache.ts` is the list of pages these point at.
  */
 export function overallAdminNav(): PortalNavGroup[] {
   const href = (screen: string) => `/overall/admin/${screen}`;

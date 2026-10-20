@@ -159,8 +159,9 @@ export function CollectionChart({ points }: { points: MonthlyPoint[] }) {
               style={{ height: 120 }}
               title={`${monthLabel(point.month)} — due ${point.due}, collected ${point.paid}`}
             >
+              {/* A tint of the collected green with an edge: plain muted vanished on the card. */}
               <div
-                className="w-1/2 rounded-t bg-muted"
+                className="w-1/2 rounded-t bg-role-admin/25 ring-1 ring-inset ring-role-admin/40"
                 style={{ height: `${Math.max((point.due / peak) * 100, 1)}%` }}
               />
               <div
@@ -176,7 +177,7 @@ export function CollectionChart({ points }: { points: MonthlyPoint[] }) {
       </div>
       <div className="mt-3 flex items-center gap-4 text-[11px] text-muted-foreground">
         <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-sm bg-muted" /> Billed
+          <span className="size-2.5 rounded-sm bg-role-admin/25 ring-1 ring-inset ring-role-admin/40" /> Billed
         </span>
         <span className="flex items-center gap-1.5">
           <span className="size-2.5 rounded-sm bg-role-admin" /> Collected

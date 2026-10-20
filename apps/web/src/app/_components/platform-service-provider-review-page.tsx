@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import {
   BadgeCheck,
   Check,
@@ -118,7 +120,7 @@ function assetHref(fileAssetId?: string | null, fileUrl?: string) {
 function formatTimestamp(value: string | null | undefined) {
   if (!value) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? "—" : formatHostelDateTime(date);
 }
 
 function humanize(value: string) {

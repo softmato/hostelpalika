@@ -21,6 +21,7 @@ import { UserModel } from "@hostel/db/models/User";
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 import { sendEmail } from "@hostel/shared/email/sender";
 import { hostelPortalOpenEmail } from "@hostel/shared/email/templates/hostel/hostel-kyc";
+import { revalidatePublicPages } from "@/lib/revalidate-public";
 
 /**
  * The quick sign-up (docs/QUICK_SIGNUP_KYC_TRIAL.md): owner name, phone and
@@ -238,6 +239,7 @@ export async function quickRegisterHostel(input: QuickHostelRegistrationInput, u
     });
   }
 
+  revalidatePublicPages();
   return {
     hostelId: hostel._id.toString(),
     name: hostel.name,

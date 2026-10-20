@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getLateFine, lateFineSaveSchema, saveLateFine } from "@/modules/finance/late-fine.service";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
 
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
       request.nextUrl.searchParams.get("hostelId") ?? undefined,
     );
 
-    return successResponse({ lateFine: await getLateFine(hostelId) }, "Late fine");
+    return withEtag(request, successResponse({ lateFine: await getLateFine(hostelId) }, "Late fine"));
   } catch (error) {
     return handleRouteError(error);
   }

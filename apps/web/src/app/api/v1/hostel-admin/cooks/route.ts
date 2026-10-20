@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { addCookAccount, listCookAccounts } from "@/modules/food/cook-roster.service";
 import { cookCreateSchema } from "@/modules/food/cook.validation";
 
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireHostelCapability(request, "manageFood");
     const hostelId = request.nextUrl.searchParams.get("hostelId") ?? undefined;
 
-    return successResponse(await listCookAccounts(principal, hostelId), "Cooks loaded");
+    return withEtag(request, successResponse(await listCookAccounts(principal, hostelId), "Cooks loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

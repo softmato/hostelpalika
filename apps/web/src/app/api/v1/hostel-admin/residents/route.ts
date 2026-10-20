@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { requireHostelCapability, requireHostelStaffPrincipal } from "@/lib/api-auth";
 import { createResident, listResidents } from "@/modules/residents/resident.service";
 import {
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     );
     const result = await listResidents(query, principal);
 
-    return successResponse(result, "Residents loaded");
+    return withEtag(request, successResponse(result, "Residents loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { findScopedHostel } from "@/modules/hostels/hostel.service";
 import { listAvailableRoomTypes } from "@/modules/hostels/hostel-capacity.service";
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     const hostel = await findScopedHostel(principal, query.hostelId);
     const roomTypes = await listAvailableRoomTypes(hostel._id);
 
-    return successResponse({ roomTypes }, "Room types loaded");
+    return withEtag(request, successResponse({ roomTypes }, "Room types loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

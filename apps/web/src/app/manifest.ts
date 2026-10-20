@@ -17,10 +17,10 @@ import { loadSeo, resolveSeoPage } from "@/lib/seo-config";
  * No trailing slash on `scope` or `start_url`: Next redirects `/app/` to `/app`,
  * and `/app` is outside a `/app/` scope, so Chrome drew its "left the app" bar
  * over the home screen. `id` keeps the slash so existing installs update.
- * `InstallAppBanner` fires Android's install prompt and sends iPhones to `/app`,
- * where the app's own sheet walks through Add to Home Screen. On Android,
- * `prefer_related_applications` makes Chrome offer the Play app instead of
- * installing this one; iPhones still install `/app`.
+ * Only iPhones install `/app` — `InstallAppBanner` sends them there, where the
+ * app's own sheet walks through Add to Home Screen. Android has the Play app:
+ * it gets the site manifest with `prefer_related_applications`, so Chrome
+ * offers the store app and never installs `/app`.
  *
  * A laptop or desktop gets the website itself instead — the portals in their
  * own window, from `/` — because the phone screens are wrong at that size. The
@@ -30,7 +30,8 @@ import { loadSeo, resolveSeoPage } from "@/lib/seo-config";
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const { fill, seo } = await loadSeo();
   const home = resolveSeoPage(seo, "home", fill);
-  const phone = /Android|iPhone|iPad|iPod|Mobile/i.test((await headers()).get("user-agent") ?? "");
+  const agent = (await headers()).get("user-agent") ?? "";
+  const iphone = /iPhone|iPad|iPod/i.test(agent);
   const shared: MetadataRoute.Manifest = {
     background_color: "#ffffff",
     categories: ["business", "education", "lifestyle"],
@@ -48,17 +49,28 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     theme_color: "#ffffff",
   };
 
-  if (!phone) {
-    return { ...shared, id: "/", scope: "/", start_url: "/" };
+  // Android has the Play app, so it never installs `/app`: the site manifest,
+  // with Play preferred, so Chrome offers the store app instead.
+  if (!iphone) {
+    return {
+      ...shared,
+      id: "/",
+      scope: "/",
+      start_url: "/",
+      ...(/Android/i.test(agent)
+        ? {
+            prefer_related_applications: true,
+            related_applications: [
+              { id: PLATFORM_PLAY_STORE_ID, platform: "play", url: PLATFORM_PLAY_STORE_URL },
+            ],
+          }
+        : {}),
+    };
   }
 
   return {
     ...shared,
     id: "/app/",
-    prefer_related_applications: true,
-    related_applications: [
-      { id: PLATFORM_PLAY_STORE_ID, platform: "play", url: PLATFORM_PLAY_STORE_URL },
-    ],
     scope: "/app",
     share_target: {
       action: "/app/share-payment",

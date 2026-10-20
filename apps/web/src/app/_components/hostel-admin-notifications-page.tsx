@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import { Bell, Check, Send } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
@@ -50,12 +52,7 @@ const CAMPAIGNS_ENDPOINT = "/api/v1/hostel-admin/notifications";
 
 function shortDateTime(value?: string) {
   return value
-    ? new Date(value).toLocaleString("en", {
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        month: "short",
-      })
+    ? formatHostelDateTime(value)
     : "—";
 }
 

@@ -59,6 +59,12 @@ export type ConfirmRequest = {
    * reads.
    */
   onConfirm: () => Promise<void> | void;
+  /**
+   * Ask for the account PIN in the card before the work runs. For the serious
+   * removals — a resident, a staff member, a room — never an everyday one. An
+   * account with no PIN just confirms.
+   */
+  pin?: boolean;
   title: string;
 };
 

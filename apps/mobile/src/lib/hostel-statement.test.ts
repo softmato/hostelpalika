@@ -380,7 +380,7 @@ describe("groupByDay", () => {
   it("heads a day with its weekday and both calendars", () => {
     const credits = statementCredits(ledger([entry({ paidDate: "2026-08-24T07:00:00.000Z" })]));
 
-    expect(groupByDay(credits)[0].label).toMatch(/^Mon · .* · 24 Aug 2026$/);
+    expect(groupByDay(credits)[0].label).toMatch(/^Mon · Bhadra · 2083-05-08$/);
   });
 
   it("collects undated credits rather than dropping them", () => {
@@ -459,7 +459,7 @@ describe("row copy", () => {
 
     expect(creditTitle(credit, "BS")).toBe("Shrawan 2083 BS rent from Kartik Adhikari");
     expect(rangeLabel(filter({ from: "2026-08-20", to: "2026-08-26" }), "BS")).toBe(
-      "Bhadra 4, 2083 to Bhadra 10, 2083 BS",
+      "Bhadra · 2083-05-04 to Bhadra · 2083-05-10",
     );
     expect(
       statementSummary(

@@ -111,6 +111,7 @@ import type { z } from "zod";
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 
 import { hostelNameKey } from "@/modules/hostels/hostel-name-key";
+import { revalidatePublicPages } from "@/lib/revalidate-public";
 
 export { hostelNameKey };
 
@@ -1762,6 +1763,7 @@ async function fileTeamRegistration(
     application._id,
   ).lean<HostelApplicationRecord | null>();
 
+  revalidatePublicPages();
   return {
     application: serializeApplication(createdApplication),
     billing: state,
@@ -2382,6 +2384,7 @@ async function updateHostelStatus(
 
   await auditHostelAction(principal, objectId, action, metadata);
 
+  revalidatePublicPages();
   return {
     hostel: serializeHostel(hostel),
   };
@@ -2556,6 +2559,7 @@ export async function approvePlatformHostel(hostelId: string, principal: ApiPrin
     });
   }
 
+  revalidatePublicPages();
   return result;
 }
 
@@ -2648,6 +2652,7 @@ async function completeKycApproval(hostelId: Types.ObjectId, actorId: string) {
   const { sendIdCardEmail } = await import("@/modules/users/id-card-delivery.service");
 
   await sendIdCardEmail(ownerInfo.owner.id.toString(), "HOSTEL_OWNER").catch(() => null);
+  revalidatePublicPages();
 }
 
 /**
@@ -3356,6 +3361,7 @@ export async function archivePlatformHostel(
     sessionsRevoked,
   });
 
+  revalidatePublicPages();
   return { hostel: serializeHostel(hostel), sessionsRevoked };
 }
 
@@ -3477,6 +3483,7 @@ export async function restorePlatformHostel(
     archivedAt: existing.deletedAt?.toISOString() ?? null,
   });
 
+  revalidatePublicPages();
   return { hostel: serializeHostel(hostel) };
 }
 

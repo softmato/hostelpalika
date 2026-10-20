@@ -4,7 +4,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 
-import { CalendarPreferenceCard } from "@/components/calendar-preference";
 import { NightStatusPromptCard } from "@/components/night-status-prompt-card";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
@@ -550,8 +549,6 @@ export default function ManageSettingsScreen() {
         </View>
 
         <FormDetailsSettings />
-
-        <CalendarPreferenceCard />
 
         <View>
           <SectionHeader

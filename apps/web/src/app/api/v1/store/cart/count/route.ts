@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelAdminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getCartCount } from "@/modules/store/cart.service";
 
 export const runtime = "nodejs";
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireHostelAdminPrincipal(request);
     const requested = request.nextUrl.searchParams.get("hostelId") ?? undefined;
 
-    return successResponse(await getCartCount(principal, requested), "Cart count loaded");
+    return withEtag(request, successResponse(await getCartCount(principal, requested), "Cart count loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

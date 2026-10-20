@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { residentIdLookupSchema } from "@/modules/users/resident-identity.validation";
 import { scanResidentForHostel } from "@/modules/users/resident-scan.service";
@@ -56,7 +57,7 @@ export async function GET(request: NextRequest) {
       hostelId: query.hostelId,
     });
 
-    return successResponse(result, "Resident card read");
+    return withEtag(request, successResponse(result, "Resident card read"));
   } catch (error) {
     return handleRouteError(error);
   }

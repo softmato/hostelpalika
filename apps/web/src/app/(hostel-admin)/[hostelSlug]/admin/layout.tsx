@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { Suspense } from "react";
 
 import { HostelBookingRequestsReminder } from "@/app/_components/hostel-booking-requests-reminder";
 import { HostelPaymentCredentialsReminder } from "@/app/_components/hostel-payment-credentials-reminder";
 import { HostelPhotoReminder } from "@/app/_components/hostel-photo-reminder";
+import { KycFocus } from "@/app/_components/kyc-focus";
 import { HostelWorkspaceSwitcher } from "@/app/_components/hostel-workspace-switcher";
 import { PortalShell } from "@/components/portal-shell";
 import { OVERALL_SLUG } from "@/lib/branch-cache";
@@ -99,6 +101,9 @@ export default async function HostelAdminWorkspaceLayout({
         <HostelPhotoReminder profileHref={`/${hostelSlug}/admin/profile`} />
       </div>
       <HostelBookingRequestsReminder bookingsHref={`/${hostelSlug}/admin/bookings`} />
+      <Suspense fallback={null}>
+        <KycFocus kycHref={`/${hostelSlug}/admin/kyc`} />
+      </Suspense>
       {children}
     </PortalShell>
   );

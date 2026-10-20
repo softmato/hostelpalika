@@ -122,11 +122,29 @@ function maxBytesFor(mimeType: string, kind: UploadKind) {
   return Math.min(uploadKindRule(kind).maxBytes, FAMILY_BYTES[familyOf(mimeType)]);
 }
 
+/**
+ * The exact types a field takes. A picker-style `image/*` or `video/*` means
+ * "whatever the server takes in that family" — never every subtype, or a HEIC
+ * would pass here and fail at the server.
+ */
+function acceptedTypes(kind: UploadKind, override?: string) {
+  if (!override) {
+    return uploadKindRule(kind).mimeTypes;
+  }
+
+  return override.split(",").flatMap((item) => {
+    const mime = item.trim().toLowerCase();
+
+    if (mime === "image/*") return DEFAULT_IMAGE_MIME_TYPES;
+    if (mime === "video/*") return DEFAULT_VIDEO_MIME_TYPES;
+
+    return mime ? [mime] : [];
+  });
+}
+
 /** "JPG, PNG or WebP up to 5 MB" — the hint shown under a drop zone. */
 export function uploadHint(kind: UploadKind = "any", override?: string) {
-  const mimeTypes = (override ? override.split(",") : uploadKindRule(kind).mimeTypes).map(
-    (mime) => mime.trim().toLowerCase(),
-  );
+  const mimeTypes = acceptedTypes(kind, override);
 
   const parts = FAMILY_ORDER.map((family) => {
     const inFamily = mimeTypes.filter((mime) => familyOf(mime) === family);
@@ -169,14 +187,8 @@ export function validateFileForUpload(
   file: File,
   options: { accept?: string; kind?: UploadKind } = {},
 ) {
-  const rule = uploadKindRule(options.kind ?? "any");
   const mimeType = file.type.toLowerCase().trim();
-  const allowed = options.accept
-    ? options.accept
-        .split(",")
-        .map((item) => item.trim().toLowerCase())
-        .filter(Boolean)
-    : rule.mimeTypes;
+  const allowed = acceptedTypes(options.kind ?? "any", options.accept);
 
   if (!mimeType) {
     return `${file.name} has an unrecognised file type.`;

@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { declineAdmissionForm, getAdmissionForm } from "@/modules/residents/admission-form.service";
 import { hostelStaffScope } from "@/modules/residents/hostel-staff-scope";
 
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { hostelId } = await hostelStaffScope(request);
     const { formId } = await context.params;
 
-    return successResponse(await getAdmissionForm(hostelId, formId), "Form loaded");
+    return withEtag(request, successResponse(await getAdmissionForm(hostelId, formId), "Form loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

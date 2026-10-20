@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { listResidentContacts } from "@/modules/residents/resident.service";
 import { residentListQuerySchema } from "@/modules/residents/resident.validation";
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       .parse(Object.fromEntries(request.nextUrl.searchParams.entries()));
     const result = await listResidentContacts(id, query, principal);
 
-    return successResponse(result, "Resident contacts loaded");
+    return withEtag(request, successResponse(result, "Resident contacts loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

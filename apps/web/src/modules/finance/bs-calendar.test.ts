@@ -41,7 +41,7 @@ describe("days as spans", () => {
     const due = hostelDayEnd(filed, 3);
 
     expect(due.toISOString()).toBe("2026-09-14T18:14:59.999Z");
-    expect(formatBsDate(due)).toBe("Bhadra 29, 2083 BS");
+    expect(formatBsDate(due)).toBe("Bhadra · 2083-05-29");
   });
 
   it("counts between days, so the count moves at midnight and not at lunch", () => {
@@ -58,7 +58,7 @@ describe("days as spans", () => {
     const end = bsMonthsEnd(filed, 1);
 
     expect(end.toISOString()).toBe("2026-10-11T18:14:59.999Z");
-    expect(formatBsDate(end)).toBe("Aswin 25, 2083 BS");
+    expect(formatBsDate(end)).toBe("Aswin · 2083-06-25");
     // Bhadra has 31 days, so the plan does too — both ends included.
     expect(hostelDaysBetween(filed, end) + 1).toBe(31);
   });
@@ -84,15 +84,15 @@ describe("days as spans", () => {
 
 describe("the Bikram Sambat table", () => {
   it("puts Baisakh 1 on the Nepali new year", () => {
-    expect(formatBsDate(new Date("2026-04-14T06:00:00.000Z"))).toBe("Baisakh 1, 2083 BS");
-    expect(formatBsDate(new Date("2025-04-14T06:00:00.000Z"))).toBe("Baisakh 1, 2082 BS");
-    expect(formatBsDate(new Date("2024-04-13T06:00:00.000Z"))).toBe("Baisakh 1, 2081 BS");
+    expect(formatBsDate(new Date("2026-04-14T06:00:00.000Z"))).toBe("Baisakh · 2083-01-01");
+    expect(formatBsDate(new Date("2025-04-14T06:00:00.000Z"))).toBe("Baisakh · 2082-01-01");
+    expect(formatBsDate(new Date("2024-04-13T06:00:00.000Z"))).toBe("Baisakh · 2081-01-01");
   });
 
   it("runs Bhadra 2083 from 17 August to 16 September 2026", () => {
-    expect(formatBsDate(new Date("2026-08-17T06:00:00.000Z"))).toBe("Bhadra 1, 2083 BS");
-    expect(formatBsDate(new Date("2026-09-16T06:00:00.000Z"))).toBe("Bhadra 31, 2083 BS");
-    expect(formatBsDate(new Date("2026-09-17T06:00:00.000Z"))).toBe("Aswin 1, 2083 BS");
+    expect(formatBsDate(new Date("2026-08-17T06:00:00.000Z"))).toBe("Bhadra · 2083-05-01");
+    expect(formatBsDate(new Date("2026-09-16T06:00:00.000Z"))).toBe("Bhadra · 2083-05-31");
+    expect(formatBsDate(new Date("2026-09-17T06:00:00.000Z"))).toBe("Aswin · 2083-06-01");
   });
 
   it("gives Bhadra 2083 thirty-one days, which no formula produces", () => {
@@ -205,8 +205,8 @@ describe("the move-in this change came from", () => {
   it("closes on a day a due date can carry without slipping a month", () => {
     const { end, lastDay } = bsPeriodBounds("2083-05");
 
-    expect(formatBsDate(end)).toBe("Aswin 1, 2083 BS");
-    expect(formatBsDate(lastDay)).toBe("Bhadra 31, 2083 BS");
+    expect(formatBsDate(end)).toBe("Aswin · 2083-06-01");
+    expect(formatBsDate(lastDay)).toBe("Bhadra · 2083-05-31");
     expect(bsPeriodOf(lastDay)).toBe("2083-05");
   });
 

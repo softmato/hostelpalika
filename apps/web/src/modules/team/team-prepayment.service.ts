@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { connectToDatabase } from "@/lib/db";
 import { Role } from "@/lib/roles";
-import { siteUrl } from "@/lib/site";
+import { outboundUrl } from "@/lib/site";
 import {
   fetchInvoiceDetail,
   issueInvoiceDocument,
@@ -381,7 +381,7 @@ export async function openTeamPrepayment(
 
   const session = await openCheckoutSession({
     invoiceNumber: row.invoiceNumber,
-    returnUrl: `${siteUrl()}/team/register?prepayment=${String(row._id)}`,
+    returnUrl: `${outboundUrl()}/team/register?prepayment=${String(row._id)}`,
     softmatoInvoiceId: row.softmatoInvoiceId as string,
   });
 

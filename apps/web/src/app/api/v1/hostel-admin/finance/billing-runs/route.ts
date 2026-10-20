@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   getBillingPeriodSummary,
   runBillingCycle,
@@ -59,10 +60,10 @@ export async function GET(request: NextRequest) {
     );
     const hostelId = resolveAdminHostelId(principal, query.hostelId);
 
-    return successResponse(
+    return withEtag(request, successResponse(
       await getBillingPeriodSummary(hostelId, query.period),
       "Billing period summary",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

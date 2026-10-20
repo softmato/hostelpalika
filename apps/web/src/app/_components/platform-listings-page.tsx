@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import {
   Archive,
   ArchiveRestore,
@@ -276,7 +278,7 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
         );
         setActionMessage(
           `"${hostel.name}" recharged: ${result?.planName ?? plan.name}, paid till ${
-            result ? new Date(result.currentPeriodEnd).toLocaleDateString() : "—"
+            result ? formatHostelDate(result.currentPeriodEnd) : "—"
           }.`,
         );
         invalidate(platformEndpoints.hostels, platformEndpoints.hostelDetails);
@@ -622,15 +624,7 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
                               >
                                 {hostel.suspension.stage === "SUSPENDED"
                                   ? "Suspended · plan unpaid"
-                                  : `Pre-suspension · stops ${new Date(
-                                      hostel.suspension.graceEndsAt,
-                                    ).toLocaleString("en-GB", {
-                                      day: "numeric",
-                                      hour: "numeric",
-                                      minute: "2-digit",
-                                      month: "short",
-                                      timeZone: "Asia/Kathmandu",
-                                    })}`}
+                                  : `Pre-suspension · stops ${formatHostelDateTime(hostel.suspension.graceEndsAt,)}`}
                               </p>
                             ) : null}
                           </div>

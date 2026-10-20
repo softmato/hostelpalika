@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { assertApiRoles, requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { Role } from "@/lib/roles";
 import { listCookResidents } from "@/modules/food/cook.service";
 
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest) {
     const hostelId = request.nextUrl.searchParams.get("hostelId") ?? undefined;
     const result = await listCookResidents(principal, hostelId);
 
-    return successResponse(result, "Residents loaded");
+    return withEtag(request, successResponse(result, "Residents loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

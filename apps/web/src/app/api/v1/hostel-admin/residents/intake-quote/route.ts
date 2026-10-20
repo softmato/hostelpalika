@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
 import { getIntakeQuote } from "@/modules/residents/resident-intake.service";
 
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
     );
     const hostelId = resolveAdminHostelId(principal, query.hostelId);
 
-    return successResponse(
+    return withEtag(request, successResponse(
       {
         quote: await getIntakeQuote(hostelId, {
           admissionFee: query.admissionFee,
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
         }),
       },
       "Intake quote",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

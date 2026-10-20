@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requirePlatformPrincipal, requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { csvFilename, csvResponse, toCsv } from "@/lib/csv";
 import { getQuestionCallAnalytics } from "@/modules/questioncall/questioncall.service";
 import { questionCallAnalyticsQuerySchema } from "@/modules/questioncall/questioncall.validation";
@@ -44,7 +45,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    return successResponse(result, "QuestionCall analytics loaded");
+    return withEtag(request, successResponse(result, "QuestionCall analytics loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

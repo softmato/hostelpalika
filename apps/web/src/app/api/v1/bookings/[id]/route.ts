@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getMyBooking } from "@/modules/bookings/booking.service";
 
 type RouteContext = { params: Promise<{ id: string }> };
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const principal = await requireApiPrincipal(request);
     const { id } = await context.params;
 
-    return successResponse({ booking: await getMyBooking(id, principal) }, "Booking");
+    return withEtag(request, successResponse({ booking: await getMyBooking(id, principal) }, "Booking"));
   } catch (error) {
     return handleRouteError(error);
   }

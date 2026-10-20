@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { checkResidentPhone } from "@/modules/users/resident-identity.service";
 import { residentPhoneCheckSchema } from "@/modules/users/resident-identity.validation";
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
       phone: request.nextUrl.searchParams.get("phone") ?? "",
     });
 
-    return successResponse(await checkResidentPhone(principal.userId, phone), "Phone checked");
+    return withEtag(request, successResponse(await checkResidentPhone(principal.userId, phone), "Phone checked"));
   } catch (error) {
     return handleRouteError(error);
   }

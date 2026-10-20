@@ -20,7 +20,6 @@ import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useLockEnabled } from "@/components/app-lock";
 import { canOfferLock } from "@/lib/app-lock";
-import { CALENDAR_LABELS } from "@/lib/calendar";
 import { endSession } from "@/lib/auth-session";
 import { openConfirm } from "@/lib/confirm";
 import { setThemePreference } from "@/store/slices/uiSlice";
@@ -212,7 +211,6 @@ export function AppRows({
 }) {
   const preference = useAppSelector((state) => state.ui.themePreference);
   const account = useAppSelector((state) => state.auth.account);
-  const calendar = useAppSelector((state) => state.ui.calendarPreference);
   const lockOn = useLockEnabled();
   const dispatch = useAppDispatch();
   const dark = preference === "dark";
@@ -234,13 +232,6 @@ export function AppRows({
           value={lockOn ? "On" : "Off"}
         />
       ) : null}
-      <MenuRow
-        icon="calendar"
-        onPress={() => router.push({ params: { section: "calendar" }, pathname: "/settings" })}
-        title="Dates"
-        tone="neutral"
-        value={CALENDAR_LABELS[calendar]}
-      />
       {feed ? (
         <MenuRow
           icon="notifications"

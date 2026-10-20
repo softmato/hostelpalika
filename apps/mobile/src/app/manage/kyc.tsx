@@ -1,3 +1,4 @@
+import { BEDS_BY_ROOM_TYPE, ROOM_TYPE_OPTIONS } from "@hostel/constants/room-types";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { usePreventRemove } from "expo-router/react-navigation";
@@ -46,7 +47,9 @@ import { openConfirm } from "@/lib/confirm";
 import {
   type GeocodeHit,
   geocodeHostelLocation,
+  type FeeScheduleData,
   type ManagedHostel,
+  saveKycRates,
   updateManagedHostel,
 } from "@/lib/admin-manage-api";
 import { adminQuery } from "@/lib/admin-queries";
@@ -226,17 +229,17 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
             : "Ready to submit";
   const submit = () => openConfirm({
     cancelLabel: "Check again",
-    confirmLabel: "Submit",
-    message: "Our team will verify this within 24 hours. Please make sure everything you entered is correct.",
+    confirmLabel: "Send",
+    message: "Our team checks it within 24 hours. Please make sure everything you entered is correct.",
     onConfirm: async () => {
       try {
         await submitHostelKyc();
         await reload();
         void revalidateSession();
-        toastSuccess("KYC submitted", "We check it within 24 hours. You can still edit it.");
+        toastSuccess("KYC sent", "We check it within 24 hours. You can still edit it.");
       } catch (error) { toastError("Not submitted", readApiError(error)); }
     },
-    title: "Submit your KYC?",
+    title: "Send your KYC for submission?",
   });
   const saveAndGo = async (action: () => void) => {
     if (lock.current || status.busy) return;
@@ -258,11 +261,12 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
 
   return <KycDraftContext.Provider value={register}>
     <Screen scroll header={<AppBar title="Hostel KYC" showBack onBack={() => void saveAndExit(() => router.back())} actions={<IconButton label="Close KYC" name="close" onPress={() => void saveAndExit(() => router.back())} />} />}
-      footer={finish ? review?.canSubmit ? <View className="gap-1"><Button label="Submit for verification" onPress={submit} /><Button label={data.percent >= 100 ? "Go home" : "Finish the rest"} variant="ghost" onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /></View> : <View className="gap-1"><Button label={data.percent >= 100 ? "Go home" : "Continue"} onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /><Button label={data.percent >= 100 ? "View steps" : "Go home"} variant="ghost" onPress={() => data.percent >= 100 ? setOverview(true) : router.back()} /></View> : <View className="gap-1"><Button disabled={blocked} label={saving ? "Saving…" : status.busy ? "Please wait…" : status.dirty ? last ? "Save & finish" : "Save & next" : last ? "Finish" : "Next"} onPress={() => void saveAndGo(next)} /><Button label="Skip" variant="ghost" disabled={blocked} onPress={() => move(next)} /></View>}>
+      footer={finish ? review?.canSubmit ? <View className="gap-1"><Button label="Send for submission" onPress={submit} /><Button label={data.percent >= 100 ? "Go home" : "Finish the rest"} variant="ghost" onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /></View> : <View className="gap-1"><Button label={data.percent >= 100 ? "Go home" : "Continue"} onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /><Button label={data.percent >= 100 ? "View steps" : "Go home"} variant="ghost" onPress={() => data.percent >= 100 ? setOverview(true) : router.back()} /></View> : <View className="gap-1"><Button disabled={blocked} label={saving ? "Saving…" : status.busy ? "Please wait…" : status.dirty ? last ? "Save & finish" : "Save & next" : last ? "Finish" : "Next"} onPress={() => void saveAndGo(next)} /><Button label="Skip" variant="ghost" disabled={blocked} onPress={() => move(next)} /></View>}>
       {finish ? <Animated.View entering={FadeIn.duration(220).reduceMotion(ReduceMotion.System)} className="items-center gap-5 py-6">
         {data.percent >= 100 ? <View className="items-center">{!reduced && finished ? <Lottie loop={false} size={140} source={SUCCESS_ANIMATION} /> : <Glyph name="checkmark-circle" color={colors.primary} size={112} />}<Text variant="muted">{done} of {steps.length}</Text></View> : <KycRing percent={data.percent} size={120} />}
-        <Text variant="title">{review?.status === "SUBMITTED" ? "In review" : review?.status === "APPROVED" ? "Verified" : data.percent >= 100 ? "All done!" : `${data.percent}% done`}</Text>
-        <Text className="text-center" variant="muted">{review?.status === "SUBMITTED" ? "Our team checks it within 24 hours. You can still edit anything until then." : review?.canSubmit ? "Every required section is done. Submit it to our team." : review && requiredLeft > 0 ? `Finish the ${requiredLeft} required ${requiredLeft === 1 ? "section" : "sections"} to submit.` : data.percent >= 100 ? "Your hostel is ready" : "Finish the rest any time"}</Text>
+        <Text variant="title">{review?.status === "SUBMITTED" ? "Sent for review" : review?.status === "APPROVED" ? "Verified" : review?.canSubmit ? "Send for submission" : data.percent >= 100 ? "All done!" : `${data.percent}% done`}</Text>
+        <Text className="text-center" variant="muted">{review?.status === "SUBMITTED" ? "We check it within 24 hours. You can still edit anything until then. Once approved you get:" : review?.status === "APPROVED" ? "Every feature is open on the web and the app." : review?.canSubmit ? "Every required section is done. Once our team approves it you get:" : review && requiredLeft > 0 ? `Finish the ${requiredLeft} required ${requiredLeft === 1 ? "section" : "sections"} to send it.` : data.percent >= 100 ? "Your hostel is ready" : "Finish the rest any time"}</Text>
+        {review?.canSubmit || review?.status === "SUBMITTED" ? <View className="w-full gap-2">{([["phone-portrait", "Full access to the web and app portals"], ["document-text", "An agreement letter between you and HostelPalika"]] as const).map(([icon, text]) => <View className="flex-row items-center gap-3 rounded-2xl border border-border p-3" key={text}><View className="h-9 w-9 items-center justify-center rounded-xl bg-brand-soft"><Glyph color={colors.primary} name={icon} size={18} /></View><Text className="flex-1" variant="body">{text}</Text></View>)}</View> : null}
         <View className="w-full flex-row flex-wrap justify-between gap-y-3">{steps.map((item, at) => <Pressable key={item.key} accessibilityRole="button" accessibilityLabel={`${STEPS[item.key]?.title}, ${item.done ? "done" : "to do"}`} onPress={() => go(at)} className={`min-h-16 w-[48.5%] flex-row items-center gap-2 rounded-2xl p-2.5 active:opacity-70 ${item.done ? "bg-brand-soft" : "border border-border"}`}>
           <View className="h-10 w-10 items-center justify-center rounded-xl bg-background"><Glyph name={STEPS[item.key]?.icon ?? "ellipse"} color={colors.primary} size={20} /></View>
           <Text className="flex-1" numberOfLines={2} variant="label">{STEPS[item.key]?.short}</Text>
@@ -284,7 +288,7 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
         </Animated.View>
       </View>}
     </Screen>
-    <Sheet open={overview} onClose={() => setOverview(false)} title={`${done} of ${steps.length} done`} footer={review?.canSubmit && !finish ? <Button label="Review & submit" onPress={() => { setOverview(false); move(() => setFinished(true)); }} /> : undefined}>
+    <Sheet open={overview} onClose={() => setOverview(false)} title={`${done} of ${steps.length} done`} footer={review?.canSubmit && !finish ? <Button label="Review & send" onPress={() => { setOverview(false); move(() => setFinished(true)); }} /> : undefined}>
       <View className="gap-4">{([["To do", false], ["Done", true]] as const).map(([heading, isDone]) => {
         const group = steps.map((item, at) => ({ at, item })).filter(({ item }) => item.done === isDone);
         return group.length === 0 ? null : <View className="gap-2" key={heading}><Text variant="label">{heading}</Text>{group.map(({ at, item }) => <Pressable key={item.key} accessibilityRole="button" onPress={() => { setOverview(false); if (at !== current || finish) move(() => go(at)); }} className={`min-h-16 flex-row items-center gap-3 rounded-2xl p-3 ${item.done ? "bg-brand-soft" : "border border-border"}`}><Glyph name={item.done ? "checkmark-circle" : "ellipse"} size={24} color={item.done ? colors.primary : colors.mutedForeground} /><Text className="flex-1" variant="subtitle">{STEPS[item.key]?.title}</Text>{!item.done && item.required ? <Badge label="Required" tone="warning" /> : <Text variant="muted">{at === current && !finish ? "Here" : item.done ? "Done" : "To do"}</Text>}</Pressable>)}</View>;
@@ -309,7 +313,7 @@ function StepBody({
     case "details":
       return <DetailsStep data={data} onSaved={onSaved} />;
     case "rates":
-      return <RatesStep />;
+      return <RatesStep onSaved={onSaved} />;
     case "photos":
       return <PhotosStep onSaved={onSaved} />;
     case "documents":
@@ -775,15 +779,82 @@ function DetailsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Promis
   </View>;
 }
 
-/** Room types live on Rooms and their rent on the rate card; this shows both and opens them. */
-function RatesStep() {
+/**
+ * Room types and their rent, both set here: a type is added or changed in a
+ * sheet (saves at once, like photos); the rents and joining fees are the step's
+ * draft and go to the rate card through the wizard's save.
+ */
+function RatesStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
+  const { colors } = useAppTheme();
   const hostel = useManagedHostel();
-  useKycDraft({ dirty: false, busy: false, save: async () => true });
-  if (hostel.loading) return <SkeletonCard rows={2} />;
+  const feeQuery = adminQuery.feeSchedules();
+  const fees = useResource<FeeScheduleData>(feeQuery.load, { cacheKey: feeQuery.key, topics: feeQuery.topics });
+  const [rents, setRents] = useState<Record<string, string>>({});
+  const [admission, setAdmission] = useState<string>();
+  const [deposit, setDeposit] = useState<string>();
+  const [saving, setSaving] = useState(false);
+  const [editing, setEditing] = useState<{ at: number | null; bedsPerRoom: string; rooms: string; roomType: string } | null>(null);
   const rooms = hostel.data?.roomConfigurations ?? [];
-  return <View className="gap-3">
-    {rooms.length > 0 ? <Card className="gap-2">{rooms.map((room) => <View className="flex-row items-center justify-between" key={room.roomType}><Text variant="label">{room.roomType}</Text><Text variant="caption">{room.bedsPerRoom} {room.bedsPerRoom === 1 ? "bed" : "beds"} · {room.rooms} {room.rooms === 1 ? "room" : "rooms"}</Text></View>)}</Card> : <Text variant="muted">Add each room type first — single, double, triple — then its monthly rent.</Text>}
-    <Button label={rooms.length > 0 ? "Edit room types" : "Add room types"} onPress={() => router.push("/manage/rooms")} variant="outline" />
-    <Button label="Set monthly rent" onPress={() => router.push("/manage/finance/rates")} variant={rooms.length > 0 ? "primary" : "outline"} />
+  const card = fees.data?.schedules.find((item) => item.standing === "upcoming") ?? fees.data?.schedules.find((item) => item.standing === "current");
+  const savedRent = (roomType: string) => card?.rates.find((rate) => (rate.roomType ?? "").toLowerCase() === roomType.toLowerCase())?.monthlyAmount;
+  const rentOf = (roomType: string) => rents[roomType] ?? String(savedRent(roomType) ?? "");
+  const admissionValue = admission ?? (card?.admissionFee ? String(card.admissionFee) : "");
+  const depositValue = deposit ?? (card?.depositAmount ? String(card.depositAmount) : "");
+  const rates = rooms.filter((room) => Number(rentOf(room.roomType)) > 0).map((room) => ({ monthlyAmount: Number(rentOf(room.roomType)), roomType: room.roomType }));
+  const dirty = Object.keys(rents).length > 0 || admission !== undefined || deposit !== undefined;
+  const digits = (value: string) => value.replace(/\D/g, "");
+  const save = async () => {
+    if (!rates.length) { toastError("Not saved", "Enter a monthly rent."); return false; }
+    setSaving(true);
+    try {
+      const saved = await saveKycRates({ admissionFee: admissionValue ? Number(admissionValue) : undefined, depositAmount: depositValue ? Number(depositValue) : undefined, rates });
+      if (saved.nextMonth) toastSuccess("Saved", "Residents are already billed at the old price this month, so the new price starts next month.");
+      setRents({}); setAdmission(undefined); setDeposit(undefined);
+      await Promise.all([fees.reload(), hostel.reload(), onSaved()]);
+      return true;
+    } catch (error) { toastError("Not saved", readApiError(error)); return false; }
+    finally { setSaving(false); }
+  };
+  useKycDraft({ dirty, busy: saving, save });
+  const saveType = async () => {
+    if (!editing) return;
+    const roomType = editing.roomType.trim();
+    const bedsPerRoom = Math.max(1, Number(editing.bedsPerRoom) || 1);
+    const count = Math.max(0, Number(editing.rooms) || 0);
+    if (!roomType) { toastError("Not saved", "Name the room type."); return; }
+    const before = editing.at === null ? null : rooms[editing.at];
+    const row = { bedsPerRoom, mealInclusion: before?.mealInclusion || "Included", monthlyRent: before?.monthlyRent ?? 0, rooms: count, roomType, vacantBeds: Math.min(before?.vacantBeds ?? count * bedsPerRoom, count * bedsPerRoom) };
+    setSaving(true);
+    try {
+      const next = await updateManagedHostel({ roomConfigurations: editing.at === null ? [...rooms, row] : rooms.map((room, at) => at === editing.at ? row : room) });
+      hostel.setData(() => next);
+      await Promise.all([fees.reload(), onSaved()]);
+      setEditing(null);
+    } catch (error) { toastError("Not saved", readApiError(error)); }
+    finally { setSaving(false); }
+  };
+  if (hostel.loading || fees.loading) return <SkeletonCard rows={3} />;
+  return <View className="gap-4">
+    {rooms.length ? <Card padding="p-0">{rooms.map((room, at) => <View className={`gap-2 p-4 ${at ? "border-t border-border" : ""}`} key={room.roomType}>
+      <Pressable accessibilityLabel={`Edit ${room.roomType}`} accessibilityRole="button" className="min-h-11 flex-row items-center gap-3" onPress={() => setEditing({ at, bedsPerRoom: String(room.bedsPerRoom), rooms: String(room.rooms), roomType: room.roomType })}>
+        <View className="flex-1"><Text variant="label">{room.roomType}</Text><Text variant="caption">{room.bedsPerRoom} {room.bedsPerRoom === 1 ? "bed" : "beds"} a room · {room.rooms} {room.rooms === 1 ? "room" : "rooms"}</Text></View>
+        {savedRent(room.roomType) ? null : <Badge label="Not priced" tone="warning" />}
+        <Glyph color={colors.mutedForeground} name="create" size={18} />
+      </Pressable>
+      <Input accessibilityLabel={`${room.roomType} rent`} keyboardType="number-pad" label="Rent (Rs / month)" onChangeText={(text) => setRents((current) => ({ ...current, [room.roomType]: digits(text) }))} placeholder="12000" value={rentOf(room.roomType)} />
+    </View>)}</Card> : <Text variant="muted">Add each room type first — single, double, triple — then its monthly rent.</Text>}
+    <Button label="+ Add room type" onPress={() => setEditing({ at: null, bedsPerRoom: "1", rooms: "1", roomType: "" })} variant="outline" />
+    {rooms.length ? <>
+      <Input keyboardType="number-pad" label="Admission fee (optional)" onChangeText={(text) => setAdmission(digits(text))} placeholder="0" value={admissionValue} />
+      <Input keyboardType="number-pad" label="Security deposit (optional)" onChangeText={(text) => setDeposit(digits(text))} placeholder="0" value={depositValue} />
+    </> : null}
+    <Sheet footer={<Button disabled={saving} label={saving ? "Saving…" : "Save room type"} onPress={() => void saveType()} />} onClose={() => setEditing(null)} open={editing !== null} title={editing?.at === null ? "Add room type" : "Edit room type"}>
+      {editing ? <View className="gap-4">
+        <Input autoCapitalize="words" label="Room type" onChangeText={(roomType) => setEditing({ ...editing, roomType })} placeholder="Double Sharing" value={editing.roomType} />
+        {editing.at === null ? <View className="flex-row flex-wrap gap-2">{ROOM_TYPE_OPTIONS.filter((option) => !rooms.some((room) => room.roomType === option)).map((option) => <Pressable accessibilityRole="button" className={`min-h-11 justify-center rounded-xl border px-3 ${editing.roomType === option ? "border-primary bg-brand-soft" : "border-border"}`} key={option} onPress={() => setEditing({ ...editing, bedsPerRoom: String(BEDS_BY_ROOM_TYPE[option] ?? 1), roomType: option })}><Text variant="label">{option}</Text></Pressable>)}</View> : null}
+        <Input keyboardType="number-pad" label="Beds a room" onChangeText={(text) => setEditing({ ...editing, bedsPerRoom: digits(text) })} value={editing.bedsPerRoom} />
+        <Input keyboardType="number-pad" label="Rooms of this type" onChangeText={(text) => setEditing({ ...editing, rooms: digits(text) })} value={editing.rooms} />
+      </View> : null}
+    </Sheet>
   </View>;
 }

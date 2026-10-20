@@ -4,13 +4,14 @@ import { PublicPlansPricingPage } from "@/app/_components/public-plans-pricing-p
 import { JsonLd } from "@/components/json-ld";
 import { breadcrumbJsonLd, softwareApplicationJsonLd } from "@/lib/json-ld";
 import { loadSeo, resolveSeoPage, staticPageMetadata } from "@/lib/seo-config";
+import { getOperationsConfig } from "@/modules/platform-config/operations-config";
 
 export function generateMetadata(): Promise<Metadata> {
   return staticPageMetadata("plansPricing", { eyebrow: "Plans & Pricing" });
 }
 
 export default async function PlansPricingPage() {
-  const { config, fill, seo } = await loadSeo();
+  const [{ config, fill, seo }, { trialDays }] = await Promise.all([loadSeo(), getOperationsConfig()]);
 
   return (
     <>
@@ -27,7 +28,7 @@ export default async function PlansPricingPage() {
           ]),
         ]}
       />
-      <PublicPlansPricingPage />
+      <PublicPlansPricingPage trialDays={trialDays} />
     </>
   );
 }

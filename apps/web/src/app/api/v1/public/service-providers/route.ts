@@ -5,6 +5,7 @@ import {
   handleRouteError,
   successResponse,
 } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { listPublicServiceProviders } from "@/modules/service-providers/service-provider.service";
 import { publicServiceProviderListQuerySchema } from "@/modules/service-providers/service-provider.validation";
 
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     );
     const result = await listPublicServiceProviders(query);
 
-    return successResponse(result, "Service providers loaded", PUBLIC_CACHE);
+    return withEtag(request, successResponse(result, "Service providers loaded", PUBLIC_CACHE));
   } catch (error) {
     return handleRouteError(error);
   }

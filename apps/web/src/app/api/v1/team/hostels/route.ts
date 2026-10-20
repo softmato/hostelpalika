@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireTeamPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { registerTeamHostelApplication } from "@/modules/hostels/hostel.service";
 import { teamHostelRegistrationSchema } from "@/modules/hostels/hostel-registration.validation";
 import { listAgentRegistrations } from "@/modules/team/team.service";
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireTeamPrincipal(request);
     const result = await listAgentRegistrations(principal.userId);
 
-    return successResponse(result, "Registrations loaded");
+    return withEtag(request, successResponse(result, "Registrations loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -24,6 +24,7 @@ import NepaliDate from "nepali-date-converter";
 
 import {
   bsPeriodOf,
+  formatBsDate,
   formatBsPeriod,
   formatBsPeriodMonth,
   formatBsPeriodYear,
@@ -498,16 +499,11 @@ export function formatDateBs(value: Date | string | null | undefined): string {
     return "—";
   }
 
-  const { day, month, year } = nepalParts(date);
-
-  try {
-    return `${toNepaliDate(year, month, day).format("MMMM D, YYYY")} ${BS_ERA}`;
-  } catch {
-    // The table does not cover every year for ever. A date outside it falls back
-    // to Gregorian rather than showing a wrong Nepali date — being silently
-    // wrong about a due date is the one outcome worth avoiding here.
-    return formatDate(date);
-  }
+  // The platform's one date format — `Baisakh · 2083-01-15` — from the shared
+  // calendar. Off the table it falls back to Gregorian rather than a wrong
+  // Nepali date: being silently wrong about a due date is the one outcome
+  // worth avoiding here.
+  return formatBsDate(date) || formatDate(date);
 }
 
 /**
@@ -520,16 +516,8 @@ export function formatDateBs(value: Date | string | null | undefined): string {
 export function formatDateBoth(
   value: Date | string | null | undefined,
 ): string {
-  const date = parseDate(value);
-
-  if (!date) {
-    return "—";
-  }
-
-  const ad = formatDate(date);
-  const bs = formatDateBs(date);
-
-  return bs === ad ? ad : `${bs} · ${ad}`;
+  // One date format now (docs/PORTAL_POLISH_2026_10.md): the name stays for its callers.
+  return formatDateBs(value);
 }
 
 /** `2:45 pm`. Lowercase meridiem — it sits next to a date, not alone. */

@@ -78,6 +78,8 @@ export type SiteContent = {
 
 /** Website Config → Site Identity. Every field but `siteName` may be blank. */
 export type SiteIdentity = {
+  /** Help & support numbers, each with a note (Website Config). */
+  supportLines?: { note: string; phone: string }[];
   address: string;
   siteName: string;
   supportEmail: string;
@@ -154,7 +156,18 @@ export type SiteQuestionCall = {
   url: string;
 };
 
+/** Platform → Push → Sheet message; `null` when none is live. */
+export type SiteAppNotice = {
+  audience: "EVERYONE" | "GUARDIANS" | "HOSTEL_STAFF" | "RESIDENTS";
+  buttonLabel: string;
+  id: string;
+  link: string;
+  message: string;
+  title: string;
+};
+
 export type MobileSiteConfig = {
+  appNotice: SiteAppNotice | null;
   content: SiteContent;
   features: SiteFeatures;
   identity: SiteIdentity;
@@ -190,6 +203,7 @@ const EMPTY_PAGE: ContentPage = {
  * never touched the page has every surface enabled.
  */
 export const FALLBACK_SITE_CONFIG: MobileSiteConfig = {
+  appNotice: null,
   /*
    * Empty, and deliberately not a copy of the shipped documents.
    *
@@ -282,6 +296,7 @@ type SiteConfigResponse = Partial<MobileSiteConfig>;
  */
 function withDefaults(config: SiteConfigResponse): MobileSiteConfig {
   return {
+    appNotice: config.appNotice ?? null,
     content: { ...FALLBACK_SITE_CONFIG.content, ...config.content },
     features: { ...FALLBACK_SITE_CONFIG.features, ...config.features },
     identity: { ...FALLBACK_SITE_CONFIG.identity, ...config.identity },

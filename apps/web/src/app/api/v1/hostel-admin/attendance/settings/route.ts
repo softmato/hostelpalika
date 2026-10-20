@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelAdminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   getAttendanceSettings,
   updateAttendanceSettings,
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
       request.nextUrl.searchParams.get("hostelId") ?? undefined,
     );
 
-    return successResponse(result, "Attendance settings loaded");
+    return withEtag(request, successResponse(result, "Attendance settings loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

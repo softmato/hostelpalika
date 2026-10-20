@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import { Clock3, UserMinus } from "@/components/icons";
 import { memo, useCallback, useState } from "react";
 
@@ -45,7 +47,7 @@ function formatDate(value?: string) {
   }
 
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
+  return Number.isNaN(date.getTime()) ? "—" : formatHostelDate(date);
 }
 
 export const PlatformAccountDeletionsPageContent = memo(

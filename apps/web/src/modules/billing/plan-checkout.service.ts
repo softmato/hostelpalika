@@ -2,6 +2,8 @@ import { jwtVerify, SignJWT } from "jose";
 import { Types } from "mongoose";
 import { z } from "zod";
 
+import { planRank } from "@hostel/shared/plans/catalog";
+
 import { jwtSecret } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import { hostelCode, normalizeHostelCode } from "@/lib/hostel-code";
@@ -460,11 +462,14 @@ export async function runPlanCheckout(
         {
           cycle: input.cycle,
           lifetime: input.lifetime,
-          planId: input.planId ?? (await currentPlanId(hostelId)),
+          planId: input.lifetime
+            ? (input.planId ?? (await currentPlanId(hostelId)))
+            : await notBelowRunningPlan(hostelId, input.planId),
         },
         ownerId,
-        // Raised on Softmato at Pay, so the months can still change here.
-        { deferDocument: true },
+        // Raised on Softmato at Pay, so the months can still change here. The
+        // footer's "Recharge" picks nothing, so an open invoice stays as it is.
+        { deferDocument: true, reshape: Boolean(input.planId) },
       );
 
       return { reused, ...(await checkoutView(hostelId, invoice)) };
@@ -475,7 +480,12 @@ export async function runPlanCheckout(
 
       return checkoutView(
         hostelId,
-        await changeOpenInvoiceMonths(hostelId, input.months, ownerId, input.planId),
+        await changeOpenInvoiceMonths(
+          hostelId,
+          input.months,
+          ownerId,
+          input.planId ? await notBelowRunningPlan(hostelId, input.planId) : undefined,
+        ),
       );
     }
 
@@ -535,6 +545,27 @@ export async function runPlanCheckout(
       );
     }
   }
+}
+
+/**
+ * The plan a recharge is priced on. A hostel whose plan is running renews at
+ * least that plan: "Get Pro" pressed by a Max hostel renews Max, never prices
+ * Pro — the page would name a plan the hostel is not on, and settlement keeps
+ * the higher plan anyway (`planAfterPayment`), so Pro's price would buy Max.
+ */
+async function notBelowRunningPlan(hostelId: string, picked: string | undefined) {
+  const [subscription, catalog] = await Promise.all([
+    HostelSubscriptionModel.findOne({ hostelId: new Types.ObjectId(hostelId) })
+      .select("planId status")
+      .lean<{ planId?: string | null; status?: string } | null>(),
+    getSiteConfigSection("plans"),
+  ]);
+  const held = subscription?.status === "ACTIVE" ? (subscription.planId ?? "") : "";
+
+  if (!picked) return held || (await currentPlanId(hostelId));
+  if (!held) return picked;
+
+  return planRank(catalog, picked) < planRank(catalog, held) ? held : picked;
 }
 
 /** The plan the hostel is on, or `""` — which `pricePlan` answers with "choose another one". */

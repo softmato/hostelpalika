@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import { ScrollText } from "@/components/icons";
 import { memo, useMemo, useState } from "react";
 
@@ -31,7 +33,7 @@ function formatTimestamp(value: string | null) {
   }
 
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "-" : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? "-" : formatHostelDateTime(date);
 }
 
 function metadataSummary(metadata: Record<string, unknown>) {
@@ -55,7 +57,7 @@ function dayHeading(value: string | null) {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? "Undated"
-    : date.toLocaleDateString(undefined, { day: "numeric", month: "long", weekday: "long", year: "numeric" });
+    : formatHostelDate(date);
 }
 
 export const PlatformAuditLogsPageContent = memo(function PlatformAuditLogsPageContent() {

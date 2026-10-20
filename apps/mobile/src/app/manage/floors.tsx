@@ -285,6 +285,7 @@ export default function FloorsScreen() {
             onConfirm: async () => {
               if (await run(() => deleteRoom(room.id), `Room ${room.number} removed`)) setOpen(null);
             },
+            pin: true,
             title: `Remove Room ${room.number}?`,
           })
         }

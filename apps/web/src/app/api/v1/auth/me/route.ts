@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { errorResponse, handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getBearerToken, readAccessTokenCookie, verifyAccessToken } from "@/lib/auth";
 import { isPinUnlocked } from "@/lib/lock-pin-cookie";
 import { AuthServiceError, getCurrentUser } from "@/modules/auth/auth.service";
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
         (await verifyAccessToken(accessToken)).sessionId,
       ));
 
-    return successResponse({ user: { ...user, pinLocked } }, "Authenticated user loaded");
+    return withEtag(request, successResponse({ user: { ...user, pinLocked } }, "Authenticated user loaded"));
   } catch (error) {
     if (error instanceof AuthServiceError) {
       return errorResponse(error.message, error.errorCode, error.status);

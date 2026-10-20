@@ -64,6 +64,8 @@ export interface BillingInvoiceRow {
   issuedAt: string | null;
   outstanding: number;
   paid: number;
+  /** The catalogue id, for the plan's mark on the row. */
+  planId: string | null;
   planName: string;
   cycleLabel: string;
   /** What is printed on the page the owner holds, whoever issued it. */
@@ -251,6 +253,7 @@ export async function getBillingHistory(
           issuedAt?: Date | null;
           lifetime?: boolean;
           localInvoiceNo?: string | null;
+          planId?: string | null;
           planName: string;
           softmatoInvoiceNo?: string | null;
           status: string;
@@ -336,6 +339,7 @@ export async function getBillingHistory(
         outstanding:
           invoice.status === "VOID" ? 0 : Math.max(0, invoice.amount - paid),
         paid,
+        planId: invoice.planId ?? null,
         planName: invoice.planName,
         printedNumber:
           invoice.softmatoInvoiceNo ??

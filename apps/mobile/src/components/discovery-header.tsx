@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { router } from "expo-router";
-import { useEffect, useState } from "react";
+import { router, useFocusEffect } from "expo-router";
+import { setStatusBarStyle } from "expo-status-bar";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import Animated, {
   Easing,
@@ -14,6 +15,7 @@ import Animated, {
 
 import { IdCardPrompt } from "@/components/id-card-prompt";
 import { NotificationBell } from "@/components/notification-bell";
+import { usePortalPaint } from "@/components/portal-shared";
 import { Glyph } from "@/components/ui/glyph";
 import { IconButton } from "@/components/ui/icon-button";
 import { Text } from "@/components/ui/text";
@@ -163,9 +165,21 @@ export function DiscoveryHeader({
   query,
 }: DiscoveryHeaderProps) {
   const insets = useSystemInsets();
-  const { colors } = useAppTheme();
+  const { colors, isDark } = useAppTheme();
+  const paint = usePortalPaint();
   const account = useAppSelector((state) => state.auth.account);
   const [promptingIdCard, setPromptingIdCard] = useState(false);
+
+  /*
+   * The bar is painted green, so the clock and battery go white while Home is
+   * in front, and back to the theme's own colour the moment another tab is.
+   */
+  useFocusEffect(
+    useCallback(() => {
+      setStatusBarStyle("light");
+      return () => setStatusBarStyle(isDark ? "light" : "dark");
+    }, [isDark]),
+  );
 
   /*
    * Decided from the cached account, not from `/users/resident-identity` — the
@@ -186,7 +200,8 @@ export function DiscoveryHeader({
   const cardNoun = idCardNoun(cardType);
 
   return (
-    <View style={{ backgroundColor: colors.background, paddingTop: insets.top }}>
+    // The top of the green that `PublicHome` fades down into the page.
+    <View style={{ backgroundColor: paint.from, paddingTop: insets.top }}>
       <View className="gap-3 px-5 pb-3 pt-2">
         <View className="flex-row items-center gap-3">
           {/*
@@ -199,8 +214,8 @@ export function DiscoveryHeader({
           */}
           <View accessibilityLabel={APP_NAME} accessibilityRole="header" className="flex-1">
             <Text style={{ fontSize: 30, fontWeight: "800", letterSpacing: -0.5 }}>
-              <Text style={{ color: colors.foreground }}>{APP_NAME_PARTS.head}</Text>
-              <Text style={{ color: colors.primary }}>{APP_NAME_PARTS.tail}</Text>
+              <Text style={{ color: "#FFFFFF" }}>{APP_NAME_PARTS.head}</Text>
+              <Text style={{ color: "rgba(255,255,255,0.72)" }}>{APP_NAME_PARTS.tail}</Text>
             </Text>
           </View>
 
@@ -227,9 +242,10 @@ export function DiscoveryHeader({
                 onPress={() =>
                   hasCard ? router.push("/id-card") : setPromptingIdCard(true)
                 }
+                tone="onAccent"
               />
 
-              <NotificationBell />
+              <NotificationBell tone="onAccent" />
             </>
           ) : null}
         </View>

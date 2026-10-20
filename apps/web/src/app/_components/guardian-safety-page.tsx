@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import {
   Clock3,
   Lock,
@@ -116,7 +118,7 @@ export const GuardianSafetyPageContent = memo(function GuardianSafetyPageContent
                     {/* A date. The serializer truncates it on purpose — §4.1. */}
                     <p className="mt-2 font-heading text-[20px] font-bold leading-tight text-foreground">
                       {dashboard.safety?.asOf
-                        ? new Date(`${dashboard.safety.asOf}T00:00:00`).toLocaleDateString()
+                        ? formatHostelDate(`${dashboard.safety.asOf}T00:00:00`)
                         : "Not checked"}
                     </p>
                     <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">

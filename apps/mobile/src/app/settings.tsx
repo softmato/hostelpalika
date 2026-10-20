@@ -3,7 +3,6 @@ import { useCallback, useState } from "react";
 import { Alert, Linking, View } from "react-native";
 
 import { AppLockSetting } from "@/components/app-lock";
-import { CalendarPreferenceCard } from "@/components/calendar-preference";
 import { crossFadeTheme } from "@/components/theme-fade";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
@@ -90,7 +89,6 @@ const THEME_OPTIONS: { icon: GlyphName; iconBgColor: string; hint: string; label
  * Which slice of this screen to draw.
  */
 const SETTINGS_TITLES: Record<string, string> = {
-  calendar: "Dates",
   notifications: "Notifications",
   privacy: "Privacy & your data",
   security: "App lock",
@@ -116,7 +114,6 @@ export default function SettingsScreen() {
   const showNotifications = showAll || section === "notifications";
   const showPrivacy = showAll || section === "privacy";
   const showSecurity = showAll || section === "security";
-  const showCalendar = showAll || section === "calendar";
   // Only these two roles are sent optional mail; nobody else gets the section.
   const emailAudience: EmailAudience | null =
     account?.role === ROLE.RESIDENT
@@ -185,7 +182,6 @@ export default function SettingsScreen() {
 
         {showSecurity ? <AppLockSetting /> : null}
 
-        {showCalendar ? <CalendarPreferenceCard /> : null}
 
         {showNotifications ? <NotificationSettings /> : null}
 

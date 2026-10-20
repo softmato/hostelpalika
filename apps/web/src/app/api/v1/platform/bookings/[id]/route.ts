@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { cancelBookingByPlatform } from "@/modules/bookings/booking-answer.service";
 import { getPlatformBooking } from "@/modules/bookings/booking-queries.service";
 
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     const { id } = await context.params;
 
-    return successResponse({ booking: await getPlatformBooking(id) }, "Booking");
+    return withEtag(request, successResponse({ booking: await getPlatformBooking(id) }, "Booking"));
   } catch (error) {
     return handleRouteError(error);
   }

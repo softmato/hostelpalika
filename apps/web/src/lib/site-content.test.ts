@@ -16,6 +16,7 @@ const IDENTITY = {
   siteName: "TestHostels",
   supportEmail: "help@example.com",
   supportPhone: "+977-1-0000000",
+  supportLines: [],
   tagline: "",
 };
 

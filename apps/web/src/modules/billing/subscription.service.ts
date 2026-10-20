@@ -605,6 +605,8 @@ export async function raiseRenewalInvoice(
     deferDocument?: boolean;
     /** Due on this instant instead of the grace period from today. */
     dueAt?: Date;
+    /** False when nothing was picked: an open invoice is returned as it stands. */
+    reshape?: boolean;
   } = {},
 ) {
   await connectToDatabase();
@@ -624,6 +626,7 @@ export async function raiseRenewalInvoice(
      */
     if (
       options.deferDocument &&
+      options.reshape !== false &&
       Boolean(open.lifetime) !== Boolean(input.lifetime) &&
       !(await invoiceMonthsLocked(open))
     ) {

@@ -47,6 +47,7 @@ export async function reportExportResponse(
   const bytes = await renderReportPdf({
     columns: report.columns,
     generatedAt: new Date(),
+    period: report.period,
     rows: report.rows,
     scopeName,
     title: titleFrom(report.filenamePrefix),

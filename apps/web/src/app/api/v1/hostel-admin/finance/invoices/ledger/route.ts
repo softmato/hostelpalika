@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { Role } from "@/lib/roles";
 import { getHostelLedger } from "@/modules/finance/invoice-list.service";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
     const expensesFor = principal.userId;
     const expensesMineOnly = principal.role !== Role.HOSTEL_ADMIN;
 
-    return successResponse(await getHostelLedger(hostelId, { expensesFor, expensesMineOnly }), "Transactions");
+    return withEtag(request, successResponse(await getHostelLedger(hostelId, { expensesFor, expensesMineOnly }), "Transactions"));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requirePlatformPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getPlatformSubscriptionLedger } from "@/modules/billing/platform-subscriptions.service";
 
 export const runtime = "nodejs";
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
       limit: Number.isFinite(limit) ? limit : 200,
     });
 
-    return successResponse(ledger, "Subscription ledger loaded");
+    return withEtag(request, successResponse(ledger, "Subscription ledger loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelStaffPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getSubscriptionState } from "@/modules/billing/subscription.service";
 
 export const runtime = "nodejs";
@@ -24,13 +25,13 @@ export async function GET(request: NextRequest) {
     const hostelId = principal.hostelIds?.[0];
 
     if (!hostelId) {
-      return successResponse({ state: null }, "No hostel in scope");
+      return withEtag(request, successResponse({ state: null }, "No hostel in scope"));
     }
 
-    return successResponse(
+    return withEtag(request, successResponse(
       { state: await getSubscriptionState(hostelId) },
       "Subscription loaded",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

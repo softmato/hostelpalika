@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getMoneyRules, moneyRulesSchema, saveMoneyRules } from "@/modules/finance/money-rules.service";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
 
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireHostelCapability(request, "viewPayments");
     const hostelId = resolveAdminHostelId(principal, request.nextUrl.searchParams.get("hostelId") ?? undefined);
 
-    return successResponse({ rules: await getMoneyRules(hostelId) }, "Money rules");
+    return withEtag(request, successResponse({ rules: await getMoneyRules(hostelId) }, "Money rules"));
   } catch (error) {
     return handleRouteError(error);
   }

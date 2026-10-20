@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireResidentPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getPayInstructions } from "@/modules/finance/pay-instructions.service";
 
 export const runtime = "nodejs";
@@ -21,10 +22,10 @@ export async function GET(
     const principal = await requireResidentPrincipal(request);
     const { id } = await context.params;
 
-    return successResponse(
+    return withEtag(request, successResponse(
       await getPayInstructions(id, principal),
       "Payment instructions",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

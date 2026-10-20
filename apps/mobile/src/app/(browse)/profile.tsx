@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
-import { Linking, View } from "react-native";
+import { Linking, Pressable, View } from "react-native";
 
 import { AppRows, MenuGroup, MenuGroups, MenuProfile, MenuRow, MenuSearch, SignOutRow } from "@/components/more-menu";
 import { AdminSearchBar } from "@/components/admin-search-bar";
@@ -9,7 +9,6 @@ import { SupportContact } from "@/components/support-contact";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Glyph } from "@/components/ui/glyph";
-import { CardRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { readableRole } from "@/constants/roles";
@@ -20,7 +19,6 @@ import { useSiteConfig } from "@/hooks/use-site-config";
 import type { ProviderApplication } from "@/lib/provider-api";
 import { providerQuery } from "@/lib/provider-queries";
 import { isApplicationInFlight } from "@/lib/provider-status";
-import { toastInfo } from "@/lib/toast";
 
 /**
  * Profile — and, since the tab bar replaced the signed-out shell, the app's
@@ -30,10 +28,11 @@ import { toastInfo } from "@/lib/toast";
  *
  * The website's header and footer, natively. Everything they link to — Offer
  * Program, Register Hostel, Service Providers, About, Contact, Pricing, Terms,
- * Privacy, the support channels and the social links — is reachable from here,
- * grouped the way the site groups it: Explore, Partners, Company, Legal. On the
- * web those live in a nav bar and a four-column footer; a phone has neither, and
- * a menu is where a phone puts them.
+ * Privacy, the support channels and the social links — is reachable in the app.
+ * The doors (Register, Service provider, Offer Program, Pricing, Inquiry,
+ * Compare) are tiles on Home now (`HomeShortcuts`); this screen keeps the
+ * account, the app settings and the company pages, and nothing a tab already
+ * opens.
  *
  * Privacy and Terms open **in the app**. They used to hand off to the browser,
  * which meant the one screen that answers "what do you do with my data" was the
@@ -93,11 +92,7 @@ export default function BrowseProfileScreen() {
     { cacheKey: account ? query.key : undefined, topics: query.topics },
   );
 
-  const { features, identity, social } = config;
-
-  const soon = useCallback((what: string) => {
-    toastInfo(`${what} is coming`, "It lands in the next release.");
-  }, []);
+  const { identity, social } = config;
 
   const socialLinks = (
     [
@@ -125,7 +120,7 @@ export default function BrowseProfileScreen() {
             avatar={<PersonAvatar image={account.image} name={account.name} size="xl" />}
             lines={[
               account.email || account.phone,
-              `${readableRole(account.role)} account — you're browsing, not living in a hostel yet.`,
+              `${readableRole(account.role)} account`,
             ]}
             title={account.name || "Your account"}
           />
@@ -164,28 +159,6 @@ export default function BrowseProfileScreen() {
           </View>
         ) : null}
 
-        {/*
-          The way in for an owner, first after who you are
-          (docs/QUICK_SIGNUP_KYC_TRIAL.md): three fields and the hostel
-          portal opens on this account.
-        */}
-        {!search && features.publicRegistration ? (
-          <View className="pb-3">
-            <CardRow
-              icon="business"
-              onPress={() =>
-                router.push(
-                  account
-                    ? "/register-hostel"
-                    : { params: { next: "/register-hostel" }, pathname: "/(auth)/login" },
-                )
-              }
-              subtitle="Open your own hostel portal in a minute"
-              title="Register your hostel"
-            />
-          </View>
-        ) : null}
-
         <MenuGroups>
           <MenuGroup>
             {/* Device-local, so it works signed out. `/saved` is the list and nothing else. */}
@@ -203,63 +176,7 @@ export default function BrowseProfileScreen() {
                 tone="warning"
               />
             ) : null}
-            {/* The one honest "not yet" left: nothing lists what you have sent. */}
-            {account ? (
-              <MenuRow icon="mail" onPress={() => soon("Your inquiries")} title="Inquiries" tone="neutral" />
-            ) : null}
           </MenuGroup>
-
-          <MenuGroup>
-            <MenuRow icon="search" onPress={() => router.push("/(browse)/search")} title="Browse hostels" />
-            {features.compare ? (
-              <MenuRow
-                icon="git-compare"
-                onPress={() => router.push("/(browse)/compare")}
-                title="Compare hostels"
-                tone="warning"
-              />
-            ) : null}
-            <MenuRow
-              icon="people"
-              onPress={() => router.push("/(browse)/community")}
-              title="Community"
-              tone="warning"
-            />
-            {features.inquiries ? (
-              <MenuRow
-                icon="chatbubble-ellipses"
-                onPress={() => router.push("/inquiry")}
-                title="Send an inquiry"
-              />
-            ) : null}
-            <MenuRow
-              icon="sparkles"
-              onPress={() => router.push("/offer-program")}
-              title="Resident Offer Program"
-              tone="danger"
-            />
-          </MenuGroup>
-
-          {features.publicRegistration || features.serviceProviderSignup ? (
-            <MenuGroup>
-              {features.serviceProviderSignup ? (
-                <MenuRow
-                  icon="construct"
-                  onPress={() => router.push("/service-providers")}
-                  title="Become a service provider"
-                  tone="warning"
-                />
-              ) : null}
-              {features.publicRegistration ? (
-                <MenuRow
-                  icon="pricetags"
-                  onPress={() => router.push("/pricing")}
-                  title="Pricing"
-                  tone="danger"
-                />
-              ) : null}
-            </MenuGroup>
-          ) : null}
 
           {/* Notification settings and privacy need a session; the theme does not. */}
           <AppRows feed={false} notificationSettings={Boolean(account)} privacy={Boolean(account)} />
@@ -293,27 +210,29 @@ export default function BrowseProfileScreen() {
 
           <SupportContact />
 
-          {socialLinks.length > 0 ? (
-            <MenuGroup>
-              {socialLinks.map(([label, href]) => (
-                <MenuRow
-                  icon="open"
-                  key={label}
-                  onPress={() => void Linking.openURL(href)}
-                  title={label}
-                  tone="neutral"
-                />
-              ))}
-            </MenuGroup>
-          ) : null}
-
           {account ? <SignOutRow /> : null}
         </MenuGroups>
 
         {search ? null : (
-          <Text className="pt-4 text-center" variant="caption">
-            {`© ${new Date().getFullYear()} ${identity.siteName}. All rights reserved.`}
-          </Text>
+          <View className="items-center gap-3 pt-5">
+            {socialLinks.length > 0 ? (
+              <View className="flex-row flex-wrap justify-center gap-2">
+                {socialLinks.map(([label, href]) => (
+                  <Pressable
+                    accessibilityRole="link"
+                    className="rounded-full border border-border px-3 py-1.5 active:opacity-70"
+                    key={label}
+                    onPress={() => void Linking.openURL(href)}
+                  >
+                    <Text variant="caption">{label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
+            <Text className="text-center" variant="caption">
+              {`© ${new Date().getFullYear()} ${identity.siteName}. All rights reserved.`}
+            </Text>
+          </View>
         )}
       </MenuSearch>
     </Screen>

@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import { ExternalLink, Flag, Megaphone, MoreHorizontal, Play, Trash2 } from "@/components/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -89,7 +91,7 @@ function relativeTime(value?: string) {
     return `${Math.floor(seconds / 86400)}d`;
   }
 
-  return new Date(value).toLocaleDateString();
+  return formatHostelDate(value);
 }
 
 /** Deterministic per name, so the same person keeps the same colour everywhere. */
@@ -433,7 +435,7 @@ function CommentThread({
                       className="text-[12.5px] text-muted-foreground"
                       title={
                         comment.createdAt
-                          ? new Date(comment.createdAt).toLocaleString()
+                          ? formatHostelDateTime(comment.createdAt)
                           : ""
                       }
                     >
@@ -742,7 +744,7 @@ export function CommunityPostCard({
               <SpaceBadge post={post} />
               <span
                 className="text-[13px] text-muted-foreground"
-                title={post.createdAt ? new Date(post.createdAt).toLocaleString() : ""}
+                title={post.createdAt ? formatHostelDateTime(post.createdAt) : ""}
               >
                 {relativeTime(post.createdAt)}
               </span>

@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import { EyeOff, Flag, MessageSquare } from "@/components/icons";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
@@ -159,7 +161,7 @@ export function CommunityModerationPanel({
                     <span className="ml-2 text-xs font-normal text-muted-foreground">
                       {post.spaceType === "PUBLIC" ? "Public space" : post.hostelName}
                       {post.createdAt
-                        ? ` · ${new Date(post.createdAt).toLocaleDateString()}`
+                        ? ` · ${formatHostelDate(post.createdAt)}`
                         : ""}
                     </span>
                   </p>

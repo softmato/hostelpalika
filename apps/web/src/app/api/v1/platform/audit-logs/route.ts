@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requirePlatformPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { listPlatformAuditLogs } from "@/modules/audit/audit.service";
 import { platformAuditLogQuerySchema } from "@/modules/audit/audit.validation";
 
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     );
     const result = await listPlatformAuditLogs(query);
 
-    return successResponse(result, "Audit logs loaded");
+    return withEtag(request, successResponse(result, "Audit logs loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

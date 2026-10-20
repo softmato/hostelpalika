@@ -21,6 +21,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
+import { useSearchParams } from "next/navigation";
 
 import { EmptyState, Input, Panel, Select, TextArea } from "@/app/_components/shared-ui";
 import {
@@ -123,6 +124,15 @@ const SECTIONS: SectionDef[] = [
   },
 ];
 
+/** Where each Hostel KYC step that links here lands. */
+const KYC_SECTION: Record<string, SectionId> = {
+  details: "location",
+  facilities: "identity",
+  location: "location",
+  photos: "photos",
+  rules: "identity",
+};
+
 /** Sections whose fields belong to the single profile form and one save press. */
 const FORM_SECTIONS = new Set<SectionId>(["identity", "location", "contact"]);
 
@@ -144,14 +154,17 @@ type PendingPhoto = {
 function SectionBody({
   active,
   children,
+  kyc,
   section,
 }: {
   active: boolean;
   children: ReactNode;
+  /** The Hostel KYC step this block fills in (`kyc-focus.tsx`). */
+  kyc?: string;
   section: SectionDef;
 }) {
   return (
-    <div className={active ? "space-y-4" : "hidden"} hidden={!active}>
+    <div className={active ? "space-y-4" : "hidden"} data-kyc={kyc} hidden={!active}>
       <div>
         <h2 className="font-heading text-base font-bold text-foreground">
           {section.label}
@@ -169,14 +182,17 @@ function SectionBody({
 function FieldGroup({
   children,
   hint,
+  kyc,
   title,
 }: {
   children: ReactNode;
   hint?: string;
+  /** The Hostel KYC step this group fills in (`kyc-focus.tsx`). */
+  kyc?: string;
   title: string;
 }) {
   return (
-    <div>
+    <div data-kyc={kyc}>
       <h3 className="text-sm font-bold text-foreground">{title}</h3>
       {hint ? (
         <p className="mt-0.5 text-xs font-medium text-muted-foreground">{hint}</p>
@@ -255,7 +271,11 @@ export const HostelAdminProfilePageContent = memo(
     const [deletingIds, setDeletingIds] = useState<string[]>([]);
     const { open: openViewer } = useMediaViewer();
     const [sendingRequest, setSendingRequest] = useState(false);
-    const [activeSection, setActiveSection] = useState<SectionId>("overview");
+    const searchParams = useSearchParams();
+    // Sent here by a Hostel KYC step (`?kyc=`): open the section it fills in.
+    const [activeSection, setActiveSection] = useState<SectionId>(
+      () => KYC_SECTION[searchParams.get("kyc") ?? ""] ?? "overview",
+    );
     // The admin's unsaved pin, tagged with the hostel it belongs to so a
     // workspace switch cannot carry one hostel's marker onto another.
     const [pinOverride, setPinOverride] = useState<{
@@ -909,6 +929,7 @@ export const HostelAdminProfilePageContent = memo(
                   */}
                   <FieldGroup
                     hint="Comma separated. These drive the filters seekers use."
+                    kyc="facilities rules"
                     title="What you offer"
                   >
                     <SettingsRow
@@ -942,6 +963,7 @@ export const HostelAdminProfilePageContent = memo(
                 >
                   <FieldGroup
                     hint="Used for search and filtering, and as the starting guess for the map pin."
+                    kyc="details"
                     title="Address"
                   >
                     <SettingsRow
@@ -994,6 +1016,7 @@ export const HostelAdminProfilePageContent = memo(
 
                   <FieldGroup
                     hint="This pin — not the address text — is what the public map shows, and what nearby colleges, hospitals and parks are measured from."
+                    kyc="location"
                     title="Exact map pin"
                   >
                     <SettingsBlock
@@ -1136,7 +1159,7 @@ export const HostelAdminProfilePageContent = memo(
             </Panel>
 
             <Panel className={activeSection === "photos" ? "" : "hidden"}>
-              <SectionBody active section={sectionById.photos}>
+              <SectionBody active kyc="photos" section={sectionById.photos}>
                 <p className="text-sm text-muted-foreground">
                   Exterior photos (max {PHOTO_LIMITS.EXTERIOR}) are shown first; interior
                   photos (max {PHOTO_LIMITS.INTERIOR}) fill the gallery. Room photos live

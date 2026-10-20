@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { errorResponse, handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   confirmSettingChange,
   previewSettingChange,
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     const token = request.nextUrl.searchParams.get("token") ?? "";
     const change = await previewSettingChange(token, principal);
 
-    return successResponse({ change }, "Change loaded");
+    return withEtag(request, successResponse({ change }, "Change loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

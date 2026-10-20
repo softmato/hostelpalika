@@ -72,7 +72,7 @@ export default function ManageFinanceScreen() {
   const rulesQuery = moneyRulesQuery();
   const rules = useResource(rulesQuery.load, { cacheKey: rulesQuery.key, topics: rulesQuery.topics });
 
-  const header = <AppBar accent centerTitle showBack title="Finance" />;
+  const header = <AppBar accent centerTitle showBack title="Finance settings" />;
 
   if (finance.loading) {
     return (

@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/db", () => ({ connectToDatabase: vi.fn() }));
-vi.mock("@/lib/site", () => ({ siteUrl: () => "https://example.test" }));
+vi.mock("@/lib/site", () => ({ outboundUrl: () => "https://example.test", siteUrl: () => "https://example.test" }));
 vi.mock("@/modules/billing/softmato/config", () => ({ isSoftmatoConfigured: () => true }));
 vi.mock("@/modules/billing/softmato/invoice", () => ({
   servicePeriod: () => ({ endsAt: new Date(), startsAt: new Date() }),

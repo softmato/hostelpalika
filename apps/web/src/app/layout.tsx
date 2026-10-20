@@ -101,7 +101,7 @@ export async function generateMetadata(): Promise<Metadata> {
  * once at build and kept that build's site config until the next deploy, so a
  * plan repriced in Website Config never reached the agent's plan picker.
  */
-export const revalidate = 3600;
+export const revalidate = 21600;
 
 export default async function RootLayout({
   children,

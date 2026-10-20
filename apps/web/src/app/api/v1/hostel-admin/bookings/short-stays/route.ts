@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelAdminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   getShortStaySettings,
   saveShortStaySettings,
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireHostelAdminPrincipal(request);
     const hostelId = resolveAdminHostelId(principal, request.nextUrl.searchParams.get("hostelId") ?? undefined);
 
-    return successResponse(await getShortStaySettings(hostelId), "Short stays");
+    return withEtag(request, successResponse(await getShortStaySettings(hostelId), "Short stays"));
   } catch (error) {
     return handleRouteError(error);
   }

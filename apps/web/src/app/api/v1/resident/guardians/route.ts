@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireResidentPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   inviteGuardian,
   listResidentGuardians,
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireResidentPrincipal(request);
     const result = await listResidentGuardians(principal);
 
-    return successResponse(result, "Guardians loaded");
+    return withEtag(request, successResponse(result, "Guardians loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

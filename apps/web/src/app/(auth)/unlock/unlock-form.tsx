@@ -127,9 +127,9 @@ function PinBoxes({
       </div>
 
       <div className="mx-auto grid max-w-[280px] grid-cols-3 gap-2">
-        {["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "back"].map((key, index) =>
+        {["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "back"].map((key) =>
           key === "" ? (
-            <span key={index} />
+            <span key="blank" />
           ) : (
             <button
               aria-label={key === "back" ? "Delete" : key}

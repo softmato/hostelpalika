@@ -1,7 +1,10 @@
 "use client";
-import { downloadCsv } from "@/lib/downloads/downloader";
 
-import { ArrowDownUp, BadgeDollarSign, Download, Hash, Wallet } from "@/components/icons";
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+import { ExportMenu } from "@/components/export-menu";
+import { downloadTable } from "@/lib/downloads/downloader";
+
+import { ArrowDownUp, BadgeDollarSign, Hash, Wallet } from "@/components/icons";
 import { memo, useMemo, useState } from "react";
 
 import { currency, EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
@@ -11,7 +14,6 @@ import {
   ListPager,
   MetricCard,
   PortalPageHeader,
-  RoleButton,
   SearchField,
   SoftBadge,
   TableBody,
@@ -70,7 +72,7 @@ function settlementOf(payment: Payment) {
 function formatDate(value?: string) {
   if (!value) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
+  return Number.isNaN(date.getTime()) ? "—" : formatHostelDate(date);
 }
 
 export const HostelAdminTransactionsPageContent = memo(
@@ -150,10 +152,11 @@ export const HostelAdminTransactionsPageContent = memo(
       <div className="mx-auto max-w-[1448px] space-y-4">
         <PortalPageHeader
           actions={
-            <RoleButton
+            <ExportMenu
               disabled={rows.length === 0}
-              onClick={() =>
-                downloadCsv(
+              onExport={({ format }) =>
+                void downloadTable(
+                  format,
                   "transactions",
                   [
                     { key: "id", label: "Reference" },
@@ -169,14 +172,9 @@ export const HostelAdminTransactionsPageContent = memo(
                   rows,
                 )
               }
-              tone="admin"
-              variant="outline"
-            >
-              <Download className="size-3.5" />
-              Export CSV
-            </RoleButton>
+            />
           }
-          breadcrumb={["Home", "Fees & Payments", "Transactions"]}
+          breadcrumb={["Finance", "Transactions"]}
           description="Every bill, what came in against it, and what is still owed."
           title="Transactions"
         />

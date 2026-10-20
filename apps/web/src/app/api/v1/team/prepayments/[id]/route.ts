@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireTeamPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 
 import { readTeamPrepayment, saveTeamPrepaymentDraft } from "@/modules/team/team-prepayment.service";
 
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const principal = await requireTeamPrincipal(request);
     const { id } = await context.params;
 
-    return successResponse(await readTeamPrepayment(id, principal), "Payment read");
+    return withEtag(request, successResponse(await readTeamPrepayment(id, principal), "Payment read"));
   } catch (error) {
     return handleRouteError(error);
   }

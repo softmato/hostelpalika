@@ -274,9 +274,10 @@ function HandoffOverlay({
 /** The Pay button every platform payment uses, with its hand-off built in. */
 export function CheckoutHandoffButton({
   className,
+  hint = true,
   label,
   ...handoff
-}: Handoff & { className?: string; label: string }) {
+}: Handoff & { className?: string; /** The "taken to Softmato" line under it; off inside a list row. */ hint?: boolean; label: string }) {
   const { busy, overlay, start } = useCheckoutHandoff();
 
   return (
@@ -293,9 +294,11 @@ export function CheckoutHandoffButton({
         <Lock className="size-4" />
         {label}
       </button>
-      <p className="mt-2 text-xs text-muted-foreground">
-        You will be taken to Softmato, our company&apos;s secure checkout, and brought back here when it is done.
-      </p>
+      {hint ? (
+        <p className="mt-2 text-xs text-muted-foreground">
+          You will be taken to Softmato, our company&apos;s secure checkout, and brought back here when it is done.
+        </p>
+      ) : null}
       {overlay}
     </div>
   );

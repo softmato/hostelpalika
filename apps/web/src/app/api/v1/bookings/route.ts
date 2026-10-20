@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { createBooking, listMyBookings } from "@/modules/bookings/booking.service";
 
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
   try {
     const principal = await requireApiPrincipal(request);
 
-    return successResponse({ bookings: await listMyBookings(principal) }, "Your bookings");
+    return withEtag(request, successResponse({ bookings: await listMyBookings(principal) }, "Your bookings"));
   } catch (error) {
     return handleRouteError(error);
   }

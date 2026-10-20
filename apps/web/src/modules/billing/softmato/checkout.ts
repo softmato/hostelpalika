@@ -2,7 +2,7 @@ import "server-only";
 
 import type { CheckoutSession } from "@softmato/sdk";
 
-import { siteUrl } from "@/lib/site";
+import { outboundUrl } from "@/lib/site";
 
 import { softmato } from "./client";
 
@@ -43,7 +43,7 @@ import { softmato } from "./client";
  * which reference it carries — `invoice` for a plan, `booking` for a booking.
  */
 export function checkoutReturnUrl(ref: { booking: string } | { invoice: string }): string {
-  const url = new URL(`${siteUrl()}/checkout/return`);
+  const url = new URL(`${outboundUrl()}/checkout/return`);
 
   for (const [key, value] of Object.entries(ref)) url.searchParams.set(key, value);
 

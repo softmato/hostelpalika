@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   hostelAvailability,
   loadBookableHostel,
@@ -21,18 +22,18 @@ export async function GET(request: NextRequest) {
 
     // Sample listings draw the disabled "Not taking bookings" state on web and app.
     if (findDemoHostel(ref)) {
-      return successResponse({ availability: { hostelReason: "BOOKINGS_PAUSED", rooms: [] } }, "Booking availability");
+      return withEtag(request, successResponse({ availability: { hostelReason: "BOOKINGS_PAUSED", rooms: [] } }, "Booking availability"));
     }
 
     const hostel = ref ? await loadBookableHostel(ref) : null;
 
     if (!hostel || hostel.isDeleted) {
-      return successResponse({ availability: { hostelReason: "HOSTEL_NOT_LIVE", rooms: [] } }, "Booking availability");
+      return withEtag(request, successResponse({ availability: { hostelReason: "HOSTEL_NOT_LIVE", rooms: [] } }, "Booking availability"));
     }
 
     const availability = await hostelAvailability(hostel);
 
-    return successResponse(
+    return withEtag(request, successResponse(
       {
         availability: {
           hostelReason: availability.hostelReason,
@@ -46,7 +47,7 @@ export async function GET(request: NextRequest) {
         },
       },
       "Booking availability",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

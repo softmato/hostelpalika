@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { createProduct, listProductsForAdmin } from "@/modules/store/store-admin.service";
 import {
   storeProductCreateSchema,
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
       Object.fromEntries(request.nextUrl.searchParams.entries()),
     );
 
-    return successResponse(await listProductsForAdmin(query), "Products loaded");
+    return withEtag(request, successResponse(await listProductsForAdmin(query), "Products loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

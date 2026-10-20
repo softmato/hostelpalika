@@ -11,7 +11,24 @@
  *    leading apostrophe — the spreadsheet then shows the text and runs nothing.
  */
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 const FORMULA_TRIGGERS = ["=", "+", "-", "@", "\t", "\r"];
+
+/** An ISO instant as an API row carries it — `2026-10-20T09:15:00.000Z`. */
+const ISO_INSTANT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/;
+
+/**
+ * A date cell in the platform's one format (`Baisakh · 2083-01-15`), whether the
+ * row holds a `Date` or the ISO string an API returned. Everything else as is.
+ */
+export function exportCellText(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (value instanceof Date) return formatHostelDate(value, "");
+  if (typeof value === "string" && ISO_INSTANT.test(value)) return formatHostelDate(value, value);
+
+  return String(value);
+}
 
 function neutralize(value: string) {
   return FORMULA_TRIGGERS.some((trigger) => value.startsWith(trigger))
@@ -24,12 +41,7 @@ export function csvCell(value: unknown): string {
     return "";
   }
 
-  const raw =
-    value instanceof Date
-      ? value.toISOString()
-      : typeof value === "number" || typeof value === "boolean"
-        ? String(value)
-        : String(value);
+  const raw = exportCellText(value);
 
   // Numbers and booleans are ours, not the user's — never mangle them.
   const safe = typeof value === "string" ? neutralize(raw) : raw;

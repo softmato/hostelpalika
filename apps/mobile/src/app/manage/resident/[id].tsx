@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Linking, View } from "react-native";
 
@@ -30,6 +30,7 @@ import {
   addEmergencyContact,
   addResidentGuardian,
   type ActivationIssue,
+  deleteResident,
   issueActivationCode,
   saveMoveInChecklist,
   setResidentFee,
@@ -39,6 +40,7 @@ import {
 import { type AdminResidentRecord, adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
 import { humanizeEnum } from "@/lib/format";
+import { openConfirm } from "@/lib/confirm";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 /**
@@ -586,6 +588,31 @@ export default function ManageResidentScreen() {
             variant="danger"
           />
         ) : null}
+
+        {/* For a record entered by mistake; a real departure is Move out. */}
+        <Button
+          icon="trash"
+          label="Remove resident"
+          onPress={() =>
+            openConfirm({
+              confirmLabel: "Remove",
+              destructive: true,
+              message: `${`${resident.firstName} ${resident.lastName}`.trim()}'s bed is freed and they disappear from every list in this hostel.`,
+              onConfirm: async () => {
+                try {
+                  await deleteResident(resident.id);
+                  toastSuccess("Resident removed");
+                  router.back();
+                } catch (error) {
+                  toastError("Could not remove", readApiError(error));
+                }
+              },
+              pin: true,
+              title: "Remove this resident?",
+            })
+          }
+          variant="ghost"
+        />
       </View>
 
       {/* ------------------------------------------------------------------ */}

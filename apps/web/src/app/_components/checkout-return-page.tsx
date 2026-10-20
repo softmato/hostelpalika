@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import { CheckCircle2, Clock3, XCircle } from "@/components/icons";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -68,10 +70,10 @@ function storage(key: string) {
 }
 
 const day = (iso: string) =>
-  new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+  formatHostelDate(iso);
 
 const moment = (iso: string) =>
-  new Date(iso).toLocaleString("en-GB", { day: "numeric", hour: "numeric", minute: "2-digit", month: "short" });
+  formatHostelDateTime(iso);
 
 export function CheckoutReturnPage() {
   const params = useSearchParams();

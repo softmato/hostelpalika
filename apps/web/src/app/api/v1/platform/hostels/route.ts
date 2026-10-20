@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { requirePlatformPrincipal } from "@/lib/api-auth";
 import {
   createPlatformHostelApplication,
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
     );
     const result = await listPlatformHostels(query);
 
-    return successResponse(result, "Hostel applications loaded");
+    return withEtag(request, successResponse(result, "Hostel applications loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

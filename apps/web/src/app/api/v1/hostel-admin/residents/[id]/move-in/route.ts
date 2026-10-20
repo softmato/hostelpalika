@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   createMoveInChecklist,
   getMoveInChecklist,
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const hostelId = request.nextUrl.searchParams.get("hostelId") ?? undefined;
     const result = await getMoveInChecklist(id, principal, hostelId);
 
-    return successResponse(result, "Move-in checklist loaded");
+    return withEtag(request, successResponse(result, "Move-in checklist loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

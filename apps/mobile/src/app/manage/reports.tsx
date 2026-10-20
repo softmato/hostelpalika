@@ -19,7 +19,9 @@ import { Chip, FactRow, StatTile } from "@/components/ui/layout";
 import { Meter } from "@/components/ui/meter";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
+import { Segmented } from "@/components/ui/segmented";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
+
 import {
   Skeleton,
   SkeletonCard,
@@ -44,6 +46,21 @@ import { readApiError } from "@/lib/api-contract";
 import { downloadToDevice } from "@/lib/documents";
 import { formatMoney, humanizeEnum } from "@/lib/format";
 import { toastError } from "@/lib/toast";
+
+/** How far back a download reaches, in BS months counting this one; "0" is everything. */
+const EXPORT_MONTHS = [
+  { label: "1 mo", value: "1" },
+  { label: "3 mo", value: "3" },
+  { label: "6 mo", value: "6" },
+  { label: "1 yr", value: "12" },
+  { label: "All", value: "0" },
+] as const;
+type ExportMonths = (typeof EXPORT_MONTHS)[number]["value"];
+
+const EXPORT_FORMATS = [
+  { label: "PDF", value: "pdf" },
+  { label: "CSV", value: "csv" },
+] as const;
 
 /** Monthly performance with exports beside the reporting period. */
 
@@ -388,6 +405,8 @@ export default function ManageReportsScreen() {
   const [sheet, setSheet] = useState<SheetName>(null);
   const [downloading, setDownloading] = useState(false);
   const [exporting, setExporting] = useState<ReportExport | "">("");
+  const [exportFormat, setExportFormat] = useState<"pdf" | "csv">("pdf");
+  const [exportMonths, setExportMonths] = useState<ExportMonths>("6");
 
   const query = adminQuery.reports(month);
   const reports = useResource<AdminReportsData>(query.load, {
@@ -469,16 +488,16 @@ export default function ManageReportsScreen() {
     [dates],
   );
 
-  const exportCsv = useCallback(async (entry: ReportExport) => {
+  const exportReport = useCallback(async (entry: ReportExport) => {
     setExporting(entry);
 
     try {
       await downloadToDevice({
-        extension: "csv",
+        extension: exportFormat,
         fileName: `${entry}-report`,
-        label: `${humanizeEnum(entry)} spreadsheet`,
-        mimeType: "text/csv",
-        url: `${API_BASE_URL}/api/v1/hostel-admin/reports/export?report=${entry}`,
+        label: `${humanizeEnum(entry)} ${exportFormat === "pdf" ? "PDF" : "spreadsheet"}`,
+        mimeType: exportFormat === "pdf" ? "application/pdf" : "text/csv",
+        url: `${API_BASE_URL}/api/v1/hostel-admin/reports/export?report=${entry}&format=${exportFormat}&months=${exportMonths}`,
       });
     } catch (error) {
       toastError(
@@ -488,7 +507,7 @@ export default function ManageReportsScreen() {
     } finally {
       setExporting("");
     }
-  }, []);
+  }, [exportFormat, exportMonths]);
 
   const header = (
     <View className="bg-background">
@@ -956,8 +975,10 @@ export default function ManageReportsScreen() {
             onPress={() => setSheet("food")}
           />
         ) : null}
-        <View className="px-5 pb-2 pt-4">
-          <Text variant="label">Spreadsheets</Text>
+        <View className="gap-3 px-5 pb-2 pt-4">
+          <Text variant="label">Download</Text>
+          <Segmented onChange={setExportMonths} options={EXPORT_MONTHS} value={exportMonths} />
+          <Segmented onChange={setExportFormat} options={EXPORT_FORMATS} value={exportFormat} />
         </View>
         {REPORT_EXPORTS.map((entry) => (
           <SheetRow
@@ -965,10 +986,10 @@ export default function ManageReportsScreen() {
             label={entry.label}
             onPress={() => {
               if (!exporting) {
-                void exportCsv(entry.report);
+                void exportReport(entry.report);
               }
             }}
-            subtitle="CSV, all months. No phone numbers or addresses"
+            subtitle={`${exportFormat.toUpperCase()} · ${EXPORT_MONTHS.find((range) => range.value === exportMonths)?.label}. No phone numbers or addresses`}
             trailing={
               <Glyph
                 color={colors.mutedForeground}

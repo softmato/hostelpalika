@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import { AlarmClock, CheckCircle2, MessageSquare, TimerOff } from "@/components/icons";
 import Link from "next/link";
 import { memo, useMemo, useState } from "react";
@@ -59,7 +61,7 @@ const PAGE_SIZE = 12;
 function formatDate(value: string | null) {
   if (!value) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
+  return Number.isNaN(date.getTime()) ? "—" : formatHostelDate(date);
 }
 
 export const PlatformComplaintsPageContent = memo(

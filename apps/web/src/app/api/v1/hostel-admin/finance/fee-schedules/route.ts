@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   createFeeSchedule,
   listFeeSchedules,
@@ -41,7 +42,7 @@ export async function GET(request: NextRequest) {
       listAllRoomTypes(hostelId),
     ]);
 
-    return successResponse({ roomTypes, schedules }, "Fee schedules");
+    return withEtag(request, successResponse({ roomTypes, schedules }, "Fee schedules"));
   } catch (error) {
     return handleRouteError(error);
   }

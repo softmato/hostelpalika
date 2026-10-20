@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireResidentPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   askRoomChange,
   cancelRoomChange,
@@ -14,7 +15,7 @@ export const runtime = "nodejs";
 /** My room, the free beds I could ask for, and my open request. */
 export async function GET(request: NextRequest) {
   try {
-    return successResponse(await getMyRoomOptions(await requireResidentPrincipal(request)), "My room");
+    return withEtag(request, successResponse(await getMyRoomOptions(await requireResidentPrincipal(request)), "My room"));
   } catch (error) {
     return handleRouteError(error);
   }

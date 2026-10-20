@@ -91,6 +91,53 @@ function createClient(): AxiosInstance {
 export const api = createClient();
 
 /**
+ * Conditional GETs (the server's `lib/etag.ts`): the last body of each GET is
+ * kept in memory with its ETag and sent back as `If-None-Match`; a 304 replays
+ * it, so an unchanged answer is not downloaded twice on mobile data. Registered
+ * before the other request interceptors, so it runs last — after the branch
+ * header is set, which is part of the key.
+ */
+const etagMemory = new Map<string, { data: unknown; etag: string }>();
+const ETAG_MEMORY_CAP = 150;
+const etagKey = (config: InternalAxiosRequestConfig) =>
+  `${String(config.headers?.["x-hostel-id"] ?? "")} ${api.getUri(config)}`;
+
+api.interceptors.request.use((config) => {
+  if ((config.method ?? "get").toLowerCase() !== "get") return config;
+
+  const remembered = etagMemory.get(etagKey(config));
+
+  if (remembered) {
+    config.headers.set("If-None-Match", remembered.etag);
+    config.validateStatus = (status) => (status >= 200 && status < 300) || status === 304;
+  }
+
+  return config;
+});
+
+api.interceptors.response.use((response) => {
+  if ((response.config.method ?? "get").toLowerCase() !== "get") return response;
+
+  const key = etagKey(response.config);
+
+  if (response.status === 304) {
+    const remembered = etagMemory.get(key);
+
+    return remembered ? { ...response, data: remembered.data, status: 200 } : response;
+  }
+
+  const etag = response.headers?.etag as string | undefined;
+
+  if (etag) {
+    etagMemory.delete(key);
+    etagMemory.set(key, { data: response.data, etag });
+    if (etagMemory.size > ETAG_MEMORY_CAP) etagMemory.delete(etagMemory.keys().next().value as string);
+  }
+
+  return response;
+});
+
+/**
  * Unauthenticated client, and deliberately a *separate instance*: it has no
  * interceptors, so a 401 from `/auth/login` surfaces as "wrong password"
  * instead of triggering a refresh-and-logout cycle.

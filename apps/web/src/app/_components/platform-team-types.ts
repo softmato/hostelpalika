@@ -1,3 +1,4 @@
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
 /**
  * The shapes `/api/v1/platform/team` hands back, kept in one place because the
  * Team tab is three components deep and passing these down as inline types
@@ -67,11 +68,7 @@ export function shortDate(iso: string | null) {
     return "—";
   }
 
-  return new Date(iso).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
+  return formatHostelDate(iso);
 }
 
 /** How a displaced role reads on a roster row, for the people who have one. */

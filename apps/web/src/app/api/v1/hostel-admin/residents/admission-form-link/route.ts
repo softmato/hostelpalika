@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 import { z } from "zod";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getAdmissionFormLink, updateAdmissionFormSettings } from "@/modules/residents/admission-form.service";
 import { hostelStaffScope } from "@/modules/residents/hostel-staff-scope";
 
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
   try {
     const { hostelId, principal } = await hostelStaffScope(request);
 
-    return successResponse(await getAdmissionFormLink(hostelId, principal), "Form QR loaded");
+    return withEtag(request, successResponse(await getAdmissionFormLink(hostelId, principal), "Form QR loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -1,6 +1,8 @@
 import { Types } from "mongoose";
 import type { z } from "zod";
 
+import { addBsMonths, bsPeriodBounds, currentBsPeriod } from "@hostel/shared/calendar/bs";
+
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
 import { assertHostelAccess } from "@/lib/tenant";
@@ -19,8 +21,26 @@ type HostelAdminReportExportInput = z.infer<typeof hostelAdminReportExportSchema
 export type ReportExport = {
   columns: Array<{ key: string; label: string }>;
   filenamePrefix: string;
+  /** What the rows cover — "Last 6 months". Absent on a snapshot. */
+  period?: string;
   rows: Array<Record<string, unknown>>;
 };
+
+/**
+ * The window an export covers: `months` BS months counting this one, or
+ * everything at 0. `fromPeriod` filters period-keyed rows, `from` instants.
+ */
+function exportWindow(months: number) {
+  if (!months) return { from: null, fromPeriod: null, label: "Everything" };
+
+  const fromPeriod = addBsMonths(currentBsPeriod(), -(months - 1));
+
+  return {
+    from: bsPeriodBounds(fromPeriod).start,
+    fromPeriod,
+    label: months === 1 ? "This month" : months === 12 ? "Last 1 year" : `Last ${months} months`,
+  };
+}
 
 export class ReportExportError extends Error {
   constructor(
@@ -100,8 +120,11 @@ async function residentsByStatus(): Promise<ReportExport> {
 }
 
 /** Payment volume: what was billed vs what residents actually settled. */
-async function paymentVolume(): Promise<ReportExport> {
-  const rows = await periodTotals({}, { groupByHostel: true, limit: EXPORT_ROW_CAP });
+async function paymentVolume(months: number): Promise<ReportExport> {
+  const window = exportWindow(months);
+  const rows = (await periodTotals({}, { groupByHostel: true, limit: EXPORT_ROW_CAP })).filter(
+    (row) => !window.fromPeriod || row.period >= window.fromPeriod,
+  );
   const names = await hostelNamesByIdFor(
     rows.map((row) => row.hostelId).filter((id): id is string => Boolean(id)),
   );
@@ -116,6 +139,7 @@ async function paymentVolume(): Promise<ReportExport> {
       { key: "collectionRatePercent", label: "Collection rate (%)" },
     ],
     filenamePrefix: "payment-volume",
+    period: window.label,
     rows: rows.map((row) => ({
       collectionRatePercent:
         row.dueAmount > 0 ? ((row.paidAmount / row.dueAmount) * 100).toFixed(1) : "0.0",
@@ -128,11 +152,13 @@ async function paymentVolume(): Promise<ReportExport> {
   };
 }
 
-async function complaintVolume(): Promise<ReportExport> {
+async function complaintVolume(months: number): Promise<ReportExport> {
+  const window = exportWindow(months);
   const rows = await ComplaintModel.aggregate<{
     _id: { hostelId: Types.ObjectId; status: string };
     count: number;
   }>([
+    ...(window.from ? [{ $match: { createdAt: { $gte: window.from } } }] : []),
     { $group: { _id: { hostelId: "$hostelId", status: "$status" }, count: { $sum: 1 } } },
     { $sort: { count: -1 } },
     { $limit: EXPORT_ROW_CAP },
@@ -146,6 +172,7 @@ async function complaintVolume(): Promise<ReportExport> {
       { key: "count", label: "Complaints" },
     ],
     filenamePrefix: "complaint-volume",
+    period: window.label,
     rows: rows.map((row) => ({
       count: row.count,
       hostel: names.get(row._id.hostelId.toString()) ?? "Unknown hostel",
@@ -165,9 +192,9 @@ export async function buildPlatformReportExport(
     case "residents":
       return residentsByStatus();
     case "payments":
-      return paymentVolume();
+      return paymentVolume(input.months);
     case "complaints":
-      return complaintVolume();
+      return complaintVolume(input.months);
   }
 }
 
@@ -201,11 +228,18 @@ export async function buildHostelAdminReportExport(
   }
 
   const scope = { hostelId: { $in: hostelIds } };
+  const window = exportWindow(input.months);
 
   if (input.report === "residents") {
     // Resident count over time — grouped by move-in month, never per person.
     const rows = await ResidentModel.aggregate<{ _id: string; count: number }>([
-      { $match: { ...scope, isDeleted: false } },
+      {
+        $match: {
+          ...scope,
+          isDeleted: false,
+          ...(window.from ? { moveInDate: { $gte: window.from } } : {}),
+        },
+      },
       {
         $group: {
           _id: { $dateToString: { date: "$moveInDate", format: "%Y-%m" } },
@@ -222,12 +256,15 @@ export async function buildHostelAdminReportExport(
         { key: "count", label: "Residents" },
       ],
       filenamePrefix: "residents-over-time",
+      period: window.label,
       rows: rows.map((row) => ({ count: row.count, month: row._id ?? "Unknown" })),
     };
   }
 
   if (input.report === "payments") {
-    const rows = await periodTotals({ hostelIds }, { limit: EXPORT_ROW_CAP });
+    const rows = (await periodTotals({ hostelIds }, { limit: EXPORT_ROW_CAP })).filter(
+      (row) => !window.fromPeriod || row.period >= window.fromPeriod,
+    );
 
     return {
       columns: [
@@ -238,6 +275,7 @@ export async function buildHostelAdminReportExport(
         { key: "collectionRatePercent", label: "Collection rate (%)" },
       ],
       filenamePrefix: "payment-collection",
+      period: window.label,
       rows: rows.map((row) => ({
         collectionRatePercent:
           row.dueAmount > 0 ? ((row.paidAmount / row.dueAmount) * 100).toFixed(1) : "0.0",
@@ -256,7 +294,7 @@ export async function buildHostelAdminReportExport(
       avgResolutionMs: number | null;
       count: number;
     }>([
-      { $match: scope },
+      { $match: { ...scope, ...(window.from ? { createdAt: { $gte: window.from } } : {}) } },
       {
         $group: {
           _id: { category: "$category", status: "$status" },
@@ -286,6 +324,7 @@ export async function buildHostelAdminReportExport(
         { key: "avgResolutionDays", label: "Avg resolution (days)" },
       ],
       filenamePrefix: "complaint-resolution",
+      period: window.label,
       rows: rows.map((row) => ({
         avgResolutionDays: row.avgResolutionMs
           ? (row.avgResolutionMs / 86_400_000).toFixed(1)

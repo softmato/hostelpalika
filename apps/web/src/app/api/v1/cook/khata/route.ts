@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { assertApiRoles, requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { Role } from "@/lib/roles";
 import { listKhataOrders } from "@/modules/finance/khata.service";
 import { resolveCookHostelId } from "@/modules/food/cook.service";
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
       request.nextUrl.searchParams.get("hostelId") ?? undefined,
     );
 
-    return successResponse(await listKhataOrders(hostelId), "Khata asks");
+    return withEtag(request, successResponse(await listKhataOrders(hostelId), "Khata asks"));
   } catch (error) {
     return handleRouteError(error);
   }

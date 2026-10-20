@@ -24,6 +24,10 @@ describe("resolveMimeType", () => {
     expect(resolveMimeType({ uri: "file:///tmp/photo.heic" })).toBe("image/heic");
   });
 
+  it("knows a clip by its extension, so a video is never declared a JPEG", () => {
+    expect(resolveMimeType({ uri: "file:///tmp/clip.MOV" })).toBe("video/quicktime");
+  });
+
   it("ignores a query string on the uri", () => {
     // Android content:// and cached picker uris routinely carry one.
     expect(resolveMimeType({ uri: "file:///tmp/photo.webp?width=100" })).toBe(

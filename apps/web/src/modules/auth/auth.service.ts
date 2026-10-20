@@ -904,10 +904,13 @@ export async function login(input: LoginInput, context?: RequestContext) {
  * failed with INVALID_SESSION and the user landed on /login. A browser reuse
  * only ever gets a 15-minute access token, never a new refresh token.
  *
- * The phone single-flights, so it never races itself — but on a bad connection
- * the server can rotate and the reply never arrive. It then retries with the
- * token it still holds, and without the window that was a logout. It gets a
- * fresh refresh token instead, since it never received the one it lost.
+ * After the window the previous token is still honoured, once more: the reply
+ * that carried its replacement never arrived. A phone on a bad connection, or a
+ * browser whose winning request was aborted (a Next navigation cancelled by the
+ * next click), keeps presenting it — and treating that as theft logged people
+ * out every half hour or so. It gets a fresh refresh token, written over the
+ * lost one. Reuse detection still fires for anything older than the previous
+ * token: a thief who redeems it pushes the owner's copy two generations back.
  */
 const REFRESH_REUSE_WINDOW_MS = 60 * 1000;
 
@@ -942,15 +945,16 @@ export async function refreshAccessToken(
   }
 
   const isCurrent = session.refreshTokenHash === refreshTokenHash;
+  const isPrevious = session.previousRefreshTokenHash === refreshTokenHash;
   const justRotated =
-    session.previousRefreshTokenHash === refreshTokenHash &&
+    isPrevious &&
     session.refreshTokenRotatedAt instanceof Date &&
     session.refreshTokenRotatedAt.getTime() > reuseWindowStart.getTime();
 
-  if (!isCurrent && !justRotated) {
+  if (!isCurrent && !isPrevious) {
     /*
      * A correctly signed token for this session that is neither its current one
-     * nor the one rotated away moments ago can only be one rotated away earlier.
+     * nor the one it replaced can only be one rotated away earlier.
      * Somebody is replaying a copy, and there is no telling which holder is the
      * owner, so the session ends for both (refresh-token reuse detection, OAuth
      * 2.0 Security BCP). The owner signs in again; the copy is dead.
@@ -1031,20 +1035,16 @@ export async function refreshAccessToken(
     : null;
   let rotated = rotation?.modifiedCount === 1;
 
-  // Not rotated: the presented token went moments ago — to a concurrent
-  // request, or to this very client in a reply it never received.
-  if (!rotated && options.cookieSession) {
+  // Not rotated: the presented token went moments ago to a concurrent request
+  // of this browser, whose reply is writing the new cookie into the same jar.
+  if (!rotated && options.cookieSession && (isCurrent || justRotated)) {
     await SessionModel.updateOne({ _id: session._id }, { $set: { lastSeenAt: now } });
   } else if (!rotated) {
-    // Replaces the token it lost. The window keeps its original start, so
-    // retrying cannot stretch it.
+    // The reply carrying its replacement was lost: a phone's dropped
+    // connection, or a browser still sending the old cookie after the window.
+    // Replace the token it never received; the previous one stays as it is.
     const reissue = await SessionModel.updateOne(
-      {
-        _id: session._id,
-        previousRefreshTokenHash: refreshTokenHash,
-        refreshTokenRotatedAt: { $gt: reuseWindowStart },
-        revokedAt: null,
-      },
+      { _id: session._id, previousRefreshTokenHash: refreshTokenHash, revokedAt: null },
       { $set: { lastSeenAt: now, refreshTokenHash: hashToken(signedRefreshToken) } },
     );
 

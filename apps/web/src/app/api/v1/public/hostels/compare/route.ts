@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { comparePublicHostels } from "@/modules/hostels/hostel.service";
 import { publicHostelCompareQuerySchema } from "@/modules/hostels/hostel.validation";
 
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
     );
     const result = await comparePublicHostels(query);
 
-    return successResponse(result, "Hostel comparison loaded");
+    return withEtag(request, successResponse(result, "Hostel comparison loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

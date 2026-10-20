@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import { ClipboardCheck, Home, LogIn, LogOut } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
@@ -258,7 +260,7 @@ export const HostelAdminMoveChecklistPage = memo(function HostelAdminMoveCheckli
                     {event.roomType ? ` · ${event.roomType}` : ""}
                   </p>
                 </div>
-                <Chip glyph="calendar">{new Date(event.date).toLocaleDateString()}</Chip>
+                <Chip glyph="calendar">{formatHostelDate(event.date)}</Chip>
                 <Button
                   onClick={() =>
                     // A move-in row for someone still living here is really an

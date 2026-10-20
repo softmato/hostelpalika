@@ -1,6 +1,6 @@
 "use client";
 
-import { BadgePlus, ChevronDown, LogOut, QrCode, Smartphone, Users } from "@/components/icons";
+import { BadgePlus, ChevronDown, LockKeyhole, LogOut, QrCode, Smartphone, Users } from "@/components/icons";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -10,6 +10,7 @@ import { disableBrowserPush } from "@/lib/web-push-client";
 import { type SessionUser, useSessionStore } from "@/stores/session-store";
 import { signOutRequest } from "@/lib/sign-out";
 import { GetAppDialog } from "@/components/get-app-dialog";
+import { PinSetupDialog } from "@/components/pin-setup-dialog";
 import { HostelPreviewLink } from "@/components/hostel-preview-link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
@@ -31,6 +32,25 @@ type CurrentUser = {
   userResidentId?: string | null;
   viaTemporaryCredential?: boolean;
 };
+
+const PIN_OFFER_KEY = "hostelpalika:pin-offer-shown";
+
+/** sessionStorage can throw (private mode, blocked storage); a throw reads as "not shown yet". */
+function readSessionFlag(key: string) {
+  try {
+    return window.sessionStorage.getItem(key) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function writeSessionFlag(key: string) {
+  try {
+    window.sessionStorage.setItem(key, "1");
+  } catch {
+    // Offered again next load — harmless.
+  }
+}
 
 /** No click, key, scroll or touch for this long and the PIN is asked again. Mirrors `UNLOCK_IDLE_SECONDS`. */
 const PIN_IDLE_MS = 30 * 60 * 1000;
@@ -150,6 +170,7 @@ export function PortalAccount({
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [getAppOpen, setGetAppOpen] = useState(false);
+  const [pinSetup, setPinSetup] = useState<"offer" | "menu" | null>(null);
   const [user, setUser] = useState<CurrentUser | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -173,6 +194,16 @@ export function PortalAccount({
       }
 
       setUser(payload.data.user);
+      // The app's cold-open "Lock the app" sheet, once per browser session here.
+      if (
+        showPortalActions &&
+        !payload.data.user.hasLockPin &&
+        !payload.data.user.viaTemporaryCredential &&
+        !readSessionFlag(PIN_OFFER_KEY)
+      ) {
+        writeSessionFlag(PIN_OFFER_KEY);
+        window.setTimeout(() => setPinSetup((open) => open ?? "offer"), 1500);
+      }
       // Shared with the rest of the portal: the suspension gate reads this same
       // answer rather than asking `/auth/me` again, where a second refresh
       // racing this one would rotate the token out from under it.
@@ -185,7 +216,7 @@ export function PortalAccount({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [showPortalActions]);
 
   useEffect(() => {
     // Deferred so the first paint is not blocked by a cascading setState —
@@ -254,7 +285,7 @@ export function PortalAccount({
       <button
         aria-label="Account and portal actions"
         aria-expanded={menuOpen}
-        className="flex items-center gap-2 rounded-full border border-slate-200 bg-white py-1 pl-1 pr-2 shadow-sm transition hover:bg-slate-50 dark:border-border dark:bg-card dark:hover:bg-muted sm:pr-2.5"
+        className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white py-1 pl-1 pr-2 shadow-sm transition hover:bg-slate-50 dark:border-border dark:bg-card dark:hover:bg-muted sm:pr-2.5"
         onClick={() => setMenuOpen((open) => !open)}
         type="button"
       >
@@ -375,6 +406,19 @@ export function PortalAccount({
               Create resident ID
             </button>
           )}
+          {showPortalActions && user && !user.hasLockPin && !user.viaTemporaryCredential ? (
+            <button
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+              onClick={() => {
+                setMenuOpen(false);
+                setPinSetup("menu");
+              }}
+              type="button"
+            >
+              <LockKeyhole className="size-4" />
+              Set a PIN
+            </button>
+          ) : null}
           {showPortalActions ? (
             <div className="my-1 border-y border-border py-1">
               <ThemeToggle menu />
@@ -395,6 +439,16 @@ export function PortalAccount({
       <ResidentIdentityCenter onProfileSaved={loadCurrentUser} />
       {showPortalActions ? (
         <GetAppDialog open={getAppOpen} onOpenChange={setGetAppOpen} />
+      ) : null}
+      {showPortalActions ? (
+        <PinSetupDialog
+          intro={pinSetup === "offer"}
+          onOpenChange={(open) => {
+            if (!open) setPinSetup(null);
+          }}
+          onSaved={() => setUser((current) => (current ? { ...current, hasLockPin: true } : current))}
+          open={pinSetup !== null}
+        />
       ) : null}
     </div>
   );

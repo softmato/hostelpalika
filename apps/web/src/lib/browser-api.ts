@@ -121,7 +121,16 @@ export function workspaceSlug() {
   return /^\/([^/]+)\/admin(?:\/|$)/.exec(window.location.pathname)?.[1] ?? null;
 }
 
-function sendRequest(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+/**
+ * The last body of each GET, by URL and workspace, with its ETag
+ * (`lib/etag.ts`). Sent back as `If-None-Match`; a 304 replays the body, so an
+ * unchanged answer does not travel twice. Memory only, and capped — it dies
+ * with the tab, like everything else this portal remembers.
+ */
+const etagMemory = new Map<string, { body: string; etag: string; type: string }>();
+const ETAG_MEMORY_CAP = 150;
+
+async function sendRequest(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   const headers = new Headers(init?.headers);
 
   if (init?.body && !headers.has("content-type")) {
@@ -134,11 +143,33 @@ function sendRequest(input: RequestInfo | URL, init?: RequestInit): Promise<Resp
     headers.set("x-hostel-id", decodeURIComponent(slug));
   }
 
-  return fetch(input, {
+  const isGet = (init?.method ?? "GET").toUpperCase() === "GET";
+  const key = `${headers.get("x-hostel-id") ?? ""} ${requestUrl(input)}`;
+  const remembered = isGet ? etagMemory.get(key) : undefined;
+
+  if (remembered && !headers.has("if-none-match")) headers.set("if-none-match", remembered.etag);
+
+  const response = await fetch(input, {
     credentials: "same-origin",
     ...init,
     headers,
   });
+
+  if (response.status === 304 && remembered) {
+    return new Response(remembered.body, { headers: { "content-type": remembered.type }, status: 200 });
+  }
+
+  const etag = response.headers.get("etag");
+
+  if (isGet && response.ok && etag) {
+    const body = await response.clone().text();
+
+    etagMemory.delete(key);
+    etagMemory.set(key, { body, etag, type: response.headers.get("content-type") ?? "application/json" });
+    if (etagMemory.size > ETAG_MEMORY_CAP) etagMemory.delete(etagMemory.keys().next().value as string);
+  }
+
+  return response;
 }
 
 async function parseResponse<T>(
@@ -233,10 +264,27 @@ async function readProgress<T>(response: Response, onStep: (step: string) => voi
   throw new ApiRequestError("The connection dropped before it finished. Please try again.");
 }
 
+/** Fired on `window` after any write (non-GET) succeeds — `kyc-focus.tsx` re-checks its step on it. */
+export const API_WRITE_EVENT = "portal:api-write";
+
 export async function browserApi<T>(
   input: RequestInfo | URL,
   init?: RequestInit,
   /** Ask for a `progressResponse` stream and hear each step as it starts. */
+  onStep?: (step: string) => void,
+) {
+  const result = await request<T>(input, init, onStep);
+
+  if (typeof window !== "undefined" && (init?.method ?? "GET").toUpperCase() !== "GET") {
+    window.dispatchEvent(new Event(API_WRITE_EVENT));
+  }
+
+  return result;
+}
+
+async function request<T>(
+  input: RequestInfo | URL,
+  init?: RequestInit,
   onStep?: (step: string) => void,
 ) {
   if (onStep) {

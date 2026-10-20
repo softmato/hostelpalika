@@ -657,6 +657,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
             resource.state === "ready" ? (
               <button
                 className="inline-flex h-9 items-center gap-2 rounded-xl bg-brand-teal px-3.5 text-[13px] font-semibold text-white transition hover:bg-brand-teal/90"
+                data-kyc="rates"
                 onClick={() => setEditing(true)}
                 type="button"
               >
@@ -667,7 +668,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
           }
           description="The one place a rent is set."
           icon={Coins}
-          title="Fee Schedule"
+          title="Room rates"
         />
         {editing ? null : <Message value={message} />}
 
@@ -878,7 +879,9 @@ export const HostelAdminFeeSchedulePageContent = memo(
 
             <MonthDiscounts />
             <LateFinePanel />
-            <MoneyRulesPanel />
+            <div data-kyc="opening">
+              <MoneyRulesPanel />
+            </div>
 
             <Panel title="Past rates">
               {pastSchedules.length === 0 ? (

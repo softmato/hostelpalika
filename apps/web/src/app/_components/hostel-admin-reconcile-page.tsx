@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import { AlertTriangle, CheckCircle2, Coins, Upload } from "@/components/icons";
 import { memo, useCallback, useRef, useState } from "react";
 
@@ -135,10 +137,7 @@ const PROVIDERS = [
 ];
 
 function shortDate(value: string) {
-  return new Date(value).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-  });
+  return formatHostelDate(value);
 }
 
 export const HostelAdminReconcilePageContent = memo(
@@ -265,9 +264,9 @@ export const HostelAdminReconcilePageContent = memo(
               Upload statement
             </RoleButton>
           }
-          breadcrumb={["Payments", "Reconcile"]}
+          breadcrumb={["Finance settings", "Bank and wallet statements"]}
           description="Settle the month against what actually reached your account."
-          title="Reconcile"
+          title="Bank and wallet statements"
         />
 
         {message && !uploadOpen ? (

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   createPlatformAdmin,
   listPlatformAdmins,
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     await requireSuperadminPrincipal(request);
     const result = await listPlatformAdmins();
 
-    return successResponse(result, "Platform admins loaded");
+    return withEtag(request, successResponse(result, "Platform admins loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

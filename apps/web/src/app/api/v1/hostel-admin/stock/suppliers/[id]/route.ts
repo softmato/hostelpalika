@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getStockSupplier, resolveStockActor, updateStockSupplier } from "@/modules/stock/stock.service";
 import { updateStockSupplierSchema } from "@/modules/stock/stock.validation";
 
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     const principal = await requireHostelCapability(request, "manageStock");
     const { id } = await context.params;
 
-    return successResponse(await getStockSupplier(await resolveStockActor(principal), id), "Supplier loaded");
+    return withEtag(request, successResponse(await getStockSupplier(await resolveStockActor(principal), id), "Supplier loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

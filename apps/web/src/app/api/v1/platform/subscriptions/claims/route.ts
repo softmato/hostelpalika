@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requirePlatformPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { listPlanPaymentClaims } from "@/modules/billing/subscription-claim.service";
 
 export const runtime = "nodejs";
@@ -19,10 +20,10 @@ export async function GET(request: NextRequest) {
   try {
     await requirePlatformPrincipal(request);
 
-    return successResponse(
+    return withEtag(request, successResponse(
       { claims: await listPlanPaymentClaims() },
       "Payment claims loaded",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

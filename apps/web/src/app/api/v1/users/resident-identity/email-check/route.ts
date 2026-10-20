@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { checkResidentEmail } from "@/modules/users/resident-identity.service";
 import { residentEmailCheckSchema } from "@/modules/users/resident-identity.validation";
@@ -32,10 +33,10 @@ export async function GET(request: NextRequest) {
       email: request.nextUrl.searchParams.get("email") ?? "",
     });
 
-    return successResponse(
+    return withEtag(request, successResponse(
       await checkResidentEmail(principal.userId, email),
       "Email checked",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

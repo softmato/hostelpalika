@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   createCategory,
   listCategoriesForAdmin,
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
   try {
     await requireSuperadminPrincipal(request);
 
-    return successResponse(await listCategoriesForAdmin(), "Categories loaded");
+    return withEtag(request, successResponse(await listCategoriesForAdmin(), "Categories loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

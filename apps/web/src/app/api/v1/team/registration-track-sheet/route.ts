@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireTeamPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { trackSheetSaveSchema } from "@/modules/team/registration-track-sheet";
 import { getTrackSheet, saveTrackSheet } from "@/modules/team/registration-track-sheet.service";
 
@@ -12,7 +13,7 @@ export async function GET(request: NextRequest) {
   try {
     const principal = await requireTeamPrincipal(request);
 
-    return successResponse(await getTrackSheet(principal), "Track sheet loaded");
+    return withEtag(request, successResponse(await getTrackSheet(principal), "Track sheet loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

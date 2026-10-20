@@ -460,9 +460,20 @@ export function formatBsPeriodYear(period: string | null | undefined): string {
   return parts && isBsPeriod(period) ? `${parts.year} ${BS_ERA}` : "";
 }
 
-/** `Bhadra 19, 2083 BS`. Empty off the table, never a guess. */
+/**
+ * **The platform's one date format: `Baisakh · 2083-01-15`.**
+ *
+ * Every screen on the web and in the app, every CSV and every PDF prints a day
+ * this way — the month by name so it reads at a glance, then the full BS date
+ * in numbers so it sorts and copies cleanly (docs/PORTAL_POLISH_2026_10.md).
+ * There is no second format: a page that writes `14 Nov 2026` beside one that
+ * writes `Kartik 28, 2083` makes the reader convert, and that is exactly when
+ * a due date gets misread.
+ *
+ * Empty off the table, never a guess.
+ */
 export function formatBsDate(instant: Date | null | undefined): string {
-  if (!instant) {
+  if (!instant || Number.isNaN(instant.getTime())) {
     return "";
   }
 
@@ -470,31 +481,60 @@ export function formatBsDate(instant: Date | null | undefined): string {
     const bs = toBs(instant);
     const name = bsMonthName(bs.month);
 
-    return name ? `${name} ${bs.day}, ${bs.year} ${BS_ERA}` : "";
+    return name ? `${name} ${DATE_SEPARATOR} ${formatBsNumeric(bs)}` : "";
   } catch {
     return "";
   }
 }
 
+/** The dot between the month name and the numbers, for a caller that splits the two. */
+export const DATE_SEPARATOR = "·";
+
+/** `2083-01-15` — the numeric half of the one format. */
+function formatBsNumeric(bs: BsDate): string {
+  return `${bs.year}-${String(bs.month).padStart(2, "0")}-${String(bs.day).padStart(2, "0")}`;
+}
+
+/** Kept for its callers; the AD half is gone — there is one date format. */
+export const formatBsAdDate = formatBsDate;
+
+/** Whatever a record or an API hands over — an instant, an ISO string, epoch ms. */
+export type DateInput = Date | string | number | null | undefined;
+
+function toInstant(value: DateInput): Date | null {
+  if (value === null || value === undefined || value === "") return null;
+
+  const instant = value instanceof Date ? value : new Date(value);
+
+  return Number.isNaN(instant.getTime()) ? null : instant;
+}
+
 /**
- * `Kartik 28, 2083 BS (14 Nov 2026)` — BS leads, the AD date beside it. The AD
- * half is read in Kathmandu time so both halves always name the same day.
+ * {@link formatBsDate} for any stored value, with a stand-in for an empty or
+ * unreadable one — the function screens and exports call.
  */
-export function formatBsAdDate(instant: Date | null | undefined): string {
-  const bs = formatBsDate(instant);
+export function formatHostelDate(value: DateInput, empty = "—"): string {
+  return formatBsDate(toInstant(value)) || empty;
+}
 
-  if (!bs || !instant) {
-    return bs;
-  }
+/** `2:45 pm`, on Nepal's clock whatever the device or server is set to. */
+export function formatHostelTime(value: DateInput, empty = "—"): string {
+  const instant = toInstant(value);
 
-  const ad = instant.toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "short",
-    timeZone: "Asia/Kathmandu",
-    year: "numeric",
-  });
+  if (!instant) return empty;
 
-  return `${bs} (${ad})`;
+  const local = new Date(instant.getTime() + HOSTEL_UTC_OFFSET_MINUTES * 60_000);
+  const hour = local.getUTCHours();
+  const minute = local.getUTCMinutes();
+
+  return `${hour % 12 === 0 ? 12 : hour % 12}:${String(minute).padStart(2, "0")} ${hour < 12 ? "am" : "pm"}`;
+}
+
+/** `Baisakh · 2083-01-15, 2:45 pm` — the one format with Nepal's clock after it. */
+export function formatHostelDateTime(value: DateInput, empty = "—"): string {
+  const date = formatHostelDate(value, "");
+
+  return date ? `${date}, ${formatHostelTime(value)}` : empty;
 }
 
 /** `Bhadra 19` — inside a section whose heading already names the year. */

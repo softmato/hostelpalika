@@ -1,7 +1,10 @@
 "use client";
-import { downloadCsv } from "@/lib/downloads/downloader";
 
-import { Download, ShieldCheck, UserPlus, UserRound, Users, X } from "@/components/icons";
+import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
+import { ExportMenu } from "@/components/export-menu";
+import { downloadTable, type TableFormat } from "@/lib/downloads/downloader";
+
+import { ShieldCheck, UserPlus, UserRound, Users, X } from "@/components/icons";
 import Link from "next/link";
 import { memo, useMemo, useState } from "react";
 
@@ -85,17 +88,13 @@ function formatDate(value: string | null) {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? "—"
-    : date.toLocaleDateString(undefined, {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      });
+    : formatHostelDate(date);
 }
 
 function formatDateTime(value: string | null) {
   if (!value) return "Never";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "Never" : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? "Never" : formatHostelDateTime(date);
 }
 
 function readableRole(role: string) {
@@ -209,8 +208,9 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
     .sort((left, right) => right[1] - left[1])
     .slice(0, 3);
   const activeFilters = [roleFilter, statusFilter, hostelFilter, activationFilter].filter(Boolean).length;
-  const exportUsers = () =>
-    downloadCsv(
+  const exportUsers = (format: TableFormat) =>
+    downloadTable(
+      format,
       "users",
       [
         { key: "name", label: "Name" },
@@ -234,10 +234,7 @@ export const PlatformUsersPageContent = memo(function PlatformUsersPageContent()
           <PortalPageHeader
             actions={
               <>
-                <RoleButton disabled={filtered.length === 0} onClick={exportUsers} tone="team" variant="outline">
-                  <Download className="size-3.5" />
-                  Export
-                </RoleButton>
+                <ExportMenu disabled={filtered.length === 0} onExport={({ format }) => void exportUsers(format)} />
                 {/* Residents join through their hostel's activation codes; the
                     platform adds people by invitation, on the Team screen. */}
                 <RoleButton asChild tone="team">

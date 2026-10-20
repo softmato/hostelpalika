@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelStaffPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getMaintenanceSettings } from "@/modules/maintenance/maintenance.service";
 
 export const runtime = "nodejs";
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
       request.nextUrl.searchParams.get("hostelId") ?? undefined,
     );
 
-    return successResponse(result, "Maintenance settings loaded");
+    return withEtag(request, successResponse(result, "Maintenance settings loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

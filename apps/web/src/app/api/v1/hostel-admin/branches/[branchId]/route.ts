@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { requireHostelAdminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { billingHostelId } from "@/modules/billing/billing-hostel";
 import { getBranchDetails } from "@/modules/hostels/hostel-branch.service";
 
@@ -17,10 +18,10 @@ export async function GET(
       });
     const mainId = await billingHostelId(principal.hostelIds[0]);
     const { branchId } = await context.params;
-    return successResponse(
+    return withEtag(request, successResponse(
       await getBranchDetails(mainId.toString(), branchId, principal),
       "Branch details loaded",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

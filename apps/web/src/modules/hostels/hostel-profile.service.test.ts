@@ -10,6 +10,8 @@ const profileMocks = vi.hoisted(() => ({
   hostelFindOne: vi.fn(),
   hostelFindOneAndUpdate: vi.fn(),
   getOpenFeeSchedule: vi.fn(),
+  residentFindOne: vi.fn(),
+  roomUpdateMany: vi.fn(),
   sendNotificationEmail: vi.fn(),
   userFind: vi.fn(),
 }));
@@ -45,6 +47,14 @@ vi.mock("@hostel/db/models/Hostel", () => ({
     findOne: profileMocks.hostelFindOne,
     findOneAndUpdate: profileMocks.hostelFindOneAndUpdate,
   },
+}));
+
+vi.mock("@hostel/db/models/Resident", () => ({
+  ResidentModel: { findOne: profileMocks.residentFindOne },
+}));
+
+vi.mock("@hostel/db/models/HostelRoom", () => ({
+  HostelRoomModel: { updateMany: profileMocks.roomUpdateMany },
 }));
 
 vi.mock("@hostel/db/models/User", () => ({
@@ -92,6 +102,32 @@ describe("hostel profile service", () => {
     profileMocks.sendNotificationEmail.mockResolvedValue(undefined);
     profileMocks.geocodeAndCacheHostel.mockResolvedValue(null);
     profileMocks.getOpenFeeSchedule.mockResolvedValue(null);
+  });
+
+  it("refuses to remove a room type somebody lives in, and retires an empty one's rooms", async () => {
+    const rooms = (...types: string[]) =>
+      types.map((roomType) => ({ bedsPerRoom: 2, mealInclusion: "Included" as const, monthlyRent: 0, rooms: 1, roomType, vacantBeds: 2 }));
+
+    profileMocks.hostelFindOne.mockReturnValueOnce(leanResult(hostelRecord({ roomConfigurations: rooms("Double", "Single") })));
+    profileMocks.residentFindOne.mockReturnValueOnce({
+      select: () => leanResult({ roomType: "Single" }),
+    });
+
+    await expect(
+      updateHostelAdminProfile({ roomConfigurations: rooms("Double") }, staffPrincipal),
+    ).rejects.toMatchObject({ errorCode: "ROOM_TYPE_OCCUPIED", status: 409 });
+    expect(profileMocks.hostelFindOneAndUpdate).not.toHaveBeenCalled();
+
+    profileMocks.hostelFindOne.mockReturnValueOnce(leanResult(hostelRecord({ roomConfigurations: rooms("Double", "Single") })));
+    profileMocks.residentFindOne.mockReturnValueOnce({ select: () => leanResult(null) });
+    profileMocks.hostelFindOneAndUpdate.mockReturnValueOnce(leanResult(hostelRecord({ roomConfigurations: rooms("Double") })));
+
+    await updateHostelAdminProfile({ roomConfigurations: rooms("Double") }, staffPrincipal);
+
+    expect(profileMocks.roomUpdateMany).toHaveBeenCalledWith(
+      expect.objectContaining({ roomType: { $in: ["Single"] } }),
+      expect.objectContaining({ $set: expect.objectContaining({ isDeleted: true }) }),
+    );
   });
 
   it("counts a rename against the post-approval allowance", async () => {

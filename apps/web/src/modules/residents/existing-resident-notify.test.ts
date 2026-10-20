@@ -118,7 +118,7 @@ describe("telling existing residents", () => {
     const email = sentEmail();
 
     expect(email.subject).toBe("Education Light is now on HostelPalika — please pay Rs 26,500");
-    expect(email.html).toContain("To pay by Aswin 31, 2083 BS");
+    expect(email.html).toContain("To pay by Aswin · 2083-06-31");
 
     const order = ["Bhadra 2083 rent", "Aswin 2083 rent", "Old dues"].map((label) => email.html.indexOf(label));
 

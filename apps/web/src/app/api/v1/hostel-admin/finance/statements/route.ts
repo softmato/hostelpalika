@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { listStatementImports } from "@/modules/finance/statements/reconcile.service";
 import { importStatement } from "@/modules/finance/statements/statement-import.service";
 import {
@@ -21,10 +22,10 @@ export async function GET(request: NextRequest) {
     );
     const hostelId = resolveAdminHostelId(principal, query.hostelId);
 
-    return successResponse(
+    return withEtag(request, successResponse(
       { imports: await listStatementImports(hostelId, query.limit) },
       "Statement imports",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -17,7 +17,7 @@ import Link from "next/link";
 import { type ReactNode, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { BRANCH_GC_MS, BRANCH_STALE_MS } from "@/lib/branch-cache";
+import { BRANCH_GC_MS, BRANCH_STALE_MS, type OverallScreen } from "@/lib/branch-cache";
 import { browserApi } from "@/lib/browser-api";
 import { downloadFile } from "@/lib/downloads/downloader";
 import { formatBsDate, formatBsPeriod } from "@/lib/hostel-day";
@@ -41,18 +41,6 @@ import { MetricCard, PortalPageHeader, SectionCard, type SoftTone } from "./port
  * hostels reach this page.
  */
 
-export const OVERALL_SCREENS = [
-  "dashboard",
-  "residents",
-  "staff",
-  "payments",
-  "statement",
-  "expenses",
-  "daily",
-  "reports",
-] as const;
-
-export type OverallScreen = (typeof OVERALL_SCREENS)[number];
 
 const API = "/api/v1/hostel-admin";
 
@@ -113,7 +101,7 @@ const BRANCH_SCREEN: Record<OverallScreen, string> = {
   reports: "reports",
   residents: "residents",
   staff: "wardens",
-  statement: "transactions",
+  statement: "statement",
 };
 
 async function read(branchId: string, path: string): Promise<Field> {
@@ -325,7 +313,7 @@ function issue(field: Field | undefined) {
 
 /* ------------------------------------------------------------- reading */
 
-type Ledger = {
+export type Ledger = {
   entries: { createdAt?: string; id: string; month: string | null; paidAmount: number; paidDate?: string | null; residentName: string }[];
   expenses: ExpenseRow[] | null;
 };
@@ -351,7 +339,7 @@ type ExpenseHome = {
 const get = <T,>(row: BranchData, key: string) => row.fields[key]?.data as T | null | undefined;
 
 /** Money in and out, newest first — a cash handover listed, never counted (it is not spending). */
-function movements(ledger: Ledger | null | undefined) {
+export function movements(ledger: Ledger | null | undefined) {
   const rows: { amount: number; at: string; id: string; kind: "in" | "out" | "move"; sub: string; title: string }[] = [];
 
   for (const entry of ledger?.entries ?? []) {

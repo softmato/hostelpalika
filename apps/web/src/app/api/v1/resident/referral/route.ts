@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireResidentPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getResidentReferral } from "@/modules/referrals/referral.service";
 
 export const runtime = "nodejs";
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireResidentPrincipal(request);
     const result = await getResidentReferral(principal);
 
-    return successResponse(result, "Referral code loaded");
+    return withEtag(request, successResponse(result, "Referral code loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

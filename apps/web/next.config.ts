@@ -255,6 +255,19 @@ const nextConfig: NextConfig = {
       // Crawlers may fetch these to render /hostels (robots.ts); the JSON itself
       // is never a search result.
       { headers: [{ key: "X-Robots-Tag", value: "noindex" }], source: "/api/v1/public/:path*" },
+      // Static images, animations and sounds from `public/`: a week in the
+      // browser and CDN, then revalidated behind the page. Not `immutable` —
+      // their names are not hashed. `/_next/static` is already immutable, and
+      // `sw.js` is left alone so a new worker is picked up at once.
+      {
+        headers: [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=86400" }],
+        source: "/:folder(brand|home|lottie|payment-logos|sounds|share-guide|mockups)/:path*",
+      },
+      // The installable app's bundles carry a content hash in their names.
+      {
+        headers: [{ key: "Cache-Control", value: "public, max-age=31536000, immutable" }],
+        source: "/app/_expo/static/:path*",
+      },
     ];
   },
   async redirects() {

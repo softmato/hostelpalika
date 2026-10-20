@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { listAdminNightStatus } from "@/modules/safety/safety.service";
 import { nightStatusListQuerySchema } from "@/modules/safety/safety.validation";
 
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     );
     const result = await listAdminNightStatus(query, principal);
 
-    return successResponse(result, "Night status loaded");
+    return withEtag(request, successResponse(result, "Night status loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import { AlertTriangle, CheckCircle2, Clock, Siren } from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
@@ -82,7 +84,7 @@ export const HostelAdminSOSAlertsPage = memo(function HostelAdminSOSAlertsPage()
                 <p className="text-[13px] text-muted-foreground">{alert.message}</p>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   <Chip tone={STATUS_TONE[alert.status]}>{words(alert.status)}</Chip>
-                  {alert.createdAt ? <Chip glyph="time">{new Date(alert.createdAt).toLocaleString()}</Chip> : null}
+                  {alert.createdAt ? <Chip glyph="time">{formatHostelDateTime(alert.createdAt)}</Chip> : null}
                   {alert.guardianAlertEnabled ? <Chip glyph="people">Guardian told</Chip> : null}
                 </div>
               </div>

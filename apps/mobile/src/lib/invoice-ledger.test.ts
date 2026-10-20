@@ -422,7 +422,7 @@ describe("invoiceRowCopy", () => {
   const monthLabel = (period: string | null) =>
     period === "2083-05" ? "Bhadra" : String(period);
   const dateLabel = (date: string | null | undefined) =>
-    date ? "Bhadra 19, 2083 BS" : "—";
+    date ? "Bhadra · 2083-05-19" : "—";
 
   const copy = (value: ResidentInvoice) => invoiceRowCopy(value, monthLabel, dateLabel);
 
@@ -499,7 +499,7 @@ describe("invoiceRowCopy", () => {
         }),
       ),
     ).toMatchObject({
-      subtitle: "Due Bhadra 19, 2083 BS",
+      subtitle: "Due Bhadra · 2083-05-19",
       title: "Admission fee + Security deposit",
     });
   });

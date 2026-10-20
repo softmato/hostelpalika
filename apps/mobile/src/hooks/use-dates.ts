@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 
-import { useAppSelector } from "@/hooks/redux";
 import {
   type CalendarSystem,
   formatAgoIn,
@@ -110,22 +109,20 @@ export type PortalDates = {
   year: (value: Date | string | null | undefined) => string;
 };
 
-export function useDates(): PortalDates {
-  const calendar = useAppSelector((state) => state.ui.calendarPreference);
+/**
+ * Fixed to Bikram Sambat: the platform prints one date format everywhere —
+ * `Baisakh · 2083-01-15` (docs/PORTAL_POLISH_2026_10.md). The stored
+ * preference is no longer read and its picker is gone.
+ */
+const calendar: CalendarSystem = "BS";
 
+export function useDates(): PortalDates {
   return useMemo(
     () => ({
       ago: (value, now) => formatAgoIn(calendar, value, now),
       calendar,
       date: (value) => formatDateIn(calendar, value),
-      dateBoth: (value) => {
-        const chosen = formatDateIn(calendar, value);
-        const other = formatDateIn(calendar === "BS" ? "AD" : "BS", value);
-
-        // An unparseable date formats the same way twice; one em dash beats
-        // "— (—)".
-        return chosen === other ? chosen : `${chosen} (${other})`;
-      },
+      dateBoth: (value) => formatDateIn(calendar, value),
       dateLong: (value) => formatDateLongIn(calendar, value),
       dateTime: (value) => formatDateTimeIn(calendar, value),
       dayMonth: (value) => formatDayMonthIn(calendar, value),
@@ -135,6 +132,6 @@ export function useDates(): PortalDates {
       relativeDay: (value, now) => formatRelativeDayIn(calendar, value, now),
       year: (value) => formatYearIn(calendar, value),
     }),
-    [calendar],
+    [],
   );
 }

@@ -6,13 +6,13 @@ import {
   Download,
   ExternalLink,
   Link2,
-  MessageCircle,
   RefreshCw,
   RotateCcw,
   UserCheck,
 } from "@/components/icons";
 import { useState } from "react";
 
+import { WhatsAppMark } from "@/components/whatsapp-mark";
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -113,7 +113,7 @@ function JoinLinkDialog({ onClose }: { onClose: () => void }) {
 
   return (
     <Dialog onOpenChange={(next) => (next ? null : onClose())} open>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Join link</DialogTitle>
           <DialogDescription>
@@ -125,13 +125,13 @@ function JoinLinkDialog({ onClose }: { onClose: () => void }) {
         {!data ? (
           <p className="py-8 text-center text-sm text-muted-foreground">{link.message || "Loading…"}</p>
         ) : (
-          <div className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-[260px_minmax(0,1fr)]">
             <div className="flex flex-col items-center gap-3 rounded-xl border border-border bg-muted/30 p-4">
               {data.qrDataUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element -- a data: URL
                 <img
                   alt="QR code for the join link"
-                  className={`size-48 rounded-lg bg-white p-2 ${data.enabled ? "" : "opacity-30"}`}
+                  className={`size-52 rounded-lg bg-white p-2 ${data.enabled ? "" : "opacity-30"}`}
                   src={data.qrDataUrl}
                 />
               ) : null}
@@ -143,13 +143,14 @@ function JoinLinkDialog({ onClose }: { onClose: () => void }) {
               ) : null}
             </div>
 
-            <div className="grid grid-cols-3 gap-2">
-              <Button asChild variant="outline">
-                <a href={`https://wa.me/?text=${encodeURIComponent(message)}`} rel="noreferrer" target="_blank">
-                  <MessageCircle className="size-4" />
-                  WhatsApp
-                </a>
-              </Button>
+            <div className="space-y-4">
+            <Button asChild className="h-11 w-full" variant="outline">
+              <a href={`https://wa.me/?text=${encodeURIComponent(message)}`} rel="noreferrer" target="_blank">
+                <WhatsAppMark className="size-5" />
+                Send on WhatsApp
+              </a>
+            </Button>
+            <div className="grid grid-cols-2 gap-2">
               <Button
                 onClick={async () => {
                   await navigator.clipboard.writeText(data.url).catch(() => null);
@@ -226,6 +227,7 @@ function JoinLinkDialog({ onClose }: { onClose: () => void }) {
                 <RefreshCw className="size-4" />
                 New link
               </Button>
+            </div>
             </div>
           </div>
         )}

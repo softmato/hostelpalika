@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   listTeamInvites,
   listTeamRegistrations,
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
       listTeamInvites(),
     ]);
 
-    return successResponse({ ...roster, ...registrations, ...invites }, "Team loaded");
+    return withEtag(request, successResponse({ ...roster, ...registrations, ...invites }, "Team loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

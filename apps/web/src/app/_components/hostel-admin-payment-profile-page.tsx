@@ -601,7 +601,7 @@ export const HostelAdminPaymentProfilePageContent = memo(
           }
           description="What residents see when they open an invoice."
           icon={Banknote}
-          title="Payment Setup"
+          title="Payment setup"
         />
         {open || extraOpen ? null : <Message value={message} />}
 
@@ -612,7 +612,7 @@ export const HostelAdminPaymentProfilePageContent = memo(
 
         {profile ? (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="space-y-4">
+            <div className="space-y-4" data-kyc="payments">
               {/* Methods below are collected by hand — each payment is confirmed
                   from the review queue. Online checkout settles without review.
                   Anything left unset is simply not shown to residents. */}

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelAdminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { addHostelKycDocuments, getHostelKyc, removeHostelKycDocument } from "@/modules/hostels/hostel-kyc.service";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
 import { hostelResubmitDocumentsSchema } from "@/modules/hostels/hostel.validation";
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
       request.nextUrl.searchParams.get("hostelId") ?? undefined,
     );
 
-    return successResponse({ kyc: await getHostelKyc(String(hostelId), principal.userId) }, "Hostel KYC");
+    return withEtag(request, successResponse({ kyc: await getHostelKyc(String(hostelId), principal.userId) }, "Hostel KYC"));
   } catch (error) {
     return handleRouteError(error);
   }

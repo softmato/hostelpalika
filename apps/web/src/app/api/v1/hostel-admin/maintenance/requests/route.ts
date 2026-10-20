@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   createMaintenanceRequest,
   listMaintenanceRequests,
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     );
     const result = await listMaintenanceRequests(query, principal);
 
-    return successResponse(result, "Maintenance requests loaded");
+    return withEtag(request, successResponse(result, "Maintenance requests loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

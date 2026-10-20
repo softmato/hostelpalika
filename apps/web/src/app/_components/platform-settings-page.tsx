@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import {
   AlertCircle,
   Building2,
@@ -151,7 +153,7 @@ const ROLE_COPY: Record<string, { description: string; label: string }> = {
 function formatDate(value: string | null) {
   if (!value) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
+  return Number.isNaN(date.getTime()) ? "—" : formatHostelDate(date);
 }
 
 function GrantModeSwitch({

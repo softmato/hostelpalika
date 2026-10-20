@@ -1,12 +1,12 @@
 "use client";
-import { downloadCsv } from "@/lib/downloads/downloader";
+import { ExportMenu } from "@/components/export-menu";
+import { downloadTable } from "@/lib/downloads/downloader";
 
 import {
   AlertTriangle,
   CalendarPlus,
   Clock3,
   CreditCard,
-  Download,
   Plus,
   ReceiptText,
   WalletCards,
@@ -78,6 +78,14 @@ import { BillExtraTags, type BillLine } from "./khata-pages";
 import { ShareBar } from "./hostel-admin-page-ui";
 import { WalletMark } from "@/components/wallet-mark";
 
+/** "No fee set" only when nothing prices the room; a priceable row is just not billed yet. */
+function notBilledLabel(reason: string | undefined) {
+  if (reason === "NOT_YET_RUN") return "NOT BILLED YET";
+  if (reason === "PAID_BEFORE_JOINING") return "PAID BEFORE JOINING";
+  if (reason === "FEE_SCHEDULE_MISSING" || reason === "BED_TYPE_NOT_PRICED") return "NO FEE SET";
+  return "NOT BILLED";
+}
+
 type MatrixRow = {
   displayStatus:
     | "PAID"
@@ -86,6 +94,8 @@ type MatrixRow = {
     | "OVERDUE"
     | "PENDING_PROOF"
     | "NOT_BILLED";
+  /** Server's projection for a row with no invoice: what it would cost and why it isn't billed. */
+  notBilled?: { amount: number | null; reason: string } | null;
   payment: (Payment & { lines?: BillLine[] }) | null;
   resident: Resident & {
     fullName: string;
@@ -512,11 +522,11 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
       <PortalPageHeader
         actions={
           <>
-            <Button
-              className="h-10 gap-2 rounded-xl"
+            <ExportMenu
               disabled={filteredRows.length === 0}
-              onClick={() =>
-                downloadCsv(
+              onExport={({ format }) =>
+                void downloadTable(
+                  format,
                   `payments-${month}`,
                   [
                     { key: "resident", label: "Resident" },
@@ -538,12 +548,7 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
                   })),
                 )
               }
-              type="button"
-              variant="outline"
-            >
-              <Download className="size-4" />
-              Export
-            </Button>
+            />
             <Button
               className="h-10 gap-2 rounded-xl"
               onClick={() => {
@@ -887,7 +892,13 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
                             {row.payment ? monthLabel(row.payment.month) : monthLabel(month)}
                           </TableCell>
                           <TableCell className="font-medium">
-                            {row.payment ? currency(row.payment.dueAmount) : "—"}
+                            {row.payment ? (
+                              currency(row.payment.dueAmount)
+                            ) : row.notBilled?.amount ? (
+                              <span className="text-muted-foreground">{currency(row.notBilled.amount)}</span>
+                            ) : (
+                              "—"
+                            )}
                             {row.payment ? (
                               <BillExtraTags
                                 lines={row.payment.lines}
@@ -916,7 +927,7 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
                               }
                             >
                               {row.displayStatus === "NOT_BILLED"
-                                ? "NO FEE SET"
+                                ? notBilledLabel(row.notBilled?.reason)
                                 : row.displayStatus.replaceAll("_", " ")}
                             </SoftBadge>
                           </TableCell>

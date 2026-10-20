@@ -14,7 +14,7 @@ import { staticPageMetadata } from "@/lib/seo-config";
  * UI follows the legal pages (privacy, terms) for now — plain sections of plain
  * answers, which is what this content is. A fuller treatment is later work.
  */
-export const revalidate = 3600;
+export const revalidate = 21600;
 
 export function generateMetadata(): Promise<Metadata> {
   return staticPageMetadata("offerProgram");

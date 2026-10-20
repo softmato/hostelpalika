@@ -5,6 +5,8 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { PLATFORM_PLAY_STORE_URL } from "@hostel/shared/brand/brand";
+
 import { useSiteConfig } from "@/components/site-config-provider";
 
 const DISMISS_KEY = "install-banner-dismissed";
@@ -81,7 +83,8 @@ export function InstallAppBanner() {
     return null;
   }
 
-  const playHref = platform === "android" && !appHref ? apps.androidPlayUrl : "";
+  // Android always goes to the Play app, never `/app` or the browser's prompt.
+  const playHref = platform === "android" ? apps.androidPlayUrl || PLATFORM_PLAY_STORE_URL : "";
 
   function dismiss() {
     setVisible(false);
@@ -94,8 +97,8 @@ export function InstallAppBanner() {
   }
 
   async function install() {
-    if (appHref || playHref) {
-      window.location.href = appHref || playHref;
+    if (playHref || appHref) {
+      window.location.href = playHref || appHref || "";
       return;
     }
 

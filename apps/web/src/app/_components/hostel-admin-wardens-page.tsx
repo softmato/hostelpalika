@@ -1,11 +1,12 @@
 "use client";
 
-import { Check, KeyRound, Plus, Shield, ShieldOff, UserPlus } from "@/components/icons";
+import { KeyRound, Plus, Shield, ShieldOff, UserPlus } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import { EmptyState, Input as FormInput, LoadingRows } from "@/app/_components/shared-ui";
 import { Glyph, type GlyphName } from "@/components/glyph";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -22,6 +23,7 @@ import {
   type WardenPermissionKey,
 } from "@/modules/wardens/warden.validation";
 
+import { useConfirm } from "./confirm-dialog";
 import { field, optionalField } from "./hostel-admin-shared";
 import {
   EmptyInline,
@@ -92,9 +94,10 @@ function isOn(key: WardenPermissionKey, selected: Set<string>) {
 }
 
 /**
- * Permissions as four area cards of toggle chips. A chip is on when it is green
- * with a tick; "All" flips the whole area. Any key added later that no area
- * names lands in "Other", so nothing silently disappears from the screen.
+ * Permissions as four area cards, one row per feature: its name on the left,
+ * an on/off switch on the right — the app's permission sheet. "All" flips the
+ * whole area. Any key added later that no area names lands in "Other", so
+ * nothing silently disappears from the screen.
  */
 function PermissionGrid({
   onToggle,
@@ -115,7 +118,7 @@ function PermissionGrid({
 
         return (
           <div className="rounded-2xl border border-border/70 bg-card p-3.5" key={group.title}>
-            <div className="mb-3 flex items-center gap-2.5">
+            <div className="mb-1 flex items-center gap-2.5">
               <span className="flex size-8 items-center justify-center rounded-full bg-role-team-soft text-role-team">
                 <Glyph className="size-4" name={group.glyph} />
               </span>
@@ -131,26 +134,21 @@ function PermissionGrid({
                 {allOn ? "None" : "All"}
               </button>
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="divide-y divide-border/70">
               {group.keys.map((key) => {
                 const on = isOn(key, selected);
 
                 return (
-                  <button
-                    aria-pressed={on}
-                    className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[12.5px] font-medium transition duration-150 active:scale-95",
-                      on
-                        ? "border-transparent bg-role-team-soft text-role-team"
-                        : "border-border text-muted-foreground hover:border-foreground/30 hover:text-foreground",
-                    )}
-                    key={key}
-                    onClick={() => onToggle(key, key === PROOF_WAIVER ? on : !on)}
-                    type="button"
-                  >
-                    {on ? <Check className="size-3.5" strokeWidth={2.2} /> : null}
-                    {PERMISSION_LABELS[key]}
-                  </button>
+                  <label className="flex cursor-pointer items-center justify-between gap-3 py-2.5" key={key}>
+                    <span className={cn("text-[13.5px]", on ? "font-medium text-foreground" : "text-muted-foreground")}>
+                      {PERMISSION_LABELS[key]}
+                    </span>
+                    <Switch
+                      checked={on}
+                      label={PERMISSION_LABELS[key]}
+                      onChange={() => onToggle(key, key === PROOF_WAIVER ? on : !on)}
+                    />
+                  </label>
                 );
               })}
             </div>
@@ -163,6 +161,7 @@ function PermissionGrid({
 
 export const HostelAdminWardensPage = memo(function HostelAdminWardensPage() {
   const wardensResource = useHostelWardens();
+  const { confirm, confirmDialog } = useConfirm();
   const { data, message: loadError, refreshAsync: refetch } = wardensResource;
   const isPending = wardensResource.state === "loading";
   const isError = wardensResource.state === "error";
@@ -283,6 +282,19 @@ export const HostelAdminWardensPage = memo(function HostelAdminWardensPage() {
 
     const reactivate = selectedWarden.status !== "ACTIVE";
 
+    if (
+      !reactivate &&
+      !(await confirm({
+        actionLabel: "Deactivate",
+        description: `${selectedWarden.name} can no longer sign in to this hostel. You can reactivate them later.`,
+        pin: true,
+        title: "Deactivate this warden?",
+        tone: "destructive",
+      }))
+    ) {
+      return;
+    }
+
     try {
       if (reactivate) {
         await browserApi(`/api/v1/hostel-admin/wardens/${selectedWarden.id}`, {
@@ -304,10 +316,11 @@ export const HostelAdminWardensPage = memo(function HostelAdminWardensPage() {
           : "Could not update warden status.",
       );
     }
-  }, [refetch, selectedWarden]);
+  }, [confirm, refetch, selectedWarden]);
 
   return (
     <div className="mx-auto max-w-[1448px] space-y-6">
+      {confirmDialog}
       <PortalPageHeader
         actions={
           <RoleButton

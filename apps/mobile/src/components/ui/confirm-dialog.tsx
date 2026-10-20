@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type ReactNode,
 } from "react";
 import {
   ActivityIndicator,
@@ -25,9 +26,13 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { PinPad } from "@/components/ui/pin-pad";
 import { pressHaptic } from "@/components/ui/pressable-scale";
 import { Text } from "@/components/ui/text";
+import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { readApiError } from "@/lib/api-contract";
+import { checkLockPin } from "@/lib/app-lock";
 import { appBlurTarget } from "@/lib/blur-target";
 import {
   closeConfirm,
@@ -107,6 +112,8 @@ import {
 
 /** The iOS alert's width in points. Fixed, not a fraction of the screen. */
 const CARD_WIDTH = 270;
+/** Room for the four PIN boxes and the keypad. */
+const CARD_WIDTH_PIN = 316;
 
 /** Each action row. 44 is the platform's own minimum tap target. */
 const ACTION_HEIGHT = 44;
@@ -192,9 +199,12 @@ export function ConfirmDialog({
   onClose,
   onConfirm,
   open,
+  pin = false,
   title,
 }: ConfirmDialogProps) {
   const [pending, setPending] = useState(false);
+  const [pinValue, setPinValue] = useState("");
+  const [pinError, setPinError] = useState<string | null>(null);
 
   /*
    * The confirm handler outlives the card it was pressed on: the work is awaited
@@ -219,12 +229,18 @@ export function ConfirmDialog({
    */
   const running = useRef(false);
 
-  const confirm = useCallback(() => {
+  const confirm = useCallback((typed?: string) => {
     if (pending) {
       return;
     }
 
     if (running.current) {
+      return;
+    }
+
+    const entered = typed ?? pinValue;
+
+    if (pin && entered.length !== 4) {
       return;
     }
 
@@ -234,6 +250,21 @@ export function ConfirmDialog({
     pressHaptic("light");
 
     void (async () => {
+      // A wrong PIN keeps the card up, cleared, for another try.
+      if (pin) {
+        try {
+          await checkLockPin(entered);
+        } catch (caught) {
+          if (alive.current) {
+            running.current = false;
+            setPending(false);
+            setPinValue("");
+            setPinError(readApiError(caught, "That PIN did not work."));
+          }
+          return;
+        }
+      }
+
       try {
         await onConfirm();
       } finally {
@@ -251,7 +282,7 @@ export function ConfirmDialog({
         onClose();
       }
     })();
-  }, [onClose, onConfirm, pending]);
+  }, [onClose, onConfirm, pending, pin, pinValue]);
 
   const dismiss = useCallback(() => {
     // A request is already out. Closing the card here would leave the owner with
@@ -294,9 +325,24 @@ export function ConfirmDialog({
       message={message}
       onBackdrop={single ? undefined : dismiss}
       onCancel={cancel}
-      onConfirm={confirm}
-      onHardwareBack={single ? confirm : dismiss}
+      onConfirm={() => confirm()}
+      onHardwareBack={single ? () => confirm() : dismiss}
       pending={pending}
+      pinPad={
+        pin ? (
+          <PinPad
+            busy={pending}
+            error={pinError}
+            onChange={(value) => {
+              setPinError(null);
+              setPinValue(value);
+            }}
+            onComplete={confirm}
+            value={pinValue}
+          />
+        ) : null
+      }
+      ready={!pin || pinValue.length === 4}
       title={title}
     />
   ) : null;
@@ -313,6 +359,8 @@ function ConfirmCard({
   onConfirm,
   onHardwareBack,
   pending,
+  pinPad,
+  ready,
   title,
 }: {
   /** `null` draws the confirm alone, full width. */
@@ -327,6 +375,10 @@ function ConfirmCard({
   onConfirm: () => void;
   onHardwareBack: () => void;
   pending: boolean;
+  /** The PIN step, when the question asks for one; the card widens to hold it. */
+  pinPad: ReactNode;
+  /** False until a PIN step has its four digits. */
+  ready: boolean;
   title: string;
 }) {
   const { colors, isDark } = useAppTheme();
@@ -453,7 +505,7 @@ function ConfirmCard({
                 shadowOffset: { height: 8, width: 0 },
                 shadowOpacity: isDark ? 0.5 : 0.18,
                 shadowRadius: 24,
-                width: CARD_WIDTH,
+                width: pinPad ? CARD_WIDTH_PIN : CARD_WIDTH,
               },
             ]}
           >
@@ -483,6 +535,8 @@ function ConfirmCard({
                     </Text>
                   ) : null}
                 </View>
+
+                {pinPad ? <View className="px-3 pb-2">{pinPad}</View> : null}
 
                 <View
                   style={{
@@ -529,9 +583,9 @@ function ConfirmCard({
 
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityState={{ busy: pending, disabled: pending }}
-                    className="flex-1 items-center justify-center active:opacity-50"
-                    disabled={pending}
+                    accessibilityState={{ busy: pending, disabled: pending || !ready }}
+                    className={`flex-1 items-center justify-center active:opacity-50 ${ready ? "" : "opacity-40"}`}
+                    disabled={pending || !ready}
                     onPress={onConfirm}
                   >
                     {pending ? (
@@ -588,6 +642,10 @@ export function ConfirmDialogHost() {
     getConfirmRequest,
     getConfirmRequest,
   );
+  // Only an account that has a PIN can be asked for one; a temporary login never.
+  const hasPin = useAppSelector(
+    (state) => state.auth.account?.hasLockPin === true && !state.auth.account.viaTemporaryCredential,
+  );
 
   if (!request) {
     return null;
@@ -604,6 +662,7 @@ export function ConfirmDialogHost() {
       key={request.id}
       onClose={closeConfirm}
       open
+      pin={Boolean(request.pin) && hasPin}
     />
   );
 }

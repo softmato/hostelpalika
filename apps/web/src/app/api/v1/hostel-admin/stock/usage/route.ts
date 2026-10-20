@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getStockUsage, resolveStockActor } from "@/modules/stock/stock.service";
 import { stockUsageQuerySchema } from "@/modules/stock/stock.validation";
 
@@ -13,10 +14,10 @@ export async function GET(request: NextRequest) {
     const principal = await requireHostelCapability(request, "manageStock");
     const query = stockUsageQuerySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
 
-    return successResponse(
+    return withEtag(request, successResponse(
       await getStockUsage(await resolveStockActor(principal, query.scope === "all"), query.range),
       "Usage loaded",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

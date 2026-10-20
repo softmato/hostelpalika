@@ -23,8 +23,11 @@ const EXTENSION_MIME: Record<string, string> = {
   heif: "image/heif",
   jpeg: "image/jpeg",
   jpg: "image/jpeg",
+  mov: "video/quicktime",
+  mp4: "video/mp4",
   pdf: "application/pdf",
   png: "image/png",
+  webm: "video/webm",
   webp: "image/webp",
 };
 

@@ -461,12 +461,12 @@ export function NotificationBell({ href }: { href: string }) {
       <PopoverTrigger asChild>
         <Button
           aria-label={badge > 0 ? `Notifications, ${badge} unread` : "Notifications"}
-          className="relative size-8 rounded-full border-slate-200 bg-white text-slate-600 shadow-sm dark:border-border dark:bg-card dark:text-foreground"
+          className="relative size-10.5 rounded-xl border-slate-200 bg-white text-slate-600 shadow-sm dark:border-border dark:bg-card dark:text-foreground"
           size="icon"
           type="button"
           variant="outline"
         >
-          <Bell className="size-4" />
+          <Bell className="size-5" />
           {badge > 0 ? (
             <span
               className={cn(

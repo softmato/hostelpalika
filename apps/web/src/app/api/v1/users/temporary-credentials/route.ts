@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { assertPrimaryCredentialPrincipal, requireApiPrincipal } from "@/lib/api-auth";
 import { errorResponse, handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { rateLimitAuthAttempts } from "@/lib/rate-limit";
 import {
   createTemporaryCredential,
@@ -26,10 +27,10 @@ export async function GET(request: NextRequest) {
     // they could not act on them.
     assertPrimaryCredentialPrincipal(principal);
 
-    return successResponse(
+    return withEtag(request, successResponse(
       await listTemporaryCredentials(principal.userId),
       "Temporary logins",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

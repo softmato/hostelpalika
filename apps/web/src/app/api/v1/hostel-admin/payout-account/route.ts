@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelAdminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   getHostelPayoutAccount,
   setHostelPayoutAccount,
@@ -24,10 +25,10 @@ export async function GET(request: NextRequest) {
       request.nextUrl.searchParams.get("hostelId") ?? undefined,
     );
 
-    return successResponse(
+    return withEtag(request, successResponse(
       { account: await getHostelPayoutAccount(hostelId) },
       "Payout account",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { assertApiRoles, requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { Role } from "@/lib/roles";
 import { listCookFoodPhotos, uploadCookFoodPhoto } from "@/modules/food/cook.service";
 import { foodPhotoUploadSchema } from "@/modules/food/food.validation";
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
     const cursor = request.nextUrl.searchParams.get("cursor") ?? undefined;
     const result = await listCookFoodPhotos(principal, hostelId, cursor);
 
-    return successResponse(result, "Food photos loaded");
+    return withEtag(request, successResponse(result, "Food photos loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

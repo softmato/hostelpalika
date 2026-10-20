@@ -199,7 +199,7 @@ export const HostelAdminMaintenancePageContent = React.memo(
           }
           description="Report a problem and track every repair."
           icon={Wrench}
-          title="Maintenance & Providers"
+          title="Repairs"
         />
         {raising ? null : <Message value={message} />}
 

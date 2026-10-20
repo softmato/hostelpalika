@@ -237,6 +237,7 @@ export default function ManageWardensScreen() {
             toastError("Could not remove", readApiError(error));
           }
         },
+        pin: true,
         title: `Remove ${warden.name}?`,
       });
     },

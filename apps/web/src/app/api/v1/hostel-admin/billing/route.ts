@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelStaffPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { hostelCode } from "@/lib/hostel-code";
 import { getBillingHistory } from "@/modules/billing/billing-history.service";
 import { getSubscriptionState } from "@/modules/billing/subscription.service";
@@ -26,10 +27,10 @@ export async function GET(request: NextRequest) {
     const hostelId = principal.hostelIds?.[0];
 
     if (!hostelId) {
-      return successResponse(
+      return withEtag(request, successResponse(
         { history: { docsUrl: null, invoices: [], payments: [] }, state: null },
         "No hostel in scope",
-      );
+      ));
     }
 
     const [history, state] = await Promise.all([
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // The ID the pricing page's "Get plan" checkout asks for.
-    return successResponse({ history, hostelCode: hostelCode(hostelId), state }, "Billing loaded");
+    return withEtag(request, successResponse({ history, hostelCode: hostelCode(hostelId), state }, "Billing loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

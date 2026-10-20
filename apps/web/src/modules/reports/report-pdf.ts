@@ -1,4 +1,8 @@
-import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage } from "pdf-lib";
+
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
+import { exportCellText } from "@/lib/csv";
 
 import type { ReportExport } from "@/modules/reports/report-export.service";
 
@@ -10,37 +14,43 @@ import type { ReportExport } from "@/modules/reports/report-export.service";
  *
  * A CSV is for a spreadsheet and a PDF is for a person. An owner sending last
  * month's collection to their accountant wants the first; an owner handing the
- * same figures to a bank, a landlord or a family member wants the second, and
- * has until now had to open the CSV somewhere and print it. The export routes
- * therefore take a `format` and this is the other half of it.
+ * same figures to a bank, a landlord or a family member wants the second.
  *
  * ## Generic, because `ReportExport` already is
  *
- * Every report — residents, collection, complaints, occupancy, and the platform's
- * four — is a `{ columns, rows }` table by the time it reaches a route. So this
- * renders *a table*, not a collection report, and all eight formats came for
- * free. A bespoke renderer per report would be eight places to keep in step with
- * one service.
+ * Every export — the report routes and every list a screen downloads — is a
+ * `{ columns, rows }` table by then. So this renders *a table*: one renderer,
+ * run on the server for the report routes and in the browser for screen lists.
+ *
+ * ## The layout
+ *
+ * A green band with the platform, the title and its scope; a summary line with
+ * when it was made and the period it covers; a table with a filled header row,
+ * striped rows, columns sized to what they hold and numbers right-aligned; a
+ * footer with page n of N. Landscape once a table is wider than six columns.
  *
  * ## Not `receipt-pdf.ts`
  *
  * That module builds **financial instruments** — a receipt and a resident's
- * statement — and everything in it exists to make those documents hard to
- * forge: a certification stamp, a system-document marker, a receipt-number
- * pattern, a footer disclaiming proof-of-payment. A report is an aggregate with
- * no such standing and must not carry that furniture, or the marks stop meaning
- * anything on the documents that need them.
+ * statement — with anti-forgery furniture. A report is an aggregate with no such
+ * standing and must not carry those marks.
  */
 
-/** A4 portrait, in points — the same page `renderStatementPdf` uses. */
-const PAGE = { height: 841.89, width: 595.28 } as const;
-const MARGIN = 46;
-const ROW_HEIGHT = 18;
-const HEADER_SIZE = 9;
-const BODY_SIZE = 9;
+const PORTRAIT = { height: 841.89, width: 595.28 } as const;
+const MARGIN = 36;
+const ROW_HEIGHT = 20;
+const BODY_SIZE = 8.5;
+const HEAD_SIZE = 8;
+const CELL_PAD = 6;
+const FOOTER_SPACE = 30;
 
-/** Where the first row of a continuation page starts. */
-const PAGE_TOP = PAGE.height - MARGIN;
+const BRAND = rgb(10 / 255, 138 / 255, 75 / 255);
+const INK = rgb(0.09, 0.11, 0.1);
+const MUTED = rgb(0.42, 0.45, 0.44);
+const RULE = rgb(0.87, 0.89, 0.88);
+const STRIPE = rgb(0.965, 0.975, 0.97);
+const HEAD_FILL = rgb(0.91, 0.96, 0.93);
+const WHITE = rgb(1, 1, 1);
 
 /**
  * `pdf-lib`'s standard fonts are WinAnsi, which throws on anything outside it —
@@ -52,51 +62,13 @@ export function sanitize(text: string): string {
     .replace(/[‘’]/g, "'")
     .replace(/[“”]/g, '"')
     .replace(/[–—]/g, "-")
-    .replace(/[^\x20-\x7E]/g, "");
+    // The middle dot of the one date format is in WinAnsi; keep it.
+    .replace(/[^\x20-\x7E·]/g, "");
 }
 
-function cellText(value: unknown): string {
-  if (value === null || value === undefined) {
-    return "";
-  }
-
-  if (value instanceof Date) {
-    return value.toISOString().slice(0, 10);
-  }
-
-  return String(value);
-}
-
-/**
- * Column x-positions, spread evenly across the usable width.
- *
- * Even rather than measured: these tables are two to six columns of short
- * values, and a measuring pass would spend a lot of work to move a column by a
- * few points. The renderer truncates instead — see `fit`.
- */
-function columnPositions(count: number): number[] {
-  const usable = PAGE.width - MARGIN * 2;
-  const step = usable / Math.max(count, 1);
-
-  return Array.from({ length: count }, (_, index) => MARGIN + step * index);
-}
-
-/**
- * Clips a cell to the width of its column so neighbouring text cannot collide.
- *
- * An ellipsis rather than a hard cut, so a truncated value is visibly truncated
- * — a silently shortened resident count is a wrong number on a document somebody
- * may act on.
- */
-function fit(
-  text: string,
-  width: number,
-  font: { widthOfTextAtSize: (text: string, size: number) => number },
-  size: number,
-): string {
-  if (font.widthOfTextAtSize(text, size) <= width) {
-    return text;
-  }
+/** Clipped to its column with an ellipsis, so a shortened value is visibly shortened. */
+function fit(text: string, width: number, font: PDFFont, size: number): string {
+  if (font.widthOfTextAtSize(text, size) <= width) return text;
 
   let clipped = text;
 
@@ -107,8 +79,12 @@ function fit(
   return `${clipped}...`;
 }
 
+const NUMERIC = /^-?[\d,]+(\.\d+)?%?$/;
+
 export type ReportPdfInput = {
   generatedAt: Date;
+  /** "Last 6 months", "Everything" — what the rows cover. Optional. */
+  period?: string;
   /** The hostel, or the platform. Blank when the caller spans several hostels. */
   scopeName: string;
   /** What the reader is looking at — "Collection", "Occupancy". */
@@ -120,102 +96,132 @@ export async function renderReportPdf(input: ReportPdfInput): Promise<Uint8Array
   const regular = await pdf.embedFont(StandardFonts.Helvetica);
   const bold = await pdf.embedFont(StandardFonts.HelveticaBold);
 
-  const ink = rgb(0.1, 0.12, 0.11);
-  const muted = rgb(0, 0, 0);
-  const rule = rgb(0.85, 0.87, 0.86);
+  pdf.setTitle(sanitize(input.title));
+  pdf.setProducer("HostelPalika");
 
-  const positions = columnPositions(input.columns.length);
-  const columnWidth = (PAGE.width - MARGIN * 2) / Math.max(input.columns.length, 1) - 6;
+  const size = input.columns.length > 6
+    ? { height: PORTRAIT.width, width: PORTRAIT.height }
+    : PORTRAIT;
+  const usable = size.width - MARGIN * 2;
 
-  let page = pdf.addPage([PAGE.width, PAGE.height]);
-  let cursor = PAGE_TOP;
+  const rows = input.rows.map((row) => input.columns.map((column) => sanitize(exportCellText(row[column.key]))));
+  const heads = input.columns.map((column) => sanitize(column.label).toUpperCase());
 
-  const drawRow = (cells: string[], options: { bold?: boolean; size?: number } = {}) => {
-    cells.forEach((cell, index) => {
-      page.drawText(fit(sanitize(cell), columnWidth, regular, options.size ?? BODY_SIZE), {
-        color: options.bold ? muted : ink,
-        font: options.bold ? bold : regular,
-        size: options.size ?? BODY_SIZE,
-        x: positions[index] ?? MARGIN,
-        y: cursor,
-      });
-    });
+  // A column is numeric when every filled cell is a number: those align right.
+  const numeric = input.columns.map((_, index) => {
+    const filled = rows.map((row) => row[index]).filter(Boolean);
+
+    return filled.length > 0 && filled.every((cell) => NUMERIC.test(cell));
+  });
+
+  // Widths from what each column holds (header and a sample of rows), scaled to the page.
+  const sample = rows.slice(0, 300);
+  const natural = input.columns.map((_, index) => {
+    const widest = Math.max(
+      bold.widthOfTextAtSize(heads[index], HEAD_SIZE),
+      ...sample.map((row) => regular.widthOfTextAtSize(row[index] ?? "", BODY_SIZE)),
+    );
+
+    return Math.min(Math.max(widest + CELL_PAD * 2, 44), 220);
+  });
+  const total = natural.reduce((sum, width) => sum + width, 0);
+  const widths = natural.map((width) => (width / total) * usable);
+  const xs = widths.map((_, index) => MARGIN + widths.slice(0, index).reduce((sum, width) => sum + width, 0));
+
+  let page: PDFPage = pdf.addPage([size.width, size.height]);
+  let cursor = size.height;
+
+  const text = (value: string, x: number, y: number, font: PDFFont, fontSize: number, color = INK) =>
+    page.drawText(value, { color, font, size: fontSize, x, y });
+
+  const cell = (value: string, index: number, y: number, font: PDFFont, fontSize: number, color = INK) => {
+    const room = widths[index] - CELL_PAD * 2;
+    const shown = fit(value, room, font, fontSize);
+    const x = numeric[index]
+      ? xs[index] + widths[index] - CELL_PAD - font.widthOfTextAtSize(shown, fontSize)
+      : xs[index] + CELL_PAD;
+
+    text(shown, x, y, font, fontSize, color);
+  };
+
+  const drawTableHead = () => {
+    page.drawRectangle({ color: HEAD_FILL, height: ROW_HEIGHT, width: usable, x: MARGIN, y: cursor - ROW_HEIGHT });
+    heads.forEach((head, index) => cell(head, index, cursor - 13.5, bold, HEAD_SIZE, BRAND));
     cursor -= ROW_HEIGHT;
   };
 
-  const drawHeader = () => {
-    drawRow(
-      input.columns.map((column) => column.label),
-      { bold: true, size: HEADER_SIZE },
-    );
-    page.drawLine({
-      color: rule,
-      end: { x: PAGE.width - MARGIN, y: cursor + 12 },
-      start: { x: MARGIN, y: cursor + 12 },
-      thickness: 1,
-    });
-    cursor -= 6;
-  };
+  /* ---- First page: the band, the summary line ---- */
+  const bandHeight = 74;
 
-  /* ---- Title block, on the first page only ---- */
-  page.drawText(sanitize(input.title), {
-    color: ink,
-    font: bold,
-    size: 18,
-    x: MARGIN,
-    y: cursor,
-  });
-  cursor -= 22;
+  page.drawRectangle({ color: BRAND, height: bandHeight, width: size.width, x: 0, y: size.height - bandHeight });
+  text("HostelPalika", MARGIN, size.height - 26, bold, 10, WHITE);
+  text(sanitize(input.title), MARGIN, size.height - 50, bold, 20, WHITE);
 
   if (input.scopeName) {
-    page.drawText(sanitize(input.scopeName), {
-      color: muted,
-      font: regular,
-      size: 11,
-      x: MARGIN,
-      y: cursor,
-    });
-    cursor -= 16;
+    const scope = fit(sanitize(input.scopeName), usable / 2, regular, 10);
+
+    text(scope, size.width - MARGIN - regular.widthOfTextAtSize(scope, 10), size.height - 26, regular, 10, WHITE);
   }
 
-  page.drawText(`Generated ${input.generatedAt.toISOString().slice(0, 10)}`, {
-    color: muted,
-    font: regular,
-    size: 9,
-    x: MARGIN,
-    y: cursor,
-  });
-  cursor -= 26;
+  cursor = size.height - bandHeight - 22;
 
-  drawHeader();
+  const summary = [
+    `Generated ${formatHostelDateTime(input.generatedAt)}`,
+    input.period ? `Period: ${input.period}` : "",
+    `${rows.length} ${rows.length === 1 ? "row" : "rows"}`,
+  ]
+    .filter(Boolean)
+    .join("   |   ");
 
-  /* ---- Rows, paginated ---- */
-  if (input.rows.length === 0) {
-    page.drawText("Nothing to report for this period.", {
-      color: muted,
-      font: regular,
-      size: 11,
-      x: MARGIN,
-      y: cursor,
-    });
+  text(sanitize(summary), MARGIN, cursor, regular, 9, MUTED);
+  cursor -= 16;
+
+  drawTableHead();
+
+  if (rows.length === 0) {
+    text("Nothing to report for this period.", MARGIN + CELL_PAD, cursor - 16, regular, 10, MUTED);
   }
 
-  for (const row of input.rows) {
-    /*
-     * Paginated, unlike `renderStatementPdf`, which truncates at 28 rows. A
-     * resident's statement is a stay measured in months and fits a page; a
-     * hostel's collection report is capped at 5000 rows by the service, and
-     * dropping 4900 of them onto the floor would be a document that looks
-     * complete and is not.
-     */
-    if (cursor < MARGIN + ROW_HEIGHT) {
-      page = pdf.addPage([PAGE.width, PAGE.height]);
-      cursor = PAGE_TOP;
-      drawHeader();
+  /* ---- Rows, paginated; nothing is dropped ---- */
+  rows.forEach((row, rowIndex) => {
+    if (cursor - ROW_HEIGHT < MARGIN + FOOTER_SPACE) {
+      page = pdf.addPage([size.width, size.height]);
+      cursor = size.height - MARGIN;
+      text(sanitize(input.title), MARGIN, cursor - 4, bold, 11, INK);
+      cursor -= 18;
+      drawTableHead();
     }
 
-    drawRow(input.columns.map((column) => cellText(row[column.key])));
-  }
+    if (rowIndex % 2 === 1) {
+      page.drawRectangle({ color: STRIPE, height: ROW_HEIGHT, width: usable, x: MARGIN, y: cursor - ROW_HEIGHT });
+    }
+
+    row.forEach((value, index) => cell(value, index, cursor - 13.5, regular, BODY_SIZE));
+    page.drawLine({
+      color: RULE,
+      end: { x: MARGIN + usable, y: cursor - ROW_HEIGHT },
+      start: { x: MARGIN, y: cursor - ROW_HEIGHT },
+      thickness: 0.5,
+    });
+    cursor -= ROW_HEIGHT;
+  });
+
+  /* ---- Footer on every page, once the count is known ---- */
+  const pages = pdf.getPages();
+
+  pages.forEach((each, index) => {
+    const label = `Page ${index + 1} of ${pages.length}`;
+
+    each.drawLine({ color: RULE, end: { x: size.width - MARGIN, y: MARGIN + 12 }, start: { x: MARGIN, y: MARGIN + 12 }, thickness: 0.5 });
+    each.drawText(sanitize(`HostelPalika · ${input.title}`), { color: MUTED, font: regular, size: 8, x: MARGIN, y: MARGIN });
+    each.drawText(label, {
+      color: MUTED,
+      font: regular,
+      size: 8,
+      x: size.width - MARGIN - regular.widthOfTextAtSize(label, 8),
+      y: MARGIN,
+    });
+  });
 
   return pdf.save();
 }

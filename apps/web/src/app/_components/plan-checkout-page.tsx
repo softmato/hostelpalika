@@ -368,9 +368,16 @@ export function PlanCheckoutPage({
     ? "Lifetime"
     : (billingCycles(catalog).find((option) => option.id === cycle)?.label ?? cycle);
   const openRow = trace?.history.invoices.find((row) => row.invoiceNumber === invoice?.invoiceNumber) ?? null;
+  // Picked below the plan the hostel runs: the server renews the running plan instead.
+  const heldPlan = getPlan(catalog, heldPlanId);
+  const renewsHeld = Boolean(
+    plan && heldPlan && !lifetimeOffer && trace?.history.plan?.status === "ACTIVE" &&
+      planRank(catalog, plan.id) < planRank(catalog, heldPlan.id),
+  );
   // The open invoice is for something other than what was picked here.
   const otherPick = Boolean(
     plan &&
+      !renewsHeld &&
       reused &&
       invoice &&
       (invoice.planName !== plan.name ||
@@ -647,6 +654,13 @@ export function PlanCheckoutPage({
                         </select>
                       </label>
                     </div>
+                  ) : null}
+
+                  {renewsHeld ? (
+                    <p className="rounded-lg border border-brand-teal/30 bg-brand-teal/10 px-3 py-2 text-xs text-foreground">
+                      Your hostel is on {heldPlan?.name}, which is above {plan?.name}. This renews{" "}
+                      {heldPlan?.name}.
+                    </p>
                   ) : null}
 
                   {otherPick && invoice.monthsLocked ? (

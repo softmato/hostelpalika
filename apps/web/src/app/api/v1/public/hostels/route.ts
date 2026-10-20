@@ -5,6 +5,7 @@ import {
   handleRouteError,
   successResponse,
 } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { listPublicHostels } from "@/modules/hostels/hostel.service";
 import { publicHostelListQuerySchema } from "@/modules/hostels/hostel.validation";
 
@@ -26,7 +27,7 @@ export async function GET(request: NextRequest) {
      * reports them to `POST /public/hostels/impressions` instead — the same
      * split `POST /public/hostels/[slug]/views` already uses for page views.
      */
-    return successResponse(result, "Public hostels loaded", PUBLIC_CACHE);
+    return withEtag(request, successResponse(result, "Public hostels loaded", PUBLIC_CACHE));
   } catch (error) {
     return handleRouteError(error);
   }

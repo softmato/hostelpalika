@@ -1,6 +1,7 @@
 import type { Types } from "mongoose";
 
 import { REALTIME_TOPIC } from "@/lib/realtime/channels";
+import { revalidatePublicPages } from "@/lib/revalidate-public";
 import { publishResourceChange } from "@/lib/realtime/server";
 import { HostelModel } from "@hostel/db/models/Hostel";
 
@@ -94,6 +95,7 @@ export async function refreshCapacitySummary(hostelId: Types.ObjectId) {
     { _id: hostelId, isDeleted: false },
     { $set: { capacitySummary: summarizeConfigurations(configurations) } },
   );
+  revalidatePublicPages();
 }
 
 /**

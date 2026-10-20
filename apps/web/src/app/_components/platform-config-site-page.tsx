@@ -158,6 +158,34 @@ export const PlatformConfigSitePageContent = memo(
                 value={identity.address}
               />
             </div>
+            {/* Help & support dialog: two numbers, each with what it is for. */}
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {[0, 1].map((index) => {
+                const line = identity.supportLines?.[index] ?? { note: "", phone: "" };
+                const update = (patch: Partial<typeof line>) => {
+                  const lines = [0, 1].map((slot) => identity.supportLines?.[slot] ?? { note: "", phone: "" });
+
+                  lines[index] = { ...line, ...patch };
+                  setValue("identity", { ...identity, supportLines: lines });
+                };
+
+                return (
+                  <div className="grid gap-2 rounded-xl border border-border p-3" key={index}>
+                    <TextField
+                      label={`Help line ${index + 1}`}
+                      onChange={(phone) => update({ phone })}
+                      value={line.phone}
+                    />
+                    <TextField
+                      hint="What to call it for, and when — shown under the number."
+                      label="Note"
+                      onChange={(note) => update({ note })}
+                      value={line.note}
+                    />
+                  </div>
+                );
+              })}
+            </div>
           </ConfigCard>
 
           <ConfigCard

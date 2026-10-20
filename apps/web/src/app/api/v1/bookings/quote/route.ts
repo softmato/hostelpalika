@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { loadApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getBookingQuote } from "@/modules/bookings/booking.service";
 
 export const runtime = "nodejs";
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
       { moveIn: params.get("moveIn"), moveOut: params.get("moveOut") },
     );
 
-    return successResponse({ quote }, "Booking quote");
+    return withEtag(request, successResponse({ quote }, "Booking quote"));
   } catch (error) {
     return handleRouteError(error);
   }

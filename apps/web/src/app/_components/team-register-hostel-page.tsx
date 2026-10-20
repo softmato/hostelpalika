@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import {
   ArrowLeft,
   AlertTriangle,
@@ -39,6 +41,7 @@ import {
 import { useCheckoutHandoff } from "@/app/_components/checkout-handoff";
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import { MEAL_TIMING_DEFAULTS } from "@hostel/shared/food/meal-window";
+import { MEAL_TYPES, type MealType, ROUTINE_DAYS, type RoutineDay, sampleWeekCells } from "@hostel/shared/food/sample-week";
 
 import { LocationPicker, type LocationPickerValue } from "@/components/maps/location-picker";
 import { useMediaViewer } from "@/components/media-viewer";
@@ -182,19 +185,7 @@ function isIdDocument(type: string) {
   return type === "Owner ID proof" || (ID_PROOF_TYPES as readonly string[]).includes(type);
 }
 
-const MEAL_TYPES = ["BREAKFAST", "LUNCH", "SNACKS", "DINNER"] as const;
-type MealType = (typeof MEAL_TYPES)[number];
 
-const ROUTINE_DAYS = [
-  "SUNDAY",
-  "MONDAY",
-  "TUESDAY",
-  "WEDNESDAY",
-  "THURSDAY",
-  "FRIDAY",
-  "SATURDAY",
-] as const;
-type RoutineDay = (typeof ROUTINE_DAYS)[number];
 
 /** `SUNDAY` → `Sun`. The rail is tight and the full names do not fit. */
 function shortDay(day: RoutineDay) {
@@ -254,63 +245,8 @@ const DRAFT_VERSION = 2;
  */
 const DEFAULT_TIMINGS: Record<MealType, string> = MEAL_TIMING_DEFAULTS;
 
-const DEFAULT_WEEK: Record<RoutineDay, Record<MealType, string>> = {
-  SUNDAY: {
-    BREAKFAST: "Roti, Aloo Tarkari, Tea",
-    LUNCH: "Dal, Bhat, Tarkari, Achar",
-    SNACKS: "Chiura, Tea",
-    DINNER: "Dal, Bhat, Tarkari",
-  },
-  MONDAY: {
-    BREAKFAST: "Bread, Jam, Tea",
-    LUNCH: "Dal, Bhat, Tarkari, Achar",
-    SNACKS: "Biscuit, Tea",
-    DINNER: "Dal, Bhat, Saag",
-  },
-  TUESDAY: {
-    BREAKFAST: "Roti, Tarkari, Tea",
-    LUNCH: "Dal, Bhat, Tarkari",
-    SNACKS: "Chana, Tea",
-    DINNER: "Dal, Bhat, Tarkari, Achar",
-  },
-  WEDNESDAY: {
-    BREAKFAST: "Paratha, Tea",
-    LUNCH: "Dal, Bhat, Tarkari, Achar",
-    SNACKS: "Chiura, Tea",
-    DINNER: "Dal, Bhat, Anda Curry",
-  },
-  THURSDAY: {
-    BREAKFAST: "Roti, Aloo Tarkari, Tea",
-    LUNCH: "Dal, Bhat, Tarkari",
-    SNACKS: "Chowmein, Tea",
-    DINNER: "Dal, Bhat, Saag",
-  },
-  FRIDAY: {
-    BREAKFAST: "Bread, Anda, Tea",
-    LUNCH: "Dal, Bhat, Tarkari, Achar",
-    SNACKS: "Chiura, Tea",
-    DINNER: "Dal, Bhat, Masu",
-  },
-  SATURDAY: {
-    BREAKFAST: "Puri, Tarkari, Tea",
-    LUNCH: "Dal, Bhat, Tarkari, Achar",
-    SNACKS: "Sel Roti, Tea",
-    DINNER: "Dal, Bhat, Tarkari",
-  },
-};
-
-/** The flat `DAY:MEAL` shape the form edits in. */
-function defaultRoutine(): Record<string, string> {
-  const cells: Record<string, string> = {};
-
-  for (const day of ROUTINE_DAYS) {
-    for (const meal of MEAL_TYPES) {
-      cells[`${day}:${meal}`] = DEFAULT_WEEK[day][meal];
-    }
-  }
-
-  return cells;
-}
+/** The flat `DAY:MEAL` shape the form edits in — the shared sample week. */
+const defaultRoutine = sampleWeekCells;
 
 const STEPS: RegistrationStep[] = [
   {
@@ -3576,7 +3512,7 @@ export function TeamRegisterHostelPage() {
                   /* Softmato's figures, not the agent's: read-only. */
                   <div className="mt-4 grid gap-4 sm:grid-cols-2">
                     <Field
-                      hint={`Paid online${paidOnline.provider ? ` by ${paidOnline.provider}` : ""}${paidOnline.paidAt ? `, ${new Date(paidOnline.paidAt).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}` : ""}.`}
+                      hint={`Paid online${paidOnline.provider ? ` by ${paidOnline.provider}` : ""}${paidOnline.paidAt ? `, ${formatHostelDateTime(paidOnline.paidAt)}` : ""}.`}
                       label="Amount collected"
                       name="amount"
                     >

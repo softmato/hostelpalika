@@ -319,6 +319,7 @@ export default function ManageCookScreen() {
             toastError("Could not remove", readApiError(error));
           }
         },
+        pin: true,
         title: `Remove ${cook.name}?`,
       });
     },

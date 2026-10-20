@@ -4,9 +4,11 @@ import {
   CalendarDays,
   ChefHat,
   Cookie,
+  Copy,
   Moon,
   Pencil,
   Plus,
+  RotateCcw,
   Sparkles,
   Sun,
   Utensils,
@@ -30,6 +32,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MEAL_TIMING_DEFAULTS } from "@hostel/shared/food/meal-window";
+import { sampleWeekCells } from "@hostel/shared/food/sample-week";
+import { useConfirm } from "@/app/_components/confirm-dialog";
 import { browserApi } from "@/lib/browser-api";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
@@ -133,6 +137,12 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
   const [busyForm, setBusyForm] = useState<"" | "routine">("");
   const [tab, setTab] = useState<RoutineTab>("weekly");
   const [isEditing, setIsEditing] = useState(false);
+  /** The week being edited, `DAY:MEAL` → items and note. */
+  const [draft, setDraft] = useState<Record<string, { items: string; note: string }>>({});
+  const [copyFrom, setCopyFrom] = useState<DayOfWeek>("SUNDAY");
+  const [copyTo, setCopyTo] = useState<DayOfWeek | "ALL">("MONDAY");
+  const [draftNote, setDraftNote] = useState("");
+  const { confirm, confirmDialog } = useConfirm();
   const invalidate = useInvalidateResources();
 
   // One routine per hostel, no week to pick: it repeats until it is changed.
@@ -156,6 +166,22 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
     return map;
   }, [routine]);
 
+  /** The saved week, or — for a hostel with none yet — the sample menu, unsaved. */
+  const openEditor = useCallback(() => {
+    const next: Record<string, { items: string; note: string }> = {};
+
+    if (cells.size > 0) {
+      for (const [key, meal] of cells) next[key] = { items: meal.items.join(", "), note: meal.note ?? "" };
+      setDraftNote("");
+    } else {
+      for (const [key, items] of Object.entries(sampleWeekCells())) next[key] = { items, note: "" };
+      setDraftNote("Filled with a sample menu — change anything, then save.");
+    }
+
+    setDraft(next);
+    setIsEditing(true);
+  }, [cells]);
+
   const notedMeals = useMemo(
     () => (routine?.meals ?? []).filter((meal) => Boolean(meal.note)),
     [routine],
@@ -176,7 +202,7 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
 
       for (const day of DAYS) {
         for (const meal of MEALS) {
-          const items = splitItems(form.get(`items:${day}:${meal.type}`));
+          const items = splitItems(draft[`${day}:${meal.type}`]?.items ?? "");
 
           if (items.length === 0) {
             continue;
@@ -186,7 +212,7 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
             dayOfWeek: day,
             items,
             mealType: meal.type,
-            note: optionalField(form, `note:${day}:${meal.type}`),
+            note: draft[`${day}:${meal.type}`]?.note.trim() || undefined,
           });
         }
       }
@@ -218,7 +244,7 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
         setBusyForm("");
       }
     },
-    [invalidate],
+    [draft, invalidate],
   );
 
   function renderRoutineCard() {
@@ -251,6 +277,10 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
             <p className="max-w-md text-[13.5px] text-muted-foreground">
               Set it once — it repeats every week until you change it.
             </p>
+            <Button className="mt-1" onClick={openEditor} type="button">
+              <Sparkles className="size-4" />
+              Start with a sample menu
+            </Button>
           </div>
         </Panel>
       );
@@ -401,6 +431,113 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
               ))}
             </div>
 
+            <div className="flex flex-wrap items-center gap-2 rounded-xl bg-muted/50 p-2.5">
+              <Button
+                onClick={async () => {
+                  const filled = Object.values(draft).some((cell) => cell.items.trim());
+
+                  if (
+                    filled &&
+                    !(await confirm({
+                      actionLabel: "Fill",
+                      description: "Every meal is replaced by the sample menu. Nothing is saved until you press Save.",
+                      title: "Fill with the sample menu?",
+                    }))
+                  )
+                    return;
+
+                  setDraft(
+                    Object.fromEntries(
+                      Object.entries(sampleWeekCells()).map(([key, items]) => [key, { items, note: "" }]),
+                    ),
+                  );
+                  setDraftNote("Filled with the sample menu — change anything, then save.");
+                }}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <Sparkles className="size-3.5" />
+                Fill with sample
+              </Button>
+              <span className="ml-1 text-[12.5px] text-muted-foreground">Copy</span>
+              <select
+                aria-label="Copy from"
+                className="h-8 rounded-lg border border-border bg-background px-2 text-[12.5px]"
+                onChange={(event) => setCopyFrom(event.target.value as DayOfWeek)}
+                value={copyFrom}
+              >
+                {DAYS.map((day) => (
+                  <option key={day} value={day}>
+                    {titleCase(day)}
+                  </option>
+                ))}
+              </select>
+              <span className="text-[12.5px] text-muted-foreground">to</span>
+              <select
+                aria-label="Copy to"
+                className="h-8 rounded-lg border border-border bg-background px-2 text-[12.5px]"
+                onChange={(event) => setCopyTo(event.target.value as DayOfWeek | "ALL")}
+                value={copyTo}
+              >
+                <option value="ALL">Every other day</option>
+                {DAYS.filter((day) => day !== copyFrom).map((day) => (
+                  <option key={day} value={day}>
+                    {titleCase(day)}
+                  </option>
+                ))}
+              </select>
+              <Button
+                onClick={() => {
+                  const targets = copyTo === "ALL" ? DAYS.filter((day) => day !== copyFrom) : [copyTo];
+
+                  setDraft((current) => {
+                    const next = { ...current };
+
+                    for (const target of targets) {
+                      for (const meal of MEALS) {
+                        next[`${target}:${meal.type}`] = { ...(current[`${copyFrom}:${meal.type}`] ?? { items: "", note: "" }) };
+                      }
+                    }
+
+                    return next;
+                  });
+                  setDraftNote(
+                    `Copied ${titleCase(copyFrom)} to ${copyTo === "ALL" ? "every other day" : titleCase(copyTo)} — save to keep it.`,
+                  );
+                }}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <Copy className="size-3.5" />
+                Copy
+              </Button>
+              <Button
+                className="ml-auto text-muted-foreground hover:text-destructive"
+                onClick={async () => {
+                  if (
+                    await confirm({
+                      actionLabel: "Reset all",
+                      description: "Every meal on every day is emptied. Nothing is saved until you press Save.",
+                      title: "Reset the whole routine?",
+                      tone: "destructive",
+                    })
+                  ) {
+                    setDraft({});
+                    setDraftNote("Cleared — type the menu, or fill with the sample.");
+                  }
+                }}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                <RotateCcw className="size-3.5" />
+                Reset all
+              </Button>
+            </div>
+            {draftNote ? <p className="-mt-2 text-[12.5px] text-muted-foreground">{draftNote}</p> : null}
+
             <div className="overflow-x-auto rounded-lg border border-border">
               <table className="w-full min-w-[900px] border-collapse text-sm">
                 <thead>
@@ -426,23 +563,34 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
                         {titleCase(day)}
                       </td>
                       {MEALS.map((meal) => {
-                        const cell = cells.get(`${day}:${meal.type}`);
+                        const key = `${day}:${meal.type}`;
+                        const cell = draft[key];
 
                         return (
                           <td className="px-3 py-3" key={meal.type}>
                             <input
                               aria-label={`${day} ${meal.type} items`}
                               className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-role-admin"
-                              defaultValue={cell?.items.join(", ") ?? ""}
-                              name={`items:${day}:${meal.type}`}
+                              onChange={(event) =>
+                                setDraft((current) => ({
+                                  ...current,
+                                  [key]: { items: event.target.value, note: current[key]?.note ?? "" },
+                                }))
+                              }
                               placeholder="Comma separated items"
+                              value={cell?.items ?? ""}
                             />
                             <input
                               aria-label={`${day} ${meal.type} note`}
                               className="mt-2 h-9 w-full rounded-md border border-dashed border-border bg-background px-3 text-xs outline-none focus:border-role-admin"
-                              defaultValue={cell?.note ?? ""}
-                              name={`note:${day}:${meal.type}`}
+                              onChange={(event) =>
+                                setDraft((current) => ({
+                                  ...current,
+                                  [key]: { items: current[key]?.items ?? "", note: event.target.value },
+                                }))
+                              }
                               placeholder="Special note (optional)"
+                              value={cell?.note ?? ""}
                             />
                           </td>
                         );
@@ -502,7 +650,7 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
           state === "ready" ? (
             <Button
               className="h-9 gap-2 rounded-xl bg-brand-teal px-3.5 text-white hover:bg-brand-teal/90"
-              onClick={() => setIsEditing(true)}
+              onClick={openEditor}
               type="button"
             >
               {hasRoutine ? <Pencil className="size-4" /> : <Plus className="size-4" />}
@@ -531,8 +679,9 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
       */}
       <HostelAdminCooksPanel />
 
-      {renderRoutineCard()}
+      <div data-kyc="food">{renderRoutineCard()}</div>
       {routineEditor}
+      {confirmDialog}
     </div>
   );
 });

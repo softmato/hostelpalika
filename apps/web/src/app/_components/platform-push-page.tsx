@@ -1,10 +1,13 @@
 "use client";
 
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import { Bell, CalendarClock, Pause, Play, Repeat as Repeat2, Send, Siren, Smartphone, X } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import { Message } from "@/app/_components/core-portal-shared";
+import { PlatformAppNoticePanel } from "@/app/_components/platform-app-notice-panel";
 import { FactChip } from "@/app/_components/platform-page-ui";
 import {
   MetricCard,
@@ -85,13 +88,7 @@ function nepalNow() {
 }
 
 function nepalDateTime(value: string) {
-  return new Date(value).toLocaleString("en", {
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    month: "short",
-    timeZone: "Asia/Kathmandu",
-  });
+  return formatHostelDateTime(value);
 }
 
 function describeSchedule(schedule: ScheduleRecord) {
@@ -307,6 +304,8 @@ export const PlatformPushPageContent = memo(function PlatformPushPageContent() {
         <MetricCard icon={Send} label="Sent" value={pushes.length} />
         <MetricCard icon={Smartphone} label="Devices reached" value={reached.toLocaleString()} />
       </div>
+
+      <PlatformAppNoticePanel />
 
       <Dialog onOpenChange={setComposing} open={composing}>
         <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto sm:max-w-4xl">

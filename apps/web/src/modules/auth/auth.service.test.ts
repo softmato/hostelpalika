@@ -311,19 +311,35 @@ describe("auth service", () => {
     await expect(refreshAccessToken("old-refresh-token")).resolves.toMatchObject({
       refreshToken: "refresh-token",
     });
-    // Re-issued from the token it lost, inside the window it started.
+    // Re-issued from the token it lost.
     expect(serviceMocks.sessionUpdateOne).toHaveBeenCalledWith(
-      expect.objectContaining({
-        previousRefreshTokenHash: "hash:old-refresh-token",
-        refreshTokenRotatedAt: { $gt: expect.any(Date) },
-      }),
+      expect.objectContaining({ previousRefreshTokenHash: "hash:old-refresh-token" }),
       { $set: expect.objectContaining({ refreshTokenHash: "hash:refresh-token" }) },
     );
   });
 
-  it("ends the session when a token rotated away long ago is replayed", async () => {
+  it("re-issues to a browser whose new cookie never landed, long after the window", async () => {
     refreshAs();
-    serviceMocks.sessionFindOne.mockResolvedValue(rotatedSession(10 * 60_000));
+    serviceMocks.sessionFindOne.mockResolvedValue(rotatedSession(15 * 60_000));
+
+    await expect(
+      refreshAccessToken("old-refresh-token", { cookieSession: true }),
+    ).resolves.toMatchObject({ accessToken: "next-access-token", refreshToken: "refresh-token" });
+    expect(serviceMocks.sessionUpdateOne).not.toHaveBeenCalledWith(
+      expect.anything(),
+      { $set: { revokedAt: expect.any(Date) } },
+    );
+  });
+
+  it("ends the session when a token two rotations old is replayed", async () => {
+    refreshAs();
+    serviceMocks.sessionFindOne.mockResolvedValue(
+      createSession({
+        previousRefreshTokenHash: "hash:newer-refresh-token",
+        refreshTokenHash: "hash:newest-refresh-token",
+        refreshTokenRotatedAt: new Date(Date.now() - 10 * 60_000),
+      }),
+    );
 
     await expect(
       refreshAccessToken("old-refresh-token", { cookieSession: true }),

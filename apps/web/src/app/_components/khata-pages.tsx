@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import {
   AlarmClock,
   Check,
@@ -105,7 +107,7 @@ function time(iso: string) {
 }
 
 function day(iso: string) {
-  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", weekday: "long" });
+  return formatHostelDate(iso);
 }
 
 function who(entry: KhataEntry) {

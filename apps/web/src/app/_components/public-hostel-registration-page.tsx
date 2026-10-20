@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import {
   ArrowLeft,
   ArrowRight,
@@ -1345,7 +1347,7 @@ export function PublicHostelRegistrationPage() {
         {restoredDraftAt && !submitted ? (
           <div className="mb-5 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-brand-teal/25 bg-brand-teal/5 p-3 text-sm text-brand-teal">
             <span>
-              Restored your saved draft from {new Date(restoredDraftAt).toLocaleString()}.
+              Restored your saved draft from {formatHostelDateTime(restoredDraftAt)}.
             </span>
             <button
               className="font-semibold underline underline-offset-2 hover:text-brand-teal/70"

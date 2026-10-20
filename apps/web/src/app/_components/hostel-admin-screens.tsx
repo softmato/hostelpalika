@@ -4,6 +4,7 @@ import { branchesLock } from "@/lib/hostel-workspace";
 
 import { HostelAdminAttendancePageContent } from "@/app/_components/hostel-admin-attendance-page";
 import { HostelAdminBillingPageContent } from "@/app/_components/hostel-admin-billing-page";
+import { HostelAdminStatementPageContent } from "@/app/_components/hostel-admin-statement-page";
 import { HostelAdminBookingsPage } from "@/app/_components/hostel-admin-bookings-page";
 import { HostelBranchesPageContent } from "@/app/_components/hostel-branches-page";
 import { HostelAdminCommunityPageContent } from "@/app/_components/hostel-admin-community-page";
@@ -93,6 +94,8 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   settings: () => <HostelAdminSettingsPageContent />,
   "sos-alerts": () => <HostelAdminSOSAlertsPage />,
   // Bought, Send, Count across the main hostel and its branches (docs/INVENTORY_PLAN.md).
+  // Money in and out by day — the app's Finance → Statement (docs/PORTAL_POLISH_2026_10.md).
+  statement: () => <HostelAdminStatementPageContent />,
   stock: () => <HostelAdminStockPageContent />,
   transactions: () => <HostelAdminTransactionsPageContent />,
   wardens: () => <HostelAdminWardensPage />,

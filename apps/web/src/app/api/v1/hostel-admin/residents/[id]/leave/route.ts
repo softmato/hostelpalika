@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { addLeave, leaveAddSchema, listLeaves } from "@/modules/finance/resident-leave.service";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
 
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     const hostelId = resolveAdminHostelId(principal, request.nextUrl.searchParams.get("hostelId") ?? undefined);
 
-    return successResponse(await listLeaves(hostelId, id), "Days away");
+    return withEtag(request, successResponse(await listLeaves(hostelId, id), "Days away"));
   } catch (error) {
     return handleRouteError(error);
   }

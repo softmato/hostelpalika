@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelStaffPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getHostelInviteOverview } from "@/modules/hostel-referrals/hostel-referral.service";
 import { resolveAdminHostelId } from "@/modules/food/cook-scope";
 
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
       request.nextUrl.searchParams.get("hostelId") ?? undefined,
     );
 
-    return successResponse(await getHostelInviteOverview(hostelId.toString()), "Hostel referrals");
+    return withEtag(request, successResponse(await getHostelInviteOverview(hostelId.toString()), "Hostel referrals"));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -81,6 +81,17 @@ export const feeScheduleCreateSchema = z
     },
   );
 
+/** Hostel KYC's rent step: whole-rupee rents by room type, plus the two joining fees. */
+export const feeScheduleKycSchema = z.object({
+  admissionFee: wholeRupeeSchema.optional(),
+  depositAmount: wholeRupeeSchema.optional(),
+  hostelId: objectIdSchema.optional(),
+  rates: z
+    .array(z.object({ monthlyAmount: wholeRupeeSchema.min(1, "Enter a rent above 0."), roomType: z.string().trim().min(1).max(80) }))
+    .min(1, "Enter at least one rent.")
+    .max(30),
+});
+
 export const feeScheduleCloseSchema = z.object({
   effectiveTo: z.coerce.date(),
   hostelId: objectIdSchema.optional(),

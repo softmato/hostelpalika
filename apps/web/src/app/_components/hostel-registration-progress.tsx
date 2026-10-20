@@ -13,7 +13,7 @@ import {
 import { useCallback, useEffect, useState } from "react";
 
 import { useSiteConfig } from "@/components/site-config-provider";
-import { formatBsDate } from "@hostel/shared/calendar/bs";
+import { formatBsDate, formatHostelDate } from "@hostel/shared/calendar/bs";
 import { CheckoutHandoffButton } from "@/app/_components/checkout-handoff";
 import { browserApi } from "@/lib/browser-api";
 import { cn } from "@/lib/utils";
@@ -685,7 +685,7 @@ export function HostelRegistrationProgress({
               {state?.subscription.lifetimeSince
                 ? " for life — paid once, nothing to renew"
                 : state?.subscription.currentPeriodEnd
-                ? ` until ${new Date(state.subscription.currentPeriodEnd).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}`
+                ? ` until ${formatHostelDate(state.subscription.currentPeriodEnd)}`
                 : ""}
               . You can manage everything from your dashboard.
             </p>
@@ -829,11 +829,7 @@ export function HostelRegistrationProgress({
               >
                 <span className="text-muted-foreground">
                   {payment.settledAt
-                    ? new Date(payment.settledAt).toLocaleDateString("en-GB", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })
+                    ? formatHostelDate(payment.settledAt)
                     : "Pending"}
                   {payment.receiptNumber ? ` · ${payment.receiptNumber}` : ""}
                 </span>

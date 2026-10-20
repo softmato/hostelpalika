@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { assertApiRoles, requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { Role } from "@/lib/roles";
 import { createStockEntry, getCookStock, resolveStockActor } from "@/modules/stock/stock.service";
 import { cookStockEntrySchema } from "@/modules/stock/stock.validation";
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireApiPrincipal(request);
     assertApiRoles(principal, [Role.COOK]);
 
-    return successResponse(await getCookStock(await resolveStockActor(principal)), "Kitchen stock loaded");
+    return withEtag(request, successResponse(await getCookStock(await resolveStockActor(principal)), "Kitchen stock loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

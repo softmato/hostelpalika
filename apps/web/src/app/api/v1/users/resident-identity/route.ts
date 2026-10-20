@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   getResidentIdentity,
   saveResidentIdentity,
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireApiPrincipal(request);
     const result = await getResidentIdentity(principal.userId);
 
-    return successResponse(result, "Resident identity loaded");
+    return withEtag(request, successResponse(result, "Resident identity loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

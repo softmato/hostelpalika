@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
@@ -24,6 +26,8 @@ import { NotificationBell } from "@/components/notification-bell";
 import { PortalAccount } from "@/components/portal-account";
 import { PortalPageIconProvider } from "@/components/portal-page-context";
 import { PortalSearch, revealField } from "@/components/portal-search";
+import { SupportDialog } from "@/components/support-dialog";
+import { AppNoticeDialog } from "@/components/app-notice-dialog";
 import { RealtimeProvider } from "@/components/realtime-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Badge } from "@/components/ui/badge";
@@ -124,11 +128,11 @@ const ROW_ACTIVE =
 
 /**
  * Past this many destinations the sidebar splits into two tiers: a rail of
- * sections and a panel with the chosen section's pages. Platform (35) and the
- * hostel admin (34) split; resident (17) and the small portals stay one list,
- * where a rail would only add a click.
+ * sections and a panel with the chosen section's pages. Platform (35), the
+ * hostel admin (34) and the resident (17) split; Overall (8) and the small
+ * portals stay one list, where a rail would only add a click.
  */
-const TWO_TIER_AFTER = 20;
+const TWO_TIER_AFTER = 12;
 
 type PlanState = {
   outstanding: number;
@@ -142,14 +146,22 @@ type PlanState = {
 } | null;
 
 function shortDate(iso: string) {
-  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+  return formatHostelDate(iso);
+}
+
+/**
+ * A balance is only "due" on a plan that is not running. An open invoice on an
+ * ACTIVE plan is the owner paying early, not owing (`plan-due-reminders.service.ts`).
+ */
+function planOwing(state: NonNullable<PlanState>) {
+  return state.outstanding > 0 && state.subscription.status !== "ACTIVE";
 }
 
 /** One line under the plan name: the fact the owner needs, nothing more. */
 function planLine(state: NonNullable<PlanState>) {
   const { currentPeriodEnd, dueBy, lifetimeSince, status } = state.subscription;
 
-  if (state.outstanding > 0) {
+  if (planOwing(state)) {
     return `Rs ${state.outstanding.toLocaleString("en-IN")} due${dueBy ? ` by ${shortDate(dueBy)}` : ""}`;
   }
 
@@ -305,7 +317,8 @@ export function PortalShell({
   }
 
   const sidebarSubtitle = workspaceName ?? subtitle;
-  const supportHref = identity.supportEmail ? `mailto:${identity.supportEmail}` : "/contact";
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [supportView, setSupportView] = useState<"contact" | "feedback">("contact");
 
   function renderLeaf({
     child = false,
@@ -505,7 +518,7 @@ export function PortalShell({
       return null;
     }
 
-    const owing = plan.outstanding > 0;
+    const owing = planOwing(plan);
 
     return (
       <div className="border-t border-border/70 p-2">
@@ -539,7 +552,7 @@ export function PortalShell({
         href="/"
         title={collapsed ? portalName : undefined}
       >
-        <BrandMark adaptive className="h-7" />
+        <BrandMark adaptive className="h-6" />
         {collapsed ? null : (
           <div className="min-w-0 leading-tight">
             <p className="font-heading text-[15px] font-bold tracking-tight text-foreground">
@@ -571,17 +584,18 @@ export function PortalShell({
         <>
           <aside className="z-20 hidden w-[80px] shrink-0 flex-col items-center border-r border-border/70 bg-background md:flex dark:bg-card">
             <Link className={cn("flex shrink-0 items-center justify-center", headerHeight)} href="/" title={portalName}>
-              <BrandMark adaptive className="h-7" />
+              <BrandMark adaptive className="h-6" />
             </Link>
             <div className="no-scrollbar min-h-0 w-full flex-1 overflow-y-auto">{renderRail()}</div>
             {tone === "platform" ? null : (
-              <a
+              <button
                 className="mb-3 flex size-9 items-center justify-center rounded-xl text-slate-500 transition-colors hover:bg-muted hover:text-foreground dark:text-slate-400"
-                href={supportHref}
+                onClick={() => setSupportOpen(true)}
                 title="Help & support"
+                type="button"
               >
                 <Glyph className="size-[18px]" name="help-circle" />
-              </a>
+              </button>
             )}
           </aside>
 
@@ -627,18 +641,19 @@ export function PortalShell({
 
           <div className="shrink-0">
             {tone === "platform" ? null : (
-              <a
+              <button
                 className={cn(
                   "mx-2 mb-1 flex items-center gap-3 rounded-lg px-3 py-2 text-[13.5px] font-medium",
                   ROW_IDLE,
                   sidebarCollapsed && "justify-center px-0",
                 )}
-                href={supportHref}
+                onClick={() => setSupportOpen(true)}
                 title="Help & support"
+                type="button"
               >
                 <Glyph className="size-[17px] shrink-0" name="help-circle" />
                 {sidebarCollapsed ? null : <span>Help</span>}
-              </a>
+              </button>
             )}
             {renderSidebarFooter(sidebarCollapsed)}
           </div>
@@ -662,7 +677,10 @@ export function PortalShell({
       </Sheet>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="relative z-30 shrink-0 border-b border-border/70 bg-background/90 backdrop-blur dark:bg-card/90">
+        {/* Opaque, no backdrop blur: nothing scrolls under the header, and a
+            backdrop filter would make it the containing block for the search's
+            full-screen `fixed` blur layer (`portal-search.tsx`). */}
+        <header className="relative z-30 shrink-0 border-b border-border/70 bg-background dark:bg-card">
           <div className={cn("flex items-center px-3 md:px-5", headerHeight, cleanHeader ? "gap-3 md:gap-4" : "gap-2.5")}>
             <Button
               aria-label={
@@ -749,6 +767,18 @@ export function PortalShell({
               {kycLocked && isKycFrozenPortalPath(pathname) ? <KycFrozenPage /> : children}
             </div>
           </PortalPageIconProvider>
+          <footer className="mx-auto mt-10 flex max-w-[1100px] justify-center pb-2">
+            <button
+              className="text-xs font-medium text-muted-foreground transition hover:text-foreground"
+              onClick={() => {
+                setSupportView("feedback");
+                setSupportOpen(true);
+              }}
+              type="button"
+            >
+              Send feedback
+            </button>
+          </footer>
           <TrialWelcomeDialog tone={tone} />
         </main>
       </div>
@@ -757,6 +787,15 @@ export function PortalShell({
       <HostelSuspendedScreen suspension={suspension} tone={tone} />
     ) : null}
     {trialEnded ? <TrialEndedOverlay status={trialEnded.status} /> : null}
+    <SupportDialog
+      initialView={supportView}
+      onOpenChange={(next) => {
+        setSupportOpen(next);
+        if (!next) setSupportView("contact");
+      }}
+      open={supportOpen}
+    />
+    <AppNoticeDialog />
     </RealtimeProvider>
   );
 }

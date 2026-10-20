@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelAdminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { clearCart, getCart } from "@/modules/store/cart.service";
 
 export const runtime = "nodejs";
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
   try {
     const principal = await requireHostelAdminPrincipal(request);
 
-    return successResponse(await getCart(principal, hostelId(request)), "Cart loaded");
+    return withEtag(request, successResponse(await getCart(principal, hostelId(request)), "Cart loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -80,19 +80,49 @@ function saveBlob(blob: Blob, fileName: string) {
   URL.revokeObjectURL(url);
 }
 
+export type TableFormat = "csv" | "pdf";
+
 /**
- * Saves rows the screen already holds as a CSV — the Export buttons. No server
- * round trip: what is exported is exactly what the filters are showing.
+ * Saves rows the screen already holds as a CSV or a PDF — the Export menus. No
+ * server round trip: what is exported is exactly what the filters are showing.
+ * The PDF is the same renderer the report routes use, loaded only when asked.
  */
+export async function downloadTable(
+  format: TableFormat,
+  prefix: string,
+  columns: Array<{ key: string; label: string }>,
+  rows: Array<Record<string, unknown>>,
+  options: { period?: string; scopeName?: string; title?: string } = {},
+) {
+  if (format === "csv") {
+    saveBlob(new Blob([toCsv(columns, rows)], { type: "text/csv;charset=utf-8" }), csvFilename(prefix));
+    return;
+  }
+
+  try {
+    const { renderReportPdf } = await import("@/modules/reports/report-pdf");
+    const bytes = await renderReportPdf({
+      columns,
+      generatedAt: new Date(),
+      period: options.period,
+      rows,
+      scopeName: options.scopeName ?? "",
+      title: options.title ?? prefix.replace(/-/g, " ").replace(/^\w/, (letter) => letter.toUpperCase()),
+    });
+
+    saveBlob(new Blob([bytes as BlobPart], { type: "application/pdf" }), csvFilename(prefix).replace(/\.csv$/, ".pdf"));
+  } catch {
+    toast.error("The PDF could not be made. Try the CSV.");
+  }
+}
+
+/** The CSV half of {@link downloadTable}, for callers that only ever offered CSV. */
 export function downloadCsv(
   prefix: string,
   columns: Array<{ key: string; label: string }>,
   rows: Array<Record<string, unknown>>,
 ) {
-  saveBlob(
-    new Blob([toCsv(columns, rows)], { type: "text/csv;charset=utf-8" }),
-    csvFilename(prefix),
-  );
+  void downloadTable("csv", prefix, columns, rows);
 }
 
 /**

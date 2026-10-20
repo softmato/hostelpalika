@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import {
   CircleCheck,
   Check,
@@ -157,7 +159,7 @@ function documentKind(document: PlatformHostelDocument): "image" | "pdf" | "file
 function formatTimestamp(value: string | null | undefined) {
   if (!value) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleString();
+  return Number.isNaN(date.getTime()) ? "—" : formatHostelDateTime(date);
 }
 
 function humanizeKey(key: string) {
@@ -675,7 +677,7 @@ export const PlatformHostelReviewPageContent = memo(
           <section className="rounded-lg border border-border bg-muted/40 p-4 text-sm">
             <p className="font-semibold text-foreground">
               Quick sign-up — KYC {hostel.kyc.status === "SUBMITTED" ? "submitted" : hostel.kyc.status.toLowerCase()}
-              {hostel.kyc.submittedAt ? ` ${new Date(hostel.kyc.submittedAt).toLocaleString()}` : ""}.
+              {hostel.kyc.submittedAt ? ` ${formatHostelDateTime(hostel.kyc.submittedAt)}` : ""}.
             </p>
             <p className="mt-1 text-muted-foreground">
               The owner already has the portal on a free trial. Approve lists the hostel as Verified and opens

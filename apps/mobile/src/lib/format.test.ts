@@ -132,23 +132,23 @@ describe("formatDateBs / formatDateBoth", () => {
     // The five dates the library was adopted on. BS month lengths vary per year
     // and are tabulated data, so these are the checks that say the table is the
     // real one rather than something that merely looks plausible.
-    expect(formatDateBs("2013-04-14T06:00:00.000Z")).toBe("Baisakh 1, 2070 BS");
-    expect(formatDateBs("2023-04-14T06:00:00.000Z")).toBe("Baisakh 1, 2080 BS");
-    expect(formatDateBs("2024-04-13T06:00:00.000Z")).toBe("Baisakh 1, 2081 BS");
-    expect(formatDateBs("2025-04-14T06:00:00.000Z")).toBe("Baisakh 1, 2082 BS");
-    expect(formatDateBs("2026-04-14T06:00:00.000Z")).toBe("Baisakh 1, 2083 BS");
+    expect(formatDateBs("2013-04-14T06:00:00.000Z")).toBe("Baisakh · 2070-01-01");
+    expect(formatDateBs("2023-04-14T06:00:00.000Z")).toBe("Baisakh · 2080-01-01");
+    expect(formatDateBs("2024-04-13T06:00:00.000Z")).toBe("Baisakh · 2081-01-01");
+    expect(formatDateBs("2025-04-14T06:00:00.000Z")).toBe("Baisakh · 2082-01-01");
+    expect(formatDateBs("2026-04-14T06:00:00.000Z")).toBe("Baisakh · 2083-01-01");
   });
 
   it("shows both calendars, BS first", () => {
     // BS leads because it is the calendar the hostel quotes; AD follows because
     // it is the one the bank statement and the phone agree on.
-    expect(formatDateBoth("2026-08-18T06:00:00.000Z")).toBe("Bhadra 2, 2083 BS · 18 Aug 2026");
+    expect(formatDateBoth("2026-08-18T06:00:00.000Z")).toBe("Bhadra · 2083-05-02");
   });
 
   it("converts on the Nepal day, not the device's", () => {
     // 18:30 UTC is already the next day in Kathmandu (+05:45). A phone left on
     // another timezone must still read the date the hostel means.
-    expect(formatDateBs("2026-08-18T18:30:00.000Z")).toBe("Bhadra 3, 2083 BS");
+    expect(formatDateBs("2026-08-18T18:30:00.000Z")).toBe("Bhadra · 2083-05-03");
   });
 
   it("returns an em dash for nothing, like every other formatter here", () => {
@@ -187,11 +187,11 @@ describe("formatDateBs / formatDateBoth", () => {
         process.env.TZ = timezone;
 
         expect(formatDateBoth("2026-08-18T06:00:00.000Z")).toBe(
-          "Bhadra 2, 2083 BS · 18 Aug 2026",
+          "Bhadra · 2083-05-02",
         );
         // And across the Nepal midnight, where the AD side moves too.
         expect(formatDateBoth("2026-08-18T18:30:00.000Z")).toBe(
-          "Bhadra 3, 2083 BS · 19 Aug 2026",
+          "Bhadra · 2083-05-03",
         );
         expect(formatPeriodBs("2083-05")).toBe("Bhadra 2083 BS");
       }
@@ -249,7 +249,7 @@ describe("formatPeriodBs", () => {
  * The year-less forms, for a row inside a section that already names the year.
  *
  * The invoice list is what they exist for. Under a `2083 BS` heading, a row
- * reading `Bhadra 2083 BS` over `Aswin 15, 2083 BS` prints the year three times,
+ * reading `Bhadra 2083 BS` over `Aswin · 2083-06-15` prints the year three times,
  * and the repetition is what made a billing month over a due date read as a
  * glitch rather than as two different true facts.
  */

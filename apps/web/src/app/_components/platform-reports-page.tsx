@@ -1,17 +1,11 @@
 "use client";
 
 import React from "react";
-import { BarChart3, ChevronDown, Download } from "@/components/icons";
+import { BarChart3 } from "@/components/icons";
 import { downloadFile } from "@/lib/downloads/downloader";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ExportMenu } from "@/components/export-menu";
 import { currency, EmptyState } from "./shared-ui";
 import { MetricCard } from "./portal-dashboard-ui";
 import { PlatformQuestionCallPanel } from "./platform-questioncall-panel";
@@ -20,10 +14,10 @@ import { Message, PageHeader, type ReportRecord } from "./core-portal-shared";
 const PLATFORM_REPORT_EXPORT = "/api/v1/platform/reports/export";
 
 const EXPORTS = [
-  { label: "Hostels CSV", report: "hostels" },
-  { label: "Residents CSV", report: "residents" },
-  { label: "Payments CSV", report: "payments" },
-  { label: "Complaints CSV", report: "complaints" },
+  { id: "payments", label: "Payments" },
+  { id: "complaints", label: "Complaints" },
+  { id: "hostels", label: "Hostels (today)" },
+  { id: "residents", label: "Residents (today)" },
 ];
 
 /** `openListingFlags` → `Open listing flags`. */
@@ -60,34 +54,19 @@ export const PlatformReportsPageContent = React.memo(
         <PageHeader
           action={
             canExport ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button className="gap-1.5 rounded-xl" type="button" variant="outline">
-                    <Download className="size-4" />
-                    Export
-                    <ChevronDown className="size-3.5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {EXPORTS.map((entry) => (
-                    <DropdownMenuItem
-                      key={entry.report}
-                      onSelect={() =>
-                        void downloadFile({
-                          fileName: `${entry.report}-report.csv`,
-                          label: entry.label,
-                          mimeType: "text/csv",
-                          scope: "platform-reports",
-                          url: `${PLATFORM_REPORT_EXPORT}?report=${entry.report}`,
-                        })
-                      }
-                    >
-                      <Download className="size-4" />
-                      {entry.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <ExportMenu
+                choices={EXPORTS}
+                onExport={({ choice, format, months }) =>
+                  void downloadFile({
+                    fileName: `${choice}-report.${format}`,
+                    label: EXPORTS.find((entry) => entry.id === choice)?.label ?? "Report",
+                    mimeType: format === "pdf" ? "application/pdf" : "text/csv",
+                    scope: "platform-reports",
+                    url: `${PLATFORM_REPORT_EXPORT}?report=${choice}&format=${format}&months=${months}`,
+                  })
+                }
+                ranges
+              />
             ) : null
           }
           description="The platform's headline figures, and exports."

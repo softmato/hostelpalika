@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { errorResponse, handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { searchPlaces } from "@/lib/maps/geocoding";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
     const hit = cache.get(key);
 
     if (hit && Date.now() - hit.at < CACHE_MS) {
-      return successResponse({ places: hit.places });
+      return withEtag(request, successResponse({ places: hit.places }));
     }
 
     const places = (await searchPlaces(`${query}, Nepal`, 6)).map((result) => ({
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     cache.set(key, { at: Date.now(), places });
 
-    return successResponse({ places });
+    return withEtag(request, successResponse({ places }));
   } catch (error) {
     return handleRouteError(error);
   }

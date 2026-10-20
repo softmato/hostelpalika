@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { checkPlatformAdminEmail } from "@/modules/users/platform-admin-invite.service";
 import { platformAdminEmailCheckSchema } from "@/modules/users/platform-admin.validation";
 
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest) {
       ...(roleParam ? { role: roleParam } : {}),
     });
 
-    return successResponse(await checkPlatformAdminEmail(email, role), "Email checked");
+    return withEtag(request, successResponse(await checkPlatformAdminEmail(email, role), "Email checked"));
   } catch (error) {
     return handleRouteError(error);
   }

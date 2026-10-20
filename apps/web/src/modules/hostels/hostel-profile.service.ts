@@ -5,6 +5,8 @@ import { summarizeConfigurations } from "@/modules/hostels/hostel-capacity.servi
 import { getOpenFeeSchedule } from "@/modules/finance/fee-schedule.service";
 import { sendNotificationEmail } from "@/modules/residents/resident-notify";
 import { HostelModel } from "@hostel/db/models/Hostel";
+import { HostelRoomModel } from "@hostel/db/models/HostelRoom";
+import { ResidentModel } from "@hostel/db/models/Resident";
 import { UserModel } from "@hostel/db/models/User";
 import { hostelChangeRequestEmail } from "@hostel/shared/email/templates/platform/team-requests";
 import type {
@@ -26,6 +28,7 @@ import {
 import type { ApiPrincipal } from "@/lib/api-auth";
 import type { z } from "zod";
 import { hostelCode } from "@/lib/hostel-code";
+import { revalidatePublicPages } from "@/lib/revalidate-public";
 
 type HostelAdminProfileQuery = z.infer<typeof hostelAdminProfileQuerySchema>;
 type HostelAdminProfileUpdateInput = z.infer<typeof hostelAdminProfileUpdateSchema>;
@@ -127,6 +130,8 @@ export async function updateHostelAdminProfile(
   // roomConfigurations is the source of truth for occupancy, so any edit to it
   // has to bring the derived capacity totals along or the dashboard and the
   // public listing start disagreeing.
+  let droppedRoomTypes: string[] = [];
+
   if (input.roomConfigurations) {
     profileUpdate.capacitySummary = summarizeConfigurations(input.roomConfigurations);
 
@@ -138,6 +143,31 @@ export async function updateHostelAdminProfile(
     profileUpdate.photos = (hostel.photos ?? []).filter(
       (photo) => photo.kind !== "ROOM" || keptTypes.has(photo.roomType ?? ""),
     );
+
+    // A room type somebody lives in cannot go — they would hold a bed in a type
+    // the hostel no longer has. An empty one takes its numbered rooms with it.
+    droppedRoomTypes = (hostel.roomConfigurations ?? [])
+      .map((config) => config.roomType)
+      .filter((roomType) => !keptTypes.has(roomType));
+
+    if (droppedRoomTypes.length > 0) {
+      const occupied = await ResidentModel.findOne({
+        hostelId: hostel._id,
+        isDeleted: false,
+        roomType: { $in: droppedRoomTypes },
+        status: { $in: ["PENDING", "ACTIVE", "SUSPENDED"] },
+      })
+        .select("roomType")
+        .lean<{ roomType: string } | null>();
+
+      if (occupied) {
+        throw new HostelServiceError(
+          `Residents live in ${occupied.roomType}. Move them to another room type before removing it.`,
+          "ROOM_TYPE_OCCUPIED",
+          409,
+        );
+      }
+    }
   }
 
   // After approval a hostel may rename itself only NAME_CHANGE_LIMIT times;
@@ -195,6 +225,13 @@ export async function updateHostelAdminProfile(
 
   await auditHostelAction(principal, hostel._id, "HOSTEL_PROFILE_UPDATED");
 
+  if (droppedRoomTypes.length > 0) {
+    await HostelRoomModel.updateMany(
+      { hostelId: hostel._id, isDeleted: false, roomType: { $in: droppedRoomTypes } },
+      { $set: { isDeleted: true, updatedBy: principal.userId } },
+    );
+  }
+
   // Refresh coordinates + nearby places when the address changed, the pin
   // moved, or coordinates are missing. Best-effort — never fail the save on a
   // map-provider hiccup (ARCHITECTURE.md §4.3). geocodeAndCacheHostel keeps a
@@ -218,6 +255,8 @@ export async function updateHostelAdminProfile(
       };
     }
   }
+
+  revalidatePublicPages();
 
   return {
     hostel: serializeHostel(updatedHostel),

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelAdminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getStoreShelves } from "@/modules/store/catalog.service";
 
 export const runtime = "nodejs";
@@ -23,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     const search = request.nextUrl.searchParams.get("search") ?? undefined;
 
-    return successResponse(await getStoreShelves({ search }), "Departments loaded");
+    return withEtag(request, successResponse(await getStoreShelves({ search }), "Departments loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -48,11 +48,11 @@ const MANAGE_GROUPS: ManageRow[][] = [
   [
     { href: "/manage/finance/statement", icon: "receipt", title: "Statement" },
     { href: "/stock", icon: "cube", title: "Stock", tone: "warning" },
-    { href: "/manage/finance", icon: "cash", title: "Finance" },
+    { href: "/manage/finance", icon: "cash", title: "Finance settings" },
     { href: "/expenses", icon: "wallet", title: "Expenses" },
   ],
   [
-    { href: "/manage/floors", icon: "bed", title: "Rooms" },
+    { href: "/manage/floors", icon: "bed", title: "Rooms & Beds" },
     { href: "/manage/wardens", icon: "shield-checkmark", ownerOnly: true, title: "Wardens" },
     { href: "/manage/cook", icon: "flame", title: "Cooks", tone: "warning" },
     { href: "/manage/roll-call", icon: "moon", title: "Night status", tone: "warning" },

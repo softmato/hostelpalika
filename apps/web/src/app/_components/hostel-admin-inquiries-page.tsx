@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import { CalendarCheck, CheckCircle2, Inbox, Pencil, Phone } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
@@ -165,7 +167,7 @@ export const HostelAdminInquiriesPageContent = memo(
                   {inquiry.gender ? <Chip glyph="person">{inquiry.gender}</Chip> : null}
                   {inquiry.preferredVisitDate ? (
                     <Chip glyph="calendar" tone="brand">
-                      {`Visit ${new Date(inquiry.preferredVisitDate).toLocaleDateString()}`}
+                      {`Visit ${formatHostelDate(inquiry.preferredVisitDate)}`}
                     </Chip>
                   ) : null}
                 </div>

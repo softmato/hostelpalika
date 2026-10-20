@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import { Camera, Clock, Upload, Users, UtensilsCrossed } from "@/components/icons";
 import { useEffect, useState, type FormEvent } from "react";
 
@@ -509,11 +511,7 @@ export function CookPhotosPage() {
               <section className="space-y-2" key={day.day}>
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
-                    {new Date(day.day).toLocaleDateString("en-GB", {
-                      day: "numeric",
-                      month: "long",
-                      weekday: "long",
-                    })}
+                    {formatHostelDate(day.day)}
                   </h2>
                   <ShareBar className="w-32" label={`${covered} of 4 meals`} total={4} value={covered} />
                 </div>

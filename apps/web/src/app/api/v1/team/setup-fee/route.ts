@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireTeamPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getOperationsConfig } from "@/modules/platform-config/operations-config";
 
 export const runtime = "nodejs";
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
 
     const { teamSetupFee, trialDays } = await getOperationsConfig();
 
-    return successResponse({ setupFee: teamSetupFee, trialDays }, "Setup fee loaded");
+    return withEtag(request, successResponse({ setupFee: teamSetupFee, trialDays }, "Setup fee loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

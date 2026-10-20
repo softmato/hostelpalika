@@ -8,7 +8,6 @@ import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
-import { useAppSelector } from "@/hooks/redux";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import {
@@ -32,7 +31,7 @@ import { residentQuery } from "@/lib/resident-queries";
  */
 export default function NightStatusHistoryScreen() {
   const dates = useDates();
-  const calendar = useAppSelector((state) => state.ui.calendarPreference);
+  const calendar = dates.calendar;
   const query = residentQuery.nightStatusHistory();
   const history = useResource<NightHistoryEntry[]>(query.load, {
     cacheKey: query.key,

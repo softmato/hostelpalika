@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import Link from "next/link";
 
 import {
@@ -127,11 +129,7 @@ export function ProviderCardPage() {
                     [
                       "calendar",
                       record.submittedAt
-                        ? `Applied ${new Date(record.submittedAt).toLocaleDateString("en-GB", {
-                            day: "numeric",
-                            month: "short",
-                            year: "numeric",
-                          })}`
+                        ? `Applied ${formatHostelDate(record.submittedAt)}`
                         : "",
                     ],
                   ] as [GlyphName, string][]

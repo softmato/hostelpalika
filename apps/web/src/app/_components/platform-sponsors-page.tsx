@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import {
   ChevronDown,
   ChevronUp,
@@ -313,8 +315,8 @@ export const PlatformSponsorsPageContent = memo(function PlatformSponsorsPageCon
                   {sponsor.highlight ? <FactChip glyph="sparkles">{sponsor.highlight}</FactChip> : null}
                   {sponsor.startsAt || sponsor.endsAt ? (
                     <FactChip glyph="calendar">
-                      {`${sponsor.startsAt ? new Date(sponsor.startsAt).toLocaleDateString() : "—"} → ${
-                        sponsor.endsAt ? new Date(sponsor.endsAt).toLocaleDateString() : "—"
+                      {`${sponsor.startsAt ? formatHostelDate(sponsor.startsAt) : "—"} → ${
+                        sponsor.endsAt ? formatHostelDate(sponsor.endsAt) : "—"
                       }`}
                     </FactChip>
                   ) : null}

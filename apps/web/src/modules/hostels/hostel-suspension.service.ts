@@ -19,6 +19,7 @@ import {
   type SuspensionReason,
   type SuspensionRecord,
 } from "@/modules/hostels/hostel-suspension";
+import { revalidatePublicPages } from "@/lib/revalidate-public";
 
 /**
  * Starting and lifting a hostel's plan suspension — the platform's side.
@@ -212,6 +213,7 @@ export async function startHostelSuspension(
     },
   });
 
+  revalidatePublicPages();
   return { notification, suspension: serializeSuspension(started.suspension) };
 }
 

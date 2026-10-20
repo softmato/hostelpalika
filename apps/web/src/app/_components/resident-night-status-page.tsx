@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import { Moon } from "@/components/icons";
 import { memo, useCallback, useState } from "react";
 
@@ -88,7 +90,7 @@ export const ResidentNightStatusPageContent = memo(
               <p className="text-[13px] text-muted-foreground">
                 {/* No timestamp when nothing has been recorded — an empty
                     status is not the same as "checked and absent". */}
-                {status?.checkedAt ? new Date(status.checkedAt).toLocaleString() : "Not checked in yet today."}
+                {status?.checkedAt ? formatHostelDateTime(status.checkedAt) : "Not checked in yet today."}
               </p>
             </div>
           </section>

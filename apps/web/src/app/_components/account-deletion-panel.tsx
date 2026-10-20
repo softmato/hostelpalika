@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import { ShieldAlert } from "@/components/icons";
 import { memo, useCallback, useState } from "react";
 
@@ -179,7 +181,7 @@ export const AccountDeletionPanel = memo(function AccountDeletionPanel() {
                   Your account is closed and will be erased on{" "}
                   <strong>
                     {open.scheduledDeletionAt
-                      ? new Date(open.scheduledDeletionAt).toLocaleDateString()
+                      ? formatHostelDate(open.scheduledDeletionAt)
                       : "the scheduled date"}
                   </strong>
                   . Use the link in your email to undo it.

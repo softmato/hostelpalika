@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { FinanceServiceError } from "@/modules/finance/finance.errors";
 import { getResidentLedger } from "@/modules/finance/resident-ledger.service";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
       throw new FinanceServiceError("Resident not found.", "RESIDENT_NOT_FOUND");
     }
 
-    return successResponse(ledger, "Resident payment history");
+    return withEtag(request, successResponse(ledger, "Resident payment history"));
   } catch (error) {
     return handleRouteError(error);
   }

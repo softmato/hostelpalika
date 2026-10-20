@@ -62,6 +62,15 @@ describe("upload accept rules", () => {
     ).toContain("not an accepted file type");
   });
 
+  it("reads image/* as the image types the server takes, not every subtype", () => {
+    expect(
+      validateFileForUpload(fakeFile("a.jpg", "image/jpeg", 10), { accept: "image/*" }),
+    ).toBeNull();
+    expect(
+      validateFileForUpload(fakeFile("a.heic", "image/heic", 10), { accept: "image/*" }),
+    ).toContain("Allowed: JPG, PNG or WebP up to 5 MB");
+  });
+
   it("holds images to the tighter image limit even inside a document field", () => {
     // 6 MB is under the 10 MB document cap but over the 5 MB image cap.
     expect(

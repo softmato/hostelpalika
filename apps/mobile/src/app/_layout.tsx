@@ -32,6 +32,7 @@ import { HostelSuspensionHost } from "@/components/hostel-suspension-host";
 import { TrialEndedHost } from "@/components/trial-ended-host";
 import { ConfirmDialogHost } from "@/components/ui/confirm-dialog";
 import { UpdateSheet } from "@/components/update-sheet";
+import { AppNoticeSheet } from "@/components/app-notice-sheet";
 import { PushOffer } from "@/components/push-offer";
 import { UploadToaster } from "@/components/upload-toaster";
 import { ReceiptNativeSync } from "@/components/receipt-native-sync";
@@ -588,6 +589,7 @@ function RootShell() {
       <UpdateSheet />
       <AppLockOffer />
       <PushOffer />
+      <AppNoticeSheet />
       <SharedPaymentResume />
       <ReceiptNativeSync />
       </BlurTargetView>

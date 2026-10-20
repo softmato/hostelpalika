@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import { Briefcase, Check, CheckCircle2, Loader2, Wrench } from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -76,7 +78,7 @@ function formatDate(value: string | null) {
 
   return Number.isNaN(date.getTime())
     ? ""
-    : date.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+    : formatHostelDate(date);
 }
 
 function JobCard({

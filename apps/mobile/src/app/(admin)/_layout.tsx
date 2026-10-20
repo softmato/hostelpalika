@@ -73,12 +73,12 @@ function AdminTabs() {
       { icon: "people", label: "Residents", name: "residents" },
       { icon: "chatbubbles", label: "Community", name: "community" },
       /*
-        `Payments`, not `Money` — the word the portal uses. `portal-nav.ts` says
-        "Payments" and "Fees & Payments" throughout and never says Money, and a
-        hostel owner who runs the browser on a laptop and the app on a phone
-        should not have to learn that the two are the same section.
+        `Finance`, the word the portal's sidebar uses for the same section —
+        with "Finance settings" for how money is charged and collected, on
+        both. A hostel owner who runs the browser on a laptop and the app on a
+        phone should not have to learn that the two are the same section.
       */
-      { badge: counts.claim, icon: "card", label: "Payments", name: "money" },
+      { badge: counts.claim, icon: "card", label: "Finance", name: "money" },
       { icon: "grid", label: "More", name: "more" },
     ],
     [counts.claim],

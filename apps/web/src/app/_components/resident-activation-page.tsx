@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import {
   Check,
   CheckCircle2,
@@ -622,9 +624,7 @@ export const ResidentActivationPageContent = memo(
                       </p>
                       {codeState === "ready" && lookup?.activation ? (
                         <p className="text-[10px] text-slate-450 leading-relaxed mt-1">
-                          {`Valid until ${new Date(
-                            lookup.activation.expiresAt,
-                          ).toLocaleDateString()}.`}
+                          {`Valid until ${formatHostelDate(lookup.activation.expiresAt,)}.`}
                         </p>
                       ) : null}
                     </div>

@@ -3,18 +3,20 @@
 import {
   Check,
   ChevronRight,
+  Clock,
   FileText,
   House,
-  IdCard,
   ImageIcon,
   Landmark,
   ListChecks,
+  Lock,
   MapPin,
-  PartyPopper,
   QrCode,
+  Send,
+  ShieldCheck,
+  Smartphone,
   Sparkles,
   Tags,
-  Trash2,
   UtensilsCrossed,
   Wallet,
   Building2,
@@ -22,68 +24,39 @@ import {
 } from "@/components/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { memo, useEffect, useRef, useState, type ReactNode } from "react";
+import { memo, useEffect, useState, type ReactNode } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";
+import { KycStepBody, type Kyc, WIDE_STEPS } from "@/app/_components/kyc-steps";
 import { PortalPageHeader } from "@/app/_components/portal-dashboard-ui";
 import { StepFlow } from "@/app/_components/registration-step-shell";
-import { facilityOptions } from "@/app/_components/registration-fields";
-import {
-  EMPTY_PAYOUT_DRAFT,
-  PayoutAccountFields,
-  payoutAccountPayload,
-} from "@/components/bookings/payout-account-fields";
 import { useWorkspaceHref } from "@/hooks/use-workspace-href";
-import { browserApi } from "@/lib/browser-api";
-import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
+import { API_WRITE_EVENT, browserApi } from "@/lib/browser-api";
 import { usePortalResource } from "@/lib/portal-query";
-import { uploadRegistrationDocument } from "@/lib/uploads/registration-document";
-import { uploadFiles } from "@/lib/uploads/uploader";
 import { cn } from "@/lib/utils";
 
 const ENDPOINT = "/api/v1/hostel-admin/kyc";
 
-type Kyc = {
-  documents: { canRemove?: boolean; fileName: string | null; id: string; status: string; type: string }[];
-  facilities: string[];
-  minPhotos: number;
-  percent: number;
-  photoCount: number;
-  /** A quick sign-up's review (docs/QUICK_SIGNUP_KYC_TRIAL.md); null for every older hostel. */
-  review?: {
-    canSubmit: boolean;
-    missing: string[];
-    note: string | null;
-    status: "DRAFT" | "SUBMITTED" | "APPROVED" | "REJECTED";
-    submittedAt: string | null;
-  } | null;
-  rules: string[];
-  steps: { done: boolean; key: string; required?: boolean }[];
+/** One screen per step, every one filled in place (`kyc-steps.tsx`). */
+const STEPS: Record<string, { hint: string; icon: IconComponent; title: string }> = {
+  details: { hint: "Who lives here, and the address", icon: House, title: "Hostel details" },
+  rates: { hint: "Each room type and its monthly rent", icon: Tags, title: "Room types & rent" },
+  documents: { hint: "Owner ID and PAN / VAT", icon: FileText, title: "Documents" },
+  facilities: { hint: "Tap what you offer", icon: Sparkles, title: "Facilities" },
+  food: { hint: "Your weekly menu", icon: UtensilsCrossed, title: "Weekly food" },
+  location: { hint: "Drop the pin on your door", icon: MapPin, title: "Map pin" },
+  payments: { hint: "Where residents pay rent", icon: QrCode, title: "Rent payments" },
+  payout: { hint: "Where booking money lands", icon: Landmark, title: "Booking payout" },
+  opening: { hint: "Your bank balance when you start", icon: Wallet, title: "Opening balance" },
+  photos: { hint: "Outside and inside", icon: ImageIcon, title: "Photos" },
+  rooms: { hint: "Each floor and its room numbers", icon: Building2, title: "Rooms & floors" },
+  rules: { hint: "One rule per line", icon: ListChecks, title: "House rules" },
 };
-
-/** One screen per step. `href` is the full editor, for changing a finished step. */
-const STEPS: Record<string, { hint: string; href: string; icon: IconComponent; title: string }> = {
-  details: { hint: "Who lives here, and the address", href: "/hostel-admin/profile", icon: House, title: "Hostel details" },
-  rates: { hint: "Each room type and its monthly rent", href: "/hostel-admin/fee-schedule", icon: Tags, title: "Room types & rent" },
-  documents: { hint: "Owner ID and PAN / VAT", href: "/hostel-admin/kyc", icon: FileText, title: "Documents" },
-  facilities: { hint: "Tap what you offer", href: "/hostel-admin/profile", icon: Sparkles, title: "Facilities" },
-  food: { hint: "Your weekly menu", href: "/hostel-admin/food", icon: UtensilsCrossed, title: "Weekly food" },
-  location: { hint: "Drop the pin on your door", href: "/hostel-admin/profile", icon: MapPin, title: "Map pin" },
-  payments: { hint: "Where residents pay rent", href: "/hostel-admin/payment-setup", icon: QrCode, title: "Rent payments" },
-  payout: { hint: "Where booking money lands", href: "/hostel-admin/bookings", icon: Landmark, title: "Booking payout" },
-  opening: { hint: "Your bank balance when you start", href: "/hostel-admin/fee-schedule", icon: Wallet, title: "Opening balance" },
-  photos: { hint: "Outside and inside", href: "/hostel-admin/rooms", icon: ImageIcon, title: "Photos" },
-  rooms: { hint: "Each floor and its room numbers", href: "/hostel-admin/rooms", icon: Building2, title: "Rooms & floors" },
-  rules: { hint: "One rule per line", href: "/hostel-admin/profile", icon: ListChecks, title: "House rules" },
-};
-
-const DOCUMENTS = [
-  { label: "Owner ID", match: (type: string) => !/pan|vat/i.test(type), type: "Owner ID proof" },
-  { label: "PAN / VAT", match: (type: string) => /pan|vat/i.test(type), type: "PAN / VAT document" },
-] as const;
 
 const PRIMARY = "inline-flex h-11 w-full items-center justify-center rounded-xl bg-brand-teal px-5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50";
 const GHOST = "inline-flex h-11 w-full items-center justify-center rounded-xl px-5 text-sm font-semibold text-muted-foreground transition hover:bg-muted";
+const FOOT_PRIMARY = "inline-flex h-10 items-center justify-center rounded-xl bg-brand-teal px-5 text-sm font-semibold text-white transition hover:opacity-90";
+const FOOT_GHOST = "inline-flex h-10 items-center justify-center rounded-xl px-4 text-sm font-semibold text-muted-foreground transition hover:bg-muted disabled:invisible";
 const OUTLINE = "inline-flex h-11 w-full items-center justify-center rounded-xl border border-border px-5 text-sm font-semibold text-foreground transition hover:bg-muted disabled:opacity-50";
 
 function errorText(caught: unknown) {
@@ -129,6 +102,8 @@ export function HostelKycBanner() {
     return null;
   }
 
+  const inReview = kyc.review?.status === "SUBMITTED";
+
   return (
     <Link
       className="group flex items-center gap-4 rounded-2xl border border-brand-teal/30 bg-brand-teal/5 p-4 transition hover:bg-brand-teal/10"
@@ -136,8 +111,10 @@ export function HostelKycBanner() {
     >
       <Ring percent={kyc.percent} size={56} />
       <div className="min-w-0 flex-1">
-        <p className="font-bold text-foreground">Complete hostel KYC</p>
-        <p className="text-sm text-muted-foreground">Unlock every feature</p>
+        <p className="font-bold text-foreground">{inReview ? "KYC in review" : "Complete hostel KYC"}</p>
+        <p className="text-sm text-muted-foreground">
+          {inReview ? "We check it within 24 hours" : "Send it for review to open every feature"}
+        </p>
       </div>
       <ChevronRight className="size-5 text-brand-teal transition group-hover:translate-x-0.5" />
     </Link>
@@ -145,9 +122,10 @@ export function HostelKycBanner() {
 }
 
 /**
- * Hostel KYC — a guided walk through what a team-registered hostel still has
- * to finish. One step per screen, saved in place where a small form covers it;
- * the heavy editors (menu, map, photos by room) open and come back here.
+ * Hostel KYC — a guided walk through what a hostel still has to finish. Every
+ * section sits in the list; one opens at a time with Back / Next. Small forms
+ * save in place; the heavy editors (menu, map, rate card) open with their spot
+ * ringed and come back here once it is saved (`kyc-focus.tsx`).
  */
 export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent() {
   const router = useRouter();
@@ -160,571 +138,222 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
   const [finished, setFinished] = useState(false);
   const { refresh } = resource;
 
-  // Back from an editor: re-read, so the tick lands.
+  // A save in any step — the embedded editors included — re-reads, so the tick lands.
   useEffect(() => {
     refresh();
     window.addEventListener("focus", refresh);
+    window.addEventListener(API_WRITE_EVENT, refresh);
 
-    return () => window.removeEventListener("focus", refresh);
+    return () => {
+      window.removeEventListener("focus", refresh);
+      window.removeEventListener(API_WRITE_EVENT, refresh);
+    };
   }, [refresh]);
 
   if (!kyc) {
     return (
-      <div className="mx-auto max-w-xl space-y-4">
-        <div className="h-24 animate-pulse rounded-3xl bg-muted" />
-        <div className="h-80 animate-pulse rounded-3xl bg-muted" />
+      <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
+        <div className="h-96 animate-pulse rounded-2xl bg-muted" />
+        <div className="h-96 animate-pulse rounded-3xl bg-muted" />
         {resource.message ? <p className="text-sm text-destructive">{resource.message}</p> : null}
       </div>
     );
   }
 
   const steps = kyc.steps;
-  const firstOpen = steps.findIndex((step) => !step.done);
+  const review = kyc.review ?? null;
+  const doneCount = steps.filter((item) => item.done).length;
+  const firstOpen = steps.findIndex((item) => !item.done);
   const current = index ?? Math.max(0, firstOpen);
   const showFinish = finished || (index === null && firstOpen === -1);
   const step = steps[current];
   const meta = STEPS[step.key];
-  const advance = () => (current >= steps.length - 1 ? setFinished(true) : setIndex(current + 1));
+  const go = (at: number) => {
+    setFinished(false);
+    setIndex(at);
+  };
+  // Next skips what is already done; past the last open one is the finish card.
+  const advance = () => {
+    const after = steps.findIndex((item, at) => at > current && !item.done);
+
+    if (after === -1) setFinished(true);
+    else setIndex(after);
+  };
   const saved = async () => {
     await resource.refreshAsync();
     advance();
   };
-  const open = (href: string) => router.push(workspaceHref(href));
-
-  const setupLinks = <div className="mb-4 flex flex-wrap gap-3 rounded-xl border border-border p-3 text-sm font-semibold text-brand-teal"><Link href={workspaceHref("/hostel-admin/rooms")}>Room types & attached bathrooms</Link><Link href={workspaceHref("/hostel-admin/fee-schedule")}>Rent & form fees</Link></div>;
-
-  const header = <PortalPageHeader description={`${kyc.percent}% done`} title="Hostel KYC" />;
-
-  const reviewBar = kyc.review ? <KycReviewBar onSubmitted={() => void resource.refreshAsync()} review={kyc.review} /> : null;
-
-  if (showFinish) {
-    return (
-      <div className="space-y-4">
-        {header}
-      <div className="mx-auto max-w-xl">
-        {reviewBar}
-        {setupLinks}
-        <StepFlow className="flex flex-col items-center gap-4 rounded-3xl border border-border bg-card p-8 text-center" stepKey={99}>
-          {kyc.percent >= 100 ? (
-            <span className="flex size-28 animate-in zoom-in-50 items-center justify-center rounded-full bg-brand-teal/10 text-brand-teal duration-500">
-              <PartyPopper className="size-12" />
-            </span>
-          ) : (
-            <Ring percent={kyc.percent} size={140} />
-          )}
-          <h2 className="text-2xl font-bold text-foreground">
-            {kyc.percent >= 100 ? "KYC complete" : `${kyc.percent}% done`}
-          </h2>
-          <p className="text-muted-foreground">
-            {kyc.percent >= 100 ? "Every feature is unlocked" : "Finish the rest anytime"}
-          </p>
-          <div className="grid w-full gap-2 pt-2">
-            <button
-              className={kyc.percent < 100 ? PRIMARY : OUTLINE}
-              onClick={() => {
-                setFinished(false);
-                setIndex(Math.max(0, firstOpen));
-              }}
-              type="button"
-            >
-              {kyc.percent < 100 ? "Continue" : "Review steps"}
-            </button>
-            <button className={kyc.percent < 100 ? GHOST : PRIMARY} onClick={() => open("/hostel-admin/dashboard")} type="button">
-              Back to dashboard
-            </button>
-          </div>
-        </StepFlow>
-      </div>
-      </div>
-    );
-  }
+  const status = !review
+    ? null
+    : review.status === "APPROVED"
+      ? { label: "Verified", tone: "success" }
+      : review.status === "SUBMITTED"
+        ? { label: "In review", tone: "muted" }
+        : review.status === "REJECTED"
+          ? { label: "Sent back", tone: "danger" }
+          : review.missing.length > 0
+            ? { label: `${review.missing.length} required left`, tone: "warning" }
+            : { label: "Ready to send", tone: "success" };
 
   const Icon = step.done ? Check : meta.icon;
 
   return (
     <div className="space-y-4">
-      {header}
-    <div className="mx-auto max-w-xl space-y-4">
-      {reviewBar}
-      {setupLinks}
-      <section className="flex items-center gap-4 rounded-b-3xl rounded-t-xl bg-brand-teal p-5 text-white">
-        <div className="rounded-full bg-white p-1">
-          <Ring percent={kyc.percent} size={60} />
-        </div>
-        <div className="min-w-0 flex-1 space-y-2">
-          <p className="font-bold">
-            Step {current + 1} of {steps.length}
-          </p>
-          <div className="flex gap-1.5">
-            {steps.map((item, at) => (
-              <button
-                aria-label={`${STEPS[item.key]?.title ?? item.key}${item.done ? ", done" : ""}`}
-                className={cn(
-                  "h-2 flex-1 rounded-full transition-colors duration-500",
-                  item.done ? "bg-white" : at === current ? "bg-white/60" : "bg-white/25",
-                )}
-                key={item.key}
-                onClick={() => setIndex(at)}
-                type="button"
+      <PortalPageHeader description={`${doneCount} of ${steps.length} sections done`} title="Hostel KYC" />
+
+      <div className="mx-auto grid max-w-5xl gap-4 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+        <aside className="rounded-2xl border border-border bg-card p-2 lg:sticky lg:top-4">
+          <div className="space-y-2 px-3 pb-3 pt-2">
+            <div className="flex items-center justify-between gap-2 text-sm">
+              <span className="font-semibold text-foreground">{kyc.percent}% done</span>
+              {status ? (
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-[11px] font-semibold",
+                    status.tone === "success" && "bg-brand-teal/10 text-brand-teal",
+                    status.tone === "warning" && "bg-warning/10 text-warning",
+                    status.tone === "danger" && "bg-destructive/10 text-destructive",
+                    status.tone === "muted" && "bg-muted text-muted-foreground",
+                  )}
+                >
+                  {status.label}
+                </span>
+              ) : null}
+            </div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+              <div
+                className="h-full rounded-full bg-brand-teal transition-[width] duration-700 ease-out"
+                style={{ width: `${kyc.percent}%` }}
               />
-            ))}
+            </div>
           </div>
-        </div>
-      </section>
 
-      <StepFlow className="space-y-5 rounded-3xl border border-border bg-card p-6" stepKey={current}>
-        <div className="flex flex-col items-center gap-3 text-center">
-          <span className="flex size-16 items-center justify-center rounded-3xl bg-brand-teal/10 text-brand-teal">
-            <Icon className="size-8" strokeWidth={step.done ? 3 : 2} />
-          </span>
-          <h2 className="text-xl font-bold text-foreground">{meta.title}</h2>
-          <p className="text-sm text-muted-foreground">{step.done ? "Done" : meta.hint}</p>
-        </div>
+          <ol className="hidden space-y-0.5 lg:block">
+            {steps.map((item, at) => {
+              const StepIcon = STEPS[item.key]?.icon ?? FileText;
+              const active = !showFinish && at === current;
 
-        {step.key === "photos" ? (
-          <PhotosStep kyc={kyc} onChange={() => void resource.refreshAsync()} />
-        ) : step.key === "documents" ? (
-          <DocumentsStep kyc={kyc} onChange={() => void resource.refreshAsync()} />
-        ) : step.done ? (
-          <button className={OUTLINE} onClick={() => open(meta.href)} type="button">
-            Change
-          </button>
-        ) : step.key === "payout" ? (
-          <PayoutStep onSaved={saved} />
-        ) : step.key === "payments" ? (
-          <PaymentsStep onBank={() => open(meta.href)} onSaved={saved} />
-        ) : step.key === "rules" ? (
-          <RulesStep initial={kyc.rules} onSaved={saved} />
-        ) : step.key === "facilities" ? (
-          <FacilitiesStep initial={kyc.facilities} onSaved={saved} />
-        ) : step.key === "opening" ? (
-          <OpeningStep onSaved={saved} />
+              return (
+                <li key={item.key}>
+                  <button
+                    aria-current={active ? "step" : undefined}
+                    className={cn(
+                      "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition",
+                      active ? "bg-brand-teal/10" : "hover:bg-muted",
+                    )}
+                    onClick={() => go(at)}
+                    type="button"
+                  >
+                    <span
+                      className={cn(
+                        "flex size-8 shrink-0 items-center justify-center rounded-lg",
+                        item.done ? "bg-brand-teal text-white" : "bg-muted text-muted-foreground",
+                      )}
+                    >
+                      {item.done ? <Check className="size-4" strokeWidth={3} /> : <StepIcon className="size-4" />}
+                    </span>
+                    <span className={cn("min-w-0 flex-1 truncate text-foreground", active && "font-semibold")}>
+                      {STEPS[item.key]?.title ?? item.key}
+                    </span>
+                    {!item.done && item.required ? (
+                      <span aria-label="Required" className="size-1.5 shrink-0 rounded-full bg-warning" title="Required" />
+                    ) : null}
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+
+          {review && !showFinish && (review.canSubmit || review.status === "SUBMITTED") ? (
+            <div className="px-1 pb-1 pt-2">
+              <button className={review.canSubmit ? PRIMARY : OUTLINE} onClick={() => setFinished(true)} type="button">
+                {review.canSubmit ? "Review & send" : "See status"}
+              </button>
+            </div>
+          ) : null}
+        </aside>
+
+        {showFinish ? (
+          <FinishCard
+            kyc={kyc}
+            onDashboard={() => router.push(workspaceHref("/hostel-admin/dashboard"))}
+            onGo={go}
+            onSubmitted={() => void resource.refreshAsync()}
+          />
         ) : (
-          <button className={PRIMARY} onClick={() => open(meta.href)} type="button">
-            {step.key === "food" ? "Set weekly menu" : step.key === "location" ? "Place the pin" : step.key === "rooms" ? "Add floors and rooms" : step.key === "details" ? "Add your address" : step.key === "rates" ? "Set room types & rent" : "Open"}
-          </button>
-        )}
-      </StepFlow>
+          <StepFlow className="rounded-3xl border border-border bg-card" stepKey={current}>
+            <div className="flex flex-col items-center gap-3 px-6 pt-8 text-center">
+              <span className="flex size-16 items-center justify-center rounded-full bg-brand-teal/10 text-brand-teal">
+                <Icon className="size-7" strokeWidth={step.done ? 3 : 2} />
+              </span>
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Step {current + 1} of {steps.length}
+                  {step.required ? " · Required" : ""}
+                </p>
+                <h2 className="mt-1 text-xl font-bold text-foreground">{meta.title}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">{step.done ? "Saved — change anything below." : meta.hint}</p>
+              </div>
+            </div>
 
-      <div className="flex gap-3">
-        {current > 0 ? (
-          <button className={GHOST} onClick={() => setIndex(current - 1)} type="button">
-            Back
-          </button>
-        ) : null}
-        <button className={step.done ? PRIMARY : GHOST} onClick={advance} type="button">
-          {step.done ? "Next" : "Skip"}
-        </button>
+            <div className={cn("mx-auto w-full px-6 py-6", WIDE_STEPS.has(step.key) ? "max-w-3xl" : "max-w-md")}>
+              <KycStepBody
+                kyc={kyc}
+                key={step.key}
+                onChange={() => void resource.refreshAsync()}
+                onSaved={saved}
+                stepKey={step.key}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-3 border-t border-border px-6 py-4">
+              <button className={FOOT_GHOST} disabled={current === 0} onClick={() => setIndex(current - 1)} type="button">
+                Back
+              </button>
+              <button className={step.done ? FOOT_PRIMARY : FOOT_GHOST} onClick={advance} type="button">
+                {step.done ? "Next" : "Skip for now"}
+              </button>
+            </div>
+          </StepFlow>
+        )}
       </div>
-    </div>
     </div>
   );
 });
 
+const BENEFITS: [IconComponent, string][] = [
+  [Smartphone, "Full access to the web and app portals"],
+  [FileText, "An agreement letter between you and HostelPalika"],
+];
+
 /**
- * The bank's closing balance the day they start with us, so the statement's
- * balance matches the bank (docs/FIELD_FIXES_2026_10.md §4).
+ * Where the walk ends: what the review asks next. A quick sign-up sends it
+ * to our team; an older hostel (no review) just sees how far it got.
  */
-function OpeningStep({ onSaved }: { onSaved: () => Promise<void> }) {
-  const [amount, setAmount] = useState("");
-  const [asOf, setAsOf] = useState(() => new Date(Date.now() + 345 * 60_000).toISOString().slice(0, 10));
-
-  return (
-    <SaveForm
-      disabled={amount.trim() === "" || !/^\d{4}-\d{2}-\d{2}$/.test(asOf)}
-      onSave={async () => {
-        await browserApi("/api/v1/hostel-admin/finance/money-rules", {
-          body: JSON.stringify({ openingBalance: { amount: Number(amount), asOf } }),
-          method: "PUT",
-        });
-        await onSaved();
-      }}
-    >
-      <label className="grid gap-1.5 text-sm font-semibold text-foreground">
-        Bank balance (Rs)
-        <input
-          className="h-11 rounded-md border border-border bg-background px-3 text-sm font-normal outline-none focus:border-primary"
-          inputMode="numeric"
-          onChange={(event) => setAmount(event.target.value.replace(/[^\d-]/g, ""))}
-          placeholder="250000"
-          value={amount}
-        />
-      </label>
-      <label className="grid gap-1.5 text-sm font-semibold text-foreground">
-        On the day
-        <input
-          className="h-11 rounded-md border border-border bg-background px-3 text-sm font-normal outline-none focus:border-primary"
-          onChange={(event) => setAsOf(event.target.value)}
-          type="date"
-          value={asOf}
-        />
-      </label>
-      <p className="text-xs text-muted-foreground">
-        Your statement starts from this, so the balance here matches your bank. Use minus for an overdraft.
-      </p>
-    </SaveForm>
-  );
-}
-
-/** Save button + inline error, shared by the small forms below. */
-function SaveForm({
-  children,
-  disabled,
-  onSave,
+function FinishCard({
+  kyc,
+  onDashboard,
+  onGo,
+  onSubmitted,
 }: {
-  children: ReactNode;
-  disabled?: boolean;
-  onSave: () => Promise<void>;
+  kyc: Kyc;
+  onDashboard: () => void;
+  onGo: (at: number) => void;
+  onSubmitted: () => void;
 }) {
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-
-  return (
-    <form
-      className="space-y-3"
-      onSubmit={async (event) => {
-        event.preventDefault();
-        setSaving(true);
-        setError("");
-        try {
-          await onSave();
-        } catch (caught) {
-          setError(errorText(caught));
-        } finally {
-          setSaving(false);
-        }
-      }}
-    >
-      {children}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-      <button className={PRIMARY} disabled={disabled || saving} type="submit">
-        {saving ? "Saving…" : "Save"}
-      </button>
-    </form>
-  );
-}
-
-function PhotosStep({ kyc, onChange }: { kyc: Kyc; onChange: () => void }) {
-  const input = useRef<HTMLInputElement>(null);
-  const kind = useRef<"EXTERIOR" | "INTERIOR">("EXTERIOR");
-  const [busy, setBusy] = useState("");
-
-  async function add(files: File[]) {
-    setBusy(kind.current);
-
-    try {
-      for (const file of files) {
-        const [outcome] = await uploadFiles([file], {
-          accessLevel: "PUBLIC",
-          kind: "image",
-          label: "Hostel photo",
-          silent: true,
-        });
-        const assetId = outcome?.ok ? outcome.result.assetId : undefined;
-
-        if (!assetId) continue;
-
-        await browserApi(`${hostelAdminEndpoints.profile}/photos`, {
-          body: JSON.stringify({ fileAssetId: assetId, kind: kind.current, url: `/api/v1/files/${assetId}/url` }),
-          method: "POST",
-        });
-      }
-    } finally {
-      setBusy("");
-      onChange();
-    }
-  }
-
-  return (
-    <div className="space-y-3">
-      <p className="text-center text-3xl font-bold text-foreground">
-        {Math.min(kyc.photoCount, kyc.minPhotos)} / {kyc.minPhotos}
-      </p>
-      <input
-        accept="image/*"
-        className="hidden"
-        multiple
-        onChange={(event) => {
-          const files = Array.from(event.currentTarget.files ?? []);
-          event.currentTarget.value = "";
-          if (files.length) void add(files);
-        }}
-        ref={input}
-        type="file"
-      />
-      <div className="grid grid-cols-2 gap-3">
-        {(["EXTERIOR", "INTERIOR"] as const).map((value) => (
-          <button
-            className={OUTLINE}
-            disabled={Boolean(busy)}
-            key={value}
-            onClick={() => {
-              kind.current = value;
-              input.current?.click();
-            }}
-            type="button"
-          >
-            {busy === value ? "Uploading…" : value === "EXTERIOR" ? "Outside" : "Inside"}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function DocumentsStep({ kyc, onChange }: { kyc: Kyc; onChange: () => void }) {
-  const input = useRef<HTMLInputElement>(null);
-  const pending = useRef<string>(DOCUMENTS[0].type);
-  const [busy, setBusy] = useState("");
-  const [error, setError] = useState("");
-  const { confirm, confirmDialog } = useConfirm();
-
-  async function remove(row: Kyc["documents"][number]) {
-    const ok = await confirm({
-      actionLabel: "Remove",
-      description: "You can upload it again any time.",
-      title: `Remove ${row.fileName ?? row.type}?`,
-      tone: "destructive",
-    });
-    if (!ok) return;
-
-    setBusy(row.id);
-    setError("");
-
-    try {
-      await browserApi(`${ENDPOINT}?documentId=${encodeURIComponent(row.id)}`, { method: "DELETE" });
-      onChange();
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not remove it.");
-    } finally {
-      setBusy("");
-    }
-  }
-
-  async function upload(file: File) {
-    const type = pending.current;
-
-    setBusy(type);
-    setError("");
-
-    try {
-      const uploaded = await uploadRegistrationDocument(file, type);
-
-      await browserApi(ENDPOINT, {
-        body: JSON.stringify({ documents: [{ ...uploaded, documentType: type }] }),
-        method: "POST",
-      });
-      onChange();
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Upload failed.");
-    } finally {
-      setBusy("");
-    }
-  }
-
-  return (
-    <div className="space-y-3">
-      <input
-        accept="image/*,application/pdf"
-        className="hidden"
-        onChange={(event) => {
-          const file = event.currentTarget.files?.[0];
-          event.currentTarget.value = "";
-          if (file) void upload(file);
-        }}
-        ref={input}
-        type="file"
-      />
-      {confirmDialog}
-      {DOCUMENTS.map((doc) => {
-        const rows = kyc.documents.filter((row) => doc.match(row.type));
-        const uploaded = rows.length > 0;
-
-        return (
-          <div className="space-y-1.5" key={doc.type}>
-          <button
-            className="flex w-full items-center gap-3 rounded-2xl border border-border p-4 text-left transition hover:bg-muted disabled:opacity-60"
-            disabled={Boolean(busy)}
-            onClick={() => {
-              pending.current = doc.type;
-              input.current?.click();
-            }}
-            type="button"
-          >
-            <IdCard className="size-5 text-muted-foreground" />
-            <span className="flex-1 font-semibold text-foreground">{doc.label}</span>
-            {busy === doc.type ? (
-              <span className="text-xs text-muted-foreground">Uploading…</span>
-            ) : uploaded ? (
-              <span className="flex size-6 items-center justify-center rounded-full bg-brand-teal text-white">
-                <Check className="size-3.5" strokeWidth={3} />
-              </span>
-            ) : (
-              <span className="text-sm font-semibold text-brand-teal">Upload</span>
-            )}
-          </button>
-          {rows.filter((row) => row.canRemove).map((row) => (
-            <div className="flex items-center gap-2 rounded-xl bg-muted/50 px-3 py-2 text-sm" key={row.id}>
-              <FileText className="size-4 shrink-0 text-muted-foreground" />
-              <span className="min-w-0 flex-1 truncate text-muted-foreground">{row.fileName ?? row.type}</span>
-              <button
-                aria-label={`Remove ${row.fileName ?? row.type}`}
-                className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition hover:bg-destructive/10 hover:text-destructive disabled:opacity-50"
-                disabled={Boolean(busy)}
-                onClick={() => void remove(row)}
-                type="button"
-              >
-                <Trash2 className="size-4" />
-              </button>
-            </div>
-          ))}
-          </div>
-        );
-      })}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
-    </div>
-  );
-}
-
-function PayoutStep({ onSaved }: { onSaved: () => Promise<void> }) {
-  const [draft, setDraft] = useState(EMPTY_PAYOUT_DRAFT);
-  const payload = payoutAccountPayload(draft);
-
-  return (
-    <SaveForm
-      disabled={!payload}
-      onSave={async () => {
-        await browserApi("/api/v1/hostel-admin/payout-account", {
-          body: JSON.stringify(payload),
-          method: "PUT",
-        });
-        await onSaved();
-      }}
-    >
-      <PayoutAccountFields onChange={setDraft} value={draft} />
-    </SaveForm>
-  );
-}
-
-function PaymentsStep({ onBank, onSaved }: { onBank: () => void; onSaved: () => Promise<void> }) {
-  const [esewaId, setEsewaId] = useState("");
-  const [khaltiId, setKhaltiId] = useState("");
-
-  return (
-    <div className="space-y-2">
-      <SaveForm
-        disabled={!esewaId.trim() && !khaltiId.trim()}
-        onSave={async () => {
-          await browserApi(hostelAdminEndpoints.paymentProfile, {
-            body: JSON.stringify({
-              ...(esewaId.trim() ? { esewaId: esewaId.trim() } : {}),
-              ...(khaltiId.trim() ? { khaltiId: khaltiId.trim() } : {}),
-            }),
-            method: "PATCH",
-          });
-          await onSaved();
-        }}
-      >
-        <input className="input-field w-full" inputMode="tel" onChange={(e) => setEsewaId(e.target.value)} placeholder="eSewa ID" value={esewaId} />
-        <input className="input-field w-full" inputMode="tel" onChange={(e) => setKhaltiId(e.target.value)} placeholder="Khalti ID" value={khaltiId} />
-      </SaveForm>
-      <button className={GHOST} onClick={onBank} type="button">
-        Bank or QR instead
-      </button>
-    </div>
-  );
-}
-
-function RulesStep({ initial, onSaved }: { initial: string[]; onSaved: () => Promise<void> }) {
-  const [text, setText] = useState(initial.join("\n"));
-  const rules = text
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  return (
-    <SaveForm
-      disabled={rules.length === 0}
-      onSave={async () => {
-        await browserApi(hostelAdminEndpoints.profile, { body: JSON.stringify({ rules }), method: "PATCH" });
-        await onSaved();
-      }}
-    >
-      <textarea
-        className="input-field h-auto min-h-36 w-full resize-y py-2"
-        onChange={(event) => setText(event.target.value)}
-        placeholder={"Gate closes at 10 PM\nNo smoking indoors"}
-        value={text}
-      />
-    </SaveForm>
-  );
-}
-
-function FacilitiesStep({ initial, onSaved }: { initial: string[]; onSaved: () => Promise<void> }) {
-  const [picked, setPicked] = useState<string[]>(initial);
-  const options = [...new Set([...facilityOptions, ...initial])];
-
-  return (
-    <SaveForm
-      disabled={picked.length === 0}
-      onSave={async () => {
-        await browserApi(hostelAdminEndpoints.profile, {
-          body: JSON.stringify({ facilities: picked }),
-          method: "PATCH",
-        });
-        await onSaved();
-      }}
-    >
-      <div className="flex flex-wrap justify-center gap-2">
-        {options.map((option) => {
-          const on = picked.includes(option);
-
-          return (
-            <button
-              className={cn(
-                "rounded-full border px-3.5 py-1.5 text-sm font-semibold transition",
-                on ? "border-brand-teal bg-brand-teal text-white" : "border-border text-foreground hover:bg-muted",
-              )}
-              key={option}
-              onClick={() =>
-                setPicked((current) => (on ? current.filter((item) => item !== option) : [...current, option]))
-              }
-              type="button"
-            >
-              {option}
-            </button>
-          );
-        })}
-      </div>
-    </SaveForm>
-  );
-}
-
-/**
- * Where a quick sign-up's KYC stands, and Submit once every required section
- * is done — asked first, because our team checks what is sent.
- */
-function KycReviewBar({ onSubmitted, review }: { onSubmitted: () => void; review: NonNullable<Kyc["review"]> }) {
   const { confirm, confirmDialog } = useConfirm();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const line =
-    review.status === "APPROVED"
-      ? "Verified by our team. Every feature is open."
-      : review.status === "SUBMITTED"
-        ? "In review — we check it within 24 hours. You can still edit anything until then."
-        : review.status === "REJECTED"
-          ? `Sent back: ${review.note ?? "please check and submit again."}`
-          : review.missing.length > 0
-            ? `${review.missing.length} required ${review.missing.length === 1 ? "section" : "sections"} left before you can submit: ${review.missing.map((key) => STEPS[key]?.title ?? key).join(", ")}.`
-            : "Every required section is done. Submit it to our team.";
+  const review = kyc.review ?? null;
+  const firstOpen = kyc.steps.findIndex((item) => !item.done);
+  const firstMissing = review ? kyc.steps.findIndex((item) => review.missing.includes(item.key)) : -1;
 
   async function submit() {
     const ok = await confirm({
-      actionLabel: "Submit",
+      actionLabel: "Send",
       cancelLabel: "Check again",
-      description: "Our team will verify this within 24 hours. Please make sure everything you entered is correct.",
-      title: "Submit your KYC?",
+      description: "Our team checks it within 24 hours. Please make sure everything you entered is correct.",
+      title: "Send your KYC for submission?",
     });
 
     if (!ok) return;
@@ -742,16 +371,108 @@ function KycReviewBar({ onSubmitted, review }: { onSubmitted: () => void; review
     }
   }
 
-  return (
-    <div className="mb-4 space-y-3 rounded-2xl border border-border bg-card p-4">
-      <p className="text-sm text-foreground">{line}</p>
-      {review.canSubmit ? (
+  const badge = (Glyph: IconComponent, tone = "bg-brand-teal/10 text-brand-teal") => (
+    <span className={cn("flex size-20 items-center justify-center rounded-full", tone)}>
+      <Glyph className="size-9" />
+    </span>
+  );
+  const dashboard = (variant: string) => (
+    <button className={variant} onClick={onDashboard} type="button">
+      Back to dashboard
+    </button>
+  );
+
+  let icon: ReactNode = <Ring percent={kyc.percent} size={120} />;
+  let title = `${kyc.percent}% done`;
+  let line = "Finish the rest any time.";
+  let benefits = false;
+  let actions: ReactNode = (
+    <>
+      <button className={PRIMARY} onClick={() => onGo(Math.max(0, firstOpen))} type="button">
+        Continue
+      </button>
+      {dashboard(GHOST)}
+    </>
+  );
+
+  if (!review) {
+    if (kyc.percent >= 100) {
+      icon = badge(Check);
+      title = "All sections done";
+      line = "Your hostel is set up.";
+      actions = dashboard(PRIMARY);
+    }
+  } else if (review.status === "APPROVED") {
+    icon = badge(ShieldCheck);
+    title = "Verified";
+    line = "Every feature is open on the web and the app.";
+    actions = dashboard(PRIMARY);
+  } else if (review.status === "SUBMITTED") {
+    icon = badge(Clock, "bg-muted text-muted-foreground");
+    title = "Sent for review";
+    line = "We check it within 24 hours. You can still edit anything until then. Once approved you get:";
+    benefits = true;
+    actions = dashboard(GHOST);
+  } else if (review.canSubmit) {
+    icon = badge(Send);
+    title = "Send for submission";
+    line = "Every required section is done. Once our team approves it you get:";
+    benefits = true;
+    actions = (
+      <>
         <button className={PRIMARY} disabled={busy} onClick={() => void submit()} type="button">
-          {busy ? "Submitting…" : "Submit for verification"}
+          {busy ? "Sending…" : "Send for submission"}
         </button>
-      ) : null}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+        {firstOpen >= 0 ? (
+          <button className={GHOST} onClick={() => onGo(firstOpen)} type="button">
+            Finish the optional sections first
+          </button>
+        ) : null}
+      </>
+    );
+  } else {
+    title = "Almost there";
+    line = `Finish ${review.missing.map((key) => STEPS[key]?.title ?? key).join(", ")} to send it for review.`;
+    actions = (
+      <button className={PRIMARY} onClick={() => onGo(Math.max(0, firstMissing))} type="button">
+        Continue
+      </button>
+    );
+  }
+
+  return (
+    <StepFlow className="flex flex-col items-center gap-4 rounded-3xl border border-border bg-card px-6 py-10 text-center" stepKey={99}>
       {confirmDialog}
-    </div>
+      {icon}
+      <div className="space-y-1">
+        <h2 className="text-2xl font-bold text-foreground">{title}</h2>
+        <p className="mx-auto max-w-sm text-sm text-muted-foreground">{line}</p>
+      </div>
+      {review?.status === "REJECTED" ? (
+        <p className="w-full max-w-sm rounded-xl bg-destructive/10 px-4 py-3 text-left text-sm text-destructive">
+          Sent back: {review.note ?? "please check and send it again."}
+        </p>
+      ) : null}
+      {benefits ? (
+        <ul className="w-full max-w-sm space-y-2 text-left">
+          {BENEFITS.map(([Glyph, text]) => (
+            <li className="flex items-center gap-3 rounded-xl border border-border px-4 py-3 text-sm text-foreground" key={text}>
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-teal/10 text-brand-teal">
+                <Glyph className="size-4" />
+              </span>
+              {text}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <div className="grid w-full max-w-sm gap-2 pt-2">{actions}</div>
+      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {review && review.status !== "APPROVED" ? (
+        <p className="flex items-center gap-2 pt-2 text-xs text-muted-foreground">
+          <Lock className="size-3.5" />
+          Only our verification team sees your documents.
+        </p>
+      ) : null}
+    </StepFlow>
   );
 }

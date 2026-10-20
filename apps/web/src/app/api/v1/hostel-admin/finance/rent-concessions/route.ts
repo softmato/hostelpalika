@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   feeScheduleListQuerySchema,
   rentConcessionSaveSchema,
@@ -29,14 +30,14 @@ export async function GET(request: NextRequest) {
       Object.fromEntries(new URL(request.url).searchParams),
     );
 
-    return successResponse(
+    return withEtag(request, successResponse(
       {
         concessions: await listRentConcessions(
           resolveAdminHostelId(principal, query.hostelId),
         ),
       },
       "Month discounts",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

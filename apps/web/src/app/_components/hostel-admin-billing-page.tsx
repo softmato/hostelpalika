@@ -15,8 +15,10 @@ import { useEffect, useState } from "react";
 import { formatBsAdDate } from "@hostel/shared/calendar/bs";
 import { billingCycles, cycleTotal, planRank, type BillingCycle } from "@hostel/shared/plans/catalog";
 
+import { CheckoutHandoffButton } from "@/app/_components/checkout-handoff";
 import { HostelFreeMonthCard } from "@/app/_components/hostel-free-month-card";
 import { PayPlanPanel } from "@/app/_components/hostel-admin-pay-plan";
+import { PlanMark } from "@/app/_components/plan-mark";
 import { PortalPageHeader } from "@/app/_components/portal-dashboard-ui";
 import { useSiteConfig } from "@/components/site-config-provider";
 import {
@@ -113,6 +115,10 @@ export function HostelAdminBillingPageContent() {
   // Bumped after a renewal is raised, so the plan card and invoices re-read.
   const [version, setVersion] = useState(0);
   const invalidate = useInvalidateResources();
+  const { plans: catalog } = useSiteConfig();
+  const plan = history?.plan ?? null;
+  // A running plan owes nothing: its open invoice is paying early, so no due line and no pay banner.
+  const running = Boolean(plan && isRunning(plan));
 
   useEffect(() => {
     let cancelled = false;
@@ -171,13 +177,13 @@ export function HostelAdminBillingPageContent() {
 
       <HostelFreeMonthCard showBillingLink={false} />
 
-      {history?.plan ? (
+      {plan ? (
         <PlanCard
           onRaised={() => {
             setVersion((current) => current + 1);
             invalidate("/api/v1/hostel-admin/billing/pay-instructions");
           }}
-          plan={history.plan}
+          plan={plan}
         />
       ) : null}
 
@@ -187,7 +193,7 @@ export function HostelAdminBillingPageContent() {
         read afterwards to check it landed. It renders nothing at all when
         nothing is outstanding, which is most of the time.
       */}
-      <PayPlanPanel />
+      {running ? null : <PayPlanPanel />}
 
       {history ? (
         <>
@@ -197,7 +203,12 @@ export function HostelAdminBillingPageContent() {
             title="Invoices"
           >
             {history.invoices.map((invoice) => (
-              <InvoiceRow invoice={invoice} key={invoice.invoiceNumber} />
+              <InvoiceRow
+                invoice={invoice}
+                key={invoice.invoiceNumber}
+                payEarly={running}
+                rank={planRank(catalog, invoice.planId ?? "")}
+              />
             ))}
           </Panel>
 
@@ -245,6 +256,11 @@ export function HostelAdminBillingPageContent() {
  * has actually gone wrong, and it says so in words rather than by turning a
  * card a colour.
  */
+/** ACTIVE and not run out: the state in which an open invoice is paying early, not owing. */
+function isRunning(plan: BillingPlan) {
+  return plan.status === "ACTIVE" && (plan.lifetime || plan.daysRemaining === null || plan.daysRemaining > 0);
+}
+
 /** Inside this many days, the card offers to pay for the next period. */
 const RENEW_WITHIN_DAYS = 7;
 
@@ -454,7 +470,7 @@ function PlanCard({ onRaised, plan }: { onRaised: () => void; plan: BillingPlan 
           // "Runs", not "paid", while a balance is owed: a team hostel's plan
           // starts the day it is filed, before the money is in.
           <span>
-            {plan.amountDue > 0 ? "Runs" : "Paid"} through{" "}
+            {plan.amountDue > 0 && !isRunning(plan) ? "Runs" : "Paid"} through{" "}
             {shortDate(plan.currentPeriodEnd)}
           </span>
         ) : plan.amountPaid > 0 ? (
@@ -466,7 +482,7 @@ function PlanCard({ onRaised, plan }: { onRaised: () => void; plan: BillingPlan 
         ) : (
           <span>Nothing has been paid for yet.</span>
         )}
-        {plan.dueBy ? (
+        {plan.dueBy && !isRunning(plan) ? (
           <span className="font-semibold text-warning">
             Balance due by {shortDate(plan.dueBy)}
           </span>
@@ -552,9 +568,36 @@ function Panel({
   );
 }
 
-function InvoiceRow({ invoice }: { invoice: BillingInvoiceRow }) {
+/** The row's mark: the plan's own drawing on an invoice, a receipt on a payment, told apart at a glance. */
+function RowMark({ children, tone }: { children: React.ReactNode; tone: "invoice" | "receipt" }) {
   return (
-    <li className="rounded-xl border border-border bg-surface p-4">
+    <span
+      className={cn(
+        "grid size-10 shrink-0 place-items-center rounded-xl",
+        tone === "invoice" ? "bg-brand-teal/10 text-brand-teal" : "bg-success/10 text-success",
+      )}
+    >
+      {children}
+    </span>
+  );
+}
+
+function InvoiceRow({
+  invoice,
+  payEarly,
+  rank,
+}: {
+  invoice: BillingInvoiceRow;
+  /** The plan is running: an open invoice gets a quiet Pay button instead of the banner. */
+  payEarly: boolean;
+  rank: number;
+}) {
+  return (
+    <li className="flex gap-3.5 rounded-xl border border-border bg-surface p-4">
+      <RowMark tone="invoice">
+        <PlanMark className="size-6" rank={Math.max(0, rank)} />
+      </RowMark>
+      <div className="min-w-0 flex-1">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">
@@ -618,6 +661,17 @@ function InvoiceRow({ invoice }: { invoice: BillingInvoiceRow }) {
           <Download className="size-3.5" />
           Invoice PDF
         </button>
+
+        {payEarly && invoice.outstanding > 0 ? (
+          <CheckoutHandoffButton
+            className="inline-flex items-center gap-1.5 rounded-lg bg-brand-teal px-3 py-1.5 text-xs font-bold text-white transition hover:brightness-110 disabled:opacity-60"
+            endpoint="/api/v1/hostel-admin/billing/checkout"
+            hint={false}
+            label={`Pay ${rupees(invoice.outstanding)}`}
+            preparing="Setting up your plan payment"
+          />
+        ) : null}
+      </div>
       </div>
     </li>
   );
@@ -625,7 +679,11 @@ function InvoiceRow({ invoice }: { invoice: BillingInvoiceRow }) {
 
 function PaymentRow({ payment }: { payment: BillingPaymentRow }) {
   return (
-    <li className="rounded-xl border border-border bg-surface p-4">
+    <li className="flex gap-3.5 rounded-xl border border-border bg-surface p-4">
+      <RowMark tone="receipt">
+        <Receipt className="size-5" />
+      </RowMark>
+      <div className="min-w-0 flex-1">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-semibold text-foreground">
@@ -689,6 +747,7 @@ function PaymentRow({ payment }: { payment: BillingPaymentRow }) {
             No receipt until this payment settles
           </span>
         )}
+      </div>
       </div>
     </li>
   );

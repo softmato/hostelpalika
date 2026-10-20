@@ -1,11 +1,15 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import { Plus, RotateCw, Trash2 } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import { EmptyState, Input, LoadingRows, Panel } from "@/app/_components/shared-ui";
+import { useConfirm } from "@/app/_components/confirm-dialog";
 import { Chip, RowMark } from "@/app/_components/hostel-admin-page-ui";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import {
   Dialog,
   DialogContent,
@@ -59,12 +63,19 @@ type Credentials = { email: string; temporaryPassword: string };
 type Issued = { cookName: string; credentials: Credentials; rotated: boolean };
 
 function shortDate(value?: string) {
-  return value ? new Date(value).toLocaleDateString() : "";
+  return value ? formatHostelDate(value) : "";
 }
 
 export const HostelAdminCooksPanel = memo(function HostelAdminCooksPanel() {
   const invalidate = useInvalidateResources();
-  const resource = usePortalResource<{ cooks: CookAccount[]; portalEnabled: boolean }>(
+  const { confirm, confirmDialog } = useConfirm();
+  const resource = usePortalResource<{
+    cooks: CookAccount[];
+    expensesEnabled?: boolean;
+    fingerprintLock?: boolean;
+    portalEnabled: boolean;
+    stockEnabled?: boolean;
+  }>(
     hostelAdminEndpoints.cooks,
     { errorMessage: "Could not load the kitchen roster." },
   );
@@ -156,11 +167,16 @@ export const HostelAdminCooksPanel = memo(function HostelAdminCooksPanel() {
 
   const remove = useCallback(
     async (cook: CookAccount) => {
-      const confirmed = window.confirm(
-        cook.kind === "CREDENTIAL"
-          ? `Remove ${cook.name}? This sign-in is deleted and cannot be used again. Everything they already announced stays, filed under "previous cook".`
-          : `Remove ${cook.name}? They stop being a cook here; their own account is untouched. Everything they already announced stays, filed under "previous cook".`,
-      );
+      const confirmed = await confirm({
+        actionLabel: "Remove cook",
+        description:
+          cook.kind === "CREDENTIAL"
+            ? `This sign-in is deleted and cannot be used again. Everything they already announced stays, filed under "previous cook".`
+            : `They stop being a cook here; their own account is untouched. Everything they already announced stays, filed under "previous cook".`,
+        pin: true,
+        title: `Remove ${cook.name}?`,
+        tone: "destructive",
+      });
 
       if (!confirmed) {
         return;
@@ -188,7 +204,7 @@ export const HostelAdminCooksPanel = memo(function HostelAdminCooksPanel() {
         setBusy(false);
       }
     },
-    [invalidate],
+    [confirm, invalidate],
   );
 
   return (
@@ -203,7 +219,18 @@ export const HostelAdminCooksPanel = memo(function HostelAdminCooksPanel() {
     >
       {/* A cook can announce that a meal is ready and post photos of it —
           nothing else. No resident records, no money, no complaints. */}
+      {confirmDialog}
       <p className="mb-3 text-[12.5px] text-muted-foreground">They post that a meal is ready, with photos. Nothing else.</p>
+      {resource.data ? (
+        <CookPermissions
+          onChanged={() => invalidate(hostelAdminEndpoints.cooks)}
+          values={{
+            expenses: Boolean(resource.data.expensesEnabled),
+            fingerprint: Boolean(resource.data.fingerprintLock),
+            stock: resource.data.stockEnabled !== false,
+          }}
+        />
+      ) : null}
 
       {message && !adding ? (
         <div className="mb-3 rounded-xl border border-border bg-muted/40 px-3 py-2.5 text-[13.5px]">
@@ -399,3 +426,68 @@ export const HostelAdminCooksPanel = memo(function HostelAdminCooksPanel() {
     </Panel>
   );
 });
+
+/** The app's three cook switches — owner only on the server, like there. */
+const COOK_PERMISSIONS = [
+  {
+    description: "Rice, daal, oil taken from the store. The cook never sees prices.",
+    key: "stock",
+    label: "Cook enters stock used",
+    url: "/api/v1/hostel-admin/stock/cook",
+  },
+  {
+    description: "For vegetables, gas and market shopping. The cook sees only what they added.",
+    key: "expenses",
+    label: "Cook can add expenses",
+    url: "/api/v1/hostel-admin/expenses/cook",
+  },
+  {
+    description: "The app asks each cook for their finger every time it opens.",
+    key: "fingerprint",
+    label: "Cooks lock the app with a fingerprint",
+    url: "/api/v1/hostel-admin/cooks/fingerprint",
+  },
+] as const;
+
+function CookPermissions({
+  onChanged,
+  values,
+}: {
+  onChanged: () => void;
+  values: Record<(typeof COOK_PERMISSIONS)[number]["key"], boolean>;
+}) {
+  const [busy, setBusy] = useState("");
+  const [error, setError] = useState("");
+
+  return (
+    <div className="mb-4 rounded-2xl border border-border/70 px-3.5">
+      {COOK_PERMISSIONS.map((item) => (
+        <label className="flex cursor-pointer items-center gap-3 border-b border-border/70 py-3 last:border-b-0" key={item.key}>
+          <span className="min-w-0 flex-1">
+            <span className="block text-[13.5px] font-medium text-foreground">{item.label}</span>
+            <span className="block text-[12px] text-muted-foreground">{item.description}</span>
+          </span>
+          <Switch
+            checked={values[item.key]}
+            disabled={busy === item.key}
+            label={item.label}
+            onChange={async (enabled) => {
+              setBusy(item.key);
+              setError("");
+
+              try {
+                await browserApi(item.url, { body: JSON.stringify({ enabled }), method: "PUT" });
+                onChanged();
+              } catch (caught) {
+                setError(caught instanceof Error ? caught.message : "Could not change it.");
+              } finally {
+                setBusy("");
+              }
+            }}
+          />
+        </label>
+      ))}
+      {error ? <p className="pb-3 text-[12.5px] text-destructive">{error}</p> : null}
+    </div>
+  );
+}

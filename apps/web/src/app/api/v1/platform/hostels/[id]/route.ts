@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { requirePlatformPrincipal, requireSuperadminPrincipal } from "@/lib/api-auth";
 import { getPlatformHostel } from "@/modules/hostels/hostel.service";
 import { purgeArchivedHostel } from "@/modules/hostels/hostel-purge.service";
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { id } = await context.params;
     const result = await getPlatformHostel(id);
 
-    return successResponse(result, "Hostel application loaded");
+    return withEtag(request, successResponse(result, "Hostel application loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

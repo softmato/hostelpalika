@@ -1,13 +1,19 @@
 import * as Haptics from "expo-haptics";
-import { cssInterop } from "nativewind";
 import { Pressable, type PressableProps, type StyleProp, type ViewStyle } from "react-native";
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 
 import { MOTION } from "@/constants/motion";
 
+/*
+ * No `cssInterop` on this. `className` rides through Reanimated to the inner
+ * `Pressable`, which NativeWind already handles — the same path `Animated.View`
+ * takes. Registering the outer component made NativeWind flatten the classes
+ * and the animated style into one object; Reanimated saw `viewDescriptors` on
+ * it, swapped the whole thing for `{ scale: 1 }`, and every class was dropped
+ * (tiles lost `flex-1`, the primary Button lost its green and its label went
+ * white on white) — and re-attached the animation on every render.
+ */
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
-// Reanimated's own components get this from NativeWind; a created one has to ask.
-cssInterop(AnimatedPressable, { className: "style" });
 
 export type PressHaptic = "light" | "selection";
 

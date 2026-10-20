@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireTeamPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { checkTeamOwnerEmail } from "@/modules/hostels/hostel.service";
 
 export const runtime = "nodejs";
@@ -36,10 +37,10 @@ export async function GET(request: NextRequest) {
 
     const { status, usedBy } = await checkTeamOwnerEmail(email);
 
-    return successResponse(
+    return withEtag(request, successResponse(
       { available: status === "AVAILABLE" || status === "EXISTING_ACCOUNT", status, usedBy },
       "Email checked",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

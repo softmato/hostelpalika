@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   createExpense,
   getExpenseHome,
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     const query = expenseHomeQuerySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
     const actor = await resolveExpenseActor(principal, query.hostelId);
 
-    return successResponse(await getExpenseHome(actor, query.period), "Expenses loaded");
+    return withEtag(request, successResponse(await getExpenseHome(actor, query.period), "Expenses loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

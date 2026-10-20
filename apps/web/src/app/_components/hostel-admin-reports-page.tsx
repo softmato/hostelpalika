@@ -1,8 +1,10 @@
 "use client";
 
+import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import React, { useMemo, useState } from "react";
-import { AlertTriangle, BarChart3, BedDouble, Download, Percent, Wallet } from "@/components/icons";
-import { DropdownMenuItem, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
+import { AlertTriangle, BarChart3, BedDouble, Percent, Wallet } from "@/components/icons";
+import { ExportMenu } from "@/components/export-menu";
 import { EmptyState, LoadingRows, Panel, StatusBadge } from "@/app/_components/shared-ui";
 import { downloadFile } from "@/lib/downloads/downloader";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
@@ -22,15 +24,14 @@ import {
 } from "./hostel-admin-operations-analytics";
 import { Message } from "./portal-shared";
 import { PageHeader } from "./core-portal-shared";
-import { MoreMenu } from "./hostel-admin-page-ui";
 
 const HOSTEL_ADMIN_REPORT_EXPORT = "/api/v1/hostel-admin/reports/export";
 
 const REPORT_EXPORTS = [
-  { label: "Residents CSV", report: "residents" },
-  { label: "Collection CSV", report: "payments" },
-  { label: "Complaints CSV", report: "complaints" },
-  { label: "Occupancy CSV", report: "occupancy" },
+  { id: "payments", label: "Collection" },
+  { id: "residents", label: "Residents" },
+  { id: "complaints", label: "Complaints" },
+  { id: "occupancy", label: "Occupancy (today)" },
 ];
 
 type Overview = {
@@ -116,7 +117,7 @@ type Overview = {
 
 function shortDate(value: string | null) {
   return value
-    ? new Date(value).toLocaleDateString("en", { day: "numeric", month: "short" })
+    ? formatHostelDate(value)
     : "—";
 }
 
@@ -207,26 +208,19 @@ export const HostelAdminReportsPageContent = React.memo(
                 a page. `downloadFile` streams it with a live row in the global
                 toaster and keeps a failure on the page as a toast.
               */}
-              <MoreMenu label="Report exports">
-                <DropdownMenuLabel>Export</DropdownMenuLabel>
-                {REPORT_EXPORTS.map((entry) => (
-                  <DropdownMenuItem
-                    key={entry.report}
-                    onSelect={() =>
-                      void downloadFile({
-                        fileName: `${entry.report}-report.csv`,
-                        label: entry.label,
-                        mimeType: "text/csv",
-                        scope: "hostel-admin-reports",
-                        url: `${HOSTEL_ADMIN_REPORT_EXPORT}?report=${entry.report}`,
-                      })
-                    }
-                  >
-                    <Download className="size-4" />
-                    {entry.label}
-                  </DropdownMenuItem>
-                ))}
-              </MoreMenu>
+              <ExportMenu
+                choices={REPORT_EXPORTS}
+                onExport={({ choice, format, months }) =>
+                  void downloadFile({
+                    fileName: `${choice}-report.${format}`,
+                    label: REPORT_EXPORTS.find((entry) => entry.id === choice)?.label ?? "Report",
+                    mimeType: format === "pdf" ? "application/pdf" : "text/csv",
+                    scope: "hostel-admin-reports",
+                    url: `${HOSTEL_ADMIN_REPORT_EXPORT}?report=${choice}&format=${format}&months=${months}`,
+                  })
+                }
+                ranges
+              />
             </>
           }
           description="Every service in the hostel, from its live records."
@@ -475,7 +469,7 @@ export const HostelAdminReportsPageContent = React.memo(
               <StatTile label="Unique visitors" value={visibility.uniquePublicVisitors} />
             </div>
             <p className="mt-4 text-xs text-muted-foreground">
-              Generated {new Date(data.generatedAt).toLocaleString()}.
+              Generated {formatHostelDateTime(data.generatedAt)}.
             </p>
           </Panel>
         </div>

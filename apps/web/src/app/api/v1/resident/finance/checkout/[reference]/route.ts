@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireResidentPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getCheckoutStatus } from "@/modules/finance/gateway/intent.service";
 
 export const runtime = "nodejs";
@@ -24,10 +25,10 @@ export async function GET(
     const principal = await requireResidentPrincipal(request);
     const { reference } = await context.params;
 
-    return successResponse(
+    return withEtag(request, successResponse(
       await getCheckoutStatus(decodeURIComponent(reference), principal),
       "Checkout status",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireResidentPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   createComplaint,
   listResidentComplaints,
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireResidentPrincipal(request);
     const result = await listResidentComplaints(principal);
 
-    return successResponse(result, "Complaints loaded");
+    return withEtag(request, successResponse(result, "Complaints loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

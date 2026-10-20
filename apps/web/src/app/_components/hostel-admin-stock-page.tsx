@@ -1,5 +1,7 @@
 "use client";
 
+import { downloadTable, type TableFormat } from "@/lib/downloads/downloader";
+
 import {
   AlertTriangle,
   ChevronLeft,
@@ -120,38 +122,46 @@ function entryTitle(entry: StockEntryRow) {
   return `${KIND_LABEL[entry.kind]} · ${entry.hostelName}`;
 }
 
-/** The items table as a CSV download — opens in Excel or Sheets. */
-function downloadCsv(home: StockHome) {
-  const rows = [
-    ["Item", "Category", "Unit", "Opening", "In", "Used", "Wasted", "Sent", "Count +/-", "Closing", "Avg cost", "Value now"],
-    ...home.items
+/** The items table as a CSV or a PDF, in the screen's period. */
+function exportStock(home: StockHome, format: TableFormat) {
+  const sumOf = (item: StockItemRow, pick: (at: StockItemRow["at"][number]) => number) =>
+    item.at.reduce((total, at) => total + pick(at), 0);
+
+  void downloadTable(
+    format,
+    `stock-${home.period}`,
+    [
+      { key: "name", label: "Item" },
+      { key: "category", label: "Category" },
+      { key: "unit", label: "Unit" },
+      { key: "opening", label: "Opening" },
+      { key: "in", label: "In" },
+      { key: "used", label: "Used" },
+      { key: "wasted", label: "Wasted" },
+      { key: "sent", label: "Sent" },
+      { key: "adjusted", label: "Count +/-" },
+      { key: "closing", label: "Closing" },
+      { key: "avgCost", label: "Avg cost" },
+      { key: "value", label: "Value now" },
+    ],
+    home.items
       .filter((item) => item.active && item.kind === "STORE")
-      .map((item) => {
-        const sum = (pick: (at: StockItemRow["at"][number]) => number) => item.at.reduce((total, at) => total + pick(at), 0);
-
-        return [
-          item.name,
-          item.category,
-          item.unit.toLowerCase(),
-          sum((at) => at.opening),
-          sum((at) => at.in),
-          sum((at) => at.used),
-          sum((at) => at.wasted),
-          sum((at) => at.out),
-          sum((at) => at.adjusted),
-          sum((at) => at.closing),
-          item.avgCost ?? "",
-          item.value ?? "",
-        ].map(String);
-      }),
-  ];
-  const csv = rows.map((row) => row.map((cell) => (/[",\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell)).join(",")).join("\n");
-  const link = document.createElement("a");
-
-  link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv" }));
-  link.download = `stock-${home.period}.csv`;
-  link.click();
-  URL.revokeObjectURL(link.href);
+      .map((item) => ({
+        adjusted: sumOf(item, (at) => at.adjusted),
+        avgCost: item.avgCost ?? "",
+        category: item.category,
+        closing: sumOf(item, (at) => at.closing),
+        in: sumOf(item, (at) => at.in),
+        name: item.name,
+        opening: sumOf(item, (at) => at.opening),
+        sent: sumOf(item, (at) => at.out),
+        unit: item.unit.toLowerCase(),
+        used: sumOf(item, (at) => at.used),
+        value: item.value ?? "",
+        wasted: sumOf(item, (at) => at.wasted),
+      })),
+    { period: home.period, title: "Stock" },
+  );
 }
 
 function shortText(entry: StockEntryRow) {
@@ -298,9 +308,13 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
                 <Plus className="size-4" />
                 New item
               </DropdownMenuItem>
-              <DropdownMenuItem disabled={!home} onSelect={() => home && downloadCsv(home)}>
+              <DropdownMenuItem disabled={!home} onSelect={() => home && exportStock(home, "pdf")}>
                 <Download className="size-4" />
-                Export
+                Download PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem disabled={!home} onSelect={() => home && exportStock(home, "csv")}>
+                <Download className="size-4" />
+                Download CSV
               </DropdownMenuItem>
             </MoreMenu>
           </div>

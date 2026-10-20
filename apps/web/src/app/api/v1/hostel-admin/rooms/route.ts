@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability, requireHostelStaffPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
 import { addRooms, addRoomsSchema, getRoomLayout } from "@/modules/hostels/hostel-rooms.service";
 
@@ -13,7 +14,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireHostelStaffPrincipal(request);
     const hostelId = resolveAdminHostelId(principal, request.nextUrl.searchParams.get("hostelId") ?? undefined);
 
-    return successResponse(await getRoomLayout(hostelId), "Rooms");
+    return withEtag(request, successResponse(await getRoomLayout(hostelId), "Rooms"));
   } catch (error) {
     return handleRouteError(error);
   }

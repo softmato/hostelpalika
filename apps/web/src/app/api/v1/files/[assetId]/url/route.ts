@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { loadApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, errorResponse, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { connectToDatabase } from "@/lib/db";
 import { HOSTEL_STAFF_ROLES, PLATFORM_ROLES } from "@/lib/permissions";
 import { getPresignedReadUrl } from "@/lib/r2";
@@ -230,7 +231,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     }
 
     if (asJson) {
-      return successResponse({ url: targetUrl }, "File URL resolved");
+      return withEtag(request, successResponse({ url: targetUrl }, "File URL resolved"));
     }
 
     const redirect = NextResponse.redirect(targetUrl, 302);

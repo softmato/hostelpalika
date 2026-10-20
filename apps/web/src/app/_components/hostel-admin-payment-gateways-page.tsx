@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import { AlertTriangle, KeyRound, Pencil, ShieldCheck, Trash2, Zap } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
@@ -154,7 +156,7 @@ function SecretState({ secret }: { secret: SecretView }) {
       <KeyRound aria-hidden="true" className="size-3.5" />
       Key installed · {secret.fingerprint}
       {secret.rotatedAt
-        ? ` · replaced ${new Date(secret.rotatedAt).toLocaleDateString()}`
+        ? ` · replaced ${formatHostelDate(secret.rotatedAt)}`
         : ""}
     </p>
   );

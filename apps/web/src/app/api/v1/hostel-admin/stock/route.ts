@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { createStockEntry, getStockHome, resolveStockActor } from "@/modules/stock/stock.service";
 import { createStockEntrySchema, stockHomeQuerySchema } from "@/modules/stock/stock.validation";
 
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireHostelCapability(request, "manageStock");
     const query = stockHomeQuerySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
 
-    return successResponse(await getStockHome(await resolveStockActor(principal, query.scope === "all"), query.period), "Stock loaded");
+    return withEtag(request, successResponse(await getStockHome(await resolveStockActor(principal, query.scope === "all"), query.period), "Stock loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

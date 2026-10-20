@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { loadApiPrincipal, requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   deleteOwnPost,
   getCommunityPost,
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const principal = await loadApiPrincipal(request);
     const result = await getCommunityPost(postId, principal);
 
-    return successResponse(result, "Post loaded");
+    return withEtag(request, successResponse(result, "Post loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

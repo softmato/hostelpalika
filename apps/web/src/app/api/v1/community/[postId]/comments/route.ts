@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { loadApiPrincipal, requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { commentOnPost, listPostComments } from "@/modules/community/community.service";
 import { communityCommentCreateSchema } from "@/modules/community/community.validation";
 import { paginationQuerySchema } from "@/lib/pagination";
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     );
     const result = await listPostComments(postId, principal, query);
 
-    return successResponse(result, "Comments loaded");
+    return withEtag(request, successResponse(result, "Comments loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

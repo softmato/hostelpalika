@@ -1,10 +1,12 @@
 "use client";
-import { downloadCsv } from "@/lib/downloads/downloader";
+
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+import { ExportMenu } from "@/components/export-menu";
+import { downloadTable } from "@/lib/downloads/downloader";
 
 import {
   ArrowDownUp,
   BadgeDollarSign,
-  Download,
   Hash,
   TrendingUp,
   Wallet,
@@ -18,7 +20,6 @@ import {
   ListPager,
   MetricCard,
   PortalPageHeader,
-  RoleButton,
   SearchField,
   SoftBadge,
   TabBar,
@@ -81,7 +82,7 @@ function settlementOf(payment: PlatformPayment) {
 function formatDate(value: string | null) {
   if (!value) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
+  return Number.isNaN(date.getTime()) ? "—" : formatHostelDate(date);
 }
 
 export const PlatformTransactionsPageContent = memo(
@@ -149,9 +150,12 @@ export const PlatformTransactionsPageContent = memo(
       <div className="mx-auto max-w-[1448px] space-y-4">
         <PortalPageHeader
           actions={
-            <RoleButton
+            <ExportMenu
               disabled={rows.length === 0}
-              onClick={() => downloadCsv("platform-transactions", [
+              onExport={({ format }) =>
+                void downloadTable(
+                  format,
+                  "platform-transactions", [
                   { key: "hostelName", label: "Hostel" },
                   { key: "month", label: "Period" },
                   { key: "dueAmount", label: "Due" },
@@ -159,13 +163,10 @@ export const PlatformTransactionsPageContent = memo(
                   { key: "status", label: "Status" },
                   { key: "dueDate", label: "Due date" },
                   { key: "id", label: "Reference" },
-                ], rows)}
-              tone="team"
-              variant="outline"
-            >
-              <Download className="size-3.5" />
-              Export CSV
-            </RoleButton>
+                ], rows,
+                )
+              }
+            />
           }
           description="Every money movement, its reference and whether it is settled."
           title="Transactions"

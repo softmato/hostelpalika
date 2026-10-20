@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelAdminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { billingHostelId } from "@/modules/billing/billing-hostel";
 import {
   branchRequestSchema,
@@ -25,10 +26,10 @@ export async function GET(request: NextRequest) {
   try {
     const principal = await requireHostelAdminPrincipal(request);
 
-    return successResponse(
+    return withEtag(request, successResponse(
       await listBranches(await mainHostelOf(principal.hostelIds[0]), principal),
       "Branches loaded",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

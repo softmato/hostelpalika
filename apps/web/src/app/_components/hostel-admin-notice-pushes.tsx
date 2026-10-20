@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import { BellRing, CalendarDays, Clock3, Repeat, Send, Trash2, Zap } from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
@@ -86,14 +88,7 @@ function nepalToday() {
 }
 
 function when(iso: string) {
-  return new Date(iso).toLocaleString("en-GB", {
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    month: "short",
-    timeZone: "Asia/Kathmandu",
-    weekday: "short",
-  });
+  return formatHostelDateTime(iso);
 }
 
 function schedule(push: NoticePush) {

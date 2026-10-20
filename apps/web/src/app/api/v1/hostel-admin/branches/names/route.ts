@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelStaffPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getBranchNames } from "@/modules/hostels/hostel-branch.service";
 
 export const runtime = "nodejs";
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     const principal = await requireHostelStaffPrincipal(request);
 
-    return successResponse(await getBranchNames(principal), "Branch names loaded");
+    return withEtag(request, successResponse(await getBranchNames(principal), "Branch names loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

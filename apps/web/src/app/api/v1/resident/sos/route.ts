@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireResidentPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { listResidentSOSAlerts, triggerSOS } from "@/modules/safety/safety.service";
 import { sosCreateSchema } from "@/modules/safety/safety.validation";
 
@@ -31,7 +32,7 @@ export async function GET(request: NextRequest) {
   try {
     const principal = await requireResidentPrincipal(request);
 
-    return successResponse(await listResidentSOSAlerts(principal), "SOS alerts");
+    return withEtag(request, successResponse(await listResidentSOSAlerts(principal), "SOS alerts"));
   } catch (error) {
     return handleRouteError(error);
   }

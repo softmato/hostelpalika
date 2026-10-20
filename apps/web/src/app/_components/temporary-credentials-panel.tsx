@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import { Copy, KeyRound, ShieldAlert } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
@@ -73,7 +75,7 @@ const STATUS_STYLES: Record<TemporaryCredential["status"], string> = {
 };
 
 function formatMoment(value: string | null) {
-  return value ? new Date(value).toLocaleString() : "—";
+  return value ? formatHostelDateTime(value) : "—";
 }
 
 /** One-shot clipboard copy that says so, since the password is never shown again. */

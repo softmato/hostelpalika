@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { assertApiRoles, requirePlatformPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { Role } from "@/lib/roles";
 import { listAccountDeletionRequests } from "@/modules/users/account-deletion.service";
 import { accountDeletionListQuerySchema } from "@/modules/users/account-deletion.validation";
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest) {
     );
     const result = await listAccountDeletionRequests(query);
 
-    return successResponse(result, "Account deletion requests loaded");
+    return withEtag(request, successResponse(result, "Account deletion requests loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireSuperadminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getOfferProgramOverview } from "@/modules/offer-program/offer-program.service";
 
 export const runtime = "nodejs";
@@ -14,10 +15,10 @@ export async function GET(request: NextRequest) {
   try {
     await requireSuperadminPrincipal(request);
 
-    return successResponse(
+    return withEtag(request, successResponse(
       await getOfferProgramOverview(request.nextUrl.searchParams.get("quarter")),
       "Offer Program",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelAdminPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getPlanPaymentInstructions } from "@/modules/billing/subscription-claim.service";
 
 export const runtime = "nodejs";
@@ -28,7 +29,7 @@ export async function GET(request: NextRequest) {
     const hostelId = principal.hostelIds?.[0];
 
     if (!hostelId) {
-      return successResponse(
+      return withEtag(request, successResponse(
         {
           instructions: {
             amountDue: 0,
@@ -41,13 +42,13 @@ export async function GET(request: NextRequest) {
           },
         },
         "No hostel in scope",
-      );
+      ));
     }
 
-    return successResponse(
+    return withEtag(request, successResponse(
       { instructions: await getPlanPaymentInstructions(hostelId) },
       "Payment instructions loaded",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

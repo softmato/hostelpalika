@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import {
   getPaymentProfile,
   updatePaymentProfile,
@@ -26,10 +27,10 @@ export async function GET(request: NextRequest) {
       new URL(request.url).searchParams.get("hostelId") ?? undefined,
     );
 
-    return successResponse(
+    return withEtag(request, successResponse(
       { profile: await getPaymentProfile(hostelId) },
       "Payment profile",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

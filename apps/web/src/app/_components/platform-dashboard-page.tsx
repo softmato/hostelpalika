@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import {
   Building2,
   CalendarRange,
@@ -117,7 +119,7 @@ function shortDate(value: string | null) {
   const date = new Date(value);
   return Number.isNaN(date.getTime())
     ? "—"
-    : date.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+    : formatHostelDate(date);
 }
 
 function relativeTime(value: string | null) {
@@ -144,7 +146,7 @@ function windowRangeLabel(windowDays: number) {
   const end = new Date();
   const start = new Date(end.getTime() - windowDays * 24 * 60 * 60 * 1000);
   const format = (date: Date) =>
-    date.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+    formatHostelDate(date);
 
   return `${format(start)} – ${format(end)}, ${end.getFullYear()}`;
 }

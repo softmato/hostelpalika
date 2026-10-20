@@ -1,10 +1,12 @@
 "use client";
-import { downloadCsv } from "@/lib/downloads/downloader";
+
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+import { ExportMenu } from "@/components/export-menu";
+import { downloadTable } from "@/lib/downloads/downloader";
 
 import {
   AlertTriangle,
   Clock3,
-  Download,
   ExternalLink,
   FileText,
   ReceiptText,
@@ -87,7 +89,7 @@ const PAGE_SIZE = 10;
 function formatDate(value: string | null) {
   if (!value) return "—";
   const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? "—" : date.toLocaleDateString();
+  return Number.isNaN(date.getTime()) ? "—" : formatHostelDate(date);
 }
 
 function relativeTime(value: string | null) {
@@ -155,9 +157,12 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
       <PortalPageHeader
         actions={
           <>
-            <RoleButton
+            <ExportMenu
               disabled={rows.length === 0}
-              onClick={() => downloadCsv("platform-payments", [
+              onExport={({ format }) =>
+                void downloadTable(
+                  format,
+                  "platform-payments", [
                   { key: "hostelName", label: "Hostel" },
                   { key: "month", label: "Period" },
                   { key: "dueAmount", label: "Due" },
@@ -165,13 +170,10 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
                   { key: "status", label: "Status" },
                   { key: "dueDate", label: "Due date" },
                   { key: "id", label: "Reference" },
-                ], rows)}
-              tone="team"
-              variant="outline"
-            >
-              <Download className="size-3.5" />
-              Export
-            </RoleButton>
+                ], rows,
+                )
+              }
+            />
             <RoleButton asChild tone="team">
               <Link href="/platform/transactions">
                 <ReceiptText className="size-3.5" />

@@ -2,7 +2,15 @@
 
 import { ArrowUpRight, CornerDownLeft, Search } from "@/components/icons";
 import { usePathname, useRouter } from "next/navigation";
-import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 
 import { fieldSlug, type PortalSearchEntry } from "@/lib/portal-nav";
 import { cn } from "@/lib/utils";
@@ -84,6 +92,11 @@ function scoreEntry(entry: PortalSearchEntry, query: string, order: number) {
 const INPUT = "input, select, textarea";
 const CONTROL = `${INPUT}, button, [role=switch]`;
 const FLASH = ["rounded-md", "ring-2", "ring-role-platform/40", "ring-offset-4", "ring-offset-background"];
+
+// The shortcut hint names the key the reader actually has. The server guesses Mac.
+const neverChanges = () => () => {};
+const isMacSnapshot = () => /Mac|iPhone|iPad/.test(navigator.userAgent);
+const isMacServerSnapshot = () => true;
 
 function pageOf(entry: PortalSearchEntry) {
   return entry.href.split("?")[0];
@@ -172,6 +185,7 @@ export function PortalSearch({
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const styles = toneStyles[tone];
+  const isMac = useSyncExternalStore(neverChanges, isMacSnapshot, isMacServerSnapshot);
 
   const normalizedQuery = normalize(query);
 
@@ -215,10 +229,21 @@ export function PortalSearch({
     }
 
     function handleShortcut(event: KeyboardEvent) {
-      if (event.key.toLowerCase() === "k" && (event.metaKey || event.ctrlKey)) {
+      const input = inputRef.current;
+      // The shell mounts one field per breakpoint; only the visible one answers.
+      if (!input?.getClientRects().length) return;
+
+      // Browser autofill dispatches keydown events with no `key`.
+      const key = event.key?.toLowerCase();
+      const typing =
+        event.target instanceof HTMLElement &&
+        (event.target.isContentEditable || event.target.matches(INPUT));
+      const modified = event.metaKey || event.ctrlKey || event.altKey;
+
+      if ((key === "k" && (event.metaKey || event.ctrlKey)) || (key === "/" && !modified && !typing)) {
         event.preventDefault();
-        inputRef.current?.focus();
-        inputRef.current?.select();
+        input.focus();
+        input.select();
         setOpen(true);
       }
     }
@@ -243,10 +268,19 @@ export function PortalSearch({
   );
 
   return (
-    <div className={cn("relative min-w-0 flex-1", className)} ref={containerRef}>
+    // Open, the field rises over the rest of the header (its stacking context)
+    // and everything else sits behind the blur layer.
+    <div className={cn("relative min-w-0 flex-1", open && "z-50", className)} ref={containerRef}>
+      {open ? (
+        <div
+          aria-hidden
+          className="fixed inset-0 animate-in bg-black/30 duration-200 fade-in-0 supports-backdrop-filter:backdrop-blur-sm"
+          onMouseDown={() => setOpen(false)}
+        />
+      ) : null}
       <div
         className={cn(
-          "flex h-9 items-center rounded-full border border-slate-200 bg-slate-50/80 px-3 shadow-sm transition focus-within:ring-2 dark:border-border dark:bg-muted/30",
+          "relative flex h-10.5 items-center rounded-xl border border-slate-200 bg-slate-50/80 px-3 shadow-sm transition focus-within:ring-2 dark:border-border dark:bg-muted/30",
           styles.focus,
         )}
       >
@@ -297,7 +331,7 @@ export function PortalSearch({
           value={query}
         />
         <kbd className="ml-2 hidden shrink-0 rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-400 sm:inline-block dark:border-border dark:bg-card">
-          ⌘K
+          {isMac ? "⌘K" : "Ctrl K"}
         </kbd>
       </div>
 

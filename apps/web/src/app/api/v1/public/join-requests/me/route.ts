@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { getMyJoinRequest } from "@/modules/residents/my-join-request";
 
 export const runtime = "nodejs";
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
   try {
     const principal = await requireApiPrincipal(request);
 
-    return successResponse(await getMyJoinRequest(principal.userId), "Join request loaded");
+    return withEtag(request, successResponse(await getMyJoinRequest(principal.userId), "Join request loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

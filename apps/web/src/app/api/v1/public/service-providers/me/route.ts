@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { getOwnServiceProviderApplication } from "@/modules/service-providers/service-provider.service";
 
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireApiPrincipal(request);
     const result = await getOwnServiceProviderApplication(principal.userId);
 
-    return successResponse(result, "Service provider application loaded");
+    return withEtag(request, successResponse(result, "Service provider application loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

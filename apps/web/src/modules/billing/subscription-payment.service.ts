@@ -33,6 +33,7 @@ import { HostelSubscriptionModel } from "@hostel/db/models/HostelSubscription";
 import { ReceiptCounterModel } from "@hostel/db/models/ReceiptCounter";
 import { SubscriptionInvoiceModel } from "@hostel/db/models/SubscriptionInvoice";
 import { SubscriptionPaymentModel } from "@hostel/db/models/SubscriptionPayment";
+import { revalidatePublicPages } from "@/lib/revalidate-public";
 
 /**
  * Taking money for a plan, and what happens the moment it lands.
@@ -857,4 +858,5 @@ async function publishForSubscription(hostelId: Types.ObjectId, actorId?: string
       },
     },
   );
+  revalidatePublicPages();
 }

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { loadApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 import {
   admissionFormInputSchema,
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
 
     const { token } = await context.params;
 
-    return successResponse(await getAdmissionFormPage(token), "Form loaded");
+    return withEtag(request, successResponse(await getAdmissionFormPage(token), "Form loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

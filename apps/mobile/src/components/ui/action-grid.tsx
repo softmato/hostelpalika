@@ -106,6 +106,7 @@ export function ActionCell({
   icon,
   image,
   label,
+  onAccent = false,
   onPress,
   onPressIn,
   selected,
@@ -132,6 +133,12 @@ export function ActionCell({
    */
   image?: ImageSourcePropType;
   label: string;
+  /**
+   * Drawn straight on painted ground (the public Home's gradient) rather than
+   * in a white card: a frosted tile and a white label, the same treatment as
+   * `IconButton tone="onAccent"`. Pass a white `glyph` with it.
+   */
+  onAccent?: boolean;
   onPress: () => void;
   /**
    * Touch-down, before the press resolves.
@@ -181,7 +188,7 @@ export function ActionCell({
       <View
         ref={tile}
         className={`h-12 w-12 items-center justify-center rounded-2xl ${
-          selected ? "bg-primary" : ACTION_TONES[tone]
+          selected ? "bg-primary" : onAccent ? "border border-white/25 bg-white/15" : ACTION_TONES[tone]
         }`}
       >
         {image ? (
@@ -222,7 +229,9 @@ export function ActionCell({
         every cell in the row the same height.
       */}
       <Text
-        className={`text-center ${selected ? "font-bold text-primary" : "font-medium text-foreground"}`}
+        className={`text-center ${
+          selected ? "font-bold text-primary" : onAccent ? "font-semibold text-white" : "font-medium text-foreground"
+        }`}
         numberOfLines={2}
         style={{ fontSize: 11, lineHeight: 14 }}
       >

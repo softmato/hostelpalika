@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { browserApi } from "@/lib/browser-api";
 import { cn } from "@/lib/utils";
 import type { UnpublishedPrepayment } from "@/modules/team/team-prepayment.service";
-import { formatBsAdDate } from "@hostel/shared/calendar/bs";
+import { formatBsAdDate, formatHostelDate } from "@hostel/shared/calendar/bs";
 import { FactChip, ShareBar, titleCase } from "./daily-portal-ui";
 
 /**
@@ -105,7 +105,7 @@ function rupees(amount: number) {
 function statusLabel(row: Registration) {
   if (row.subscriptionStatus === "PAST_DUE") {
     return row.dueBy
-      ? `Due ${new Date(row.dueBy).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`
+      ? `Due ${formatHostelDate(row.dueBy)}`
       : "Past due";
   }
 
@@ -194,7 +194,7 @@ function EarningsRow({ entries, wallet }: { entries: WalletEntry[]; wallet: Wall
                     ? entry.hostelName || "Commission"
                     : `Paid out${entry.method ? ` · ${entry.method}` : ""}`}
                   {" · "}
-                  {new Date(entry.at).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}
+                  {formatHostelDate(entry.at)}
                 </span>
                 <span
                   className={cn(
@@ -374,7 +374,7 @@ export function TeamDeskPage() {
                       <p className="truncate text-[12px] text-muted-foreground">
                         {[row.area, row.city].filter(Boolean).join(", ")}
                         {row.registeredAt
-                          ? ` · ${new Date(row.registeredAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`
+                          ? ` · ${formatHostelDate(row.registeredAt)}`
                           : ""}
                       </p>
                     </div>

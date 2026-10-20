@@ -1,11 +1,14 @@
 import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Pressable, ScrollView, useWindowDimensions, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 
 import { DiscoveryHeader } from "@/components/discovery-header";
 import { HostelCard } from "@/components/hostel-card";
 import { HostelShowcase } from "@/components/hostel-showcase";
+import { usePortalPaint } from "@/components/portal-shared";
+import { ACTION_COLUMNS, ActionCell, ActionRow, type ActionTile, ActionTiles } from "@/components/ui/action-grid";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
@@ -19,6 +22,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { useNearby } from "@/hooks/use-nearby";
 import { useResource } from "@/hooks/use-resource";
 import { useSavedHostels } from "@/hooks/use-saved";
+import { useSiteConfig } from "@/hooks/use-site-config";
 import { API_BASE_URL } from "@/lib/api";
 import { cityImageUrl } from "@/lib/city-images";
 import { sortByDistance } from "@/lib/geo";
@@ -240,11 +244,15 @@ export function PublicHome({ browseHref, insideTabs = false }: PublicHomeProps) 
           query={query}
         />
       }
+      // No gutter under the header: the green has to run on into the shortcuts.
+      bleedTop
       insideTabs={insideTabs}
       onRefresh={hostels.refresh}
       refreshing={hostels.refreshing}
       scroll
     >
+      <HomeShortcuts />
+
       <View className="gap-7 pt-1">
         <MyJoinRequestRow />
 
@@ -297,6 +305,153 @@ export function PublicHome({ browseHref, insideTabs = false }: PublicHomeProps) 
         )}
       </View>
     </Screen>
+  );
+}
+
+/**
+ * The painted top of the page, and the doors that used to live only in the
+ * Profile menu.
+ *
+ * The header's green runs on down behind this block and fades into the page
+ * (Revolut's home). The first four doors sit on the paint as frosted tiles;
+ * the rest ride a white `ActionTiles` card across the fade (Klarna's), which is
+ * also the house rule of something straddling the bottom of an accent block.
+ *
+ * The site's feature flags drop a door exactly as they drop the web's link, so
+ * a surface the platform owner switched off is not advertised here either. The
+ * split is by position, so a dropped door just pulls the next one up.
+ */
+function HomeShortcuts() {
+  const { colors } = useAppTheme();
+  const paint = usePortalPaint();
+  const account = useAppSelector((state) => state.auth.account);
+  const { features } = useSiteConfig().config;
+
+  const offered: (ActionTile | null)[] = [
+    features.publicRegistration
+      ? {
+          glyph: colors.primary,
+          icon: "business",
+          key: "register",
+          label: "Register hostel",
+          onPress: () =>
+            router.push(
+              account
+                ? "/register-hostel"
+                : { params: { next: "/register-hostel" }, pathname: "/(auth)/login" },
+            ),
+          tone: "brand",
+        }
+      : null,
+    features.serviceProviderSignup
+      ? {
+          glyph: colors.primary,
+          icon: "construct",
+          key: "provider",
+          label: "Service provider",
+          onPress: () => router.push("/service-providers"),
+          tone: "brand",
+        }
+      : null,
+    {
+      glyph: colors.primary,
+      icon: "bookmark",
+      key: "saved",
+      label: "Saved",
+      onPress: () => router.push("/saved"),
+      tone: "brand",
+    },
+    {
+      glyph: colors.primary,
+      icon: "sparkles",
+      key: "offers",
+      label: "Offer Program",
+      onPress: () => router.push("/offer-program"),
+      tone: "brand",
+    },
+    account
+      ? {
+          glyph: colors.warning,
+          icon: "calendar",
+          key: "bookings",
+          label: "My bookings",
+          onPress: () => router.push("/bookings"),
+          tone: "warning",
+        }
+      : {
+          glyph: colors.primary,
+          icon: "log-in",
+          key: "sign-in",
+          label: "Sign in",
+          onPress: () => router.push("/(auth)/login"),
+          tone: "brand",
+        },
+    features.inquiries
+      ? {
+          glyph: colors.success,
+          icon: "chatbubble-ellipses",
+          key: "inquiry",
+          label: "Send inquiry",
+          onPress: () => router.push("/inquiry"),
+          tone: "success",
+        }
+      : null,
+    features.compare
+      ? {
+          glyph: colors.warning,
+          icon: "git-compare",
+          key: "compare",
+          label: "Compare",
+          onPress: () => router.push("/(browse)/compare"),
+          tone: "warning",
+        }
+      : null,
+    features.publicRegistration
+      ? {
+          glyph: colors.primary,
+          icon: "pricetags",
+          key: "pricing",
+          label: "Pricing",
+          onPress: () => router.push("/pricing"),
+          tone: "brand",
+        }
+      : null,
+  ];
+  const doors = offered.filter((door): door is ActionTile => door !== null);
+
+  const lead = doors.slice(0, ACTION_COLUMNS);
+  const rest = doors.slice(ACTION_COLUMNS);
+
+  return (
+    <View style={{ marginHorizontal: -PAGE_INSET / 2 }}>
+      {/* Solid for the tile row, then down to the page. Two opaque stops: see the map button on `transparent`. */}
+      <LinearGradient
+        colors={[paint.from, paint.from, colors.background]}
+        locations={[0, 0.42, 1]}
+        style={StyleSheet.absoluteFill}
+      />
+
+      <View className="gap-6 px-5 pb-4 pt-3">
+        <ActionRow>
+          {lead.map((door) => (
+            <ActionCell
+              glyph="#FFFFFF"
+              icon={door.icon}
+              key={door.key}
+              label={door.label}
+              onAccent
+              onPress={door.onPress}
+              tone={door.tone}
+            />
+          ))}
+          {Array.from({ length: ACTION_COLUMNS - lead.length }, (_, index) => (
+            <View className="flex-1" key={`gap-${index}`} />
+          ))}
+        </ActionRow>
+
+        {rest.length > 0 ? <ActionTiles tiles={rest} /> : null}
+      </View>
+    </View>
   );
 }
 

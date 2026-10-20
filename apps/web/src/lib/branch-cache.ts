@@ -1,3 +1,21 @@
+/**
+ * Pages the Overall switcher scope renders. Lives here, not in the client
+ * page, because the server route reads it — a "use client" module only hands
+ * a server component a reference, never the array.
+ */
+export const OVERALL_SCREENS = [
+  "dashboard",
+  "residents",
+  "staff",
+  "payments",
+  "statement",
+  "expenses",
+  "daily",
+  "reports",
+] as const;
+
+export type OverallScreen = (typeof OVERALL_SCREENS)[number];
+
 /** Branch keys and cache lifetime are shared by reads and prefetches. */
 export const BRANCH_STALE_MS = 2 * 60_000;
 export const BRANCH_GC_MS = 15 * 60_000;

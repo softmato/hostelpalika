@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { loadApiPrincipal, requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { rateLimitPublicForm } from "@/lib/rate-limit";
 import { joinRequestSchema } from "@/modules/residents/existing-residents.validation";
 import { getJoinPage, sendJoinRequest } from "@/modules/residents/resident-join.service";
@@ -25,7 +26,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const { token } = await context.params;
     const principal = await loadApiPrincipal(request);
 
-    return successResponse(await getJoinPage(token, principal?.userId ?? null), "Join link loaded");
+    return withEtag(request, successResponse(await getJoinPage(token, principal?.userId ?? null), "Join link loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

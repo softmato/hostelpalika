@@ -15,6 +15,7 @@ import {
   rateForRoomType,
   sameRoomType,
 } from "@/modules/finance/fee-schedule.service";
+import { revalidatePublicPages } from "@/lib/revalidate-public";
 
 /**
  * Whether a hostel takes short stays, its minimum nights and a daily rate per
@@ -183,6 +184,7 @@ export async function saveShortStaySettings(
     metadata: shortStays,
   }).catch(() => undefined);
 
+  revalidatePublicPages();
   return getShortStaySettings(hostelId);
 }
 

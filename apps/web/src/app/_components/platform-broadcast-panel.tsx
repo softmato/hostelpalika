@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import { Megaphone } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
@@ -44,12 +46,7 @@ const HOSTELS_ENDPOINT = "/api/v1/platform/hostels";
 
 function shortDateTime(value?: string) {
   return value
-    ? new Date(value).toLocaleString("en", {
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        month: "short",
-      })
+    ? formatHostelDateTime(value)
     : "—";
 }
 

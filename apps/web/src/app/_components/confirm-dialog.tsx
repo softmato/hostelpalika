@@ -12,12 +12,19 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { browserApi } from "@/lib/browser-api";
 
 export type ConfirmOptions = {
   /** Label on the button that goes ahead. Say what will happen, not "OK". */
   actionLabel?: string;
   cancelLabel?: string;
   description: string;
+  /**
+   * Ask for the account PIN before going ahead. For the serious removals —
+   * a resident, a staff member, a room — never for an everyday undoable one.
+   * An account with no PIN (or a temporary login) just confirms.
+   */
+  pin?: boolean;
   /** `destructive` for anything that removes, revokes or cannot be undone. */
   tone?: "default" | "destructive";
   title: string;
@@ -52,8 +59,24 @@ export function useConfirm() {
   // The resolver lives only in a ref — it is not rendered, and keeping it out
   // of state means nothing is written to a ref during render.
   const resolverRef = useRef<Resolver | null>(null);
+  // "loading" while we learn whether the account has a PIN at all.
+  const [pinStep, setPinStep] = useState<"off" | "loading" | "ask">("off");
+  const [pin, setPin] = useState("");
+  const [pinError, setPinError] = useState("");
+  const [checking, setChecking] = useState(false);
 
   const confirm = useCallback((options: ConfirmOptions) => {
+    setPin("");
+    setPinError("");
+    setPinStep(options.pin ? "loading" : "off");
+
+    if (options.pin) {
+      browserApi<{ user: { hasLockPin?: boolean; viaTemporaryCredential?: boolean } }>("/api/v1/auth/me").then(
+        ({ user }) => setPinStep(user.hasLockPin && !user.viaTemporaryCredential ? "ask" : "off"),
+        () => setPinStep("ask"),
+      );
+    }
+
     return new Promise<boolean>((resolve) => {
       resolverRef.current = resolve;
       setPending(options);
@@ -74,6 +97,23 @@ export function useConfirm() {
     setPending(null);
   }, []);
 
+  const verifyPin = useCallback(async () => {
+    if (pin.length !== 4 || checking) return;
+
+    setChecking(true);
+    setPinError("");
+
+    try {
+      await browserApi("/api/v1/auth/lock-pin/verify", { body: JSON.stringify({ pin }), method: "POST" });
+      settle(true);
+    } catch (caught) {
+      setPin("");
+      setPinError(caught instanceof Error ? caught.message : "Wrong PIN.");
+    } finally {
+      setChecking(false);
+    }
+  }, [checking, pin, settle]);
+
   const confirmDialog = (
     <AlertDialog
       onOpenChange={(open) => {
@@ -89,15 +129,56 @@ export function useConfirm() {
           <AlertDialogTitle>{pending?.title}</AlertDialogTitle>
           <AlertDialogDescription>{pending?.description}</AlertDialogDescription>
         </AlertDialogHeader>
+        {pinStep === "ask" ? (
+          <label className="grid gap-2 text-sm font-semibold text-foreground">
+            Enter your PIN to confirm
+            <input
+              // Not type="password": browsers ignore autocomplete="off" there and
+              // fill the saved account password. A text field masked with CSS
+              // keeps password managers out.
+              autoComplete="one-time-code"
+              autoFocus
+              className="h-12 rounded-xl border border-border bg-background text-center text-xl tracking-[0.6em] outline-none [-webkit-text-security:disc] focus:border-primary"
+              data-1p-ignore
+              data-bwignore
+              data-lpignore="true"
+              name="confirm-pin"
+              inputMode="numeric"
+              maxLength={4}
+              onChange={(event) => {
+                setPinError("");
+                setPin(event.target.value.replace(/\D/g, "").slice(0, 4));
+              }}
+              onKeyDown={(event) => {
+                if (event.key === "Enter") {
+                  event.preventDefault();
+                  void verifyPin();
+                }
+              }}
+              type="text"
+              value={pin}
+            />
+            {pinError ? <span className="text-xs font-medium text-destructive">{pinError}</span> : null}
+          </label>
+        ) : null}
         <AlertDialogFooter>
           <AlertDialogCancel onClick={() => settle(false)}>
             {pending?.cancelLabel ?? "Cancel"}
           </AlertDialogCancel>
           <AlertDialogAction
-            onClick={() => settle(true)}
+            disabled={pinStep === "loading" || (pinStep === "ask" && (pin.length !== 4 || checking))}
+            onClick={(event) => {
+              if (pinStep === "off") {
+                settle(true);
+                return;
+              }
+              // Stay open: the PIN is checked first, and a wrong one keeps the dialog.
+              event.preventDefault();
+              void verifyPin();
+            }}
             variant={pending?.tone === "destructive" ? "destructive" : "default"}
           >
-            {pending?.actionLabel ?? "Confirm"}
+            {checking ? "Checking…" : (pending?.actionLabel ?? "Confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

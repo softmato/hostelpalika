@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { readPlatformAdminInvitation } from "@/modules/users/platform-admin-invite.service";
 
 export const runtime = "nodejs";
@@ -19,10 +20,10 @@ export async function GET(request: NextRequest) {
   try {
     const token = request.nextUrl.searchParams.get("token")?.trim() ?? "";
 
-    return successResponse(
+    return withEtag(request, successResponse(
       await readPlatformAdminInvitation(token),
       "Invitation loaded",
-    );
+    ));
   } catch (error) {
     return handleRouteError(error);
   }

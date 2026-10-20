@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDate } from "@hostel/shared/calendar/bs";
+
 import {
   BadgeCheck,
   CircleSlash,
@@ -103,7 +105,7 @@ function humanizeDocumentType(documentType: string) {
 }
 
 function formatDate(value?: string) {
-  return value ? new Date(value).toLocaleDateString() : "—";
+  return value ? formatHostelDate(value) : "—";
 }
 
 /** All trades a provider works in, tolerating pre-multi-trade records. */

@@ -1,5 +1,7 @@
 "use client";
 
+import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+
 import { AlertTriangle, CheckCircle2, Clock, Inbox, MessageSquareWarning, Pencil, Wrench } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
@@ -263,7 +265,7 @@ export const HostelAdminComplaintsPage = memo(function HostelAdminComplaintsPage
                 <Chip glyph="pricetag">{titleCase(complaint.category)}</Chip>
                 <Chip glyph="person">{complaint.isAnonymous ? "Anonymous" : complaint.residentId}</Chip>
                 <Chip glyph="alarm" tone={complaint.isOverdue ? "bad" : "neutral"}>
-                  {`${complaint.isOverdue ? "Overdue · " : "Due "}${new Date(complaint.slaDueAt).toLocaleString()}`}
+                  {`${complaint.isOverdue ? "Overdue · " : "Due "}${formatHostelDateTime(complaint.slaDueAt)}`}
                 </Chip>
               </div>
 

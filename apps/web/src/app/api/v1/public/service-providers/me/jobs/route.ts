@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
+import { withEtag } from "@/lib/etag";
 import { requireApiPrincipal } from "@/lib/api-auth";
 import { listOwnServiceProviderJobs } from "@/modules/service-providers/service-provider.service";
 
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     const principal = await requireApiPrincipal(request);
     const result = await listOwnServiceProviderJobs(principal.userId);
 
-    return successResponse(result, "Jobs loaded");
+    return withEtag(request, successResponse(result, "Jobs loaded"));
   } catch (error) {
     return handleRouteError(error);
   }
