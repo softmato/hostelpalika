@@ -40,6 +40,8 @@ import type {
   PlatformSubscriptionLedger,
 } from "@/modules/billing/platform-subscriptions.service";
 import { Message } from "./core-portal-shared";
+import { MoneyHero, SplitBar } from "./platform-page-ui";
+import { WalletMark } from "@/components/wallet-mark";
 import { formatBsAdDate } from "@hostel/shared/calendar/bs";
 
 import { FieldCashQueue, SubscriptionClaimQueue } from "./platform-subscription-claims";
@@ -237,6 +239,29 @@ export const PlatformSubscriptionsPageContent = memo(
 
         {state === "ready" ? (
           <>
+            <div className="grid gap-3 lg:grid-cols-[1.2fr_1fr]">
+              <MoneyHero
+                label="Collected"
+                note={`of ${currency(totals?.billed ?? 0)} billed · ${currency(totals?.outstanding ?? 0)} outstanding`}
+                part={totals?.collected ?? 0}
+                total={totals?.billed ?? 0}
+                value={currency(totals?.collected ?? 0)}
+              />
+              <SplitBar
+                parts={Object.entries(
+                  invoices.reduce<Record<string, number>>((counts, invoice) => {
+                    counts[invoice.status] = (counts[invoice.status] ?? 0) + 1;
+                    return counts;
+                  }, {}),
+                ).map(([status, value]) => ({
+                  label: statusLabel(status),
+                  tone: (status === "PAID" ? "brand" : status === "OVERDUE" ? "rose" : status === "PARTIAL" || status === "IN_REVIEW" ? "amber" : "muted") as "brand" | "rose" | "amber" | "muted",
+                  value,
+                }))}
+                title="Invoices by state"
+              />
+            </div>
+
             <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               <MetricCard
                 active={tab === "PAYMENTS"}
@@ -492,8 +517,11 @@ export const PlatformSubscriptionsPageContent = memo(
                             <TableCell className="font-semibold text-foreground">
                               {currency(payment.amount)}
                             </TableCell>
-                            <TableCell className="text-muted-foreground">
-                              {methodLabel(payment)}
+                            <TableCell>
+                              <span className="inline-flex items-center gap-2">
+                                <WalletMark name={payment.provider || payment.method} size={26} />
+                                <span className="text-[12.5px] text-muted-foreground">{methodLabel(payment)}</span>
+                              </span>
                             </TableCell>
                             <TableCell>
                               <SoftBadge

@@ -32,6 +32,7 @@ import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
 import { Message } from "./core-portal-shared";
+import { SplitBar } from "./platform-page-ui";
 
 type PlatformPayment = {
   dueAmount: number;
@@ -204,6 +205,15 @@ export const PlatformTransactionsPageContent = memo(
                 value={currency(data?.overview.outstanding ?? 0)}
               />
             </div>
+
+            <SplitBar
+              parts={[
+                { label: "Settled", tone: "brand", value: tabCount("SETTLED") },
+                { label: "Partial", tone: "amber", value: tabCount("PARTIAL") },
+                { label: "Outstanding", tone: "rose", value: tabCount("OUTSTANDING") },
+              ]}
+              title="Ledger by settlement"
+            />
 
             <Panel>
               <TabBar

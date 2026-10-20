@@ -37,7 +37,7 @@ import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
 import { Message } from "./core-portal-shared";
-import { FactChip, ShareBar } from "./platform-page-ui";
+import { MoneyHero, SplitBar } from "./platform-page-ui";
 
 type PlatformPayment = {
   dueAmount: number;
@@ -190,6 +190,25 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
 
       {state === "ready" ? (
         <>
+          <div className="grid gap-3 lg:grid-cols-[1.2fr_1fr]">
+            <MoneyHero
+              label="Collected"
+              note={`of ${currency(overview?.totalDue ?? 0)} billed · ${currency(overview?.outstanding ?? 0)} still owed`}
+              part={overview?.totalPaid ?? 0}
+              total={overview?.totalDue ?? 0}
+              value={currency(overview?.totalPaid ?? 0)}
+            />
+            <SplitBar
+              parts={[
+                { label: "Paid", tone: "brand", value: overview?.statusCounts.PAID ?? 0 },
+                { label: "Partial", tone: "amber", value: overview?.statusCounts.PARTIAL ?? 0 },
+                { label: "Unpaid", tone: "muted", value: overview?.statusCounts.UNPAID ?? 0 },
+                { label: "Overdue", tone: "rose", value: overview?.statusCounts.OVERDUE ?? 0 },
+              ]}
+              title="Bills by state"
+            />
+          </div>
+
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
               active={tab === "PAID"}
@@ -339,22 +358,6 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
             </Panel>
 
             <div className="space-y-4">
-              <RailCard title="Collection">
-                <div className="space-y-3">
-                  <ShareBar
-                    label="NPR in"
-                    part={Math.round(overview?.totalPaid ?? 0)}
-                    total={Math.round(overview?.totalDue ?? 0)}
-                  />
-                  <div className="flex flex-wrap gap-1.5">
-                    <FactChip glyph="receipt">{`Billed ${currency(overview?.totalDue ?? 0)}`}</FactChip>
-                    <FactChip glyph="time" tone={(overview?.outstanding ?? 0) > 0 ? "amber" : "neutral"}>
-                      {`Owed ${currency(overview?.outstanding ?? 0)}`}
-                    </FactChip>
-                  </div>
-                </div>
-              </RailCard>
-
               <RailCard
                 action={
                   <span className="text-[11.5px] font-semibold text-muted-foreground">

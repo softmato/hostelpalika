@@ -17,7 +17,8 @@ import { Button } from "@/components/ui/button";
 import { browserApi } from "@/lib/browser-api";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { Message } from "./core-portal-shared";
-import { FactChip } from "./platform-page-ui";
+import { FactChip, WalletChip } from "./platform-page-ui";
+import { walletLabel } from "@/components/wallet-mark";
 
 const ORDERS_ENDPOINT = "/api/v1/platform/store/orders";
 
@@ -252,7 +253,8 @@ export const PlatformStoreOrdersPageContent = memo(
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         <FactChip glyph="cube">{`${order.itemCount} ${order.itemCount === 1 ? "item" : "items"}`}</FactChip>
-                        <FactChip glyph="cash">{`${formatPaisa(order.total)} · ${order.paymentMethod}`}</FactChip>
+                        <FactChip glyph="cash">{formatPaisa(order.total)}</FactChip>
+                        <WalletChip name={order.paymentMethod}>{walletLabel(order.paymentMethod)}</WalletChip>
                         {order.createdAt ? (
                           <FactChip glyph="time">{new Date(order.createdAt).toLocaleString()}</FactChip>
                         ) : null}

@@ -27,7 +27,8 @@ import {
 } from "@/app/_components/booking-admin-ui";
 import { at, rupees } from "@/app/_components/booking-ui";
 import { useConfirm } from "@/app/_components/confirm-dialog";
-import { FactChip, MoreMenu } from "@/app/_components/platform-page-ui";
+import { FactChip, MoreMenu, WalletChip } from "@/app/_components/platform-page-ui";
+import { WalletMark } from "@/components/wallet-mark";
 import {
   MetricCard,
   PortalPageHeader,
@@ -344,8 +345,10 @@ function TransfersTab({ kind }: { kind: "PAYOUT" | "REFUND" }) {
             }
             key={transfer.id}
           >
-            <p className="text-[13.5px] font-semibold text-foreground">
-              {rupees(transfer.amount)} · {transfer.bookingCode}
+            <p className="flex items-center gap-2.5 text-[15px] font-bold tabular-nums text-foreground">
+              {transfer.destination ? <WalletMark name={transfer.destination.bankName || transfer.destination.method} size={32} /> : null}
+              {rupees(transfer.amount)}
+              <span className="text-[12.5px] font-normal text-muted-foreground">{transfer.bookingCode}</span>
             </p>
             <p className="text-[12.5px] text-muted-foreground">
               {kind === "REFUND" ? transfer.guestName : transfer.hostelName} · {transfer.roomType}
@@ -353,9 +356,9 @@ function TransfersTab({ kind }: { kind: "PAYOUT" | "REFUND" }) {
             <div className="flex flex-wrap gap-1.5 pt-0.5">
               <FactChip glyph="time">{`Due since ${at(transfer.dueSince)}`}</FactChip>
               {transfer.destination ? (
-                <FactChip glyph="card">
+                <WalletChip name={transfer.destination.bankName || transfer.destination.method}>
                   {`${transfer.destination.methodLabel} ${transfer.destination.bankName} ${revealed[transfer.id] ?? transfer.destination.maskedNumber} (${transfer.destination.holderName})`}
-                </FactChip>
+                </WalletChip>
               ) : null}
             </div>
           </Row>
@@ -417,11 +420,14 @@ function AccountsTab() {
             }
             key={account.hostelId}
           >
-            <p className="text-[13.5px] font-semibold text-foreground">{account.hostelName}</p>
+            <p className="flex items-center gap-2.5 text-[13.5px] font-semibold text-foreground">
+              <WalletMark name={account.bankName || account.method} size={32} />
+              {account.hostelName}
+            </p>
             <div className="flex flex-wrap gap-1.5 pt-0.5">
-              <FactChip glyph="card">
+              <WalletChip name={account.bankName || account.method}>
                 {`${account.methodLabel} ${account.bankName} ${account.branch} · ${revealed[account.hostelId] ?? account.maskedNumber}`}
-              </FactChip>
+              </WalletChip>
               <FactChip glyph="person">{account.holderName}</FactChip>
               <FactChip glyph="time">{`Sent ${at(account.submittedAt)}`}</FactChip>
               {account.sharedWith.length > 0 ? (
