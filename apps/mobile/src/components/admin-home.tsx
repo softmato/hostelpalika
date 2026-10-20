@@ -931,18 +931,20 @@ export function WaitingActions({
       */}
       <ActionCell
         glyph={colors.success}
+        grow
         icon="receipt"
         label="Statement"
         onPress={onStatement}
         tone="success"
       />
-      <ActionCell glyph={colors.warning} icon="cube" label="Stock" onPress={onStock} tone="warning" />
-      <ActionCell glyph={colors.success} icon="cash" label="Finance" onPress={onFinance} tone="success" />
-      <ActionCell glyph={colors.success} icon="wallet" label="Expenses" onPress={onExpenses} tone="success" />
+      <ActionCell glyph={colors.warning} grow icon="cube" label="Stock" onPress={onStock} tone="warning" />
+      <ActionCell glyph={colors.success} grow icon="cash" label="Finance" onPress={onFinance} tone="success" />
+      <ActionCell glyph={colors.success} grow icon="wallet" label="Expenses" onPress={onExpenses} tone="success" />
       {khataPending === null ? null : (
         <ActionCell
           badge={khataPending || undefined}
           glyph={colors.success}
+          grow
           icon="book"
           label="Khata"
           onPress={onKhata}

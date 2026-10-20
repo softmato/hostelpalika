@@ -1,4 +1,10 @@
-import { FadeInDown, ReduceMotion, type WithSpringConfig } from "react-native-reanimated";
+import {
+  Easing,
+  FadeInDown,
+  ReduceMotion,
+  type WithSpringConfig,
+  type WithTimingConfig,
+} from "react-native-reanimated";
 
 /**
  * How the app moves, in one place (tracker: `docs/MOTION_AND_ICONS.md`, Track M).
@@ -9,6 +15,12 @@ import { FadeInDown, ReduceMotion, type WithSpringConfig } from "react-native-re
  */
 const PRESS: WithSpringConfig = { damping: 22, mass: 0.6, reduceMotion: ReduceMotion.System, stiffness: 420 };
 const SLIDE: WithSpringConfig = { damping: 20, mass: 0.8, reduceMotion: ReduceMotion.System, stiffness: 260 };
+/** Fast out, long settle: a shape travelling a long way across the screen. */
+const GROW: WithTimingConfig = {
+  duration: 340,
+  easing: Easing.bezier(0.2, 0, 0, 1),
+  reduceMotion: ReduceMotion.System,
+};
 
 export const MOTION = {
   /** A finger going down and coming back up: quick, barely bouncy. */
@@ -33,6 +45,8 @@ export const MOTION = {
    * `text-2xl`) across this much page scroll, and a hairline fades in under it.
    */
   titleCollapse: { distance: 48, scale: 16 / 24 },
+  /** A tapped card growing into the next screen's header (`card-grow.tsx`). */
+  grow: GROW,
 } as const;
 
 /** Rise 10px and fade in: a screen body on mount, a list row on first load. */

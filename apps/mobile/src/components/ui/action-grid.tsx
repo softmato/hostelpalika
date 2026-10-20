@@ -1,5 +1,7 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useRef } from "react";
 import { Image, type ImageSourcePropType, View } from "react-native";
+
+import { growFrom } from "@/components/card-grow";
 
 import { FLOAT_SHADOW } from "@/components/portal-shared";
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
@@ -100,6 +102,7 @@ export function ActionRow({ children }: { children: ReactNode }) {
 export function ActionCell({
   badge,
   glyph,
+  grow = false,
   icon,
   image,
   label,
@@ -116,6 +119,12 @@ export function ActionCell({
    */
   badge?: number;
   glyph: string;
+  /**
+   * The tile grows into the next screen's header (M8, `card-grow.tsx`). Only
+   * for a door into a screen with an accented `AppBar`; anywhere else the copy
+   * has nowhere to land and just fades.
+   */
+  grow?: boolean;
   icon: GlyphName;
   /**
    * Drawn instead of `icon`, for a door to somebody else's product — their logo
@@ -149,6 +158,7 @@ export function ActionCell({
 }) {
   const { colors } = useAppTheme();
   const quiet = badge === 0;
+  const tile = useRef<View>(null);
 
   return (
     <PressableScale
@@ -159,11 +169,17 @@ export function ActionCell({
       accessibilityState={selected === undefined ? undefined : { selected }}
       className="flex-1 items-center gap-2"
       onPress={() => {
-        onPress();
+        if (grow) {
+          // `rounded-2xl`: the copy starts with the tile's own corners.
+          growFrom(tile.current, 16, onPress);
+        } else {
+          onPress();
+        }
       }}
       onPressIn={onPressIn}
     >
       <View
+        ref={tile}
         className={`h-12 w-12 items-center justify-center rounded-2xl ${
           selected ? "bg-primary" : ACTION_TONES[tone]
         }`}

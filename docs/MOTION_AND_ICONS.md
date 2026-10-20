@@ -117,7 +117,15 @@ pulse their opacity. Sheets are gorhom, which already springs. Presses only dim
 - ◐ **M7. Money moments.** 2026-10-20: large/display `Money` counts up once. The
   hide-amount morph is still to do. Was: Totals count up once when they first appear. The
   hide-amount eye morphs the digits into dots and back (FoneBiz 0:15).
-- ☐ **M8. Card → screen.** The tapped card grows into the next screen's header
+- ☑ **M8. Card → screen.** Done 2026-10-20: `components/card-grow.tsx`.
+  `growFrom(view, radius, go)` measures the source and has `CardGrowHost` (root
+  layout, after the `Stack`) draw a copy over it; the first accented `AppBar`
+  to mount within 600ms claims it, hides, measures itself and lands it; the copy
+  travels there on `MOTION.grow`, turning brand green and squaring its top
+  corners, then cross-fades with the real bar. Unclaimed copies fade in place;
+  reduce-motion draws nothing. Wired via `ActionCell grow`: admin Home's
+  "Waiting for you" tiles (Statement, Stock, Finance, Expenses, Khata). Any
+  other source can call `growFrom`; any accented bar is a landing. Was: The tapped card grows into the next screen's header
   (FoneBiz 0:34, More → My account). Reanimated's shared-element transitions
   are still behind a feature flag on the new architecture. So build our own:
   measure the source card, draw a copy over the screen, animate it to the
