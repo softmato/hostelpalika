@@ -417,11 +417,24 @@ spring; all of them honour the phone's reduce-motion setting):
 - The tab bar's tinted pill slides to the tapped tab; the icon pops in solid.
 - Skeletons sweep a light band across instead of pulsing.
 - Large and display `Money` counts up from zero the first time it has a value.
+- A `large` `AppBar` title shrinks to bar size over the first 48dp of scroll
+  and a hairline fades in under the bar. It reads the page offset from
+  `Screen` (`useScreenScroll`), fed by the same handler as the tab bar.
+- Lists are `<Stagger>` (`ui/layout.tsx`) instead of `<View className="gap-3">`:
+  the first 8 rows rise in 45ms apart on first fill, a row leaving fades while
+  the rest slide up. Mounted rows don't replay on refresh. Never on a
+  `FlatList`, whose cells mount mid-scroll.
+- A card can grow into the next screen's header: `growFrom(view, radius, go)`
+  from `components/card-grow.tsx` (or `ActionCell grow`), landing on the next
+  accented `AppBar`. Only for doors into screens with an accented bar.
+- Theme changes go through `crossFadeTheme(apply)` (`components/theme-fade.tsx`):
+  the old frame is snapshotted, the theme swaps underneath, the snapshot fades.
 - **Haptics are for serious actions only:** a `danger` button, the confirm in
-  `openConfirm`, a swipe action firing. Never tab switches, never plain taps.
+  `openConfirm`, a swipe action firing. Never tab switches, scrolls,
+  transitions, theme changes or plain taps.
 
-The rest of the app's motion (collapsing title, card → screen, theme
-cross-fade) is tracked in `docs/MOTION_AND_ICONS.md` (Track M).
+What is still open (swipeable segment pages, the hide-amount morph, web) is
+tracked in `docs/MOTION_AND_ICONS.md` (Track M).
 
 **SOS alert exception:**
 - SOS status badge pulses continuously (red glow) to draw attention

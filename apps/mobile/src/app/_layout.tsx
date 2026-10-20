@@ -20,6 +20,8 @@ import { hydrateQueryCache } from "@/lib/query-cache-persist";
 import { BottomChromeProvider } from "@/components/bottom-chrome";
 import { AppLockHost, AppLockOffer } from "@/components/app-lock";
 import { AssetViewer } from "@/components/asset-viewer";
+import { CardGrowHost } from "@/components/card-grow";
+import { ThemeFadeHost } from "@/components/theme-fade";
 import {
   BootSplashCover,
   bootSplashGone,
@@ -562,6 +564,9 @@ function RootShell() {
         <Stack.Screen name="cook-invite" />
       </Stack>
 
+      {/* A tapped card growing into the next screen's header (M8): over every screen. */}
+      <CardGrowHost />
+
       {/*
         Above the transient toasts and below nothing: an upload can outlive the
         screen that started it, so its report is drawn at the app root.
@@ -653,6 +658,8 @@ export default function RootLayout() {
                 </BottomChromeProvider>
               </BottomSheetModalProvider>
               <ToastHost />
+              {/* The old theme's snapshot fading over the new one (M9): over everything but the lock. */}
+              <ThemeFadeHost />
               {/*
                 The fingerprint lock: last, so nothing — no sheet, no toast —
                 draws above it. Only the boot splash cover sits higher, which is

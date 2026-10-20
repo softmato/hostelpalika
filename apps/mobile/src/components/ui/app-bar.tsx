@@ -1,9 +1,20 @@
 import { router } from "expo-router";
-import type { ReactNode } from "react";
-import { Pressable, View } from "react-native";
+import { type ReactNode, useRef, useState } from "react";
+import { Pressable, StyleSheet, View } from "react-native";
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 
+import { claimGrow, landGrow } from "@/components/card-grow";
 import { Glyph } from "@/components/ui/glyph";
+import { useScreenScroll } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
+import { MOTION } from "@/constants/motion";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
 
@@ -128,6 +139,57 @@ export function AppBar({
   const { colors } = useAppTheme();
 
   /*
+   * M3: a `large` title shrinks to the bar's own size as the page scrolls under
+   * it, and a hairline fades in to mark the edge the content is passing. Driven
+   * by the `Screen`'s scroll value, so it tracks the finger on the UI thread;
+   * with reduce-motion on, the title keeps its size and only the hairline shows.
+   */
+  const scrollY = useScreenScroll();
+  const reduceMotion = useReducedMotion();
+  const { distance, scale } = MOTION.titleCollapse;
+
+  const titleMotion = useAnimatedStyle(() => ({
+    transform: [
+      {
+        scale:
+          large && scrollY && !reduceMotion
+            ? interpolate(scrollY.get(), [0, distance], [1, scale], Extrapolation.CLAMP)
+            : 1,
+      },
+    ],
+  }));
+
+  /*
+   * M8: an accented bar is where a tapped card lands (`card-grow.tsx`). It is
+   * claimed on mount so the bar is hidden from its first frame, and comes back
+   * as the card's copy fades over it.
+   */
+  const [grown] = useState(() => accent && claimGrow());
+  const bar = useRef<View>(null);
+  const landed = useRef(false);
+  const shown = useSharedValue(grown ? 0 : 1);
+  const shownMotion = useAnimatedStyle(() => ({ opacity: shown.get() }));
+
+  const onLayout = grown
+    ? () => {
+        if (landed.current) {
+          return;
+        }
+        landed.current = true;
+        landGrow(bar.current, HEADER_RADIUS, () =>
+          shown.set(withTiming(1, { duration: MOTION.fast })),
+        );
+      }
+    : undefined;
+
+  const edgeMotion = useAnimatedStyle(() => ({
+    opacity:
+      large && scrollY
+        ? interpolate(scrollY.get(), [0, distance], [0, 1], Extrapolation.CLAMP)
+        : 0,
+  }));
+
+  /*
    * Resolved colours, not `text-*` classes — and this is a fixed bug, not a
    * preference.
    *
@@ -169,14 +231,24 @@ export function AppBar({
 
   const heading = (
     <>
-      <Text
-        className={centerTitle ? "text-center" : ""}
-        numberOfLines={1}
-        style={{ color: ink }}
-        variant={large ? "title" : "subtitle"}
+      <Animated.View
+        style={[
+          {
+            // Shrinks toward the start of the line; onto the subtitle when there is one.
+            transformOrigin: centerTitle ? "center" : subtitle ? "left bottom" : "left center",
+          },
+          titleMotion,
+        ]}
       >
-        {title}
-      </Text>
+        <Text
+          className={centerTitle ? "text-center" : ""}
+          numberOfLines={1}
+          style={{ color: ink }}
+          variant={large ? "title" : "subtitle"}
+        >
+          {title}
+        </Text>
+      </Animated.View>
       {subtitle ? (
         <Text
           className={centerTitle ? "text-center" : ""}
@@ -218,9 +290,28 @@ export function AppBar({
     paddingTop: insets.top,
   };
 
+  // The hairline the collapsing title leaves behind; an accented bar's paint is edge enough.
+  const edge =
+    large && !accent ? (
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          {
+            backgroundColor: colors.border,
+            bottom: 0,
+            height: StyleSheet.hairlineWidth,
+            left: 0,
+            position: "absolute",
+            right: 0,
+          },
+          edgeMotion,
+        ]}
+      />
+    ) : null;
+
   if (centerTitle) {
     return (
-      <View style={paint}>
+      <Animated.View onLayout={onLayout} ref={bar} style={[paint, shownMotion]}>
         {/*
           Three columns with the outer two pinned to the same width, rather than
           an absolutely-positioned title over the row.
@@ -244,12 +335,13 @@ export function AppBar({
             {actions}
           </View>
         </View>
-      </View>
+        {edge}
+      </Animated.View>
     );
   }
 
   return (
-    <View style={paint}>
+    <Animated.View onLayout={onLayout} ref={bar} style={[paint, shownMotion]}>
       <View className="min-h-14 flex-row items-center gap-3 px-4 pb-2 pt-1">
         {back}
 
@@ -257,6 +349,7 @@ export function AppBar({
 
         {actions}
       </View>
-    </View>
+      {edge}
+    </Animated.View>
   );
 }

@@ -20,7 +20,7 @@ import { Card, SectionHeader } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
 import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
-import { FactRow } from "@/components/ui/layout";
+import { FactRow, Stagger } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
@@ -364,32 +364,34 @@ export default function ExpensesScreen() {
             />
           ) : null}
 
-          {days.map((day) => (
-            <View className="gap-2" key={day.key}>
-              {/* Heading on the page, outside the card (NOTES §5), with the day's total. */}
-              <View className="flex-row items-end justify-between gap-3">
-                <Text
-                  className="shrink font-semibold uppercase tracking-wider text-muted-foreground"
-                  numberOfLines={1}
-                  style={{ fontSize: 11 }}
-                >
-                  {day.label}
-                </Text>
-                <Text className="text-xs font-semibold text-muted-foreground">
-                  {formatMoney(day.total)}
-                </Text>
-              </View>
+          <Stagger className="gap-6">
+            {days.map((day) => (
+              <View className="gap-2" key={day.key}>
+                {/* Heading on the page, outside the card (NOTES §5), with the day's total. */}
+                <View className="flex-row items-end justify-between gap-3">
+                  <Text
+                    className="shrink font-semibold uppercase tracking-wider text-muted-foreground"
+                    numberOfLines={1}
+                    style={{ fontSize: 11 }}
+                  >
+                    {day.label}
+                  </Text>
+                  <Text className="text-xs font-semibold text-muted-foreground">
+                    {formatMoney(day.total)}
+                  </Text>
+                </View>
 
-              <Card padding="px-4 py-1">
-                {day.rows.map((row, index) => (
-                  <View key={row.id}>
-                    {index > 0 ? <RowDivider inset /> : null}
-                    <ExpenseListRow onPress={() => setOpen(row)} row={row} showWho={isOwner} />
-                  </View>
-                ))}
-              </Card>
-            </View>
-          ))}
+                <Card padding="px-4 py-1">
+                  {day.rows.map((row, index) => (
+                    <View key={row.id}>
+                      {index > 0 ? <RowDivider inset /> : null}
+                      <ExpenseListRow onPress={() => setOpen(row)} row={row} showWho={isOwner} />
+                    </View>
+                  ))}
+                </Card>
+              </View>
+            ))}
+          </Stagger>
         </View>
         {Platform.OS === "web" ? <View className="mx-5 my-2"><Button label="Import payment receipt" variant="outline" onPress={() => window.location.assign("/app/receipt-sheet.html")} /></View> : null}
         <ReceiptShareSettings />

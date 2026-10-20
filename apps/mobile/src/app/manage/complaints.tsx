@@ -7,7 +7,7 @@ import { Badge, StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Chip, FactRow } from "@/components/ui/layout";
+import { Chip, FactRow, Stagger } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
@@ -179,42 +179,44 @@ export default function ManageComplaintsScreen() {
           />
         ) : null}
 
-        {groups.map((group) => (
-          <View className="gap-2" key={group.bucket}>
-            <Text
-              className="px-0.5 font-semibold uppercase tracking-wider"
-              variant="caption"
-            >
-              {group.label}
-            </Text>
-            <Card padding="px-4 py-1">
-              {group.rows.map((row, index) => {
-                const look =
-                  CATEGORY_ICON[row.category] ?? CATEGORY_ICON.OTHER!;
+        <Stagger className="gap-4">
+          {groups.map((group) => (
+            <View className="gap-2" key={group.bucket}>
+              <Text
+                className="px-0.5 font-semibold uppercase tracking-wider"
+                variant="caption"
+              >
+                {group.label}
+              </Text>
+              <Card padding="px-4 py-1">
+                {group.rows.map((row, index) => {
+                  const look =
+                    CATEGORY_ICON[row.category] ?? CATEGORY_ICON.OTHER!;
 
-                return (
-                  <View key={row.id}>
-                    {index > 0 ? <RowDivider inset /> : null}
-                    <ListRow
-                      icon={look.icon}
-                      iconBgColor={look.bg}
-                      onPress={() => show(row)}
-                      right={
-                        row.isOverdue ? (
-                          <Badge label="Late" tone="danger" />
-                        ) : (
-                          <StatusPill status={row.status} />
-                        )
-                      }
-                      subtitle={`${humanizeEnum(row.category)} · ${dates.ago(row.createdAt)}`}
-                      title={row.title}
-                    />
-                  </View>
-                );
-              })}
-            </Card>
-          </View>
-        ))}
+                  return (
+                    <View key={row.id}>
+                      {index > 0 ? <RowDivider inset /> : null}
+                      <ListRow
+                        icon={look.icon}
+                        iconBgColor={look.bg}
+                        onPress={() => show(row)}
+                        right={
+                          row.isOverdue ? (
+                            <Badge label="Late" tone="danger" />
+                          ) : (
+                            <StatusPill status={row.status} />
+                          )
+                        }
+                        subtitle={`${humanizeEnum(row.category)} · ${dates.ago(row.createdAt)}`}
+                        title={row.title}
+                      />
+                    </View>
+                  );
+                })}
+              </Card>
+            </View>
+          ))}
+        </Stagger>
       </View>
 
       <Sheet

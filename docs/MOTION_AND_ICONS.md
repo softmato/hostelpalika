@@ -89,11 +89,23 @@ pulse their opacity. Sheets are gorhom, which already springs. Presses only dim
 - ☑ **M2. Tab bar.** Done 2026-10-20, **no haptic** on tab switches (user). Was: The tinted pill slides to the tapped tab on a spring. The
   icon switches line → solid with a small pop. Selection haptic. (FoneBiz
   0:14–0:20.) Needs I2 if the style is line + solid when active.
-- ☐ **M3. Collapsing title.** The large screen title shrinks into the `AppBar`
+- ☑ **M3. Collapsing title.** Done 2026-10-20: `Screen` feeds its page offset
+  from the same scroll handler as the tab bar into a per-screen value
+  (`useScreenScroll`); a `large` `AppBar` scales its title to bar size
+  (`MOTION.titleCollapse`) and fades a hairline in under itself. Used by every
+  `large` tab: admin Payments + Overall tabs, cook Menu/Photos, guardian
+  Payments/Safety, resident Food/Payments. Was: The large screen title shrinks into the `AppBar`
   as the list scrolls under it. `Screen` and `AppBar` share one scroll value,
   which `BottomChromeProvider` already tracks for the tab bar.
-- ◐ **M4. Lists.** 2026-10-20: the whole screen body rises in once on mount
-  (`Screen`). Per-row stagger and collapse-on-delete are still to do. Was: On first load, the first ~8 rows fade up one after another.
+- ☑ **M4. Lists.** Done 2026-10-20: the screen body rises in once on mount
+  (`Screen`), and `<Stagger>` (`ui/layout.tsx`) replaces a list's
+  `<View className="gap-3">`: each direct child gets a wrapper, the first
+  `MOTION.staggerRows` rise in `MOTION.stagger` ms apart, and a row leaving
+  fades while the rest slide up (`LinearTransition`). Mounted rows keep their
+  wrapper, so refreshes replay nothing; `from` carries the count across date
+  groups. On admin Residents, Money and Alerts, Notifications, resident
+  Notices, Complaints (list + manage, the latter by day) and Expenses (by day).
+  Not on the community `FlatList`: recycled cells mount mid-scroll. Was: On first load, the first ~8 rows fade up one after another.
   A deleted or swiped-away row collapses instead of vanishing (`LinearTransition`).
   Refreshes don't re-animate.
 - ◐ **M5. Swipe.** 2026-10-20: a light haptic when the swipe action fires. The
@@ -105,12 +117,26 @@ pulse their opacity. Sheets are gorhom, which already springs. Presses only dim
 - ◐ **M7. Money moments.** 2026-10-20: large/display `Money` counts up once. The
   hide-amount morph is still to do. Was: Totals count up once when they first appear. The
   hide-amount eye morphs the digits into dots and back (FoneBiz 0:15).
-- ☐ **M8. Card → screen.** The tapped card grows into the next screen's header
+- ☑ **M8. Card → screen.** Done 2026-10-20: `components/card-grow.tsx`.
+  `growFrom(view, radius, go)` measures the source and has `CardGrowHost` (root
+  layout, after the `Stack`) draw a copy over it; the first accented `AppBar`
+  to mount within 600ms claims it, hides, measures itself and lands it; the copy
+  travels there on `MOTION.grow`, turning brand green and squaring its top
+  corners, then cross-fades with the real bar. Unclaimed copies fade in place;
+  reduce-motion draws nothing. Wired via `ActionCell grow`: admin Home's
+  "Waiting for you" tiles (Statement, Stock, Finance, Expenses, Khata). Any
+  other source can call `growFrom`; any accented bar is a landing. Was: The tapped card grows into the next screen's header
   (FoneBiz 0:34, More → My account). Reanimated's shared-element transitions
   are still behind a feature flag on the new architecture. So build our own:
   measure the source card, draw a copy over the screen, animate it to the
   header's box, then hand off to the real header.
-- ☐ **M9. Theme cross-fade.** Snapshot the current frame with
+- ☑ **M9. Theme cross-fade.** Done 2026-10-20: `components/theme-fade.tsx`.
+  `crossFadeTheme(apply)` has `ThemeFadeHost` (root, under the app lock)
+  `captureScreen` the frame, show it full-screen, run `apply` once the image is
+  on screen, wait two frames, then fade it (`MOTION.themeFade`) and release the
+  file. Both toggles use it: More → Dark mode and Settings → Appearance. Web,
+  reduce-motion, a fade already running or a failed capture just apply. No
+  haptic. Was: Snapshot the current frame with
   `react-native-view-shot` (installed), swap the theme underneath, then fade
   the snapshot out (FoneBiz 0:42–0:44).
 - ◐ **M10. Web.** 2026-10-20: `Button` presses scale to 0.97; page fade is W3. Was: Same vocabulary: press scale on buttons and cards, a fade-up

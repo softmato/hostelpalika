@@ -4,6 +4,7 @@ import { Alert, Linking, View } from "react-native";
 
 import { AppLockSetting } from "@/components/app-lock";
 import { CalendarPreferenceCard } from "@/components/calendar-preference";
+import { crossFadeTheme } from "@/components/theme-fade";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
@@ -164,7 +165,7 @@ export default function SettingsScreen() {
                     <ListRow
                       icon={option.icon}
                       iconBgColor={option.iconBgColor}
-                      onPress={() => dispatch(setThemePreference(option.value))}
+                      onPress={() => crossFadeTheme(() => dispatch(setThemePreference(option.value)))}
                       right={
                         <Glyph
                           color={active ? colors.primary : colors.border}

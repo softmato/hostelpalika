@@ -11,6 +11,7 @@ import { StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { FloatingButton } from "@/components/ui/floating-button";
+import { Stagger } from "@/components/ui/layout";
 import { CardRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
@@ -342,7 +343,7 @@ function BranchAdminResidentsScreen() {
             time instead of reading down a table. The same change was made to
             the Money list, from the same references.
           */
-          <View className="gap-3">
+          <Stagger className="gap-3">
             {visible.map((resident) => {
               const row = (
                 <CardRow
@@ -408,7 +409,7 @@ function BranchAdminResidentsScreen() {
                 <View key={resident.id}>{row}</View>
               );
             })}
-          </View>
+          </Stagger>
         )}
 
         {/*
