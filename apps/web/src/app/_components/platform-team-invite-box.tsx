@@ -8,7 +8,8 @@ import { cn } from "@/lib/utils";
 import type { TeamInviteResult } from "./platform-team-types";
 
 /**
- * The invite box on the superadmin's Team tab.
+ * The invite form on the superadmin's Team tab. It sits in the page's Invite
+ * dialog, which carries the title and the one-line rule.
  *
  * ## A batch is the normal case, not the advanced one
  *
@@ -179,16 +180,8 @@ export function TeamInviteBox({ onSent }: { onSent: () => void }) {
   const pending = collectInvitations().length;
 
   return (
-    <div className="app-card p-5">
-      <h2 className="text-sm font-bold text-foreground">Invite team members</h2>
-      <p className="mt-0.5 text-xs text-muted-foreground">
-        They accept the emailed link, then sign in with Google on that address at{" "}
-        <code className="rounded bg-muted px-1">/team</code>. Paste or type several
-        addresses at once — an address already used by a resident, warden, cook or service
-        provider is fine, and that account moves onto the team.
-      </p>
-
-      <div className="mt-4 space-y-2">
+    <div>
+      <div className="space-y-2">
         {rows.map((row, index) => (
           <div className="flex gap-2" key={row.id}>
             <input
@@ -229,7 +222,7 @@ export function TeamInviteBox({ onSent }: { onSent: () => void }) {
 
       <div className="mt-3 flex flex-wrap items-center gap-3">
         <button
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-teal hover:underline"
+          className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-role-team hover:underline"
           onClick={() => setRows((prev) => [...prev, blankRow()])}
           type="button"
         >
@@ -248,7 +241,7 @@ export function TeamInviteBox({ onSent }: { onSent: () => void }) {
         ) : null}
 
         <button
-          className="ml-auto inline-flex items-center gap-2 rounded-lg bg-brand-teal px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
+          className="ml-auto inline-flex items-center gap-2 rounded-xl bg-brand-teal px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
           disabled={sending}
           onClick={send}
           type="button"

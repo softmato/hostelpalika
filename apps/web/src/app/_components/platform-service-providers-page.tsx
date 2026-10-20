@@ -9,8 +9,6 @@ import {
   FileText,
   Loader2,
   Phone,
-  ShieldCheck,
-  SlidersHorizontal,
   Users,
   X,
   type IconComponent,
@@ -24,8 +22,6 @@ import { EmptyState, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import {
   DataTable,
   DetailField,
-  FilterBar,
-  FilterSelect,
   InitialsAvatar,
   ListPager,
   MetricCard,
@@ -42,10 +38,13 @@ import {
   Th,
   statusToneFromLabel,
 } from "@/app/_components/portal-dashboard-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
+import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 import { browserApi } from "@/lib/browser-api";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { cn } from "@/lib/utils";
+import { FactChip, MoreMenu, ShareBar } from "./platform-page-ui";
 import { Message, type ServiceProvider } from "./portal-shared";
 
 /**
@@ -333,6 +332,14 @@ export const PlatformServiceProvidersPageContent = React.memo(
         ? [detail.category]
         : [];
 
+    const switchTab = (next: string) => {
+      setTab(next);
+      setPage(1);
+    };
+    const activeFilters =
+      (categoryFilter ? 1 : 0) + (areaFilter ? 1 : 0) + (availabilityFilter ? 1 : 0) + (verifiedOnly ? 1 : 0);
+    const availabilities = Array.from(new Set(providers.map((provider) => provider.availability))).filter(Boolean);
+
     const tabCount = (key: string) =>
       key === "ALL"
         ? providers.length
@@ -340,43 +347,39 @@ export const PlatformServiceProvidersPageContent = React.memo(
 
     return (
       <div className="mx-auto max-w-[1448px] space-y-4">
-        <PortalPageHeader
-          breadcrumb={["Home", "Service Providers"]}
-          description="Approve applications and manage the verified provider network hostels can book from."
-          title="Service Providers"
-        />
+        <PortalPageHeader description="Trades hostels can book, and who is waiting to join." title="Service Providers" />
         <Message value={message} />
 
+        {/* Each tile opens the tab it counts. */}
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
+            active={tab === "ALL"}
             icon={Users}
-            label="Total Providers"
-            note="All applications"
-            tone="teal"
+            label="Providers"
+            onClick={() => switchTab("ALL")}
             value={counts.total}
           />
           <MetricCard
+            active={tab === "PENDING_APPROVAL"}
             icon={Clock3}
-            label="Pending Review"
-            note="Awaiting decision"
-            noteTone="amber"
-            tone="amber"
+            label="Waiting review"
+            onClick={() => switchTab("PENDING_APPROVAL")}
+            tone={counts.pending > 0 ? "amber" : "teal"}
             value={counts.pending}
           />
           <MetricCard
+            active={tab === "APPROVED"}
             icon={BadgeCheck}
-            label="Approved"
-            note="Bookable by hostels"
-            noteTone="green"
-            tone="green"
+            label="Bookable"
+            onClick={() => switchTab("APPROVED")}
             value={counts.approved}
           />
           <MetricCard
+            active={tab === "HIDDEN"}
             icon={CircleSlash}
             label="Hidden"
-            note="Temporarily delisted"
-            noteTone="rose"
-            tone="rose"
+            onClick={() => switchTab("HIDDEN")}
+            tone="slate"
             value={counts.hidden}
           />
         </div>
@@ -385,85 +388,70 @@ export const PlatformServiceProvidersPageContent = React.memo(
           <Panel>
             <TabBar
               className="mb-3"
-              onChange={(next) => {
-                setTab(next);
-                setPage(1);
-              }}
+              onChange={switchTab}
               tabs={TABS.map((item) => ({ ...item, count: tabCount(item.key) }))}
               value={tab}
             />
 
-            <FilterBar>
+            <div className="mb-3 flex flex-wrap items-center gap-2">
               <SearchField
                 onChange={(next) => {
                   setQuery(next);
                   setPage(1);
                 }}
-                placeholder="Search providers by name or service..."
+                placeholder="Search name or trade"
                 value={query}
               />
-              <div className="flex flex-wrap gap-2">
-                <FilterSelect
-                  defaultLabel="All Categories"
-                  onChange={(next) => {
-                    setCategoryFilter(next);
-                    setPage(1);
-                  }}
-                  options={categories}
-                  value={categoryFilter}
-                />
-                <FilterSelect
-                  defaultLabel="All Areas"
-                  onChange={(next) => {
-                    setAreaFilter(next);
-                    setPage(1);
-                  }}
-                  options={areas}
-                  value={areaFilter}
-                />
-                <FilterSelect
-                  defaultLabel="Any Availability"
-                  onChange={(next) => {
-                    setAvailabilityFilter(next);
-                    setPage(1);
-                  }}
-                  options={Array.from(
-                    new Set(providers.map((provider) => provider.availability)),
-                  ).filter(Boolean)}
-                  value={availabilityFilter}
-                />
-              </div>
-            </FilterBar>
-
-            <div className="mb-2.5 mt-2.5 flex flex-wrap items-center justify-between gap-2">
-              <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-role-platform/25 bg-role-platform-soft px-2.5 py-1 text-[11.5px] font-semibold text-role-platform">
-                <input
-                  checked={verifiedOnly}
-                  className="size-3.5 accent-current"
-                  onChange={(event) => {
-                    setVerifiedOnly(event.target.checked);
-                    setPage(1);
-                  }}
-                  type="checkbox"
-                />
-                <ShieldCheck className="size-3.5" />
-                Verified providers only
-              </label>
-              <button
-                className="inline-flex items-center gap-1.5 text-[11.5px] font-semibold text-muted-foreground transition hover:text-foreground"
-                onClick={() => {
-                  setQuery("");
+              <FilterButton
+                active={activeFilters}
+                onClear={() => {
                   setCategoryFilter("");
                   setAreaFilter("");
                   setAvailabilityFilter("");
                   setVerifiedOnly(false);
                   setPage(1);
                 }}
-                type="button"
               >
-                <SlidersHorizontal className="size-3.5" />
-                Reset filters
-              </button>
+                <FilterChoice
+                  label="Trade"
+                  onChange={(next) => {
+                    setCategoryFilter(next);
+                    setPage(1);
+                  }}
+                  options={[{ label: "All", value: "" }, ...categories.map((item) => ({ label: categoryLabel(item), value: item }))]}
+                  value={categoryFilter}
+                />
+                <FilterChoice
+                  label="Area"
+                  onChange={(next) => {
+                    setAreaFilter(next);
+                    setPage(1);
+                  }}
+                  options={[{ label: "All", value: "" }, ...areas.map((item) => ({ label: item, value: item }))]}
+                  value={areaFilter}
+                />
+                <FilterChoice
+                  label="Availability"
+                  onChange={(next) => {
+                    setAvailabilityFilter(next);
+                    setPage(1);
+                  }}
+                  options={[{ label: "Any", value: "" }, ...availabilities.map((item) => ({ label: item, value: item }))]}
+                  value={availabilityFilter}
+                />
+                <FilterChoice
+                  label="Verified"
+                  onChange={(next) => {
+                    setVerifiedOnly(next === "yes");
+                    setPage(1);
+                  }}
+                  options={[
+                    { label: "Everyone", value: "no" },
+                    { label: "Verified only", value: "yes" },
+                  ]}
+                  value={verifiedOnly ? "yes" : "no"}
+                />
+              </FilterButton>
             </div>
 
             {state === "loading" ? <LoadingRows /> : null}
@@ -476,16 +464,13 @@ export const PlatformServiceProvidersPageContent = React.memo(
 
             {state === "ready" && filtered.length > 0 ? (
               <>
-                <DataTable className="min-w-[820px]">
+                <DataTable className="min-w-[640px]">
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
                       <Th>Provider</Th>
-                      <Th>Category</Th>
-                      <Th>Area</Th>
-                      <Th>Rating</Th>
-                      <Th>Phone</Th>
+                      <Th>Trades</Th>
                       <Th>Availability</Th>
-                      <Th align="right">Actions</Th>
+                      <Th align="right" />
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -493,7 +478,7 @@ export const PlatformServiceProvidersPageContent = React.memo(
                       <TableRow
                         className={cn(
                           provider.id === selectedId
-                            ? "bg-role-platform-soft/40"
+                            ? "bg-role-team-soft/60"
                             : "cursor-pointer",
                         )}
                         key={provider.id}
@@ -508,18 +493,18 @@ export const PlatformServiceProvidersPageContent = React.memo(
                               <InitialsAvatar
                                 name={provider.fullName}
                                 size="sm"
-                                tone="platform"
+                                tone="team"
                               />
                               {provider.status === "APPROVED" ? (
-                                <BadgeCheck className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-card text-emerald-600" />
+                                <BadgeCheck className="absolute -bottom-0.5 -right-0.5 size-3 rounded-full bg-card text-role-team" />
                               ) : null}
                             </span>
                             <div className="min-w-0">
-                              <p className="truncate font-semibold text-foreground">
+                              <p className="truncate text-[13.5px] font-semibold text-foreground">
                                 {provider.fullName}
                               </p>
-                              <p className="truncate text-[11px] text-muted-foreground">
-                                {provider.experience || provider.description || "—"}
+                              <p className="truncate text-[12px] text-muted-foreground">
+                                {[provider.area, provider.experience].filter(Boolean).join(" · ") || "—"}
                               </p>
                             </div>
                           </div>
@@ -532,20 +517,11 @@ export const PlatformServiceProvidersPageContent = React.memo(
                             )
                               .filter(Boolean)
                               .map((category) => (
-                                <SoftBadge key={category} tone="teal">
+                                <SoftBadge key={category} tone="slate">
                                   {categoryLabel(category)}
                                 </SoftBadge>
                               ))}
                           </div>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {provider.area || "—"}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {NO_RATING}
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {provider.phone || "—"}
                         </TableCell>
                         <TableCell>
                           <SoftBadge
@@ -561,28 +537,18 @@ export const PlatformServiceProvidersPageContent = React.memo(
                                 there, and approving from the row alone means
                                 approving documents nobody opened. */}
                             <Link
-                              className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-semibold text-role-platform transition hover:bg-role-platform-soft"
+                              className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-semibold text-role-team transition hover:bg-role-team-soft"
                               href={`/platform/service-providers/${provider.id}`}
                               onClick={(event) => event.stopPropagation()}
                             >
                               <FileText className="size-3.5" />
                               Review
                             </Link>
-                            {provider.phone ? (
-                              <a
-                                className="rounded-md border border-border p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                                href={`tel:${provider.phone}`}
-                                onClick={(event) => event.stopPropagation()}
-                                title="Call"
-                              >
-                                <Phone className="size-3" />
-                              </a>
-                            ) : null}
                             {provider.status !== "APPROVED" ? (
                               <ModerationButton
                                 action="approve"
                                 busyAction={busyAction}
-                                className="text-emerald-700 hover:bg-emerald-50 dark:text-emerald-300 dark:hover:bg-emerald-950/40"
+                                className="text-role-team hover:bg-role-team-soft"
                                 icon={BadgeCheck}
                                 label="Approve"
                                 onRun={moderate}
@@ -599,15 +565,24 @@ export const PlatformServiceProvidersPageContent = React.memo(
                                 providerId={provider.id}
                               />
                             )}
-                            <ModerationButton
-                              action="reject"
-                              busyAction={busyAction}
-                              className="text-rose-700 hover:bg-rose-50 dark:text-rose-300 dark:hover:bg-rose-950/40"
-                              icon={X}
-                              label="Reject"
-                              onRun={moderate}
-                              providerId={provider.id}
-                            />
+                            <MoreMenu label={`More for ${provider.fullName}`} row>
+                              {provider.phone ? (
+                                <DropdownMenuItem asChild>
+                                  <a href={`tel:${provider.phone}`}>
+                                    <Phone className="size-4" />
+                                    Call {provider.phone}
+                                  </a>
+                                </DropdownMenuItem>
+                              ) : null}
+                              <DropdownMenuItem
+                                disabled={Boolean(busyAction)}
+                                onSelect={() => void moderate(provider.id, "reject")}
+                                variant="destructive"
+                              >
+                                <X className="size-4" />
+                                Reject
+                              </DropdownMenuItem>
+                            </MoreMenu>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -642,15 +617,15 @@ export const PlatformServiceProvidersPageContent = React.memo(
               ) : (
                 pending.map((provider) => (
                   <div
-                    className="rounded-lg border border-border/70 bg-muted/15 p-2"
+                    className="rounded-xl border border-border/70 p-2.5"
                     key={provider.id}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="truncate text-[12px] font-semibold text-foreground">
+                        <p className="truncate text-[13px] font-semibold text-foreground">
                           {provider.fullName}
                         </p>
-                        <p className="text-[10.5px] text-muted-foreground">
+                        <p className="text-[11.5px] text-muted-foreground">
                           {providerTrades(provider)
                             .filter(Boolean)
                             .map(categoryLabel)
@@ -662,14 +637,14 @@ export const PlatformServiceProvidersPageContent = React.memo(
                     </div>
                     <div className="mt-1.5 flex gap-1.5">
                       <button
-                        className="flex-1 rounded-md bg-role-platform px-2 py-1 text-[11px] font-semibold text-white transition hover:bg-role-platform/90"
+                        className="flex-1 rounded-lg bg-brand-teal px-2 py-1 text-[12px] font-semibold text-white transition hover:bg-brand-teal/90"
                         onClick={() => void moderate(provider.id, "approve")}
                         type="button"
                       >
                         Approve
                       </button>
                       <button
-                        className="flex-1 rounded-md border border-border px-2 py-1 text-[11px] font-semibold text-muted-foreground transition hover:bg-muted"
+                        className="flex-1 rounded-lg border border-border px-2 py-1 text-[12px] font-semibold text-muted-foreground transition hover:bg-muted"
                         onClick={() => void moderate(provider.id, "reject")}
                         type="button"
                       >
@@ -693,10 +668,10 @@ export const PlatformServiceProvidersPageContent = React.memo(
                     <X className="size-3.5" />
                   </button>
                 }
-                title="Application Review"
+                title="Application"
               >
                 <Link
-                  className="mb-2.5 flex items-center justify-center gap-1.5 rounded-md bg-role-platform px-3 py-2 text-[12px] font-bold text-white transition hover:opacity-90"
+                  className="mb-2.5 flex items-center justify-center gap-1.5 rounded-xl bg-brand-teal px-3 py-2 text-[12.5px] font-bold text-white transition hover:opacity-90"
                   href={`/platform/service-providers/${selected.id}`}
                 >
                   <ExternalLink className="size-3.5" />
@@ -704,9 +679,9 @@ export const PlatformServiceProvidersPageContent = React.memo(
                 </Link>
 
                 <div className="mb-2 flex items-center gap-2.5">
-                  <InitialsAvatar name={selected.fullName} size="md" tone="platform" />
+                  <InitialsAvatar name={selected.fullName} size="md" tone="team" />
                   <div className="min-w-0">
-                    <p className="truncate text-[13px] font-bold text-foreground">
+                    <p className="truncate text-[13.5px] font-bold text-foreground">
                       {selected.fullName}
                     </p>
                     <SoftBadge tone={statusToneFromLabel(selected.status)}>
@@ -717,7 +692,7 @@ export const PlatformServiceProvidersPageContent = React.memo(
 
                 <div className="mb-2 flex flex-wrap gap-1">
                   {selectedCategories.map((category) => (
-                    <SoftBadge key={category} tone="teal">
+                    <SoftBadge key={category} tone="slate">
                       {categoryLabel(category)}
                     </SoftBadge>
                   ))}
@@ -748,15 +723,13 @@ export const PlatformServiceProvidersPageContent = React.memo(
                   {detailResource.state === "loading" ? (
                     <p className="text-[11px] text-muted-foreground">Loading…</p>
                   ) : documents.length === 0 ? (
-                    <p className="text-[11px] text-muted-foreground">
-                      No documents were attached to this application.
-                    </p>
+                    <p className="text-[12px] text-muted-foreground">No documents attached.</p>
                   ) : (
                     <ul className="space-y-1">
                       {documents.map((document) => (
                         <li key={document.id}>
                           <a
-                            className="flex items-center gap-1.5 text-[11.5px] font-semibold text-role-platform hover:underline"
+                            className="flex items-center gap-1.5 text-[12px] font-semibold text-role-team hover:underline"
                             href={
                               document.fileAssetId
                                 ? `/api/v1/files/${document.fileAssetId}/url`
@@ -778,7 +751,7 @@ export const PlatformServiceProvidersPageContent = React.memo(
 
                 <div className="mt-2.5 flex flex-wrap gap-1.5">
                   {selected.phone ? (
-                    <RoleButton asChild tone="platform" variant="outline">
+                    <RoleButton asChild tone="team" variant="outline">
                       <a href={`tel:${selected.phone}`}>
                         <Phone className="size-3.5" />
                         Call
@@ -789,7 +762,7 @@ export const PlatformServiceProvidersPageContent = React.memo(
                     <RoleButton
                       disabled={Boolean(busyAction)}
                       onClick={() => void moderate(selected.id, "hide")}
-                      tone="platform"
+                      tone="team"
                       variant="outline"
                     >
                       {railBusy === "hide" ? (
@@ -803,7 +776,7 @@ export const PlatformServiceProvidersPageContent = React.memo(
                     <RoleButton
                       disabled={Boolean(busyAction)}
                       onClick={() => void moderate(selected.id, "approve")}
-                      tone="platform"
+                      tone="team"
                     >
                       {railBusy === "approve" ? (
                         <Loader2 className="size-3.5 animate-spin" />
@@ -817,7 +790,7 @@ export const PlatformServiceProvidersPageContent = React.memo(
                     <RoleButton
                       disabled={Boolean(busyAction)}
                       onClick={() => void moderate(selected.id, "reject")}
-                      tone="platform"
+                      tone="team"
                       variant="outline"
                     >
                       {railBusy === "reject" ? (
@@ -831,20 +804,15 @@ export const PlatformServiceProvidersPageContent = React.memo(
                 </div>
               </RailCard>
             ) : (
-              <RailCard title="Network Health">
-                <DetailField
-                  label="Approval rate"
-                  value={
-                    counts.total > 0
-                      ? `${Math.round((counts.approved / counts.total) * 100)}%`
-                      : "—"
-                  }
-                />
-                <DetailField label="Categories covered" value={categories.length} />
-                <DetailField label="Areas covered" value={areas.length} />
-                <p className="pt-1.5 text-[11px] leading-4 text-muted-foreground">
-                  Select a provider row to inspect its application and act on it.
-                </p>
+              <RailCard title="Network">
+                <div className="space-y-3">
+                  <ShareBar label="approved" part={counts.approved} total={counts.total} />
+                  <div className="flex flex-wrap gap-1.5">
+                    <FactChip glyph="build">{`${categories.length} trades`}</FactChip>
+                    <FactChip glyph="location">{`${areas.length} areas`}</FactChip>
+                  </div>
+                  <p className="text-[12px] text-muted-foreground">Pick a row to review it here.</p>
+                </div>
               </RailCard>
             )}
           </div>

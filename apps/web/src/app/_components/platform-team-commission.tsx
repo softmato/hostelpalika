@@ -1,8 +1,9 @@
 "use client";
 
-import { Wallet } from "@/components/icons";
+import { Pencil, Wallet } from "@/components/icons";
 import { useState, type FormEvent } from "react";
 
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,9 @@ import { browserApi } from "@/lib/browser-api";
 import { usePortalResource } from "@/lib/portal-query";
 import { toast } from "@/stores/toast-store";
 
+import { FactChip } from "./platform-page-ui";
 import { shortDate } from "./platform-team-types";
+import { EmptyState, Panel } from "./shared-ui";
 
 type TeamWallet = {
   agentId: string;
@@ -28,7 +31,7 @@ type TeamWallet = {
 
 const METHODS = ["CASH", "BANK", "ESEWA", "KHALTI", "OTHER"] as const;
 const INPUT =
-  "h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-role-platform";
+  "mt-1 h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground outline-none focus:border-role-team";
 
 function rupees(amount: number) {
   return `Rs ${amount.toLocaleString("en-IN", { maximumFractionDigits: 2 })}`;
@@ -115,7 +118,7 @@ function PayDialog({
             <input className={INPUT} maxLength={300} onChange={(event) => setNote(event.target.value)} value={note} />
           </label>
           <button
-            className="h-10 w-full rounded-lg bg-role-platform text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-60"
+            className="h-10 w-full rounded-lg bg-brand-teal text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-60"
             disabled={saving}
             type="submit"
           >
@@ -145,6 +148,7 @@ export function TeamCommissionPanel() {
   const rate = rateDraft ?? (savedRate === null ? "" : String(savedRate));
   const fee = feeDraft ?? (savedFee === null ? "" : String(savedFee));
   const [savingRate, setSavingRate] = useState(false);
+  const [editingRate, setEditingRate] = useState(false);
   const [paying, setPaying] = useState<TeamWallet | null>(null);
 
   async function saveRate(event: FormEvent) {
@@ -158,6 +162,7 @@ export function TeamCommissionPanel() {
       });
       setRateDraft(null);
       setFeeDraft(null);
+      setEditingRate(false);
       resource.refresh();
       toast.success({ title: `Setup fee ${rupees(Number(fee))}, commission ${rate}%` });
     } catch (error) {
@@ -170,26 +175,35 @@ export function TeamCommissionPanel() {
   const owed = wallets.reduce((sum, wallet) => sum + wallet.balance, 0);
 
   return (
-    <div className="app-card overflow-hidden">
-      <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-5 py-3">
-        <div>
-          <h2 className="text-sm font-bold text-foreground">Commission</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            The agent gets{" "}
-            <strong className="font-semibold text-foreground">
-              {rupees(Math.round((Number(fee) || 0) * (Number(rate) || 0)) / 100)} of a{" "}
-              {rupees(Number(fee) || 0)} setup fee
-            </strong>{" "}
-            — the rate is a percent, so a fee the agent lowers earns less. Credited when the fee
-            clears. The fee is also the most an agent may collect. {rupees(owed)} waiting to be
-            paid out.
-          </p>
-        </div>
-        <form className="flex items-end gap-2" onSubmit={saveRate}>
-          <label className="text-xs font-semibold text-foreground">
+    <Panel
+      action={
+        <Button onClick={() => setEditingRate(true)} size="sm" type="button" variant="outline">
+          <Pencil className="size-3.5" />
+          Edit
+        </Button>
+      }
+      title="Commission"
+    >
+      <div className="mb-4 flex flex-wrap gap-1.5">
+        <FactChip glyph="receipt">{`Setup fee ${rupees(savedFee ?? 0)}`}</FactChip>
+        <FactChip glyph="percent">{`${savedRate ?? 0}% to the agent`}</FactChip>
+        <FactChip glyph="wallet" tone="brand">
+          {`Agent gets ${rupees(Math.round((savedFee ?? 0) * (savedRate ?? 0)) / 100)}`}
+        </FactChip>
+        <FactChip glyph="time" tone={owed > 0 ? "amber" : "neutral"}>{`${rupees(owed)} to pay out`}</FactChip>
+      </div>
+
+      <Dialog onOpenChange={setEditingRate} open={editingRate}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Commission</DialogTitle>
+            <DialogDescription>A percent of the fee, credited when it clears; the fee is the most an agent may collect.</DialogDescription>
+          </DialogHeader>
+        <form className="space-y-3" onSubmit={saveRate}>
+          <label className="block text-xs font-semibold text-foreground">
             Setup fee (Rs)
             <input
-              className="mt-1 h-9 w-24 rounded-lg border border-border bg-background px-2 text-sm tabular-nums outline-none focus:border-role-platform"
+              className={INPUT}
               max={100000}
               min={0}
               onChange={(event) => setFeeDraft(event.target.value)}
@@ -199,10 +213,10 @@ export function TeamCommissionPanel() {
               value={fee}
             />
           </label>
-          <label className="text-xs font-semibold text-foreground">
+          <label className="block text-xs font-semibold text-foreground">
             Rate (%)
             <input
-              className="mt-1 h-9 w-24 rounded-lg border border-border bg-background px-2 text-sm tabular-nums outline-none focus:border-role-platform"
+              className={INPUT}
               max={100}
               min={0}
               onChange={(event) => setRateDraft(event.target.value)}
@@ -212,26 +226,30 @@ export function TeamCommissionPanel() {
               value={rate}
             />
           </label>
+          <p className="text-[12px] text-muted-foreground">
+            The agent gets {rupees(Math.round((Number(fee) || 0) * (Number(rate) || 0)) / 100)} of each fee.
+          </p>
           <button
-            className="h-9 rounded-lg border border-border px-3 text-xs font-semibold text-foreground transition hover:bg-muted disabled:opacity-50"
+            className="h-10 w-full rounded-lg bg-brand-teal text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-50"
             disabled={savingRate || (Number(rate) === savedRate && Number(fee) === savedFee)}
             type="submit"
           >
             {savingRate ? "Saving…" : "Save"}
           </button>
         </form>
-      </div>
+        </DialogContent>
+      </Dialog>
 
       {wallets.length === 0 ? (
-        <p className="p-8 text-center text-sm text-muted-foreground">No team members yet.</p>
+        <EmptyState label="No team members yet." />
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] text-sm">
+          <table className="w-full min-w-[640px] text-[13px]">
             <thead>
               <tr className="border-b border-border text-left">
                 {["Member", "Earned", "Paid out", "Balance", "Last payout", ""].map((heading) => (
                   <th
-                    className="px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                    className="px-3 py-2.5 text-[10.5px] font-bold uppercase tracking-wide text-muted-foreground"
                     key={heading}
                   >
                     {heading}
@@ -242,21 +260,21 @@ export function TeamCommissionPanel() {
             <tbody className="divide-y divide-border">
               {wallets.map((wallet) => (
                 <tr key={wallet.agentId}>
-                  <td className="px-4 py-3">
-                    <p className="font-semibold text-foreground">{wallet.name}</p>
-                    <p className="text-xs text-muted-foreground">{wallet.email}</p>
+                  <td className="px-3 py-3">
+                    <p className="text-[13.5px] font-semibold text-foreground">{wallet.name}</p>
+                    <p className="text-[12px] text-muted-foreground">{wallet.email}</p>
                   </td>
-                  <td className="px-4 py-3 tabular-nums text-foreground">{rupees(wallet.earned)}</td>
-                  <td className="px-4 py-3 tabular-nums text-foreground">{rupees(wallet.paidOut)}</td>
-                  <td className="px-4 py-3 font-semibold tabular-nums text-foreground">
+                  <td className="px-3 py-3 tabular-nums text-foreground">{rupees(wallet.earned)}</td>
+                  <td className="px-3 py-3 tabular-nums text-foreground">{rupees(wallet.paidOut)}</td>
+                  <td className="px-3 py-3 font-semibold tabular-nums text-foreground">
                     {rupees(wallet.balance)}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-3 py-3 text-muted-foreground">
                     {wallet.lastPayoutAt ? shortDate(wallet.lastPayoutAt) : "—"}
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-3 py-3 text-right">
                     <button
-                      className="inline-flex items-center gap-1.5 rounded-lg bg-role-platform px-3 py-1.5 text-xs font-bold text-white transition hover:brightness-110 disabled:opacity-40"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-brand-teal px-3 py-1.5 text-xs font-bold text-white transition hover:brightness-110 disabled:opacity-40"
                       disabled={wallet.balance <= 0}
                       onClick={() => setPaying(wallet)}
                       type="button"
@@ -281,6 +299,6 @@ export function TeamCommissionPanel() {
           wallet={paying}
         />
       ) : null}
-    </div>
+    </Panel>
   );
 }
