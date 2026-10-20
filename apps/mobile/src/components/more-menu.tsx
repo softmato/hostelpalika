@@ -25,6 +25,7 @@ import { endSession } from "@/lib/auth-session";
 import { openConfirm } from "@/lib/confirm";
 import { setThemePreference } from "@/store/slices/uiSlice";
 import { KycFrost } from "@/components/kyc-frost";
+import { crossFadeTheme } from "@/components/theme-fade";
 
 /**
  * The More screen's shape, shared by every portal: a centred face, then groups
@@ -220,7 +221,7 @@ export function AppRows({
     <MenuGroup>
       <MenuRow
         icon={dark ? "moon" : "sunny"}
-        onPress={() => dispatch(setThemePreference(dark ? "light" : "dark"))}
+        onPress={() => crossFadeTheme(() => dispatch(setThemePreference(dark ? "light" : "dark")))}
         title="Dark mode"
         tone="neutral"
         value={dark ? "On" : "Off"}

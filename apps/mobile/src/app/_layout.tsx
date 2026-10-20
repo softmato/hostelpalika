@@ -21,6 +21,7 @@ import { BottomChromeProvider } from "@/components/bottom-chrome";
 import { AppLockHost, AppLockOffer } from "@/components/app-lock";
 import { AssetViewer } from "@/components/asset-viewer";
 import { CardGrowHost } from "@/components/card-grow";
+import { ThemeFadeHost } from "@/components/theme-fade";
 import {
   BootSplashCover,
   bootSplashGone,
@@ -657,6 +658,8 @@ export default function RootLayout() {
                 </BottomChromeProvider>
               </BottomSheetModalProvider>
               <ToastHost />
+              {/* The old theme's snapshot fading over the new one (M9): over everything but the lock. */}
+              <ThemeFadeHost />
               {/*
                 The fingerprint lock: last, so nothing — no sheet, no toast —
                 draws above it. Only the boot splash cover sits higher, which is

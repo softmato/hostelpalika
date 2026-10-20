@@ -47,6 +47,8 @@ export const MOTION = {
   titleCollapse: { distance: 48, scale: 16 / 24 },
   /** A tapped card growing into the next screen's header (`card-grow.tsx`). */
   grow: GROW,
+  /** The old theme's snapshot dissolving over the new one (`theme-fade.tsx`). */
+  themeFade: { duration: 320, reduceMotion: ReduceMotion.System } satisfies WithTimingConfig,
 } as const;
 
 /** Rise 10px and fade in: a screen body on mount, a list row on first load. */

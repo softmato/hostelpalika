@@ -130,7 +130,13 @@ pulse their opacity. Sheets are gorhom, which already springs. Presses only dim
   are still behind a feature flag on the new architecture. So build our own:
   measure the source card, draw a copy over the screen, animate it to the
   header's box, then hand off to the real header.
-- ☐ **M9. Theme cross-fade.** Snapshot the current frame with
+- ☑ **M9. Theme cross-fade.** Done 2026-10-20: `components/theme-fade.tsx`.
+  `crossFadeTheme(apply)` has `ThemeFadeHost` (root, under the app lock)
+  `captureScreen` the frame, show it full-screen, run `apply` once the image is
+  on screen, wait two frames, then fade it (`MOTION.themeFade`) and release the
+  file. Both toggles use it: More → Dark mode and Settings → Appearance. Web,
+  reduce-motion, a fade already running or a failed capture just apply. No
+  haptic. Was: Snapshot the current frame with
   `react-native-view-shot` (installed), swap the theme underneath, then fade
   the snapshot out (FoneBiz 0:42–0:44).
 - ◐ **M10. Web.** 2026-10-20: `Button` presses scale to 0.97; page fade is W3. Was: Same vocabulary: press scale on buttons and cards, a fade-up
