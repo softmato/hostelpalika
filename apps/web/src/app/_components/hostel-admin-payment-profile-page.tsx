@@ -37,6 +37,8 @@ import {
 } from "@/app/_components/payment-profile-resident-preview";
 import { EmptyState, Input, LoadingRows, Panel, TextArea } from "@/app/_components/shared-ui";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { WalletMark } from "@/components/wallet-mark";
+import { Chip, ShareBar } from "./hostel-admin-page-ui";
 import { browserApi } from "@/lib/browser-api";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
@@ -574,6 +576,13 @@ export const HostelAdminPaymentProfilePageContent = memo(
       />
     ) : null;
     const closeExtras = () => setExtraOpen(false);
+    const waysSet = profile
+      ? Math.min(
+          4,
+          [profile.staticQrAssetId, profile.bankAccountNumber, profile.esewaId, profile.khaltiId].filter(Boolean)
+            .length + (profile.extraAccounts?.length ?? 0),
+        )
+      : 0;
 
     return (
       <div className="mx-auto max-w-[1448px] space-y-5">
@@ -607,24 +616,27 @@ export const HostelAdminPaymentProfilePageContent = memo(
               {/* Methods below are collected by hand — each payment is confirmed
                   from the review queue. Online checkout settles without review.
                   Anything left unset is simply not shown to residents. */}
-              <div
-                className={`flex items-center gap-3 rounded-2xl px-4 py-3 text-[13.5px] ${
-                  profile.usable
-                    ? "bg-role-team-soft text-role-team"
-                    : "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
-                }`}
-              >
-                <ShieldCheck aria-hidden="true" className="size-5 shrink-0" />
-                <p className="min-w-0 flex-1 font-semibold">
-                  {profile.usable
-                    ? "Residents can see how to pay you."
-                    : "Residents cannot see how to pay you yet. Set up a method below."}
-                </p>
-                {profile.enabledProviders.length > 0 ? (
-                  <span className="shrink-0 rounded-full bg-card px-2.5 py-0.5 text-[11.5px] font-semibold text-foreground">
-                    Checkout live: {profile.enabledProviders.join(", ").toLowerCase()}
-                  </span>
-                ) : null}
+              <div className="space-y-3 rounded-2xl border border-border/70 bg-card p-4">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <ShieldCheck aria-hidden="true" className="mr-1 size-5 shrink-0 text-role-team" />
+                  <Chip tone={profile.usable ? "brand" : "warn"}>
+                    {profile.usable ? "Residents can pay" : "Not set up yet"}
+                  </Chip>
+                  <Chip tone={profile.payeeVerifiable ? "brand" : "warn"}>
+                    {profile.payeeVerifiable ? "Receipts checked" : "Receipts not checked"}
+                  </Chip>
+                  {profile.enabledProviders.map((provider) => (
+                    <span
+                      className="inline-flex items-center gap-1.5 rounded-full bg-muted py-0.5 pl-0.5 pr-2.5 text-[12px] font-medium text-foreground"
+                      key={provider}
+                    >
+                      <WalletMark name={provider} size={22} />
+                      Checkout live
+                    </span>
+                  ))}
+                </div>
+                {/* The app counts the same four: QR, bank, eSewa, Khalti (extra accounts fill in). */}
+                <ShareBar label="ways to pay set up" total={4} value={waysSet} />
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
@@ -635,7 +647,7 @@ export const HostelAdminPaymentProfilePageContent = memo(
                       ? (profile.qrPayeeName ?? "QR uploaded")
                       : "Scan-to-pay image from your bank or wallet app"
                   }
-                  mark={<QrMark className="size-10" />}
+                  mark={<QrMark className="size-12" />}
                   onClose={cancel}
                   onToggle={() => toggle("QR")}
                   open={open === "QR"}
@@ -762,7 +774,7 @@ export const HostelAdminPaymentProfilePageContent = memo(
                   configured={Boolean(profile.esewaId)}
                   description={profile.esewaId || "Your eSewa mobile number or ID"}
                   liveCheckout={live.has("ESEWA")}
-                  mark={<EsewaMark className="size-10" />}
+                  mark={<EsewaMark className="size-12" />}
                   onClose={cancel}
                   onToggle={() => toggle("ESEWA")}
                   open={open === "ESEWA"}
@@ -793,7 +805,7 @@ export const HostelAdminPaymentProfilePageContent = memo(
                   configured={Boolean(profile.khaltiId)}
                   description={profile.khaltiId || "Your Khalti mobile number or ID"}
                   liveCheckout={live.has("KHALTI")}
-                  mark={<KhaltiMark className="size-10" />}
+                  mark={<KhaltiMark className="size-12" />}
                   onClose={cancel}
                   onToggle={() => toggle("KHALTI")}
                   open={open === "KHALTI"}
@@ -825,7 +837,7 @@ export const HostelAdminPaymentProfilePageContent = memo(
                       ? [profile.bankName, profile.bankAccountNumber].filter(Boolean).join(" · ")
                       : "Account name, number and bank for direct transfers"
                   }
-                  mark={<BankMark className="size-10" />}
+                  mark={<BankMark className="size-12" name={profile.bankName} />}
                   onClose={cancel}
                   onToggle={() => toggle("BANK")}
                   open={open === "BANK"}
@@ -867,7 +879,18 @@ export const HostelAdminPaymentProfilePageContent = memo(
                       ? `${(profile.extraAccounts ?? []).length} more account(s)`
                       : "A second bank, eSewa or Khalti account"
                   }
-                  mark={<BankMark className="size-10" />}
+                  mark={
+                    <BankMark
+                      className="size-12"
+                      name={
+                        profile.extraAccounts?.[0]
+                          ? profile.extraAccounts[0].kind === "BANK"
+                            ? profile.extraAccounts[0].bankName
+                            : profile.extraAccounts[0].kind
+                          : "BANK"
+                      }
+                    />
+                  }
                   onClose={closeExtras}
                   onToggle={() => setExtraOpen((value) => !value)}
                   open={extraOpen}
@@ -887,7 +910,7 @@ export const HostelAdminPaymentProfilePageContent = memo(
                 <MethodCard
                   configured={Boolean(profile.displayName)}
                   description={profile.displayName || "Display name, instructions, cash approval"}
-                  mark={<NotesMark className="size-10" />}
+                  mark={<NotesMark className="size-12" />}
                   onClose={cancel}
                   onToggle={() => toggle("GENERAL")}
                   open={open === "GENERAL"}

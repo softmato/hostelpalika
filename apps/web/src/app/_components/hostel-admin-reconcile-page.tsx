@@ -1,10 +1,11 @@
 "use client";
 
-import { AlertTriangle, CheckCircle2, Coins, FileSpreadsheet, Upload } from "@/components/icons";
+import { AlertTriangle, CheckCircle2, Coins, Upload } from "@/components/icons";
 import { memo, useCallback, useRef, useState } from "react";
 
 import { currency, EmptyState, LoadingRows } from "@/app/_components/shared-ui";
-import { Chip, Eyebrow, RowMark } from "@/app/_components/hostel-admin-page-ui";
+import { Chip, Eyebrow, RowMark, ShareBar } from "@/app/_components/hostel-admin-page-ui";
+import { WalletMark } from "@/components/wallet-mark";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
@@ -238,6 +239,14 @@ export const HostelAdminReconcilePageContent = memo(
     );
 
     const view = reconciliation.data ?? null;
+    const activeProvider = rows.find((row) => row.statementImportId === activeId)?.provider ?? null;
+    // Everything the statement raised, so the bar reads "how much of this month is settled".
+    const bucketTotal = view
+      ? view.buckets.matched.length +
+        view.buckets.claimedNoTransaction.length +
+        view.buckets.approvedNotInStatement.length +
+        view.buckets.orphans.length
+      : 0;
     const pendingMatched =
       // A confirming row is pending and always will be — it is evidence for a
       // claim that already holds the money, never a second credit. Counting it
@@ -278,20 +287,21 @@ export const HostelAdminReconcilePageContent = memo(
             {message ? <p className="text-[12.5px] text-muted-foreground">{message}</p> : null}
             <div>
               <Eyebrow className="mb-2">From</Eyebrow>
-              <div className="flex gap-1.5">
+              <div className="grid grid-cols-3 gap-2">
                 {PROVIDERS.map((option) => (
                   <button
                     aria-pressed={provider === option.value}
                     className={cn(
-                      "flex-1 rounded-full border px-3 py-1.5 text-[12.5px] font-semibold transition active:scale-95",
+                      "flex flex-col items-center gap-2 rounded-2xl border p-3 text-[12.5px] font-semibold transition active:scale-95",
                       provider === option.value
-                        ? "border-transparent bg-foreground text-background"
+                        ? "border-brand-teal bg-role-team-soft text-role-team ring-1 ring-brand-teal"
                         : "border-border text-muted-foreground hover:text-foreground",
                     )}
                     key={option.value}
                     onClick={() => setProvider(option.value)}
                     type="button"
                   >
+                    <WalletMark name={option.value} size={44} />
                     {option.label}
                   </button>
                 ))}
@@ -334,7 +344,7 @@ export const HostelAdminReconcilePageContent = memo(
                 title={row.status === "FAILED" ? (row.errorDetail ?? "Could not be read") : undefined}
                 type="button"
               >
-                <FileSpreadsheet className="size-3.5 shrink-0" />
+                <WalletMark name={row.provider} size={20} />
                 <span className="max-w-[14rem] truncate font-semibold">{row.fileName ?? `${row.provider} statement`}</span>
                 <span className="text-muted-foreground">
                   {shortDate(row.uploadedAt)} ·{" "}
@@ -379,10 +389,15 @@ export const HostelAdminReconcilePageContent = memo(
                 value={view.buckets.orphans.length}
               />
             </div>
-            <p className="text-[12.5px] text-muted-foreground">
-              {view.fileName ?? "Statement"} · {view.rowCount} transactions read · uploaded{" "}
-              {shortDate(view.uploadedAt)}
-            </p>
+            <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-border/70 bg-card p-4">
+              <WalletMark name={activeProvider} size={48} />
+              <div className="min-w-0 flex-1 space-y-2">
+                <p className="truncate text-[12.5px] text-muted-foreground">
+                  {view.fileName ?? "Statement"} · {view.rowCount} read · uploaded {shortDate(view.uploadedAt)}
+                </p>
+                <ShareBar label="cleared" total={bucketTotal} value={view.buckets.matched.length} />
+              </div>
+            </div>
 
             {/* Bucket 1 — read, not worked. */}
             <SectionCard
@@ -580,7 +595,7 @@ export const HostelAdminReconcilePageContent = memo(
                   {view.buckets.orphans.map((row) => (
                     <li className="space-y-2 py-3" key={row.eventId}>
                       <div className="flex items-center gap-3">
-                        <RowMark glyph="cash" tone="neutral" />
+                        <WalletMark name={activeProvider} size={36} />
                         <div className="min-w-0 flex-1">
                           <p className="text-[13.5px] font-semibold text-foreground">
                             {currency(row.amount)}
