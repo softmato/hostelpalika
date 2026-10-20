@@ -21,6 +21,7 @@ import {
   Th,
 } from "@/app/_components/portal-dashboard-ui";
 import { FilterButton, FilterChoice } from "@/components/filter-panel";
+import { WalletBadge } from "@/components/wallet-mark";
 import { monthLabel } from "@/lib/format-month";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
@@ -344,9 +345,11 @@ export const HostelAdminTransactionsPageContent = memo(
                             {monthLabel(entry.period)}
                           </TableCell>
                           <TableCell>
-                            <SoftBadge tone="slate">
-                              {entry.paymentMethod || "—"}
-                            </SoftBadge>
+                            {entry.paymentMethod ? (
+                              <WalletBadge name={entry.paymentMethod} size={24} />
+                            ) : (
+                              <span className="text-muted-foreground">—</span>
+                            )}
                           </TableCell>
                           <TableCell className="text-right">
                             {currency(entry.dueAmount)}

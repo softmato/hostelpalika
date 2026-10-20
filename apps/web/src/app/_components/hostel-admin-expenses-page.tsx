@@ -59,7 +59,8 @@ import {
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 
 import { EmptyState, LoadingRows, currency } from "./shared-ui";
-import { MoreMenu } from "./hostel-admin-page-ui";
+import { MoreMenu, ShareBar } from "./hostel-admin-page-ui";
+import { WalletMark } from "@/components/wallet-mark";
 import { MetricCard, PortalPageHeader, SectionCard } from "./portal-dashboard-ui";
 
 /**
@@ -366,6 +367,16 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
             tone={home.totals.left < 0 ? "rose" : "teal"}
             value={currency(home.totals.left)}
           />
+          {home.totals.in > 0 ? (
+            <div className="rounded-2xl border border-border/70 bg-card px-4 py-3 sm:col-span-3">
+              <ShareBar
+                label="spent of money in"
+                tone={home.totals.out > home.totals.in ? "warn" : "brand"}
+                total={home.totals.in}
+                value={home.totals.out}
+              />
+            </div>
+          ) : null}
         </div>
       ) : home ? (
         <div className="grid gap-3 sm:grid-cols-3">
@@ -582,6 +593,7 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
                                     .join(" · ")}
                             </p>
                           </div>
+                          {cancelled ? null : <WalletMark name={row.paidBy} size={22} />}
                           {row.photoAssetId ? (
                             <a
                               aria-label="Open the bill photo"
@@ -918,15 +930,16 @@ function AddExpenseDialog({
                   <button
                     aria-pressed={paidBy === method}
                     className={cn(
-                      "rounded-full border px-3 py-1.5 text-xs font-semibold",
+                      "inline-flex items-center gap-1.5 rounded-full border py-1 pl-1 pr-3 text-xs font-semibold transition active:scale-95",
                       paidBy === method
-                        ? "border-primary bg-primary text-primary-foreground"
+                        ? "border-brand-teal bg-role-team-soft text-role-team"
                         : "border-border hover:bg-muted",
                     )}
                     key={method}
                     onClick={() => setPaidBy(method)}
                     type="button"
                   >
+                    <WalletMark name={method} size={22} />
                     {EXPENSE_PAID_BY_LABELS[method]}
                   </button>
                 ))}

@@ -19,7 +19,7 @@ import {
   TableRow,
   Th,
 } from "@/app/_components/portal-dashboard-ui";
-import { Chip } from "@/app/_components/hostel-admin-page-ui";
+import { Chip, ShareBar } from "@/app/_components/hostel-admin-page-ui";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -545,6 +545,10 @@ export const HostelAdminFeeSchedulePageContent = memo(
       [],
     );
     const rateFor = useCallback((roomType: string) => rateOn(open, roomType), [open, rateOn]);
+    const dearestRate = Math.max(
+      1,
+      ...roomTypes.map((option) => Number(rateOn(current, option.roomType)) || 0),
+    );
 
     /**
      * Drops rates that have not started yet, and lets the current ones carry on.
@@ -693,6 +697,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
                 lists, with next month's booked rate when there is one. */}
             {roomTypes.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {/* Each rate's bar is against the dearest room, so the spread reads at a glance. */}
                 {roomTypes.map((option) => {
                   const now = rateOn(current, option.roomType);
                   const next = upcoming ? rateOn(upcoming, option.roomType) : "";
@@ -709,6 +714,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
                         {now === "" ? <span className="text-[15px] text-amber-700 dark:text-amber-300">Not priced</span> : currency(now)}
                         {now === "" ? null : <span className="text-[12px] font-medium text-muted-foreground"> / month</span>}
                       </p>
+                      {now === "" ? null : <ShareBar total={dearestRate} value={Number(now)} />}
                       <div className="flex flex-wrap gap-1.5">
                         <Chip glyph="globe">
                           {option.monthlyRent > 0 ? `Listed ${currency(option.monthlyRent)}` : "Not listed"}

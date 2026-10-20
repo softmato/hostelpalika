@@ -174,6 +174,12 @@ patterns".
   `FilterButton` beside a visible search, and totals are tiles with thin
   share bars. The portal's own chips, bars and ⋯ menu are in
   `hostel-admin-page-ui.tsx`, so no shared kit changed.
+  - ☑ **P5b. Finance, logos and gauges.** Real eSewa, Khalti, Fonepay and bank
+    marks (`WalletMark`/`WalletBadge`) on Online Checkout, Payment Setup
+    (the bank tile draws the named bank), Reconcile, Payments, Transactions
+    and Expenses. Gauges after the app: "n / 4 ready" per gateway, "n / 4 ways
+    to pay", a cleared bar on Reconcile, collected-of-billed on Payments,
+    spent-of-in on Expenses, per-rate and per-khata bars.
 - ☐ **P6. Platform portal pages.**
 - ☐ **P7. Resident, guardian, cook, provider and team pages.**
 - ☐ **P8. Browser pass** by the user after each portal.

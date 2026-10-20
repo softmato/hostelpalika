@@ -31,6 +31,7 @@ import { mediaUrl } from "@/app/_components/community-post-card";
 import { currency, EmptyState, Input, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import { useUploader } from "@/components/uploads";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ShareBar } from "@/app/_components/hostel-admin-page-ui";
 import type { PortalTone } from "@/app/_components/portal-dashboard-ui";
 import { browserApi } from "@/lib/browser-api";
 import { usePortalResource } from "@/lib/portal-query";
@@ -511,6 +512,8 @@ export function HostelAdminKhataPageContent() {
     () => (data?.accounts ?? []).reduce((sum, row) => sum + row.unbilled, 0),
     [data],
   );
+  // Each khata's bar is against the biggest one, so who owes most reads at a glance.
+  const maxUnbilled = Math.max(1, ...(data?.accounts ?? []).map((row) => row.unbilled));
 
   async function saveItems(items: (Omit<KhataItem, "id"> & { id?: string })[], done: string) {
     setBusy(true);
@@ -641,9 +644,10 @@ export function HostelAdminKhataPageContent() {
                 <ul className="divide-y divide-border">
                   {data.accounts.map((row) => (
                     <li className="flex items-center gap-3 py-2.5" key={row.id}>
-                      <span className="min-w-0 flex-1">
+                      <span className="min-w-0 flex-1 space-y-1">
                         <span className="block font-medium text-foreground">{row.name}</span>
                         {row.roomNumber ? <span className="block text-[12px] text-muted-foreground">{`Room ${row.roomNumber}`}</span> : null}
+                        <ShareBar total={maxUnbilled} value={row.unbilled} />
                       </span>
                       <span className="font-semibold text-foreground">{row.unbilled > 0 ? currency(row.unbilled) : "—"}</span>
                       <button

@@ -75,6 +75,8 @@ import {
   TableRow,
 } from "./portal-dashboard-ui";
 import { BillExtraTags, type BillLine } from "./khata-pages";
+import { ShareBar } from "./hostel-admin-page-ui";
+import { WalletMark } from "@/components/wallet-mark";
 
 type MatrixRow = {
   displayStatus:
@@ -620,6 +622,16 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
         />
       </div>
 
+      {overall && overall.collected + overall.outstanding > 0 ? (
+        <div className="rounded-2xl border border-border/70 bg-card px-4 py-3">
+          <ShareBar
+            label="rupees collected of everything billed"
+            total={overall.collected + overall.outstanding}
+            value={overall.collected}
+          />
+        </div>
+      ) : null}
+
       <Dialog onOpenChange={setShowCreate} open={showCreate}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -888,7 +900,12 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
                             ) : null}
                           </TableCell>
                           <TableCell className="text-muted-foreground">
-                            {row.payment ? currency(row.payment.paidAmount) : "—"}
+                            <span className="inline-flex items-center gap-2">
+                              {row.payment?.paymentMethod && row.payment.paidAmount > 0 ? (
+                                <WalletMark name={row.payment.paymentMethod} size={22} />
+                              ) : null}
+                              {row.payment ? currency(row.payment.paidAmount) : "—"}
+                            </span>
                           </TableCell>
                           <TableCell>
                             <SoftBadge
