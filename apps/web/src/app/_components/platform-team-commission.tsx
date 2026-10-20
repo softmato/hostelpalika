@@ -16,6 +16,7 @@ import { usePortalResource } from "@/lib/portal-query";
 import { toast } from "@/stores/toast-store";
 
 import { FactChip } from "./platform-page-ui";
+import { WalletMark, walletLabel } from "@/components/wallet-mark";
 import { shortDate } from "./platform-team-types";
 import { EmptyState, Panel } from "./shared-ui";
 
@@ -95,20 +96,27 @@ function PayDialog({
               value={amount}
             />
           </label>
-          <label className="block text-xs font-semibold text-foreground">
-            Paid by
-            <select
-              className={INPUT}
-              onChange={(event) => setMethod(event.target.value as (typeof METHODS)[number])}
-              value={method}
-            >
+          <div>
+            <p className="text-xs font-semibold text-foreground">Paid by</p>
+            <div className="mt-1.5 grid grid-cols-5 gap-1.5">
               {METHODS.map((option) => (
-                <option key={option} value={option}>
-                  {option.charAt(0) + option.slice(1).toLowerCase()}
-                </option>
+                <button
+                  aria-pressed={method === option}
+                  className={
+                    method === option
+                      ? "flex flex-col items-center gap-1 rounded-xl border-2 border-brand-teal bg-role-team-soft p-1.5 text-[10.5px] font-semibold text-foreground"
+                      : "flex flex-col items-center gap-1 rounded-xl border-2 border-transparent bg-muted p-1.5 text-[10.5px] font-semibold text-muted-foreground transition hover:text-foreground"
+                  }
+                  key={option}
+                  onClick={() => setMethod(option)}
+                  type="button"
+                >
+                  <WalletMark name={option} size={30} />
+                  {walletLabel(option)}
+                </button>
               ))}
-            </select>
-          </label>
+            </div>
+          </div>
           <label className="block text-xs font-semibold text-foreground">
             Reference <span className="font-normal text-muted-foreground">(optional)</span>
             <input className={INPUT} maxLength={120} onChange={(event) => setReference(event.target.value)} value={reference} />
