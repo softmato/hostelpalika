@@ -16,6 +16,8 @@ import {
   Loader2,
   Plus,
   QrCode,
+  MoreHorizontal,
+  RotateCcw,
   Save,
   Trash2,
   X,
@@ -62,6 +64,13 @@ import type { TeamOwnerEmailStatus } from "@/modules/hostels/hostel.service";
 import type { TeamPrepaymentView } from "@/modules/team/team-prepayment.service";
 import { DescriptionSuggestions } from "./description-suggestions";
 import { PortalPageHeader } from "./portal-dashboard-ui";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useLifetimeAvailability } from "./lifetime-deal";
 import { billingCycles, bestDiscountPercent, cycleTotal, type BillingCycle } from "./plans-catalog";
 import {
@@ -359,10 +368,12 @@ function Card({
   title: string;
 }) {
   return (
-    <section className="app-card p-5">
-      <h2 className="text-base font-bold text-foreground">{title}</h2>
+    <section className="rounded-2xl border border-border/70 bg-card p-5">
+      <h2 className="font-heading text-[15px] font-semibold tracking-tight text-foreground">{title}</h2>
       {subtitle ? (
-        <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
+        <p className="mt-0.5 line-clamp-1 text-[12.5px] text-muted-foreground" title={subtitle}>
+          {subtitle}
+        </p>
       ) : null}
       <div className="mt-4">{children}</div>
     </section>
@@ -2347,46 +2358,49 @@ export function TeamRegisterHostelPage() {
       <div className="mb-5">
         <PortalPageHeader
           actions={
-            <div className="flex flex-col items-end gap-1.5">
-              <div className="flex items-center gap-2">
-                <button
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-xs font-semibold text-foreground transition hover:border-brand-teal hover:bg-brand-teal/5"
-                  onClick={() => {
-                    const at = new Date().toLocaleTimeString("en-GB", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    });
+            <>
+              <Button
+                className="h-9 gap-2 rounded-xl"
+                onClick={() => {
+                  const at = new Date().toLocaleTimeString("en-GB", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
 
-                    setDraftNotice(
-                      writeDraft()
-                        ? `Draft saved on this device at ${at}.`
-                        : "This browser will not let us save a draft — do not close the tab.",
-                    );
-                  }}
-                  type="button"
-                >
-                  <Save className="size-3.5" />
-                  Save draft
-                </button>
-
-                <button
-                  className="rounded-lg px-2 py-2 text-xs font-semibold text-muted-foreground transition hover:text-destructive"
-                  onClick={() => void discardDraft()}
-                  type="button"
-                >
-                  Start over
-                </button>
-              </div>
-
-              {/* Autosave is silent by design; this is the receipt for it. */}
-              <p aria-live="polite" className="text-[11px] text-muted-foreground">
-                {draftNotice || "Saved on this device as you type"}
-              </p>
-            </div>
+                  setDraftNotice(
+                    writeDraft()
+                      ? `Draft saved on this device at ${at}.`
+                      : "This browser will not let us save a draft — do not close the tab.",
+                  );
+                }}
+                type="button"
+                variant="outline"
+              >
+                <Save className="size-4" />
+                Save draft
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button aria-label="More draft actions" className="size-9 rounded-xl" size="icon" type="button" variant="outline">
+                    <MoreHorizontal className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onSelect={() => void discardDraft()} variant="destructive">
+                    <RotateCcw className="size-4" />
+                    Start over
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </>
           }
           description="Everything the owner would set up. Publishes on the last step."
           title="Register a hostel"
         />
+        {/* Autosave is silent by design; this is the receipt for it. */}
+        <p aria-live="polite" className="mt-2 px-1 text-[12px] text-muted-foreground">
+          {draftNotice || "Saved on this device as you type"}
+        </p>
       </div>
 
       {/*
@@ -2401,7 +2415,7 @@ export function TeamRegisterHostelPage() {
       */}
       {duplicate ? (
         <div
-          className="mb-4 rounded-lg border border-warning/40 bg-warning/10 p-3 text-sm text-foreground"
+          className="mb-4 rounded-2xl border border-amber-300 bg-amber-50 p-4 text-[13.5px] text-foreground dark:border-amber-500/40 dark:bg-amber-950/30"
           role="alert"
         >
           <p className="font-semibold">
@@ -2436,14 +2450,14 @@ export function TeamRegisterHostelPage() {
       ) : null}
 
       {confirmSecondHostel && !duplicate ? (
-        <p className="mb-4 rounded-lg border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
+        <p className="mb-4 rounded-xl border border-border bg-muted/40 p-3 text-[12.5px] text-muted-foreground">
           Confirmed as a second building for this owner. Press Publish again to register it.
         </p>
       ) : null}
 
       {error ? (
         <p
-          className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm font-medium text-destructive"
+          className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-[13.5px] font-medium text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300"
           role="alert"
         >
           {error}
@@ -2456,7 +2470,7 @@ export function TeamRegisterHostelPage() {
       */}
       {bannerOpen && showChecks && step !== STEPS.length && problems.length > 0 ? (
         <div
-          className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm"
+          className="mb-4 rounded-2xl border border-rose-200 bg-rose-50 p-4 text-[13.5px] dark:border-rose-900 dark:bg-rose-950/40"
           onMouseEnter={() => setBannerHeld(true)}
           onMouseLeave={() => setBannerHeld(false)}
           role="alert"

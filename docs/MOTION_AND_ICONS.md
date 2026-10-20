@@ -171,7 +171,16 @@ patterns".
   Move-in/out, the Finance pages, Operations (food, stock, night status,
   notices, complaints, maintenance, SOS, attendance), Growth & System.
 - ☐ **P6. Platform portal pages.**
-- ☐ **P7. Resident, guardian, cook, provider and team pages.**
+- ☑ **P7. Resident, guardian, cook, provider and team pages.** Shared pieces
+  in `daily-portal-ui.tsx`: the amount owed as a big figure with a bar to its
+  due date, meal tiles, notice cards, a hostel card, an icon-tile menu. Forms
+  are header dialogs (complaint, guardian invite, rate a meal, khata ask, SOS,
+  cook photo); filters sit behind `FilterButton`; history and job lists are
+  cards or rows with bars. The four guardian routes now each show their own
+  section of the one dashboard request. The shared Notifications page is
+  restyled for every portal, the platform inbox included. Left as they were:
+  the public `/bookings` page (public shell) and the register wizard's steps
+  beyond its header, cards and alerts.
 - ☐ **P8. Browser pass** by the user after each portal.
 
 **Order:** M0 → M1 → M2 → M3 → M4 → M5 → M6 → M7 → M8 → M9 → M10.

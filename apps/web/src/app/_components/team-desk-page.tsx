@@ -1,23 +1,28 @@
 "use client";
 
-import { AlertTriangle, ArrowRight, Building2, FileSpreadsheet, Phone, Plus, QrCode, Users, Wallet } from "@/components/icons";
+import { AlertTriangle, ArrowRight, Building2, FileSpreadsheet, Plus, QrCode, Wallet } from "@/components/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { useCheckoutHandoff } from "@/app/_components/checkout-handoff";
-import { MetricCard, PortalPageHeader } from "@/app/_components/portal-dashboard-ui";
+import { MetricCard, PortalPageHeader, RoleButton } from "@/app/_components/portal-dashboard-ui";
+import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import { GetAppDialog } from "@/components/get-app-dialog";
+import { Glyph } from "@/components/glyph";
+import { Button } from "@/components/ui/button";
 import { browserApi } from "@/lib/browser-api";
 import { cn } from "@/lib/utils";
 import type { UnpublishedPrepayment } from "@/modules/team/team-prepayment.service";
 import { formatBsAdDate } from "@hostel/shared/calendar/bs";
+import { FactChip, ShareBar, titleCase } from "./daily-portal-ui";
 
 /**
  * An agent's own desk: what they have filed, and what is still owed on it.
  *
  * Deliberately plain. This is a work surface somebody opens twenty times a day
- * standing in a corridor, so it is the shared page header, a number row and a
- * table — no illustration, no explanatory prose about what the field team does.
+ * standing in a corridor, so it is the shared page header, two big figures, a
+ * number row and a card per hostel with its paid bar and the owner's number —
+ * no illustration, no explanatory prose about what the field team does.
  * The person reading it is the field team.
  *
  * ## The order
@@ -104,24 +109,24 @@ function statusLabel(row: Registration) {
       : "Past due";
   }
 
-  return row.subscriptionStatus === "ACTIVE" ? "Paid" : row.subscriptionStatus;
+  return row.subscriptionStatus === "ACTIVE" ? "Paid" : titleCase(row.subscriptionStatus);
 }
 
 function statusTone(status: string) {
   return status === "ACTIVE"
-    ? "bg-success/10 text-success"
+    ? "bg-role-team-soft text-role-team"
     : status === "PAST_DUE"
-      ? "bg-warning/10 text-warning"
+      ? "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300"
       : "bg-muted text-muted-foreground";
 }
 
+type Show = "ALL" | "OWES" | "PAID";
+
 function Figure({ label, tone, value }: { label: string; tone?: string; value: string }) {
   return (
-    <div>
-      <p className={cn("text-sm font-bold tabular-nums sm:text-base", tone ?? "text-foreground")}>
-        {value}
-      </p>
-      <p className="text-[11px] text-muted-foreground">{label}</p>
+    <div className="min-w-0">
+      <p className={cn("truncate text-[15px] font-bold tabular-nums", tone ?? "text-foreground")}>{value}</p>
+      <p className="truncate text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
     </div>
   );
 }
@@ -137,43 +142,53 @@ function EarningsRow({ entries, wallet }: { entries: WalletEntry[]; wallet: Wall
   const rate = wallet ? `${wallet.ratePercent}%` : "—";
 
   return (
-    <div className="grid gap-3 lg:grid-cols-2">
-      <div className="app-card p-4">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Today&apos;s salary
-          </p>
-          <span className="rounded-full bg-brand-teal/10 px-2 py-0.5 text-[11px] font-bold text-brand-teal">
-            {rate} commission
+    <div className="grid gap-4 lg:grid-cols-2">
+      <section className="space-y-4 rounded-2xl border border-border/70 bg-card p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+              Today&apos;s salary
+            </p>
+            <p className="mt-1 font-heading text-[34px] font-bold leading-none tracking-tight text-foreground tabular-nums">
+              {rupees(wallet?.today.commission ?? 0)}
+            </p>
+          </div>
+          {/* The rate is of each new hostel's setup fee, credited once it clears. */}
+          <span className="rounded-full bg-role-team-soft px-2.5 py-0.5 text-[11.5px] font-semibold text-role-team">
+            {rate} of setup fees
           </span>
         </div>
-        <p className="mt-2 text-3xl font-bold tabular-nums text-foreground">
-          {rupees(wallet?.today.commission ?? 0)}
-        </p>
-        <div className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-3 text-center">
+        <div className="grid grid-cols-3 gap-3 border-t border-border/60 pt-3">
           <Figure label="Hostels added" value={String(wallet?.today.hostels ?? 0)} />
-          <Figure label="Paid" tone="text-success" value={rupees(wallet?.today.paid ?? 0)} />
-          <Figure label="Due" tone="text-warning" value={rupees(wallet?.today.due ?? 0)} />
+          <Figure label="Paid" tone="text-role-team" value={rupees(wallet?.today.paid ?? 0)} />
+          <Figure label="Due" tone="text-amber-600" value={rupees(wallet?.today.due ?? 0)} />
         </div>
-        <p className="mt-3 text-[11px] text-muted-foreground">
-          {rate} of each new hostel&apos;s setup fee, credited once the fee clears.
-        </p>
-      </div>
+      </section>
 
-      <div className="app-card p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Wallet</p>
-        <p className="mt-2 text-3xl font-bold tabular-nums text-foreground">
-          {rupees(wallet?.balance ?? 0)}
-        </p>
-        <div className="mt-3 grid grid-cols-3 gap-2 border-t border-border pt-3 text-center">
-          <Figure label="Earned" value={rupees(wallet?.earned ?? 0)} />
-          <Figure label="Paid to you" value={rupees(wallet?.paidOut ?? 0)} />
-          <Figure label="Once paid" tone="text-muted-foreground" value={rupees(wallet?.pending ?? 0)} />
+      <section className="space-y-4 rounded-2xl border border-border/70 bg-card p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Wallet</p>
+            <p className="mt-1 font-heading text-[34px] font-bold leading-none tracking-tight text-foreground tabular-nums">
+              {rupees(wallet?.balance ?? 0)}
+            </p>
+          </div>
+          <span className="flex size-11 items-center justify-center rounded-2xl bg-foreground text-background">
+            <Glyph className="size-[22px]" name="wallet" variant="solid" />
+          </span>
         </div>
+        <ShareBar
+          label={`${rupees(wallet?.paidOut ?? 0)} paid to you of ${rupees(wallet?.earned ?? 0)} earned`}
+          total={wallet?.earned ?? 0}
+          value={wallet?.paidOut ?? 0}
+        />
+        {(wallet?.pending ?? 0) > 0 ? (
+          <p className="text-[12.5px] text-muted-foreground">{rupees(wallet?.pending ?? 0)} more once hostels pay.</p>
+        ) : null}
         {entries.length > 0 ? (
-          <ul className="mt-3 divide-y divide-border border-t border-border">
+          <ul className="divide-y divide-border/60 border-t border-border/60">
             {entries.slice(0, 4).map((entry) => (
-              <li className="flex items-center justify-between gap-2 py-1.5 text-xs" key={entry.id}>
+              <li className="flex items-center justify-between gap-2 py-2 text-[12.5px]" key={entry.id}>
                 <span className="min-w-0 truncate text-muted-foreground">
                   {entry.type === "COMMISSION"
                     ? entry.hostelName || "Commission"
@@ -184,7 +199,7 @@ function EarningsRow({ entries, wallet }: { entries: WalletEntry[]; wallet: Wall
                 <span
                   className={cn(
                     "shrink-0 font-semibold tabular-nums",
-                    entry.type === "COMMISSION" ? "text-success" : "text-foreground",
+                    entry.type === "COMMISSION" ? "text-role-team" : "text-foreground",
                   )}
                 >
                   {entry.type === "COMMISSION" ? "+" : "−"}
@@ -194,7 +209,7 @@ function EarningsRow({ entries, wallet }: { entries: WalletEntry[]; wallet: Wall
             ))}
           </ul>
         ) : null}
-      </div>
+      </section>
     </div>
   );
 }
@@ -206,6 +221,7 @@ export function TeamDeskPage() {
   const [entries, setEntries] = useState<WalletEntry[]>([]);
   const [paidWaiting, setPaidWaiting] = useState<UnpublishedPrepayment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [show, setShow] = useState<Show>("ALL");
   const handoff = useCheckoutHandoff();
 
   /*
@@ -218,20 +234,6 @@ export function TeamDeskPage() {
       endpoint: `/api/v1/team/hostels/${row.hostelId}/checkout`,
       preparing: "Setting up the remaining payment",
     });
-  }
-
-  function payButton(row: Registration) {
-    return (
-      <button
-        className="inline-flex items-center gap-1.5 rounded-md bg-brand-teal px-2.5 py-1 text-xs font-bold text-white transition hover:brightness-110 disabled:opacity-60"
-        disabled={handoff.busy}
-        onClick={() => payRemaining(row)}
-        type="button"
-      >
-        <QrCode className="size-3.5" />
-        Pay {rupees(row.outstanding)}
-      </button>
-    );
   }
 
   useEffect(() => {
@@ -259,27 +261,31 @@ export function TeamDeskPage() {
     void load();
   }, []);
 
+  const visible = registrations.filter((row) =>
+    show === "ALL" ? true : show === "OWES" ? row.outstanding > 0 : row.outstanding <= 0,
+  );
+  const collected = summary?.collected ?? 0;
+  const outstanding = summary?.outstanding ?? 0;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <PortalPageHeader
         actions={
           <>
             {/* Its own tab: the sheet is a full-screen page, kept open beside the desk. */}
-            <a
-              className="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2.5 text-sm font-semibold text-foreground transition hover:bg-muted"
-              href="/hostel-registration-track-sheet"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <FileSpreadsheet className="size-4" /> Hostel sheet
-            </a>
+            <Button asChild className="h-9 gap-2 rounded-xl" variant="outline">
+              <a href="/hostel-registration-track-sheet" rel="noopener noreferrer" target="_blank">
+                <FileSpreadsheet className="size-4" />
+                Hostel sheet
+              </a>
+            </Button>
             <GetAppDialog />
-            <Link
-              className="inline-flex items-center gap-2 rounded-lg bg-brand-teal px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
-              href="/team/register"
-            >
-              <Plus className="size-4" /> Register a hostel
-            </Link>
+            <RoleButton asChild className="h-9 px-4" tone="team">
+              <Link href="/team/register">
+                <Plus className="size-4" />
+                Register a hostel
+              </Link>
+            </RoleButton>
           </>
         }
         description="Every hostel you registered, and what it still owes."
@@ -291,226 +297,152 @@ export function TeamDeskPage() {
       <EarningsRow entries={entries} wallet={wallet} />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MetricCard
-          icon={Building2}
-          label="Registered"
-          value={String(summary?.hostelsRegistered ?? 0)}
-        />
-        <MetricCard
-          icon={Wallet}
-          label="Cash in hand"
-          value={rupees(summary?.cashCollected ?? 0)}
-        />
-        <MetricCard icon={Wallet} label="Collected" value={rupees(summary?.collected ?? 0)} />
+        <MetricCard icon={Building2} label="Registered" value={String(summary?.hostelsRegistered ?? 0)} />
+        <MetricCard icon={Wallet} label="Cash in hand" value={rupees(summary?.cashCollected ?? 0)} />
+        <MetricCard icon={Wallet} label="Collected" value={rupees(collected)} />
         <MetricCard
           icon={AlertTriangle}
           label="Outstanding"
-          tone="amber"
-          value={rupees(summary?.outstanding ?? 0)}
+          tone={outstanding > 0 ? "amber" : "teal"}
+          value={rupees(outstanding)}
         />
       </div>
+      {collected + outstanding > 0 ? (
+        <ShareBar
+          label={`${rupees(collected)} collected of ${rupees(collected + outstanding)}`}
+          total={collected + outstanding}
+          value={collected}
+        />
+      ) : null}
 
-      <div className="app-card overflow-hidden">
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="font-heading text-[15px] font-semibold text-foreground">
+            Hostels <span className="font-normal text-muted-foreground">· {visible.length}</span>
+          </h2>
+          {registrations.length > 0 ? (
+            <FilterButton active={show === "ALL" ? 0 : 1} onClear={() => setShow("ALL")}>
+              <FilterChoice
+                label="Show"
+                onChange={setShow}
+                options={[
+                  { label: "All", value: "ALL" },
+                  { label: "Still owes", value: "OWES" },
+                  { label: "Paid up", value: "PAID" },
+                ]}
+                value={show}
+              />
+            </FilterButton>
+          ) : null}
+        </div>
+
         {loading ? (
-          <div className="space-y-3 p-5">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {[0, 1, 2].map((row) => (
-              <div className="h-10 animate-pulse rounded bg-muted" key={row} />
+              <div className="h-44 animate-pulse rounded-2xl bg-muted" key={row} />
             ))}
           </div>
         ) : registrations.length === 0 ? (
-          <div className="p-10 text-center">
-            <Building2 className="mx-auto size-8 text-muted-foreground/40" />
-            <p className="mt-3 text-sm font-semibold text-foreground">
-              You have not registered a hostel yet
-            </p>
-            <Link
-              className="mt-4 inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:bg-muted"
-              href="/team/register"
-            >
-              <Plus className="size-4" /> Register your first
-            </Link>
-          </div>
+          <section className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border bg-card p-10 text-center">
+            <span className="flex size-12 items-center justify-center rounded-2xl bg-muted text-muted-foreground">
+              <Building2 className="size-6" />
+            </span>
+            <p className="font-heading text-[15px] font-semibold text-foreground">No hostel registered yet</p>
+            <RoleButton asChild className="h-9 px-4" tone="team" variant="outline">
+              <Link href="/team/register">
+                <Plus className="size-4" />
+                Register your first
+              </Link>
+            </RoleButton>
+          </section>
         ) : (
-          <>
-            {/* Phones: one card per hostel, the call and the chase up front. */}
-            <ul className="divide-y divide-border md:hidden">
-              {registrations.map((row) => (
-                <li className="space-y-2 p-4" key={row.hostelId}>
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold text-foreground">{row.hostelName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {row.planName || "—"} · {planLine(row)}
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {visible.map((row) => {
+              const billed = row.paid + row.outstanding;
+
+              return (
+                <article
+                  className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-card p-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-md"
+                  key={row.hostelId}
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-role-team-soft text-role-team">
+                      <Glyph className="size-5" name="hostel" />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-heading text-[15px] font-semibold text-foreground">{row.hostelName}</p>
+                      <p className="truncate text-[12px] text-muted-foreground">
+                        {[row.area, row.city].filter(Boolean).join(", ")}
+                        {row.registeredAt
+                          ? ` · ${new Date(row.registeredAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`
+                          : ""}
                       </p>
                     </div>
                     <span
                       className={cn(
-                        "shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold",
+                        "shrink-0 rounded-full px-2.5 py-0.5 text-[11.5px] font-semibold",
                         statusTone(row.subscriptionStatus),
                       )}
                     >
                       {statusLabel(row)}
                     </span>
                   </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">
-                      {row.setupFee ? "Setup fee" : "Paid"}{" "}
-                      <strong className="text-foreground">
-                        {rupees(row.setupFee ? row.setupFee.amount : row.paid)}
-                      </strong>
-                      {row.setupFee && row.setupFee.collected < row.setupFee.amount
-                        ? " · waiting on confirmation"
-                        : ""}
-                    </span>
-                    {row.outstanding > 0 ? payButton(row) : null}
+
+                  {/* Plan and price together: an outstanding figure means
+                      nothing without the number it is short of, and that is the
+                      first thing asked on the call. */}
+                  <ShareBar
+                    label={`${row.planName || "No plan"} · ${planLine(row)}`}
+                    total={billed}
+                    tone={row.subscriptionStatus === "PAST_DUE" ? "warn" : "brand"}
+                    value={row.paid}
+                  />
+
+                  <div className="flex flex-wrap gap-1.5">
+                    <FactChip glyph="checkmark-circle" tone="brand">{`${rupees(row.paid)} paid`}</FactChip>
+                    {row.cashCollected > 0 ? <FactChip glyph="cash">{`${rupees(row.cashCollected)} cash`}</FactChip> : null}
+                    {row.setupFee ? (
+                      <FactChip
+                        glyph="receipt"
+                        tone={row.setupFee.collected < row.setupFee.amount ? "warn" : "neutral"}
+                      >
+                        {`${rupees(row.setupFee.amount)} setup${row.setupFee.collected < row.setupFee.amount ? " · not confirmed" : ""}`}
+                      </FactChip>
+                    ) : null}
                   </div>
-                  <div className="flex items-center justify-between gap-2">
+
+                  <div className="mt-auto flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
+                    {/* The row exists so somebody rings them. */}
                     {row.ownerPhone ? (
-                      <a
-                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal"
-                        href={`tel:${row.ownerPhone}`}
-                      >
-                        <Phone className="size-3.5" />
+                      <FactChip glyph="call" href={`tel:${row.ownerPhone}`} tone="brand">
                         {row.ownerPhone}
-                      </a>
+                      </FactChip>
                     ) : (
-                      <span className="text-xs text-muted-foreground">No number on file</span>
+                      <span className="text-[12px] text-muted-foreground">No number on file</span>
                     )}
-                    <Link
-                      className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal"
-                      href={`/team/hostels/${row.hostelId}/residents`}
-                    >
-                      <Users className="size-3.5" />
+                    {/* The people already living there are filled in with the
+                        owner after publishing, so the way back is on the card. */}
+                    <FactChip glyph="people" href={`/team/hostels/${row.hostelId}/residents`}>
                       Residents
-                    </Link>
+                    </FactChip>
+                    {row.outstanding > 0 ? (
+                      <RoleButton
+                        className="ml-auto h-8 px-3"
+                        disabled={handoff.busy}
+                        onClick={() => payRemaining(row)}
+                        tone="team"
+                      >
+                        <QrCode className="size-3.5" />
+                        Pay {rupees(row.outstanding)}
+                      </RoleButton>
+                    ) : null}
                   </div>
-                </li>
-              ))}
-            </ul>
-          <div className="hidden overflow-x-auto md:block">
-            <table className="w-full min-w-[980px] text-sm">
-              <thead>
-                <tr className="border-b border-border text-left">
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Hostel
-                  </th>
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Plan
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Collected
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Outstanding
-                  </th>
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Owner
-                  </th>
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Status
-                  </th>
-                  <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                    Residents
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {registrations.map((row) => (
-                  <tr key={row.hostelId}>
-                    <td className="px-4 py-3">
-                      <p className="font-semibold text-foreground">{row.hostelName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {[row.area, row.city].filter(Boolean).join(", ")}
-                        {row.registeredAt
-                          ? ` · ${new Date(row.registeredAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}`
-                          : ""}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3">
-                      {/* Plan and price together: an outstanding figure means
-                          nothing without the number it is short of, and that is
-                          the first thing asked on the call. */}
-                      <p className="font-medium text-foreground">
-                        {row.planName || "—"}
-                      </p>
-                      <p className="text-xs tabular-nums text-muted-foreground">
-                        {planLine(row)}
-                      </p>
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold tabular-nums text-foreground">
-                      {rupees(row.paid)}
-                      {row.setupFee ? (
-                        <span className="block text-[11px] font-normal text-muted-foreground">
-                          {rupees(row.setupFee.amount)} setup fee
-                          {row.setupFee.collected < row.setupFee.amount ? ", not confirmed yet" : ""}
-                        </span>
-                      ) : null}
-                      {row.cashCollected > 0 ? (
-                        <span className="block text-[11px] font-normal text-muted-foreground">
-                          {rupees(row.cashCollected)} cash
-                        </span>
-                      ) : null}
-                    </td>
-                    <td
-                      className={cn(
-                        "px-4 py-3 text-right font-semibold tabular-nums",
-                        row.outstanding > 0 ? "text-warning" : "text-muted-foreground",
-                      )}
-                    >
-                      {row.outstanding > 0 ? rupees(row.outstanding) : "—"}
-                      {row.outstanding > 0 ? (
-                        <div className="mt-1.5">
-                          {payButton(row)}
-                        </div>
-                      ) : null}
-                    </td>
-                    <td className="px-4 py-3">
-                      {/* The row exists so somebody rings them. A number that has
-                          to be copied out of another screen first is a number
-                          that does not get rung. */}
-                      {row.ownerPhone ? (
-                        <a
-                          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:underline"
-                          href={`tel:${row.ownerPhone}`}
-                        >
-                          <Phone className="size-3.5" />
-                          {row.ownerPhone}
-                        </a>
-                      ) : (
-                        <span className="text-xs text-muted-foreground">
-                          No number on file
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span
-                        className={cn(
-                          "inline-flex rounded-full px-2.5 py-1 text-[11px] font-bold",
-                          statusTone(row.subscriptionStatus),
-                        )}
-                      >
-                        {statusLabel(row)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
-                      {/* The people already living there are filled in with the
-                          owner after publishing, so the way back is on the row. */}
-                      <Link
-                        className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-teal hover:underline"
-                        href={`/team/hostels/${row.hostelId}/residents`}
-                      >
-                        <Users className="size-3.5" />
-                        Add residents
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                </article>
+              );
+            })}
           </div>
-          </>
         )}
-      </div>
+      </section>
 
       {handoff.overlay}
     </div>
@@ -524,13 +456,15 @@ export function TeamDeskPage() {
  */
 function PaidNotPublished({ rows }: { rows: UnpublishedPrepayment[] }) {
   return (
-    <section className="app-card overflow-hidden border-warning/30">
-      <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-        <AlertTriangle className="size-4 text-warning" />
-        <h2 className="text-sm font-bold text-foreground">Paid, not published</h2>
-        <span className="rounded-full bg-warning/10 px-2 py-0.5 text-xs font-semibold text-warning">{rows.length}</span>
+    <section className="overflow-hidden rounded-2xl border border-amber-300 bg-card dark:border-amber-500/40">
+      <div className="flex items-center gap-2 border-b border-border/60 px-4 py-3">
+        <AlertTriangle className="size-4 text-amber-600" />
+        <h2 className="font-heading text-[15px] font-semibold text-foreground">Paid, not published</h2>
+        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11.5px] font-semibold text-amber-700 dark:bg-amber-950/40 dark:text-amber-300">
+          {rows.length}
+        </span>
       </div>
-      <ul className="divide-y divide-border">
+      <ul className="divide-y divide-border/60">
         {rows.map((row) => (
           <li key={row.id}>
             <Link
@@ -538,20 +472,20 @@ function PaidNotPublished({ rows }: { rows: UnpublishedPrepayment[] }) {
               href={`/team/register?resume=${row.id}`}
             >
               <span className="min-w-0">
-                <span className="block truncate font-semibold text-foreground">{row.hostelName}</span>
-                <span className="block truncate text-xs text-muted-foreground">
+                <span className="block truncate text-[13.5px] font-semibold text-foreground">{row.hostelName}</span>
+                <span className="block truncate text-[12px] text-muted-foreground">
                   {row.ownerName || "—"} · {row.planName}
                   {row.kind === "LIFETIME" ? " · Lifetime" : ""} · paid {row.paidAt ? formatBsAdDate(new Date(row.paidAt)) : "—"}
                   {row.reference ? ` · ${row.reference}` : ""}
                 </span>
               </span>
-              <span className="text-sm font-bold tabular-nums text-foreground">
+              <span className="text-[13.5px] font-bold tabular-nums text-foreground">
                 {rupees(row.chargeAmount)}
                 {row.chargeAmount < row.amount ? (
-                  <span className="block text-xs font-medium text-muted-foreground">of {rupees(row.amount)}</span>
+                  <span className="block text-[12px] font-medium text-muted-foreground">of {rupees(row.amount)}</span>
                 ) : null}
               </span>
-              <span className="inline-flex items-center gap-1 text-sm font-semibold text-brand-teal">
+              <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-role-team">
                 Finish &amp; publish <ArrowRight className="size-4" />
               </span>
             </Link>
