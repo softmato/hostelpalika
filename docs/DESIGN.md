@@ -406,7 +406,22 @@ Use Tailwind defaults:
 - Sliding whole pages sideways (arrival is a fade, not travel)
 - Data loading (use skeleton, not spinner animation)
 
-The app's motion vocabulary is tracked in `docs/MOTION_AND_ICONS.md` (Track M).
+**Press** — buttons (web and app), tiles, cards and rows shrink under the
+finger on a spring (web `scale-[0.97]`; app `PressableScale`, 0.96, rows
+0.985) instead of dimming.
+
+**App** (`apps/mobile/src/constants/motion.ts` holds every duration and
+spring; all of them honour the phone's reduce-motion setting):
+- A screen's body rises 10px and fades in once when it mounts. Refreshes and
+  tab switches don't replay it.
+- The tab bar's tinted pill slides to the tapped tab; the icon pops in solid.
+- Skeletons sweep a light band across instead of pulsing.
+- Large and display `Money` counts up from zero the first time it has a value.
+- **Haptics are for serious actions only:** a `danger` button, the confirm in
+  `openConfirm`, a swipe action firing. Never tab switches, never plain taps.
+
+The rest of the app's motion (collapsing title, card → screen, theme
+cross-fade) is tracked in `docs/MOTION_AND_ICONS.md` (Track M).
 
 **SOS alert exception:**
 - SOS status badge pulses continuously (red glow) to draw attention

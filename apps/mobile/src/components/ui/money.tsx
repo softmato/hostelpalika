@@ -1,4 +1,8 @@
+import { useEffect, useState } from "react";
+import { useReducedMotion } from "react-native-reanimated";
+
 import { Text } from "@/components/ui/text";
+import { MOTION } from "@/constants/motion";
 import { formatMoney } from "@/lib/format";
 
 /**
@@ -17,6 +21,41 @@ import { formatMoney } from "@/lib/format";
  * the ratio. See `<PaintedAmount>`.
  */
 export const CURRENCY_SCALE = 0.72;
+
+/**
+ * A total counts up from zero the first time it has a value (M7), then sits
+ * still: a refresh that changes it just shows the new figure. The frames are
+ * plain JS state, which is fine for the one or two totals a screen carries.
+ */
+function useCountUp(target: number | null | undefined, enabled: boolean) {
+  const reduce = useReducedMotion();
+  const [run, setRun] = useState<{ done: boolean; shown: number | null }>({
+    done: !enabled || reduce,
+    shown: null,
+  });
+
+  useEffect(() => {
+    if (run.done || !target) {
+      return;
+    }
+
+    const start = Date.now();
+    let frame = 0;
+    const tick = () => {
+      const t = Math.min(1, (Date.now() - start) / MOTION.countUp);
+      // Ease-out cubic: quick at first, settling onto the real figure.
+      setRun(t < 1 ? { done: false, shown: Math.round(target * (1 - (1 - t) ** 3)) } : { done: true, shown: null });
+      if (t < 1) {
+        frame = requestAnimationFrame(tick);
+      }
+    };
+    frame = requestAnimationFrame(tick);
+
+    return () => cancelAnimationFrame(frame);
+  }, [run.done, target]);
+
+  return run.done || !target ? target : (run.shown ?? 0);
+}
 
 /**
  * Each size, as the `<Text>` variant that already draws it.
@@ -104,7 +143,7 @@ export function Money({
         ? "text-destructive"
         : "text-foreground";
 
-  const text = formatMoney(value);
+  const text = formatMoney(useCountUp(value, size !== "inline"));
 
   /*
    * A dash is not an amount — it is the absence of one — so it keeps the plain

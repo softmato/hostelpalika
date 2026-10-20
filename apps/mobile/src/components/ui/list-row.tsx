@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
-import { ActivityIndicator, Pressable, View } from "react-native";
+import { ActivityIndicator, View } from "react-native";
 
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
+import { PressableScale } from "@/components/ui/pressable-scale";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -93,17 +94,17 @@ export function ListRow({
   }
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityState={{ busy, disabled: busy }}
-      className="active:opacity-70"
+     
       disabled={busy}
       onPress={() => {        onPress();
       }}
       onPressIn={onPressIn}
     >
       {body}
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -255,15 +256,15 @@ export function CardRow({
   }
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityLabel={subtitle ? `${title}. ${subtitle}` : title}
       accessibilityRole="button"
-      className="active:opacity-70"
+     
       onPress={() => {        onPress();
       }}
       onPressIn={onPressIn}
     >
       {body}
-    </Pressable>
+    </PressableScale>
   );
 }

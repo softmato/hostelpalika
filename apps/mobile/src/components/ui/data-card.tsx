@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { Glyph } from "@/components/ui/glyph";
+import { PressableScale } from "@/components/ui/pressable-scale";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -220,7 +221,7 @@ export function DataCard({
   }
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityLabel={[
         title,
         meta,
@@ -230,12 +231,12 @@ export function DataCard({
         .filter(Boolean)
         .join(", ")}
       accessibilityRole="button"
-      className="active:opacity-70"
+     
       onPress={() => {
         onPress();
       }}
     >
       {body}
-    </Pressable>
+    </PressableScale>
   );
 }

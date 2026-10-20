@@ -1,10 +1,11 @@
 import { Tabs } from "expo-router";
-import type { ComponentProps } from "react";
+import { type ComponentProps, useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
-import Animated, { useAnimatedStyle } from "react-native-reanimated";
+import Animated, { ReduceMotion, useAnimatedStyle, useSharedValue, withSpring, ZoomIn } from "react-native-reanimated";
 
 import { useBottomChrome } from "@/components/bottom-chrome";
 import { Text } from "@/components/ui/text";
+import { MOTION } from "@/constants/motion";
 import { type RoleAccentKey, roleAccent } from "@/constants/theme";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
@@ -21,6 +22,17 @@ export type TabBarRenderProps = Parameters<
 
 /** Bar height excluding the system inset. Screens reserve this much. */
 export const TAB_BAR_HEIGHT = 58;
+
+// The tinted pill behind the active icon (M2). Sized to the icon, not the slot.
+const PILL_W = 52;
+const PILL_H = 30;
+const PILL_TOP = 9;
+
+// The icon a tab lands on pops from a little smaller.
+const ICON_POP = ZoomIn.withInitialValues({ transform: [{ scale: 0.72 }] })
+  .springify()
+  .damping(13)
+  .reduceMotion(ReduceMotion.System);
 
 /**
  * The tab bar.
@@ -47,6 +59,31 @@ export function AnimatedTabBar({
   const activeColor = isDark ? roleAccent[accent].dark : roleAccent[accent].light;
   const totalHeight = TAB_BAR_HEIGHT + insets.bottom;
 
+  // One pill for the whole bar, sliding between slots. Hidden routes
+  // (`href: null`) take no slot, so they are left out of the count.
+  const slots = state.routes.filter(
+    (route) => StyleSheet.flatten(descriptors[route.key].options.tabBarItemStyle)?.display !== "none",
+  );
+  const slot = slots.findIndex((route) => route.key === state.routes[state.index]?.key);
+  const [barWidth, setBarWidth] = useState(0);
+  const pillX = useSharedValue(0);
+  const placed = useRef(false);
+
+  useEffect(() => {
+    if (!barWidth || slot < 0) {
+      return;
+    }
+
+    const segment = barWidth / slots.length;
+    const x = segment * slot + (segment - PILL_W) / 2;
+
+    // The first placement jumps; only a change of tab travels.
+    pillX.value = placed.current ? withSpring(x, MOTION.slide) : x;
+    placed.current = true;
+  }, [barWidth, pillX, slot, slots.length]);
+
+  const pillStyle = useAnimatedStyle(() => ({ transform: [{ translateX: pillX.value }] }));
+
   const barStyle = useAnimatedStyle(() => {
     const progress = chrome?.progress.value ?? 0;
 
@@ -71,7 +108,27 @@ export function AnimatedTabBar({
         },
         barStyle,
       ]}
+      onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}
     >
+      {barWidth > 0 && slot >= 0 ? (
+        <Animated.View
+          pointerEvents="none"
+          style={[
+            {
+              backgroundColor: activeColor,
+              borderRadius: PILL_H / 2,
+              height: PILL_H,
+              left: 0,
+              opacity: 0.14,
+              position: "absolute",
+              top: PILL_TOP,
+              width: PILL_W,
+            },
+            pillStyle,
+          ]}
+        />
+      ) : null}
+
       {state.routes.map((route, index) => {
         const { options } = descriptors[route.key];
 
@@ -121,7 +178,9 @@ export function AnimatedTabBar({
             onPress={onPress}
           >
             <View>
-              {options.tabBarIcon?.({ color: tint, focused, size: 23 })}
+              <Animated.View entering={focused ? ICON_POP : undefined} key={focused ? "on" : "off"}>
+                {options.tabBarIcon?.({ color: tint, focused, size: 23 })}
+              </Animated.View>
 
               {/*
                 Drawn here rather than left to `tabBarBadge`: that option is

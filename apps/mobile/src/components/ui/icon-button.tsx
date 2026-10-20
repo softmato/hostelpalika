@@ -1,6 +1,7 @@
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
+import { PressableScale } from "@/components/ui/pressable-scale";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -50,10 +51,10 @@ export function IconButton({
   const onAccent = tone === "onAccent";
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityLabel={label}
       accessibilityRole="button"
-      className={`${size === "sm" ? "h-8 w-8" : "h-10 w-10"} items-center justify-center rounded-full border active:opacity-70 ${
+      className={`${size === "sm" ? "h-8 w-8" : "h-10 w-10"} items-center justify-center rounded-full border ${
         onAccent ? "border-white/25 bg-white/15" : "border-border"
       }`}
       hitSlop={6}
@@ -76,6 +77,6 @@ export function IconButton({
           </Text>
         </View>
       ) : null}
-    </Pressable>
+    </PressableScale>
   );
 }

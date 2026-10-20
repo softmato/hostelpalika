@@ -1,6 +1,7 @@
-import { ActivityIndicator, Pressable, type PressableProps, View } from "react-native";
+import { ActivityIndicator, type PressableProps, View } from "react-native";
 
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
+import { PressableScale } from "@/components/ui/pressable-scale";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -40,7 +41,7 @@ const SIZES = {
 
 type ButtonProps = Omit<PressableProps, "children" | "style"> & {
   className?: string;
-  /** Fires a selection tick on press. Off for destructive flows with their own confirm. */
+  /** A light tick on press. Serious actions only: on by default for `danger`, off otherwise. */
   haptic?: boolean;
   /** One of our glyphs ahead of the label, tinted to match it. Hidden while loading. */
   icon?: GlyphName;
@@ -65,7 +66,7 @@ type ButtonProps = Omit<PressableProps, "children" | "style"> & {
 export function Button({
   className = "",
   disabled,
-  haptic = true,
+  haptic,
   icon,
   label,
   labelClassName,
@@ -107,19 +108,15 @@ export function Button({
   const isBusy = loading && !disabled;
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
       accessibilityState={{ busy: loading, disabled: isBlocked }}
-      className={`flex-row items-center justify-center active:opacity-80 ${dimensions.wrapper} ${
+      className={`flex-row items-center justify-center ${dimensions.wrapper} ${
         isBlocked && !isBusy ? tone.disabled : tone.base
       } ${className}`}
       disabled={isBlocked}
-      onPress={(event) => {
-        if (haptic) {
-        }
-
-        onPress?.(event);
-      }}
+      haptic={(haptic ?? variant === "danger") ? "light" : undefined}
+      onPress={onPress}
       {...props}
     >
       {loading ? (
@@ -155,6 +152,6 @@ export function Button({
       >
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }

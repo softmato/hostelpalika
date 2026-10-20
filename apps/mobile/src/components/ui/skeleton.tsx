@@ -1,15 +1,20 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { useEffect } from "react";
-import { View, type ViewStyle } from "react-native";
+import { StyleSheet, View, type ViewStyle } from "react-native";
 import Animated, {
   Easing,
+  ReduceMotion,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
 
+import { MOTION } from "@/constants/motion";
+import { useAppTheme } from "@/hooks/use-app-theme";
+
 /**
- * The shape of the content, pulsing, while the content loads.
+ * The shape of the content, with a light band sweeping across, while the content loads.
  *
  * ## When to use this instead of `LoadingState`
  *
@@ -25,13 +30,11 @@ import Animated, {
  *
  * ## On the UI thread
  *
- * The pulse is a Reanimated shared value, so it keeps animating while JS is
+ * The sweep is a Reanimated shared value, so it keeps animating while JS is
  * busy parsing the very response it is waiting for. An `Animated.loop` from
  * React Native's own API stalls exactly then — a loading indicator that freezes
  * during the load is worse than no indicator.
  */
-
-const PULSE_MS = 900;
 
 export function Skeleton({
   className = "",
@@ -45,29 +48,45 @@ export function Skeleton({
   /** Omit to fill the parent — the usual case inside a column. */
   width?: ViewStyle["width"];
 }) {
-  const opacity = useSharedValue(0.45);
+  const { isDark } = useAppTheme();
+  const sweep = useSharedValue(0);
+  const span = useSharedValue(0);
 
   useEffect(() => {
-    opacity.value = withRepeat(
-      withTiming(1, { duration: PULSE_MS, easing: Easing.inOut(Easing.quad) }),
-      // -1 repeats forever; `true` reverses, so it breathes rather than
-      // snapping back to dim every cycle.
+    // -1 repeats forever, no reverse: the band always travels left to right.
+    sweep.value = withRepeat(
+      withTiming(1, { duration: MOTION.shimmer, easing: Easing.inOut(Easing.quad), reduceMotion: ReduceMotion.System }),
       -1,
-      true,
+      false,
     );
-  }, [opacity]);
+  }, [sweep]);
 
-  const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
+  const band = useAnimatedStyle(() => ({
+    transform: [{ translateX: (sweep.value * 2 - 1) * span.value }],
+  }));
+  const light = isDark ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.6)";
 
   return (
-    <Animated.View
+    <View
       // `accessibilityElementsHidden`/`importantForAccessibility` keep a screen
       // reader from announcing a column of meaningless blocks.
       accessibilityElementsHidden
-      className={`bg-muted ${className}`}
+      className={`overflow-hidden bg-muted ${className}`}
       importantForAccessibility="no-hide-descendants"
-      style={[{ borderRadius: radius, height, width: width ?? "100%" }, style]}
-    />
+      onLayout={(event) => {
+        span.value = event.nativeEvent.layout.width;
+      }}
+      style={{ borderRadius: radius, height, width: width ?? "100%" }}
+    >
+      <Animated.View style={[StyleSheet.absoluteFill, band]}>
+        <LinearGradient
+          colors={["rgba(255,255,255,0)", light, "rgba(255,255,255,0)"]}
+          end={{ x: 1, y: 0.5 }}
+          start={{ x: 0, y: 0.5 }}
+          style={StyleSheet.absoluteFill}
+        />
+      </Animated.View>
+    </View>
   );
 }
 

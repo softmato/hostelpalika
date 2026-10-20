@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
-import { Image, type ImageSourcePropType, Pressable, View } from "react-native";
+import { Image, type ImageSourcePropType, View } from "react-native";
 
 import { FLOAT_SHADOW } from "@/components/portal-shared";
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
+import { PressableScale } from "@/components/ui/pressable-scale";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { KycFrost } from "@/components/kyc-frost";
@@ -150,13 +151,13 @@ export function ActionCell({
   const quiet = badge === 0;
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityLabel={[label, badge === undefined ? null : `${badge} waiting`]
         .filter(Boolean)
         .join(", ")}
       accessibilityRole="button"
       accessibilityState={selected === undefined ? undefined : { selected }}
-      className="flex-1 items-center gap-2 active:opacity-70"
+      className="flex-1 items-center gap-2"
       onPress={() => {
         onPress();
       }}
@@ -211,7 +212,7 @@ export function ActionCell({
       >
         {label}
       </Text>
-    </Pressable>
+    </PressableScale>
   );
 }
 

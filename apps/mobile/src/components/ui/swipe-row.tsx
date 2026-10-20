@@ -5,6 +5,7 @@ import Swipeable, {
 } from "react-native-gesture-handler/ReanimatedSwipeable";
 
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
+import { pressHaptic } from "@/components/ui/pressable-scale";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -54,6 +55,7 @@ export function SwipeRow({
 
   const press = useCallback(() => {
     ref.current?.close();
+    pressHaptic("light");
     onAction();
   }, [onAction]);
 

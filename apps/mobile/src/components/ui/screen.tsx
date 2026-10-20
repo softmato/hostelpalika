@@ -7,16 +7,25 @@ import {
   KeyboardStickyView,
 } from "react-native-keyboard-controller";
 import Animated, {
+  FadeInDown,
+  ReduceMotion,
   useAnimatedScrollHandler,
   useAnimatedStyle,
 } from "react-native-reanimated";
 
 import { useBottomChrome } from "@/components/bottom-chrome";
+import { MOTION } from "@/constants/motion";
 import { TAB_BAR_HEIGHT } from "@/components/tab-bar";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
 
 // Third-party scroll view: NativeWind has to be told which props carry classes.
+// The body rises in once when the screen mounts (M4). Refreshes and tab
+// switches don't remount, so they don't replay it.
+const BODY_ENTER = FadeInDown.duration(MOTION.base)
+  .withInitialValues({ opacity: 0, transform: [{ translateY: 10 }] })
+  .reduceMotion(ReduceMotion.System);
+
 cssInterop(KeyboardAwareScrollView, {
   className: "style",
   contentContainerClassName: "contentContainerStyle",
@@ -294,7 +303,9 @@ export function Screen({
         under the keyboard while the user typed into them blind.
       */}
       <View className="flex-1">
-        {body}
+        <Animated.View className="flex-1" entering={BODY_ENTER}>
+          {body}
+        </Animated.View>
 
         {footer ? (
           <KeyboardStickyView>

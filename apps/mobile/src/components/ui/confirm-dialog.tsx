@@ -25,6 +25,7 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
+import { pressHaptic } from "@/components/ui/pressable-scale";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { appBlurTarget } from "@/lib/blur-target";
@@ -229,6 +230,8 @@ export function ConfirmDialog({
 
     running.current = true;
     setPending(true);
+    // The one press in the app that always commits something serious.
+    pressHaptic("light");
 
     void (async () => {
       try {

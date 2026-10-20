@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
-import { Pressable, View } from "react-native";
+import { View } from "react-native";
 
 import { Glyph } from "@/components/ui/glyph";
+import { PressableScale } from "@/components/ui/pressable-scale";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -78,9 +79,9 @@ export function SectionLink({
   const { colors } = useAppTheme();
 
   return (
-    <Pressable
+    <PressableScale
       accessibilityRole="button"
-      className="flex-row items-center gap-0.5 active:opacity-60"
+      className="flex-row items-center gap-0.5"
       hitSlop={10}
       onPress={() => {        onPress();
       }}
@@ -88,6 +89,6 @@ export function SectionLink({
     >
       <Text className="text-xs font-semibold text-primary">{label}</Text>
       <Glyph color={colors.primary} name="chevron-forward" size={13} />
-    </Pressable>
+    </PressableScale>
   );
 }

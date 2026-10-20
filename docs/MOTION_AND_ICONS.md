@@ -73,29 +73,37 @@ The tab bar slides away on scroll. Stack pushes cross-fade in 180ms. Skeletons
 pulse their opacity. Sheets are gorhom, which already springs. Presses only dim
 (`active:opacity-80`). The Button's `haptic` branch is empty.
 
-- ☐ **M0. Motion tokens + rules.** Put durations, springs and press scale in
+- ☑ **M0. Motion tokens + rules.** Done 2026-10-20: `constants/motion.ts`,
+  DESIGN.md §8 rewritten. Web uses Tailwind values directly (no `--motion-*`
+  variables yet; add them when a second web animation needs the same numbers).
+  Was: Put durations, springs and press scale in
   one file (`apps/mobile/src/constants/motion.ts`), with matching CSS variables
   on web. Respect the OS "reduce motion" setting (`useReducedMotion`,
   `prefers-reduced-motion`). Rewrite `docs/DESIGN.md` §8.
-- ☐ **M1. Press feedback.** One press wrapper: scale to ~0.97 on a spring, and
+- ☑ **M1. Press feedback.** Done 2026-10-20: `ui/pressable-scale.tsx`. Haptics
+  only on serious actions (user, 2026-10-20): `danger` buttons, the
+  `openConfirm` confirm, a swipe action firing. Was: One press wrapper: scale to ~0.97 on a spring, and
   a light haptic where the press commits something. `Button`, `ListRow`,
   `CardRow`, `ActionTile`, `IconButton`, `Card` and `DataCard` all go through
   it. Fill in the empty haptic branch in `Button`.
-- ☐ **M2. Tab bar.** The tinted pill slides to the tapped tab on a spring. The
+- ☑ **M2. Tab bar.** Done 2026-10-20, **no haptic** on tab switches (user). Was: The tinted pill slides to the tapped tab on a spring. The
   icon switches line → solid with a small pop. Selection haptic. (FoneBiz
   0:14–0:20.) Needs I2 if the style is line + solid when active.
 - ☐ **M3. Collapsing title.** The large screen title shrinks into the `AppBar`
   as the list scrolls under it. `Screen` and `AppBar` share one scroll value,
   which `BottomChromeProvider` already tracks for the tab bar.
-- ☐ **M4. Lists.** On first load, the first ~8 rows fade up one after another.
+- ◐ **M4. Lists.** 2026-10-20: the whole screen body rises in once on mount
+  (`Screen`). Per-row stagger and collapse-on-delete are still to do. Was: On first load, the first ~8 rows fade up one after another.
   A deleted or swiped-away row collapses instead of vanishing (`LinearTransition`).
   Refreshes don't re-animate.
-- ☐ **M5. Swipe.** Row swipe actions spring open and tick a haptic at the
+- ◐ **M5. Swipe.** 2026-10-20: a light haptic when the swipe action fires. The
+  spring-open and swipeable segment pages are still to do. Was: Row swipe actions spring open and tick a haptic at the
   commit point (`swipe-row.tsx`). Segmented tabs become swipeable pages, with
   the segment pill following your finger.
-- ☐ **M6. Skeleton shimmer.** Replace the opacity pulse with a light band that
+- ☑ **M6. Skeleton shimmer.** Done 2026-10-20. Was: Replace the opacity pulse with a light band that
   sweeps across (`expo-linear-gradient` is installed).
-- ☐ **M7. Money moments.** Totals count up once when they first appear. The
+- ◐ **M7. Money moments.** 2026-10-20: large/display `Money` counts up once. The
+  hide-amount morph is still to do. Was: Totals count up once when they first appear. The
   hide-amount eye morphs the digits into dots and back (FoneBiz 0:15).
 - ☐ **M8. Card → screen.** The tapped card grows into the next screen's header
   (FoneBiz 0:34, More → My account). Reanimated's shared-element transitions
@@ -105,7 +113,7 @@ pulse their opacity. Sheets are gorhom, which already springs. Presses only dim
 - ☐ **M9. Theme cross-fade.** Snapshot the current frame with
   `react-native-view-shot` (installed), swap the theme underneath, then fade
   the snapshot out (FoneBiz 0:42–0:44).
-- ☐ **M10. Web.** Same vocabulary: press scale on buttons and cards, a fade-up
+- ◐ **M10. Web.** 2026-10-20: `Button` presses scale to 0.97; page fade is W3. Was: Same vocabulary: press scale on buttons and cards, a fade-up
   on page entry, springs on dialogs and sheets, and the shimmer. Use CSS first.
   `motion` is already installed for anything CSS can't do.
 
