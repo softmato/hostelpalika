@@ -172,8 +172,9 @@ patterns".
   notices, complaints, maintenance, SOS, attendance), Growth & System.
 - ☑ **P6. Platform portal pages.** Every PLATFORM_NAV page: header actions open dialogs,
   filters sit behind FilterButton, totals are tiles, shares are bars, facts are chips
-  (`platform-page-ui.tsx`). Still to do: the Audit Log page is unchanged (a plain table),
-  and the hostel / provider review sub-pages only kept their old layout.
+  (`platform-page-ui.tsx`); money pages lead with a big figure and a split bar, and every
+  provider, wallet or bank shows its real logo (`WalletMark`). The hostel and provider
+  review sub-pages (not nav destinations) keep their old layout.
 - ☐ **P7. Resident, guardian, cook, provider and team pages.**
 - ☐ **P8. Browser pass** by the user after each portal.
 
