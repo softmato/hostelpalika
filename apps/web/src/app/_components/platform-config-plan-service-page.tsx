@@ -72,7 +72,7 @@ export const PlatformConfigPlanServicePageContent = memo(
           { href: "/platform/config/plans", label: "Plans & Pricing" },
           service?.name ?? slug,
         ]}
-        description="What this service is, how it works, why it is built that way — and the walkthrough clip each surface plays above them."
+        description="What this service is, how it works and why, and each surface's walkthrough clip."
         error={error}
         message={message}
         state={state}
@@ -102,7 +102,7 @@ export const PlatformConfigPlanServicePageContent = memo(
             />
 
             <ConfigPanel
-              description="Recorded once per surface. The website plays the landscape clip above the three sections below; the app plays the portrait one. Leave a slot empty and that surface keeps its placeholder frame rather than showing a dead player."
+              description="Landscape plays on the website, portrait in the app; an empty slot keeps its placeholder."
               title="Walkthrough clips"
             >
               <div className="grid gap-3 lg:grid-cols-2">
@@ -128,7 +128,7 @@ export const PlatformConfigPlanServicePageContent = memo(
             </ConfigPanel>
 
             <ConfigPanel
-              description="The three questions a hostel owner has about a line item on a pricing card, in the order they ask them. A section left empty says so on the public page rather than showing invented copy — which is the honest answer while something is still being built."
+              description="The three questions an owner asks about a line item, in order; an empty one says so on the page."
               title="What, how and why"
             >
               <div className="space-y-3">

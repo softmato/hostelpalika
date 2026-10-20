@@ -3,6 +3,8 @@
 import { memo } from "react";
 
 import { ToggleSwitch } from "@/app/_components/portal-dashboard-ui";
+import { FactChip } from "@/app/_components/platform-page-ui";
+import { resolveGlyph } from "@hostel/shared/constants/glyphs";
 import {
   ConfigCard,
   ConfigPage,
@@ -38,7 +40,7 @@ export const PlatformConfigFacilitiesPageContent = memo(
     return (
       <ConfigPage
         breadcrumb={["Home", "Website Config", "Facilities"]}
-        description="The amenity catalogue used by listing cards, search filters, and hostel comparison. The slug is what hostels store, so avoid renaming slugs once listings use them."
+        description="Amenities for listings, search and compare; never rename a slug hostels already use."
         error={error}
         message={message}
         state={state}
@@ -51,6 +53,16 @@ export const PlatformConfigFacilitiesPageContent = memo(
           saving={savingSection === "facilities"}
           title="Facility Catalogue"
         >
+          {/* What visitors see: the shown facilities as chips, with their marks. */}
+          <div className="flex flex-wrap gap-1.5">
+            {facilities
+              .filter((facility) => facility.enabled && facility.label)
+              .map((facility) => (
+                <FactChip glyph={resolveGlyph(facility.icon)} key={facility.slug || facility.label} tone="brand">
+                  {facility.label}
+                </FactChip>
+              ))}
+          </div>
           <Repeater
             addLabel="Add facility"
             emptyLabel="No facilities configured — the amenity filter will be hidden."

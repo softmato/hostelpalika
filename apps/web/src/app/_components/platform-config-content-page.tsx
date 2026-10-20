@@ -237,7 +237,7 @@ export const PlatformConfigContentPageContent = memo(
     return (
       <ConfigPage
         breadcrumb={["Home", "Website Config", "Page Content"]}
-        description="The written content of every prose page, served to both the website and the mobile app. Shipped text is pre-filled — Reset restores it."
+        description="The words of every prose page, on the website and in the app."
         error={error}
         message={message}
         state={state}
@@ -245,7 +245,7 @@ export const PlatformConfigContentPageContent = memo(
       >
         <ConfigCard
           {...cardProps}
-          description="Served at /privacy and on the app's Privacy Policy screen. A free-text body under Legal Pages replaces these sections entirely."
+          description="/privacy and the app's Privacy screen; a Legal Pages body replaces these sections."
           title="Privacy Policy"
         >
           <PageEditor
@@ -256,7 +256,7 @@ export const PlatformConfigContentPageContent = memo(
 
         <ConfigCard
           {...cardProps}
-          description="Served at /terms and on the app's Terms & Regulations screen."
+          description="/terms and the app's Terms screen."
           title="Terms & Regulations"
         >
           <PageEditor onChange={(next) => setPage("terms", next)} page={content.terms} />
@@ -264,7 +264,7 @@ export const PlatformConfigContentPageContent = memo(
 
         <ConfigCard
           {...cardProps}
-          description="Served at /about and on the app's About screen. Each section is one value; its body is a paragraph rather than a bullet list."
+          description="/about and the app's About screen; each body is one paragraph."
           title="About Us"
         >
           <PageEditor onChange={(next) => setPage("about", next)} page={content.about} />
@@ -272,7 +272,7 @@ export const PlatformConfigContentPageContent = memo(
 
         <ConfigCard
           {...cardProps}
-          description="The public explainer at /resident-offer-program, linked from every payment email."
+          description="/resident-offer-program, linked from every payment email."
           title="Resident Offer Program"
         >
           <PageEditor
@@ -283,7 +283,7 @@ export const PlatformConfigContentPageContent = memo(
 
         <ConfigCard
           {...cardProps}
-          description="The features on /register-hostel. First line of a section is its sentence, the rest are bullets; order sets the screen shown beside it. Highlights are the claims under “Get your hostel more popular”."
+          description="The features on /register-hostel: a section's first line is its sentence, the rest are bullets."
           title="Register Hostel"
         >
           <PageEditor
@@ -296,7 +296,7 @@ export const PlatformConfigContentPageContent = memo(
 
         <ConfigCard
           {...cardProps}
-          description="The pitch on /service-providers. The registered-provider count beside it is counted live and is not editable."
+          description="The pitch on /service-providers; the provider count beside it is live."
           title="Service Providers"
         >
           <PageEditor
@@ -308,7 +308,7 @@ export const PlatformConfigContentPageContent = memo(
 
         <ConfigCard
           {...cardProps}
-          description="Shown on /contact and on the app's Contact screen. Two answers — creating an account and listing a hostel — are rewritten by each client to name its own controls."
+          description="/contact and the app's Contact screen."
           title="Frequently Asked Questions"
         >
           <Repeater<{ answer: string; question: string }>

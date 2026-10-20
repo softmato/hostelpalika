@@ -31,7 +31,7 @@ export const PlatformConfigAnnouncementsPageContent = memo(
     return (
       <ConfigPage
         breadcrumb={["Home", "Website Config", "Announcements"]}
-        description="The site-wide banner above the public header, plus the social profiles linked from the footer."
+        description="The site-wide banner and the footer's social links."
         error={error}
         message={message}
         state={state}
@@ -39,7 +39,7 @@ export const PlatformConfigAnnouncementsPageContent = memo(
       >
         <div className="space-y-4">
           <ConfigCard
-            description="Turn this on for maintenance windows, launches, or seasonal notices."
+            description="For maintenance windows, launches or seasonal notices."
             dirty={isDirty("announcement")}
             onReset={() => reset("announcement")}
             onSave={() => save("announcement")}
@@ -48,7 +48,7 @@ export const PlatformConfigAnnouncementsPageContent = memo(
           >
             <ToggleSwitch
               checked={announcement.enabled}
-              description="When off, the banner is removed from every public page."
+              description="Off removes the banner from every public page."
               label="Show the banner"
               onChange={(enabled) =>
                 setValue("announcement", { ...announcement, enabled })
@@ -100,7 +100,7 @@ export const PlatformConfigAnnouncementsPageContent = memo(
           </ConfigCard>
 
           <ConfigCard
-            description="Leave a field empty to hide that icon in the public footer."
+            description="An empty field hides that icon in the footer."
             dirty={isDirty("social")}
             onReset={() => reset("social")}
             onSave={() => save("social")}
