@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { AlertTriangle, BarChart3, BedDouble, Percent, Wallet } from "@/components/icons";
+import { AlertTriangle, BarChart3, BedDouble, Download, Percent, Wallet } from "@/components/icons";
+import { DropdownMenuItem, DropdownMenuLabel } from "@/components/ui/dropdown-menu";
 import { EmptyState, LoadingRows, Panel, StatusBadge } from "@/app/_components/shared-ui";
 import { downloadFile } from "@/lib/downloads/downloader";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
@@ -19,7 +20,9 @@ import {
   HostelAdminAttendanceAnalyticsPanel,
   HostelAdminFoodAnalyticsPanel,
 } from "./hostel-admin-operations-analytics";
-import { Message, PageHeader } from "./portal-shared";
+import { Message } from "./portal-shared";
+import { PageHeader } from "./core-portal-shared";
+import { MoreMenu } from "./hostel-admin-page-ui";
 
 const HOSTEL_ADMIN_REPORT_EXPORT = "/api/v1/hostel-admin/reports/export";
 
@@ -136,7 +139,7 @@ export const HostelAdminReportsPageContent = React.memo(
 
     if (resource.state === "loading" && !data) {
       return (
-        <div className="mx-auto max-w-[1448px] space-y-6">
+        <div className="mx-auto max-w-[1448px] space-y-5">
           <PageHeader
             description="Every service in the hostel, from its live records."
             icon={BarChart3}
@@ -151,7 +154,7 @@ export const HostelAdminReportsPageContent = React.memo(
 
     if (!data) {
       return (
-        <div className="mx-auto max-w-[1448px] space-y-6">
+        <div className="mx-auto max-w-[1448px] space-y-5">
           <PageHeader
             description="Every service in the hostel, from its live records."
             icon={BarChart3}
@@ -178,60 +181,59 @@ export const HostelAdminReportsPageContent = React.memo(
     const selected = payments.selectedMonth;
 
     return (
-      <div className="mx-auto max-w-[1448px] space-y-6">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <PageHeader
-            description="Every service in the hostel, from its live records."
-            icon={BarChart3}
-            title="Reports"
-          />
-          <label className="grid gap-1.5 text-xs font-semibold text-muted-foreground">
-            Billing month
-            <select
-              className="h-10 rounded-md border border-border bg-background px-3 text-sm font-normal text-foreground outline-none focus:border-role-admin"
-              onChange={(event) => setMonth(event.target.value)}
-              value={month}
-            >
-              <option value="">Latest ({months[months.length - 1] ?? "—"})</option>
-              {[...months].reverse().map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          </label>
-        </div>
+      <div className="mx-auto max-w-[1448px] space-y-5">
+        <PageHeader
+          action={
+            <>
+              <select
+                aria-label="Billing month"
+                className="h-9 rounded-xl border border-input bg-input/30 px-3 text-[13px] text-foreground outline-none"
+                onChange={(event) => setMonth(event.target.value)}
+                value={month}
+              >
+                <option value="">Latest ({months[months.length - 1] ?? "—"})</option>
+                {[...months].reverse().map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              {/* Aggregates only — no CSV here carries a resident's name or phone. */}
+              {/*
+                Buttons, not links. An `<a href>` to an API route gives no feedback at
+                all until the browser's own download chip appears — several silent
+                seconds on a slow query — and it *navigates* on failure, so an expired
+                session answered "download my report" with a raw JSON body rendered as
+                a page. `downloadFile` streams it with a live row in the global
+                toaster and keeps a failure on the page as a toast.
+              */}
+              <MoreMenu label="Report exports">
+                <DropdownMenuLabel>Export</DropdownMenuLabel>
+                {REPORT_EXPORTS.map((entry) => (
+                  <DropdownMenuItem
+                    key={entry.report}
+                    onSelect={() =>
+                      void downloadFile({
+                        fileName: `${entry.report}-report.csv`,
+                        label: entry.label,
+                        mimeType: "text/csv",
+                        scope: "hostel-admin-reports",
+                        url: `${HOSTEL_ADMIN_REPORT_EXPORT}?report=${entry.report}`,
+                      })
+                    }
+                  >
+                    <Download className="size-4" />
+                    {entry.label}
+                  </DropdownMenuItem>
+                ))}
+              </MoreMenu>
+            </>
+          }
+          description="Every service in the hostel, from its live records."
+          icon={BarChart3}
+          title="Reports"
+        />
         <Message value={resource.message} />
-
-        {/* Aggregates only — no CSV here carries a resident's name or phone. */}
-        {/*
-          Buttons, not links. An `<a href>` to an API route gives no feedback at
-          all until the browser's own download chip appears — several silent
-          seconds on a slow query — and it *navigates* on failure, so an expired
-          session answered "download my report" with a raw JSON body rendered as
-          a page. `downloadFile` streams it with a live row in the global
-          toaster and keeps a failure on the page as a toast.
-        */}
-        <nav aria-label="Report exports" className="flex flex-wrap gap-2">
-          {REPORT_EXPORTS.map((entry) => (
-            <button
-              className="inline-flex items-center rounded-md border border-border px-3 py-1.5 text-xs font-medium text-foreground transition hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-admin"
-              key={entry.report}
-              onClick={() =>
-                void downloadFile({
-                  fileName: `${entry.report}-report.csv`,
-                  label: entry.label,
-                  mimeType: "text/csv",
-                  scope: "hostel-admin-reports",
-                  url: `${HOSTEL_ADMIN_REPORT_EXPORT}?report=${entry.report}`,
-                })
-              }
-              type="button"
-            >
-              {entry.label}
-            </button>
-          ))}
-        </nav>
 
         {/* ---- Headline health of the hostel ---- */}
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -268,10 +270,11 @@ export const HostelAdminReportsPageContent = React.memo(
         {/* ---- Payments: sourced from the Payment ledger the Payments tab writes ---- */}
         <Panel title="Payments Flow">
           <div className="grid gap-5 xl:grid-cols-[1.15fr_1fr]">
+            {/* Billed vs collected per month, taken from the payment records
+                residents and admins have actually settled. */}
             <div>
-              <p className="mb-3 text-xs text-muted-foreground">
-                Billed vs collected per month, taken from the payment records residents
-                and admins have actually settled.
+              <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                Billed vs collected
               </p>
               <CollectionChart points={payments.monthly} />
             </div>

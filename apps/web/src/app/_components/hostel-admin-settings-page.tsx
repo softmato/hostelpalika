@@ -1,16 +1,19 @@
 "use client";
 
-import { ChefHat, MapPin, Settings, Users } from "@/components/icons";
+import { Pencil, Settings } from "@/components/icons";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import {
   EmptyState,
   Input,
   LoadingRows,
-  Panel,
   Select,
 } from "@/app/_components/shared-ui";
 import { TemporaryCredentialsPanel } from "@/app/_components/temporary-credentials-panel";
+import { Chip, RowMark } from "@/app/_components/hostel-admin-page-ui";
+import type { GlyphName } from "@/components/glyph";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
 import { usePortalResource } from "@/lib/portal-query";
 import { Message, PageHeader, field } from "./portal-shared";
@@ -69,21 +72,11 @@ const ATTENDANCE_ENDPOINT = "/api/v1/hostel-admin/attendance/settings";
 const COOK_ENDPOINT = "/api/v1/hostel-admin/cook-portal";
 const COMMUNITY_ENDPOINT = "/api/v1/hostel-admin/settings/community";
 
-function SectionIcon({ icon: Icon, bg = "bg-brand-teal", label }: { icon: typeof MapPin; bg?: string; label: string }) {
-  return (
-    <span className="flex items-center gap-2">
-      <span className={`inline-flex h-7 w-7 items-center justify-center rounded-lg ${bg} text-white shadow-sm`}>
-        <Icon aria-hidden="true" className="size-4" />
-      </span>
-      <span className="font-medium">{label}</span>
-    </span>
-  );
-}
-
 export const HostelAdminSettingsPageContent = memo(
   function HostelAdminSettingsPageContent() {
     const [message, setMessage] = useState("");
     const [busySection, setBusySection] = useState("");
+    const [editing, setEditing] = useState<"" | "attendance" | "community" | "cook">("");
 
     const attendanceResource = usePortalResource<{ settings: AttendanceSettings }>(
       ATTENDANCE_ENDPOINT,
@@ -133,6 +126,7 @@ export const HostelAdminSettingsPageContent = memo(
           });
 
           setMessage("Location tracking settings saved.");
+          setEditing("");
           await attendanceResource.refreshAsync();
         } catch (error) {
           setMessage(
@@ -165,6 +159,7 @@ export const HostelAdminSettingsPageContent = memo(
           });
 
           setMessage("Cook portal settings saved.");
+          setEditing("");
           await cookResource.refreshAsync();
         } catch (error) {
           setMessage(
@@ -195,6 +190,7 @@ export const HostelAdminSettingsPageContent = memo(
           });
 
           setMessage("Community settings saved.");
+          setEditing("");
           await communityResource.refreshAsync();
         } catch (error) {
           setMessage(
@@ -208,33 +204,87 @@ export const HostelAdminSettingsPageContent = memo(
     );
 
     return (
-      <div className="mx-auto max-w-[1100px] space-y-6">
+      <div className="mx-auto max-w-[1448px] space-y-5">
         <PageHeader
           description="Access, tracking, cook portal and moderation."
           icon={Settings}
           title="Settings"
         />
-        <Message value={message} />
+        {editing ? null : <Message value={message} />}
 
         <TemporaryCredentialsPanel tone="admin" />
 
-        <Panel title="Location tracking & attendance">
-          {attendanceResource.state === "loading" ? <LoadingRows /> : null}
-          {attendanceResource.state === "error" ? (
-            <EmptyState label="Attendance settings could not be loaded." />
-          ) : null}
+        <div className="grid gap-4 lg:grid-cols-3">
+          <SettingCard
+            facts={
+              attendance
+                ? [
+                    `Inside ${attendance.insideZoneRadiusMeters} m`,
+                    `Nearby ${attendance.nearbyZoneRadiusMeters} m`,
+                    `Alert after ${attendance.absenceAlertDays} days`,
+                    `Logs kept ${attendance.retentionDays} days`,
+                    `Pings ${attendance.pingTimes.join(", ") || "none"}`,
+                    attendance.nightStatus.promptEnabled
+                      ? `Night ask ${attendance.nightStatus.promptTime}, every ${attendance.nightStatus.repeatEveryMinutes} min`
+                      : "Night ask off",
+                  ]
+                : []
+            }
+            glyph="location"
+            note="A zone and a distance, never coordinates."
+            on={attendance?.enabled ?? null}
+            onEdit={() => setEditing("attendance")}
+            resourceState={attendanceResource.state}
+            title="Location & attendance"
+          />
+          <SettingCard
+            facts={
+              cook
+                ? [
+                    cook.cookName ? `Name ${cook.cookName}` : "No cook name",
+                    cook.cookCredentialIssuedAt
+                      ? `Login issued ${new Date(cook.cookCredentialIssuedAt).toLocaleDateString()}`
+                      : "No login issued",
+                  ]
+                : []
+            }
+            glyph="chef-hat"
+            note="One kitchen login that can say a meal is ready."
+            on={cook?.enabled ?? null}
+            onEdit={() => setEditing("cook")}
+            resourceState={cookResource.state}
+            title="Cook portal"
+          />
+          <SettingCard
+            facts={
+              community
+                ? [community.profanityFilterEnabled ? "Profanity filter on" : "Profanity filter off"]
+                : []
+            }
+            glyph="people"
+            note="Off stops new posts; old ones stay for moderation."
+            on={community?.enabled ?? null}
+            onEdit={() => setEditing("community")}
+            resourceState={communityResource.state}
+            title="Community feed"
+          />
+        </div>
 
+        <Dialog onOpenChange={(open) => (open ? null : setEditing(""))} open={editing === "attendance" && attendance !== null}>
+          <DialogContent className="sm:max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>Location & attendance</DialogTitle>
+              {/* Pings record a zone and a distance — never coordinates. The
+                  platform sets the outer limits; a value above them is rejected. */}
+              <DialogDescription>Never coordinates. Values over the platform&apos;s limits are refused.</DialogDescription>
+            </DialogHeader>
+            <Message value={message} />
           {attendance ? (
             <form
               className="grid gap-4"
               key={JSON.stringify(attendance)}
               onSubmit={saveAttendance}
             >
-              <p className="text-sm text-muted-foreground">
-                <SectionIcon icon={MapPin} label="" />
-                Pings record a zone and a distance — never coordinates. The platform sets
-                the outer limits; a value above them is rejected.
-              </p>
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 <Select
                   defaultValue={String(attendance.enabled)}
@@ -246,7 +296,7 @@ export const HostelAdminSettingsPageContent = memo(
                 </Select>
                 <Input
                   defaultValue={attendance.insideZoneRadiusMeters}
-                  hint="Distance from the hostel counted as INSIDE."
+                  hint="Counted as INSIDE."
                   label="Inside radius (m)"
                   min="10"
                   name="insideZoneRadiusMeters"
@@ -255,7 +305,7 @@ export const HostelAdminSettingsPageContent = memo(
                 />
                 <Input
                   defaultValue={attendance.nearbyZoneRadiusMeters}
-                  hint="Must be larger than the inside radius."
+                  hint="Larger than inside."
                   label="Nearby radius (m)"
                   min="20"
                   name="nearbyZoneRadiusMeters"
@@ -264,7 +314,7 @@ export const HostelAdminSettingsPageContent = memo(
                 />
                 <Input
                   defaultValue={attendance.absenceAlertDays}
-                  hint="Consecutive absent days that raise an alert."
+                  hint="Absent days in a row."
                   label="Absence alert (days)"
                   min="1"
                   name="absenceAlertDays"
@@ -273,7 +323,7 @@ export const HostelAdminSettingsPageContent = memo(
                 />
                 <Input
                   defaultValue={attendance.retentionDays}
-                  hint="Raw logs are purged after this; aggregates are kept."
+                  hint="Raw logs purged; totals kept."
                   label="Log retention (days)"
                   min="30"
                   name="retentionDays"
@@ -282,7 +332,7 @@ export const HostelAdminSettingsPageContent = memo(
                 />
                 <Input
                   defaultValue={attendance.pingTimes.join(", ")}
-                  hint="Comma-separated HH:mm times the app checks in at."
+                  hint="HH:mm, comma-separated."
                   label="Ping times"
                   name="pingTimes"
                   required
@@ -292,10 +342,11 @@ export const HostelAdminSettingsPageContent = memo(
                   own because it saves through this form and this endpoint —
                   splitting it out would mean a second submit that patches the
                   same document, which is how the two halves start disagreeing.
+                  On by default, once a night; anyone who answered is skipped.
                 */}
                 <Select
                   defaultValue={String(attendance.nightStatus.promptEnabled)}
-                  label="Night status prompt (on by default, once a night)"
+                  label="Night status prompt"
                   name="promptEnabled"
                 >
                   <option value="true">Enabled</option>
@@ -303,7 +354,7 @@ export const HostelAdminSettingsPageContent = memo(
                 </Select>
                 <Select
                   defaultValue={attendance.nightStatus.promptTime}
-                  label="Ask at (anyone who answered is skipped)"
+                  label="Ask at"
                   name="promptTime"
                 >
                   {PROMPT_TIMES.map((time) => (
@@ -327,32 +378,25 @@ export const HostelAdminSettingsPageContent = memo(
                   <option value="60">Every hour</option>
                 </Select>
               </div>
-              <div className="flex justify-end">
-                <button
-                  className="rounded-md bg-role-admin px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-admin disabled:opacity-60"
-                  disabled={busySection === "attendance"}
-                  type="submit"
-                >
-                  {busySection === "attendance" ? "Saving…" : "Save tracking settings"}
-                </button>
-              </div>
+              <DialogFooter>
+                <SaveButton busy={busySection === "attendance"} />
+              </DialogFooter>
             </form>
           ) : null}
-        </Panel>
+          </DialogContent>
+        </Dialog>
 
-        <Panel title="Cook portal">
-          {cookResource.state === "loading" ? <LoadingRows /> : null}
-          {cookResource.state === "error" ? (
-            <EmptyState label="Cook portal settings could not be loaded." />
-          ) : null}
-
+        <Dialog onOpenChange={(open) => (open ? null : setEditing(""))} open={editing === "cook" && cook !== null}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Cook portal</DialogTitle>
+              {/* Only the hash is stored — rotate from the Food page to issue a
+                  new password. */}
+              <DialogDescription>Turning it off suspends the kitchen login at once.</DialogDescription>
+            </DialogHeader>
+            <Message value={message} />
           {cook ? (
             <form className="grid gap-4" key={JSON.stringify(cook)} onSubmit={saveCook}>
-              <p className="text-sm text-muted-foreground">
-                <SectionIcon icon={ChefHat} label="" />
-                One shared kitchen login that can announce a meal is ready. Turning it off
-                suspends the account immediately.
-              </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Select
                   defaultValue={String(cook.enabled)}
@@ -364,48 +408,34 @@ export const HostelAdminSettingsPageContent = memo(
                 </Select>
                 <Input
                   defaultValue={cook.cookName ?? ""}
-                  hint="Shown to residents on food-ready alerts."
+                  hint="Shown on food-ready alerts."
                   label="Cook name"
                   name="cookName"
                 />
               </div>
-              {cook.cookCredentialIssuedAt ? (
-                <p className="text-xs text-muted-foreground">
-                  Credentials last issued{" "}
-                  {new Date(cook.cookCredentialIssuedAt).toLocaleDateString()}. Only the
-                  hash is stored — rotate from the Food page to issue a new password.
-                </p>
-              ) : null}
-              <div className="flex justify-end">
-                <button
-                  className="rounded-md bg-role-admin px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-admin disabled:opacity-60"
-                  disabled={busySection === "cook"}
-                  type="submit"
-                >
-                  {busySection === "cook" ? "Saving…" : "Save cook settings"}
-                </button>
-              </div>
+              <DialogFooter>
+                <SaveButton busy={busySection === "cook"} />
+              </DialogFooter>
             </form>
           ) : null}
-        </Panel>
+          </DialogContent>
+        </Dialog>
 
-        <Panel title="Community moderation">
-          {communityResource.state === "loading" ? <LoadingRows /> : null}
-          {communityResource.state === "error" ? (
-            <EmptyState label="Community settings could not be loaded." />
-          ) : null}
-
+        <Dialog onOpenChange={(open) => (open ? null : setEditing(""))} open={editing === "community" && community !== null}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Community feed</DialogTitle>
+              {/* Turning the feed off stops new posts; existing ones stay
+                  readable for moderation. Reporting and hiding work either way. */}
+              <DialogDescription>Reporting and hiding work either way.</DialogDescription>
+            </DialogHeader>
+            <Message value={message} />
           {community ? (
             <form
               className="grid gap-4"
               key={JSON.stringify(community)}
               onSubmit={saveCommunity}
             >
-              <p className="text-sm text-muted-foreground">
-                <SectionIcon icon={Users} label="" />
-                Turning the feed off stops new posts; existing ones stay readable for
-                moderation. Reporting and hiding work either way.
-              </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Select
                   defaultValue={String(community.enabled)}
@@ -424,19 +454,73 @@ export const HostelAdminSettingsPageContent = memo(
                   <option value="false">Disabled</option>
                 </Select>
               </div>
-              <div className="flex justify-end">
-                <button
-                  className="rounded-md bg-role-admin px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-role-admin disabled:opacity-60"
-                  disabled={busySection === "community"}
-                  type="submit"
-                >
-                  {busySection === "community" ? "Saving…" : "Save community settings"}
-                </button>
-              </div>
+              <DialogFooter>
+                <SaveButton busy={busySection === "community"} />
+              </DialogFooter>
             </form>
           ) : null}
-        </Panel>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   },
 );
+
+function SaveButton({ busy }: { busy: boolean }) {
+  return (
+    <button
+      className="h-10 rounded-xl bg-brand-teal px-5 text-[13.5px] font-semibold text-white transition hover:bg-brand-teal/90 disabled:opacity-60"
+      disabled={busy}
+      type="submit"
+    >
+      {busy ? "Saving…" : "Save"}
+    </button>
+  );
+}
+
+/** One area of settings as facts: its mark, on or off, the values as chips, and Edit. */
+function SettingCard({
+  facts,
+  glyph,
+  note,
+  on,
+  onEdit,
+  resourceState,
+  title,
+}: {
+  facts: string[];
+  glyph: GlyphName;
+  note: string;
+  on: boolean | null;
+  onEdit: () => void;
+  resourceState: string;
+  title: string;
+}) {
+  return (
+    <section className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-card p-4">
+      <div className="flex items-center gap-2.5">
+        <RowMark glyph={glyph} tone={on === false ? "neutral" : "brand"} />
+        <h2 className="min-w-0 flex-1 truncate font-heading text-[15px] font-semibold tracking-tight text-foreground">
+          {title}
+        </h2>
+        {on === null ? null : <Chip tone={on ? "brand" : "neutral"}>{on ? "On" : "Off"}</Chip>}
+      </div>
+      <p className="text-[12.5px] text-muted-foreground">{note}</p>
+      {resourceState === "loading" ? <LoadingRows /> : null}
+      {resourceState === "error" ? <EmptyState label="Could not be loaded." /> : null}
+      {facts.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5">
+          {facts.map((fact) => (
+            <Chip key={fact}>{fact}</Chip>
+          ))}
+        </div>
+      ) : null}
+      <div className="mt-auto pt-1">
+        <Button disabled={on === null} onClick={onEdit} size="sm" type="button" variant="outline">
+          <Pencil className="size-3.5" />
+          Edit
+        </Button>
+      </div>
+    </section>
+  );
+}

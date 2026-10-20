@@ -167,9 +167,13 @@ patterns".
   Status and type sit behind `FilterButton`, and the count is quiet text.
 - ☑ **P4. Hostel Profile → Overview.** Count tiles, status and type chips, icon
   rows, and facility and room-type chips.
-- ☐ **P5. Hostel admin, the rest.** Floors panel, Bookings, Inquiries,
+- ☑ **P5. Hostel admin, the rest.** Floors panel, Bookings, Inquiries,
   Move-in/out, the Finance pages, Operations (food, stock, night status,
-  notices, complaints, maintenance, SOS, attendance), Growth & System.
+  notices, complaints, maintenance, SOS, attendance), Growth & System. Every
+  standing "add" form is a header button and a dialog, filters sit behind
+  `FilterButton` beside a visible search, and totals are tiles with thin
+  share bars. The portal's own chips, bars and ⋯ menu are in
+  `hostel-admin-page-ui.tsx`, so no shared kit changed.
 - ☐ **P6. Platform portal pages.**
 - ☐ **P7. Resident, guardian, cook, provider and team pages.**
 - ☐ **P8. Browser pass** by the user after each portal.
