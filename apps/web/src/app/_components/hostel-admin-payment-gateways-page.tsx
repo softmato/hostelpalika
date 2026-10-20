@@ -4,7 +4,8 @@ import { AlertTriangle, KeyRound, Pencil, ShieldCheck, Trash2, Zap } from "@/com
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import { EmptyState, Input, LoadingRows } from "@/app/_components/shared-ui";
-import { Chip } from "@/app/_components/hostel-admin-page-ui";
+import { Chip, ShareBar } from "@/app/_components/hostel-admin-page-ui";
+import { WalletMark } from "@/components/wallet-mark";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { browserApi } from "@/lib/browser-api";
@@ -175,6 +176,13 @@ function GatewayCard({
   const [accountKind, setAccountKind] = useState(config.accountKind);
   const [open, setOpen] = useState(false);
   const set = config.secret.configured || Boolean(config.merchantCode);
+  // The app's gateway screen counts the same four steps.
+  const ready = [
+    config.accountKind === "MERCHANT",
+    config.secret.configured,
+    config.mode === "LIVE",
+    config.enabled,
+  ].filter(Boolean).length;
 
   const submit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -202,9 +210,7 @@ function GatewayCard({
     <article className="flex flex-col gap-3 rounded-2xl border border-border/70 bg-card p-4 transition duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-start justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <span className="flex size-10 items-center justify-center rounded-full bg-role-team-soft text-role-team">
-            <Zap aria-hidden="true" className="size-[18px]" />
-          </span>
+          <WalletMark name={config.provider} size={44} />
           <h3 className="font-heading text-[15px] font-bold text-foreground">{copy.name}</h3>
         </div>
         {config.payable ? (
@@ -215,7 +221,7 @@ function GatewayCard({
           <Chip>{set ? "Off" : "Not set"}</Chip>
         )}
       </div>
-      <p className="text-[13px] text-muted-foreground">{copy.help}</p>
+      <ShareBar label="ready" total={4} value={ready} />
       <HealthBanner health={config.health} />
       <div className="flex flex-wrap gap-1.5">
         <Chip glyph="key" tone={config.secret.configured ? "brand" : "neutral"}>
