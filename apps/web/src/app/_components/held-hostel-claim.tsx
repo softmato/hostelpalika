@@ -2,7 +2,7 @@
 
 import { formatHostelDate } from "@hostel/shared/calendar/bs";
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
-import { DoorOpen, Download, FileText, RotateCcw } from "@/components/icons";
+import { Download, FileText, RotateCcw } from "@/components/icons";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
@@ -17,8 +17,9 @@ import { toast } from "@/stores/toast-store";
 
 /**
  * Claiming back a hostel taken off the platform (docs/HOSTEL_LEAVE_PLATFORM.md):
- * the live countdown, the claim itself, and the three places they show — the
- * deleted portal's own address, the header's Claim hostel button, `/hostel-leave`.
+ * the live countdown, the claim itself, and the two places they show — the
+ * header's Claim hostel modal (opened by itself when the deleted portal's own
+ * address sends the owner home), and `/hostel-leave`.
  */
 
 export type HeldHostel = {
@@ -520,9 +521,22 @@ function HeldHostelBlock({
 export function ClaimHostelButton() {
   const { held: all } = useHeldHostels();
   const { busyId, claim, confirmDialog, error } = useClaimHostel();
-  const [open, setOpen] = useState(false);
+  // Sent here from the deleted portal's own address (`PORTAL_DELETED_HOME`):
+  // open on arrival. Only mounted client-side, after the session check.
+  const [fromPortal] = useState(() => new URLSearchParams(window.location.search).get("portal") === "deleted");
+  const [open, setOpen] = useState(fromPortal);
   // Files-only rows live on `/hostel-leave`; the header is for what can still come back.
   const held = all?.filter((row) => row.canClaim);
+
+  // Dropped from the address, so a reload or a shared link does not reopen it.
+  useEffect(() => {
+    if (!fromPortal) return;
+
+    const url = new URL(window.location.href);
+
+    url.searchParams.delete("portal");
+    window.history.replaceState(window.history.state, "", url);
+  }, [fromPortal]);
 
   if (!held?.length) return null;
 
@@ -543,8 +557,12 @@ export function ClaimHostelButton() {
       <Dialog onOpenChange={setOpen} open={open}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
-            <DialogTitle>Claim your hostel back</DialogTitle>
-            <DialogDescription>It comes back exactly as you left it, if you claim it in time.</DialogDescription>
+            <DialogTitle>{fromPortal ? "Your portal has been deleted" : "Claim your hostel back"}</DialogTitle>
+            <DialogDescription>
+              {fromPortal
+                ? `It is off ${PLATFORM_NAME}. Claim it back before the time runs out and everything comes back as it was — after that it is erased for good.`
+                : "It comes back exactly as you left it, if you claim it in time."}
+            </DialogDescription>
           </DialogHeader>
           {error ? <p className="rounded-xl bg-destructive/10 px-3 py-2 text-[13px] text-destructive">{error}</p> : null}
           <div className="space-y-3">
@@ -555,54 +573,6 @@ export function ClaimHostelButton() {
         </DialogContent>
       </Dialog>
     </>
-  );
-}
-
-/**
- * What the deleted portal's own address shows its owner in place of a 404:
- * the portal is gone, how long is left to claim it, and a way home.
- */
-export function PortalDeletedNotice({ held }: { held: HeldHostel }) {
-  const { busyId, claim, confirmDialog, error } = useClaimHostel();
-
-  return (
-    <main className="flex min-h-dvh items-center justify-center bg-background px-4 py-10">
-      {confirmDialog}
-      <div className="w-full max-w-md space-y-6 text-center">
-        <span className="mx-auto grid size-14 place-items-center rounded-2xl bg-destructive/10 text-destructive">
-          <DoorOpen className="size-7" />
-        </span>
-        <div className="space-y-2">
-          <h1 className="text-2xl font-bold text-foreground">Your portal has been deleted</h1>
-          <p className="text-[14px] text-muted-foreground">
-            {held.hostelName} is off {PLATFORM_NAME}. Claim it back before the time runs out and everything comes back as it
-            was — after that it is erased for good.
-          </p>
-        </div>
-        <HoldCountdown held={held} size={188} />
-        {error ? <p className="rounded-xl bg-destructive/10 px-3 py-2 text-[13px] text-destructive">{error}</p> : null}
-        <div className="flex flex-col gap-2 sm:flex-row">
-          <Button
-            className="h-11 flex-1 gap-2 rounded-xl"
-            loading={busyId === held.requestId}
-            onClick={() => void claim(held)}
-            type="button"
-          >
-            <RotateCcw className="size-4" />
-            Claim hostel back
-          </Button>
-          <Link
-            className="inline-flex h-11 flex-1 items-center justify-center rounded-xl border border-border px-4 text-sm font-semibold text-foreground hover:bg-muted"
-            href="/"
-          >
-            Go home
-          </Link>
-        </div>
-        <Link className="inline-block text-[13px] font-semibold text-brand-teal hover:underline" href="/hostel-leave">
-          Download your files
-        </Link>
-      </div>
-    </main>
   );
 }
 

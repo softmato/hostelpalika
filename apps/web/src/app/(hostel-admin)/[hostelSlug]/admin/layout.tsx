@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { HostelBookingRequestsReminder } from "@/app/_components/hostel-booking-requests-reminder";
@@ -18,7 +18,7 @@ import {
 } from "@/lib/hostel-workspace";
 import { hostelAdminNavForSlug, overallAdminNav, searchEntriesFromNav } from "@/lib/portal-nav";
 import { PORTAL_ROBOTS } from "@/lib/seo";
-import { PortalDeletedNotice } from "@/app/_components/held-hostel-claim";
+import { PORTAL_DELETED_HOME } from "@/lib/route-access";
 import { readAccessTokenCookie } from "@/lib/auth-cookies";
 import { verifyAccessToken } from "@/lib/auth";
 import { heldHostelForSlug } from "@/modules/hostels/hostel-leave.service";
@@ -31,9 +31,9 @@ async function heldPortalFor(slug: string) {
   if (!token) return null;
 
   try {
-    const { userId } = await verifyAccessToken(token);
+    const { sub } = await verifyAccessToken(token);
 
-    return typeof userId === "string" ? await heldHostelForSlug(userId, slug) : null;
+    return sub ? await heldHostelForSlug(sub, slug) : null;
   } catch {
     return null;
   }
@@ -88,11 +88,9 @@ export default async function HostelAdminWorkspaceLayout({
   // A slug outside the signed-in staff member's hostels is a 404, not a 403 —
   // we never confirm that another hostel's workspace exists (API.md §5).
   if (!(await canAccessWorkspace(hostelSlug))) {
-    // Its own owner, after leaving the platform: say so and count down the
-    // claim-back window. Anyone else still gets the 404.
-    const held = await heldPortalFor(hostelSlug);
-
-    if (held) return <PortalDeletedNotice held={held} />;
+    // Its own owner, after leaving the platform: home, where the header opens
+    // the claim-back modal. Anyone else still gets the 404.
+    if (await heldPortalFor(hostelSlug)) redirect(PORTAL_DELETED_HOME);
 
     notFound();
   }

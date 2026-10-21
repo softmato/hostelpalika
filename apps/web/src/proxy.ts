@@ -10,7 +10,12 @@ import {
 import { applySessionCookies } from "@/lib/session-cookies";
 import { isAuthBypassEnabled } from "@/lib/auth-bypass";
 import { isPinUnlocked } from "@/lib/lock-pin-cookie";
-import { landingPathForRole, protectedRouteRuleForPath } from "@/lib/route-access";
+import {
+  isHostelWorkspacePath,
+  landingPathForRole,
+  PORTAL_DELETED_HOME,
+  protectedRouteRuleForPath,
+} from "@/lib/route-access";
 import { Role } from "@/lib/roles";
 
 function accessSecret() {
@@ -128,6 +133,12 @@ export async function proxy(request: NextRequest) {
 
   if (rule.refuseTo === "home") {
     return withSession(redirectHome(request));
+  }
+
+  // An owner whose hostel left the platform is PUBLIC again; their old portal
+  // address lands them home with the claim-back modal (none, if nothing is held).
+  if (role === Role.PUBLIC && isHostelWorkspacePath(pathname)) {
+    return withSession(NextResponse.redirect(new URL(PORTAL_DELETED_HOME, request.url)));
   }
 
   const landingPath = landingPathForRole(role);

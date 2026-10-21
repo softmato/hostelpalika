@@ -167,6 +167,12 @@ export function pathMatchesPrefix(pathname: string, prefix: string) {
   return pathname === prefix || pathname.startsWith(`${prefix}/`);
 }
 
+/**
+ * Where a portal address sends someone it no longer admits: home, with the
+ * header's claim-back modal open if this account has a hostel it can claim.
+ */
+export const PORTAL_DELETED_HOME = "/?portal=deleted";
+
 /** Tenant-scoped hostel workspace: `/{hostel-slug}/admin/...`. */
 const HOSTEL_WORKSPACE_PATTERN = /^\/[^/]+\/admin(\/|$)/;
 
