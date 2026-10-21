@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { adDate, adDateTime, bsDate, leaveExportBaseName, words } from "@/modules/hostels/hostel-leave-export";
-import { leaveBlockers, owedOnPlan } from "@/modules/hostels/hostel-leave.service";
+import {
+  fileLinksLeft,
+  leaveBlockers,
+  leaveFilesUntil,
+  owedOnPlan,
+  partitionBySize,
+  zipDownloadsLeft,
+} from "@/modules/hostels/hostel-leave.service";
 import { hostelLeaveApproveSchema, hostelLeaveSubmitSchema } from "@/modules/hostels/hostel-leave.validation";
 import { operationsConfigSchema } from "@/modules/platform-config/operations-config";
 
@@ -105,5 +112,54 @@ describe("export cells", () => {
   it("turns codes into words", () => {
     expect(words("MOVED_OUT")).toBe("Moved out");
     expect(words("")).toBeNull();
+  });
+});
+
+describe("partitionBySize", () => {
+  it("keeps each ZIP part under the limit, in order", () => {
+    const files = [{ sizeBytes: 60 }, { sizeBytes: 50 }, { sizeBytes: 30 }, { sizeBytes: 90 }];
+
+    expect(partitionBySize(files, 100).map((part) => part.map((file) => file.sizeBytes))).toEqual([[60], [50, 30], [90]]);
+  });
+
+  it("gives a file bigger than a part a part of its own", () => {
+    expect(partitionBySize([{ sizeBytes: 10 }, { sizeBytes: 500 }, { sizeBytes: 10 }], 100)).toHaveLength(3);
+  });
+});
+
+describe("leaveFilesUntil", () => {
+  const approvedAt = new Date("2026-10-21T10:00:00Z");
+  const days = (until: Date) => (until.getTime() - approvedAt.getTime()) / 86_400_000;
+
+  it("keeps the files 30 days after leaving even when the hold is shorter", () => {
+    expect(days(leaveFilesUntil(approvedAt, 7))).toBe(30);
+  });
+
+  it("follows the hold when the hold is longer", () => {
+    expect(days(leaveFilesUntil(approvedAt, 45))).toBe(45);
+  });
+});
+
+describe("download caps", () => {
+  const now = new Date("2026-10-21T12:00:00Z");
+  const hoursAgo = (hours: number) => new Date(now.getTime() - hours * 3_600_000);
+
+  it("allows each ZIP part 3 times in any 24 hours", () => {
+    const log = [
+      { at: hoursAgo(1), part: 1 },
+      { at: hoursAgo(5), part: 1 },
+      { at: hoursAgo(30), part: 1 }, // older than a day — no longer counts
+      { at: hoursAgo(2), part: 2 },
+    ];
+
+    expect(zipDownloadsLeft(log, 1, now)).toBe(1);
+    expect(zipDownloadsLeft(log, 2, now)).toBe(2);
+    expect(zipDownloadsLeft([...log, { at: hoursAgo(0), part: 1 }], 1, now)).toBe(0);
+    expect(zipDownloadsLeft(undefined, 1, now)).toBe(3);
+  });
+
+  it("counts single-file links per Nepal day", () => {
+    expect(fileLinksLeft({ fileLinkCount: 150, fileLinkDay: "2026-10-21" }, "2026-10-21")).toBe(50);
+    expect(fileLinksLeft({ fileLinkCount: 200, fileLinkDay: "2026-10-20" }, "2026-10-21")).toBe(200);
   });
 });

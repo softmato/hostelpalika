@@ -76,6 +76,8 @@ export function hostelLeavePendingEmail(input: {
 export function hostelLeaveApprovedEmail(input: {
   claimUrl: string;
   files: string[];
+  /** Until when the original files can be downloaded — 30 days, or the hold if longer. */
+  filesUntil: Date;
   holdUntil: Date;
   hostelName: string;
   ownerName?: string;
@@ -106,11 +108,14 @@ export function hostelLeaveApprovedEmail(input: {
               ),
             ].join("\n")
           : "",
+        paragraph(
+          `Your original files — photos, documents and receipts — are ready to download until ${escapeHtml(emailDate(input.filesUntil) ?? "")}: sign in with this email and open the link below. Take everything as one ZIP, or pick files one by one.`,
+        ),
         detailsTable([{ emphasis: true, label: "We hold your data until", value: until }]),
         paragraph(
           "Changed your mind? Sign in with this email before that date and claim your hostel back. Everything comes back as it was.",
         ),
-        ctaButton(input.claimUrl, "Claim hostel back"),
+        ctaButton(input.claimUrl, "Download files or claim hostel back"),
         smallPrint("After that date your hostel and its data are erased for good."),
       ].join("\n"),
     }),

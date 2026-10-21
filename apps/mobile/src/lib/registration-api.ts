@@ -155,7 +155,14 @@ export async function registerServiceProvider(payload: ProviderRegisterPayload) 
  * A hostel this account took off the platform whose data is still held — it
  * can be claimed back until `holdUntil` (docs/HOSTEL_LEAVE_PLATFORM.md).
  */
-export type HeldHostel = { holdUntil: string; hostelName: string; requestId: string };
+export type HeldHostel = {
+  /** Still inside the hold. After it only the files remain, for 30 days from leaving. */
+  canClaim: boolean;
+  filesUntil: string;
+  holdUntil: string;
+  hostelName: string;
+  requestId: string;
+};
 
 export async function getHeldHostels() {
   const response = await api.get<ApiEnvelope<{ hostels: HeldHostel[] }>>("/account/hostel-leave");
@@ -166,4 +173,28 @@ export async function getHeldHostels() {
 /** Restores it as it was and gives the portal role back; adopt the role after. */
 export async function reclaimHostel(requestId: string) {
   await api.post("/account/hostel-leave", { requestId });
+}
+
+/** `GET /account/hostel-leave/{id}/files` — the held hostel's original files and their ZIP parts. */
+export type HeldFiles = {
+  /** Single-file downloads still allowed today. */
+  fileLinksLeft: number;
+  /** In group order (records first), oldest first inside each group. */
+  files: { group: string; id: string; kind: string | null; name: string; sizeBytes: number; uploadedAt: string | null }[];
+  /** `left` — ZIP downloads of this part still allowed in the last 24 hours (3 a day). */
+  parts: { bytes: number; files: number; left: number; part: number }[];
+  totalBytes: number;
+};
+
+export async function getHeldFiles(requestId: string) {
+  return unwrap(await api.get<ApiEnvelope<HeldFiles>>(`/account/hostel-leave/${requestId}/files`));
+}
+
+/** A 15-minute link to one file — fetched without our token, which R2 would refuse. */
+export async function getHeldFileLink(requestId: string, fileId: string) {
+  return unwrap(
+    await api.get<ApiEnvelope<{ url: string }>>(`/account/hostel-leave/${requestId}/files/${fileId}`, {
+      params: { link: 1 },
+    }),
+  ).url;
 }

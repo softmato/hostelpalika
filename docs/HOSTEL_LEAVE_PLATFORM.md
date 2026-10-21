@@ -75,6 +75,36 @@ flip `☐` to `☑` (`◐` + a note for partial).
 - ☑ **A6 Claim back.** `GET /api/v1/account/hostel-leave` lists the caller's held
   hostels; `POST` {requestId} restores them (branches too) and gives the portal
   role back. Refused once the hold has run out.
+- ☑ **A7 Original files** (agreement point 9, 2026-10-21). While the hold runs,
+  the signed-in owner gets every uploaded file of the hostel and its branches,
+  their choice of how: **all at once** as a streamed ZIP
+  (`/account/hostel-leave/{id}/files/zip?part=N`, folders by kind, parts of
+  ≤ 200 MB, a `missing-files.txt` for any object R2 cannot read) or **one by
+  one** (`/files/{fileId}` → 15-minute presigned link; `?link=1` returns it as
+  JSON for the app). No lasting URL to a private file ever exists. Store-only ZIP
+  writer in `lib/zip-stream.ts` (checked with Python's `zipfile`). Web: the
+  claim-back page's "Your files"; app: "All files" / "Choose files" on the held
+  card. The approval email says where to get them.
+- ☑ **A8 Files for 30 days after leaving** (point 9). Approval records
+  `filesUntil` = leaving + 30 days, or the hold if longer (`LEAVE_FILES_DAYS`,
+  a fact of the agreement, not a setting) and the owner (`ownerId`). If the hold
+  ends first, the purge still erases the hostel but **keeps the originals** in
+  storage and lists them on the request (`keptFiles`; thumbnails are not kept);
+  downloads then serve from that list. The `hostel-purge` cron's
+  `runLeaveFilesSweep` deletes them at `filesUntil` and empties the list. After
+  the hold the owner sees a files-only card ("can no longer be claimed back ·
+  files until …"); the header's Claim hostel button counts claimable ones only.
+  The approval email gives the files date.
+- ☑ **A9 Records with the files, grouped, capped** (2026-10-21). The approval's
+  workbook + JSON are kept privately (`exportFiles`, our own
+  `hostel-leave/{requestId}/` keys; built on first look for requests approved
+  before this) and come first — a **Records** folder in the ZIP, the top group of
+  the one-by-one list. Files are grouped by `leaveFileGroup` (Records, Documents,
+  Photos and files, Payment proofs, Expense receipts…), the same names in the
+  ZIP, web and app. Bandwidth: each ZIP part 3 downloads per 24 hours, 200
+  single-file links per Nepal day (counted on the request; the page shows what
+  is left). The ZIP fetches 6 files ahead while one streams. Skeletons while the
+  hostels and files load. The sweep deletes `exportFiles` with `keptFiles`.
 
 ## B. Web
 

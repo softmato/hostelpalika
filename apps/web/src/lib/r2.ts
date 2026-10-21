@@ -200,6 +200,29 @@ export function getPublicUrl(key: string) {
 }
 
 /**
+ * Writes bytes this server made itself — a leaving hostel's data workbook,
+ * kept privately so the owner can download it again later.
+ */
+export async function putToR2(bucket: string, key: string, body: Uint8Array, contentType: string) {
+  await getR2Client().send(new PutObjectCommand({ Body: body, Bucket: bucket, ContentType: contentType, Key: key }));
+}
+
+/**
+ * An object's bytes, streamed through this server — for handing a leaving
+ * hostel its files inside a ZIP (docs/HOSTEL_LEAVE_PLATFORM.md), where no URL
+ * of any kind is given out. Throws when the object cannot be read.
+ */
+export async function readFromR2(bucket: string, key: string): Promise<AsyncIterable<Uint8Array>> {
+  const response = await getR2Client().send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+
+  if (!response.Body) {
+    throw new Error(`R2 object has no body: ${key}`);
+  }
+
+  return response.Body as AsyncIterable<Uint8Array>;
+}
+
+/**
  * Permanently deletes an object. Best-effort: R2 returns success even if the key
  * does not exist, so callers can treat this as idempotent.
  */

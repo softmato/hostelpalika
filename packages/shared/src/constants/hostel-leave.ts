@@ -58,3 +58,28 @@ export function hostelLeavePromise(hold?: { max: number; min: number } | null) {
     title: "Your data stays yours",
   } as const;
 }
+
+/**
+ * How a leaving hostel's files are grouped — the folders of its ZIP and the
+ * headings of the pick-one-by-one list, web and app. In this order: the data
+ * records first, because they are the one thing everybody needs.
+ */
+const LEAVE_FILE_GROUPS: Array<{ kinds: Array<string | null>; label: string }> = [
+  { kinds: ["RECORDS"], label: "Records" },
+  { kinds: ["REGISTRATION_DOCUMENT"], label: "Documents" },
+  { kinds: ["GENERIC", null], label: "Photos and files" },
+  { kinds: ["PAYMENT_PROOF", "BOOKING_PAYMENT_PROOF"], label: "Payment proofs" },
+  { kinds: ["EXPENSE_RECEIPT"], label: "Expense receipts" },
+  { kinds: ["STATEMENT"], label: "Bank statements" },
+  { kinds: ["PAYMENT_QR"], label: "Payment QR codes" },
+  { kinds: ["BOOKING_TRANSFER_PROOF"], label: "Booking transfers" },
+  { kinds: ["COMPLAINT_NOTE"], label: "Complaint voice notes" },
+  { kinds: ["MAINTENANCE_NOTE"], label: "Repair voice notes" },
+];
+
+/** A file kind's group and its place in the order. Unknown kinds go last as "Other". **Pure.** */
+export function leaveFileGroup(kind: string | null | undefined) {
+  const index = LEAVE_FILE_GROUPS.findIndex((group) => group.kinds.includes(kind ?? null));
+
+  return index === -1 ? { label: "Other", order: LEAVE_FILE_GROUPS.length } : { label: LEAVE_FILE_GROUPS[index]!.label, order: index };
+}

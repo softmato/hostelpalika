@@ -42,6 +42,7 @@ import { GuardianAccessModel } from "@hostel/db/models/GuardianAccess";
 import { GuardianPermissionModel } from "@hostel/db/models/GuardianPermission";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { HostelApplicationModel } from "@hostel/db/models/HostelApplication";
+import { HostelLeaveRequestModel } from "@hostel/db/models/HostelLeaveRequest";
 import { HostelExpenseCategoryModel } from "@hostel/db/models/HostelExpenseCategory";
 import { HostelDocumentModel } from "@hostel/db/models/HostelDocument";
 import { HostelListingImpressionModel } from "@hostel/db/models/HostelListingImpression";
@@ -309,9 +310,70 @@ const PULLED_FROM_HOSTEL_IDS: Array<{ model: PurgeableModel; name: string }> = (
 type FileAssetRow = {
   _id: Types.ObjectId;
   bucket?: string;
+  createdAt?: Date;
+  fileName?: string;
   key?: string;
+  kind?: string;
+  mimeType?: string;
+  sizeBytes?: number;
   variants?: Array<{ key?: string }>;
 };
+
+/**
+ * The originals a leaving owner may still download (docs/HOSTEL_LEAVE_PLATFORM.md).
+ *
+ * When the hold ends before the 30 days the agreement promises for the files,
+ * the hostel is erased but its original files stay in storage, listed on the
+ * leave request that now serves them. Thumbnails and other derived sizes are
+ * not kept — only what the owner uploaded. Returns `bucket/key` of each kept
+ * object, so the deletion below steps around them.
+ */
+async function keepFilesForLeave(hostelId: Types.ObjectId, now: Date) {
+  const request = await HostelLeaveRequestModel.findOne({
+    $or: [{ hostelId }, { branchIds: hostelId }],
+    filesUntil: { $gt: now },
+    status: "APPROVED",
+  })
+    .select("_id")
+    .lean<{ _id: Types.ObjectId } | null>();
+
+  if (!request) return new Set<string>();
+
+  const assets = await FileAssetModel.find({
+    bucket: { $exists: true, $ne: "" },
+    hostelId,
+    isDeleted: { $ne: true },
+    key: { $exists: true, $ne: "" },
+  })
+    .select("bucket createdAt fileName key kind mimeType sizeBytes")
+    .lean<FileAssetRow[]>();
+
+  if (assets.length > 0) {
+    await HostelLeaveRequestModel.updateOne(
+      { _id: request._id },
+      {
+        $push: {
+          keptFiles: {
+            $each: assets.map((asset) => ({
+              // The file's own id, so a link the owner already has keeps working.
+              _id: asset._id,
+              bucket: asset.bucket,
+              createdAt: asset.createdAt,
+              fileName: asset.fileName,
+              hostelId,
+              key: asset.key,
+              kind: asset.kind,
+              mimeType: asset.mimeType,
+              sizeBytes: asset.sizeBytes,
+            })),
+          },
+        },
+      },
+    );
+  }
+
+  return new Set(assets.map((asset) => `${asset.bucket}/${asset.key}`));
+}
 
 /**
  * Delete the hostel's bytes from R2 before the rows that point at them.
@@ -322,7 +384,7 @@ type FileAssetRow = {
  * abort a purge and leave the hostel half-erased, and the rows are about to go
  * either way.
  */
-async function deleteHostelObjects(hostelId: Types.ObjectId) {
+async function deleteHostelObjects(hostelId: Types.ObjectId, keep: Set<string> = new Set()) {
   const assets = await FileAssetModel.find({ hostelId })
     .select("bucket key variants")
     .lean<FileAssetRow[]>();
@@ -337,7 +399,11 @@ async function deleteHostelObjects(hostelId: Types.ObjectId) {
 
     // The original plus every derived size. A thumbnail left behind is the same
     // orphan as the original, just cheaper.
-    const keys = [asset.key, ...(asset.variants ?? []).map((variant) => variant.key)];
+    const keys = [
+      // An original kept for a leaving owner's download stays; its derived sizes go.
+      ...(keep.has(`${asset.bucket}/${asset.key}`) ? [] : [asset.key]),
+      ...(asset.variants ?? []).map((variant) => variant.key),
+    ];
 
     for (const key of keys) {
       if (!key) {
@@ -369,7 +435,7 @@ export async function purgeHostel(
   /** Who asked. Unset for the cron, which acts on a decision made 60 days ago. */
   actorId?: string,
 ) {
-  const storage = await deleteHostelObjects(hostelId);
+  const storage = await deleteHostelObjects(hostelId, await keepFilesForLeave(hostelId, new Date()));
 
   const hostel = await HostelModel.findById(hostelId)
     .select("name slug ownerId")
@@ -480,7 +546,54 @@ export async function runHostelArchivePurge(now = new Date()) {
     }
   }
 
-  return { due: due.length, failed, purged };
+  const leaveFiles = await runLeaveFilesSweep(now);
+
+  return { due: due.length, failed, leaveFiles, purged };
+}
+
+/**
+ * Cron: delete the originals kept for leaving owners once their 30 days are up
+ * (see {@link keepFilesForLeave}). A request is emptied only after its objects
+ * are gone, so a failed run leaves it to the next one; R2 deletes are idempotent.
+ */
+export async function runLeaveFilesSweep(now = new Date()) {
+  type Kept = Array<{ bucket: string; key: string }>;
+  const due = await HostelLeaveRequestModel.find({
+    $or: [{ "keptFiles.0": { $exists: true } }, { "exportFiles.0": { $exists: true } }],
+    filesUntil: { $lte: now },
+  })
+    .select("_id keptFiles.bucket keptFiles.key exportFiles.bucket exportFiles.key")
+    .limit(PURGE_BATCH_SIZE)
+    .lean<Array<{ _id: Types.ObjectId; exportFiles?: Kept; keptFiles?: Kept }>>();
+
+  let erased = 0;
+  let failed = 0;
+
+  for (const request of due) {
+    let objectsFailed = 0;
+
+    // The originals kept at purge, and the data workbook kept at approval.
+    for (const file of [...(request.keptFiles ?? []), ...(request.exportFiles ?? [])]) {
+      try {
+        await deleteFromR2(file.bucket, file.key);
+      } catch {
+        objectsFailed += 1;
+      }
+    }
+
+    if (objectsFailed > 0) {
+      failed += 1;
+      continue;
+    }
+
+    await HostelLeaveRequestModel.updateOne(
+      { _id: request._id },
+      { $set: { exportFiles: [], filesErasedAt: now, keptFiles: [] } },
+    );
+    erased += 1;
+  }
+
+  return { due: due.length, erased, failed };
 }
 
 /**

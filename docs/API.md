@@ -965,6 +965,9 @@ owner's chosen hold as its grace period; the `hostel-purge` cron erases it after
 | POST | `/api/v1/platform/hostel-leaves/{id}/reject` | SUPERADMIN | `{ note }` — owner emailed + bell |
 | GET | `/api/v1/account/hostel-leave` | Any signed-in | `{ hostels: [{ requestId, hostelName, holdUntil }] }` this account can claim back |
 | POST | `/api/v1/account/hostel-leave` | Any signed-in owner | `{ requestId }` — restores the hostel and branches, portal role back; 409 `RECLAIM_NOT_AVAILABLE` after the hold |
+| GET | `/api/v1/account/hostel-leave/{id}/files` | Owner, during the hold | `{ files, parts, totalBytes }` |
+| GET | `/api/v1/account/hostel-leave/{id}/files/zip?part=N` | Owner, during the hold | Streamed ZIP of one part (≤ 200 MB) |
+| GET | `/api/v1/account/hostel-leave/{id}/files/{fileId}` | Owner, during the hold | 302 to a 15-minute presigned link; `?link=1` returns `{ url }` |
 
 Sections (`packages/shared/src/constants/hostel-leave.ts`): residents, rooms, bills,
 payments, receipts, deposits, khata, expenses, stock, food, complaints, repairs,
