@@ -170,10 +170,14 @@ export async function getPresignedUploadUrl(
  */
 export const PRIVATE_READ_URL_TTL_SECONDS = 900;
 
-export async function getPresignedReadUrl(bucket: string, key: string) {
+export async function getPresignedReadUrl(bucket: string, key: string, downloadName?: string) {
   const command = new GetObjectCommand({
     Bucket: bucket,
     Key: key,
+    // Saved under this name instead of opened in the tab.
+    ...(downloadName
+      ? { ResponseContentDisposition: `attachment; filename*=UTF-8''${encodeURIComponent(downloadName)}` }
+      : {}),
   });
   return getSignedUrl(getR2Client(), command, {
     expiresIn: PRIVATE_READ_URL_TTL_SECONDS,

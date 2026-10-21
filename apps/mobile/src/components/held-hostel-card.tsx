@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
@@ -64,6 +64,18 @@ export function HeldHostelCard({ hostel }: { hostel: HeldHostel }) {
     useCallback(() => getHeldFiles(hostel.requestId), [hostel.requestId]),
     { cacheKey: `account:held-files:${hostel.requestId}` },
   );
+  const pending = overview.data?.recordsPending ?? false;
+  const { reload } = overview;
+
+  // Built in the background on the server: look again every 5 seconds until ready.
+  useEffect(() => {
+    if (!pending) return;
+
+    const timer = setTimeout(() => reload(), 5000);
+
+    return () => clearTimeout(timer);
+  }, [pending, reload, overview.data]);
+
   const allRecords = (overview.data?.files ?? []).filter((file) => file.record);
   const records = allRecords
     .filter((file) => file.record !== "section")
@@ -178,6 +190,12 @@ export function HeldHostelCard({ hostel }: { hostel: HeldHostel }) {
         </View>
       </View>
       {hostel.canClaim ? <Button icon="refresh" label="Claim hostel back" onPress={claim} /> : null}
+      {pending ? (
+        <View className="gap-1 rounded-2xl bg-brand-soft p-3">
+          <Text variant="label">Your records</Text>
+          <Text variant="caption">Preparing your Excel, CSV and JSON files — this takes under a minute.</Text>
+        </View>
+      ) : null}
       {records.length > 0 ? (
         <View className="gap-2 rounded-2xl bg-brand-soft p-3">
           <Text variant="label">Your records</Text>

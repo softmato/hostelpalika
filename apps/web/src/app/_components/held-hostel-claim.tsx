@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { refreshSession } from "@/lib/auth-refresh";
 import { browserApi } from "@/lib/browser-api";
 import { useSessionStore } from "@/stores/session-store";
+import { toast } from "@/stores/toast-store";
 
 /**
  * Claiming back a hostel taken off the platform (docs/HOSTEL_LEAVE_PLATFORM.md):
@@ -32,6 +33,26 @@ export type HeldHostel = {
 
 const ENDPOINT = "/api/v1/account/hostel-leave";
 const DAY_MS = 86_400_000;
+
+/**
+ * Saves one held file in place: asks for its link first, so a refusal is a toast
+ * rather than a JSON page, then hands the link (served as an attachment) to the
+ * browser — no new tab.
+ */
+function saveHeldFile(event: React.MouseEvent<HTMLAnchorElement>) {
+  event.preventDefault();
+  const href = event.currentTarget.getAttribute("href");
+
+  void browserApi<{ url: string }>(`${href}?link`).then(
+    ({ url }) => {
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.click();
+    },
+    (cause) => toast.error(cause instanceof Error ? cause.message : "Could not download."),
+  );
+}
 
 /** This account's held hostels — only asked with a session, `null` until known. */
 export function useHeldHostels() {
@@ -185,6 +206,8 @@ type HeldFiles = {
   }[];
   /** `left` — ZIP downloads of this part still allowed in the last 24 hours. */
   parts: { bytes: number; files: number; left: number; part: number }[];
+  /** The records are still being built on the server; ask again shortly. */
+  recordsPending: boolean;
   totalBytes: number;
 };
 
@@ -204,6 +227,7 @@ function HeldFilesBlock({ requestId }: { requestId: string }) {
   const [data, setData] = useState<HeldFiles | null>(null);
   const [error, setError] = useState("");
   const [picking, setPicking] = useState(false);
+  const [round, setRound] = useState(0);
   const base = `${ENDPOINT}/${requestId}/files`;
 
   useEffect(() => {
@@ -217,7 +241,18 @@ function HeldFilesBlock({ requestId }: { requestId: string }) {
     return () => {
       active = false;
     };
-  }, [base]);
+  }, [base, round]);
+
+  // While the records are built in the background, look again every 5 seconds.
+  const pending = data?.recordsPending ?? false;
+
+  useEffect(() => {
+    if (!pending) return;
+
+    const timer = setTimeout(() => setRound((value) => value + 1), 5000);
+
+    return () => clearTimeout(timer);
+  }, [pending, round]);
 
   if (error) return <p className="text-[12.5px] text-destructive">{error}</p>;
   if (!data) return <HeldFilesSkeleton />;
@@ -227,7 +262,21 @@ function HeldFilesBlock({ requestId }: { requestId: string }) {
 
   return (
     <div className="w-full space-y-4 text-left">
-      {records.length > 0 ? <RecordsBlock base={base} records={records} /> : null}
+      {data.recordsPending ? (
+        <div aria-busy className="space-y-2 rounded-xl bg-brand-teal-soft p-3" role="status">
+          <p className="text-[13px] font-semibold text-foreground">Your records</p>
+          <p className="text-[12px] text-muted-foreground">
+            Preparing your Excel, CSV and JSON files — this takes under a minute. Your other files are ready below.
+          </p>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <Skeleton className="h-14 rounded-xl" />
+            <Skeleton className="h-14 rounded-xl" />
+            <Skeleton className="h-14 rounded-xl" />
+          </div>
+        </div>
+      ) : records.length > 0 ? (
+        <RecordsBlock base={base} records={records} />
+      ) : null}
 
       {uploads.length === 0 ? (
         <p className="text-[12.5px] text-muted-foreground">No other files were uploaded.</p>
@@ -289,8 +338,7 @@ function HeldFilesBlock({ requestId }: { requestId: string }) {
                     <a
                       className="flex items-center gap-2.5 px-3 py-2 text-[12.5px] hover:bg-muted"
                       href={`${base}/${file.id}`}
-                      rel="noopener"
-                      target="_blank"
+                      onClick={saveHeldFile}
                     >
                       {group.label === "Records" ? (
                         <Download className="size-4 shrink-0 text-brand-teal" />
@@ -348,8 +396,7 @@ function RecordsBlock({ base, records }: { base: string; records: HeldFiles["fil
               className="flex flex-col items-start gap-0.5 rounded-xl border border-border bg-card px-3 py-2.5 hover:border-brand-teal"
               href={`${base}/${file.id}`}
               key={file.id}
-              rel="noopener"
-              target="_blank"
+              onClick={saveHeldFile}
             >
               <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
                 <Download className="size-4 text-brand-teal" />
@@ -371,8 +418,7 @@ function RecordsBlock({ base, records }: { base: string; records: HeldFiles["fil
                 className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12.5px] font-semibold text-foreground hover:border-brand-teal"
                 href={`${base}/${file.id}`}
                 key={file.id}
-                rel="noopener"
-                target="_blank"
+                onClick={saveHeldFile}
                 title={`${file.name} · ${size(file.sizeBytes)}`}
               >
                 <Download className="size-3.5 text-brand-teal" />

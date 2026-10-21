@@ -194,6 +194,8 @@ export type HeldFiles = {
   }[];
   /** `left` — ZIP downloads of this part still allowed in the last 24 hours (3 a day). */
   parts: { bytes: number; files: number; left: number; part: number }[];
+  /** The records are still being built on the server; ask again shortly. */
+  recordsPending: boolean;
   totalBytes: number;
 };
 

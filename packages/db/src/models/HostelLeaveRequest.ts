@@ -81,6 +81,8 @@ const hostelLeaveRequestSchema = new Schema(
         sizeBytes: Number,
       },
     ],
+    /** When a background build of `exportFiles` last started — stops two at once, or one per page load. */
+    exportBuildStartedAt: Date,
     filesErasedAt: Date,
     /**
      * Download caps (bandwidth): every ZIP download started in the last day, by

@@ -2,7 +2,9 @@ import { Types } from "mongoose";
 import type { z } from "zod";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
+import { afterResponse } from "@/lib/after-response";
 import { connectToDatabase } from "@/lib/db";
+import { logger } from "@/lib/logger";
 import { REALTIME_TOPIC } from "@/lib/realtime/channels";
 import { publishResourceChange } from "@/lib/realtime/server";
 import { deleteFromR2, getPresignedReadUrl, privateBucket, putToR2, readFromR2, withKeyPrefix } from "@/lib/r2";
@@ -926,9 +928,12 @@ async function heldFiles(userId: string, requestId: string) {
     );
   }
 
-  // Built again when missing, or when kept before the per-section CSVs existed.
-  const complete = request.exportFiles?.some((file) => file.fileName?.endsWith(".csv"));
-  const records = complete ? request.exportFiles! : (await backfillExportFiles(request)) || (request.exportFiles ?? []);
+  // Built again when missing, or when kept before the per-section CSVs existed —
+  // never inside this request: it answers with what is kept, and the build runs
+  // after the response. The page polls until `recordsPending` clears.
+  const complete = Boolean(request.exportFiles?.some((file) => file.fileName?.endsWith(".csv")));
+  const records = request.exportFiles ?? [];
+  const recordsPending = !complete && (await scheduleExportBuild(request));
 
   // Buildings not yet erased still have their rows; an erased one's originals
   // are listed on the request (`keptFiles`, written by the purge).
@@ -950,7 +955,7 @@ async function heldFiles(userId: string, requestId: string) {
       (a.createdAt?.getTime() ?? 0) - (b.createdAt?.getTime() ?? 0),
   );
 
-  return { files, request };
+  return { files, recordsPending, request };
 }
 
 /**
@@ -961,9 +966,9 @@ async function heldFiles(userId: string, requestId: string) {
  */
 async function storeExportFiles(requestId: Types.ObjectId, attachments: EmailAttachment[]) {
   const now = new Date();
-  const stored: Array<Omit<HeldFileRow, "_id">> = [];
 
-  for (const file of attachments) {
+  // In parallel: eighteen uploads one after another took half a minute.
+  const stored: Array<Omit<HeldFileRow, "_id">> = await Promise.all(attachments.map(async (file) => {
     const key = withKeyPrefix(`hostel-leave/${requestId.toString()}/${file.filename}`);
     const mimeType = file.filename.endsWith(".json")
       ? "application/json"
@@ -974,8 +979,8 @@ async function storeExportFiles(requestId: Types.ObjectId, attachments: EmailAtt
           : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
     await putToR2(privateBucket(), key, file.content, mimeType);
-    stored.push({ bucket: privateBucket(), createdAt: now, fileName: file.filename, key, mimeType, sizeBytes: file.content.length });
-  }
+    return { bucket: privateBucket(), createdAt: now, fileName: file.filename, key, mimeType, sizeBytes: file.content.length };
+  }));
 
   const previous = await HostelLeaveRequestModel.findOneAndUpdate(
     { _id: requestId },
@@ -995,6 +1000,32 @@ async function storeExportFiles(requestId: Types.ObjectId, attachments: EmailAtt
 }
 
 /**
+ * Starts a background build of the records, at most one at a time and at most
+ * once every ten minutes, so a page left open cannot rebuild on every poll.
+ * `true` while the records are on their way; `false` when they cannot be built
+ * (nothing ticked, or the hostel is already erased).
+ */
+async function scheduleExportBuild(request: LeaveRequestRow) {
+  if (!request.exportSections?.length || !(await HostelModel.exists({ _id: request.hostelId }))) return false;
+
+  const now = new Date();
+  const claimed = await HostelLeaveRequestModel.updateOne(
+    {
+      $or: [
+        { exportBuildStartedAt: { $exists: false } },
+        { exportBuildStartedAt: { $lt: new Date(now.getTime() - 10 * 60_000) } },
+      ],
+      _id: request._id,
+    },
+    { $set: { exportBuildStartedAt: now } },
+  );
+
+  if (claimed.modifiedCount === 1) afterResponse(() => backfillExportFiles(request));
+
+  return true;
+}
+
+/**
  * A request approved before the records were kept (or before the CSV pack):
  * build them now, if its hostel still exists. `null` when it cannot.
  */
@@ -1010,7 +1041,11 @@ async function backfillExportFiles(request: LeaveRequestRow) {
     const exported = await buildLeaveExport([request.hostelId, ...(request.branchIds ?? [])], sections, hostel.slug ?? "");
 
     return await storeExportFiles(request._id, [...exported.attachments, exported.csvZip, ...exported.csvFiles]);
-  } catch {
+  } catch (error) {
+    logger.error("hostel_leave_records_build_failed", {
+      error: error instanceof Error ? error.message : String(error),
+      requestId: request._id.toString(),
+    });
     return null;
   }
 }
@@ -1034,7 +1069,7 @@ export function sectionOf(fileName?: string) {
 
 /** `GET /account/hostel-leave/{id}/files` — the list, its size and its ZIP parts. */
 export async function listHeldFiles(userId: string, requestId: string) {
-  const { files, request } = await heldFiles(userId, requestId);
+  const { files, recordsPending, request } = await heldFiles(userId, requestId);
   // The CSV pack is a ZIP of CSVs the Records folder already holds; not packed twice.
   const parts = partitionBySize(files.filter((file) => recordType(file) !== "csv"));
 
@@ -1061,6 +1096,8 @@ export async function listHeldFiles(userId: string, requestId: string) {
       left: zipDownloadsLeft(request.zipDownloads, index + 1),
       part: index + 1,
     })),
+    // The records are still being built in the background; ask again shortly.
+    recordsPending,
     totalBytes: files.reduce((sum, file) => sum + (file.sizeBytes ?? 0), 0),
   };
 }
@@ -1089,6 +1126,8 @@ export async function heldFileUrl(userId: string, requestId: string, fileId: str
         },
       },
     ],
+    // Mongoose 9 refuses an array update unless asked for one by name.
+    { updatePipeline: true },
   );
 
   if (counted.modifiedCount === 0) {
@@ -1099,7 +1138,7 @@ export async function heldFileUrl(userId: string, requestId: string, fileId: str
     );
   }
 
-  return getPresignedReadUrl(file.bucket, file.key);
+  return getPresignedReadUrl(file.bucket, file.key, file.fileName ?? "file");
 }
 
 /** Folder inside the ZIP: by what the file was, so 400 photos do not bury one PAN card. **Pure.** */
