@@ -11,6 +11,7 @@ import { useSiteConfig } from "@/components/site-config-provider";
 import { cn } from "@/lib/utils";
 
 import { LifetimeDeal, useLifetimeAvailability } from "./lifetime-deal";
+import { LeavePromise } from "./leave-promise";
 import { PlansFaq } from "./plans-faq";
 import {
   BillingToggle,
@@ -150,6 +151,9 @@ export function PublicPlansPricingPage({ trialDays }: { trialDays: number }) {
             )}
           </motion.section>
         </AnimatePresence>
+
+        {/* Before the questions: the answer to "can I leave, and what happens to my data". */}
+        <LeavePromise className="mx-auto mt-14 max-w-5xl" />
 
         <PlansFaq />
 

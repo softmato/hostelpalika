@@ -172,6 +172,8 @@ export type MobileSiteConfig = {
   features: SiteFeatures;
   identity: SiteIdentity;
   legal: SiteLegal;
+  /** The claim-back window a leaving hostel picks from (docs/HOSTEL_LEAVE_PLATFORM.md). */
+  leaveHold: { max: number; min: number } | null;
   locations: SiteLocation[];
   plans: SitePlans;
   questionCall: SiteQuestionCall;
@@ -240,6 +242,7 @@ export const FALLBACK_SITE_CONFIG: MobileSiteConfig = {
     privacy: { body: "", updatedAt: "" },
     terms: { body: "", updatedAt: "" },
   },
+  leaveHold: null,
   locations: [],
   /*
    * Empty for the same reason `content` is: the tiers are entirely owner-
@@ -304,6 +307,7 @@ function withDefaults(config: SiteConfigResponse): MobileSiteConfig {
       privacy: { ...FALLBACK_SITE_CONFIG.legal.privacy, ...config.legal?.privacy },
       terms: { ...FALLBACK_SITE_CONFIG.legal.terms, ...config.legal?.terms },
     },
+    leaveHold: config.leaveHold ?? null,
     locations: config.locations ?? [],
     plans: config.plans ?? FALLBACK_SITE_CONFIG.plans,
     questionCall: { ...FALLBACK_SITE_CONFIG.questionCall, ...config.questionCall },

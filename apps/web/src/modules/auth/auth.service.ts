@@ -348,7 +348,8 @@ export async function issueSessionForUser(
   const tokenInput = {
     hostelIds: safeUser.hostelIds,
     // A borrowed login is handed out on purpose; it never knows the owner's PIN.
-    lockPin: safeUser.hasLockPin && !options?.temporaryCredentialId,
+    // A public account has no portal to lock — the PIN guards a portal, not the site.
+    lockPin: safeUser.hasLockPin && safeUser.role !== Role.PUBLIC && !options?.temporaryCredentialId,
     role: safeUser.role,
     sessionId,
     temporaryCredentialId: options?.temporaryCredentialId,
@@ -1004,7 +1005,7 @@ export async function refreshAccessToken(
   const safeUser = publicUser(account);
   const tokenInput = {
     hostelIds: safeUser.hostelIds,
-    lockPin: safeUser.hasLockPin && !temporaryCredentialId,
+    lockPin: safeUser.hasLockPin && safeUser.role !== Role.PUBLIC && !temporaryCredentialId,
     role: safeUser.role,
     sessionId: String(session._id),
     temporaryCredentialId,

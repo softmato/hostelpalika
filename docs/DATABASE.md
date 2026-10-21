@@ -2155,6 +2155,17 @@ per user and type, not any row — which is what makes withdrawal take effect on
 > `ipAddress` / `userAgent` are **deliberately not stored** — this is a privacy record, and
 > retaining a per-consent IP to prove a privacy choice is self-defeating.
 
+### HostelLeaveRequest
+
+A hostel asking to leave (`docs/HOSTEL_LEAVE_PLATFORM.md`). `hostelId`, `branchIds`
+(archived with it), `requestedBy`, `reason`, `holdDays`, `status`
+PENDING|APPROVED|REJECTED|CANCELLED|RECLAIMED, snapshot `hostelName` / `ownerEmail` /
+`ownerName`, `requestedAt`, `cancelledAt`, `reviewedAt` (also the approval claim),
+`reviewedBy`, `reviewNote`, `holdUntil` (= the hostel's `purgeScheduledAt`),
+`exportSections`, `exportSentTo`, `exportSentAt`, `reclaimedAt`. Unique partial index
+on `hostelId` where PENDING. Kept by the hostel purge (`RETAINED_BY_HOSTEL_ID`).
+Operations config: `leaveHoldMinDays` (7) ≤ `leaveHoldMaxDays` (15).
+
 ### AccountDeletionRequest
 
 Tracks requests from users to delete their account (60-day grace period).

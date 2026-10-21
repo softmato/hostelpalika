@@ -72,6 +72,14 @@ export const operationsConfigSchema = z.object({
    */
   trialDays: z.number().int().min(1).max(90).default(15),
   /**
+   * The range a leaving hostel picks its data hold from, in days counted from
+   * the approval (docs/HOSTEL_LEAVE_PLATFORM.md). The owner can claim the
+   * hostel back while it runs; after it the purge cron erases it. A request
+   * keeps the number it was sent with.
+   */
+  leaveHoldMinDays: z.number().int().min(1).max(60).default(7),
+  leaveHoldMaxDays: z.number().int().min(1).max(60).default(15),
+  /**
    * The QR a field agent shows an owner who wants to pay by wallet.
    *
    * It is one image for the whole platform — our own merchant QR — rather than
@@ -132,6 +140,9 @@ export const operationsConfigSchema = z.object({
   receiptNumberPrefix: z.string().trim().min(1).max(10).default("RCP"),
   sendNoticeEmails: z.boolean().default(true),
   sendPaymentEmails: z.boolean().default(true),
+}).refine((config) => config.leaveHoldMinDays <= config.leaveHoldMaxDays, {
+  message: "The shortest data hold cannot be longer than the longest.",
+  path: ["leaveHoldMinDays"],
 });
 
 export type OperationsConfig = z.infer<typeof operationsConfigSchema>;

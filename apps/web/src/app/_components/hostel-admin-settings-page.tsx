@@ -2,7 +2,8 @@
 
 import { formatHostelDate } from "@hostel/shared/calendar/bs";
 
-import { Pencil, Settings } from "@/components/icons";
+import { DoorOpen, Pencil, Settings } from "@/components/icons";
+import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import {
@@ -271,6 +272,20 @@ export const HostelAdminSettingsPageContent = memo(
             title="Community feed"
           />
         </div>
+
+        {/* Owner only — the leave route refuses wardens (docs/HOSTEL_LEAVE_PLATFORM.md). */}
+        <a
+          className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-[13.5px] hover:bg-muted/60"
+          href="leave"
+        >
+          <span className="grid size-9 place-items-center rounded-xl bg-destructive/10 text-destructive">
+            <DoorOpen className="size-4" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold text-foreground">Leave {PLATFORM_NAME}</span>
+            <span className="block text-[12px] text-muted-foreground">Take your hostel off and get your data</span>
+          </span>
+        </a>
 
         <Dialog onOpenChange={(open) => (open ? null : setEditing(""))} open={editing === "attendance" && attendance !== null}>
           <DialogContent className="sm:max-w-3xl">

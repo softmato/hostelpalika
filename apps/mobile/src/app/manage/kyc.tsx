@@ -12,6 +12,7 @@ import { FoodWeekEditor } from "@/components/manage/food-week-editor";
 import { KycDraftContext, useKycDraft, type KycDraft } from "@/components/manage/kyc-draft";
 import { KycPayments } from "@/components/manage/kyc-payments";
 import { KycOpeningStep, KycRoomsStep } from "@/components/manage/kyc-setup-steps";
+import { LeavePromiseCard } from "@/components/leave-promise-card";
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Sheet } from "@/components/ui/sheet";
 import { useFoodWeek } from "@/components/manage/food-week";
@@ -281,13 +282,14 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
         {data.percent >= 100 ? <View className="items-center">{!reduced && finished ? <Lottie loop={false} size={140} source={SUCCESS_ANIMATION} /> : <Glyph name="checkmark-circle" color={colors.primary} size={112} />}<Text variant="muted">{done} of {steps.length}</Text></View> : <KycRing percent={data.percent} size={120} />}
         <Text variant="title">{review?.status === "SUBMITTED" ? "Sent for review" : review?.status === "APPROVED" ? "Verified" : review?.canSubmit ? "Send for submission" : data.percent >= 100 ? "All done!" : `${data.percent}% done`}</Text>
         <Text className="text-center" variant="muted">{review?.status === "SUBMITTED" ? "We check it within 24 hours. You can still edit anything until then. Once approved you get:" : review?.status === "APPROVED" ? "Every feature is open on the web and the app." : review?.canSubmit ? "Every required section is done. Once our team approves it you get:" : review && requiredLeft > 0 ? `Finish the ${requiredLeft} required ${requiredLeft === 1 ? "section" : "sections"} to send it.` : data.percent >= 100 ? "Your hostel is ready" : "Finish the rest any time"}</Text>
-        {review?.canSubmit || review?.status === "SUBMITTED" ? <View className="w-full gap-2">{([["phone-portrait", "Full access to the web and app portals"], ["document-text", "An agreement letter between you and HostelPalika"]] as const).map(([icon, text]) => <View className="flex-row items-center gap-3 rounded-2xl border border-border p-3" key={text}><View className="h-9 w-9 items-center justify-center rounded-xl bg-brand-soft"><Glyph color={colors.primary} name={icon} size={18} /></View><Text className="flex-1" variant="body">{text}</Text></View>)}</View> : null}
+        {review?.canSubmit || review?.status === "SUBMITTED" ? <View className="w-full gap-2">{([["phone-portrait", "Full access to the web and app portals"], ["document-text", "An agreement letter between you and HostelPalika"], ["download", "Your data stays yours: leave any time and take all of it"]] as const).map(([icon, text]) => <View className="flex-row items-center gap-3 rounded-2xl border border-border p-3" key={text}><View className="h-9 w-9 items-center justify-center rounded-xl bg-brand-soft"><Glyph color={colors.primary} name={icon} size={18} /></View><Text className="flex-1" variant="body">{text}</Text></View>)}</View> : null}
         <View className="w-full flex-row flex-wrap justify-between gap-y-3">{steps.map((item, at) => <Pressable key={item.key} accessibilityRole="button" accessibilityLabel={`${STEPS[item.key]?.title}, ${item.done ? "done" : "to do"}`} onPress={() => go(at)} className={`min-h-16 w-[48.5%] flex-row items-center gap-2 rounded-2xl p-2.5 active:opacity-70 ${item.done ? "bg-brand-soft" : "border border-border"}`}>
           <View className="h-10 w-10 items-center justify-center rounded-xl bg-background"><Glyph name={STEPS[item.key]?.icon ?? "ellipse"} color={colors.primary} size={20} /></View>
           <Text className="flex-1" numberOfLines={2} variant="label">{STEPS[item.key]?.short}</Text>
           <Glyph name={item.done ? "checkmark-circle" : "ellipse"} color={item.done ? colors.primary : colors.mutedForeground} size={22} />
         </Pressable>)}</View>
         {data.percent >= 100 ? <View className="flex-row items-center gap-2"><Glyph name="time" color={colors.warning} size={18} /><Text variant="muted">Some checks may take time</Text></View> : null}
+        <View className="w-full"><LeavePromiseCard /></View>
       </Animated.View> : <View className="gap-4 pb-4 pt-1">
         <Pressable accessibilityHint="Shows done and to-do sections" accessibilityLabel={`${done} of ${steps.length} sections done. ${statusLine}`} accessibilityRole="button" className="flex-row items-center gap-3 active:opacity-70" disabled={blocked} onPress={() => setOverview(true)}>
           <KycRing percent={data.percent} size={56} />

@@ -1524,6 +1524,32 @@ export async function sendHostelInvite(input: {
 }
 
 /* -------------------------------------------------------------------------- */
+/* Leaving the platform (docs/HOSTEL_LEAVE_PLATFORM.md)                       */
+/* -------------------------------------------------------------------------- */
+
+/** `GET /hostel-admin/leave` — `getLeaveOverview` on the server. Owner only. */
+export type HostelLeaveOverview = {
+  blockers: { code: string; message: string }[];
+  branches: { id: string; name: string }[];
+  canLeave: boolean;
+  hold: { max: number; min: number };
+  hostel: { id: string; isBranch: boolean; name: string };
+  request: { holdDays: number; reason: string; requestedAt: string } | null;
+};
+
+export async function getHostelLeave() {
+  return unwrap(await api.get<ApiEnvelope<HostelLeaveOverview>>("/hostel-admin/leave"));
+}
+
+export async function sendHostelLeave(input: { holdDays: number; reason: string }) {
+  await api.post("/hostel-admin/leave", { ...input, confirm: true });
+}
+
+export async function cancelHostelLeave() {
+  await api.delete("/hostel-admin/leave");
+}
+
+/* -------------------------------------------------------------------------- */
 /* Residents — intake, the record, and the two ends of a stay                 */
 /* -------------------------------------------------------------------------- */
 

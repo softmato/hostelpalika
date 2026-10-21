@@ -203,11 +203,9 @@ export function DiscoveryHeader({
   const cardNoun = idCardNoun(cardType);
 
   return (
-    // The top of the green that `PublicHome` fades down into the page. Above
-    // the body (`zIndex`) so the fade below can lie over what scrolls under it.
-    <View style={{ backgroundColor: paint.from, paddingTop: insets.top, zIndex: 1 }}>
-      <BottomFade color={paint.from} />
-
+    // The top of the green that `PublicHome` runs on down into the page. Its
+    // fade into the page is `HeaderFade`, passed to `Screen` as `headerFade`.
+    <View style={{ backgroundColor: paint.from, paddingTop: insets.top }}>
       <View className="gap-3 px-5 pb-3 pt-2">
         <View className="flex-row items-center gap-3">
           {/*
@@ -220,11 +218,22 @@ export function DiscoveryHeader({
 
             22, down from 30: at 30 the wordmark was the loudest thing on the
             screen and ran most of the way to the bell. It is a name, not a hero.
+            The tail at 0.72 white washed into the green on device; 0.88 plus a
+            faint drop shadow keeps the two tones and reads cleanly.
           */}
           <View accessibilityLabel={APP_NAME} accessibilityRole="header" className="flex-1">
-            <Text style={{ fontSize: 22, fontWeight: "800", letterSpacing: -0.3 }}>
+            <Text
+              style={{
+                fontSize: 23,
+                fontWeight: "800",
+                letterSpacing: -0.2,
+                textShadowColor: "rgba(0,0,0,0.18)",
+                textShadowOffset: { height: 1, width: 0 },
+                textShadowRadius: 2,
+              }}
+            >
               <Text style={{ color: "#FFFFFF" }}>{APP_NAME_PARTS.head}</Text>
-              <Text style={{ color: "rgba(255,255,255,0.72)" }}>{APP_NAME_PARTS.tail}</Text>
+              <Text style={{ color: "rgba(255,255,255,0.88)" }}>{APP_NAME_PARTS.tail}</Text>
             </Text>
           </View>
 
@@ -462,35 +471,41 @@ function MapButton() {
   );
 }
 
-/** How far the page scrolls before the header's own fade is fully drawn. */
-const FADE_IN_BY = 48;
+/**
+ * How far the page scrolls before the header's own fade is fully drawn. Long
+ * enough that it grows in while Home's solid green is still under it, so it
+ * never pops in as a band.
+ */
+const FADE_IN_BY = 96;
 
 /**
- * The header's green, fading out below its bottom edge.
+ * The header's green, fading out into the page below its bottom edge — pass it
+ * to `Screen` as `headerFade` beside this header.
  *
- * At rest it is invisible: the shortcut block's own gradient carries the green
- * on down, and two fades stacked would be a band. Once the page scrolls that
- * block away, this takes over, so content slides up under a soft edge rather
- * than a ruled line.
+ * At rest it is invisible: the shortcut block's solid green carries on under
+ * the header, and a fade over it would tint the frosted tiles. Once the page
+ * scrolls that block away, this takes over, so content slides up under a soft
+ * edge rather than a ruled line. The stops ease out (full, 55%, 18%, 0) — a
+ * straight two-stop ramp reads as a band with a visible bottom.
  *
  * Its far stop is the same green at zero alpha, not `transparent` — see the map
  * button for why that matters on Android.
  */
-function BottomFade({ color }: { color: string }) {
+export function HeaderFade() {
   const scrollY = useScreenScroll();
+  const { from: color } = usePortalPaint();
 
   const fade = useAnimatedStyle(() => ({
     opacity: interpolate(scrollY?.value ?? 0, [0, FADE_IN_BY], [0, 1], "clamp"),
   }));
 
   return (
-    <Animated.View
-      style={[
-        { height: 28, left: 0, pointerEvents: "none", position: "absolute", right: 0, top: "100%" },
-        fade,
-      ]}
-    >
-      <LinearGradient colors={[color, `${color}00`]} style={{ flex: 1 }} />
+    <Animated.View style={[{ height: 44 }, fade]}>
+      <LinearGradient
+        colors={[color, `${color}8C`, `${color}2E`, `${color}00`]}
+        locations={[0, 0.3, 0.65, 1]}
+        style={{ flex: 1 }}
+      />
     </Animated.View>
   );
 }

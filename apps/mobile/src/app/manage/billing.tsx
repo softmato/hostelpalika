@@ -7,6 +7,7 @@ import { PaintedAmount } from "@/components/portal-shared";
 import { FreeMonthCard } from "@/components/subscription-due";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
+import { LeavePromiseCard } from "@/components/leave-promise-card";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { IconButton } from "@/components/ui/icon-button";
@@ -260,6 +261,8 @@ export default function ManageBillingScreen() {
             title="No plan"
           />
         )}
+
+        <LeavePromiseCard leaveLink />
 
         <View>
           <SectionHeader title="Paperwork" />

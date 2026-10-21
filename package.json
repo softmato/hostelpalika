@@ -19,6 +19,7 @@
     "web:lint": "npm --prefix apps/web run lint",
     "web:format": "npm --prefix apps/web run format",
     "web:test": "npm --prefix apps/web run test",
+    "build:paper-agreement": "npm --prefix apps/web run build:paper-agreement",
     "web:seed:platform-owner": "npm --prefix apps/web run seed:platform-owner",
     "web:seed:demo": "npm --prefix apps/web run seed:demo",
     "web:generate:vapid": "npm --prefix apps/web run generate:vapid",

@@ -2,10 +2,10 @@ import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo } from "react";
-import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
+import { Pressable, ScrollView, Share, useWindowDimensions, View } from "react-native";
 import Animated, { interpolate, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 
-import { DiscoveryHeader } from "@/components/discovery-header";
+import { DiscoveryHeader, HeaderFade } from "@/components/discovery-header";
 import { HostelCard } from "@/components/hostel-card";
 import { HostelShowcase } from "@/components/hostel-showcase";
 import { usePortalPaint } from "@/components/portal-shared";
@@ -18,6 +18,7 @@ import { Screen, useScreenScroll } from "@/components/ui/screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
+import { APP_NAME } from "@/constants/branding";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useNearby } from "@/hooks/use-nearby";
@@ -107,8 +108,8 @@ const MAX_CITIES = 8;
 /** `Screen`'s `px-5` on both sides. Cards are inset from the page, not full-bleed. */
 const PAGE_INSET = 40;
 
-/** How much of the scroll the shortcut doors give back — 0.45 means they move up at 55% of page speed. */
-const PARALLAX = 0.45;
+/** How much of the scroll the frosted doors give back — 0.4 means they move up at 60% of page speed. */
+const PARALLAX = 0.4;
 
 /** The gap between cards in every horizontal row on this screen. */
 const ROW_GAP = 12;
@@ -243,6 +244,7 @@ export function PublicHome({ browseHref, insideTabs = false }: PublicHomeProps) 
       header={
         <DiscoveryHeader browseHref={browseHref} onSearch={search} />
       }
+      headerFade={<HeaderFade />}
       // No gutter under the header: the green has to run on into the shortcuts.
       bleedTop
       insideTabs={insideTabs}
@@ -250,7 +252,7 @@ export function PublicHome({ browseHref, insideTabs = false }: PublicHomeProps) 
       refreshing={hostels.refreshing}
       scroll
     >
-      <HomeShortcuts />
+      <HomeShortcuts browseHref={browseHref} />
 
       <View className="gap-7 pt-1">
         <MyJoinRequestRow />
@@ -311,47 +313,59 @@ export function PublicHome({ browseHref, insideTabs = false }: PublicHomeProps) 
  * The painted top of the page, and the doors that used to live only in the
  * Profile menu.
  *
- * The header's green runs on down behind this block and fades into the page
- * (Revolut's home). The first four doors sit on the paint as frosted tiles;
- * the rest ride a white `ActionTiles` card across the fade (Klarna's), which is
- * also the house rule of something straddling the bottom of an accent block.
+ * The header's green runs on down behind this block solid, so header and doors
+ * read as one piece, to the midline of the white `ActionTiles` card that
+ * straddles its edge (the house rule) — and only then fades into the page. A
+ * fade starting at the frosted row read as a second, paler block under the
+ * header; a hard rounded edge read as a border. The first four doors sit on
+ * the paint as frosted tiles.
  *
  * The site's feature flags drop a door exactly as they drop the web's link, so
  * a surface the platform owner switched off is not advertised here either. The
  * split is by position, so a dropped door just pulls the next one up.
  *
- * On scroll the green scrolls away at page speed while the doors on it lag
- * behind (`PARALLAX`), shrink a little and fade — the frosted row first, the
- * card after — so they read as tucking up under the header rather than being
- * cut off by it. Only position and opacity move; the header's colour never
- * does (a scroll-linked colour fade washed it out to pale green on device).
+ * On scroll the paint and the card move at page speed — the card never lags,
+ * because a lagging card slid over "Top Picks" on device. Only the frosted row
+ * is a deeper layer: it lags (`PARALLAX`), shrinks and fades, sinking behind
+ * the card and up under the header. The card then lifts a touch and fades as
+ * it reaches the header. Only position, scale and opacity move; the header's
+ * colour never does (a scroll-linked colour fade washed it out on device).
  */
-function HomeShortcuts() {
+function HomeShortcuts({ browseHref }: { browseHref: string }) {
   const { colors } = useAppTheme();
   const paint = usePortalPaint();
   const scrollY = useScreenScroll();
-  const height = useSharedValue(1);
+  const leadHeight = useSharedValue(1);
+  const cardTop = useSharedValue(0);
+  const cardHeight = useSharedValue(0);
 
-  const tuck = useAnimatedStyle(() => {
+  const leadTuck = useAnimatedStyle(() => {
     const y = Math.max(0, scrollY?.value ?? 0);
+    const span = leadHeight.value * 0.75;
 
     return {
+      opacity: interpolate(y, [0, span], [1, 0], "clamp"),
       transform: [
-        { translateY: Math.min(y, height.value) * PARALLAX },
-        { scale: interpolate(y, [0, height.value], [1, 0.94], "clamp") },
+        { translateY: Math.min(y, span) * PARALLAX },
+        { scale: interpolate(y, [0, span], [1, 0.9], "clamp") },
       ],
     };
   });
-  const leadFade = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollY?.value ?? 0, [0, height.value * 0.35], [1, 0], "clamp"),
+  const restTuck = useAnimatedStyle(() => {
+    const y = Math.max(0, scrollY?.value ?? 0);
+    const range = [cardTop.value - 24, cardTop.value + cardHeight.value * 0.6];
+
+    return {
+      opacity: interpolate(y, range, [1, 0], "clamp"),
+      transform: [{ scale: interpolate(y, range, [1, 0.96], "clamp") }],
+    };
+  });
+  // Solid down to the card's midline, then a short fade into the page.
+  const paintEdge = useAnimatedStyle(() => ({
+    bottom: cardHeight.value > 0 ? cardHeight.value / 2 + 16 : 0,
   }));
-  const restFade = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      scrollY?.value ?? 0,
-      [height.value * 0.15, height.value * 0.7],
-      [1, 0],
-      "clamp",
-    ),
+  const fadeEdge = useAnimatedStyle(() => ({
+    height: cardHeight.value > 0 ? cardHeight.value / 2 + 16 : 0,
   }));
   const account = useAppSelector((state) => state.auth.account);
   const { features } = useSiteConfig().config;
@@ -415,36 +429,42 @@ function HomeShortcuts() {
           onPress: () => router.push("/(auth)/login"),
           tone: "brand",
         },
-    features.inquiries
-      ? {
-          glyph: colors.success,
-          icon: "chatbubble-ellipses",
-          key: "inquiry",
-          label: "Send inquiry",
-          onPress: () => router.push("/inquiry"),
-          tone: "success",
-        }
-      : null,
-    features.compare
-      ? {
-          glyph: colors.warning,
-          icon: "git-compare",
-          key: "compare",
-          label: "Compare",
-          onPress: () => router.push("/(browse)/compare"),
-          tone: "warning",
-        }
-      : null,
-    features.publicRegistration
-      ? {
-          glyph: colors.primary,
-          icon: "pricetags",
-          key: "pricing",
-          label: "Pricing",
-          onPress: () => router.push("/pricing"),
-          tone: "brand",
-        }
-      : null,
+    /*
+     * Send inquiry, Compare and Pricing used to sit here. `/inquiry` only
+     * unwraps referral links, so without a code it bounced straight back to
+     * Home; Compare is a tab already; and the plan price is for owners, who
+     * reach it from their portal.
+     */
+    {
+      glyph: colors.success,
+      icon: "locate",
+      key: "near",
+      label: "Near me",
+      onPress: () => router.push(`${browseHref}?near=1`),
+      tone: "success",
+    },
+    {
+      glyph: colors.primary,
+      icon: "help-circle",
+      key: "help",
+      label: "Help",
+      onPress: () => router.push("/help"),
+      tone: "brand",
+    },
+    {
+      glyph: colors.warning,
+      icon: "share-social",
+      key: "share",
+      label: "Share app",
+      onPress: () => {
+        // Dismissing the sheet rejects on iOS; that is a choice, not an error.
+        Share.share({
+          message: `${APP_NAME} — find verified hostels across Nepal.\n${API_BASE_URL.replace(/\/+$/, "")}`,
+          title: APP_NAME,
+        }).catch(() => undefined);
+      },
+      tone: "warning",
+    },
   ];
   const doors = offered.filter((door): door is ActionTile => door !== null);
 
@@ -453,19 +473,22 @@ function HomeShortcuts() {
 
   return (
     <View style={{ marginHorizontal: -PAGE_INSET / 2 }}>
-      {/* Solid for the tile row, then down to the page. Two opaque stops: see the map button on `transparent`. */}
-      <LinearGradient
-        colors={[paint.from, paint.from, colors.background]}
-        locations={[0, 0.42, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-
       <Animated.View
-        className="gap-6 px-5 pb-4 pt-3"
-        onLayout={(event) => height.set(Math.max(1, event.nativeEvent.layout.height))}
-        style={tuck}
-      >
-        <Animated.View style={leadFade}>
+        style={[
+          { backgroundColor: paint.from, left: 0, position: "absolute", right: 0, top: 0 },
+          paintEdge,
+        ]}
+      />
+      {/* Two opaque stops: see the map button on `transparent`. */}
+      <Animated.View style={[{ bottom: 0, left: 0, position: "absolute", right: 0 }, fadeEdge]}>
+        <LinearGradient colors={[paint.from, colors.background]} style={{ flex: 1 }} />
+      </Animated.View>
+
+      <View className="gap-6 px-5 pb-4 pt-3">
+        <Animated.View
+          onLayout={(event) => leadHeight.set(Math.max(1, event.nativeEvent.layout.height))}
+          style={leadTuck}
+        >
           <ActionRow>
             {lead.map((door) => (
               <ActionCell
@@ -485,11 +508,17 @@ function HomeShortcuts() {
         </Animated.View>
 
         {rest.length > 0 ? (
-          <Animated.View style={restFade}>
+          <Animated.View
+            onLayout={(event) => {
+              cardTop.set(event.nativeEvent.layout.y);
+              cardHeight.set(event.nativeEvent.layout.height);
+            }}
+            style={restTuck}
+          >
             <ActionTiles tiles={rest} />
           </Animated.View>
         ) : null}
-      </Animated.View>
+      </View>
     </View>
   );
 }

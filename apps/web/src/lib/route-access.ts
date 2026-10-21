@@ -36,6 +36,11 @@ export const protectedRouteRules: ProtectedRouteRule[] = [
     roles: [Role.SUPERADMIN],
   },
   {
+    // Taking a hostel off the platform and mailing its data out is the owner's call.
+    prefix: "/platform/hostel-leaves",
+    roles: [Role.SUPERADMIN],
+  },
+  {
     prefix: "/platform/config",
     roles: [Role.SUPERADMIN],
   },

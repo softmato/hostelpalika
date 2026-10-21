@@ -31,6 +31,7 @@ import { Skeleton, SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { LeavePromiseCard } from "@/components/leave-promise-card";
 import { useSiteConfig } from "@/hooks/use-site-config";
 import type { SitePlans } from "@/lib/site-config-api";
 
@@ -195,6 +196,9 @@ export default function PricingScreen() {
             />
           </Card>
         )}
+
+        {/* "Can I leave, and do I keep my data?" — answered before anyone has to ask. */}
+        <LeavePromiseCard />
       </View>
     </Screen>
   );

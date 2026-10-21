@@ -508,6 +508,14 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
         label: "Account Deletions",
       },
       {
+        description:
+          "Hostels asking to leave. Choose the data emailed to the owner, then approve.",
+        href: "/platform/hostel-leaves",
+        icon: "clipboard",
+        keywords: ["leave", "leaving", "remove hostel", "delete hostel", "off-board", "close hostel", "export"],
+        label: "Hostel Leaves",
+      },
+      {
         description: "Immutable trail of every privileged action taken on the platform.",
         href: "/platform/audit-logs",
         icon: "clipboard",
@@ -1194,6 +1202,7 @@ const SUPERADMIN_ONLY_PREFIXES = [
   "/platform/account-deletions",
   "/platform/bookings",
   "/platform/config",
+  "/platform/hostel-leaves",
   "/platform/offer-program",
   "/platform/push",
   "/platform/referrals",

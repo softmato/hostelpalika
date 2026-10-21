@@ -121,6 +121,13 @@ const FAQS: FaqEntry[] = [
   },
   {
     answer:
+      "Yes. Leave any time from Settings once your plan bills are paid. We email you all your data from your first day — residents, bills, payments, receipts, expenses and more — as an Excel workbook, plus a file other software can import. We also hold your hostel for a few days, so you can change your mind and claim it back exactly as it was.",
+    id: "hostel-leave",
+    question: "Can I leave and take my data with me?",
+    role: "hostel",
+  },
+  {
+    answer:
       "You can move up or down a plan whenever you want. Your residents, bills and old records stay exactly where they are.",
     id: "hostel-change-plan",
     question: "Can I change my plan later?",

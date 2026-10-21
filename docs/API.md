@@ -948,3 +948,26 @@ Registration room configurations accept an optional non-negative whole-rupee `se
 Room-type suggestions are shared between web and mobile. Each standard type has an `— Attached Bathroom` variant; these remain distinct roomConfigurations and fee-schedule rates with independent inventory, vacancy, photos, and rent. Existing room names remain valid.
 
 Public/team/branch registration and profile pricing accept optional `formFee` (non-negative whole NPR). Fee schedules store and project formFee onto listing pricing; new schedules default omitted formFee to zero. Intake quotes include formFee separately, and joining invoices add a distinct Form fee line. Referral discounts apply only to admission fees. KYC provides links to room and rate-card editors in the selected hostel workspace.
+
+## Leaving the platform (2026-10-21)
+
+Tracker: `docs/HOSTEL_LEAVE_PLATFORM.md`. Approval is the hostel archive with the
+owner's chosen hold as its grace period; the `hostel-purge` cron erases it after.
+
+| Method | Path | Who | What |
+|---|---|---|---|
+| GET | `/api/v1/hostel-admin/leave` | Owner (HOSTEL_ADMIN who owns it) | `{ blockers, branches, canLeave, hold: {min,max}, hostel, request }` — open while suspended / after the trial |
+| POST | `/api/v1/hostel-admin/leave` | Owner | `{ reason, holdDays, confirm: true }` → 409 with a blocker code (`PLAN_BILL_OPEN`, `PLAN_CLAIM_IN_REVIEW`, `PLAN_PAST_DUE`, `STORE_ORDER_OPEN`) or `LEAVE_ALREADY_PENDING`; 422 `LEAVE_HOLD_OUT_OF_RANGE` |
+| DELETE | `/api/v1/hostel-admin/leave` | Owner | Cancels a waiting request |
+| GET | `/api/v1/platform/hostel-leaves?status=PENDING\|APPROVED\|REJECTED\|CANCELLED\|RECLAIMED\|ALL` | SUPERADMIN | The queue |
+| GET | `/api/v1/platform/hostel-leaves/{id}` | SUPERADMIN | Request + fresh blockers + branches + hostel start date |
+| POST | `/api/v1/platform/hostel-leaves/{id}/approve` | SUPERADMIN | `{ sections: HostelLeaveSection[], note? }` — bills re-checked, CSVs emailed to the owner (502 `LEAVE_EXPORT_NOT_SENT` deletes nothing), then the hostel and its branches are archived for `holdDays` and the owner drops to PUBLIC if no hostel is left |
+| POST | `/api/v1/platform/hostel-leaves/{id}/reject` | SUPERADMIN | `{ note }` — owner emailed + bell |
+| GET | `/api/v1/account/hostel-leave` | Any signed-in | `{ hostels: [{ requestId, hostelName, holdUntil }] }` this account can claim back |
+| POST | `/api/v1/account/hostel-leave` | Any signed-in owner | `{ requestId }` — restores the hostel and branches, portal role back; 409 `RECLAIM_NOT_AVAILABLE` after the hold |
+
+Sections (`packages/shared/src/constants/hostel-leave.ts`): residents, rooms, bills,
+payments, receipts, deposits, khata, expenses, stock, food, complaints, repairs,
+attendance, notices, files — emailed as one `{slug}-data-{date}.xlsx` (About sheet +
+one sheet each) and the same rows as `{slug}-data-{date}.json`, the hostel's first
+day to today. `GET /api/v1/public/site-config` carries `leaveHold: {min,max}`.

@@ -22,6 +22,7 @@ export const loadSiteConfig = cache(async (): Promise<PublicSiteConfig> => {
     return {
       ...DEFAULT_SITE_CONFIG,
       facilities: DEFAULT_SITE_CONFIG.facilities.filter((facility) => facility.enabled),
+      leaveHold: null,
       locations: DEFAULT_SITE_CONFIG.locations.filter((location) => location.enabled),
       platformStats: [],
     };

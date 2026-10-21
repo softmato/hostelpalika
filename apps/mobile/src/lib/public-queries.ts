@@ -6,6 +6,7 @@ import {
   type PublicHostel,
 } from "@/lib/public-api";
 import { getMyJoinRequest, type MyJoinRequest } from "@/lib/join-api";
+import { getPublicOfferPerks, type PublicOfferPerks } from "@/lib/offer-program-api";
 import { defineQuery, prefetchQuery, type Query } from "@/lib/query-cache";
 import { getSiteConfig, type MobileSiteConfig } from "@/lib/site-config-api";
 
@@ -89,6 +90,9 @@ export const publicQuery = {
    * platform admin on the web, never by anything the socket publishes, and a
    * refocus is soon enough to notice.
    */
+  /** This quarter's Resident Offer Program perks, for the public explainer. */
+  offerPerks: (): PublicQuery<PublicOfferPerks> =>
+    defineQuery("public:offer-perks", [], () => getPublicOfferPerks()),
   siteConfig: (): PublicQuery<MobileSiteConfig> =>
     defineQuery("public:site-config", [], () => getSiteConfig()),
 } as const;

@@ -1,5 +1,6 @@
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
+import { getOperationsConfig } from "@/modules/platform-config/operations-config";
 import { getPublicPlatformStats } from "@/modules/reports/platform-highlights.service";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { currentBsPeriod } from "@hostel/shared/calendar/bs";
@@ -168,7 +169,7 @@ export async function updateSiteConfigSection(
  * through `loadEmailIdentity()` instead.
  */
 export async function getPublicSiteConfig() {
-  const config = await getSiteConfig();
+  const [config, operations] = await Promise.all([getSiteConfig(), getOperationsConfig()]);
 
   return {
     announcement: config.announcement,
@@ -191,6 +192,12 @@ export async function getPublicSiteConfig() {
     // endpoint (`/public/lifetime`) so this projection — read on every page —
     // never grows a query.
     lifetime: config.lifetime,
+    // How long a leaving hostel is held for claim-back — the "Your data stays
+    // yours" line on the plans pages and KYC (docs/HOSTEL_LEAVE_PLATFORM.md).
+    leaveHold: { max: operations.leaveHoldMaxDays, min: operations.leaveHoldMinDays } as {
+      max: number;
+      min: number;
+    } | null,
     locations: config.locations.filter((location) => location.enabled),
     // The whole Plans & Pricing catalogue, priced as it is actually sold right
     // now: in standard mode this is the stored section untouched, and during a

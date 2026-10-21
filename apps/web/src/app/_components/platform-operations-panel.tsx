@@ -42,6 +42,8 @@ type OperationsConfig = {
   sendPaymentEmails: boolean;
   subscriptionDueGraceDays: number;
   trialDays: number;
+  leaveHoldMaxDays: number;
+  leaveHoldMinDays: number;
 };
 
 /** A money-setting edit parked until the superadmin opens the emailed link. */
@@ -228,6 +230,8 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
             sendPaymentEmails: field(form, "sendPaymentEmails") === "true",
             subscriptionDueGraceDays: Number(field(form, "subscriptionDueGraceDays")),
             trialDays: Number(field(form, "trialDays")),
+            leaveHoldMaxDays: Number(field(form, "leaveHoldMaxDays")),
+            leaveHoldMinDays: Number(field(form, "leaveHoldMinDays")),
           }),
           method: "PUT",
           },
@@ -290,6 +294,7 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
                 <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Timing</p>
                 <div className="flex flex-wrap gap-1.5">
                   <FactChip glyph="gift">{`${config.trialDays}-day free trial`}</FactChip>
+                  <FactChip glyph="time">{`Leaving hostels held ${config.leaveHoldMinDays}–${config.leaveHoldMaxDays} days`}</FactChip>
                   <FactChip glyph="time">{`${config.subscriptionDueGraceDays} days to pay a plan`}</FactChip>
                   <FactChip glyph="notifications">{`Reminder ${config.paymentReminderDaysBefore} days before`}</FactChip>
                   <FactChip glyph="qr-code">{`Activation code ${config.qrActivationExpiryDays} days`}</FactChip>
@@ -393,6 +398,26 @@ export const PlatformOperationsPanel = memo(function PlatformOperationsPanel() {
               max="90"
               min="1"
               name="trialDays"
+              required
+              type="number"
+            />
+            <Input
+              defaultValue={config.leaveHoldMinDays}
+              hint="Shortest a leaving hostel's data is held."
+              label="Leave hold, shortest (days)"
+              max="60"
+              min="1"
+              name="leaveHoldMinDays"
+              required
+              type="number"
+            />
+            <Input
+              defaultValue={config.leaveHoldMaxDays}
+              hint="Longest; the owner picks in between."
+              label="Leave hold, longest (days)"
+              max="60"
+              min="1"
+              name="leaveHoldMaxDays"
               required
               type="number"
             />

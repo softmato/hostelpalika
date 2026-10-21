@@ -103,6 +103,8 @@ type BrowseParams = {
   city?: string;
   facility?: string;
   meals?: string;
+  /** `1` — open with "Nearest" on (Home's Near me door). */
+  near?: string;
   q?: string;
   type?: string;
 };
@@ -239,6 +241,12 @@ export function HostelBrowser({
   const nearby = useNearby();
   const saved = useSavedHostels();
   const own = useOwnScroll(insideTabs);
+
+  // Keyed on the param alone: `enable` asks for location, once per arrival.
+  useEffect(() => {
+    if (params.near === "1") void nearby.enable();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params.near]);
 
   const query = publicQuery.hostels(filters);
   const hostels = useResource<PublicHostel[]>(query.load, {

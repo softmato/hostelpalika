@@ -59,3 +59,16 @@ export async function getOfferProgram() {
 export function perkTerms(perk: { kind: OfferKind; percentOff: number | null }): string {
   return perk.kind === "FEE_OFF" ? `${perk.percentOff ?? 0}% off your next monthly fee` : "Gift";
 }
+
+export type PublicOfferPerks = {
+  perks: OfferPerk[];
+  /** `Shrawan – Aswin 2083 BS` */
+  quarter: string;
+};
+
+/** The active catalogue for anyone — `GET /public/offer-perks`, no session. */
+export async function getPublicOfferPerks() {
+  const response = await api.get<ApiEnvelope<PublicOfferPerks>>("/public/offer-perks");
+
+  return unwrap(response);
+}

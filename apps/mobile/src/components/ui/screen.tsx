@@ -172,6 +172,13 @@ type ScreenProps = {
   /** Usually an `<AppBar />`. It paints its own status-bar padding. */
   header?: ReactNode;
   /**
+   * Drawn over the top edge of the content, just under the `header`, without
+   * taking touches — a painted header's fade into the page. It lives here
+   * rather than hanging off the header's bottom because Android drew nothing
+   * outside the header's bounds, which left a hard edge.
+   */
+  headerFade?: ReactNode;
+  /**
    * Set when this screen sits inside a `<Tabs>` navigator. Reserves the tab
    * bar's height and connects scrolling to its hide/show animation.
    */
@@ -203,6 +210,7 @@ export function Screen({
   floating,
   footer,
   header,
+  headerFade,
   insideTabs = false,
   onRefresh,
   ownScroll = false,
@@ -358,6 +366,14 @@ export function Screen({
           ) : (
             <View className="flex-1" />
           )}
+
+          {headerFade ? (
+            <View
+              style={{ left: 0, pointerEvents: "none", position: "absolute", right: 0, top: 0 }}
+            >
+              {headerFade}
+            </View>
+          ) : null}
 
           {footer ? (
             <KeyboardStickyView>

@@ -19,6 +19,7 @@ import { CheckoutHandoffButton } from "@/app/_components/checkout-handoff";
 import { HostelFreeMonthCard } from "@/app/_components/hostel-free-month-card";
 import { PayPlanPanel } from "@/app/_components/hostel-admin-pay-plan";
 import { PlanMark } from "@/app/_components/plan-mark";
+import { LeavePromise } from "@/app/_components/leave-promise";
 import { PortalPageHeader } from "@/app/_components/portal-dashboard-ui";
 import { useSiteConfig } from "@/components/site-config-provider";
 import {
@@ -161,6 +162,8 @@ export function HostelAdminBillingPageContent() {
         description="Plan invoices and receipts, all downloadable."
         title="Plan billing"
       />
+
+      <LeavePromise href="leave" />
 
       {error ? (
         <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">

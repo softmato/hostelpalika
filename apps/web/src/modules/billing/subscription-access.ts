@@ -62,7 +62,7 @@ export async function resolveOwnedHostel(hostelId: string, userId: string) {
 }
 
 /** Every account id that is, for these purposes, the same person. */
-async function ownerIdentitiesFor(userId: string) {
+export async function ownerIdentitiesFor(userId: string) {
   const ids = new Set<string>([userId]);
 
   const user = await UserModel.findById(userId)

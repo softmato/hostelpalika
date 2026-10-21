@@ -19,6 +19,7 @@ import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { Toggle } from "@/components/ui/toggle";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
 import {
   type AttendanceSettings,
@@ -36,6 +37,7 @@ import { readApiError } from "@/lib/api-contract";
 import { formatMoney, humanizeEnum } from "@/lib/format";
 import { uploadPublicFile } from "@/lib/public-uploads";
 import { toastError, toastSuccess } from "@/lib/toast";
+import { PLATFORM_NAME } from "@hostel/brand/brand";
 
 /**
  * Settings — the hostel itself, and the switches that change how it behaves.
@@ -133,6 +135,7 @@ export default function ManageSettingsScreen() {
   const [geoBusy, setGeoBusy] = useState(false);
   const [attendanceDraft, setAttendanceDraft] = useState<AttendanceSettings | null>(null);
 
+  const { colors } = useAppTheme();
   const hostel = settings.data?.hostel ?? null;
   const community = settings.data?.community ?? null;
   const attendance = settings.data?.attendance ?? null;
@@ -641,6 +644,19 @@ export default function ManageSettingsScreen() {
             />
           </Card>
         </View>
+
+        {/* Owner only, like the community switches (docs/HOSTEL_LEAVE_PLATFORM.md). */}
+        {community === null ? null : (
+          <Card padding="px-4 py-1">
+            <ListRow
+              icon="door"
+              iconBgColor={colors.destructive}
+              onPress={() => router.push("/manage/leave")}
+              subtitle="Take your hostel off and get your data"
+              title={`Leave ${PLATFORM_NAME}`}
+            />
+          </Card>
+        )}
       </View>
 
       {/* ------------------------------------------------------------------ */}

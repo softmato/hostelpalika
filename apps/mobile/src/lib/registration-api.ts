@@ -150,3 +150,20 @@ export async function registerServiceProvider(payload: ProviderRegisterPayload) 
 
   return unwrap(response).provider;
 }
+
+/**
+ * A hostel this account took off the platform whose data is still held — it
+ * can be claimed back until `holdUntil` (docs/HOSTEL_LEAVE_PLATFORM.md).
+ */
+export type HeldHostel = { holdUntil: string; hostelName: string; requestId: string };
+
+export async function getHeldHostels() {
+  const response = await api.get<ApiEnvelope<{ hostels: HeldHostel[] }>>("/account/hostel-leave");
+
+  return unwrap(response).hostels;
+}
+
+/** Restores it as it was and gives the portal role back; adopt the role after. */
+export async function reclaimHostel(requestId: string) {
+  await api.post("/account/hostel-leave", { requestId });
+}

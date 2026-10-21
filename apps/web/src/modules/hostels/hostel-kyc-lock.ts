@@ -90,6 +90,8 @@ const OPEN_AFTER_TRIAL = [
   "/api/v1/hostel-admin/finance/payment-profile",
   "/api/v1/hostel-admin/food",
   "/api/v1/hostel-admin/kyc",
+  // A hostel past its trial owes nothing and may decide to go (docs/HOSTEL_LEAVE_PLATFORM.md).
+  "/api/v1/hostel-admin/leave",
   "/api/v1/hostel-admin/payout-account",
   "/api/v1/hostel-admin/profile",
   "/api/v1/hostel-admin/room-types",

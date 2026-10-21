@@ -151,6 +151,8 @@ const REWRITES: { prefix: string; to: string }[] = [
    * bell would, instead of only expanding.
    */
   { prefix: "/hostel-admin/inquiries", to: "/manage/inquiries" },
+  // A request to leave the platform that our team did not approve (docs/HOSTEL_LEAVE_PLATFORM.md).
+  { prefix: "/hostel-admin/leave", to: "/manage/leave" },
   { prefix: "/hostel-admin/complaints", to: "/manage/complaints" },
   { prefix: "/hostel-admin/food", to: "/manage/food" },
   // "Stock on the way" / "Stock received" — the website's stock page, the app's own.

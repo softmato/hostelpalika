@@ -28,6 +28,7 @@ import { HostelAdminProfilePageContent } from "@/app/_components/hostel-admin-pr
 import { HostelAdminReconcilePageContent } from "@/app/_components/hostel-admin-reconcile-page";
 import { HostelAdminKycPageContent } from "@/app/_components/hostel-admin-kyc-page";
 import { HostelAdminKhataPageContent } from "@/app/_components/khata-pages";
+import { HostelAdminLeavePageContent } from "@/app/_components/hostel-admin-leave-page";
 import { HostelAdminReferralsPageContent } from "@/app/_components/hostel-admin-referrals-page";
 import { HostelAdminReportsPageContent } from "@/app/_components/hostel-admin-reports-page";
 import { HostelAdminResidentsPage } from "@/app/_components/hostel-admin-residents-page";
@@ -70,6 +71,8 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   "invite-hostels": () => <HostelAdminInviteHostelsPageContent />,
   khata: () => <HostelAdminKhataPageContent />,
   kyc: () => <HostelAdminKycPageContent />,
+  // Leave the platform — owner only (docs/HOSTEL_LEAVE_PLATFORM.md).
+  leave: () => <HostelAdminLeavePageContent />,
   maintenance: () => <HostelAdminMaintenancePageContent />,
   "move-in-out": () => <HostelAdminMoveChecklistPage />,
   "night-status": () => <HostelAdminNightStatusPage />,

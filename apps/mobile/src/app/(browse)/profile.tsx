@@ -4,6 +4,7 @@ import { Linking, Pressable, View } from "react-native";
 
 import { AppRows, MenuGroup, MenuGroups, MenuProfile, MenuRow, MenuSearch, SignOutRow } from "@/components/more-menu";
 import { AdminSearchBar } from "@/components/admin-search-bar";
+import { HeldHostelCard } from "@/components/held-hostel-card";
 import { ProviderStatusCard } from "@/components/provider-status-card";
 import { SupportContact } from "@/components/support-contact";
 import { PersonAvatar } from "@/components/ui/avatar";
@@ -19,6 +20,7 @@ import { useSiteConfig } from "@/hooks/use-site-config";
 import type { ProviderApplication } from "@/lib/provider-api";
 import { providerQuery } from "@/lib/provider-queries";
 import { isApplicationInFlight } from "@/lib/provider-status";
+import { getHeldHostels, type HeldHostel } from "@/lib/registration-api";
 
 /**
  * Profile — and, since the tab bar replaced the signed-out shell, the app's
@@ -92,6 +94,15 @@ export default function BrowseProfileScreen() {
     { cacheKey: account ? query.key : undefined, topics: query.topics },
   );
 
+  /*
+   * A hostel this account took off the platform and can still claim back. Empty
+   * for nearly everyone; a failure draws nothing, same as the provider card.
+   */
+  const held = useResource<HeldHostel[]>(
+    useCallback(() => (account ? getHeldHostels().catch(() => []) : Promise.resolve([])), [account]),
+    { cacheKey: account ? "account:held-hostels" : undefined },
+  );
+
   const { identity, social } = config;
 
   const socialLinks = (
@@ -156,6 +167,14 @@ export default function BrowseProfileScreen() {
         {!search && !application.loading && isApplicationInFlight(application.data) ? (
           <View className="pb-3">
             <ProviderStatusCard application={application.data} />
+          </View>
+        ) : null}
+
+        {!search && held.data?.length ? (
+          <View className="gap-3 pb-3">
+            {held.data.map((hostel) => (
+              <HeldHostelCard hostel={hostel} key={hostel.requestId} />
+            ))}
           </View>
         ) : null}
 

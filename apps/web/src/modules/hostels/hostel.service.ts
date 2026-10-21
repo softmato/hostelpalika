@@ -3222,7 +3222,11 @@ export const HOSTEL_ARCHIVE_GRACE_DAYS = 60;
  * is already dead the moment `isDeleted` is set, because every hostel-scoped
  * read filters on it.
  */
-async function revokeSessionsForArchivedHostel(hostelId: Types.ObjectId) {
+async function revokeSessionsForArchivedHostel(
+  hostelId: Types.ObjectId,
+  /** Accounts that stay signed in — a leaving owner only changes role. */
+  keepSignedIn: Types.ObjectId[] = [],
+) {
   const [hostel, members, residents, cooks] = await Promise.all([
     HostelModel.findById(hostelId).select("ownerId").lean<{
       ownerId: Types.ObjectId;
@@ -3294,7 +3298,8 @@ async function revokeSessionsForArchivedHostel(hostelId: Types.ObjectId) {
     }
   }
 
-  const toRevoke = candidateIds.filter((id) => !stillAttached.has(id.toString()));
+  const kept = new Set(keepSignedIn.map((id) => id.toString()));
+  const toRevoke = candidateIds.filter((id) => !stillAttached.has(id.toString()) && !kept.has(id.toString()));
 
   if (toRevoke.length === 0) {
     return 0;
@@ -3322,14 +3327,20 @@ export async function archivePlatformHostel(
   hostelId: string,
   input: HostelArchiveInput,
   principal: ApiPrincipal,
+  /**
+   * A leaving hostel (hostel-leave.service): its chosen data hold in place of
+   * the 60 days, and its owner kept signed in — they leave, they are not thrown out.
+   */
+  {
+    graceDays = HOSTEL_ARCHIVE_GRACE_DAYS,
+    keepSignedIn = [],
+  }: { graceDays?: number; keepSignedIn?: Types.ObjectId[] } = {},
 ) {
   await connectToDatabase();
 
   const objectId = normalizeObjectId(hostelId);
   const now = new Date();
-  const purgeScheduledAt = new Date(
-    now.getTime() + HOSTEL_ARCHIVE_GRACE_DAYS * 24 * 60 * 60 * 1000,
-  );
+  const purgeScheduledAt = new Date(now.getTime() + graceDays * 24 * 60 * 60 * 1000);
 
   // Filtered on `isDeleted: false` rather than checked after the fact, so a
   // second archive cannot quietly push the purge date out by another 60 days.
@@ -3356,7 +3367,7 @@ export async function archivePlatformHostel(
     );
   }
 
-  const sessionsRevoked = await revokeSessionsForArchivedHostel(objectId);
+  const sessionsRevoked = await revokeSessionsForArchivedHostel(objectId, keepSignedIn);
 
   /*
    * Off every account that listed it.
@@ -3418,7 +3429,7 @@ export async function restorePlatformHostel(
 
   if (existing.purgeScheduledAt && existing.purgeScheduledAt.getTime() <= Date.now()) {
     throw new HostelServiceError(
-      "This hostel's 60-day grace period has run out and it is queued for erasure. It can no longer be restored.",
+      "This hostel's grace period has run out and it is queued for erasure. It can no longer be restored.",
       "HOSTEL_PURGE_DUE",
       409,
     );

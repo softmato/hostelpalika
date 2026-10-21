@@ -219,6 +219,27 @@ export async function getResidentOfferProgram(principal: ApiPrincipal) {
   };
 }
 
+/**
+ * The catalogue as anyone may see it — what a resident can earn this quarter,
+ * for the public explainer. Active perks only, and nothing about any resident.
+ */
+export async function getPublicOfferPerks() {
+  await connectToDatabase();
+
+  const perks = await OfferPerkModel.find({ isActive: true })
+    .sort({ sortOrder: 1, createdAt: 1 })
+    .lean<PerkRecord[]>();
+
+  return {
+    perks: perks.map((perk) => {
+      const { description, giftValue, id, imageUrl, kind, partner, percentOff, title } =
+        serializePerk(perk);
+      return { description, giftValue, id, imageUrl, kind, partner, percentOff, title };
+    }),
+    quarter: offerQuarterBounds(offerQuarterOf(new Date())).label,
+  };
+}
+
 /* -------------------------------------------------------------------------- */
 /* Platform owner                                                             */
 /* -------------------------------------------------------------------------- */

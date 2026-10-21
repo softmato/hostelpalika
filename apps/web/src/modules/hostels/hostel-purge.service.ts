@@ -279,6 +279,10 @@ export const RETAINED_BY_HOSTEL_ID: Record<string, string> = {
     "The proof a person sent for a booking fee paid to HostelPalika, and who checked it. Part of the platform's payment trail.",
   BookingTransfer:
     "A refund or payout HostelPalika sent, with its transaction id and numbered document. Erasing it would leave money that left our account with no record of where it went.",
+  HostelAgreementSignature:
+    "The owner's signed service agreement — a contract HostelPalika is a party to, numbered from the same run as the paper agreements. It holds a copy of the parties and terms signed, so it still reads after the hostel is gone.",
+  HostelLeaveRequest:
+    "The owner's own request to leave, the hold they chose and who approved it — with AuditLog, the evidence that this erasure was asked for. It carries a snapshot of the hostel name and owner email so it still reads.",
   FreePlanClaim:
     "The fingerprint of a building that has had its free months. Erasing it would let the same building register again and claim them a second time.",
   TeamWalletEntry:

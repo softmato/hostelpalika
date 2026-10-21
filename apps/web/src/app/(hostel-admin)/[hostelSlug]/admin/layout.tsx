@@ -18,6 +18,26 @@ import {
 } from "@/lib/hostel-workspace";
 import { hostelAdminNavForSlug, overallAdminNav, searchEntriesFromNav } from "@/lib/portal-nav";
 import { PORTAL_ROBOTS } from "@/lib/seo";
+import { PortalDeletedNotice } from "@/app/_components/held-hostel-claim";
+import { readAccessTokenCookie } from "@/lib/auth-cookies";
+import { verifyAccessToken } from "@/lib/auth";
+import { heldHostelForSlug } from "@/modules/hostels/hostel-leave.service";
+import { cookies } from "next/headers";
+
+/** The signed-in account's held hostel at this address, if it has one. */
+async function heldPortalFor(slug: string) {
+  const token = readAccessTokenCookie(await cookies());
+
+  if (!token) return null;
+
+  try {
+    const { userId } = await verifyAccessToken(token);
+
+    return typeof userId === "string" ? await heldHostelForSlug(userId, slug) : null;
+  } catch {
+    return null;
+  }
+}
 
 type HostelAdminWorkspaceLayoutProps = Readonly<{
   children: React.ReactNode;
@@ -68,6 +88,12 @@ export default async function HostelAdminWorkspaceLayout({
   // A slug outside the signed-in staff member's hostels is a 404, not a 403 —
   // we never confirm that another hostel's workspace exists (API.md §5).
   if (!(await canAccessWorkspace(hostelSlug))) {
+    // Its own owner, after leaving the platform: say so and count down the
+    // claim-back window. Anyone else still gets the 404.
+    const held = await heldPortalFor(hostelSlug);
+
+    if (held) return <PortalDeletedNotice held={held} />;
+
     notFound();
   }
 

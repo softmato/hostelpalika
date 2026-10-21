@@ -229,7 +229,7 @@ export default function OfferProgramScreen() {
           accessibilityRole="button"
           className="self-start active:opacity-60"
           hitSlop={8}
-          onPress={() => router.push("/offer-program")}
+          onPress={() => router.push("/offer-program/rules")}
         >
           <Text className="text-primary" variant="label">
             Programme rules

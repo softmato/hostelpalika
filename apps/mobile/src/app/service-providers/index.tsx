@@ -2,46 +2,42 @@ import { router } from "expo-router";
 import { useCallback } from "react";
 import { View } from "react-native";
 
-import { DocumentScreen } from "@/components/document-screen";
-import { MockupImage } from "@/components/mockup-image";
-import { IconPoint } from "@/components/step-flow";
+import { IntroHero, IntroSteps } from "@/components/intro-hero";
+import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
-import { Lottie } from "@/components/ui/lottie";
+import { Screen } from "@/components/ui/screen";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
 import { useResource } from "@/hooks/use-resource";
-import { MOCKUPS } from "@/lib/portal-mockups";
 import type { ProviderApplication } from "@/lib/provider-api";
 import { providerQuery } from "@/lib/provider-queries";
 import { providerStatusPanelFor } from "@/lib/provider-status";
 
 /**
- * "Become a service provider" — the app's version of `/service-providers`.
+ * "Become a service provider" — the first glimpse from Home's door.
  *
- * The pitch, the stat strip and the sections are the platform's configured copy,
- * shared with the website's hero. What is different is who is reading: this
- * screen is inside the app an approved provider will actually work from, so it
- * can say that plainly, recognise a provider who has already been approved
- * instead of inviting them to apply twice, and — since 2026-08-19 — take the
- * application itself rather than handing it to a browser.
+ * Icons first, almost no words (2026-10-21): the configured pitch, stats and
+ * "where your jobs come from" mockups were two screenfuls before the one
+ * control on the page, and they still live on the website's
+ * `/service-providers`. What stays is what the reader needs: who they are to
+ * us right now, and the one thing to do next.
  *
- * ## The apply block moved to the top
+ * ## Four states, and the third is the one a two-state check gets wrong
  *
- * It used to be `extra`, i.e. after the intro, the four stats and every section.
- * On a phone that is two screenfuls of scrolling before the one control on the
- * page. A tradesperson who opened this screen having already decided to apply had
- * to read the argument for applying in order to find the button. See
- * `InfoActions`.
+ * An approved provider must not be shown "Apply" — there is nothing left to
+ * apply for and the server would 409 them. Someone with an application *under
+ * review* must not be shown it either, but the honest thing to tell them is
+ * different: they are waiting, not finished. Only a rejected applicant may apply
+ * again (`ACTIVE_APPLICATION_STATUSES` in the service). The sentences for those
+ * states come from `lib/provider-status.ts`, shared with the Profile banner.
  */
 export default function ServiceProvidersScreen() {
   const account = useAppSelector((state) => state.auth.account);
 
   /*
    * Only asked when there is a session — the route reads the caller's own
-   * `userId`, so signed out there is nothing to ask about. `null` from it is the
-   * normal answer ("never applied"), not an error, and a failed lookup must not
-   * strand someone who has never applied: it falls through to the ordinary CTA.
+   * `userId`. `null` is the normal answer ("never applied"), and a failed lookup
+   * must not strand someone who has never applied: it falls through to Apply.
    */
   const query = providerQuery.application();
   const application = useResource<ProviderApplication | null>(
@@ -52,155 +48,59 @@ export default function ServiceProvidersScreen() {
     { cacheKey: account ? query.key : undefined, topics: query.topics },
   );
 
-  return (
-    <DocumentScreen
-      action={
-        <ApplyBlock
-          application={application.data}
-          isApproved={Boolean(account?.isServiceProvider)}
-          isSignedIn={Boolean(account)}
-          loading={application.loading}
-        />
-      }
-      comingSoon="More about working with hostels is being designed — it arrives in an upcoming update."
-      icon="construct"
-      extra={<JobSource />}
-      page="serviceProviders"
-      webPath="service-providers"
-      title="Service providers"
-    />
-  );
-}
-
-/**
- * Where a job comes from, in the two screens it passes through: a resident
- * reports the fault, the hostel sends it to a provider by name. Same pair as the
- * website's How it works.
- */
-function JobSource() {
-  return (
-    <View className="gap-4">
-      <Text variant="subtitle">Where your jobs come from</Text>
-      {[
-        { label: "A resident reports what is broken", mockup: MOCKUPS.residentPortal },
-        { label: "The hostel sends the job to you", mockup: MOCKUPS.wardenDashboard },
-      ].map(({ label, mockup }) => (
-        <View className="gap-2 rounded-3xl border border-border bg-muted/40 p-4" key={label}>
-          <MockupImage mockup={mockup} />
-          <Text className="font-semibold">{label}</Text>
-        </View>
-      ))}
-    </View>
-  );
-}
-
-/**
- * Four states, and the third is the one a two-state check gets wrong.
- *
- * An approved provider must not be shown "Apply" — there is nothing left to
- * apply for and the server would 409 them. Someone with an application *under
- * review* must not be shown it either, for the same reason, but the honest thing
- * to tell them is different: they are waiting, not finished. Only a rejected
- * applicant may apply again, which is `isApplicationOpen` on the website and the
- * `ACTIVE_APPLICATION_STATUSES` check in the service.
- *
- * All four sentences come from `lib/provider-status.ts`, which is also what the
- * Profile tab's banner and the provider's own card tab read. They used to be
- * written out here, and this copy was the one that drifted: it promised jobs
- * "broadcast by hostels in your trades and area" to somebody deciding whether to
- * apply, and there is no broadcast anywhere in the product — a hostel admin
- * assigns a provider by name, which is the whole of the marketplace.
- */
-function ApplyBlock({
-  application,
-  isApproved,
-  isSignedIn,
-  loading,
-}: {
-  application: ProviderApplication | null;
-  isApproved: boolean;
-  isSignedIn: boolean;
-  loading: boolean;
-}) {
-  if (isSignedIn && loading) {
-    // The block's own shape. The lookup resolves a beat after the first frame,
-    // and a card that appears late shifts the page under whoever was reading.
-    return (
-      <View className="items-center gap-3">
-        <Skeleton height={140} radius={70} width={140} />
-        <Skeleton height={22} width="70%" />
-        <Skeleton height={14} width="85%" />
-        <Skeleton className="mt-2" height={48} />
-      </View>
-    );
-  }
-
   /*
-   * The record when there is one, the token's flag when there is not.
-   * `/auth/me` says whether this account is an approved provider on every
-   * launch; the record lookup can be a beat behind it or have failed outright,
-   * and offering the form in that gap is how somebody sends a second
-   * application the server refuses.
+   * The record when there is one, the token's flag when there is not: the
+   * lookup can lag `/auth/me`, and offering the form in that gap is how
+   * somebody sends a second application the server refuses.
    */
   const panel = providerStatusPanelFor(
-    application?.status ?? (isApproved ? "APPROVED" : null),
-    application?.rejectionReason,
+    application.data?.status ?? (account?.isServiceProvider ? "APPROVED" : null),
+    application.data?.rejectionReason,
   );
+  const fresh = panel.canApply && !application.data;
+  const loading = Boolean(account) && application.loading;
 
-  // One animation, one line, one action — the ID card invitation's shape (`IdCardPrompt`).
   return (
-    <View className="gap-5">
-      <View className="items-center gap-3">
-        <Lottie
-          loop={false}
-          size={150}
-          source={require("../../../assets/lottie/provider-apply.lottie")}
-        />
-        <Text className="text-center" variant="title">
-          {panel.canApply && application ? "Apply again" : panel.title}
-        </Text>
-        <Text className="text-center" variant="muted">
-          {panel.body}
-        </Text>
-      </View>
-
-      {panel.canApply && !application ? (
-        <View className="gap-3">
-          <IconPoint
-            delay={250}
-            icon="construct"
-            text="Pick every trade you work in and the area you cover."
+    <Screen
+      footer={
+        loading ? null : panel.showJobs ? (
+          <Button label="Go to your jobs" onPress={() => router.push("/(provider)")} />
+        ) : panel.canApply ? (
+          <Button
+            label={application.data ? "Start a new application" : "Apply now"}
+            onPress={() => router.push("/service-providers/apply")}
           />
-          <IconPoint
-            delay={400}
-            icon="camera"
-            text="A photo taken on this phone becomes your provider ID card."
-          />
-          <IconPoint
-            delay={550}
-            icon="cloud-done"
-            text="Your progress saves as you go, so you can finish later."
-          />
+        ) : null
+      }
+      header={<AppBar showBack title="" />}
+      scroll
+    >
+      {loading ? (
+        <View className="items-center gap-3 pt-6">
+          <Skeleton height={200} radius={100} width={200} />
+          <Skeleton height={22} width="60%" />
+          <Skeleton height={14} width="75%" />
         </View>
-      ) : null}
+      ) : (
+        <View className="gap-10 pb-6 pt-4">
+          <IntroHero
+            icon="construct"
+            line={fresh ? "Hostels send repair jobs to you." : panel.body}
+            orbit={["hammer", "flash", "water"]}
+            title={fresh ? "Work with hostels" : application.data && panel.canApply ? "Apply again" : panel.title}
+          />
 
-      {panel.showJobs ? (
-        <Button
-          label="Go to your jobs"
-          onPress={() => router.push("/(provider)")}
-        />
-      ) : null}
-
-      {panel.canApply ? (
-        <Button
-          label={
-            application
-              ? "Start a new application"
-              : "Apply as a service provider"
-          }
-          onPress={() => router.push("/service-providers/apply")}
-        />
-      ) : null}
-    </View>
+          {fresh ? (
+            <IntroSteps
+              steps={[
+                { icon: "construct", label: "Your trades" },
+                { icon: "location", label: "Your area" },
+                { icon: "camera", label: "Photo ID" },
+              ]}
+            />
+          ) : null}
+        </View>
+      )}
+    </Screen>
   );
 }

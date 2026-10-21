@@ -31,6 +31,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PublicPushOptIn } from "@/components/public-push-optin";
 import { useSessionStore, type SessionUser } from "@/stores/session-store";
+import { ClaimHostelButton } from "@/app/_components/held-hostel-claim";
 import { signOutRequest } from "@/lib/sign-out";
 
 type PublicHeaderProps = {
@@ -283,6 +284,8 @@ export function PublicHeader({ active }: PublicHeaderProps) {
 
         <div className="flex items-center gap-2">
           <ThemeToggle className="hidden sm:inline-flex" />
+          {/* A hostel this account took off the platform, still claimable (docs/HOSTEL_LEAVE_PLATFORM.md). */}
+          {isSessionChecked && user ? <ClaimHostelButton /> : null}
           {isSessionChecked ? (
             user ? (
               <div ref={menuRef} className="relative">

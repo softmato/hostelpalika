@@ -4,6 +4,7 @@ import {
   Check,
   ChevronRight,
   Clock,
+  Download,
   FileText,
   House,
   ImageIcon,
@@ -29,6 +30,7 @@ import { memo, useEffect, useState, type ReactNode } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import { KycStepBody, type Kyc, WIDE_STEPS } from "@/app/_components/kyc-steps";
+import { LeavePromise } from "@/app/_components/leave-promise";
 import { PortalPageHeader } from "@/app/_components/portal-dashboard-ui";
 import { StepFlow } from "@/app/_components/registration-step-shell";
 import { useWorkspaceHref } from "@/hooks/use-workspace-href";
@@ -319,6 +321,8 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
           </StepFlow>
         )}
       </div>
+
+      <LeavePromise className="mx-auto max-w-5xl" />
     </div>
   );
 });
@@ -326,6 +330,8 @@ export const HostelAdminKycPageContent = memo(function HostelAdminKycPageContent
 const BENEFITS: [IconComponent, string][] = [
   [Smartphone, "Full access to the web and app portals"],
   [FileText, "An agreement letter between you and HostelPalika"],
+  // Asked at KYC time: "do we get our data later?" (docs/HOSTEL_LEAVE_PLATFORM.md).
+  [Download, "Your data stays yours: leave any time and take all of it"],
 ];
 
 /**

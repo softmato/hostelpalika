@@ -128,6 +128,8 @@ export function serializeSuspension(
 const OPEN_WHILE_SUSPENDED = [
   "/api/v1/files",
   "/api/v1/hostel-admin/billing",
+  // Leaving: a suspended hostel still owes, so it is only ever told what to pay first.
+  "/api/v1/hostel-admin/leave",
   "/api/v1/hostel-admin/subscription",
 ];
 

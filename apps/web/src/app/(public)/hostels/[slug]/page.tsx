@@ -48,10 +48,6 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
     return { robots: NOINDEX, title: "Hostel not found" };
   }
 
-  if (hostel.isDemoData) {
-    return { robots: NOINDEX, title: hostel.name };
-  }
-
   const type = hostelTypeLabel(hostel.hostelType);
   const place = placeOf(hostel);
   const rating = ratingOf(hostel);
@@ -70,6 +66,9 @@ export async function generateMetadata({ params }: PageParams): Promise<Metadata
   return pageMetadata({
     description: snippet(`${lead} ${hostel.description ?? ""}`, 180),
     image: cover ? { alt: hostel.name, url: cover } : null,
+    // A sample listing stays out of search, but a shared link still previews
+    // as the hostel — returning only a title fell back to the site's own card.
+    noindex: hostel.isDemoData,
     path: `/hostels/${hostel.slug}`,
     title,
   });
