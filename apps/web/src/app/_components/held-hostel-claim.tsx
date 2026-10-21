@@ -171,7 +171,18 @@ export function HoldCountdown({ held, size = 168 }: { held: HeldHostel; size?: n
 type HeldFiles = {
   fileLinksLeft: number;
   /** In group order (records first), oldest first inside each group. */
-  files: { group: string; id: string; kind: string | null; name: string; sizeBytes: number; uploadedAt: string | null }[];
+  files: {
+    group: string;
+    id: string;
+    kind: string | null;
+    name: string;
+    /** Set on the data records — the Excel workbook, the CSV pack, the JSON. */
+    record: "csv" | "excel" | "json" | "section" | null;
+    /** A section CSV's section — Residents, Payments… — in workbook order. */
+    section: { key: string; label: string; order: number } | null;
+    sizeBytes: number;
+    uploadedAt: string | null;
+  }[];
   /** `left` — ZIP downloads of this part still allowed in the last 24 hours. */
   parts: { bytes: number; files: number; left: number; part: number }[];
   totalBytes: number;
@@ -210,12 +221,20 @@ function HeldFilesBlock({ requestId }: { requestId: string }) {
 
   if (error) return <p className="text-[12.5px] text-destructive">{error}</p>;
   if (!data) return <HeldFilesSkeleton />;
-  if (data.files.length === 0) return <p className="text-[12.5px] text-muted-foreground">No files were uploaded.</p>;
+  const records = data.files.filter((file) => file.record);
+  const uploads = data.files.filter((file) => !file.record);
+  const uploadBytes = uploads.reduce((sum, file) => sum + file.sizeBytes, 0);
 
   return (
-    <div className="w-full space-y-2 text-left">
+    <div className="w-full space-y-4 text-left">
+      {records.length > 0 ? <RecordsBlock base={base} records={records} /> : null}
+
+      {uploads.length === 0 ? (
+        <p className="text-[12.5px] text-muted-foreground">No other files were uploaded.</p>
+      ) : (
+    <div className="space-y-2">
       <p className="text-[13px] font-semibold text-foreground">
-        Your files · {data.files.length} · {size(data.totalBytes)}
+        Uploaded files · {uploads.length} · {size(uploadBytes)}
       </p>
       <div className="grid gap-2">
         {data.parts.map((part) => (
@@ -256,7 +275,7 @@ function HeldFilesBlock({ requestId }: { requestId: string }) {
       </div>
       {picking ? (
         <div className="max-h-96 overflow-y-auto rounded-xl border border-border">
-          {groupFiles(data.files).map((group) => (
+          {groupFiles(uploads).map((group) => (
             <section key={group.label}>
               <h3 className="sticky top-0 flex items-center justify-between gap-2 border-b border-border bg-muted/90 px-3 py-1.5 text-[11.5px] font-semibold uppercase tracking-[0.06em] text-muted-foreground backdrop-blur">
                 <span>{group.label}</span>
@@ -287,6 +306,81 @@ function HeldFilesBlock({ requestId }: { requestId: string }) {
             </section>
           ))}
         </div>
+      ) : null}
+    </div>
+      )}
+    </div>
+  );
+}
+
+const RECORD_BUTTONS: Record<"csv" | "excel" | "json", { label: string; note: string }> = {
+  csv: { label: "All CSV files", note: "Every section, one .zip" },
+  excel: { label: "Excel workbook", note: "Every section, one sheet each" },
+  json: { label: "JSON", note: "For other software" },
+};
+
+/**
+ * The records first and biggest: they are the hostel's data itself — residents,
+ * bills, payments — and what an owner moving to other software needs most.
+ */
+function RecordsBlock({ base, records }: { base: string; records: HeldFiles["files"] }) {
+  const order = ["excel", "csv", "json"] as const;
+  const sorted = records
+    .filter((file) => file.record !== "section")
+    .sort((a, b) => order.indexOf(a.record as (typeof order)[number]) - order.indexOf(b.record as (typeof order)[number]));
+  // One CSV per section, Residents and Payments first — the files most owners want on their own.
+  const sections = records
+    .filter((file) => file.record === "section")
+    .sort((a, b) => (a.section?.order ?? 99) - (b.section?.order ?? 99));
+
+  return (
+    <div className="space-y-2 rounded-xl bg-brand-teal-soft p-3">
+      <p className="text-[13px] font-semibold text-foreground">Your records</p>
+      <p className="text-[12px] text-muted-foreground">
+        Residents, rooms, bills, payments, expenses and more — from your first day.
+      </p>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {sorted.map((file) => {
+          const button = RECORD_BUTTONS[file.record as keyof typeof RECORD_BUTTONS];
+
+          return (
+            <a
+              className="flex flex-col items-start gap-0.5 rounded-xl border border-border bg-card px-3 py-2.5 hover:border-brand-teal"
+              href={`${base}/${file.id}`}
+              key={file.id}
+              rel="noopener"
+              target="_blank"
+            >
+              <span className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-foreground">
+                <Download className="size-4 text-brand-teal" />
+                {button.label}
+              </span>
+              <span className="text-[11.5px] text-muted-foreground">
+                {button.note} · {size(file.sizeBytes)}
+              </span>
+            </a>
+          );
+        })}
+      </div>
+      {sections.length > 0 ? (
+        <>
+          <p className="pt-1 text-[12px] font-semibold text-foreground">Or one CSV at a time</p>
+          <div className="flex flex-wrap gap-1.5">
+            {sections.map((file) => (
+              <a
+                className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-[12.5px] font-semibold text-foreground hover:border-brand-teal"
+                href={`${base}/${file.id}`}
+                key={file.id}
+                rel="noopener"
+                target="_blank"
+                title={`${file.name} · ${size(file.sizeBytes)}`}
+              >
+                <Download className="size-3.5 text-brand-teal" />
+                {file.section?.label ?? file.name}
+              </a>
+            ))}
+          </div>
+        </>
       ) : null}
     </div>
   );

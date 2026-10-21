@@ -7,6 +7,7 @@ import {
   leaveFilesUntil,
   owedOnPlan,
   partitionBySize,
+  sectionOf,
   zipDownloadsLeft,
 } from "@/modules/hostels/hostel-leave.service";
 import { hostelLeaveApproveSchema, hostelLeaveSubmitSchema } from "@/modules/hostels/hostel-leave.validation";
@@ -161,5 +162,13 @@ describe("download caps", () => {
   it("counts single-file links per Nepal day", () => {
     expect(fileLinksLeft({ fileLinkCount: 150, fileLinkDay: "2026-10-21" }, "2026-10-21")).toBe(50);
     expect(fileLinksLeft({ fileLinkCount: 200, fileLinkDay: "2026-10-20" }, "2026-10-21")).toBe(200);
+  });
+});
+
+describe("sectionOf", () => {
+  it("labels a section CSV by its section, in workbook order", () => {
+    expect(sectionOf("sunrise-data-2026-10-21-residents.csv")).toEqual({ key: "residents", label: "Residents", order: 0 });
+    expect(sectionOf("sunrise-data-2026-10-21-payments.csv")?.label).toBe("Payments");
+    expect(sectionOf("sunrise-data-2026-10-21.xlsx")).toBeNull();
   });
 });

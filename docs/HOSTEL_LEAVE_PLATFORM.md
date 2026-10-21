@@ -105,6 +105,17 @@ flip `☐` to `☑` (`◐` + a note for partial).
   single-file links per Nepal day (counted on the request; the page shows what
   is left). The ZIP fetches 6 files ahead while one streams. Skeletons while the
   hostels and files load. The sweep deletes `exportFiles` with `keptFiles`.
+- ☑ **A10 Records up front.** The kept records are three files — the Excel
+  workbook, a **CSV pack** (one CSV per section, in a ZIP) and the JSON — shown
+  as their own **Your records** block above the uploaded files (web and app),
+  each a direct download; the pick-one-by-one list holds only uploads. Records
+  approved before the CSV pack are rebuilt on first look while the hostel exists,
+  and the superseded copies are deleted from storage.
+  Each section's CSV is also kept on its own ("Or one CSV at a time":
+  Residents, Rooms and beds, Rent bills, Payments, Receipts… in workbook order),
+  so an owner can take just the residents or just the payments. The big ZIP's
+  Records folder holds the workbook, JSON and section CSVs, never the CSV pack
+  as well.
 
 ## B. Web
 

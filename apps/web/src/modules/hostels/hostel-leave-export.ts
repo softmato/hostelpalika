@@ -1,6 +1,9 @@
 import type { Types } from "mongoose";
 import * as XLSX from "xlsx";
 
+import { toCsv } from "@/lib/csv";
+import { zipStream } from "@/lib/zip-stream";
+
 import { hostelCalendarDay, toBs } from "@hostel/shared/calendar/bs";
 import { AttendanceLogModel } from "@hostel/db/models/AttendanceLog";
 import { ComplaintModel } from "@hostel/db/models/Complaint";
@@ -710,6 +713,7 @@ export async function buildLeaveExport(
   };
 
   const base = leaveExportBaseName(slug, now);
+  const csv = await csvPack(base, sheets);
   const attachments: EmailAttachment[] = [
     { content: new Uint8Array(XLSX.write(book, { bookType: "xlsx", type: "buffer" }) as Buffer), filename: `${base}.xlsx` },
     { content: new TextEncoder().encode(JSON.stringify(json, null, 2)), filename: `${base}.json` },
@@ -717,6 +721,39 @@ export async function buildLeaveExport(
 
   return {
     attachments,
+    // Kept with the files rather than emailed: the workbook already has every sheet.
+    csvFiles: csv.files,
+    csvZip: csv.zip,
     sheets: sheets.map((sheet) => ({ key: sheet.key, label: sheet.label, rows: sheet.rows.length, truncated: sheet.truncated })),
+  };
+}
+
+/**
+ * One CSV per section — each its own download — and all of them in one ZIP.
+ * The format almost any other software imports; a UTF-8 byte-order mark on each
+ * file, so Excel opens Nepali names correctly.
+ */
+async function csvPack(base: string, sheets: Array<{ columns: Column[]; key: string; rows: Row[] }>) {
+  const now = new Date();
+  const files: EmailAttachment[] = sheets.map((sheet) => ({
+    content: new TextEncoder().encode(
+      `\uFEFF${toCsv(sheet.columns.map((column) => ({ key: column.key, label: column.header })), sheet.rows)}`,
+    ),
+    filename: `${base}-${sheet.key}.csv`,
+  }));
+  const chunks: Uint8Array[] = [];
+  const entries = files.map((file) => ({
+    data: (async function* () {
+      yield file.content;
+    })(),
+    date: now,
+    name: file.filename,
+  }));
+
+  for await (const chunk of zipStream(entries)) chunks.push(chunk);
+
+  return {
+    files,
+    zip: { content: new Uint8Array(Buffer.concat(chunks)), filename: `${base}-csv.zip` } satisfies EmailAttachment,
   };
 }

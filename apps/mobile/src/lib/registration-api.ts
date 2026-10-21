@@ -180,7 +180,18 @@ export type HeldFiles = {
   /** Single-file downloads still allowed today. */
   fileLinksLeft: number;
   /** In group order (records first), oldest first inside each group. */
-  files: { group: string; id: string; kind: string | null; name: string; sizeBytes: number; uploadedAt: string | null }[];
+  files: {
+    group: string;
+    id: string;
+    kind: string | null;
+    name: string;
+    /** Set on the data records — the Excel workbook, the CSV pack, the JSON. */
+    record: "csv" | "excel" | "json" | "section" | null;
+    /** A section CSV's section — Residents, Payments… — in workbook order. */
+    section: { key: string; label: string; order: number } | null;
+    sizeBytes: number;
+    uploadedAt: string | null;
+  }[];
   /** `left` — ZIP downloads of this part still allowed in the last 24 hours (3 a day). */
   parts: { bytes: number; files: number; left: number; part: number }[];
   totalBytes: number;

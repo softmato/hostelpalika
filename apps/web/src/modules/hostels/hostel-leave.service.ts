@@ -5,7 +5,7 @@ import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
 import { REALTIME_TOPIC } from "@/lib/realtime/channels";
 import { publishResourceChange } from "@/lib/realtime/server";
-import { getPresignedReadUrl, privateBucket, putToR2, readFromR2, withKeyPrefix } from "@/lib/r2";
+import { deleteFromR2, getPresignedReadUrl, privateBucket, putToR2, readFromR2, withKeyPrefix } from "@/lib/r2";
 import { Role } from "@/lib/roles";
 import { hostelCalendarDay } from "@hostel/shared/calendar/bs";
 import { safeEntryName, toReadableStream, zipStream, type ZipEntry } from "@/lib/zip-stream";
@@ -38,7 +38,7 @@ import { StoreOrderModel } from "@hostel/db/models/StoreOrder";
 import { SubscriptionInvoiceModel } from "@hostel/db/models/SubscriptionInvoice";
 import { SubscriptionPaymentModel } from "@hostel/db/models/SubscriptionPayment";
 import { UserModel } from "@hostel/db/models/User";
-import { leaveFileGroup, type HostelLeaveSection } from "@hostel/shared/constants/hostel-leave";
+import { HOSTEL_LEAVE_SECTIONS, leaveFileGroup, type HostelLeaveSection } from "@hostel/shared/constants/hostel-leave";
 import type { EmailAttachment } from "@hostel/shared/email/sender";
 import {
   hostelLeaveApprovedEmail,
@@ -613,7 +613,7 @@ export async function approveHostelLeaveRequest(requestId: string, input: Approv
     ).lean<LeaveRequestRow | null>();
 
     // Kept for the files page; the email already carried them, so a failure here waits for the backfill.
-    if (exported) await storeExportFiles(request._id, exported.attachments).catch(() => []);
+    if (exported) await storeExportFiles(request._id, [...exported.attachments, exported.csvZip, ...exported.csvFiles]).catch(() => []);
 
     await audit(principal.userId, hostel._id, "HOSTEL_LEAVE_APPROVED", {
       branches: branches.length,
@@ -926,7 +926,9 @@ async function heldFiles(userId: string, requestId: string) {
     );
   }
 
-  const records = request.exportFiles?.length ? request.exportFiles : await backfillExportFiles(request);
+  // Built again when missing, or when kept before the per-section CSVs existed.
+  const complete = request.exportFiles?.some((file) => file.fileName?.endsWith(".csv"));
+  const records = complete ? request.exportFiles! : (await backfillExportFiles(request)) || (request.exportFiles ?? []);
 
   // Buildings not yet erased still have their rows; an erased one's originals
   // are listed on the request (`keptFiles`, written by the purge).
@@ -965,48 +967,85 @@ async function storeExportFiles(requestId: Types.ObjectId, attachments: EmailAtt
     const key = withKeyPrefix(`hostel-leave/${requestId.toString()}/${file.filename}`);
     const mimeType = file.filename.endsWith(".json")
       ? "application/json"
-      : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+      : file.filename.endsWith(".zip")
+        ? "application/zip"
+        : file.filename.endsWith(".csv")
+          ? "text/csv"
+          : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 
     await putToR2(privateBucket(), key, file.content, mimeType);
     stored.push({ bucket: privateBucket(), createdAt: now, fileName: file.filename, key, mimeType, sizeBytes: file.content.length });
   }
 
-  const updated = await HostelLeaveRequestModel.findOneAndUpdate(
+  const previous = await HostelLeaveRequestModel.findOneAndUpdate(
     { _id: requestId },
     { $set: { exportFiles: stored } },
-    { new: true },
   ).lean<LeaveRequestRow | null>();
+  const kept = new Set(stored.map((file) => file.key));
 
-  return updated?.exportFiles ?? [];
+  // A rebuilt set replaces the old one; the old copies go, or nothing would ever sweep them.
+  for (const file of previous?.exportFiles ?? []) {
+    if (file.key && !kept.has(file.key)) await deleteFromR2(file.bucket!, file.key).catch(() => {});
+  }
+
+  // Read back for the ids Mongo gave each entry — the download links use them.
+  const fresh = await HostelLeaveRequestModel.findById(requestId).select("exportFiles").lean<LeaveRequestRow | null>();
+
+  return fresh?.exportFiles ?? [];
 }
 
-/** A request approved before the workbook was kept: build it now, if its hostel still exists. */
+/**
+ * A request approved before the records were kept (or before the CSV pack):
+ * build them now, if its hostel still exists. `null` when it cannot.
+ */
 async function backfillExportFiles(request: LeaveRequestRow) {
   const sections = (request.exportSections ?? []) as HostelLeaveSection[];
   const hostel = sections.length
     ? await HostelModel.findById(request.hostelId).select("slug").lean<{ slug?: string } | null>()
     : null;
 
-  if (!hostel) return [];
+  if (!hostel) return null;
 
   try {
     const exported = await buildLeaveExport([request.hostelId, ...(request.branchIds ?? [])], sections, hostel.slug ?? "");
 
-    return await storeExportFiles(request._id, exported.attachments);
+    return await storeExportFiles(request._id, [...exported.attachments, exported.csvZip, ...exported.csvFiles]);
   } catch {
-    return [];
+    return null;
   }
+}
+
+/** Which record a kept file is. **Pure.** */
+function recordType(file: { fileName?: string; kind?: string }) {
+  if (file.kind !== "RECORDS") return null;
+  if (file.fileName?.endsWith(".xlsx")) return "excel";
+  if (file.fileName?.endsWith("-csv.zip")) return "csv";
+  if (file.fileName?.endsWith(".csv")) return "section";
+
+  return "json";
+}
+
+/** `…-data-2026-10-21-residents.csv` → its section, label and place in the workbook. **Pure.** */
+export function sectionOf(fileName?: string) {
+  const index = HOSTEL_LEAVE_SECTIONS.findIndex((section) => fileName?.endsWith(`-${section.key}.csv`));
+
+  return index === -1 ? null : { key: HOSTEL_LEAVE_SECTIONS[index]!.key, label: HOSTEL_LEAVE_SECTIONS[index]!.label, order: index };
 }
 
 /** `GET /account/hostel-leave/{id}/files` — the list, its size and its ZIP parts. */
 export async function listHeldFiles(userId: string, requestId: string) {
   const { files, request } = await heldFiles(userId, requestId);
-  const parts = partitionBySize(files);
+  // The CSV pack is a ZIP of CSVs the Records folder already holds; not packed twice.
+  const parts = partitionBySize(files.filter((file) => recordType(file) !== "csv"));
 
   return {
     files: files.map((file) => ({
       group: leaveFileGroup(file.kind).label,
       id: file._id.toString(),
+      // What a record is, for the Your records buttons; null for an uploaded file.
+      record: recordType(file),
+      // A section CSV's section, so it is labelled "Residents", not by its file name.
+      section: recordType(file) === "section" ? sectionOf(file.fileName) : null,
       kind: file.kind ?? null,
       name: file.fileName ?? "file",
       sizeBytes: file.sizeBytes ?? 0,
@@ -1075,7 +1114,8 @@ function folderFor(kind?: string) {
  */
 export async function heldFilesZip(userId: string, requestId: string, part: number) {
   const { files, request } = await heldFiles(userId, requestId);
-  const parts = partitionBySize(files);
+  // The CSV pack is a ZIP of CSVs the Records folder already holds; not packed twice.
+  const parts = partitionBySize(files.filter((file) => recordType(file) !== "csv"));
   const chosen = parts[part - 1];
 
   if (!chosen) {

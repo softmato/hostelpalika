@@ -1,5 +1,5 @@
 import { router } from "expo-router";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Sheet } from "@/components/ui/sheet";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
+import { useResource } from "@/hooks/use-resource";
 import { API_BASE_URL } from "@/lib/api";
 import { readApiError } from "@/lib/api-contract";
 import { adoptRoleChange } from "@/lib/auth-session";
@@ -31,6 +32,13 @@ function size(bytes: number) {
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
 }
 
+const RECORD_ORDER = ["excel", "csv", "json"] as const;
+const RECORD_LABELS = {
+  csv: { label: "All CSV files", note: "Every section, one .zip" },
+  excel: { label: "Excel workbook", note: "Every section, one sheet each" },
+  json: { label: "JSON", note: "For other software" },
+} as const;
+
 /** `photo.jpg` → `["photo", "jpg"]`, for the downloader's separate name and extension. */
 function splitName(name: string): [string, string] {
   const dot = name.lastIndexOf(".");
@@ -51,6 +59,23 @@ export function HeldHostelCard({ hostel }: { hostel: HeldHostel }) {
   const [files, setFiles] = useState<HeldFiles | null>(null);
   const [picking, setPicking] = useState(false);
   const [loadingFiles, setLoadingFiles] = useState(false);
+  // Loaded with the card, for the records buttons — the first thing an owner leaving needs.
+  const overview = useResource<HeldFiles>(
+    useCallback(() => getHeldFiles(hostel.requestId), [hostel.requestId]),
+    { cacheKey: `account:held-files:${hostel.requestId}` },
+  );
+  const allRecords = (overview.data?.files ?? []).filter((file) => file.record);
+  const records = allRecords
+    .filter((file) => file.record !== "section")
+    .sort(
+      (a, b) =>
+        RECORD_ORDER.indexOf(a.record as (typeof RECORD_ORDER)[number]) -
+        RECORD_ORDER.indexOf(b.record as (typeof RECORD_ORDER)[number]),
+    );
+  // One CSV per section, Residents and Payments first.
+  const sections = allRecords
+    .filter((file) => file.record === "section")
+    .sort((a, b) => (a.section?.order ?? 99) - (b.section?.order ?? 99));
 
   const claim = () =>
     openConfirm({
@@ -153,6 +178,47 @@ export function HeldHostelCard({ hostel }: { hostel: HeldHostel }) {
         </View>
       </View>
       {hostel.canClaim ? <Button icon="refresh" label="Claim hostel back" onPress={claim} /> : null}
+      {records.length > 0 ? (
+        <View className="gap-2 rounded-2xl bg-brand-soft p-3">
+          <Text variant="label">Your records</Text>
+          <Text variant="caption">Residents, rooms, bills, payments, expenses and more — from your first day.</Text>
+          {records.map((file) => (
+            <Pressable
+              accessibilityRole="button"
+              className="flex-row items-center gap-3 rounded-xl border border-border bg-card p-3 active:opacity-70"
+              key={file.id}
+              onPress={() => void downloadOne(file)}
+            >
+              <Glyph color={colors.primary} name="download" size={18} />
+              <View className="flex-1">
+                <Text variant="label">{RECORD_LABELS[file.record as keyof typeof RECORD_LABELS].label}</Text>
+                <Text variant="caption">{`${RECORD_LABELS[file.record as keyof typeof RECORD_LABELS].note} · ${size(file.sizeBytes)}`}</Text>
+              </View>
+            </Pressable>
+          ))}
+          {sections.length > 0 ? (
+            <>
+              <Text className="pt-1" variant="label">
+                Or one CSV at a time
+              </Text>
+              <View className="flex-row flex-wrap gap-2">
+                {sections.map((file) => (
+                  <Pressable
+                    accessibilityLabel={`Download ${file.section?.label ?? file.name} CSV`}
+                    accessibilityRole="button"
+                    className="flex-row items-center gap-1.5 rounded-full border border-border bg-card px-3 py-2 active:opacity-70"
+                    key={file.id}
+                    onPress={() => void downloadOne(file)}
+                  >
+                    <Glyph color={colors.primary} name="download" size={14} />
+                    <Text variant="caption">{file.section?.label ?? file.name}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          ) : null}
+        </View>
+      ) : null}
       <View className="flex-row gap-2">
         <Button
           className="flex-1"
@@ -180,12 +246,12 @@ export function HeldHostelCard({ hostel }: { hostel: HeldHostel }) {
             <Text className="pb-2" variant="caption">
               {`${files.files.length} files · ${size(files.totalBytes)} · tap one to download · ${files.fileLinksLeft} left today`}
             </Text>
-            {files.files.map((file, index) => (
+            {files.files.filter((row) => !row.record).map((file, index, uploads) => (
               <View key={file.id}>
                 {/* A heading where the group changes — the server sends them in group order. */}
-                {files.files[index - 1]?.group !== file.group ? (
+                {uploads[index - 1]?.group !== file.group ? (
                   <Text className="pb-1 pt-4" variant="label">
-                    {`${file.group} · ${files.files.filter((row) => row.group === file.group).length}`}
+                    {`${file.group} · ${uploads.filter((row) => row.group === file.group).length}`}
                   </Text>
                 ) : null}
               <Pressable
