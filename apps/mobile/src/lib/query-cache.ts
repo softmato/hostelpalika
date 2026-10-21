@@ -374,7 +374,25 @@ export function fetchQuery<T>(
   const generation = cacheGeneration;
   const request = load()
     .then((data) => {
-      if (generation === cacheGeneration) writeEntry(key, data, topics);
+      if (generation !== cacheGeneration) return data;
+
+      /*
+       * The same answer keeps the same object. A refocus or topic refetch that
+       * comes back unchanged is the usual case, and a new object re-rendered
+       * every screen on the key — right as a tab switch or a back was animating
+       * — and re-wrote the disk copy, all for nothing. Handing back the old
+       * reference lets React bail out. A JSON comparison is exact here: entries
+       * already go to disk as JSON, so nothing else can live in them.
+       */
+      const previous = entries.get(key);
+
+      if (previous && JSON.stringify(previous.data) === JSON.stringify(data)) {
+        entries.delete(key);
+        entries.set(key, { data: previous.data, stale: false, storedAt: Date.now(), topics });
+        return previous.data as T;
+      }
+
+      writeEntry(key, data, topics);
       return data;
     })
     .finally(() => {

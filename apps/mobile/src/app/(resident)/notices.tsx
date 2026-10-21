@@ -317,7 +317,7 @@ export default function ResidentNoticesScreen() {
         ) : null}
 
         {days.length === 0 ? (
-          <EmptyState
+          <EmptyState icon="megaphone"
             description={
               category !== null
                 ? "Nothing in this category yet."

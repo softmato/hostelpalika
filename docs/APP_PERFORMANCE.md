@@ -264,6 +264,39 @@ advantage is wasted by guessing now.
       checked and found fine. A rewrite nobody asked for that fixes nothing is
       worse than the `.map()` it replaced.
 
+### 2026-10-21 — named on a device (screen recordings from the user)
+
+Not yet a number, but a name and a *how*, which is the first half of the
+first box:
+
+- **Tab bar → Search: slow to respond to the tap.** ~0.6s between the press and
+  the cross-fade starting. The tab held all 60 result cards (`.map()` in a
+  ScrollView, each a photo and a dozen SVG icons), re-attached on every visit
+  and reconciled on every keystroke.
+- **Search → Map: blank.** The embedded MapLibre view was a GLSurfaceView
+  inside a rounded, cross-fading tab card and never drew a tile. Not a speed
+  fault — a surface ignores its parent's clip and fade.
+- **Home: janky on scroll.** A scroll-linked colour fade on the header and a
+  drift/scale/fade on the shortcut card, re-run every frame.
+
+What changed in answer, all in code that every screen shares or on the two
+screens named:
+
+- ☑ `HostelBrowser`'s results are an `Animated.FlatList` (`initialNumToRender`
+  3, `windowSize` 7) — Phase B's first real case. Header controls are pinned in
+  `Screen`'s `header`, not `ListHeaderComponent`, so the field never scrolls away.
+- ☑ `HostelCard` and `Glyph` are `memo`. Every caller passes primitives and
+  stable handlers, so a parent re-render no longer rebuilds the SVG trees.
+- ☑ `Screen` mounts its body one frame after its header, so every push starts
+  its fade on the tap and the heavy render runs under the native animation.
+- ☑ Home's search text lives in `DiscoveryHeader`; typing re-rendered all of Home.
+- ☑ `useNearby.refresh` keeps the old coordinates under 50 m of jitter; a new
+  object on every Home focus re-sorted and re-rendered the page mid-tab-change.
+- ☑ `HostelMap` renders through a TextureView and shows a skeleton until
+  `onDidFinishLoadingMap`.
+- ☐ Re-record the same three paths on the Redmi after these land, and get the
+  tap-to-fade number this box asks for.
+
 ---
 
 ## Phase B — Virtualize the lists that grow with data

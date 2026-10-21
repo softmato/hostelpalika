@@ -116,7 +116,7 @@ export default function StoreCartScreen() {
   if (lines.length === 0) {
     return (
       <Screen header={header} insideTabs onRefresh={cart.refresh} refreshing={cart.refreshing} scroll>
-        <EmptyState
+        <EmptyState icon="cart"
           action={
             <Button
               label="Browse the store"

@@ -215,7 +215,7 @@ function ReferralBody({
           <SectionHeader title="Who you have referred" />
 
           {referrals.length === 0 ? (
-            <EmptyState title="No referrals yet" />
+            <EmptyState icon="gift" title="No referrals yet" />
           ) : (
             <Card padding="px-4 py-1">
               {referrals.map((referral, index) => (

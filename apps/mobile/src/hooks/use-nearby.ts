@@ -2,7 +2,7 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Linking } from "react-native";
 
-import type { Coordinates } from "@/lib/geo";
+import { type Coordinates, haversineMeters } from "@/lib/geo";
 import {
   hasLocationPermission,
   hasPromptedForLocation,
@@ -69,6 +69,9 @@ export type NearbyStatus =
   | "blocked"
   /** Allowed, but no position: services off, or the fix timed out. */
   | "unavailable";
+
+/** Below this, a second reading keeps the first — see `refresh`. */
+const REFRESH_MOVE_METERS = 50;
 
 export function useNearby({ auto = false }: { auto?: boolean } = {}) {
   const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
@@ -140,7 +143,17 @@ export function useNearby({ auto = false }: { auto?: boolean } = {}) {
     const outcome = await requestDeviceLocation();
 
     if (outcome.kind === "granted") {
-      setCoordinates(outcome.coordinates);
+      /*
+       * The same object when the reader has not really moved. This runs on every
+       * focus of Home, and a fresh object re-sorted every row and re-rendered the
+       * whole page in the middle of the tab change — for a few metres of GPS jitter
+       * that changes no distance anybody reads.
+       */
+      setCoordinates((current) =>
+        current && haversineMeters(current, outcome.coordinates) < REFRESH_MOVE_METERS
+          ? current
+          : outcome.coordinates,
+      );
       setStatus("ready");
     }
   }, []);

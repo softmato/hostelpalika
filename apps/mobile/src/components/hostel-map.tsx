@@ -6,9 +6,12 @@ import {
   Map,
   NativeUserLocation,
 } from "@maplibre/maplibre-react-native";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
+import Animated, { FadeOut } from "react-native-reanimated";
 
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmptyState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { type Coordinates, hostelCoordinates } from "@/lib/geo";
@@ -63,6 +66,7 @@ export function HostelMap({
 }) {
   const { colors, isDark } = useAppTheme();
   const style = baseStyle(isDark);
+  const [loaded, setLoaded] = useState(false);
 
   const pins = useMemo(
     () =>
@@ -138,7 +142,12 @@ export function HostelMap({
         }`}
         style={fill ? undefined : { height }}
       >
-        <Text variant="muted">No hostels here have been placed on the map yet.</Text>
+        <EmptyState
+          compact={!fill}
+          description="They are all still in the list."
+          icon="map"
+          title="Not on the map yet"
+        />
       </View>
     );
   }
@@ -151,6 +160,14 @@ export function HostelMap({
       style={fill ? { backgroundColor: colors.muted } : { backgroundColor: colors.muted, height }}
     >
       <Map
+        /*
+          A TextureView, not the default GLSurfaceView. A surface lives in its own
+          window layer, so it ignores this card's rounded clip and the tab's
+          cross-fade — inside the Search tab it came up as a blank white box and
+          stayed one. A texture is an ordinary view: it clips, it fades, it draws.
+          The full-screen `/map` keeps the surface, where none of that applies.
+        */
+        androidView="texture"
         attribution={false}
         compass={false}
         doubleTapZoom={interactive}
@@ -159,6 +176,7 @@ export function HostelMap({
         key={style.url}
         logo={false}
         mapStyle={style.url}
+        onDidFinishLoadingMap={() => setLoaded(true)}
         style={{ flex: 1 }}
         touchPitch={interactive}
         touchRotate={interactive}
@@ -251,6 +269,13 @@ export function HostelMap({
 
         {me ? <NativeUserLocation /> : null}
       </Map>
+
+      {/* Until the style and first tiles land: a sweep, not a blank box (loading is skeletons). */}
+      {loaded ? null : (
+        <Animated.View exiting={FadeOut.duration(200)} style={[StyleSheet.absoluteFill, { pointerEvents: "none" }]}>
+          <Skeleton height="100%" radius={0} />
+        </Animated.View>
+      )}
 
       <View
         className="absolute bottom-1 left-1 rounded px-1.5 py-0.5"

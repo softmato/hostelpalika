@@ -15,6 +15,7 @@ import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { api } from "@/lib/api";
 import { type ApiEnvelope, readApiError, unwrap } from "@/lib/api-contract";
+import { openAssetViewer } from "@/lib/asset-viewer";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { uploadAsset } from "@/lib/uploads";
 
@@ -25,7 +26,7 @@ const KINDS = [
 ] as const;
 
 type Kind = (typeof KINDS)[number]["value"];
-type Shot = { assetId: string; durationMs: number | null; uri: string; video: boolean };
+type Shot = { assetId: string; durationMs: number | null; mimeType: string; uri: string; video: boolean };
 
 /** The server's caps (`DEFAULT_IMAGE_BYTES` / `DEFAULT_VIDEO_BYTES`), checked before the upload starts. */
 const MB = 1024 * 1024;
@@ -35,9 +36,9 @@ const MAX_VIDEO_BYTES = 50 * MB;
 /**
  * Send feedback — the app half of Help & support (the web's `support-dialog`).
  * A kind, one text box whose first line reads as the title, and up to four
- * screenshots or clips. Lands in Platform → Feedback, which plays the clips —
- * so unlike community posts, a video here needs no player on the phone. The
- * contacts themselves sit in every More tab (`SupportContact`), which links here.
+ * screenshots or clips, each opened in the shared viewer to check before sending.
+ * Lands in Platform → Feedback. The contacts themselves sit in every More tab
+ * (`SupportContact`), which links here.
  */
 export default function HelpScreen() {
   const { colors } = useAppTheme();
@@ -76,7 +77,16 @@ export default function HelpScreen() {
         { label: video ? "Video" : "Screenshot" },
       );
 
-      setShots((current) => [...current, { assetId, durationMs: picked.duration ?? null, uri: picked.uri, video }]);
+      setShots((current) => [
+        ...current,
+        {
+          assetId,
+          durationMs: picked.duration ?? null,
+          mimeType: picked.mimeType ?? (video ? "video/mp4" : "image/jpeg"),
+          uri: picked.uri,
+          video,
+        },
+      ]);
     } catch (error) {
       toastError("Could not attach", readApiError(error, `The ${video ? "video" : "screenshot"} did not upload.`));
     } finally {
@@ -138,24 +148,38 @@ export default function HelpScreen() {
           <Text variant="label">Screenshots or a video</Text>
           <Text variant="caption">Up to 4 · photos to 5 MB, videos to 50 MB</Text>
           <View className="flex-row flex-wrap gap-2">
-            {shots.map((shot) => (
-              <Pressable
-                accessibilityLabel={shot.video ? "Remove video" : "Remove screenshot"}
-                key={shot.assetId}
-                onPress={() => setShots((current) => current.filter((item) => item.assetId !== shot.assetId))}
-              >
-                {shot.video ? (
-                  <View
-                    className="items-center justify-center gap-1 rounded-xl bg-muted"
-                    style={{ height: 96, width: 72 }}
-                  >
-                    <Glyph color={colors.mutedForeground} name="videocam" size={24} />
-                    {shot.durationMs ? <Text variant="caption">{clipLength(shot.durationMs)}</Text> : null}
-                  </View>
-                ) : (
-                  <Image source={{ uri: shot.uri }} style={{ borderRadius: 12, height: 96, width: 72 }} />
-                )}
-              </Pressable>
+            {shots.map((shot, index) => (
+              <View key={shot.assetId}>
+                <Pressable
+                  accessibilityLabel={shot.video ? "Play video" : "View screenshot"}
+                  onPress={() =>
+                    openAssetViewer(
+                      shots.map((item) => ({ mimeType: item.mimeType, url: item.uri })),
+                      index,
+                    )
+                  }
+                >
+                  {shot.video ? (
+                    <View
+                      className="items-center justify-center gap-1 rounded-xl bg-muted"
+                      style={{ height: 96, width: 72 }}
+                    >
+                      <Glyph color={colors.foreground} name="play-circle" size={28} />
+                      {shot.durationMs ? <Text variant="caption">{clipLength(shot.durationMs)}</Text> : null}
+                    </View>
+                  ) : (
+                    <Image source={{ uri: shot.uri }} style={{ borderRadius: 12, height: 96, width: 72 }} />
+                  )}
+                </Pressable>
+                <Pressable
+                  accessibilityLabel={shot.video ? "Remove video" : "Remove screenshot"}
+                  className="absolute -right-1.5 -top-1.5 h-6 w-6 items-center justify-center rounded-full bg-foreground"
+                  hitSlop={8}
+                  onPress={() => setShots((current) => current.filter((item) => item.assetId !== shot.assetId))}
+                >
+                  <Glyph color={colors.background} name="close" size={14} />
+                </Pressable>
+              </View>
             ))}
             {shots.length < 4 ? (
               <Pressable

@@ -1,4 +1,6 @@
+import { useEventListener } from "expo";
 import { Image } from "expo-image";
+import { useVideoPlayer, VideoView } from "expo-video";
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import {
   ActivityIndicator,
@@ -27,7 +29,9 @@ import { API_BASE_URL } from "@/lib/api";
 import {
   closeAssetViewer,
   getAssetViewerState,
+  isOnDevice,
   isPreviewable,
+  isVideo,
   setAssetViewerIndex,
   subscribeToAssetViewer,
   type ViewerItem,
@@ -308,6 +312,7 @@ function ViewerBody({
           >
             {items.map((item, itemIndex) => (
               <ViewerPage
+                active={itemIndex === index}
                 height={height}
                 item={item}
                 key={`${item.assetId ?? item.url}-${itemIndex}`}
@@ -344,20 +349,24 @@ function ViewerBody({
           ) : null}
         </View>
 
-        <Pressable
-          accessibilityLabel="Save or share"
-          accessibilityRole="button"
-          className="h-10 w-10 items-center justify-center rounded-full bg-black/50 active:opacity-70"
-          disabled={saving}
-          hitSlop={8}
-          onPress={() => void save()}
-        >
-          {saving ? (
-            <ActivityIndicator color="#ffffff" size="small" />
-          ) : (
-            <Glyph color="#ffffff" name="share" size={20} />
-          )}
-        </Pressable>
+        {current && isOnDevice(current) ? (
+          <View className="h-10 w-10" />
+        ) : (
+          <Pressable
+            accessibilityLabel="Save or share"
+            accessibilityRole="button"
+            className="h-10 w-10 items-center justify-center rounded-full bg-black/50 active:opacity-70"
+            disabled={saving}
+            hitSlop={8}
+            onPress={() => void save()}
+          >
+            {saving ? (
+              <ActivityIndicator color="#ffffff" size="small" />
+            ) : (
+              <Glyph color="#ffffff" name="share" size={20} />
+            )}
+          </Pressable>
+        )}
       </Animated.View>
 
       {current?.caption || current?.title || items.length > 1 ? (
@@ -424,7 +433,7 @@ function StripThumb({
   onPress: () => void;
   token: string | null | undefined;
 }) {
-  const source = isPreviewable(item)
+  const source = isPreviewable(item) && !isVideo(item)
     ? viewerSourceFor(item, { baseUrl: API_BASE_URL, token })
     : null;
   const cell = {
@@ -453,7 +462,7 @@ function StripThumb({
         <Image contentFit="cover" source={source} style={cell} />
       ) : (
         <View className="items-center justify-center" style={cell}>
-          <Glyph color="#ffffff" name="document" size={16} />
+          <Glyph color="#ffffff" name={isVideo(item) ? "play-circle" : "document"} size={16} />
         </View>
       )}
     </Pressable>
@@ -461,12 +470,14 @@ function StripThumb({
 }
 
 function ViewerPage({
+  active,
   height,
   item,
   onZoomChange,
   token,
   width,
 }: {
+  active: boolean;
   height: number;
   item: ViewerItem;
   onZoomChange: (zoomed: boolean) => void;
@@ -573,6 +584,10 @@ function ViewerPage({
     );
   }
 
+  if (source && isVideo(item)) {
+    return <VideoPage active={active} height={height} item={item} token={token} width={width} />;
+  }
+
   if (!source || !isPreviewable(item)) {
     return (
       <View className="items-center justify-center gap-2 px-8" style={{ height, width }}>
@@ -617,5 +632,87 @@ function ViewerPage({
         </Animated.View>
       </View>
     </GestureDetector>
+  );
+}
+
+/**
+ * A clip, with the platform's own play bar.
+ *
+ * A private clip is resolved through `?format=json` first, as `VoiceNotePlayer`
+ * does: handed our route, the player would carry the bearer token through the
+ * redirect to R2, which rejects it. A public or just-picked clip plays as is.
+ *
+ * Every page stays mounted, so a clip pauses when it is swiped away. The frame
+ * sits clear of the close row and the bottom strip so neither covers the controls.
+ */
+function VideoPage({
+  active,
+  height,
+  item,
+  token,
+  width,
+}: {
+  active: boolean;
+  height: number;
+  item: ViewerItem;
+  token: string | null | undefined;
+  width: number;
+}) {
+  const insets = useSystemInsets();
+  const [uri, setUri] = useState<string | null>(() =>
+    item.assetId ? null : (viewerSourceFor(item, { baseUrl: API_BASE_URL, token })?.uri ?? null),
+  );
+  const [failed, setFailed] = useState(false);
+  const player = useVideoPlayer(uri);
+
+  useEventListener(player, "statusChange", ({ status }) => {
+    if (status === "error") setFailed(true);
+  });
+
+  useEffect(() => {
+    if (!item.assetId) {
+      return;
+    }
+
+    let cancelled = false;
+
+    fetch(`${API_BASE_URL}/api/v1/files/${item.assetId}/url?format=json`, {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    })
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error(String(response.status)))))
+      .then((body: { data?: { url?: string } }) => {
+        if (cancelled) return;
+        if (body.data?.url) setUri(body.data.url);
+        else setFailed(true);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [item.assetId, token]);
+
+  useEffect(() => {
+    if (!active) player.pause();
+  }, [active, player]);
+
+  return (
+    <View
+      className="items-center justify-center"
+      style={{ height, paddingBottom: insets.bottom + 100, paddingTop: insets.top + 60, width }}
+    >
+      {failed ? (
+        <View className="items-center gap-2 px-8">
+          <Glyph color="#ffffff" name="videocam" size={40} />
+          <Text className="text-center text-sm text-white/70">That video could not be played.</Text>
+        </View>
+      ) : uri ? (
+        <VideoView contentFit="contain" nativeControls player={player} style={{ flex: 1, width }} />
+      ) : (
+        <ActivityIndicator color="#ffffff" size="large" />
+      )}
+    </View>
   );
 }

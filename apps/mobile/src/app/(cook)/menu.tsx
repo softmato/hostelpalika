@@ -191,7 +191,7 @@ export default function CookMenuScreen() {
               <SkeletonRows rows={5} />
             ) : residents.length === 0 ? (
               <Card>
-                <EmptyState
+                <EmptyState icon="people"
                   description="Nobody is registered as an active resident right now."
                   title="No residents"
                 />

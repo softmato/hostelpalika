@@ -1,0 +1,76 @@
+# What `eas build` leaves out of the upload.
+#
+# Why this exists: on Windows, eas-cli applies only the ROOT .gitignore. It
+# matches nested .gitignore files by a forward-slash prefix against
+# backslash paths, so apps/mobile/.gitignore, apps/web/.gitignore and
+# marketing/video/.gitignore are silently skipped — the 2026-10-21 upload
+# was 1.7 GB (film renders, a stale android/ prebuild) and failed with
+# ECONNRESET. With this file present eas-cli reads ONLY this file, so it
+# repeats the root .gitignore and spells the nested rules out from the root.
+#
+# Keep in step with the .gitignore files when they change.
+
+# ---- root .gitignore ----
+node_modules/
+website_mock_desing_for_portals
+kyc-redesign/
+.next/
+out/
+build/
+dist/
+ui_inspiration_folder
+*.log
+*.stackdump
+.env
+.env.*
+.env*
+.turbo/
+.cache/
+coverage/
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.codex
+.claude
+.kilo
+.agents
+.vercel
+apps/web/public/uploads/activation-qr/
+*.traineddata
+fixtures/evidence-golden/
+skills-lock.json
+*.tsbuildinfo
+
+# ---- not needed to build the app ----
+marketing
+graphify-out
+splash-demo
+
+# ---- apps/mobile/.gitignore ----
+apps/mobile/.expo
+apps/mobile/web-build/
+apps/mobile/expo-env.d.ts
+apps/mobile/**/*.orig.*
+apps/mobile/**/*.jks
+apps/mobile/**/*.p8
+apps/mobile/**/*.p12
+apps/mobile/**/*.key
+apps/mobile/**/*.mobileprovision
+# Prebuild output. EAS runs prebuild itself; a local android/ must never ride along.
+apps/mobile/android
+apps/mobile/ios
+apps/mobile/credentials.json
+apps/mobile/credentials/
+apps/mobile/.metro-health-check*
+# EAS supplies this as the GOOGLE_SERVICES_JSON file variable (app.config.js).
+apps/mobile/google-services.json
+apps/mobile/GoogleService-Info.plist
+
+# ---- apps/mobile/modules/*/android/.gitignore ----
+apps/mobile/modules/*/android/.gradle/
+
+# ---- apps/web/.gitignore ----
+apps/web/**/*.pem
+apps/web/next-env.d.ts
+apps/web/public/app

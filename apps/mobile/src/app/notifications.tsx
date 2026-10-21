@@ -412,7 +412,7 @@ export default function NotificationsScreen() {
   if (!account) {
     return (
       <Screen header={header}>
-        <EmptyState
+        <EmptyState icon="log-in"
           description="Notifications belong to an account. Sign in to see yours."
           title="Not signed in"
         />
@@ -492,7 +492,7 @@ export default function NotificationsScreen() {
         {feed.loading ? (
           <SkeletonRows rows={6} />
         ) : rows.length === 0 ? (
-          <EmptyState
+          <EmptyState icon="notifications"
             description={
               filter === "unread"
                 ? "Everything here has been read."

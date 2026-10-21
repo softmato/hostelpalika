@@ -310,7 +310,7 @@ function PhotoFeedSection({
         <ErrorState message={feed.error} onRetry={feed.reload} />
       ) : days.length === 0 ? (
         <Card>
-          <EmptyState
+          <EmptyState icon="images"
             description="Take a photo above and it appears here, and on every resident's food screen."
             title="No photos yet"
           />

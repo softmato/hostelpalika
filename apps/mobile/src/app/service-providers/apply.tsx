@@ -168,7 +168,7 @@ export default function ServiceProviderApplyScreen() {
         header={<AppBar showBack title="Become a service provider" />}
         scroll
       >
-        <EmptyState
+        <EmptyState icon="construct"
           action={
             <Button
               label="Sign in"

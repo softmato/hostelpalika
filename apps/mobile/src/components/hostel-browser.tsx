@@ -1,14 +1,15 @@
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Modal, Pressable, ScrollView, TextInput, View } from "react-native";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Pressable, RefreshControl, ScrollView, TextInput, View } from "react-native";
+import Animated from "react-native-reanimated";
 
 import { HostelCard } from "@/components/hostel-card";
 import { HostelMap } from "@/components/hostel-map";
-import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Glyph } from "@/components/ui/glyph";
-import { Screen } from "@/components/ui/screen";
+import { Glyph, type GlyphName } from "@/components/ui/glyph";
+import { Screen, useOwnScroll } from "@/components/ui/screen";
+import { Sheet } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
@@ -18,7 +19,7 @@ import { useNearby } from "@/hooks/use-nearby";
 import { useResource } from "@/hooks/use-resource";
 import { useSavedHostels } from "@/hooks/use-saved";
 import { useSystemInsets } from "@/hooks/use-system-insets";
-import { sortByDistance } from "@/lib/geo";
+import { type HostelWithDistance, sortByDistance } from "@/lib/geo";
 import { inCity, servingMeals } from "@/lib/home-sections";
 import {
   FACILITIES,
@@ -40,6 +41,23 @@ import { toastInfo } from "@/lib/toast";
  * root-level `/hostels` screen that a resident, admin or provider reaches from
  * their More tab.
  *
+ * ## The header is the search
+ *
+ * The tab is called Search, so the first thing on it is the field — the same
+ * pill as Home's, with the filter button inside it — and under it one row of
+ * one-tap filters (Nearest, the three hostel types, short stays, a budget, food).
+ * Those are the filters people actually reach for; the sheet keeps the long tail.
+ * Both stay pinned while the list scrolls under them, so narrowing a result never
+ * means scrolling back up. A "Browse" title above them said nothing the tab bar
+ * does not.
+ *
+ * ## The list is virtualized
+ *
+ * Up to sixty cards, each a photo and a dozen icons. Drawn with `.map()` in a
+ * ScrollView they were all built on mount, all re-attached on every visit to the
+ * tab and all reconciled on every keystroke — which is what made the tab slow to
+ * open. A `FlatList` builds the few on screen and recycles the rest.
+ *
  * ## The filter sheet only offers what the server accepts
  *
  * `publicHostelListQuerySchema` takes **one** `facility` and **one**
@@ -50,10 +68,10 @@ import { toastInfo } from "@/lib/toast";
  * So facilities are single-select here and Sort is absent until the server
  * grows one.
  *
- * **`Sort: nearest` is the one exception, and it is honest** — it re-orders the
- * rows the server already returned, on the client, with the coordinates already
- * in the payload (`lib/geo.ts`). It changes what the user sees, so it is a
- * control that does something; it does not pretend to have narrowed the query.
+ * **`Nearest` is the one exception, and it is honest** — it re-orders the rows
+ * the server already returned, on the client, with the coordinates already in
+ * the payload (`lib/geo.ts`). It changes what the user sees, so it is a control
+ * that does something; it does not pretend to have narrowed the query.
  *
  * Budget is sent as `minPrice`/`maxPrice`, which the server compares against
  * the hostel's *range* (`monthlyRentMax >= minPrice`, `monthlyRentMin <=
@@ -67,6 +85,18 @@ const BUDGET_BANDS = [
   { label: "NPR 8,000 – 10,000", maxPrice: 10000, minPrice: 8000 },
   { label: "Above NPR 10,000", maxPrice: undefined, minPrice: 10000 },
 ] as const;
+
+/** The band the quick row offers. The sheet has the rest. */
+const QUICK_BUDGET = BUDGET_BANDS[1];
+
+/** Typing pauses this long before the list follows the field. */
+const SEARCH_PAUSE_MS = 450;
+
+/** Same height as Home's field, so the two searches read as one control. */
+const SEARCH_HEIGHT = 46;
+const FILTER_BUTTON = 32;
+
+const NO_ROWS: HostelWithDistance[] = [];
 
 /** Everything a link into this screen is allowed to ask for. */
 type BrowseParams = {
@@ -114,6 +144,7 @@ export function HostelBrowser({
 }: HostelBrowserProps) {
   const params = useLocalSearchParams<BrowseParams>();
   const { colors } = useAppTheme();
+  const insets = useSystemInsets();
 
   // Seeded from the deep link that pushed this screen — the home screen's
   // search field, or one of its city cards — so it opens on a list that is
@@ -125,20 +156,21 @@ export function HostelBrowser({
    * City is **not** a `HostelFilters` field, because the server has no city
    * filter: `publicHostelListQuerySchema`'s `area` matches `location.area` only,
    * so a hostel in "Ghattekulo, Kathmandu" does not match `?area=Kathmandu`. It
-   * therefore narrows the rows already returned — the same trade `Sort: nearest`
+   * therefore narrows the rows already returned — the same trade `Nearest`
    * makes, and honest for the same reason: it changes what is on screen and does
    * not claim to have narrowed the query. Held separately so it cannot be sent.
    */
   const [city, setCity] = useState(params.city ?? "");
   /*
-   * "Serves food", from the home screen's Food tile. Client-side and held apart
-   * from `filters` for the same reason as `city`: the server's `food` filter
-   * chooses between veg and non-veg rather than answering whether meals are
-   * provided at all, so this narrows the returned rows on `mealsPerDay`.
+   * "Serves food". Client-side and held apart from `filters` for the same
+   * reason as `city`: the server's `food` filter chooses between veg and non-veg
+   * rather than answering whether meals are provided at all, so this narrows the
+   * returned rows on `mealsPerDay`.
    */
   const [meals, setMeals] = useState(params.meals === "1");
   const [search, setSearch] = useState(params.q ?? "");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [draft, setDraft] = useState<HostelFilters>(filters);
   /*
    * List or map. Not a filter — both views show the same `ordered` rows, so
    * switching never changes the result set, only how it is drawn. The map is
@@ -157,10 +189,7 @@ export function HostelBrowser({
    * params and torn down when you go back. Inside the tabs this screen **is** a
    * tab — mounted the first time it is focused and never unmounted again — so
    * every later `?q=…` from the home screen's field landed on a search box that
-   * had already been initialised, and was dropped on the floor: the field
-   * showed whatever was last typed *here*, and the list showed the results for
-   * that. From the home screen that looks like the field clearing itself on
-   * submit, which is the bug this fixes.
+   * had already been initialised, and was dropped on the floor.
    *
    * Keyed on the params rather than on focus, and that distinction is the
    * point: tapping Search in the tab bar re-focuses this screen without
@@ -184,8 +213,32 @@ export function HostelBrowser({
     setMeals(mealsParam === "1");
     setSearch(q ?? "");
   }, [cityParam, facility, incoming, mealsParam, q, type]);
+
+  /*
+   * The list follows the field after a pause. Enter used to be the only way to
+   * search, and a field that does nothing until a key half the readers never
+   * press reads as broken. One request per pause rather than per letter, and a
+   * lone letter waits for a second — it matches nearly everything.
+   */
+  useEffect(() => {
+    const typed = search.trim();
+
+    if (typed.length === 1) {
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setFilters((current) =>
+        (current.q ?? "") === typed ? current : { ...current, q: typed || undefined },
+      );
+    }, SEARCH_PAUSE_MS);
+
+    return () => clearTimeout(timer);
+  }, [search]);
+
   const nearby = useNearby();
   const saved = useSavedHostels();
+  const own = useOwnScroll(insideTabs);
 
   const query = publicQuery.hostels(filters);
   const hostels = useResource<PublicHostel[]>(query.load, {
@@ -193,6 +246,7 @@ export function HostelBrowser({
     topics: query.topics,
   });
 
+  /** On the filter button: how many server-side filters are on, the query aside. */
   const activeCount = useMemo(
     () =>
       Object.entries(filters).filter(
@@ -201,13 +255,10 @@ export function HostelBrowser({
     [filters],
   );
 
-  // Memoised only so the sort below is not redone on every keystroke in the
-  // search field: `?? []` is a fresh array each render.
-  //
   // `returned` is what the server sent; `rows` is what is on screen after the
-  // city narrowing. The two are separate because the "first 60" footer has to
-  // describe the *request* — narrowing 60 rows down to 9 does not mean the
-  // catalogue held 9.
+  // city and meals narrowing. The two are separate because the "first 60"
+  // footer has to describe the *request* — narrowing 60 rows down to 9 does not
+  // mean the catalogue held 9.
   const returned = useMemo(() => hostels.data ?? [], [hostels.data]);
   const rows = useMemo(() => {
     const narrowed = city ? inCity(returned, city) : returned;
@@ -251,6 +302,132 @@ export function HostelBrowser({
     [],
   );
 
+  const clearAll = useCallback(() => {
+    setFilters((current) => ({ q: current.q }));
+    setCity("");
+    setMeals(false);
+  }, []);
+
+  const renderRow = useCallback(
+    ({ item }: { item: HostelWithDistance }) => {
+      const minutes = commute ? minutesTo(item.hostel.id) : null;
+
+      return (
+        <HostelCard
+          commute={commute && minutes ? `${minutes} min walk to ${commute.name}` : null}
+          distanceMeters={item.distanceMeters}
+          hostel={item.hostel}
+          onToggleCompare={toggleCompare}
+          onToggleSave={saved.toggle}
+          saved={saved.ids.has(item.hostel.id)}
+          selectedForCompare={compare.includes(item.hostel.id)}
+          showCampusDistance
+        />
+      );
+    },
+    [commute, compare, minutesTo, saved.ids, saved.toggle, toggleCompare],
+  );
+
+  const narrowed = activeCount > 0 || Boolean(city) || meals;
+
+  const summary = hostels.loading
+    ? "Finding hostels…"
+    : `${rows.length} ${rows.length === 1 ? "hostel" : "hostels"}${city ? ` in ${city}` : ""}${
+        nearby.isActive ? " · nearest first" : ""
+      }`;
+
+  const resultsLine = (
+    <View className="flex-row items-center gap-3 pb-3">
+      <Text className="flex-1" numberOfLines={1} variant="caption">
+        {summary}
+      </Text>
+      <ViewSwitch onChange={setView} value={view} />
+    </View>
+  );
+
+  const header = (
+    <View
+      className="gap-3 border-b border-border bg-background pb-3"
+      style={{ paddingTop: insets.top + 10 }}
+    >
+      <View className="flex-row items-center gap-2 px-5">
+        {showBack ? (
+          <Pressable
+            accessibilityLabel="Back"
+            accessibilityRole="button"
+            className="active:opacity-60"
+            hitSlop={12}
+            onPress={() => router.back()}
+          >
+            <Glyph color={colors.foreground} name="chevron-back" size={24} />
+          </Pressable>
+        ) : null}
+
+        <View
+          className="flex-1 flex-row items-center gap-2 rounded-2xl border border-border bg-card"
+          style={{ height: SEARCH_HEIGHT, paddingLeft: 12, paddingRight: 6 }}
+        >
+          <Glyph color={colors.mutedForeground} name="search" size={16} />
+          <TextInput
+            className="h-full flex-1 text-base text-foreground"
+            onChangeText={setSearch}
+            onSubmitEditing={() =>
+              setFilters((current) => ({ ...current, q: search.trim() || undefined }))
+            }
+            placeholder="Hostel, area or city"
+            placeholderTextColor={colors.mutedForeground}
+            returnKeyType="search"
+            value={search}
+          />
+          {search ? (
+            <Pressable
+              accessibilityLabel="Clear search"
+              accessibilityRole="button"
+              hitSlop={8}
+              onPress={() => setSearch("")}
+            >
+              <Glyph color={colors.mutedForeground} name="close-circle" size={16} />
+            </Pressable>
+          ) : null}
+          <Pressable
+            accessibilityLabel={activeCount > 0 ? `Filters, ${activeCount} on` : "Filters"}
+            accessibilityRole="button"
+            className="items-center justify-center rounded-xl bg-primary active:opacity-80"
+            onPress={() => {
+              setDraft(filters);
+              setSheetOpen(true);
+            }}
+            style={{ height: FILTER_BUTTON, width: FILTER_BUTTON }}
+          >
+            <Glyph color={colors.primaryForeground} name="options" size={16} />
+            {activeCount > 0 ? (
+              <View
+                className="absolute items-center justify-center rounded-full border-2 border-card bg-foreground"
+                style={{ height: 17, minWidth: 17, paddingHorizontal: 3, right: -6, top: -6 }}
+              >
+                <Text className="text-background" style={{ fontSize: 9, fontWeight: "700" }}>
+                  {activeCount}
+                </Text>
+              </View>
+            ) : null}
+          </Pressable>
+        </View>
+      </View>
+
+      <QuickFilters
+        city={city}
+        filters={filters}
+        meals={meals}
+        nearby={nearby}
+        onChange={setFilters}
+        onClearCity={() => setCity("")}
+        onToggleMeals={() => setMeals((current) => !current)}
+      />
+    </View>
+  );
+
+  const bottomPad = compare.length > 0 ? 12 : own.scrollPaddingBottom;
+
   return (
     <Screen
       footer={
@@ -278,206 +455,131 @@ export function HostelBrowser({
           </View>
         ) : undefined
       }
-      header={
-        <AppBar showBack={showBack} subtitle="Verified hostels in Nepal" title="Browse" />
-      }
+      header={header}
       insideTabs={insideTabs}
-      onRefresh={view === "list" ? hostels.refresh : undefined}
+      ownScroll
       padded={false}
-      refreshing={hostels.refreshing}
-      /*
-       * The map takes over the scroll gesture, so the page must not also own
-       * one — see `fill` in `components/hostel-map.tsx`. Pull-to-refresh goes
-       * with it; the filters above still refetch, which is the case that
-       * matters.
-       */
-      scroll={view === "list"}
     >
-      <View className={`gap-4 px-5 ${view === "map" ? "flex-1" : ""}`}>
-        <View className="flex-row items-center gap-2">
-          <View className="h-12 flex-1 flex-row items-center gap-2 rounded-xl border border-border bg-card px-3">
-            <Glyph color={colors.mutedForeground} name="search" size={17} />
-            <TextInput
-              className="h-full flex-1 text-base text-foreground"
-              onChangeText={setSearch}
-              onSubmitEditing={() =>
-                setFilters((current) => ({ ...current, q: search.trim() || undefined }))
-              }
-              placeholder="Hostel name or area"
-              placeholderTextColor={colors.mutedForeground}
-              returnKeyType="search"
-              value={search}
+      {view === "map" ? (
+        /*
+          The same rows the list would draw. A hostel with no coordinates has no
+          pin and the map says so — it is still in the list, and dropping it
+          from both would be the dishonest version.
+        */
+        <View className="flex-1 px-5 pt-3" style={{ paddingBottom: bottomPad }}>
+          {resultsLine}
+          {hostels.loading ? (
+            <View className="flex-1">
+              <Skeleton height="100%" radius={16} />
+            </View>
+          ) : hostels.error ? (
+            <ErrorState message={hostels.error} onRetry={hostels.reload} />
+          ) : (
+            <HostelMap
+              fill
+              hostels={rows}
+              me={nearby.coordinates}
+              onSelect={(slug) => router.push(`/hostel/${slug}`)}
             />
-            {search ? (
-              <Pressable
-                accessibilityLabel="Clear search"
-                accessibilityRole="button"
-                hitSlop={8}
-                onPress={() => {
-                  setSearch("");
-                  setFilters((current) => ({ ...current, q: undefined }));
-                }}
-              >
-                <Glyph color={colors.mutedForeground} name="close-circle" size={17} />
-              </Pressable>
-            ) : null}
-          </View>
-
-          <Pressable
-            accessibilityLabel="Filters"
-            accessibilityRole="button"
-            className="h-12 flex-row items-center gap-1.5 rounded-xl border border-border px-3 active:opacity-70"
-            onPress={() => setSheetOpen(true)}
-          >
-            <Glyph color={colors.foreground} name="options" size={18} />
-            {activeCount > 0 ? (
-              <View className="h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1">
-                <Text className="text-[11px] font-bold text-primary-foreground">
-                  {activeCount}
-                </Text>
+          )}
+        </View>
+      ) : (
+        <Animated.FlatList<HostelWithDistance>
+          ItemSeparatorComponent={RowGap}
+          ListEmptyComponent={
+            hostels.loading ? (
+              <View className="gap-3">
+                <Skeleton height={300} radius={16} />
+                <Skeleton height={300} radius={16} />
               </View>
-            ) : null}
-          </Pressable>
-        </View>
-
-        <View className="flex-row items-center gap-2">
-          <View className="flex-1">
-            <NearestToggle nearby={nearby} />
-          </View>
-          <ViewSwitch onChange={setView} value={view} />
-        </View>
-
-        {activeCount > 0 || city || meals ? (
-          <ActiveFilterChips
-            city={city}
-            filters={filters}
-            meals={meals}
-            onChange={setFilters}
-            onClearCity={() => setCity("")}
-            onClearMeals={() => setMeals(false)}
-          />
-        ) : null}
-
-        {hostels.loading ? (
-          <View className="gap-3">
-            <Skeleton height={250} radius={16} />
-            <Skeleton height={250} radius={16} />
-          </View>
-        ) : hostels.error ? (
-          <ErrorState message={hostels.error} onRetry={hostels.reload} />
-        ) : view === "map" ? (
-          /*
-             The same `ordered` rows the list would draw. A hostel with no
-             coordinates has no pin and the map says so — it is still in the
-             list, and dropping it from both would be the dishonest version.
-          */
-          <HostelMap
-            fill
-            hostels={ordered.map((row) => row.hostel)}
-            me={nearby.coordinates}
-            onSelect={(slug) => router.push(`/hostel/${slug}`)}
-          />
-        ) : rows.length === 0 ? (
-          <EmptyState
-            action={
-              activeCount > 0 || city || meals ? (
-                <Button
-                  label="Clear filters"
-                  onPress={() => {
-                    setFilters({ q: filters.q });
-                    setCity("");
-                    setMeals(false);
-                    setSheetOpen(false);
-                  }}
-                  variant="outline"
-                />
-              ) : undefined
-            }
-            description={
-              city && returned.length > 0
-                ? `None of these listings are in ${city}. Clear the city to see the rest.`
-                : meals && returned.length > 0
-                  ? "None of these listings have said they provide meals. Clear that to see the rest."
-                  : activeCount > 0
-                  ? "Nothing matches all of those filters. Try widening one."
-                  : "No hostels are published yet."
-            }
-            title="No results"
-          />
-        ) : (
-          <View className="gap-3">
-            <Text variant="caption">
-              {`${rows.length} verified ${rows.length === 1 ? "hostel" : "hostels"}`}
-              {city ? ` in ${city}` : ""}
-              {nearby.isActive ? " · nearest first" : ""}
-            </Text>
-
-            {ordered.map((row) => (
-              <HostelCard
-                commute={
-                  commute && minutesTo(row.hostel.id)
-                    ? `${minutesTo(row.hostel.id)} min walk to ${commute.name}`
-                    : null
+            ) : hostels.error ? (
+              <ErrorState message={hostels.error} onRetry={hostels.reload} />
+            ) : (
+              <EmptyState
+                action={
+                  narrowed ? (
+                    <Button label="Clear filters" onPress={clearAll} variant="outline" />
+                  ) : undefined
                 }
-                distanceMeters={row.distanceMeters}
-                hostel={row.hostel}
-                key={row.hostel.id}
-                onToggleCompare={toggleCompare}
-                onToggleSave={saved.toggle}
-                saved={saved.ids.has(row.hostel.id)}
-                selectedForCompare={compare.includes(row.hostel.id)}
-                showCampusDistance
+                description={
+                  city && returned.length > 0
+                    ? `None of these listings are in ${city}. Clear the city to see the rest.`
+                    : meals && returned.length > 0
+                      ? "None of these listings have said they provide meals. Clear that to see the rest."
+                      : activeCount > 0
+                        ? "Nothing matches all of those filters. Try widening one."
+                        : filters.q
+                          ? `Nothing matches “${filters.q}”. Try a city or an area instead.`
+                          : "No hostels are published yet."
+                }
+                icon="search"
+                title="No hostels found"
               />
-            ))}
-
-            <Text className="py-4 text-center" variant="caption">
-              {/* Reads `returned`, not `rows`: the cap is a property of the
-                  request, and the city narrowing happens after it. */}
-              {returned.length >= 60
-                ? "Showing the first 60 — narrow your filters to see more."
-                : "You've reached the end"}
-            </Text>
-          </View>
-        )}
-      </View>
+            )
+          }
+          ListFooterComponent={
+            ordered.length > 0 ? (
+              <Text className="py-5 text-center" variant="caption">
+                {/* Reads `returned`, not `rows`: the cap is a property of the
+                    request, and the city narrowing happens after it. */}
+                {returned.length >= 60
+                  ? "Showing the first 60 — narrow your filters to see more."
+                  : "You've reached the end"}
+              </Text>
+            ) : null
+          }
+          ListHeaderComponent={resultsLine}
+          contentContainerStyle={{ paddingBottom: bottomPad, paddingHorizontal: 20, paddingTop: 12 }}
+          data={hostels.loading || hostels.error ? NO_ROWS : ordered}
+          initialNumToRender={3}
+          keyExtractor={(row) => row.hostel.id}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+          maxToRenderPerBatch={4}
+          onScroll={own.onScroll}
+          refreshControl={
+            <RefreshControl
+              colors={[colors.primary]}
+              onRefresh={hostels.refresh}
+              refreshing={hostels.refreshing}
+              tintColor={colors.primary}
+            />
+          }
+          renderItem={renderRow}
+          scrollEventThrottle={own.scrollEventThrottle}
+          showsVerticalScrollIndicator={false}
+          windowSize={7}
+        />
+      )}
 
       <FilterSheet
-        filters={filters}
-        onApply={(next) => {
-          setFilters(next);
+        draft={draft}
+        onApply={() => {
+          // The field keeps its own query: it is visible above the sheet, and a
+          // draft taken before the last keystroke would rewrite it.
+          setFilters((current) => ({ ...draft, q: current.q }));
           setSheetOpen(false);
         }}
         onClose={() => setSheetOpen(false)}
+        onDraft={setDraft}
         open={sheetOpen}
       />
     </Screen>
   );
 }
 
+function RowGap() {
+  return <View className="h-3" />;
+}
+
 /**
- * The `Sort: nearest` control — a toggle chip, not a dropdown.
- *
- * There is exactly one alternative to the server's cheapest-first order, so a
- * dropdown would be a menu of two. It sits above the results rather than inside
- * the filter sheet because it needs a permission dialogue: burying a prompt
- * behind Apply means the dialogue arrives after the sheet has closed, attached
- * to nothing the user can see they asked for.
- *
- * `blocked` keeps the chip visible and turns it into the settings link. Hiding
- * it would leave a user who once tapped "Don't allow" with no way back and no
- * explanation of where the option went.
- */
-/**
- * List or map, as one two-segment control.
+ * List or map, as one two-segment control on the results line.
  *
  * A segmented control rather than a single "Map" button because the state is
  * exclusive and persistent — the user is *in* one of two views, and a lone
  * toggle button leaves them guessing which. Both segments stay visible and the
- * selected one is filled, so the current view and the way out of it are the
+ * selected one is lifted, so the current view and the way out of it are the
  * same control.
- *
- * Sized against the 44dp touch target rather than the label: this sits beside a
- * filter chip that people reach for with a thumb halfway down the screen.
  */
 function ViewSwitch({
   onChange,
@@ -494,7 +596,7 @@ function ViewSwitch({
   ] as const;
 
   return (
-    <View className="flex-row overflow-hidden rounded-full border border-border">
+    <View className="flex-row rounded-full bg-muted p-0.5">
       {options.map((option) => {
         const selected = option.value === value;
 
@@ -503,21 +605,20 @@ function ViewSwitch({
             accessibilityLabel={`${option.label} view`}
             accessibilityRole="button"
             accessibilityState={{ selected }}
-            className={`flex-row items-center gap-1.5 px-3 py-1.5 active:opacity-70 ${
-              selected ? "bg-primary" : ""
+            className={`flex-row items-center gap-1 rounded-full px-3 py-1.5 active:opacity-70 ${
+              selected ? "bg-card" : ""
             }`}
+            hitSlop={4}
             key={option.value}
             onPress={() => onChange(option.value)}
           >
             <Glyph
-              color={selected ? colors.primaryForeground : colors.mutedForeground}
+              color={selected ? colors.primary : colors.mutedForeground}
               name={option.icon}
               size={14}
             />
             <Text
-              className={`text-xs font-medium ${
-                selected ? "text-primary-foreground" : "text-muted-foreground"
-              }`}
+              className={`text-xs ${selected ? "font-semibold text-foreground" : "font-medium text-muted-foreground"}`}
             >
               {option.label}
             </Text>
@@ -528,312 +629,311 @@ function ViewSwitch({
   );
 }
 
-function NearestToggle({ nearby }: { nearby: ReturnType<typeof useNearby> }) {
-  const { colors } = useAppTheme();
-
-  const label = nearby.isBusy
-    ? "Finding you…"
-    : nearby.isActive
-      ? "Nearest first"
-      : nearby.status === "blocked"
-        ? "Location is blocked — open settings"
-        : nearby.status === "unavailable"
-          ? "Couldn't find you — try again"
-          : "Sort: nearest";
-
-  return (
-    <View className="flex-row">
-      <Pressable
-        accessibilityLabel={label}
-        accessibilityRole="button"
-        accessibilityState={{ selected: nearby.isActive }}
-        className={`flex-row items-center gap-1.5 rounded-full border px-3 py-1.5 active:opacity-70 ${
-          nearby.isActive ? "border-primary bg-primary/10" : "border-border"
-        }`}
-        disabled={nearby.isBusy}
-        onPress={() => {
-          if (nearby.status === "blocked") {
-            nearby.openSettings();
-            return;
-          }
-
-          if (nearby.isActive) {
-            nearby.disable();
-            return;
-          }
-
-          void nearby.enable();
-        }}
-      >
-        <Glyph
-          color={nearby.isActive ? colors.primary : colors.mutedForeground}
-          name="navigate"
-          variant={nearby.isActive ? "solid" : "line"}
-          size={14}
-        />
-        <Text
-          className={`text-xs font-medium ${nearby.isActive ? "text-primary" : ""}`}
-        >
-          {label}
-        </Text>
-      </Pressable>
-    </View>
-  );
-}
-
-function ActiveFilterChips({
+/**
+ * The one-tap filters, pinned under the field.
+ *
+ * Each is a toggle that writes the same `HostelFilters` the sheet writes, so the
+ * two can never disagree — a type picked here is ticked in the sheet, and one
+ * picked in the sheet lights its chip here. Filters with no chip of their own
+ * (a city from Home, a room type, a facility) ride at the front as removable
+ * chips, which is where somebody who arrived with one looks for the way out.
+ *
+ * `flexGrow: 0` is not decoration: a horizontal ScrollView grows by default, and
+ * in the map view's column it grew to half the screen and stretched its chips
+ * into a giant green pill.
+ */
+function QuickFilters({
   city,
   filters,
   meals,
+  nearby,
   onChange,
   onClearCity,
-  onClearMeals,
+  onToggleMeals,
 }: {
-  /** Narrows on the client, so it is not a `HostelFilters` key — see above. */
   city: string;
   filters: HostelFilters;
-  /** Also client-side, and also not a `HostelFilters` key — see above. */
   meals: boolean;
-  onChange: (next: HostelFilters) => void;
+  nearby: ReturnType<typeof useNearby>;
+  onChange: (next: (current: HostelFilters) => HostelFilters) => void;
   onClearCity: () => void;
-  onClearMeals: () => void;
+  onToggleMeals: () => void;
 }) {
-  const chips: { clear: () => void; key: string; label: string }[] = [];
-
   /** Removes one server-side filter, and its partner where it has one. */
-  function drop(key: keyof HostelFilters) {
-    const next = { ...filters };
+  const drop = (key: keyof HostelFilters) =>
+    onChange((current) => {
+      const next = { ...current };
 
-    delete next[key];
-    // Budget is one chip over two fields, so clearing it clears both.
-    if (key === "minPrice") delete next.maxPrice;
+      delete next[key];
+      // Budget is one chip over two fields, so clearing it clears both.
+      if (key === "minPrice") delete next.maxPrice;
 
-    onChange(next);
-  }
-
-  if (city) {
-    // First, because it is the one the user most likely arrived with — the home
-    // screen's "Browse by city" row deep-links straight into this list.
-    chips.push({ clear: onClearCity, key: "city", label: city });
-  }
-
-  if (meals) {
-    chips.push({ clear: onClearMeals, key: "meals", label: "Serves food" });
-  }
-
-  if (filters.type) {
-    chips.push({
-      clear: () => drop("type"),
-      key: "type",
-      label: HOSTEL_TYPE_LABELS[filters.type],
+      return next;
     });
-  }
 
-  if (filters.stay) {
-    chips.push({ clear: () => drop("stay"), key: "stay", label: "Short stays" });
-  }
+  const quickBudget =
+    filters.minPrice === QUICK_BUDGET.minPrice && filters.maxPrice === QUICK_BUDGET.maxPrice;
+  const otherBudget = Boolean(filters.minPrice || filters.maxPrice) && !quickBudget;
+  const band = BUDGET_BANDS.find(
+    (option) => option.minPrice === filters.minPrice && option.maxPrice === filters.maxPrice,
+  );
 
-  if (filters.roomType) {
-    chips.push({ clear: () => drop("roomType"), key: "roomType", label: filters.roomType });
-  }
-
-  if (filters.facility) {
-    chips.push({ clear: () => drop("facility"), key: "facility", label: filters.facility });
-  }
-
-  if (filters.food) {
-    chips.push({
-      clear: () => drop("food"),
-      key: "food",
-      label: filters.food === "veg" ? "Veg" : "Non-veg",
-    });
-  }
-
-  if (filters.area) {
-    chips.push({ clear: () => drop("area"), key: "area", label: filters.area });
-  }
-
-  if (filters.minPrice || filters.maxPrice) {
-    const band = BUDGET_BANDS.find(
-      (option) =>
-        option.minPrice === filters.minPrice && option.maxPrice === filters.maxPrice,
-    );
-
-    chips.push({ clear: () => drop("minPrice"), key: "budget", label: band?.label ?? "Budget" });
-  }
+  const nearestLabel = nearby.isBusy
+    ? "Finding you…"
+    : nearby.status === "blocked"
+      ? "Location blocked"
+      : "Nearest";
 
   return (
-    <ScrollView contentContainerClassName="gap-2" horizontal showsHorizontalScrollIndicator={false}>
-      {chips.map((chip) => (
-        <Pressable
-          accessibilityLabel={`Remove ${chip.label} filter`}
-          accessibilityRole="button"
-          className="flex-row items-center gap-1.5 rounded-full bg-primary px-3 py-1.5 active:opacity-70"
-          key={chip.key}
-          onPress={chip.clear}
-        >
-          <Text className="text-xs font-semibold text-primary-foreground">
-            {chip.label}
-          </Text>
-          <Glyph color="#ffffff" name="close" size={12} />
-        </Pressable>
+    <ScrollView
+      contentContainerClassName="gap-2 px-5"
+      horizontal
+      keyboardShouldPersistTaps="handled"
+      showsHorizontalScrollIndicator={false}
+      style={{ flexGrow: 0 }}
+    >
+      {city ? <FilterChip label={city} onPress={onClearCity} removable selected /> : null}
+      {filters.roomType ? (
+        <FilterChip label={filters.roomType} onPress={() => drop("roomType")} removable selected />
+      ) : null}
+      {filters.facility ? (
+        <FilterChip label={filters.facility} onPress={() => drop("facility")} removable selected />
+      ) : null}
+      {filters.food ? (
+        <FilterChip
+          label={filters.food === "veg" ? "Veg" : "Non-veg"}
+          onPress={() => drop("food")}
+          removable
+          selected
+        />
+      ) : null}
+      {filters.area ? (
+        <FilterChip label={filters.area} onPress={() => drop("area")} removable selected />
+      ) : null}
+      {otherBudget ? (
+        <FilterChip label={band?.label ?? "Budget"} onPress={() => drop("minPrice")} removable selected />
+      ) : null}
+
+      <FilterChip
+        disabled={nearby.isBusy}
+        icon="navigate"
+        label={nearestLabel}
+        onPress={() => {
+          if (nearby.status === "blocked") {
+            nearby.openSettings();
+          } else if (nearby.isActive) {
+            nearby.disable();
+          } else {
+            void nearby.enable();
+          }
+        }}
+        selected={nearby.isActive}
+      />
+
+      {HOSTEL_TYPES.map((type) => (
+        <FilterChip
+          key={type}
+          label={HOSTEL_TYPE_LABELS[type]}
+          onPress={() =>
+            onChange((current) => ({ ...current, type: current.type === type ? undefined : type }))
+          }
+          selected={filters.type === type}
+        />
       ))}
+
+      <FilterChip
+        label="Short stays"
+        onPress={() =>
+          onChange((current) => ({ ...current, stay: current.stay ? undefined : "short" }))
+        }
+        selected={filters.stay === "short"}
+      />
+
+      <FilterChip
+        label="Under 8,000"
+        onPress={() =>
+          onChange((current) =>
+            quickBudget
+              ? { ...current, maxPrice: undefined, minPrice: undefined }
+              : { ...current, maxPrice: QUICK_BUDGET.maxPrice, minPrice: QUICK_BUDGET.minPrice },
+          )
+        }
+        selected={quickBudget}
+      />
+
+      <FilterChip label="Serves food" onPress={onToggleMeals} selected={meals} />
     </ScrollView>
   );
 }
 
+const FilterChip = memo(function FilterChip({
+  disabled = false,
+  icon,
+  label,
+  onPress,
+  removable = false,
+  selected,
+}: {
+  disabled?: boolean;
+  icon?: GlyphName;
+  label: string;
+  onPress: () => void;
+  /** Already applied, and a tap takes it off — so it draws the ×. */
+  removable?: boolean;
+  selected: boolean;
+}) {
+  const { colors } = useAppTheme();
+  const ink = selected ? colors.primaryForeground : colors.foreground;
+
+  return (
+    <Pressable
+      accessibilityLabel={removable ? `Remove ${label} filter` : label}
+      accessibilityRole="button"
+      accessibilityState={{ disabled, selected }}
+      className={`h-9 flex-row items-center gap-1.5 rounded-full border px-3.5 active:opacity-70 ${
+        selected ? "border-primary bg-primary" : "border-border bg-card"
+      }`}
+      disabled={disabled}
+      onPress={onPress}
+    >
+      {icon ? (
+        <Glyph color={ink} name={icon} size={14} variant={selected ? "solid" : "line"} />
+      ) : null}
+      <Text
+        className={`text-sm ${selected ? "font-semibold text-primary-foreground" : "font-medium text-foreground"}`}
+      >
+        {label}
+      </Text>
+      {removable ? <Glyph color={ink} name="close" size={12} /> : null}
+    </Pressable>
+  );
+});
+
 /**
  * The filter sheet.
  *
- * Edits a **draft** and only lifts it on Apply. Filtering live on every tap
+ * A bottom sheet at 72% of the screen, not a full-screen page: the results stay
+ * in view above it, it drags away like every other sheet in the app, and the
+ * six groups scroll inside it. Reset and Show sit pinned at the bottom, where
+ * the thumb already is.
+ *
+ * Edits a **draft** and only lifts it on Show. Filtering live on every tap
  * would refetch four times while somebody sets four filters, and the list
- * behind the sheet would shuffle under a control they are still using.
+ * behind the sheet would shuffle under a control they are still using. The
+ * opener seeds the draft from what is applied, so a sheet dragged away
+ * half-edited opens next time on the truth, not on the abandoned edit.
  */
+const FILTER_SHEET_HEIGHT = 0.72;
+
 function FilterSheet({
-  filters,
+  draft,
   onApply,
   onClose,
+  onDraft,
   open,
 }: {
-  filters: HostelFilters;
-  onApply: (next: HostelFilters) => void;
+  draft: HostelFilters;
+  onApply: () => void;
   onClose: () => void;
+  onDraft: (next: (current: HostelFilters) => HostelFilters) => void;
   open: boolean;
 }) {
-  const insets = useSystemInsets();
-  const { colors } = useAppTheme();
-  const [draft, setDraft] = useState(filters);
-
-  const patch = useCallback((next: Partial<HostelFilters>) => {
-    setDraft((current) => ({ ...current, ...next }));
-  }, []);
+  const patch = (next: Partial<HostelFilters>) => onDraft((current) => ({ ...current, ...next }));
 
   return (
-    <Modal
-      animationType="slide"
-      onRequestClose={onClose}
-      onShow={() => setDraft(filters)}
-      presentationStyle="pageSheet"
-      visible={open}
+    <Sheet
+      footer={
+        <View className="flex-row items-center gap-3">
+          <View className="flex-1">
+            <Button
+              label="Reset"
+              onPress={() => onDraft((current) => ({ q: current.q }))}
+              variant="ghost"
+            />
+          </View>
+          <View className="flex-1">
+            <Button label="Show hostels" onPress={onApply} />
+          </View>
+        </View>
+      }
+      height={FILTER_SHEET_HEIGHT}
+      onClose={onClose}
+      open={open}
+      title="Filters"
     >
-      <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
-        <View className="flex-row items-center gap-3 border-b border-border px-5 pb-3 pt-2">
-          <Pressable accessibilityLabel="Close" accessibilityRole="button" hitSlop={10} onPress={onClose}>
-            <Glyph color={colors.foreground} name="close" size={24} />
-          </Pressable>
-          <Text className="flex-1" variant="subtitle">
-            Filters
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            hitSlop={8}
-            onPress={() => setDraft({ q: draft.q })}
-          >
-            <Text className="text-primary" variant="label">
-              Clear all
-            </Text>
-          </Pressable>
-        </View>
-
-        <ScrollView contentContainerClassName="gap-6 px-5 py-5" contentContainerStyle={{ paddingBottom: 32 }}>
-          <FilterGroup title="Hostel type">
+      <View className="gap-6 pb-2">
+        <FilterGroup title="Hostel type">
+          <Choice label="Any" onPress={() => patch({ type: undefined })} selected={!draft.type} />
+          {HOSTEL_TYPES.map((type) => (
             <Choice
-              label="Any"
-              onPress={() => patch({ type: undefined })}
-              selected={!draft.type}
+              key={type}
+              label={HOSTEL_TYPE_LABELS[type]}
+              onPress={() => patch({ type })}
+              selected={draft.type === type}
             />
-            {HOSTEL_TYPES.map((type) => (
-              <Choice
-                key={type}
-                label={HOSTEL_TYPE_LABELS[type]}
-                onPress={() => patch({ type })}
-                selected={draft.type === type}
-              />
-            ))}
-          </FilterGroup>
+          ))}
+        </FilterGroup>
 
-          <FilterGroup title="Stay length">
-            <Choice label="Any" onPress={() => patch({ stay: undefined })} selected={!draft.stay} />
+        <FilterGroup title="Stay length">
+          <Choice label="Any" onPress={() => patch({ stay: undefined })} selected={!draft.stay} />
+          <Choice
+            label="Short stays (nightly)"
+            onPress={() => patch({ stay: "short" })}
+            selected={draft.stay === "short"}
+          />
+        </FilterGroup>
+
+        <FilterGroup title="Budget (monthly)">
+          {BUDGET_BANDS.map((band) => (
             <Choice
-              label="Short stays (nightly)"
-              onPress={() => patch({ stay: "short" })}
-              selected={draft.stay === "short"}
+              key={band.label}
+              label={band.label}
+              onPress={() => patch({ maxPrice: band.maxPrice, minPrice: band.minPrice })}
+              selected={draft.minPrice === band.minPrice && draft.maxPrice === band.maxPrice}
             />
-          </FilterGroup>
+          ))}
+        </FilterGroup>
 
-          <FilterGroup title="Budget (monthly)">
-            {BUDGET_BANDS.map((band) => (
-              <Choice
-                key={band.label}
-                label={band.label}
-                onPress={() => patch({ maxPrice: band.maxPrice, minPrice: band.minPrice })}
-                selected={
-                  draft.minPrice === band.minPrice && draft.maxPrice === band.maxPrice
-                }
-              />
-            ))}
-          </FilterGroup>
-
-          <FilterGroup title="Room type">
+        <FilterGroup title="Room type">
+          <Choice label="Any" onPress={() => patch({ roomType: undefined })} selected={!draft.roomType} />
+          {ROOM_TYPES.map((roomType) => (
             <Choice
-              label="Any"
-              onPress={() => patch({ roomType: undefined })}
-              selected={!draft.roomType}
+              key={roomType}
+              label={roomType}
+              onPress={() => patch({ roomType })}
+              selected={draft.roomType === roomType}
             />
-            {ROOM_TYPES.map((roomType) => (
-              <Choice
-                key={roomType}
-                label={roomType}
-                onPress={() => patch({ roomType })}
-                selected={draft.roomType === roomType}
-              />
-            ))}
-          </FilterGroup>
+          ))}
+        </FilterGroup>
 
-          <FilterGroup title="Food">
-            <Choice label="Any" onPress={() => patch({ food: undefined })} selected={!draft.food} />
-            <Choice
-              label="Veg"
-              onPress={() => patch({ food: "veg" })}
-              selected={draft.food === "veg"}
-            />
-            <Choice
-              label="Non-veg"
-              onPress={() => patch({ food: "non-veg" })}
-              selected={draft.food === "non-veg"}
-            />
-          </FilterGroup>
+        <FilterGroup title="Food">
+          <Choice label="Any" onPress={() => patch({ food: undefined })} selected={!draft.food} />
+          <Choice label="Veg" onPress={() => patch({ food: "veg" })} selected={draft.food === "veg"} />
+          <Choice
+            label="Non-veg"
+            onPress={() => patch({ food: "non-veg" })}
+            selected={draft.food === "non-veg"}
+          />
+        </FilterGroup>
 
-          {/*
-            One at a time, not a checkbox group: the server takes a single
-            `facility`. A multi-select here would quietly drop everything after
-            the first and show a result set the user believes is narrower.
-          */}
-          <FilterGroup subtitle="One at a time" title="Facility">
+        {/*
+          One at a time, not a checkbox group: the server takes a single
+          `facility`. A multi-select here would quietly drop everything after
+          the first and show a result set the user believes is narrower.
+        */}
+        <FilterGroup subtitle="One at a time" title="Facility">
+          <Choice label="Any" onPress={() => patch({ facility: undefined })} selected={!draft.facility} />
+          {FACILITIES.map((facility) => (
             <Choice
-              label="Any"
-              onPress={() => patch({ facility: undefined })}
-              selected={!draft.facility}
+              key={facility}
+              label={facility}
+              onPress={() => patch({ facility })}
+              selected={draft.facility === facility}
             />
-            {FACILITIES.map((facility) => (
-              <Choice
-                key={facility}
-                label={facility}
-                onPress={() => patch({ facility })}
-                selected={draft.facility === facility}
-              />
-            ))}
-          </FilterGroup>
-        </ScrollView>
-
-        <View
-          className="border-t border-border px-5 pt-3"
-          style={{ paddingBottom: Math.max(insets.bottom, 16) }}
-        >
-          <Button label="Show hostels" onPress={() => onApply(draft)} />
-        </View>
+          ))}
+        </FilterGroup>
       </View>
-    </Modal>
+    </Sheet>
   );
 }
 

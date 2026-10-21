@@ -217,6 +217,23 @@ describe("fetchQuery", () => {
 
     expect(readQuery("admin:residents")?.data).toEqual([{ id: "r1" }]);
   });
+
+  it("keeps the old object for an unchanged answer, fresh and without telling watchers", async () => {
+    const first = [{ id: "r1" }];
+    writeQuery("admin:residents", first);
+    invalidateQuery("admin:residents");
+    const listener = vi.fn();
+    subscribeQuery("admin:residents", listener);
+
+    const same = await fetchQuery("admin:residents", async () => [{ id: "r1" }]);
+    expect(same).toBe(first);
+    expect(readQuery("admin:residents")).toEqual({ data: first, fresh: true });
+    expect(listener).not.toHaveBeenCalled();
+
+    const moved = await fetchQuery("admin:residents", async () => [{ id: "r2" }]);
+    expect(moved).not.toBe(first);
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("prefetchQuery", () => {

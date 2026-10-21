@@ -108,7 +108,7 @@ export default function PricingScreen() {
         ) : null}
 
         {!loading && !error && empty ? (
-          <EmptyState
+          <EmptyState icon="pricetags"
             description="No plans have been published yet. Get in touch and we'll talk you through what a listing costs."
             title="Pricing is on its way"
           />

@@ -97,7 +97,7 @@ export default function ReviewScreen() {
   if (!canReview(resident.status)) {
     return (
       <Screen header={header}>
-        <EmptyState
+        <EmptyState icon="star"
           description={reviewGateReason(resident.status)}
           title="Reviews aren't open for you yet"
         />

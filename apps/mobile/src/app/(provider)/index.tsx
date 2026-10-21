@@ -157,7 +157,7 @@ export default function ProviderJobsScreen() {
       <View className="gap-6 px-5 pt-6">
         {sorted.length === 0 && board.data.available.length === 0 ? (
           <Card>
-            <EmptyState
+            <EmptyState icon="briefcase"
               description="When a hostel raises work in your trade, you'll be notified and it appears here to accept."
               title="No jobs yet"
             />

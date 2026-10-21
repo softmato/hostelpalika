@@ -55,6 +55,21 @@ import { setReady } from "@/store/slices/authSlice";
 // docs/MOBILE_APP_PHASES.md — hiding it earlier is what causes the login flash.
 void SplashScreen.preventAutoHideAsync();
 
+/**
+ * Keeps `pathRef` on the current route. A leaf, so the per-navigation re-render
+ * `usePathname()` causes is this and nothing else; its mount effect runs before
+ * `RootShell`'s boot effect reads the ref.
+ */
+function LaunchPath({ pathRef }: { pathRef: { current: string } }) {
+  const pathname = usePathname();
+
+  useEffect(() => {
+    pathRef.current = pathname;
+  });
+
+  return null;
+}
+
 function RootShell() {
   const dispatch = useAppDispatch();
   const { colors, isDark } = useAppTheme();
@@ -70,13 +85,12 @@ function RootShell() {
    *
    * `/` is the boot gate. Anything else means a deep link mounted its own screen
    * — see the re-route guard below.
+   *
+   * Filled by `<LaunchPath>`, not by `usePathname()` here: that hook re-renders
+   * its caller on every navigation, and this component draws the whole root
+   * `Stack` — every tab switch and every back re-reconciled ~120 screens.
    */
-  const pathname = usePathname();
-  const pathRef = useRef(pathname);
-
-  useEffect(() => {
-    pathRef.current = pathname;
-  });
+  const pathRef = useRef("/");
 
   /*
    * Both live at the root, and both are no-ops while signed out.
@@ -564,6 +578,8 @@ function RootShell() {
         */}
         <Stack.Screen name="cook-invite" />
       </Stack>
+
+      <LaunchPath pathRef={pathRef} />
 
       {/* A tapped card growing into the next screen's header (M8): over every screen. */}
       <CardGrowHost />

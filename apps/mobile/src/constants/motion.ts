@@ -51,7 +51,7 @@ export const MOTION = {
   themeFade: { duration: 320, reduceMotion: ReduceMotion.System } satisfies WithTimingConfig,
 } as const;
 
-/** Rise 10px and fade in: a screen body on mount, a list row on first load. */
+/** Rise 10px and fade in: a list row on first load. A screen body only rises (`Screen`). */
 export function riseIn(delay = 0) {
   return FadeInDown.delay(delay)
     .duration(MOTION.base)

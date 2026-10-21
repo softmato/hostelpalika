@@ -412,8 +412,13 @@ finger on a spring (web `scale-[0.97]`; app `PressableScale`, 0.96, rows
 
 **App** (`apps/mobile/src/constants/motion.ts` holds every duration and
 spring; all of them honour the phone's reduce-motion setting):
-- A screen's body rises 10px and fades in once when it mounts. Refreshes and
-  tab switches don't replay it.
+- A screen's body mounts one frame after its header and rises 10px once, with
+  no fade of its own — the navigator already fades the screen. The frame's delay
+  is what lets a push start on the tap instead of after the body's first render.
+  Refreshes and tab switches don't replay it.
+- No scroll-linked colour on the public Home: its header stays green and the
+  shortcut tiles scroll like content. A header that faded to the page colour
+  read as washed out on a device, and was taken back out.
 - The tab bar's tinted pill slides to the tapped tab; the icon pops in solid.
 - Skeletons sweep a light band across instead of pulsing.
 - Large and display `Money` counts up from zero the first time it has a value.

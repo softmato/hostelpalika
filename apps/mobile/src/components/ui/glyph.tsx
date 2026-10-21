@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { ColorValue, StyleProp, ViewStyle } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
@@ -11,8 +12,12 @@ export type { GlyphName, GlyphVariant };
  * `solid` is for the selected or active state only — the focused tab, a ticked
  * box, a starred rating. An icon with no solid drawing falls back to its line at
  * a heavier stroke, so the state still reads.
+ *
+ * Memoised: every prop is a primitive at nearly every call site, and an icon is a
+ * native SVG tree, so a parent re-rendering for a keystroke or a focus change
+ * should not rebuild the hundreds of them a list screen holds.
  */
-export function Glyph({
+export const Glyph = memo(function Glyph({
   accessibilityLabel,
   color,
   name,
@@ -60,4 +65,4 @@ export function Glyph({
       {GLYPHS[glyph].map((d) => <Path d={d} key={d} />)}
     </Svg>
   );
-}
+});

@@ -96,7 +96,7 @@ export default function SavedHostelsScreen() {
       scroll
     >
       {items.length === 0 ? (
-        <EmptyState
+        <EmptyState icon="bookmark"
           action={
             <Button
               label="Browse hostels"

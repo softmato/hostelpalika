@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
-import { ActivityIndicator, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import Animated, { ReduceMotion, ZoomIn } from "react-native-reanimated";
+import Svg, { Circle, Path } from "react-native-svg";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -75,6 +77,87 @@ function StateIcon({
   );
 }
 
+/**
+ * The full-size state's artwork: the glyph on a lifted tile, inside two soft
+ * rings with a few flecks around it.
+ *
+ * A screen that has *replaced its whole content* with a state is the one place
+ * a tinted disc reads as a hole — a 56-point circle in the middle of a white
+ * page, which is what people kept calling "a blank screen with a tag in it".
+ * This is the same signal at the size of the space it fills, drawn from vectors
+ * and tokens rather than a per-state image, so a new state costs a glyph name
+ * and nothing else.
+ *
+ * Every fill is the tone's ink at a low opacity, so it is right in both themes
+ * without a soft token per tone. `muted` draws in the brand green: an empty list
+ * is the ordinary case, and grey made the ordinary case look broken.
+ */
+const ART_SIZE = 116;
+
+const ART_ENTER = ZoomIn.withInitialValues({ transform: [{ scale: 0.86 }] })
+  .springify()
+  .damping(16)
+  .reduceMotion(ReduceMotion.System);
+
+/** A four-point sparkle at (cx, cy), `r` from centre to tip. */
+function sparkle(cx: number, cy: number, r: number) {
+  const w = r * 0.28;
+
+  return `M${cx} ${cy - r}L${cx + w} ${cy - w}L${cx + r} ${cy}L${cx + w} ${cy + w}L${cx} ${cy + r}L${cx - w} ${cy + w}L${cx - r} ${cy}L${cx - w} ${cy - w}Z`;
+}
+
+const ART_SPARKS = sparkle(22, 24, 7) + sparkle(96, 92, 5);
+
+function StateArt({ name, tone }: { name: GlyphName; tone: StateTone }) {
+  const { colors } = useAppTheme();
+  const ink = tone === "muted" ? colors.primary : colors[STATE_TONES[tone].ink];
+  const center = ART_SIZE / 2;
+
+  return (
+    <Animated.View
+      className="items-center justify-center"
+      entering={ART_ENTER}
+      style={{ height: ART_SIZE, width: ART_SIZE }}
+    >
+      <Svg height={ART_SIZE} style={StyleSheet.absoluteFill} viewBox={`0 0 ${ART_SIZE} ${ART_SIZE}`} width={ART_SIZE}>
+        <Circle cx={center} cy={center} fill={ink} fillOpacity={0.06} r={56} />
+        <Circle cx={center} cy={center} fill={ink} fillOpacity={0.1} r={41} />
+        <Circle
+          cx={center}
+          cy={center}
+          fill="none"
+          r={49}
+          stroke={ink}
+          strokeDasharray="2 6"
+          strokeLinecap="round"
+          strokeOpacity={0.3}
+          strokeWidth={1.4}
+        />
+        <Circle cx={101} cy={30} fill={ink} fillOpacity={0.3} r={3.5} />
+        <Circle cx={14} cy={78} fill={ink} fillOpacity={0.22} r={2.5} />
+        <Circle cx={30} cy={102} fill={ink} fillOpacity={0.35} r={2} />
+        <Path d={ART_SPARKS} fill={ink} fillOpacity={0.45} />
+      </Svg>
+
+      <View
+        className="items-center justify-center rounded-2xl bg-card"
+        style={{
+          elevation: 4,
+          height: 54,
+          shadowColor: "#000000",
+          shadowOffset: { height: 4, width: 0 },
+          shadowOpacity: 0.1,
+          shadowRadius: 10,
+          transform: [{ rotate: "-6deg" }],
+          width: 54,
+        }}
+      >
+        <Glyph color={ink} name={name} size={27} strokeWidth={1.8} />
+      </View>
+    </Animated.View>
+  );
+}
+
 export function EmptyState({
   action,
   compact = false,
@@ -97,8 +180,10 @@ export function EmptyState({
   compact?: boolean;
   description?: string;
   /**
-   * The disc's glyph. Omitted deliberately by the compact callers that sit
-   * inside a card of rows, where a 56-point circle is taller than the section
+   * The artwork's glyph. A full-size state always draws its art, with `inbox`
+   * when this is left out — a page that is nothing but two lines of text is the
+   * blank screen this exists to prevent. Compact states draw the small disc only
+   * when given one: inside a card of rows, the art is taller than the section
    * it is apologising for.
    */
   icon?: GlyphName;
@@ -111,11 +196,17 @@ export function EmptyState({
         compact ? "py-6" : "flex-1 py-16"
       }`}
     >
-      {icon ? (
-        <View className="pb-1">
-          <StateIcon name={icon} tone={tone} />
+      {compact ? (
+        icon ? (
+          <View className="pb-1">
+            <StateIcon name={icon} tone={tone} />
+          </View>
+        ) : null
+      ) : (
+        <View className="pb-2">
+          <StateArt name={icon ?? "inbox"} tone={tone} />
         </View>
-      ) : null}
+      )}
       <Text className="text-center" variant="subtitle">
         {title}
       </Text>
@@ -147,8 +238,8 @@ export function ErrorState({
 }) {
   return (
     <View className="flex-1 items-center justify-center gap-2 px-8 py-16">
-      <View className="pb-1">
-        <StateIcon name={icon} tone="danger" />
+      <View className="pb-2">
+        <StateArt name={icon} tone="danger" />
       </View>
       <Text className="text-center" variant="subtitle">
         {title}
@@ -182,8 +273,8 @@ export function ErrorState({
 export function OfflineState({ onRetry }: { onRetry?: () => void }) {
   return (
     <View className="flex-1 items-center justify-center gap-2 px-8 py-16">
-      <View className="pb-1">
-        <StateIcon name="cloud-offline" tone="muted" />
+      <View className="pb-2">
+        <StateArt name="cloud-offline" tone="muted" />
       </View>
       <Text className="text-center" variant="subtitle">
         You&apos;re offline

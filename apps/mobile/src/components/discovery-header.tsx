@@ -3,6 +3,7 @@ import { router, useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -153,17 +154,18 @@ const MAP_GLYPH = 18;
 export type DiscoveryHeaderProps = {
   /** Where the filters button goes — the browse screen owns the filter sheet. */
   browseHref: string;
-  onQueryChange: (value: string) => void;
-  onSearch: () => void;
-  query: string;
+  /**
+   * Submitted text, trimmed or not. The text itself lives here: held by the
+   * screen, every keystroke re-rendered all of Home under the field.
+   */
+  onSearch: (query: string) => void;
 };
 
 export function DiscoveryHeader({
   browseHref,
-  onQueryChange,
   onSearch,
-  query,
 }: DiscoveryHeaderProps) {
+  const [query, onQueryChange] = useState("");
   const insets = useSystemInsets();
   const { colors, isDark } = useAppTheme();
   const paint = usePortalPaint();
@@ -202,18 +204,23 @@ export function DiscoveryHeader({
   return (
     // The top of the green that `PublicHome` fades down into the page.
     <View style={{ backgroundColor: paint.from, paddingTop: insets.top }}>
+      <Treeline ink={paint.to} />
+
       <View className="gap-3 px-5 pb-3 pt-2">
         <View className="flex-row items-center gap-3">
           {/*
-            Sized with `style`, not `text-[30px]`. NativeWind compiles the class
+            Sized with `style`, not `text-[22px]`. NativeWind compiles the class
             list at build time, so an arbitrary value that appears nowhere else in
             the app is absent from the generated CSS until the bundler is rebuilt
             — the class resolves to nothing and the text silently renders at its
             default size. Inline styles cannot fail that way, which is why every
             measured dimension in this app is already written this way.
+
+            22, down from 30: at 30 the wordmark was the loudest thing on the
+            screen and ran most of the way to the bell. It is a name, not a hero.
           */}
           <View accessibilityLabel={APP_NAME} accessibilityRole="header" className="flex-1">
-            <Text style={{ fontSize: 30, fontWeight: "800", letterSpacing: -0.5 }}>
+            <Text style={{ fontSize: 22, fontWeight: "800", letterSpacing: -0.3 }}>
               <Text style={{ color: "#FFFFFF" }}>{APP_NAME_PARTS.head}</Text>
               <Text style={{ color: "rgba(255,255,255,0.72)" }}>{APP_NAME_PARTS.tail}</Text>
             </Text>
@@ -270,7 +277,7 @@ export function DiscoveryHeader({
             <TextInput
               className="h-full flex-1 text-base text-foreground"
               onChangeText={onQueryChange}
-              onSubmitEditing={onSearch}
+              onSubmitEditing={() => onSearch(query)}
               /*
                 Short because the row is: the field now shares it with the map
                 button as well as the filter button, and "Search by city, hostel
@@ -331,6 +338,63 @@ export function DiscoveryHeader({
         open={promptingIdCard}
       />
     </View>
+  );
+}
+
+/** The art's own box. Wider than any phone; `slice` crops it rather than stretching the trees. */
+const TREELINE_W = 400;
+const TREELINE_H = 56;
+
+/** Pines as `[x, height]`. Uneven on purpose: equal trees read as a border, not a treeline. */
+const PINES: readonly (readonly [number, number])[] = [
+  [8, 20], [22, 30], [36, 22], [62, 34], [76, 24], [110, 18], [124, 27], [168, 22],
+  [182, 32], [196, 20], [240, 25], [254, 35], [268, 22], [304, 18], [332, 27], [346, 37],
+  [360, 25], [388, 29],
+];
+
+/** A three-tier pine standing on the bottom edge. */
+function pine(x: number, h: number) {
+  const w = h * 0.42;
+  const b = TREELINE_H;
+
+  return (
+    `M${x} ${b - h}L${x + w * 0.55} ${b - h * 0.56}H${x + w * 0.3}L${x + w * 0.8} ${b - h * 0.24}` +
+    `H${x + w * 0.5}L${x + w} ${b}H${x - w}L${x - w * 0.5} ${b - h * 0.24}H${x - w * 0.8}` +
+    `L${x - w * 0.3} ${b - h * 0.56}H${x - w * 0.55}Z`
+  );
+}
+
+const PINE_PATH = PINES.map(([x, h]) => pine(x, h)).join("");
+
+const RIDGE_PATH =
+  "M0 56V36L30 24L48 31L82 9L102 25L126 18L156 33L192 12L212 23L236 16L266 31L302 6L326 23L352 14L378 27L400 19V56Z";
+
+/**
+ * A ghost of hills and pines behind the wordmark, standing on the search field.
+ *
+ * The same idea as the portal hero's building photograph at 11% (`PHOTO_WEIGHT`
+ * in `portal-shared`): texture you notice second. Drawn in the paint's own darker
+ * stop and a faint white haze — no new colour — and static, so it costs one SVG
+ * draw and nothing per frame.
+ */
+function Treeline({ ink }: { ink: string }) {
+  return (
+    <Svg
+      height={TREELINE_H}
+      preserveAspectRatio="xMidYMax slice"
+      style={{
+        bottom: SEARCH_HEIGHT + 12,
+        left: 0,
+        pointerEvents: "none",
+        position: "absolute",
+        right: 0,
+      }}
+      viewBox={`0 0 ${TREELINE_W} ${TREELINE_H}`}
+      width="100%"
+    >
+      <Path d={RIDGE_PATH} fill="#FFFFFF" fillOpacity={0.06} />
+      <Path d={PINE_PATH} fill={ink} fillOpacity={0.55} />
+    </Svg>
   );
 }
 

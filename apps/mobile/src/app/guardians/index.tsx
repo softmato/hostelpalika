@@ -104,7 +104,7 @@ export default function GuardiansScreen() {
     >
       <View className="gap-5 pt-1">
         {rows.length === 0 ? (
-          <EmptyState
+          <EmptyState icon="people"
             action={
               <Button
                 label="Invite a guardian"

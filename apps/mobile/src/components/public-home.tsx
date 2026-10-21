@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
 
 import { DiscoveryHeader } from "@/components/discovery-header";
@@ -172,7 +172,6 @@ function MyJoinRequestFor({ userId }: { userId: string }) {
 }
 
 export function PublicHome({ browseHref, insideTabs = false }: PublicHomeProps) {
-  const [query, setQuery] = useState("");
   /*
    * The row locates itself — see `useNearby`. Silently when permission is
    * already granted, with one dialogue on an install that has never seen it,
@@ -200,8 +199,8 @@ export function PublicHome({ browseHref, insideTabs = false }: PublicHomeProps) 
     topics: siteQuery.topics,
   });
 
-  // Memoised so the slices below are not recomputed on every keystroke in the
-  // search field: `?? []` is a fresh array each render.
+  // Memoised so the slices below are not recomputed on every re-render:
+  // `?? []` is a fresh array each render.
   const all = useMemo(() => hostels.data ?? [], [hostels.data]);
 
   /*
@@ -226,23 +225,19 @@ export function PublicHome({ browseHref, insideTabs = false }: PublicHomeProps) 
     [all, site.data],
   );
 
-  const search = useCallback(() => {
-    router.push(
-      query.trim() ? `${browseHref}?q=${encodeURIComponent(query)}` : browseHref,
-    );
-  }, [browseHref, query]);
+  const search = useCallback(
+    (query: string) => {
+      router.push(query.trim() ? `${browseHref}?q=${encodeURIComponent(query)}` : browseHref);
+    },
+    [browseHref],
+  );
 
   const seeAll = useCallback(() => router.push(browseHref), [browseHref]);
 
   return (
     <Screen
       header={
-        <DiscoveryHeader
-          browseHref={browseHref}
-          onQueryChange={setQuery}
-          onSearch={search}
-          query={query}
-        />
+        <DiscoveryHeader browseHref={browseHref} onSearch={search} />
       }
       // No gutter under the header: the green has to run on into the shortcuts.
       bleedTop

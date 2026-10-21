@@ -95,7 +95,7 @@ export function HostelCompare({
   if (selected.length < COMPARE_MIN) {
     return (
       <Screen header={header} insideTabs={insideTabs}>
-        <EmptyState
+        <EmptyState icon="git-compare"
           action={
             <Button
               label="Browse hostels"

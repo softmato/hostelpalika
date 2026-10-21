@@ -125,7 +125,7 @@ export default function ComplaintsScreen() {
     >
       <View className="gap-4 pt-1">
         {rows.length === 0 ? (
-          <EmptyState title="No complaints yet" />
+          <EmptyState icon="chatbox-ellipses" title="No complaints yet" />
         ) : (
           <>
             {/* Only worth a control once there is something it would hide. */}
@@ -149,7 +149,7 @@ export default function ComplaintsScreen() {
             ) : null}
 
             {visible.length === 0 ? (
-              <EmptyState title="Nothing needs you" />
+              <EmptyState icon="checkmark-done" title="Nothing needs you" />
             ) : (
               <Card padding="px-4 py-1">
                 <Stagger>

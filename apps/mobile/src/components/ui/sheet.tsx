@@ -21,10 +21,8 @@ import { useSystemInsets } from "@/hooks/use-system-insets";
  *
  * ## Why gorhom and not a plain `<Modal>`
  *
- * `hostel-browser.tsx`'s filter panel is a full-screen `Modal`, which is right
- * for a panel with its own header and footer. A sheet is the other shape: it
- * sits over the screen you came from, it is shorter than the screen, and people
- * expect to **drag it away**. A `Modal` cannot be dragged, so its only exit is a
+ * A sheet sits over the screen you came from, it is shorter than the screen,
+ * and people expect to **drag it away**. A `Modal` cannot be dragged, so its only exit is a
  * close button — and a sheet with no drag reads as broken rather than as a
  * different component. `BottomSheetModalProvider` was already mounted at the
  * root for exactly this.
@@ -91,6 +89,16 @@ type SheetProps = {
   footer?: ReactNode;
   /** Let short option lists use their content height instead of the usual floor. */
   fitContent?: boolean;
+  /**
+   * Open at exactly this fraction of the screen, with the body scrolling inside,
+   * instead of sizing to the content.
+   *
+   * For a long body that should still leave the screen behind it in view — the
+   * search filters, six groups of chips, which sized to their content ran
+   * almost to the clock and read as a new page rather than as a panel over the
+   * results.
+   */
+  height?: number;
   onClose: () => void;
   open: boolean;
   /**
@@ -186,6 +194,7 @@ export function Sheet({
   children,
   footer,
   fitContent = false,
+  height,
   onClose,
   open,
   tall = false,
@@ -262,7 +271,7 @@ export function Sheet({
       android_keyboardInputMode="adjustResize"
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: colors.card }}
-      enableDynamicSizing
+      enableDynamicSizing={height === undefined}
       /*
        * `interactive` follows the keyboard as it animates instead of snapping
        * once it has finished, which is what keeps the field the thumb is aimed at
@@ -276,6 +285,7 @@ export function Sheet({
       handleIndicatorStyle={{ backgroundColor: colors.border }}
       onDismiss={handleDismiss}
       ref={ref}
+      snapPoints={height === undefined ? undefined : [`${Math.round(height * 100)}%`]}
       /*
        * `push`, not gorhom's default `switch` — and this is a bug fix, not a
        * preference.
@@ -333,7 +343,7 @@ export function Sheet({
               // Room for the field's label and a line under it, not flush to the keys.
               bottomOffset={24}
               contentContainerStyle={{
-                minHeight: fitContent ? undefined :
+                minHeight: fitContent || height !== undefined ? undefined :
                   window.height *
                   (tall
                     ? MIN_BODY_FRACTION_TALL

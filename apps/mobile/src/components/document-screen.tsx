@@ -229,7 +229,7 @@ function DocumentBody({
         ) : null}
 
         {isEmpty && !loading && !error ? (
-          <EmptyState
+          <EmptyState icon="document-text"
             action={
               <Button
                 label="Read it on the web"

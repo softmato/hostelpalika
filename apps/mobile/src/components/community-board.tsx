@@ -625,7 +625,7 @@ export function CommunityBoard({
       */}
       <Animated.FlatList<CommunityPost>
         ListEmptyComponent={
-          <EmptyState description={emptyFeedMessage(query)} title="Nothing here" />
+          <EmptyState icon="chatbubbles" description={emptyFeedMessage(query)} title="Nothing here" />
         }
         ListFooterComponent={
           loadingMore ? (

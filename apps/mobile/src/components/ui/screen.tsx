@@ -5,6 +5,7 @@ import {
   type ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useState,
 } from "react";
 import { RefreshControl, View } from "react-native";
@@ -13,6 +14,8 @@ import {
   KeyboardStickyView,
 } from "react-native-keyboard-controller";
 import Animated, {
+  FadeInDown,
+  ReduceMotion,
   type SharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -20,15 +23,19 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { useBottomChrome } from "@/components/bottom-chrome";
-import { riseIn } from "@/constants/motion";
+import { MOTION } from "@/constants/motion";
 import { TAB_BAR_HEIGHT } from "@/components/tab-bar";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
 
 // Third-party scroll view: NativeWind has to be told which props carry classes.
 // The body rises in once when the screen mounts (M4). Refreshes and tab
-// switches don't remount, so they don't replay it.
-const BODY_ENTER = riseIn();
+// switches don't remount, so they don't replay it. Rise only, no fade of its
+// own: the navigator already fades the screen (Android's stack in 150ms), and a
+// second fade inside that one left the content faint after the transition ended.
+const BODY_ENTER = FadeInDown.duration(MOTION.fast)
+  .withInitialValues({ opacity: 1, transform: [{ translateY: 10 }] })
+  .reduceMotion(ReduceMotion.System);
 
 cssInterop(KeyboardAwareScrollView, {
   className: "style",
@@ -261,6 +268,25 @@ export function Screen({
   /** The sticky footer rides up on the keyboard, so a focused field has to clear it too. */
   const [footerHeight, setFooterHeight] = useState(0);
 
+  /*
+   * The body mounts one frame after the screen does.
+   *
+   * A push only starts its transition once the new screen's first render has
+   * committed, so a screen that builds sixty cards, a map or an eleven-section
+   * form on mount held the tap for as long as that took — the press landed, and
+   * nothing moved. With the body a frame behind, the first render is the header
+   * alone: the fade starts on the tap, and the heavy part renders while the
+   * native animation runs. The header still mounts at once, because the card
+   * grow (M8) measures it.
+   */
+  const [bodyReady, setBodyReady] = useState(false);
+
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => setBodyReady(true));
+
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   const paddingClass = padded ? "px-5" : "";
   const topPadClass = bleedTop ? "" : "pt-2";
 
@@ -324,9 +350,13 @@ export function Screen({
         under the keyboard while the user typed into them blind.
       */}
       <View className="flex-1">
-        <Animated.View className="flex-1" entering={BODY_ENTER}>
-          {body}
-        </Animated.View>
+        {bodyReady ? (
+          <Animated.View className="flex-1" entering={BODY_ENTER}>
+            {body}
+          </Animated.View>
+        ) : (
+          <View className="flex-1" />
+        )}
 
         {footer ? (
           <KeyboardStickyView>

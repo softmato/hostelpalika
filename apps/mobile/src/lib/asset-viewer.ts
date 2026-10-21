@@ -81,7 +81,20 @@ export function isPreviewable(item: ViewerItem): boolean {
     return true;
   }
 
-  return item.mimeType.startsWith("image/");
+  return item.mimeType.startsWith("image/") || isVideo(item);
+}
+
+/** A clip, played with `expo-video` instead of drawn with `<Image>`. */
+export function isVideo(item: ViewerItem): boolean {
+  return Boolean(item.mimeType?.startsWith("video/"));
+}
+
+/**
+ * A file still on this phone — something just picked, not yet anyone else's to
+ * download. Save has nothing to offer for it: the user already has it.
+ */
+export function isOnDevice(item: ViewerItem): boolean {
+  return !item.assetId && /^(?:file|content):/i.test(item.url ?? "");
 }
 
 export type ViewerSource = {

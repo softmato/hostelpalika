@@ -221,7 +221,7 @@ export default function GuardianPaymentsScreen() {
           />
           {dashboard.payments.length === 0 ? (
             <Card>
-              <EmptyState
+              <EmptyState icon="receipt"
                 description="The hostel has not billed this resident yet."
                 title="No invoices"
               />

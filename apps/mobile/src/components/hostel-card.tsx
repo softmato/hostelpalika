@@ -1,5 +1,6 @@
 import { Image } from "expo-image";
 import { router } from "expo-router";
+import { memo } from "react";
 import { Pressable, View } from "react-native";
 
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
@@ -160,7 +161,13 @@ export function SaveButton({
   );
 }
 
-export function HostelCard({
+/**
+ * Memoised, because every list it sits in re-renders on things that are not the
+ * card: a keystroke in the search field, a compare tick on another card, a focus
+ * change. Callers pass stable handlers (`saved.toggle`, a `useCallback`) and
+ * primitives, so an unchanged card skips its photo, chips and dozen icons.
+ */
+export const HostelCard = memo(function HostelCard({
   commute,
   distanceMeters,
   hostel,
@@ -501,4 +508,4 @@ export function HostelCard({
       )}
     </Pressable>
   );
-}
+});

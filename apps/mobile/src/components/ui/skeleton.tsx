@@ -43,7 +43,8 @@ export function Skeleton({
   width,
 }: {
   className?: string;
-  height?: number;
+  /** Points, or `"100%"` to cover a box whose size only the layout knows (a loading map). */
+  height?: ViewStyle["height"];
   radius?: number;
   /** Omit to fill the parent — the usual case inside a column. */
   width?: ViewStyle["width"];

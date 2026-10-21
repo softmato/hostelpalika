@@ -4,7 +4,9 @@ import {
   clampIndex,
   closeAssetViewer,
   getAssetViewerState,
+  isOnDevice,
   isPreviewable,
+  isVideo,
   openAssetViewer,
   setAssetViewerIndex,
   subscribeToAssetViewer,
@@ -50,6 +52,20 @@ describe("isPreviewable", () => {
 
   it("hands off a type it cannot draw", () => {
     expect(isPreviewable({ mimeType: "application/pdf", url: "x" })).toBe(false);
+  });
+
+  it("plays a clip rather than handing it off", () => {
+    expect(isPreviewable({ mimeType: "video/mp4", url: "x" })).toBe(true);
+    expect(isVideo({ mimeType: "video/quicktime", url: "x" })).toBe(true);
+    expect(isVideo({ mimeType: "image/png", url: "x" })).toBe(false);
+  });
+});
+
+describe("isOnDevice", () => {
+  it("knows a just-picked file from one on the server", () => {
+    expect(isOnDevice({ url: "file:///data/user/0/cache/clip.mp4" })).toBe(true);
+    expect(isOnDevice({ url: "https://cdn.example.com/a.jpg" })).toBe(false);
+    expect(isOnDevice({ assetId: "abc" })).toBe(false);
   });
 });
 
