@@ -82,7 +82,7 @@ const FLOATING_CLEARANCE = 56 + 20;
 
 /**
  * This page's scroll offset, for the `AppBar` in its `header` — the large title
- * collapses against it (M3). Per screen, not app-wide like the bottom chrome: a
+ * collapses against it (M3) — and for anything in the body that moves with it. Per screen, not app-wide like the bottom chrome: a
  * stacked screen underneath keeps its own offset for when you come back to it.
  * `null` outside a `Screen`, and stuck at 0 on one that isn't `scroll`.
  */
@@ -326,79 +326,81 @@ export function Screen({
   );
 
   return (
-    <View className={`flex-1 bg-background ${className}`}>
-      {/*
-        With no AppBar there is nothing to paint the status-bar strip, so the
-        screen reserves it itself — otherwise the first line of content renders
-        under the clock.
-      */}
-      <ScreenScrollContext.Provider value={scrollY}>
+    // Around the body as well as the header: Home's shortcut block tucks into
+    // its header against the same offset (`HomeShortcuts`).
+    <ScreenScrollContext.Provider value={scrollY}>
+      <View className={`flex-1 bg-background ${className}`}>
+        {/*
+          With no AppBar there is nothing to paint the status-bar strip, so the
+          screen reserves it itself — otherwise the first line of content renders
+          under the clock.
+        */}
         {header ?? (bleedTop ? null : <View style={{ height: insets.top }} />)}
-      </ScreenScrollContext.Provider>
 
-      {/*
-        Keyboard handling, owned by react-native-keyboard-controller.
+        {/*
+          Keyboard handling, owned by react-native-keyboard-controller.
 
-        The footer rides up on the keyboard (`KeyboardStickyView`), so every
-        form's submit button stays reachable — register, complaints, the ID card
-        flow, payment claims. The body scrolls a focused field into view only
-        when the keyboard or that footer would cover it.
+          The footer rides up on the keyboard (`KeyboardStickyView`), so every
+          form's submit button stays reachable — register, complaints, the ID card
+          flow, payment claims. The body scrolls a focused field into view only
+          when the keyboard or that footer would cover it.
 
-        It replaced a `KeyboardAvoidingView` that leaned on Android resizing the
-        window (`softwareKeyboardLayoutMode: "resize"`). Under edge-to-edge the
-        window does not resize, so low fields — step 5 of the ID card — sat
-        under the keyboard while the user typed into them blind.
-      */}
-      <View className="flex-1">
-        {bodyReady ? (
-          <Animated.View className="flex-1" entering={BODY_ENTER}>
-            {body}
+          It replaced a `KeyboardAvoidingView` that leaned on Android resizing the
+          window (`softwareKeyboardLayoutMode: "resize"`). Under edge-to-edge the
+          window does not resize, so low fields — step 5 of the ID card — sat
+          under the keyboard while the user typed into them blind.
+        */}
+        <View className="flex-1">
+          {bodyReady ? (
+            <Animated.View className="flex-1" entering={BODY_ENTER}>
+              {body}
+            </Animated.View>
+          ) : (
+            <View className="flex-1" />
+          )}
+
+          {footer ? (
+            <KeyboardStickyView>
+              <View
+                onLayout={(event) =>
+                  setFooterHeight(event.nativeEvent.layout.height)
+                }
+                className="border-t border-border bg-background px-5 pt-3"
+                style={{
+                  paddingBottom: insideTabs
+                    ? tabClearance + MIN_BOTTOM_PAD
+                    : Math.max(insets.bottom, MIN_BOTTOM_PAD),
+                }}
+              >
+                {footer}
+              </View>
+            </KeyboardStickyView>
+          ) : null}
+        </View>
+
+        {floating ? (
+          <Animated.View
+            /*
+             * A wider gutter than the content's `px-5`. The pill is deliberately
+             * inset from the cards behind it — matching their width would read as
+             * another row in the page rather than as something floating above it,
+             * and the shadow would have no ground to fall on.
+             */
+            className="absolute inset-x-0 items-center px-14"
+            style={[
+              {
+                bottom:
+                  (insideTabs ? TAB_BAR_HEIGHT + insets.bottom : insets.bottom) +
+                  MIN_BOTTOM_PAD,
+                pointerEvents: "box-none",
+              },
+              floatingStyle,
+            ]}
+          >
+            {floating}
           </Animated.View>
-        ) : (
-          <View className="flex-1" />
-        )}
-
-        {footer ? (
-          <KeyboardStickyView>
-            <View
-              onLayout={(event) =>
-                setFooterHeight(event.nativeEvent.layout.height)
-              }
-              className="border-t border-border bg-background px-5 pt-3"
-              style={{
-                paddingBottom: insideTabs
-                  ? tabClearance + MIN_BOTTOM_PAD
-                  : Math.max(insets.bottom, MIN_BOTTOM_PAD),
-              }}
-            >
-              {footer}
-            </View>
-          </KeyboardStickyView>
         ) : null}
       </View>
-
-      {floating ? (
-        <Animated.View
-          /*
-           * A wider gutter than the content's `px-5`. The pill is deliberately
-           * inset from the cards behind it — matching their width would read as
-           * another row in the page rather than as something floating above it,
-           * and the shadow would have no ground to fall on.
-           */
-          className="absolute inset-x-0 items-center px-14"
-          style={[
-            {
-              bottom:
-                (insideTabs ? TAB_BAR_HEIGHT + insets.bottom : insets.bottom) +
-                MIN_BOTTOM_PAD,
-              pointerEvents: "box-none",
-            },
-            floatingStyle,
-          ]}
-        >
-          {floating}
-        </Animated.View>
-      ) : null}
-    </View>
+    </ScreenScrollContext.Provider>
   );
 }

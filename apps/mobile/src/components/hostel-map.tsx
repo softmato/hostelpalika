@@ -10,6 +10,7 @@ import { useMemo, useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Animated, { FadeOut } from "react-native-reanimated";
 
+import { useThemeSnapshotPending } from "@/components/theme-fade";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
@@ -67,6 +68,10 @@ export function HostelMap({
   const { colors, isDark } = useAppTheme();
   const style = baseStyle(isDark);
   const [loaded, setLoaded] = useState(false);
+  // Out of the tree while the theme fade photographs the screen: view-shot
+  // paints every TextureView on top, even one in a hidden tab. The map
+  // remounts on a theme switch anyway (`key={style.url}`), so this costs nothing.
+  const snapshotting = useThemeSnapshotPending();
 
   const pins = useMemo(
     () =>
@@ -159,116 +164,118 @@ export function HostelMap({
       className={`overflow-hidden rounded-2xl border border-border ${fill ? "flex-1" : ""}`}
       style={fill ? { backgroundColor: colors.muted } : { backgroundColor: colors.muted, height }}
     >
-      <Map
-        /*
-          A TextureView, not the default GLSurfaceView. A surface lives in its own
-          window layer, so it ignores this card's rounded clip and the tab's
-          cross-fade — inside the Search tab it came up as a blank white box and
-          stayed one. A texture is an ordinary view: it clips, it fades, it draws.
-          The full-screen `/map` keeps the surface, where none of that applies.
-        */
-        androidView="texture"
-        attribution={false}
-        compass={false}
-        doubleTapZoom={interactive}
-        dragPan={interactive}
-        // A theme switch remounts rather than swapping styles in place — see `lib/map-styles.ts`.
-        key={style.url}
-        logo={false}
-        mapStyle={style.url}
-        onDidFinishLoadingMap={() => setLoaded(true)}
-        style={{ flex: 1 }}
-        touchPitch={interactive}
-        touchRotate={interactive}
-        touchZoom={interactive}
-      >
-        <Camera initialViewState={view} />
+      {snapshotting ? null : (
+        <Map
+          /*
+            A TextureView, not the default GLSurfaceView. A surface lives in its own
+            window layer, so it ignores this card's rounded clip and the tab's
+            cross-fade — inside the Search tab it came up as a blank white box and
+            stayed one. A texture is an ordinary view: it clips, it fades, it draws.
+            The full-screen `/map` keeps the surface, where none of that applies.
+          */
+          androidView="texture"
+          attribution={false}
+          compass={false}
+          doubleTapZoom={interactive}
+          dragPan={interactive}
+          // A theme switch remounts rather than swapping styles in place — see `lib/map-styles.ts`.
+          key={style.url}
+          logo={false}
+          mapStyle={style.url}
+          onDidFinishLoadingMap={() => setLoaded(true)}
+          style={{ flex: 1 }}
+          touchPitch={interactive}
+          touchRotate={interactive}
+          touchZoom={interactive}
+        >
+          <Camera initialViewState={view} />
 
-        <Images images={pinImages(isDark)} />
+          <Images images={pinImages(isDark)} />
 
-        {places.features.length > 0 ? (
-          <GeoJSONSource data={places} id="nearby">
+          {places.features.length > 0 ? (
+            <GeoJSONSource data={places} id="nearby">
+              <Layer
+                beforeId="hostel-pin"
+                id="nearby-dot"
+                key="nearby-dot"
+                paint={{
+                  "circle-color": colors.mutedForeground,
+                  "circle-radius": 5,
+                  "circle-stroke-color": "#ffffff",
+                  "circle-stroke-width": 1.5,
+                }}
+                type="circle"
+              />
+              <Layer
+                beforeId="hostel-pin"
+                id="nearby-label"
+                key="nearby-label"
+                layout={{
+                  "text-anchor": "top",
+                  "text-field": ["get", "name"],
+                  "text-font": LABEL_FONT,
+                  "text-max-width": 7,
+                  "text-offset": [0, 0.7],
+                  "text-size": 10,
+                }}
+                paint={{
+                  "text-color": colors.mutedForeground,
+                  "text-halo-color": colors.card,
+                  "text-halo-width": 1.4,
+                }}
+                type="symbol"
+              />
+            </GeoJSONSource>
+          ) : null}
+
+          <GeoJSONSource
+            data={data}
+            id="hostels"
+            onPress={(event) => {
+              const slug = event.nativeEvent.features[0]?.properties?.slug;
+
+              // Only a slug this map was given can open anything.
+              if (interactive && typeof slug === "string" && pins.some(({ hostel }) => hostel.slug === slug)) {
+                onSelect?.(slug);
+              }
+            }}
+          >
             <Layer
-              beforeId="hostel-pin"
-              id="nearby-dot"
-              key="nearby-dot"
-              paint={{
-                "circle-color": colors.mutedForeground,
-                "circle-radius": 5,
-                "circle-stroke-color": "#ffffff",
-                "circle-stroke-width": 1.5,
+              id="hostel-pin"
+              key="hostel-pin"
+              layout={{
+                "icon-allow-overlap": true,
+                "icon-anchor": "bottom",
+                "icon-ignore-placement": true,
+                "icon-image": HOSTEL_PIN,
+                "icon-offset": PIN_OFFSET,
+                "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.55, 13, 0.68, 16, 0.85],
               }}
-              type="circle"
+              type="symbol"
             />
             <Layer
-              beforeId="hostel-pin"
-              id="nearby-label"
-              key="nearby-label"
+              id="hostel-label"
+              key="hostel-label"
               layout={{
                 "text-anchor": "top",
-                "text-field": ["get", "name"],
+                "text-field": ["get", "label"],
                 "text-font": LABEL_FONT,
-                "text-max-width": 7,
-                "text-offset": [0, 0.7],
-                "text-size": 10,
+                "text-max-width": 9,
+                "text-offset": [0, 0.3],
+                "text-size": 11,
               }}
               paint={{
-                "text-color": colors.mutedForeground,
+                "text-color": colors.foreground,
                 "text-halo-color": colors.card,
-                "text-halo-width": 1.4,
+                "text-halo-width": 1.6,
               }}
               type="symbol"
             />
           </GeoJSONSource>
-        ) : null}
 
-        <GeoJSONSource
-          data={data}
-          id="hostels"
-          onPress={(event) => {
-            const slug = event.nativeEvent.features[0]?.properties?.slug;
-
-            // Only a slug this map was given can open anything.
-            if (interactive && typeof slug === "string" && pins.some(({ hostel }) => hostel.slug === slug)) {
-              onSelect?.(slug);
-            }
-          }}
-        >
-          <Layer
-            id="hostel-pin"
-            key="hostel-pin"
-            layout={{
-              "icon-allow-overlap": true,
-              "icon-anchor": "bottom",
-              "icon-ignore-placement": true,
-              "icon-image": HOSTEL_PIN,
-              "icon-offset": PIN_OFFSET,
-              "icon-size": ["interpolate", ["linear"], ["zoom"], 10, 0.55, 13, 0.68, 16, 0.85],
-            }}
-            type="symbol"
-          />
-          <Layer
-            id="hostel-label"
-            key="hostel-label"
-            layout={{
-              "text-anchor": "top",
-              "text-field": ["get", "label"],
-              "text-font": LABEL_FONT,
-              "text-max-width": 9,
-              "text-offset": [0, 0.3],
-              "text-size": 11,
-            }}
-            paint={{
-              "text-color": colors.foreground,
-              "text-halo-color": colors.card,
-              "text-halo-width": 1.6,
-            }}
-            type="symbol"
-          />
-        </GeoJSONSource>
-
-        {me ? <NativeUserLocation /> : null}
-      </Map>
+          {me ? <NativeUserLocation /> : null}
+        </Map>
+      )}
 
       {/* Until the style and first tiles land: a sweep, not a blank box (loading is skeletons). */}
       {loaded ? null : (

@@ -1149,6 +1149,36 @@ export async function getHostelKyc() {
   return unwrap(response).kyc;
 }
 
+/** The service agreement signed on the last KYC step (`kyc/agreement`). */
+export type KycAgreement = {
+  intro: string;
+  signed: {
+    issuedAt: string | null;
+    /** Set once issued (on approval): final, and emailed as a PDF. */
+    refCode: string | null;
+    sentAt: string | null;
+    signature: string;
+    signedAt: string;
+    signerName: string;
+  } | null;
+  terms: { heading: string; points: string[] }[];
+  title: string;
+};
+
+export const KYC_AGREEMENT_PDF_PATH = "/api/v1/hostel-admin/kyc/agreement?format=pdf";
+
+export async function getKycAgreement() {
+  const response = await api.get<ApiEnvelope<{ agreement: KycAgreement }>>("/hostel-admin/kyc/agreement");
+
+  return unwrap(response).agreement;
+}
+
+export async function signKycAgreement(input: { signature: string; signerName: string }) {
+  const response = await api.post<ApiEnvelope<{ agreement: KycAgreement }>>("/hostel-admin/kyc/agreement", { ...input, agree: true });
+
+  return unwrap(response).agreement;
+}
+
 /** Sends the KYC to our team; editing stays open until they decide. */
 export async function submitHostelKyc() {
   const response = await api.post<ApiEnvelope<{ kyc: HostelKyc }>>("/hostel-admin/kyc/submit", {});

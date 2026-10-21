@@ -22,6 +22,8 @@ vi.mock("@/modules/hostels/hostel.service", () => ({
   },
 }));
 vi.mock("@/modules/hostels/hostel-notify", () => ({ notifyPlatformOfPendingHostel: vi.fn(async () => {}) }));
+const agreement = vi.hoisted(() => ({ signed: false }));
+vi.mock("@/modules/hostels/hostel-agreement.service", () => ({ hasSignedAgreement: vi.fn(async () => agreement.signed) }));
 for (const [path, name] of [
   ["@hostel/db/models/Hostel", "HostelModel"],
   ["@hostel/db/models/HostelDocument", "HostelDocumentModel"],
@@ -55,6 +57,7 @@ const hostelId = new Types.ObjectId();
 const ownerId = new Types.ObjectId();
 
 beforeEach(() => {
+  agreement.signed = false;
   documents.reset();
   rateCards.reset();
   applications.reset();
@@ -75,7 +78,7 @@ describe("submitHostelKyc", () => {
   it("refuses while a required section is missing, and names it", async () => {
     const kyc = await getHostelKyc(hostelId);
 
-    expect(kyc.review).toMatchObject({ canSubmit: false, missing: ["rates", "documents"], status: "DRAFT" });
+    expect(kyc.review).toMatchObject({ canSubmit: false, missing: ["rates", "documents", "agreement"], status: "DRAFT" });
     await expect(submitHostelKyc(hostelId, ownerId.toString())).rejects.toMatchObject({
       errorCode: "KYC_INCOMPLETE",
     });
@@ -84,6 +87,7 @@ describe("submitHostelKyc", () => {
   it("puts a finished KYC in the review queue, still editable", async () => {
     await documents.create({ documentType: "Owner ID proof", hostelId, isDeleted: false, status: "PENDING" });
     await rateCards.create({ effectiveTo: null, hostelId, rates: [{ monthlyAmount: 9000, roomType: "Double" }] });
+    agreement.signed = true;
 
     const kyc = await submitHostelKyc(hostelId, ownerId.toString());
 

@@ -3,6 +3,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo } from "react";
 import { Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
+import Animated, { interpolate, useAnimatedStyle, useSharedValue } from "react-native-reanimated";
 
 import { DiscoveryHeader } from "@/components/discovery-header";
 import { HostelCard } from "@/components/hostel-card";
@@ -13,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { CardRow } from "@/components/ui/list-row";
-import { Screen } from "@/components/ui/screen";
+import { Screen, useScreenScroll } from "@/components/ui/screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
@@ -105,6 +106,9 @@ const MAX_CITIES = 8;
 
 /** `Screen`'s `px-5` on both sides. Cards are inset from the page, not full-bleed. */
 const PAGE_INSET = 40;
+
+/** How much of the scroll the shortcut doors give back — 0.45 means they move up at 55% of page speed. */
+const PARALLAX = 0.45;
 
 /** The gap between cards in every horizontal row on this screen. */
 const ROW_GAP = 12;
@@ -315,10 +319,40 @@ export function PublicHome({ browseHref, insideTabs = false }: PublicHomeProps) 
  * The site's feature flags drop a door exactly as they drop the web's link, so
  * a surface the platform owner switched off is not advertised here either. The
  * split is by position, so a dropped door just pulls the next one up.
+ *
+ * On scroll the green scrolls away at page speed while the doors on it lag
+ * behind (`PARALLAX`), shrink a little and fade — the frosted row first, the
+ * card after — so they read as tucking up under the header rather than being
+ * cut off by it. Only position and opacity move; the header's colour never
+ * does (a scroll-linked colour fade washed it out to pale green on device).
  */
 function HomeShortcuts() {
   const { colors } = useAppTheme();
   const paint = usePortalPaint();
+  const scrollY = useScreenScroll();
+  const height = useSharedValue(1);
+
+  const tuck = useAnimatedStyle(() => {
+    const y = Math.max(0, scrollY?.value ?? 0);
+
+    return {
+      transform: [
+        { translateY: Math.min(y, height.value) * PARALLAX },
+        { scale: interpolate(y, [0, height.value], [1, 0.94], "clamp") },
+      ],
+    };
+  });
+  const leadFade = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY?.value ?? 0, [0, height.value * 0.35], [1, 0], "clamp"),
+  }));
+  const restFade = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      scrollY?.value ?? 0,
+      [height.value * 0.15, height.value * 0.7],
+      [1, 0],
+      "clamp",
+    ),
+  }));
   const account = useAppSelector((state) => state.auth.account);
   const { features } = useSiteConfig().config;
 
@@ -426,26 +460,36 @@ function HomeShortcuts() {
         style={StyleSheet.absoluteFill}
       />
 
-      <View className="gap-6 px-5 pb-4 pt-3">
-        <ActionRow>
-          {lead.map((door) => (
-            <ActionCell
-              glyph="#FFFFFF"
-              icon={door.icon}
-              key={door.key}
-              label={door.label}
-              onAccent
-              onPress={door.onPress}
-              tone={door.tone}
-            />
-          ))}
-          {Array.from({ length: ACTION_COLUMNS - lead.length }, (_, index) => (
-            <View className="flex-1" key={`gap-${index}`} />
-          ))}
-        </ActionRow>
+      <Animated.View
+        className="gap-6 px-5 pb-4 pt-3"
+        onLayout={(event) => height.set(Math.max(1, event.nativeEvent.layout.height))}
+        style={tuck}
+      >
+        <Animated.View style={leadFade}>
+          <ActionRow>
+            {lead.map((door) => (
+              <ActionCell
+                glyph="#FFFFFF"
+                icon={door.icon}
+                key={door.key}
+                label={door.label}
+                onAccent
+                onPress={door.onPress}
+                tone={door.tone}
+              />
+            ))}
+            {Array.from({ length: ACTION_COLUMNS - lead.length }, (_, index) => (
+              <View className="flex-1" key={`gap-${index}`} />
+            ))}
+          </ActionRow>
+        </Animated.View>
 
-        {rest.length > 0 ? <ActionTiles tiles={rest} /> : null}
-      </View>
+        {rest.length > 0 ? (
+          <Animated.View style={restFade}>
+            <ActionTiles tiles={rest} />
+          </Animated.View>
+        ) : null}
+      </Animated.View>
     </View>
   );
 }

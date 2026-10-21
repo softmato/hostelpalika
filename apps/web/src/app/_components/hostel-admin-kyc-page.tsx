@@ -11,6 +11,7 @@ import {
   ListChecks,
   Lock,
   MapPin,
+  PenTool,
   QrCode,
   Send,
   ShieldCheck,
@@ -51,6 +52,7 @@ const STEPS: Record<string, { hint: string; icon: IconComponent; title: string }
   photos: { hint: "Outside and inside", icon: ImageIcon, title: "Photos" },
   rooms: { hint: "Each floor and its room numbers", icon: Building2, title: "Rooms & floors" },
   rules: { hint: "One rule per line", icon: ListChecks, title: "House rules" },
+  agreement: { hint: "Read it and sign", icon: PenTool, title: "Agreement" },
 };
 
 const PRIMARY = "inline-flex h-11 w-full items-center justify-center rounded-xl bg-brand-teal px-5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50";

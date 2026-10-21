@@ -35,6 +35,8 @@
     "backfill:hostel-map-pins": "node --experimental-transform-types --import ./scripts/register-ts-hook.mjs scripts/backfill-hostel-map-pins.mjs",
     "repair:archived-residents": "node scripts/repair-archived-residents.mjs",
     "repair:account-hostels": "node scripts/repair-account-hostel-scope.mjs",
+    "upload:agreement-seals": "node --experimental-transform-types --import ./scripts/register-ts-hook.mjs scripts/upload-agreement-seals.mts",
+    "build:paper-agreement": "node --experimental-transform-types --import ./scripts/register-ts-hook.mjs scripts/build-paper-agreement.mts",
     "audit:test-data": "node --experimental-transform-types --import ./scripts/register-ts-hook.mjs scripts/audit-test-data.mjs",
     "purge:test-data": "node --experimental-transform-types --import ./scripts/register-ts-hook.mjs scripts/purge-test-data.mjs",
     "check:duplicate-resident-emails": "node scripts/find-duplicate-resident-emails.mjs",

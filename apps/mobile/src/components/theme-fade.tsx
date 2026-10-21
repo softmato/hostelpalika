@@ -1,5 +1,5 @@
 import { Image } from "expo-image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Platform, StyleSheet } from "react-native";
 import Animated, {
   runOnJS,
@@ -26,6 +26,32 @@ type Shot = { apply: () => void; uri: string };
 
 let host: ((apply: () => void) => void) | null = null;
 
+/*
+ * True from just before the capture until the new theme is applied under it.
+ * On Android view-shot draws every TextureView over the capture without asking
+ * whether an ancestor hides it, so a map in a background tab (Search) came out
+ * painted over the screen you were on. Those views drop out for the capture.
+ */
+let snapshotting = false;
+const listeners = new Set<() => void>();
+
+function setSnapshotting(next: boolean) {
+  snapshotting = next;
+  listeners.forEach((listener) => listener());
+}
+
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+
+/** For a component that renders a TextureView: render nothing while this is true. */
+export function useThemeSnapshotPending() {
+  return useSyncExternalStore(subscribe, () => snapshotting);
+}
+
 /** Run `apply` (the theme change) behind a snapshot of the current frame. */
 export function crossFadeTheme(apply: () => void) {
   if (host) {
@@ -49,12 +75,21 @@ export function ThemeFadeHost() {
         return;
       }
 
-      captureScreen({ format: "jpg", quality: 0.9 }).then(
-        (uri) => {
-          opacity.set(1);
-          setShot({ apply, uri });
-        },
-        apply,
+      setSnapshotting(true);
+      // Two frames for those views to leave the native tree before the capture.
+      requestAnimationFrame(() =>
+        requestAnimationFrame(() =>
+          captureScreen({ format: "jpg", quality: 0.9 }).then(
+            (uri) => {
+              opacity.set(1);
+              setShot({ apply, uri });
+            },
+            () => {
+              apply();
+              setSnapshotting(false);
+            },
+          ),
+        ),
       );
     };
     return () => {
@@ -78,6 +113,7 @@ export function ThemeFadeHost() {
         // Swap only once the old frame is on screen, so nothing flashes between.
         onDisplay={() => {
           shot.apply();
+          setSnapshotting(false);
           // Two frames for the new theme to render under the snapshot, then fade.
           requestAnimationFrame(() =>
             requestAnimationFrame(() =>

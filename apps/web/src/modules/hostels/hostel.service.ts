@@ -2623,10 +2623,26 @@ async function completeKycApproval(hostelId: Types.ObjectId, actorId: string) {
   }
 
   const slug = (await HostelModel.findById(hostelId).select("slug").lean<{ slug?: string } | null>())?.slug ?? "";
+  // Dynamic: the agreement service imports this module. A failed PDF must not hold the approval email back.
+  const agreements = await import("@/modules/hostels/hostel-agreement.service");
+  const agreement = await agreements.issueHostelAgreement(hostelId, actorId).catch((error: unknown) => {
+    console.error(
+      JSON.stringify({
+        action: "hostel_agreement_issue_failed",
+        hostelId: hostelId.toString(),
+        level: "error",
+        message: error instanceof Error ? error.message : String(error),
+      }),
+    );
 
-  await sendEmail({
+    return null;
+  });
+
+  const delivery = await sendEmail({
     to: ownerInfo.owner.email,
+    ...(agreement ? { attachments: [agreement.attachment] } : {}),
     ...hostelKycApprovedEmail({
+      agreementRefCode: agreement?.refCode ?? null,
       cookCredentials: cookAccount,
       hostelName: ownerInfo.hostelName,
       listingUrl: appHostelListingUrl(slug),
@@ -2638,6 +2654,8 @@ async function completeKycApproval(hostelId: Types.ObjectId, actorId: string) {
       trialEndsOn: formatEmailDate(subscription?.trialEndsAt ?? null),
     }),
   });
+
+  if (agreement && delivery.sent) await agreements.markHostelAgreementSent(hostelId, ownerInfo.owner.email);
   // Facts only: the push reaches the app, where the plan may not be sold.
   await notifyHostelOwnerOf(ownerInfo.owner.id, hostelId, {
     actionUrl: "/hostel-admin",

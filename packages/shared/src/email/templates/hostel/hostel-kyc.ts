@@ -36,7 +36,27 @@ export function hostelPortalOpenEmail(input: {
   };
 }
 
+/** The signed agreement, for a hostel already verified when its owner signs. */
+export function hostelAgreementEmail(input: { hostelName: string; ownerName?: string; refCode: string }): EmailContent {
+  return {
+    category: "info",
+    subject: `Your HostelPalika agreement for ${input.hostelName}`,
+    html: emailLayout({
+      heading: "Your signed agreement",
+      bodyHtml: [
+        hello(input.ownerName),
+        paragraph(
+          `Thank you for signing. Your agreement with HostelPalika for <strong>${escapeHtml(input.hostelName)}</strong> is attached as a PDF, number <strong>${escapeHtml(input.refCode)}</strong>. Please keep it safe.`,
+        ),
+        paragraph("It says what you get, how your data is kept safe, and how you can take all of your data with you if you ever leave."),
+      ].join("\n"),
+    }),
+  };
+}
+
 export function hostelKycApprovedEmail(input: {
+  /** The signed agreement PDF rides on this email. */
+  agreementRefCode?: string | null;
   cookCredentials?: { email: string; temporaryPassword: string } | null;
   hostelName: string;
   listingUrl: string;
@@ -65,6 +85,11 @@ export function hostelKycApprovedEmail(input: {
         ),
         input.supportPhone
           ? paragraph(`Prefer to talk to us? Call ${escapeHtml(input.supportPhone)} and we will activate your plan for you.`)
+          : "",
+        input.agreementRefCode
+          ? paragraph(
+              `Your signed agreement with HostelPalika is attached as a PDF, number <strong>${escapeHtml(input.agreementRefCode)}</strong>. Please keep it safe.`,
+            )
           : "",
         input.cookCredentials
           ? paragraph(

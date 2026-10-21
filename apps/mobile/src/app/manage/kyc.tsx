@@ -40,7 +40,19 @@ import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
-import { addKycDocument, getHostelKyc, removeKycDocument, submitHostelKyc, type HostelKyc } from "@/lib/admin-api";
+import {
+  addKycDocument,
+  getHostelKyc,
+  getKycAgreement,
+  KYC_AGREEMENT_PDF_PATH,
+  removeKycDocument,
+  signKycAgreement,
+  submitHostelKyc,
+  type HostelKyc,
+} from "@/lib/admin-api";
+import { SignatureInk, SignaturePad } from "@/components/signature-pad";
+import { downloadToDevice } from "@/lib/documents";
+import { isSignatureComplete, signatureStrokes } from "@/lib/signature";
 import { revalidateSession } from "@/lib/auth-session";
 import { ChoiceChips } from "@/components/ui/choice-chips";
 import { openConfirm } from "@/lib/confirm";
@@ -79,6 +91,7 @@ const STEPS: Record<string, { hint: string; icon: GlyphName; short: string; titl
   photos: { hint: "", icon: "image", short: "Photos", title: "Photos" },
   rooms: { hint: "Each floor and its room numbers", icon: "business", short: "Rooms", title: "Rooms & floors" },
   rules: { hint: "", icon: "reader", short: "Rules", title: "House rules" },
+  agreement: { hint: "Read it, then sign at the bottom", icon: "create", short: "Agreement", title: "Agreement" },
 };
 
 const DOCUMENTS = [
@@ -127,6 +140,8 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
   const [overview, setOverview] = useState(false);
   const [pending, setPending] = useState<(() => void) | null>(null);
   const [saving, setSaving] = useState(false);
+  // The signature pad needs the vertical drag; the page stops scrolling while it is held.
+  const [signing, setSigning] = useState(false);
   const [allowLeave, setAllowLeave] = useState(false);
   const leaving = useRef<(() => void) | null>(null);
   const lock = useRef(false);
@@ -260,7 +275,7 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
   const next = () => last ? setFinished(true) : go(nextOpen);
 
   return <KycDraftContext.Provider value={register}>
-    <Screen scroll header={<AppBar title="Hostel KYC" showBack onBack={() => void saveAndExit(() => router.back())} actions={<IconButton label="Close KYC" name="close" onPress={() => void saveAndExit(() => router.back())} />} />}
+    <Screen scroll scrollEnabled={!signing} header={<AppBar title="Hostel KYC" showBack onBack={() => void saveAndExit(() => router.back())} actions={<IconButton label="Close KYC" name="close" onPress={() => void saveAndExit(() => router.back())} />} />}
       footer={finish ? review?.canSubmit ? <View className="gap-1"><Button label="Send for submission" onPress={submit} /><Button label={data.percent >= 100 ? "Go home" : "Finish the rest"} variant="ghost" onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /></View> : <View className="gap-1"><Button label={data.percent >= 100 ? "Go home" : "Continue"} onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /><Button label={data.percent >= 100 ? "View steps" : "Go home"} variant="ghost" onPress={() => data.percent >= 100 ? setOverview(true) : router.back()} /></View> : <View className="gap-1"><Button disabled={blocked} label={saving ? "Saving…" : status.busy ? "Please wait…" : status.dirty ? last ? "Save & finish" : "Save & next" : last ? "Finish" : "Next"} onPress={() => void saveAndGo(next)} /><Button label="Skip" variant="ghost" disabled={blocked} onPress={() => move(next)} /></View>}>
       {finish ? <Animated.View entering={FadeIn.duration(220).reduceMotion(ReduceMotion.System)} className="items-center gap-5 py-6">
         {data.percent >= 100 ? <View className="items-center">{!reduced && finished ? <Lottie loop={false} size={140} source={SUCCESS_ANIMATION} /> : <Glyph name="checkmark-circle" color={colors.primary} size={112} />}<Text variant="muted">{done} of {steps.length}</Text></View> : <KycRing percent={data.percent} size={120} />}
@@ -284,7 +299,7 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
         </Pressable>
         <Animated.View key={step.key} entering={(forward ? FadeInRight : FadeInLeft).duration(220).reduceMotion(ReduceMotion.System)} className="gap-5">
           <View className="gap-1"><View className="flex-row items-center gap-2"><Text variant="title">{meta?.title ?? step.key}</Text>{step.required ? <Badge label="Required" tone={step.done ? "success" : "warning"} /> : null}</View>{meta?.hint ? <Text variant="muted">{meta.hint}</Text> : null}</View>
-          <View pointerEvents={saving ? "none" : "auto"}><StepBody data={data} onSaved={reload} stepKey={step.key} /></View>
+          <View pointerEvents={saving ? "none" : "auto"}><StepBody data={data} onSaved={reload} onSigningChange={setSigning} stepKey={step.key} /></View>
         </Animated.View>
       </View>}
     </Screen>
@@ -303,10 +318,12 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
 function StepBody({
   data,
   onSaved,
+  onSigningChange,
   stepKey,
 }: {
   data: HostelKyc;
   onSaved: () => Promise<void> | void;
+  onSigningChange: (active: boolean) => void;
   stepKey: string;
 }) {
   switch (stepKey) {
@@ -334,6 +351,8 @@ function StepBody({
       return <KycRoomsStep onSaved={onSaved} />;
     case "opening":
       return <KycOpeningStep onSaved={onSaved} />;
+    case "agreement":
+      return <AgreementStep onSaved={onSaved} onSigningChange={onSigningChange} />;
     default:
       return null;
   }
@@ -856,5 +875,61 @@ function RatesStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
         <Input keyboardType="number-pad" label="Rooms of this type" onChangeText={(text) => setEditing({ ...editing, rooms: digits(text) })} value={editing.rooms} />
       </View> : null}
     </Sheet>
+  </View>;
+}
+
+/**
+ * The service agreement, read in full on the page and signed at its foot: full
+ * name, drawn signature, a tick. The wizard's footer signs it. It can be
+ * signed again until it is issued on approval — then it is final, emailed as
+ * a PDF, and downloadable here.
+ */
+function AgreementStep({ onSaved, onSigningChange }: { onSaved: () => Promise<void> | void; onSigningChange: (active: boolean) => void }) {
+  const { colors } = useAppTheme();
+  const agreement = useResource(getKycAgreement, { cacheKey: "kyc-agreement" });
+  const [again, setAgain] = useState(false);
+  const [name, setName] = useState("");
+  const [signature, setSignature] = useState("");
+  const [agree, setAgree] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const data = agreement.data;
+  const signed = data?.signed && !again ? data.signed : null;
+  const save = async () => {
+    if (name.trim().length < 2 || !isSignatureComplete(signature) || !agree) {
+      toastError("Not signed", "Type your full name, sign in the box and tick that you agree.");
+      return false;
+    }
+    setSaving(true);
+    try { await signKycAgreement({ signature, signerName: name.trim() }); await agreement.reload(); await onSaved(); setAgain(false); return true; }
+    catch (error) { toastError("Not signed", readApiError(error)); return false; }
+    finally { setSaving(false); }
+  };
+  useKycDraft({ dirty: !signed && Boolean(name.trim() || signature || agree), busy: saving, save });
+
+  if (!data) return agreement.error ? <ErrorState message={agreement.error} onRetry={agreement.reload} /> : <SkeletonCard />;
+
+  return <View className="gap-4">
+    <Card className="gap-3">
+      <Text variant="subtitle">{data.title}</Text>
+      <Text variant="muted">{data.intro}</Text>
+      {data.terms.map(section => <View className="gap-1.5" key={section.heading}>
+        <Text variant="label">{section.heading}</Text>
+        {section.points.map(point => <View className="flex-row gap-2" key={point}><Text variant="body">•</Text><Text className="flex-1" variant="body">{point}</Text></View>)}
+      </View>)}
+    </Card>
+    {signed ? <Card className="gap-3">
+      <SignatureInk color={colors.foreground} height={80} strokes={signatureStrokes(signed.signature)} width={240} />
+      <Text variant="body">Signed by {signed.signerName} on {new Date(signed.signedAt).toLocaleDateString("en-GB")}</Text>
+      {signed.refCode
+        ? <Button label={`Download agreement ${signed.refCode}`} onPress={() => void downloadToDevice({ extension: "pdf", fileName: `HostelPalika-Agreement-${signed.refCode!.replace(/\//g, "-")}`, label: "Agreement", mimeType: "application/pdf", url: `${API_BASE_URL}${KYC_AGREEMENT_PDF_PATH}` }).catch(error => toastError("Not downloaded", readApiError(error)))} />
+        : <><Text variant="muted">We email you the signed PDF when your KYC is approved.</Text><Button label="Sign again" variant="ghost" onPress={() => setAgain(true)} /></>}
+    </Card> : <View className="gap-4">
+      <Input autoCapitalize="words" autoComplete="name" label="Your full name" onChangeText={setName} value={name} />
+      <SignaturePad onActiveChange={onSigningChange} onChange={setSignature} value={signature} />
+      <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: agree }} onPress={() => setAgree(!agree)} className="min-h-12 flex-row items-center gap-3">
+        <Glyph name={agree ? "checkmark-circle" : "ellipse"} color={agree ? colors.primary : colors.mutedForeground} size={24} />
+        <Text className="flex-1" variant="body">I have read this agreement and I agree to it.</Text>
+      </Pressable>
+    </View>}
   </View>;
 }

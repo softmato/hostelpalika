@@ -1,4 +1,9 @@
-"""agreement.html -> Chrome PDF -> stamped onto letterhead.pdf -> ../hostel-register-agreement.pdf"""
+"""Superseded 2026-10-21: the printed agreement is now built from the same terms as the
+in-app signed one. Run `npm run build:paper-agreement` in apps/web instead.
+letterhead.pdf here is still the source of apps/web/src/modules/hostels/agreement-letterhead.ts.
+
+(Old: agreement.html -> Chrome PDF -> stamped onto letterhead.pdf -> ../hostel-register-agreement.pdf)"""
+raise SystemExit("Superseded - run `npm run build:paper-agreement` in apps/web.")
 import os, subprocess
 import pymupdf
 

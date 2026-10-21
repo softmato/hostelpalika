@@ -17,6 +17,9 @@ import { usePortalResource } from "@/lib/portal-query";
 import { uploadRegistrationDocument } from "@/lib/uploads/registration-document";
 import { uploadFiles } from "@/lib/uploads/uploader";
 import { cn } from "@/lib/utils";
+import { SignaturePad } from "@/components/signature-pad";
+import { downloadFile } from "@/lib/downloads/downloader";
+import { isSignatureComplete } from "@/lib/signature";
 
 /**
  * Every Hostel KYC step, filled in place and showing what is already saved —
@@ -125,6 +128,8 @@ export function KycStepBody({
       return <FacilitiesStep initial={kyc.facilities} onSaved={onSaved} />;
     case "location":
       return <LocationStep onSaved={onSaved} />;
+    case "agreement":
+      return <AgreementStep onSaved={onSaved} />;
     default:
       return null;
   }
@@ -874,5 +879,116 @@ function LocationForm({ onSaved, saved }: { onSaved: () => Promise<void>; saved:
         value={value}
       />
     </SaveForm>
+  );
+}
+
+/* Agreement ---------------------------------------------------------------- */
+
+type Agreement = {
+  intro: string;
+  signed: {
+    issuedAt: string | null;
+    refCode: string | null;
+    signature: string;
+    signedAt: string;
+    signerName: string;
+  } | null;
+  terms: { heading: string; points: string[] }[];
+  title: string;
+};
+
+const AGREEMENT_ENDPOINT = `${KYC_ENDPOINT}/agreement`;
+
+/**
+ * The service agreement: read it, type your name, sign, tick. Signed again
+ * freely until it is issued (on approval) — then it is final and downloadable.
+ */
+function AgreementStep({ onSaved }: { onSaved: () => Promise<void> }) {
+  const resource = usePortalResource<{ agreement: Agreement }>(AGREEMENT_ENDPOINT);
+  const [again, setAgain] = useState(false);
+  const [name, setName] = useState("");
+  const [signature, setSignature] = useState("");
+  const [agree, setAgree] = useState(false);
+  const agreement = resource.data?.agreement;
+
+  if (!agreement) return <div className="h-40 animate-pulse rounded-2xl bg-muted" />;
+
+  const signed = agreement.signed;
+
+  return (
+    <div className="space-y-4">
+      <div className="max-h-80 space-y-3 overflow-y-auto rounded-2xl border border-border p-4 text-sm leading-relaxed">
+        <p className="font-semibold">{agreement.title}</p>
+        <p className="text-muted-foreground">{agreement.intro}</p>
+        {agreement.terms.map((section) => (
+          <div key={section.heading}>
+            <p className="font-semibold">{section.heading}</p>
+            <ul className="mt-1 list-disc space-y-1 pl-5">
+              {section.points.map((point) => (
+                <li key={point}>{point}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+
+      {signed && !again ? (
+        <div className="space-y-3 rounded-2xl border border-border p-4">
+          <svg aria-label={`Signature of ${signed.signerName}`} className="h-20 w-60 text-foreground" role="img" viewBox="0 0 600 200">
+            <path d={signed.signature} fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth={5} />
+          </svg>
+          <p className="text-sm">
+            Signed by <span className="font-semibold">{signed.signerName}</span> on {new Date(signed.signedAt).toLocaleDateString("en-GB")}
+          </p>
+          {signed.refCode ? (
+            <button
+              className={PRIMARY}
+              onClick={() =>
+                void downloadFile({
+                  fileName: `HostelPalika-Agreement-${signed.refCode!.replace(/\//g, "-")}.pdf`,
+                  label: "Agreement",
+                  mimeType: "application/pdf",
+                  url: `${AGREEMENT_ENDPOINT}?format=pdf`,
+                })
+              }
+              type="button"
+            >
+              Download agreement {signed.refCode}
+            </button>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">We email you the signed PDF when your KYC is approved.</p>
+              <button className="text-sm font-semibold text-brand-teal" onClick={() => setAgain(true)} type="button">
+                Sign again
+              </button>
+            </>
+          )}
+        </div>
+      ) : (
+        <SaveForm
+          disabled={name.trim().length < 2 || !isSignatureComplete(signature) || !agree}
+          label="Sign the agreement"
+          onSave={async () => {
+            await browserApi(AGREEMENT_ENDPOINT, { body: JSON.stringify({ agree, signature, signerName: name.trim() }), method: "POST" });
+            setAgain(false);
+            resource.refresh();
+            await onSaved();
+          }}
+        >
+          <label className={LABEL}>
+            <span>Your full name</span>
+            <input autoComplete="name" className={INPUT} onChange={(event) => setName(event.target.value)} value={name} />
+          </label>
+          <div className="grid gap-1.5 text-sm font-semibold">
+            <span>Your signature</span>
+            <SignaturePad onChange={setSignature} value={signature} />
+          </div>
+          <label className="flex items-start gap-2 text-sm">
+            <input checked={agree} className="mt-0.5 h-4 w-4 accent-brand-teal" onChange={(event) => setAgree(event.target.checked)} type="checkbox" />
+            <span>I have read this agreement and I agree to it.</span>
+          </label>
+        </SaveForm>
+      )}
+    </div>
   );
 }

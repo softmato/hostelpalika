@@ -119,7 +119,7 @@ const optionalEmail = z.preprocess(
 const SIGNATURE_PATTERN = /^(?:[ML]\d{1,3} \d{1,3})+$/;
 const SIGNATURE_MIN_POINTS = 8;
 
-const signature = z
+export const signature = z
   .string({ error: "Sign in the box before saving." })
   .max(16_000, "That signature is too detailed. Clear it and sign again.")
   .refine(

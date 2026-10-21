@@ -40,6 +40,7 @@ import {
 } from "@/app/_components/portal-dashboard-ui";
 import { MediaLightbox, type LightboxItem } from "@/components/media-lightbox";
 import { ReviewPayoutAccount } from "@/components/bookings/review-payout-account";
+import { ReviewAgreement } from "@/components/hostels/review-agreement";
 import { browserApi } from "@/lib/browser-api";
 import { platformEndpoints } from "@/lib/platform-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
@@ -793,6 +794,10 @@ export const PlatformHostelReviewPageContent = memo(
 
               <SectionCard title="Booking payouts">
                 <ReviewPayoutAccount hostelId={params.id} />
+              </SectionCard>
+
+              <SectionCard title="Service agreement">
+                <ReviewAgreement hostelId={params.id} />
               </SectionCard>
             </div>
 

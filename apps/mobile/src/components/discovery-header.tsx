@@ -3,9 +3,9 @@ import { router, useFocusEffect } from "expo-router";
 import { setStatusBarStyle } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
-import Svg, { Path } from "react-native-svg";
 import Animated, {
   Easing,
+  interpolate,
   useAnimatedStyle,
   useReducedMotion,
   useSharedValue,
@@ -19,6 +19,7 @@ import { NotificationBell } from "@/components/notification-bell";
 import { usePortalPaint } from "@/components/portal-shared";
 import { Glyph } from "@/components/ui/glyph";
 import { IconButton } from "@/components/ui/icon-button";
+import { useScreenScroll } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
 import { APP_NAME, APP_NAME_PARTS } from "@/constants/branding";
 import { useAppSelector } from "@/hooks/redux";
@@ -202,9 +203,10 @@ export function DiscoveryHeader({
   const cardNoun = idCardNoun(cardType);
 
   return (
-    // The top of the green that `PublicHome` fades down into the page.
-    <View style={{ backgroundColor: paint.from, paddingTop: insets.top }}>
-      <Treeline ink={paint.to} />
+    // The top of the green that `PublicHome` fades down into the page. Above
+    // the body (`zIndex`) so the fade below can lie over what scrolls under it.
+    <View style={{ backgroundColor: paint.from, paddingTop: insets.top, zIndex: 1 }}>
+      <BottomFade color={paint.from} />
 
       <View className="gap-3 px-5 pb-3 pt-2">
         <View className="flex-row items-center gap-3">
@@ -341,63 +343,6 @@ export function DiscoveryHeader({
   );
 }
 
-/** The art's own box. Wider than any phone; `slice` crops it rather than stretching the trees. */
-const TREELINE_W = 400;
-const TREELINE_H = 56;
-
-/** Pines as `[x, height]`. Uneven on purpose: equal trees read as a border, not a treeline. */
-const PINES: readonly (readonly [number, number])[] = [
-  [8, 20], [22, 30], [36, 22], [62, 34], [76, 24], [110, 18], [124, 27], [168, 22],
-  [182, 32], [196, 20], [240, 25], [254, 35], [268, 22], [304, 18], [332, 27], [346, 37],
-  [360, 25], [388, 29],
-];
-
-/** A three-tier pine standing on the bottom edge. */
-function pine(x: number, h: number) {
-  const w = h * 0.42;
-  const b = TREELINE_H;
-
-  return (
-    `M${x} ${b - h}L${x + w * 0.55} ${b - h * 0.56}H${x + w * 0.3}L${x + w * 0.8} ${b - h * 0.24}` +
-    `H${x + w * 0.5}L${x + w} ${b}H${x - w}L${x - w * 0.5} ${b - h * 0.24}H${x - w * 0.8}` +
-    `L${x - w * 0.3} ${b - h * 0.56}H${x - w * 0.55}Z`
-  );
-}
-
-const PINE_PATH = PINES.map(([x, h]) => pine(x, h)).join("");
-
-const RIDGE_PATH =
-  "M0 56V36L30 24L48 31L82 9L102 25L126 18L156 33L192 12L212 23L236 16L266 31L302 6L326 23L352 14L378 27L400 19V56Z";
-
-/**
- * A ghost of hills and pines behind the wordmark, standing on the search field.
- *
- * The same idea as the portal hero's building photograph at 11% (`PHOTO_WEIGHT`
- * in `portal-shared`): texture you notice second. Drawn in the paint's own darker
- * stop and a faint white haze — no new colour — and static, so it costs one SVG
- * draw and nothing per frame.
- */
-function Treeline({ ink }: { ink: string }) {
-  return (
-    <Svg
-      height={TREELINE_H}
-      preserveAspectRatio="xMidYMax slice"
-      style={{
-        bottom: SEARCH_HEIGHT + 12,
-        left: 0,
-        pointerEvents: "none",
-        position: "absolute",
-        right: 0,
-      }}
-      viewBox={`0 0 ${TREELINE_W} ${TREELINE_H}`}
-      width="100%"
-    >
-      <Path d={RIDGE_PATH} fill="#FFFFFF" fillOpacity={0.06} />
-      <Path d={PINE_PATH} fill={ink} fillOpacity={0.55} />
-    </Svg>
-  );
-}
-
 /**
  * The map button, and the light that moves inside it.
  *
@@ -514,5 +459,38 @@ function MapButton() {
       {/* After the band in the tree, so it draws over it. */}
       <Glyph color={colors.foreground} name="map" size={MAP_GLYPH} />
     </Pressable>
+  );
+}
+
+/** How far the page scrolls before the header's own fade is fully drawn. */
+const FADE_IN_BY = 48;
+
+/**
+ * The header's green, fading out below its bottom edge.
+ *
+ * At rest it is invisible: the shortcut block's own gradient carries the green
+ * on down, and two fades stacked would be a band. Once the page scrolls that
+ * block away, this takes over, so content slides up under a soft edge rather
+ * than a ruled line.
+ *
+ * Its far stop is the same green at zero alpha, not `transparent` — see the map
+ * button for why that matters on Android.
+ */
+function BottomFade({ color }: { color: string }) {
+  const scrollY = useScreenScroll();
+
+  const fade = useAnimatedStyle(() => ({
+    opacity: interpolate(scrollY?.value ?? 0, [0, FADE_IN_BY], [0, 1], "clamp"),
+  }));
+
+  return (
+    <Animated.View
+      style={[
+        { height: 28, left: 0, pointerEvents: "none", position: "absolute", right: 0, top: "100%" },
+        fade,
+      ]}
+    >
+      <LinearGradient colors={[color, `${color}00`]} style={{ flex: 1 }} />
+    </Animated.View>
   );
 }

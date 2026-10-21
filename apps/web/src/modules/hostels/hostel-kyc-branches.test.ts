@@ -24,6 +24,8 @@ vi.mock("@hostel/db/models/HostelApplication", fake("HostelApplicationModel"));
 vi.mock("@hostel/db/models/HostelVerification", fake("HostelVerificationModel"));
 vi.mock("@hostel/db/models/User", fake("UserModel"));
 vi.mock("@/modules/hostels/hostel-notify", () => ({ notifyPlatformOfPendingHostel: vi.fn(async () => {}) }));
+const agreement = vi.hoisted(() => ({ signed: false }));
+vi.mock("@/modules/hostels/hostel-agreement.service", () => ({ hasSignedAgreement: vi.fn(async () => agreement.signed) }));
 const { HostelModel } = await import("@hostel/db/models/Hostel");
 const { HostelDocumentModel } = await import("@hostel/db/models/HostelDocument");
 const { HostelPayoutAccountModel } =

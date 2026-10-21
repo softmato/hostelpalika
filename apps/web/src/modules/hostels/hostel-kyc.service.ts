@@ -15,6 +15,7 @@ import { HostelRoomModel } from "@hostel/db/models/HostelRoom";
 import { HostelSettingsModel } from "@hostel/db/models/HostelSettings";
 import { HostelVerificationModel } from "@hostel/db/models/HostelVerification";
 import { UserModel } from "@hostel/db/models/User";
+import { hasSignedAgreement } from "@/modules/hostels/hostel-agreement.service";
 import { notifyPlatformOfPendingHostel } from "@/modules/hostels/hostel-notify";
 import { HostelServiceError } from "@/modules/hostels/hostel.service";
 
@@ -40,6 +41,9 @@ export const KYC_STEPS = [
   "rules",
   "facilities",
   "location",
+  // Last, once the owner has seen everything else: the service agreement they
+  // sign, emailed as a PDF on approval (`hostel-agreement.service.ts`).
+  "agreement",
 ] as const;
 
 export type KycStep = (typeof KYC_STEPS)[number];
@@ -49,7 +53,7 @@ export type KycStep = (typeof KYC_STEPS)[number];
  * listed: where it is, what it looks like, what it charges, and who owns it.
  * The rest still counts toward the ring but does not hold back Submit.
  */
-export const KYC_REQUIRED_STEPS: readonly KycStep[] = ["details", "photos", "rates", "documents", "location"];
+export const KYC_REQUIRED_STEPS: readonly KycStep[] = ["details", "photos", "rates", "documents", "location", "agreement"];
 
 /** Enough to fill the listing's cover and a first look inside. */
 const MIN_PHOTOS = 3;
@@ -62,7 +66,7 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId, viewerId?:
   await connectToDatabase();
 
   const id = new Types.ObjectId(String(hostelId));
-  const [hostel, documents, payout, profile, routine, rooms, settings, rateCard] = await Promise.all([
+  const [hostel, documents, payout, profile, routine, rooms, settings, rateCard, signed] = await Promise.all([
     HostelModel.findById(id).select("photos rules facilities location hostelType kyc").lean<{
       facilities?: string[];
       hostelType?: string;
@@ -94,6 +98,7 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId, viewerId?:
       .select("openingBalance roomTracking")
       .lean<{ openingBalance?: { amount: number } | null; roomTracking?: boolean } | null>(),
     FeeScheduleModel.exists({ effectiveTo: null, hostelId: id, "rates.0": { $exists: true } }),
+    hasSignedAgreement(id),
   ]);
 
   if (!hostel) {
@@ -110,6 +115,7 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId, viewerId?:
   const fileById = new Map(files.map((file) => [String(file._id), file]));
 
   const done: Record<KycStep, boolean> = {
+    agreement: signed,
     details: Boolean(hostel.location?.area?.trim() && hostel.location?.city?.trim()),
     documents: documents.length > 0,
     facilities: (hostel.facilities ?? []).length > 0,
