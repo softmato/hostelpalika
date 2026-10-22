@@ -59,8 +59,9 @@ body { margin: 0; background: var(--paper); }
 #stage { position: absolute; inset: 0; perspective: 2200px; perspective-origin: ${L.phone.cx}px ${L.phone.cy}px; }
 #cam { position: absolute; inset: 0; transform-style: preserve-3d; }
 .screen .spot { position: absolute; inset: 0; z-index: 4; opacity: 0; }
-.screen .spot i { position: absolute; backdrop-filter: blur(6px) saturate(.8); -webkit-backdrop-filter: blur(6px) saturate(.8); background: rgba(244,241,255,.38); }
-.screen .spot b { position: absolute; border-radius: 14px; border: 3px solid #0a8a4b; box-shadow: 0 0 0 6px rgba(10,138,75,.16), 0 10px 30px rgba(13,15,14,.18); }
+.screen .spot i { position: absolute; backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); background: rgba(14,16,24,.42); }
+.screen .spot b { position: absolute; border-radius: 14px; border: 3.5px solid #12a95d; box-shadow: 0 0 0 3px rgba(255,255,255,.9), 0 0 36px 8px rgba(18,169,93,.5); }
+.screen .spot u { position: absolute; border-radius: 16px; border: 3px solid #3ddc84; }
 #rig { position: absolute; left: ${L.phone.cx - L.phone.w / 2}px; top: ${L.phone.cy - L.phone.h / 2}px;
   width: ${L.phone.w}px; height: ${L.phone.h}px; transform-style: preserve-3d; }
 #shadow { position: absolute; left: 6%; right: 6%; bottom: -5%; height: 9%; border-radius: 50%;

@@ -10,7 +10,7 @@
 //   css?: (L) => "css", dark?: bool, bgHtml?: "html", music?: "music_film",
 // })
 import { writeFileSync, mkdirSync, readFileSync, existsSync } from "node:fs";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { buildScene } from "./segments.mjs";
 import { layouts } from "./layout.mjs";
 import { css as baseCss } from "./styles.mjs";
@@ -50,15 +50,31 @@ export function makeFilm(o) {
   o.sections(e, L, S, timed);
   const phones = timed.filter((s) => s.kind === "phone");
 
-  // subtitles for every narrated line marked `sub`
-  timed.flatMap((sc) => sc.vo.filter((v) => v.sub).map((v) => ({ ...v, kind: sc.kind }))).forEach((v, i) => {
-    const text = v.text ?? voText(v.file), n = text.split(" ").length;
+  // subtitles for every narrated line marked `sub`; with `subSplit` each sentence gets its own box,
+  // cut at the pause in the voice nearest to where the text says the sentence ends
+  const pauses = (f) => [...spawnSync("ffmpeg", ["-i", asset(`audio/${f}.mp3`), "-af", "silencedetect=n=-32dB:d=0.12", "-f", "null", "-"]).stderr.toString()
+    .matchAll(/silence_start: ([\d.]+)[\s\S]*?silence_end: ([\d.]+)/g)].map((m) => [+m[1], +m[2]]);
+  const sentences = (v) => {
+    const text = v.text ?? voText(v.file), parts = o.subSplit ? text.match(/[^।?!]+[।?!]?/g).map((s) => s.trim()).filter(Boolean) : [text];
+    if (parts.length < 2) return [{ ...v, text }];
+    const gaps = pauses(v.file), total = parts.reduce((a, p) => a + p.length, 0);
+    let chars = 0, from = 0;
+    return parts.map((p, k) => {
+      chars += p.length;
+      const guess = (v.len * chars) / total, gap = gaps.reduce((b, g) => (Math.abs(g[0] - guess) < Math.abs(b[0] - guess) ? g : b), [v.len, v.len]);
+      const to = k === parts.length - 1 ? v.len : gap[0], out = { ...v, text: p, at: v.at + from, len: to - from };
+      from = k === parts.length - 1 ? v.len : gap[1];
+      return out;
+    });
+  };
+  timed.flatMap((sc) => sc.vo.filter((v) => v.sub).flatMap((v) => sentences(v).map((s) => ({ ...s, kind: sc.kind })))).forEach((v, i) => {
+    const text = v.text, n = text.split(" ").length;
     const pos = v.kind === "phone" ? "" : `left:${L.W * 0.08}px;width:${L.W * 0.84}px;text-align:center;top:${L.H * 0.86}px`;
     e.clip(`sub${i}`, v.at - 0.05, v.len + 0.45, `<div class="sub" style="${pos}"><span class="box">${words(text)}</span></div>`, "full");
     e.code(`tl.fromTo("#sub${i} .box",{y:16,opacity:0},{y:0,opacity:1,duration:.35,ease:"power3.out"},${e.r(v.at - 0.05)});`);
     for (let k = 0; k < n; k++)
       e.code(`tl.fromTo("#sub${i} .w:nth-child(${k + 1})",{opacity:.25},{opacity:1,duration:.2},${e.r(v.at + (v.len * 0.95 * k) / n)});`);
-    e.code(`tl.to("#sub${i} .box",{opacity:0,y:-10,duration:.25},${e.r(v.at + v.len + 0.15)});`);
+    e.code(`tl.to("#sub${i} .box",{opacity:0,y:-10,duration:.2},${e.r(v.at + v.len + 0.05)});`);
   });
 
   // brand bug in the corner while the product is on screen

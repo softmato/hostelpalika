@@ -21,3 +21,8 @@ assets/cfr/
 # the repo root ignores build/ — the film generators are source, keep them
 !/*-film/build/
 audio/admin/old/
+
+# generated video clips (Veo, screen captures): large, kept locally
+*-film/assets/veo/
+*-film/assets/**/*.mp4
+**/*_raw.mp3

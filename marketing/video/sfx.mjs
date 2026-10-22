@@ -37,6 +37,13 @@ const kit = {
   click: ["Soft premium button press click, rounded and muted, clean app interface", 0.5],
   snap: ["Two cards snapping together magnetically, soft satisfying click with a little air", 0.6],
   heart: ["Soft deep heartbeat thump, single beat, cinematic, warm", 0.8],
+  // owner film v4 additions
+  fire: ["Short burst of crackling fire, paper burning, warm and close, cinematic, not loud", 2],
+  boom: ["Deep cinematic boom impact with a sub drop and soft air tail, premium trailer hit", 2],
+  whip: ["Very fast whip-pan whoosh, tight and clean, modern product video transition", 0.6],
+  beep: ["Short clean QR scanner confirm beep, soft and modern, single tone", 0.5],
+  rise: ["Short airy riser swelling into a soft hit, 1 second build, clean and modern", 1.2],
+  twinkle: ["Tiny soft sparkle twinkle, light magical glint, minimal and clean", 0.8],
 };
 const out = process.argv[2];
 for (const [name, [text, duration]] of Object.entries(kit)) {
