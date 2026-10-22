@@ -377,12 +377,8 @@ function HomeShortcuts({ browseHref }: { browseHref: string }) {
           icon: "business",
           key: "register",
           label: "Register hostel",
-          onPress: () =>
-            router.push(
-              account
-                ? "/register-hostel"
-                : { params: { next: "/register-hostel" }, pathname: "/(auth)/login" },
-            ),
+          // The landing explains first; it asks a signed-out visitor to sign in itself.
+          onPress: () => router.push("/register-hostel"),
           tone: "brand",
         }
       : null,

@@ -57,7 +57,7 @@ export function KycPayments({ onSaved }: { onSaved: () => Promise<void> | void }
   const set = (key: PaymentField) => (text: string) => setDraft(previous => ({ ...previous, [key]: text }));
   const field = ([key, label]: [PaymentField, string]) => key === "bankName"
     ? <BankNameField key={key} onChange={set(key)} value={value(key)} />
-    : <Input key={key} label={label} value={value(key)} onChangeText={set(key)} keyboardType={/Number|Id/.test(key) ? "numbers-and-punctuation" : "default"} />;
+    : <Input key={key} leading={<Glyph color={colors.mutedForeground} name={/Name/.test(key) ? "person" : /Number|Id/.test(key) ? "card" : "business"} size={18} />} variant="line" label={label} value={value(key)} onChangeText={set(key)} keyboardType={/Number|Id/.test(key) ? "numbers-and-punctuation" : "default"} />;
   const summary = (group: (typeof GROUPS)[number]) => group.key === "bank"
     ? value("bankAccountNumber") ? `${value("bankName") || "Bank"} · ${mask(value("bankAccountNumber"))}` : "Not added"
     : mask(value(group.fields[0][0]));

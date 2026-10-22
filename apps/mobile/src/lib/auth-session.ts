@@ -17,7 +17,7 @@
  * turns every cold start into a second of blank screen on a slow connection.
  */
 
-import { router } from "expo-router";
+import { type Href, router } from "expo-router";
 
 import { bindSessionHandlers, rotateAccessToken } from "@/lib/api";
 import {
@@ -268,10 +268,16 @@ export async function startSession(result: {
  * calling `/auth/logout` with it would just 401.
  */
 export async function endSession(options?: {
+  /**
+   * Where to land. The route changes after the network calls and before the
+   * store is wiped, so the portal stays on screen while signing out and Home is
+   * already there when the state clears — never a blank shell in between.
+   */
+  leaveTo?: Href;
   reason?: "EXPIRED" | "SUSPENDED" | null;
   revoke?: boolean;
 }) {
-  const { reason = null, revoke = true } = options ?? {};
+  const { leaveTo, reason = null, revoke = true } = options ?? {};
 
   /*
    * Before `clearTokens`, because this call is authenticated.
@@ -308,19 +314,21 @@ export async function endSession(options?: {
     const tokens = await readTokens();
 
     if (tokens?.refreshToken) {
-      await revokeSession(tokens.refreshToken);
+      // A failed revoke must not keep someone signed in on this phone.
+      await revokeSession(tokens.refreshToken).catch(() => undefined);
     }
   }
+
+  if (leaveTo) router.replace(leaveTo);
 
   await clearTokens();
   // Biometric stays on for this account on this phone — `resetStore` keeps it.
   store.dispatch(resetStore());
-  await persistor.purge();
-
   // `resetStore` cleared it, so re-flag the two things the login screen needs:
   // that boot is done (otherwise the gate re-runs and hangs on the splash) and
-  // why the user is here.
+  // why the user is here. Before the purge, so no frame renders un-ready.
   store.dispatch(setReady(true));
+  await persistor.purge();
 
   if (reason) {
     store.dispatch(setSessionEndReason(reason));

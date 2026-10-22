@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -76,7 +75,7 @@ export function HostelSuspensionHost() {
   }, []);
 
   const signOut = useCallback(
-    () => endSession().finally(() => router.replace("/(browse)")),
+    () => endSession({ leaveTo: "/(browse)" }),
     [],
   );
 

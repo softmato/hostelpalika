@@ -1,4 +1,4 @@
-import { BEDS_BY_ROOM_TYPE, ROOM_TYPE_OPTIONS } from "@hostel/constants/room-types";
+import { bedsForRoomType, ROOM_TYPE_OPTIONS } from "@hostel/constants/room-types";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { usePreventRemove } from "expo-router/react-navigation";
@@ -81,7 +81,7 @@ const SUCCESS_ANIMATION = require("../../../assets/lottie/success.lottie");
 
 const STEPS: Record<string, { hint: string; icon: GlyphName; short: string; title: string }> = {
   details: { hint: "Who lives here, and where", icon: "home", short: "Details", title: "Hostel details" },
-  rates: { hint: "Each room type and its monthly rent", icon: "pricetags", short: "Room types & rent", title: "Room types & rent" },
+  rates: { hint: "Price, fees and photos for each type", icon: "pricetags", short: "Room types", title: "Room types" },
   documents: { hint: "Add your ID", icon: "document-text", short: "Documents", title: "Documents" },
   facilities: { hint: "Tap what you have", icon: "bed", short: "Facilities", title: "Facilities" },
   food: { hint: "", icon: "restaurant", short: "Food", title: "Food menu" },
@@ -90,7 +90,7 @@ const STEPS: Record<string, { hint: string; icon: GlyphName; short: string; titl
   payout: { hint: "Where we send your money", icon: "card", short: "Booking money", title: "Booking money" },
   opening: { hint: "Your bank balance when you start", icon: "wallet", short: "Opening balance", title: "Opening balance" },
   photos: { hint: "", icon: "image", short: "Photos", title: "Photos" },
-  rooms: { hint: "Each floor and its room numbers", icon: "business", short: "Rooms", title: "Rooms & floors" },
+  rooms: { hint: "How many rooms, and of which type", icon: "business", short: "Rooms & floors", title: "Rooms & floors" },
   rules: { hint: "", icon: "reader", short: "Rules", title: "House rules" },
   agreement: { hint: "Read it, then sign at the bottom", icon: "create", short: "Agreement", title: "Agreement" },
 };
@@ -277,7 +277,7 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
 
   return <KycDraftContext.Provider value={register}>
     <Screen scroll scrollEnabled={!signing} header={<AppBar title="Hostel KYC" showBack onBack={() => void saveAndExit(() => router.back())} actions={<IconButton label="Close KYC" name="close" onPress={() => void saveAndExit(() => router.back())} />} />}
-      footer={finish ? review?.canSubmit ? <View className="gap-1"><Button label="Send for submission" onPress={submit} /><Button label={data.percent >= 100 ? "Go home" : "Finish the rest"} variant="ghost" onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /></View> : <View className="gap-1"><Button label={data.percent >= 100 ? "Go home" : "Continue"} onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /><Button label={data.percent >= 100 ? "View steps" : "Go home"} variant="ghost" onPress={() => data.percent >= 100 ? setOverview(true) : router.back()} /></View> : <View className="gap-1"><Button disabled={blocked} label={saving ? "Saving…" : status.busy ? "Please wait…" : status.dirty ? last ? "Save & finish" : "Save & next" : last ? "Finish" : "Next"} onPress={() => void saveAndGo(next)} /><Button label="Skip" variant="ghost" disabled={blocked} onPress={() => move(next)} /></View>}>
+      footer={finish ? review?.canSubmit ? <View className="gap-1"><Button label="Send for submission" onPress={submit} /><Button label={data.percent >= 100 ? "Go home" : "Finish the rest"} variant="ghost" onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /></View> : <View className="gap-1"><Button label={data.percent >= 100 ? "Go home" : "Continue"} onPress={() => data.percent >= 100 ? router.back() : go(Math.max(0, firstOpen))} /><Button label={data.percent >= 100 ? "View steps" : "Go home"} variant="ghost" onPress={() => data.percent >= 100 ? setOverview(true) : router.back()} /></View> : <View className="gap-1"><Button disabled={blocked} label={saving ? "Saving…" : status.busy ? "Please wait…" : status.dirty ? last ? "Save & finish" : "Save & next" : last ? "Finish" : "Next"} onPress={() => void saveAndGo(next)} /><View className="flex-row gap-2">{current > 0 ? <Button className="flex-1" icon="chevron-back" label="Back" variant="outline" disabled={blocked} onPress={() => move(() => go(current - 1))} /> : null}<Button className="flex-1" label="Skip" variant="outline" disabled={blocked} onPress={() => move(next)} /></View></View>}>
       {finish ? <Animated.View entering={FadeIn.duration(220).reduceMotion(ReduceMotion.System)} className="items-center gap-5 py-6">
         {data.percent >= 100 ? <View className="items-center">{!reduced && finished ? <Lottie loop={false} size={140} source={SUCCESS_ANIMATION} /> : <Glyph name="checkmark-circle" color={colors.primary} size={112} />}<Text variant="muted">{done} of {steps.length}</Text></View> : <KycRing percent={data.percent} size={120} />}
         <Text variant="title">{review?.status === "SUBMITTED" ? "Sent for review" : review?.status === "APPROVED" ? "Verified" : review?.canSubmit ? "Send for submission" : data.percent >= 100 ? "All done!" : `${data.percent}% done`}</Text>
@@ -300,7 +300,7 @@ function KycFlow({ resource: kyc }: { resource: ReturnType<typeof useResource<Ho
           <Glyph color={colors.mutedForeground} name="chevron-down" size={20} />
         </Pressable>
         <Animated.View key={step.key} entering={(forward ? FadeInRight : FadeInLeft).duration(220).reduceMotion(ReduceMotion.System)} className="gap-5">
-          <View className="gap-1"><View className="flex-row items-center gap-2"><Text variant="title">{meta?.title ?? step.key}</Text>{step.required ? <Badge label="Required" tone={step.done ? "success" : "warning"} /> : null}</View>{meta?.hint ? <Text variant="muted">{meta.hint}</Text> : null}</View>
+          <View className="flex-row items-center gap-3"><View className="h-12 w-12 items-center justify-center rounded-2xl bg-brand-soft"><Glyph name={meta?.icon ?? "ellipse"} color={colors.primary} size={24} /></View><View className="flex-1 gap-0.5"><View className="flex-row items-center gap-2"><Text variant="title">{meta?.title ?? step.key}</Text>{step.required ? <Badge label="Required" tone={step.done ? "success" : "warning"} /> : null}</View>{meta?.hint ? <Text variant="caption">{meta.hint}</Text> : null}</View></View>
           <View pointerEvents={saving ? "none" : "auto"}><StepBody data={data} onSaved={reload} onSigningChange={setSigning} stepKey={step.key} /></View>
         </Animated.View>
       </View>}
@@ -676,9 +676,17 @@ const FACILITY_ICONS: Record<string, GlyphName> = {
 function FacilitiesStep({ onSaved, saved }: { onSaved: () => Promise<void> | void; saved: string[] }) {
   const { colors } = useAppTheme();
   const [draft, setDraft] = useState<string[] | null>(null);
+  const [custom, setCustom] = useState("");
   const [saving, setSaving] = useState(false);
   const picked = draft ?? saved;
-  const options = [...new Set([...FACILITY_OPTIONS, ...saved])];
+  const options = [...new Set([...FACILITY_OPTIONS, ...saved, ...picked])];
+  const addCustom = () => {
+    const name = custom.trim();
+    if (!name) return;
+    const known = options.find((option) => option.toLowerCase() === name.toLowerCase());
+    if (!picked.includes(known ?? name)) setDraft([...picked, known ?? name]);
+    setCustom("");
+  };
   const dirty = [...picked].sort().join("|") !== [...saved].sort().join("|");
   const save = async () => {
     setSaving(true);
@@ -692,7 +700,12 @@ function FacilitiesStep({ onSaved, saved }: { onSaved: () => Promise<void> | voi
     return <Pressable key={option} accessibilityRole="checkbox" accessibilityState={{ checked: selected }} onPress={() => setDraft(selected ? picked.filter(item => item !== option) : [...picked, option])} className={`min-h-20 w-[48%] flex-row items-center gap-2 rounded-2xl border p-3 ${selected ? "border-primary/30 bg-brand-soft" : "border-border"}`}>
       <Glyph name={FACILITY_ICONS[option] ?? "checkmark-circle"} color={selected ? colors.primary : colors.foreground} size={24} /><Text className="flex-1" variant="label">{option === "WiFi" ? "Wi-Fi" : option}</Text>{selected ? <Glyph name="checkmark-circle" color={colors.primary} size={16} /> : null}
     </Pressable>;
-  })}</View></View>;
+  })}</View>
+    <View className="flex-row items-end gap-2">
+      <View className="flex-1"><Input autoCapitalize="sentences" label="Add custom facility" leading={<Glyph color={colors.mutedForeground} name="add" size={18} />} onChangeText={setCustom} onSubmitEditing={addCustom} placeholder="Rooftop garden" returnKeyType="done" value={custom} variant="line" /></View>
+      <Button disabled={!custom.trim()} label="Add" onPress={addCustom} size="md" variant="outline" />
+    </View>
+  </View>;
 }
 
 /**
@@ -771,6 +784,7 @@ function LocationStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
 
 /** Who lives here and the address: the quick sign-up filed a name only. */
 function DetailsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Promise<void> | void }) {
+  const { colors } = useAppTheme();
   const saved = { address: data.details?.address ?? "", area: data.details?.area ?? "", city: data.details?.city || "Kathmandu", hostelType: data.details?.hostelType ?? "CO_LIVING" };
   const [draft, setDraft] = useState<typeof saved | null>(null);
   const [saving, setSaving] = useState(false);
@@ -794,16 +808,26 @@ function DetailsStep({ data, onSaved }: { data: HostelKyc; onSaved: () => Promis
   useKycDraft({ dirty, busy: saving, save });
   return <View className="gap-4">
     <ChoiceChips columns={3} label="Who lives here" onToggle={(hostelType) => set({ hostelType })} options={HOSTEL_TYPES} value={form.hostelType as (typeof HOSTEL_TYPES)[number]["value"]} />
-    <Input autoCapitalize="words" label="City" onChangeText={(city) => set({ city })} value={form.city} />
-    <Input autoCapitalize="words" label="Area" onChangeText={(area) => set({ area })} placeholder="Baneshwor" value={form.area} />
-    <Input autoCapitalize="sentences" label="Address" onChangeText={(address) => set({ address })} placeholder="Street, near a landmark" value={form.address} />
+    <Input autoCapitalize="words" leading={<Glyph color={colors.mutedForeground} name="business" size={18} />} variant="line" label="City" onChangeText={(city) => set({ city })} value={form.city} />
+    <Input autoCapitalize="words" leading={<Glyph color={colors.mutedForeground} name="map" size={18} />} variant="line" label="Area" onChangeText={(area) => set({ area })} placeholder="Baneshwor" value={form.area} />
+    <Input autoCapitalize="sentences" leading={<Glyph color={colors.mutedForeground} name="location" size={18} />} variant="line" label="Address" onChangeText={(address) => set({ address })} placeholder="Street, near a landmark" value={form.address} />
   </View>;
 }
 
+/** The joining fees — one figure each for the whole hostel. */
+const FEE_FIELDS = [
+  { field: "admissionFee", icon: "pricetag", label: "Admission" },
+  { field: "formFee", icon: "document-text", label: "Form fee" },
+  { field: "depositAmount", icon: "wallet", label: "Deposit" },
+] as const satisfies readonly { field: string; icon: GlyphName; label: string }[];
+type FeeField = (typeof FEE_FIELDS)[number]["field"];
+
 /**
- * Room types and their rent, both set here: a type is added or changed in a
- * sheet (saves at once, like photos); the rents and joining fees are the step's
- * draft and go to the rate card through the wizard's save.
+ * Room type setup: pick the types, then each one's rent and photos, and the
+ * joining fees once for the hostel. Beds come from the type's name and are never asked; how many
+ * rooms is the next step's. A type is added or removed at once (like photos);
+ * the prices are the step's draft and go to the rate card through the
+ * wizard's save.
  */
 function RatesStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
   const { colors } = useAppTheme();
@@ -811,71 +835,108 @@ function RatesStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
   const feeQuery = adminQuery.feeSchedules();
   const fees = useResource<FeeScheduleData>(feeQuery.load, { cacheKey: feeQuery.key, topics: feeQuery.topics });
   const [rents, setRents] = useState<Record<string, string>>({});
-  const [admission, setAdmission] = useState<string>();
-  const [deposit, setDeposit] = useState<string>();
+  const [feeDraft, setFeeDraft] = useState<Partial<Record<FeeField, string>>>({});
   const [saving, setSaving] = useState(false);
-  const [editing, setEditing] = useState<{ at: number | null; bedsPerRoom: string; rooms: string; roomType: string } | null>(null);
-  const rooms = hostel.data?.roomConfigurations ?? [];
+  const [naming, setNaming] = useState<string | null>(null);
+  const { refresh } = hostel;
+  const reread = useCallback(async () => {
+    await Promise.all([refresh(), onSaved()]);
+  }, [onSaved, refresh]);
+  const { addPhotos, removePhoto, uploadingFor } = useHostelPhotoActions({ hostelName: hostel.data?.name, refresh: reread });
+  const types = hostel.data?.roomConfigurations ?? [];
+  const photos = hostel.data?.photos ?? [];
   const card = fees.data?.schedules.find((item) => item.standing === "upcoming") ?? fees.data?.schedules.find((item) => item.standing === "current");
-  const savedRent = (roomType: string) => card?.rates.find((rate) => (rate.roomType ?? "").toLowerCase() === roomType.toLowerCase())?.monthlyAmount;
+  const savedRent = (roomType: string) => card?.rates.find((item) => (item.roomType ?? "").toLowerCase() === roomType.toLowerCase())?.monthlyAmount;
   const rentOf = (roomType: string) => rents[roomType] ?? String(savedRent(roomType) ?? "");
-  const admissionValue = admission ?? (card?.admissionFee ? String(card.admissionFee) : "");
-  const depositValue = deposit ?? (card?.depositAmount ? String(card.depositAmount) : "");
-  const rates = rooms.filter((room) => Number(rentOf(room.roomType)) > 0).map((room) => ({ monthlyAmount: Number(rentOf(room.roomType)), roomType: room.roomType }));
-  const dirty = Object.keys(rents).length > 0 || admission !== undefined || deposit !== undefined;
-  const digits = (value: string) => value.replace(/\D/g, "");
+  const feeOf = (field: FeeField) => feeDraft[field] ?? (card?.[field] ? String(card[field]) : "");
+  const digits = (text: string) => text.replace(/\D/g, "");
+  const rates = types
+    .filter((type) => Number(rentOf(type.roomType)) > 0)
+    .map((type) => ({ monthlyAmount: Number(rentOf(type.roomType)), roomType: type.roomType }));
   const save = async () => {
     if (!rates.length) { toastError("Not saved", "Enter a monthly rent."); return false; }
     setSaving(true);
     try {
-      const saved = await saveKycRates({ admissionFee: admissionValue ? Number(admissionValue) : undefined, depositAmount: depositValue ? Number(depositValue) : undefined, rates });
-      if (saved.nextMonth) toastSuccess("Saved", "Residents are already billed at the old price this month, so the new price starts next month.");
-      setRents({}); setAdmission(undefined); setDeposit(undefined);
+      const result = await saveKycRates({
+        admissionFee: Number(feeOf("admissionFee")) || 0,
+        depositAmount: Number(feeOf("depositAmount")) || 0,
+        formFee: Number(feeOf("formFee")) || 0,
+        rates,
+      });
+      if (result.nextMonth) toastSuccess("Saved", "Residents are already billed at the old price this month, so the new price starts next month.");
+      setRents({});
+      setFeeDraft({});
       await Promise.all([fees.reload(), hostel.reload(), onSaved()]);
       return true;
     } catch (error) { toastError("Not saved", readApiError(error)); return false; }
     finally { setSaving(false); }
   };
-  useKycDraft({ dirty, busy: saving, save });
-  const saveType = async () => {
-    if (!editing) return;
-    const roomType = editing.roomType.trim();
-    const bedsPerRoom = Math.max(1, Number(editing.bedsPerRoom) || 1);
-    const count = Math.max(0, Number(editing.rooms) || 0);
-    if (!roomType) { toastError("Not saved", "Name the room type."); return; }
-    const before = editing.at === null ? null : rooms[editing.at];
-    const row = { bedsPerRoom, mealInclusion: before?.mealInclusion || "Included", monthlyRent: before?.monthlyRent ?? 0, rooms: count, roomType, vacantBeds: Math.min(before?.vacantBeds ?? count * bedsPerRoom, count * bedsPerRoom) };
+  useKycDraft({ dirty: Object.keys(rents).length + Object.keys(feeDraft).length > 0, busy: saving || Boolean(uploadingFor), save });
+  const writeTypes = async (next: ManagedHostel["roomConfigurations"]) => {
     setSaving(true);
     try {
-      const next = await updateManagedHostel({ roomConfigurations: editing.at === null ? [...rooms, row] : rooms.map((room, at) => at === editing.at ? row : room) });
-      hostel.setData(() => next);
+      const updated = await updateManagedHostel({ roomConfigurations: next });
+      hostel.setData(() => updated);
       await Promise.all([fees.reload(), onSaved()]);
-      setEditing(null);
-    } catch (error) { toastError("Not saved", readApiError(error)); }
+      return true;
+    } catch (error) { toastError("Not saved", readApiError(error)); return false; }
     finally { setSaving(false); }
   };
+  const addType = async (name: string) => {
+    const roomType = name.trim();
+    if (!roomType) return;
+    if (types.some((type) => type.roomType.toLowerCase() === roomType.toLowerCase())) { toastError("Already added", roomType); return; }
+    if (await writeTypes([...types, { bedsPerRoom: bedsForRoomType(roomType), mealInclusion: "Included", monthlyRent: 0, rooms: 0, roomType, vacantBeds: 0 }])) setNaming(null);
+  };
+  const removeType = (roomType: string) => openConfirm({
+    confirmLabel: "Remove",
+    destructive: true,
+    message: "Its price and rooms go with it.",
+    onConfirm: async () => {
+      if (await writeTypes(types.filter((type) => type.roomType !== roomType))) {
+        setRents((current) => Object.fromEntries(Object.entries(current).filter(([key]) => key !== roomType)));
+      }
+    },
+    title: `Remove ${roomType}?`,
+  });
+
   if (hostel.loading || fees.loading) return <SkeletonCard rows={3} />;
+  if (hostel.error || !hostel.data) return <ErrorState message={hostel.error ?? "Could not load your room types."} onRetry={hostel.reload} />;
+
+  const unpicked = ROOM_TYPE_OPTIONS.filter((option) => !types.some((type) => type.roomType === option));
+
   return <View className="gap-4">
-    {rooms.length ? <Card padding="p-0">{rooms.map((room, at) => <View className={`gap-2 p-4 ${at ? "border-t border-border" : ""}`} key={room.roomType}>
-      <Pressable accessibilityLabel={`Edit ${room.roomType}`} accessibilityRole="button" className="min-h-11 flex-row items-center gap-3" onPress={() => setEditing({ at, bedsPerRoom: String(room.bedsPerRoom), rooms: String(room.rooms), roomType: room.roomType })}>
-        <View className="flex-1"><Text variant="label">{room.roomType}</Text><Text variant="caption">{room.bedsPerRoom} {room.bedsPerRoom === 1 ? "bed" : "beds"} a room · {room.rooms} {room.rooms === 1 ? "room" : "rooms"}</Text></View>
-        {savedRent(room.roomType) ? null : <Badge label="Not priced" tone="warning" />}
-        <Glyph color={colors.mutedForeground} name="create" size={18} />
-      </Pressable>
-      <Input accessibilityLabel={`${room.roomType} rent`} keyboardType="number-pad" label="Rent (Rs / month)" onChangeText={(text) => setRents((current) => ({ ...current, [room.roomType]: digits(text) }))} placeholder="12000" value={rentOf(room.roomType)} />
-    </View>)}</Card> : <Text variant="muted">Add each room type first — single, double, triple — then its monthly rent.</Text>}
-    <Button label="+ Add room type" onPress={() => setEditing({ at: null, bedsPerRoom: "1", rooms: "1", roomType: "" })} variant="outline" />
-    {rooms.length ? <>
-      <Input keyboardType="number-pad" label="Admission fee (optional)" onChangeText={(text) => setAdmission(digits(text))} placeholder="0" value={admissionValue} />
-      <Input keyboardType="number-pad" label="Security deposit (optional)" onChangeText={(text) => setDeposit(digits(text))} placeholder="0" value={depositValue} />
+    <View className="flex-row flex-wrap gap-2">
+      {unpicked.map((option) => <Pressable accessibilityLabel={`Add ${option}`} accessibilityRole="button" className="min-h-11 flex-row items-center gap-1.5 rounded-xl border border-border px-3 active:opacity-70" disabled={saving} key={option} onPress={() => void addType(option)}><Glyph color={colors.primary} name="add" size={16} /><Text variant="label">{option}</Text></Pressable>)}
+      <Pressable accessibilityLabel="Add another room type" accessibilityRole="button" className="min-h-11 flex-row items-center gap-1.5 rounded-xl border border-dashed border-border px-3 active:opacity-70" disabled={saving} onPress={() => setNaming("")}><Glyph color={colors.primary} name="create" size={16} /><Text variant="label">Other</Text></Pressable>
+    </View>
+    {types.map((type) => {
+      const beds = bedsForRoomType(type.roomType);
+      const target = { kind: "ROOM", roomType: type.roomType } as const;
+      const shots = photos.filter((photo) => photo.kind === "ROOM" && photo.roomType === type.roomType);
+      return <Card className="gap-3" key={type.roomType}>
+        <View className="flex-row items-center gap-3">
+          <View className="h-10 w-10 items-center justify-center rounded-xl bg-brand-soft"><Glyph color={colors.primary} name="bed" size={20} /></View>
+          <View className="flex-1"><Text variant="label">{type.roomType}</Text><Text variant="caption">{beds} {beds === 1 ? "bed" : "beds"} a room</Text></View>
+          {savedRent(type.roomType) ? null : <Badge label="Not priced" tone="warning" />}
+          <IconButton label={`Remove ${type.roomType}`} name="trash" onPress={() => removeType(type.roomType)} size="sm" />
+        </View>
+        <Input accessibilityLabel={`${type.roomType} rent`} keyboardType="number-pad" label="Rent / month" leading={<Glyph color={colors.mutedForeground} name="cash" size={18} />} onChangeText={(text) => setRents((current) => ({ ...current, [type.roomType]: digits(text) }))} placeholder="12000" value={rentOf(type.roomType)} variant="line" />
+        <PhotoStrip busy={uploadingFor === targetKey(target)} disabled={Boolean(uploadingFor)} limit={PHOTO_LIMITS.ROOM} name={type.roomType} onAdd={(source) => void addPhotos(target, shots.length, source)} onRemove={removePhoto} photos={shots} />
+      </Card>;
+    })}
+    {types.length ? <>
+      <Text variant="caption">Photos can be added later too.</Text>
+      <StepSection caption="Same for every room" title="Joining fees">
+        <View className="flex-row gap-2">
+          {FEE_FIELDS.map((item) => <View className="flex-1" key={item.field}>
+            <Input keyboardType="number-pad" label={item.label} leading={<Glyph color={colors.mutedForeground} name={item.icon} size={18} />} onChangeText={(text) => setFeeDraft((current) => ({ ...current, [item.field]: digits(text) }))} placeholder="0" value={feeOf(item.field)} variant="line" />
+          </View>)}
+        </View>
+      </StepSection>
     </> : null}
-    <Sheet footer={<Button disabled={saving} label={saving ? "Saving…" : "Save room type"} onPress={() => void saveType()} />} onClose={() => setEditing(null)} open={editing !== null} title={editing?.at === null ? "Add room type" : "Edit room type"}>
-      {editing ? <View className="gap-4">
-        <Input autoCapitalize="words" label="Room type" onChangeText={(roomType) => setEditing({ ...editing, roomType })} placeholder="Double Sharing" value={editing.roomType} />
-        {editing.at === null ? <View className="flex-row flex-wrap gap-2">{ROOM_TYPE_OPTIONS.filter((option) => !rooms.some((room) => room.roomType === option)).map((option) => <Pressable accessibilityRole="button" className={`min-h-11 justify-center rounded-xl border px-3 ${editing.roomType === option ? "border-primary bg-brand-soft" : "border-border"}`} key={option} onPress={() => setEditing({ ...editing, bedsPerRoom: String(BEDS_BY_ROOM_TYPE[option] ?? 1), roomType: option })}><Text variant="label">{option}</Text></Pressable>)}</View> : null}
-        <Input keyboardType="number-pad" label="Beds a room" onChangeText={(text) => setEditing({ ...editing, bedsPerRoom: digits(text) })} value={editing.bedsPerRoom} />
-        <Input keyboardType="number-pad" label="Rooms of this type" onChangeText={(text) => setEditing({ ...editing, rooms: digits(text) })} value={editing.rooms} />
-      </View> : null}
+    <Sheet footer={<Button disabled={saving || !naming?.trim()} label={saving ? "Saving…" : "Add room type"} onPress={() => void addType(naming ?? "")} />} onClose={() => setNaming(null)} open={naming !== null} title="Other room type">
+      {naming !== null ? <Input autoCapitalize="words" hint={naming.trim() ? `${bedsForRoomType(naming)} ${bedsForRoomType(naming) === 1 ? "bed" : "beds"} a room` : "Put the beds in the name: 6 Sharing"} label="Name" leading={<Glyph color={colors.mutedForeground} name="bed" size={18} />} onChangeText={setNaming} placeholder="6 Sharing" value={naming} variant="line" /> : null}
     </Sheet>
   </View>;
 }
@@ -926,7 +987,7 @@ function AgreementStep({ onSaved, onSigningChange }: { onSaved: () => Promise<vo
         ? <Button label={`Download agreement ${signed.refCode}`} onPress={() => void downloadToDevice({ extension: "pdf", fileName: `HostelPalika-Agreement-${signed.refCode!.replace(/\//g, "-")}`, label: "Agreement", mimeType: "application/pdf", url: `${API_BASE_URL}${KYC_AGREEMENT_PDF_PATH}` }).catch(error => toastError("Not downloaded", readApiError(error)))} />
         : <><Text variant="muted">We email you the signed PDF when your KYC is approved.</Text><Button label="Sign again" variant="ghost" onPress={() => setAgain(true)} /></>}
     </Card> : <View className="gap-4">
-      <Input autoCapitalize="words" autoComplete="name" label="Your full name" onChangeText={setName} value={name} />
+      <Input autoCapitalize="words" autoComplete="name" leading={<Glyph color={colors.mutedForeground} name="person" size={18} />} variant="line" label="Your full name" onChangeText={setName} value={name} />
       <SignaturePad onActiveChange={onSigningChange} onChange={setSignature} value={signature} />
       <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: agree }} onPress={() => setAgree(!agree)} className="min-h-12 flex-row items-center gap-3">
         <Glyph name={agree ? "checkmark-circle" : "ellipse"} color={agree ? colors.primary : colors.mutedForeground} size={24} />

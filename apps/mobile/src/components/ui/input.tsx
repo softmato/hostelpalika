@@ -6,6 +6,8 @@ import {
   View,
 } from "react-native";
 
+import Animated, { ReduceMotion, useAnimatedStyle, withTiming } from "react-native-reanimated";
+
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -132,6 +134,15 @@ export function Input({
   const { colors } = useAppTheme();
   const [focused, setFocused] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  const raised = focused || Boolean(props.value);
+  const timing = { duration: 160, reduceMotion: ReduceMotion.System };
+  const labelStyle = useAnimatedStyle(
+    () => ({
+      opacity: withTiming(raised ? 1 : 0, timing),
+      transform: [{ translateY: withTiming(raised ? 0 : 10, timing) }],
+    }),
+    [raised],
+  );
 
   const borderTone = error
     ? "border-destructive"
@@ -146,9 +157,9 @@ export function Input({
       {/* A `line` label sits in the field as its placeholder and floats up once there is something to label. */}
       {label ? (
         line ? (
-          <View style={{ opacity: focused || props.value ? 1 : 0 }}>
+          <Animated.View style={labelStyle}>
             <FieldLabel>{label}</FieldLabel>
-          </View>
+          </Animated.View>
         ) : (
           <Text variant="label">{label}</Text>
         )

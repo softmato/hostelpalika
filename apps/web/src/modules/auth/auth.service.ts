@@ -408,6 +408,21 @@ export async function requestOtpChallenge(
   await connectToDatabase();
 
   const identifier = normalizeOtpIdentifier(input.identifier);
+
+  // Say a taken address up front, before a code is spent on a sign-up that
+  // `/auth/register` would refuse anyway.
+  if (input.purpose === "registration" && input.channel === "email") {
+    const taken = await UserModel.exists({ email: normalizeEmail(identifier), isDeleted: { $ne: true } });
+
+    if (taken) {
+      throw new AuthServiceError(
+        "An account already exists for this email. Try signing in.",
+        "ACCOUNT_ALREADY_EXISTS",
+        409,
+      );
+    }
+  }
+
   const rateLimitStartedAt = new Date(Date.now() - otpRateLimitWindowMs());
   const recentRequestCount = await OtpChallengeModel.countDocuments({
     channel: input.channel,

@@ -1,12 +1,11 @@
 import { useCallback, useState } from "react";
-import { View } from "react-native";
+import { Pressable, View } from "react-native";
 
 import { BankNameField } from "@/components/manage/bank-name-field";
 import { useKycDraft } from "@/components/manage/kyc-draft";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
-import { ChoiceChips } from "@/components/ui/choice-chips";
 import { Input } from "@/components/ui/input";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
@@ -29,6 +28,29 @@ const METHODS: readonly { label: string; value: RefundMethod }[] = [
   { label: "eSewa", value: "ESEWA" },
   { label: "Khalti", value: "KHALTI" },
 ];
+
+/** Bank, eSewa, Khalti — each with its own mark, so the wallets read at a glance. */
+function MethodTiles({ onChange, value }: { onChange: (method: RefundMethod) => void; value: RefundMethod }) {
+  return (
+    <View className="flex-row gap-2">
+      {METHODS.map((option) => {
+        const on = option.value === value;
+        return (
+          <Pressable
+            accessibilityRole="radio"
+            accessibilityState={{ checked: on }}
+            className={`min-h-20 flex-1 items-center justify-center gap-1.5 rounded-2xl border p-2 active:opacity-70 ${on ? "border-primary bg-brand-soft" : "border-border"}`}
+            key={option.value}
+            onPress={() => onChange(option.value)}
+          >
+            <WalletMark name={option.value} size={32} />
+            <Text variant="label">{option.label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
 
 const STATUS: Record<PayoutAccount["status"], { label: string; tone: "danger" | "success" | "warning" }> = {
   PENDING_REVIEW: { label: "In review", tone: "warning" },
@@ -60,7 +82,7 @@ export function RegistrationPayoutFields({
 
   return (
     <View className="gap-3">
-      <ChoiceChips columns={3} onToggle={(method) => set({ method })} options={METHODS} value={value.method} />
+      <MethodTiles onChange={(method) => set({ method })} value={value.method} />
       <Input label="Name on the account" onChangeText={(holderName) => set({ holderName })} value={value.holderName} />
       {value.method === "BANK" ? (
         <>
@@ -119,7 +141,7 @@ export function PayoutAccountFields({
 
   return (
     <View className="gap-3">
-      <ChoiceChips columns={3} onToggle={setMethod} options={METHODS} value={method} />
+      <MethodTiles onChange={setMethod} value={method} />
       <Input label="Name on the account" onChangeText={setHolderName} value={holderName} />
       {method === "BANK" ? (
         <>

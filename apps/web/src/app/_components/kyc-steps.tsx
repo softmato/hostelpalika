@@ -360,29 +360,38 @@ function PhotosStep({ kyc, onChange }: { kyc: Kyc; onChange: () => void }) {
 
 /* Rent -------------------------------------------------------------------- */
 
+type FeeField = "admissionFee" | "depositAmount" | "formFee";
+
 type Schedules = {
   roomTypes: { monthlyRent: number; roomType: string }[];
   schedules: {
     admissionFee?: number;
     depositAmount?: number;
+    formFee?: number;
     rates: { monthlyAmount: number; roomType?: string | null }[];
     standing?: "current" | "past" | "upcoming";
   }[];
 };
 
+/** The joining fees — one figure each for the whole hostel. */
+const FEE_FIELDS: { field: FeeField; label: string }[] = [
+  { field: "admissionFee", label: "Admission" },
+  { field: "formFee", label: "Form fee" },
+  { field: "depositAmount", label: "Deposit" },
+];
+
 /**
- * The monthly rent per room type, plus the two joining fees — typed here and
- * saved to the rate card without leaving KYC. A card that has billed nobody is
- * corrected in place; once it has, a changed price starts next month (the
- * server decides, see `saveKycRates`).
+ * A monthly rent per room type, plus the joining fees once for the hostel —
+ * typed here and saved to the rate card without leaving KYC. A card that has
+ * billed nobody is corrected in place; once it has, a changed price starts
+ * next month (the server decides, see `saveKycRates`).
  */
 function RentStep({ onChange }: { onChange: () => void }) {
   const resource = usePortalResource<Schedules>(hostelAdminEndpoints.feeSchedules);
   // The room-type cards above read their rent off the profile, which the save re-projects.
   const profile = usePortalResource(hostelAdminEndpoints.profile);
   const [rents, setRents] = useState<Record<string, string>>({});
-  const [admission, setAdmission] = useState<string>();
-  const [deposit, setDeposit] = useState<string>();
+  const [fees, setFees] = useState<Partial<Record<FeeField, string>>>({});
   const [note, setNote] = useState("");
   const { refresh } = resource;
 
@@ -401,8 +410,7 @@ function RentStep({ onChange }: { onChange: () => void }) {
   const savedRent = (roomType: string) =>
     card?.rates.find((item) => (item.roomType ?? "").toLowerCase() === roomType.toLowerCase())?.monthlyAmount;
   const rentOf = (roomType: string) => rents[roomType] ?? String(savedRent(roomType) ?? "");
-  const admissionValue = admission ?? (card?.admissionFee ? String(card.admissionFee) : "");
-  const depositValue = deposit ?? (card?.depositAmount ? String(card.depositAmount) : "");
+  const feeOf = (field: FeeField) => fees[field] ?? (card?.[field] ? String(card[field]) : "");
   const rates = data.roomTypes
     .filter((type) => Number(rentOf(type.roomType)) > 0)
     .map((type) => ({ monthlyAmount: Number(rentOf(type.roomType)), roomType: type.roomType }));
@@ -413,20 +421,20 @@ function RentStep({ onChange }: { onChange: () => void }) {
       <h3 className="font-heading text-[15px] font-semibold text-foreground">Monthly rent</h3>
       <SaveForm
         disabled={rates.length === 0}
-        label="Save rents"
+        label="Save prices"
         onSave={async () => {
           const saved = await browserApi<{ nextMonth: boolean }>(`${hostelAdminEndpoints.feeSchedules}/kyc`, {
             body: JSON.stringify({
-              admissionFee: admissionValue ? Number(admissionValue) : undefined,
-              depositAmount: depositValue ? Number(depositValue) : undefined,
+              admissionFee: Number(feeOf("admissionFee")) || 0,
+              depositAmount: Number(feeOf("depositAmount")) || 0,
+              formFee: Number(feeOf("formFee")) || 0,
               rates,
             }),
             method: "POST",
           });
           setNote(saved.nextMonth ? "Saved. Residents are already billed at the old price this month, so the new price starts next month." : "Saved.");
           setRents({});
-          setAdmission(undefined);
-          setDeposit(undefined);
+          setFees({});
           await Promise.all([resource.refreshAsync(), profile.refreshAsync()]);
           onChange();
         }}
@@ -447,21 +455,28 @@ function RentStep({ onChange }: { onChange: () => void }) {
               />
             </label>
           ))}
-          <label className={LABEL}>
-            <span>
-              Admission fee <span className="font-normal text-muted-foreground">(optional)</span>
-            </span>
-            <input className={INPUT} inputMode="numeric" onChange={(e) => setAdmission(digits(e.target.value))} placeholder="0" value={admissionValue} />
-          </label>
-          <label className={LABEL}>
-            <span>
-              Security deposit <span className="font-normal text-muted-foreground">(optional)</span>
-            </span>
-            <input className={INPUT} inputMode="numeric" onChange={(e) => setDeposit(digits(e.target.value))} placeholder="0" value={depositValue} />
-          </label>
+        </div>
+        <div className="space-y-2">
+          <p className="text-sm font-semibold text-foreground">
+            Joining fees <span className="font-normal text-muted-foreground">· same for every room</span>
+          </p>
+          <div className="grid grid-cols-3 gap-3">
+            {FEE_FIELDS.map((item) => (
+              <label className={LABEL} key={item.field}>
+                {item.label}
+                <input
+                  className={INPUT}
+                  inputMode="numeric"
+                  onChange={(event) => setFees((current) => ({ ...current, [item.field]: digits(event.target.value) }))}
+                  placeholder="0"
+                  value={feeOf(item.field)}
+                />
+              </label>
+            ))}
+          </div>
         </div>
       </SaveForm>
-      {note ? <p className="text-sm text-muted-foreground">{note}</p> : null}
+      <p className="text-sm text-muted-foreground">{note || "Room photos can be added later too."}</p>
     </section>
   );
 }
@@ -782,7 +797,15 @@ function RulesStep({ initial, onSaved }: { initial: string[]; onSaved: () => Pro
 
 function FacilitiesStep({ initial, onSaved }: { initial: string[]; onSaved: () => Promise<void> }) {
   const [picked, setPicked] = useState<string[]>(initial);
-  const options = [...new Set([...facilityOptions, ...initial])];
+  const [custom, setCustom] = useState("");
+  const options = [...new Set([...facilityOptions, ...initial, ...picked])];
+  const addCustom = () => {
+    const name = custom.trim();
+    if (!name) return;
+    const known = options.find((option) => option.toLowerCase() === name.toLowerCase()) ?? name;
+    setPicked((current) => (current.includes(known) ? current : [...current, known]));
+    setCustom("");
+  };
 
   return (
     <SaveForm
@@ -814,6 +837,32 @@ function FacilitiesStep({ initial, onSaved }: { initial: string[]; onSaved: () =
             </button>
           );
         })}
+      </div>
+      <div className="flex items-end gap-2">
+        <label className={cn(LABEL, "flex-1")}>
+          Add custom facility
+          <input
+            className={INPUT}
+            onChange={(event) => setCustom(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                event.preventDefault();
+                addCustom();
+              }
+            }}
+            placeholder="Rooftop garden"
+            value={custom}
+          />
+        </label>
+        <button
+          className="inline-flex h-10 items-center gap-1.5 rounded-xl border border-border px-4 text-sm font-semibold text-foreground transition hover:bg-muted disabled:opacity-40"
+          disabled={!custom.trim()}
+          onClick={addCustom}
+          type="button"
+        >
+          <Plus className="size-4" />
+          Add
+        </button>
       </div>
     </SaveForm>
   );

@@ -891,7 +891,7 @@ function dayBefore(date: Date) {
  */
 export async function saveKycRates(
   hostelId: Types.ObjectId | string,
-  input: { admissionFee?: number; depositAmount?: number; rates: { monthlyAmount: number; roomType: string }[] },
+  input: { admissionFee?: number; depositAmount?: number; formFee?: number; rates: { monthlyAmount: number; roomType: string }[] },
   principal: ApiPrincipal,
 ) {
   await connectToDatabase();
@@ -911,7 +911,7 @@ export async function saveKycRates(
         admissionFee: input.admissionFee ?? base?.admissionFee,
         depositAmount: input.depositAmount ?? base?.depositAmount,
         effectiveFrom,
-        formFee: base?.formFee ?? 0,
+        formFee: input.formFee ?? base?.formFee ?? 0,
         // Room types the step did not send keep their price.
         rates: [
           ...(base?.rates ?? [])
@@ -932,7 +932,8 @@ export async function saveKycRates(
   const changed = invoiced > 0 && (
     input.rates.some((rate) => priced.has(key(rate.roomType)) && priced.get(key(rate.roomType)) !== rate.monthlyAmount) ||
     (input.admissionFee !== undefined && Boolean(open.admissionFee) && input.admissionFee !== open.admissionFee) ||
-    (input.depositAmount !== undefined && Boolean(open.depositAmount) && input.depositAmount !== open.depositAmount)
+    (input.depositAmount !== undefined && Boolean(open.depositAmount) && input.depositAmount !== open.depositAmount) ||
+    (input.formFee !== undefined && Boolean(open.formFee) && input.formFee !== open.formFee)
   );
 
   // In place: everything when nothing was billed, only the gaps otherwise.
@@ -945,6 +946,7 @@ export async function saveKycRates(
   ];
   const admissionFee = invoiced === 0 || !open.admissionFee ? (input.admissionFee ?? open.admissionFee) : open.admissionFee;
   const depositAmount = invoiced === 0 || !open.depositAmount ? (input.depositAmount ?? open.depositAmount) : open.depositAmount;
+  const formFee = (invoiced === 0 || !open.formFee ? (input.formFee ?? open.formFee) : open.formFee) ?? 0;
 
   await FeeScheduleModel.updateOne(
     { _id: open._id },
@@ -952,12 +954,13 @@ export async function saveKycRates(
       $set: {
         admissionFee,
         depositAmount,
+        formFee,
         rates,
         referralAdmissionDiscount: Math.min(open.referralAdmissionDiscount ?? 0, admissionFee ?? 0),
       },
     },
   );
-  await projectScheduleOntoListing(hostelId, { admissionFee, formFee: open.formFee ?? 0, rates });
+  await projectScheduleOntoListing(hostelId, { admissionFee, formFee, rates });
   await auditFinanceAction(principal, {
     action: "FEE_SCHEDULE_CREATED",
     amountAfter: totalOfRates(rates),
@@ -971,7 +974,7 @@ export async function saveKycRates(
 
   if (!changed) return { nextMonth: false, schedule: open._id };
 
-  const updated = { ...open, admissionFee, depositAmount, rates };
+  const updated = { ...open, admissionFee, depositAmount, formFee, rates };
   const next = bsPeriodBounds(addBsMonths(bsPeriodOf(new Date()), 1)).start;
 
   return { nextMonth: true, schedule: await createFrom(next, updated) };

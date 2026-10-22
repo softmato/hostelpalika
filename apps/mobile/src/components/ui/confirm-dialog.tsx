@@ -21,7 +21,6 @@ import Animated, {
   useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withSpring,
   withTiming,
 } from "react-native-reanimated";
@@ -123,7 +122,7 @@ const ACTION_HEIGHT = 44;
  * way the native alert does rather than growing out of nothing. There is no
  * matching scale on the way out: iOS fades its alert away, it does not shrink it.
  */
-const OVERSHOOT = 1.12;
+const OVERSHOOT = 1.08;
 
 /**
  * How far the frost is allowed to go, per theme, before
@@ -155,10 +154,14 @@ const BLUR_REDUCTION = 4;
  * then pulling focus off the screen underneath is the order the eye can follow,
  * and it is what the native iOS alert does with its own backdrop material.
  *
- * The delay is roughly the card's own fade, so the two never overlap.
+ * The blur view itself is only *mounted* after the delay: on Android its first
+ * capture of the app stalls the UI thread, and mounted with the card it froze
+ * the screen soft before the card could appear. The scrim is cheap and comes
+ * with the card.
  */
-const BLUR_DELAY_MS = 130;
-const BLUR_DURATION_MS = 340;
+const BLUR_DELAY_MS = 160;
+const BLUR_DURATION_MS = 220;
+const SCRIM_DURATION_MS = 140;
 
 /**
  * `expo-blur` supports `intensity` as an animated prop, which is the only way to
@@ -386,14 +389,18 @@ function ConfirmCard({
   const scale = useSharedValue(OVERSHOOT);
   /** 0 = the screen as it was. Ramps to 1 once the card has landed. */
   const frost = useSharedValue(0);
+  const dim = useSharedValue(0);
+  const [blurMounted, setBlurMounted] = useState(false);
 
   useEffect(() => {
-    scale.value = withSpring(1, { damping: 18, stiffness: 320 });
-    frost.value = withDelay(
-      BLUR_DELAY_MS,
-      withTiming(1, { duration: BLUR_DURATION_MS }),
-    );
-  }, [frost, scale]);
+    scale.value = withSpring(1, { damping: 20, stiffness: 420 });
+    dim.value = withTiming(1, { duration: SCRIM_DURATION_MS });
+    const timer = setTimeout(() => {
+      setBlurMounted(true);
+      frost.value = withTiming(1, { duration: BLUR_DURATION_MS });
+    }, BLUR_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [dim, frost, scale]);
 
   const cardStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -403,9 +410,8 @@ function ConfirmCard({
     intensity: frost.value * (isDark ? BLUR_DARK : BLUR_LIGHT),
   }));
 
-  /* The scrim rides the same ramp — it is half of what the frost looks like. */
   const scrimStyle = useAnimatedStyle(() => ({
-    opacity: frost.value,
+    opacity: dim.value,
   }));
 
   /*
@@ -436,8 +442,8 @@ function ConfirmCard({
        * it a beat later. On the way out both leave together — a dialog that
        * unfrosts before it disappears reads as a bug.
        */
-      entering={FadeIn.duration(130)}
-      exiting={FadeOut.duration(160)}
+      entering={FadeIn.duration(100)}
+      exiting={FadeOut.duration(140)}
       style={StyleSheet.absoluteFill}
     >
       {/* The backdrop is a target too: tapping outside an alert cancels it —
@@ -449,7 +455,7 @@ function ConfirmCard({
         className="flex-1 items-center justify-center px-8"
         onPress={onBackdrop}
       >
-        {frosted ? (
+        {frosted && blurMounted ? (
           <AnimatedBlurView
             animatedProps={blurProps}
             /*

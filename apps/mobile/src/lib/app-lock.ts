@@ -99,6 +99,8 @@ export function handReturnsToNative() {
 
 /** Wired to `AppState` once, by the lock host. */
 export function onAppStateChange(state: string) {
+  // Fingers can be added or removed while away; read the level again on return.
+  if (state === "background" && !authenticating) statusRead = null;
   if (authenticating || nativeGuard) return;
 
   if (state === "background") {
@@ -158,17 +160,26 @@ export function isAuthenticating() {
 
 export type FingerprintStatus = "ready" | "weak" | "none";
 
+let statusRead: Promise<FingerprintStatus> | null = null;
+
 /**
  * `ready`: a strong biometric is enrolled — SecureStore's auth-bound key.
  * `weak`: only a Class 2 one — the system prompt. `none`: nothing saved yet.
  */
-export async function fingerprintStatus(): Promise<FingerprintStatus> {
-  const level = await LocalAuthentication.getEnrolledLevelAsync().catch(
-    () => LocalAuthentication.SecurityLevel.NONE,
-  );
-  if (level >= LocalAuthentication.SecurityLevel.BIOMETRIC_STRONG) return "ready";
-  return level === LocalAuthentication.SecurityLevel.BIOMETRIC_WEAK ? "weak" : "none";
+export function fingerprintStatus(): Promise<FingerprintStatus> {
+  // Read once per foreground: the first native call is the slow one, and it
+  // sat between the tap and the system sheet on every unlock.
+  statusRead ??= LocalAuthentication.getEnrolledLevelAsync()
+    .catch(() => LocalAuthentication.SecurityLevel.NONE)
+    .then((level) => {
+      if (level >= LocalAuthentication.SecurityLevel.BIOMETRIC_STRONG) return "ready";
+      return level === LocalAuthentication.SecurityLevel.BIOMETRIC_WEAK ? "weak" : "none";
+    });
+  return statusRead;
 }
+
+// Warm the native module at boot, before the lock asks.
+void fingerprintStatus();
 
 /** Either kind can open the app. */
 export async function hasFingerprint() {

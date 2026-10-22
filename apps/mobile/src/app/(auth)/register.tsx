@@ -1,3 +1,4 @@
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, View } from "react-native";
@@ -5,10 +6,13 @@ import { Pressable, View } from "react-native";
 import { AuthDivider, GoogleSignInButton } from "@/components/google-sign-in-button";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
+import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
+import { APP_NAME, logo } from "@/constants/branding";
 import { resolveHome } from "@/constants/roles";
+import { useAppTheme } from "@/hooks/use-app-theme";
 import { readApiError, readApiErrorCode } from "@/lib/api-contract";
 import { register, requestOtp, verifyOtp } from "@/lib/auth-api";
 import { startSession } from "@/lib/auth-session";
@@ -50,6 +54,7 @@ import { toastInfo } from "@/lib/toast";
 const RESEND_SECONDS = 60;
 
 export default function RegisterScreen() {
+  const { colors } = useAppTheme();
   const [step, setStep] = useState<"code" | "details">("details");
 
   const [email, setEmail] = useState("");
@@ -122,7 +127,14 @@ export default function RegisterScreen() {
           setCode(challenge.devCode);
         }
       } catch (caught) {
-        setError(readApiError(caught, "Could not send your code."));
+        if (readApiErrorCode(caught) === "ACCOUNT_ALREADY_EXISTS") {
+          setErrors((current) => ({
+            ...current,
+            email: "This email already has an account. Try signing in.",
+          }));
+        } else {
+          setError(readApiError(caught, "Could not send your code."));
+        }
       } finally {
         setSubmitting(false);
       }
@@ -192,7 +204,7 @@ export default function RegisterScreen() {
       onBack={step === "code" ? () => setStep("details") : undefined}
       showBack
       subtitle={step === "code" ? email.trim() : undefined}
-      title={step === "code" ? "Check your email" : "Create an account"}
+      title={step === "code" ? "Check your email" : ""}
     />
   );
 
@@ -217,6 +229,7 @@ export default function RegisterScreen() {
 
           <Input
             autoComplete="one-time-code"
+            leading={<Glyph color={colors.mutedForeground} name="key" size={18} />}
             error={codeError}
             keyboardType="number-pad"
             label="Verification code"
@@ -267,17 +280,21 @@ export default function RegisterScreen() {
       scroll
     >
       <View className="gap-6 pt-2">
-        <Text variant="muted">
-          An account lets you save inquiries and, once your hostel gives you a QR code,
-          become a resident.
-        </Text>
+        <View className="items-center gap-3">
+          <Image contentFit="contain" source={logo.mark} style={{ height: 56, width: 56 }} />
+          <Text variant="display">Create account</Text>
+          <Text className="text-center" variant="muted">
+            Join {APP_NAME} to save hostels and send inquiries.
+          </Text>
+        </View>
 
         <View className="gap-4">
           <Input
             autoCapitalize="words"
             autoComplete="name"
             error={errors.name}
-            label="Your name"
+            label="Full name"
+            leading={<Glyph color={colors.mutedForeground} name="person" size={18} />}
             onChangeText={setName}
             placeholder="Sita Sharma"
             returnKeyType="next"
@@ -292,6 +309,7 @@ export default function RegisterScreen() {
             hint="We send your verification code here."
             keyboardType="email-address"
             label="Email"
+            leading={<Glyph color={colors.mutedForeground} name="mail" size={18} />}
             onChangeText={setEmail}
             placeholder="you@example.com"
             returnKeyType="next"
@@ -304,6 +322,7 @@ export default function RegisterScreen() {
             error={errors.password}
             hint="At least 8 characters."
             label="Password"
+            leading={<Glyph color={colors.mutedForeground} name="lock-closed" size={18} />}
             onChangeText={setPassword}
             onSubmitEditing={() => void sendCode()}
             placeholder="Choose a password"

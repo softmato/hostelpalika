@@ -415,7 +415,8 @@ function LockScreen({ account }: { account: ApiUser }) {
     void splash.then(() => {
       if (disposed) return;
       setRevealed(true);
-      if (fingerOnPhone) timer = setTimeout(() => void tryFingerprint(), 350);
+      // Straight away: the splash is gone and the activity is resumed.
+      if (fingerOnPhone) void tryFingerprint();
     });
     const subscription = AppState.addEventListener("change", (state) => {
       // Some phones pause the app for their own fingerprint sheet; re-asking
@@ -427,7 +428,7 @@ function LockScreen({ account }: { account: ApiUser }) {
       } else if (state === "active" && wentAway) {
         wentAway = false;
         // A beat first: a quick return lifts the lock instead (`onAppStateChange`).
-        if (fingerOnPhone) timer = setTimeout(() => void tryFingerprint(), 350);
+        if (fingerOnPhone) timer = setTimeout(() => void tryFingerprint(), 120);
       }
     });
     const back = BackHandler.addEventListener("hardwareBackPress", () => {
@@ -504,14 +505,14 @@ function LockScreen({ account }: { account: ApiUser }) {
 
   const header = (
     <>
-      <Animated.View className="items-center gap-2" entering={FadeInDown.duration(420)}>
+      <Animated.View className="items-center gap-2" entering={FadeInDown.duration(240)}>
         <Image contentFit="contain" source={logo.mark} style={{ height: 48, width: 48 }} />
         <Text variant="title">{APP_NAME}</Text>
       </Animated.View>
 
       <Animated.View
         className="mt-5 flex-row items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3"
-        entering={FadeInDown.delay(80).duration(420)}
+        entering={FadeInDown.delay(40).duration(240)}
       >
         <PersonAvatar image={account.image} name={account.name} />
         <View className="flex-1">
@@ -649,7 +650,7 @@ function LockScreen({ account }: { account: ApiUser }) {
           ) : (
             <>
               <View className="mt-12 flex-1 items-center gap-4">
-                <Animated.View entering={ZoomIn.delay(160).springify().damping(14)}>
+                <Animated.View entering={ZoomIn.springify().damping(16)}>
                   <Pressable
                     accessibilityLabel="Unlock with biometric"
                     accessibilityRole="button"

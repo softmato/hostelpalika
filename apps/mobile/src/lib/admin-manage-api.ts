@@ -2543,6 +2543,7 @@ export async function createFeeSchedule(input: {
 export async function saveKycRates(input: {
   admissionFee?: number;
   depositAmount?: number;
+  formFee?: number;
   rates: { monthlyAmount: number; roomType: string }[];
 }) {
   const response = await api.post<ApiEnvelope<{ nextMonth: boolean }>>(

@@ -769,8 +769,7 @@ function DeletionPanel({
                * nothing about signing in, so they simply refresh.
                */
               if (result.data.pathway === "SELF_SERVICE") {
-                await endSession();
-                router.replace("/(browse)");
+                await endSession({ leaveTo: "/(browse)" });
                 return;
               }
 

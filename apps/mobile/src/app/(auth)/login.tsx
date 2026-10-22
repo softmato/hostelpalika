@@ -85,8 +85,15 @@ export default function LoginScreen() {
     <Screen
       // Back goes to the app, not out of the stack: someone who opened login
       // from the Profile tab must be able to change their mind and carry on
-      // browsing without an account.
-      header={<AppBar onBack={() => router.replace("/(browse)")} showBack title="" />}
+      // browsing without an account. Popping (not replacing) keeps the screen
+      // underneath mounted, so Home comes back instantly instead of reloading.
+      header={
+        <AppBar
+          onBack={() => (router.canGoBack() ? router.back() : router.replace("/(browse)"))}
+          showBack
+          title=""
+        />
+      }
       scroll
     >
       <View className="flex-1 justify-between">

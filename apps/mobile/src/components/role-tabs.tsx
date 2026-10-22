@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { Tabs, useIsFocused } from "expo-router";
 import { type ComponentProps, type ReactNode, useEffect, useMemo, useRef } from "react";
 import { Animated, type ColorValue, Easing, View } from "react-native";
 
@@ -166,12 +166,20 @@ function TabPreloader({
 function TabScene({
   background,
   children,
-  progress,
+  readProgress,
 }: {
   background: string;
   children: ReactNode;
-  progress: Animated.Value | undefined;
+  readProgress: () => Animated.Value | undefined;
 }) {
+  /*
+   * Read on every render, and focus forces one. The navigator can hand a scene
+   * a new progress value (after sign-out resets the store, say) without
+   * re-rendering this layer; holding the old one left a tab stuck at opacity 0
+   * — a white screen — until something else happened to re-render it.
+   */
+  useIsFocused();
+  const progress = readProgress();
   const opacity = useMemo(() => progress?.interpolate(DISSOLVE) ?? 1, [progress]);
 
   return (
@@ -270,7 +278,7 @@ export function RoleTabs({
       )}
       // The fade is drawn by `TabScene`, which says why the navigator can't.
       screenLayout={({ children, route }) => (
-        <TabScene background={colors.background} progress={progressByKey.current.get(route.key)}>
+        <TabScene background={colors.background} readProgress={() => progressByKey.current.get(route.key)}>
           {children}
         </TabScene>
       )}

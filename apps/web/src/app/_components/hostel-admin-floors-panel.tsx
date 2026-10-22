@@ -1,10 +1,11 @@
 "use client";
 
+import { bedsForRoomType } from "@hostel/shared/constants/room-types";
 import { Building2, Loader2, Plus, Trash2 } from "@/components/icons";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";
-import { Glyph } from "@/components/glyph";
+import { Glyph, type GlyphName } from "@/components/glyph";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,11 +23,11 @@ import { cn } from "@/lib/utils";
 import type { RoomConfiguration } from "./core-portal-shared";
 
 /**
- * Floors and numbered rooms (docs/FIELD_FIXES_2026_10.md §3), built floor by
- * floor: each floor is a card holding its rooms, and rooms are added right on
- * the floor they sit on — pick the type, say how many, and the numbers count
- * on from the last one there (101, 102…). Room types only say what a bed is;
- * their counts follow from the rooms placed here.
+ * Rooms & floors — the design the owner signed off (2026-10-22), same as the
+ * app's. Floor-wise: each floor's room count is a stepper, rooms are tiles,
+ * and a type in the side rail paints them — click a tile to paint it,
+ * shift- or ctrl-click to select several for bulk actions. Not floor-wise: a
+ * room count per type. Every change saves at once.
  *
  * Same endpoints as the app's Rooms. Also embedded in Hostel KYC.
  */
@@ -67,32 +68,78 @@ function place(value: Place) {
   return value ? `Room ${value.number} · ${floorName(value.floor)}` : "No room";
 }
 
-/** "101" + 5 → 101…105; letters kept: "G1" + 3 → G1, G2, G3. */
-export function numbersFrom(first: string, count: number) {
-  const match = /^(.*?)(\d+)$/.exec(first.trim());
-  if (!match || count <= 1) return first.trim() ? [first.trim()] : [];
-  const [, prefix, digits] = match;
-  return Array.from({ length: Math.min(count, 100) }, (_, index) =>
-    `${prefix}${String(Number(digits) + index).padStart(digits.length, "0")}`,
-  );
-}
+const byNumber = (a: Room, b: Room) => a.number.localeCompare(b.number, undefined, { numeric: true });
 
-/** The number after the highest one already on this floor, or the floor's first. */
-export function nextNumber(floor: number, onFloor: string[]) {
-  let best: { digits: string; prefix: string; value: number } | null = null;
+/** The next free room numbers on a floor: 001… on the ground, 101… on the 1st, B101… below. */
+export function nextRoomNumbers(floor: number, taken: string[], count: number) {
+  const used = new Set(taken);
+  const numbers: string[] = [];
 
-  for (const number of onFloor) {
-    const match = /^(.*?)(\d+)$/.exec(number.trim());
-    if (match && (!best || Number(match[2]) > best.value)) best = { digits: match[2], prefix: match[1], value: Number(match[2]) };
+  for (let n = 1; numbers.length < count && n < 1000; n += 1) {
+    const label = floor < 0 ? `B${-floor}${String(n).padStart(2, "0")}` : String(floor * 100 + n).padStart(3, "0");
+    if (!used.has(label)) numbers.push(label);
   }
 
-  if (best) return `${best.prefix}${String(best.value + 1).padStart(best.digits.length, "0")}`;
-  if (floor > 0) return `${floor}01`;
-  return floor === 0 ? "G1" : `B${-floor}1`;
+  return numbers;
+}
+
+/** "101" + 3 → 101, 102, 103, keeping any letters and the zero padding. */
+function renumber(first: string, count: number) {
+  const match = /^(.*?)(\d+)$/.exec(first.trim());
+  if (!match) return Array.from({ length: count }, (_, at) => `${first.trim()}${at + 1}`);
+  const [, prefix, digits] = match;
+  return Array.from({ length: count }, (_, at) => `${prefix}${String(Number(digits) + at).padStart(digits.length, "0")}`);
 }
 
 const INPUT = "h-10 w-full rounded-xl border border-border bg-background px-3 text-[13.5px] outline-none focus:border-brand-teal";
 const LABEL = "grid gap-1 text-[11px] font-semibold text-muted-foreground";
+
+const beds = (roomType: string) => {
+  const count = bedsForRoomType(roomType);
+  return `${count} ${count === 1 ? "bed" : "beds"}`;
+};
+
+/** − n +, saving once the count settles. */
+function Stepper({ disabled, label, onChange, value }: { disabled?: boolean; label: string; onChange: (next: number) => void; value: number }) {
+  return (
+    <div className="inline-flex h-9 items-center rounded-xl border border-border bg-card">
+      <button aria-label={`Fewer ${label}`} className="flex h-full w-9 items-center justify-center disabled:opacity-30" disabled={disabled || value <= 0} onClick={() => onChange(value - 1)} type="button">
+        <Glyph className="size-4" name="remove" />
+      </button>
+      <input
+        aria-label={label}
+        className="h-full w-10 border-x border-border bg-transparent text-center text-sm font-semibold tabular-nums outline-none"
+        disabled={disabled}
+        inputMode="numeric"
+        onChange={(event) => onChange(Math.min(999, Number(event.target.value.replace(/\D/g, "")) || 0))}
+        value={value}
+      />
+      <button aria-label={`More ${label}`} className="flex h-full w-9 items-center justify-center disabled:opacity-30" disabled={disabled} onClick={() => onChange(value + 1)} type="button">
+        <Glyph className="size-4" name="add" />
+      </button>
+    </div>
+  );
+}
+
+/** A count that waits for the clicks to stop, then `apply`s once. */
+function useSettled<K extends string | number>(apply: (key: K, value: number) => void) {
+  const [targets, setTargets] = useState<Partial<Record<K, number>>>({});
+  const latest = useRef(apply);
+  useEffect(() => {
+    latest.current = apply;
+  });
+  useEffect(() => {
+    const entries = Object.entries(targets) as [K, number][];
+    if (!entries.length) return;
+    const timer = setTimeout(() => {
+      setTargets({});
+      for (const [key, value] of entries) latest.current(key, value);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [targets]);
+
+  return [targets, (key: K, value: number) => setTargets((current) => ({ ...current, [key]: value }))] as const;
+}
 
 export function FloorsPanel() {
   const layout = usePortalResource<Layout>(BASE);
@@ -102,14 +149,15 @@ export function FloorsPanel() {
   const { confirm, confirmDialog } = useConfirm();
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
-  /** Floors opened with "Add floor" that have no rooms yet. */
-  const [draftFloors, setDraftFloors] = useState<number[]>([]);
-  /** The floor whose add-rooms row is open. */
-  const [addingOn, setAddingOn] = useState<number | null>(null);
+  const [paint, setPaint] = useState<string | null>(null);
+  const [selected, setSelected] = useState<string[]>([]);
+  const [collapsed, setCollapsed] = useState<number[]>([]);
   const [editing, setEditing] = useState<Room | null>(null);
+  const [bulkType, setBulkType] = useState("");
+  const [bulkFirst, setBulkFirst] = useState("");
 
   /** `true` when the work went through, so a form knows to close. */
-  const run = async (work: () => Promise<unknown>, done: string) => {
+  const run = async (work: () => Promise<unknown>, done = "") => {
     setBusy(true);
     setMessage("");
     try {
@@ -117,10 +165,11 @@ export function FloorsPanel() {
       setMessage(done);
       // Room counts per type follow the rooms, so the room types refresh too.
       invalidate(hostelAdminEndpoints.profile);
-      await Promise.all([layout.refreshAsync(), requests.refreshAsync()]);
+      await Promise.all([layout.refreshAsync(), requests.refreshAsync(), profile.refreshAsync()]);
       return true;
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "That did not work.");
+      await layout.refreshAsync();
       return false;
     } finally {
       setBusy(false);
@@ -128,6 +177,44 @@ export function FloorsPanel() {
   };
 
   const data = layout.data;
+  const configs = profile.data?.hostel.roomConfigurations ?? [];
+  const rooms = data?.rooms ?? [];
+  const taken = rooms.map((room) => room.number);
+  const types = data?.roomTypes ?? [];
+  const typeFor = (onFloor: Room[]) =>
+    paint ?? [...onFloor].sort((a, b) => onFloor.filter((room) => room.roomType === b.roomType).length - onFloor.filter((room) => room.roomType === a.roomType).length)[0]?.roomType ?? types[0];
+
+  const [floorTargets, setFloorTarget] = useSettled<number>((floor, target) => {
+    const onFloor = rooms.filter((room) => room.floor === floor).sort(byNumber);
+    void run(async () => {
+      if (target > onFloor.length) {
+        const roomType = typeFor(onFloor);
+        await browserApi(BASE, {
+          body: JSON.stringify({ beds: bedsForRoomType(roomType), floor, numbers: nextRoomNumbers(floor, taken, target - onFloor.length), roomType }),
+          method: "POST",
+        });
+        return;
+      }
+      for (const room of onFloor.slice(target).reverse()) await browserApi(`${BASE}/${room.id}`, { method: "DELETE" });
+    });
+  });
+
+  const [typeTargets, setTypeTarget] = useSettled<string>((roomType, count) => {
+    void run(() =>
+      browserApi(hostelAdminEndpoints.profile, {
+        body: JSON.stringify({
+          roomConfigurations: configs.map((config) => {
+            if (config.roomType !== roomType) return config;
+            const bedsPerRoom = bedsForRoomType(config.roomType);
+            // Beds already taken stay taken; the rest are free.
+            const used = Math.max(0, config.rooms * config.bedsPerRoom - config.vacantBeds);
+            return { ...config, bedsPerRoom, rooms: count, vacantBeds: Math.max(0, count * bedsPerRoom - used) };
+          }),
+        }),
+        method: "PATCH",
+      }),
+    );
+  });
 
   if (!data) {
     return (
@@ -137,54 +224,99 @@ export function FloorsPanel() {
     );
   }
 
-  const configs = profile.data?.hostel.roomConfigurations ?? [];
-  const bedsFor = (roomType: string) => configs.find((config) => config.roomType === roomType)?.bedsPerRoom ?? 2;
-  const floors = [...new Set([...data.rooms.map((room) => room.floor), ...draftFloors])].sort((a, b) => a - b);
+  const floors = [...new Set(rooms.map((room) => room.floor))].sort((a, b) => a - b);
   const pending = requests.data?.requests ?? [];
-  const freeBeds = data.rooms.reduce((sum, room) => sum + room.free, 0);
-  const toggleTracking = () =>
-    void run(
-      () => browserApi(`${BASE}/tracking`, { body: JSON.stringify({ enabled: !data.tracking }), method: "PUT" }),
-      data.tracking ? "Kept by room type only." : "Floors & room numbers are on.",
-    );
+  const totals = data.tracking
+    ? { beds: rooms.reduce((sum, room) => sum + room.beds, 0), free: rooms.reduce((sum, room) => sum + room.free, 0), rooms: rooms.length }
+    : {
+        beds: configs.reduce((sum, config) => sum + config.rooms * bedsForRoomType(config.roomType), 0),
+        free: configs.reduce((sum, config) => sum + config.vacantBeds, 0),
+        rooms: configs.reduce((sum, config) => sum + config.rooms, 0),
+      };
+  const chosen = rooms.filter((room) => selected.includes(room.id)).sort(byNumber);
+
+  const setMode = (floorWise: boolean) =>
+    floorWise !== data.tracking && void run(() => browserApi(`${BASE}/tracking`, { body: JSON.stringify({ enabled: floorWise }), method: "PUT" }));
+
   const addFloor = () => {
-    const next = floors.length === 0 ? 0 : Math.max(...floors) + 1;
-    setDraftFloors((current) => [...current, next]);
-    setAddingOn(next);
+    const above = floors.at(-1);
+    const floor = above === undefined ? 0 : above + 1;
+    // A new floor copies the one above it; the first starts with one room.
+    const plan = above === undefined ? [paint ?? types[0]] : rooms.filter((room) => room.floor === above).sort(byNumber).map((room) => room.roomType);
+    const numbers = nextRoomNumbers(floor, taken, plan.length);
+    void run(async () => {
+      for (const roomType of [...new Set(plan)]) {
+        await browserApi(BASE, {
+          body: JSON.stringify({ beds: bedsForRoomType(roomType), floor, numbers: numbers.filter((_, at) => plan[at] === roomType), roomType }),
+          method: "POST",
+        });
+      }
+    }, `${floorName(floor)} added.`);
   };
 
-  if (!data.tracking) {
-    return (
-      <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-border/70 bg-card p-4">
-        <span className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground">
-          <Building2 className="size-[18px]" />
-        </span>
-        <div className="mr-auto min-w-0">
-          <h2 className="font-heading text-[15px] font-semibold text-foreground">Floors & room numbers are off</h2>
-          <p className="text-[12.5px] text-muted-foreground">Residents are kept by room type only. Turn on to place each room on its floor.</p>
-        </div>
-        <Button disabled={busy} onClick={toggleTracking} size="sm" type="button">
-          Turn on
-        </Button>
-        {message ? <p className="w-full text-[13px] text-muted-foreground">{message}</p> : null}
-      </section>
-    );
-  }
+  const retype = (list: Room[], roomType: string) =>
+    run(async () => {
+      for (const room of list.filter((item) => item.roomType !== roomType)) {
+        await browserApi(`${BASE}/${room.id}`, { body: JSON.stringify({ beds: bedsForRoomType(roomType), roomType }), method: "PATCH" });
+      }
+    });
+
+  const clickTile = (room: Room, event: React.MouseEvent) => {
+    if (event.shiftKey || event.ctrlKey || event.metaKey || selected.length) {
+      setSelected((current) => (current.includes(room.id) ? current.filter((id) => id !== room.id) : [...current, room.id]));
+    } else if (paint) {
+      void retype([room], paint);
+    } else {
+      setEditing(room);
+    }
+  };
+
+  const removeChosen = async () => {
+    const ok = await confirm({ actionLabel: "Remove", description: "Only empty rooms can be removed.", pin: true, title: `Remove ${chosen.length} rooms?`, tone: "destructive" });
+    if (ok && (await run(async () => { for (const room of chosen) await browserApi(`${BASE}/${room.id}`, { method: "DELETE" }); }, `${chosen.length} rooms removed.`))) setSelected([]);
+  };
+
+  const renumberChosen = () => {
+    const numbers = renumber(bulkFirst || chosen[0]?.number || "", chosen.length);
+    void run(async () => {
+      // ponytail: two passes so 101↔102 swaps never clash; a failure midway can leave a "~" number to fix by hand.
+      for (const room of chosen) await browserApi(`${BASE}/${room.id}`, { body: JSON.stringify({ number: `~${room.number}` }), method: "PATCH" });
+      for (const [at, room] of chosen.entries()) await browserApi(`${BASE}/${room.id}`, { body: JSON.stringify({ number: numbers[at] }), method: "PATCH" });
+    }, "Renumbered.").then((ok) => ok && setSelected([]));
+  };
 
   return (
     <section className="space-y-4">
       {confirmDialog}
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 className="font-heading text-[15px] font-semibold text-foreground">Floors</h2>
-          <p className="text-[12.5px] text-muted-foreground">
-            {floors.length} {floors.length === 1 ? "floor" : "floors"} · {data.rooms.length} rooms · {freeBeds} beds free
-          </p>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="inline-flex rounded-full border border-border bg-muted p-1">
+          {([true, false] as const).map((floorWise) => (
+            <button
+              className={cn(
+                "rounded-full px-4 py-1.5 text-[13px] font-semibold transition",
+                data.tracking === floorWise ? "bg-brand-teal text-white" : "text-muted-foreground hover:text-foreground",
+              )}
+              disabled={busy}
+              key={String(floorWise)}
+              onClick={() => setMode(floorWise)}
+              type="button"
+            >
+              {floorWise ? "Floor-wise" : "Not floor-wise"}
+            </button>
+          ))}
         </div>
-        <Button disabled={busy || data.roomTypes.length === 0} onClick={addFloor} size="sm" type="button">
-          <Plus className="size-3.5" />
-          Add floor
-        </Button>
+        <div className="ml-auto flex gap-5">
+          {([["business", "Rooms", totals.rooms], ["bed", "Beds", totals.beds], ["checkmark-circle", "Free", totals.free]] as [GlyphName, string, number][]).map(([icon, label, value]) => (
+            <div className="flex items-center gap-2" key={label}>
+              <Glyph className="size-4 text-brand-teal" name={icon} />
+              <div className="leading-tight">
+                <p className="text-[15px] font-bold tabular-nums text-foreground">{value}</p>
+                <p className="text-[11px] text-muted-foreground">{label}</p>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {message ? <p className="text-[13px] text-muted-foreground">{message}</p> : null}
@@ -232,7 +364,7 @@ export function FloorsPanel() {
         </div>
       ) : null}
 
-      {data.rooms.length > 0 && data.unassigned.length > 0 ? (
+      {data.tracking && rooms.length > 0 && data.unassigned.length > 0 ? (
         <div className="space-y-2 rounded-2xl border border-warning/30 bg-warning/5 p-3">
           <p className="text-xs font-semibold text-warning">No room yet · {data.unassigned.length}</p>
           {data.unassigned.map((person) => (
@@ -257,7 +389,7 @@ export function FloorsPanel() {
                 }
               >
                 <option value="">Pick a room</option>
-                {data.rooms
+                {rooms
                   .filter((room) => room.roomType === person.roomType && room.free > 0)
                   .map((room) => (
                     <option key={room.id} value={room.id}>
@@ -270,107 +402,188 @@ export function FloorsPanel() {
         </div>
       ) : null}
 
-      {data.roomTypes.length === 0 ? (
-        <p className="rounded-2xl border border-dashed border-border px-4 py-6 text-center text-[13.5px] text-muted-foreground">
-          Add a room type above first — then place its rooms on each floor.
-        </p>
-      ) : floors.length === 0 ? (
-        <button
-          className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-border px-4 py-8 text-center transition hover:border-brand-teal"
-          onClick={addFloor}
-          type="button"
-        >
-          <span className="flex size-11 items-center justify-center rounded-full bg-brand-teal/10 text-brand-teal">
-            <Building2 className="size-5" />
-          </span>
-          <span className="text-sm font-semibold text-foreground">Start with the ground floor</span>
-          <span className="text-xs text-muted-foreground">Add its rooms, then the next floor up.</span>
-        </button>
-      ) : null}
-
-      {floors.map((value) => {
-        const onFloor = data.rooms
-          .filter((room) => room.floor === value)
-          .sort((left, right) => left.number.localeCompare(right.number, undefined, { numeric: true }));
-
-        return (
-          <div className="rounded-2xl border border-border/70 bg-card p-3.5" key={value}>
-            <div className="flex flex-wrap items-center gap-2">
-              <h3 className="font-heading text-[14px] font-semibold text-foreground">{floorName(value)}</h3>
-              <span className="mr-auto text-[12px] text-muted-foreground">
-                {onFloor.length} {onFloor.length === 1 ? "room" : "rooms"} · {onFloor.reduce((sum, room) => sum + room.free, 0)} beds free
-              </span>
-              {addingOn !== value ? (
-                <Button disabled={busy} onClick={() => setAddingOn(value)} size="sm" type="button" variant="ghost">
-                  <Plus className="size-3.5" />
-                  Add rooms
-                </Button>
-              ) : null}
-            </div>
-
-            {onFloor.length > 0 ? (
-              <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5 lg:grid-cols-7 xl:grid-cols-8">
-                {onFloor.map((room) => (
+      {types.length === 0 ? (
+        <p className="rounded-2xl border border-dashed border-border px-4 py-6 text-center text-[13.5px] text-muted-foreground">Add a room type first.</p>
+      ) : !data.tracking ? (
+        <div className="overflow-hidden rounded-2xl border border-border/70 bg-card">
+          <table className="w-full text-[13.5px]">
+            <thead className="bg-muted/40 text-left text-[11px] font-semibold text-muted-foreground">
+              <tr>
+                <th className="px-4 py-2.5">Room type</th>
+                <th className="px-4 py-2.5">Rooms</th>
+                <th className="px-4 py-2.5 text-right">Beds per room</th>
+                <th className="px-4 py-2.5 text-right">Total beds</th>
+              </tr>
+            </thead>
+            <tbody>
+              {configs.map((config) => {
+                const count = typeTargets[config.roomType] ?? config.rooms;
+                return (
+                  <tr className="border-t border-border/70" key={config.roomType}>
+                    <td className="px-4 py-2.5 font-semibold text-foreground">{config.roomType}</td>
+                    <td className="px-4 py-2.5">
+                      <Stepper disabled={busy} label={`${config.roomType} rooms`} onChange={(next) => setTypeTarget(config.roomType, next)} value={count} />
+                    </td>
+                    <td className="px-4 py-2.5 text-right tabular-nums">{bedsForRoomType(config.roomType)}</td>
+                    <td className="px-4 py-2.5 text-right tabular-nums">{count * bedsForRoomType(config.roomType)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div className="grid gap-4 lg:grid-cols-[200px_minmax(0,1fr)]">
+          <aside className="space-y-2 lg:sticky lg:top-4 lg:self-start">
+            <p className="text-xs font-semibold text-muted-foreground">Room types</p>
+            <div className="flex flex-wrap gap-2 lg:flex-col">
+              {types.map((roomType) => {
+                const on = paint === roomType;
+                return (
                   <button
-                    className="rounded-xl border border-border/70 p-2 text-left transition hover:border-brand-teal hover:shadow-sm"
-                    key={room.id}
-                    onClick={() => setEditing(room)}
-                    title={room.residents.map((person) => person.name).join(", ") || "Empty"}
+                    aria-pressed={on}
+                    className={cn(
+                      "flex items-center gap-2.5 rounded-xl border px-3 py-2 text-left transition",
+                      on ? "border-brand-teal bg-brand-teal text-white" : "border-border bg-card hover:border-brand-teal",
+                    )}
+                    key={roomType}
+                    onClick={() => setPaint(on ? null : roomType)}
+                    title={on ? "Click rooms to set this type" : "Pick, then click rooms to paint them"}
                     type="button"
                   >
-                    <p className="font-heading text-[15px] font-bold leading-tight text-foreground">{room.number}</p>
-                    <p className="truncate text-[11px] text-muted-foreground">{room.roomType}</p>
-                    {/* One dot a bed: filled is taken, ringed is free. */}
-                    <div className="mt-1.5 flex flex-wrap gap-1">
-                      {Array.from({ length: Math.min(room.beds, 12) }, (_, index) => (
-                        <span
-                          className={cn(
-                            "size-2 rounded-full",
-                            index < room.beds - room.free ? "bg-foreground" : "border border-brand-teal bg-brand-teal/15",
-                          )}
-                          key={index}
-                        />
-                      ))}
-                    </div>
+                    <Glyph className="size-4 shrink-0" name="bed" />
+                    <span className="min-w-0">
+                      <span className="block truncate text-[13px] font-semibold">{roomType}</span>
+                      <span className={cn("block text-[11px]", on ? "text-white/80" : "text-muted-foreground")}>{beds(roomType)}</span>
+                    </span>
                   </button>
-                ))}
+                );
+              })}
+            </div>
+          </aside>
+
+          <div className="space-y-3">
+            {chosen.length ? (
+              <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-brand-teal/40 bg-brand-teal/5 p-3">
+                <p className="mr-auto self-center text-sm font-semibold text-foreground">{chosen.length} rooms selected</p>
+                <label className={LABEL}>
+                  Set type
+                  <span className="flex gap-2">
+                    <select className={cn(INPUT, "w-44")} onChange={(event) => setBulkType(event.target.value)} value={bulkType || types[0]}>
+                      {types.map((type) => (
+                        <option key={type} value={type}>{`${type} (${beds(type)})`}</option>
+                      ))}
+                    </select>
+                    <Button disabled={busy} onClick={() => void retype(chosen, bulkType || types[0]).then((ok) => ok && setSelected([]))} size="sm" type="button">Apply</Button>
+                  </span>
+                </label>
+                <label className={LABEL}>
+                  Renumber from
+                  <span className="flex gap-2">
+                    <input className={cn(INPUT, "w-24")} onChange={(event) => setBulkFirst(event.target.value)} placeholder={chosen[0]?.number} value={bulkFirst} />
+                    <Button disabled={busy} onClick={renumberChosen} size="sm" type="button" variant="outline">Renumber</Button>
+                  </span>
+                </label>
+                <Button className="text-destructive" disabled={busy} onClick={() => void removeChosen()} size="sm" type="button" variant="outline">
+                  <Trash2 className="size-4" />
+                  Remove
+                </Button>
+                <Button aria-label="Clear selection" onClick={() => setSelected([])} size="sm" type="button" variant="ghost">
+                  <Glyph className="size-4" name="close" />
+                </Button>
               </div>
             ) : null}
 
-            {addingOn === value ? (
-              <AddRoomsRow
-                bedsFor={bedsFor}
-                busy={busy}
-                floor={value}
-                onAdd={(input) =>
-                  run(
-                    () => browserApi(BASE, { body: JSON.stringify({ ...input, floor: value }), method: "POST" }),
-                    `${input.numbers.length} ${input.numbers.length === 1 ? "room" : "rooms"} added to the ${floorName(value).toLowerCase()}.`,
-                  ).then((ok) => {
-                    if (ok) {
-                      setAddingOn(null);
-                      setDraftFloors((current) => current.filter((floor) => floor !== value));
-                    }
-                  })
-                }
-                onCancel={() => {
-                  setAddingOn(null);
-                  setDraftFloors((current) => current.filter((floor) => floor !== value));
-                }}
-                onFloor={onFloor.map((room) => room.number)}
-                roomTypes={data.roomTypes}
-              />
+            {floors.length === 0 ? (
+              <button
+                className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-border px-4 py-10 text-center transition hover:border-brand-teal"
+                disabled={busy}
+                onClick={addFloor}
+                type="button"
+              >
+                <span className="flex size-11 items-center justify-center rounded-full bg-brand-teal/10 text-brand-teal">
+                  <Building2 className="size-5" />
+                </span>
+                <span className="text-sm font-semibold text-foreground">No floors added yet</span>
+                <span className="inline-flex items-center gap-1 text-[13px] font-semibold text-brand-teal">
+                  <Plus className="size-3.5" />
+                  Add ground floor
+                </span>
+              </button>
+            ) : null}
+
+            {floors.map((floor) => {
+              const onFloor = rooms.filter((room) => room.floor === floor).sort(byNumber);
+              const shut = collapsed.includes(floor);
+              return (
+                <div className="rounded-2xl border border-border/70 bg-card p-3.5" key={floor}>
+                  <div className="flex items-center gap-2">
+                    <button
+                      aria-expanded={!shut}
+                      className="mr-auto flex items-center gap-2 text-left"
+                      onClick={() => setCollapsed((current) => (shut ? current.filter((value) => value !== floor) : [...current, floor]))}
+                      type="button"
+                    >
+                      <Glyph className="size-4" name={shut ? "chevron-forward" : "chevron-down"} />
+                      <span>
+                        <span className="block font-heading text-[14px] font-semibold text-foreground">{floorName(floor)}</span>
+                        <span className="block text-[12px] text-muted-foreground">{onFloor.length} rooms</span>
+                      </span>
+                    </button>
+                    <Stepper disabled={busy} label={`rooms on ${floorName(floor)}`} onChange={(next) => setFloorTarget(floor, next)} value={floorTargets[floor] ?? onFloor.length} />
+                  </div>
+                  {shut ? null : (
+                    <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6 xl:grid-cols-8">
+                      {onFloor.map((room) => {
+                        const on = selected.includes(room.id);
+                        const used = room.beds - room.free;
+                        const full = room.free <= 0 && used > 0;
+                        return (
+                          <button
+                            aria-pressed={on}
+                            className={cn(
+                              "relative flex flex-col items-center gap-1 rounded-xl border-2 py-2.5 transition hover:border-brand-teal",
+                              on ? "border-brand-teal bg-brand-teal/10" : full ? "border-destructive/40" : "border-border",
+                            )}
+                            key={room.id}
+                            onClick={(event) => clickTile(room, event)}
+                            title={`${room.roomType} · ${room.residents.map((person) => person.name).join(", ") || "Empty"}`}
+                            type="button"
+                          >
+                            <span className="font-heading text-[15px] font-bold leading-tight text-foreground">{room.number}</span>
+                            <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                              <Glyph className={cn("size-3.5", on && "text-brand-teal")} name="bed" />
+                              {room.beds}
+                            </span>
+                            {used > 0 ? (
+                              <span className="h-1 w-3/4 overflow-hidden rounded-full bg-muted">
+                                <span className={cn("block h-full rounded-full", full ? "bg-destructive" : "bg-brand-teal")} style={{ width: `${(used / room.beds) * 100}%` }} />
+                              </span>
+                            ) : null}
+                            {on ? <Glyph className="absolute -bottom-1.5 -right-1.5 size-4 rounded-full bg-background text-brand-teal" name="checkmark-circle" variant="solid" /> : null}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+            {floors.length ? (
+              <button
+                className="flex w-full items-center justify-center gap-1.5 rounded-2xl border-2 border-dashed border-border py-3 text-[13px] font-semibold text-brand-teal transition hover:border-brand-teal"
+                disabled={busy}
+                onClick={addFloor}
+                type="button"
+              >
+                <Plus className="size-4" />
+                Add floor
+              </button>
             ) : null}
           </div>
-        );
-      })}
-
-      <div className="flex items-center justify-between gap-3 rounded-2xl bg-muted/40 px-4 py-3 text-[12.5px] text-muted-foreground">
-        <span>Floors & room numbers are on. Turn off to keep residents by room type only.</span>
-        <button className="font-semibold text-foreground hover:underline" disabled={busy} onClick={toggleTracking} type="button">
-          Turn off
-        </button>
-      </div>
+        </div>
+      )}
 
       <Dialog onOpenChange={(open) => (open ? null : setEditing(null))} open={editing !== null}>
         <DialogContent className="sm:max-w-md">
@@ -381,28 +594,26 @@ export function FloorsPanel() {
               onSubmit={(event) => {
                 event.preventDefault();
                 const form = new FormData(event.currentTarget);
+                const number = String(form.get("number") ?? "").trim();
+                const roomType = String(form.get("roomType") ?? editing.roomType);
 
                 void run(
                   () =>
                     browserApi(`${BASE}/${editing.id}`, {
                       body: JSON.stringify({
-                        beds: Number(form.get("beds")),
-                        floor: Number(form.get("floor")),
-                        number: String(form.get("number") ?? "").trim(),
-                        roomType: String(form.get("roomType") ?? ""),
+                        ...(number !== editing.number ? { number } : {}),
+                        ...(roomType !== editing.roomType ? { beds: bedsForRoomType(roomType), roomType } : {}),
                       }),
                       method: "PATCH",
                     }),
-                  `Room ${String(form.get("number"))} saved.`,
+                  `Room ${number} saved.`,
                 ).then((ok) => ok && setEditing(null));
               }}
             >
               <DialogHeader>
                 <DialogTitle>Room {editing.number}</DialogTitle>
                 <DialogDescription>
-                  {editing.residents.length > 0
-                    ? `Lives here: ${editing.residents.map((person) => person.name).join(", ")}`
-                    : `${floorName(editing.floor)} · empty`}
+                  {floorName(editing.floor)} · {editing.beds - editing.free} / {editing.beds} taken
                 </DialogDescription>
               </DialogHeader>
               <div className="grid grid-cols-2 gap-3">
@@ -411,35 +622,31 @@ export function FloorsPanel() {
                   <input className={INPUT} defaultValue={editing.number} name="number" required />
                 </label>
                 <label className={LABEL}>
-                  Floor (0 = ground)
-                  <input className={INPUT} defaultValue={editing.floor} name="floor" required type="number" />
-                </label>
-                <label className={LABEL}>
-                  Room type
+                  Type
                   <select className={INPUT} defaultValue={editing.roomType} name="roomType">
-                    {data.roomTypes.map((type) => (
-                      <option key={type} value={type}>
-                        {type}
-                      </option>
+                    {types.map((type) => (
+                      <option key={type} value={type}>{`${type} (${beds(type)})`}</option>
                     ))}
                   </select>
                 </label>
-                <label className={LABEL}>
-                  Beds
-                  <input className={INPUT} defaultValue={editing.beds} max={40} min={1} name="beds" required type="number" />
-                </label>
               </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-brand-teal" style={{ width: `${editing.beds ? ((editing.beds - editing.free) / editing.beds) * 100 : 0}%` }} />
+              </div>
+              <p className="text-[13px] text-muted-foreground">
+                {editing.residents.length ? editing.residents.map((person) => person.name).join(", ") : "No residents yet"}
+              </p>
               <DialogFooter className="sm:justify-between">
                 <Button
-                  className="text-muted-foreground hover:text-destructive"
+                  className="text-destructive"
                   disabled={busy || editing.residents.length > 0}
                   onClick={async () => {
                     const room = editing;
                     const ok = await confirm({
-                      actionLabel: "Remove room",
+                      actionLabel: "Delete room",
                       description: "Only an empty room can be removed.",
                       pin: true,
-                      title: `Remove Room ${room.number}?`,
+                      title: `Delete Room ${room.number}?`,
                       tone: "destructive",
                     });
 
@@ -449,10 +656,10 @@ export function FloorsPanel() {
                   }}
                   title={editing.residents.length > 0 ? "Move its residents first" : undefined}
                   type="button"
-                  variant="ghost"
+                  variant="outline"
                 >
                   <Trash2 className="size-4" />
-                  Remove
+                  Delete room
                 </Button>
                 <Button disabled={busy} type="submit">
                   {busy ? <Loader2 className="size-4 animate-spin" /> : null}
@@ -464,83 +671,5 @@ export function FloorsPanel() {
         </DialogContent>
       </Dialog>
     </section>
-  );
-}
-
-/** Type, how many, where the numbers start, beds each — on the floor itself. */
-function AddRoomsRow({
-  bedsFor,
-  busy,
-  floor,
-  onAdd,
-  onCancel,
-  onFloor,
-  roomTypes,
-}: {
-  bedsFor: (roomType: string) => number;
-  busy: boolean;
-  floor: number;
-  onAdd: (input: { beds: number; numbers: string[]; roomType: string }) => Promise<void>;
-  onCancel: () => void;
-  onFloor: string[];
-  roomTypes: string[];
-}) {
-  const [roomType, setRoomType] = useState(roomTypes[0] ?? "");
-  const [count, setCount] = useState("4");
-  const [first, setFirst] = useState(() => nextNumber(floor, onFloor));
-  const [beds, setBeds] = useState(() => String(bedsFor(roomTypes[0] ?? "")));
-  const numbers = numbersFrom(first, Number(count) || 1);
-  const clash = numbers.filter((number) => onFloor.includes(number));
-
-  return (
-    <form
-      className="mt-3 grid gap-3 rounded-xl bg-muted/40 p-3 sm:grid-cols-[minmax(0,1.6fr)_repeat(3,minmax(0,1fr))_auto]"
-      onSubmit={(event) => {
-        event.preventDefault();
-        void onAdd({ beds: Number(beds) || 1, numbers, roomType });
-      }}
-    >
-      <label className={LABEL}>
-        Room type
-        <select
-          className={INPUT}
-          onChange={(event) => {
-            setRoomType(event.target.value);
-            setBeds(String(bedsFor(event.target.value)));
-          }}
-          value={roomType}
-        >
-          {roomTypes.map((type) => (
-            <option key={type} value={type}>
-              {type}
-            </option>
-          ))}
-        </select>
-      </label>
-      <label className={LABEL}>
-        How many
-        <input autoFocus className={INPUT} max={100} min={1} onChange={(event) => setCount(event.target.value)} required type="number" value={count} />
-      </label>
-      <label className={LABEL}>
-        First number
-        <input className={INPUT} onChange={(event) => setFirst(event.target.value)} required value={first} />
-      </label>
-      <label className={LABEL}>
-        Beds each
-        <input className={INPUT} max={40} min={1} onChange={(event) => setBeds(event.target.value)} required type="number" value={beds} />
-      </label>
-      <div className="flex items-end gap-2">
-        <Button disabled={busy} onClick={onCancel} type="button" variant="ghost">
-          Cancel
-        </Button>
-        <Button disabled={busy || numbers.length === 0 || !roomType || clash.length > 0} type="submit">
-          {busy ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" />}
-          {numbers.length > 1 ? `${numbers[0]}–${numbers.at(-1)}` : `Add ${numbers[0] ?? ""}`}
-        </Button>
-      </div>
-      {clash.length > 0 ? (
-        <p className="text-xs text-destructive sm:col-span-5">Room {clash.join(", ")} is already on this floor.</p>
-      ) : null}
-    </form>
   );
 }

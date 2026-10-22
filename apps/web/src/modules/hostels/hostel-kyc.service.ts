@@ -128,8 +128,8 @@ export async function getHostelKyc(hostelId: string | Types.ObjectId, viewerId?:
     photos: (hostel.photos ?? []).filter((photo) => photo.url).length >= MIN_PHOTOS,
     rates: Boolean(rateCard),
     rules: (hostel.rules ?? []).length > 0,
-    // A hostel that keeps rooms by type only has nothing to number.
-    rooms: settings?.roomTracking === false || rooms > 0,
+    // Not floor-wise (the default until chosen): nothing to number.
+    rooms: settings?.roomTracking !== true || rooms > 0,
     opening: Boolean(settings?.openingBalance),
   };
 

@@ -116,13 +116,19 @@ export function floorLabel(floor: number) {
 
 const oid = (value: Types.ObjectId | string) => new Types.ObjectId(String(value));
 
-/** On unless the owner turned it off. */
+/**
+ * Floor-wise: the owner's choice, made on KYC or in Settings. Unchosen, it is
+ * off — except for a hostel that already numbered rooms before the choice
+ * existed, which keeps them.
+ */
 export async function isRoomTracking(hostelId: Types.ObjectId | string) {
   const settings = await HostelSettingsModel.findOne({ hostelId: oid(hostelId) })
     .select("roomTracking")
     .lean<{ roomTracking?: boolean } | null>();
 
-  return settings?.roomTracking !== false;
+  if (typeof settings?.roomTracking === "boolean") return settings.roomTracking;
+
+  return Boolean(await HostelRoomModel.exists({ hostelId: oid(hostelId), isDeleted: false }));
 }
 
 async function loadRooms(hostelId: Types.ObjectId) {

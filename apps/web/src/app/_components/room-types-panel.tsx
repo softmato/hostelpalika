@@ -1,6 +1,6 @@
 "use client";
 
-import { BEDS_BY_ROOM_TYPE, ROOM_TYPE_OPTIONS } from "@hostel/shared/constants/room-types";
+import { bedsForRoomType, ROOM_TYPE_OPTIONS } from "@hostel/shared/constants/room-types";
 import { ImagePlus, Loader2, Pencil, Plus, Trash2 } from "@/components/icons";
 import { useCallback, useState, type ChangeEvent } from "react";
 
@@ -212,7 +212,8 @@ export function RoomTypesPanel() {
               onSubmit={(event) => {
                 event.preventDefault();
                 const form = new FormData(event.currentTarget);
-                const bedsPerRoom = Number(form.get("bedsPerRoom")) || 1;
+                // Beds follow from the type's name; owners are never asked.
+                const bedsPerRoom = bedsForRoomType(editing.roomType);
                 const rooms = tracking ? editing.rooms : Number(form.get("rooms")) || 0;
                 const vacantBeds = tracking ? editing.vacantBeds : Math.min(Number(form.get("vacantBeds")) || 0, rooms * bedsPerRoom);
 
@@ -230,11 +231,7 @@ export function RoomTypesPanel() {
                   {tracking ? "Rooms of this type are placed on the floors below." : "How many rooms, and how many beds are free now."}
                 </DialogDescription>
               </DialogHeader>
-              <div className={cn("grid gap-3", tracking ? "grid-cols-1" : "grid-cols-3")}>
-                <label className={LABEL}>
-                  Beds per room
-                  <input className={INPUT} defaultValue={editing.bedsPerRoom} min={1} name="bedsPerRoom" required type="number" />
-                </label>
+              <div className="grid grid-cols-2 gap-3">
                 {tracking ? null : (
                   <>
                     <label className={LABEL}>
@@ -295,8 +292,9 @@ function AddRoomTypeDialog({
 }) {
   const choices = ROOM_TYPE_OPTIONS.filter((option) => !existing.includes(option));
   const [roomType, setRoomType] = useState(choices[0] ?? "");
-  const [beds, setBeds] = useState(String(BEDS_BY_ROOM_TYPE[choices[0] ?? ""] ?? 6));
-  const [rooms, setRooms] = useState("1");
+  const [custom, setCustom] = useState("");
+  const name = custom.trim() || roomType;
+  const taken = existing.some((item) => item.toLowerCase() === name.toLowerCase());
 
   return (
     <Dialog onOpenChange={(open) => (open ? null : onClose())} open>
@@ -304,56 +302,45 @@ function AddRoomTypeDialog({
         <DialogHeader>
           <DialogTitle>Add a room type</DialogTitle>
           <DialogDescription>
-            {tracking ? "Then add its rooms on a floor." : "It starts with every bed free."} Its rent is set in Finance settings → Room rates.
+            {tracking ? "Then add its rooms on a floor." : "Then set how many rooms it has."} Beds come from the name.
           </DialogDescription>
         </DialogHeader>
-        {choices.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Every room type is already on your list.</p>
-        ) : (
-          <form
-            className="grid gap-4"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void onAdd(roomType, Number(beds) || 1, tracking ? 0 : Number(rooms) || 0);
-            }}
-          >
-            <div className="flex flex-wrap gap-1.5">
-              {choices.map((option) => (
-                <button
-                  className={cn(
-                    "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
-                    option === roomType ? "border-brand-teal bg-brand-teal text-white" : "border-border text-foreground hover:bg-muted",
-                  )}
-                  key={option}
-                  onClick={() => {
-                    setRoomType(option);
-                    setBeds(String(BEDS_BY_ROOM_TYPE[option] ?? 6));
-                  }}
-                  type="button"
-                >
-                  {option}
-                </button>
-              ))}
-            </div>
-            <div className={cn("grid gap-3", tracking ? "grid-cols-1" : "grid-cols-2")}>
-              <label className={LABEL}>
-                Beds per room
-                <input className={INPUT} min={1} onChange={(event) => setBeds(event.target.value)} required type="number" value={beds} />
-              </label>
-              {tracking ? null : (
-                <label className={LABEL}>
-                  Rooms
-                  <input className={INPUT} min={1} onChange={(event) => setRooms(event.target.value)} required type="number" value={rooms} />
-                </label>
-              )}
-            </div>
-            <DialogFooter>
-              <Button disabled={busy || !roomType} type="submit">
-                {busy ? "Adding…" : `Add ${roomType}`}
-              </Button>
-            </DialogFooter>
-          </form>
-        )}
+        <form
+          className="grid gap-4"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (name && !taken) void onAdd(name, bedsForRoomType(name), 0);
+          }}
+        >
+          <div className="flex flex-wrap gap-1.5">
+            {choices.map((option) => (
+              <button
+                className={cn(
+                  "rounded-full border px-3 py-1.5 text-xs font-semibold transition",
+                  option === roomType && !custom.trim() ? "border-brand-teal bg-brand-teal text-white" : "border-border text-foreground hover:bg-muted",
+                )}
+                key={option}
+                onClick={() => {
+                  setRoomType(option);
+                  setCustom("");
+                }}
+                type="button"
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+          <label className={LABEL}>
+            Other
+            <input className={INPUT} onChange={(event) => setCustom(event.target.value)} placeholder="6 Sharing" value={custom} />
+            {name ? <span className="font-normal">{bedsForRoomType(name)} {bedsForRoomType(name) === 1 ? "bed" : "beds"} a room</span> : null}
+          </label>
+          <DialogFooter>
+            <Button disabled={busy || !name || taken} type="submit">
+              {busy ? "Adding…" : `Add ${name}`}
+            </Button>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

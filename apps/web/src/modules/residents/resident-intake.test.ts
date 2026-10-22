@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import type { FeeScheduleRecord } from "@/modules/finance/fee-schedule.service";
 import { fromBs } from "@hostel/shared/calendar/bs";
+import { bedsForRoomType } from "@hostel/shared/constants/room-types";
 import { joiningPayable, periodOfDate, quoteIntake } from "@/modules/residents/resident-intake.service";
 
 /**
@@ -46,6 +47,10 @@ const hostel = {
 };
 
 describe("intake quote", () => {
+  it("reads beds off the room type's name", () => {
+    expect(["Single Room", "Double Sharing — Attached Bathroom", "Triple Sharing", "6 Sharing", "Dormitory", "Deluxe"].map(bedsForRoomType)).toEqual([1, 2, 3, 6, 6, 1]);
+  });
+
   it("adds form fees separately without discounting them for referrals", () => {
     const result = quoteIntake({ hostel, roomType: "Four Sharing", referralCode: "FRIEND", referralCodeActive: true, schedule: schedule({ formFee: 500 }) });
     expect(result.formFee).toBe(500);

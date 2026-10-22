@@ -274,9 +274,10 @@ export function SignOutRow({
       confirmLabel: "Sign out",
       destructive: true,
       message,
-      onConfirm: () => {
+      // Awaited, so the dialog shows its progress while the portal stays put.
+      onConfirm: async () => {
         setSigningOut(true);
-        void endSession().finally(() => router.replace("/(browse)"));
+        await endSession({ leaveTo: "/(browse)" });
       },
       title: "Sign out?",
     });

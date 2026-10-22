@@ -160,9 +160,7 @@ export default function ActivateScreen() {
       confirmLabel: "Sign out",
       destructive: true,
       message: "You can activate later — ask your hostel to send the code again.",
-      onConfirm: () => {
-        void endSession().finally(() => router.replace("/(browse)"));
-      },
+      onConfirm: () => endSession({ leaveTo: "/(browse)" }),
       title: "Sign out?",
     });
   }
