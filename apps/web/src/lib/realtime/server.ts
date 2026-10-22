@@ -10,6 +10,7 @@ import {
   userChannel,
   type RealtimeTopic,
 } from "@/lib/realtime/channels";
+import { bumpHostelCache } from "@/lib/redis-cache";
 
 /**
  * Server side of the real-time layer.
@@ -174,6 +175,8 @@ export async function publishResourceChange(input: {
   if (input.topics.length === 0) {
     return;
   }
+
+  await bumpHostelCache(input.hostelIds ?? []);
 
   const data = { topics: input.topics };
   const channels = new Set<string>();

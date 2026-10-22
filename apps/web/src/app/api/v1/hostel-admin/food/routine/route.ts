@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { cachedRead } from "@/lib/redis-cache";
 import { getFoodRoutine, saveFoodRoutine } from "@/modules/food/food-routine.service";
 import { resolveAdminHostelId } from "@/modules/food/food.service";
 import { foodRoutineSaveSchema } from "@/modules/food/food.validation";
@@ -16,7 +17,7 @@ export async function GET(request: NextRequest) {
       principal,
       request.nextUrl.searchParams.get("hostelId") ?? undefined,
     );
-    const routine = await getFoodRoutine(hostelId);
+    const routine = await cachedRead({ hostelIds: [String(hostelId)], userId: principal.userId }, "food-routine", () => getFoodRoutine(hostelId));
 
     return withEtag(request, successResponse({ routine }, "Food routine loaded"));
   } catch (error) {

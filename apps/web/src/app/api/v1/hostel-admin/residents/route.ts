@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { cachedRead } from "@/lib/redis-cache";
 import { requireHostelCapability, requireHostelStaffPrincipal } from "@/lib/api-auth";
 import { createResident, listResidents } from "@/modules/residents/resident.service";
 import {
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     const query = residentListQuerySchema.parse(
       Object.fromEntries(request.nextUrl.searchParams.entries()),
     );
-    const result = await listResidents(query, principal);
+    const result = await cachedRead(principal, `residents${request.nextUrl.search}`, () => listResidents(query, principal));
 
     return withEtag(request, successResponse(result, "Residents loaded"));
   } catch (error) {

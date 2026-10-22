@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { cachedRead } from "@/lib/redis-cache";
 import { getInvoiceMatrix } from "@/modules/finance/invoice-list.service";
 import { periodOf } from "@/modules/finance/billing.service";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
     const hostelId = resolveAdminHostelId(principal, query.hostelId);
 
     return withEtag(request, successResponse(
-      await getInvoiceMatrix(hostelId, query.period ?? periodOf(new Date())),
+      await cachedRead({ hostelIds: [String(hostelId)], userId: principal.userId }, `invoices${new URL(request.url).search}`, () => getInvoiceMatrix(hostelId, query.period ?? periodOf(new Date()))),
       "Invoices",
     ));
   } catch (error) {

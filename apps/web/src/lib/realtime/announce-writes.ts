@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { afterResponse } from "@/lib/after-response";
 import { REALTIME_TOPIC, type RealtimeTopic } from "@/lib/realtime/channels";
 import { publishResourceChange } from "@/lib/realtime/server";
+import { bumpHostelCache } from "@/lib/redis-cache";
 
 const { BOOKINGS, HOSTELS, PAYMENTS, RESIDENTS, ROOMS } = REALTIME_TOPIC;
 
@@ -46,6 +47,13 @@ export function topicsForWrite(method: string, path: string): RealtimeTopic[] {
 /** After the response, tell every open screen of these hostels to refetch. Never fails the request. */
 export function announceWrite(request: NextRequest, hostelIds: string[]) {
   if (hostelIds.length === 0 || !request.method) return;
+
+  if (!READS.has(request.method.toUpperCase())) {
+    // Once now and once after the response: a read that lands while the write
+    // is still running could otherwise cache the old answer under the new version.
+    void bumpHostelCache(hostelIds);
+    afterResponse(() => bumpHostelCache(hostelIds));
+  }
 
   const path = request.nextUrl?.pathname ?? (request.url ? new URL(request.url).pathname : "");
   const topics = topicsForWrite(request.method, path);

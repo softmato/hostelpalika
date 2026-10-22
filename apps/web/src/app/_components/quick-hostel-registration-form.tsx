@@ -1,15 +1,22 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
 
 import { useReferralCodeFromUrl } from "@/app/_components/register-hostel-start";
 import { PublicShell } from "@/app/_components/shared";
+import { Check } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { checkAuthWithRefresh } from "@/lib/auth-check";
 import { ApiRequestError, browserApi } from "@/lib/browser-api";
+import { BRANCH_GC_MS, BRANCH_STALE_MS, branchRequestOptions, portalResourceKey } from "@/lib/branch-cache";
+import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
+import { cn } from "@/lib/utils";
 import { useSessionStore } from "@/stores/session-store";
+
+const SETUP = ["Creating your hostel", "Making you the owner", "Loading your portal", "Opening your portal"];
 
 /**
  * Register your hostel — three fields, the same as the app
@@ -30,12 +37,16 @@ export function QuickHostelRegistrationForm() {
   const [referralCode, setReferralCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  /** Index into `SETUP` while the portal is being set up; null on the form. */
+  const [setup, setSetup] = useState<number | null>(null);
+  const queryClient = useQueryClient();
   const code = referralCode || referralFromUrl;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
     setSaving(true);
+    setSetup(0);
 
     try {
       const result = await browserApi<{ slug: string }>("/api/v1/public/hostels/quick-register", {
@@ -48,12 +59,37 @@ export function QuickHostelRegistrationForm() {
         method: "POST",
       });
 
+      setSetup(1);
       await checkAuthWithRefresh();
-      window.location.assign(`/${encodeURIComponent(result.slug)}/admin?welcome=1`);
+
+      // Warm what the portal's first screen reads, under the keys it reads them
+      // by. `query-provider` parks the cache on `pagehide` and restores it on the
+      // portal, so the dashboard paints from data instead of skeletons.
+      setSetup(2);
+      const slug = encodeURIComponent(result.slug);
+      await Promise.allSettled(
+        [hostelAdminEndpoints.dashboardReport, hostelAdminEndpoints.profile, "/api/v1/hostel-admin/subscription"].map(
+          (url) =>
+            queryClient.prefetchQuery({
+              gcTime: BRANCH_GC_MS,
+              queryFn: () => browserApi(url, branchRequestOptions(slug)),
+              queryKey: portalResourceKey(url, slug),
+              staleTime: BRANCH_STALE_MS,
+            }),
+        ),
+      );
+
+      setSetup(3);
+      window.location.assign(`/${slug}/admin?welcome=1`);
     } catch (caught) {
+      setSetup(null);
       setError(caught instanceof ApiRequestError ? caught.message : "Could not register. Please try again.");
       setSaving(false);
     }
+  }
+
+  if (setup !== null) {
+    return <PortalSetup active={setup} hostelName={hostelName.trim()} />;
   }
 
   return (
@@ -123,5 +159,58 @@ export function QuickHostelRegistrationForm() {
         </form>
       </section>
     </PublicShell>
+  );
+}
+
+/** "Setting up your portal": one bar and the four real steps behind it. */
+function PortalSetup({ active, hostelName }: { active: number; hostelName: string }) {
+  const percent = Math.round(((active + 1) / SETUP.length) * 100);
+
+  return (
+    <main className="flex min-h-dvh items-center justify-center bg-background px-4">
+      <section aria-live="polite" className="w-full max-w-sm">
+        <h1 className="text-center font-heading text-2xl font-bold tracking-tight text-primary">
+          Setting up your portal
+        </h1>
+        <p className="mt-2 text-center text-sm text-muted-foreground">{hostelName}</p>
+
+        <div
+          aria-valuemax={100}
+          aria-valuemin={0}
+          aria-valuenow={percent}
+          className="mt-8 h-2 overflow-hidden rounded-full bg-muted"
+          role="progressbar"
+        >
+          <div
+            className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out"
+            style={{ width: `${percent}%` }}
+          />
+        </div>
+
+        <ol className="mt-8 grid gap-4">
+          {SETUP.map((label, index) => (
+            <li className="flex items-center gap-3 text-sm" key={label}>
+              <span
+                className={cn(
+                  "flex size-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
+                  index < active && "border-primary bg-primary text-primary-foreground",
+                  index === active && "border-primary",
+                  index > active && "border-muted",
+                )}
+              >
+                {index < active ? (
+                  <Check className="size-3.5" />
+                ) : index === active ? (
+                  <span className="size-2 animate-pulse rounded-full bg-primary" />
+                ) : null}
+              </span>
+              <span className={index === active ? "font-medium text-foreground" : "text-muted-foreground"}>
+                {label}
+              </span>
+            </li>
+          ))}
+        </ol>
+      </section>
+    </main>
   );
 }

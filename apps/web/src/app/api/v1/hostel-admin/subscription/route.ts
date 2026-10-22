@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireHostelStaffPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { cachedRead } from "@/lib/redis-cache";
 import { getSubscriptionState } from "@/modules/billing/subscription.service";
 
 export const runtime = "nodejs";
@@ -29,7 +30,7 @@ export async function GET(request: NextRequest) {
     }
 
     return withEtag(request, successResponse(
-      { state: await getSubscriptionState(hostelId) },
+      { state: await cachedRead(principal, "subscription", () => getSubscriptionState(hostelId)) },
       "Subscription loaded",
     ));
   } catch (error) {

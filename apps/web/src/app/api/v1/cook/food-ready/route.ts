@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { assertApiRoles, requireApiPrincipal } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { cachedRead } from "@/lib/redis-cache";
 import { Role } from "@/lib/roles";
 import { announceFoodReady, listFoodReadyLogs } from "@/modules/food/cook.service";
 import { foodReadySchema } from "@/modules/food/cook.validation";
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
     assertApiRoles(principal, ALLOWED_ROLES);
 
     const hostelId = request.nextUrl.searchParams.get("hostelId") ?? undefined;
-    const result = await listFoodReadyLogs(principal, hostelId);
+    const result = await cachedRead({ hostelIds: hostelId ? [hostelId] : principal.hostelIds, userId: principal.userId }, "cook-food-ready", () => listFoodReadyLogs(principal, hostelId));
 
     return withEtag(request, successResponse(result, "Food ready log loaded"));
   } catch (error) {

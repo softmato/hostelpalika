@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { cachedRead } from "@/lib/redis-cache";
 import { createNotice, listNotices } from "@/modules/notices/notice.service";
 import {
   noticeCreateSchema,
@@ -17,7 +18,7 @@ export async function GET(request: NextRequest) {
     const query = noticeListQuerySchema.parse(
       Object.fromEntries(request.nextUrl.searchParams.entries()),
     );
-    const result = await listNotices(query, principal);
+    const result = await cachedRead(principal, `notices${request.nextUrl.search}`, () => listNotices(query, principal));
 
     return withEtag(request, successResponse(result, "Notices loaded"));
   } catch (error) {

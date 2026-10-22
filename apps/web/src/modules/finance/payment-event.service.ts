@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
+import { bumpHostelCache } from "@/lib/redis-cache";
 import { auditFinanceAction } from "@/modules/finance/audit-finance";
 import { creditOverpayment } from "@/modules/finance/credit-balance.service";
 import { FinanceServiceError } from "@/modules/finance/finance.errors";
@@ -337,6 +338,8 @@ export async function settleEvent(
       title: "Payment received",
     });
   }
+
+  await bumpHostelCache([String(event.hostelId)]);
 
   return { balance, event, receipt };
 }

@@ -2,6 +2,7 @@ import type { NextRequest } from "next/server";
 
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { cachedRead } from "@/lib/redis-cache";
 import { requireHostelCapability, requireHostelStaffPrincipal } from "@/lib/api-auth";
 import {
   getHostelAdminProfile,
@@ -20,7 +21,9 @@ export async function GET(request: NextRequest) {
     const query = hostelAdminProfileQuerySchema.parse(
       Object.fromEntries(request.nextUrl.searchParams.entries()),
     );
-    const result = await getHostelAdminProfile(query, principal);
+    const result = await cachedRead(principal, `profile${request.nextUrl.search}`, () =>
+      getHostelAdminProfile(query, principal),
+    );
 
     return withEtag(request, successResponse(result, "Hostel profile loaded"));
   } catch (error) {

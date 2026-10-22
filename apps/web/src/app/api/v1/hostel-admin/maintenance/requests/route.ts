@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { cachedRead } from "@/lib/redis-cache";
 import {
   createMaintenanceRequest,
   listMaintenanceRequests,
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
     const query = maintenanceRequestListQuerySchema.parse(
       Object.fromEntries(request.nextUrl.searchParams.entries()),
     );
-    const result = await listMaintenanceRequests(query, principal);
+    const result = await cachedRead(principal, `maintenance${request.nextUrl.search}`, () => listMaintenanceRequests(query, principal));
 
     return withEtag(request, successResponse(result, "Maintenance requests loaded"));
   } catch (error) {

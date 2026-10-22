@@ -8,10 +8,15 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Screen } from "@/components/ui/screen";
+import { Glyph } from "@/components/ui/glyph";
+import { Meter } from "@/components/ui/meter";
 import { Text } from "@/components/ui/text";
 import { useAppSelector } from "@/hooks/redux";
+import { useAppTheme } from "@/hooks/use-app-theme";
+import { adminQuery, prefetchAdminPortal } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
-import { adoptRoleChange } from "@/lib/auth-session";
+import { revalidateSession } from "@/lib/auth-session";
+import { fetchQuery } from "@/lib/query-cache";
 import { quickRegisterHostel } from "@/lib/registration-api";
 import { toastError } from "@/lib/toast";
 
@@ -25,9 +30,11 @@ import { toastError } from "@/lib/toast";
  * on this account. Address, rooms, photos and documents are the hostel's KYC,
  * done from inside the portal.
  *
- * On success the account is a hostel admin: `adoptRoleChange` rotates the
- * token and puts the phone on the admin home, where the congratulations sheet
- * is waiting.
+ * On success the account is a hostel admin. Instead of dropping the owner on a
+ * portal of skeletons, "Setting up your portal" walks the real work — create,
+ * rotate the token to the admin role, warm Home's reads (and the rest of the
+ * portal behind them) — so Home paints from cache, where the congratulations
+ * sheet is waiting.
  */
 
 type Field = "ownerName" | "phone" | "hostelName";
@@ -41,6 +48,8 @@ const QUESTIONS: {
   { field: "phone", line: "So our team can reach you.", title: "Your phone number" },
   { field: "hostelName", line: "As residents know it.", title: "Hostel name" },
 ];
+
+const SETUP = ["Creating your hostel", "Making you the owner", "Loading your portal", "Opening your portal"];
 
 const ENTER = FadeInRight.duration(260).reduceMotion(ReduceMotion.System);
 
@@ -58,6 +67,8 @@ export default function RegisterHostelScreen() {
   const [withCode, setWithCode] = useState(Boolean(params.ref));
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  /** Index into `SETUP` while the portal is being set up; null on the form. */
+  const [setup, setSetup] = useState<number | null>(null);
 
   const question = step > 0 ? QUESTIONS[step - 1] : null;
 
@@ -75,6 +86,7 @@ export default function RegisterHostelScreen() {
 
   const submit = async () => {
     setSaving(true);
+    setSetup(0);
 
     try {
       await quickRegisterHostel({
@@ -84,10 +96,25 @@ export default function RegisterHostelScreen() {
         ...(withCode && referralCode.trim() ? { referralCode: referralCode.trim() } : {}),
       });
 
-      if (!(await adoptRoleChange())) {
-        router.replace("/(admin)");
-      }
+      setSetup(1);
+      // Rotates the token onto the admin role before any portal read.
+      await revalidateSession();
+
+      setSetup(2);
+      prefetchAdminPortal();
+      // Home's own reads; prefetchAdminPortal above already started them, so these join it.
+      await Promise.allSettled(
+        [adminQuery.overview(), adminQuery.subscription(), adminQuery.alerts()].map((query) =>
+          fetchQuery(query.key, query.load as () => Promise<unknown>, query.topics),
+        ),
+      );
+
+      setSetup(3);
+      // Let the bar finish its fill before the screen changes.
+      await new Promise((resolve) => setTimeout(resolve, 450));
+      router.replace("/(admin)");
     } catch (failure) {
+      setSetup(null);
       toastError("Not registered", readApiError(failure));
     } finally {
       setSaving(false);
@@ -144,6 +171,10 @@ export default function RegisterHostelScreen() {
         </View>
       </Screen>
     );
+  }
+
+  if (setup !== null) {
+    return <PortalSetup active={setup} hostelName={values.hostelName.trim()} />;
   }
 
   const last = step === QUESTIONS.length;
@@ -260,5 +291,46 @@ function Progress({ step }: { step: number }) {
         />
       ))}
     </View>
+  );
+}
+
+/** "Setting up your portal": one bar and the four real steps behind it. */
+function PortalSetup({ active, hostelName }: { active: number; hostelName: string }) {
+  const { colors } = useAppTheme();
+
+  return (
+    <Screen>
+      <Animated.View className="flex-1 justify-center gap-8 px-6" entering={FadeIn.duration(200)}>
+        <View className="items-center gap-2">
+          <Text className="text-center text-primary" variant="title">
+            Setting up your portal
+          </Text>
+          <Text className="text-center" variant="muted">
+            {hostelName}
+          </Text>
+        </View>
+
+        <Meter animated label={null} percent={Math.round(((active + 1) / SETUP.length) * 100)} reading="share" />
+
+        <View className="gap-4">
+          {SETUP.map((label, index) => (
+            <View className="flex-row items-center gap-3" key={label}>
+              {index < active ? (
+                <Glyph color={colors.success} name="checkmark-circle" size={22} />
+              ) : (
+                <View
+                  className={`h-[22px] w-[22px] items-center justify-center rounded-full border-2 ${
+                    index === active ? "border-primary" : "border-muted"
+                  }`}
+                >
+                  {index === active ? <View className="h-2 w-2 rounded-full bg-primary" /> : null}
+                </View>
+              )}
+              <Text variant={index === active ? "label" : "muted"}>{label}</Text>
+            </View>
+          ))}
+        </View>
+      </Animated.View>
+    </Screen>
   );
 }
