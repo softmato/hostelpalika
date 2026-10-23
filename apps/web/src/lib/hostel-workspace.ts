@@ -88,7 +88,8 @@ export const listWorkspaceHostels = cache(async (): Promise<WorkspaceHostel[]> =
       }>
     >();
 
-  // The token's order: the hostel granted first — the main one — leads.
+  // Main hostels lead, then the token's order. Not order alone: a claim-back
+  // re-grants branches before their main.
   const order = new Map(hostelIds.map((id, index) => [id, index]));
 
   return hostels
@@ -99,7 +100,7 @@ export const listWorkspaceHostels = cache(async (): Promise<WorkspaceHostel[]> =
       name: hostel.name,
       slug: hostel.slug,
     }))
-    .sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+    .sort((a, b) => Number(a.isBranch) - Number(b.isBranch) || (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
 });
 
 /** The slug the portal should open by default for this staff member. */

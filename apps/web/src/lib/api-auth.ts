@@ -223,9 +223,9 @@ async function narrowToLiveHostels(
     _id: { $in: validIds.map((id) => new Types.ObjectId(id)) },
     ...(isStaff ? { isDeleted: { $ne: true } } : {}),
   })
-    .select("_id kyc slug suspension")
+    .select("_id kyc parentHostelId slug suspension")
     .lean<
-      { _id: Types.ObjectId; kyc?: KycRecord; slug?: string; suspension?: SuspensionRecord | null }[]
+      { _id: Types.ObjectId; kyc?: KycRecord; parentHostelId?: Types.ObjectId | null; slug?: string; suspension?: SuspensionRecord | null }[]
     >();
 
   const live = new Set(rows.map((row) => row._id.toString()));
@@ -276,8 +276,7 @@ export const ACTIVE_HOSTEL_HEADER = "x-hostel-id";
 /**
  * Staff with more than one hostel — an owner and their branches — work in one
  * at a time. The client names it in {@link ACTIVE_HOSTEL_HEADER}; without it
- * (an older app build) it is the first, which the token lists first because it
- * was granted first: the main hostel.
+ * (an older app build, or the main hostel picked) it is the main hostel.
  *
  * Narrowed here, once, so every service that reads `hostelIds` — the
  * `hostelIds[0]` routes and the `$in` lists alike — works on that one hostel
@@ -287,7 +286,7 @@ export const ACTIVE_HOSTEL_HEADER = "x-hostel-id";
 function activeHostel(
   request: NextRequest,
   hostelIds: string[],
-  rows: Array<{ _id: Types.ObjectId; slug?: string }>,
+  rows: Array<{ _id: Types.ObjectId; parentHostelId?: Types.ObjectId | null; slug?: string }>,
 ) {
   if (hostelIds.length <= 1) return hostelIds;
 
@@ -295,7 +294,11 @@ function activeHostel(
   const bySlug = requested ? rows.find((row) => row.slug === requested)?._id.toString() : undefined;
   const chosen = [requested, bySlug].find((id) => id && hostelIds.includes(id));
 
-  return [chosen ?? hostelIds[0]!];
+  // No header means the main hostel — found by kind, not token order: a claim-back
+  // re-grants branches before their main, which put a branch first.
+  const main = hostelIds.find((id) => rows.some((row) => row._id.toString() === id && !row.parentHostelId));
+
+  return [chosen ?? main ?? hostelIds[0]!];
 }
 
 /** 423 when every hostel the caller belongs to is suspended. */

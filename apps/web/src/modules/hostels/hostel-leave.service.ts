@@ -806,6 +806,20 @@ export async function reclaimHostel(principal: ApiPrincipal, requestId: string) 
     throw error;
   }
 
+  // Restore appended each building in turn, branches before main; put main back
+  // at the front, where `hostelIds[0]` readers expect it.
+  if (request.branchIds?.length) {
+    const both = await UserModel.distinct("_id", {
+      $and: [{ hostelIds: request.hostelId }, { hostelIds: { $in: request.branchIds } }],
+    });
+
+    await UserModel.updateMany({ _id: { $in: both } }, { $pull: { hostelIds: request.hostelId } });
+    await UserModel.updateMany(
+      { _id: { $in: both } },
+      { $push: { hostelIds: { $each: [request.hostelId], $position: 0 } } },
+    );
+  }
+
   // Restore put the hostel back on the owner's account; the portal role comes with it.
   const hostel = await HostelModel.findById(request.hostelId).select("ownerId slug").lean<HostelRow | null>();
   const owner = hostel?.ownerId

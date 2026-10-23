@@ -207,12 +207,13 @@ describe("live-hostel narrowing", () => {
     });
   }
 
-  function hostelRows(rows: Array<{ id: string; suspended?: boolean }>) {
+  function hostelRows(rows: Array<{ id: string; parent?: string; suspended?: boolean }>) {
     authMocks.hostelFind.mockReturnValue({
       select: () => ({
         lean: async () =>
-          rows.map(({ id, suspended }) => ({
+          rows.map(({ id, parent, suspended }) => ({
             _id: { toString: () => id },
+            parentHostelId: parent ?? null,
             suspension: suspended
               ? { graceEndsAt: new Date(Date.now() - 1000), startedAt: new Date(0) }
               : null,
@@ -273,6 +274,17 @@ describe("live-hostel narrowing", () => {
     });
 
     await expect(requireHostelAdminPrincipal(stranger)).resolves.toMatchObject({
+      hostelIds: [LIVE],
+    });
+  });
+
+  it("falls back to the main hostel even when a branch is listed first", async () => {
+    const BRANCH = "6600000000000000000000c3";
+    // A claim-back re-grants branches before their main.
+    tokenFor(Role.HOSTEL_ADMIN, [BRANCH, LIVE]);
+    hostelRows([{ id: BRANCH, parent: LIVE }, { id: LIVE }]);
+
+    await expect(requireHostelAdminPrincipal(bearerRequest())).resolves.toMatchObject({
       hostelIds: [LIVE],
     });
   });
