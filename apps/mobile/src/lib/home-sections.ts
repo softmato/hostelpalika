@@ -89,6 +89,13 @@ export function cityCounts(hostels: PublicHostel[]): CitySummary[] {
 export function showcaseHostels(hostels: PublicHostel[], limit = 6): PublicHostel[] {
   return [...hostels]
     .sort((a, b) => {
+      // Sample listings from demo-hostels.json always come after real hostels.
+      const demo = Number(a.isDemoData) - Number(b.isDemoData);
+
+      if (demo !== 0) {
+        return demo;
+      }
+
       const pictured =
         Number(coverPhoto(b.photos) !== null) - Number(coverPhoto(a.photos) !== null);
 
@@ -207,6 +214,7 @@ export function topRatedHostels(hostels: PublicHostel[], limit = 6): PublicHoste
     .filter((hostel) => hostel.ratingSummary.total > 0)
     .sort(
       (a, b) =>
+        Number(a.isDemoData) - Number(b.isDemoData) ||
         b.ratingSummary.averageRating - a.ratingSummary.averageRating ||
         b.ratingSummary.total - a.ratingSummary.total ||
         a.name.localeCompare(b.name),

@@ -469,7 +469,13 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
   }, []);
 
   const byRating = useMemo(
-    () => [...hostels].sort((a, b) => b.rating - a.rating || b.reviews - a.reviews),
+    () =>
+      [...hostels].sort(
+        (a, b) =>
+          Number(Boolean(a.isDemoData)) - Number(Boolean(b.isDemoData)) ||
+          b.rating - a.rating ||
+          b.reviews - a.reviews,
+      ),
     [hostels],
   );
 

@@ -458,6 +458,17 @@ export const PlatformHostelReviewPageContent = memo(
     const hostel = detail?.hostel ?? null;
     const application = detail?.application ?? null;
     const headerActions = headerActionsForStatus(hostel?.status ?? "");
+    // Same resource the Service agreement card reads. Superadmin only; for anyone
+    // else it errors and the server's own refusal is the gate.
+    const agreementResource = usePortalResource<{ agreement: unknown }>(
+      `/api/v1/platform/hostels/${encodeURIComponent(params.id)}/agreement`,
+    );
+    const awaitingAgreement = Boolean(
+      hostel?.kyc &&
+        hostel.kyc.status !== "APPROVED" &&
+        agreementResource.state === "ready" &&
+        !agreementResource.data?.agreement,
+    );
     const documents = useMemo(() => detail?.documents ?? [], [detail]);
     const requestedDocuments = application?.requestedDocuments ?? [];
 
@@ -631,8 +642,9 @@ export const PlatformHostelReviewPageContent = memo(
               <>
                 {headerActions.includes("approve") ? (
                   <RoleButton
-                    disabled={busy}
+                    disabled={busy || awaitingAgreement}
                     onClick={() => void action("approve")}
+                    title={awaitingAgreement ? "The owner has not signed the service agreement yet" : undefined}
                     tone="platform"
                   >
                     <Check className="size-3.5" />
@@ -683,6 +695,16 @@ export const PlatformHostelReviewPageContent = memo(
             <p className="mt-1 text-muted-foreground">
               The owner already has the portal on a free trial. Approve lists the hostel as Verified and opens
               every feature. Reject or Request documents sends it back to the owner&apos;s KYC with your note.
+            </p>
+          </section>
+        ) : null}
+
+        {awaitingAgreement ? (
+          <section className="rounded-lg border border-warning/40 bg-warning/10 p-4 text-sm">
+            <p className="font-semibold text-foreground">Approve is locked: agreement not signed</p>
+            <p className="mt-1 text-muted-foreground">
+              The owner has not signed the service agreement, the last step of their KYC. Ask them to open Hostel KYC
+              → Agreement in their portal and sign. Approve opens once it shows under Service agreement below.
             </p>
           </section>
         ) : null}

@@ -2415,6 +2415,20 @@ export async function approvePlatformHostel(hostelId: string, principal: ApiPrin
     );
   }
 
+  // A quick sign-up's KYC ends with the signed agreement; approving without it
+  // verifies a hostel that never agreed to our terms and leaves no PDF to issue.
+  if (branch?.kyc?.required && branch.kyc.status !== "APPROVED") {
+    const { hasSignedAgreement } = await import("@/modules/hostels/hostel-agreement.service");
+
+    if (!(await hasSignedAgreement(normalizeObjectId(hostelId)))) {
+      throw new HostelServiceError(
+        "The owner has not signed the service agreement yet. It is the last step of their KYC.",
+        "AGREEMENT_NOT_SIGNED",
+        409,
+      );
+    }
+  }
+
   const result = await updateHostelStatus(
     hostelId,
     principal,
@@ -3602,10 +3616,12 @@ export async function listPublicHostels(query: PublicHostelListQuery) {
     .lean<HostelRecord[]>();
 
   const ratings = await ratingSummariesFor(found.map((hostel) => hostel._id));
-  // Sample listings from demo-hostels.json, slotted into the same cheapest-first order.
-  const hostels = [...found, ...demoHostelsMatching(query)].sort(
+  // Real hostels first (cheapest-first, from Mongo), then the sample listings
+  // from demo-hostels.json, cheapest-first among themselves.
+  const demos = demoHostelsMatching(query).sort(
     (a, b) => (a.pricing?.monthlyRentMin ?? 0) - (b.pricing?.monthlyRentMin ?? 0),
   );
+  const hostels = [...found, ...demos];
 
   return {
     hostels: hostels.map((hostel) => ({

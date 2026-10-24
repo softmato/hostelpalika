@@ -89,6 +89,11 @@ vi.mock("@/modules/hostels/hostel-capacity.service", () => ({
 
 vi.mock("@hostel/shared/email/sender", () => ({ sendEmail: mocks.sendEmail }));
 
+const agreement = vi.hoisted(() => ({ signed: false }));
+vi.mock("@/modules/hostels/hostel-agreement.service", () => ({
+  hasSignedAgreement: vi.fn(async () => agreement.signed),
+}));
+
 import { approvePlatformHostel } from "@/modules/hostels/hostel.service";
 
 const hostelId = "64f0f0f0f0f0f0f0f0f0f0a1";
@@ -250,5 +255,21 @@ describe("hostel approval issues cook credentials", () => {
       expect.objectContaining({ hostelId, role: Role.HOSTEL_ADMIN }),
     );
     expect(mocks.provisionCookAccount).toHaveBeenCalled();
+  });
+});
+
+describe("quick sign-up approval needs the signed agreement", () => {
+  it("refuses before writing anything while the owner has not signed", async () => {
+    vi.clearAllMocks();
+    agreement.signed = false;
+    mocks.hostelFindById.mockReturnValue(
+      queryResult({ kyc: { required: true, status: "DRAFT" }, parentHostelId: null }),
+    );
+
+    await expect(approvePlatformHostel(hostelId, platformPrincipal)).rejects.toMatchObject({
+      errorCode: "AGREEMENT_NOT_SIGNED",
+    });
+    expect(mocks.hostelFindOneAndUpdate).not.toHaveBeenCalled();
+    expect(mocks.hostelUpdateOne).not.toHaveBeenCalled();
   });
 });

@@ -175,6 +175,7 @@ export function mapPublicHostelToSummary(hostel: PublicHostel): HostelSummary {
     type: hostelTypeToUi(hostel.hostelType),
     vacancy: hostel.comparison?.vacancy ?? hostel.capacitySummary?.vacantBeds ?? 0,
     verified: hostel.verificationStatus === "VERIFIED",
+    isDemoData: Boolean(hostel.isDemoData),
   };
 }
 

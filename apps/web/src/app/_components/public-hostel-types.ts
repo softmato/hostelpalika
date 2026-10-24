@@ -18,6 +18,8 @@ export type HostelSummary = {
   foodScore: number;
   id: string;
   image: string;
+  /** Sample listing from demo-hostels.json — always sorted after real ones. */
+  isDemoData?: boolean;
   name: string;
   owner: string;
   price: number;

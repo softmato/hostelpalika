@@ -242,6 +242,9 @@ function PublicHostelListingPageContent() {
       rows = [...rows].sort((a, b) => b.summary.rating - a.summary.rating);
     }
 
+    // Real hostels always lead; sample listings keep their order after them.
+    rows = [...rows].sort((a, b) => Number(Boolean(a.raw.isDemoData)) - Number(Boolean(b.raw.isDemoData)));
+
     return rows.map(({ summary }) => summary);
   }, [selectedFood, hostelRows, sortBy, selectedCollege]);
 
