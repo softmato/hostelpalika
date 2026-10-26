@@ -49,6 +49,7 @@ import type { BookingAvailabilityView } from "@/modules/bookings/booking-button"
 
 import { optimizedImage } from "@/lib/image-url";
 import { Breadcrumbs, PublicShell, StatusPill, formatMoney, humanize } from "./shared";
+import { ListingTierBadge } from "./listing-tier-badge";
 import {
   DEFAULT_HOSTEL_IMAGE,
   formatHostelAddress,
@@ -520,7 +521,7 @@ export function PublicHostelDetailPage({
       detail: "Beds",
       icon: BedDouble,
       label: "Vacant",
-      value: hostelSummary.vacancy.toString(),
+      value: hostelSummary.vacancyKnown === false ? "Ask" : hostelSummary.vacancy.toString(),
     },
     {
       detail: `${hostelSummary.reviews} reviews`,
@@ -594,10 +595,13 @@ export function PublicHostelDetailPage({
               className="absolute inset-0 bg-cover bg-center transition-all duration-300"
               style={{ backgroundImage: `url("${optimizedImage(images[currentImgIdx], 1200)}")` }}
             />
-            <div className="absolute left-4 top-4">
+            <div className="absolute left-4 top-4 flex flex-wrap items-center gap-2">
               <StatusPill className="bg-surface text-brand-teal shadow-sm" tone="success">
                 <BadgeCheck className="size-3.5" /> Verified Hostel
               </StatusPill>
+              {hostel.listingTier ? (
+                <ListingTierBadge className="shadow-sm" tier={hostel.listingTier} />
+              ) : null}
             </div>
 
             <button

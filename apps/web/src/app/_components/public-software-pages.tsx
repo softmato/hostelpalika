@@ -6,6 +6,7 @@ import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 import { ContentSectionIcon } from "@/components/content-sections";
 import { GooglePlayBadge } from "@/components/google-play-badge";
 import { formatNpr } from "@/lib/json-ld";
+import { ROLE_LINKS } from "@/lib/role-links";
 import type {
   ResolvedComparison,
   ResolvedModulePage,
@@ -234,6 +235,15 @@ export function SoftwarePage({
             </Link>
           </section>
         ) : null}
+
+        <section className="mt-20">
+          <SectionTitle>What each person in the hostel gets</SectionTitle>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {ROLE_LINKS.map((role) => (
+              <SeoChip href={`/for/${role.slug}`} key={role.slug} label={`For ${role.label.toLowerCase()}`} />
+            ))}
+          </div>
+        </section>
 
         <SeoFaq entries={page.faq} title="Questions hostel owners ask" />
 

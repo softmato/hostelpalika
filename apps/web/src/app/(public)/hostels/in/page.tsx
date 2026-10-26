@@ -16,7 +16,9 @@ export async function generateMetadata(): Promise<Metadata> {
     description: `Find verified hostels in ${named.join(", ")} and every city ${PLATFORM_NAME} is open in — boys, girls and co-living hostels with photos, rent and reviews.`,
     eyebrow: "Hostels in Nepal",
     path: "/hostels/in",
-    title: "Hostels in Nepal by City",
+    title: named.length
+      ? `Hostels in Nepal by City — ${named.slice(0, 3).join(", ")} & More`
+      : "Hostels in Nepal by City",
   });
 }
 

@@ -29,6 +29,7 @@ const serviceMocks = vi.hoisted(() => ({
   roomFindOne: vi.fn(),
   roomFindOneAndUpdate: vi.fn(),
   roomUpdateOne: vi.fn(),
+  subscriptionFind: vi.fn(),
 }));
 
 vi.mock("@/lib/db", () => ({
@@ -56,6 +57,23 @@ vi.mock("@hostel/db/models/Hostel", () => ({
     updateOne: serviceMocks.hostelUpdateOne,
   },
 }));
+
+// The Gold / Platinum order reads who is paying for a badged plan right now.
+vi.mock("@hostel/db/models/HostelSubscription", () => ({
+  HostelSubscriptionModel: { find: serviceMocks.subscriptionFind },
+}));
+
+// The badges come from the plans catalogue; the shipped one is the fixture.
+vi.mock("@/modules/platform-config/site-config.service", async (importOriginal) => {
+  const { DEFAULT_SITE_CONFIG } = await import("@/modules/platform-config/site-config.defaults");
+
+  return {
+    ...(await importOriginal<object>()),
+    getSiteConfigSection: vi.fn(async (section: keyof typeof DEFAULT_SITE_CONFIG) =>
+      DEFAULT_SITE_CONFIG[section],
+    ),
+  };
+});
 
 vi.mock("@hostel/db/models/HostelApplication", () => ({
   HostelApplicationModel: {
@@ -164,6 +182,33 @@ describe("hostel service phase 2 behavior", () => {
     serviceMocks.foodMenuFindOne.mockReturnValue(queryResult(null));
     // Every public surface now carries a rating summary; default to unreviewed.
     serviceMocks.ratingAggregate.mockResolvedValue([]);
+    // Nobody is on a badged plan unless a test says so.
+    serviceMocks.subscriptionFind.mockReturnValue(queryResult([]));
+  });
+
+  it("puts a hostel paying for a badged plan first and labels it, cheapest-first after", async () => {
+    const goldId = new Types.ObjectId();
+    const cheap = hostelRecord({ _id: new Types.ObjectId(), pricing: { monthlyRentMin: 6000 }, slug: "cheap" });
+    const gold = hostelRecord({ _id: goldId, pricing: { monthlyRentMin: 12000 }, slug: "gold" });
+
+    serviceMocks.subscriptionFind.mockReturnValueOnce(queryResult([{ hostelId: goldId, planId: "max" }]));
+    serviceMocks.hostelFind
+      .mockReturnValueOnce(queryResult([cheap, gold]))
+      .mockReturnValueOnce(queryResult([gold]));
+
+    const { hostels } = await listPublicHostels({});
+    const real = hostels.filter((hostel) => !hostel.isDemoData);
+
+    expect(real.map((hostel) => hostel.slug)).toEqual(["gold", "cheap"]);
+    expect(real[0].listingTier).toMatchObject({ label: "Gold hostel", tone: "gold" });
+    expect(real[1].listingTier).toBeNull();
+    // Only a plan being paid for right now counts.
+    expect(serviceMocks.subscriptionFind).toHaveBeenCalledWith(
+      expect.objectContaining({
+        currentPeriodEnd: { $gt: expect.any(Date) },
+        status: { $in: ["ACTIVE", "PAST_DUE"] },
+      }),
+    );
   });
 
   it("filters public listings to approved published hostels and requested filters", async () => {

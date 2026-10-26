@@ -68,6 +68,13 @@ export function vendorJsonLd(legalName?: string): JsonLd {
   };
 }
 
+/**
+ * What the company is, in one sentence an answer engine can quote. Both sides
+ * of the platform, because both are what people search for: students and
+ * parents looking for a hostel, and owners looking for software to run one.
+ */
+export const ORGANIZATION_DESCRIPTION = `${PLATFORM_NAME} is a Nepal hostel platform: students and parents find and compare verified boys, girls and co-living hostels, and hostel owners run residents, rent, food, attendance and parents in one app.`;
+
 export function organizationJsonLd(input: {
   address: string;
   alternateNames: string[];
@@ -99,6 +106,7 @@ export function organizationJsonLd(input: {
         ]
       : undefined,
     email: input.email || undefined,
+    description: ORGANIZATION_DESCRIPTION,
     logo: absoluteUrl("/icon.png"),
     name: PLATFORM_NAME,
     parentOrganization: vendorJsonLd(input.vendorLegalName),

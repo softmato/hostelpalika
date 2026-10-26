@@ -15,6 +15,7 @@ import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 
 import { useHostels } from "@/hooks/use-hostels";
+import { compareListingTier, PAID_PLACEMENT_NOTE } from "@/lib/listing-tier";
 import { haversineMeters } from "@/lib/maps/nearby";
 import { NEPAL_COLLEGES } from "@/lib/maps/nepal-colleges";
 import { useComparisonStore } from "@/stores/comparison-store";
@@ -233,14 +234,25 @@ function PublicHostelListingPageContent() {
         raw.coordinates
           ? haversineMeters(raw.coordinates, college.coordinates)
           : Number.POSITIVE_INFINITY;
-      rows = [...rows].sort((a, b) => distanceOf(a) - distanceOf(b));
+      rows = [...rows].sort(
+        (a, b) => distanceOf(a) - distanceOf(b) || compareListingTier(a.summary, b.summary),
+      );
     } else if (sortBy === "Price: Low to High") {
-      rows = [...rows].sort((a, b) => a.summary.price - b.summary.price);
+      rows = [...rows].sort(
+        (a, b) => a.summary.price - b.summary.price || compareListingTier(a.summary, b.summary),
+      );
     } else if (sortBy === "Price: High to Low") {
-      rows = [...rows].sort((a, b) => b.summary.price - a.summary.price);
+      rows = [...rows].sort(
+        (a, b) => b.summary.price - a.summary.price || compareListingTier(a.summary, b.summary),
+      );
     } else if (sortBy === "Rating") {
-      rows = [...rows].sort((a, b) => b.summary.rating - a.summary.rating);
+      rows = [...rows].sort(
+        (a, b) => b.summary.rating - a.summary.rating || compareListingTier(a.summary, b.summary),
+      );
     }
+    // "Recommended" keeps the server's order: Gold and Platinum first
+    // (`lib/listing-tier.ts`). Any other sort is what the visitor asked for,
+    // and the badge only breaks its ties.
 
     // Real hostels always lead; sample listings keep their order after them.
     rows = [...rows].sort((a, b) => Number(Boolean(a.raw.isDemoData)) - Number(Boolean(b.raw.isDemoData)));
@@ -645,6 +657,9 @@ function PublicHostelListingPageContent() {
                         filtered.length === 1 ? "result" : "results"
                       } found in Nepal`}
                 </p>
+                {filtered.some((hostel) => hostel.listingTier) ? (
+                  <p className="max-w-md text-[10px] text-muted-foreground">{PAID_PLACEMENT_NOTE}</p>
+                ) : null}
               </div>
 
               <div className="flex items-center gap-4">

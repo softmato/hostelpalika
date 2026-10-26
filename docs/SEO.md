@@ -132,6 +132,70 @@ Rules every page follows:
      `/about` page now carries a short **The name** section that writes the spellings out in prose,
      built from the same `seo.alternateNames` list so there is still one place to edit them.
 
+10. ☑ **Search intent expansion — "best hostels in …", "hostels near …", owners by role, AEO** —
+    2026-10-26, from Search Console (3 months: 73 clicks, 402 impressions, average position 18.5;
+    54 pages indexed, 71 not). Queries with impressions and no clicks: hostel in kathmandu (15),
+    nepal hostel (9), hostels in kathmandu (8), hostel in nepal (7), cheap hostel in kathmandu (6),
+    hotel management software vs excel (5), hostels kathmandu, kathmandu hostels, hostel in
+    putalisadak, hostel price in kathmandu, single room hostel in kathmandu, hostel register book.
+    Note: the "already done" pieces (a–d) were not on this branch or `main`, so they were built here.
+
+    a. ☑ Home title/description lead with both halves: "HostelPalika — Hostels in Nepal & Hostel
+       Management Software" (`seo.defaults.ts` → `pages.home`).
+    b. ☑ Organization JSON-LD gains a `description` naming both audiences (`ORGANIZATION_DESCRIPTION`
+       in `lib/json-ld.ts`).
+    c. ☑ Owner content on the home page arrives through the home FAQ (i) and the role pages (l), not a
+       new marketing block.
+    d. ☑ `listPublicNearbyPlaces` / `listPublicHostelsNear` in `hostel.service.ts`, typechecked, with
+       the pure index in `lib/near-places.ts` (campus-name filter, slug merge, ≤ 1.5 km, shortest
+       distance per hostel; 12 tests).
+    e. ☑ `/hostels/near` and `/hostels/near/[place]` (`lib/near-pages.ts`): built only from each
+       hostel's own `nearbyPlaces` (Google Places / OpenStreetMap, measured from its pin), never from
+       the approximate `NEPAL_COLLEGES` list. A campus with no published hostel nearby is a 404, not a
+       thin page. Distances in text, FAQ (which hostels, rent, types, how distance is measured),
+       BreadcrumbList + ItemList + FAQPage, sitemap entries, links from city pages and the footer.
+    f. ☑ City, type and area titles answer "best hostels in …": "Best Hostels in Kathmandu
+       (N Verified) — Boys, Girls & Co-living", "Best Boys Hostels in …", and "Best Hostels in
+       Baneshwor & Nearby, Kathmandu" when hostels within 2 km of the area's own exist (rendered as a
+       "Hostels near Baneshwor" section, so "& Nearby" is literally true). `page.intro` is rendered
+       for the first time; so are the type and area links that were computed and never shown. Every
+       page states how its list is ordered. New FAQs: cheapest hostel, single rooms, "which is the
+       best hostel" (answered honestly: it depends; compare). Titles say "Best" only when the page
+       has hostels.
+    g. ☑ `/hostels` title: "Best Hostels in Nepal — Compare Verified Boys, Girls & Co-living
+       Hostels"; `/hostels/in`: "Hostels in Nepal by City — Kathmandu, … & More".
+    h. ☑ Software page: title "Best Hostel Management Software in Nepal — Hostel Management
+       System"; three sections (how owners, wardens, cooks, residents and parents work together; PIN
+       and fingerprint lock; what the best software for Nepal has to do); four FAQs (best software in
+       Nepal, how the roles work together, how the app is secured, software vs Excel); links to every
+       role page. No "balance sheet": residents get a statement PDF with a running balance.
+    i. ☑ Home FAQ (`lib/home-faq.ts`, 3 tests), rendered on the server and passed into the client
+       home page, with FAQPage JSON-LD. Kathmandu rent and the city list are computed from real
+       listings; a question without data is left out.
+    j. ☑ `/llms.txt` and `/llms-full.txt` (`lib/llms-txt.ts`, 3 tests; `lib/llms-data.ts`): the
+       llmstxt.org layout, every listed hostel's public facts, plans, badges explained as paid
+       placement, role summaries, owner FAQ. `text/plain`, `X-Robots-Tag: noindex`, hourly
+       revalidation, 5xx on a failed read. Not a ranking signal for Google; no assistant is promised
+       to read it.
+    k. ☑ **Gold / Platinum ranking** (`lib/listing-tier.ts`, 4 tests). The plan catalogue already
+       promised "Ranked above unbadged listings across search, the map and Compare", but
+       `listPublicHostels` sorted by price only. Now a hostel paying for a badged plan right now
+       (ACTIVE or PAST_DUE, period not ended; branches inherit their main hostel's plan) leads the
+       default order everywhere the listing is used — `/hostels` "Recommended", city/type/area/near
+       pages and their ItemList, the home page, the map API. Badged hostels are read in their own
+       query so the 60-row cap can never drop them. An explicit sort (price, rating, distance) is
+       honoured and the badge only breaks its ties. Badge pill on grid cards, list cards and the
+       hostel page; a visible note says it is a paid placement, not a rating.
+    l. ☑ Role pages `/for/owners|wardens|cooks|residents|parents` (`lib/role-pages.ts`, 3 tests):
+       what each person does, how they get access, the PIN/fingerprint lock, FAQ + FAQPage. Each
+       claim maps to a portal route or a warden permission. Linked from the footer ("The app"),
+       the software page, llms.txt and the sitemap.
+
+    Stored overrides: titles, the software page and its FAQ come from Website Config → SEO when an
+    owner has saved them there. The new defaults show only where those fields are blank — check the
+    editor after deploying and clear or update the saved title for `home`, `hostels` and
+    `software`, and the software page, if they were saved before.
+
 ## Waiting on the Play listing
 
 Held back until `com.softmato.hostelpalika` is live on Google Play, so nothing links to a store page

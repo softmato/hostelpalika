@@ -1,6 +1,7 @@
 import type { PublicBranch } from "@hostel/shared/types/public-branch";
 import type { HostelSummary } from "@/app/_components/public-hostel-types";
 import { resolveHostelPhotoUrls } from "@/lib/hostel-photos";
+import type { PublicListingTier } from "@/lib/listing-tier";
 import type { NearbyPlaceType } from "@/lib/maps/types";
 
 export const DEFAULT_HOSTEL_IMAGE =
@@ -62,6 +63,8 @@ export type PublicHostel = {
   id: string;
   /** A sample listing from `demo-hostels.json` — shown, never indexed or booked. */
   isDemoData?: boolean;
+  /** Gold / Platinum: the badge the hostel's paid plan carries. See `lib/listing-tier.ts`. */
+  listingTier?: PublicListingTier | null;
   location: {
     address?: string;
     area: string;
@@ -174,8 +177,12 @@ export function mapPublicHostelToSummary(hostel: PublicHostel): HostelSummary {
     status: "published",
     type: hostelTypeToUi(hostel.hostelType),
     vacancy: hostel.comparison?.vacancy ?? hostel.capacitySummary?.vacantBeds ?? 0,
+    // An empty capacity summary is "not told", not "no beds": a card must not say Full.
+    vacancyKnown:
+      typeof (hostel.comparison?.vacancy ?? hostel.capacitySummary?.vacantBeds) === "number",
     verified: hostel.verificationStatus === "VERIFIED",
     isDemoData: Boolean(hostel.isDemoData),
+    listingTier: hostel.listingTier ?? null,
   };
 }
 

@@ -347,13 +347,13 @@ export const DEFAULT_SEO: SeoConfig = {
     },
     home: {
       description:
-        "Find verified boys, girls and co-living hostels across Nepal with real photos, rent and reviews. Hostel owners run residents, fees, food and safety on {siteName}.",
-      title: "{siteName} - A Hostel Management Eco-Software",
+        "Find and compare verified boys, girls and co-living hostels in Nepal with real photos, rent and reviews. Hostel owners run rent, food and safety on {siteName}.",
+      title: "{siteName} — Hostels in Nepal & Hostel Management Software",
     },
     hostels: {
       description:
         "Search verified hostels in Nepal — Kathmandu, Lalitpur, Bhaktapur, Pokhara and more. Filter by area, rent, room type, food and facilities, then compare and enquire.",
-      title: "Hostels in Nepal — Boys, Girls & Co-living Hostels",
+      title: "Best Hostels in Nepal — Compare Verified Boys, Girls & Co-living Hostels",
     },
     login: {
       description:
@@ -397,8 +397,8 @@ export const DEFAULT_SEO: SeoConfig = {
     },
     software: {
       description:
-        "Hostel management system and app for Nepal: residents and beds, rent in Bikram Sambat months, eSewa and Khalti payment checks, food menus, night attendance and parents.",
-      title: "Hostel Management System & Software in Nepal",
+        "Hostel management software for Nepal: rooms and beds, rent in Bikram Sambat months, eSewa and Khalti checks, food, night attendance, parents and a PIN-locked app.",
+      title: "Best Hostel Management Software in Nepal — Hostel Management System",
     },
     terms: {
       description:
@@ -422,6 +422,26 @@ export const DEFAULT_SEO: SeoConfig = {
         answer:
           "It is the system that replaces the register book, the rent notebook and the notice board. {siteName} keeps residents, rooms, monthly rent, payments, food menus, attendance and complaints in one account that staff, residents and parents use in the {siteName} app or a web browser.",
         question: "What is a hostel management system?",
+      },
+      {
+        answer:
+          "The best one for a Nepali hostel is one built for how hostels here run: rent billed in Bikram Sambat months, eSewa and Khalti payment proof checked against the invoice, a login for each parent, separate screens for wardens and cooks, and an app for the phones your team already uses. {siteName} does all of these, and it also lists your hostel where students and parents search. Plans start from {fromPrice} a month.",
+        question: "What is the best hostel management software in Nepal?",
+      },
+      {
+        answer:
+          "The owner sets up the hostel, rooms and rent and invites the team. Wardens handle residents, rooms, payment checks and night status; cooks see the menu and head count; residents see their bills, receipts and a statement PDF with a running balance; parents see only their own child's fees, notices and safety alerts. Each person signs in to their own account and sees only their part.",
+        question: "How do owners, wardens, cooks, residents and parents use {siteName} together?",
+      },
+      {
+        answer:
+          "Each account has its own 4-digit app-lock PIN. The app opens with the PIN or a fingerprint, and every web portal asks for the PIN before it opens. After ten wrong tries the PIN is blocked until it is reset with a code sent to the account's email.",
+        question: "How is the {siteName} app kept secure?",
+      },
+      {
+        answer:
+          "A spreadsheet is free and works for a small house with one person keeping it. Once you have more residents, staff who share the work, or parents who ask what has been paid, {siteName} raises the monthly bills itself, checks payment screenshots, gives each role its own login and lists your hostel in search. The full side-by-side comparison is on the {siteName} vs Excel page.",
+        question: "Is hostel management software better than Excel?",
       },
       {
         answer:
@@ -555,6 +575,28 @@ export const DEFAULT_SEO: SeoConfig = {
         ],
         icon: "users",
         title: "A dedicated app for every role in the hostel",
+      },
+      {
+        body: [
+          "The owner registers the hostel, sets rooms and rent, and invites the team. Wardens run the floor — residents, rooms, payments to check and who is in tonight. Cooks see the menu and the head count. Each resident sees their own bill, receipts and a statement PDF with a running balance, and each parent sees only their own child: fees, notices and safety alerts.",
+          "Every account belongs to one person and opens only their part of the hostel, so a cook never sees the rent book and a parent never sees another family.",
+        ],
+        icon: "building",
+        title: "How owners, wardens, cooks, residents and parents work together",
+      },
+      {
+        body: [
+          "Every account has its own 4-digit app-lock PIN, and the {siteName} app opens with that PIN or the phone's fingerprint. Each web portal asks for the same PIN before it shows anything. Ten wrong tries in a row block the PIN until it is reset with a code sent to the account's email.",
+        ],
+        icon: "shield-check",
+        title: "Locked with a PIN and fingerprint",
+      },
+      {
+        body: [
+          "The right software for a Nepali hostel bills in Bikram Sambat months, checks eSewa and Khalti payments, gives parents their own view, works on the phones your staff already carry, and keeps each role to its own work. {siteName} does each of these today — and lists your hostel where students and parents search, which no spreadsheet or register book can.",
+        ],
+        icon: "receipt",
+        title: "What the best hostel software for Nepal has to do",
       },
       {
         body: [

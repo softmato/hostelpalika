@@ -3,6 +3,8 @@ import type { MetadataRoute } from "next";
 import { listingTiers } from "@/app/_components/plans-catalog";
 import { HOSTEL_TYPE_PAGES } from "@/lib/hostel-locations";
 import { loadCityIndex } from "@/lib/location-pages";
+import { loadNearPlaces } from "@/lib/near-pages";
+import { ROLE_PAGES } from "@/lib/role-pages";
 import { resolveSearchImageUrls } from "@/lib/search-image-urls";
 import { loadSeo, resolveModulePages } from "@/lib/seo-config";
 import { siteUrl } from "@/lib/site";
@@ -97,6 +99,29 @@ async function locationEntries(base: string): Promise<Entry[]> {
   }
 }
 
+/**
+ * `/hostels/near/<campus>` — a campus is listed only while a published hostel
+ * has it nearby, which is also the only time the page exists at all.
+ */
+async function nearEntries(base: string): Promise<Entry[]> {
+  try {
+    const places = await loadNearPlaces();
+
+    if (!places.length) return [];
+
+    return [
+      { changeFrequency: "weekly", priority: 0.6, url: `${base}/hostels/near` },
+      ...places.map((place) => ({
+        changeFrequency: "weekly" as const,
+        priority: 0.6,
+        url: `${base}/hostels/near/${place.slug}`,
+      })),
+    ];
+  } catch {
+    return [];
+  }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteUrl();
 
@@ -120,6 +145,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
       url: `${base}/features/${page.slug}`,
     })),
+    ...ROLE_PAGES.map((page) => ({
+      changeFrequency: "monthly" as const,
+      priority: page.slug === "owners" ? 0.8 : 0.6,
+      url: `${base}/for/${page.slug}`,
+    })),
     ...seo.comparisons.map((comparison) => ({
       changeFrequency: "monthly" as const,
       priority: 0.6,
@@ -137,7 +167,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ];
 
-  const [hostels, locations] = await Promise.all([hostelEntries(base), locationEntries(base)]);
+  const [hostels, locations, near] = await Promise.all([
+    hostelEntries(base),
+    locationEntries(base),
+    nearEntries(base),
+  ]);
 
-  return [...staticEntries, ...marketingEntries, ...locations, ...hostels];
+  return [...staticEntries, ...marketingEntries, ...locations, ...near, ...hostels];
 }

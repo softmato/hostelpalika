@@ -20,7 +20,7 @@ import type {
  * or description an owner left blank replaced by the shipped one.
  */
 
-function cheapestMonthly(plans: PlansConfig) {
+export function cheapestMonthly(plans: PlansConfig) {
   const prices = plans.plans.map((plan) => plan.monthly).filter((price) => price > 0);
   const fallback = DEFAULT_PLANS.plans.map((plan) => plan.monthly);
 

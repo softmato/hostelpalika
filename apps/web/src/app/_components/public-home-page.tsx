@@ -28,6 +28,7 @@ import {
   useMemo,
   useRef,
   useState,
+  type ReactNode,
 } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -363,7 +364,7 @@ function HostelSnapshot({ hostel }: { hostel?: HostelSummary }) {
   );
 }
 
-function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
+function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: HostelSummary[] }) {
   const router = useRouter();
   const pageRef = useRef<HTMLDivElement>(null);
   const { hero, identity, platformStats, trustPoints } = useSiteConfig();
@@ -1141,6 +1142,8 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
           </div>
         </section>
 
+        {faq ? <div className="mx-auto max-w-[1448px] px-4 pb-14 sm:px-6">{faq}</div> : null}
+
         <section className="mx-auto max-w-[1448px] px-4 pb-14 sm:px-6">
           <StarsCtaCard contentClassName="flex flex-col gap-5 p-7 text-white sm:flex-row sm:items-center sm:justify-between sm:p-9">
             <div>
@@ -1167,10 +1170,11 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
   );
 }
 
-export function PublicHomePage({ hostels }: { hostels: HostelSummary[] }) {
+/** `faq` is rendered on the server and handed in, so its text is in the first response. */
+export function PublicHomePage({ faq, hostels }: { faq?: ReactNode; hostels: HostelSummary[] }) {
   return (
     <Suspense fallback={null}>
-      <PublicHomePageContent hostels={hostels} />
+      <PublicHomePageContent faq={faq} hostels={hostels} />
     </Suspense>
   );
 }

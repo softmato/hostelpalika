@@ -6,7 +6,13 @@ import {
 } from "@/app/_components/public-hostel-data";
 import { PublicHomePage } from "@/app/_components/public-home-page";
 import type { HostelSummary } from "@/app/_components/public-hostel-types";
-import { staticPageMetadata } from "@/lib/seo-config";
+import { listingTiers } from "@/app/_components/plans-catalog";
+import { SeoFaq } from "@/app/_components/public-seo-blocks";
+import { JsonLd } from "@/components/json-ld";
+import { homeFaq } from "@/lib/home-faq";
+import { faqJsonLd } from "@/lib/json-ld";
+import { loadCityIndex } from "@/lib/location-pages";
+import { cheapestMonthly, loadSeo, staticPageMetadata } from "@/lib/seo-config";
 import { listPublicHostels } from "@/modules/hostels/hostel.service";
 
 export function generateMetadata(): Promise<Metadata> {
@@ -31,5 +37,28 @@ async function loadHostels(): Promise<HostelSummary[]> {
 }
 
 export default async function HomePage() {
-  return <PublicHomePage hostels={await loadHostels()} />;
+  const [hostels, cities, { config }] = await Promise.all([
+    loadHostels(),
+    loadCityIndex().catch(() => []),
+    loadSeo(),
+  ]);
+  const faq = homeFaq({
+    badges: listingTiers(config.plans).map(({ plan, tier }) => ({
+      label: tier.label,
+      plan: plan.name,
+    })),
+    cities,
+    fromPrice: cheapestMonthly(config.plans),
+    hostels,
+  });
+
+  return (
+    <>
+      <JsonLd data={faqJsonLd(faq)} />
+      <PublicHomePage
+        faq={<SeoFaq entries={faq} title="Questions people ask about hostels in Nepal" />}
+        hostels={hostels}
+      />
+    </>
+  );
 }

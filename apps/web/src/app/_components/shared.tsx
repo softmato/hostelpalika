@@ -51,6 +51,7 @@ import { useParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 
 import { PublicHeader } from "@/components/public-header";
+import { ListingTierBadge } from "@/app/_components/listing-tier-badge";
 import type { HostelSummary, Tone } from "@/app/_components/public-hostel-types";
 import { cn } from "@/lib/utils";
 
@@ -577,7 +578,9 @@ export function HostelCard({ hostel }: { hostel: HostelSummary }) {
   const facts = [
     { Icon: Users, label: HOSTEL_TYPE_LABEL[hostel.type] },
     rooms ? { Icon: BedDouble, label: rooms } : null,
-    { Icon: Building2, label: hostel.vacancy > 0 ? `${hostel.vacancy} beds free` : "Full" },
+    hostel.vacancyKnown === false
+      ? null
+      : { Icon: Building2, label: hostel.vacancy > 0 ? `${hostel.vacancy} beds free` : "Full" },
   ].filter((fact) => fact !== null);
 
   return (
@@ -596,13 +599,14 @@ export function HostelCard({ hostel }: { hostel: HostelSummary }) {
             loading="lazy"
             src={optimizedImage(hostel.image, 640)}
           />
-          <div className="absolute left-3 top-3">
+          <div className="absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
             <StatusPill
               tone="success"
               className="border border-emerald-100/50 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700"
             >
               Verified
             </StatusPill>
+            {hostel.listingTier ? <ListingTierBadge tier={hostel.listingTier} /> : null}
           </div>
           <button
             aria-label="Save hostel"
@@ -658,10 +662,15 @@ export function HostelCard({ hostel }: { hostel: HostelSummary }) {
           </div>
 
           <div className="mt-auto flex items-end justify-between gap-2 border-t border-border/50 pt-3">
-            <p className="text-sm font-extrabold text-foreground">
-              {formatMoney(hostel.price)}
-              <span className="text-[10px] font-normal text-muted-foreground"> / month</span>
-            </p>
+            {/* No rent recorded is "ask", never "NPR 0". */}
+            {hostel.price > 0 ? (
+              <p className="text-sm font-extrabold text-foreground">
+                {formatMoney(hostel.price)}
+                <span className="text-[10px] font-normal text-muted-foreground"> / month</span>
+              </p>
+            ) : (
+              <p className="text-xs font-bold text-muted-foreground">Ask for rent</p>
+            )}
             {extras.length > 0 ? (
               <p className="line-clamp-1 text-right text-[10px] font-medium text-muted-foreground">
                 {extras.slice(0, 2).join(" · ")}
@@ -691,13 +700,14 @@ export function HostelListCard({ hostel }: { hostel: HostelSummary }) {
           className="h-full w-full bg-cover bg-center transition duration-500 group-hover:scale-105"
           style={{ backgroundImage: `url("${optimizedImage(hostel.image, 640)}")` }}
         />
-        <div className="absolute left-3 top-3">
+        <div className="absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
           <StatusPill
             tone="success"
             className="text-[10px] font-bold py-0.5 px-2 bg-emerald-50 text-emerald-700 border border-emerald-100/50"
           >
             Verified
           </StatusPill>
+          {hostel.listingTier ? <ListingTierBadge tier={hostel.listingTier} /> : null}
         </div>
       </Link>
       <div className="flex-1 p-4 flex flex-col justify-between min-w-0">
@@ -726,12 +736,16 @@ export function HostelListCard({ hostel }: { hostel: HostelSummary }) {
           </p>
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/50 pt-2.5 mt-2">
-          <div className="flex items-baseline gap-1.5">
-            <span className="text-base font-extrabold text-foreground">
-              {formatMoney(hostel.price)}
-            </span>
-            <span className="text-[10px] font-normal text-muted-foreground">/ month</span>
-          </div>
+          {hostel.price > 0 ? (
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-base font-extrabold text-foreground">
+                {formatMoney(hostel.price)}
+              </span>
+              <span className="text-[10px] font-normal text-muted-foreground">/ month</span>
+            </div>
+          ) : (
+            <span className="text-xs font-bold text-muted-foreground">Ask for rent</span>
+          )}
           <div className="flex items-center gap-3 text-[10px] font-semibold text-muted-foreground">
             <span className="flex items-center gap-1">
               <Building2 className="size-3.5 text-muted-foreground/80" />

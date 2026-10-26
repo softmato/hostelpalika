@@ -17,6 +17,9 @@ import {
   type CityIndexEntry,
 } from "@/lib/hostel-locations";
 import { breadcrumbJsonLd, faqJsonLd, formatNpr, itemListJsonLd } from "@/lib/json-ld";
+import { PAID_PLACEMENT_NOTE } from "@/lib/listing-tier";
+import { haversineMeters } from "@/lib/maps/nearby";
+import { loadNearPlaces } from "@/lib/near-pages";
 import { loadSiteConfig } from "@/lib/site-config-server";
 import {
   listPublicHostelLocations,
@@ -54,13 +57,25 @@ export type LocationPage = {
   heading: string;
   hostels: HostelSummary[];
   intro: string;
+  /** Campuses in this city with a listed hostel nearby — `/hostels/near/...`. */
+  nearLinks: Array<{ count: number; href: string; label: string }>;
+  /**
+   * Area pages only: hostels in the same city within {@link NEARBY_AREA_METERS}
+   * of one in the area, so "hostels in Baneshwor & nearby" is literally true.
+   */
+  nearby: HostelSummary[];
   noindex: boolean;
+  /** How the list is ordered — always shown, since the titles say "best". */
+  orderNote: string;
   otherCities: Array<{ count: number; href: string; label: string }>;
   path: string;
   placeName: string;
   title: string;
   typeLinks: Link[];
 };
+
+/** "& nearby" on an area page: another hostel in the city within this of one in the area. */
+export const NEARBY_AREA_METERS = 2000;
 
 function joinList(items: string[]) {
   if (items.length <= 1) return items.join("");
@@ -90,20 +105,36 @@ export const loadLocationPage = cache(
 
     if (filterSlug && !type && !area) return null;
 
-    const { hostels } = await listPublicHostels({
-      area: area?.name,
-      city: city.name,
-      type: type?.type,
-    });
+    // An area page also reads its city, for the hostels close enough to the
+    // area's own to be "nearby".
+    const [{ hostels }, cityRead] = await Promise.all([
+      listPublicHostels({ area: area?.name, city: city.name, type: type?.type }),
+      area ? listPublicHostels({ city: city.name, type: type?.type }) : null,
+    ]);
 
+    // Sample listings stay off these indexed pages: their counts and answers are what Google reads.
+    const real = (list: unknown) =>
+      (JSON.parse(JSON.stringify(list)) as PublicHostel[]).filter((hostel) => !hostel.isDemoData);
     // The area query matches by substring ("Baneshwor" finds "New Baneshwor");
     // the page lists exactly the area it is named after.
-    // Sample listings stay off these indexed pages: their counts and answers are what Google reads.
-    const rows = (JSON.parse(JSON.stringify(hostels)) as PublicHostel[]).filter(
-      (hostel) =>
-        !hostel.isDemoData && (!area || locationSlug(hostel.location.area ?? "") === area.slug),
+    const rows = real(hostels).filter(
+      (hostel) => !area || locationSlug(hostel.location.area ?? "") === area.slug,
     );
+    const cityRows = cityRead ? real(cityRead.hostels) : [];
     const summaries = rows.map(mapPublicHostelToSummary);
+    const pinned = rows.flatMap((hostel) => (hostel.coordinates ? [hostel.coordinates] : []));
+    const nearby = area
+      ? cityRows
+          .filter(
+            (hostel) =>
+              locationSlug(hostel.location.area ?? "") !== area.slug &&
+              hostel.coordinates &&
+              pinned.some(
+                (point) => haversineMeters(point, hostel.coordinates!) <= NEARBY_AREA_METERS,
+              ),
+          )
+          .map(mapPublicHostelToSummary)
+      : [];
 
     const rents = rows.flatMap((hostel) =>
       [hostel.pricing?.monthlyRentMin, hostel.pricing?.monthlyRentMax].filter(
@@ -120,12 +151,24 @@ export const loadLocationPage = cache(
     const count = summaries.length;
     const path = `/hostels/in/${city.slug}${filterSlug ? `/${filterSlug}` : ""}`;
 
-    let title = `${heading}, Nepal`;
-    if (!type && !area) title = `Hostels in ${city.name} — Boys, Girls & Co-living`;
+    /*
+     * "Best hostels in Kathmandu" is how people search, so the title answers it
+     * — and the page says exactly how its list is ordered (`orderNote`), so the
+     * word is a promise to compare, not a ranking nobody made.
+     */
+    const verified = count ? ` (${count} Verified)` : "";
+    let title = count ? `Best ${heading}${verified} — Rent & Reviews` : `${heading}, Nepal`;
+    if (!type && !area && count) {
+      title = `Best Hostels in ${city.name}${verified} — Boys, Girls & Co-living`;
+    }
+    if (area && count && nearby.length) {
+      title = `Best ${titleCase(kind)} in ${area.name} & Nearby, ${city.name} — Rent & Reviews`;
+    }
 
     const rentFrom = min ? ` rent from ${formatNpr(min)} a month,` : "";
+    const alsoNearby = nearby.length ? ` plus ${nearby.length} nearby` : "";
     const description = count
-      ? `${counted(count, `verified ${singular}`)} in ${placeName}, Nepal with photos,${rentFrom} facilities and reviews. Compare and contact hostels on ${PLATFORM_NAME}.`
+      ? `${counted(count, `verified ${singular}`)} in ${placeName}${alsoNearby}, Nepal with photos,${rentFrom} facilities and reviews. Compare and contact hostels on ${PLATFORM_NAME}.`
       : `Verified ${kind} in ${placeName}, Nepal, on ${PLATFORM_NAME} — photos, rent, facilities and reviews from residents.`;
 
     let rentPhrase = "";
@@ -163,6 +206,28 @@ export const loadLocationPage = cache(
       });
     }
 
+    const cheapest = rows
+      .filter((hostel) => (hostel.pricing?.monthlyRentMin ?? 0) > 0)
+      .sort((a, b) => (a.pricing?.monthlyRentMin ?? 0) - (b.pricing?.monthlyRentMin ?? 0))[0];
+    if (cheapest && count > 1) {
+      faq.push({
+        answer: `Among the ${kind} listed on ${PLATFORM_NAME} in ${placeName}, ${cheapest.name} has the lowest starting rent, from ${formatNpr(cheapest.pricing!.monthlyRentMin!)} a month. Check which room type that price is for on its page — shared rooms cost less than single rooms.`,
+        question: `What is the cheapest hostel in ${placeName}?`,
+      });
+    }
+
+    const singles = rows.filter((hostel) =>
+      (hostel.roomConfigurations ?? []).some((room) => room.bedsPerRoom === 1),
+    );
+    if (count) {
+      faq.push({
+        answer: singles.length
+          ? `Yes. ${counted(singles.length, singular)} in ${placeName} ${singles.length === 1 ? "lists" : "list"} single rooms: ${joinList(singles.slice(0, 6).map((hostel) => hostel.name))}. Each hostel's page shows the rent and free beds for every room type.`
+          : `None of the ${kind} listed in ${placeName} lists a single room right now; rooms are shared by two or more residents. Each hostel's page shows its room types and rent.`,
+        question: `Can I get a single room in a hostel in ${placeName}?`,
+      });
+    }
+
     faq.push(
       {
         answer: `Yes. A hostel is listed only after the ${PLATFORM_NAME} team has checked its documents, and reviews can only be left by residents who actually stayed there.`,
@@ -173,6 +238,25 @@ export const loadLocationPage = cache(
         question: `How do I get a room in a hostel in ${placeName}?`,
       },
     );
+
+    const badged = summaries.some((hostel) => hostel.listingTier);
+    const orderNote = badged
+      ? `${PAID_PLACEMENT_NOTE} After them, hostels are listed from the lowest monthly rent.`
+      : "Hostels are listed from the lowest monthly rent. Ratings come only from residents who lived there, so compare rent, rooms and reviews to find the best fit for you.";
+
+    faq.push({
+      answer: `There is no single best hostel — it depends on your budget, the room you want and how far you will travel each day. ${PLATFORM_NAME} lists only verified hostels and shows each one's rent, rooms, facilities, food and residents' reviews, so you can compare up to three side by side. ${badged ? "Gold and Platinum hostels are paid placements and are marked as such." : ""}`.trim(),
+      question: `Which is the best hostel in ${placeName}?`,
+    });
+
+    const cityNear = (await loadNearPlaces().catch(() => []))
+      .filter((entry) => locationSlug(entry.city) === city.slug)
+      .slice(0, 12)
+      .map((entry) => ({
+        count: entry.distances.size,
+        href: `/hostels/near/${entry.slug}`,
+        label: `Near ${entry.name}`,
+      }));
 
     const cityPath = `/hostels/in/${city.slug}`;
     const crumbs = [
@@ -196,7 +280,10 @@ export const loadLocationPage = cache(
       heading,
       hostels: summaries,
       intro,
+      nearLinks: cityNear,
+      nearby,
       noindex: count === 0,
+      orderNote,
       otherCities: index
         .filter((entry) => entry.slug !== city.slug)
         .map((entry) => ({

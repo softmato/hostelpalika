@@ -90,6 +90,17 @@ import {
 } from "@/modules/hostels/hostel-registration.events";
 import { planPayLink } from "@/modules/billing/plan-pay-link";
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
+import {
+  compareListingTier,
+  listingTiersByPlan,
+  type PublicListingTier,
+} from "@/lib/listing-tier";
+import {
+  buildNearPlaceIndex,
+  NEAR_RADIUS_METERS,
+  type NearPlace,
+  type NearPlaceSourceRow,
+} from "@/lib/near-places";
 import type {
   HostelRegistrationInput,
   TeamHostelRegistrationInput,
@@ -3610,28 +3621,118 @@ export async function listPublicHostels(query: PublicHostelListQuery) {
     filter["shortStays.enabled"] = true;
   }
 
-  const found = await HostelModel.find(filter)
-    .sort({ "pricing.monthlyRentMin": 1, createdAt: -1 })
-    .limit(60)
-    .lean<HostelRecord[]>();
+  const tiers = await publicListingTiers();
+  const badgedIds = [...tiers.keys()].map((id) => new Types.ObjectId(id));
 
-  const ratings = await ratingSummariesFor(found.map((hostel) => hostel._id));
-  // Real hostels first (cheapest-first, from Mongo), then the sample listings
-  // from demo-hostels.json, cheapest-first among themselves.
-  const demos = demoHostelsMatching(query).sort(
-    (a, b) => (a.pricing?.monthlyRentMin ?? 0) - (b.pricing?.monthlyRentMin ?? 0),
-  );
-  const hostels = [...found, ...demos];
+  const [cheapest, badged] = await Promise.all([
+    HostelModel.find(filter)
+      .sort({ "pricing.monthlyRentMin": 1, createdAt: -1 })
+      .limit(60)
+      .lean<HostelRecord[]>(),
+    // Read on their own so the 60-row cap can never push a badged hostel off
+    // the list it paid to lead: the cap applies to everyone else.
+    badgedIds.length
+      ? HostelModel.find({
+          ...filter,
+          $and: [{ $or: [{ _id: { $in: badgedIds } }, { parentHostelId: { $in: badgedIds } }] }],
+        })
+          .limit(60)
+          .lean<HostelRecord[]>()
+      : Promise.resolve([] as HostelRecord[]),
+  ]);
+
+  const seen = new Set<string>();
+  const found = [...badged, ...cheapest]
+    .filter((hostel) => {
+      const id = hostel._id.toString();
+      if (seen.has(id)) return false;
+      seen.add(id);
+      return true;
+    })
+    .map((hostel) => ({ hostel, listingTier: tierOfHostel(hostel, tiers) }))
+    // Badge first, then cheapest-first as before; Array.sort is stable.
+    .sort(
+      (a, b) =>
+        compareListingTier(a, b) ||
+        (a.hostel.pricing?.monthlyRentMin ?? 0) - (b.hostel.pricing?.monthlyRentMin ?? 0),
+    );
+
+  const ratings = await ratingSummariesFor(found.map(({ hostel }) => hostel._id));
+  // Real hostels first, then the sample listings from demo-hostels.json,
+  // cheapest-first among themselves. A sample listing never carries a badge.
+  const demos = demoHostelsMatching(query)
+    .sort((a, b) => (a.pricing?.monthlyRentMin ?? 0) - (b.pricing?.monthlyRentMin ?? 0))
+    .map((hostel) => ({ hostel, listingTier: null }));
 
   return {
-    hostels: hostels.map((hostel) => ({
+    hostels: [...found, ...demos].map(({ hostel, listingTier }) => ({
       ...serializePublicHostel(hostel),
+      listingTier,
       // On the card, not only on the detail page: a rating is how somebody
       // decides which of twelve results to open, so withholding it until they
       // have opened one is withholding it from the decision it is for.
       ratingSummary: publicRating(hostel._id.toString(), ratings),
     })),
   };
+}
+
+/**
+ * Hostel id → the directory badge its plan carries, for every hostel paying
+ * for a plan that has one right now (`docs/SEO.md` item 10k).
+ *
+ * "Paying right now" is the same test the platform's own subscription count
+ * uses: ACTIVE or PAST_DUE with a period that has not ended. A trial, a plan
+ * chosen but not paid, or a lapsed one carries no badge. The key is the billing
+ * hostel — branches bill to their main hostel, see {@link tierOfHostel}.
+ *
+ * A failure here costs the ordering, never the listing: it degrades to "no
+ * badges" rather than taking search down with it.
+ */
+async function publicListingTiers(): Promise<Map<string, PublicListingTier>> {
+  try {
+    const byPlan = listingTiersByPlan(await getSiteConfigSection("plans"));
+
+    if (!byPlan.size) {
+      return new Map();
+    }
+
+    const rows = await HostelSubscriptionModel.find({
+      currentPeriodEnd: { $gt: new Date() },
+      planId: { $in: [...byPlan.keys()] },
+      status: { $in: ["ACTIVE", "PAST_DUE"] },
+    })
+      .select("hostelId planId")
+      .lean<Array<{ hostelId: Types.ObjectId; planId?: string | null }>>();
+
+    return new Map(
+      rows.flatMap((row) => {
+        const tier = row.planId ? byPlan.get(row.planId) : undefined;
+        return tier ? [[row.hostelId.toString(), tier] as const] : [];
+      }),
+    );
+  } catch {
+    return new Map();
+  }
+}
+
+function tierOfHostel(
+  hostel: Pick<HostelRecord, "_id" | "isDemoData" | "parentHostelId">,
+  tiers: Map<string, PublicListingTier>,
+) {
+  if (hostel.isDemoData) return null;
+
+  return (
+    tiers.get(hostel._id.toString()) ??
+    (hostel.parentHostelId ? tiers.get(hostel.parentHostelId.toString()) : undefined) ??
+    null
+  );
+}
+
+/** The badge one hostel's plan carries, for its own page. */
+export async function publicListingTierOf(
+  hostel: Pick<HostelRecord, "_id" | "isDemoData" | "parentHostelId">,
+) {
+  return tierOfHostel(hostel, await publicListingTiers());
 }
 
 function publicRating(id: string, ratings: Map<string, PublicRatingSummary>) {
@@ -3669,6 +3770,76 @@ export async function listPublicHostelLocations() {
     hostelType: row._id.type ?? "CO_LIVING",
     updatedAt: row.updatedAt ?? null,
   }));
+}
+
+/**
+ * Every campus a published hostel found within 1.5 km, for `/hostels/near`
+ * (`lib/near-places.ts` says which places count and why). Same visibility gate
+ * as the listing; sample listings never make a place.
+ */
+export async function listPublicNearbyPlaces(): Promise<NearPlace[]> {
+  await connectToDatabase();
+
+  const rows = await HostelModel.find({
+    isDeleted: false,
+    isDemoData: { $ne: true },
+    "nearbyPlaces.type": "college",
+    status: "PUBLISHED",
+    verificationStatus: "VERIFIED",
+  })
+    .select("location.city location.area nearbyPlaces")
+    .lean<
+      Array<{
+        _id: Types.ObjectId;
+        location?: { area?: string; city?: string };
+        nearbyPlaces?: NearPlaceSourceRow["nearbyPlaces"];
+      }>
+    >();
+
+  return buildNearPlaceIndex(
+    rows.map((row) => ({
+      area: row.location?.area,
+      city: row.location?.city,
+      hostelId: row._id.toString(),
+      nearbyPlaces: row.nearbyPlaces ?? [],
+    })),
+  );
+}
+
+/**
+ * One campus and the published hostels near it, each with the distance its own
+ * nearby-places data measured — badge first, then nearest. `null` when no
+ * published hostel has the place nearby, so the page can 404.
+ */
+export async function listPublicHostelsNear(placeSlug: string) {
+  const place = (await listPublicNearbyPlaces()).find((entry) => entry.slug === placeSlug);
+
+  if (!place) {
+    return null;
+  }
+
+  const ids = [...place.distances.keys()].map((id) => new Types.ObjectId(id));
+  const [found, tiers] = await Promise.all([
+    HostelModel.find({
+      _id: { $in: ids },
+      isDeleted: false,
+      status: "PUBLISHED",
+      verificationStatus: "VERIFIED",
+    }).lean<HostelRecord[]>(),
+    publicListingTiers(),
+  ]);
+  const ratings = await ratingSummariesFor(found.map((hostel) => hostel._id));
+
+  const hostels = found
+    .map((hostel) => ({
+      ...serializePublicHostel(hostel),
+      distanceMeters: place.distances.get(hostel._id.toString()) ?? NEAR_RADIUS_METERS,
+      listingTier: tierOfHostel(hostel, tiers),
+      ratingSummary: publicRating(hostel._id.toString(), ratings),
+    }))
+    .sort((a, b) => compareListingTier(a, b) || a.distanceMeters - b.distanceMeters);
+
+  return { hostels, place };
 }
 
 /**
@@ -3716,6 +3887,7 @@ export async function getPublicHostelBySlug(slug: string) {
       return {
         hostel: {
           ...serializePublicHostel(demo),
+          listingTier: null,
           otherBranches: [],
           foodRoutine: EMPTY_ROUTINE,
           ratingSummary: publicRating(demo._id.toString(), new Map()),
@@ -3726,15 +3898,17 @@ export async function getPublicHostelBySlug(slug: string) {
     throw new HostelServiceError("Hostel was not found.", "HOSTEL_NOT_FOUND", 404);
   }
 
-  const [foodRoutine, ratings, otherBranches] = await Promise.all([
+  const [foodRoutine, ratings, otherBranches, listingTier] = await Promise.all([
     getFoodRoutine(hostel._id),
     ratingSummariesFor([hostel._id]),
     listPublicSiblingBranches(hostel),
+    publicListingTierOf(hostel),
   ]);
 
   return {
     hostel: {
       ...serializePublicHostel(hostel),
+      listingTier,
       otherBranches,
       foodRoutine,
       ratingSummary: ratings.get(hostel._id.toString()) ?? EMPTY_RATING_SUMMARY,

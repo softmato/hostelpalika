@@ -1,3 +1,5 @@
+import type { PublicListingTier } from "@/lib/listing-tier";
+
 export type Tone =
   | "admin"
   | "danger"
@@ -20,6 +22,8 @@ export type HostelSummary = {
   image: string;
   /** Sample listing from demo-hostels.json — always sorted after real ones. */
   isDemoData?: boolean;
+  /** Gold / Platinum plan badge — a paid placement, shown and disclosed as one. */
+  listingTier?: PublicListingTier | null;
   name: string;
   owner: string;
   price: number;
@@ -30,5 +34,7 @@ export type HostelSummary = {
   status: "approved" | "pending" | "published" | "under review";
   type: "boys" | "co-living" | "girls";
   vacancy: number;
+  /** False when the hostel has not recorded its beds — then `vacancy` is a placeholder 0. */
+  vacancyKnown?: boolean;
   verified: boolean;
 };

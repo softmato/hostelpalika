@@ -9,6 +9,7 @@ import { BrandMark } from "@/components/brand-mark";
 import { GooglePlayBadge } from "@/components/google-play-badge";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { locationSlug } from "@/lib/hostel-locations";
+import { ROLE_LINKS } from "@/lib/role-links";
 
 /**
  * The footer every public page shares.
@@ -48,6 +49,7 @@ export function PublicFooter() {
             `/hostels/in/${locationSlug(location.city)}`,
           ]),
         ["All cities", "/hostels/in"],
+        ["Hostels near colleges", "/hostels/near"],
         ["Hostel map", "/map"],
         ...(features.compare ? [["Compare hostels", "/compare"] as [string, string]] : []),
       ],
@@ -68,6 +70,14 @@ export function PublicFooter() {
         ]),
       ],
       title: "For hostel owners",
+    },
+    {
+      // Every person a hostel runs on, by the name they search with.
+      links: ROLE_LINKS.map((page): [string, string] => [
+        `For ${page.label.toLowerCase()}`,
+        `/for/${page.slug}`,
+      ]),
+      title: "The app",
     },
     {
       links: [
@@ -150,7 +160,7 @@ export function PublicFooter() {
           </a>
         </div>
 
-        <nav aria-label="Footer" className="grid grid-cols-2 gap-8 sm:grid-cols-3">
+        <nav aria-label="Footer" className="grid grid-cols-2 gap-8 md:grid-cols-4">
           {groups.map((group) => (
             <div key={group.title}>
               <p className="text-sm font-extrabold text-foreground">{group.title}</p>
