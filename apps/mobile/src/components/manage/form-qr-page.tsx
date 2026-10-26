@@ -49,6 +49,7 @@ export function FormQrPage() {
           <View className="items-center gap-3 px-5 pb-5 pt-5">
             {data?.qrDataUrl ? (
               <Image
+                cachePolicy="memory-disk"
                 accessibilityLabel="QR code for the admission form"
                 source={{ uri: data.qrDataUrl }}
                 style={{ height: 220, opacity: data.enabled ? 1 : 0.3, width: 220 }}

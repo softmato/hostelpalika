@@ -97,6 +97,7 @@ export function ShareReceiptGuide() {
       >
         <View className="items-center gap-4 pb-2">
           <Image
+            cachePolicy="memory-disk"
             accessibilityLabel={`Step ${step + 1}: ${STEPS[step].title}`}
             contentFit="contain"
             source={STEPS[step].image}

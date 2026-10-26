@@ -239,6 +239,7 @@ export function InfoTile({
       */}
       {image ? (
         <Image
+          cachePolicy="memory-disk"
           contentFit="cover"
           source={{ uri: image }}
           style={{ borderRadius: 16, height: 48, width: 48 }}

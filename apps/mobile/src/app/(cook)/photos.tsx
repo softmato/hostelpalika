@@ -396,6 +396,7 @@ function PhotoDayCard({ day }: { day: CookPhotoDay }) {
             onPress={() => openAssetViewer(items, index)}
           >
             <Image
+              cachePolicy="memory-disk"
               contentFit="cover"
               source={privateAssetSource(photo.photoAssetId, token, "THUMBNAIL")}
               style={{

@@ -425,6 +425,7 @@ export function BillPhotoBox({
       {bill.photo ? (
         <View className="flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3">
           <Image
+            cachePolicy="memory-disk"
             contentFit="cover"
             source={{ uri: bill.photo.uri }}
             style={{ backgroundColor: colors.muted, borderRadius: 10, height: 64, width: 64 }}

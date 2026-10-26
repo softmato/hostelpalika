@@ -1378,6 +1378,7 @@ function PhotoStep({
           <View className="size-full items-center justify-center overflow-hidden rounded-full bg-muted">
             {source ? (
               <Image
+                cachePolicy="memory-disk"
                 contentFit="cover"
                 source={source}
                 style={{ height: "100%", width: "100%" }}
@@ -1453,6 +1454,7 @@ function SignatureStep({
           style={{ aspectRatio: 1.4 }}
         >
           <Image
+            cachePolicy="memory-disk"
             contentFit="contain"
             source={source}
             style={{ height: "100%", width: "100%" }}
@@ -1619,6 +1621,7 @@ function ReviewStep({
             >
                   {entry.key === "photo" && photoSource ? (
                     <Image
+                      cachePolicy="memory-disk"
                       contentFit="cover"
                       source={photoSource}
                       style={{ borderRadius: 48, height: 96, width: 96 }}
@@ -1628,6 +1631,7 @@ function ReviewStep({
                     assets.hasSignatureImage || draft.signatureImageUri ? (
                       signatureSource ? (
                         <Image
+                          cachePolicy="memory-disk"
                           contentFit="contain"
                           source={signatureSource}
                           style={{ aspectRatio: 3, width: "100%" }}

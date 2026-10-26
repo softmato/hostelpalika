@@ -290,6 +290,7 @@ function ShowcaseCard({
       <View style={{ width: imageWidth }}>
         {uri ? (
           <Image
+            cachePolicy="memory-disk"
             accessibilityLabel={cover?.alt || hostel.name}
             contentFit="cover"
             source={{ uri }}

@@ -848,6 +848,7 @@ export default function ManageMaintenanceScreen() {
                   <ListRow
                     left={
                       <Image
+                        cachePolicy="memory-disk"
                         accessibilityIgnoresInvertColors
                         contentFit="contain"
                         source={{ uri: tradeArtUri(category) }}
@@ -919,6 +920,7 @@ export default function ManageMaintenanceScreen() {
             {/* The same drawing as the deck card they picked, so the confirm
                 step is visibly about that card and not a generic dialog. */}
             <Image
+              cachePolicy="memory-disk"
               accessibilityIgnoresInvertColors
               contentFit="contain"
               source={{ uri: tradeArtUri(suggestedCategory ?? "OTHER") }}
@@ -1259,6 +1261,7 @@ function RequestRow({
       <Card className="gap-3" padding="p-3">
         <View className="flex-row items-start gap-3">
           <Image
+            cachePolicy="memory-disk"
             accessibilityIgnoresInvertColors
             contentFit="contain"
             source={{ uri: tradeArtUri(request.category) }}

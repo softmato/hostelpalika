@@ -302,7 +302,7 @@ function HostelMark({ coverUrl, isBranch, size = 40 }: { coverUrl?: string | nul
   const photo = absoluteMediaUrl(coverUrl, API_BASE_URL);
 
   if (photo) {
-    return <Image contentFit="cover" source={{ uri: photo }} style={{ borderRadius: 12, height: size, width: size }} />;
+    return <Image cachePolicy="memory-disk" contentFit="cover" source={{ uri: photo }} style={{ borderRadius: 12, height: size, width: size }} />;
   }
 
   return (

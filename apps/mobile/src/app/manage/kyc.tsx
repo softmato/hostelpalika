@@ -585,6 +585,7 @@ function DocumentRow({ onOpen, onRemove, row }: { onOpen: () => void; onRemove?:
           <Glyph color={colors.mutedForeground} name="document-text" size={32} />
           {source ? (
             <Image
+              cachePolicy="memory-disk"
               contentFit="contain"
               source={source}
               style={{ height: "100%", left: 0, position: "absolute", top: 0, width: "100%" }}

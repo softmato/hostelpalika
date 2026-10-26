@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { optimizedImage } from "@/lib/image-url";
 import Link from "next/link";
 import { ArrowRight, Building2, MapPin } from "@/components/icons";
 import type { PublicBranch } from "@hostel/shared/types/public-branch";
@@ -28,12 +29,12 @@ export function PublicHostelBranches({ branches }: { branches: PublicBranch[] })
             <div className="relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted">
               {branch.photoUrl ? (
                 <Image
-                  src={branch.photoUrl}
+                  src={optimizedImage(branch.photoUrl, 384)}
                   alt={`${branch.name} exterior`}
                   fill
                   sizes="80px"
-                  className="object-cover"
                   unoptimized
+                  className="object-cover"
                 />
               ) : (
                 <Building2 className="size-7 text-muted-foreground" />

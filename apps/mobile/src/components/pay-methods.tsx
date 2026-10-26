@@ -246,6 +246,7 @@ function QrPanel({ method }: { method: Extract<PayMethod, { kind: "QR" }> }) {
           }
         >
           <Image
+            cachePolicy="memory-disk"
             contentFit="contain"
             source={{
               headers: token ? { Authorization: `Bearer ${token}` } : undefined,

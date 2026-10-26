@@ -191,6 +191,7 @@ export function GuidedCapture({
         >
           {shot ? (
             <Image
+              cachePolicy="memory-disk"
               contentFit="contain"
               source={{ uri: shot }}
               style={{ flex: 1 }}

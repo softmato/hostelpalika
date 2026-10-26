@@ -301,7 +301,7 @@ export default function HostelDetailScreen() {
             <SectionHeader title="Other branches" subtitle="More locations from the same hostel owner" />
             {data.otherBranches.map((branch) => (
               <Pressable key={branch.id} accessibilityRole="link" accessibilityLabel={`View ${branch.name}`} onPress={() => router.push({ pathname: "/hostel/[slug]", params: { slug: branch.slug } })} className="flex-row items-center gap-3 rounded-2xl border border-border bg-card p-3 active:bg-muted">
-                {branch.photoUrl ? <Image source={{ uri: branch.photoUrl.startsWith("/") ? `${API_BASE_URL}${branch.photoUrl}` : branch.photoUrl }} style={{ width: 72, height: 72, borderRadius: 12 }} contentFit="cover" accessibilityLabel={branch.name} /> : <View className="h-[72px] w-[72px] items-center justify-center rounded-xl bg-muted"><Glyph name="business" size={26} color={colors.mutedForeground} /></View>}
+                {branch.photoUrl ? <Image cachePolicy="memory-disk" source={{ uri: branch.photoUrl.startsWith("/") ? `${API_BASE_URL}${branch.photoUrl}` : branch.photoUrl }} style={{ width: 72, height: 72, borderRadius: 12 }} contentFit="cover" accessibilityLabel={branch.name} /> : <View className="h-[72px] w-[72px] items-center justify-center rounded-xl bg-muted"><Glyph name="business" size={26} color={colors.mutedForeground} /></View>}
                 <View className="flex-1 gap-1">
                   <Text variant="label">{branch.name}</Text>
                   <Text variant="caption">{[branch.area, branch.city].filter(Boolean).join(", ")}</Text>
@@ -409,6 +409,7 @@ function Gallery({ hostel }: { hostel: PublicHostelDetail }) {
               }
             >
               <Image
+                cachePolicy="memory-disk"
                 contentFit="cover"
                 source={{ uri: photo.uri }}
                 style={{ backgroundColor: colors.muted, height: 240, width }}
@@ -493,6 +494,7 @@ function Thumbnails({
           onPress={() => onSelect(photoIndex)}
         >
           <Image
+            cachePolicy="memory-disk"
             contentFit="cover"
             source={{ uri: photo.uri }}
             style={{

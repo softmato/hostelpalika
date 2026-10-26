@@ -8,6 +8,7 @@ import type { LocationPage } from "@/lib/location-pages";
 
 import { OwnerCallout, SeoChip, SeoCrumbs, SeoFaq } from "./public-seo-blocks";
 import { HostelCard, PublicShell } from "./shared";
+import { optimizedImage } from "@/lib/image-url";
 
 /**
  * A recognisable public photograph makes the city directory easier to scan at
@@ -184,7 +185,7 @@ export function PublicCitiesPage({ cities }: { cities: CityIndexEntry[] }) {
                   alt={visual.alt}
                   className="absolute inset-0 -z-20 size-full object-cover transition duration-500 group-hover:scale-105"
                   loading="lazy"
-                  src={visual.image}
+                  src={optimizedImage(visual.image, 640)}
                   style={{ objectPosition: visual.position ?? "center" }}
                 />
                 <div className="absolute inset-0 -z-10 bg-gradient-to-t from-black/90 via-black/30 to-black/5" />

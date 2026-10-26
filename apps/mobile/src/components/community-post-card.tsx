@@ -553,6 +553,7 @@ function MediaGrid({ media }: { media: CommunityMedia[] }) {
             }}
           >
             <Image
+              cachePolicy="memory-disk"
               contentFit="cover"
               source={{
                 uri: communityMediaUrl(item.assetId, single ? "LARGE" : "MEDIUM"),

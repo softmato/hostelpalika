@@ -689,7 +689,7 @@ export const DEFAULT_SITE_CONFIG: SiteConfig = {
     supportEmail: "support@softmato.com",
     supportPhone: "+977-1-5432123",
     supportLines: [],
-    tagline: "Find & manage hostels in Nepal",
+    tagline: "A Hostel Management Eco-Software",
   },
   /**
    * The parent company, as it prints on a plan invoice or receipt.

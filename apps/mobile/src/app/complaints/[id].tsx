@@ -280,6 +280,7 @@ function AttachmentGallery({ complaint }: { complaint: Complaint }) {
             onPress={() => openAssetViewer(items, index)}
           >
             <Image
+              cachePolicy="memory-disk"
               contentFit="cover"
               // THUMBNAIL, which the route serves when a variant exists and
               // silently falls back to the original when it does not — so this

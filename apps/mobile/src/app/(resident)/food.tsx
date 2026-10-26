@@ -463,6 +463,7 @@ function PhotoGallery({
               onPress={() => openAssetViewer(items, index)}
             >
               <Image
+                cachePolicy="memory-disk"
                 contentFit="cover"
                 source={privateAssetSource(photo.photoAssetId, token, "THUMBNAIL")}
                 style={{

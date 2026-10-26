@@ -459,7 +459,7 @@ function StripThumb({
       }}
     >
       {source ? (
-        <Image contentFit="cover" source={source} style={cell} />
+        <Image cachePolicy="memory-disk" contentFit="cover" source={source} style={cell} />
       ) : (
         <View className="items-center justify-center" style={cell}>
           <Glyph color="#ffffff" name={isVideo(item) ? "play-circle" : "document"} size={16} />

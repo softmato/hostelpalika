@@ -35,8 +35,10 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { browserApi } from "@/lib/browser-api";
 import { checkAuthWithRefresh } from "@/lib/auth-check";
+import { optimizedImage } from "@/lib/image-url";
 import { landingPathForRole } from "@/lib/route-access";
 import { Role } from "@/lib/roles";
+
 
 import type { HostelSummary } from "./public-hostel-types";
 import { HostelCard, PublicShell, StatusPill, formatMoney } from "./shared";
@@ -46,58 +48,41 @@ const PUBLIC_HERO_IMAGE =
   "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1600&q=80";
 
 /**
- * These local image paths are intentionally first. Once the supplied images
- * are placed in `public/home/` with the documented names, they override the
- * tasteful remote fallback without another code change.
+ * Local WebP only (~150 KB each). These were 2–3 MB PNGs stacked over an
+ * Unsplash fallback that a CSS multi-background downloads too — 18 MB of the
+ * home page's weight and most of its scroll jank.
  */
 const HOME_MEDIA = {
   baneshwor: {
-    fallback:
-      "https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1200&q=85",
-    local: "/home/new-baneshwor.png",
+    local: "/home/new-baneshwor.webp",
   },
   boudha: {
-    fallback:
-      "https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=1200&q=85",
-    local: "/home/boudha.png",
+    local: "/home/boudha.webp",
   },
   discovery: {
-    fallback:
-      "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1200&q=85",
-    local: "/home/discovery-room.png",
+    local: "/home/discovery-room.webp",
   },
   lazimpat: {
-    fallback:
-      "https://images.unsplash.com/photo-1538805060514-97d9cc17730c?auto=format&fit=crop&w=1200&q=85",
-    local: "/home/lazimpat.png",
+    local: "/home/lazimpat.webp",
   },
   map: {
-    fallback:
-      "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&w=1600&q=85",
-    local: "/home/kathmandu-map.png",
+    local: "/home/kathmandu-map.webp",
   },
   students: {
-    fallback:
-      "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=1200&q=85",
-    local: "/home/student-stories.png",
+    local: "/home/student-stories.webp",
   },
   study: {
-    fallback:
-      "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1200&q=85",
-    local: "/home/student-study.png",
+    local: "/home/student-study.webp",
   },
   thamel: {
-    fallback:
-      "https://images.unsplash.com/photo-1533130061792-64b345e4a833?auto=format&fit=crop&w=1200&q=85",
-    local: "/home/thamel.png",
+    local: "/home/thamel.webp",
   },
 } as const;
 
 type HomeMediaKey = keyof typeof HOME_MEDIA;
 
 function homeMediaStyle(key: HomeMediaKey) {
-  const { fallback, local } = HOME_MEDIA[key];
-  return { backgroundImage: `url("${local}"), url("${fallback}")` };
+  return { backgroundImage: `url("${HOME_MEDIA[key].local}")` };
 }
 
 const NEIGHBOURHOODS: Array<{
@@ -131,6 +116,9 @@ const NEIGHBOURHOODS: Array<{
     name: "New Baneshwor",
   },
 ];
+
+/** The city chip that shows every city's hostels together. */
+const ALL_CITIES = "All";
 
 const DASHBOARD_ROLES = new Set([
   Role.SUPERADMIN,
@@ -186,8 +174,6 @@ function HostelRow({
   emptyLabel: string;
   hostels: HostelSummary[];
 }) {
-  const scroller = useRef<HTMLDivElement>(null);
-
   if (hostels.length === 0) {
     return (
       <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
@@ -195,6 +181,22 @@ function HostelRow({
       </div>
     );
   }
+
+  // Two lines once there is more than one line's worth, each scrolling on its own.
+  if (hostels.length <= 4) return <HostelScroller hostels={hostels} />;
+
+  const half = Math.ceil(hostels.length / 2);
+
+  return (
+    <div className="space-y-4">
+      <HostelScroller hostels={hostels.slice(0, half)} />
+      <HostelScroller hostels={hostels.slice(half)} />
+    </div>
+  );
+}
+
+function HostelScroller({ hostels }: { hostels: HostelSummary[] }) {
+  const scroller = useRef<HTMLDivElement>(null);
 
   const scroll = (direction: 1 | -1) => {
     const row = scroller.current;
@@ -280,7 +282,7 @@ function ComparisonHostelCard({
         className={`relative overflow-hidden rounded-xl bg-muted bg-cover bg-center ${
           isFeatured ? "h-36" : "h-28"
         }`}
-        style={{ backgroundImage: `url("${hostel.image}")` }}
+        style={{ backgroundImage: `url("${optimizedImage(hostel.image, 384)}")` }}
       >
         <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
         {hostel.verified ? (
@@ -336,7 +338,7 @@ function HostelSnapshot({ hostel }: { hostel?: HostelSummary }) {
     >
       <div
         className="size-16 shrink-0 rounded-lg bg-cover bg-center"
-        style={{ backgroundImage: `url("${hostel.image}")` }}
+        style={{ backgroundImage: `url("${optimizedImage(hostel.image, 384)}")` }}
       />
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
@@ -490,7 +492,10 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
   const activeCity =
     selectedCity ?? (cityOptions.includes("Kathmandu") ? "Kathmandu" : cityOptions[0]);
   const cityHostels = useMemo(
-    () => byRating.filter((hostel) => hostel.city === activeCity).slice(0, 12),
+    () =>
+      activeCity === ALL_CITIES
+        ? byRating.slice(0, 16)
+        : byRating.filter((hostel) => hostel.city === activeCity).slice(0, 12),
     [activeCity, byRating],
   );
   const heroHostel = featuredHostels[0];
@@ -545,7 +550,7 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
           <div className="absolute right-0 top-0 hidden h-full w-[54%] lg:block">
             <div
               className="h-full w-full bg-cover bg-center"
-              style={{ backgroundImage: `url("${PUBLIC_HERO_IMAGE}")` }}
+              style={{ backgroundImage: `url("${optimizedImage(PUBLIC_HERO_IMAGE, 1200)}")` }}
             />
             {/* Fading overlay from white to transparent (left-to-right) */}
             <div className="absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-background via-background/80 to-transparent" />
@@ -610,13 +615,13 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
               <div
                 aria-hidden
                 className="h-56 rounded-2xl bg-cover bg-center sm:h-72 md:h-80 lg:hidden"
-                style={{ backgroundImage: `url("${PUBLIC_HERO_IMAGE}")` }}
+                style={{ backgroundImage: `url("${optimizedImage(PUBLIC_HERO_IMAGE, 1200)}")` }}
               />
               <div className="relative mx-3 -mt-16 flex max-w-[360px] gap-4 rounded-xl border border-border/80 bg-card/95 p-4 shadow-2xl backdrop-blur-sm transition hover:scale-[1.01] sm:mx-6 lg:m-0 lg:mt-36 lg:w-[320px] lg:max-w-none">
                 <div
                   className="size-20 rounded-lg bg-cover bg-center shrink-0 shadow-sm sm:size-24"
                   style={{
-                    backgroundImage: `url("${heroHostel?.image ?? PUBLIC_HERO_IMAGE}")`,
+                    backgroundImage: `url("${optimizedImage(heroHostel?.image ?? PUBLIC_HERO_IMAGE, 384)}")`,
                   }}
                 />
                 <div className="flex-1 flex flex-col justify-between py-0.5 min-w-0">
@@ -678,7 +683,11 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
                 <h2 className="text-xl font-extrabold text-foreground">
-                  {activeCity ? `Hostels in ${activeCity}` : "Hostels by city"}
+                  {activeCity === ALL_CITIES
+                    ? "Hostels across Nepal"
+                    : activeCity
+                      ? `Hostels in ${activeCity}`
+                      : "Hostels by city"}
                 </h2>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Browse verified places in the city you&apos;re planning to live in.
@@ -693,7 +702,7 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
             </div>
             {cityOptions.length > 1 ? (
               <div className="mt-5 flex flex-wrap gap-2">
-                {cityOptions.map((city) => (
+                {[ALL_CITIES, ...cityOptions].map((city) => (
                   <button
                     className={
                       city === activeCity
@@ -991,7 +1000,7 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
                 >
                   <span
                     className="relative z-10 size-full rounded-lg bg-cover bg-center"
-                    style={{ backgroundImage: `url(\"${hostel.image}\")` }}
+                    style={{ backgroundImage: `url("${optimizedImage(hostel.image, 384)}")` }}
                   />
                 </span>
               ))}
@@ -1005,7 +1014,7 @@ function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
               >
                 <span
                   className="size-[72px] shrink-0 -rotate-[5deg] rounded-lg border-4 border-card bg-cover bg-center shadow-md"
-                  style={{ backgroundImage: `url(\"${heroHostel.image || HOME_MEDIA.discovery.local}\")` }}
+                  style={{ backgroundImage: `url("${heroHostel.image ? optimizedImage(heroHostel.image, 384) : HOME_MEDIA.discovery.local}")` }}
                 />
                 <span className="min-w-0 flex-1 py-0.5">
                   <span className="flex items-start justify-between gap-2">

@@ -156,6 +156,7 @@ function SavedListRow({
     >
       {uri ? (
         <Image
+          cachePolicy="memory-disk"
           accessibilityLabel={item.name}
           contentFit="cover"
           source={{ uri }}

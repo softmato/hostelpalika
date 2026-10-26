@@ -66,3 +66,60 @@ export const useSessionStore = create<SessionStore>((set) => ({
   status: "unknown",
   user: null,
 }));
+
+/**
+ * What the public header last drew, kept across tabs and reloads so a fresh
+ * page paints the avatar (or Log in) at once instead of a placeholder while
+ * `/auth/me` is in flight. Display only: `status` stays "unknown" until the
+ * server answers, so nothing that gates on a real session trusts this.
+ */
+const HEADER_SNAPSHOT_KEY = "hostelpalika_header_user";
+
+export type HeaderSnapshot = Pick<
+  SessionUser,
+  "email" | "id" | "image" | "isServiceProvider" | "name" | "role" | "userResidentId"
+>;
+
+let lastRaw: string | null = null;
+let lastParsed: HeaderSnapshot | null | undefined;
+
+/**
+ * `undefined` = never recorded on this browser; `null` = last seen signed out.
+ * Same object back while the stored text is unchanged (`useSyncExternalStore`).
+ */
+export function readHeaderSnapshot(): HeaderSnapshot | null | undefined {
+  try {
+    const raw = window.localStorage.getItem(HEADER_SNAPSHOT_KEY);
+    if (raw !== lastRaw) {
+      lastRaw = raw;
+      lastParsed = raw === null ? undefined : (JSON.parse(raw) as HeaderSnapshot | null);
+    }
+    return lastParsed;
+  } catch {
+    return undefined;
+  }
+}
+
+export function clearHeaderSnapshot() {
+  try {
+    window.localStorage.removeItem(HEADER_SNAPSHOT_KEY);
+  } catch {}
+}
+
+if (typeof window !== "undefined") {
+  useSessionStore.subscribe(({ status, user }) => {
+    if (status !== "resolved") return;
+    try {
+      const snapshot: HeaderSnapshot | null = user && {
+        email: user.email,
+        id: user.id,
+        image: user.image,
+        isServiceProvider: user.isServiceProvider,
+        name: user.name,
+        role: user.role,
+        userResidentId: user.userResidentId,
+      };
+      window.localStorage.setItem(HEADER_SNAPSHOT_KEY, JSON.stringify(snapshot));
+    } catch {}
+  });
+}

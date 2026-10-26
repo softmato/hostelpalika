@@ -105,9 +105,9 @@ const HERO_WASH =
  * photograph at all, and this file is an art asset that can go missing in a
  * deploy without anybody noticing until a visitor sees it.
  *
- * Drop the asset at `apps/web/public/service-provider-hero.png`.
+ * Drop the asset at `apps/web/public/service-provider-hero.webp`.
  */
-const HERO_IMAGE = "/service-provider-hero.png";
+const HERO_IMAGE = "/service-provider-hero.webp";
 
 /** The 11 trades, in the order the enum declares them, with a face each. */
 const TRADE_ICONS: Record<(typeof CATEGORIES)[number], IconComponent> = {

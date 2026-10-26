@@ -506,7 +506,7 @@ function LockScreen({ account }: { account: ApiUser }) {
   const header = (
     <>
       <Animated.View className="items-center gap-2" entering={FadeInDown.duration(240)}>
-        <Image contentFit="contain" source={logo.mark} style={{ height: 48, width: 48 }} />
+        <Image cachePolicy="memory-disk" contentFit="contain" source={logo.mark} style={{ height: 48, width: 48 }} />
         <Text variant="title">{APP_NAME}</Text>
       </Animated.View>
 

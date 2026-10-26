@@ -471,6 +471,7 @@ export default function ExpensesScreen() {
                 }
               >
                 <Image
+                  cachePolicy="memory-disk"
                   contentFit="cover"
                   source={privateAssetSource(open.photoAssetId, token, "MEDIUM")}
                   style={{ backgroundColor: colors.muted, borderRadius: 14, height: 180, width: "100%" }}

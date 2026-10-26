@@ -281,7 +281,7 @@ export default function RegisterScreen() {
     >
       <View className="gap-6 pt-2">
         <View className="items-center gap-3">
-          <Image contentFit="contain" source={logo.mark} style={{ height: 56, width: 56 }} />
+          <Image cachePolicy="memory-disk" contentFit="contain" source={logo.mark} style={{ height: 56, width: 56 }} />
           <Text variant="display">Create account</Text>
           <Text className="text-center" variant="muted">
             Join {APP_NAME} to save hostels and send inquiries.

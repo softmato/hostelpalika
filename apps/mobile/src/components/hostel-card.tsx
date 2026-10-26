@@ -253,6 +253,7 @@ export const HostelCard = memo(function HostelCard({
       <View>
         {coverUri ? (
           <Image
+            cachePolicy="memory-disk"
             accessibilityLabel={cover?.alt || hostel.name}
             contentFit="cover"
             source={{ uri: coverUri }}

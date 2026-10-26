@@ -12,8 +12,10 @@ import { isAuthBypassEnabled } from "@/lib/auth-bypass";
 import { isPinUnlocked } from "@/lib/lock-pin-cookie";
 import {
   isHostelWorkspacePath,
+  isPortalFrontDoor,
   landingPathForRole,
   PORTAL_DELETED_HOME,
+  PORTAL_ONLY_ROLES,
   protectedRouteRuleForPath,
 } from "@/lib/route-access";
 import { Role } from "@/lib/roles";
@@ -68,6 +70,11 @@ export async function proxy(request: NextRequest) {
   if (pathname.startsWith("/api/") &&
       (request.headers.has("authorization") || request.headers.get("x-hostelhub-client") === "mobile")) {
     return NextResponse.next();
+  }
+
+  /* 0. A portal account opening the site or Sign in lands in its portal instead. */
+  if (isPortalFrontDoor(pathname)) {
+    return sendPortalAccountsHome(request);
   }
 
   /* 1. Skip auth in development / UI-preview mode (never in production) */
@@ -169,6 +176,42 @@ function isSoftSessionPath(pathname: string) {
   return !pathname.startsWith("/api/v1/auth/") || pathname === "/api/v1/auth/me";
 }
 
+/**
+ * A front door asked for by someone signed in: a portal role goes to its
+ * landing page on the server, before the page renders. Anyone else gets the
+ * page, with a dead access cookie renewed on the way like any soft-session path.
+ */
+async function sendPortalAccountsHome(request: NextRequest) {
+  let claims = await claimsFromAccessToken(readAccessTokenCookie(request.cookies));
+  const refreshed = claims ? null : await refreshFromCookie(request).catch(() => null);
+
+  if (refreshed) {
+    claims = await claimsFromAccessToken(refreshed.accessToken);
+  }
+
+  const withSession = (response: NextResponse) =>
+    refreshed ? applySessionCookies(response, refreshed) : response;
+  const landingPath = claims && PORTAL_ONLY_ROLES.has(claims.role)
+    ? landingPathForRole(claims.role)
+    : null;
+
+  if (landingPath && landingPath !== "/") {
+    const landingUrl = request.nextUrl.clone();
+    landingUrl.pathname = landingPath;
+    landingUrl.search = "";
+
+    return withSession(NextResponse.redirect(landingUrl));
+  }
+
+  if (!refreshed) {
+    return NextResponse.next();
+  }
+
+  request.cookies.set(ACCESS_TOKEN_COOKIE, refreshed.accessToken);
+
+  return withSession(NextResponse.next({ request: { headers: request.headers } }));
+}
+
 async function keepSessionAlive(request: NextRequest) {
   if (
     !readRefreshTokenCookieValue(request.cookies) ||
@@ -255,6 +298,12 @@ export const config = {
     "/team/:path*",
     "/hostel-registration-track-sheet",
     "/jobs/:path*",
+    /*
+     * Front doors (isPortalFrontDoor), for a signed-in browser only: a portal
+     * account goes to its portal before the page renders.
+     */
+    { source: "/:door(login|signup)?", has: [{ key: "hostelpalika_access_token", type: "cookie" }] },
+    { source: "/:door(login|signup)?", has: [{ key: "hostelhub_access_token", type: "cookie" }] },
     /*
      * Soft session (isSoftSessionPath): anywhere else, only when there is a
      * refresh cookie to renew from and the access cookie — which dies with its

@@ -102,6 +102,7 @@ function RoomPhotos({ photos, roomType }: { photos: string[]; roomType: string }
             onPress={() => openAssetViewer(photos.map((url) => ({ title: roomType, url })), index)}
           >
             <Image
+              cachePolicy="memory-disk"
               contentFit="cover"
               source={{ uri }}
               style={{ borderRadius: 10, height: 72, width: 72 }}
@@ -122,6 +123,7 @@ function PackageCard({ quote }: { quote: BookingQuote }) {
     <Card padding="p-0">
       {cover ? (
         <Image
+          cachePolicy="memory-disk"
           accessibilityLabel={quote.hostel.name}
           contentFit="cover"
           source={{ uri: cover }}

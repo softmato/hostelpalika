@@ -444,6 +444,7 @@ export function PortalHeroCard({
         {photoUrl ? (
           <>
             <Image
+              cachePolicy="memory-disk"
               contentFit="cover"
               source={{ uri: photoUrl }}
               style={[StyleSheet.absoluteFill, { opacity: PHOTO_WEIGHT }]}
@@ -567,7 +568,7 @@ export function PortalBrandHeader({
   return (
     <View className="bg-background" style={{ paddingTop: insets.top }}>
       <View className="min-h-14 flex-row items-center gap-2.5 px-5 pb-2 pt-1">
-        <Image contentFit="contain" source={logo.mark} style={{ height: MARK, width: MARK }} />
+        <Image cachePolicy="memory-disk" contentFit="contain" source={logo.mark} style={{ height: MARK, width: MARK }} />
 
         <View accessibilityLabel={APP_NAME} accessibilityRole="header" className="min-w-0 flex-1">
           <Text numberOfLines={1} adjustsFontSizeToFit={compactBrand} minimumFontScale={0.6} style={{ fontSize: compactBrand ? 18 : WORDMARK, fontWeight: "800", letterSpacing: -0.4 }}>

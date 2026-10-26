@@ -216,6 +216,7 @@ export function WalletMark({
       }}
     >
       <Image
+        cachePolicy="memory-disk"
         contentFit="contain"
         source={LOGOS[key]}
         style={{ height: size - 12, width: size - 12 }}

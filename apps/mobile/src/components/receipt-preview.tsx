@@ -97,6 +97,7 @@ export function ReceiptPreview({
             cropping it to fill cuts off the transaction id — the one thing the
             resident is here to check against the field we filled in for them. */}
         <Image
+          cachePolicy="memory-disk"
           contentFit="contain"
           source={{ uri }}
           style={{

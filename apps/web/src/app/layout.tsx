@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Poppins } from "next/font/google";
+import { Geist, Geist_Mono, Open_Sans } from "next/font/google";
 
 import {
   PLATFORM_NAME,
@@ -26,10 +26,9 @@ const geistSans = Geist({
   variable: "--font-geist-sans",
 });
 
-const poppins = Poppins({
+const openSans = Open_Sans({
   subsets: ["latin"],
-  variable: "--font-poppins",
-  weight: ["400", "500", "600", "700"],
+  variable: "--font-open-sans",
 });
 
 const geistMono = Geist_Mono({
@@ -116,7 +115,7 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${poppins.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${openSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <ThemeProvider>

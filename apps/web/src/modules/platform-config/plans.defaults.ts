@@ -273,6 +273,46 @@ const PLAN_SERVICES: PlanServiceSeed[] = [
     plan: "max",
     slug: "dues-chasing",
   },
+  {
+    audience: ["Hostel admin", "Warden", "Cook"],
+    blurb: "Every rupee spent logged with its bill photo, by category and by branch.",
+    module: "fees-payments",
+    name: "Expense Tracking",
+    plan: "go",
+    slug: "expense-tracking",
+  },
+  {
+    audience: ["Hostel admin", "Warden"],
+    blurb: "Share a bill from any app and it lands as an expense, once.",
+    module: "fees-payments",
+    name: "Receipt Sharing to Expenses",
+    plan: "go",
+    slug: "receipt-sharing",
+  },
+  {
+    audience: ["Hostel admin"],
+    blurb: "Every credit and debit in one statement with a running balance, exportable as PDF.",
+    module: "fees-payments",
+    name: "Credit & Debit Statement",
+    plan: "go",
+    slug: "credit-debit-statement",
+  },
+  {
+    audience: ["Hostel admin", "Warden"],
+    blurb: "Cash handed to a warden, confirmed with one tap, and what is left in the box.",
+    module: "fees-payments",
+    name: "Staff Cash Handover",
+    plan: "go",
+    slug: "staff-cash",
+  },
+  {
+    audience: ["Hostel admin", "Resident", "Cook"],
+    blurb: "A fine after the free days, and khata items added to the next rent bill.",
+    module: "fees-payments",
+    name: "Late Fine & Khata",
+    plan: "go",
+    slug: "late-fine-khata",
+  },
   // Food & Kitchen
   {
     audience: ["Resident", "Cook"],
@@ -324,6 +364,14 @@ const PLAN_SERVICES: PlanServiceSeed[] = [
     name: "Emergency SOS",
     plan: "go",
     slug: "sos-alerts",
+  },
+  {
+    audience: ["Hostel admin", "Warden", "Resident"],
+    blurb: "A 4-digit PIN and biometric unlock on the app and every web portal.",
+    module: "attendance-safety",
+    name: "Security PIN & Biometric Lock",
+    plan: "go",
+    slug: "app-lock",
   },
   // Communication
   {
@@ -490,10 +538,10 @@ export const DEFAULT_PLANS: PlansConfig = {
   modules: PLAN_MODULES,
   page: {
     ctaBody:
-      "Tell us how many beds you run across how many buildings and we will price it as one account — including when the answer is three separate Go plans.",
+      "The Max plan runs branches under one account — each with its own rooms, rent, staff and public page, all side by side in Overall on one bill. Need more buildings than Max covers? Talk to us.",
     ctaHref: "/contact",
     ctaLabel: "Talk to {siteName}",
-    ctaTitle: "Running more than one property?",
+    ctaTitle: "Running more than one property? Max has branches built in.",
     featuredBadge: "Most chosen",
     footnote:
       "Prices are per hostel and exclude applicable taxes. Move between plans as your resident count changes — {siteName} keeps your data either way.",

@@ -308,7 +308,7 @@ function PublicHostelListingPageContent() {
           {/* Left Sidebar Filter Column */}
           <aside
             className={cn(
-              "space-y-6 lg:sticky lg:top-24",
+              "space-y-6 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-1 lg:[scrollbar-width:thin] lg:[scrollbar-color:transparent_transparent] lg:hover:[scrollbar-color:var(--border)_transparent]",
               !mobileFiltersOpen && "hidden lg:block",
             )}
           >

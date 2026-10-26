@@ -11,6 +11,7 @@ import { type SessionUser, useSessionStore } from "@/stores/session-store";
 import { signOutRequest } from "@/lib/sign-out";
 import { GetAppDialog } from "@/components/get-app-dialog";
 import { PinSetupDialog } from "@/components/pin-setup-dialog";
+import { AuthLoadingOverlay } from "@/components/auth-loading-overlay";
 import { HostelPreviewLink } from "@/components/hostel-preview-link";
 import { ThemeToggle } from "@/components/theme-toggle";
 import {
@@ -172,6 +173,7 @@ export function PortalAccount({
   const [getAppOpen, setGetAppOpen] = useState(false);
   const [pinSetup, setPinSetup] = useState<"offer" | "menu" | null>(null);
   const [user, setUser] = useState<CurrentUser | null>(null);
+  const sessionResolved = useSessionStore((state) => state.status === "resolved");
   const menuRef = useRef<HTMLDivElement>(null);
 
   usePinIdleLock(Boolean(user?.hasLockPin && !user.viaTemporaryCredential));
@@ -282,6 +284,15 @@ export function PortalAccount({
         if (event.key === "Escape") setMenuOpen(false);
       }}
     >
+      {/* First load of a portal (fresh tab, or straight from sign-in): hold
+          the screen until we know whose portal this is. A move between portal
+          pages already has the session and skips it. */}
+      {isLoading && !sessionResolved ? (
+        <AuthLoadingOverlay
+          title="Opening your portal"
+          message="Please wait while we secure your connection and load your workspace."
+        />
+      ) : null}
       <button
         aria-label="Account and portal actions"
         aria-expanded={menuOpen}

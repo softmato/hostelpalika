@@ -122,6 +122,7 @@ export function ClaimCard({
                 onPress={openEvidence}
               >
                 <Image
+                  cachePolicy="memory-disk"
                   contentFit="cover"
                   source={thumbnail}
                   style={{

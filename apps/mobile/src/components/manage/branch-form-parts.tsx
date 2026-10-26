@@ -521,7 +521,7 @@ export function PhotoGrid({
     <View className="flex-row flex-wrap gap-2">
       {photos.map((photo, at) => (
         <View key={photo.url} style={[tile, { overflow: "hidden" }]}>
-          <Image accessibilityLabel={photo.fileName} contentFit="cover" source={{ uri: uploadUri(photo.url) }} style={[tile, { backgroundColor: colors.muted }]} transition={120} />
+          <Image cachePolicy="memory-disk" accessibilityLabel={photo.fileName} contentFit="cover" source={{ uri: uploadUri(photo.url) }} style={[tile, { backgroundColor: colors.muted }]} transition={120} />
           {cover && at === 0 ? (
             <View className="absolute bottom-2 left-2 rounded-full bg-primary px-2 py-0.5">
               <Text className="text-xs font-semibold text-primary-foreground" variant={null}>
@@ -534,7 +534,7 @@ export function PhotoGrid({
       ))}
       {uploading.map((item) => (
         <View accessibilityLabel={`Uploading, ${Math.round(item.fraction * 100)}%`} key={item.id} style={[tile, { overflow: "hidden" }]}>
-          <Image contentFit="cover" source={{ uri: item.uri }} style={[tile, { opacity: 0.45 }]} />
+          <Image cachePolicy="memory-disk" contentFit="cover" source={{ uri: item.uri }} style={[tile, { opacity: 0.45 }]} />
           <View className="absolute inset-0 items-center justify-center">
             <Text className="font-semibold text-foreground" style={{ fontVariant: ["tabular-nums"] }} variant={null}>
               {Math.round(item.fraction * 100)}%

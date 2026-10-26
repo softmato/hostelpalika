@@ -100,6 +100,7 @@ export default function LoginScreen() {
         <View className="gap-8">
           <View className="items-center gap-3">
             <Image
+              cachePolicy="memory-disk"
               contentFit="contain"
               source={logo.mark}
               style={{ height: 64, width: 64 }}

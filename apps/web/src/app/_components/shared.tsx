@@ -46,6 +46,7 @@ import {
 } from "@/components/icons";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { optimizedImage } from "@/lib/image-url";
 import { useParams } from "next/navigation";
 import { useMemo, useState, type ReactNode } from "react";
 
@@ -542,31 +543,70 @@ export function Breadcrumbs({ items }: { items: { label: string; href?: string }
   );
 }
 
+/* Nearly every listing has these, so on a card they tell one hostel from no other. */
+const EVERYWHERE_FACILITIES =
+  /^(wi-?fi|internet|cctv|hot water|laundry|meals?|food|bedding|personal cupboard|shoe rack)/i;
+const SHARING_SIZE: Record<string, number> = { double: 2, five: 5, four: 4, single: 1, six: 6, triple: 3 };
+const HOSTEL_TYPE_LABEL: Record<HostelSummary["type"], string> = {
+  boys: "Boys",
+  "co-living": "Co-living",
+  girls: "Girls",
+};
+
+/** "Single to 4-sharing", from the rate card's room names. */
+function roomRange(roomTypes: string[]) {
+  const sizes = roomTypes
+    .map((name) => SHARING_SIZE[name.trim().split(/\s+/)[0].toLowerCase()])
+    .filter(Boolean);
+
+  if (sizes.length === 0) {
+    return roomTypes.length > 0 ? `${roomTypes.length} room types` : null;
+  }
+
+  const label = (size: number) => (size === 1 ? "Single" : `${size}-sharing`);
+  const low = Math.min(...sizes);
+  const high = Math.max(...sizes);
+
+  return low === high ? label(low) : `${label(low)} to ${high}-sharing`;
+}
+
 // HostelCard Component
 export function HostelCard({ hostel }: { hostel: HostelSummary }) {
+  const rooms = roomRange(hostel.roomTypes);
+  const extras = hostel.facilities.filter((facility) => !EVERYWHERE_FACILITIES.test(facility));
+  const facts = [
+    { Icon: Users, label: HOSTEL_TYPE_LABEL[hostel.type] },
+    rooms ? { Icon: BedDouble, label: rooms } : null,
+    { Icon: Building2, label: hostel.vacancy > 0 ? `${hostel.vacancy} beds free` : "Full" },
+  ].filter((fact) => fact !== null);
+
   return (
-    <motion.article
-      className="group overflow-hidden rounded-xl border border-border/80 bg-surface shadow-sm hover:shadow-md transition-all flex flex-col h-full"
-      transition={{ duration: 0.2 }}
-      whileHover={{ y: -4 }}
-    >
-      <Link href={`/hostels/${hostel.slug}`} className="flex flex-col h-full">
-        <div className="relative h-40 overflow-hidden shrink-0">
-          <div
-            className="h-full w-full bg-cover bg-center transition duration-500 group-hover:scale-105"
-            style={{ backgroundImage: `url("${hostel.image}")` }}
+    // Plain CSS hover, not framer-motion: rows of these sit under a scrolling
+    // cursor, and a JS animation per card made the page stutter.
+    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/70 bg-surface shadow-sm transition-[transform,box-shadow] duration-200 hover:-translate-y-[3px] hover:shadow-md">
+      <Link href={`/hostels/${hostel.slug}`} className="flex h-full flex-col">
+        <div className="relative h-40 shrink-0 overflow-hidden">
+          {/* Lazy and off-thread: a background image is fetched and decoded for
+              every card at once, even the ones scrolled out of view. */}
+          {/* eslint-disable-next-line @next/next/no-img-element -- authenticated-redirect file URLs, not optimizable */}
+          <img
+            alt=""
+            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            decoding="async"
+            loading="lazy"
+            src={optimizedImage(hostel.image, 640)}
           />
           <div className="absolute left-3 top-3">
             <StatusPill
               tone="success"
-              className="text-[10px] font-bold py-0.5 px-2 bg-emerald-50 text-emerald-700 border border-emerald-100/50"
+              className="border border-emerald-100/50 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700"
             >
               Verified
             </StatusPill>
           </div>
           <button
             aria-label="Save hostel"
-            className="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full bg-surface/85 text-muted-foreground transition hover:text-danger hover:bg-surface"
+            className="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full bg-surface/85 text-muted-foreground transition hover:bg-surface hover:text-danger"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -576,54 +616,62 @@ export function HostelCard({ hostel }: { hostel: HostelSummary }) {
             <Heart className="size-4" />
           </button>
         </div>
-        <div className="space-y-2.5 p-3.5 flex-1 flex flex-col justify-between">
-          <div className="space-y-1">
+        <div className="flex flex-1 flex-col gap-3 p-4">
+          <div>
             <div className="flex items-start justify-between gap-2">
               <h3
-                className="font-bold text-sm text-foreground group-hover:text-brand-teal transition line-clamp-1"
+                className="line-clamp-1 text-sm font-bold text-foreground transition group-hover:text-brand-teal"
                 title={hostel.name}
               >
                 {hostel.name}
               </h3>
-              <span className="inline-flex items-center gap-0.5 text-xs font-bold text-foreground shrink-0">
-                <Star className="size-3.5 fill-warning text-warning" />
-                {hostel.rating}{" "}
-                <span className="text-[10px] font-normal text-muted-foreground">
-                  ({hostel.reviews})
+              {hostel.reviews > 0 ? (
+                <span className="inline-flex shrink-0 items-center gap-0.5 text-xs font-bold text-foreground">
+                  <Star className="size-3.5 fill-warning text-warning" />
+                  {hostel.rating}
+                  <span className="text-[10px] font-normal text-muted-foreground">({hostel.reviews})</span>
                 </span>
-              </span>
+              ) : (
+                <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10px] font-semibold text-muted-foreground">
+                  New
+                </span>
+              )}
             </div>
-            <p className="text-[11px] text-muted-foreground flex items-center gap-1 font-medium">
-              {hostel.area}, {hostel.city}
+            <p className="mt-0.5 flex items-center gap-1 text-[11px] font-medium text-muted-foreground">
+              <MapPin className="size-3 shrink-0" />
+              <span className="line-clamp-1">
+                {hostel.area}, {hostel.city}
+              </span>
             </p>
           </div>
 
-          <div className="space-y-2.5">
-            <p className="font-extrabold text-sm text-foreground">
-              {formatMoney(hostel.price)}{" "}
-              <span className="text-[10px] font-normal text-muted-foreground">
-                / month
+          <div className="flex flex-wrap gap-1.5">
+            {facts.map(({ Icon, label }) => (
+              <span
+                className="inline-flex items-center gap-1 rounded-md bg-muted/70 px-2 py-1 text-[10px] font-semibold text-foreground/80"
+                key={label}
+              >
+                <Icon className="size-3 text-brand-teal" />
+                {label}
               </span>
-            </p>
+            ))}
+          </div>
 
-            <div className="flex items-center justify-between border-t border-border/50 pt-2 text-[10px] font-semibold text-muted-foreground">
-              <span className="flex items-center gap-1">
-                <Building2 className="size-3.5 text-muted-foreground/80" />
-                Vacant {hostel.vacancy}
-              </span>
-              <span className="flex items-center gap-1">
-                <Wifi className="size-3.5 text-muted-foreground/80" />
-                Wi-Fi
-              </span>
-              <span className="flex items-center gap-1">
-                <Utensils className="size-3.5 text-muted-foreground/80" />
-                Food
-              </span>
-            </div>
+          <div className="mt-auto flex items-end justify-between gap-2 border-t border-border/50 pt-3">
+            <p className="text-sm font-extrabold text-foreground">
+              {formatMoney(hostel.price)}
+              <span className="text-[10px] font-normal text-muted-foreground"> / month</span>
+            </p>
+            {extras.length > 0 ? (
+              <p className="line-clamp-1 text-right text-[10px] font-medium text-muted-foreground">
+                {extras.slice(0, 2).join(" · ")}
+                {extras.length > 2 ? ` · +${extras.length - 2}` : ""}
+              </p>
+            ) : null}
           </div>
         </div>
       </Link>
-    </motion.article>
+    </article>
   );
 }
 
@@ -641,7 +689,7 @@ export function HostelListCard({ hostel }: { hostel: HostelSummary }) {
       >
         <div
           className="h-full w-full bg-cover bg-center transition duration-500 group-hover:scale-105"
-          style={{ backgroundImage: `url("${hostel.image}")` }}
+          style={{ backgroundImage: `url("${optimizedImage(hostel.image, 640)}")` }}
         />
         <div className="absolute left-3 top-3">
           <StatusPill

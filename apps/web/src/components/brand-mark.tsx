@@ -93,7 +93,7 @@ export function BrandWordmark({
             )}
             key={segment.from}
             style={{
-              backgroundImage: "url(/brand/hostelpalika-wordmark.png)",
+              backgroundImage: "url(/brand/hostelpalika-wordmark.webp)",
               backgroundPosition: `${-segment.from * scale}px 0`,
               backgroundSize: `${WORDMARK.width * scale}px ${height}px`,
               opacity: hidden ? 0 : 1,

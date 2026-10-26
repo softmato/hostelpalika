@@ -170,8 +170,8 @@
   --color-field: var(--field);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-poppins);
-  --font-display: var(--font-poppins);
+  --font-heading: var(--font-open-sans);
+  --font-display: var(--font-open-sans);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -210,8 +210,8 @@ body {
 }
 
 ::selection {
-  background: color-mix(in srgb, var(--primary) 22%, transparent);
-  color: var(--primary-foreground);
+  background: var(--primary);
+  color: #fff;
 }
 
 ::-webkit-scrollbar {

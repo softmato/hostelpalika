@@ -158,7 +158,7 @@ function PerkCard({ index, onPress, perk }: { index: number; onPress: () => void
         onPress={onPress}
       >
         {image ? (
-          <Image contentFit="cover" source={{ uri: image }} style={{ aspectRatio: 1, width: "100%" }} />
+          <Image cachePolicy="memory-disk" contentFit="cover" source={{ uri: image }} style={{ aspectRatio: 1, width: "100%" }} />
         ) : (
           <View className="aspect-square w-full items-center justify-center bg-primary/10">
             <Glyph color={colors.primary} name={feeOff ? "pricetag" : "gift"} size={40} />

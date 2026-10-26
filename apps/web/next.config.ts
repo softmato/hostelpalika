@@ -17,6 +17,17 @@ const { loadEnvConfig } = require("@next/env") as typeof import("@next/env");
 
 loadEnvConfig(repoRoot);
 
+/** Remote photo hosts the public pages send through `/_next/image` (lib/image-url.ts). */
+const OPTIMIZED_IMAGE_HOSTS = [
+  "images.unsplash.com",
+  "lh3.googleusercontent.com",
+  "commons.wikimedia.org",
+  "upload.wikimedia.org",
+  ...[process.env.R2_PUBLIC_URL, process.env.NEXT_PUBLIC_APP_URL]
+    .filter((url): url is string => Boolean(url?.startsWith("https://")))
+    .map((url) => new URL(url).hostname),
+];
+
 /**
  * Security response headers (PHASES.md §5.1 — the "Helmet.js" item; Next serves
  * these itself, so no middleware is involved).
@@ -340,9 +351,16 @@ const nextConfig: NextConfig = {
   env: {
     NEXT_PUBLIC_GOOGLE_CLIENT_ID: process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID,
     GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    NEXT_PUBLIC_IMAGE_HOSTS: OPTIMIZED_IMAGE_HOSTS.join(","),
   },
+  // Back/forward to a page seen in the last minute reuses it instead of refetching.
+  experimental: { staleTimes: { dynamic: 60 } },
   images: {
-    remotePatterns: [{ hostname: "lh3.googleusercontent.com", protocol: "https" }],
+    // 30 days: a replaced photo is a new upload under a new key, so a long life costs nothing.
+    minimumCacheTTL: 2592000,
+    remotePatterns: [
+      ...OPTIMIZED_IMAGE_HOSTS.map((hostname) => ({ hostname, protocol: "https" as const })),
+    ],
   },
 };
 

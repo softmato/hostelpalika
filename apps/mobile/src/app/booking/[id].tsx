@@ -153,6 +153,7 @@ export default function BookingScreen() {
           <View className="flex-row items-start gap-3">
             {cover ? (
               <Image
+                cachePolicy="memory-disk"
                 accessibilityLabel={data.hostel.name}
                 contentFit="cover"
                 source={{ uri: cover }}

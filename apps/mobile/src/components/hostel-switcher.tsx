@@ -133,6 +133,7 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
   const tile = (name: GlyphName, on: boolean, image?: string | null) =>
     image ? (
       <Image
+        cachePolicy="memory-disk"
         contentFit="cover"
         source={{ uri: image }}
         style={{
@@ -172,6 +173,7 @@ export function HostelSwitcher({ compact = false }: { compact?: boolean }) {
       >
         {headerImage ? (
           <Image
+            cachePolicy="memory-disk"
             contentFit="cover"
             source={{ uri: headerImage }}
             style={{ borderRadius: 999, height: 26, width: 26 }}

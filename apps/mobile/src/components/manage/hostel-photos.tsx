@@ -266,6 +266,7 @@ export function PhotoStrip({
               }
             >
               <Image
+                cachePolicy="memory-disk"
                 contentFit="cover"
                 source={{ uri }}
                 style={{ borderRadius: 12, height, width: large ? 148 : 120 }}

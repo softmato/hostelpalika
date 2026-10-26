@@ -268,6 +268,7 @@ function IdentityBlock({
         <View className="h-20 w-20 items-center justify-center overflow-hidden rounded-2xl border border-white/30 bg-white/15">
           {photo ? (
             <Image
+              cachePolicy="memory-disk"
               contentFit="cover"
               source={photo}
               style={{ height: 80, width: 80 }}

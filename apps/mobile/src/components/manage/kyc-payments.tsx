@@ -64,7 +64,7 @@ export function KycPayments({ onSaved }: { onSaved: () => Promise<void> | void }
   return <View className="gap-4">
     <View className="flex-row"><Badge label={profile.usable ? "Ready to pay" : "Add a way to pay"} tone={profile.usable ? "success" : "neutral"} /></View>
     <Card className="items-center gap-3">
-      {setup.qrSource ? <Image source={setup.qrSource} contentFit="contain" style={{ width: 176, height: 176 }} /> : <Glyph name="qr-code" color={colors.mutedForeground} size={72} />}
+      {setup.qrSource ? <Image cachePolicy="memory-disk" source={setup.qrSource} contentFit="contain" style={{ width: 176, height: 176 }} /> : <Glyph name="qr-code" color={colors.mutedForeground} size={72} />}
       {profile.qrPayeeName ? <Text variant="subtitle">{profile.qrPayeeName}</Text> : null}
       {profile.qrPayeeNumber ? <Text variant="muted">{mask(profile.qrPayeeNumber)}</Text> : null}
       <View className="w-full flex-row gap-2"><Button className="flex-1" label={setup.qrBusy ? "Uploading…" : setup.qrSource ? "Change QR" : "Add QR"} disabled={Boolean(setup.qrBusy)} variant="outline" onPress={() => void setup.pickQr()} />{setup.qrSource ? <Button className="flex-1" label="Edit name" variant="outline" onPress={() => setEditing(editing === "qr" ? null : "qr")} /> : null}</View>

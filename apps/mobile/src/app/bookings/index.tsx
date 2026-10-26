@@ -75,6 +75,7 @@ export default function MyBookingsScreen() {
                 left={
                   cover ? (
                     <Image
+                      cachePolicy="memory-disk"
                       contentFit="cover"
                       source={{ uri: cover }}
                       style={{ borderRadius: 10, height: 44, width: 44 }}

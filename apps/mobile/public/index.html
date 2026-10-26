@@ -140,6 +140,71 @@
       </div>
     </div>
 
+    <div id="update" class="pwa-sheet" hidden>
+      <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="update-title">
+        <div class="handle"></div>
+        <h2 id="update-title">Update available</h2>
+        <div class="app">
+          <img src="/icon.png" alt="" />
+          <div><b>HostelPalika</b><span>A newer version is ready. You stay signed in and nothing is lost.</span></div>
+        </div>
+        <button type="button" data-action>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg>
+          <span>Update now</span>
+        </button>
+        <button type="button" class="later" data-later>Later</button>
+      </div>
+    </div>
+
+    <script>
+      /*
+       * Offers an update when a newer version has been deployed. The service worker
+       * caches nothing, so the open app is simply an old copy of the page: the
+       * exported index.html names the hashed entry bundle, so a different bundle
+       * name there than the one running means a new build. Checked at start, when
+       * the app comes back to the foreground and every ten minutes; "Update now"
+       * reloads, and sign-in and settings live in storage, so they survive.
+       * "Later" is remembered for that build only.
+       */
+      (function () {
+        var BUNDLE = /\/_expo\/static\/js\/[^"'\s>]+\.js/;
+        var running = null;
+        var scripts = document.scripts;
+        for (var i = 0; i < scripts.length && !running; i++) {
+          var found = BUNDLE.exec(scripts[i].src || "");
+          if (found) running = found[0];
+        }
+        if (!running) return; // dev server: nothing hashed to compare
+
+        var sheet = document.getElementById("update");
+        var postponed = null;
+        var latest = null;
+
+        sheet.querySelector("[data-action]").addEventListener("click", function () { location.reload(); });
+        sheet.querySelector("[data-later]").addEventListener("click", function () {
+          postponed = latest;
+          hide(sheet);
+        });
+
+        function check() {
+          if (!sheet.hidden || document.visibilityState === "hidden") return;
+          fetch("/app/index.html", { cache: "no-store" })
+            .then(function (response) { return response.ok ? response.text() : ""; })
+            .then(function (html) {
+              var found = BUNDLE.exec(html);
+              if (!found || found[0] === running || found[0] === postponed) return;
+              latest = found[0];
+              show(sheet);
+            })
+            .catch(function () {});
+        }
+
+        addEventListener("load", function () { setTimeout(check, 15000); });
+        document.addEventListener("visibilitychange", check);
+        setInterval(check, 10 * 60 * 1000);
+      })();
+    </script>
+
     <script>
       /*
        * Offers to put the app on the home screen, the same on Android and iPhone.

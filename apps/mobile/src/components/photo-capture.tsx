@@ -267,6 +267,7 @@ export function PhotoCapture({
           {photos.map((photo) => (
             <View className="relative" key={photo.uri}>
               <Image
+                cachePolicy="memory-disk"
                 contentFit="cover"
                 source={{ uri: photo.uri }}
                 style={{

@@ -694,6 +694,7 @@ export default function ManageSettingsScreen() {
           />
           {form.photoUrl ? (
             <Image
+              cachePolicy="memory-disk"
               contentFit="cover"
               source={{ uri: form.photoUrl }}
               style={{ borderRadius: 14, height: 160, width: "100%" }}

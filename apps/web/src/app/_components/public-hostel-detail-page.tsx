@@ -47,6 +47,7 @@ import type { NearbyPlaceType } from "@/lib/maps/types";
 import { cn } from "@/lib/utils";
 import type { BookingAvailabilityView } from "@/modules/bookings/booking-button";
 
+import { optimizedImage } from "@/lib/image-url";
 import { Breadcrumbs, PublicShell, StatusPill, formatMoney, humanize } from "./shared";
 import {
   DEFAULT_HOSTEL_IMAGE,
@@ -591,7 +592,7 @@ export function PublicHostelDetailPage({
           <div className="relative h-[310px] overflow-hidden rounded-lg border border-border bg-slate-900 shadow-sm md:h-[380px]">
             <div
               className="absolute inset-0 bg-cover bg-center transition-all duration-300"
-              style={{ backgroundImage: `url("${images[currentImgIdx]}")` }}
+              style={{ backgroundImage: `url("${optimizedImage(images[currentImgIdx], 1200)}")` }}
             />
             <div className="absolute left-4 top-4">
               <StatusPill className="bg-surface text-brand-teal shadow-sm" tone="success">
@@ -635,7 +636,7 @@ export function PublicHostelDetailPage({
               >
                 <span
                   className="absolute inset-0 bg-cover bg-center"
-                  style={{ backgroundImage: `url("${img}")` }}
+                  style={{ backgroundImage: `url("${optimizedImage(img, 384)}")` }}
                 />
               </button>
             ))}
@@ -650,7 +651,7 @@ export function PublicHostelDetailPage({
                 <span
                   className="absolute inset-0 bg-cover bg-center"
                   style={{
-                    backgroundImage: `url("${galleryPhotos[images.length]?.url ?? images[0]}")`,
+                    backgroundImage: `url("${optimizedImage(galleryPhotos[images.length]?.url ?? images[0], 384)}")`,
                   }}
                 />
                 <span className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/65 text-xs font-bold text-white transition hover:bg-slate-950/50">
@@ -831,7 +832,7 @@ export function PublicHostelDetailPage({
                     {room.photos.length > 0 ? (
                       <div
                         className="h-28 bg-cover bg-center"
-                        style={{ backgroundImage: `url("${room.photos[0]}")` }}
+                        style={{ backgroundImage: `url("${optimizedImage(room.photos[0], 384)}")` }}
                       />
                     ) : null}
                     <div className="flex flex-1 flex-col p-4">
@@ -958,7 +959,7 @@ export function PublicHostelDetailPage({
                         className="size-full object-cover transition group-hover:scale-[1.03]"
                         decoding="async"
                         loading="lazy"
-                        src={photo.url}
+                        src={optimizedImage(photo.url, 640)}
                       />
                       {photo.kind ? (
                         <span className="absolute left-2 top-2 rounded bg-slate-950/60 px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">
@@ -1430,7 +1431,7 @@ export function PublicHostelDetailPage({
                           className="size-full object-cover"
                           decoding="async"
                           loading="lazy"
-                          src={photo}
+                          src={optimizedImage(photo, 1200)}
                         />
                       </button>
                     ))}

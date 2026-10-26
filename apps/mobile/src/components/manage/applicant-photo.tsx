@@ -98,7 +98,7 @@ export function ApplicantPhotoPicker({
         style={{ height: 96, opacity: uploading ? 0.5 : 1, width: 96 }}
       >
         {value ? (
-          <Image contentFit="cover" source={{ uri: value.uri }} style={{ height: "100%", width: "100%" }} />
+          <Image cachePolicy="memory-disk" contentFit="cover" source={{ uri: value.uri }} style={{ height: "100%", width: "100%" }} />
         ) : (
           <Glyph color={colors.mutedForeground} name="person" size={44} />
         )}

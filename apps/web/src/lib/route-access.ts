@@ -188,6 +188,36 @@ export function protectedRouteRuleForPath(pathname: string) {
   return protectedRouteRules.find((rule) => pathMatchesPrefix(pathname, rule.prefix));
 }
 
+/**
+ * Accounts that live in a portal and never see the public site: `proxy.ts`
+ * sends them to their landing page before any public page renders. PUBLIC
+ * (and service providers, who are PUBLIC), team agents and cooks keep browsing.
+ */
+export const PORTAL_ONLY_ROLES: ReadonlySet<Role> = new Set([
+  Role.SUPERADMIN,
+  Role.PLATFORM_MODERATOR,
+  Role.HOSTEL_ADMIN,
+  Role.WARDEN,
+  Role.RESIDENT,
+  Role.GUARDIAN,
+]);
+
+/**
+ * Who goes where:
+ * - portal routes (`protectedRouteRules`): only their roles; anyone else is
+ *   sent to login or home before the page renders.
+ * - these front doors: a PORTAL_ONLY_ROLES account is sent to its portal
+ *   instead — opening the site, or Sign in / Sign up, while signed in.
+ * - every other public page: open to everyone, so a portal account can still
+ *   read a hostel, the terms or a pay link by typing its address.
+ * Keep in step with the literal matcher in `proxy.ts`.
+ */
+export const PORTAL_FRONT_DOORS = ["/", "/login", "/signup"] as const;
+
+export function isPortalFrontDoor(pathname: string) {
+  return (PORTAL_FRONT_DOORS as readonly string[]).includes(pathname);
+}
+
 export function landingPathForRole(role: Role | string) {
   return roleLandingPath[role as Role];
 }

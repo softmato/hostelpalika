@@ -1,0 +1,113 @@
+import { createElement } from "react";
+
+import {
+  AlarmClock,
+  BarChart3,
+  ChartNoAxesColumn,
+  Paintbrush,
+  PhoneCall,
+  Soup,
+  UserCheck,
+  Zap,
+  Bed,
+  BellRing,
+  Building2,
+  CalendarCheck,
+  ChefHat,
+  ClipboardCheck,
+  ClipboardList,
+  Coins,
+  FileSpreadsheet,
+  FileText,
+  Fingerprint,
+  Gift,
+  GitCompare,
+  HandCoins,
+  History,
+  IdCard,
+  Landmark,
+  LayoutDashboard,
+  Megaphone,
+  MapPinned,
+  Package,
+  PenTool,
+  Plug,
+  Receipt,
+  ScanSearch,
+  Share2,
+  ShieldCheck,
+  ShoppingBag,
+  Siren,
+  Star,
+  Tag,
+  TrendingUp,
+  Users,
+  Utensils,
+  Wallet,
+  Wrench,
+  type IconComponent,
+  type IconProps,
+} from "@/components/icons";
+import { ContentSectionIcon } from "@/components/content-sections";
+
+/** One distinct glyph per service, so no two cards on `/features` look alike. */
+const SERVICE_ICONS: Record<string, IconComponent> = {
+  admissions: Receipt,
+  "admission-agreements": PenTool,
+  "api-access": Plug,
+  "app-lock": Fingerprint,
+  "audit-log": History,
+  "credit-debit-statement": FileSpreadsheet,
+  "cook-portal": ChefHat,
+  "daily-attendance": CalendarCheck,
+  "dues-chasing": AlarmClock,
+  "expense-tracking": HandCoins,
+  "finance-reports": BarChart3,
+  "food-menu": Utensils,
+  "guardian-accounts": ShieldCheck,
+  "inventory-management": Package,
+  "late-fine-khata": Coins,
+  "maintenance-requests": Wrench,
+  "map-presence": MapPinned,
+  "meal-feedback": Soup,
+  "monthly-invoicing": FileText,
+  "move-checklist": ClipboardCheck,
+  "multi-property-control": Building2,
+  "notices": Megaphone,
+  notifications: BellRing,
+  "occupancy-forecast": TrendingUp,
+  "offer-program": Gift,
+  "operations-analytics": ChartNoAxesColumn,
+  "operations-dashboard": LayoutDashboard,
+  "payment-evidence": ScanSearch,
+  "priority-support": Zap,
+  "provider-network": Users,
+  "public-listing": Landmark,
+  "public-page-branding": Paintbrush,
+  "rate-card": Tag,
+  reconciliation: GitCompare,
+  "receipt-sharing": Share2,
+  "resident-directory": ClipboardList,
+  "resident-id-cards": IdCard,
+  reviews: Star,
+  "room-bed-map": Bed,
+  "sos-alerts": Siren,
+  "staff-cash": Wallet,
+  "supply-store": ShoppingBag,
+  "voice-notes": PhoneCall,
+  "warden-roles": UserCheck,
+};
+
+export function ServiceIcon({
+  fallbackSlug,
+  slug,
+  ...props
+}: IconProps & { fallbackSlug: string; slug: string }) {
+  const icon = SERVICE_ICONS[slug];
+
+  return icon ? (
+    createElement(icon, props)
+  ) : (
+    <ContentSectionIcon className={props.className ?? ""} slug={fallbackSlug} />
+  );
+}

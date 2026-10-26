@@ -89,6 +89,7 @@ export default function JoinLinkScreen() {
             <View className="items-center gap-2 rounded-3xl bg-card p-4" style={{ elevation: 3 }}>
               {data.qrDataUrl ? (
                 <Image
+                  cachePolicy="memory-disk"
                   accessibilityLabel="QR code for the join link"
                   source={{ uri: data.qrDataUrl }}
                   style={{ height: 180, opacity: data.enabled ? 1 : 0.3, width: 180 }}

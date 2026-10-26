@@ -118,6 +118,7 @@ function BranchList({ header }: { header: ReactNode }) {
                     // The switcher's 40pt tile, a step larger here where the list is the whole screen.
                     cover ? (
                       <Image
+                        cachePolicy="memory-disk"
                         contentFit="cover"
                         source={{ uri: cover }}
                         style={{ borderColor: colors.border, borderRadius: 14, borderWidth: 1, height: 52, width: 52 }}

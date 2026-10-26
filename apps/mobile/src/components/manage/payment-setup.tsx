@@ -317,6 +317,7 @@ export function PaymentQrCard({ setup }: { setup: PaymentSetup }) {
         <View className="flex-row items-center gap-4">
           {qrSource ? (
             <Image
+              cachePolicy="memory-disk"
               contentFit="cover"
               source={qrSource}
               style={{

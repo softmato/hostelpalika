@@ -3,6 +3,7 @@
 import { PublicShell } from "@/app/_components/shared";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { Calendar, Clock, Tag, User } from "@/components/icons";
+import { optimizedImage } from "@/lib/image-url";
 
 const buildPosts = (siteName: string) => [
   {
@@ -103,7 +104,7 @@ export function PublicBlogPage() {
             >
               <div
                 className="h-48 bg-cover bg-center"
-                style={{ backgroundImage: `url("${post.image}")` }}
+                style={{ backgroundImage: `url("${optimizedImage(post.image, 640)}")` }}
               />
               <div className="p-5">
                 <div className="mb-3 flex items-center gap-3 text-xs text-muted-foreground">

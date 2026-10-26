@@ -87,7 +87,7 @@ export function ApplicantDocumentsPicker({
                 style={{ height: 52, opacity: uploading ? 0.5 : 1, width: 82 }}
               >
                 {document ? (
-                  <Image contentFit="cover" source={{ uri: document.uri }} style={{ height: "100%", width: "100%" }} />
+                  <Image cachePolicy="memory-disk" contentFit="cover" source={{ uri: document.uri }} style={{ height: "100%", width: "100%" }} />
                 ) : (
                   <Glyph color={colors.mutedForeground} name="card" size={24} />
                 )}

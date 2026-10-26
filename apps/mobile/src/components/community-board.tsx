@@ -909,6 +909,7 @@ function Composer({
       <View className="flex-row items-start gap-2.5">
         {avatarUrl ? (
           <Image
+            cachePolicy="memory-disk"
             contentFit="cover"
             source={{ uri: avatarUrl }}
             style={{ borderRadius: AVATAR / 2, height: AVATAR, width: AVATAR }}
@@ -954,6 +955,7 @@ function Composer({
           {media.map((item) => (
             <View className="relative" key={item.assetId}>
               <Image
+                cachePolicy="memory-disk"
                 contentFit="cover"
                 source={{ uri: item.uri }}
                 style={{

@@ -64,6 +64,7 @@ export function UploadPreview({
           </Text>
         ) : (
           <Image
+            cachePolicy="memory-disk"
             accessibilityLabel={label}
             contentFit="cover"
             source={{ uri: uploadUri(attachment.url) }}
@@ -99,6 +100,7 @@ export function PhotoStrip({
       {photos.map((photo) => (
         <View className="overflow-hidden rounded-xl" key={photo.url}>
           <Image
+            cachePolicy="memory-disk"
             accessibilityLabel={photo.fileName}
             contentFit="cover"
             source={{ uri: uploadUri(photo.url) }}

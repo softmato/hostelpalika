@@ -261,6 +261,7 @@ function HeadCell({ hostel }: { hostel: ComparedHostel }) {
     >
       {coverUri ? (
         <Image
+          cachePolicy="memory-disk"
           contentFit="cover"
           source={{ uri: coverUri }}
           style={{ backgroundColor: colors.muted, height: 96 }}

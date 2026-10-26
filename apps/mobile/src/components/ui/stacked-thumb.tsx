@@ -37,6 +37,7 @@ export function StackedThumb({ photos }: { photos: string[] }) {
       {behind
         .map((uri, index) => (
           <Image
+            cachePolicy="memory-disk"
             contentFit="cover"
             key={uri}
             source={{ uri }}
@@ -56,6 +57,7 @@ export function StackedThumb({ photos }: { photos: string[] }) {
         .reverse()}
 
       <Image
+        cachePolicy="memory-disk"
         contentFit="cover"
         source={{ uri: photos[0] }}
         style={[layer, { borderWidth: behind.length > 0 ? 2 : 0 }]}

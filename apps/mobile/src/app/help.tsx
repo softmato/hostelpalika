@@ -168,7 +168,7 @@ export default function HelpScreen() {
                       {shot.durationMs ? <Text variant="caption">{clipLength(shot.durationMs)}</Text> : null}
                     </View>
                   ) : (
-                    <Image source={{ uri: shot.uri }} style={{ borderRadius: 12, height: 96, width: 72 }} />
+                    <Image cachePolicy="memory-disk" source={{ uri: shot.uri }} style={{ borderRadius: 12, height: 96, width: 72 }} />
                   )}
                 </Pressable>
                 <Pressable

@@ -14,7 +14,7 @@ import {
   X,
 } from "@/components/icons";
 import Link from "next/link";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 
 import { HostelSuggestions } from "@/components/hostel-suggestions";
 import { HostelMap } from "@/components/maps/hostel-map";
@@ -121,17 +121,25 @@ export function PublicComparePage() {
 
   // Seed a default selection (first up to 3) so a direct visit to /compare is
   // not empty. Zustand action in an effect — not React setState.
-  useEffect(() => {
-    if (compareIds.length === 0 && available.length >= 2) {
-      available.slice(0, 3).forEach((hostel) => toggleCompare(hostel.id));
-    }
-  }, [compareIds.length, available, toggleCompare]);
-
   // Guard against stale persisted ids (e.g. a hostel later unpublished).
   const validIds = useMemo(
     () => compareIds.filter((id) => available.some((hostel) => hostel.id === id)),
     [compareIds, available],
   );
+
+  // Nothing valid selected → drop stale ids and seed 3 random hostels.
+  const seeded = useRef(false);
+  useEffect(() => {
+    if (seeded.current || validIds.length > 0 || available.length < 2) {
+      return;
+    }
+    seeded.current = true;
+    compareIds.forEach((id) => removeCompare(id));
+    [...available]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 3)
+      .forEach((hostel) => toggleCompare(hostel.id));
+  }, [validIds.length, compareIds, available, toggleCompare, removeCompare]);
 
   const comparisonQuery = useCompareHostels(validIds);
 

@@ -656,6 +656,7 @@ function CityCard({ browseHref, city }: { browseHref: string; city: CitySummary 
     >
       {uri ? (
         <Image
+          cachePolicy="memory-disk"
           accessibilityLabel={city.city}
           contentFit="cover"
           source={{ uri }}
@@ -1051,6 +1052,7 @@ function SavedCard({
       <View>
         {uri ? (
           <Image
+            cachePolicy="memory-disk"
             accessibilityLabel={item.name}
             contentFit="cover"
             source={{ uri }}

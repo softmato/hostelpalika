@@ -110,6 +110,7 @@ function ReportedMedia({ media }: { media: AdminModeratedPost["media"] }) {
           }
         >
           <Image
+            cachePolicy="memory-disk"
             className="h-20 w-20 rounded-xl bg-muted"
             contentFit="cover"
             source={{ uri: communityMediaUrl(item.assetId, "MEDIUM") }}

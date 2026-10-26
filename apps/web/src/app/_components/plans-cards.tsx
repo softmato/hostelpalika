@@ -417,8 +417,9 @@ export function PlanCard({
     // vertical `scale()` on the card, which stretches the border radius and
     // every glyph inside it.
     <article
+      id={`plan-${plan.id}`}
       className={cn(
-        "relative flex w-full flex-col rounded-2xl border bg-surface p-6 shadow-sm transition-colors",
+        "relative flex w-full scroll-mt-32 flex-col rounded-2xl border bg-surface p-6 shadow-sm transition-colors",
         plan.featured
           ? "border-brand-teal/60 ring-1 ring-brand-teal/30"
           : "border-border hover:border-brand-teal/40",
@@ -878,12 +879,37 @@ export function PlansClosingCta({
           />
         </span>
       ) : (
-        <Link
-          className="inline-flex shrink-0 items-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-brand-teal shadow-sm transition hover:bg-emerald-50"
-          href={ctaHref || "/contact"}
-        >
-          {fillPlaceholders(ctaLabel, identity)}
-        </Link>
+        // The banner sells the Max plan; a saved "/contact" predates that.
+        !ctaHref || ctaHref === "/contact" ? (
+          <button
+            className="inline-flex shrink-0 items-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-brand-teal shadow-sm transition hover:bg-emerald-50"
+            onClick={() => {
+              const card = document.getElementById("plan-max");
+              card?.scrollIntoView({ behavior: "smooth", block: "start" });
+              // Three seconds: the border pulses out from the card, then fades.
+              card?.animate(
+                [
+                  { borderColor: "var(--brand-teal, #0a8a4b)", boxShadow: "0 0 0 0 rgba(10,138,75,.55)" },
+                  { borderColor: "var(--brand-teal, #0a8a4b)", boxShadow: "0 0 0 10px rgba(10,138,75,.18)", offset: 0.35 },
+                  { borderColor: "var(--brand-teal, #0a8a4b)", boxShadow: "0 0 0 4px rgba(10,138,75,.4)", offset: 0.6 },
+                  { borderColor: "var(--brand-teal, #0a8a4b)", boxShadow: "0 0 0 12px rgba(10,138,75,.12)", offset: 0.85 },
+                  { boxShadow: "0 0 0 0 rgba(10,138,75,0)" },
+                ],
+                { duration: 3000, easing: "ease-out" },
+              );
+            }}
+            type="button"
+          >
+            {fillPlaceholders(ctaLabel, identity)}
+          </button>
+        ) : (
+          <Link
+            className="inline-flex shrink-0 items-center rounded-xl bg-white px-6 py-3 text-sm font-semibold text-brand-teal shadow-sm transition hover:bg-emerald-50"
+            href={ctaHref}
+          >
+            {fillPlaceholders(ctaLabel, identity)}
+          </Link>
+        )
       )}
     </>
   );

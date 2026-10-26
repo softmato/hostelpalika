@@ -627,6 +627,7 @@ function ProviderWizard({
                 {selfieUri ? (
                   // Resolved, never raw: without R2 the upload route answers a relative `/uploads/…` path.
                   <Image
+                    cachePolicy="memory-disk"
                     accessibilityLabel="Your photo"
                     contentFit="cover"
                     source={{ uri: selfieUri }}

@@ -235,6 +235,7 @@ function DeckCard({
         style={{ backgroundColor: tint }}
       >
         <Image
+          cachePolicy="memory-disk"
           accessibilityIgnoresInvertColors
           contentFit="contain"
           source={{ uri: tradeArtUri(card.id) }}

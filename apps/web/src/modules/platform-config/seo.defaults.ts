@@ -348,7 +348,7 @@ export const DEFAULT_SEO: SeoConfig = {
     home: {
       description:
         "Find verified boys, girls and co-living hostels across Nepal with real photos, rent and reviews. Hostel owners run residents, fees, food and safety on {siteName}.",
-      title: "{siteName} — Hostels in Nepal & Hostel Management System",
+      title: "{siteName} - A Hostel Management Eco-Software",
     },
     hostels: {
       description:

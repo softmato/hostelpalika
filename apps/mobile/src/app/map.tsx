@@ -1301,6 +1301,7 @@ function PreviewCard({
         {photos.length > 0 ? (
           photos.map((uri) => (
             <Image
+              cachePolicy="memory-disk"
               contentFit="cover"
               key={uri}
               source={{ uri }}
@@ -1755,6 +1756,7 @@ function NavCard({
       <View className="flex-row items-center gap-3">
         {cover ? (
           <Image
+            cachePolicy="memory-disk"
             contentFit="cover"
             source={{ uri: cover }}
             style={{ borderRadius: 14, height: 48, width: 48 }}
@@ -1887,6 +1889,7 @@ function GateCard({ guide }: { guide: { note: string; photoUrl: string } }) {
     >
       {photo ? (
         <Image
+          cachePolicy="memory-disk"
           contentFit="cover"
           source={{ uri: photo }}
           style={{ backgroundColor: colors.muted, borderRadius: 14, height: 64, width: 64 }}

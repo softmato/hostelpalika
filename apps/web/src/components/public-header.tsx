@@ -14,7 +14,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 
 import { checkAuthWithRefresh } from "@/lib/auth-check";
 import { landingPathForRole } from "@/lib/route-access";
@@ -30,7 +30,14 @@ import {
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { PublicPushOptIn } from "@/components/public-push-optin";
-import { useSessionStore, type SessionUser } from "@/stores/session-store";
+import {
+  readHeaderSnapshot,
+  useSessionStore,
+  type SessionUser,
+} from "@/stores/session-store";
+
+// The snapshot only matters until the store resolves, so nothing to listen to.
+const noSubscribe = () => () => {};
 import { ClaimHostelButton } from "@/app/_components/held-hostel-claim";
 import { signOutRequest } from "@/lib/sign-out";
 
@@ -150,9 +157,14 @@ export function PublicHeader({ active }: PublicHeaderProps) {
   const router = useRouter();
   // Read from the shared session cache, so a remount on navigation paints the
   // right header at once instead of starting over from "signed out".
-  const user = useSessionStore((state) => state.user);
+  const sessionUser = useSessionStore((state) => state.user);
   const setUser = useSessionStore((state) => state.setUser);
   const isSessionChecked = useSessionStore((state) => state.status === "resolved");
+  // A fresh tab has no store yet: paint what this browser last saw, before the
+  // first frame, and let `/auth/me` correct it.
+  const snapshot = useSyncExternalStore(noSubscribe, readHeaderSnapshot, () => undefined);
+  const user = isSessionChecked ? sessionUser : (snapshot ?? null);
+  const isHeaderReady = isSessionChecked || snapshot !== undefined;
   const [menuOpen, setMenuOpen] = useState(false);
   const [getAppOpen, setGetAppOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
@@ -214,6 +226,23 @@ export function PublicHeader({ active }: PublicHeaderProps) {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const signedOutActions = (
+    <div className="flex items-center gap-2">
+      <Link
+        href="/login"
+        className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted sm:px-4"
+      >
+        Sign In
+      </Link>
+      <Link
+        href="/signup"
+        className="hidden whitespace-nowrap rounded-lg bg-brand-teal px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:brightness-110 min-[400px]:inline-flex"
+      >
+        Sign Up
+      </Link>
+    </div>
+  );
 
   async function handleLogout() {
     await signOutRequest();
@@ -285,8 +314,8 @@ export function PublicHeader({ active }: PublicHeaderProps) {
         <div className="flex items-center gap-2">
           <ThemeToggle className="hidden sm:inline-flex" />
           {/* A hostel this account took off the platform, still claimable (docs/HOSTEL_LEAVE_PLATFORM.md). */}
-          {isSessionChecked && user ? <ClaimHostelButton /> : null}
-          {isSessionChecked ? (
+          {isSessionChecked && sessionUser ? <ClaimHostelButton /> : null}
+          {isHeaderReady ? (
             user ? (
               <div ref={menuRef} className="relative">
                 <button
@@ -391,23 +420,14 @@ export function PublicHeader({ active }: PublicHeaderProps) {
                 )}
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <Link
-                  href="/login"
-                  className="whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-foreground transition hover:bg-muted sm:px-4"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/signup"
-                  className="hidden whitespace-nowrap rounded-lg bg-brand-teal px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:brightness-110 min-[400px]:inline-flex"
-                >
-                  Sign Up
-                </Link>
-              </div>
+              signedOutActions
             )
           ) : (
-            <span className="inline-flex h-10 w-20 rounded-lg bg-muted sm:w-28 md:w-32" />
+            // Same box as the real buttons, so the centred nav does not slide
+            // when the session answer lands.
+            <div aria-hidden="true" className="invisible">
+              {signedOutActions}
+            </div>
           )}
           <button
             type="button"

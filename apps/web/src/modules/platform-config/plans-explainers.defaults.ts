@@ -408,5 +408,71 @@ export const DEFAULT_SERVICE_EXPLAINERS: Record<string, ServiceExplainer> = {
       "Everyone sharing the owner's login is one resignation away from a problem, and it makes every record of who did what meaningless.",
     ],
   },
+  "expense-tracking": {
+    how: [
+      "The owner, wardens and cooks add an expense from the app. The owner decides who needs a bill photo, and totals and category bars update as entries come in.",
+    ],
+    what: [
+      "Every expense the hostel makes, logged with the bill photo, a category and the branch it belongs to.",
+    ],
+    why: [
+      "Spending kept in a notebook is reconstructed at month end. An entry made when the money leaves, with the bill attached, is the one that still matches in March.",
+    ],
+  },
+  "receipt-sharing": {
+    how: [
+      "Share the image to HostelPalika from the phone's share sheet. The details are read from it and saved. The same receipt is never saved twice across a hostel and its branches.",
+    ],
+    what: [
+      "A bill or payment receipt shared from another app straight into HostelPalika, where it is read and saved as an expense.",
+    ],
+    why: [
+      "Retyping a bill is where amounts go wrong and receipts get lost. Sharing it takes seconds, and the duplicate check keeps two wardens from recording the same bill.",
+    ],
+  },
+  "credit-debit-statement": {
+    how: [
+      "Rent received, expenses paid and cash transfers appear as dated entries. Money handed to a warden is shown as a transfer, not as spending. Export it as a PDF.",
+    ],
+    what: [
+      "A statement of every credit and debit with a running balance, for a month or any range.",
+    ],
+    why: [
+      "An owner should read the position of the hostel from one page and hand the same page to an accountant. A statement that mixes transfers into spending reads wrong.",
+    ],
+  },
+  "staff-cash": {
+    how: [
+      "The owner records the handover for a branch. The warden taps Got it before it counts. The box is what was accepted, minus what that warden has spent.",
+    ],
+    what: [
+      "Cash handed from the owner to a warden, accepted by the warden with one tap, and tracked as a box.",
+    ],
+    why: [
+      "Petty cash goes missing in the gap between handing it over and writing it down. Confirming each handover on both sides closes that gap.",
+    ],
+  },
+  "late-fine-khata": {
+    how: [
+      "The owner sets the free days and the daily rate. The fine is recalculated each day on unpaid rent and can be waived. Khata items given to a resident appear as a line on the next rent bill.",
+    ],
+    what: [
+      "A daily late fine once the free days pass, and khata items the hostel gives on credit that are added to the next rent bill.",
+    ],
+    why: [
+      "Late rent needs a rule everyone knows in advance, and small credit needs a record. Both belong on the bill the resident already reads.",
+    ],
+  },
+  "app-lock": {
+    how: [
+      "The PIN is set once on the account. The app asks for it, or the biometric, when it opens. Web portals ask for it before they show anything.",
+    ],
+    what: [
+      "A 4-digit PIN, with biometric unlock on the phone, that keeps the app and the web portals closed to anyone else.",
+    ],
+    why: [
+      "A phone left on a table should not expose resident records and money. A PIN the account owns follows them across the app and the web.",
+    ],
+  },
 };
 

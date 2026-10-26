@@ -47,6 +47,18 @@ function coerceSection<Section extends SiteConfigSection>(
     return DEFAULT_SITE_CONFIG[section];
   }
 
+  if (section === "plans") {
+    // A saved catalogue predates services shipped since; add the missing ones
+    // (by slug) so new features reach a hostel-owner-edited page too.
+    const saved = parsed.data as SiteConfig["plans"];
+    const have = new Set(saved.services.map((service) => service.slug));
+    const added = DEFAULT_SITE_CONFIG.plans.services.filter((service) => !have.has(service.slug));
+
+    return (added.length
+      ? { ...saved, services: [...saved.services, ...added] }
+      : saved) as SiteConfig[Section];
+  }
+
   return parsed.data as SiteConfig[Section];
 }
 

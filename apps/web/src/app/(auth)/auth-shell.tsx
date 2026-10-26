@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 
 import { BrandMark } from "@/components/brand-mark";
 import { useSiteConfig } from "@/components/site-config-provider";
+import { optimizedImage } from "@/lib/image-url";
 
 type AuthShellProps = {
   children: ReactNode;
@@ -83,7 +84,7 @@ export function AuthShell({ children, footer, mode }: AuthShellProps) {
         <div
           aria-hidden
           className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url("${LOBBY_IMAGE}")` }}
+          style={{ backgroundImage: `url("${optimizedImage(LOBBY_IMAGE, 1200)}")` }}
         />
         <div
           aria-hidden

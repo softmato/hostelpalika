@@ -53,6 +53,7 @@ type ItemDraft = {
 function ItemThumb({ assetId }: { assetId: string }) {
   return (
     <Image
+      cachePolicy="memory-disk"
       contentFit="cover"
       source={{ uri: assetUrl(assetId, "THUMBNAIL") }}
       style={{ borderRadius: 9, height: 32, width: 32 }}
@@ -386,6 +387,7 @@ export default function KhataScreen() {
               >
                 {draft.imageAssetId ? (
                   <Image
+                    cachePolicy="memory-disk"
                     contentFit="cover"
                     source={{ uri: assetUrl(draft.imageAssetId, "MEDIUM") }}
                     style={{ height: 64, width: 64 }}

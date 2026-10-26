@@ -1600,6 +1600,7 @@ function AttachedFile({
            a tall screenshot into a square leaves a thumbnail that is mostly
            background. */
         <Image
+          cachePolicy="memory-disk"
           contentFit="cover"
           source={{ uri }}
           style={{ backgroundColor: colors.muted, borderRadius: 12, height: 44, width: 44 }}

@@ -1,6 +1,7 @@
 "use client";
 
 import { clearPersistedQueryCache } from "@/components/query-provider";
+import { clearHeaderSnapshot } from "@/stores/session-store";
 
 /**
  * Ends the browser session.
@@ -19,5 +20,6 @@ export async function signOutRequest() {
     await fetch("/api/v1/auth/logout", { credentials: "include", method: "POST" });
   } finally {
     clearPersistedQueryCache();
+    clearHeaderSnapshot();
   }
 }

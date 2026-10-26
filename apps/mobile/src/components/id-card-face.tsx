@@ -536,6 +536,7 @@ function Portrait({
       >
         {photo ? (
           <Image
+            cachePolicy="memory-disk"
             contentFit="cover"
             source={photo}
             style={{ height: "100%", width: "100%" }}
@@ -596,6 +597,7 @@ function Qr({
     >
       {qrDataUrl ? (
         <Image
+          cachePolicy="memory-disk"
           contentFit="contain"
           source={{ uri: qrDataUrl }}
           style={{ height: size * s, width: size * s }}

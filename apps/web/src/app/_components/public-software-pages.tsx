@@ -1,4 +1,4 @@
-import { ArrowRight } from "@/components/icons";
+import { ArrowRight, BadgeCheck, ShieldCheck, Users } from "@/components/icons";
 import Link from "next/link";
 
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
@@ -16,6 +16,9 @@ import type { PlanTier } from "@/modules/platform-config/site-config.validation"
 
 import { OwnerCallout, SeoChip, SeoCrumbs, SeoFaq, SoftmatoCredit } from "./public-seo-blocks";
 import { PublicShell } from "./shared";
+import { ServiceIcon } from "./service-icon";
+import { SoftwareHeroVisual } from "./software-hero";
+import { ExtrasSection, ModuleAtlas, RolesSection, WorkflowSection } from "./software-overview";
 
 /**
  * The pages written for hostel owners searching for software: the
@@ -51,6 +54,14 @@ function PlanBadge({ plan }: { plan: PlanTier | null }) {
   );
 }
 
+function SectionTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="font-heading text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+      {children}
+    </h2>
+  );
+}
+
 function ClosingBlock({ title }: { title: string }) {
   return (
     <section className="mt-16 space-y-6">
@@ -74,6 +85,8 @@ export function SoftwarePage({
   page: ReturnType<typeof resolveSoftwarePage>;
   plans: PlanTier[];
 }) {
+  const [lead, ...moreIntro] = page.intro;
+
   return (
     <PublicShell>
       <div className="mx-auto w-full max-w-[1200px] px-4 pb-20 pt-8 sm:px-6">
@@ -84,94 +97,101 @@ export function SoftwarePage({
           ]}
         />
 
-        <header className="max-w-3xl">
-          <Eyebrow>For hostel owners</Eyebrow>
-          <h1 className="mt-2 font-heading text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
-            {page.headline}
-          </h1>
-          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{page.subtitle}</p>
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Link className={PRIMARY_BUTTON} href="/register-hostel">
-              List your hostel
-              <ArrowRight className="size-4" />
-            </Link>
-            <Link className={SECONDARY_BUTTON} href="/plans-pricing">
-              See plans & pricing
-            </Link>
+        <header className="grid items-center gap-10 lg:grid-cols-[1.15fr_1fr]">
+          <div>
+            <p className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+              <ShieldCheck className="size-4" />
+              For hostel owners
+            </p>
+            <h1 className="mt-4 font-heading text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+              {page.headline}
+            </h1>
+            <p className="mt-4 max-w-xl text-lg leading-relaxed text-muted-foreground">
+              {page.subtitle}
+            </p>
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <Link className={PRIMARY_BUTTON} href="/register-hostel">
+                List your hostel
+                <ArrowRight className="size-4" />
+              </Link>
+              <Link className={SECONDARY_BUTTON} href="/plans-pricing">
+                See plans & pricing
+              </Link>
+              <GooglePlayBadge />
+            </div>
           </div>
-          <GooglePlayBadge className="-ml-2.5 mt-3" />
+          <SoftwareHeroVisual />
         </header>
 
-        {page.intro.length ? (
-          <div className="mt-10 max-w-3xl space-y-4 text-base leading-relaxed text-muted-foreground">
-            {page.intro.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
+        {lead ? (
+          <div className="mt-12 max-w-3xl text-base leading-relaxed text-muted-foreground">
+            <p>{lead}</p>
+            {moreIntro.length ? (
+              <details className="group mt-3">
+                <summary className="cursor-pointer list-none text-sm font-bold text-primary group-open:hidden">
+                  Read more
+                </summary>
+                <div className="space-y-3">
+                  {moreIntro.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                </div>
+              </details>
+            ) : null}
           </div>
         ) : null}
 
-        {modules.length ? (
-          <section className="mt-16">
-            <h2 className="font-heading text-2xl font-bold text-foreground">
-              Everything a hostel runs on
-            </h2>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {modules.map((entry) => (
-                <Link
-                  className="group rounded-2xl border border-border bg-surface p-5 transition hover:border-primary/50 hover:shadow-sm"
-                  href={`/features/${entry.slug}`}
-                  key={entry.slug}
-                >
-                  <ModuleIcon slug={entry.module.icon} />
-                  <h3 className="mt-4 font-heading text-base font-bold text-foreground group-hover:text-primary">
-                    {entry.headline}
-                  </h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-                    {entry.module.description}
-                  </p>
-                  <p className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-primary">
-                    {entry.services.length} features
-                    <ArrowRight className="size-3.5" />
-                  </p>
-                </Link>
-              ))}
-            </div>
-          </section>
-        ) : null}
+        <RolesSection />
+        <WorkflowSection />
+        <ModuleAtlas modules={modules} />
 
         {page.sections.length ? (
-          <section className="mt-16 grid gap-4 md:grid-cols-2">
-            {page.sections.map((section) => (
-              <div className="rounded-2xl border border-border bg-surface p-6" key={section.title}>
-                <div className="flex items-center gap-3">
-                  <ModuleIcon slug={section.icon} />
-                  <h2 className="font-heading text-lg font-bold text-foreground">{section.title}</h2>
+          <section className="mt-20 grid gap-4 md:grid-cols-2">
+            {page.sections.map((section) => {
+              const [first, ...rest] = section.body;
+
+              return (
+                <div className="rounded-2xl bg-muted/40 p-6" key={section.title}>
+                  <div className="flex items-center gap-3">
+                    <ModuleIcon slug={section.icon} />
+                    <h2 className="font-heading text-lg font-bold text-foreground">{section.title}</h2>
+                  </div>
+                  {first ? (
+                    <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{first}</p>
+                  ) : null}
+                  {rest.length ? (
+                    <details className="group mt-2">
+                      <summary className="cursor-pointer list-none text-sm font-bold text-primary group-open:hidden">
+                        Read more
+                      </summary>
+                      <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+                        {rest.map((paragraph) => (
+                          <p key={paragraph}>{paragraph}</p>
+                        ))}
+                      </div>
+                    </details>
+                  ) : null}
                 </div>
-                {section.body.map((paragraph) => (
-                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground" key={paragraph}>
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            ))}
+              );
+            })}
           </section>
         ) : null}
 
+        <ExtrasSection />
+
         {page.steps.length ? (
-          <section className="mt-16">
-            <h2 className="font-heading text-2xl font-bold text-foreground">
-              How to start with {PLATFORM_NAME}
-            </h2>
-            <ol className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <section className="mt-20">
+            <SectionTitle>Start in {page.steps.length} steps</SectionTitle>
+            <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
               {page.steps.map((step, index) => (
-                <li className="rounded-2xl border border-border bg-surface p-5" key={step.title}>
-                  <span className="flex size-8 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">
+                <li key={step.title}>
+                  <span className="flex size-10 items-center justify-center rounded-full bg-primary font-heading text-base font-bold text-primary-foreground">
                     {index + 1}
                   </span>
                   <h3 className="mt-3 font-heading text-base font-bold text-foreground">
                     {step.title}
                   </h3>
-                  <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
+                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{step.body}</p>
                 </li>
               ))}
             </ol>
@@ -179,49 +199,48 @@ export function SoftwarePage({
         ) : null}
 
         {plans.length ? (
-          <section className="mt-16">
-            <h2 className="font-heading text-2xl font-bold text-foreground">
-              Plans for every size of hostel
-            </h2>
-            <div className="mt-6 grid gap-4 md:grid-cols-3">
+          <section className="mt-20">
+            <SectionTitle>Plans for every size of hostel</SectionTitle>
+            <div className="mt-8 grid gap-4 md:grid-cols-3">
               {plans.map((plan) => (
                 <div
                   className={cn(
                     "rounded-2xl border bg-surface p-6",
-                    plan.featured ? "border-primary" : "border-border",
+                    plan.featured ? "border-primary shadow-md" : "border-border",
                   )}
                   key={plan.id}
                 >
-                  <h3 className="font-heading text-lg font-bold text-foreground">
-                    {PLATFORM_NAME} {plan.name}
+                  <h3 className="flex items-center gap-2 font-heading text-lg font-bold text-foreground">
+                    {plan.featured ? <BadgeCheck className="size-5 text-primary" /> : null}
+                    {plan.name}
                   </h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
-                  <p className="mt-4 font-heading text-2xl font-bold text-foreground">
+                  <p className="mt-4 font-heading text-3xl font-bold text-foreground">
                     {formatNpr(plan.monthly)}
                     <span className="text-sm font-medium text-muted-foreground"> / month</span>
                   </p>
-                  <p className="mt-1 text-xs text-muted-foreground">
+                  <p className="mt-2 inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Users className="size-4 text-primary" />
                     {plan.maxResidents ? `Up to ${plan.maxResidents} residents` : "No resident limit"}
                   </p>
                 </div>
               ))}
             </div>
             <Link
-              className="mt-5 inline-flex items-center gap-1 text-sm font-bold text-primary"
+              className="mt-6 inline-flex items-center gap-1 text-sm font-bold text-primary"
               href="/plans-pricing"
             >
-              Compare every plan and feature
+              Compare every plan
               <ArrowRight className="size-4" />
             </Link>
           </section>
         ) : null}
 
+        <SeoFaq entries={page.faq} title="Questions hostel owners ask" />
+
         {comparisons.length ? (
-          <section className="mt-16">
-            <h2 className="font-heading text-2xl font-bold text-foreground">
-              Still on a register book or a spreadsheet?
-            </h2>
-            <div className="mt-4 flex flex-wrap gap-2">
+          <section className="mt-20">
+            <SectionTitle>Still on a register book or a spreadsheet?</SectionTitle>
+            <div className="mt-5 flex flex-wrap gap-2">
               {comparisons.map((comparison) => (
                 <SeoChip
                   href={comparison.href}
@@ -233,7 +252,6 @@ export function SoftwarePage({
           </section>
         ) : null}
 
-        <SeoFaq entries={page.faq} title={`Questions hostel owners ask about ${PLATFORM_NAME}`} />
 
         <ClosingBlock title={`Ready to run your hostel on ${PLATFORM_NAME}?`} />
       </div>
@@ -261,38 +279,65 @@ export function FeaturesHubPage({
         />
 
         <header className="max-w-3xl">
-          <Eyebrow>Features</Eyebrow>
-          <h1 className="mt-2 font-heading text-4xl font-bold tracking-tight text-foreground">
+          <p className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
+            <BadgeCheck className="size-4" />
+            Features
+          </p>
+          <h1 className="mt-4 font-heading text-3xl font-bold tracking-tight text-foreground md:text-4xl">
             {title}
           </h1>
-          <p className="mt-4 text-lg leading-relaxed text-muted-foreground">{description}</p>
+          <p className="mt-3 line-clamp-2 text-base leading-relaxed text-muted-foreground">
+            {description}
+          </p>
         </header>
 
-        <div className="mt-12 space-y-6">
+        <div className="mt-14 space-y-14">
           {modules.map((entry) => (
-            <section className="rounded-2xl border border-border bg-surface p-6" key={entry.slug}>
-              <div className="flex items-start gap-4">
+            <section className="scroll-mt-28" id={entry.slug} key={entry.slug}>
+              <div className="flex items-center gap-4">
                 <ModuleIcon slug={entry.module.icon} />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <h2 className="font-heading text-xl font-bold text-foreground">
                     <Link className="transition hover:text-primary" href={`/features/${entry.slug}`}>
-                      {entry.headline}
+                      {entry.module.name}
                     </Link>
                   </h2>
-                  <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-                    {entry.description}
-                  </p>
+                  <p className="line-clamp-1 text-sm text-muted-foreground">{entry.headline}</p>
                 </div>
+                <Link
+                  className="hidden shrink-0 items-center gap-1 text-sm font-bold text-primary sm:inline-flex"
+                  href={`/features/${entry.slug}`}
+                >
+                  View all
+                  <ArrowRight className="size-4" />
+                </Link>
               </div>
-              <ul className="mt-5 grid gap-2 sm:grid-cols-2">
-                {entry.services.map((service) => (
+              <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {entry.services.map((service, index) => (
                   <li key={service.slug}>
                     <Link
-                      className="flex items-center justify-between gap-3 rounded-lg border border-border/70 px-3 py-2 text-sm font-semibold text-foreground transition hover:border-primary/50 hover:text-primary"
+                      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface p-5 transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
                       href={`/plans-pricing/${service.slug}`}
                     >
-                      {service.name}
-                      <ArrowRight className="size-4 shrink-0 text-muted-foreground" />
+                      <span
+                        aria-hidden
+                        className="pointer-events-none absolute -right-1 -top-3 font-heading text-6xl font-extrabold text-primary/10"
+                      >
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                        <ServiceIcon
+                          className="size-5"
+                          fallbackSlug={entry.module.icon}
+                          slug={service.slug}
+                        />
+                      </span>
+                      <span className="mt-4 block font-heading text-base font-bold text-foreground group-hover:text-primary">
+                        {service.name}
+                      </span>
+                      <span className="mt-1 line-clamp-2 block text-sm leading-relaxed text-muted-foreground">
+                        {service.blurb}
+                      </span>
                     </Link>
                   </li>
                 ))}
