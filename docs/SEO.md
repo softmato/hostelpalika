@@ -144,8 +144,8 @@ Rules every page follows:
        Management Software" (`seo.defaults.ts` → `pages.home`).
     b. ☑ Organization JSON-LD gains a `description` naming both audiences (`ORGANIZATION_DESCRIPTION`
        in `lib/json-ld.ts`).
-    c. ☑ Owner content on the home page arrives through the home FAQ (i) and the role pages (l), not a
-       new marketing block.
+    c. ☑ The home page now includes `home-platform-section.tsx` after the hero, explaining the
+       software for owners and the roles it serves. The home FAQ (i) and role pages (l) add detail.
     d. ☑ `listPublicNearbyPlaces` / `listPublicHostelsNear` in `hostel.service.ts`, typechecked, with
        the pure index in `lib/near-places.ts` (campus-name filter, slug merge, ≤ 1.5 km, shortest
        distance per hostel; 12 tests).

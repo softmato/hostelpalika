@@ -73,7 +73,7 @@ export function vendorJsonLd(legalName?: string): JsonLd {
  * of the platform, because both are what people search for: students and
  * parents looking for a hostel, and owners looking for software to run one.
  */
-export const ORGANIZATION_DESCRIPTION = `${PLATFORM_NAME} is a Nepal hostel platform: students and parents find and compare verified boys, girls and co-living hostels, and hostel owners run residents, rent, food, attendance and parents in one app.`;
+export const ORGANIZATION_DESCRIPTION = `${PLATFORM_NAME} is a hostel management platform for Nepal: owners, wardens, cooks, residents and parents manage rent, food, attendance and records together, while students and parents find and compare verified hostels.`;
 
 export function organizationJsonLd(input: {
   address: string;

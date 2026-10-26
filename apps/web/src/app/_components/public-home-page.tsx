@@ -40,7 +40,7 @@ import { optimizedImage } from "@/lib/image-url";
 import { landingPathForRole } from "@/lib/route-access";
 import { Role } from "@/lib/roles";
 
-
+import { HomePlatformSection } from "./home-platform-section";
 import type { HostelSummary } from "./public-hostel-types";
 import { HostelCard, PublicShell, StatusPill, formatMoney } from "./shared";
 import { StarsCtaCard } from "./stars-cta-card";
@@ -666,7 +666,9 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
           </div>
         </section>
 
-        <section className="mx-auto max-w-[1448px] px-4 pb-14 pt-4 sm:px-6">
+        <HomePlatformSection />
+
+        <section className="mx-auto max-w-[1448px] px-4 pb-14 pt-14 sm:px-6">
           <SectionHeading
             action="View all hostels"
             actionHref="/hostels"

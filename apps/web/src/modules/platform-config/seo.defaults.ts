@@ -347,7 +347,7 @@ export const DEFAULT_SEO: SeoConfig = {
     },
     home: {
       description:
-        "Find and compare verified boys, girls and co-living hostels in Nepal with real photos, rent and reviews. Hostel owners run rent, food and safety on {siteName}.",
+        "{siteName} is hostel management software for Nepal: owners, wardens, cooks, residents and parents manage rent, food and attendance. Find verified boys, girls and co-living hostels with photos, rent and reviews.",
       title: "{siteName} — Hostels in Nepal & Hostel Management Software",
     },
     hostels: {
