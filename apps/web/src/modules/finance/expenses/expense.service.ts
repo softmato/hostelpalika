@@ -12,6 +12,8 @@ import {
   hostelToday,
   isBsPeriod,
 } from "@/lib/hostel-day";
+import { REALTIME_TOPIC } from "@/lib/realtime/channels";
+import { publishResourceChange } from "@/lib/realtime/server";
 import { Role } from "@/lib/roles";
 import { assertHostelAccess } from "@/lib/tenant";
 import { auditFinanceAction } from "@/modules/finance/audit-finance";
@@ -93,6 +95,11 @@ const MAX_ROWS_PER_MONTH = 2000;
  * the grant is held. The cook has no grant to narrow by, so the hostel's own
  * switch is read here.
  */
+/** Money out moves the hostel balance: Home's card and the Statement repaint (field review A3). */
+function moneyMoved(hostelId: Types.ObjectId) {
+  return publishResourceChange({ hostelIds: [hostelId.toString()], topics: [REALTIME_TOPIC.PAYMENTS] });
+}
+
 export async function resolveExpenseActor(
   principal: ApiPrincipal,
   requestedHostelId?: string,
@@ -1087,6 +1094,7 @@ export async function createExpense(actor: ExpenseActor, input: CreateExpenseInp
     }
   }
 
+  await moneyMoved(actor.hostelId);
   return { duplicate: false, expense: await serializeOne(actor, doc) };
 }
 
@@ -1175,6 +1183,7 @@ export async function respondToStaffCash(
     userId: updated.recordedBy.toString(),
   });
 
+  await moneyMoved(actor.hostelId);
   return serializeOne(actor, updated);
 }
 
@@ -1312,6 +1321,7 @@ export async function voidExpense(actor: ExpenseActor, expenseId: string, reason
     });
   }
 
+  await moneyMoved(actor.hostelId);
   return serializeOne(actor, updated);
 }
 

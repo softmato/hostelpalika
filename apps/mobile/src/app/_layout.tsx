@@ -609,20 +609,29 @@ function RootShell() {
       <SharedPaymentResume />
       <ReceiptNativeSync />
       </BlurTargetView>
+    </>
+  );
+}
 
-      {/*
-        The app's alert card, and the only things outside the blur target: a
-        view cannot blur a buffer it is itself drawn into. Being siblings *after*
-        the target is also what puts them over the tab bar — neither is a
-        `Modal`, see `confirm-dialog.tsx` for why.
-
-        The hostel suspension goes first, so a question asked while it is up
-        still draws above it.
-      */}
+/**
+ * The app's alert card and the two blocking notices, outside the blur target: a
+ * view cannot blur a buffer it is itself drawn into. Being siblings *after* it
+ * is also what puts them over the tab bar — none is a `Modal`, see
+ * `confirm-dialog.tsx` for why.
+ *
+ * Mounted after `BottomSheetModalProvider`, like `ToastHost` and for the same
+ * reason: the provider portals every sheet after its children, so a dialog
+ * inside it opened *under* the sheet whose button asked the question.
+ *
+ * The hostel suspension goes first, so a question asked while it is up still
+ * draws above it.
+ */
+function OverlayHosts() {
+  return (
+    <>
       <HostelSuspensionHost />
       <TrialEndedHost />
       <ConfirmDialogHost />
-
     </>
   );
 }
@@ -675,6 +684,7 @@ export default function RootLayout() {
                   <RootShell />
                 </BottomChromeProvider>
               </BottomSheetModalProvider>
+              <OverlayHosts />
               <ToastHost />
               {/* The old theme's snapshot fading over the new one (M9): over everything but the lock. */}
               <ThemeFadeHost />

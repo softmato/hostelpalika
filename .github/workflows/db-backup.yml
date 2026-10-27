@@ -1,0 +1,92 @@
+name: Database backup
+
+# Prod Atlas (M0) has no backup of its own (docs/FIELD_REVIEW_2026_10_27.md I1).
+# This dumps it, encrypts the dump to an age public key whose private half is
+# kept offline — never in GitHub, never on the server — and stores it in a
+# backups-only R2 bucket. Setup and restore: docs/BACKUP.md.
+#
+# The repo is public, so the log carries no data: mongodump's own output goes
+# to a file that only feeds the manifest, and the manifest goes to the bucket.
+
+on:
+  schedule:
+    - cron: "15 20 * * *" # 02:00 Nepal
+  workflow_dispatch:
+
+concurrency:
+  group: db-backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    env:
+      AGE_RECIPIENT: ${{ vars.BACKUP_AGE_RECIPIENT }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.BACKUP_R2_ACCESS_KEY_ID }}
+      AWS_DEFAULT_REGION: auto
+      # R2 rejects the CLI's newer default checksum headers.
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.BACKUP_R2_SECRET_ACCESS_KEY }}
+      BUCKET: ${{ vars.BACKUP_R2_BUCKET }}
+      # A dump with fewer collections than this is a broken dump, not a backup.
+      MIN_COLLECTIONS: ${{ vars.BACKUP_MIN_COLLECTIONS || '20' }}
+      R2_ENDPOINT: ${{ secrets.BACKUP_R2_ENDPOINT }}
+    steps:
+      - name: Install mongodump and age
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq age >/dev/null
+          tools=mongodb-database-tools-ubuntu2204-x86_64-100.9.4
+          curl -fsSL "https://fastdl.mongodb.org/tools/db/$tools.tgz" | tar -xz
+          echo "$PWD/$tools/bin" >> "$GITHUB_PATH"
+
+      - name: Dump, encrypt, upload
+        env:
+          MONGODB_URI: ${{ secrets.BACKUP_MONGODB_URI }}
+        run: |
+          set -euo pipefail
+          for name in AGE_RECIPIENT BUCKET MONGODB_URI R2_ENDPOINT AWS_ACCESS_KEY_ID; do
+            [ -n "${!name}" ] || { echo "::error::$name is not set — see docs/BACKUP.md"; exit 1; }
+          done
+
+          stamp=$(date -u +%Y-%m-%dT%H%MZ)
+          file="hostelpalika-$stamp.archive.gz.age"
+
+          # Plaintext never touches the disk: dump straight into the encryption.
+          mongodump --uri="$MONGODB_URI" --archive --gzip 2>dump.log | age -r "$AGE_RECIPIENT" -o "$file"
+
+          collections=$(grep -c 'done dumping' dump.log || true)
+          if [ "$collections" -lt "$MIN_COLLECTIONS" ]; then
+            echo "::error::Only $collections collections dumped (expected at least $MIN_COLLECTIONS)."
+            exit 1
+          fi
+
+          {
+            echo '{'
+            echo "  \"file\": \"$file\","
+            echo "  \"createdAt\": \"$(date -u +%Y-%m-%dT%H:%M:%SZ)\","
+            echo "  \"bytes\": $(stat -c %s "$file"),"
+            echo "  \"sha256\": \"$(sha256sum "$file" | cut -d' ' -f1)\","
+            echo "  \"collections\": {"
+            sed -nE 's/.*done dumping [^.]+\.([^ ]+) \(([0-9]+) documents?\).*/    "\1": \2,/p' dump.log | sed '$ s/,$//'
+            echo '  }'
+            echo '}'
+          } > manifest.json
+
+          s3() { aws s3 cp --endpoint-url "$R2_ENDPOINT" --only-show-errors "$@"; }
+          s3 "$file" "s3://$BUCKET/daily/$file"
+          s3 manifest.json "s3://$BUCKET/daily/$file.json"
+          # The 1st of each month is also kept under monthly/, which expires far later.
+          if [ "$(date -u +%d)" = "01" ]; then
+            s3 "$file" "s3://$BUCKET/monthly/$file"
+            s3 manifest.json "s3://$BUCKET/monthly/$file.json"
+          fi
+          s3 manifest.json "s3://$BUCKET/latest.json"
+
+          echo "Backed up $collections collections, $(stat -c %s "$file") bytes encrypted."

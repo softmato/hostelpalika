@@ -25,6 +25,7 @@ import {
   byFloor,
   deleteRoom,
   floorLabel,
+  getRoomLayout,
   type Room,
   type RoomLayout,
   roomsQuery,
@@ -99,13 +100,11 @@ export function RoomsFloorsEditor({ onChanged }: { onChanged?: () => Promise<voi
   const data = layout.data;
   const types = hostel.data.roomConfigurations;
   const mode: Mode = data.tracking ? "floor" : "type";
-  const totals = data.tracking
-    ? { beds: data.rooms.reduce((sum, room) => sum + room.beds, 0), free: data.rooms.reduce((sum, room) => sum + room.free, 0), rooms: data.rooms.length }
-    : {
-        beds: types.reduce((sum, type) => sum + type.rooms * bedsForRoomType(type.roomType), 0),
-        free: types.reduce((sum, type) => sum + type.vacantBeds, 0),
-        rooms: types.reduce((sum, type) => sum + type.rooms, 0),
-      };
+  const totals = data.totals ?? {
+    beds: data.rooms.reduce((sum, room) => sum + room.beds, 0),
+    free: data.rooms.reduce((sum, room) => sum + room.free, 0),
+    rooms: data.rooms.length,
+  };
 
   return (
     <View className="gap-4">
@@ -540,6 +539,8 @@ function TypeCounts({ busy, run, types }: { busy: boolean; run: Run; types: Mana
             return { ...type, bedsPerRoom, rooms, vacantBeds: Math.max(0, rooms * bedsPerRoom - taken) };
           }),
         });
+        // The totals above the list come from the layout, so it is reread here.
+        return getRoomLayout();
       });
     }, 600);
     return () => clearTimeout(timer);

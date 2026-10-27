@@ -23,6 +23,8 @@ export type RoomLayout = {
   pendingRequests: number;
   rooms: Room[];
   roomTypes: string[];
+  /** Same figures in both modes — the server derives them once. Absent before that deploy. */
+  totals?: { beds: number; free: number; rooms: number };
   tracking: boolean;
   unassigned: { id: string; name: string; roomType: string }[];
 };

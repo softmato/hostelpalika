@@ -323,6 +323,7 @@ function ListingPill({ listing }: { listing: { live: boolean; note: string } }) 
  * the row — `This month · September` did not fit on a 360dp phone.
  */
 export function HostelHero({
+  balance = null,
   delta,
   earnings,
   hostel,
@@ -333,6 +334,13 @@ export function HostelHero({
   sosCount,
   vacantBeds,
 }: {
+  /**
+   * The Statement's own closing balance — opening + received − spent, from the
+   * same ledger and the same arithmetic — so the card and the Statement never
+   * show two numbers for one hostel (field review A3). Null when the ledger is
+   * unreadable or truncated; the headline then falls back to collections.
+   */
+  balance?: number | null;
   /** This month against last. Null in a first month — see `monthOverMonth`. */
   delta: MonthDelta | null;
   earnings: EarningsSummary;
@@ -359,7 +367,7 @@ export function HostelHero({
    * banking app this screen is modelled on has.
    */
   const [shown, setShown] = useState(false);
-  const real = formatMoney(lifetimeKnown ? earnings.lifetime : earnings.thisMonth);
+  const real = formatMoney(balance ?? (lifetimeKnown ? earnings.lifetime : earnings.thisMonth));
   const amount = shown ? real : maskMoney(real);
   /*
    * Sized from whichever string is actually being drawn. Sizing off the real

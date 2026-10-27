@@ -7,6 +7,7 @@ import {
   CapacityError,
   moveBedBetweenRoomTypes,
   type RoomConfiguration,
+  summarizeConfigurations,
   writeConfigurations,
 } from "@/modules/hostels/hostel-capacity.service";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
@@ -171,6 +172,35 @@ function viewRooms(rooms: RoomRow[], residents: LiveResident[]): RoomView[] {
   });
 }
 
+/**
+ * The per-type counts a floor plan implies. Once any room is laid out the plan
+ * is the only truth: a type with no numbered rooms counts zero, so "Not
+ * floor-wise", the listing and the floor plan all show the same hostel. Free
+ * beds are counted per type — a resident not yet given a room still holds a
+ * bed of their type.
+ */
+export function deriveTypeCounts(
+  configurations: RoomConfiguration[],
+  rooms: Pick<RoomRow, "beds" | "roomType">[],
+  residents: Pick<LiveResident, "roomType">[],
+): RoomConfiguration[] {
+  return configurations.map((config) => {
+    const ofType = rooms.filter((room) => room.roomType === config.roomType);
+    const beds = ofType.reduce((sum, room) => sum + room.beds, 0);
+    const living = residents.filter((resident) => resident.roomType === config.roomType).length;
+
+    return {
+      ...config,
+      bedsPerRoom: ofType.length ? Math.max(1, Math.round(beds / ofType.length)) : config.bedsPerRoom,
+      rooms: ofType.length,
+      vacantBeds: Math.max(beds - living, 0),
+    };
+  });
+}
+
+const sameCounts = (a: RoomConfiguration[], b: RoomConfiguration[]) =>
+  a.every((config, at) => config.rooms === b[at]?.rooms && config.vacantBeds === b[at]?.vacantBeds && config.bedsPerRoom === b[at]?.bedsPerRoom);
+
 /** The floor plan, who is where, and who still has no room. */
 export async function getRoomLayout(hostelId: Types.ObjectId | string) {
   await connectToDatabase();
@@ -184,11 +214,24 @@ export async function getRoomLayout(hostelId: Types.ObjectId | string) {
     RoomChangeRequestModel.countDocuments({ hostelId: id, status: "PENDING" }),
   ]);
   const roomIds = new Set(rooms.map((room) => room._id.toString()));
+  const configurations = hostel?.roomConfigurations ?? [];
+  const planned = tracking && rooms.length > 0;
+  const derived = planned ? deriveTypeCounts(configurations, rooms, residents) : configurations;
+
+  // Hostels whose counts were typed before the plan became the truth heal the
+  // first time their rooms are opened; afterwards every change keeps them equal.
+  if (planned && !sameCounts(derived, configurations)) await writeConfigurations(id, derived);
+
+  const summary = summarizeConfigurations(derived);
 
   return {
     pendingRequests: pending,
     rooms: viewRooms(rooms, residents),
-    roomTypes: (hostel?.roomConfigurations ?? []).map((config) => config.roomType),
+    roomTypes: configurations.map((config) => config.roomType),
+    // One set of totals for both views (field review A1).
+    totals: tracking
+      ? { beds: rooms.reduce((sum, room) => sum + room.beds, 0), free: planned ? summary.vacantBeds : 0, rooms: rooms.length }
+      : { beds: summary.totalBeds, free: summary.vacantBeds, rooms: summary.totalRooms },
     tracking,
     // A room that was deleted under them counts as no room.
     unassigned: residents
@@ -202,9 +245,9 @@ export async function getRoomLayout(hostelId: Types.ObjectId | string) {
 }
 
 /**
- * Re-derives the listing's per-type counts from the floor plan. Types with no
- * numbered rooms keep what was typed for them — a hostel half-way through
- * laying out keeps its listing whole.
+ * Re-derives the listing's per-type counts from the floor plan. A hostel with
+ * no rooms laid out keeps what was typed — switching floor-wise on must not
+ * empty its listing before the first floor exists.
  */
 async function syncTypeCounts(hostelId: Types.ObjectId) {
   const [rooms, residents, hostel] = await Promise.all([
@@ -213,25 +256,9 @@ async function syncTypeCounts(hostelId: Types.ObjectId) {
     HostelModel.findById(hostelId).select("roomConfigurations").lean<{ roomConfigurations?: RoomConfiguration[] } | null>(),
   ]);
 
-  if (!hostel) return;
+  if (!hostel || rooms.length === 0) return;
 
-  const configurations = (hostel.roomConfigurations ?? []).map((config) => {
-    const ofType = rooms.filter((room) => room.roomType === config.roomType);
-
-    if (ofType.length === 0) return config;
-
-    const beds = ofType.reduce((sum, room) => sum + room.beds, 0);
-    const living = residents.filter((resident) => resident.roomType === config.roomType).length;
-
-    return {
-      ...config,
-      bedsPerRoom: Math.max(1, Math.round(beds / ofType.length)),
-      rooms: ofType.length,
-      vacantBeds: Math.max(beds - living, 0),
-    };
-  });
-
-  await writeConfigurations(hostelId, configurations);
+  await writeConfigurations(hostelId, deriveTypeCounts(hostel.roomConfigurations ?? [], rooms, residents));
 }
 
 async function assertRoomType(hostelId: Types.ObjectId, roomType: string) {
@@ -370,6 +397,8 @@ export async function setRoomTracking(hostelId: Types.ObjectId | string, enabled
     { $set: { roomTracking: enabled, updatedBy: principal.userId }, $setOnInsert: { createdBy: principal.userId } },
     { upsert: true },
   );
+  // Either way the type counts start from the plan, so the totals do not jump.
+  await syncTypeCounts(oid(hostelId));
 
   return getRoomLayout(hostelId);
 }

@@ -44,6 +44,7 @@ import {
   prefetchAdminRoute,
 } from "@/lib/admin-queries";
 import { openConfirm } from "@/lib/confirm";
+import { statementCredits } from "@/lib/hostel-statement";
 import { expenseQuery } from "@/lib/expenses-api";
 import { khataQuery } from "@/lib/khata-api";
 import { STORE_OPEN } from "@/lib/store-api";
@@ -228,6 +229,17 @@ function BranchAdminHomeScreen() {
     topics: query.topics,
   });
 
+  // The card's headline is the Statement's balance, read the Statement's way.
+  const ledgerQuery = adminQuery.ledger();
+  const ledger = useResource(ledgerQuery.load, {
+    cacheKey: ledgerQuery.key,
+    topics: ledgerQuery.topics,
+  });
+  const balance = useMemo(
+    () => (ledger.data ? statementCredits(ledger.data)[0]?.runningTotal ?? null : null),
+    [ledger.data],
+  );
+
   /*
    * No pay handler here any more, and its absence is deliberate.
    *
@@ -334,6 +346,7 @@ function BranchAdminHomeScreen() {
         scroll
       >
         <HostelHero
+          balance={balance}
           delta={delta}
           earnings={earnings}
           hostel={hostel}
