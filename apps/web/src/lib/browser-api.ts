@@ -276,7 +276,12 @@ export async function browserApi<T>(
   const result = await request<T>(input, init, onStep);
 
   if (typeof window !== "undefined" && (init?.method ?? "GET").toUpperCase() !== "GET") {
-    window.dispatchEvent(new Event(API_WRITE_EVENT));
+    // `detail` is what the usage watcher counts as a feature (H3).
+    window.dispatchEvent(
+      new CustomEvent(API_WRITE_EVENT, {
+        detail: { method: (init?.method ?? "POST").toUpperCase(), url: requestUrl(input) },
+      }),
+    );
   }
 
   return result;

@@ -1,4 +1,4 @@
-import { Types } from "mongoose";
+import { type PipelineStage, Types } from "mongoose";
 
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { UsageDailyModel } from "@hostel/db/models/UsageDaily";
@@ -152,13 +152,13 @@ const SUMS = {
 
 const COUNT_USERS = { $set: { users: { $size: "$userSet" } } };
 
-function groupBy(field: string, match: Record<string, unknown>, sort: string, limit: number) {
+function groupBy(field: string, match: Record<string, unknown>, sort: string, limit: number): PipelineStage[] {
   return [
     { $match: match },
     { $group: { _id: `$${field}`, ...SUMS } },
     COUNT_USERS,
     { $project: { userSet: 0 } },
-    { $sort: { [sort]: -1 } },
+    { $sort: { [sort]: -1 as const } },
     { $limit: limit },
   ];
 }
