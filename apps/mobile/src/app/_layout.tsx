@@ -2,12 +2,12 @@ import "@/global.css";
 
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { BlurTargetView } from "expo-blur";
-import { router, Stack, usePathname } from "expo-router";
+import { router, Stack, usePathname, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
 import { useEffect, useRef, useState } from "react";
-import { Platform, StatusBar as RNStatusBar } from "react-native";
+import { AppState, Platform, StatusBar as RNStatusBar } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -48,6 +48,7 @@ import { resolveHome } from "@/constants/roles";
 import { bootstrapSession, revalidateSession } from "@/lib/auth-session";
 import { appBlurTarget } from "@/lib/blur-target";
 import { startUploadNotifications } from "@/lib/upload-notifier";
+import { parkUsage, startUsage, trackOpen, trackScreen } from "@/lib/usage";
 import { persistor, store } from "@/store";
 import { setReady } from "@/store/slices/authSlice";
 
@@ -66,6 +67,49 @@ function LaunchPath({ pathRef }: { pathRef: { current: string } }) {
   useEffect(() => {
     pathRef.current = pathname;
   });
+
+  return null;
+}
+
+/**
+ * The usage watcher's eyes (H3): time on each screen as a route template
+ * (`/manage/scan/[residentId]`, never an id), and an open each time the app
+ * comes to the front. A leaf, like `LaunchPath`, so it re-renders alone.
+ */
+function UsageWatcher() {
+  const segments = useSegments();
+  const screen = `/${segments.join("/")}`;
+  const current = useRef({ screen, since: 0 });
+
+  useEffect(() => {
+    current.current.since = Date.now();
+    startUsage();
+    trackOpen();
+
+    const sub = AppState.addEventListener("change", (state) => {
+      const now = Date.now();
+
+      if (state === "active") {
+        trackOpen();
+        current.current.since = now;
+      } else if (state === "background") {
+        trackScreen(current.current.screen, now - current.current.since);
+        current.current.since = now;
+        void parkUsage();
+      }
+    });
+
+    return () => sub.remove();
+  }, []);
+
+  useEffect(() => {
+    const now = Date.now();
+
+    if (current.current.screen !== screen) {
+      trackScreen(current.current.screen, now - current.current.since);
+      current.current = { screen, since: now };
+    }
+  }, [screen]);
 
   return null;
 }
@@ -580,6 +624,7 @@ function RootShell() {
       </Stack>
 
       <LaunchPath pathRef={pathRef} />
+      <UsageWatcher />
 
       {/* A tapped card growing into the next screen's header (M8): over every screen. */}
       <CardGrowHost />

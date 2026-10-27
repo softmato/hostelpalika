@@ -1,7 +1,7 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
-import { Linking, Pressable, View } from "react-native";
+import { Linking, View } from "react-native";
 
 import { FLOAT_SHADOW, usePortalPaint } from "@/components/portal-shared";
 import { ActionCard, ActionCell } from "@/components/ui/action-grid";

@@ -1,6 +1,6 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import { type ReactNode, useRef } from "react";
+import { type ReactNode, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, { Keyframe, ReduceMotion } from "react-native-reanimated";
 
@@ -141,12 +141,12 @@ export function PaintedAmount({
   // morphs the figure while refreshes and first paint (the screen's own
   // entrance) do not.
   const masked = !/\d/.test(value);
-  const initial = useRef(masked);
-  const toggled = useRef(false);
-  if (masked !== initial.current) toggled.current = true;
+  const [initial] = useState(masked);
+  const [toggled, setToggled] = useState(false);
+  if (masked !== initial && !toggled) setToggled(true);
 
   return (
-    <Animated.View entering={toggled.current ? MASK_SWAP : undefined} key={masked ? "masked" : "shown"}>
+    <Animated.View entering={toggled ? MASK_SWAP : undefined} key={masked ? "masked" : "shown"}>
     <Text className={className} numberOfLines={1} style={{ fontSize: size, lineHeight }}>
       {/*
         A dash is not an amount, it is the absence of one, so it keeps the plain
