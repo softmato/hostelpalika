@@ -267,6 +267,8 @@ export const EXCLUDED: Record<string, string> = {
   ReviewModerationLog: "our moderation record",
   TeamPrepayment: "our field-sales ledger",
   TeamWalletEntry: "our field-sales ledger",
+  UsageDaily: "our usage analytics",
+  UsageEvent: "our usage analytics",
 };
 
 type Doc = Record<string, unknown>;

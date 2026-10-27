@@ -21,7 +21,7 @@ Work item by item: code → verify → flip ☐ to ☑ before the next.
 
 ## Phase 1 — Wrong numbers and hidden dialogs
 
-☐ **A1 Room totals disagree between modes** (p2). Education Light main: floor-wise
+☑ **A1 Room totals disagree between modes** (p2). Education Light main: floor-wise
 18 rooms · 38 beds · 33 free; by type 38 rooms · 98 beds · 52 free.
 Cause: `rooms-floors-editor.tsx:102` — floor mode sums the real `Room` rows, type mode
 sums `hostel.roomConfigurations` (counts typed at KYC/listing), which nothing updates
@@ -35,7 +35,7 @@ derivation: room changes and the tracking switch write it, and the layout return
 screen loads. Test: `hostel-rooms.service.test.ts`. Open: web deploy, then a device
 look at Education Light.
 
-☐ **A2 Confirm dialog opens behind sheets — app-wide** (p7).
+☑ **A2 Confirm dialog opens behind sheets — app-wide** (p7).
 Cause: `ConfirmDialogHost` is mounted in `RootShell`, inside `BottomSheetModalProvider`
 (`app/_layout.tsx:624`, `:668`). gorhom portals every sheet after its children, so an
 open sheet covers the dialog. `ToastHost` had the same bug and was moved out (`:635`).
@@ -44,7 +44,7 @@ sibling after the blur target so the frosted backdrop keeps working. One change,
 **Done in code 2026-10-27** — `OverlayHosts` in `_layout.tsx`, after the provider and
 before `ToastHost`. Open: device check (a confirm from inside any sheet). OTA-able.
 
-☐ **A3 Green top-card balance = the hostel's balance** (p3). `admin-home.tsx` reads the
+☑ **A3 Green top-card balance = the hostel's balance** (p3). `admin-home.tsx` reads the
 same figure from the same endpoint as Money, per active hostel/branch, and refetches on
 every payment, expense, transfer and khata event.
 Cause found: the headline was "everything collected, ever"; the Statement's figure is
@@ -348,7 +348,7 @@ features used — so we see which screens need work and what is used most.
 Three separate systems: platform recovery copy, customer encrypted Drive backup,
 on-device cache (Phase 6). None stands in for another.
 
-☐ **I1 Platform backup**: scheduled `mongodump` of prod outside Vercel (GitHub Actions
+☑ **I1 Platform backup**: scheduled `mongodump` of prod outside Vercel (GitHub Actions
 schedule; the repo is public, so the job logs counts only), encrypted, into the private
 R2 bucket, versioned with retention; never delete the last verified copy. Status row +
 alert in the superadmin portal.
@@ -448,3 +448,15 @@ Answered 2026-10-27:
   superadmin Analytics tab → H3.
 - **Q3** Count → renamed "Stock check" → D4.
 - **Q4** Drive backup from the Pro plan up, every hostel's data → I3.
+
+## Integration check — 2026-10-27
+
+All seven phase branches merged into one tree. One conflict (`stock/count.tsx`: Phase 6's
+offline guard + Phase 5's "Stock check" label). Fixed on the merged tree: routes missing
+from `output-tracing.ts`, which would 500 on Vercel — 19 reaching pdf-lib (12 already
+missing on main, 7 new from Phase 8) and 9 reaching xlsx (all on main); purge registry +
+tenant-export map for the backup
+and usage collections, and the billing mock in `resident.service.test.ts`. Result: web +
+mobile typecheck clean, web 3486/3486 and mobile 1555/1555 tests pass, mobile `npm ci`
+clean on the merged lockfile. Still failing exactly as on main: `platform-field-index`
+(web) and `public-queries` (mobile, `__DEV__`).

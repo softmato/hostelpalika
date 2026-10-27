@@ -40,6 +40,8 @@ import { FoodRoutineModel } from "@hostel/db/models/FoodRoutine";
 import { GuardianModel } from "@hostel/db/models/Guardian";
 import { GuardianAccessModel } from "@hostel/db/models/GuardianAccess";
 import { GuardianPermissionModel } from "@hostel/db/models/GuardianPermission";
+import { HostelBackupModel } from "@hostel/db/models/HostelBackup";
+import { HostelBackupRunModel } from "@hostel/db/models/HostelBackupRun";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { HostelApplicationModel } from "@hostel/db/models/HostelApplication";
 import { HostelLeaveRequestModel } from "@hostel/db/models/HostelLeaveRequest";
@@ -109,6 +111,8 @@ import { StoreOrderModel } from "@hostel/db/models/StoreOrder";
 import { SubscriptionInvoiceModel } from "@hostel/db/models/SubscriptionInvoice";
 import { SubscriptionPaymentModel } from "@hostel/db/models/SubscriptionPayment";
 import { TeamPrepaymentModel } from "@hostel/db/models/TeamPrepayment";
+import { UsageDailyModel } from "@hostel/db/models/UsageDaily";
+import { UsageEventModel } from "@hostel/db/models/UsageEvent";
 import { UserModel } from "@hostel/db/models/User";
 
 /**
@@ -202,6 +206,8 @@ const ERASED_BY_HOSTEL_ID: Array<{ model: PurgeableModel; name: string }> = (
     ["HostelExpenseCategory", HostelExpenseCategoryModel],
     ["HostelListingImpression", HostelListingImpressionModel],
     ["HostelMember", HostelMemberModel],
+    ["HostelBackup", HostelBackupModel],
+    ["HostelBackupRun", HostelBackupRunModel],
     ["HostelPageView", HostelPageViewModel],
     ["HostelPaymentProfile", HostelPaymentProfileModel],
     ["HostelPayoutAccount", HostelPayoutAccountModel],
@@ -263,6 +269,9 @@ const ERASED_BY_HOSTEL_ID: Array<{ model: PurgeableModel; name: string }> = (
     ["SubscriptionPayment", SubscriptionPaymentModel],
     // A claimed one is the payment behind this hostel's first invoice, so it goes with it.
     ["TeamPrepayment", TeamPrepaymentModel],
+    // Our usage analytics for this hostel go with it, like its page views.
+    ["UsageDaily", UsageDailyModel],
+    ["UsageEvent", UsageEventModel],
   ] as Array<[string, PurgeableModel]>
 ).map(([name, model]) => ({ model, name }));
 

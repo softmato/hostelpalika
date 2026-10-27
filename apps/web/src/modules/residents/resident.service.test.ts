@@ -71,6 +71,8 @@ vi.mock("@/modules/residents/resident-intake.service", () => ({
 
 vi.mock("@/modules/finance/billing.service", () => ({
   runBillingCycle: serviceMocks.runBillingCycle,
+  // A pure formatter the resident page uses for "bills on the 20th".
+  ordinalDay: (day: number) => `${day}th`,
 }));
 
 /*
