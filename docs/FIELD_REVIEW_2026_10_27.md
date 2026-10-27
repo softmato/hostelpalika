@@ -122,7 +122,10 @@ first) (p8).
 
 ## Phase 5 — Stock (p3, p6)
 
-☐ **D1** Stock screens animate on one rhythm (H2).
+☑ **D1** Stock screens animate on one rhythm (H2). Every stock screen's body column is
+a `<Stagger>` (`ui/layout.tsx`): the header mounts with the screen, then each block
+rises `MOTION.stagger` apart; Home's category groups are steps of their own, History
+months too, and a month still loading is a skeleton, not "Loading…". Open: seen on a phone.
 ☐ **D2 Stock report**: numbers, not sentences. Per item bought / used / left for this
 month, 3 months, year, plus expected next-month spend from that range. PDF + CSV through
 the global downloader.

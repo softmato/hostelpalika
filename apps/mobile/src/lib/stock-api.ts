@@ -3,7 +3,7 @@ import type { GlyphName } from "@hostel/constants/glyphs";
 import { palette } from "@/constants/theme";
 import { REALTIME_TOPIC } from "@/constants/topics";
 import { isOverall } from "@/lib/active-hostel";
-import { api } from "@/lib/api";
+import { API_BASE_URL, api } from "@/lib/api";
 import { type ApiEnvelope, readApiError, readApiErrorCode, unwrap } from "@/lib/api-contract";
 import type { ExpensePaidBy } from "@/lib/expenses";
 import { defineQuery, type Query } from "@/lib/query-cache";
@@ -704,4 +704,69 @@ export function parseQtyInput(value: string): number | null {
   const qty = Number(cleaned);
 
   return Number.isFinite(qty) ? qty : null;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Report                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/** This month, the last three, or the last twelve — counting this one. */
+export type ReportRange = "month" | "quarter" | "year";
+
+export type StockReportItem = {
+  avgCost: number | null;
+  bought: number;
+  boughtValue: number;
+  category: string;
+  id: string;
+  kind: StockKind;
+  /** Store items only: left now. */
+  left: number | null;
+  name: string;
+  /** Next month at the range's pace. */
+  nextQty: number;
+  nextValue: number | null;
+  unit: StockUnit;
+  used: number;
+  usedValue: number;
+  wasted: number;
+  wastedValue: number;
+};
+
+export type StockReport = {
+  bySupplier: StockSummary["bySupplier"];
+  costPerResidentDay: number | null;
+  days: number;
+  from: string;
+  items: StockReportItem[];
+  label: string;
+  money: boolean;
+  nextPeriod: string;
+  range: ReportRange;
+  residents: number;
+  scope: string;
+  to: string;
+  totals: {
+    boughtValue: number;
+    missingValue: number;
+    nextValue: number;
+    stockValue: number;
+    usedValue: number;
+    wastedValue: number;
+  } | null;
+};
+
+export function reportQuery(range: ReportRange): Query<StockReport> {
+  return defineQuery(`stock-report:${range}`, [REALTIME_TOPIC.FOOD], async () =>
+    unwrap(
+      await api.get<ApiEnvelope<StockReport>>("/hostel-admin/stock/report", {
+        params: { range, ...(isOverall() ? { scope: "all" } : {}) },
+      }),
+    ),
+  );
+}
+
+/** The same report as a file, for `downloadToDevice`. */
+export function reportFileUrl(range: ReportRange, format: "csv" | "pdf") {
+  return `${API_BASE_URL}/api/v1/hostel-admin/stock/report?range=${range}&format=${format}${isOverall() ? "&scope=all" : ""}`;
 }

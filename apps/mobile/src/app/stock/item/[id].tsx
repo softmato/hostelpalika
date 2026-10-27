@@ -15,6 +15,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
+import { Stagger } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
@@ -138,7 +139,7 @@ function Overview({
     router.push({ params: { itemId: item.id }, pathname });
 
   return (
-    <View className="gap-6">
+    <Stagger className="gap-6">
       {item.at.map((at) => {
         const place = places.find((entry) => entry.id === at.hostelId);
 
@@ -177,7 +178,7 @@ function Overview({
           ) : null}
         </View>
       )}
-    </View>
+    </Stagger>
   );
 }
 

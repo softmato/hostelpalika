@@ -1,6 +1,7 @@
 import { toast } from "@/stores/toast-store";
 import { type DownloadItem, useDownloadStore } from "@/stores/download-store";
 import { csvFilename, toCsv } from "@/lib/csv";
+import { workspaceSlug } from "@/lib/browser-api";
 
 /**
  * The universal downloader.
@@ -209,8 +210,11 @@ export async function downloadFile(options: DownloadOptions): Promise<DownloadOu
      * Origin, and the bucket's CORS rule answers it.
      */
     const crossOrigin = new URL(url, window.location.href).origin !== window.location.origin;
+    const slug = crossOrigin ? null : workspaceSlug();
     const response = await fetch(url, {
       cache: crossOrigin ? "no-store" : "default",
+      // The branch this portal is on, as `browserApi` names it, so a branch's export is that branch's.
+      headers: slug ? { "x-hostel-id": decodeURIComponent(slug) } : undefined,
       signal: controller.signal,
     });
 

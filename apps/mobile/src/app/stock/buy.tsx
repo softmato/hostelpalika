@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
+import { Stagger } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
 import { Sheet } from "@/components/ui/sheet";
@@ -283,7 +284,7 @@ export default function AddStockScreen() {
         header={header}
         scroll
       >
-        <View className="gap-4 pb-4 pt-3">
+        <Stagger className="gap-4 pb-4 pt-3">
           {opening ? (
             <Text variant="muted">What was already on the shelf before you started. Write its value to know what the store is worth.</Text>
           ) : (
@@ -393,7 +394,7 @@ export default function AddStockScreen() {
               required={photoNeeded}
             />
           )}
-        </View>
+        </Stagger>
       </Screen>
 
       <Sheet onClose={() => setUnitFor(null)} open={editing !== null} title="Unit">

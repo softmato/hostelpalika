@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
-import { bsPeriodBounds, currentBsPeriod, hostelPeriodOf, hostelToday, isBsPeriod } from "@/lib/hostel-day";
+import { addBsMonths, bsPeriodBounds, currentBsPeriod, formatBsPeriod, hostelPeriodOf, hostelToday, isBsPeriod } from "@/lib/hostel-day";
 import { REALTIME_TOPIC } from "@/lib/realtime/channels";
 import { publishResourceChange } from "@/lib/realtime/server";
 import { Role } from "@/lib/roles";
@@ -15,11 +15,12 @@ import {
   voidExpense,
 } from "@/modules/finance/expenses/expense.service";
 import type { CreateExpenseInput } from "@/modules/finance/expenses/expense.validation";
+import type { ReportExport } from "@/modules/reports/report-export.service";
 import {
   createInAppNotification,
   settleActionNotifications,
 } from "@/modules/notifications/notification.service";
-import { EXPENSE_WHAT_MAX } from "@hostel/shared/expenses/categories";
+import { EXPENSE_CATEGORY_LABELS, type ExpenseCategoryKey, EXPENSE_WHAT_MAX } from "@hostel/shared/expenses/categories";
 import {
   billStatus,
   formatQty,
@@ -27,6 +28,7 @@ import {
   type StockBillStatus,
   STOCK_ITEM_LIMIT,
   STOCK_SUPPLIER_LIMIT,
+  STOCK_UNIT_LABELS,
   type StockEntryKind,
   type StockEntryStatus,
   type StockKind,
@@ -50,6 +52,8 @@ import {
   type FoldEntry,
   foldStock,
   type ItemAtPlace,
+  type ReportFigures,
+  reportFigures,
   supplierLedger,
   type UsageRow,
   usageRows,
@@ -60,6 +64,7 @@ import type {
   CreateStockPaymentInput,
   CreateStockSupplierInput,
   UpdateStockItemInput,
+  StockReportRange,
   UpdateStockSupplierInput,
 } from "./stock.validation";
 
@@ -457,6 +462,37 @@ function billMoney(doc: EntryDoc) {
   return total === null ? null : { paid: Math.min(paid ?? 0, total), total };
 }
 
+/** Priced bills per supplier among `docs`, in the buildings on screen, most billed first. */
+function boughtBySupplier(docs: readonly EntryDoc[], suppliers: readonly SupplierDoc[], mine: ReadonlySet<string>) {
+  const supplierNames = new Map(suppliers.map((supplier) => [supplier._id.toString(), supplier.name]));
+  const bySupplier = new Map<string, StockSummary["bySupplier"][number]>();
+
+  for (const doc of docs) {
+    if (doc.kind !== "BUY" || doc.status === "CANCELLED" || !mine.has(doc.hostelId.toString())) continue;
+
+    const bill = billMoney(doc);
+
+    if (!bill) continue;
+
+    const supplierId = doc.supplierId?.toString() ?? null;
+    const key = supplierId ?? `name:${(doc.supplier ?? "").toLowerCase()}`;
+    const bucket = bySupplier.get(key) ?? {
+      bills: 0,
+      billed: 0,
+      name: (supplierId && supplierNames.get(supplierId)) || doc.supplier || "No supplier",
+      paid: 0,
+      supplierId,
+    };
+
+    bucket.bills += 1;
+    bucket.billed += bill.total;
+    bucket.paid += bill.paid;
+    bySupplier.set(key, bucket);
+  }
+
+  return [...bySupplier.values()].sort((a, b) => b.billed - a.billed);
+}
+
 function serializeEntry(actor: StockActor, doc: EntryDoc): StockEntryRow {
   const names = new Map(actor.places.map((place) => [place.id, place.name]));
   const mine = doc.recordedBy.toString() === actor.principal.userId;
@@ -546,7 +582,8 @@ function resolvePeriod(requested?: string) {
   return requested;
 }
 
-function toFoldEntry(doc: EntryDoc, period: string): FoldEntry {
+/** `from`..`to` are BS periods, inclusive: one month, or a report's range. */
+function toFoldEntry(doc: EntryDoc, from: string, to = from): FoldEntry {
   const entryPeriod = hostelPeriodOf(doc.on);
 
   return {
@@ -563,12 +600,12 @@ function toFoldEntry(doc: EntryDoc, period: string): FoldEntry {
     receivedAt: doc.receivedAt ?? null,
     status: doc.status,
     toHostelId: doc.toHostelId?.toString() ?? null,
-    when: entryPeriod < period ? "before" : entryPeriod > period ? "after" : "in",
+    when: entryPeriod < from ? "before" : entryPeriod > to ? "after" : "in",
   };
 }
 
 /** The whole group's book, folded for `places`. */
-async function readBook(actor: StockActor, places: readonly string[], period = currentBsPeriod()) {
+async function readBook(actor: StockActor, places: readonly string[], period = currentBsPeriod(), to = period) {
   const [items, docs] = await Promise.all([
     StockItemModel.find({ groupHostelId: actor.groupId }).sort({ active: -1, name: 1 }).lean<ItemDoc[]>(),
     // ponytail: the group's whole history is folded in memory; a busy group adds
@@ -577,7 +614,7 @@ async function readBook(actor: StockActor, places: readonly string[], period = c
   ]);
   const kinds = new Map(items.map((item) => [item._id.toString(), item.kind]));
   const fold = foldStock(
-    docs.map((doc) => toFoldEntry(doc, period)),
+    docs.map((doc) => toFoldEntry(doc, period, to)),
     kinds,
     places,
   );
@@ -722,32 +759,6 @@ export async function getStockHome(actor: StockActor, requestedPeriod?: string):
     categories.set(item.category, bucket);
   }
 
-  const supplierNames = new Map(suppliers.map((supplier) => [supplier._id.toString(), supplier.name]));
-  const bySupplier = new Map<string, StockSummary["bySupplier"][number]>();
-
-  for (const doc of inPeriod) {
-    if (doc.kind !== "BUY" || doc.status === "CANCELLED" || !mine.has(doc.hostelId.toString())) continue;
-
-    const bill = billMoney(doc);
-
-    if (!bill) continue;
-
-    const supplierId = doc.supplierId?.toString() ?? null;
-    const key = supplierId ?? `name:${(doc.supplier ?? "").toLowerCase()}`;
-    const bucket = bySupplier.get(key) ?? {
-      bills: 0,
-      billed: 0,
-      name: (supplierId && supplierNames.get(supplierId)) || doc.supplier || "No supplier",
-      paid: 0,
-      supplierId,
-    };
-
-    bucket.bills += 1;
-    bucket.billed += bill.total;
-    bucket.paid += bill.paid;
-    bySupplier.set(key, bucket);
-  }
-
   const summary: StockSummary = {
     boughtValue: money ? sum((row) => row.boughtValue) : null,
     byCategory: money
@@ -756,7 +767,7 @@ export async function getStockHome(actor: StockActor, requestedPeriod?: string):
           .filter((row) => row.stockValue > 0 || row.usedValue > 0)
           .sort((a, b) => b.stockValue + b.usedValue - (a.stockValue + a.usedValue))
       : [],
-    bySupplier: money ? [...bySupplier.values()].sort((a, b) => b.billed - a.billed) : [],
+    bySupplier: money ? boughtBySupplier(inPeriod, suppliers, mine) : [],
     costPerResidentDay: money && residentsTotal > 0 ? Math.round(spentValue / (residentsTotal * days)) : null,
     days,
     dueTotal: money ? supplierRows.reduce((total, row) => total + Math.max(0, row.due ?? 0), 0) : null,
@@ -2101,5 +2112,169 @@ export async function getStockUsage(actor: StockActor, range: StockUsageRange): 
     value: money
       ? Math.round(rows.reduce((sum, row) => sum + (row.used + row.wasted) * (fold.avgCost.get(row.itemId) ?? 0), 0))
       : null,
+  };
+}
+
+/* -------------------------------------------------------------------------- */
+/* The report                                                                 */
+/* -------------------------------------------------------------------------- */
+
+/** BS months each range covers, counting this one — the report exports' windows. */
+const REPORT_MONTHS: Record<StockReportRange, number> = { month: 1, quarter: 3, year: 12 };
+const REPORT_LABELS: Record<StockReportRange, string> = { month: "This month", quarter: "Last 3 months", year: "Last 1 year" };
+
+export type StockReportItem = ReportFigures & {
+  avgCost: number | null;
+  category: string;
+  id: string;
+  kind: StockKind;
+  name: string;
+  unit: StockUnit;
+};
+
+export type StockReport = {
+  bySupplier: StockSummary["bySupplier"];
+  /** Used + wasted + missing at Counts over the range, per resident per day. */
+  costPerResidentDay: number | null;
+  days: number;
+  /** First BS month of the range; `to` is this month. */
+  from: string;
+  /** Everything bought, used or on the shelf, by category then name. Rupees zero without money rights. */
+  items: StockReportItem[];
+  /** "Last 3 months". */
+  label: string;
+  money: boolean;
+  nextPeriod: string;
+  range: StockReportRange;
+  residents: number;
+  /** The building, or "All buildings". */
+  scope: string;
+  to: string;
+  /** `null` without money rights. */
+  totals: {
+    boughtValue: number;
+    missingValue: number;
+    nextValue: number;
+    stockValue: number;
+    usedValue: number;
+    wastedValue: number;
+  } | null;
+};
+
+/**
+ * Per item: bought, used and left over this month, three months or a year, and
+ * next month at that pace (`reportFigures`). The owner's Overall sums every building.
+ */
+export async function getStockReport(actor: StockActor, range: StockReportRange): Promise<StockReport> {
+  await connectToDatabase();
+
+  const to = currentBsPeriod();
+  const from = addBsMonths(to, -(REPORT_MONTHS[range] - 1));
+  const nextPeriod = addBsMonths(to, 1);
+  const nextDays = bsPeriodBounds(nextPeriod).daysInMonth;
+  const days = Math.max(1, Math.floor((hostelToday().getTime() - bsPeriodBounds(from).start.getTime()) / 86_400_000) + 1);
+  const money = actor.rights.money;
+  const [{ docs, fold, items }, suppliers, residents] = await Promise.all([
+    readBook(actor, actor.mine, from, to),
+    money ? StockSupplierModel.find({ groupHostelId: actor.groupId }).lean<SupplierDoc[]>() : Promise.resolve([] as SupplierDoc[]),
+    Promise.all(
+      actor.mine.map((id) => ResidentModel.countDocuments({ hostelId: id, isDeleted: false, status: { $ne: "MOVED_OUT" } })),
+    ),
+  ]);
+  const label = (category: string) => EXPENSE_CATEGORY_LABELS[category as ExpenseCategoryKey] ?? "Other";
+  let missingValue = 0;
+  let stockValue = 0;
+
+  const rows = items
+    .map((item): StockReportItem => {
+      const id = item._id.toString();
+      const at = actor.mine.map((hostelId) => fold.byItem.get(id)?.get(hostelId) ?? emptyAtPlace());
+      const avgCost = fold.avgCost.get(id) ?? null;
+      const figures = reportFigures(at, item.kind, avgCost, days, nextDays);
+
+      missingValue += at.reduce((sum, row) => sum + Math.max(0, -row.adjustedValue), 0);
+      if (item.kind === "STORE" && avgCost !== null) stockValue += Math.max(0, figures.left ?? 0) * avgCost;
+
+      return {
+        ...figures,
+        ...(money ? {} : { boughtValue: 0, nextValue: null, usedValue: 0, wastedValue: 0 }),
+        avgCost: money ? avgCost : null,
+        category: item.category ?? "GROCERIES",
+        id,
+        kind: item.kind,
+        name: item.name,
+        unit: item.unit,
+      };
+    })
+    .filter((row) => row.bought > 0 || row.used > 0 || row.wasted > 0 || (row.left ?? 0) !== 0)
+    .sort((a, b) => label(a.category).localeCompare(label(b.category)) || a.name.localeCompare(b.name));
+
+  const total = (pick: (row: StockReportItem) => number | null) => rows.reduce((sum, row) => sum + (pick(row) ?? 0), 0);
+  const residentsTotal = residents.reduce((sum, count) => sum + count, 0);
+  const spent = total((row) => row.usedValue) + total((row) => row.wastedValue) + missingValue;
+  const inRange = docs.filter((doc) => {
+    const period = hostelPeriodOf(doc.on);
+
+    return period >= from && period <= to;
+  });
+
+  return {
+    bySupplier: money ? boughtBySupplier(inRange, suppliers, new Set(actor.mine)) : [],
+    costPerResidentDay: money && residentsTotal > 0 ? Math.round(spent / (residentsTotal * days)) : null,
+    days,
+    from,
+    items: rows,
+    label: REPORT_LABELS[range],
+    money,
+    nextPeriod,
+    range,
+    residents: residentsTotal,
+    scope: actor.overall ? "All buildings" : (actor.places.find((place) => place.id === actor.mine[0])?.name ?? "Hostel"),
+    to,
+    totals: money
+      ? {
+          boughtValue: total((row) => row.boughtValue),
+          missingValue: Math.round(missingValue),
+          nextValue: total((row) => row.nextValue),
+          stockValue: Math.round(stockValue),
+          usedValue: total((row) => row.usedValue),
+          wastedValue: total((row) => row.wastedValue),
+        }
+      : null,
+  };
+}
+
+/** The report's item table as a CSV or PDF: quantities always, rupees only with money rights. */
+export function stockReportExport(report: StockReport): ReportExport {
+  const next = formatBsPeriod(report.nextPeriod);
+  const columns = [
+    { key: "name", label: "Item" },
+    { key: "unit", label: "Unit" },
+    { key: "bought", label: "Bought" },
+    ...(report.money ? [{ key: "boughtValue", label: "Bought (Rs)" }] : []),
+    { key: "used", label: "Used" },
+    { key: "wasted", label: "Wasted" },
+    { key: "left", label: "Left" },
+    { key: "nextQty", label: `${next} (expected)` },
+    ...(report.money ? [{ key: "nextValue", label: `${next} (Rs)` }] : []),
+  ];
+  const rows: Record<string, unknown>[] = report.items.map((item) => ({
+    ...item,
+    left: item.left ?? "",
+    nextValue: item.nextValue ?? "",
+    unit: STOCK_UNIT_LABELS[item.unit]?.many ?? item.unit.toLowerCase(),
+  }));
+
+  if (report.totals) {
+    rows.push({ boughtValue: report.totals.boughtValue, name: "Total", nextValue: report.totals.nextValue });
+  }
+
+  const months = report.from === report.to ? formatBsPeriod(report.to) : `${formatBsPeriod(report.from)} – ${formatBsPeriod(report.to)}`;
+
+  return {
+    columns,
+    filenamePrefix: "stock-report",
+    period: `${report.label} · ${months} · ${report.scope}`,
+    rows,
   };
 }

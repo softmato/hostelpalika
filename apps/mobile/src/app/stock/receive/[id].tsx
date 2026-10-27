@@ -7,6 +7,7 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
+import { Stagger } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -118,7 +119,7 @@ export default function GotItScreen() {
       header={header}
       scroll
     >
-      <View className="gap-5 pb-4 pt-3">
+      <Stagger className="gap-5 pb-4 pt-3">
         <View className="flex-row items-center gap-3 rounded-2xl bg-info-soft p-4">
           <View className="h-10 w-10 items-center justify-center rounded-full bg-card">
             <Glyph color={colors.info} name="arrow-down-circle" size={22} />
@@ -181,7 +182,7 @@ export default function GotItScreen() {
             })}
           </Card>
         </View>
-      </View>
+      </Stagger>
     </Screen>
   );
 }

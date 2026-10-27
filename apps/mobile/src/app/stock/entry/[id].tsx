@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { FactRow } from "@/components/ui/layout";
+import { FactRow, Stagger } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Sheet } from "@/components/ui/sheet";
@@ -212,7 +212,7 @@ export default function EntryDetailScreen() {
   return (
     <>
       <Screen footer={footer} header={header} onRefresh={resource.refresh} refreshing={resource.refreshing} scroll>
-        <View className="gap-5 pb-4 pt-3">
+        <Stagger className="gap-5 pb-4 pt-3">
           <View className="flex-row items-center gap-3 rounded-2xl p-4" style={{ backgroundColor: `${look.color}1A` }}>
             <View className="h-11 w-11 items-center justify-center rounded-full bg-card">
               <Glyph color={look.color} name={look.icon} size={22} />
@@ -365,7 +365,7 @@ export default function EntryDetailScreen() {
               </Card>
             </View>
           ) : null}
-        </View>
+        </Stagger>
       </Screen>
 
       <Sheet

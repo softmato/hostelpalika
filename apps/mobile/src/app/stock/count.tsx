@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
-import { Chip } from "@/components/ui/layout";
+import { Chip, Stagger } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -169,7 +169,7 @@ export default function CountScreen() {
         header={header}
         scroll
       >
-        <View className="gap-5 pb-4 pt-3">
+        <Stagger className="gap-5 pb-4 pt-3">
           <DateField onChange={setDay} value={day} />
 
           <View className="flex-row items-center justify-between">
@@ -266,7 +266,7 @@ export default function CountScreen() {
               </View>
             </View>
           ) : null}
-        </View>
+        </Stagger>
       </Screen>
 
       <ItemPicker

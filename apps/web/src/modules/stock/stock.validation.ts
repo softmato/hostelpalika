@@ -183,3 +183,13 @@ export const stockUsageQuerySchema = z.object({
   range: z.enum(["today", "week", "month"]).default("today"),
   scope: z.literal("all").optional(),
 });
+
+export const STOCK_REPORT_RANGES = ["month", "quarter", "year"] as const;
+export type StockReportRange = (typeof STOCK_REPORT_RANGES)[number];
+
+/** This month, the last three, or the last twelve. `format` turns it into a file. */
+export const stockReportQuerySchema = z.object({
+  format: z.enum(["csv", "pdf"]).optional(),
+  range: z.enum(STOCK_REPORT_RANGES).default("month"),
+  scope: z.literal("all").optional(),
+});

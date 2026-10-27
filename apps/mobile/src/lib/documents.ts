@@ -21,6 +21,7 @@ import * as Sharing from "expo-sharing";
 import { Platform } from "react-native";
 
 import { APP_NAME } from "@/constants/branding";
+import { getRequestHostelId } from "@/lib/active-hostel";
 import { openSavedFile, saveSilently } from "@/lib/native-downloads";
 import { readTokens } from "@/lib/session";
 import { toastSuccess, toastSuccessAction } from "@/lib/toast";
@@ -617,10 +618,14 @@ export async function downloadToDevice({
      * the simpler `File.downloadFileAsync` does. The delete above is what makes
      * a repeat download safe instead.
      */
+    const hostelId = authenticated ? getRequestHostelId() : null;
     const task = new DownloadTask(url, target, {
-      headers: tokens?.accessToken
-        ? { Authorization: `Bearer ${tokens.accessToken}` }
-        : {},
+      // The switcher's building, as every `api` call names it — or a branch's
+      // export would come back as the main hostel's.
+      headers: {
+        ...(tokens?.accessToken ? { Authorization: `Bearer ${tokens.accessToken}` } : {}),
+        ...(hostelId ? { "x-hostel-id": hostelId } : {}),
+      },
       onProgress: ({ bytesWritten, totalBytes }) => {
         /*
          * `totalBytes` is `-1` when the server sent no `Content-Length`, which
