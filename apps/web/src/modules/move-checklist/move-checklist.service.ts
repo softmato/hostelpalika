@@ -399,7 +399,8 @@ export async function createMoveOutChecklist(
     ),
     ResidentModel.updateOne(
       { _id: resident._id },
-      { $set: { status: "MOVED_OUT", updatedBy: principal.userId } },
+      // The notice (E5) is done with once they are out.
+      { $set: { leavingOn: null, status: "MOVED_OUT", updatedBy: principal.userId } },
     ),
   ]);
   // Moving out hands the bed back to that room type's vacancy count — once.

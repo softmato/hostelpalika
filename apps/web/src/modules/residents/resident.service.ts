@@ -62,7 +62,8 @@ import {
   periodOfDate,
   raiseAdmissionInvoice,
 } from "@/modules/residents/resident-intake.service";
-import { runBillingCycle } from "@/modules/finance/billing.service";
+import { ordinalDay, runBillingCycle } from "@/modules/finance/billing.service";
+import { billDayOf } from "@/modules/finance/fee-schedule.service";
 import { auditFinanceAction } from "@/modules/finance/audit-finance";
 import { resolveRoom } from "@/modules/hostels/hostel-rooms.service";
 import { hostelToday } from "@/lib/hostel-day";
@@ -120,6 +121,9 @@ export type ResidentRecord = {
   feeOverrideReason?: string;
   floor?: number | null;
   lastMonthCharge?: "FULL_MONTH" | "TILL_DAY" | null;
+  billingCycle?: "CALENDAR_MONTH" | "SAME_DAY" | null;
+  leavingOn?: Date | null;
+  leavingReason?: string | null;
   monthlyFee?: number | null;
   moveInDate: Date;
   moveOutDate?: Date | null;
@@ -227,6 +231,12 @@ function serializeResident(resident: ResidentRecord) {
     /** What was levied at intake. Null — not zero — when none was. */
     admissionFee: resident.admissionFee ?? null,
     admissionFeeDiscount: resident.admissionFeeDiscount ?? 0,
+    billingCycle: resident.billingCycle ?? "CALENDAR_MONTH",
+    /** "Bills on the 20th" (field review E2) — same-day residents' own day, the 1st otherwise. */
+    billsOn: `Bills on the ${ordinalDay(billDayOf(resident) ?? 1)}`,
+    /** Their move-out notice (E5): the day they said they are leaving. */
+    leavingOn: resident.leavingOn?.toISOString() ?? null,
+    leavingReason: resident.leavingReason ?? null,
     createdAt: resident.createdAt?.toISOString(),
     demoDataLabel: resident.demoDataLabel ?? "",
     depositAmount: resident.depositAmount,
@@ -834,6 +844,7 @@ async function raiseFirstMonthInvoice(input: {
     if (invoice) {
       return {
         amount: invoice.amount,
+        dueDate: invoice.dueDate,
         invoiceId: invoice.invoiceId,
         period,
         raised: true,
@@ -866,6 +877,7 @@ export type FirstMonthInvoiceResult =
   | { period: string; raised: false; reason: string }
   | {
       amount: number;
+      dueDate: Date;
       invoiceId: string;
       period: string;
       raised: true;
@@ -1033,6 +1045,7 @@ export async function createResident(
    */
   const quote = await getIntakeQuote(hostelId, {
     admissionFee: input.admissionFee,
+    billingCycle: input.billingCycle,
     depositAmount: input.depositAmount,
     formFee: input.formFee,
     monthlyFee: input.monthlyFee,
@@ -1310,6 +1323,7 @@ export async function createResident(
       firstMonth: firstMonth.raised
         ? {
             amount: firstMonth.amount,
+            dueDate: firstMonth.dueDate,
             invoiceId: firstMonth.invoiceId,
             period: firstMonth.period,
             prorated: quote.firstMonth?.prorated ?? false,

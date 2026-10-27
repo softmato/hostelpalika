@@ -40,6 +40,8 @@ const DUES_OPTIONS = [
 ] as const;
 
 type Resident = {
+  /** Their notice day (E5), which the sheet starts on. */
+  leavingOn?: string | null;
   depositAmount: number;
   firstName: string;
   id: string;
@@ -86,7 +88,8 @@ export function MoveOutSheet({
   // Each opening starts from what is on file.
   if (open && !seeded) {
     setSeeded(true);
-    setDate(dayInputFromNow(0));
+    // The day they gave notice for (E5), or today.
+    setDate(resident.leavingOn?.slice(0, 10) ?? dayInputFromNow(0));
     setCharge(null);
     setDues("WRITE_OFF");
     setDeposit((checklist?.depositRefundDecision as DepositDecision) ?? "APPROVED");

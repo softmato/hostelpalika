@@ -116,9 +116,16 @@ arithmetic as the billing run); the last month is FULL_MONTH or TILL_DAY
 (`Resident.lastMonthCharge`); late fine and khata add lines; due reminders already go
 out automatically.
 
-☐ **E1** Resident add form: one line under the email — "This email becomes their
+☑ **E1** Resident add form: one line under the email — "This email becomes their
 login." Then prove it end to end: registering creates that login and sends the invite (p6).
-☐ **E2 Billing choice on the last registration step** (p5):
+**Done in code 2026-10-27** — the line sits under Email on web (`hostel-admin-residents-page.tsx`)
+and app (`applicant-form.tsx`, staff side only). Proved: `createResident` →
+`findAccountForIntake` finds no account → `openResidentLogin` makes a PUBLIC login (no
+password) → `linkResidentAccount` promotes it to RESIDENT → the welcome mail goes out as
+`NEW_ACCOUNT` ("Log in with Google, or Forgot password"). An address that already has an
+account is promoted instead. Test: `resident.service.test.ts` "makes the typed email
+their login…". Open: one real registration with a fresh Gmail after deploy.
+☑ **E2 Billing choice on the last registration step** (p5):
 - Calendar month — move-in day to end of the BS month, then monthly (today; default).
 - Same day each month — move-in day to the same day next month, and on.
 
@@ -126,8 +133,24 @@ Server: `Resident.billingCycle`; the billing run bills same-day residents on the
 the invoice stores covered dates and keeps a BS month key (month the cycle starts) so
 month-keyed screens keep working; due date, late fine, reminders follow the invoice due
 date. Shown on the resident page (web + app) and invoice: "Bills on the 20th".
-☐ **E3** Confirm the automatic reminders cover same-day bills.
-☐ **E5 Move-out notice** (p8 + chat):
+**Done in code 2026-10-27** — `Resident.billingCycle` (default CALENDAR_MONTH);
+`bsCycleBounds`/`bsCyclePeriodOf` (shared BS module) and `residentPeriodBounds`/
+`residentPeriodOf` (`fee-schedule.service`) are the one span rule, used by the billing run,
+the intake quote, move-out money, days away, the unbilled projection and receipts. A
+same-day bill (e.g. Bhadra 20 – Aswin 19) is keyed by the month it opens in, stores
+`coversFrom`/`coversTo`, is issued on its day (the daily cron skips it as `NOT_YET_DUE`
+until then; the first one is raised at registration), and falls due on its last day — or
+grace days from its first day when a late fine is on. Line reads "Monthly rent — Bhadra 20
+– Aswin 19 · bills on the 20th". Choice: web "Billing" select, app segmented control under
+"Moving in on"; resident pages show `billsOn`. Test: `billing-cycle.test.ts`. Open: web
+deploy, an app device pass, one real same-day registration. Khata on a same-day bill takes
+entries given before the 1st (marked `ponytail:`).
+☑ **E3** Confirm the automatic reminders cover same-day bills.
+**Confirmed in code 2026-10-27** — `sendFeeDueReminders` and `accrueLateFines` read only
+an open invoice's `dueDate` and balance, never its period or the calendar, and E2 gives a
+same-day bill its own due date. So reminders (7·5 days, then twice daily from 3) and the
+late fine follow the bill's day with no change. The push names the month the bill opened in.
+☑ **E5 Move-out notice** (p8 + chat):
 - Resident (app + web): "I'm leaving" → date, optional reason. No approval step.
 - Admin + wardens notified at once; resident can change or cancel until the day.
 - **Move-out notice days** is a hostel setting, editable on the Finance screen (web +
@@ -137,13 +160,30 @@ date. Shown on the resident page (web + app) and invoice: "Bills on the 20th".
 - On the day the warden's home shows "Leaving today" → Move out opens the existing
   move-out checklist with the date filled. Not done → reminder repeats.
 - Move-out already demotes the login to public; keep it.
+**Done in code 2026-10-27** — `leaving-notice.service.ts` + `/api/v1/resident/leaving`
+(GET/PUT/DELETE). Notice sets `Resident.leavingOn` and `moveOutDate` + `TILL_DAY`, so the
+billing run prorates the leaving bill to the day and skips later ones; cancel clears all
+three. `moveOutNoticeDays` in Money rules (web panel + app Finance → Money rules), checked
+on the server (`LEAVING_TOO_SOON`). Admin + wardens get a bell + push at once (and on
+change/cancel). The payment-reminders cron (twice a day) pushes resident and staff the day
+before and on the day, and keeps reminding staff after it until they are moved out. App
+Home shows "Leaving today · name" → `/manage/resident/{id}?panel=moveOut`, the existing
+sheet starting on the notice day; completing it clears the notice; the demotion is
+unchanged. Resident: app More → Moving out, web Profile → Moving out card. Test:
+`leaving-notice.test.ts`. Open: web deploy, device pass; web staff dashboard has no
+"Leaving today" card (the resident detail shows "Leaving on"); a bill raised before notice
+is cut by the move-out sheet, not at notice time.
 
-☐ **E4 Billing explained**: join → first bill → monthly bill → reminders → fine →
+☑ **E4 Billing explained**: join → first bill → monthly bill → reminders → fine →
 move-out bill, one worked example in BS dates. `docs/BILLING_EXPLAINED.md` for the demo
 script; the short version on the web billing page and in the app.
-☐ **K1 Features by category** (p5): Resident management (explore → book or walk in →
+**Done 2026-10-27** — `docs/BILLING_EXPLAINED.md` (Bhadra 20 joiner on both cycles, rent
+6,200: 2,400 first bill, Kartik 10 leaver 2,067). Short version: "How bills work" card under
+Money rules on the web Rates page and on app Finance.
+☑ **K1 Features by category** (p5): Resident management (explore → book or walk in →
 register → portal → billing choice → reminders), Rooms, Money, Stock, Food, Attendance,
 Complaints, Staff… taken from the code, for demo videos.
+**Done 2026-10-27** — `docs/FEATURES_BY_CATEGORY.md`.
 
 ## Phase 4 — Finance screens
 

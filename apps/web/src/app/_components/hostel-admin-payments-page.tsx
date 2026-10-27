@@ -82,6 +82,7 @@ import { WalletMark } from "@/components/wallet-mark";
 /** "No fee set" only when nothing prices the room; a priceable row is just not billed yet. */
 function notBilledLabel(reason: string | undefined) {
   if (reason === "NOT_YET_RUN") return "NOT BILLED YET";
+  if (reason === "NOT_YET_DUE") return "BILLS ON THEIR DAY";
   if (reason === "PAID_BEFORE_JOINING") return "PAID BEFORE JOINING";
   if (reason === "FEE_SCHEDULE_MISSING" || reason === "BED_TYPE_NOT_PRICED") return "NO FEE SET";
   return "NOT BILLED";

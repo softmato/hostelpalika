@@ -62,6 +62,7 @@ export async function notifyResidentRegistered(input: {
   depositAmount: number | null;
   firstMonth: {
     amount: number;
+    dueDate?: Date;
     invoiceId: string;
     period: string;
     prorated: boolean;
@@ -225,6 +226,8 @@ async function emailTheResident(input: {
   depositAmount: number | null;
   firstMonth: {
     amount: number;
+    /** The bill's own due date; the month's last day when absent. */
+    dueDate?: Date;
     period: string;
     prorated: boolean;
     referenceCode?: string | null;
@@ -278,7 +281,7 @@ async function emailTheResident(input: {
           // is it due", in the module that decides it. `lastDay`, not `end`:
           // `end` is 23:59:59.999 UTC, which Nepal has already carried into the
           // next morning, so a Bhadra invoice would be emailed as due in Aswin.
-          dueDate: periodBounds(input.firstMonth.period).lastDay,
+          dueDate: input.firstMonth.dueDate ?? periodBounds(input.firstMonth.period).lastDay,
           period: input.firstMonth.period,
           prorated: input.firstMonth.prorated,
           referenceCode: input.firstMonth.referenceCode,

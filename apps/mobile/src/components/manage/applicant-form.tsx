@@ -63,6 +63,7 @@ export function ApplicantForm({
     field: ApplicantField,
     label: string,
     options: {
+      hint?: string;
       keyboard?: "email-address" | "number-pad" | "numbers-and-punctuation" | "phone-pad";
       multiline?: boolean;
       placeholder?: string;
@@ -71,6 +72,7 @@ export function ApplicantForm({
   ) => (
     <Input
       autoCapitalize={options.keyboard === "email-address" ? "none" : options.words ? "words" : "sentences"}
+      hint={options.hint}
       keyboardType={options.keyboard}
       label={label}
       multiline={options.multiline}
@@ -128,8 +130,9 @@ export function ApplicantForm({
           {pair(box("firstName", "First name *", { words: true }), box("lastName", "Last name *", { words: true }))}
           {box("phone", "Contact no. *", { keyboard: "phone-pad" })}
           {box("email", `Email${star}`, {
+            hint: own ? undefined : "This email becomes their login.",
             keyboard: "email-address",
-            placeholder: own ? "Gmail you will log in with" : "Optional — becomes their login",
+            placeholder: own ? "Gmail you will log in with" : "Optional",
           })}
           {box("dateOfBirth", `Date of birth${star}`, { keyboard: "numbers-and-punctuation", placeholder: "YYYY-MM-DD" })}
 

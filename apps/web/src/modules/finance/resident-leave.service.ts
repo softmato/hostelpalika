@@ -3,9 +3,13 @@ import { z } from "zod";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
-import { formatBsDayRange, formatBsPeriod, hostelCalendarDay, hostelPeriodOf } from "@/lib/hostel-day";
+import { formatBsDayRange, formatBsPeriod, hostelCalendarDay } from "@/lib/hostel-day";
 import { FinanceServiceError } from "@/modules/finance/finance.errors";
-import { periodBounds } from "@/modules/finance/fee-schedule.service";
+import {
+  type BillingCycle,
+  residentPeriodBounds,
+  residentPeriodOf,
+} from "@/modules/finance/fee-schedule.service";
 import { setAdjustment } from "@/modules/finance/invoice-adjust";
 import { getMoneyRules } from "@/modules/finance/money-rules.service";
 import { InvoiceModel } from "@hostel/db/models/Invoice";
@@ -69,8 +73,14 @@ function serialize(row: LeaveRow) {
 
 async function loadResident(hostelId: Types.ObjectId, residentId: string) {
   const resident = await ResidentModel.findOne({ _id: oid(residentId), hostelId, isDeleted: { $ne: true } })
-    .select("hostelId moveInDate status")
-    .lean<{ _id: Types.ObjectId; hostelId: Types.ObjectId; moveInDate?: Date; status: string } | null>();
+    .select("billingCycle hostelId moveInDate status")
+    .lean<{
+      _id: Types.ObjectId;
+      billingCycle?: BillingCycle | null;
+      hostelId: Types.ObjectId;
+      moveInDate?: Date;
+      status: string;
+    } | null>();
 
   if (!resident) throw new FinanceServiceError("Resident was not found.", "RESIDENT_NOT_FOUND");
 
@@ -179,9 +189,10 @@ export async function addLeave(
 
   if (to < from) throw new FinanceServiceError("The last day is before the first.", "LEAVE_DATES");
 
-  const period = hostelPeriodOf(from);
+  // One bill's days: the BS month, or a same-day resident's own span.
+  const period = residentPeriodOf(resident, from);
 
-  if (hostelPeriodOf(to) !== period) {
+  if (residentPeriodOf(resident, to) !== period) {
     throw new FinanceServiceError(
       `Keep one entry inside ${formatBsPeriod(period) || "one month"}. Add the days in the next month as a second entry.`,
       "LEAVE_CROSSES_MONTH",
@@ -206,7 +217,7 @@ export async function addLeave(
   // A day of rent is this month's bill's own rent over its own days, so a
   // special fee or a part month prices the day right.
   const bill = await rentBill(id, resident._id, period);
-  const { daysInMonth, lastDay, start } = periodBounds(period);
+  const { daysInMonth, lastDay, start } = residentPeriodBounds(resident, period);
   const joined = resident.moveInDate ? hostelCalendarDay(resident.moveInDate) : null;
   const billedFrom = joined && joined > start ? joined : start;
   const billedDays = Math.round((lastDay.getTime() - billedFrom.getTime()) / DAY) + 1;

@@ -2,15 +2,19 @@ import { Types } from "mongoose";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
+import { hostelToday } from "@/lib/hostel-day";
 import { getCreditAmount } from "@/modules/finance/credit-balance.service";
 import {
   computeInvoiceAmount,
   getEffectiveSchedule,
   listedRoomRates,
+  notYetDue,
   periodBounds,
+  residentPeriodBounds,
   resolveMonthlyCharge,
 } from "@/modules/finance/fee-schedule.service";
 import type {
+  BillingCycle,
   FeeScheduleRecord,
   ListedRoomRates,
 } from "@/modules/finance/fee-schedule.service";
@@ -336,6 +340,7 @@ async function listResidentClaims(
 type ResidentRow = {
   _id: Types.ObjectId;
   bedType?: string;
+  billingCycle?: BillingCycle | null;
   firstName?: string;
   lastName?: string;
   /** Needed to price an unbilled row — see {@link NotBilled}. */
@@ -420,11 +425,13 @@ function priceUnbilled(
       concessionPercent,
     );
 
+    const bounds = residentPeriodBounds(resident, period);
     const invoiceAmount = computeInvoiceAmount(
       charge.amount,
       resident.moveInDate,
       resident.moveOutDate,
       period,
+      bounds,
     );
 
     if (invoiceAmount.amount <= 0) {
@@ -444,7 +451,11 @@ function priceUnbilled(
       };
     }
 
-    return { amount: invoiceAmount.amount, reason: "NOT_YET_RUN" };
+    // A same-day resident's bill comes out on their own day, not on the 1st.
+    return {
+      amount: invoiceAmount.amount,
+      reason: notYetDue(resident, bounds, hostelToday()) ? "NOT_YET_DUE" : "NOT_YET_RUN",
+    };
   } catch (error) {
     return {
       amount: null,
@@ -558,7 +569,7 @@ export async function getInvoiceMatrix(
       status: "ACTIVE",
     })
       .select(
-        "bedType firstName lastName monthlyFee moveInDate moveOutDate paidTill phone roomNumber roomType userId",
+        "bedType billingCycle firstName lastName monthlyFee moveInDate moveOutDate paidTill phone roomNumber roomType userId",
       )
       .lean<ResidentRow[]>(),
     InvoiceModel.find({ hostelId, period, status: { $ne: "VOID" } }).lean<
@@ -622,7 +633,7 @@ export async function getInvoiceMatrix(
   const extras = extraIds.length
     ? await ResidentModel.find({ _id: { $in: extraIds }, isDeleted: { $ne: true } })
         .select(
-        "bedType firstName lastName monthlyFee moveInDate moveOutDate phone roomNumber roomType userId",
+        "bedType billingCycle firstName lastName monthlyFee moveInDate moveOutDate phone roomNumber roomType userId",
       )
         .lean<ResidentRow[]>()
     : [];

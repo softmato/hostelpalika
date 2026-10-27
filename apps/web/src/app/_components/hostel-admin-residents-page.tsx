@@ -779,6 +779,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
               }),
             ),
             feeReason: optionalField(form, "feeReason"),
+            billingCycle: optionalField(form, "billingCycle"),
             email: optionalField(form, "email"),
             firstName: field(form, "firstName"),
             lastName: field(form, "lastName"),
@@ -1233,6 +1234,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
               />
               <FormInput
                 defaultValue={prefill?.resident.email ?? (fromForm?.email || undefined)}
+                hint="This email becomes their login."
                 label="Email"
                 name="email"
                 type="email"
@@ -1284,6 +1286,10 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                 </FormSelect>
               ) : null}
               <FormInput label="Move-in date" name="moveInDate" required type="date" />
+              <FormSelect defaultValue="CALENDAR_MONTH" label="Billing" name="billingCycle">
+                <option value="CALENDAR_MONTH">Calendar month — to the month end, then each month</option>
+                <option value="SAME_DAY">Same day each month — move-in day to that day next month</option>
+              </FormSelect>
               {/* Optional: credits the resident whose code brought this person
                   in. A wrong code is rejected before the bed is taken. */}
               <FormInput
@@ -1673,6 +1679,21 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                         {currency(selectedResident.monthlyFee ?? 0)}
                       </dd>
                     </div>
+                    {selectedResident.billsOn ? (
+                      <div className="flex justify-between gap-3">
+                        <dt className="text-muted-foreground">Billing</dt>
+                        <dd className="font-medium text-foreground">{selectedResident.billsOn}</dd>
+                      </div>
+                    ) : null}
+                    {selectedResident.leavingOn ? (
+                      <div className="flex justify-between gap-3">
+                        <dt className="text-muted-foreground">Leaving on</dt>
+                        <dd className="font-medium text-foreground">
+                          {formatHostelDate(selectedResident.leavingOn)}
+                          {selectedResident.leavingReason ? ` · ${selectedResident.leavingReason}` : ""}
+                        </dd>
+                      </div>
+                    ) : null}
                     <div className="flex justify-between gap-3">
                       <dt className="text-muted-foreground">Move-in</dt>
                       <dd className="font-medium text-foreground">

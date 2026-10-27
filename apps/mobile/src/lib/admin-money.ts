@@ -102,6 +102,8 @@ export function notBilledReason(row: AdminInvoiceRow): string | null {
   switch (row.notBilled?.reason) {
     case "NOT_YET_RUN":
       return "Not billed yet — the month's billing run has not happened.";
+    case "NOT_YET_DUE":
+      return "Billed on their own day each month — that day has not come yet.";
     case "BED_TYPE_NOT_PRICED":
     case "FEE_SCHEDULE_MISSING":
       return "Nothing prices this room type — set a rent for it in Finance.";

@@ -409,6 +409,41 @@ export function bsMonthsEnd(start: Date, months: number): Date {
   return hostelDayEnd(renews, -1);
 }
 
+/**
+ * A same-day bill's span (field review E2): from day `billDay` of `period` to
+ * the day before that day next month — Bhadra 20 to Aswin 19. A month shorter
+ * than `billDay` opens on its own last day, like {@link bsMonthsEnd}. Same shape
+ * as {@link bsPeriodBounds}, with `daysInMonth` meaning the days this bill covers.
+ */
+export function bsCycleBounds(
+  period: string,
+  billDay: number,
+): ReturnType<typeof bsPeriodBounds> {
+  const opens = (key: string) => {
+    const { daysInMonth, start } = bsPeriodBounds(key);
+
+    return new Date(start.getTime() + (Math.min(billDay, daysInMonth) - 1) * MS_PER_DAY);
+  };
+  const start = opens(period);
+  const next = opens(addBsMonths(period, 1));
+
+  return {
+    daysInMonth: Math.round((next.getTime() - start.getTime()) / MS_PER_DAY),
+    end: new Date(next.getTime() - 1),
+    lastDay: new Date(next.getTime() - MS_PER_DAY),
+    start,
+  };
+}
+
+/** The key of the same-day bill whose span holds `instant` — the month that bill opened in. */
+export function bsCyclePeriodOf(instant: Date, billDay: number): string {
+  const period = bsPeriodOf(instant);
+
+  return hostelCalendarDay(instant) < bsCycleBounds(period, billDay).start
+    ? addBsMonths(period, -1)
+    : period;
+}
+
 /** The BS month this instant is in — what a billing run wakes up to bill. */
 export function currentBsPeriod(now: Date = new Date()): string {
   return bsPeriodOf(now);

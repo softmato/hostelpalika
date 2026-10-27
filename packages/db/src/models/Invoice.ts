@@ -116,6 +116,14 @@ const invoiceSchema = new Schema(
     totalAmount: { ...wholeRupees, required: true },
     currency: currencyField,
     dueDate: { type: Date, required: true },
+    /**
+     * The days a rent bill covers, first and last (Nepal days, UTC midnight).
+     * `period` stays the BS month the span opens in, so month-keyed readers keep
+     * working when a same-day bill runs Bhadra 20 – Aswin 19. Absent on bills
+     * issued before field review E2 and on one-off invoices.
+     */
+    coversFrom: { type: Date, default: undefined },
+    coversTo: { type: Date, default: undefined },
     issuedAt: { type: Date, default: Date.now },
     /**
      * Derived from the settled event sum, never typed by a human (P3). The one

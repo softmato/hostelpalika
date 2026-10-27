@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 type Rules = {
   leave: { enabled: boolean; foodPerDay: number; minDays: number; mode: "FOOD" | "FULL_DAY" };
   moveOutCharge: "FULL_MONTH" | "TILL_DAY";
+  moveOutNoticeDays?: number;
   openingBalance: { amount: number; asOf: string } | null;
 };
 
@@ -52,6 +53,7 @@ function MoneyRulesForm({ onSaved, rules }: { onSaved: () => Promise<unknown>; r
   const [asOf, setAsOf] = useState(rules.openingBalance?.asOf ?? "");
   const [charge, setCharge] = useState(rules.moveOutCharge);
   const [leave, setLeave] = useState(rules.leave);
+  const [notice, setNotice] = useState(String(rules.moveOutNoticeDays ?? 0));
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -113,6 +115,32 @@ function MoneyRulesForm({ onSaved, rules }: { onSaved: () => Promise<unknown>; r
           ))}
         </div>
         <p className="text-xs text-muted-foreground">What the move-out form starts on. It can be changed per person.</p>
+      </div>
+
+      <div className="space-y-2">
+        <h3 className="text-sm font-semibold">Move-out notice</h3>
+        <div className="flex gap-2">
+          <input
+            className={INPUT}
+            inputMode="numeric"
+            max={90}
+            min={0}
+            onChange={(event) => setNotice(event.target.value)}
+            type="number"
+            value={notice}
+          />
+          <Button
+            disabled={busy || String(rules.moveOutNoticeDays ?? 0) === notice}
+            onClick={() => void save({ moveOutNoticeDays: Number(notice) }, "Notice days saved.")}
+            type="button"
+            variant="outline"
+          >
+            Save
+          </Button>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Days ahead a resident&apos;s leaving day must be. Rent stops on the day they pick.
+        </p>
       </div>
 
       <div className="space-y-2">

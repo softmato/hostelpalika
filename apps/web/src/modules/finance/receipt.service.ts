@@ -278,8 +278,10 @@ export async function renderReceiptById(
       .lean<{ firstName?: string; fullName?: string; lastName?: string } | null>(),
     receipt.invoiceId
       ? InvoiceModel.findOne({ _id: receipt.invoiceId })
-          .select("lines period referenceCode")
+          .select("coversFrom coversTo lines period referenceCode")
           .lean<{
+            coversFrom?: Date;
+            coversTo?: Date;
             lines?: { amount: number; description: string }[];
             period?: string;
             referenceCode?: string;
@@ -292,7 +294,11 @@ export async function renderReceiptById(
       : null,
   ]);
 
-  const coverage = periodCoverage(invoice?.period);
+  // The bill's own span when it carries one (a same-day bill runs Bhadra 20 – Aswin 19).
+  const coverage =
+    invoice?.coversFrom && invoice.coversTo
+      ? { from: invoice.coversFrom, to: invoice.coversTo }
+      : periodCoverage(invoice?.period);
 
   const bytes = await renderReceiptPdf({
     amount: receipt.amount,
