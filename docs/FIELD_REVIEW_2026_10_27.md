@@ -81,8 +81,15 @@ arithmetic as the billing run); the last month is FULL_MONTH or TILL_DAY
 (`Resident.lastMonthCharge`); late fine and khata add lines; due reminders already go
 out automatically.
 
-☐ **E1** Resident add form: one line under the email — "This email becomes their
+☑ **E1** Resident add form: one line under the email — "This email becomes their
 login." Then prove it end to end: registering creates that login and sends the invite (p6).
+**Done in code 2026-10-27** — the line sits under Email on web (`hostel-admin-residents-page.tsx`)
+and app (`applicant-form.tsx`, staff side only). Proved: `createResident` →
+`findAccountForIntake` finds no account → `openResidentLogin` makes a PUBLIC login (no
+password) → `linkResidentAccount` promotes it to RESIDENT → the welcome mail goes out as
+`NEW_ACCOUNT` ("Log in with Google, or Forgot password"). An address that already has an
+account is promoted instead. Test: `resident.service.test.ts` "makes the typed email
+their login…". Open: one real registration with a fresh Gmail after deploy.
 ☐ **E2 Billing choice on the last registration step** (p5):
 - Calendar month — move-in day to end of the BS month, then monthly (today; default).
 - Same day each month — move-in day to the same day next month, and on.

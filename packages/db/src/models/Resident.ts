@@ -140,6 +140,22 @@ const residentSchema = new Schema(
      */
     lastMonthCharge: { type: String, enum: ["FULL_MONTH", "TILL_DAY", null], default: null },
     /**
+     * How their rent is cut into bills, chosen on the last registration step:
+     * `CALENDAR_MONTH` — move-in to the end of the BS month, then each BS month;
+     * `SAME_DAY` — move-in day to the day before it next month (Bhadra 20 –
+     * Aswin 19), billed on the move-in day. The bill day is read off
+     * `moveInDate`, never stored twice.
+     */
+    billingCycle: { type: String, enum: ["CALENDAR_MONTH", "SAME_DAY"], default: "CALENDAR_MONTH" },
+    /**
+     * The day they told the hostel they are leaving (field review E5) — no
+     * approval, changeable until then. Rent stops on it; on the day the warden
+     * moves them out through the normal checklist. Null when no notice is given.
+     */
+    leavingOn: { type: Date, default: null },
+    leavingReason: { type: String, default: null, trim: true, maxlength: 300 },
+    leavingNoticeAt: { type: Date, default: null },
+    /**
      * Registered at the desk with an email the person was standing there to
      * confirm. If that address has no account yet, signing in with it later
      * links straight to this resident instead of asking "is this you?".

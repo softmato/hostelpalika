@@ -1232,6 +1232,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
               />
               <FormInput
                 defaultValue={prefill?.resident.email ?? (fromForm?.email || undefined)}
+                hint="This email becomes their login."
                 label="Email"
                 name="email"
                 type="email"

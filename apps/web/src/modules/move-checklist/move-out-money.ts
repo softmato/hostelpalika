@@ -1,10 +1,14 @@
 import { Types } from "mongoose";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
-import { formatBsDate, formatBsPeriod, hostelCalendarDay, hostelPeriodOf, hostelToday } from "@/lib/hostel-day";
+import { formatBsDate, formatBsPeriod, hostelCalendarDay, hostelToday } from "@/lib/hostel-day";
 import { auditFinanceAction } from "@/modules/finance/audit-finance";
 import { runBillingCycle } from "@/modules/finance/billing.service";
-import { periodBounds } from "@/modules/finance/fee-schedule.service";
+import {
+  type BillingCycle,
+  residentPeriodBounds,
+  residentPeriodOf,
+} from "@/modules/finance/fee-schedule.service";
 import { setAdjustment } from "@/modules/finance/invoice-adjust";
 import { releaseKhata } from "@/modules/finance/khata.service";
 import { HostelSettingsModel } from "@hostel/db/models/HostelSettings";
@@ -31,6 +35,7 @@ export type DuesDecision = "KEEP" | "WRITE_OFF";
 
 type Resident = {
   _id: Types.ObjectId;
+  billingCycle?: BillingCycle | null;
   hostelId: Types.ObjectId;
   moveInDate?: Date | null;
 };
@@ -86,9 +91,10 @@ function rentOf(invoice: OpenInvoice) {
     .reduce((sum, line) => sum + line.amount, 0);
 }
 
-/** Days of `period` the resident was booked for, and how many of those they stayed. */
-function stayDays(period: string, moveIn: Date | null | undefined, moveOut: Date) {
-  const { daysInMonth, lastDay, start } = periodBounds(period);
+/** Days of the bill keyed `period` the resident was booked for, and how many of those they stayed. */
+export function stayDays(resident: Pick<Resident, "billingCycle" | "moveInDate">, period: string, moveOut: Date) {
+  const { daysInMonth, lastDay, start } = residentPeriodBounds(resident, period);
+  const moveIn = resident.moveInDate;
   const joined = moveIn ? hostelCalendarDay(moveIn) : null;
   const from = joined && joined > start ? joined : start;
   const billed = Math.max(dayNumber(lastDay) - dayNumber(from) + 1, 0);
@@ -143,10 +149,12 @@ export async function previewMoveOut(
   dateInput?: string | null,
 ): Promise<MoveOutPreview> {
   const moveOut = moveOutDay(dateInput);
-  const period = hostelPeriodOf(moveOut);
+  // The bill whose days hold the move-out — for a same-day resident it may have
+  // opened last month.
+  const period = residentPeriodOf(resident, moveOut);
   const bills = await loadRentBills(resident);
   const settled = await settledOn(bills.map((bill) => bill._id));
-  const days = stayDays(period, resident.moveInDate, moveOut);
+  const days = stayDays(resident, period, moveOut);
 
   const owing = (bill: OpenInvoice, total = bill.totalAmount) =>
     Math.max(total - (settled.get(bill._id.toString()) ?? 0), 0);
@@ -257,7 +265,7 @@ export async function settleLeavingMonth(
   charge: LastMonthCharge,
   principal: ApiPrincipal,
 ) {
-  const period = hostelPeriodOf(moveOut);
+  const period = residentPeriodOf(resident, moveOut);
   const label = formatBsDate(moveOut) || moveOut.toISOString().slice(0, 10);
   let bills = await loadRentBills(resident);
 
@@ -274,7 +282,7 @@ export async function settleLeavingMonth(
   const leaving = bills.find((bill) => bill.period === period);
 
   if (leaving) {
-    const days = stayDays(period, resident.moveInDate, moveOut);
+    const days = stayDays(resident, period, moveOut);
     const cut = charge === "TILL_DAY" ? unusedDaysCut(rentOf(leaving), days.billed, days.stayed) : 0;
 
     await setAdjustment({

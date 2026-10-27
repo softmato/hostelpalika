@@ -119,6 +119,9 @@ export type ResidentRecord = {
   feeOverrideReason?: string;
   floor?: number | null;
   lastMonthCharge?: "FULL_MONTH" | "TILL_DAY" | null;
+  billingCycle?: "CALENDAR_MONTH" | "SAME_DAY" | null;
+  leavingOn?: Date | null;
+  leavingReason?: string | null;
   monthlyFee?: number | null;
   moveInDate: Date;
   moveOutDate?: Date | null;
@@ -833,6 +836,7 @@ async function raiseFirstMonthInvoice(input: {
     if (invoice) {
       return {
         amount: invoice.amount,
+        dueDate: invoice.dueDate,
         invoiceId: invoice.invoiceId,
         period,
         raised: true,
@@ -865,6 +869,7 @@ export type FirstMonthInvoiceResult =
   | { period: string; raised: false; reason: string }
   | {
       amount: number;
+      dueDate: Date;
       invoiceId: string;
       period: string;
       raised: true;
@@ -1032,6 +1037,7 @@ export async function createResident(
    */
   const quote = await getIntakeQuote(hostelId, {
     admissionFee: input.admissionFee,
+    billingCycle: input.billingCycle,
     depositAmount: input.depositAmount,
     formFee: input.formFee,
     monthlyFee: input.monthlyFee,
@@ -1309,6 +1315,7 @@ export async function createResident(
       firstMonth: firstMonth.raised
         ? {
             amount: firstMonth.amount,
+            dueDate: firstMonth.dueDate,
             invoiceId: firstMonth.invoiceId,
             period: firstMonth.period,
             prorated: quote.firstMonth?.prorated ?? false,

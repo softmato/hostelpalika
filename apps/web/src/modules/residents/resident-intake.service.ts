@@ -3,7 +3,6 @@ import { Types } from "mongoose";
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
 import {
-  bsPeriodBounds,
   formatBsDayRange,
   hostelCalendarDay,
   hostelPeriodOf,
@@ -11,11 +10,13 @@ import {
 } from "@/lib/hostel-day";
 import { normalizeBedType } from "@/modules/finance/bed-type";
 import {
+  type BillingCycle,
   computeInvoiceAmount,
   discountRent,
   type FeeScheduleRecord,
   getEffectiveSchedule,
   rateForRoomType,
+  residentPeriodBounds,
 } from "@/modules/finance/fee-schedule.service";
 import { getRentConcession } from "@/modules/finance/rent-concession.service";
 import { allocateReferenceCode } from "@/modules/finance/reference-sequence.service";
@@ -155,6 +156,7 @@ export type ChargeOverrides = {
 };
 
 export type QuoteInput = ChargeOverrides & {
+  billingCycle?: BillingCycle | null;
   moveInDate?: Date | null;
   referralCode?: string | null;
   roomType: string;
@@ -190,6 +192,7 @@ export function periodOfDate(date: Date) {
  * type nobody has costed. Each of those is a real intake somebody will do.
  */
 export function quoteIntake(input: {
+  billingCycle?: BillingCycle | null;
   /**
    * Percent off the move-in month's rent, if the hostel has discounted it (see
    * `rent-concession.service`). Quoted here because the warden reads this figure
@@ -274,6 +277,7 @@ export function quoteIntake(input: {
         ? null
         : discountRent(monthlyRent, input.concessionPercent ?? 0),
       input.moveInDate,
+      input.billingCycle,
     ),
     monthlyRent,
     referral: {
@@ -315,6 +319,7 @@ export function quoteIntake(input: {
 function quoteFirstMonth(
   monthlyRent: number | null,
   moveInDate: Date | null | undefined,
+  billingCycle?: BillingCycle | null,
 ): FirstMonthCharge | null {
   if (monthlyRent === null) {
     return null;
@@ -324,11 +329,13 @@ function quoteFirstMonth(
   const period = periodOfDate(start);
 
   try {
-    const charge = computeInvoiceAmount(monthlyRent, start, null, period);
-    // The BS month's own length and closing day. Gregorian arithmetic on the
-    // period key used to supply the denominator, so a Bhadra quote was divided
-    // by September's 30 days while the invoice divided by Bhadra's 31.
-    const { daysInMonth, lastDay } = bsPeriodBounds(period);
+    // The days the first bill covers: to the BS month's end, or for a same-day
+    // resident to the day before their day next month (the whole rent).
+    // Gregorian arithmetic used to supply the denominator, so a Bhadra quote was
+    // divided by September's 30 days while the invoice divided by Bhadra's 31.
+    const bounds = residentPeriodBounds({ billingCycle, moveInDate: start }, period);
+    const charge = computeInvoiceAmount(monthlyRent, start, null, period, bounds);
+    const { daysInMonth, lastDay } = bounds;
 
     return {
       amount: charge.amount,
@@ -405,6 +412,7 @@ export async function getIntakeQuote(
 
   return quoteIntake({
     admissionFee: input.admissionFee,
+    billingCycle: input.billingCycle,
     concessionPercent: concession.percentOff,
     depositAmount: input.depositAmount,
     formFee: input.formFee,

@@ -4,12 +4,15 @@ import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
 import { auditFinanceAction } from "@/modules/finance/audit-finance";
 import { applyCreditToInvoice } from "@/modules/finance/credit-balance.service";
-import { formatBsPeriod, hostelPeriodOf, hostelToday } from "@/lib/hostel-day";
+import { formatBsDayRange, formatBsPeriod, hostelPeriodOf, hostelToday } from "@/lib/hostel-day";
 import {
+  billDayOf,
   computeInvoiceAmount,
   getEffectiveSchedule,
   listedRoomRates,
+  notYetDue,
   periodBounds,
+  residentPeriodBounds,
   resolveMonthlyCharge,
 } from "@/modules/finance/fee-schedule.service";
 import type {
@@ -71,6 +74,8 @@ export type BillingSkipReason =
   | "ALREADY_MOVED_OUT"
   | "NOT_YET_RESIDENT"
   | "NO_BILLABLE_DAYS"
+  /** A same-day resident whose bill for this month opens on a day still to come. */
+  | "NOT_YET_DUE"
   /** Already paid to the hostel before it joined us — see `Resident.paidTill`. */
   | "PAID_BEFORE_JOINING"
   | "ZERO_CHARGE";
@@ -92,6 +97,7 @@ export type BilledInvoice = {
   amount: number;
   /** Credit consumed by this invoice (target §9.4). Zero for most. */
   creditApplied: number;
+  dueDate: Date;
   invoiceId: string;
   referenceCode: string;
   residentId: string;
@@ -129,14 +135,24 @@ type BillableResidentRow = BillableResident & {
  * "already moved out".
  */
 export function billedMoveOut(
-  resident: Pick<BillableResidentRow, "lastMonthCharge" | "moveOutDate">,
+  resident: Pick<BillableResidentRow, "billingCycle" | "lastMonthCharge" | "moveInDate" | "moveOutDate">,
   period: string,
 ): Date | null | undefined {
   if (resident.lastMonthCharge !== "FULL_MONTH" || !resident.moveOutDate) {
     return resident.moveOutDate;
   }
 
-  return resident.moveOutDate >= periodBounds(period).start ? null : resident.moveOutDate;
+  return resident.moveOutDate >= residentPeriodBounds(resident, period).start
+    ? null
+    : resident.moveOutDate;
+}
+
+/** `1st`, `2nd`, `20th` — the bill day as people say it. */
+export function ordinalDay(day: number): string {
+  const teen = day % 100 >= 11 && day % 100 <= 13;
+  const suffix = teen ? "th" : (({ 1: "st", 2: "nd", 3: "rd" } as Record<number, string>)[day % 10] ?? "th");
+
+  return `${day}${suffix}`;
 }
 
 /**
@@ -181,6 +197,8 @@ type BillingPlan = {
   amount: number;
   bedType: string | null;
   basis: string;
+  /** The days this bill covers — the BS month, or the resident's own span. */
+  bounds: ReturnType<typeof periodBounds>;
   /** "Dashain · 50% off", or null at full rent. Goes on the invoice line. */
   concessionNote: string | null;
   feeScheduleId: Types.ObjectId | null;
@@ -209,6 +227,7 @@ export function planBillingCycle(
     percentOff: 0,
     reason: null,
   },
+  today: Date = hostelToday(),
 ): { failures: BillingFailure[]; plans: BillingPlan[]; skipped: BillingSkip[] } {
   const failures: BillingFailure[] = [];
   const plans: BillingPlan[] = [];
@@ -225,6 +244,13 @@ export function planBillingCycle(
     }
 
     try {
+      const bounds = residentPeriodBounds(resident, period);
+
+      if (notYetDue(resident, bounds, today)) {
+        skipped.push({ reason: "NOT_YET_DUE", residentId });
+        continue;
+      }
+
       const charge = resolveMonthlyCharge(
         resident,
         schedule,
@@ -236,6 +262,7 @@ export function planBillingCycle(
         resident.moveInDate,
         billedMoveOut(resident, period),
         period,
+        bounds,
       );
 
       if (invoiceAmount.amount <= 0) {
@@ -253,6 +280,7 @@ export function planBillingCycle(
         amount: invoiceAmount.amount,
         basis: charge.basis,
         bedType: charge.bedType,
+        bounds,
         concessionNote: concessionNote(charge.concessionPercent, concession.reason),
         feeScheduleId: charge.feeScheduleId,
         prorationBasis: invoiceAmount.prorationBasis,
@@ -340,17 +368,18 @@ export async function runBillingCycle(
    * saying it was due in Aswin, on every invoice, in the direction that reads as
    * a deadline already missed.
    */
-  const { lastDay, start } = periodBounds(input.period);
+  const { start } = periodBounds(input.period);
   // With a late fine on, the bill falls due on the hostel's last fine-free day —
   // counted from today instead when the month is billed late, so a bill is
-  // never born already fined.
+  // never born already fined. Counted from each bill's own first day, so a
+  // same-day bill falls due from its day, not from the 1st.
   const lateFine = await getLateFine(input.hostelId);
   const fineDue = (from: Date) => fineDueDate(from, lateFine.graceDays);
-  const dueDate =
+  const dueDateFor = (bounds: ReturnType<typeof periodBounds>) =>
     input.dueDate ??
     (lateFine.enabled
-      ? new Date(Math.max(fineDue(start).getTime(), fineDue(hostelToday()).getTime()))
-      : lastDay);
+      ? new Date(Math.max(fineDue(bounds.start).getTime(), fineDue(hostelToday()).getTime()))
+      : bounds.lastDay);
 
   const hostel = await HostelModel.findOne({ _id: input.hostelId })
     .select("referencePrefix roomConfigurations")
@@ -423,6 +452,7 @@ export async function runBillingCycle(
   );
 
   // Khata handed over before this month starts rides on this month's bill.
+  // ponytail: a same-day bill takes khata given before the 1st, not before its own day.
   const khata = await unbilledKhata(
     plans.map((plan) => plan.resident._id),
     start,
@@ -445,9 +475,16 @@ export async function runBillingCycle(
 
     const khataLine = khata.get(residentId);
     const total = plan.amount + (khataLine?.amount ?? 0);
+    const dueDate = dueDateFor(plan.bounds);
+    const billDay = billDayOf(plan.resident);
+    const covers = billDay
+      ? `${formatBsDayRange(plan.bounds.start, plan.bounds.lastDay) || formatBsPeriod(input.period)} · bills on the ${ordinalDay(billDay)}`
+      : formatBsPeriod(input.period) || input.period;
 
     try {
       const invoice = (await InvoiceModel.create({
+        coversFrom: plan.bounds.start,
+        coversTo: plan.bounds.lastDay,
         createdBy: principal?.userId,
         dueDate,
         hostelId: input.hostelId,
@@ -463,8 +500,8 @@ export async function runBillingCycle(
              * at issue time precisely so it stays legible without a lookup.
              */
             description: plan.concessionNote
-              ? `Monthly rent — ${formatBsPeriod(input.period) || input.period} · ${plan.concessionNote}`
-              : `Monthly rent — ${formatBsPeriod(input.period) || input.period}`,
+              ? `Monthly rent — ${covers} · ${plan.concessionNote}`
+              : `Monthly rent — ${covers}`,
             feeScheduleId: plan.feeScheduleId,
             prorationBasis: plan.prorationBasis ?? undefined,
           },
@@ -514,6 +551,7 @@ export async function runBillingCycle(
       billed.push({
         amount: total - creditApplied,
         creditApplied,
+        dueDate,
         invoiceId: invoice._id.toString(),
         referenceCode,
         residentId,
@@ -718,10 +756,13 @@ export async function getBillingPeriodSummary(
   ]);
 
   const billed = new Set(invoices.map((invoice) => invoice.residentId.toString()));
+  const today = hostelToday();
 
   return {
     invoiceCount: invoices.length,
     notBilledResidentIds: residents
+      // A same-day resident whose day has not come is not missing a bill.
+      .filter((resident) => !notYetDue(resident, residentPeriodBounds(resident, period), today))
       .map((resident) => resident._id.toString())
       .filter((residentId) => !billed.has(residentId)),
     period,

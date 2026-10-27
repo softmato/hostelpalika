@@ -35,6 +35,8 @@
 
 export {
   addBsMonths,
+  bsCycleBounds,
+  bsCyclePeriodOf,
   bsDayOfMonth,
   bsDaysInMonth,
   bsMonthStart,

@@ -5,10 +5,14 @@ import { connectToDatabase } from "@/lib/db";
 import { auditFinanceAction } from "@/modules/finance/audit-finance";
 import {
   addBsMonths,
+  bsCycleBounds,
+  bsCyclePeriodOf,
+  bsDayOfMonth,
   bsPeriodBounds,
   bsPeriodOf,
   formatBsDayRange,
   formatBsPeriod,
+  hostelCalendarDay,
   hostelMonthStart,
 } from "@/lib/hostel-day";
 import { normalizeBedType } from "@/modules/finance/bed-type";
@@ -61,6 +65,7 @@ export type FeeScheduleRecord = {
 export type BillableResident = {
   _id: Types.ObjectId;
   bedType?: BedType | null;
+  billingCycle?: BillingCycle | null;
   monthlyFee?: number | null;
   moveInDate?: Date | null;
   moveOutDate?: Date | null;
@@ -147,6 +152,49 @@ export function periodBounds(period: string) {
       "FEE_SCHEDULE_MISSING",
     );
   }
+}
+
+export type BillingCycle = "CALENDAR_MONTH" | "SAME_DAY";
+
+type CycleResident = { billingCycle?: BillingCycle | null; moveInDate?: Date | null };
+
+/** The BS day a same-day resident is billed on (their move-in day), or null on the calendar month. */
+export function billDayOf(resident: CycleResident): number | null {
+  return resident.billingCycle === "SAME_DAY" && resident.moveInDate
+    ? bsDayOfMonth(resident.moveInDate)
+    : null;
+}
+
+/**
+ * The days this resident's bill keyed `period` covers: the BS month, or for a
+ * same-day resident their own span opening in that month (field review E2).
+ * Every reader that prices or cuts a rent bill by days goes through this.
+ */
+export function residentPeriodBounds(resident: CycleResident, period: string) {
+  const bounds = periodBounds(period);
+  const billDay = billDayOf(resident);
+
+  return billDay ? bsCycleBounds(period, billDay) : bounds;
+}
+
+/**
+ * A same-day bill is issued on its own day, not on the 1st. The first one is
+ * the exception: it is raised at registration, like a calendar first month.
+ */
+export function notYetDue(resident: CycleResident, bounds: { start: Date }, today: Date): boolean {
+  return Boolean(
+    billDayOf(resident) &&
+      resident.moveInDate &&
+      bounds.start > today &&
+      bounds.start > hostelCalendarDay(resident.moveInDate),
+  );
+}
+
+/** The key of this resident's bill that covers `day`. */
+export function residentPeriodOf(resident: CycleResident, day: Date): string {
+  const billDay = billDayOf(resident);
+
+  return billDay ? bsCyclePeriodOf(day, billDay) : bsPeriodOf(day);
 }
 
 /**
@@ -414,10 +462,12 @@ export function computeInvoiceAmount(
   moveInDate: Date | null | undefined,
   moveOutDate: Date | null | undefined,
   period: string,
+  /** The days the bill covers — `residentPeriodBounds` for a same-day resident. */
+  bounds: ReturnType<typeof periodBounds> = periodBounds(period),
 ): InvoiceAmount {
   assertWholeRupees(monthlyCharge, "monthly charge");
 
-  const { daysInMonth, end, lastDay, start } = periodBounds(period);
+  const { daysInMonth, end, lastDay, start } = bounds;
 
   if (moveInDate && moveInDate > end) {
     return { amount: 0, billableDays: 0, prorationBasis: "not yet resident" };

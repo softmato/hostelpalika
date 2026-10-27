@@ -31,6 +31,7 @@ const serviceMocks = vi.hoisted(() => ({
   notifyRegistered: vi.fn(),
   residentUpdateOne: vi.fn(),
   sendEmail: vi.fn(),
+  userCreate: vi.fn(),
   userFind: vi.fn(),
   userFindOne: vi.fn(),
   promoteAccountToResident: vi.fn(),
@@ -126,7 +127,11 @@ vi.mock("@hostel/db/models/Resident", () => ({
  * account up by an address the resident can edit.
  */
 vi.mock("@hostel/db/models/User", () => ({
-  UserModel: { find: serviceMocks.userFind, findOne: serviceMocks.userFindOne },
+  UserModel: {
+    create: serviceMocks.userCreate,
+    find: serviceMocks.userFind,
+    findOne: serviceMocks.userFindOne,
+  },
 }));
 
 vi.mock("@hostel/db/models/Hostel", () => ({
@@ -1221,6 +1226,54 @@ describe("resident management service behavior", () => {
       expect.objectContaining({ userId: accountId }),
     );
     expect(result.accountLink).toMatchObject({ linked: true });
+  });
+
+  /*
+   * The add form says "This email becomes their login." (field review E1). An
+   * address nobody has an account on is made into one — no password, so none is
+   * mailed — promoted to resident, and the welcome mail says it is a new login.
+   */
+  it("makes the typed email their login when nobody has an account on it", async () => {
+    const newId = new Types.ObjectId("64f0f0f0f0f0f0f0f0f0f0fc");
+
+    serviceMocks.residentCreate.mockResolvedValueOnce(residentRecord({ email: "new@example.com" }));
+    serviceMocks.userCreate.mockResolvedValueOnce({ _id: newId });
+    serviceMocks.residentFindById.mockReturnValue(
+      queryResult(residentRecord({ status: "ACTIVE", userId: newId })),
+    );
+    serviceMocks.promoteAccountToResident.mockResolvedValue({
+      cleared: NO_CLEARANCE,
+      upgraded: true,
+      user: { email: "new@example.com", id: newId.toString(), role: Role.RESIDENT },
+    });
+
+    const result = await createResident(
+      {
+        email: "New@Example.com",
+        firstName: "Asha",
+        lastName: "Rai",
+        moveInDate: new Date("2030-01-01T00:00:00.000Z"),
+        phone: "9800000000",
+        residentType: "STUDENT" as const,
+        roomType,
+        status: "ACTIVE",
+      },
+      staffPrincipal,
+    );
+
+    expect(serviceMocks.userCreate).toHaveBeenCalledWith({
+      email: "new@example.com",
+      name: "Asha Rai",
+      role: Role.PUBLIC,
+      status: "ACTIVE",
+    });
+    expect(serviceMocks.promoteAccountToResident).toHaveBeenCalledWith(
+      expect.objectContaining({ userId: newId }),
+    );
+    expect(result.accountLink).toMatchObject({ linked: true });
+    expect(serviceMocks.notifyRegistered).toHaveBeenCalledWith(
+      expect.objectContaining({ newLogin: true, residentUserId: newId.toString() }),
+    );
   });
 
   /*

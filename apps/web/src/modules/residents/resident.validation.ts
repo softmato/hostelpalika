@@ -82,6 +82,8 @@ export const residentCreateSchema = z.object({
   referralCode: z.string().trim().min(4).max(32).optional(),
   residentType: residentTypeSchema.default("STUDENT"),
   roomType: z.string().trim().min(1).max(80),
+  /** How rent is cut into bills — chosen on the last step (field review E2). */
+  billingCycle: z.enum(["CALENDAR_MONTH", "SAME_DAY"]).optional(),
   /**
    * Registering somebody admits them, unless the caller says otherwise.
    *

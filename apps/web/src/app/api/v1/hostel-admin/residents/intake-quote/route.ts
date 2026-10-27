@@ -11,6 +11,7 @@ export const runtime = "nodejs";
 
 const intakeQuoteQuerySchema = z.object({
   admissionFee: z.coerce.number().int().min(0).max(10_000_000).optional(),
+  billingCycle: z.enum(["CALENDAR_MONTH", "SAME_DAY"]).optional(),
   depositAmount: z.coerce.number().int().min(0).max(10_000_000).optional(),
   formFee: z.coerce.number().int().min(0).max(10_000_000).optional(),
   hostelId: z.string().optional(),
@@ -41,6 +42,7 @@ export async function GET(request: NextRequest) {
       {
         quote: await getIntakeQuote(hostelId, {
           admissionFee: query.admissionFee,
+          billingCycle: query.billingCycle,
           depositAmount: query.depositAmount,
           formFee: query.formFee,
           monthlyFee: query.monthlyFee,
