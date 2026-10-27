@@ -185,10 +185,20 @@ row moves to I2, where there is a *verified* result to show.
 ☐ **I2 Restore drill**: script restores an archive into a separate database (an M0 in a
 second Atlas project) and compares counts per collection. Nothing says "backed up"
 before this passes.
-☐ **I3 Tenant export**: every `hostelId` collection mapped — residents, finance, staff,
+☑ **I3 Tenant export**: every `hostelId` collection mapped — residents, finance, staff,
 stock, branches and the rest, all of it; export filtered server-side by the authorised
 hostel (branches included); a test proves one hostel's export holds nothing of another's.
 Drive backup is offered from the **Pro plan up** (Q4), gated server-side.
+**Done in code 2026-10-27** — `modules/backup/tenant-export.ts`: 72 collections
+exported and restorable, 17 exported as the hostel's record only (Hostel, User — no
+credentials, subscription bills, audit log, payout account…), 23 excluded with a reason
+(secrets, our analytics, referral and field-sales ledgers, reporter identities). Scope is
+the root hostel + its branches (a branch exports only itself); a shared user keeps only
+this hostel's ids. Packed as Extended JSON chunks with a SHA-256 each. Pro+ gate in
+`backup.service.ts` (`planRank ≥ pro`, read through `billingHostelId`). Tests:
+`tenant-export.test.ts` — fails on any `hostelId` model not mapped; no leak across two
+hostels with branches. Not in the archive: file bytes (photos, documents stay in R2;
+their `FileAsset` rows are in).
 ☐ **I4 Customer key**: the owner's phone generates a key pair; the private key stays on
 the phone (SecureStore) and in a printed recovery kit (words + QR); only the public key
 reaches the server. Each backup gets a fresh AES-256-GCM key sealed to it (libsodium /
