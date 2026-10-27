@@ -16,6 +16,7 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 
 import { hydrateQueryCache } from "@/lib/query-cache-persist";
+import { OfflineStampHost } from "@/components/offline-stamp";
 
 import { BottomChromeProvider } from "@/components/bottom-chrome";
 import { AppLockHost, AppLockOffer } from "@/components/app-lock";
@@ -686,6 +687,8 @@ export default function RootLayout() {
               </BottomSheetModalProvider>
               <OverlayHosts />
               <ToastHost />
+              {/* "Offline · Updated hh:mm" while a screen shows saved answers (G3). */}
+              <OfflineStampHost />
               {/* The old theme's snapshot fading over the new one (M9): over everything but the lock. */}
               <ThemeFadeHost />
               {/*

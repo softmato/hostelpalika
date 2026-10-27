@@ -51,7 +51,10 @@ import * as SecureStore from "expo-secure-store";
 // The name alone — `constants/branding` also pulls in the logo images.
 import { PLATFORM_NAME as APP_NAME } from "@hostel/brand/brand";
 import { api } from "@/lib/api";
-import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
+import { type ApiEnvelope, isOfflineError, readApiError, unwrap } from "@/lib/api-contract";
+import { formatTime } from "@/lib/format";
+import { checkPinOffline, forgetIfStale, forgetPin, rememberPin } from "@/lib/offline-pin";
+import { store } from "@/store";
 import type { ApiUser } from "@/lib/auth-api";
 import { ROLE } from "@/constants/roles";
 
@@ -264,21 +267,59 @@ export type LockPinProof = {
   password?: string;
 };
 
-/** Checks the PIN with the server; 10 wrong in a row blocks it until it is reset. */
+function accountId() {
+  return store.getState().auth.account?.id ?? null;
+}
+
+/**
+ * Checks the PIN with the server; 10 wrong in a row blocks it until it is reset.
+ * With no network it checks the copy `lib/offline-pin` keeps, with its own limit.
+ */
 export async function checkLockPin(pin: string) {
-  unwrap(await api.post<ApiEnvelope<{ verified: true }>>("/auth/lock-pin/verify", { pin }));
+  const id = accountId();
+  try {
+    unwrap(await api.post<ApiEnvelope<{ verified: true }>>("/auth/lock-pin/verify", { pin }));
+  } catch (caught) {
+    if (!id) throw caught;
+    if (!isOfflineError(readApiError(caught))) {
+      // The server said no: a copy that still says yes is a PIN changed elsewhere.
+      void forgetIfStale(id, pin);
+      throw caught;
+    }
+
+    const offline = await checkPinOffline(id, pin);
+    if (offline.ok) return;
+    if (offline.reason === "none") throw caught;
+    if (offline.reason === "wait") {
+      throw new Error(`Too many tries offline. Try again at ${formatTime(new Date(offline.until))}.`);
+    }
+    throw new Error(
+      `That PIN did not work. ${offline.triesLeft} ${offline.triesLeft === 1 ? "try" : "tries"} left offline.`,
+    );
+  }
+  // Well behind the unlock: the hash takes a moment on a budget phone, and the
+  // first screen is painting. Re-hashed every time, because a PIN changed on
+  // another phone is only known by the server saying yes to a different one.
+  if (id) setTimeout(() => void rememberPin(id, pin).catch(() => {}), 3_000);
 }
 
 /** First PIN needs nothing more; replacing one needs `proof`. */
 export async function saveLockPin(pin: string, proof: LockPinProof = {}) {
-  return unwrap(await api.put<ApiEnvelope<{ hasLockPin: true }>>("/auth/lock-pin", { pin, ...proof }));
+  const result = unwrap(
+    await api.put<ApiEnvelope<{ hasLockPin: true }>>("/auth/lock-pin", { pin, ...proof }),
+  );
+  const id = accountId();
+  if (id) void rememberPin(id, pin).catch(() => {});
+  return result;
 }
 
 /** Off for the account — every phone and the website. */
 export async function removeLockPin(proof: LockPinProof) {
-  return unwrap(
+  const result = unwrap(
     await api.delete<ApiEnvelope<{ hasLockPin: false }>>("/auth/lock-pin", { data: proof }),
   );
+  await forgetPin();
+  return result;
 }
 
 /** Mails the signed-in account's own address a code. */

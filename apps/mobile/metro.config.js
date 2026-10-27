@@ -29,6 +29,7 @@ const srcRoot = path.resolve(__dirname, "src");
 const WEB_STAND_INS = {
   "@/lib/session": "session.ts",
   "@/lib/session-refresh-lock": "session-refresh-lock.ts",
+  "@/lib/local-db": "local-db.ts",
   "@/lib/receive-payment-share": "receive-payment-share.ts",
   "@/components/hostel-map": "hostel-map.tsx",
   "@/components/map-explorer": "map-explorer.tsx",

@@ -133,17 +133,43 @@ corrects "left" (Q3).
 
 ## Phase 6 — Instant screens and offline (p7, chat)
 
-☐ **G1 SQLite cache**: today `lib/query-cache-persist.ts` stores the whole cache as one
+☑ **G1 SQLite cache**: today `lib/query-cache-persist.ts` stores the whole cache as one
 AsyncStorage JSON string and parses all of it before first paint. Move to `expo-sqlite`,
 one row per cache key, read per screen: every screen paints from disk on mount, then
 refreshes. Native build.
-☐ **G2 Offline PIN**: after any successful online PIN check or set, keep a salted slow
+**Done in code 2026-10-27** — `lib/local-db.ts` is the account's SQLite file (`kv` +
+`queue` tables, sync reads); `query-cache-persist.ts` gives the cache a disk: a key
+missing from memory is read from its own row the first time a screen asks
+(`readQuery` → `loadFromDisk`), dirty keys are written in one batched transaction,
+nothing is parsed before first paint. A key dropped past `maxAgeMs` is not
+resurrected from disk that session but stays as the offline copy (`readSavedQuery`).
+Test: `query-cache.test.ts`. **Reusable helper (Phase 7):** `lib/local-db` —
+`kvGet/kvPut/kvClear(prefix)/kvPrune` for small durable state under your own key
+prefix (the cache uses `q:`), `enqueueWrite(kind, payload)/listQueuedWrites(kind)/
+dropQueuedWrite/bumpQueuedWrite` for an outbox; PWA twin `web/local-db.ts`
+(IndexedDB, same exports). Open: native build + Redmi pass.
+☑ **G2 Offline PIN**: after any successful online PIN check or set, keep a salted slow
 hash in SecureStore; offline, unlock checks it locally with an attempt limit; online the
 server stays the authority and a PIN changed elsewhere replaces the local copy.
+**Done in code 2026-10-27** — `lib/offline-pin.ts`: PBKDF2-SHA256 (`@noble/hashes`,
+pure JS, 20k rounds, per-account salt) in SecureStore after every accepted verify or
+save; `checkLockPin` falls back to it only on a network failure. Five offline misses,
+then 1 min doubling to 1 h, kept across relaunches. A server "wrong" for a PIN the copy
+still accepts deletes the copy; the next online yes re-hashes the new one; turning the
+lock off deletes it. Test: `offline-pin.test.ts` (also fixed `app-lock.test.ts`'s
+missing `getEnrolledLevelAsync` mock). Open: time the hash on a Redmi (knob:
+`PIN_ITERATIONS`), then an airplane-mode unlock.
 ☐ **G3 Offline set** ("60% offline"): home, residents, rooms, money summary, invoices,
 statement, stock, notifications, ID card, menu open from SQLite with "Updated hh:mm".
 Queue only safe writes (night status already queues; add stock use/count, complaint,
 expense draft). Payments never offline.
+**Part done 2026-10-27** — read side: `use-resource` falls back to `readSavedQuery`
+on a network failure for any `cacheKey` screen (up to 3 days old) and exposes
+`savedAt`; one app-wide `OfflineStampHost` draws "Offline · Updated hh:mm" for the
+focused screen (`lib/offline-stamp.ts`). Open: confirm each listed screen has a
+`cacheKey` (resident home/ID card/menu need a look), and the write queue — stock
+use/count, complaint, expense draft on `local-db`'s `enqueueWrite`, flushed on
+foreground and before sign-out, each with a client id so a resend is a duplicate.
 ☐ **G4** One SQLite file per account; cleared on sign-out, account switch, role change.
 ☐ **G5** PWA keeps its web stand-in in `apps/mobile/web/` (IndexedDB); web portals unchanged.
 ☐ **F1 Notifications** open from SQLite instantly and fetch only newer ones (p7).

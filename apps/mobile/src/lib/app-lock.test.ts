@@ -1,8 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-vi.mock("expo-local-authentication", () => ({}));
+vi.mock("expo-local-authentication", () => ({
+  getEnrolledLevelAsync: async () => 0,
+  SecurityLevel: { BIOMETRIC_STRONG: 3, BIOMETRIC_WEAK: 2, NONE: 0 },
+}));
 vi.mock("expo-secure-store", () => ({}));
 vi.mock("@/lib/api", () => ({ api: {} }));
+vi.mock("@/store", () => ({ store: { getState: () => ({ auth: { account: null } }) } }));
 vi.mock("@/constants/branding", () => ({ APP_NAME: "HostelPalika" }));
 
 async function freshLock() {
