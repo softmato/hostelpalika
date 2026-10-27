@@ -107,6 +107,8 @@ const brandRoot = path.resolve(__dirname, "../../packages/shared/src/brand");
 const expensesRoot = path.resolve(__dirname, "../../packages/shared/src/expenses");
 /** Dependency-free room-type options shared by registration and room editors. */
 const constantsRoot = path.resolve(__dirname, "../../packages/shared/src/constants");
+/** `@hostel/backup/*` — the backup file format the server writes and the phone opens. NaCl is passed in. */
+const backupRoot = path.resolve(__dirname, "../../packages/shared/src/backup");
 const baseResolveRequest = config.resolver.resolveRequest;
 
 // `.lottie` is a zip Metro doesn't know; without this `require()` of one fails to resolve.
@@ -121,6 +123,7 @@ config.watchFolders = [
   brandRoot,
   expensesRoot,
   constantsRoot,
+  backupRoot,
 ];
 
 /*
@@ -184,6 +187,13 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName.startsWith("@hostel/brand/")) {
     return {
       filePath: path.join(brandRoot, `${moduleName.slice("@hostel/brand/".length)}.ts`),
+      type: "sourceFile",
+    };
+  }
+
+  if (moduleName.startsWith("@hostel/backup/")) {
+    return {
+      filePath: path.join(backupRoot, `${moduleName.slice("@hostel/backup/".length)}.ts`),
       type: "sourceFile",
     };
   }

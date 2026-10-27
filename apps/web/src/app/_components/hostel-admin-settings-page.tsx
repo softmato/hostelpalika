@@ -2,7 +2,7 @@
 
 import { formatHostelDate } from "@hostel/shared/calendar/bs";
 
-import { DoorOpen, Pencil, Settings } from "@/components/icons";
+import { DoorOpen, Pencil, Settings, ShieldCheck } from "@/components/icons";
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
@@ -272,6 +272,20 @@ export const HostelAdminSettingsPageContent = memo(
             title="Community feed"
           />
         </div>
+
+        {/* Owner only, like Leave — the backup routes refuse wardens (FIELD_REVIEW I6). */}
+        <a
+          className="flex items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3 text-[13.5px] hover:bg-muted/60"
+          href="backup"
+        >
+          <span className="grid size-9 place-items-center rounded-xl bg-brand-teal/10 text-brand-teal">
+            <ShieldCheck className="size-4" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block font-semibold text-foreground">Backup</span>
+            <span className="block text-[12px] text-muted-foreground">Encrypted copy in your Google Drive</span>
+          </span>
+        </a>
 
         {/* Owner only — the leave route refuses wardens (docs/HOSTEL_LEAVE_PLATFORM.md). */}
         <a

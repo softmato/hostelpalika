@@ -129,7 +129,7 @@ export async function uploadToAppData(accessToken: string, name: string, bytes: 
 
   if (!session) throw new DriveError("ERROR", "Google Drive upload did not start.");
 
-  const done = await fetch(session, { body: bytes, headers: { "content-type": "application/octet-stream" }, method: "PUT" });
+  const done = await fetch(session, { body: new Uint8Array(bytes), headers: { "content-type": "application/octet-stream" }, method: "PUT" });
 
   if (!done.ok) await failure(done, "upload");
 

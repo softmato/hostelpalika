@@ -649,6 +649,13 @@ export default function ManageSettingsScreen() {
         {community === null ? null : (
           <Card padding="px-4 py-1">
             <ListRow
+              icon="cloud-upload"
+              iconBgColor={colors.brand}
+              onPress={() => router.push("/manage/backup")}
+              subtitle="Encrypted copy in your Google Drive"
+              title="Backup"
+            />
+            <ListRow
               icon="door"
               iconBgColor={colors.destructive}
               onPress={() => router.push("/manage/leave")}

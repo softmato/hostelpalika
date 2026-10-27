@@ -30,6 +30,7 @@ import {
   statusToneFromLabel,
   ViewAllLink,
 } from "./portal-dashboard-ui";
+import { PlatformBackupRow } from "./platform-backup-row";
 import { ShareBar } from "./platform-page-ui";
 import { WalletMark } from "@/components/wallet-mark";
 
@@ -262,6 +263,7 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
 
       <Message value={message} />
       {state === "loading" ? <LoadingRows /> : null}
+      <PlatformBackupRow />
 
       {state !== "loading" ? (
         <>

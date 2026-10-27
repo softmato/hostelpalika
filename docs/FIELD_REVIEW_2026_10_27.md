@@ -199,20 +199,55 @@ this hostel's ids. Packed as Extended JSON chunks with a SHA-256 each. Pro+ gate
 `tenant-export.test.ts` — fails on any `hostelId` model not mapped; no leak across two
 hostels with branches. Not in the archive: file bytes (photos, documents stay in R2;
 their `FileAsset` rows are in).
-☐ **I4 Customer key**: the owner's phone generates a key pair; the private key stays on
+☑ **I4 Customer key**: the owner's phone generates a key pair; the private key stays on
 the phone (SecureStore) and in a printed recovery kit (words + QR); only the public key
 reaches the server. Each backup gets a fresh AES-256-GCM key sealed to it (libsodium /
 age format), so the server can back up on schedule and still cannot read the archive.
 Security review before any "end-to-end encrypted" wording.
-☐ **I5 Google Drive `appDataFolder`**: OAuth `drive.appdata` scope, refresh token
+**Done in code 2026-10-27** — `packages/shared/src/backup/sealed-archive.ts` (one file,
+NaCl passed in; web and app both use `tweetnacl`, audited, pure JS). X25519 sealed box
+wraps a fresh 32-byte key per backup; data is XSalsa20-Poly1305 (libsodium format, not
+AES-GCM — reason in the threat model); hostel id + time sealed with the key so an edited
+header does not open. Phone: `lib/backup.ts` makes the pair, private key in SecureStore
+(`WHEN_UNLOCKED_THIS_DEVICE_ONLY`), kit = 14 groups of 4 (Crockford base32 + checksum)
++ QR (`toqr`). Server stores the public key only. Threat model: `docs/BACKUP.md`.
+Tests: `sealed-archive.test.ts` (round trip, wrong key, flipped byte, edited header, mistyped
+code). **Native:** Hermes has no secure random, so making a key needs `expo-crypto`
+(pinned in package.json + lock) — it rides Phase 6's native build; restore works without it.
+Open: the security review; no "end-to-end encrypted" wording anywhere until then; printing
+the kit (no print module yet — the sheet is written down by hand).
+☑ **I5 Google Drive `appDataFolder`**: OAuth `drive.appdata` scope, refresh token
 encrypted server-side, scheduled upload, reconnect on revoke, quota errors shown.
 External: Google's OAuth consent-screen verification for the scope — check in the
 Cloud console first.
-☐ **I6 Backup screen** (web + app, owner only): Drive status, last backup + integrity
+**Done in code 2026-10-27** — `modules/backup/google-drive.ts` (plain fetch, resumable
+upload, `drive.appdata` + `email` only), `backup.service.ts`: signed OAuth state (HMAC,
+10 min), refresh token sealed with `FINANCE_MASTER_KEY` (also rewrapped by the rotation
+script), cron `POST /api/v1/cron/customer-backup` (hourly; each hostel once per 20 h, oldest
+first), Drive MD5 compared after upload ("checked"), newest 30 kept in Drive. `invalid_grant`
+→ REVOKED + Reconnect; `storageQuotaExceeded` → QUOTA_FULL with the message on screen.
+Pro+ gate on connect and on every scheduled run. Open: owner setup (Google OAuth client +
+consent-screen verification for `drive.appdata`, env, cron-job.org entry), first live run.
+☑ **I6 Backup screen** (web + app, owner only): Drive status, last backup + integrity
 check, history, download (ciphertext), recovery-kit status. Honest wording only
 ("Last backup 23 Oct, 02:00 · checked").
-☐ **I7 Restore**: download → recovery kit → verify → decrypt on device → preview → confirm
+**Done in code 2026-10-27** — app `manage/backup.tsx` (Settings → Backup): status facts,
+set up / replace key + kit sheet, connect / reconnect / disconnect Drive, Back up now,
+history grouped by day with Checked / Not checked / Failed, Download (ciphertext via
+`downloadToDevice`), Restore. Web `/hostel-admin/backup` (Settings → Backup): the same
+facts, Drive connect, Back up now, history + download via `downloadFile`; the key is made
+and restore runs in the app, where the key lives. Server refuses wardens (owner check).
+Open: device pass after the native build; web check in the browser.
+☑ **I7 Restore**: download → recovery kit → verify → decrypt on device → preview → confirm
 → import with audit log; refuses another hostel's archive.
+**Done in code 2026-10-27** — the app downloads the file to its cache, checks SHA-512
+against our record, the header's hostel against the open hostel and the key's fingerprint,
+decrypts on the phone, shows the counts, confirms (`openConfirm`, PIN), then sends each
+chunk; the server takes a chunk only if its SHA-256 is recorded for **this** hostel's run,
+refuses rows of any other hostel, adds missing rows only (never overwrites or deletes),
+never restores platform records (Hostel, User, plan bills…), and audit-logs each chunk
+(`BACKUP_RESTORED`). Tests: `backup.service.test.ts`. Open: device pass; scanning the kit's
+QR on restore (typed code works today).
 ☐ **I8 Drills**: lost DB, deleted rows, revoked Drive, lost kit, tampered archive,
 cross-tenant restore.
 

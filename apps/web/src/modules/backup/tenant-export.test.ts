@@ -120,7 +120,15 @@ describe("buildTenantExport", () => {
 
   it("splits a large collection across chunks", () => {
     const rows = Array.from({ length: 30 }, () => ({ _id: new Types.ObjectId(), note: "x".repeat(CHUNK_BYTES / 10) }));
-    const { chunks } = packTenantExport({ ...({} as never), collections: { Expense: rows }, counts: {} });
+    const { chunks } = packTenantExport({
+      collections: { Expense: rows },
+      counts: {},
+      createdAt: "",
+      format: "hostelpalika-tenant-export",
+      hostelId: "",
+      hostelIds: [],
+      version: 1,
+    });
 
     expect(chunks.length).toBeGreaterThan(2);
     expect(chunks.reduce((total, chunk) => total + chunk.rows, 0)).toBe(30);
