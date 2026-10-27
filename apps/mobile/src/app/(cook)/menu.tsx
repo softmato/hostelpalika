@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { useMemo, useState } from "react";
 import { View } from "react-native";
 
@@ -15,7 +16,6 @@ import { useResource } from "@/hooks/use-resource";
 import { searchCookResidents } from "@/lib/cook";
 import type { CookResident, CookToday } from "@/lib/cook-api";
 import { cookQuery } from "@/lib/cook-queries";
-import { humanizeEnum } from "@/lib/format";
 
 /**
  * The week's routine, and who is eating it. Read-only, both of them.
@@ -209,7 +209,7 @@ export default function CookMenuScreen() {
                     {index > 0 ? <RowDivider /> : null}
                     <ListRow
                       title={resident.fullName}
-                      value={humanizeEnum(resident.roomType)}
+                      value={roomTypeLabel(resident.roomType)}
                     />
                   </View>
                 ))}

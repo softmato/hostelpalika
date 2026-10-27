@@ -1,5 +1,4 @@
 import { roomTypeLabel } from "@hostel/constants/room-types";
-import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
 
@@ -71,6 +70,32 @@ export default function FloorsScreen() {
     },
     [refresh],
   );
+
+  /**
+   * Field review B8: the sheet shuts and the person shows in the room at once;
+   * the server answers behind it, and only a refusal rereads the plan.
+   */
+  const place = (person: NonNullable<Assign>, room: { id: string; number: string }) => {
+    setAssign(null);
+    layout.setData((current) =>
+      current && {
+        ...current,
+        rooms: current.rooms.map((item) =>
+          item.id === room.id
+            ? { ...item, free: Math.max(item.free - 1, 0), residents: [...item.residents, { id: person.id, name: person.name }] }
+            : item,
+        ),
+        unassigned: current.unassigned.filter((item) => item.id !== person.id),
+      },
+    );
+    setResidentRoom(person.id, room.id).then(
+      () => toastSuccess(`${person.name} is in Room ${room.number}`),
+      (error: unknown) => {
+        toastError("That did not work", readApiError(error));
+        void layout.refresh();
+      },
+    );
+  };
 
   const data = layout.data;
   const header = <AppBar accent centerTitle showBack title="Rooms" />;
@@ -157,22 +182,12 @@ export default function FloorsScreen() {
           </View>
         ) : null}
 
-        <CardRow
-          icon="pricetags"
-          onPress={() => router.push("/manage/rooms")}
-          subtitle="Types, rent, photos"
-          title="Room types"
-        />
       </View>
 
       <Sheet onClose={() => setAssign(null)} open={assign !== null} tall title={assign ? `Room for ${assign.name}` : "Room"}>
         {assign ? (
           <RoomPicker
-            onChange={(room) =>
-              void run(() => setResidentRoom(assign.id, room.id), `${assign.name} is in Room ${room.number}`).then(
-                (ok) => ok && setAssign(null),
-              )
-            }
+            onChange={(room) => place(assign, room)}
             roomType={assign.roomType}
             rooms={data.rooms}
             value={null}

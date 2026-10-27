@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { OverallTabScreen } from "@/components/overall-views";
 import { useIsOverall } from "@/components/hostel-switcher";
 import { router } from "expo-router";
@@ -31,7 +32,6 @@ import {
   rosterSummary,
   searchResidents,
 } from "@/lib/admin-roster";
-import { humanizeEnum } from "@/lib/format";
 import { KycFrost } from "@/components/kyc-frost";
 import { promptKyc, useKycLock } from "@/lib/kyc-lock";
 
@@ -386,7 +386,7 @@ function BranchAdminResidentsScreen() {
                     </View>
                   }
                   subtitle={[
-                    resident.roomNumber ? `Room ${resident.roomNumber}` : humanizeEnum(resident.roomType),
+                    resident.roomNumber ? `Room ${resident.roomNumber}` : roomTypeLabel(resident.roomType),
                     resident.phone,
                     `Since ${dates.date(resident.moveInDate)}`,
                   ]

@@ -119,7 +119,7 @@ describe("getPayInstructions", () => {
     mocks.invoiceFindOne.mockReturnValue(lean({ ...invoice, bedType: "TRIPLE_SHARING" }));
 
     expect((await getPayInstructions(invoiceId.toString(), principal)).bedLabel).toBe(
-      "Triple sharing",
+      "Triple Sharing Room",
     );
   });
 

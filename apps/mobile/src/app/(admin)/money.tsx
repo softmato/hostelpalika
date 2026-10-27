@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { OverallTabScreen } from "@/components/overall-views";
 import { useIsOverall } from "@/components/hostel-switcher";
 import { KycLockedScreen } from "@/components/kyc-frost";
@@ -60,7 +61,7 @@ import { readApiError } from "@/lib/api-contract";
 import { claimsForPeriod, paymentMonths } from "@/lib/payment-months";
 import { openConfirm } from "@/lib/confirm";
 import { waiveLateFine } from "@/lib/khata-api";
-import { formatMoney, humanizeEnum, nepalPeriodKey } from "@/lib/format";
+import { formatMoney, nepalPeriodKey } from "@/lib/format";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 const SUCCESS_ANIMATION = require("../../../assets/lottie/success.lottie");
@@ -278,7 +279,7 @@ function BranchAdminMoneyScreen() {
       new Map(
         rows.map((row) => [
           row.resident.id,
-          [humanizeEnum(row.resident.roomType), row.resident.roomNumber]
+          [roomTypeLabel(row.resident.roomType), row.resident.roomNumber]
             .filter((part) => Boolean(part) && part !== "—")
             .join(" · "),
         ]),
@@ -817,7 +818,7 @@ function BranchAdminMoneyScreen() {
                         </View>
                       }
                       subtitle={[
-                        humanizeEnum(row.resident.roomType),
+                        roomTypeLabel(row.resident.roomType),
                         row.resident.roomNumber,
                         /*
                          * Why this row's amount is smaller than its neighbours'.
@@ -964,7 +965,7 @@ function BranchAdminMoneyScreen() {
                   </Text>
                   <Text variant="caption">
                     {[
-                      humanizeEnum(open.resident.roomType),
+                      roomTypeLabel(open.resident.roomType),
                       open.resident.roomNumber,
                     ]
                       .filter(Boolean)

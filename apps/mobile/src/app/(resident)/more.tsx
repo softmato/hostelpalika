@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Linking } from "react-native";
@@ -20,7 +21,6 @@ import {
   residentQuery,
 } from "@/lib/resident-queries";
 import { prefetchCommunity } from "@/lib/community-queries";
-import { humanizeEnum } from "@/lib/format";
 import { stayPill } from "@/lib/resident-home";
 
 /**
@@ -113,7 +113,7 @@ export default function ResidentMoreScreen() {
           {resident ? <StatusPill status={resident.status} /> : null}
           {profile?.hostel ? (
             <>
-              <Chip icon="bed" label={humanizeEnum(profile.accommodation.roomType)} />
+              <Chip icon="bed" label={roomTypeLabel(profile.accommodation.roomType)} />
               {resident ? (
                 <Chip icon="calendar" label={`Since ${dates.date(resident.moveInDate)}`} />
               ) : null}

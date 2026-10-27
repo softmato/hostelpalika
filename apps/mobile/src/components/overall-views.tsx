@@ -697,7 +697,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
         <Issue label="Residents" state={state} />
         {state?.data ? <Preview empty="No residents yet." total={state.data.pagination?.total} items={state.data.residents.map((person) =>
           <ListRow icon="person" key={person.id} onPress={() => open(`/manage/resident/${person.id}`)}
-            subtitle={[humanizeEnum(person.roomType), humanizeEnum(person.status)].filter(Boolean).join(" · ")}
+            subtitle={[roomTypeLabel(person.roomType), humanizeEnum(person.status)].filter(Boolean).join(" · ")}
             title={`${person.firstName} ${person.lastName}`.trim()} />)} /> : null}
       </>;
     }

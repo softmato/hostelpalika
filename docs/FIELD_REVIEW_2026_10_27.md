@@ -64,15 +64,31 @@ bookings/receipts carry them). Wired into every screen that prints a type (app, 
 portals, public listing/compare/JSON-LD, booking PDF, booking + resident emails and
 notices, room-type pickers); `BED_TYPE_LABELS` (invoices) says the same names. A
 type the owner typed passes through. Open: web deploy, device look.
-☐ **B2** Room types button at the top.
-☐ **B3 Floors as tiles**: a vector floor glyph (new, in our icon set); Ground is one
+☑ **B2** Room types button at the top.
+**Done in code 2026-10-27** — top of `RoomsFloorsEditor` (so Rooms and the KYC step both
+have it); the old row at the bottom of `manage/floors.tsx` is gone.
+☑ **B3 Floors as tiles**: a vector floor glyph (new, in our icon set); Ground is one
 tile, each added floor adds one.
-☐ **B4 Adding rooms without +/− counters**: pick a room-type chip first; + adds one
+**Done in code 2026-10-27** — `floor` glyph (line + solid) in `glyphs.ts`; floors are an
+`ActionTiles` picker ("Ground / 6 rooms" … plus an Add floor tile), the picked one solid;
+only the picked floor's rooms show below. Open: device look.
+☑ **B4 Adding rooms without +/− counters**: pick a room-type chip first; + adds one
 room of that type on that floor, − removes the last empty one. Tapping the selected chip
 again (the note's "double click") or another chip clears/switches it. Rooms added or
 removed in this pass look different from the rest and fade in / out.
-☐ **B5 Room box → sheet** lists who lives there (photo, name, since, dues badge) and the
+**Done in code 2026-10-27** — the per-floor stepper and tap-to-paint are gone. A chip
+arms a −/count/+ strip; each tap shows at once (draft keyed by room number) and saves in
+order behind it, the server's layout replacing the draft when the last save lands (a
+refusal rereads). Added rooms keep a dashed brand edge until the screen is left; tiles
+fade in/out (reanimated, honours reduce-motion). Open: device look on a real Redmi.
+☑ **B5 Room box → sheet** lists who lives there (photo, name, since, dues badge) and the
 free beds. Sheet polished.
+**Done in code 2026-10-27** — the layout's residents now carry `photo` (account picture,
+else admission photo), `since` and `due` (`outstandingByResident`, one aggregate per
+layout). The sheet: a mark per bed (taken filled, free in green), each resident with
+face, "Since …" and a Paid up / Rs … due badge, opening their record; types that cannot
+seat everyone are greyed. Open: web deploy (older servers send names only — the sheet
+copes), device look.
 ☑ **B6 Room-type change guard**: allowed when empty; when occupied only if the new
 type's beds ≥ residents in the room, else blocked with the reason. Enforced on the
 server room update, not only in the sheet.
@@ -83,8 +99,14 @@ follow the type unless sent; the residents in the room take the new `roomType` +
 `bedType` (rent follows from the next bill), then the type counts re-derive. A move
 between rooms now also writes `bedType`. Test: `hostel-rooms.service.test.ts`. Web and
 app both go through it. Open: web deploy.
-☐ **B7 Not-floor-wise mode** stays simple: per resident, one room type, nothing else (p1).
-☐ **B8 Room assignment** snappy: optimistic move, no full reload, short transitions.
+☑ **B7 Not-floor-wise mode** stays simple: per resident, one room type, nothing else (p1).
+**Checked 2026-10-27** — it is already only a room count per type (`TypeCounts`); none of
+B2–B5 reaches it. Names now go through B1.
+☑ **B8 Room assignment** snappy: optimistic move, no full reload, short transitions.
+**Done in code 2026-10-27** — Rooms → "No room yet" and the resident's Floor & room
+sheet both shut at once and show the new room from a local edit of the cached layout /
+record (both Rooms screens share the cache key, so they move together); the request
+runs behind it and only a refusal rereads. Open: device look.
 
 ## Phase 3 — Billing, moving out, demo material (p5, p6, p8, chat)
 

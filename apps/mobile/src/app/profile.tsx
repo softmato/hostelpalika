@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { router } from "expo-router";
 import { Linking, Pressable, View } from "react-native";
 
@@ -110,7 +111,7 @@ export default function ProfileScreen() {
         <View>
           <SectionHeader title="Your stay" />
           <Card>
-            <ListRow title="Room type" value={humanizeEnum(accommodation.roomType)} />
+            <ListRow title="Room type" value={roomTypeLabel(accommodation.roomType)} />
             <RowDivider />
             <ListRow title="Moved in" value={dates.date(resident.moveInDate)} />
             <RowDivider />

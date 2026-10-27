@@ -78,7 +78,7 @@ describe("floor & room", () => {
     expect(result.rows[0]!.problems).toEqual([]);
     expect(result.rows[0]!.rent).toBe(12000);
     expect(field(result, 1)).toEqual(["Room 102 is full."]);
-    expect(field(result, 2)).toEqual(["Room 201 is Single, not Double."]);
+    expect(field(result, 2)).toEqual(["Room 201 is Single Sitter Room, not Double."]);
     expect(field(result, 3)).toEqual(["There is no room 999 in this hostel."]);
   });
 
@@ -238,7 +238,7 @@ describe("problems, in plain words", () => {
     const result = checkExistingResidents([row({ roomType: "Single" })], context());
 
     expect(messages(result)).toEqual([
-      "Single has no rent in the rate card. Set it in Fee schedule first.",
+      "Single Sitter Room has no rent in the rate card. Set it in Fee schedule first.",
     ]);
   });
 
@@ -283,7 +283,7 @@ describe("problems, in plain words", () => {
     );
 
     expect(result.listProblems).toEqual([
-      "Single has 1 free bed but 2 residents in this list. Change the beds in Rooms first.",
+      "Single Sitter Room has 1 free bed but 2 residents in this list. Change the beds in Rooms first.",
     ]);
     expect(result.ready).toBe(false);
     expect(result.roomTypes).toEqual([{ freeBeds: 1, inList: 2, roomType: "Single" }]);

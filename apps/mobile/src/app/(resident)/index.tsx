@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { router } from "expo-router";
 import { useMemo } from "react";
 import { Linking, Pressable, View } from "react-native";
@@ -19,7 +20,7 @@ import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import { useSiteConfig } from "@/hooks/use-site-config";
 import { API_BASE_URL } from "@/lib/api";
-import { formatDueLabel, humanizeEnum } from "@/lib/format";
+import { formatDueLabel } from "@/lib/format";
 import { absoluteMediaUrl } from "@/lib/media";
 import { openQuestionCall } from "@/lib/questioncall";
 import { type ResidentDashboard, type RoutineMeal } from "@/lib/resident-api";
@@ -260,7 +261,7 @@ export default function ResidentHomeScreen() {
           Residents are placed by room *type*, not by room number, so that is all
           the accommodation detail there is to show.
         */
-        roomLabel={humanizeEnum(dashboard.accommodation.roomType)}
+        roomLabel={roomTypeLabel(dashboard.accommodation.roomType)}
         sinceLabel={dates.date(dashboard.resident.moveInDate)}
         stay={stay}
         urgentCount={urgentNotices}

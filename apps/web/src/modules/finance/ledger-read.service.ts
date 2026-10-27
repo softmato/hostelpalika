@@ -365,6 +365,21 @@ export async function outstandingForResident(
   return rows[0]?.outstanding ?? 0;
 }
 
+/** `outstandingForResident` for a whole scope at once, by resident id — the room sheet's dues badges. */
+export async function outstandingByResident(scope: LedgerScope): Promise<Map<string, number>> {
+  const rows = await InvoiceModel.aggregate<{ _id: Types.ObjectId | null; outstanding: number }>([
+    ...ledgerPipeline({ ...scope, unsettledOnly: true }),
+    {
+      $group: {
+        _id: "$residentId",
+        outstanding: { $sum: { $max: [{ $subtract: ["$totalAmount", "$paidAmount"] }, 0] } },
+      },
+    },
+  ]);
+
+  return new Map(rows.filter((row) => row._id).map((row) => [String(row._id), row.outstanding]));
+}
+
 export type LedgerTotals = {
   dueAmount: number;
   paidAmount: number;

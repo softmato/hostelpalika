@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { router, useLocalSearchParams } from "expo-router";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
 import { Linking, View } from "react-native";
@@ -318,7 +319,7 @@ export default function ManageResidentScreen() {
 
   return (
     <Screen
-      header={<AppBar accent centerTitle showBack subtitle={humanizeEnum(resident.roomType)} title={fullName} />}
+      header={<AppBar accent centerTitle showBack subtitle={roomTypeLabel(resident.roomType)} title={fullName} />}
       onRefresh={data.refresh}
       refreshing={data.refreshing}
       scroll
@@ -356,7 +357,7 @@ export default function ManageResidentScreen() {
                 tone="brand"
               />
             ) : null}
-            <Chip icon="bed" label={humanizeEnum(resident.roomType)} />
+            <Chip icon="bed" label={roomTypeLabel(resident.roomType)} />
             {resident.roomNumber ? (
               <Chip icon="business" label={roomLine(resident) ?? ""} tone="brand" />
             ) : null}
@@ -414,7 +415,7 @@ export default function ManageResidentScreen() {
             <ListRow
               icon="bed"
               onPress={() => openPanel("roomType")}
-              subtitle={humanizeEnum(resident.roomType)}
+              subtitle={roomTypeLabel(resident.roomType)}
               title="Room type"
             />
             <RowDivider inset />
@@ -706,7 +707,7 @@ export default function ManageResidentScreen() {
           ) : null}
 
           <DetailSection title="Their tenancy">
-            <FactRow label="Room type" value={humanizeEnum(resident.roomType)} />
+            <FactRow label="Room type" value={roomTypeLabel(resident.roomType)} />
             <FactRow label="Moved in" value={dates.date(resident.moveInDate)} />
             <FactRow label="Status" value={humanizeEnum(resident.status)} />
             {resident.createdAt ? (
@@ -1127,9 +1128,23 @@ export default function ManageResidentScreen() {
           <View className="gap-3 pb-2">
             <Text variant="caption">Any room with a free bed. A different type changes their rent from the next bill.</Text>
             <RoomPicker
-              onChange={(room) =>
-                void run(() => setResidentRoom(id, room.id).then(() => undefined), `Moved to Room ${room.number}`)
-              }
+              onChange={(room) => {
+                // Field review B8: shut and show the new room now; only a refusal rereads.
+                setPanel(null);
+                data.setData((current) =>
+                  current && { ...current, resident: { ...current.resident, floor: room.floor, roomId: room.id, roomNumber: room.number, roomType: room.roomType } },
+                );
+                setResidentRoom(id, room.id).then(
+                  () => {
+                    toastSuccess(`Moved to Room ${room.number}`);
+                    void layout.refresh();
+                  },
+                  (error: unknown) => {
+                    toastError("That did not work", readApiError(error));
+                    void data.refresh();
+                  },
+                );
+              }}
               rooms={layout.data.rooms}
               showType
               value={resident.roomId ?? null}

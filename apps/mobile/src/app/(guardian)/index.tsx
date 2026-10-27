@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { router } from "expo-router";
 import { Linking, View } from "react-native";
 
@@ -187,7 +188,7 @@ export default function GuardianHomeScreen() {
         hostelName={dashboard.hostel?.name ?? null}
         nightLabel={safety ? humanizeEnum(safety.status) : null}
         relation={dashboard.guardian.relation.toLowerCase()}
-        roomLabel={humanizeEnum(dashboard.resident.roomType)}
+        roomLabel={roomTypeLabel(dashboard.resident.roomType)}
         unpaidCount={unpaid}
         wardImage={dashboard.resident.image}
         wardName={wardName}

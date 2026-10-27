@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { useCallback, useMemo, useState } from "react";
 import { View } from "react-native";
 
@@ -299,7 +300,7 @@ export default function ManageRollCallScreen() {
                       />
                     }
                     subtitle={[
-                      row.resident.roomType ? humanizeEnum(row.resident.roomType) : null,
+                      row.resident.roomType ? roomTypeLabel(row.resident.roomType) : null,
                       row.status.checkedAt ? dates.dateTime(row.status.checkedAt) : "Not marked",
                     ]
                       .filter(Boolean)

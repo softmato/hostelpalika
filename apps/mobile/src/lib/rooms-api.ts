@@ -15,7 +15,8 @@ export type Room = {
   free: number;
   id: string;
   number: string;
-  residents: { id: string; name: string }[];
+  /** `due`, `photo` and `since` come with the staff layout; absent before that deploy. */
+  residents: { due?: number; id: string; name: string; photo?: string | null; since?: string | null }[];
   roomType: string;
 };
 

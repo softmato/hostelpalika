@@ -12,13 +12,16 @@ import {
   writeConfigurations,
 } from "@/modules/hostels/hostel-capacity.service";
 import { normalizeBedType } from "@/modules/finance/bed-type";
+import { outstandingByResident } from "@/modules/finance/ledger-read.service";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
+import { residentPhotoPath } from "@/modules/residents/applicant-photo";
 import { resolveHostelStaffUserIds } from "@/modules/residents/resident-notify";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { HostelRoomModel } from "@hostel/db/models/HostelRoom";
 import { HostelSettingsModel } from "@hostel/db/models/HostelSettings";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { RoomChangeRequestModel } from "@hostel/db/models/RoomChangeRequest";
+import { UserModel } from "@hostel/db/models/User";
 
 /**
  * Floors and numbered rooms (docs/FIELD_FIXES_2026_10.md §3).
@@ -92,8 +95,11 @@ type LiveResident = {
   _id: Types.ObjectId;
   firstName: string;
   lastName: string;
+  moveInDate?: Date | null;
+  photoAssetId?: Types.ObjectId | null;
   roomId?: Types.ObjectId | null;
   roomType: string;
+  userId?: Types.ObjectId | null;
 };
 
 export type RoomView = {
@@ -102,9 +108,13 @@ export type RoomView = {
   free: number;
   id: string;
   number: string;
-  residents: { id: string; name: string }[];
+  /** Who sleeps there: their face, since when, and what they still owe (field review B5). */
+  residents: { due: number; id: string; name: string; photo: string | null; since: string | null }[];
   roomType: string;
 };
+
+/** Faces and dues for the room sheet; only the staff layout loads them. */
+type RoomExtras = { dues: Map<string, number>; images: Map<string, string> };
 
 /** "Ground floor", "1st floor", "Basement". */
 export function floorLabel(floor: number) {
@@ -143,11 +153,11 @@ async function loadRooms(hostelId: Types.ObjectId) {
 
 async function loadLiveResidents(hostelId: Types.ObjectId) {
   return ResidentModel.find({ hostelId, isDeleted: { $ne: true }, status: { $in: LIVE } })
-    .select("firstName lastName roomId roomType")
+    .select("firstName lastName moveInDate photoAssetId roomId roomType userId")
     .lean<LiveResident[]>();
 }
 
-function viewRooms(rooms: RoomRow[], residents: LiveResident[]): RoomView[] {
+function viewRooms(rooms: RoomRow[], residents: LiveResident[], extras?: RoomExtras): RoomView[] {
   const byRoom = new Map<string, LiveResident[]>();
 
   for (const resident of residents) {
@@ -166,8 +176,14 @@ function viewRooms(rooms: RoomRow[], residents: LiveResident[]): RoomView[] {
       id: room._id.toString(),
       number: room.number,
       residents: inRoom.map((resident) => ({
+        due: extras?.dues.get(resident._id.toString()) ?? 0,
         id: resident._id.toString(),
         name: `${resident.firstName} ${resident.lastName}`.trim(),
+        // The account picture wins, as on the roster; then the admission-form photo.
+        photo:
+          (resident.userId ? extras?.images.get(resident.userId.toString()) : undefined) ??
+          (resident.photoAssetId ? residentPhotoPath(resident._id, resident.photoAssetId) : null),
+        since: resident.moveInDate ? new Date(resident.moveInDate).toISOString() : null,
       })),
       roomType: room.roomType,
     };
@@ -225,10 +241,18 @@ export async function getRoomLayout(hostelId: Types.ObjectId | string) {
   if (planned && !sameCounts(derived, configurations)) await writeConfigurations(id, derived);
 
   const summary = summarizeConfigurations(derived);
+  const roomed = residents.filter((resident) => resident.roomId && roomIds.has(resident.roomId.toString()));
+  const [dues, users] = await Promise.all([
+    roomed.length ? outstandingByResident({ hostelId: id }) : new Map<string, number>(),
+    UserModel.find({ _id: { $in: roomed.flatMap((resident) => (resident.userId ? [resident.userId] : [])) } })
+      .select("image")
+      .lean<{ _id: Types.ObjectId; image?: string | null }[]>(),
+  ]);
+  const images = new Map(users.flatMap((user) => (user.image ? [[user._id.toString(), user.image] as const] : [])));
 
   return {
     pendingRequests: pending,
-    rooms: viewRooms(rooms, residents),
+    rooms: viewRooms(rooms, residents, { dues, images }),
     roomTypes: configurations.map((config) => config.roomType),
     // One set of totals for both views (field review A1).
     totals: tracking

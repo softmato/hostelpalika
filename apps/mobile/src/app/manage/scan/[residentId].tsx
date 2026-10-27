@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
@@ -142,7 +143,7 @@ export default function ScannedResidentScreen() {
         status={membership?.resident.status ?? null}
         subtitle={
           membership
-            ? `${humanizeEnum(membership.resident.roomType)} · ${membership.hostel.name}`
+            ? `${roomTypeLabel(membership.resident.roomType)} · ${membership.hostel.name}`
             : (profile?.occupation ? humanizeEnum(profile.occupation) : data.account.email) ??
               "Not on your roll"
         }
@@ -547,7 +548,7 @@ function TenancySection({ membership }: { membership: ScannedMembership }) {
       <SectionHeader subtitle={membership.hostel.name} title="Their stay" />
 
       <Card className="gap-1">
-        <FactRow label="Room type" value={humanizeEnum(resident.roomType)} />
+        <FactRow label="Room type" value={roomTypeLabel(resident.roomType)} />
         <FactRow label="Status" value={<StatusPill status={resident.status} />} />
         <FactRow label="They are a" value={humanizeEnum(resident.residentType)} />
         <FactRow label="Moved in" value={dates.date(resident.moveInDate)} />
