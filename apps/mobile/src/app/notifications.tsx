@@ -607,6 +607,7 @@ function NotificationRow({
   onOpen: (notification: AppNotification) => void;
 }) {
   const dates = useDates();
+  const role = useAppSelector((state) => state.auth.account?.role);
 
   const { colors } = useAppTheme();
   const [expanded, setExpanded] = useState(false);
@@ -636,7 +637,7 @@ function NotificationRow({
       onPress={() => {
         onOpen(notification);
 
-        const route = notificationRoute(notification);
+        const route = notificationRoute(notification, role);
 
         if (route) {
           router.push(route as never);
@@ -675,7 +676,7 @@ function NotificationRow({
             <View className="flex-row items-start gap-2">
               <Text
                 className={`flex-1 ${unread ? "font-semibold" : ""}`}
-                numberOfLines={2}
+                numberOfLines={expanded ? undefined : 1}
                 variant="subtitle"
               >
                 {notification.title}
@@ -689,16 +690,14 @@ function NotificationRow({
               <Text variant="caption">{dates.ago(notification.createdAt)}</Text>
             </View>
 
-            <Text numberOfLines={expanded ? undefined : 2} variant="muted">
+            {/* F2: icon by kind, title, one line, time. The kind is the icon; no label badge. */}
+            <Text numberOfLines={expanded ? undefined : 1} variant="muted">
               {notification.body}
             </Text>
 
-            <View className="flex-row flex-wrap items-center gap-2 pt-0.5">
-              {notification.needsAction && !isNight ? (
-                <Badge label="Needs you" tone="warning" />
-              ) : null}
-              <Badge label={visual.label} />
-            </View>
+            {notification.needsAction && !isNight ? (
+              <Badge label="Needs you" tone="warning" />
+            ) : null}
 
             {/*
               Only once the row is open, and only as a sentence. The action itself

@@ -38,7 +38,36 @@ import {
   type NotificationFilter,
   listNotifications,
 } from "@/lib/notifications-api";
-import { defineQuery, prefetchQuery, type Query } from "@/lib/query-cache";
+import { defineQuery, prefetchQuery, type Query, readSavedQuery } from "@/lib/query-cache";
+
+/** The server's page; a newer-rows answer this long may have a gap behind it. */
+const PAGE = 100;
+/** Past this the cached rows' read ticks may have drifted (read on the website); ask for all. */
+const FULL_AFTER_MS = 6 * 60 * 60_000;
+
+/**
+ * F1: newer rows on top of the cached ones. The counts are the server's; when it
+ * says nothing is unread, every cached row is read too, which heals a feed read
+ * on another device without asking for it again.
+ */
+export function mergeFeed(cached: NotificationFeed, newer: NotificationFeed): NotificationFeed {
+  if (newer.notifications.length >= PAGE) return newer;
+  const fresh = new Set(newer.notifications.map((row) => row.id));
+  const kept = cached.notifications
+    .filter((row) => !fresh.has(row.id))
+    .map((row) => (newer.unreadCount === 0 && !row.isRead ? { ...row, isRead: true } : row));
+  return { ...newer, notifications: [...newer.notifications, ...kept].slice(0, PAGE) };
+}
+
+async function loadFeed(filter: NotificationFilter, key: string) {
+  // "Needs action" rows leave that list when acted on, so it is always asked whole.
+  const saved = filter === "all" ? readSavedQuery<NotificationFeed>(key) : null;
+  const newest = saved?.data.notifications[0]?.createdAt;
+  if (!saved || !newest || Date.now() - saved.storedAt > FULL_AFTER_MS) {
+    return listNotifications(filter);
+  }
+  return mergeFeed(saved.data, await listNotifications(filter, newest));
+}
 
 export type NotificationQuery<T> = Query<T>;
 
@@ -62,7 +91,7 @@ export const notificationQuery = {
    */
   feed: (filter: NotificationFilter): NotificationQuery<NotificationFeed> =>
     defineQuery(`notifications:${filter}`, [REALTIME_TOPIC.NOTIFICATIONS], () =>
-      listNotifications(filter),
+      loadFeed(filter, `notifications:${filter}`),
     ),
 } as const;
 

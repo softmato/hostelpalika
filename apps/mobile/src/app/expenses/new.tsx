@@ -56,6 +56,7 @@ import {
 import { formatMoney } from "@/lib/format";
 import { adminQuery } from "@/lib/admin-queries";
 import { invalidateQuery } from "@/lib/query-cache";
+import { sendOrQueue } from "@/lib/offline-writes";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { uploadAsset } from "@/lib/uploads";
 
@@ -350,7 +351,7 @@ export default function AddExpenseScreen() {
     setSaving(true);
 
     try {
-      const saved = await addExpense(audience, {
+      const input = {
         amount,
         category: choice.category,
         clientRequestId: requestId.current,
@@ -361,12 +362,15 @@ export default function AddExpenseScreen() {
         salaryFor,
         spentOn: typedDay,
         what: what.trim() || undefined,
-      });
+      };
 
-      toastSuccess(
-        saved.cashTo ? "Cash sent" : "Expense added",
-        saved.cashTo ? `${formatMoney(saved.amount)} · ${saved.cashTo.name} confirms it` : `${formatMoney(saved.amount)} · ${saved.categoryLabel}`,
-      );
+      // Staff cash moves money between people: online only, never queued.
+      if (input.cashTo) {
+        const saved = await addExpense(audience, input);
+        toastSuccess("Cash sent", `${formatMoney(saved.amount)} · ${saved.cashTo?.name ?? ""} confirms it`);
+      } else if ((await sendOrQueue("expense", { audience, input })) === "sent") {
+        toastSuccess("Expense added", formatMoney(amount));
+      }
       invalidateQuery(expenseQuery(audience, null).key);
       invalidateQuery(walletQuery(isCash && cashTo ? cashTo : null).key);
       // The owner's statement lists expenses as debits.

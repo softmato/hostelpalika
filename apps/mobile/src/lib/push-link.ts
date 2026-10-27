@@ -214,7 +214,20 @@ const REWRITES: { prefix: string; to: string }[] = [
    * exactly right, not a degradation.
    */
   { prefix: "/(resident)/notices/", to: "/(resident)/notices" },
+  // F3: actionUrls the server sends that had no screen.
+  { prefix: "/app/expenses", to: "/expenses" },
+  { prefix: "/hostel-admin/kyc", to: "/manage/kyc" },
+  { prefix: "/hostel-admin/billing", to: "/manage/billing" },
+  { prefix: "/hostel-admin/rooms", to: "/manage/rooms" },
+  { prefix: "/guardian/safety", to: "/(guardian)/safety" },
+  // Last: a portal home (`/hostel-admin/dashboard`, `/hostel-admin`) opens the app's home.
+  { prefix: "/hostel-admin", to: "/(admin)" },
 ];
+
+/** Our own site, so an absolute link the server built (`appUrl`) still routes in-app. */
+const OWN_ORIGIN = /^https:\/\/(?:www\.)?hostelpalika\.com(?=\/)/i;
+/** A tenant portal URL, `/{slug}/admin/…`, read as the `/hostel-admin/…` it stands for. */
+const TENANT_ADMIN = /^\/[a-z0-9-]+\/admin(?=\/|$)/;
 
 /** `/(resident)/payments/<invoiceId>` — the one path that is wrong, not absent. */
 const PAYMENT_DETAIL = /^\/\(resident\)\/payments\/([A-Za-z0-9_-]+)$/;
@@ -261,7 +274,7 @@ export function resolvePushPath(path: unknown): string {
     return PUSH_FALLBACK_PATH;
   }
 
-  const trimmed = path.trim();
+  const trimmed = path.trim().replace(OWN_ORIGIN, "");
 
   // One leading slash, and only one. `//evil.example` reads as a path and
   // resolves as an origin; `hostelpalika://` and `https://` are not ours to route.
@@ -274,7 +287,8 @@ export function resolvePushPath(path: unknown): string {
   const clean = trimmed.split(/[?#]/)[0];
 
   // Trailing slash is meaningless to expo-router but would miss every lookup.
-  const normalized = clean.length > 1 && clean.endsWith("/") ? clean.slice(0, -1) : clean;
+  const unslashed = clean.length > 1 && clean.endsWith("/") ? clean.slice(0, -1) : clean;
+  const normalized = unslashed.replace(TENANT_ADMIN, "/hostel-admin");
 
   const invoice = PAYMENT_DETAIL.exec(normalized);
 
@@ -397,11 +411,61 @@ export function opensPlanBilling(notification: { category?: unknown; data?: unkn
  * `actionUrl` is the website's page; then the `actionUrl` itself. A row nothing
  * here can place expands in place — the list it is in is not a destination.
  */
-export function notificationRoute(notification: {
-  actionUrl?: unknown;
-  category?: unknown;
-  data?: unknown;
-}): string | null {
+/**
+ * F3: where a notification with no usable link opens, by kind and by who reads
+ * it — Expo paths are role-relative, so a complaint is `/manage/complaints` to
+ * staff and `/complaints` to the resident who raised it.
+ */
+const STAFF_BY_CATEGORY: Record<string, string> = {
+  ANNOUNCEMENT: "/manage/notices",
+  ATTENDANCE: "/manage/attendance",
+  BOOKING: "/manage/bookings",
+  COMMUNITY: "/community",
+  COMPLAINT: "/manage/complaints",
+  ELECTRICAL: "/manage/maintenance",
+  ELECTRICIAN: "/manage/maintenance",
+  FOOD: "/manage/food",
+  INQUIRY: "/manage/inquiries",
+  KHATA: "/manage/finance/khata",
+  MAINTENANCE: "/manage/maintenance",
+  NOTICE: "/manage/notices",
+  PAYMENT: "/(admin)/money",
+  PLUMBER: "/manage/maintenance",
+  PLUMBING: "/manage/maintenance",
+  RESIDENT: "/(admin)/residents",
+  ROOM: "/manage/rooms",
+  SOS: "/(admin)/alerts",
+  STOCK: "/stock",
+};
+const RESIDENT_BY_CATEGORY: Record<string, string> = {
+  ANNOUNCEMENT: "/(resident)/notices",
+  BOOKING: "/bookings",
+  COMMUNITY: "/community",
+  COMPLAINT: "/complaints",
+  FOOD: "/(resident)/food",
+  KHATA: "/khata",
+  NIGHT_STATUS: "/night-status",
+  NOTICE: "/(resident)/notices",
+  PAYMENT: "/(resident)/payments",
+  ROOM: "/my-room",
+};
+const BY_ROLE: Record<string, Record<string, string>> = {
+  COOK: { COMMUNITY: "/community", FOOD: "/(cook)/menu", KHATA: "/khata-asks", STOCK: "/kitchen-stock" },
+  GUARDIAN: { COMMUNITY: "/community", PAYMENT: "/(guardian)/payments", SOS: "/(guardian)/safety" },
+  HOSTEL_ADMIN: STAFF_BY_CATEGORY,
+  PUBLIC: { BOOKING: "/bookings", COMMUNITY: "/community" },
+  RESIDENT: RESIDENT_BY_CATEGORY,
+  WARDEN: STAFF_BY_CATEGORY,
+};
+
+export function notificationRoute(
+  notification: {
+    actionUrl?: unknown;
+    category?: unknown;
+    data?: unknown;
+  },
+  role?: string | null,
+): string | null {
   if (opensPlanBilling(notification)) {
     return "/manage/billing";
   }
@@ -418,9 +482,32 @@ export function notificationRoute(notification: {
   if (type === "ROOM_CHANGE_REQUEST") return "/manage/floors";
   if (type === "ROOM_CHANGE_ANSWERED") return "/my-room";
 
+  if (type === "STOCK" && role === "COOK") return "/kitchen-stock";
+
   const path = resolvePushPath(notification.actionUrl);
 
-  return path === PUSH_FALLBACK_PATH ? null : path;
+  if (path !== PUSH_FALLBACK_PATH) return fitRole(path, notification.category, role);
+  const category = typeof notification.category === "string" ? notification.category : "";
+  return (role && BY_ROLE[role]?.[category]) || null;
+}
+
+const GROUP_ROLES: Record<string, readonly string[]> = {
+  "/(admin)": ["HOSTEL_ADMIN", "WARDEN"],
+  "/(cook)": ["COOK"],
+  "/(guardian)": ["GUARDIAN"],
+  "/(resident)": ["RESIDENT"],
+};
+
+/**
+ * The server's push routing defaults a kind to the resident's screen
+ * (`/(resident)/payments` for any PAYMENT). A path inside another role's tab
+ * group is swapped for this role's screen for the kind, or for the feed.
+ */
+export function fitRole(path: string, category: unknown, role?: string | null): string {
+  if (!role) return path;
+  const group = Object.keys(GROUP_ROLES).find((prefix) => path.startsWith(prefix));
+  if (!group || GROUP_ROLES[group].includes(role)) return path;
+  return BY_ROLE[role]?.[typeof category === "string" ? category : ""] ?? PUSH_FALLBACK_PATH;
 }
 
 /**

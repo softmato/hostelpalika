@@ -40,6 +40,7 @@ const complaintSchema = new Schema(
       type: String,
     },
     isAnonymous: { default: false, type: Boolean },
+    clientRequestId: { default: null, type: String },
     status: {
       default: "PENDING",
       enum: ["PENDING", "IN_PROGRESS", "RESOLVED", "REJECTED"],

@@ -228,23 +228,83 @@ kind, web menu); routes and `COUNT` stay.
 
 ## Phase 6 — Instant screens and offline (p7, chat)
 
-☐ **G1 SQLite cache**: today `lib/query-cache-persist.ts` stores the whole cache as one
+☑ **G1 SQLite cache**: today `lib/query-cache-persist.ts` stores the whole cache as one
 AsyncStorage JSON string and parses all of it before first paint. Move to `expo-sqlite`,
 one row per cache key, read per screen: every screen paints from disk on mount, then
 refreshes. Native build.
-☐ **G2 Offline PIN**: after any successful online PIN check or set, keep a salted slow
+**Done in code 2026-10-27** — `lib/local-db.ts` is the account's SQLite file (`kv` +
+`queue` tables, sync reads); `query-cache-persist.ts` gives the cache a disk: a key
+missing from memory is read from its own row the first time a screen asks
+(`readQuery` → `loadFromDisk`), dirty keys are written in one batched transaction,
+nothing is parsed before first paint. A key dropped past `maxAgeMs` is not
+resurrected from disk that session but stays as the offline copy (`readSavedQuery`).
+Test: `query-cache.test.ts`. **Reusable helper (Phase 7):** `lib/local-db` —
+`kvGet/kvPut/kvClear(prefix)/kvPrune` for small durable state under your own key
+prefix (the cache uses `q:`), `enqueueWrite(kind, payload)/listQueuedWrites(kind)/
+dropQueuedWrite/bumpQueuedWrite` for an outbox; PWA twin `web/local-db.ts`
+(IndexedDB, same exports). Open: native build + Redmi pass.
+☑ **G2 Offline PIN**: after any successful online PIN check or set, keep a salted slow
 hash in SecureStore; offline, unlock checks it locally with an attempt limit; online the
 server stays the authority and a PIN changed elsewhere replaces the local copy.
-☐ **G3 Offline set** ("60% offline"): home, residents, rooms, money summary, invoices,
+**Done in code 2026-10-27** — `lib/offline-pin.ts`: PBKDF2-SHA256 (`@noble/hashes`,
+pure JS, 20k rounds, per-account salt) in SecureStore after every accepted verify or
+save; `checkLockPin` falls back to it only on a network failure. Five offline misses,
+then 1 min doubling to 1 h, kept across relaunches. A server "wrong" for a PIN the copy
+still accepts deletes the copy; the next online yes re-hashes the new one; turning the
+lock off deletes it. Test: `offline-pin.test.ts` (also fixed `app-lock.test.ts`'s
+missing `getEnrolledLevelAsync` mock). Open: time the hash on a Redmi (knob:
+`PIN_ITERATIONS`), then an airplane-mode unlock.
+☑ **G3 Offline set** ("60% offline"): home, residents, rooms, money summary, invoices,
 statement, stock, notifications, ID card, menu open from SQLite with "Updated hh:mm".
 Queue only safe writes (night status already queues; add stock use/count, complaint,
 expense draft). Payments never offline.
-☐ **G4** One SQLite file per account; cleared on sign-out, account switch, role change.
-☐ **G5** PWA keeps its web stand-in in `apps/mobile/web/` (IndexedDB); web portals unchanged.
-☐ **F1 Notifications** open from SQLite instantly and fetch only newer ones (p7).
-☐ **F2** Notification rows: icon by kind, title, one line, time.
-☐ **F3** Every notification opens its exact screen; audit every kind, route the ones
+**Done in code 2026-10-27** — read side: `use-resource` falls back to `readSavedQuery`
+on a network failure for any `cacheKey` screen (up to 3 days old) and exposes
+`savedAt`; one app-wide `OfflineStampHost` draws "Offline · Updated hh:mm" for the
+focused screen (`lib/offline-stamp.ts`). All ten listed screens already read through
+a `cacheKey`. Write side: `lib/offline-writes.ts` `sendOrQueue(kind, payload)` on
+`local-db`'s queue for stock use/waste/count, complaint, expense; sent on launch,
+foreground, every minute while queued, and before sign-out; a server refusal is
+dropped with a toast so it never blocks the rest. Every kind is deduped by
+`clientRequestId` — stock and expense already were; complaints gained it
+(`complaint.validation.ts`, `Complaint.clientRequestId`, lookup on the `residentId`
+index, no new index). Staff cash and payments stay online only. Test:
+`offline-writes.test.ts`. Open: web deploy (complaint dedupe), Redmi airplane-mode pass.
+☑ **G4** One SQLite file per account; cleared on sign-out, account switch, role change.
+**Done in code 2026-10-27** — `local-db` opens `account-<id>.db`; `query-cache-persist`
+follows the store's account: another account or sign-out deletes the last file, a role
+change (kept in a `meta` row, so it is caught across relaunches too) empties `kv` and
+`queue`. `endSession` flushes the outbox first. Open: device pass (sign out → in as
+another role, no old rows).
+☑ **G5** PWA keeps its web stand-in in `apps/mobile/web/` (IndexedDB); web portals unchanged.
+**Done in code 2026-10-27** — `web/local-db.ts`, same exports over one IndexedDB
+database per account (loaded into memory on open, written behind), aliased in
+`metro.config.js` `WEB_STAND_INS`; no npm scripts added. Open: PWA export after deploy.
+☑ **F1 Notifications** open from SQLite instantly and fetch only newer ones (p7).
+**Done in code 2026-10-27** — the feed paints from its SQLite row (G1); the "all" feed's
+loader asks `GET /notifications?since=<newest cached createdAt>` and `mergeFeed`s the
+answer on top (`notification-queries.ts`); counts stay the server's, "nothing unread"
+heals cached tints, a full page or a copy older than 6 h asks for everything, "Needs
+action" is always whole. Server: `listNotifications(…, since)`. Test:
+`notification-feed-merge.test.ts`. Open: web deploy (an old server ignores `since`,
+which only costs the full list).
+☑ **F2** Notification rows: icon by kind, title, one line, time.
+**Done in code 2026-10-27** — `NotificationRow`: kind tile, one-line title with the
+age hard right, one-line body (a tap on a row with no screen expands both); the
+category badge is gone (the tile says it), "Needs you" stays. Open: device look. OTA-able.
+☑ **F3** Every notification opens its exact screen; audit every kind, route the ones
 with no target.
+**Done in code 2026-10-27** — audit of every `actionUrl` the server writes and of
+`push-routing.ts` `deepLinkForNotification`. Fixed in `lib/push-link.ts`: absolute
+links built by `appUrl()` (SOS staff + guardian) were refused, now our own origin is
+stripped; tenant `/{slug}/admin/…` folds to `/hostel-admin/…`; new rewrites for
+`/app/expenses` (6 expense kinds), `/hostel-admin/kyc|billing|rooms|dashboard`,
+`/guardian/safety`. A row with no usable link opens by kind for the reader's role
+(`BY_ROLE`), and `fitRole` swaps a path inside another role's tabs (the server
+defaults PAYMENT/COMPLAINT/NOTICE to `/(resident)/…` for everyone) for the reader's
+screen — applied in the feed, the live echo and a tapped push. Test: `push-link.test.ts`.
+Open: superadmin-only `/platform/*` links still land on the feed (no platform screens
+in the app); server could send role-correct paths itself.
 
 ## Phase 7 — Feel (p1, p3)
 

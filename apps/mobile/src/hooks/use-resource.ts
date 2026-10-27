@@ -2,12 +2,14 @@ import { useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import type { RealtimeTopic } from "@/constants/topics";
-import { readApiError } from "@/lib/api-contract";
+import { isOfflineError, readApiError } from "@/lib/api-contract";
+import { showSavedCopy } from "@/lib/offline-stamp";
 import {
   DEFAULT_MAX_AGE_MS,
   DEFAULT_STALE_MS,
   fetchQuery,
   readQuery,
+  readSavedQuery,
   subscribeQuery,
   writeQuery,
 } from "@/lib/query-cache";
@@ -140,6 +142,12 @@ export type Resource<T> = {
   refreshing: boolean;
   /** Full reload with the spinner — for the `<ErrorState>` retry button. */
   reload: () => void;
+  /**
+   * Set while the data on screen is a saved copy because the last ask could not
+   * reach the server: when that copy was fetched. Drawn app-wide by
+   * `OfflineStampHost` as "Offline · Updated hh:mm"; screens need not read it.
+   */
+  savedAt: number | null;
   /** Local, optimistic edit. Replaced by whatever the next fetch returns. */
   setData: (updater: (current: T | null) => T | null) => void;
 };
@@ -178,6 +186,7 @@ export function useResource<T>(
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(seed === null);
   const [refreshing, setRefreshing] = useState(false);
+  const [savedAt, setSavedAt] = useState<number | null>(null);
 
   /*
    * The key this render is showing, so a *changed* key can paint from the cache
@@ -328,9 +337,31 @@ export function useResource<T>(
 
       setData(result);
       setError(null);
+      setSavedAt(null);
     } catch (caught) {
       if (!mounted.current || ticket !== sequence.current) {
         return;
+      }
+
+      /*
+       * Offline with a cached key: show the last answer at any age (up to the
+       * three days the disk keeps), labelled with its time — an old figure that
+       * says how old it is beats the offline state. Never for a key-less read,
+       * which has no saved copy, and never instead of a server's refusal.
+       */
+      if (cache.key && isOfflineError(readApiError(caught))) {
+        const saved = readSavedQuery<T>(cache.key);
+
+        if (dataRef.current === null && saved) {
+          setData(saved.data);
+          setError(null);
+          setSavedAt(saved.storedAt);
+          return;
+        }
+
+        if (dataRef.current !== null) {
+          setSavedAt(saved?.storedAt ?? null);
+        }
       }
 
       // A background revalidate keeps whatever is already on screen. Replacing
@@ -457,6 +488,11 @@ export function useResource<T>(
    * a pull-to-refresh spinner for something the user did not ask for reads as
    * the screen having a mind of its own.
    */
+  // Only the focused screen speaks for the stamp; a tab behind it does not.
+  useFocusEffect(
+    useCallback(() => (savedAt === null ? undefined : showSavedCopy(savedAt)), [savedAt]),
+  );
+
   const topicKey = topics?.join(",") ?? "";
 
   useEffect(() => {
@@ -478,6 +514,7 @@ export function useResource<T>(
       void run("refresh");
     }, [run]),
     refreshing: refreshing || requerying,
+    savedAt,
     reload: useCallback(() => {
       setLoading(true);
       void run("initial");

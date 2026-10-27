@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  fitRole,
   marksRoleChange,
   notificationRoute,
   opensPlanBilling,
@@ -260,5 +261,32 @@ describe("notificationRoute", () => {
     expect(notificationRoute({ actionUrl: "/platform/hostels" })).toBeNull();
     expect(notificationRoute({ actionUrl: "https://evil.example" })).toBeNull();
     expect(notificationRoute({})).toBeNull();
+  });
+});
+
+describe("F3: every notification opens a screen", () => {
+  it("routes the links the server sends that had no screen", () => {
+    expect(resolvePushPath("/app/expenses")).toBe("/expenses");
+    expect(resolvePushPath("/hostel-admin/kyc")).toBe("/manage/kyc");
+    expect(resolvePushPath("/hostel-admin/billing")).toBe("/manage/billing");
+    expect(resolvePushPath("/hostel-admin/dashboard")).toBe("/(admin)");
+    expect(resolvePushPath("https://hostelpalika.com/hostel-admin/sos-alerts")).toBe("/(admin)/alerts");
+    expect(resolvePushPath("https://hostelpalika.com/guardian/safety")).toBe("/(guardian)/safety");
+    expect(resolvePushPath("/rupa-hostel/admin/billing")).toBe("/manage/billing");
+    // Another origin is still refused.
+    expect(resolvePushPath("https://evil.example/hostel-admin")).toBe(PUSH_FALLBACK_PATH);
+  });
+
+  it("falls back on the kind, for the reader's role", () => {
+    expect(notificationRoute({ category: "COMPLAINT" }, "WARDEN")).toBe("/manage/complaints");
+    expect(notificationRoute({ category: "COMPLAINT" }, "RESIDENT")).toBe("/complaints");
+    expect(notificationRoute({ category: "STOCK", data: { type: "STOCK" } }, "COOK")).toBe("/kitchen-stock");
+    expect(notificationRoute({ category: "GENERAL" }, "RESIDENT")).toBeNull();
+  });
+
+  it("swaps a path in another role's tabs for this role's screen", () => {
+    expect(fitRole("/(resident)/payments", "PAYMENT", "HOSTEL_ADMIN")).toBe("/(admin)/money");
+    expect(fitRole("/(resident)/payments", "PAYMENT", "RESIDENT")).toBe("/(resident)/payments");
+    expect(fitRole("/(resident)/notices", "GENERAL", "COOK")).toBe(PUSH_FALLBACK_PATH);
   });
 });

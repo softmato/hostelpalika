@@ -1,88 +1,97 @@
 import { loadActiveHostel } from "@/lib/active-hostel";
-
-import AsyncStorage from "@react-native-async-storage/async-storage";
-
+import { kvClear, kvGet, kvPrune, kvPut, openAccountDb } from "@/lib/local-db";
 import {
   type PersistedEntry,
-  restoreQueryCache,
-  setQueryCachePersister,
-  snapshotQueryCache,
+  peekQueryEntry,
+  RESTORED_MAX_AGE_MS,
+  setQueryCacheDisk,
 } from "@/lib/query-cache";
+import { store } from "@/store";
 
 /**
  * The disk half of `lib/query-cache`, kept apart so that module stays loadable
  * in node tests.
  *
- * Writes are debounced — the portal warm-up files thirty answers in a burst and
- * one write covers them all. The snapshot is capped because Android's
- * AsyncStorage row limit is about 2 MB and a row past it fails to *read*, which
- * would cost every cached answer rather than the oldest few.
+ * One `kv` row per cache key in the account's SQLite file. Nothing is read up
+ * front: the cache asks for a key's row the first time a screen reads it. Writes
+ * are batched — the portal warm-up files thirty answers in a burst and one
+ * transaction covers them all — and only the keys that changed are written.
  */
 
-const STORAGE_KEY = "hostelpalika:query-cache:v1";
+const PREFIX = "q:";
 const WRITE_DELAY_MS = 1_000;
-const MAX_CHARS = 1_500_000;
+/** Rows kept on disk; well above the in-memory cap, since only screens read them. */
+const MAX_ROWS = 2_000;
 
+const dirty = new Set<string>();
 let timer: ReturnType<typeof setTimeout> | null = null;
 
 function flush() {
   timer = null;
-
-  const kept: string[] = [];
-  let size = 2;
-
-  for (const entry of snapshotQueryCache()) {
-    let json: string;
-
-    try {
-      json = JSON.stringify(entry);
-    } catch {
-      continue;
+  const rows = [...dirty].map((key) => {
+    const entry = peekQueryEntry(key);
+    let value: string | null = null;
+    if (entry) {
+      try {
+        value = JSON.stringify({ data: entry.data, topics: entry.topics });
+      } catch {
+        value = null;
+      }
     }
-
-    if (size + json.length + 1 > MAX_CHARS) {
-      break;
-    }
-
-    kept.push(json);
-    size += json.length + 1;
-  }
-
-  const write =
-    kept.length > 0
-      ? AsyncStorage.setItem(STORAGE_KEY, `[${kept.join(",")}]`)
-      : AsyncStorage.removeItem(STORAGE_KEY);
-
-  void write.catch(() => {
-    // A failed save costs the next cold start its instant paint, nothing more.
+    return { key: PREFIX + key, storedAt: entry?.storedAt ?? 0, value };
   });
+  dirty.clear();
+  kvPut(rows.filter((row) => row.value !== null));
 }
 
-/** Awaited by `PersistGate`'s `onBeforeLift`, so the first screen can seed from it. */
+function read(key: string): PersistedEntry | null {
+  const row = kvGet(PREFIX + key);
+  if (!row) return null;
+  const saved = JSON.parse(row.value) as Pick<PersistedEntry, "data" | "topics">;
+  return { data: saved.data, key, storedAt: row.storedAt, topics: saved.topics ?? [] };
+}
+
+type Owner = { id: string; role: string } | null;
+
+function ownerOf(): Owner {
+  const account = store.getState().auth.account;
+  return account ? { id: account.id, role: account.role } : null;
+}
+
+/**
+ * Awaited by `PersistGate`'s `onBeforeLift`: opens this account's file before
+ * any screen reads, and follows the account from then on — sign-out, another
+ * account, a role change (`lib/local-db` says what each one does to the file).
+ */
 export async function hydrateQueryCache() {
   await loadActiveHostel();
-  try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
 
-    if (raw) {
-      restoreQueryCache(JSON.parse(raw) as PersistedEntry[]);
-    }
-  } catch {
-    // A corrupt snapshot is dropped; the screens load as they did before.
-    void AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
-  }
+  let owner = ownerOf();
+  await openAccountDb(owner?.id ?? null, owner?.role ?? null);
+  kvPrune(Date.now() - RESTORED_MAX_AGE_MS, MAX_ROWS);
 
-  setQueryCachePersister((reason) => {
-    if (reason === "clear") {
+  store.subscribe(() => {
+    const next = ownerOf();
+    if (next?.id === owner?.id && next?.role === owner?.role) return;
+    owner = next;
+    // A pending batch belongs to the account that is leaving.
+    dirty.clear();
+    void openAccountDb(next?.id ?? null, next?.role ?? null);
+  });
+
+  setQueryCacheDisk({
+    clear() {
       if (timer) {
         clearTimeout(timer);
         timer = null;
       }
-
-      void AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
-      return;
-    }
-
-    timer ??= setTimeout(flush, WRITE_DELAY_MS);
+      dirty.clear();
+      kvClear(PREFIX);
+    },
+    read,
+    write(key) {
+      dirty.add(key);
+      timer ??= setTimeout(flush, WRITE_DELAY_MS);
+    },
   });
 }

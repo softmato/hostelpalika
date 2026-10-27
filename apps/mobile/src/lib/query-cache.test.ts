@@ -5,8 +5,10 @@ import {
   DEFAULT_STALE_MS,
   DEFAULT_MAX_AGE_MS,
   setQueryCacheScope,
-  restoreQueryCache,
-  snapshotQueryCache,
+  type PersistedEntry,
+  peekQueryEntry,
+  readSavedQuery,
+  setQueryCacheDisk,
   defineQuery,
   fetchQuery,
   invalidateQuery,
@@ -27,7 +29,7 @@ describe("reading and writing", () => {
   it("hands back what was written, as fresh", () => {
     writeQuery("admin:residents", [{ id: "r1" }]);
 
-    expect(readQuery("admin:residents")).toEqual({
+    expect(readQuery("admin:residents")).toMatchObject({
       data: [{ id: "r1" }],
       fresh: true,
     });
@@ -52,7 +54,7 @@ describe("freshness", () => {
 
     vi.advanceTimersByTime(DEFAULT_STALE_MS + 1);
 
-    expect(readQuery("admin:today")).toEqual({
+    expect(readQuery("admin:today")).toMatchObject({
       data: { notices: [] },
       fresh: false,
     });
@@ -87,7 +89,7 @@ describe("invalidation", () => {
     writeQuery("admin:residents", [{ id: "r1" }]);
     invalidateQuery("admin:residents");
 
-    expect(readQuery("admin:residents")).toEqual({
+    expect(readQuery("admin:residents")).toMatchObject({
       data: [{ id: "r1" }],
       fresh: false,
     });
@@ -227,7 +229,7 @@ describe("fetchQuery", () => {
 
     const same = await fetchQuery("admin:residents", async () => [{ id: "r1" }]);
     expect(same).toBe(first);
-    expect(readQuery("admin:residents")).toEqual({ data: first, fresh: true });
+    expect(readQuery("admin:residents")).toMatchObject({ data: first, fresh: true });
     expect(listener).not.toHaveBeenCalled();
 
     const moved = await fetchQuery("admin:residents", async () => [{ id: "r2" }]);
@@ -414,15 +416,46 @@ describe("per-branch cache", () => {
     expect(readQuery("admin:residents")?.fresh).toBe(false);
   });
 
-  it("restores separate branch snapshots and clears every branch on sign-out", () => {
+  it("reads each key off disk on first ask, writes per key, and clears every branch on sign-out", () => {
+    const rows = new Map<string, PersistedEntry>();
+    const saveRow = (key: string) => {
+      const entry = peekQueryEntry(key);
+      if (entry) rows.set(key, entry);
+    };
+    setQueryCacheDisk({ clear: () => rows.clear(), read: (key) => rows.get(key) ?? null, write: saveRow });
+
     setQueryCacheScope("A"); writeQuery("admin:residents", "A");
     setQueryCacheScope("B"); writeQuery("admin:residents", "B");
-    const saved = snapshotQueryCache();
-    clearQueryCache(); restoreQueryCache(saved);
-    expect(readQuery("admin:residents")?.data).toBe("B");
+    expect(rows.size).toBe(2);
+
+    // A relaunch: memory gone, disk kept.
+    const disk = new Map(rows);
+    resetQueryCache();
+    setQueryCacheDisk({ clear: () => disk.clear(), read: (key) => disk.get(key) ?? null, write: () => {} });
+
+    setQueryCacheScope("B");
+    expect(readQuery("admin:residents")).toMatchObject({ data: "B", fresh: false });
     setQueryCacheScope("A"); expect(readQuery("admin:residents")?.data).toBe("A");
     clearQueryCache();
+    expect(disk.size).toBe(0);
     expect(readQuery("admin:residents")).toBeNull();
-    setQueryCacheScope("B"); expect(readQuery("admin:residents")).toBeNull();
+  });
+
+  it("drops an answer past its max age on screen, but keeps it as the offline copy", () => {
+    vi.useFakeTimers();
+    const rows = new Map<string, PersistedEntry>();
+    setQueryCacheDisk({
+      clear: () => rows.clear(),
+      read: (key) => rows.get(key) ?? null,
+      write: (key) => { const entry = peekQueryEntry(key); if (entry) rows.set(key, entry); },
+    });
+    writeQuery("admin:residents", "old");
+    vi.advanceTimersByTime(DEFAULT_MAX_AGE_MS + 1);
+
+    expect(readQuery("admin:residents")).toBeNull();
+    // Not resurrected from disk this session…
+    expect(readQuery("admin:residents")).toBeNull();
+    // …but there for an offline screen, with its time.
+    expect(readSavedQuery("admin:residents")).toMatchObject({ data: "old", fresh: false });
   });
 });

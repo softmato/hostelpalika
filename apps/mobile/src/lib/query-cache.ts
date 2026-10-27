@@ -21,9 +21,12 @@
  *
  * ## It survives a relaunch, and dies with the session
  *
- * This module stays free of storage; `lib/query-cache-persist.ts` snapshots it
- * to AsyncStorage and restores it before `PersistGate` lifts, so a cold start
- * paints the last answers and revalidates behind them.
+ * This module stays free of storage; `lib/query-cache-persist.ts` gives it a
+ * disk — one SQLite row per key in the account's own file (`lib/local-db`). A
+ * key missing from memory is read from that row the first time a screen asks
+ * for it, so a cold start paints each screen's last answer on its own mount
+ * (nothing is parsed up front) and revalidates behind it. Writes go back one
+ * row at a time.
  *
  * Restored entries are always stale (asked again on mount) and showable for
  * `RESTORED_MAX_AGE_MS` rather than `maxAgeMs` — a relaunch is usually more than
@@ -108,42 +111,82 @@ export type PersistedEntry = {
   topics: readonly RealtimeTopic[];
 };
 
-/** Set by `lib/query-cache-persist.ts`; told when there is something to save or wipe. */
-let persister: ((reason: "clear" | "write") => void) | null = null;
+/** The disk under the cache, set by `lib/query-cache-persist.ts`. Keys arrive scoped. */
+export type QueryCacheDisk = {
+  clear: () => void;
+  read: (key: string) => PersistedEntry | null;
+  /** Something changed under this key; read it back with `peekQueryEntry`. */
+  write: (key: string) => void;
+};
 
-export function setQueryCachePersister(next: typeof persister) {
-  persister = next;
+let disk: QueryCacheDisk | null = null;
+
+export function setQueryCacheDisk(next: QueryCacheDisk | null) {
+  disk = next;
 }
 
-/** Newest first, so a size-capped writer keeps the most recent answers. */
-export function snapshotQueryCache(): PersistedEntry[] {
-  return [...entries.entries()].reverse().map(([key, entry]) => ({
-    data: entry.data,
-    key,
-    storedAt: entry.storedAt,
-    topics: entry.topics,
-  }));
+/** One entry as it would be saved, or `null` once it has been evicted or cleared. */
+export function peekQueryEntry(key: string): PersistedEntry | null {
+  const entry = entries.get(key);
+  return entry
+    ? { data: entry.data, key, storedAt: entry.storedAt, topics: entry.topics }
+    : null;
 }
 
-/** Seeds the cache from disk. Never overwrites an answer fetched this session. */
-export function restoreQueryCache(list: readonly PersistedEntry[]) {
-  const now = Date.now();
+/*
+ * Keys dropped past `maxAgeMs` this session. Their disk row is still there (it
+ * is the offline copy), and without this the next read would bring it straight
+ * back as a "restored" answer — the quarter-hour rule undone by the disk.
+ */
+const expired = new Set<string>();
 
-  // Oldest first, so insertion order (and eviction) matches the original.
-  for (const item of [...list].reverse()) {
-    if (!item.key.startsWith("[")) continue;
-    if (entries.has(item.key) || now - item.storedAt > RESTORED_MAX_AGE_MS) {
-      continue;
-    }
+/** Pulls one key off disk into memory, as a restored (always stale) entry. */
+function loadFromDisk(key: string): Entry | undefined {
+  if (!disk || expired.has(key)) return undefined;
 
-    entries.set(item.key, {
-      data: item.data,
-      restored: true,
-      stale: true,
-      storedAt: item.storedAt,
-      topics: item.topics ?? [],
-    });
+  let saved: PersistedEntry | null = null;
+  try {
+    saved = disk.read(key);
+  } catch {
+    // An unreadable row costs this screen its instant paint, nothing more.
   }
+
+  if (!saved || Date.now() - saved.storedAt > RESTORED_MAX_AGE_MS) return undefined;
+
+  const entry: Entry = {
+    data: saved.data,
+    restored: true,
+    stale: true,
+    storedAt: saved.storedAt,
+    topics: saved.topics ?? [],
+  };
+  makeRoom(key);
+  entries.set(key, entry);
+  return entry;
+}
+
+/**
+ * The last answer for a key at any age up to `RESTORED_MAX_AGE_MS`, ignoring
+ * `maxAgeMs` — what a screen falls back to when the phone is offline, because
+ * then an old figure, labelled with its time, beats the offline state.
+ */
+export function readSavedQuery<T>(key: string): CachedQuery<T> | null {
+  key = scopedKey(key);
+  const entry = entries.get(key);
+
+  if (!entry && disk) {
+    try {
+      const saved = disk.read(key);
+      if (saved && Date.now() - saved.storedAt <= RESTORED_MAX_AGE_MS) {
+        return { data: saved.data as T, fresh: false, storedAt: saved.storedAt };
+      }
+    } catch {
+      return null;
+    }
+  }
+
+  if (!entry || Date.now() - entry.storedAt > RESTORED_MAX_AGE_MS) return null;
+  return { data: entry.data as T, fresh: false, storedAt: entry.storedAt };
 }
 
 /**
@@ -186,6 +229,8 @@ function notify(key: string) {
 export type CachedQuery<T> = {
   data: T;
   fresh: boolean;
+  /** Wall-clock ms the answer was fetched — the "Updated hh:mm" when offline. */
+  storedAt: number;
 };
 
 export function readQuery<T>(
@@ -193,7 +238,7 @@ export function readQuery<T>(
   { maxAgeMs = DEFAULT_MAX_AGE_MS, staleMs = DEFAULT_STALE_MS } = {},
 ): CachedQuery<T> | null {
   key = scopedKey(key);
-  const entry = entries.get(key);
+  const entry = entries.get(key) ?? loadFromDisk(key);
 
   if (!entry) {
     return null;
@@ -207,10 +252,15 @@ export function readQuery<T>(
     // Dropped rather than handed back stale. Past `maxAgeMs` the screen is
     // better off with its own spinner than with a figure it must later un-tell.
     entries.delete(key);
+    expired.add(key);
     return null;
   }
 
-  return { data: entry.data as T, fresh: !entry.stale && age <= staleMs };
+  return {
+    data: entry.data as T,
+    fresh: !entry.stale && age <= staleMs,
+    storedAt: entry.storedAt,
+  };
 }
 
 export function writeQuery<T>(
@@ -221,7 +271,7 @@ export function writeQuery<T>(
   writeEntry(scopedKey(key), data, topics);
 }
 
-function writeEntry(key: string, data: unknown, topics: readonly RealtimeTopic[]) {
+function makeRoom(key: string) {
   if (entries.size >= MAX_ENTRIES && !entries.has(key)) {
     // Map iterates in insertion order and a re-write re-inserts below, so the
     // first key is the least recently written.
@@ -231,6 +281,11 @@ function writeEntry(key: string, data: unknown, topics: readonly RealtimeTopic[]
       entries.delete(oldest.value);
     }
   }
+}
+
+function writeEntry(key: string, data: unknown, topics: readonly RealtimeTopic[]) {
+  makeRoom(key);
+  expired.delete(key);
 
   // Deleted first so a re-write moves to the back of the insertion order, which
   // is what keeps the eviction above least-recently-written.
@@ -238,7 +293,7 @@ function writeEntry(key: string, data: unknown, topics: readonly RealtimeTopic[]
   entries.set(key, { data, stale: false, storedAt: Date.now(), topics });
 
   notify(key);
-  persister?.("write");
+  disk?.write(key);
 }
 
 /**
@@ -389,6 +444,8 @@ export function fetchQuery<T>(
       if (previous && JSON.stringify(previous.data) === JSON.stringify(data)) {
         entries.delete(key);
         entries.set(key, { data: previous.data, stale: false, storedAt: Date.now(), topics });
+        // Only the time moved, but that time is the offline "Updated hh:mm".
+        disk?.write(key);
         return previous.data as T;
       }
 
@@ -451,8 +508,9 @@ let cacheGeneration = 0;
 export function clearQueryCache() {
   cacheGeneration += 1;
   entries.clear();
+  expired.clear();
   inflight.clear();
-  persister?.("clear");
+  disk?.clear();
 
   for (const key of [...listeners.keys()]) {
     notify(key);
@@ -473,6 +531,8 @@ let unsubscribeBus = subscribeAllTopics(invalidateQueriesForTopics);
 export function resetQueryCache() {
   activeScope = null;
   cacheGeneration += 1;
+  disk = null;
+  expired.clear();
   entries.clear();
   inflight.clear();
   listeners.clear();
