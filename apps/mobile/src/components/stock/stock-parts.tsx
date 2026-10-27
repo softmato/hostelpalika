@@ -71,14 +71,14 @@ import { EXPENSE_CATEGORY_LABELS, type ExpenseCategoryKey } from "@hostel/expens
  * colour; a tint per family put six off-palette hues on one list.
  */
 export function ItemAvatar({ item, size = 40 }: { item: { kind: StockKind; name: string }; size?: number }) {
-  const look = stockLook(item);
+  const { colors } = useAppTheme();
 
   return (
     <View
-      className="items-center justify-center bg-muted"
+      className="items-center justify-center bg-brand-soft"
       style={{ borderRadius: size * 0.3, height: size, width: size }}
     >
-      <Text style={{ fontSize: size * 0.52, lineHeight: size * 0.7 }}>{look.emoji}</Text>
+      <Glyph color={colors.primary} name={stockLook(item).glyph} size={Math.round(size * 0.55)} />
     </View>
   );
 }
@@ -1192,7 +1192,7 @@ export const HISTORY_FILTERS: { label: string; value: HistoryFilter }[] = [
   { label: "Wasted", value: "WASTED" },
   { label: "Send", value: "SEND" },
   { label: "Got it", value: "GOT_IT" },
-  { label: "Count", value: "COUNT" },
+  { label: "Stock check", value: "COUNT" },
 ];
 
 function matches(filter: HistoryFilter, entry: StockEntry, mine: ReadonlySet<string>) {

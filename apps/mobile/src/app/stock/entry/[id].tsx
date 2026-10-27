@@ -43,7 +43,7 @@ import { toastError, toastSuccess } from "@/lib/toast";
 
 const TITLES = {
   BUY: "Bill",
-  COUNT: "Count",
+  COUNT: "Stock check",
   OPENING: "Opening stock",
   SEND: "Send Details",
   USE: "Used",

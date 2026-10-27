@@ -173,7 +173,7 @@ function Overview({
           ) : null}
           {item.kind === "STORE" ? (
             <View className="flex-1">
-              <Button label="Count" onPress={() => go("/stock/count")} variant="outline" />
+              <Button label="Stock check" onPress={() => go("/stock/count")} variant="outline" />
             </View>
           ) : null}
         </View>

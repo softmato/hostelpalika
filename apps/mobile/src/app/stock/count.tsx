@@ -99,7 +99,7 @@ export default function CountScreen() {
         on: day,
       });
       toastSuccess(
-        differs && !home?.canApprove ? "Sent for approval" : "Count saved",
+        differs && !home?.canApprove ? "Sent for approval" : "Stock check saved",
         `${filled.length} item${filled.length === 1 ? "" : "s"}`,
       );
       stockChanged();
@@ -112,7 +112,7 @@ export default function CountScreen() {
   };
 
   const header = (
-    <AppBar centerTitle showBack subtitle="What is really left in this building" title="Count Stock" />
+    <AppBar centerTitle showBack subtitle="Count the shelf · the app corrects Left" title="Stock check" />
   );
 
   if (denied) {
@@ -159,7 +159,7 @@ export default function CountScreen() {
             ) : null}
             <Button
               disabled={filled.length === 0}
-              label={filled.length > 0 ? `Save Count · ${filled.length} item${filled.length === 1 ? "" : "s"}` : "Save Count"}
+              label={filled.length > 0 ? `Save stock check · ${filled.length} item${filled.length === 1 ? "" : "s"}` : "Save stock check"}
               loading={saving}
               onPress={() => void save()}
               size="lg"

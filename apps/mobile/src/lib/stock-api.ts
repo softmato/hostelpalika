@@ -504,34 +504,48 @@ type IconName = GlyphName;
  * already has them, they need no upload, and a sack of rice reads as rice.
  * Only emoji from Unicode 12 or older, so a 2019 Android does not draw boxes.
  */
-const LOOKS: { emoji: string; words: RegExp }[] = [
-  { emoji: "🔥", words: /gas|cylinder|lpg|firewood|daura/i },
-  { emoji: "🛢️", words: /oil|tel\b|ghee|ghiu/i },
-  { emoji: "🍗", words: /chicken|kukhura/i },
-  { emoji: "🐟", words: /fish|machha/i },
-  { emoji: "🥩", words: /meat|masu|mutton|khasi|buff|pork/i },
-  { emoji: "🥚", words: /egg|anda|phul/i },
-  { emoji: "🥛", words: /milk|dudh|curd|dahi|paneer|butter/i },
-  { emoji: "🥔", words: /potato|aalu|alu\b/i },
-  { emoji: "🧅", words: /onion|pyaj/i },
-  { emoji: "🍅", words: /tomato|golbheda/i },
-  { emoji: "🌶️", words: /chilli|chili|khursani/i },
-  { emoji: "🥬", words: /veg|tarkari|sabji|saag|spinach|cauli|cabbage|bandagobi|carrot|gajar|radish|mula|garlic|lasun|ginger|aduwa/i },
-  { emoji: "🍌", words: /fruit|banana|apple|orange|suntala/i },
-  { emoji: "🍵", words: /tea|chiya|coffee/i },
-  { emoji: "🧂", words: /salt|nun\b|masala|spice|jeera|besar|turmeric|sugar|chini/i },
-  { emoji: "🧼", words: /soap|sabun|detergent|surf|clean|phenyl|harpic|broom|kucho|mop|tissue/i },
-  { emoji: "🍳", words: /pot|pan\b|plate|thal|cooker|utensil|bhada|spoon|chamcha|glass|gilas|bucket|balti|kadai|karahi|tawa|jug|bowl|knife/i },
-  { emoji: "🥣", words: /daal|dal\b|lentil|pulse|beans|chana|rajma/i },
-  { emoji: "🍚", words: /rice|chamal|chawal|atta|maida|flour|chiura|beaten/i },
+/** An item's picture, read from its name (D3): our own glyphs, never emoji. */
+const LOOKS: { glyph: GlyphName; words: RegExp }[] = [
+  { glyph: "water-jar", words: /water|pani|jar\b|jug/i },
+  { glyph: "gas-cylinder", words: /gas|cylinder|lpg|firewood|daura/i },
+  { glyph: "oil-bottle", words: /oil|tel\b|ghee|ghiu/i },
+  { glyph: "egg", words: /egg|anda|phul/i },
+  { glyph: "milk", words: /milk|dudh|curd|dahi|paneer|butter/i },
+  { glyph: "restaurant", words: /chicken|kukhura|fish|machha|meat|masu|mutton|khasi|buff|pork/i },
+  { glyph: "vegetables", words: /veg|tarkari|sabji|saag|spinach|cauli|cabbage|bandagobi|carrot|gajar|radish|mula|garlic|lasun|ginger|aduwa|potato|aalu|alu\b|onion|pyaj|tomato|golbheda|chilli|chili|khursani/i },
+  { glyph: "leaf", words: /fruit|banana|apple|orange|suntala/i },
+  { glyph: "tea", words: /tea|chiya|coffee/i },
+  { glyph: "sugar", words: /sugar|chini/i },
+  { glyph: "salt", words: /salt|nun\b|masala|spice|jeera|besar|turmeric/i },
+  { glyph: "sparkles", words: /soap|sabun|detergent|surf|clean|phenyl|harpic|broom|kucho|mop|tissue/i },
+  { glyph: "restaurant", words: /pot|pan\b|plate|thal|cooker|utensil|bhada|spoon|chamcha|glass|gilas|bucket|balti|kadai|karahi|tawa|bowl|knife/i },
+  { glyph: "dal-bowl", words: /daal|dal\b|lentil|pulse|beans|chana|rajma/i },
+  { glyph: "flour", words: /atta|maida|flour|suji/i },
+  { glyph: "rice-sack", words: /rice|chamal|chawal|chiura|beaten/i },
 ];
 
-export function stockLook(item: { kind: StockKind; name: string }): { emoji: string } {
-  return (
-    LOOKS.find((entry) => entry.words.test(item.name)) ??
-    (item.kind === "DAILY" ? { emoji: "🧺" } : { emoji: "📦" })
-  );
+export function stockLook(item: { kind: StockKind; name: string }): { glyph: GlyphName } {
+  return LOOKS.find((entry) => entry.words.test(item.name)) ?? { glyph: item.kind === "DAILY" ? "basket" : "cube" };
 }
+
+/**
+ * What a hostel kitchen buys, offered on Buy before the hostel has typed it
+ * once — each with its unit, so the first bill is taps, not typing.
+ */
+export const STOCK_STARTERS: { name: string; unit: StockUnit }[] = [
+  { name: "Rice", unit: "KG" },
+  { name: "Dal", unit: "KG" },
+  { name: "Cooking oil", unit: "LITRE" },
+  { name: "Gas cylinder", unit: "CYLINDER" },
+  { name: "Water jar", unit: "PIECE" },
+  { name: "Sugar", unit: "KG" },
+  { name: "Tea", unit: "KG" },
+  { name: "Vegetables", unit: "KG" },
+  { name: "Salt", unit: "KG" },
+  { name: "Flour", unit: "KG" },
+  { name: "Milk", unit: "LITRE" },
+  { name: "Eggs", unit: "PIECE" },
+];
 
 /**
  * Used the day it comes, read from the name: green vegetables, meat, fish, milk,

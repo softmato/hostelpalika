@@ -60,7 +60,7 @@ export type StockEntryKind = (typeof STOCK_ENTRY_KINDS)[number];
 
 export const STOCK_ENTRY_LABELS: Record<StockEntryKind, string> = {
   BUY: "Bought",
-  COUNT: "Count",
+  COUNT: "Stock check",
   OPENING: "Opening stock",
   SEND: "Send",
   USE: "Used",

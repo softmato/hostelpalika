@@ -40,6 +40,7 @@ import {
   addStockItem,
   findStockItem,
   guessStockKind,
+  STOCK_STARTERS,
   STOCK_ITEM_NAME_MAX,
   STOCK_UNIT_LABELS,
   STOCK_UNITS,
@@ -462,11 +463,17 @@ function LineCard({
   const pack = item?.packUnit && item.packSize ? { size: item.packSize, unit: item.packUnit } : null;
   const inPacks = Boolean(pack && line.inPacks);
   const typed = line.name.trim().toLowerCase();
-  const chips = item
-    ? []
-    : typed
-      ? picks.filter((pick) => pick.name.toLowerCase().includes(typed)).slice(0, 4)
-      : picks;
+  // The hostel's own items first, then the kitchen starters it has not bought yet (D3).
+  const offered = [
+    ...picks.map((pick) => ({ inPacks: Boolean(pick.packUnit), item: pick, name: pick.name, unit: pick.unit })),
+    ...STOCK_STARTERS.filter((starter) => !findStockItem(picks, starter.name)).map((starter) => ({
+      inPacks: false,
+      item: { kind: guessStockKind(starter.name), name: starter.name },
+      name: starter.name,
+      unit: starter.unit,
+    })),
+  ];
+  const chips = item ? [] : typed ? offered.filter((pick) => pick.name.toLowerCase().includes(typed)).slice(0, 6) : offered;
 
   return (
     <Card className="gap-3">
@@ -495,10 +502,10 @@ function LineCard({
             <Pressable
               accessibilityRole="button"
               className="flex-row items-center gap-1.5 rounded-full bg-muted py-1.5 pl-1.5 pr-3 active:opacity-70"
-              key={pick.id}
-              onPress={() => onChange({ inPacks: Boolean(pick.packUnit), name: pick.name, unit: pick.unit })}
+              key={pick.name}
+              onPress={() => onChange({ inPacks: pick.inPacks, name: pick.name, unit: pick.unit })}
             >
-              <ItemAvatar item={pick} size={24} />
+              <ItemAvatar item={pick.item} size={24} />
               <Text className="text-sm font-medium">{pick.name}</Text>
             </Pressable>
           ))}

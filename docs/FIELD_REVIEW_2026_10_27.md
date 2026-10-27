@@ -126,13 +126,21 @@ first) (p8).
 a `<Stagger>` (`ui/layout.tsx`): the header mounts with the screen, then each block
 rises `MOTION.stagger` apart; Home's category groups are steps of their own, History
 months too, and a month still loading is a skeleton, not "Loading…". Open: seen on a phone.
-☐ **D2 Stock report**: numbers, not sentences. Per item bought / used / left for this
+☑ **D2 Stock report**: numbers, not sentences. Per item bought / used / left for this
 month, 3 months, year, plus expected next-month spend from that range. PDF + CSV through
-the global downloader.
-☐ **D3 Buy screen item card**: more items, each with an icon — water jar, gas cylinder,
-rice, dal, oil, sugar, tea, vegetables… (new glyphs).
-☐ **D4 Count → "Stock check"**: renamed, with one hint line — count the shelf, the app
-corrects "left" (Q3).
+the global downloader. `GET /hostel-admin/stock/report?range=month|quarter|year`
+(`&format=csv|pdf`); next month = (used + wasted) per day over the range × next month's
+days × today's average cost (`reportFigures`, tested). App: `/stock/reports` rebuilt;
+web: Stock report card. Both downloaders now send the switcher's building. Open: device +
+browser look; numbers against real data.
+☑ **D3 Buy screen item card**: more items, each with an icon — water jar, gas cylinder,
+rice, dal, oil, sugar, tea, vegetables… (new glyphs). 11 kitchen glyphs in `glyphs.ts`
+(water-jar, gas-cylinder, rice-sack, dal-bowl, oil-bottle, sugar, tea, vegetables, salt,
+milk, flour); `ItemAvatar` draws glyphs, not emoji; Buy's chips add 12 starters
+(`STOCK_STARTERS`, with units) the hostel has not bought yet. Open: glyph look on a phone.
+☑ **D4 Count → "Stock check"**: renamed, with one hint line — count the shelf, the app
+corrects "left" (Q3). Labels only (tile, screen title + hint, Save, History filter, entry
+kind, web menu); routes and `COUNT` stay.
 
 ## Phase 6 — Instant screens and offline (p7, chat)
 

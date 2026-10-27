@@ -284,7 +284,7 @@ function tilesFor(
         glyph: colors.warning,
         icon: "clipboard",
         key: "count",
-        label: "Count",
+        label: "Stock check",
         onPress: go("/stock/count"),
         tone: "warning",
       },
@@ -406,7 +406,7 @@ function Waiting({ home }: { home: StockHome }) {
               iconColor={colors.warning}
               key={entry.id}
               onPress={() => router.push({ params: { id: entry.id }, pathname: "/stock/entry/[id]" })}
-              title={`Count by ${entry.recordedByName}`}
+              title={`Stock check by ${entry.recordedByName}`}
             />
           );
         })}
