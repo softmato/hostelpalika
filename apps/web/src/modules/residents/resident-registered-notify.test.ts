@@ -153,7 +153,7 @@ describe("telling the hostel", () => {
     );
 
     expect(call?.[0].body).toContain("Asha Rai");
-    expect(call?.[0].body).toContain("FOUR SHARING · 201");
+    expect(call?.[0].body).toContain("Four Sharing Room · 201");
   });
 
   /*

@@ -46,8 +46,8 @@ describe("notifyResidentRoomChanged", () => {
     const call = mocks.createNotification.mock.calls[0][0];
 
     expect(call.title).toBe("Your room has changed");
-    expect(call.body).toContain("four sharing");
-    expect(call.body).toContain("single room");
+    expect(call.body).toContain("Four Sharing Room");
+    expect(call.body).toContain("Single Sitter Room");
     expect(call.category).toBe("ACCOUNT");
   });
 
