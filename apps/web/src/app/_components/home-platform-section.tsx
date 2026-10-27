@@ -113,7 +113,8 @@ export function HomePlatformSection() {
   const { siteName } = useSiteConfig().identity;
 
   return (
-    <section className="bg-surface py-14">
+    // Visually hidden, still in the HTML for search engines and LLM crawlers.
+    <section className="sr-only">
       <div className="mx-auto max-w-[1448px] px-4 sm:px-6">
         <span className="text-xs font-bold uppercase tracking-wide text-brand-teal">
           What {siteName} is

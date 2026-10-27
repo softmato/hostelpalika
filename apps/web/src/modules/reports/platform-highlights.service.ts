@@ -6,13 +6,13 @@ import { ResidentModel } from "@hostel/db/models/Resident";
 export type PlatformStat = { label: string; value: number };
 
 /** Statuses a hostel is running on the platform in — not a draft or a refusal. */
-const LIVE_HOSTEL_FILTER = { isDeleted: false, status: { $in: ["APPROVED", "PUBLISHED"] } };
+export const LIVE_HOSTEL_FILTER ={ isDeleted: false, status: { $in: ["APPROVED", "PUBLISHED"] } };
 
 /**
  * A pitch page that says "1 hostel on the platform" argues against itself, so a
  * count below this is left out until it is worth saying out loud.
  */
-const MIN_PUBLIC_COUNT = 10;
+export const MIN_PUBLIC_COUNT = 10;
 
 /**
  * Read by the root layout on every request, so counts this coarse are held for

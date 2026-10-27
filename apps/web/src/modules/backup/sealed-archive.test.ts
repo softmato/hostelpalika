@@ -7,6 +7,7 @@ import {
   openArchive,
   readArchiveHeader,
   recoveryCodeFromKey,
+  recoveryQrText,
   sealArchive,
   utf8Decode,
   utf8Encode,
@@ -76,6 +77,7 @@ describe("recovery code", () => {
 
     expect(code.split(" ")).toHaveLength(14);
     expect(keyFromRecoveryCode(nacl, code.toLowerCase().replace(/ /g, "  "))).toEqual(owner.secretKey);
+    expect(keyFromRecoveryCode(nacl, recoveryQrText(code))).toEqual(owner.secretKey); // the kit's QR, scanned
   });
 
   it("catches a mistyped character", () => {

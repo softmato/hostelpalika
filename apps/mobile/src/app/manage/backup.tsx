@@ -1,11 +1,13 @@
 import * as Linking from "expo-linking";
 import { router } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCameraPermissions } from "expo-camera";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
 import Svg, { Rect } from "react-native-svg";
 import { toQR } from "toqr";
 
+import { QrCamera } from "@/components/qr-camera";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -39,6 +41,7 @@ import {
   makeKey,
   type OpenedBackup,
   openBackup,
+  printKit,
   restoreChunk,
   saveKey,
 } from "@/lib/backup";
@@ -401,7 +404,7 @@ function KitSheet({
 
   return (
     <Sheet
-      footer={<Button label="I wrote it down" onPress={onSaved} />}
+      footer={<Button label="I have it on paper" onPress={onSaved} />}
       onClose={onClose}
       open={Boolean(kit)}
       tall
@@ -425,13 +428,18 @@ function KitSheet({
           <View className="items-center">
             <Qr size={220} text={recoveryQrText(kit.code)} />
           </View>
+          <Button
+            label="Print the kit"
+            onPress={() => printKit(kit).catch((error) => toastError("Could not print", readApiError(error)))}
+            variant="outline"
+          />
         </View>
       ) : null}
     </Sheet>
   );
 }
 
-type Stage = "key" | "opening" | "preview" | "restoring";
+type Stage = "key" | "scan" | "opening" | "preview" | "restoring";
 
 /** Download → key → verify → decrypt on this phone → preview → confirm → add missing rows. */
 function RestoreSheet({
@@ -450,6 +458,9 @@ function RestoreSheet({
   const [code, setCode] = useState("");
   const [opened, setOpened] = useState<OpenedBackup | null>(null);
   const [progress, setProgress] = useState("");
+  const [permission, requestPermission] = useCameraPermissions();
+  // The camera reports every frame; only the first good read opens the backup.
+  const scanned = useRef(false);
 
   // Reset on the way out, so the next backup opens at the key step.
   const close = useCallback(() => {
@@ -547,6 +558,39 @@ function RestoreSheet({
                 }}
                 variant={phoneKey ? "outline" : "primary"}
               />
+              <Button
+                label="Scan the kit's QR"
+                onPress={async () => {
+                  if (!permission?.granted && !(await requestPermission()).granted) {
+                    toastError("Camera not allowed", "Type the code instead.");
+                    return;
+                  }
+
+                  scanned.current = false;
+                  setStage("scan");
+                }}
+                variant="outline"
+              />
+            </View>
+          ) : null}
+
+          {stage === "scan" ? (
+            <View className="gap-3">
+              <View className="aspect-square w-full overflow-hidden rounded-2xl bg-black">
+                <QrCamera
+                  active
+                  onCode={(data) => {
+                    const key = scanned.current ? null : keyFromKit(data);
+
+                    if (!key) return;
+                    scanned.current = true;
+                    void open(key);
+                  }}
+                  style={{ flex: 1 }}
+                  torch={false}
+                />
+              </View>
+              <Button label="Type the code instead" onPress={() => setStage("key")} variant="outline" />
             </View>
           ) : null}
 

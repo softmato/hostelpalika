@@ -185,8 +185,6 @@ and a BS month doesn't start on a fixed Gregorian date. A run just after Nepal
 midnight bills each month on its first day. Every other day's run answers
 `ALREADY_BILLED` and changes nothing.
 
-## Check it works
-
 ## 18. Customer backup
 
 - Title: `Customer backup`
@@ -197,6 +195,10 @@ midnight bills each month on its first day. Every other day's run answers
 
 `/api/v1/cron/platform-backup` is not scheduled here: the GitHub backup workflow and the
 restore drill post to it (docs/BACKUP.md).
+
+---
+
+## Check it works
 
 Press **TEST RUN** after creating each job.
 

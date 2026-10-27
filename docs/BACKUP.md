@@ -112,6 +112,43 @@ This is separate from the platform backup above and from the app's on-device cac
    back; the server accepts a chunk only if its hash is the one recorded for this
    hostel's backup, and only adds rows that are missing. Each chunk is audit-logged.
 
+## Set up (owner, once)
+
+1. **Google Cloud**, the project that holds the sign-in client (`GOOGLE_CLIENT_ID`):
+   - APIs & Services → Library → enable **Google Drive API**. Without it every upload
+     fails with "Google Drive upload failed (403)".
+   - Credentials → that **Web** client → Authorized redirect URIs → add
+     `https://hostelpalika.com/api/v1/hostel-admin/backup/drive/callback`.
+   - Google Auth Platform → Data access → Add scope `…/auth/drive.appdata`. Google lists it
+     as **non-sensitive**, so there is no verification to wait for.
+   - Audience → publishing status must be **In production**. In Testing, Google expires
+     refresh tokens after 7 days and every Drive shows "Access removed" a week later.
+2. **Vercel**: `GOOGLE_CLIENT_SECRET` of that same client, beside `GOOGLE_CLIENT_ID`. A
+   separate `GOOGLE_DRIVE_CLIENT_ID` + `GOOGLE_DRIVE_CLIENT_SECRET` pair wins if set.
+   `FINANCE_MASTER_KEY` (seals the Drive token) and `JWT_ACCESS_SECRET` (signs the OAuth
+   state) are already there. Redeploy. Until a client and secret are present, the app's
+   Connect row says "Drive backup is not switched on."
+3. `npm run db:indexes` from `apps/web` (HostelBackup, HostelBackupRun, PlatformBackupReport).
+4. cron-job.org: job 18 in `docs/CRON.md` (`/api/v1/cron/customer-backup`, hourly).
+5. The native build with `expo-crypto` (makes the key) and `expo-print` (prints the kit).
+   An older build opens the screen and can restore, but says "Update the app" for both.
+
+## What a hostel owner does
+
+Pro or Max plan, owner login (wardens are refused), app → Settings → Backup:
+
+1. **Set up recovery key** → the kit sheet → **Print the kit** (or write the 14 groups
+   down) → **I have it on paper**. Only the public half reaches us.
+2. **Connect Google Drive** → Google's page opens in the app → pick the account → Allow →
+   back in the app: "Connected · their@gmail.com". This is the moment we get access, and
+   only to the hidden app folder.
+3. **Back up now** for the first one; after that the hourly cron makes one a day.
+4. Restore: a backup in the list → Restore → the key on this phone, the typed code, or
+   **Scan the kit's QR**.
+
+The web page `/hostel-admin/backup` connects Drive and backs up too, but the key is made
+and restore runs only in the app, where the key lives.
+
 ## Threat model (for review — no "end-to-end encrypted" wording until it is signed off)
 
 | Who | Can | Cannot |

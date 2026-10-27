@@ -9,7 +9,7 @@ const eslintConfig = defineConfig([
     // Vendored from the @animate-ui registry (components.json) and replaced
     // wholesale on update, so it keeps its upstream shape. The React compiler
     // rules are held to our own code, not to a copy we do not maintain.
-    files: ["src/components/animate-ui/**"],
+    files: ["src/components/animate-ui/**", "src/components/react-bits/**"],
     rules: {
       "react-hooks/refs": "off",
       "react-hooks/set-state-in-effect": "off",

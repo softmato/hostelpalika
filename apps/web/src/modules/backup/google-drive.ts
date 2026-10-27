@@ -29,9 +29,10 @@ export class DriveError extends Error {
   }
 }
 
+/** Its own client if one is set, else the sign-in client — one Google project, one consent screen. */
 function client() {
-  const id = process.env.GOOGLE_DRIVE_CLIENT_ID;
-  const secret = process.env.GOOGLE_DRIVE_CLIENT_SECRET;
+  const id = process.env.GOOGLE_DRIVE_CLIENT_ID || process.env.GOOGLE_CLIENT_ID;
+  const secret = process.env.GOOGLE_DRIVE_CLIENT_SECRET || process.env.GOOGLE_CLIENT_SECRET;
 
   if (!id || !secret) {
     throw new DriveError("NOT_CONFIGURED", "Google Drive backup is not set up on this server yet.");
@@ -40,7 +41,13 @@ function client() {
   return { id, secret };
 }
 
-export const isDriveConfigured = () => Boolean(process.env.GOOGLE_DRIVE_CLIENT_ID && process.env.GOOGLE_DRIVE_CLIENT_SECRET);
+export function isDriveConfigured() {
+  try {
+    return Boolean(client());
+  } catch {
+    return false;
+  }
+}
 
 export function driveAuthUrl(state: string, redirectUri: string) {
   const params = new URLSearchParams({

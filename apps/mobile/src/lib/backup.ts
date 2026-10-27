@@ -1,7 +1,9 @@
 import { Directory, File, Paths } from "expo-file-system";
 import * as SecureStore from "expo-secure-store";
+import { toQR } from "toqr";
 import nacl from "tweetnacl";
 
+import { APP_NAME } from "@/constants/branding";
 import { api, API_BASE_URL } from "@/lib/api";
 import { getRequestHostelId } from "@/lib/active-hostel";
 import { type ApiEnvelope, unwrap } from "@/lib/api-contract";
@@ -13,6 +15,7 @@ import {
   openArchive,
   readArchiveHeader,
   recoveryCodeFromKey,
+  recoveryQrText,
   toBase64,
   utf8Decode,
 } from "@hostel/backup/sealed-archive";
@@ -155,6 +158,59 @@ export async function keyOnPhone(hostelId: string, fingerprint: string | null) {
   const secretKey = fromBase64(stored);
 
   return keyFingerprint(nacl, nacl.box.keyPair.fromSecretKey(secretKey).publicKey) === fingerprint ? secretKey : null;
+}
+
+/** The QR as one SVG path, black on white — it is going on paper, not the screen. */
+function qrSvg(text: string, size: number) {
+  const modules = toQR(text);
+  const width = Math.sqrt(modules.length);
+  let path = "";
+
+  modules.forEach((on, index) => {
+    if (on) path += `M${index % width} ${Math.floor(index / width)}h1v1h-1z`;
+  });
+
+  return `<svg width="${size}" height="${size}" viewBox="-4 -4 ${width + 8} ${width + 8}" xmlns="http://www.w3.org/2000/svg"><rect x="-4" y="-4" width="${width + 8}" height="${width + 8}" fill="#fff"/><path d="${path}" fill="#000"/></svg>`;
+}
+
+/**
+ * Opens the system print dialog with the kit (print, or "Save as PDF" where the
+ * owner chooses). Rendered on this phone; nothing is written by us. `expo-print`
+ * is native, so a build without it says so instead of crashing the screen.
+ */
+export async function printKit(kit: { code: string; fingerprint: string }) {
+  let print: typeof import("expo-print");
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    print = require("expo-print") as typeof import("expo-print");
+  } catch {
+    throw new Error("Update the app to print the kit. Write the code down for now.");
+  }
+
+  const cells = kit.code
+    .split(" ")
+    .map((group, index) => `<div class="cell"><small>${index + 1}</small><b>${group}</b></div>`)
+    .join("");
+
+  await print.printAsync({
+    html: `<!doctype html><html><head><meta charset="utf-8"><style>
+body{font-family:sans-serif;color:#000;margin:32px}
+h1{font-size:20px;margin:0 0 4px}
+p{margin:2px 0;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:20px 0}
+.cell{border:1px solid #000;border-radius:6px;padding:6px;text-align:center}
+.cell small{display:block;font-size:10px}
+.cell b{font-family:monospace;font-size:18px;letter-spacing:2px}
+.qr{text-align:center}
+</style></head><body>
+<h1>${APP_NAME} recovery kit</h1>
+<p>Key ${kit.fingerprint}</p>
+<p>Opens every backup made with this key. Keep it like a house key.</p>
+<div class="grid">${cells}</div>
+<div class="qr">${qrSvg(recoveryQrText(kit.code), 240)}</div>
+</body></html>`,
+  });
 }
 
 /** A typed or scanned recovery code → the private key, or null when mistyped. */

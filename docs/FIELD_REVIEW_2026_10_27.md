@@ -398,20 +398,22 @@ header does not open. Phone: `lib/backup.ts` makes the pair, private key in Secu
 Tests: `sealed-archive.test.ts` (round trip, wrong key, flipped byte, edited header, mistyped
 code). **Native:** Hermes has no secure random, so making a key needs `expo-crypto`
 (pinned in package.json + lock) — it rides Phase 6's native build; restore works without it.
-Open: the security review; no "end-to-end encrypted" wording anywhere until then; printing
-the kit (no print module yet — the sheet is written down by hand).
+Open: the security review; no "end-to-end encrypted" wording anywhere until then.
+**Print, 2026-10-27:** kit sheet → Print the kit → `expo-print` system dialog (print or Save as
+PDF), rendered on the phone, black on white with the QR (`printKit` in `lib/backup.ts`).
+Native — rides the same build as `expo-crypto`; an older build says "Update the app".
 ☑ **I5 Google Drive `appDataFolder`**: OAuth `drive.appdata` scope, refresh token
 encrypted server-side, scheduled upload, reconnect on revoke, quota errors shown.
-External: Google's OAuth consent-screen verification for the scope — check in the
-Cloud console first.
+External: none to wait for — Google lists `drive.appdata` as non-sensitive (checked
+2026-10-27). The consent screen must be In production, or refresh tokens die after 7 days.
 **Done in code 2026-10-27** — `modules/backup/google-drive.ts` (plain fetch, resumable
 upload, `drive.appdata` + `email` only), `backup.service.ts`: signed OAuth state (HMAC,
 10 min), refresh token sealed with `FINANCE_MASTER_KEY` (also rewrapped by the rotation
 script), cron `POST /api/v1/cron/customer-backup` (hourly; each hostel once per 20 h, oldest
 first), Drive MD5 compared after upload ("checked"), newest 30 kept in Drive. `invalid_grant`
 → REVOKED + Reconnect; `storageQuotaExceeded` → QUOTA_FULL with the message on screen.
-Pro+ gate on connect and on every scheduled run. Open: owner setup (Google OAuth client +
-consent-screen verification for `drive.appdata`, env, cron-job.org entry), first live run.
+Pro+ gate on connect and on every scheduled run. Drive reuses the sign-in client (`GOOGLE_CLIENT_ID`/`_SECRET`) unless
+`GOOGLE_DRIVE_CLIENT_*` is set. Open: owner setup (`docs/BACKUP.md` → Set up), first live run.
 ☑ **I6 Backup screen** (web + app, owner only): Drive status, last backup + integrity
 check, history, download (ciphertext), recovery-kit status. Honest wording only
 ("Last backup 23 Oct, 02:00 · checked").
@@ -430,8 +432,8 @@ decrypts on the phone, shows the counts, confirms (`openConfirm`, PIN), then sen
 chunk; the server takes a chunk only if its SHA-256 is recorded for **this** hostel's run,
 refuses rows of any other hostel, adds missing rows only (never overwrites or deletes),
 never restores platform records (Hostel, User, plan bills…), and audit-logs each chunk
-(`BACKUP_RESTORED`). Tests: `backup.service.test.ts`. Open: device pass; scanning the kit's
-QR on restore (typed code works today).
+(`BACKUP_RESTORED`). Tests: `backup.service.test.ts`. **Scan, 2026-10-27:** Restore → Scan the kit's QR, on the
+shared `QrCamera` (no new native code); test covers QR text → key. Open: device pass.
 ☑ **I8 Drills**: lost DB, deleted rows, revoked Drive, lost kit, tampered archive,
 cross-tenant restore.
 **Documented 2026-10-27** — `docs/BACKUP.md` → Drills: how to run each of the six, what passing

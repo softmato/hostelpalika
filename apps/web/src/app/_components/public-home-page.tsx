@@ -3,10 +3,12 @@
 import {
   ArrowRight,
   BedDouble,
+  Camera,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   Heart,
+  Home,
   MapPin,
   Navigation,
   Quote,
@@ -17,6 +19,7 @@ import {
   Users,
   WashingMachine,
   Wifi,
+  Zap,
 } from "@/components/icons";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -33,6 +36,8 @@ import {
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+import ParticleText from "@/components/react-bits/particle-text";
+import VariableProximity from "@/components/react-bits/variable-proximity";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { browserApi } from "@/lib/browser-api";
 import { checkAuthWithRefresh } from "@/lib/auth-check";
@@ -40,13 +45,25 @@ import { optimizedImage } from "@/lib/image-url";
 import { landingPathForRole } from "@/lib/route-access";
 import { Role } from "@/lib/roles";
 
+import { HeroPulseChip } from "./hero-pulse-chip";
 import { HomePlatformSection } from "./home-platform-section";
 import type { HostelSummary } from "./public-hostel-types";
-import { HostelCard, PublicShell, StatusPill, formatMoney } from "./shared";
+import { HostelCard, PublicShell, formatMoney } from "./shared";
 import { StarsCtaCard } from "./stars-cta-card";
 
-const PUBLIC_HERO_IMAGE =
-  "https://images.unsplash.com/photo-1555854877-bab0e564b8d5?auto=format&fit=crop&w=1600&q=80";
+/** Outline of the room photo in the artwork's own 1671×941 coordinates. */
+const BLOB_PATH =
+  "M1760 192C1733 193 1645 193 1600 197C1555 201 1516 212 1490 217C1463 222 1456 222 1442 226C1428 229 1418 233 1404 238C1390 244 1372 251 1356 257C1340 264 1323 272 1309 279C1294 286 1283 292 1270 300C1257 308 1243 319 1232 328C1220 337 1211 346 1202 356C1194 367 1185 379 1178 390C1172 401 1167 410 1164 423C1161 437 1160 457 1160 471C1160 486 1162 495 1165 510C1168 524 1173 543 1180 557C1186 572 1193 583 1203 595C1214 608 1229 621 1242 633C1255 646 1268 658 1281 671C1293 684 1306 699 1319 709C1331 719 1344 725 1357 733C1369 740 1380 748 1394 755C1409 762 1424 768 1442 774C1459 780 1480 787 1499 789C1518 791 1538 788 1556 786C1575 785 1594 783 1610 780C1626 777 1625 772 1650 770C1675 768 1742 770 1760 770Z";
+const CITY_PATH =
+  "M-40 262C140 252 330 258 470 300C580 335 625 430 575 520C535 595 430 650 300 690C200 700 80 672 -40 650Z";
+const LEAF = "M0 0C20-30 60-35 80-25C70 5 30 20 0 0Z";
+
+const HERO_POINTS = [
+  { Icon: ShieldCheck, body: "Only genuine hostels, verified by our team.", title: "Verified Listings" },
+  { Icon: Camera, body: "See actual rooms and facilities before you book.", title: "Real Photos" },
+  { Icon: Star, body: "Real feedback from real residents.", title: "Honest Reviews" },
+  { Icon: Zap, body: "No hidden charges. Just fair prices.", title: "Transparent Pricing" },
+] as const;
 
 /**
  * Local WebP only (~150 KB each). These were 2–3 MB PNGs stacked over an
@@ -500,6 +517,11 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
     [activeCity, byRating],
   );
   const heroHostel = featuredHostels[0];
+  // Last three words of the headline carry the green, on their own line.
+  const heroWords = hero.headline.trim().split(/\s+/);
+  const heroSplit = heroWords.length > 4 ? heroWords.length - 3 : heroWords.length;
+  const heroHead = heroWords.slice(0, heroSplit).join(" ");
+  const heroTail = heroWords.slice(heroSplit).join(" ");
   const comparisonHostels = featuredHostels;
   const visibleComparisonHostels = useMemo(() => {
     if (!comparisonHostels.length) return [];
@@ -535,6 +557,10 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
     ].filter((stat) => stat !== null);
   }, [hostels, platformStats]);
 
+  const heroTextRef = useRef<HTMLDivElement>(null);
+  // Font size the particles landed on; once set, the solid line is live text with the hover effect.
+  const [tailSize, setTailSize] = useState<number | null>(null);
+
   const moveComparison = (direction: -1 | 1) => {
     if (comparisonHostels.length < 2) return;
     setComparisonStart(
@@ -547,39 +573,120 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
     <PublicShell>
       <div ref={pageRef}>
         <section className="relative w-full overflow-hidden bg-background -mt-16">
-          {/* Right side background image with smooth fade on the left */}
-          <div className="absolute right-0 top-0 hidden h-full w-[54%] lg:block">
-            <div
-              className="h-full w-full bg-cover bg-center"
-              style={{ backgroundImage: `url("${optimizedImage(PUBLIC_HERO_IMAGE, 1200)}")` }}
-            />
-            {/* Fading overlay from white to transparent (left-to-right) */}
-            <div className="absolute inset-y-0 left-0 w-48 bg-gradient-to-r from-background via-background/80 to-transparent" />
-
-            {/* Slider Dots */}
-            <div className="absolute bottom-10 left-[45%] flex gap-2">
-              <span className="size-2 rounded-full bg-background" />
-              <span className="size-2 rounded-full bg-background/40" />
-            </div>
-          </div>
-
-          <div className="mx-auto relative z-10 grid max-w-[1448px] gap-6 px-4 pt-20 pb-10 sm:px-6 sm:pt-24 lg:min-h-[75vh] lg:gap-10 lg:pt-32 lg:pb-12 lg:grid-cols-[0.88fr_1fr] lg:items-center">
-            <div className="py-4 lg:py-10">
-              <span className="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-3.5 py-1.5 text-xs font-semibold text-foreground shadow-sm">
-                <ShieldCheck className="size-4 text-brand-teal" />
-                Trusted by Students & Families
-              </span>
-              <h1 className="mt-6 max-w-xl font-heading text-[2.25rem] sm:mt-8 sm:text-5xl lg:text-[56px] font-extrabold leading-[1.15] text-foreground">
-                {hero.headline}
+          {/* Artwork drawn as SVG: the photo is clipped by a real path and the mint waves,
+              outline and leaves take the brand colour, so nothing is cropped and both themes sit clean. */}
+          <svg
+            aria-hidden
+            className="pointer-events-none absolute bottom-0 left-0 hidden lg:block"
+            style={{ width: "32vw", maxWidth: 620 }}
+            viewBox="0 250 640 691"
+          >
+            <defs>
+              <clipPath id="home-hero-city-clip">
+                <path d={CITY_PATH} />
+              </clipPath>
+            </defs>
+            <image clipPath="url(#home-hero-city-clip)" height="510" href="/home/hero-city.webp" width="640" x="0" y="250" className="dark:brightness-75" />
+            <path d={LEAF} className="fill-brand-teal/70" transform="translate(50 770) rotate(60)" />
+          </svg>
+          <svg
+            aria-hidden
+            className="pointer-events-none absolute right-0 top-0 hidden lg:block"
+            style={{ width: "28vw", maxWidth: 560 }}
+            viewBox="1100 0 571 941"
+          >
+            <defs>
+              <clipPath id="home-hero-blob">
+                <path d={BLOB_PATH} />
+              </clipPath>
+            </defs>
+            <path d="M1671 0C1620 80 1560 165 1470 198C1450 205 1440 212 1425 217L1671 195Z" className="fill-brand-teal/15" />
+            <image clipPath="url(#home-hero-blob)" height="680" href="/home/hero-room.webp" width="571" x="1100" y="150" className="dark:brightness-90" />
+            <path d={LEAF} className="fill-brand-teal/70" transform="translate(1400 150) rotate(-35)" />
+            <path d={LEAF} className="fill-brand-teal/70" transform="translate(1470 850) rotate(-30) scale(.8)" />
+          </svg>
+          <div className="relative z-10 mx-auto flex max-w-[1448px] flex-col items-center px-4 pb-6 pt-28 text-center sm:px-6 sm:pt-32 lg:pt-36">
+            <HeroPulseChip />
+            <div className="mt-6 flex w-full max-w-4xl flex-col items-center" ref={heroTextRef}>
+              <h1 className="font-heading text-[2.4rem] font-extrabold leading-[1.1] text-foreground sm:text-6xl lg:text-[68px]">
+                <VariableProximity
+                  containerRef={heroTextRef}
+                  falloff="gaussian"
+                  fromFontVariationSettings="'wght' 640"
+                  label={heroHead}
+                  radius={110}
+                  scale={1.06}
+                  toColor="var(--brand-teal)"
+                  toFontVariationSettings="'wght' 800"
+                />
+                {heroTail ? <span className="sr-only"> {heroTail}</span> : null}
               </h1>
-              <p className="mt-5 max-w-md text-sm leading-relaxed text-muted-foreground">
-                {hero.subheadline}
+              {heroTail ? (
+                <div
+                  aria-hidden
+                  className="-mt-1 w-full font-heading text-brand-teal"
+                  style={{ height: "clamp(3.4rem, 8.4vw, 5.8rem)" }}
+                >
+                  {tailSize === null ? (
+                    <ParticleText
+                      clickBurst={false}
+                      density={3}
+                      fontSize="clamp(2.4rem, 6.2vw, 4.25rem)"
+                      gatherDuration={1800}
+                      highlightColor="#7ee0a8"
+                      intro="spiral"
+                      onSettle={setTailSize}
+                      particleSize={2}
+                      pointerRepel={0}
+                      settle
+                      style={{ minHeight: 0 }}
+                      text={heroTail}
+                    />
+                  ) : (
+                    <div className="flex h-full items-center justify-center whitespace-nowrap font-extrabold leading-none">
+                      <VariableProximity
+                        containerRef={heroTextRef}
+                        falloff="gaussian"
+                        fontSize={tailSize}
+                        fromFontVariationSettings="'wght' 800"
+                        label={heroTail}
+                        radius={110}
+                        scale={1.06}
+                        toColor="#2fbf71"
+                        toFontVariationSettings="'wght' 800"
+                      />
+                    </div>
+                  )}
+                </div>
+              ) : null}
+              <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                <VariableProximity
+                  containerRef={heroTextRef}
+                  fromFontVariationSettings="'wght' 400"
+                  label={hero.subheadline}
+                  radius={90}
+                  toFontVariationSettings="'wght' 700"
+                />
               </p>
-              <div className="mt-6 flex max-w-lg items-center gap-2 sm:mt-8 rounded-lg border border-border bg-card p-1.5 shadow-md focus-within:border-brand-teal focus-within:ring-2 focus-within:ring-brand-teal/15 transition">
-                <Search className="ml-2 size-5 shrink-0 text-muted-foreground sm:ml-3" />
+            </div>
+
+            <div className="mt-8 w-full max-w-2xl sm:mt-10">
+              <div className="mx-auto mb-3 flex w-fit items-center gap-1 rounded-full border border-border bg-card/80 p-1 backdrop-blur">
+                <span className="inline-flex items-center gap-2 rounded-full bg-brand-teal px-4 py-2 text-sm font-bold text-white">
+                  <Search className="size-4" /> Search Hostels
+                </span>
+                <Link
+                  className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold text-foreground transition hover:bg-muted"
+                  href="/register-hostel"
+                >
+                  <Home className="size-4" /> List Your Hostel
+                </Link>
+              </div>
+              <div className="flex items-center gap-2 rounded-full border border-border bg-card p-1.5 pl-5 shadow-lg shadow-black/10 transition focus-within:border-brand-teal focus-within:ring-4 focus-within:ring-brand-teal/15">
+                <MapPin className="size-5 shrink-0 text-brand-teal" />
                 <input
                   aria-label="Search hostels"
-                  className="h-11 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+                  className="h-12 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground sm:text-base"
                   onChange={(e) => setSearchVal(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") void runSearch();
@@ -588,87 +695,35 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
                   value={searchVal}
                 />
                 <button
-                  className="shrink-0 rounded-md bg-brand-teal px-4 py-3 text-sm sm:px-7 font-bold text-white transition hover:brightness-105 disabled:opacity-70"
+                  className="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-brand-teal px-5 text-sm font-bold text-white transition hover:brightness-110 disabled:opacity-70 sm:px-8"
                   disabled={searching}
                   onClick={() => void runSearch()}
                   type="button"
                 >
-                  {searching ? "Searching..." : "Search"}
+                  <Search className="size-4" />
+                  <span className="hidden sm:inline">{searching ? "Searching..." : "Search"}</span>
                 </button>
-              </div>
-              <div className="mt-6 flex flex-wrap gap-x-6 gap-y-2 text-xs font-bold sm:mt-8 text-foreground">
-                {[
-                  { label: "Verified Hostels", icon: CheckCircle2 },
-                  { label: "Trusted by Students", icon: CheckCircle2 },
-                  { label: "Easy & Secure", icon: CheckCircle2 },
-                ].map((item) => (
-                  <span className="inline-flex items-center gap-1.5" key={item.label}>
-                    <item.icon className="size-4 text-brand-teal" />
-                    {item.label}
-                  </span>
-                ))}
               </div>
             </div>
 
-            <div className="relative lg:flex lg:justify-end lg:py-10 lg:pr-8">
-              {/* Below lg the half-page photo is hidden, so the hero carries its
-                own: a rounded panel with the card straddling its bottom edge. */}
-              <div
-                aria-hidden
-                className="h-56 rounded-2xl bg-cover bg-center sm:h-72 md:h-80 lg:hidden"
-                style={{ backgroundImage: `url("${optimizedImage(PUBLIC_HERO_IMAGE, 1200)}")` }}
-              />
-              <div className="relative mx-3 -mt-16 flex max-w-[360px] gap-4 rounded-xl border border-border/80 bg-card/95 p-4 shadow-2xl backdrop-blur-sm transition hover:scale-[1.01] sm:mx-6 lg:m-0 lg:mt-36 lg:w-[320px] lg:max-w-none">
-                <div
-                  className="size-20 rounded-lg bg-cover bg-center shrink-0 shadow-sm sm:size-24"
-                  style={{
-                    backgroundImage: `url("${optimizedImage(heroHostel?.image ?? PUBLIC_HERO_IMAGE, 384)}")`,
-                  }}
-                />
-                <div className="flex-1 flex flex-col justify-between py-0.5 min-w-0">
-                  <div>
-                    <h4
-                      className="font-bold text-sm text-foreground truncate"
-                      title={heroHostel?.name ?? "Verified hostel"}
-                    >
-                      {heroHostel?.name ?? "Verified hostel"}
-                    </h4>
-                    <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px]">
-                      <Star className="size-3 fill-warning text-warning" />
-                      <span className="font-bold text-foreground">
-                        {heroHostel?.rating ? heroHostel.rating.toFixed(1) : "New"}
-                      </span>
-                      <span className="text-muted-foreground font-normal">
-                        ({heroHostel?.reviews ?? 0})
-                      </span>
-                      <StatusPill
-                        tone="success"
-                        className="ml-auto text-[8px] py-0 px-1 rounded-sm font-bold"
-                      >
-                        Verified
-                      </StatusPill>
-                    </div>
-                    <p className="mt-1 text-[10px] text-muted-foreground font-semibold truncate">
-                      {heroHostel
-                        ? `${heroHostel.area}, ${heroHostel.city}`
-                        : "Published hostels appear here"}
-                    </p>
-                  </div>
-                  <p className="mt-1 font-bold text-foreground text-xs">
-                    {heroHostel ? formatMoney(heroHostel.price) : "NPR --"}{" "}
-                    <span className="font-normal text-[10px] text-muted-foreground">
-                      / month
-                    </span>
-                  </p>
-                </div>
-              </div>
+            <div className="mt-6 flex w-full max-w-4xl flex-wrap justify-center gap-2">
+              {HERO_POINTS.map(({ Icon, body, title }) => (
+                <span
+                  className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-bold text-foreground backdrop-blur"
+                  key={title}
+                  title={body}
+                >
+                  <Icon className="size-3.5 text-brand-teal" />
+                  {title}
+                </span>
+              ))}
             </div>
           </div>
         </section>
 
         <HomePlatformSection />
 
-        <section className="mx-auto max-w-[1448px] px-4 pb-14 pt-14 sm:px-6">
+        <section className="mx-auto max-w-[1448px] px-4 pb-14 pt-4 sm:px-6">
           <SectionHeading
             action="View all hostels"
             actionHref="/hostels"
