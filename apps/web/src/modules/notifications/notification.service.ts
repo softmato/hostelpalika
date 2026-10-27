@@ -312,6 +312,8 @@ export async function listNotifications(
   principal: ApiPrincipal,
   query: PaginationQuery = { page: 1, pageSize: MAX_PAGE_SIZE },
   filterBy: NotificationFilter = "all",
+  /** Only rows created after this — the app's cached feed asks for what is new. Counts stay whole. */
+  since?: Date,
 ) {
   await connectToDatabase();
 
@@ -322,8 +324,9 @@ export async function listNotifications(
   // `actionState`, not the read receipt.
   const actionFilter = { ...mine, actionState: "PENDING", kind: "ACTION" };
 
-  const filter =
+  const base =
     filterBy === "unread" ? unreadFilter : filterBy === "action" ? actionFilter : mine;
+  const filter = since ? { ...base, createdAt: { $gt: since } } : base;
 
   const { limit, skip } = paginationRange(query);
 

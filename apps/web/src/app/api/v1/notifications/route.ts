@@ -18,7 +18,14 @@ export async function GET(request: NextRequest) {
   try {
     const principal = await requireApiPrincipal(request);
     const filterBy = parseFilter(request.nextUrl.searchParams.get("filter"));
-    const result = await listNotifications(principal, undefined, filterBy);
+    const sinceParam = request.nextUrl.searchParams.get("since");
+    const since = sinceParam ? new Date(sinceParam) : undefined;
+    const result = await listNotifications(
+      principal,
+      undefined,
+      filterBy,
+      since && !Number.isNaN(since.getTime()) ? since : undefined,
+    );
 
     return withEtag(request, successResponse(result, "Notifications loaded"));
   } catch (error) {

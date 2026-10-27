@@ -58,9 +58,10 @@ export type NotificationFeed = {
   unreadCount: number;
 };
 
-export async function listNotifications(filter: NotificationFilter = "all") {
+/** `since` (ISO): only rows newer than it; the counts are always whole. */
+export async function listNotifications(filter: NotificationFilter = "all", since?: string) {
   const response = await api.get<ApiEnvelope<NotificationFeed>>("/notifications", {
-    params: { filter },
+    params: since ? { filter, since } : { filter },
   });
 
   return unwrap(response);

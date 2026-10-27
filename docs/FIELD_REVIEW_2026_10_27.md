@@ -185,8 +185,18 @@ another role, no old rows).
 **Done in code 2026-10-27** — `web/local-db.ts`, same exports over one IndexedDB
 database per account (loaded into memory on open, written behind), aliased in
 `metro.config.js` `WEB_STAND_INS`; no npm scripts added. Open: PWA export after deploy.
-☐ **F1 Notifications** open from SQLite instantly and fetch only newer ones (p7).
-☐ **F2** Notification rows: icon by kind, title, one line, time.
+☑ **F1 Notifications** open from SQLite instantly and fetch only newer ones (p7).
+**Done in code 2026-10-27** — the feed paints from its SQLite row (G1); the "all" feed's
+loader asks `GET /notifications?since=<newest cached createdAt>` and `mergeFeed`s the
+answer on top (`notification-queries.ts`); counts stay the server's, "nothing unread"
+heals cached tints, a full page or a copy older than 6 h asks for everything, "Needs
+action" is always whole. Server: `listNotifications(…, since)`. Test:
+`notification-feed-merge.test.ts`. Open: web deploy (an old server ignores `since`,
+which only costs the full list).
+☑ **F2** Notification rows: icon by kind, title, one line, time.
+**Done in code 2026-10-27** — `NotificationRow`: kind tile, one-line title with the
+age hard right, one-line body (a tap on a row with no screen expands both); the
+category badge is gone (the tile says it), "Needs you" stays. Open: device look. OTA-able.
 ☐ **F3** Every notification opens its exact screen; audit every kind, route the ones
 with no target.
 
