@@ -44,16 +44,47 @@ document count per collection. A run that dumps fewer collections than
 
 A failed scheduled run emails the GitHub account that last edited the workflow's schedule.
 
-## Restore
+## Status row
 
-Always into a separate database first, never straight over prod.
+The workflow posts its manifest (counts and hash only) to `POST /api/v1/cron/platform-backup`
+with the cron secret, and the restore drill posts its result there too. The superadmin
+dashboard shows **Last backup … · N collections**, a red badge when none came in 30 hours,
+and **Not verified** until a drill has passed. The server never gets a key to the backups
+bucket. Set up (owner): GitHub secret `BACKUP_CRON_SECRET` = the app's `CRON_SECRET`, and
+variable `BACKUP_REPORT_URL` = `https://hostelpalika.com/api/v1/cron/platform-backup`.
+
+## Restore drill (I2)
+
+Always into a **separate** database — a free M0 in a second Atlas project — never prod.
+On your own machine, with `age`, MongoDB Database Tools and the repo's dependencies:
 
 ```bash
-aws s3 cp --endpoint-url "$R2_ENDPOINT" s3://hostelpalika-backups/daily/<file> .
-age -d -i hostelpalika-backup.key <file> | mongorestore --uri "$TARGET_URI" --archive --gzip --nsFrom '<db>.*' --nsTo 'restore_check.*'
+DRILL_R2_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com DRILL_R2_ACCESS_KEY_ID=<read-only key> DRILL_R2_SECRET_ACCESS_KEY=<secret> DRILL_R2_BUCKET=hostelpalika-backups DRILL_AGE_KEY=./hostelpalika-backup.key DRILL_SOURCE_DB=<prod db name> DRILL_TARGET_URI=<spare cluster URI> DRILL_REPORT_URL=https://hostelpalika.com/api/v1/cron/platform-backup CRON_SECRET=<cron secret> node apps/web/scripts/backup-drill.mjs
 ```
 
-Compare the restored counts with the archive's `.json` manifest before trusting it.
+It downloads the newest archive (or the one named as an argument), checks its SHA-256
+against the manifest, pipes `age -d` straight into `mongorestore --nsFrom '<db>.*' --nsTo
+'restore_check.*'`, counts every collection, prints the differences, and reports PASSED or
+FAILED to the status row. It reads no `.env` and refuses a target on the same cluster as
+`MONGODB_URI`. Give it its own **read-only** R2 token on the backups bucket.
+
+A real recovery is the same command pointed at the new cluster, then the app's
+`MONGODB_URI` switched to it once the counts match.
+
+## Drills (I8)
+
+Run each after setup and after any change to backup code; write the date and result in the
+table.
+
+| Drill | How | Pass when | Last run |
+| --- | --- | --- | --- |
+| Lost database | Restore drill above, into the spare cluster | every count matches, status row says passed | — |
+| Deleted rows | On a test hostel, delete a few residents/invoices, then app → Backup → Restore from the last backup | the rows are back, nothing else changed, `BACKUP_RESTORED` rows in the audit log | — |
+| Revoked Drive | In the Google account → Security → Third-party access → remove HostelPalika, then Back up now | screen says "Access removed" with Reconnect; reconnecting and backing up works | — |
+| Drive full | Fill a test Google account, Back up now | screen says "Drive is full" with Google's reason; the run is listed as Failed | — |
+| Lost kit / phone | Sign in on a second phone with no key, open Restore | only the recovery code opens it; a wrong code is refused by the checksum; with neither, nothing opens | — |
+| Tampered archive | Upload any file over a backup in Drive (or flip a byte of a downloaded one), then Restore | refused: "not the backup we made" before decryption | — |
+| Cross-tenant restore | Owner of hostel A calls restore with hostel B's run id or chunk | 404 for the run; a chunk not recorded for A is refused; covered by `backup.service.test.ts` | automated |
 
 # Customer backup (Google Drive)
 

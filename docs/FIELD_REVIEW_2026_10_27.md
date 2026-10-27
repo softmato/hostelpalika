@@ -182,9 +182,17 @@ key offline), backups-only bucket with its own token, `daily/` + `monthly/` + ma
 with per-collection counts, fails under 20 collections. Alert = GitHub's failed-run email.
 Open: owner setup (BACKUP.md steps 1–5) and a first green run. The superadmin status
 row moves to I2, where there is a *verified* result to show.
-☐ **I2 Restore drill**: script restores an archive into a separate database (an M0 in a
+☑ **I2 Restore drill**: script restores an archive into a separate database (an M0 in a
 second Atlas project) and compares counts per collection. Nothing says "backed up"
 before this passes.
+**Done in code 2026-10-27** — `apps/web/scripts/backup-drill.mjs`: download → SHA-256 vs
+manifest → `age -d | mongorestore --nsFrom/--nsTo restore_check.*` into a spare cluster →
+per-collection counts vs manifest → PASSED/FAILED posted to `POST /api/v1/cron/platform-backup`.
+Least privilege: the server holds no bucket key; the workflow and the drill post counts with
+the cron secret (`PlatformBackupReport`). Superadmin dashboard row: last backup, stale badge
+after 30 h, "Not verified" until a drill passes. Tests: `platform-backup.service.test.ts`.
+Open: owner setup (spare Atlas M0, read-only R2 token, `BACKUP_CRON_SECRET` +
+`BACKUP_REPORT_URL` in GitHub), then the first drill.
 ☑ **I3 Tenant export**: every `hostelId` collection mapped — residents, finance, staff,
 stock, branches and the rest, all of it; export filtered server-side by the authorised
 hostel (branches included); a test proves one hostel's export holds nothing of another's.
@@ -248,8 +256,11 @@ refuses rows of any other hostel, adds missing rows only (never overwrites or de
 never restores platform records (Hostel, User, plan bills…), and audit-logs each chunk
 (`BACKUP_RESTORED`). Tests: `backup.service.test.ts`. Open: device pass; scanning the kit's
 QR on restore (typed code works today).
-☐ **I8 Drills**: lost DB, deleted rows, revoked Drive, lost kit, tampered archive,
+☑ **I8 Drills**: lost DB, deleted rows, revoked Drive, lost kit, tampered archive,
 cross-tenant restore.
+**Documented 2026-10-27** — `docs/BACKUP.md` → Drills: how to run each of the six, what passing
+looks like, a Last-run column. Cross-tenant and tamper rejection are automated in the tests;
+the other drills wait for the owner setup and a device build.
 
 ## Open questions
 
