@@ -22,6 +22,7 @@ import { Chip, FactRow } from "@/components/ui/layout";
 import { ListRow } from "@/components/ui/list-row";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
+import { Segmented } from "@/components/ui/segmented";
 import { Select } from "@/components/ui/select";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
@@ -169,6 +170,13 @@ type Identity =
   | { form: AdmissionForm; kind: "form" }
   | { kind: "manual" };
 
+type BillingCycle = "CALENDAR_MONTH" | "SAME_DAY";
+
+const BILLING_OPTIONS = [
+  { label: "Calendar month", value: "CALENDAR_MONTH" },
+  { label: "Same day each month", value: "SAME_DAY" },
+] as const;
+
 export default function NewResidentScreen() {
   const query = adminQuery.managedHostel();
   const hostel = useResource<ManagedHostel>(query.load, {
@@ -257,6 +265,7 @@ export default function NewResidentScreen() {
   /** Their own charges instead of the rate card, with the reason. Null = the rate card. */
   const [charges, setCharges] = useState<Charges | null>(null);
   const [moveInDate, setMoveInDate] = useState(() => dayInputFromNow(0));
+  const [billingCycle, setBillingCycle] = useState<BillingCycle>("CALENDAR_MONTH");
   const [referralCode, setReferralCode] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -285,7 +294,7 @@ export default function NewResidentScreen() {
     [hostel.data],
   );
 
-  const quote = useIntakeQuote({ charges, moveInDate, referralCode, roomType });
+  const quote = useIntakeQuote({ billingCycle, charges, moveInDate, referralCode, roomType });
 
   const layoutQuery = roomsQuery.layout();
   const layout = useResource<RoomLayout>(layoutQuery.load, {
@@ -564,6 +573,7 @@ export default function NewResidentScreen() {
 
     try {
       result = await createResident({
+        ...(existing ? {} : { billingCycle }),
         email: person.email || undefined,
         firstName: person.firstName,
         lastName: person.lastName,
@@ -888,7 +898,9 @@ export default function NewResidentScreen() {
             setOn: setExisting,
             setPaidTill,
           }}
+          billingCycle={billingCycle}
           moveInDate={moveInDate}
+          onChangeBillingCycle={setBillingCycle}
           onChangeMoveInDate={setMoveInDate}
           onChangeReferralCode={setReferralCode}
           numberedRooms={numberedRooms}
@@ -1269,9 +1281,11 @@ type ExistingForm = {
 };
 
 function TermsStep({
+  billingCycle,
   existing,
   moveInDate,
   numberedRooms,
+  onChangeBillingCycle,
   onChangeMoveInDate,
   onChangeReferralCode,
   onPickNumberedRoom,
@@ -1284,9 +1298,11 @@ function TermsStep({
   rooms,
   charges,
 }: {
+  billingCycle: BillingCycle;
   existing: ExistingForm;
   moveInDate: string;
   numberedRooms: Room[];
+  onChangeBillingCycle: (value: BillingCycle) => void;
   onChangeMoveInDate: (value: string) => void;
   onChangeReferralCode: (value: string) => void;
   onPickNumberedRoom: (roomId: string) => void;
@@ -1382,6 +1398,22 @@ function TermsStep({
               placeholder="YYYY-MM-DD"
               value={moveInDate}
             />
+          )}
+
+          {existing.on ? null : (
+            <View className="gap-2">
+              <Text variant="label">Billing</Text>
+              <Segmented
+                onChange={onChangeBillingCycle}
+                options={BILLING_OPTIONS}
+                value={billingCycle}
+              />
+              <Text className="text-muted-foreground" variant="caption">
+                {billingCycle === "SAME_DAY"
+                  ? "Move-in day to the same day next month, then every month on that day."
+                  : "Move-in day to the end of the month, then every month from the 1st."}
+              </Text>
+            </View>
           )}
         </Card>
       </View>
@@ -1913,11 +1945,13 @@ function HowToPay({
  * the total before a thumb reaches the button under it.
  */
 function useIntakeQuote({
+  billingCycle,
   charges,
   moveInDate,
   referralCode,
   roomType,
 }: {
+  billingCycle: BillingCycle;
   charges: Charges | null;
   moveInDate: string;
   referralCode: string;
@@ -1931,7 +1965,7 @@ function useIntakeQuote({
   } | null>(null);
 
   const key = roomType
-    ? [roomType, moveInDate, referralCode.trim().toUpperCase(), JSON.stringify(charges ?? {})].join("|")
+    ? [roomType, moveInDate, billingCycle, referralCode.trim().toUpperCase(), JSON.stringify(charges ?? {})].join("|")
     : null;
 
   useEffect(() => {
@@ -1943,6 +1977,7 @@ function useIntakeQuote({
     const timer = setTimeout(() => {
       void getIntakeQuote({
         ...(charges ? overridesOf(charges) : {}),
+        billingCycle,
         moveInDate: startOfDayIso(moveInDate) ?? undefined,
         referralCode: referralCode.trim() || undefined,
         roomType,
@@ -1965,7 +2000,7 @@ function useIntakeQuote({
       live = false;
       clearTimeout(timer);
     };
-  }, [charges, key, moveInDate, referralCode, roomType]);
+  }, [billingCycle, charges, key, moveInDate, referralCode, roomType]);
 
   const settled = answer?.key === key;
 

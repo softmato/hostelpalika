@@ -1590,6 +1590,12 @@ export type ResidentAccount = {
 
 /** `serializeResident` in full. `AdminResident` in `admin-api.ts` is the row. */
 export type ManagedResident = {
+  /** "Bills on the 20th" (field review E2). Absent on an older API. */
+  billsOn?: string;
+  billingCycle?: "CALENDAR_MONTH" | "SAME_DAY";
+  /** Their move-out notice (E5), when they gave one. */
+  leavingOn?: string | null;
+  leavingReason?: string | null;
   /** The application form on file (`lib/resident-details.ts`). Only on the one-resident read. */
   details?: import("@/lib/resident-details").ResidentDetails | null;
   /** Their admission-form photo (staff route); the account's own picture wins where there is one. */
@@ -1716,6 +1722,7 @@ export type ResidentIntakeResult = {
  * screen where a reason is recorded with it.
  */
 export async function createResident(input: ChargeOverrides & {
+  billingCycle?: "CALENDAR_MONTH" | "SAME_DAY";
   email?: string;
   /** Why any charge differs from the rate card. Needed with any of them. */
   feeReason?: string;
@@ -1945,6 +1952,7 @@ export type ChargeOverrides = {
 };
 
 export async function getIntakeQuote(input: ChargeOverrides & {
+  billingCycle?: "CALENDAR_MONTH" | "SAME_DAY";
   /** ISO. Decides which rate card is in force. */
   moveInDate?: string;
   referralCode?: string;

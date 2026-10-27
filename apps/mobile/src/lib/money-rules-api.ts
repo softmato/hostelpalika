@@ -12,6 +12,8 @@ export type LeaveRule = { enabled: boolean; foodPerDay: number; minDays: number;
 export type MoneyRules = {
   leave: LeaveRule;
   moveOutCharge: "FULL_MONTH" | "TILL_DAY";
+  /** A resident's leaving day must be at least this many days ahead (E5). */
+  moveOutNoticeDays?: number;
   openingBalance: { amount: number; asOf: string } | null;
 };
 
@@ -54,4 +56,34 @@ export async function addResidentLeave(residentId: string, input: { from: string
 
 export async function removeResidentLeave(residentId: string, leaveId: string) {
   return unwrap(await api.delete<ApiEnvelope<ResidentLeaves>>(`/hostel-admin/residents/${residentId}/leave/${leaveId}`));
+}
+
+/** Still here on or after the day they said they would leave (E5) — Home's "Leaving today". */
+export type LeavingResident = { id: string; leavingOn: string; name: string; roomNumber: string | null };
+
+export const leavingTodayQuery = (): Query<LeavingResident[]> =>
+  defineQuery("admin:leaving-today", [REALTIME_TOPIC.PAYMENTS], async () =>
+    unwrap(await api.get<ApiEnvelope<{ residents: LeavingResident[] }>>("/hostel-admin/residents/leaving-today"))
+      .residents,
+  );
+
+/** A resident's own move-out notice (E5). Dates are `YYYY-MM-DD`. */
+export type LeavingNotice = {
+  earliest: string;
+  leavingOn: string | null;
+  leavingOnLabel: string | null;
+  noticeDays: number;
+  reason: string | null;
+};
+
+export async function getLeavingNotice() {
+  return unwrap(await api.get<ApiEnvelope<LeavingNotice>>("/resident/leaving"));
+}
+
+export async function saveLeavingNotice(input: { date: string; reason?: string }) {
+  return unwrap(await api.put<ApiEnvelope<LeavingNotice>>("/resident/leaving", input));
+}
+
+export async function cancelLeavingNotice() {
+  return unwrap(await api.delete<ApiEnvelope<LeavingNotice>>("/resident/leaving"));
 }

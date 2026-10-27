@@ -13,6 +13,7 @@ import {
 } from "@/app/_components/portal-dashboard-ui";
 import { Glyph, type GlyphName } from "@/components/glyph";
 import { ResidentIdCard } from "@/components/resident-identity";
+import { ResidentLeavingCard } from "./resident-leaving-card";
 import { usePortalResource } from "@/lib/portal-query";
 import { residentEndpoints } from "@/lib/resident-endpoints";
 import { CardSkeletons, FactChip, SectionTitle, titleCase } from "./daily-portal-ui";
@@ -188,6 +189,7 @@ export const ResidentProfilePageContent = memo(function ResidentProfilePageConte
             <SectionCard>
               <ResidentIdCard />
             </SectionCard>
+            <ResidentLeavingCard />
           </div>
         </div>
       ) : null}

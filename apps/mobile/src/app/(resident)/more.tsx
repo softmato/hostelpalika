@@ -37,6 +37,7 @@ type Row = { href: string; icon: GlyphName; title: string; tone?: MenuTone };
 const STAY_ROWS: Row[] = [
   { href: "/profile", icon: "person", title: "Profile" },
   { href: "/my-room", icon: "bed", title: "My room" },
+  { href: "/leaving", icon: "log-out", title: "Moving out" },
   { href: "/night-status", icon: "moon", title: "Night status", tone: "warning" },
   // Directly under Night status: what the resident says, then what the phone reported.
   { href: "/attendance", icon: "location", title: "Location & attendance" },

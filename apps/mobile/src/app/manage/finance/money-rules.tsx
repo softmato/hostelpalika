@@ -83,9 +83,50 @@ export default function MoneyRulesScreen() {
           </Card>
         </View>
 
+        <NoticeDays onSaved={() => rules.refresh()} saved={data.moveOutNoticeDays ?? 0} />
+
         <DaysAway onSaved={() => rules.refresh()} saved={data.leave} />
       </View>
     </Screen>
+  );
+}
+
+/** How far ahead a resident's leaving day must be (E5). */
+function NoticeDays({ onSaved, saved }: { onSaved: () => Promise<void> | void; saved: number }) {
+  const [days, setDays] = useState(String(saved));
+  const [busy, setBusy] = useState(false);
+  const value = Number.parseInt(days, 10);
+  const valid = Number.isInteger(value) && value >= 0 && value <= 90;
+
+  return (
+    <View>
+      <SectionHeader subtitle="Residents give notice in the app" title="Move-out notice" />
+      <Card className="gap-3">
+        <Input
+          hint={valid ? `A resident can pick a leaving day ${value} or more days from today.` : "0 to 90 days."}
+          keyboardType="number-pad"
+          label="Notice days"
+          onChangeText={setDays}
+          value={days}
+        />
+        <Button
+          disabled={!valid || value === saved}
+          label="Save"
+          loading={busy}
+          onPress={() => {
+            setBusy(true);
+            void saveMoneyRules({ moveOutNoticeDays: value })
+              .then(async () => {
+                toastSuccess("Notice days saved");
+                await onSaved();
+              })
+              .catch((error) => toastError("Not saved", readApiError(error)))
+              .finally(() => setBusy(false));
+          }}
+          variant="secondary"
+        />
+      </Card>
+    </View>
   );
 }
 

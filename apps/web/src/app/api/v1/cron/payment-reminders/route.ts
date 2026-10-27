@@ -6,6 +6,7 @@ import { raiseDueRenewals } from "@/modules/billing/plan-renewal-sweep.service";
 import { sendTrialEndingReminders } from "@/modules/billing/trial-reminders.service";
 import { runPaymentReminders } from "@/modules/finance/dunning.service";
 import { sendAdminPaymentDigest } from "@/modules/finance/finance-notify";
+import { sendLeavingReminders } from "@/modules/move-checklist/leaving-notice.service";
 
 export const runtime = "nodejs";
 // Emails are external I/O; a large hostel roster needs more than the default.
@@ -45,8 +46,10 @@ export async function POST(request: NextRequest) {
     const trials = await sendTrialEndingReminders();
     const reminders = await runPaymentReminders();
     const digest = await sendAdminPaymentDigest();
+    // Move-out notices (E5): the day before, on the day, and after it until done.
+    const leaving = await sendLeavingReminders().catch(() => ({ leavingReminders: 0 }));
 
-    return successResponse({ ...reminders, digest, renewals, trials }, "Payment reminders processed");
+    return successResponse({ ...reminders, ...leaving, digest, renewals, trials }, "Payment reminders processed");
   } catch (error) {
     return handleRouteError(error);
   }

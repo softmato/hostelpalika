@@ -182,6 +182,8 @@ const hostelSettingsSchema = new Schema(
     roomTracking: { default: true, type: Boolean },
     /** How a leaving month is charged unless the move-out sheet says otherwise. */
     moveOutCharge: { default: "TILL_DAY", enum: ["FULL_MONTH", "TILL_DAY"], type: String },
+    /** A resident's leaving date must be at least this many days ahead (field review E5). */
+    moveOutNoticeDays: { default: 0, max: 90, min: 0, type: Number },
     /**
      * What a resident gets off for days away (home, holiday) — see
      * `resident-leave.service`. `FOOD` = `foodPerDay` rupees a day; `FULL_DAY`

@@ -410,6 +410,12 @@ export type AdminSosAlert = {
 };
 
 export type AdminResident = {
+  /** "Bills on the 20th" (field review E2). Absent on an older API. */
+  billsOn?: string;
+  billingCycle?: "CALENDAR_MONTH" | "SAME_DAY";
+  /** Their move-out notice (E5), when they gave one. */
+  leavingOn?: string | null;
+  leavingReason?: string | null;
   /** Null until they activate a login. See {@link ResidentAccount}. */
   account?: ResidentAccount | null;
   /** Their admission-form photo (staff route), when they have no account picture. */

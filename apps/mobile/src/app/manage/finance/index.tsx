@@ -4,6 +4,7 @@ import { View } from "react-native";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Card, SectionHeader } from "@/components/ui/card";
+import { Text } from "@/components/ui/text";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonRows } from "@/components/ui/skeleton";
@@ -190,6 +191,19 @@ export default function ManageFinanceScreen() {
               }
               title="Opening balance"
             />
+          </Card>
+        </View>
+
+        <View>
+          <SectionHeader title="How bills work" />
+          <Card>
+            <View className="gap-1.5">
+              <Text className="text-muted-foreground" variant="caption">{"• First bill at registration — to the month end, or a whole month on Same day."}</Text>
+              <Text className="text-muted-foreground" variant="caption">{"• Then one bill a month: on the 1st, or on their own day."}</Text>
+              <Text className="text-muted-foreground" variant="caption">{"• Due on the bill's last day, or after the late-fine free days."}</Text>
+              <Text className="text-muted-foreground" variant="caption">{"• Reminders 7 and 5 days before, then twice a day from 3 days until paid."}</Text>
+              <Text className="text-muted-foreground" variant="caption">{"• Leaving: they pick the day, rent stops on it, the warden moves them out."}</Text>
+            </View>
           </Card>
         </View>
 

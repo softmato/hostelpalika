@@ -61,7 +61,8 @@ import {
   periodOfDate,
   raiseAdmissionInvoice,
 } from "@/modules/residents/resident-intake.service";
-import { runBillingCycle } from "@/modules/finance/billing.service";
+import { ordinalDay, runBillingCycle } from "@/modules/finance/billing.service";
+import { billDayOf } from "@/modules/finance/fee-schedule.service";
 import { auditFinanceAction } from "@/modules/finance/audit-finance";
 import { resolveRoom } from "@/modules/hostels/hostel-rooms.service";
 import { hostelToday } from "@/lib/hostel-day";
@@ -229,6 +230,12 @@ function serializeResident(resident: ResidentRecord) {
     /** What was levied at intake. Null — not zero — when none was. */
     admissionFee: resident.admissionFee ?? null,
     admissionFeeDiscount: resident.admissionFeeDiscount ?? 0,
+    billingCycle: resident.billingCycle ?? "CALENDAR_MONTH",
+    /** "Bills on the 20th" (field review E2) — same-day residents' own day, the 1st otherwise. */
+    billsOn: `Bills on the ${ordinalDay(billDayOf(resident) ?? 1)}`,
+    /** Their move-out notice (E5): the day they said they are leaving. */
+    leavingOn: resident.leavingOn?.toISOString() ?? null,
+    leavingReason: resident.leavingReason ?? null,
     createdAt: resident.createdAt?.toISOString(),
     demoDataLabel: resident.demoDataLabel ?? "",
     depositAmount: resident.depositAmount,

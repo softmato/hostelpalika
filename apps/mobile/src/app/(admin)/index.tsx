@@ -47,6 +47,7 @@ import { openConfirm } from "@/lib/confirm";
 import { statementCredits } from "@/lib/hostel-statement";
 import { expenseQuery } from "@/lib/expenses-api";
 import { khataQuery } from "@/lib/khata-api";
+import { leavingTodayQuery } from "@/lib/money-rules-api";
 import { STORE_OPEN } from "@/lib/store-api";
 
 /**
@@ -217,6 +218,13 @@ function BranchAdminHomeScreen() {
   const khata = useResource(khataAccess.load, {
     cacheKey: khataAccess.key,
     topics: khataAccess.topics,
+  });
+
+  // Residents whose notice day is today or past (E5); a 403 leaves it empty.
+  const leavingQuery = useMemo(() => leavingTodayQuery(), []);
+  const leaving = useResource(leavingQuery.load, {
+    cacheKey: leavingQuery.key,
+    topics: leavingQuery.topics,
   });
 
   const due = useResource(dueQuery.load, {
@@ -449,6 +457,17 @@ function BranchAdminHomeScreen() {
               tone="warning"
             />
           ) : null}
+          {(leaving.data ?? []).map((row) => (
+            <CardRow
+              icon="log-out"
+              key={row.id}
+              onPress={() => router.push(`/manage/resident/${row.id}?panel=moveOut`)}
+              right={<Badge label="Move out" tone="warning" />}
+              subtitle={row.roomNumber ? `Room ${row.roomNumber}` : "Their notice day has come"}
+              title={`Leaving today · ${row.name}`}
+              tone="warning"
+            />
+          ))}
           <SubscriptionDueCard state={due.data ?? null} />
           <FreeMonthCard state={due.data ?? null} />
 

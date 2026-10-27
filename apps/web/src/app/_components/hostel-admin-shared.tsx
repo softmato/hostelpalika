@@ -7,6 +7,12 @@ import type { ReactNode } from "react";
 export type LoadState = "idle" | "loading" | "ready" | "error";
 
 export type Resident = {
+  /** "Bills on the 20th" — from the server (field review E2). */
+  billsOn?: string;
+  billingCycle?: "CALENDAR_MONTH" | "SAME_DAY";
+  /** Their move-out notice (E5), when they gave one. */
+  leavingOn?: string | null;
+  leavingReason?: string | null;
   /**
    * The login this resident signs in with, or `null` when they have none yet.
    *

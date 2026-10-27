@@ -20,6 +20,8 @@ import { HostelSettingsModel } from "@hostel/db/models/HostelSettings";
 export type MoneyRules = {
   leave: { enabled: boolean; foodPerDay: number; minDays: number; mode: "FOOD" | "FULL_DAY" };
   moveOutCharge: "FULL_MONTH" | "TILL_DAY";
+  /** Leaving dates must be at least this many days ahead. */
+  moveOutNoticeDays: number;
   openingBalance: { amount: number; asOf: string } | null;
 };
 
@@ -34,6 +36,7 @@ export const moneyRulesSchema = z.object({
     })
     .optional(),
   moveOutCharge: z.enum(["FULL_MONTH", "TILL_DAY"]).optional(),
+  moveOutNoticeDays: z.coerce.number().int().min(0).max(90).optional(),
   /** Null clears it. `asOf` is a `YYYY-MM-DD` day. */
   openingBalance: z
     .object({
@@ -47,6 +50,7 @@ export const moneyRulesSchema = z.object({
 type Stored = {
   leave?: Partial<MoneyRules["leave"]>;
   moveOutCharge?: MoneyRules["moveOutCharge"];
+  moveOutNoticeDays?: number;
   openingBalance?: { amount: number; asOf: Date } | null;
 };
 
@@ -56,7 +60,7 @@ export async function getMoneyRules(hostelId: Types.ObjectId | string): Promise<
   await connectToDatabase();
 
   const stored = await HostelSettingsModel.findOne({ hostelId: oid(hostelId) })
-    .select("leave moveOutCharge openingBalance")
+    .select("leave moveOutCharge moveOutNoticeDays openingBalance")
     .lean<Stored | null>();
 
   return {
@@ -67,6 +71,7 @@ export async function getMoneyRules(hostelId: Types.ObjectId | string): Promise<
       mode: stored?.leave?.mode ?? "FOOD",
     },
     moveOutCharge: stored?.moveOutCharge ?? "TILL_DAY",
+    moveOutNoticeDays: stored?.moveOutNoticeDays ?? 0,
     openingBalance: stored?.openingBalance
       ? { amount: stored.openingBalance.amount, asOf: stored.openingBalance.asOf.toISOString().slice(0, 10) }
       : null,
@@ -86,6 +91,7 @@ export async function saveMoneyRules(
 
   if (input.leave) set.leave = input.leave;
   if (input.moveOutCharge) set.moveOutCharge = input.moveOutCharge;
+  if (input.moveOutNoticeDays !== undefined) set.moveOutNoticeDays = input.moveOutNoticeDays;
 
   if (input.openingBalance === null) {
     unset.openingBalance = "";

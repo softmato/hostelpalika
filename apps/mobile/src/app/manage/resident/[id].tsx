@@ -136,14 +136,15 @@ function toNumber(value: string) {
 
 export default function ManageResidentScreen() {
   const dates = useDates();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  // `?panel=moveOut` from Home's "Leaving today" opens the move-out sheet straight away.
+  const { id, panel: openOn } = useLocalSearchParams<{ id: string; panel?: string }>();
   const query = adminQuery.resident(id);
   const data = useResource<AdminResidentRecord>(query.load, {
     cacheKey: query.key,
     topics: query.topics,
   });
 
-  const [panel, setPanel] = useState<Panel>(null);
+  const [panel, setPanel] = useState<Panel>(openOn === "moveOut" ? "moveOut" : null);
   const [busy, setBusy] = useState(false);
   const [form, setForm] = useState<Record<string, string>>({});
   const [flags, setFlags] = useState<Record<string, boolean>>({});
@@ -708,6 +709,13 @@ export default function ManageResidentScreen() {
           <DetailSection title="Their tenancy">
             <FactRow label="Room type" value={humanizeEnum(resident.roomType)} />
             <FactRow label="Moved in" value={dates.date(resident.moveInDate)} />
+            {resident.billsOn ? <FactRow label="Billing" value={resident.billsOn} /> : null}
+            {resident.leavingOn ? (
+              <FactRow
+                label="Leaving on"
+                value={`${dates.date(resident.leavingOn)}${resident.leavingReason ? ` · ${resident.leavingReason}` : ""}`}
+              />
+            ) : null}
             <FactRow label="Status" value={humanizeEnum(resident.status)} />
             {resident.createdAt ? (
               <FactRow label="On the roll since" value={dates.date(resident.createdAt)} />
