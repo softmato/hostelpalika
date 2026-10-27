@@ -1,4 +1,4 @@
-import { roomTypeLabel } from "@hostel/shared/constants/room-types";
+import { bedsForRoomType, roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { Types } from "mongoose";
 import { z } from "zod";
 
@@ -11,6 +11,7 @@ import {
   summarizeConfigurations,
   writeConfigurations,
 } from "@/modules/hostels/hostel-capacity.service";
+import { normalizeBedType } from "@/modules/finance/bed-type";
 import { createInAppNotification } from "@/modules/notifications/notification.service";
 import { resolveHostelStaffUserIds } from "@/modules/residents/resident-notify";
 import { HostelModel } from "@hostel/db/models/Hostel";
@@ -335,12 +336,16 @@ export async function updateRoom(
     throw new RoomError(`${living} people live in Room ${room.number}. It needs at least ${living} beds.`, "ROOM_TOO_SMALL", 409);
   }
 
-  if (input.roomType && input.roomType !== room.roomType) {
-    if (living > 0) {
-      throw new RoomError(`Move the ${living} people out of Room ${room.number} before changing its type — their rent follows the type.`, "ROOM_OCCUPIED", 409);
-    }
+  const retyped = Boolean(input.roomType && input.roomType !== room.roomType);
+  // A new type brings its own bed count unless the owner set one.
+  const beds = retyped && input.roomType ? (input.beds ?? bedsForRoomType(input.roomType)) : input.beds;
 
+  if (retyped && input.roomType) {
     await assertRoomType(id, input.roomType);
+
+    const refusal = typeChangeRefusal(room.number, living, input.roomType, beds ?? room.beds);
+
+    if (refusal) throw new RoomError(refusal, "ROOM_TOO_SMALL", 409);
   }
 
   if (input.number && input.number !== room.number) {
@@ -349,7 +354,7 @@ export async function updateRoom(
     if (clash) throw new RoomError(`Room ${input.number} already exists.`, "ROOM_NUMBER_TAKEN", 409);
   }
 
-  const changes = { beds: input.beds, floor: input.floor, number: input.number, roomType: input.roomType };
+  const changes = { beds, floor: input.floor, number: input.number, roomType: input.roomType };
 
   await HostelRoomModel.updateOne(
     { _id: room._id },
@@ -364,9 +369,26 @@ export async function updateRoom(
     );
   }
 
+  // Whoever lives there now lives in the new type; rent follows it from the next bill.
+  if (retyped && input.roomType) {
+    await ResidentModel.updateMany(
+      { isDeleted: { $ne: true }, roomId: room._id, status: { $in: LIVE } },
+      { $set: { bedType: normalizeBedType(input.roomType), roomType: input.roomType, updatedBy: principal.userId } },
+    );
+  }
+
   await syncTypeCounts(id);
 
   return getRoomLayout(id);
+}
+
+/** Why an occupied room cannot take a type, or null when it can (field review B6). */
+export function typeChangeRefusal(number: string, living: number, roomType: string, beds: number) {
+  if (living <= beds) return null;
+
+  const extra = living - beds;
+
+  return `${living} people live in Room ${number}; a ${roomTypeLabel(roomType)} has ${beds} ${beds === 1 ? "bed" : "beds"}. Move ${extra} ${extra === 1 ? "person" : "people"} out first.`;
 }
 
 export async function deleteRoom(hostelId: Types.ObjectId | string, roomId: string, principal: ApiPrincipal) {
@@ -469,7 +491,7 @@ export async function moveResidentToRoom(
 
   await ResidentModel.updateOne(
     { _id: resident._id },
-    { $set: { floor: room.floor, roomId: room._id, roomNumber: room.number, roomType: room.roomType, updatedBy: principal.userId } },
+    { $set: { bedType: normalizeBedType(room.roomType), floor: room.floor, roomId: room._id, roomNumber: room.number, roomType: room.roomType, updatedBy: principal.userId } },
   );
   // Whatever they had asked for is answered by the move.
   await RoomChangeRequestModel.updateMany(

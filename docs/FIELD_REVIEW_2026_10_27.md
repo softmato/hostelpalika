@@ -73,9 +73,16 @@ again (the note's "double click") or another chip clears/switches it. Rooms adde
 removed in this pass look different from the rest and fade in / out.
 ☐ **B5 Room box → sheet** lists who lives there (photo, name, since, dues badge) and the
 free beds. Sheet polished.
-☐ **B6 Room-type change guard**: allowed when empty; when occupied only if the new
+☑ **B6 Room-type change guard**: allowed when empty; when occupied only if the new
 type's beds ≥ residents in the room, else blocked with the reason. Enforced on the
 server room update, not only in the sheet.
+**Done in code 2026-10-27** — `updateRoom` no longer refuses every occupied retype:
+`typeChangeRefusal` 409s only when the new type's beds < people living there ("3 people
+live in Room 101; a Double Sharing Room has 2 beds. Move 1 person out first."). The beds
+follow the type unless sent; the residents in the room take the new `roomType` +
+`bedType` (rent follows from the next bill), then the type counts re-derive. A move
+between rooms now also writes `bedType`. Test: `hostel-rooms.service.test.ts`. Web and
+app both go through it. Open: web deploy.
 ☐ **B7 Not-floor-wise mode** stays simple: per resident, one room type, nothing else (p1).
 ☐ **B8 Room assignment** snappy: optimistic move, no full reload, short transitions.
 

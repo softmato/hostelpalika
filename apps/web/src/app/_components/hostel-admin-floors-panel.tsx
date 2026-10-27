@@ -625,7 +625,7 @@ export function FloorsPanel() {
                   Type
                   <select className={INPUT} defaultValue={editing.roomType} name="roomType">
                     {types.map((type) => (
-                      <option key={type} value={type}>{`${type} (${beds(type)})`}</option>
+                      <option key={type} value={type}>{`${roomTypeLabel(type)} (${beds(type)})`}</option>
                     ))}
                   </select>
                 </label>
