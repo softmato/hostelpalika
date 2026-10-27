@@ -2,19 +2,20 @@ import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
-import Animated, { FadeInDown, ReduceMotion } from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 
 import { IntroHero } from "@/components/intro-hero";
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
-import { Grid } from "@/components/ui/layout";
+import { Grid, useEntranceDelay } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
 import { Sheet } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
+import { riseIn } from "@/constants/motion";
 import { ROLE } from "@/constants/roles";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -144,13 +145,11 @@ function PerkCard({ index, onPress, perk }: { index: number; onPress: () => void
   const { colors } = useAppTheme();
   const image = absoluteMediaUrl(perk.imageUrl, API_BASE_URL);
   const feeOff = perk.kind === "FEE_OFF";
+  // The screen's one clock (H2), counted on from the section this grid is in.
+  const delay = useEntranceDelay(index);
 
   return (
-    <Animated.View
-      entering={FadeInDown.delay(200 + index * 70)
-        .duration(320)
-        .reduceMotion(ReduceMotion.System)}
-    >
+    <Animated.View entering={riseIn(delay)}>
       <Pressable
         accessibilityLabel={`${perk.title}, ${perkTerms(perk)}`}
         accessibilityRole="button"

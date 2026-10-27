@@ -14,8 +14,6 @@ import {
   KeyboardStickyView,
 } from "react-native-keyboard-controller";
 import Animated, {
-  FadeInDown,
-  ReduceMotion,
   type SharedValue,
   useAnimatedScrollHandler,
   useAnimatedStyle,
@@ -23,20 +21,18 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { useBottomChrome } from "@/components/bottom-chrome";
-import { MOTION } from "@/constants/motion";
+import { riseOnly } from "@/constants/motion";
+import { Entrance } from "@/components/ui/layout";
 import { TAB_BAR_HEIGHT } from "@/components/tab-bar";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
 
-// Third-party scroll view: NativeWind has to be told which props carry classes.
-// The body rises in once when the screen mounts (M4). Refreshes and tab
-// switches don't remount, so they don't replay it. Rise only, no fade of its
-// own: the navigator already fades the screen (Android's stack in 150ms), and a
-// second fade inside that one left the content faint after the transition ended.
-const BODY_ENTER = FadeInDown.duration(MOTION.fast)
-  .withInitialValues({ opacity: 1, transform: [{ translateY: 10 }] })
-  .reduceMotion(ReduceMotion.System);
+// A body that is not a scroll view rises in once as one block (M4); a
+// scrolling body staggers its blocks instead (`Entrance`, H2). Refreshes and tab
+// switches don't remount, so neither replays.
+const BODY_ENTER = riseOnly();
 
+// Third-party scroll view: NativeWind has to be told which props carry classes.
 cssInterop(KeyboardAwareScrollView, {
   className: "style",
   contentContainerClassName: "contentContainerStyle",
@@ -322,7 +318,7 @@ export function Screen({
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
     >
-      {children}
+      <Entrance>{children}</Entrance>
     </KeyboardAwareScrollView>
   ) : (
     <View
@@ -360,7 +356,7 @@ export function Screen({
         */}
         <View className="flex-1">
           {bodyReady ? (
-            <Animated.View className="flex-1" entering={BODY_ENTER}>
+            <Animated.View className="flex-1" entering={scroll ? undefined : BODY_ENTER}>
               {body}
             </Animated.View>
           ) : (

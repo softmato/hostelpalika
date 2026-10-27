@@ -108,14 +108,16 @@ pulse their opacity. Sheets are gorhom, which already springs. Presses only dim
   Not on the community `FlatList`: recycled cells mount mid-scroll. Was: On first load, the first ~8 rows fade up one after another.
   A deleted or swiped-away row collapses instead of vanishing (`LinearTransition`).
   Refreshes don't re-animate.
-- ◐ **M5. Swipe.** 2026-10-20: a light haptic when the swipe action fires. The
-  spring-open and swipeable segment pages are still to do. Was: Row swipe actions spring open and tick a haptic at the
+- ◐ **M5. Swipe.** 2026-10-20: a light haptic when the swipe action fires.
+  2026-10-27: the row opens and closes on `MOTION.slide`. Swipeable segment
+  pages are still to do. Was: Row swipe actions spring open and tick a haptic at the
   commit point (`swipe-row.tsx`). Segmented tabs become swipeable pages, with
   the segment pill following your finger.
 - ☑ **M6. Skeleton shimmer.** Done 2026-10-20. Was: Replace the opacity pulse with a light band that
   sweeps across (`expo-linear-gradient` is installed).
-- ◐ **M7. Money moments.** 2026-10-20: large/display `Money` counts up once. The
-  hide-amount morph is still to do. Was: Totals count up once when they first appear. The
+- ☑ **M7. Money moments.** 2026-10-20: large/display `Money` counts up once.
+  2026-10-27: the hide-amount eye morphs the figure (`PaintedAmount`, fade up
+  from 0.92 scale; first paint and refreshes don't replay). Was: Totals count up once when they first appear. The
   hide-amount eye morphs the digits into dots and back (FoneBiz 0:15).
 - ☑ **M8. Card → screen.** Done 2026-10-20: `components/card-grow.tsx`.
   `growFrom(view, radius, go)` measures the source and has `CardGrowHost` (root
@@ -139,7 +141,11 @@ pulse their opacity. Sheets are gorhom, which already springs. Presses only dim
   haptic. Was: Snapshot the current frame with
   `react-native-view-shot` (installed), swap the theme underneath, then fade
   the snapshot out (FoneBiz 0:42–0:44).
-- ◐ **M10. Web.** 2026-10-20: `Button` presses scale to 0.97; page fade is W3. Was: Same vocabulary: press scale on buttons and cards, a fade-up
+- ☑ **M10. Web.** 2026-10-20: `Button` presses scale to 0.97; page fade is W3.
+  2026-10-27: skeletons sweep a light band (`skeleton-sweep`, 1.1s) instead of
+  pulsing. H2 (2026-10-27): app scroll screens stagger their top-level blocks on
+  `MOTION.stagger` (`Entrance` in `ui/layout.tsx`) and nested `Stagger` rows
+  continue that clock. Was: Same vocabulary: press scale on buttons and cards, a fade-up
   on page entry, springs on dialogs and sheets, and the shimmer. Use CSS first.
   `motion` is already installed for anything CSS can't do.
 

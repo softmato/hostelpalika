@@ -30,6 +30,7 @@ import { SupportDialog } from "@/components/support-dialog";
 import { AppNoticeDialog } from "@/components/app-notice-dialog";
 import { RealtimeProvider } from "@/components/realtime-provider";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UsageWatcher } from "@/components/usage-watcher";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -761,6 +762,7 @@ export function PortalShell({
           {suspension && !suspended && tone === "admin" ? (
             <HostelSuspensionNotice suspension={suspension} />
           ) : null}
+          <UsageWatcher />
           <PortalPageIconProvider value={pageIcon}>
             {/* Keyed by path, so every navigation fades the new page in. */}
             <div className="animate-page-in" key={pathname}>

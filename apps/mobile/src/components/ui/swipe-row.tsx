@@ -7,6 +7,7 @@ import Swipeable, {
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { pressHaptic } from "@/components/ui/pressable-scale";
 import { Text } from "@/components/ui/text";
+import { MOTION } from "@/constants/motion";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
 /**
@@ -89,6 +90,8 @@ export function SwipeRow({
 
   return (
     <Swipeable
+      // Opens and closes on the app's travel spring (M5), not the library's own.
+      animationOptions={MOTION.slide}
       // Below the default 2: the panel is one button wide, and a stiff row makes
       // people pull twice before they believe anything is under there.
       friction={1.6}

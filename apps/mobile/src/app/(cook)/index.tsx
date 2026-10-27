@@ -5,11 +5,11 @@ import { View } from "react-native";
 import { CookShiftCard } from "@/components/cook-shift-card";
 import { mealIcon } from "@/components/meal-row";
 import { PortalBrandHeader } from "@/components/portal-shared";
+import { type ActionTile, ActionTiles } from "@/components/ui/action-grid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
-import { CardRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
@@ -280,46 +280,51 @@ export default function CookTodayScreen() {
       />
 
       {/*
-        Only when the owner switched it on. Above the meal buttons because the
-        kitchen's spending happens at the market in the morning, before any
-        food is out — and one row, because it is a door, not a report.
+        The kitchen's doors as one card of tiles (`ActionTiles`), not three
+        stacked rows of sentences — the same shape as every other portal's
+        Home. Above the meal buttons because the market run happens in the
+        morning, before any food is out. Stock and Add expense only when the
+        owner switched them on.
       */}
-      {/* Khata asks — residents' eggs and extras, answered at the counter. */}
       <View className="px-5 pt-5">
-        <CardRow
-          icon="receipt"
-          onPress={() => router.push("/khata-asks")}
-          right={khataWaiting > 0 ? <Badge label={`${khataWaiting} waiting`} tone="warning" /> : undefined}
-          subtitle={khataWaiting > 0 ? "Tap to give" : "Nothing waiting"}
-          title="Khata asks"
-          tone="brand"
+        <ActionTiles
+          tiles={[
+            {
+              badge: khataWaiting,
+              glyph: colors.primary,
+              icon: "receipt",
+              key: "/khata-asks",
+              label: "Khata asks",
+              onPress: () => router.push("/khata-asks"),
+              tone: "brand",
+            },
+            ...(today.data.stockEnabled
+              ? [
+                  {
+                    glyph: colors.primary,
+                    icon: "cube",
+                    key: "/kitchen-stock",
+                    label: "Kitchen stock",
+                    onPress: () => router.push("/kitchen-stock"),
+                    tone: "brand",
+                  } satisfies ActionTile,
+                ]
+              : []),
+            ...(today.data.expensesEnabled
+              ? [
+                  {
+                    glyph: colors.success,
+                    icon: "wallet",
+                    key: "/expenses/new",
+                    label: "Add expense",
+                    onPress: () => router.push("/expenses/new"),
+                    tone: "success",
+                  } satisfies ActionTile,
+                ]
+              : []),
+          ]}
         />
       </View>
-
-      {/* What the kitchen took from the store — the warden's daily usage is built from these taps. */}
-      {today.data.stockEnabled ? (
-        <View className="px-5 pt-5">
-          <CardRow
-            icon="cube"
-            onPress={() => router.push("/kitchen-stock")}
-            subtitle="Tap what you took from the store"
-            title="Kitchen stock"
-            tone="brand"
-          />
-        </View>
-      ) : null}
-
-      {today.data.expensesEnabled ? (
-        <View className="px-5 pt-5">
-          <CardRow
-            icon="wallet"
-            onPress={() => router.push("/expenses/new")}
-            subtitle="Vegetables, gas, anything you paid for"
-            title="Add expense"
-            tone="success"
-          />
-        </View>
-      ) : null}
 
       <View className="gap-3 px-5 pt-6">
         <SectionHeader

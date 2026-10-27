@@ -1,13 +1,15 @@
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import Animated, { Keyframe, ReduceMotion } from "react-native-reanimated";
 
 import { NotificationBell } from "@/components/notification-bell";
 import { IconButton } from "@/components/ui/icon-button";
 import { CURRENCY_SCALE } from "@/components/ui/money";
 import { Text } from "@/components/ui/text";
 import { APP_NAME, APP_NAME_PARTS, logo } from "@/constants/branding";
+import { MOTION } from "@/constants/motion";
 import { adminHero } from "@/constants/theme";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
@@ -115,6 +117,14 @@ export function usePortalPaint() {
  */
 const LINE_HEIGHT = 1.45;
 
+/** The hide-amount eye swapping digits and `XXX` (M7): a quick fade up from slightly small. */
+const MASK_SWAP = new Keyframe({
+  0: { opacity: 0, transform: [{ scale: 0.92 }] },
+  100: { opacity: 1, transform: [{ scale: 1 }] },
+})
+  .duration(MOTION.fast)
+  .reduceMotion(ReduceMotion.System);
+
 export function PaintedAmount({
   className = "font-semibold tracking-tight text-white",
   size,
@@ -127,8 +137,16 @@ export function PaintedAmount({
   value: string;
 }) {
   const lineHeight = Math.round(size * LINE_HEIGHT);
+  // `maskMoney` draws `XXX`: no digit means masked. Keyed on that, so the eye
+  // morphs the figure while refreshes and first paint (the screen's own
+  // entrance) do not.
+  const masked = !/\d/.test(value);
+  const [initial] = useState(masked);
+  const [toggled, setToggled] = useState(false);
+  if (masked !== initial && !toggled) setToggled(true);
 
   return (
+    <Animated.View entering={toggled ? MASK_SWAP : undefined} key={masked ? "masked" : "shown"}>
     <Text className={className} numberOfLines={1} style={{ fontSize: size, lineHeight }}>
       {/*
         A dash is not an amount, it is the absence of one, so it keeps the plain
@@ -160,6 +178,7 @@ export function PaintedAmount({
         value
       )}
     </Text>
+    </Animated.View>
   );
 }
 

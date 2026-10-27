@@ -1,5 +1,14 @@
 import { Image } from "expo-image";
-import { Children, type ReactNode, useState } from "react";
+import {
+  Children,
+  cloneElement,
+  createContext,
+  isValidElement,
+  type ReactElement,
+  type ReactNode,
+  useContext,
+  useState,
+} from "react";
 import {
   ActivityIndicator,
   type LayoutChangeEvent,
@@ -14,7 +23,7 @@ import Animated, {
 
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { Text } from "@/components/ui/text";
-import { MOTION, riseIn } from "@/constants/motion";
+import { MOTION, riseIn, riseOnly } from "@/constants/motion";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { cellWidth, columnsThatFit } from "@/lib/responsive";
 
@@ -95,6 +104,64 @@ export function Grid({
   );
 }
 
+/**
+ * The slot a block holds on its screen's one entrance clock (H2). `Screen`
+ * hands each top-level block its slot; a `<Stagger>` inside that block counts
+ * its rows on from there, so the whole screen runs on `MOTION.stagger` and
+ * nothing starts its own clock at zero.
+ */
+const EntranceSlot = createContext(0);
+
+/** The entrance delay for the `index`-th item inside the current block (H2). */
+export function useEntranceDelay(index = 0) {
+  return (useContext(EntranceSlot) + index) * MOTION.stagger;
+}
+
+type BlockProps = { children?: ReactNode; className?: string };
+
+/** `flex-1`/`grow` blocks keep filling the scroll content through their wrapper. */
+function grows(child: ReactElement<BlockProps>) {
+  return /(^|\s)(flex-1|grow)(\s|$)/.test(child.props.className ?? "");
+}
+
+function entranceBlocks(children: ReactNode) {
+  return Children.toArray(children).map((child, at) => {
+    // Absolutely placed children position against their parent; a wrapper
+    // would become that parent. They stay as they are.
+    if (!isValidElement<BlockProps>(child) || /(^|\s)absolute(\s|$)/.test(child.props.className ?? "")) {
+      return child;
+    }
+
+    return (
+      <Animated.View
+        entering={at < MOTION.staggerRows ? riseOnly(at * MOTION.stagger) : undefined}
+        key={child.key}
+        style={grows(child) ? { flexGrow: 1 } : undefined}
+      >
+        <EntranceSlot.Provider value={at}>{child}</EntranceSlot.Provider>
+      </Animated.View>
+    );
+  });
+}
+
+/**
+ * A scrolling screen's entrance (H2): the header is already there, then each
+ * top-level block rises `MOTION.stagger` ms after the one above. The usual
+ * single `<View className="gap-6">` wrapper is looked through, so its sections
+ * are the blocks. Wrappers stay mounted, so refreshes replay nothing; a block
+ * that mounts later (content replacing a skeleton) rises in its own slot.
+ */
+export function Entrance({ children }: { children: ReactNode }) {
+  const blocks = Children.toArray(children);
+  const only = blocks.length === 1 ? blocks[0] : null;
+
+  if (isValidElement<BlockProps>(only) && only.type === View) {
+    return cloneElement(only, undefined, entranceBlocks(only.props.children));
+  }
+
+  return <>{entranceBlocks(children)}</>;
+}
+
 const ROW_EXIT = FadeOut.duration(MOTION.fast).reduceMotion(ReduceMotion.System);
 const ROW_LAYOUT = LinearTransition.duration(MOTION.base).reduceMotion(ReduceMotion.System);
 
@@ -119,10 +186,13 @@ export function Stagger({
   /** Rows already counted above, for a list split into date groups. */
   from?: number;
 }) {
+  // Rows continue the screen's clock from the block they sit in (H2).
+  const slot = useContext(EntranceSlot);
+
   return (
     <View className={className}>
       {Children.map(children, (child, index) => {
-        const at = from + index;
+        const at = slot + from + index;
 
         return child ? (
           <Animated.View
