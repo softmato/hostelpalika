@@ -607,6 +607,7 @@ function NotificationRow({
   onOpen: (notification: AppNotification) => void;
 }) {
   const dates = useDates();
+  const role = useAppSelector((state) => state.auth.account?.role);
 
   const { colors } = useAppTheme();
   const [expanded, setExpanded] = useState(false);
@@ -636,7 +637,7 @@ function NotificationRow({
       onPress={() => {
         onOpen(notification);
 
-        const route = notificationRoute(notification);
+        const route = notificationRoute(notification, role);
 
         if (route) {
           router.push(route as never);

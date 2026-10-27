@@ -18,6 +18,7 @@ import * as Notifications from "expo-notifications";
 
 import { claimNotificationDisplay } from "@/lib/notification-sound";
 import { notificationRoute, PUSH_FALLBACK_PATH } from "@/lib/push-link";
+import { store } from "@/store";
 import { PUSH_CHANNEL } from "@/lib/push-notifications";
 import type { RealtimeNotification } from "@/lib/realtime";
 
@@ -58,7 +59,7 @@ export async function presentLiveNotification(
         [LIVE_ECHO]: true,
         category: payload.category,
         notificationId: payload.id,
-        path: notificationRoute(payload) ?? PUSH_FALLBACK_PATH,
+        path: notificationRoute(payload, store.getState().auth.account?.role) ?? PUSH_FALLBACK_PATH,
         urgent,
       },
       title: payload.title,

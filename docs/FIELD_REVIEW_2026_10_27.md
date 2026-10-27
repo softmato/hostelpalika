@@ -197,8 +197,19 @@ which only costs the full list).
 **Done in code 2026-10-27** — `NotificationRow`: kind tile, one-line title with the
 age hard right, one-line body (a tap on a row with no screen expands both); the
 category badge is gone (the tile says it), "Needs you" stays. Open: device look. OTA-able.
-☐ **F3** Every notification opens its exact screen; audit every kind, route the ones
+☑ **F3** Every notification opens its exact screen; audit every kind, route the ones
 with no target.
+**Done in code 2026-10-27** — audit of every `actionUrl` the server writes and of
+`push-routing.ts` `deepLinkForNotification`. Fixed in `lib/push-link.ts`: absolute
+links built by `appUrl()` (SOS staff + guardian) were refused, now our own origin is
+stripped; tenant `/{slug}/admin/…` folds to `/hostel-admin/…`; new rewrites for
+`/app/expenses` (6 expense kinds), `/hostel-admin/kyc|billing|rooms|dashboard`,
+`/guardian/safety`. A row with no usable link opens by kind for the reader's role
+(`BY_ROLE`), and `fitRole` swaps a path inside another role's tabs (the server
+defaults PAYMENT/COMPLAINT/NOTICE to `/(resident)/…` for everyone) for the reader's
+screen — applied in the feed, the live echo and a tapped push. Test: `push-link.test.ts`.
+Open: superadmin-only `/platform/*` links still land on the feed (no platform screens
+in the app); server could send role-correct paths itself.
 
 ## Phase 7 — Feel (p1, p3)
 

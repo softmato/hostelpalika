@@ -29,7 +29,8 @@ import {
   handleNightStatusResponse,
   collapseNightPrompts,
 } from "@/lib/night-status-notification";
-import { marksRoleChange, resolvePushPath } from "@/lib/push-link";
+import { fitRole, marksRoleChange, resolvePushPath } from "@/lib/push-link";
+import { store } from "@/store";
 import {
   forgetPushToken,
   registerPushToken,
@@ -194,7 +195,10 @@ export function usePush() {
        * unrouted push lands on `+not-found`, which reads as the app being
        * broken at the exact moment it just buzzed. See `lib/push-link.ts`.
        */
-      router.push(path as never);
+      // F3: a resident path on an owner's phone opens the owner's screen for the kind.
+      router.push(
+        fitRole(path, data?.category, store.getState().auth.account?.role) as never,
+      );
     }
 
     const subscription = Notifications.addNotificationResponseReceivedListener(open);
