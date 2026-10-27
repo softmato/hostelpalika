@@ -37,9 +37,16 @@ let logos: Promise<Record<"mark" | "softmato" | "wordmark", string | null>> | nu
 
 /** `next dev`, `next build` and a Vercel function run in apps/web; vitest may run a level up. */
 async function readAppFile(...segments: string[]) {
-  for (const dir of [process.cwd(), path.join(process.cwd(), "apps", "web")]) {
+  // The ignore comments stop the tracer treating the whole repo as this route's
+  // dependencies; the folders it really reads come from outputFileTracingIncludes.
+  const roots = [
+    /*turbopackIgnore: true*/ process.cwd(),
+    path.join(/*turbopackIgnore: true*/ process.cwd(), "apps", "web"),
+  ];
+
+  for (const dir of roots) {
     try {
-      return await readFile(path.join(dir, ...segments));
+      return await readFile(path.join(/*turbopackIgnore: true*/ dir, ...segments));
     } catch {
       // Try the next root.
     }

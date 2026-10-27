@@ -599,7 +599,7 @@ export function HostelCard({ hostel }: { hostel: HostelSummary }) {
             loading="lazy"
             src={optimizedImage(hostel.image, 640)}
           />
-          <div className="absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
+          <div className="absolute bottom-3 left-3 flex flex-wrap items-center gap-1.5">
             <StatusPill
               tone="success"
               className="border border-emerald-100/50 bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700"
@@ -700,7 +700,7 @@ export function HostelListCard({ hostel }: { hostel: HostelSummary }) {
           className="h-full w-full bg-cover bg-center transition duration-500 group-hover:scale-105"
           style={{ backgroundImage: `url("${optimizedImage(hostel.image, 640)}")` }}
         />
-        <div className="absolute left-3 top-3 flex flex-wrap items-center gap-1.5">
+        <div className="absolute bottom-3 left-3 flex flex-wrap items-center gap-1.5">
           <StatusPill
             tone="success"
             className="text-[10px] font-bold py-0.5 px-2 bg-emerald-50 text-emerald-700 border border-emerald-100/50"

@@ -262,6 +262,7 @@ export function PublicHeader({ active }: PublicHeaderProps) {
         <Link
           href="/"
           aria-label={PLATFORM_NAME}
+          data-home-entrance="logo"
           className="flex shrink-0 items-center gap-2 lg:pl-10"
         >
           {/* Full name at the top of the page; folds into the HP mark once it scrolls. */}
@@ -270,7 +271,7 @@ export function PublicHeader({ active }: PublicHeaderProps) {
 
         {/* Eight destinations plus More only fit from lg, tight there and roomy
             from xl; below that the same list lives in the slide-out menu. */}
-        <nav className="hidden h-full items-center gap-4 text-[13px] font-medium text-foreground lg:flex xl:gap-6 xl:text-sm">
+        <nav data-home-entrance="nav" className="hidden h-full items-center gap-4 text-[13px] font-medium text-foreground lg:flex xl:gap-6 xl:text-sm">
           {items.map((item) => (
             <Link
               key={item.id}
@@ -311,7 +312,7 @@ export function PublicHeader({ active }: PublicHeaderProps) {
           </div>
         </nav>
 
-        <div className="flex items-center gap-2">
+        <div data-home-entrance="actions" className="flex items-center gap-2">
           <ThemeToggle className="hidden sm:inline-flex" />
           {/* A hostel this account took off the platform, still claimable (docs/HOSTEL_LEAVE_PLATFORM.md). */}
           {isSessionChecked && sessionUser ? <ClaimHostelButton /> : null}

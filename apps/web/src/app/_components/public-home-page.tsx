@@ -36,7 +36,6 @@ import {
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
-import ParticleText from "@/components/react-bits/particle-text";
 import VariableProximity from "@/components/react-bits/variable-proximity";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { browserApi } from "@/lib/browser-api";
@@ -50,6 +49,7 @@ import { HomePlatformSection } from "./home-platform-section";
 import type { HostelSummary } from "./public-hostel-types";
 import { HostelCard, PublicShell, formatMoney } from "./shared";
 import { StarsCtaCard } from "./stars-cta-card";
+import { useHomeEntrance } from "./use-home-entrance";
 
 /** Outline of the room photo in the artwork's own 1671×941 coordinates. */
 const BLOB_PATH =
@@ -384,6 +384,7 @@ function HostelSnapshot({ hostel }: { hostel?: HostelSummary }) {
 function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: HostelSummary[] }) {
   const router = useRouter();
   const pageRef = useRef<HTMLDivElement>(null);
+  useHomeEntrance(pageRef);
   const { hero, identity, platformStats, trustPoints } = useSiteConfig();
   const [searchVal, setSearchVal] = useState("");
   const [searching, setSearching] = useState(false);
@@ -558,8 +559,6 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
   }, [hostels, platformStats]);
 
   const heroTextRef = useRef<HTMLDivElement>(null);
-  // Font size the particles landed on; once set, the solid line is live text with the hover effect.
-  const [tailSize, setTailSize] = useState<number | null>(null);
 
   const moveComparison = (direction: -1 | 1) => {
     if (comparisonHostels.length < 2) return;
@@ -577,6 +576,7 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
               outline and leaves take the brand colour, so nothing is cropped and both themes sit clean. */}
           <svg
             aria-hidden
+            data-home-entrance="art-left"
             className="pointer-events-none absolute bottom-0 left-0 hidden lg:block"
             style={{ width: "32vw", maxWidth: 620 }}
             viewBox="0 250 640 691"
@@ -591,6 +591,7 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
           </svg>
           <svg
             aria-hidden
+            data-home-entrance="art-right"
             className="pointer-events-none absolute right-0 top-0 hidden lg:block"
             style={{ width: "28vw", maxWidth: 560 }}
             viewBox="1100 0 571 941"
@@ -606,8 +607,10 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
             <path d={LEAF} className="fill-brand-teal/70" transform="translate(1470 850) rotate(-30) scale(.8)" />
           </svg>
           <div className="relative z-10 mx-auto flex max-w-[1448px] flex-col items-center px-4 pb-6 pt-28 text-center sm:px-6 sm:pt-32 lg:pt-36">
-            <HeroPulseChip />
-            <div className="mt-6 flex w-full max-w-4xl flex-col items-center" ref={heroTextRef}>
+            <div data-home-entrance="chip">
+              <HeroPulseChip />
+            </div>
+            <div data-home-entrance="headline" className="mt-6 flex w-full max-w-4xl flex-col items-center" ref={heroTextRef}>
               <h1 className="font-heading text-[2.4rem] font-extrabold leading-[1.1] text-foreground sm:text-6xl lg:text-[68px]">
                 <VariableProximity
                   containerRef={heroTextRef}
@@ -627,36 +630,19 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
                   className="-mt-1 w-full font-heading text-brand-teal"
                   style={{ height: "clamp(3.4rem, 8.4vw, 5.8rem)" }}
                 >
-                  {tailSize === null ? (
-                    <ParticleText
-                      clickBurst={false}
-                      density={3}
+                  <div className="flex h-full items-center justify-center whitespace-nowrap font-extrabold leading-none">
+                    <VariableProximity
+                      containerRef={heroTextRef}
+                      falloff="gaussian"
                       fontSize="clamp(2.4rem, 6.2vw, 4.25rem)"
-                      gatherDuration={1800}
-                      highlightColor="#7ee0a8"
-                      intro="spiral"
-                      onSettle={setTailSize}
-                      particleSize={2}
-                      pointerRepel={0}
-                      settle
-                      style={{ minHeight: 0 }}
-                      text={heroTail}
+                      fromFontVariationSettings="'wght' 800"
+                      label={heroTail}
+                      radius={110}
+                      scale={1.06}
+                      toColor="#2fbf71"
+                      toFontVariationSettings="'wght' 800"
                     />
-                  ) : (
-                    <div className="flex h-full items-center justify-center whitespace-nowrap font-extrabold leading-none">
-                      <VariableProximity
-                        containerRef={heroTextRef}
-                        falloff="gaussian"
-                        fontSize={tailSize}
-                        fromFontVariationSettings="'wght' 800"
-                        label={heroTail}
-                        radius={110}
-                        scale={1.06}
-                        toColor="#2fbf71"
-                        toFontVariationSettings="'wght' 800"
-                      />
-                    </div>
-                  )}
+                  </div>
                 </div>
               ) : null}
               <p className="mt-4 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
@@ -670,7 +656,7 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
               </p>
             </div>
 
-            <div className="mt-8 w-full max-w-2xl sm:mt-10">
+            <div data-home-entrance="search" className="mt-8 w-full max-w-2xl sm:mt-10">
               <div className="mx-auto mb-3 flex w-fit items-center gap-1 rounded-full border border-border bg-card/80 p-1 backdrop-blur">
                 <span className="inline-flex items-center gap-2 rounded-full bg-brand-teal px-4 py-2 text-sm font-bold text-white">
                   <Search className="size-4" /> Search Hostels
@@ -706,7 +692,7 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
               </div>
             </div>
 
-            <div className="mt-6 flex w-full max-w-4xl flex-wrap justify-center gap-2">
+            <div data-home-entrance="trust" className="mt-6 flex w-full max-w-4xl flex-wrap justify-center gap-2">
               {HERO_POINTS.map(({ Icon, body, title }) => (
                 <span
                   className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/80 px-3 py-1.5 text-xs font-bold text-foreground backdrop-blur"

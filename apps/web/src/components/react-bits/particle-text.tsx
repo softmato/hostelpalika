@@ -53,7 +53,8 @@ export interface ParticleTextProps {
   style?: CSSProperties;
 }
 
-type Settings = Required<Omit<ParticleTextProps, "className" | "style">>;
+// `onSettle` lives in its own ref, so it is not part of the sampled settings.
+type Settings = Required<Omit<ParticleTextProps, "className" | "style" | "onSettle">>;
 
 interface Particle {
   x: number;
