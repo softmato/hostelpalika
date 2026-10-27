@@ -42,6 +42,8 @@ export type ResidentLedgerMonth = {
   dueAmount: number;
   dueDate: string | null;
   invoiceId: string | null;
+  /** The bill's lines, for the rent / discount / fine / khata breakdown. */
+  lines: { amount: number; basis: string; description: string }[];
   /** `YYYY-MM`. The screen turns this into "July 2026". */
   period: string;
   paidAmount: number;
@@ -204,6 +206,7 @@ export async function getResidentLedger(
       dueAmount: invoice?.dueAmount ?? 0,
       dueDate: invoice?.dueDate?.toISOString() ?? null,
       invoiceId: invoice?.id ?? null,
+      lines: invoice?.lines ?? [],
       paidAmount: invoice?.paidAmount ?? 0,
       payments: invoice ? (paymentsByInvoice.get(invoice.id) ?? []) : [],
       period,

@@ -69,6 +69,8 @@ export type LedgerInvoice = {
   method?: string;
   paidAmount: number;
   paidDate?: Date;
+  /** The bill's lines (rent, discount, fine, khata), where the read carried them. */
+  lines?: { amount: number; basis: string; description: string }[];
   /**
    * `null` for a one-off — an admission fee, a fine, a deposit adjustment.
    * `Invoice.period` is nullable by design (see the model) and this type used to
@@ -274,6 +276,7 @@ type LedgerInvoiceRow = {
   dueDate?: Date;
   hasPendingClaim?: boolean;
   hostelId: Types.ObjectId;
+  lines?: { amount: number; basis: string; description: string }[];
   method?: string;
   paidAmount: number;
   paidDate?: Date;
@@ -305,6 +308,9 @@ function fromLedgerRow(row: LedgerInvoiceRow): LedgerInvoice {
     dueDate: row.dueDate,
     hostelId: row.hostelId?.toString() ?? "",
     id: row._id.toString(),
+    ...(row.lines
+      ? { lines: row.lines.map(({ amount, basis, description }) => ({ amount, basis, description })) }
+      : {}),
     method: row.method ? LEGACY_METHOD_BY_PROVIDER[row.method] : undefined,
     paidAmount: row.paidAmount ?? 0,
     paidDate: row.paidDate,

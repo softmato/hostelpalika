@@ -15,6 +15,7 @@ import {
   monthlyTotals,
   monthOptions,
   monthRange,
+  pdfMonths,
   monthRangeLabel,
   NO_FILTER,
   quickRange,
@@ -717,5 +718,21 @@ describe("debits — the owner's expenses on the same statement", () => {
 
     expect(rows.every((row) => !row.debit)).toBe(true);
     expect(directionOptions(rows)).toEqual([]);
+  });
+});
+
+describe("pdfMonths", () => {
+  it("covers every month on screen when no dates are picked", () => {
+    expect(pdfMonths({ from: "", to: "" }, ["2083-07", "2083-06", "2083-04"])).toEqual({
+      from: "2083-04",
+      to: "2083-07",
+    });
+  });
+
+  it("follows a picked month range", () => {
+    expect(pdfMonths(monthRange("2083-05", "2083-06"), ["2083-07"])).toEqual({
+      from: "2083-05",
+      to: "2083-06",
+    });
   });
 });

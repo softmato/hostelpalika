@@ -16,11 +16,11 @@ import { Card } from "@/components/ui/card";
 import { FieldLabel, Input } from "@/components/ui/input";
 import { Chip } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
-import { Segmented } from "@/components/ui/segmented";
 import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
+import { WalletMark } from "@/components/ui/wallet-mark";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
 import { readApiError } from "@/lib/api-contract";
@@ -31,6 +31,7 @@ import {
   EXPENSE_AMOUNT_MAX,
   EXPENSE_PAID_BY,
   EXPENSE_PAID_BY_LABELS,
+  EXPENSE_WHAT_EXAMPLE,
   EXPENSE_WHAT_MAX,
   type ExpenseCategoryValue,
   type ExpensePaidBy,
@@ -552,7 +553,7 @@ export default function AddExpenseScreen() {
             label={needsWhat ? "What was it?" : "What was it? (optional)"}
             maxLength={EXPENSE_WHAT_MAX}
             onChangeText={setWhat}
-            placeholder="e.g. Rice 25 kg"
+            placeholder={`e.g. ${choice ? (EXPENSE_WHAT_EXAMPLE[choice.category] ?? "What you bought") : "Rice 25 kg"}`}
             value={what}
           />
 
@@ -638,11 +639,35 @@ export default function AddExpenseScreen() {
           {/* ----------------------------------------------------- paid by */}
           <View className="gap-2.5">
             <FieldLabel>Paid by</FieldLabel>
-            <Segmented
-              onChange={(value) => { paidByEdited.current = true; setPaidBy(value); }}
-              options={EXPENSE_PAID_BY.map((value) => ({ label: EXPENSE_PAID_BY_LABELS[value], value }))}
-              value={paidBy}
-            />
+            <View accessibilityRole="radiogroup" className="flex-row gap-2">
+              {EXPENSE_PAID_BY.map((value) => {
+                const on = paidBy === value;
+
+                return (
+                  <Pressable
+                    accessibilityLabel={EXPENSE_PAID_BY_LABELS[value]}
+                    accessibilityRole="radio"
+                    accessibilityState={{ checked: on }}
+                    className={`flex-1 items-center gap-1.5 rounded-2xl border py-2.5 active:opacity-70 ${
+                      on ? "border-primary bg-brand-soft" : "border-border bg-card"
+                    }`}
+                    key={value}
+                    onPress={() => {
+                      paidByEdited.current = true;
+                      setPaidBy(value);
+                    }}
+                  >
+                    <WalletMark name={value} size={36} square />
+                    <Text
+                      className={`text-xs font-semibold ${on ? "text-primary" : "text-foreground"}`}
+                      variant={null}
+                    >
+                      {EXPENSE_PAID_BY_LABELS[value]}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
           </View>
 
           {/* ------------------------------------------------------- photo */}

@@ -36,6 +36,19 @@ describe("buildStatement", () => {
     expect(statement.months).toEqual([{ credit: 6000, debit: 1200, month: "2083-05" }]);
   });
 
+  it("starts from the hostel's opening bank balance, like the app's running total", () => {
+    const before = buildStatement({ ...ledger(), openingBalance: { amount: 20_000, asOf: "2026-07-01" } }, "2083-05", "2083-05");
+
+    expect(before.opening).toBe(25_000);
+    expect(before.closing).toBe(29_800);
+
+    const inside = buildStatement({ ...ledger(), openingBalance: { amount: -3_000, asOf: "2026-08-20" } }, "2083-05", "2083-05");
+
+    expect(inside.opening).toBe(5_000);
+    expect(inside.lines[0]).toMatchObject({ amount: 3_000, kind: "debit", particulars: "Opening bank balance" });
+    expect(inside.closing).toBe(6_800);
+  });
+
   it("prints cash handed to a warden as a transfer and tracks what they hold", () => {
     const base = ledger();
     const owner = { id: "o", name: "Owner", role: "HOSTEL_ADMIN" };

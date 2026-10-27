@@ -37,11 +37,47 @@ type LedgerPayment = {
   transactionCode: string | null;
 };
 
+type BillLine = { amount: number; basis: string; description: string };
+
+const BILL_ORDER: Record<string, number> = { FINE: 2, KHATA: 3 };
+
+/**
+ * A bill's lines in reading order — rent, anything taken off, late fine, khata —
+ * labelled the way the app's cash sheet labels them (`billRows` in
+ * `apps/mobile/src/lib/admin-money.ts`). A discount row exists only when the
+ * bill has one.
+ */
+function billRows(lines: BillLine[]) {
+  return lines
+    .map((line) => {
+      const less = line.amount < 0 || line.basis === "CREDIT";
+      const order = BILL_ORDER[line.basis] ?? (less ? 1 : 0);
+      const label =
+        line.basis === "FINE"
+          ? "Late fine"
+          : line.basis === "KHATA"
+            ? "Khata"
+            : less || line.basis === "MANUAL"
+              ? line.description
+              : "Month rent";
+      const detail =
+        order === 0 && label === "Month rent"
+          ? line.description
+          : order >= 2
+            ? line.description.replace(/^(Late fine|Khata) — /, "")
+            : null;
+
+      return { amount: line.amount, detail, label, less, order };
+    })
+    .sort((a, b) => a.order - b.order);
+}
+
 type LedgerMonth = {
   dueAmount: number;
   dueDate: string | null;
   invoiceId: string | null;
   paidAmount: number;
+  lines?: BillLine[];
   payments: LedgerPayment[];
   period: string;
   status: string;
@@ -143,10 +179,34 @@ function MonthRow({ month }: { month: LedgerMonth }) {
         </ul>
       ) : null}
 
-      {billed && outstanding > 0 ? (
-        <p className="mt-2 border-t border-border/50 pt-2 text-[11.5px] font-semibold text-rose-700 dark:text-rose-400">
-          {currency(outstanding)} still outstanding
-        </p>
+      {billed ? (
+        <dl className="mt-2 space-y-1 border-t border-border/50 pt-2 text-[11.5px]">
+          {billRows(month.lines ?? []).map((row, index) => (
+            <div className="flex items-start justify-between gap-3" key={`${row.order}-${index}`}>
+              <dt className="min-w-0">
+                <span className="block font-medium text-foreground">{row.label}</span>
+                {row.detail ? <span className="block truncate text-muted-foreground">{row.detail}</span> : null}
+              </dt>
+              <dd className={row.less ? "shrink-0 text-emerald-700 dark:text-emerald-400" : "shrink-0 text-foreground"}>
+                {currency(row.amount)}
+              </dd>
+            </div>
+          ))}
+          <div className="flex justify-between border-t border-border/50 pt-1 font-semibold text-foreground">
+            <dt>Total</dt>
+            <dd>{currency(month.dueAmount)}</dd>
+          </div>
+          <div className="flex justify-between text-muted-foreground">
+            <dt>Paid</dt>
+            <dd>{currency(month.paidAmount)}</dd>
+          </div>
+          <div
+            className={`flex justify-between font-semibold ${outstanding > 0 ? "text-rose-700 dark:text-rose-400" : "text-foreground"}`}
+          >
+            <dt>Left</dt>
+            <dd>{currency(outstanding)}</dd>
+          </div>
+        </dl>
       ) : null}
     </li>
   );

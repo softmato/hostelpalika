@@ -21,10 +21,9 @@ import { StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { BillExtras } from "@/components/bill-extras";
+import { BillBreakdown } from "@/components/bill-extras";
 import { Chip, Stagger } from "@/components/ui/layout";
 import { Lottie } from "@/components/ui/lottie";
-import { Meter } from "@/components/ui/meter";
 import { PersonAvatar } from "@/components/ui/avatar";
 import { CardRow, ListRow } from "@/components/ui/list-row";
 import { Money as Amount } from "@/components/ui/money";
@@ -976,26 +975,11 @@ function BranchAdminMoneyScreen() {
               </View>
 
               {open.payment ? (
-                <View className="gap-2 rounded-2xl bg-muted p-4">
-                  <View className="flex-row items-end justify-between gap-2">
-                    <View>
-                      <Text variant="caption">Owing</Text>
-                      <Amount owed size="large" value={amountOwed(open)} />
-                    </View>
-                    <Text variant="caption">
-                      {`${formatMoney(open.payment.paidAmount)} of ${formatMoney(open.payment.dueAmount)} paid`}
-                    </Text>
-                  </View>
-                  <Meter
-                    animated
-                    label={null}
-                    percent={
-                      open.payment.dueAmount > 0
-                        ? Math.round((open.payment.paidAmount / open.payment.dueAmount) * 100)
-                        : 100
-                    }
-                  />
-                </View>
+                <BillBreakdown
+                  dueAmount={open.payment.dueAmount}
+                  lines={open.payment.lines}
+                  paidAmount={open.payment.paidAmount}
+                />
               ) : projectedAmount(open) ? (
                 /*
                   The unbilled sheet's answer to "how much". One chip, and it
@@ -1060,15 +1044,10 @@ function BranchAdminMoneyScreen() {
 
             {open.payment ? (
               <>
-                {open.payment.lines?.some((line) => line.basis === "FINE" || line.basis === "KHATA") ? (
-                  <View className="gap-2">
-                    <BillExtras lines={open.payment.lines} />
-                    {open.payment.status !== "PAID" &&
-                    open.payment.lines.some((line) => line.basis === "FINE") ? (
-                      <View className="flex-row">
-                        <Chip icon="close-circle" label="Waive fine" onPress={waiveFine} />
-                      </View>
-                    ) : null}
+                {open.payment.status !== "PAID" &&
+                open.payment.lines?.some((line) => line.basis === "FINE") ? (
+                  <View className="flex-row">
+                    <Chip icon="close-circle" label="Waive fine" onPress={waiveFine} />
                   </View>
                 ) : null}
                 <View className="gap-3 border-t border-border pt-4">

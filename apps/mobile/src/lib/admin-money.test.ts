@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { AdminInvoiceRow } from "@/lib/admin-api";
 import {
   amountOwed,
+  billRows,
   invoiceSegment,
   isFirstMonth,
   isProRated,
@@ -316,5 +317,31 @@ describe("the first-month note", () => {
     // puts a claim about money on a row the server could not support.
     expect(isFirstMonth(moved(""), "2026-08")).toBe(false);
     expect(isProRated(moved(""), "2026-08")).toBe(false);
+  });
+});
+
+describe("billRows", () => {
+  it("orders rent, discount, fine, khata and sums back to the bill", () => {
+    const lines = [
+      { amount: 8_000, basis: "SCHEDULE", description: "Monthly rent — Kartik 2083" },
+      { amount: 300, basis: "KHATA", description: "Khata — 3 noodles" },
+      { amount: 150, basis: "FINE", description: "Late fine — 3 days" },
+      { amount: -4_000, basis: "CREDIT", description: "Dashain · 50% off — Kartik 2083" },
+    ];
+    const rows = billRows(lines);
+
+    expect(rows.map((r) => r.label)).toEqual([
+      "Month rent",
+      "Dashain · 50% off — Kartik 2083",
+      "Late fine",
+      "Khata",
+    ]);
+    expect(rows[2]?.detail).toBe("3 days");
+    expect(rows.reduce((sum, r) => sum + r.amount, 0)).toBe(4_450);
+  });
+
+  it("has no discount row when nothing was taken off", () => {
+    expect(billRows([{ amount: 8_000, basis: "SCHEDULE", description: "Monthly rent" }]).map((r) => r.kind)).toEqual(["rent"]);
+    expect(billRows(undefined)).toEqual([]);
   });
 });
