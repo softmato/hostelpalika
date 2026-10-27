@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
+import { Stagger } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
@@ -113,7 +114,7 @@ export default function SuppliersScreen() {
             />
           </View>
         ) : (
-          <View className="gap-4 pb-6 pt-5">
+          <Stagger className="gap-4 pb-6 pt-5">
             {suppliers.length > 8 ? (
               <Input
                 leading={<Glyph color={colors.mutedForeground} name="search" size={18} />}
@@ -131,7 +132,7 @@ export default function SuppliersScreen() {
               ))}
             </Card>
             {shown.length === 0 ? <Text variant="muted">Nobody called that.</Text> : null}
-          </View>
+          </Stagger>
         )}
       </Screen>
 

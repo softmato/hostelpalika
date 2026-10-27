@@ -1,6 +1,6 @@
 import { router } from "expo-router";
-import { type ReactNode, useState } from "react";
-import { Pressable, Share, View } from "react-native";
+import { type ReactNode, useMemo, useState } from "react";
+import { Pressable, View } from "react-native";
 
 import { FLOAT_SHADOW } from "@/components/portal-shared";
 import { categoryLabel, monthLabel, NoStockAccess, useStock } from "@/components/stock/stock-parts";
@@ -9,75 +9,93 @@ import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { DataCard } from "@/components/ui/data-card";
 import { Glyph } from "@/components/ui/glyph";
+import { Stagger } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
-import { Meter } from "@/components/ui/meter";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
+import { Segmented } from "@/components/ui/segmented";
 import { Skeleton, SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
+import { useResource } from "@/hooks/use-resource";
+import { readApiError } from "@/lib/api-contract";
+import { downloadToDevice } from "@/lib/documents";
 import { formatMoney } from "@/lib/format";
-import { formatQty, type StockHome, type StockItem } from "@/lib/stock-api";
-import { addBsMonths } from "@hostel/calendar/bs";
+import { formatQty, type ReportRange, reportFileUrl, reportQuery, type StockReportItem } from "@/lib/stock-api";
+import { toastError } from "@/lib/toast";
 
 /**
- * Stock reports — one month at a time (docs/INVENTORY_PLAN.md §5).
+ * Stock report (docs/FIELD_REVIEW_2026_10_27.md D2) — numbers, not sentences.
  *
- * The number an owner opens this for is on the card over the header: **what
- * food and supplies cost per student per day**. Under it, in the order the
- * question usually goes — where did the money go (used, wasted, missing), what
- * is sitting in the store, who we bought from, and each item's month:
- * opening → in → out → closing. Share sends the item table as plain rows any
- * spreadsheet opens.
+ * Over this month, three months or a year: per item **bought · used · left**,
+ * and what next month should cost at that pace, on the card over the header.
+ * PDF and CSV are the same table, through the global downloader.
  *
  * Owner and money staff only; the tile is not shown to anyone else.
  */
 
 const STRADDLE = 34;
+const RANGES = [
+  { label: "This month", value: "month" },
+  { label: "3 months", value: "quarter" },
+  { label: "Year", value: "year" },
+] as const;
 
 export default function StockReportsScreen() {
   const { colors } = useAppTheme();
-  const current = useStock();
-  const [period, setPeriod] = useState<string | null>(null);
-  const { denied, home, resource } = useStock(period);
-  const shown = home?.period ?? current.home?.period ?? null;
-  const atCurrent = !period || period === current.home?.currentPeriod;
-  const summary = home?.summary;
+  const { denied, here, home } = useStock();
+  const [range, setRange] = useState<ReportRange>("month");
+  const query = reportQuery(range);
+  const resource = useResource(query.load, { cacheKey: query.key, topics: query.topics });
+  const report = resource.data ?? null;
+  const [saving, setSaving] = useState<"csv" | "pdf" | null>(null);
 
-  const step = (delta: number) => {
-    if (!shown || !current.home) return;
+  const groups = useMemo(() => {
+    const byCategory = new Map<string, StockReportItem[]>();
 
-    const next = addBsMonths(shown, delta);
+    for (const item of report?.items ?? []) byCategory.set(item.category, [...(byCategory.get(item.category) ?? []), item]);
 
-    if (next > current.home.currentPeriod) return;
+    return [...byCategory];
+  }, [report]);
 
-    setPeriod(next === current.home.currentPeriod ? null : next);
+  const download = async (format: "csv" | "pdf") => {
+    setSaving(format);
+
+    try {
+      await downloadToDevice({
+        extension: format,
+        fileName: `stock-report-${range}`,
+        label: "Stock report",
+        mimeType: format === "pdf" ? "application/pdf" : "text/csv",
+        url: reportFileUrl(range, format),
+      });
+    } catch (error) {
+      toastError("Could not download", readApiError(error, "The report did not download."));
+    } finally {
+      setSaving(null);
+    }
   };
 
   const header = (
     <View className="bg-background">
-      <AppBar accent centerTitle showBack straddle={STRADDLE} subtitle={current.here?.name ?? "All buildings"} title="Stock reports" />
+      <AppBar accent centerTitle showBack straddle={STRADDLE} subtitle={report?.scope ?? here?.name ?? "All buildings"} title="Stock report" />
       <View className="px-5" style={{ marginTop: -STRADDLE }}>
-        <View className="gap-3 rounded-2xl border border-border bg-card p-4" style={FLOAT_SHADOW}>
-          <View className="flex-row items-center justify-between">
-            <Arrow disabled={!home} label="Previous month" name="chevron-back" onPress={() => step(-1)} />
-            <Text variant="label">{shown ? (atCurrent ? `This month · ${monthLabel(shown)}` : monthLabel(shown)) : " "}</Text>
-            <Arrow disabled={atCurrent} label="Next month" name="chevron-forward" onPress={() => step(1)} />
-          </View>
-          {!summary ? (
-            <Skeleton height={44} width="60%" />
+        <View className="rounded-2xl border border-border bg-card p-4" style={FLOAT_SHADOW}>
+          {!report?.totals ? (
+            <View className="flex-row gap-3">
+              <Skeleton height={44} width="48%" />
+              <Skeleton height={44} width="48%" />
+            </View>
           ) : (
-            <View className="items-center gap-0.5">
-              <Text variant="caption">Cost per student per day</Text>
-              {summary.costPerResidentDay !== null ? (
-                <Money size="large" value={summary.costPerResidentDay} />
-              ) : (
-                <Text variant="subtitle">—</Text>
-              )}
-              <Text variant="caption">
-                {summary.residents} student{summary.residents === 1 ? "" : "s"} · {summary.days} day{summary.days === 1 ? "" : "s"}
-              </Text>
+            <View className="flex-row">
+              <Figure label={`${monthLabel(report.nextPeriod)} · expected`}>
+                <Money value={report.totals.nextValue} />
+              </Figure>
+              <View className="w-px bg-border" />
+              <Figure label="Per student / day">
+                {report.costPerResidentDay !== null ? <Money value={report.costPerResidentDay} /> : <Text variant="subtitle">—</Text>}
+              </Figure>
             </View>
           )}
         </View>
@@ -93,7 +111,7 @@ export default function StockReportsScreen() {
     );
   }
 
-  if (resource.error && !home) {
+  if (resource.error && !report) {
     return (
       <Screen header={header}>
         <ErrorState message={resource.error} onRetry={resource.reload} />
@@ -101,81 +119,75 @@ export default function StockReportsScreen() {
     );
   }
 
-  if (!home || !summary) {
-    return (
-      <Screen header={header}>
-        <View className="pt-5">
-          <SkeletonRows rows={6} />
-        </View>
-      </Screen>
-    );
-  }
-
-  const spent = summary.spentValue ?? 0;
-  const stockItems = home.items.filter((item) => item.kind === "STORE" && item.active);
-  const categoryMax = Math.max(1, ...summary.byCategory.map((row) => row.stockValue));
-  const lowItems = home.items.filter((item) => item.at.some((at) => at.low));
-
   return (
     <Screen
-      footer={<Button label="Share item table" onPress={() => void shareTable(home)} size="lg" variant="outline" />}
+      footer={
+        report && report.items.length > 0 ? (
+          <View className="flex-row gap-3">
+            <View className="flex-1">
+              <Button icon="download" label="PDF" loading={saving === "pdf"} onPress={() => void download("pdf")} size="lg" variant="outline" />
+            </View>
+            <View className="flex-1">
+              <Button icon="download" label="CSV" loading={saving === "csv"} onPress={() => void download("csv")} size="lg" variant="outline" />
+            </View>
+          </View>
+        ) : undefined
+      }
       header={header}
       onRefresh={resource.refresh}
       refreshing={resource.refreshing}
       scroll
     >
-      <View className="gap-6 pb-8 pt-5">
-        <DataCard
-          meta="What left the store this month, at what it cost"
-          segments={[
-            { label: `Used ${formatMoney(summary.usedValue)}`, tone: "brand", value: summary.usedValue ?? 0 },
-            { label: `Wasted ${formatMoney(summary.wastedValue)}`, tone: "danger", value: summary.wastedValue ?? 0 },
-            { label: `Missing ${formatMoney(summary.missingValue)}`, tone: "warning", value: summary.missingValue ?? 0 },
-          ]}
-          stats={[
-            { label: "Bought", value: formatMoney(summary.boughtValue) },
-            { label: "Used", value: formatMoney(summary.usedValue) },
-            { label: "Wasted", value: formatMoney(summary.wastedValue) },
-          ]}
-          title={`Spent from store · ${formatMoney(spent)}`}
-          total={Math.max(1, spent)}
-        />
+      <Stagger className="gap-6 pb-8 pt-5">
+        <Segmented onChange={setRange} options={RANGES} value={range} />
 
-        <View>
-          <SectionHeader subtitle={`Worth ${formatMoney(summary.stockValue)} now`} title="In the store" />
-          {summary.byCategory.length === 0 ? (
-            <Text variant="muted">Add prices on bills to see what the store is worth.</Text>
-          ) : (
-            <Card className="gap-4">
-              {summary.byCategory.map((row) => (
-                <View className="gap-1.5" key={row.category}>
-                  <View className="flex-row justify-between">
-                    <Text variant="label">{categoryLabel(row.category)}</Text>
-                    <Text variant="label">{formatMoney(row.stockValue)}</Text>
-                  </View>
-                  <Meter label={`${formatMoney(row.usedValue)} used this month`} percent={Math.round((row.stockValue / categoryMax) * 100)} reading="share" />
-                </View>
-              ))}
-            </Card>
-          )}
-        </View>
+        {!report || report.range !== range ? (
+          <SkeletonRows rows={6} />
+        ) : report.items.length === 0 ? (
+          <EmptyCard description={report.label} title="Nothing bought or used" />
+        ) : null}
 
-        <View>
-          <SectionHeader
-            action={
-              <Pressable accessibilityRole="button" className="active:opacity-70" onPress={() => router.push("/stock/suppliers")}>
-                <Text className="font-semibold text-primary" variant="label">
-                  {formatMoney(summary.dueTotal)} owed
-                </Text>
-              </Pressable>
-            }
-            title="Bought from"
+        {report?.range === range && report.totals ? (
+          <DataCard
+            segments={[
+              { label: `Used ${formatMoney(report.totals.usedValue)}`, tone: "brand", value: report.totals.usedValue },
+              { label: `Wasted ${formatMoney(report.totals.wastedValue)}`, tone: "danger", value: report.totals.wastedValue },
+              { label: `Missing ${formatMoney(report.totals.missingValue)}`, tone: "warning", value: report.totals.missingValue },
+            ]}
+            stats={[
+              { label: "Bought", value: formatMoney(report.totals.boughtValue) },
+              { label: "In store now", value: formatMoney(report.totals.stockValue) },
+              { label: "Days", value: String(report.days) },
+            ]}
+            title={`${report.label} · ${formatMoney(report.totals.usedValue + report.totals.wastedValue + report.totals.missingValue)} out`}
+            total={Math.max(1, report.totals.usedValue + report.totals.wastedValue + report.totals.missingValue)}
           />
-          {summary.bySupplier.length === 0 ? (
-            <Text variant="muted">No priced bills this month.</Text>
-          ) : (
+        ) : null}
+
+        {report?.range === range
+          ? groups.map(([category, rows]) => (
+              <View key={category}>
+                <GroupHeading
+                  label={categoryLabel(category)}
+                  value={`${formatMoney(rows.reduce((sum, row) => sum + (row.nextValue ?? 0), 0))} next month`}
+                />
+                <Card padding="px-4 py-0">
+                  {rows.map((item, index) => (
+                    <View key={item.id}>
+                      {index > 0 ? <RowDivider inset /> : null}
+                      <ItemFigures item={item} />
+                    </View>
+                  ))}
+                </Card>
+              </View>
+            ))
+          : null}
+
+        {report?.range === range && report.bySupplier.length > 0 ? (
+          <View>
+            <SectionHeader title="Bought from" />
             <Card padding="px-4 py-0">
-              {summary.bySupplier.map((row, index) => (
+              {report.bySupplier.map((row, index) => (
                 <View key={row.supplierId ?? row.name}>
                   {index > 0 ? <RowDivider inset /> : null}
                   <Pressable
@@ -200,102 +212,54 @@ export default function StockReportsScreen() {
                 </View>
               ))}
             </Card>
-          )}
-        </View>
-
-        <View>
-          <SectionHeader subtitle="Opening → in → out → closing" title="Each item this month" />
-          {stockItems.length === 0 ? (
-            <EmptyCard description="Store items show here once something is bought." title="No store items" />
-          ) : (
-            <Card padding="px-4 py-0">
-              {stockItems.map((item, index) => (
-                <View key={item.id}>
-                  {index > 0 ? <RowDivider inset /> : null}
-                  <ItemLedger item={item} />
-                </View>
-              ))}
-            </Card>
-          )}
-        </View>
-
-        {lowItems.length > 0 && atCurrent ? (
-          <View>
-            <SectionHeader title="Running low" />
-            <Card padding="px-4 py-0">
-              {lowItems.map((item, index) => (
-                <View key={item.id}>
-                  {index > 0 ? <RowDivider inset /> : null}
-                  <View className="min-h-12 flex-row items-center justify-between py-3">
-                    <Text variant="label">{item.name}</Text>
-                    <Text className="text-destructive" variant="label">
-                      {formatQty(item.at.reduce((sum, at) => sum + at.left, 0), item.unit)} left
-                    </Text>
-                  </View>
-                </View>
-              ))}
-            </Card>
           </View>
         ) : null}
-      </View>
+      </Stagger>
     </Screen>
   );
 }
 
-function Arrow({
-  disabled,
-  label,
-  name,
-  onPress,
-}: {
-  disabled: boolean;
-  label: string;
-  name: "chevron-back" | "chevron-forward";
-  onPress: () => void;
-}) {
-  const { colors } = useAppTheme();
-
+function Figure({ children, label }: { children: ReactNode; label: string }) {
   return (
-    <Pressable
-      accessibilityLabel={label}
-      accessibilityRole="button"
-      className={`h-9 w-9 items-center justify-center rounded-full active:opacity-60 ${disabled ? "opacity-30" : ""}`}
-      disabled={disabled}
-      hitSlop={6}
-      onPress={onPress}
-    >
-      <Glyph color={colors.foreground} name={name} size={18} />
-    </Pressable>
+    <View className="flex-1 items-center gap-0.5 px-1">
+      <Text numberOfLines={1} variant="caption">
+        {label}
+      </Text>
+      {children}
+    </View>
   );
 }
 
-/** Everything that left: used, wasted, sent, and what a Count found missing. */
-function outOf(at: StockItem["at"][number]) {
-  return at.used + at.wasted + at.out + Math.max(0, -at.adjusted);
+/** A group's name outside its card, small capitals, with its total on the right. */
+function GroupHeading({ label, value }: { label: string; value: string }) {
+  return (
+    <View className="mb-2 flex-row items-center justify-between px-1">
+      <Text className="font-semibold uppercase tracking-wider text-muted-foreground" style={{ fontSize: 11 }}>
+        {label}
+      </Text>
+      <Text className="text-muted-foreground" style={{ fontSize: 12 }}>
+        {value}
+      </Text>
+    </View>
+  );
 }
 
-function ItemLedger({ item }: { item: StockItem }) {
-  const sum = (pick: (at: StockItem["at"][number]) => number) => item.at.reduce((total, at) => total + pick(at), 0);
-  const opening = sum((at) => at.opening);
-  const came = sum((at) => at.in + Math.max(0, at.adjusted));
-  const went = sum(outOf);
-  const closing = sum((at) => at.closing);
-  const cost = sum((at) => at.usedValue + at.wastedValue);
-
+/** One item: name and next month's cost, then bought · used · left · next month. */
+function ItemFigures({ item }: { item: StockReportItem }) {
   return (
     <View className="gap-1.5 py-3">
-      <View className="flex-row items-center justify-between">
-        <Text numberOfLines={1} variant="label">
+      <View className="flex-row items-center justify-between gap-3">
+        <Text className="flex-1" numberOfLines={1} variant="label">
           {item.name}
         </Text>
-        {cost > 0 ? <Text variant="caption">{formatMoney(cost)} used</Text> : null}
+        <Text variant="label">{item.nextValue !== null ? formatMoney(item.nextValue) : "—"}</Text>
       </View>
       <View className="flex-row">
-        <Cell label="Opening">{formatQty(opening, item.unit)}</Cell>
-        <Cell label="In">+{formatQty(came, item.unit)}</Cell>
-        <Cell label="Out">−{formatQty(went, item.unit)}</Cell>
-        <Cell label="Closing" strong>
-          {formatQty(closing, item.unit)}
+        <Cell label="Bought">{formatQty(item.bought, item.unit)}</Cell>
+        <Cell label="Used">{formatQty(item.used, item.unit)}</Cell>
+        <Cell label="Left">{item.left !== null ? formatQty(item.left, item.unit) : "—"}</Cell>
+        <Cell label="Next month" strong>
+          {formatQty(item.nextQty, item.unit)}
         </Cell>
       </View>
     </View>
@@ -313,33 +277,4 @@ function Cell({ children, label, strong = false }: { children: ReactNode; label:
       </Text>
     </View>
   );
-}
-
-/** The item table as comma-separated rows: pasted into a sheet, it is a sheet. */
-async function shareTable(home: StockHome) {
-  const rows = [
-    ["Item", "Unit", "Opening", "In", "Used", "Wasted", "Sent", "Count +/-", "Closing", "Avg cost", "Value now"],
-    ...home.items
-      .filter((item) => item.kind === "STORE" && item.active)
-      .map((item) => {
-        const sum = (pick: (at: StockItem["at"][number]) => number) => item.at.reduce((total, at) => total + pick(at), 0);
-
-        return [
-          item.name,
-          item.unit.toLowerCase(),
-          sum((at) => at.opening),
-          sum((at) => at.in),
-          sum((at) => at.used),
-          sum((at) => at.wasted),
-          sum((at) => at.out),
-          sum((at) => at.adjusted),
-          sum((at) => at.closing),
-          item.avgCost ?? "",
-          item.value ?? "",
-        ].map(String);
-      }),
-  ];
-  const csv = rows.map((row) => row.map((cell) => (/[",\n]/.test(cell) ? `"${cell.replace(/"/g, '""')}"` : cell)).join(",")).join("\n");
-
-  await Share.share({ message: `Stock · ${monthLabel(home.period)}\n\n${csv}`, title: `Stock ${home.period}` });
 }

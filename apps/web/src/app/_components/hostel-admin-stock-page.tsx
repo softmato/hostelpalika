@@ -1,12 +1,13 @@
 "use client";
 
-import { downloadTable, type TableFormat } from "@/lib/downloads/downloader";
+import { downloadFile, downloadTable, type TableFormat } from "@/lib/downloads/downloader";
 
 import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  BarChart3,
   Download,
   Package,
   PackagePlus,
@@ -61,7 +62,8 @@ import {
   type StockWasteReason,
 } from "@hostel/shared/expenses/stock";
 
-import type { StockEntryRow, StockHome, StockItemRow, StockUsage, StockUsageRange } from "@/modules/stock/stock.service";
+import type { StockEntryRow, StockHome, StockItemRow, StockReport, StockUsage, StockUsageRange } from "@/modules/stock/stock.service";
+import type { StockReportRange } from "@/modules/stock/stock.validation";
 
 import { EmptyState, LoadingRows, currency } from "./shared-ui";
 import { MoreMenu } from "./hostel-admin-page-ui";
@@ -301,7 +303,7 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
               ) : null}
               <DropdownMenuItem disabled={!home} onSelect={() => setEntryMode("COUNT")}>
                 <ClipboardList className="size-4" />
-                Count
+                Stock check
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem disabled={!home} onSelect={() => setItemDialog("new")}>
@@ -571,6 +573,8 @@ export const HostelAdminStockPageContent = memo(function HostelAdminStockPageCon
           </SectionCard>
 
           <UsageCard />
+
+          {home.money ? <ReportCard /> : null}
 
           <SuppliersCard home={home} onChanged={refresh} onMessage={setMessage} />
 
@@ -1643,6 +1647,105 @@ function UsageCard() {
                   <td className={cn("py-2.5 text-right", row.wasted > 0 && "text-destructive")}>
                     {row.wasted > 0 ? formatQty(row.wasted, row.item.unit) : "—"}
                   </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </SectionCard>
+  );
+}
+
+/* ------------------------------------------------------------------ Report */
+
+const REPORT_RANGES: { label: string; value: StockReportRange }[] = [
+  { label: "This month", value: "month" },
+  { label: "3 months", value: "quarter" },
+  { label: "Year", value: "year" },
+];
+
+/** Per item bought · used · left over a range, and next month at that pace (D2). Same table as the PDF/CSV. */
+function ReportCard() {
+  const [range, setRange] = useState<StockReportRange>("month");
+  const resource = usePortalResource<StockReport>(`${ENDPOINT}/report?range=${range}`, {
+    errorMessage: "Could not load the report.",
+  });
+  const report = resource.data ?? null;
+  const save = (format: TableFormat) =>
+    void downloadFile({
+      fileName: `stock-report-${range}.${format}`,
+      label: "Stock report",
+      url: `${ENDPOINT}/report?range=${range}&format=${format}`,
+    });
+
+  return (
+    <SectionCard
+      actions={
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex gap-1 rounded-lg border border-border bg-muted p-1">
+            {REPORT_RANGES.map((option) => (
+              <button
+                className={cn(
+                  "rounded-md px-3 py-1 text-sm font-medium",
+                  range === option.value ? "bg-background shadow-sm" : "text-muted-foreground",
+                )}
+                key={option.value}
+                onClick={() => setRange(option.value)}
+                type="button"
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+          <Button disabled={!report?.items.length} onClick={() => save("pdf")} size="sm" variant="outline">
+            <Download className="size-4" />
+            PDF
+          </Button>
+          <Button disabled={!report?.items.length} onClick={() => save("csv")} size="sm" variant="outline">
+            <Download className="size-4" />
+            CSV
+          </Button>
+        </div>
+      }
+      description={
+        report?.totals
+          ? `Next month ${currency(report.totals.nextValue)} · bought ${currency(report.totals.boughtValue)} · ${report.costPerResidentDay !== null ? `${currency(report.costPerResidentDay)} per student a day` : `${report.days} days`}`
+          : "Bought, used and left per item."
+      }
+      icon={BarChart3}
+      title="Stock report"
+    >
+      {!report || report.range !== range ? (
+        resource.state === "error" ? <p className="text-sm text-muted-foreground">{resource.message}</p> : <LoadingRows />
+      ) : report.items.length === 0 ? (
+        <EmptyState label="Nothing bought or used in this range." />
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <th className="py-2 pr-3 font-medium">Item</th>
+                <th className="py-2 pr-3 text-right font-medium">Bought</th>
+                <th className="py-2 pr-3 text-right font-medium">Used</th>
+                <th className="py-2 pr-3 text-right font-medium">Wasted</th>
+                <th className="py-2 pr-3 text-right font-medium">Left</th>
+                <th className="py-2 pr-3 text-right font-medium">Next month</th>
+                <th className="py-2 text-right font-medium">Rs</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {report.items.map((item) => (
+                <tr key={item.id}>
+                  <td className="py-2.5 pr-3 font-medium">{item.name}</td>
+                  <td className="py-2.5 pr-3 text-right">{formatQty(item.bought, item.unit)}</td>
+                  <td className="py-2.5 pr-3 text-right">{formatQty(item.used, item.unit)}</td>
+                  <td className={cn("py-2.5 pr-3 text-right", item.wasted > 0 && "text-destructive")}>
+                    {item.wasted > 0 ? formatQty(item.wasted, item.unit) : "—"}
+                  </td>
+                  <td className="py-2.5 pr-3 text-right">{item.left !== null ? formatQty(item.left, item.unit) : "—"}</td>
+                  <td className="py-2.5 pr-3 text-right font-semibold">{formatQty(item.nextQty, item.unit)}</td>
+                  <td className="py-2.5 text-right">{item.nextValue !== null ? currency(item.nextValue) : "—"}</td>
                 </tr>
               ))}
             </tbody>

@@ -12,6 +12,7 @@ import { Card, SectionHeader } from "@/components/ui/card";
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
+import { Stagger } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
@@ -145,12 +146,13 @@ export default function StockScreen() {
           <SkeletonRows rows={5} />
         </View>
       ) : (
-        <View className="gap-6 pb-8 pt-5">
+        <Stagger className="gap-6 pb-8 pt-5">
           <ActionTiles tiles={tilesFor(home, overall, colors)} />
 
           <UsedToday />
 
-          <Waiting home={home} overall={overall} />
+          {/* Guarded here, not inside: a Stagger slot that renders nothing still takes a gap. */}
+          {!overall && (home.waiting.length > 0 || home.toApprove.length > 0) ? <Waiting home={home} /> : null}
 
           {low.length > 0 ? (
             <View>
@@ -181,45 +183,45 @@ export default function StockScreen() {
               }
               title="No stock yet"
             />
-          ) : (
-            <View className="gap-4">
-              {items.length >= SEARCH_FROM ? (
-                <Input
-                  leading={<Glyph color={colors.mutedForeground} name="search" size={18} />}
-                  onChangeText={setQuery}
-                  placeholder="Search items"
-                  value={query}
-                />
-              ) : null}
-              {groups.length === 0 ? (
-                <Text className="px-1" variant="muted">
-                  Nothing called that.
-                </Text>
-              ) : (
-                groups.map(([category, rows]) => (
-                  <View key={category}>
-                    <GroupHeading
-                      label={categoryLabel(category)}
-                      value={
-                        home.money
-                          ? formatMoney(rows.reduce((sum, item) => sum + (item.value ?? 0), 0))
-                          : `${rows.length} item${rows.length === 1 ? "" : "s"}`
-                      }
-                    />
-                    <Card padding="px-4 py-0">
-                      {rows.map((item, index) => (
-                        <View key={item.id}>
-                          {index > 0 ? <RowDivider inset /> : null}
-                          <StockRow home={home} item={item} />
-                        </View>
-                      ))}
-                    </Card>
+          ) : null}
+
+          {items.length >= SEARCH_FROM ? (
+            <Input
+              leading={<Glyph color={colors.mutedForeground} name="search" size={18} />}
+              onChangeText={setQuery}
+              placeholder="Search items"
+              value={query}
+            />
+          ) : null}
+
+          {items.length > 0 && groups.length === 0 ? (
+            <Text className="px-1" variant="muted">
+              Nothing called that.
+            </Text>
+          ) : null}
+
+          {/* Each group is its own step in the stagger, not one block. */}
+          {groups.map(([category, rows]) => (
+            <View key={category}>
+              <GroupHeading
+                label={categoryLabel(category)}
+                value={
+                  home.money
+                    ? formatMoney(rows.reduce((sum, item) => sum + (item.value ?? 0), 0))
+                    : `${rows.length} item${rows.length === 1 ? "" : "s"}`
+                }
+              />
+              <Card padding="px-4 py-0">
+                {rows.map((item, index) => (
+                  <View key={item.id}>
+                    {index > 0 ? <RowDivider inset /> : null}
+                    <StockRow home={home} item={item} />
                   </View>
-                ))
-              )}
+                ))}
+              </Card>
             </View>
-          )}
-        </View>
+          ))}
+        </Stagger>
       )}
     </Screen>
   );
@@ -282,7 +284,7 @@ function tilesFor(
         glyph: colors.warning,
         icon: "clipboard",
         key: "count",
-        label: "Count",
+        label: "Stock check",
         onPress: go("/stock/count"),
         tone: "warning",
       },
@@ -375,10 +377,8 @@ function UsedToday() {
 }
 
 /** Goods coming in and counts to approve: the two things another person is waiting on. */
-function Waiting({ home, overall }: { home: StockHome; overall: boolean }) {
+function Waiting({ home }: { home: StockHome }) {
   const { colors } = useAppTheme();
-
-  if (overall || (home.waiting.length === 0 && home.toApprove.length === 0)) return null;
 
   return (
     <View>
@@ -406,7 +406,7 @@ function Waiting({ home, overall }: { home: StockHome; overall: boolean }) {
               iconColor={colors.warning}
               key={entry.id}
               onPress={() => router.push({ params: { id: entry.id }, pathname: "/stock/entry/[id]" })}
-              title={`Count by ${entry.recordedByName}`}
+              title={`Stock check by ${entry.recordedByName}`}
             />
           );
         })}

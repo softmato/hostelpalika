@@ -19,7 +19,7 @@ import { Card } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { IconButton } from "@/components/ui/icon-button";
 import { Input } from "@/components/ui/input";
-import { Chip, FactRow } from "@/components/ui/layout";
+import { Chip, FactRow, Stagger } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
@@ -158,7 +158,7 @@ export default function SupplierScreen() {
             <EmptyCard description="Pick this supplier on a bill in Buy, and it shows here." title="No bills yet" />
           </View>
         ) : (
-          <View className="gap-5 pb-8 pt-5">
+          <Stagger className="gap-5 pb-8 pt-5">
             {days.map(([day, rows]) => (
               <View key={day}>
                 <Text className="mb-2 px-1 font-semibold uppercase tracking-wider text-muted-foreground" style={{ fontSize: 11 }}>
@@ -187,7 +187,7 @@ export default function SupplierScreen() {
                 </Card>
               </View>
             ))}
-          </View>
+          </Stagger>
         )}
       </Screen>
 

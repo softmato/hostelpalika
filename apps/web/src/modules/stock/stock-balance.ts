@@ -537,3 +537,49 @@ export function usageRows(
     .filter((row) => row.used > 0 || row.wasted > 0)
     .sort((a, b) => b.day.localeCompare(a.day) || a.itemId.localeCompare(b.itemId) || a.hostelId.localeCompare(b.hostelId));
 }
+
+/** One item over a report's range, every building asked about summed. */
+export type ReportFigures = {
+  bought: number;
+  boughtValue: number;
+  /** Store items: what is left now. Daily items have no Left. */
+  left: number | null;
+  /** Next month at the range's pace, and what it costs at today's average. */
+  nextQty: number;
+  nextValue: number | null;
+  used: number;
+  usedValue: number;
+  wasted: number;
+  wastedValue: number;
+};
+
+/**
+ * An item's report line. Next month is what went (used + wasted) per day over
+ * the range's `days`, times the days next month has, priced at today's average
+ * cost — so a bulk buy in one month does not swing the forecast, and a daily
+ * item (used the day it comes) forecasts from what came.
+ */
+export function reportFigures(
+  at: readonly ItemAtPlace[],
+  kind: StockKind,
+  avgCost: number | null,
+  days: number,
+  nextDays: number,
+): ReportFigures {
+  const sum = (pick: (row: ItemAtPlace) => number) => at.reduce((total, row) => total + pick(row), 0);
+  const used = sum((row) => row.used);
+  const wasted = sum((row) => row.wasted);
+  const nextQty = ((used + wasted) / Math.max(1, days)) * nextDays;
+
+  return {
+    bought: roundQty(sum((row) => row.bought)),
+    boughtValue: Math.round(sum((row) => row.boughtValue)),
+    left: kind === "STORE" ? roundQty(sum((row) => row.left)) : null,
+    nextQty: roundQty(nextQty),
+    nextValue: avgCost === null ? null : Math.round(nextQty * avgCost),
+    used: roundQty(used),
+    usedValue: Math.round(sum((row) => row.usedValue)),
+    wasted: roundQty(wasted),
+    wastedValue: Math.round(sum((row) => row.wastedValue)),
+  };
+}

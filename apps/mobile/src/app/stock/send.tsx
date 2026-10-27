@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
+import { Stagger } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -163,7 +164,7 @@ export default function SendScreen() {
       header={header}
       scroll
     >
-      <View className="gap-6 pb-4 pt-3">
+      <Stagger className="gap-6 pb-4 pt-3">
         <View>
           <SectionHeader title="To" />
           <View className="flex-row flex-wrap gap-3">
@@ -242,7 +243,7 @@ export default function SendScreen() {
             </Card>
           )}
         </View>
-      </View>
+      </Stagger>
     </Screen>
   );
 }

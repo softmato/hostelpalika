@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { type FoldEntry, foldStock, supplierLedger, type UsageEntry, usageRows } from "./stock-balance";
+import { emptyAtPlace, type FoldEntry, foldStock, reportFigures, supplierLedger, type UsageEntry, usageRows } from "./stock-balance";
 
 const MAIN = "main";
 const BRANCH = "branch";
@@ -203,5 +203,32 @@ describe("usageRows", () => {
       [BRANCH, VEG, 3],
       [MAIN, VEG, 6],
     ]);
+  });
+});
+
+describe("reportFigures", () => {
+  it("sums the buildings and forecasts next month at the range's daily pace", () => {
+    const main = { ...emptyAtPlace(), bought: 50, boughtValue: 5000, left: 12, used: 28, usedValue: 2800, wasted: 2, wastedValue: 200 };
+    const branch = { ...emptyAtPlace(), left: 3, used: 10, usedValue: 1000 };
+
+    // 40 went over 20 days → 2 a day → 60 in a 30-day month, at Rs 105 now.
+    expect(reportFigures([main, branch], "STORE", 105, 20, 30)).toEqual({
+      bought: 50,
+      boughtValue: 5000,
+      left: 15,
+      nextQty: 60,
+      nextValue: 6300,
+      used: 38,
+      usedValue: 3800,
+      wasted: 2,
+      wastedValue: 200,
+    });
+  });
+
+  it("gives a daily item no Left and no price without a priced bill", () => {
+    const veg = { ...emptyAtPlace(), bought: 9, used: 9 };
+    const figures = reportFigures([veg], "DAILY", null, 3, 31);
+
+    expect([figures.left, figures.nextQty, figures.nextValue]).toEqual([null, 93, null]);
   });
 });

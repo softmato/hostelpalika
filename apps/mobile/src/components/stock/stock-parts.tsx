@@ -8,10 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
-import { Chip } from "@/components/ui/layout";
+import { Chip, Stagger } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Segmented } from "@/components/ui/segmented";
 import { Sheet, SheetRow } from "@/components/ui/sheet";
+import { SkeletonRows } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { Toggle } from "@/components/ui/toggle";
 import { useIsOverall } from "@/components/hostel-switcher";
@@ -70,14 +71,14 @@ import { EXPENSE_CATEGORY_LABELS, type ExpenseCategoryKey } from "@hostel/expens
  * colour; a tint per family put six off-palette hues on one list.
  */
 export function ItemAvatar({ item, size = 40 }: { item: { kind: StockKind; name: string }; size?: number }) {
-  const look = stockLook(item);
+  const { colors } = useAppTheme();
 
   return (
     <View
-      className="items-center justify-center bg-muted"
+      className="items-center justify-center bg-brand-soft"
       style={{ borderRadius: size * 0.3, height: size, width: size }}
     >
-      <Text style={{ fontSize: size * 0.52, lineHeight: size * 0.7 }}>{look.emoji}</Text>
+      <Glyph color={colors.primary} name={stockLook(item).glyph} size={Math.round(size * 0.55)} />
     </View>
   );
 }
@@ -1191,7 +1192,7 @@ export const HISTORY_FILTERS: { label: string; value: HistoryFilter }[] = [
   { label: "Wasted", value: "WASTED" },
   { label: "Send", value: "SEND" },
   { label: "Got it", value: "GOT_IT" },
-  { label: "Count", value: "COUNT" },
+  { label: "Stock check", value: "COUNT" },
 ];
 
 function matches(filter: HistoryFilter, entry: StockEntry, mine: ReadonlySet<string>) {
@@ -1227,14 +1228,14 @@ export function HistoryMonths({ filter, itemId }: { filter: HistoryFilter; itemI
   const next = addBsMonths(home.currentPeriod, -(extra + 1));
 
   return (
-    <View className="gap-5">
+    <Stagger className="gap-5">
       {periods.map((period, index) => (
         <MonthSection filter={filter} itemId={itemId} key={period} period={index === 0 ? null : period} />
       ))}
       {extra < 24 ? (
         <Button label={`Show ${monthLabel(next)}`} onPress={() => setExtra((count) => count + 1)} variant="outline" />
       ) : null}
-    </View>
+    </Stagger>
   );
 }
 
@@ -1242,7 +1243,7 @@ function MonthSection({ filter, itemId, period }: { filter: HistoryFilter; itemI
   const { home, mine, resource } = useStock(period);
 
   if (!home) {
-    return resource.error ? <Text variant="muted">{resource.error}</Text> : <Text variant="muted">Loading…</Text>;
+    return resource.error ? <Text variant="muted">{resource.error}</Text> : <SkeletonRows rows={3} />;
   }
 
   const rows = home.entries.filter(

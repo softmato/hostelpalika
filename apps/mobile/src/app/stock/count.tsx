@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
-import { Chip } from "@/components/ui/layout";
+import { Chip, Stagger } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -99,7 +99,7 @@ export default function CountScreen() {
         on: day,
       });
       toastSuccess(
-        differs && !home?.canApprove ? "Sent for approval" : "Count saved",
+        differs && !home?.canApprove ? "Sent for approval" : "Stock check saved",
         `${filled.length} item${filled.length === 1 ? "" : "s"}`,
       );
       stockChanged();
@@ -112,7 +112,7 @@ export default function CountScreen() {
   };
 
   const header = (
-    <AppBar centerTitle showBack subtitle="What is really left in this building" title="Count Stock" />
+    <AppBar centerTitle showBack subtitle="Count the shelf · the app corrects Left" title="Stock check" />
   );
 
   if (denied) {
@@ -159,7 +159,7 @@ export default function CountScreen() {
             ) : null}
             <Button
               disabled={filled.length === 0}
-              label={filled.length > 0 ? `Save Count · ${filled.length} item${filled.length === 1 ? "" : "s"}` : "Save Count"}
+              label={filled.length > 0 ? `Save stock check · ${filled.length} item${filled.length === 1 ? "" : "s"}` : "Save stock check"}
               loading={saving}
               onPress={() => void save()}
               size="lg"
@@ -169,7 +169,7 @@ export default function CountScreen() {
         header={header}
         scroll
       >
-        <View className="gap-5 pb-4 pt-3">
+        <Stagger className="gap-5 pb-4 pt-3">
           <DateField onChange={setDay} value={day} />
 
           <View className="flex-row items-center justify-between">
@@ -266,7 +266,7 @@ export default function CountScreen() {
               </View>
             </View>
           ) : null}
-        </View>
+        </Stagger>
       </Screen>
 
       <ItemPicker

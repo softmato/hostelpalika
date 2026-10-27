@@ -6,7 +6,7 @@ import { FLOAT_SHADOW } from "@/components/portal-shared";
 import { ItemAvatar, NoStockAccess, useStock } from "@/components/stock/stock-parts";
 import { AppBar } from "@/components/ui/app-bar";
 import { Card } from "@/components/ui/card";
-import { Chip } from "@/components/ui/layout";
+import { Chip, Stagger } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
@@ -127,7 +127,7 @@ export default function StockUsageScreen() {
           <SkeletonRows rows={6} />
         </View>
       ) : (
-        <View className="gap-6 pb-8 pt-5">
+        <Stagger className="gap-6 pb-8 pt-5">
           {usage.places.length > 1 ? (
             <ScrollView contentContainerClassName="gap-2" horizontal showsHorizontalScrollIndicator={false}>
               <Chip label="All buildings" onPress={() => setPlace(null)} tone={place === null ? "brand" : "neutral"} />
@@ -186,7 +186,7 @@ export default function StockUsageScreen() {
               ))}
             </View>
           ) : null}
-        </View>
+        </Stagger>
       )}
     </Screen>
   );

@@ -17,7 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { Input } from "@/components/ui/input";
-import { Chip, Grid } from "@/components/ui/layout";
+import { Chip, Grid, Stagger } from "@/components/ui/layout";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -207,7 +207,7 @@ export default function UseStockScreen() {
       header={header}
       scroll
     >
-      <View className="gap-5 pb-4 pt-3">
+      <Stagger className="gap-5 pb-4 pt-3">
         <Segmented
           onChange={setMode}
           options={[
@@ -340,7 +340,7 @@ export default function UseStockScreen() {
             />
           </View>
         ) : null}
-      </View>
+      </Stagger>
     </Screen>
   );
 }
