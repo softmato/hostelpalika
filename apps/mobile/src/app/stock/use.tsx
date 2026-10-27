@@ -26,8 +26,8 @@ import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { readApiError } from "@/lib/api-contract";
 import { newClientRequestId } from "@/lib/expenses";
+import { sendOrQueue } from "@/lib/offline-writes";
 import {
-  addStockEntry,
   formatQty,
   STOCK_USE_FOR,
   STOCK_USE_FOR_LABELS,
@@ -123,7 +123,7 @@ export default function UseStockScreen() {
     setSaving(true);
 
     try {
-      await addStockEntry({
+      const outcome = await sendOrQueue("stock", {
         clientRequestId: requestId.current,
         hostelId: here.id,
         kind: waste ? "WASTE" : "USE",
@@ -131,7 +131,7 @@ export default function UseStockScreen() {
         note: note.trim() || undefined,
         ...(waste ? { wasteReason: reason } : { useFor }),
       });
-      toastSuccess(
+      if (outcome === "sent") toastSuccess(
         waste ? "Waste saved" : "Saved",
         filled.map((line) => byId.get(line.itemId)?.name).filter(Boolean).join(", "),
       );

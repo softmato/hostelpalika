@@ -159,19 +159,32 @@ still accepts deletes the copy; the next online yes re-hashes the new one; turni
 lock off deletes it. Test: `offline-pin.test.ts` (also fixed `app-lock.test.ts`'s
 missing `getEnrolledLevelAsync` mock). Open: time the hash on a Redmi (knob:
 `PIN_ITERATIONS`), then an airplane-mode unlock.
-☐ **G3 Offline set** ("60% offline"): home, residents, rooms, money summary, invoices,
+☑ **G3 Offline set** ("60% offline"): home, residents, rooms, money summary, invoices,
 statement, stock, notifications, ID card, menu open from SQLite with "Updated hh:mm".
 Queue only safe writes (night status already queues; add stock use/count, complaint,
 expense draft). Payments never offline.
-**Part done 2026-10-27** — read side: `use-resource` falls back to `readSavedQuery`
+**Done in code 2026-10-27** — read side: `use-resource` falls back to `readSavedQuery`
 on a network failure for any `cacheKey` screen (up to 3 days old) and exposes
 `savedAt`; one app-wide `OfflineStampHost` draws "Offline · Updated hh:mm" for the
-focused screen (`lib/offline-stamp.ts`). Open: confirm each listed screen has a
-`cacheKey` (resident home/ID card/menu need a look), and the write queue — stock
-use/count, complaint, expense draft on `local-db`'s `enqueueWrite`, flushed on
-foreground and before sign-out, each with a client id so a resend is a duplicate.
-☐ **G4** One SQLite file per account; cleared on sign-out, account switch, role change.
-☐ **G5** PWA keeps its web stand-in in `apps/mobile/web/` (IndexedDB); web portals unchanged.
+focused screen (`lib/offline-stamp.ts`). All ten listed screens already read through
+a `cacheKey`. Write side: `lib/offline-writes.ts` `sendOrQueue(kind, payload)` on
+`local-db`'s queue for stock use/waste/count, complaint, expense; sent on launch,
+foreground, every minute while queued, and before sign-out; a server refusal is
+dropped with a toast so it never blocks the rest. Every kind is deduped by
+`clientRequestId` — stock and expense already were; complaints gained it
+(`complaint.validation.ts`, `Complaint.clientRequestId`, lookup on the `residentId`
+index, no new index). Staff cash and payments stay online only. Test:
+`offline-writes.test.ts`. Open: web deploy (complaint dedupe), Redmi airplane-mode pass.
+☑ **G4** One SQLite file per account; cleared on sign-out, account switch, role change.
+**Done in code 2026-10-27** — `local-db` opens `account-<id>.db`; `query-cache-persist`
+follows the store's account: another account or sign-out deletes the last file, a role
+change (kept in a `meta` row, so it is caught across relaunches too) empties `kv` and
+`queue`. `endSession` flushes the outbox first. Open: device pass (sign out → in as
+another role, no old rows).
+☑ **G5** PWA keeps its web stand-in in `apps/mobile/web/` (IndexedDB); web portals unchanged.
+**Done in code 2026-10-27** — `web/local-db.ts`, same exports over one IndexedDB
+database per account (loaded into memory on open, written behind), aliased in
+`metro.config.js` `WEB_STAND_INS`; no npm scripts added. Open: PWA export after deploy.
 ☐ **F1 Notifications** open from SQLite instantly and fetch only newer ones (p7).
 ☐ **F2** Notification rows: icon by kind, title, one line, time.
 ☐ **F3** Every notification opens its exact screen; audit every kind, route the ones

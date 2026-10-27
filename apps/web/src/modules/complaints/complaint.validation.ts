@@ -44,6 +44,8 @@ export const complaintCreateSchema = z
   .object({
     attachmentAssetIds: z.array(z.string().trim().min(1)).max(5).default([]),
     category: complaintCategorySchema.default("OTHER"),
+    /** The phone's id for one submission, so a send queued offline and re-sent files once. */
+    clientRequestId: z.string().trim().min(8).max(64).optional(),
     /**
      * Min 2 rather than the old 5: with the title gone this is the whole of what
      * was typed, and "No water" is a complete complaint at eight characters —

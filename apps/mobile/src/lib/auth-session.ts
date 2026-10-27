@@ -28,6 +28,7 @@ import {
 } from "@/lib/auth-api";
 import { revokePushToken } from "@/lib/push-notifications";
 import { setActiveHostelId } from "@/lib/active-hostel";
+import { flushOfflineWrites } from "@/lib/offline-writes";
 import { clearQueryCache } from "@/lib/query-cache";
 import { resetUploadNotifications } from "@/lib/upload-notifier";
 import { clearTokens, readTokens, writeTokens } from "@/lib/session";
@@ -290,6 +291,9 @@ export async function endSession(options?: {
    * signed out of. Never throws — see `revokePushToken`.
    */
   await revokePushToken();
+
+  // The account's file (and its outbox) is deleted below; send what waited.
+  await flushOfflineWrites().catch(() => undefined);
 
   /*
    * Clears the upload shade for the departing account. The tally is per-batch

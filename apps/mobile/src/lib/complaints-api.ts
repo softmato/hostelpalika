@@ -160,6 +160,8 @@ export async function getResidentComplaints() {
 export async function createResidentComplaint(input: {
   attachmentAssetIds?: string[];
   category: ComplaintCategory;
+  /** Server dedupes on it — what lets `lib/offline-writes` resend safely. */
+  clientRequestId?: string;
   /**
    * Optional, and omitted entirely when the resident only recorded a note —
    * `complaintCreateSchema` refuses `""` (min 2) but accepts an absent field,

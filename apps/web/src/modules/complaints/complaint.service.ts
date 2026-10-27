@@ -444,6 +444,23 @@ export async function createComplaint(
   await connectToDatabase();
 
   const resident = await findCurrentResident(principal);
+
+  // A resend of a submission already filed (queued offline, answer lost) gets
+  // the same complaint back, not a second one. `residentId` leads an index.
+  if (input.clientRequestId) {
+    const existing = (await ComplaintModel.findOne({
+      clientRequestId: input.clientRequestId,
+      residentId: resident._id,
+    })) as ComplaintRecord | null;
+
+    if (existing) {
+      return {
+        complaint: serializeComplaint(existing, { attachments: [], updates: [] }),
+        resident: serializeResidentSummary(resident),
+      };
+    }
+  }
+
   const { complaintSlaHours } = await getOperationsConfig();
   const voiceNoteAssetId = await assertComplaintVoiceNote(
     input.voiceNoteAssetId,
@@ -452,6 +469,7 @@ export async function createComplaint(
   );
   const complaint = (await ComplaintModel.create({
     category: input.category,
+    clientRequestId: input.clientRequestId ?? null,
     createdBy: principal.userId,
     description: input.description,
     hostelId: resident.hostelId,

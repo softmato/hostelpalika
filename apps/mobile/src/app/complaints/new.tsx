@@ -1,6 +1,6 @@
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 import Animated, { FadeIn, FadeOut, LinearTransition } from "react-native-reanimated";
 
@@ -26,8 +26,9 @@ import {
 } from "@/lib/complaints";
 import {
   type ComplaintCategory,
-  createResidentComplaint,
 } from "@/lib/complaints-api";
+import { newClientRequestId } from "@/lib/expenses";
+import { sendOrQueue } from "@/lib/offline-writes";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { uploadAsset } from "@/lib/uploads";
 
@@ -99,6 +100,8 @@ export default function NewComplaintScreen() {
   const [attachments, setAttachments] = useState<PickedAttachment[]>([]);
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // One id per form, so a send that waited offline files once.
+  const requestId = useRef(newClientRequestId());
   const [errors, setErrors] = useState<ComplaintErrors>({});
 
   /**
@@ -246,16 +249,17 @@ export default function NewComplaintScreen() {
           )
         : undefined;
 
-      await createResidentComplaint({
+      const outcome = await sendOrQueue("complaint", {
         attachmentAssetIds: attachments.map((item) => item.assetId),
         category,
+        clientRequestId: requestId.current,
         // Absent, not empty — `""` is a 422 while a missing field is fine.
         description: complaintDescription(description),
         isAnonymous,
         voiceNoteAssetId,
       });
 
-      toastSuccess(
+      if (outcome === "sent") toastSuccess(
         "Sent to your hostel",
         voiceNote
           ? "Your recording went with it. You will see the reply here."

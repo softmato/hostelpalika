@@ -27,7 +27,8 @@ import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { readApiError } from "@/lib/api-contract";
 import { newClientRequestId, todayKey } from "@/lib/expenses";
-import { addStockEntry, formatQty } from "@/lib/stock-api";
+import { formatQty } from "@/lib/stock-api";
+import { sendOrQueue } from "@/lib/offline-writes";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 /**
@@ -90,7 +91,7 @@ export default function CountScreen() {
     setSaving(true);
 
     try {
-      await addStockEntry({
+      const outcome = await sendOrQueue("stock", {
         clientRequestId: requestId.current,
         hostelId: here.id,
         kind: "COUNT",
@@ -98,7 +99,7 @@ export default function CountScreen() {
         note: why.trim() || undefined,
         on: day,
       });
-      toastSuccess(
+      if (outcome === "sent") toastSuccess(
         differs && !home?.canApprove ? "Sent for approval" : "Count saved",
         `${filled.length} item${filled.length === 1 ? "" : "s"}`,
       );
