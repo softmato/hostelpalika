@@ -5,7 +5,8 @@ import { useMemo } from "react";
 
 import { StatementExportButton, StatementView } from "@/components/statement/statement-view";
 import { useWorkspaceHref } from "@/hooks/use-workspace-href";
-import { downloadTable } from "@/lib/downloads/downloader";
+import { downloadFile, downloadTable } from "@/lib/downloads/downloader";
+import { hostelPeriodOf } from "@/lib/hostel-day";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { usePortalResource } from "@/lib/portal-query";
 import { type StatementRow, withBalances } from "@/lib/statement";
@@ -144,6 +145,27 @@ function toRows(ledger: Ledger | undefined, residentsHref: string, expensesHref:
   return withBalances(rows);
 }
 
+/**
+ * The PDF is the bank-style statement Reports prints (S.N., date, particulars,
+ * Dr, Cr, running balance, opening and closing — `modules/reports/statement-pdf`),
+ * over the BS months the rows on screen span, the same as the app's Statement.
+ */
+function downloadStatementPdf(visible: readonly StatementRow[]) {
+  const months = visible
+    .flatMap((row) => (row.at ? [hostelPeriodOf(new Date(row.at))] : []))
+    .sort();
+  const thisMonth = hostelPeriodOf(new Date());
+  const from = months[0] ?? thisMonth;
+  const to = months.at(-1) ?? thisMonth;
+
+  return downloadFile({
+    fileName: from === to ? `statement-${from}.pdf` : `statement-${from}-to-${to}.pdf`,
+    label: "Statement",
+    mimeType: "application/pdf",
+    url: `/api/v1/hostel-admin/reports/statement/pdf?from=${from}&to=${to}`,
+  });
+}
+
 export function HostelAdminStatementPageContent() {
   const workspaceHref = useWorkspaceHref();
   const resource = usePortalResource<Ledger>(hostelAdminEndpoints.transactions, {
@@ -163,7 +185,9 @@ export function HostelAdminStatementPageContent() {
         <StatementExportButton
           disabled={visible.length === 0}
           onExport={(format) =>
-            void downloadTable(
+            format === "pdf"
+              ? void downloadStatementPdf(visible)
+              : void downloadTable(
               format,
               "statement",
               [

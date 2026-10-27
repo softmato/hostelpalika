@@ -41,6 +41,7 @@ export {
   EXPENSE_CATEGORY_LABELS,
   EXPENSE_PAID_BY,
   EXPENSE_PAID_BY_LABELS,
+  EXPENSE_WHAT_EXAMPLE,
   EXPENSE_WHAT_MAX,
 } from "@hostel/expenses/categories";
 export type { ExpenseCategoryKey, ExpenseCategoryValue, ExpensePaidBy };

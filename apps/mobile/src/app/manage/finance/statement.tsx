@@ -22,7 +22,7 @@ import { useDates } from "@/hooks/use-dates";
 import type { CalendarSystem } from "@/lib/calendar";
 import { useResource } from "@/hooks/use-resource";
 import { type AdminHostel, type AdminLedger } from "@/lib/admin-api";
-import { overallPdfPath } from "@/lib/admin-manage-api";
+import { overallPdfPath, statementPdfPath } from "@/lib/admin-manage-api";
 import { adminQuery } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { readApiError } from "@/lib/api-contract";
@@ -44,6 +44,7 @@ import {
   isPartial,
   methodOptions,
   monthOptions,
+  pdfMonths,
   monthRange,
   NO_FILTER,
   OPENING_ID,
@@ -447,6 +448,7 @@ export default function ManageStatementScreen() {
    * selected, which is the one month nobody needs to pick.
    */
   const months = useMemo(() => monthOptions(credits), [credits]);
+  const pdfRange = useMemo(() => pdfMonths(filter, months), [filter, months]);
   const draftMonths = useMemo(() => activeMonthRange(draft), [draft]);
 
   const filterCount = activeFilterCount(filter);
@@ -495,14 +497,18 @@ export default function ManageStatementScreen() {
         // Overall has one document for every branch: the owner's all-branches statement PDF.
         url: overall
           ? `${API_BASE_URL}${overallPdfPath("statement", nepalPeriodKey())}`
-          : `${API_BASE_URL}/api/v1/hostel-admin/reports/export?format=${format}&report=payments`,
+          : format === "pdf"
+            ? // The bank-style statement Reports prints: S.N., date, particulars,
+              // Dr, Cr, running balance, opening and closing — for the range on screen.
+              `${API_BASE_URL}${statementPdfPath(pdfRange.from, pdfRange.to)}`
+            : `${API_BASE_URL}/api/v1/hostel-admin/reports/export?format=${format}&report=payments`,
       });
     } catch (error) {
       toastError("Could not export", readApiError(error, "The export did not download."));
     } finally {
       setExporting(false);
     }
-  }, [overall]);
+  }, [overall, pdfRange]);
 
   const clearFilters = useCallback(() => {
     setFilter(NO_FILTER);

@@ -8,6 +8,49 @@
 
 import type { AdminInvoiceRow } from "@/lib/admin-api";
 
+type BillLine = { amount: number; basis: string; description: string };
+
+/** One row of a bill as the cash sheet prints it. */
+export type BillRow = {
+  amount: number;
+  detail: string | null;
+  kind: "rent" | "less" | "fine" | "khata";
+  label: string;
+};
+
+const BILL_ORDER = { rent: 0, less: 1, fine: 2, khata: 3 } as const;
+
+/**
+ * A bill's lines in reading order: rent, anything taken off, late fine, khata.
+ *
+ * Taking-off lines (a festival discount, a credit, days away) only exist when
+ * one applies, so a bill without a discount simply has no discount row.
+ */
+export function billRows(lines: readonly BillLine[] | null | undefined): BillRow[] {
+  const rows = (lines ?? []).map((line): BillRow => {
+    if (line.basis === "FINE" || line.basis === "KHATA") {
+      const fine = line.basis === "FINE";
+
+      return {
+        amount: line.amount,
+        detail: line.description.replace(/^(Late fine|Khata) — /, "") || null,
+        kind: fine ? "fine" : "khata",
+        label: fine ? "Late fine" : "Khata",
+      };
+    }
+
+    if (line.amount < 0 || line.basis === "CREDIT") {
+      return { amount: line.amount, detail: null, kind: "less", label: line.description };
+    }
+
+    return line.basis === "MANUAL"
+      ? { amount: line.amount, detail: null, kind: "rent", label: line.description }
+      : { amount: line.amount, detail: line.description, kind: "rent", label: "Month rent" };
+  });
+
+  return rows.sort((a, b) => BILL_ORDER[a.kind] - BILL_ORDER[b.kind]);
+}
+
 /**
  * What is still owed on a row.
  *

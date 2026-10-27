@@ -580,6 +580,22 @@ export function activeMonthRange(
 }
 
 /** The BS month a `YYYY-MM-DD` filter bound falls in, or `null` if it is not one. */
+/**
+ * The BS months the statement PDF covers: the filter's date range, or — with
+ * no dates picked — every month on the screen (`monthOptions`, newest first).
+ */
+export function pdfMonths(
+  filter: Pick<StatementFilter, "from" | "to">,
+  months: readonly string[],
+): { from: string; to: string } {
+  const newest = months[0] ?? nepalPeriodKey(new Date());
+
+  return {
+    from: monthOfDayInput(filter.from) ?? months.at(-1) ?? newest,
+    to: monthOfDayInput(filter.to) ?? (filter.from ? nepalPeriodKey(new Date()) : newest),
+  };
+}
+
 function monthOfDayInput(value: string): string | null {
   const iso = value ? startOfDayIso(value) : null;
 

@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils";
 import {
   EXPENSE_CATEGORY_KEYS,
   EXPENSE_CATEGORY_LABELS,
+  EXPENSE_WHAT_EXAMPLE,
   EXPENSE_PAID_BY,
   EXPENSE_PAID_BY_LABELS,
   EXPENSE_WHAT_MAX,
@@ -904,7 +905,7 @@ function AddExpenseDialog({
               className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none focus:border-primary"
               maxLength={EXPENSE_WHAT_MAX}
               onChange={(event) => setWhat(event.target.value)}
-              placeholder="e.g. Rice 25 kg"
+              placeholder={`e.g. ${choice ? (EXPENSE_WHAT_EXAMPLE[choice.category] ?? "What you bought") : "Rice 25 kg"}`}
               value={what}
             />
           </label>

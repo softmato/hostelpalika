@@ -97,3 +97,19 @@ export const EXPENSE_WHAT_MAX = 120;
 export const EXPENSE_CUSTOM_CATEGORY_NAME_MAX = 32;
 /** A hostel may add this many categories of its own. */
 export const EXPENSE_CUSTOM_CATEGORY_LIMIT = 20;
+
+/** The "What was it?" hint for the tile tapped, so it reads like that kind of spend. */
+export const EXPENSE_WHAT_EXAMPLE: Partial<Record<string, string>> = {
+  CLEANING: "Phenyl and brooms",
+  ELECTRICITY: "This month's NEA bill",
+  GAS: "2 cylinders",
+  GROCERIES: "Rice 25 kg",
+  INTERNET: "This month's Wi-Fi",
+  OTHER: "Printing",
+  RENT: "This month's building rent",
+  REPAIR: "Bathroom tap",
+  SALARY: "This month's salary",
+  STAFF_CASH: "For this week's shopping",
+  VEGETABLES_MEAT: "Chicken 5 kg",
+  WATER: "Water tanker",
+};

@@ -87,6 +87,22 @@ export function ledgerLines(ledger: HostelLedger): StatementLine[] {
     }
   }
 
+  // The hostel's bank balance when it started with us, at the start of that
+  // Nepal day — the app's statement starts its running total from the same row
+  // (`openingRow` in apps/mobile/src/lib/hostel-statement.ts), so the PDF's
+  // balance is the figure on Home's card. An overdraft is a debit.
+  const bank = ledger.openingBalance;
+  const bankAt = bank?.amount ? validDate(`${bank.asOf}T00:00:00+05:45`) : null;
+
+  if (bank && bankAt) {
+    lines.push({
+      amount: Math.abs(bank.amount),
+      at: bankAt,
+      kind: bank.amount < 0 ? "debit" : "credit",
+      particulars: "Opening bank balance",
+    });
+  }
+
   for (const expense of ledger.expenses ?? []) {
     const at = nepalNoon(expense.spentOn);
 

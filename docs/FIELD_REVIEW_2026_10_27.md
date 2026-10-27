@@ -112,13 +112,22 @@ Complaints, Staff… taken from the code, for demo videos.
 
 ## Phase 4 — Finance screens
 
-☐ **C1 Payment sheet** shows the whole flow: month rent, discount only when present,
-fine/khata lines, total, paid, left (p7).
-☐ **C2 Statement PDF** in the report PDF's format: date, particulars, Dr, Cr, running
-balance, opening and closing balance (p3).
-☐ **C3 Expense screen**: the quick buttons change the "Rice 25 kg" label to match;
+☑ **C1 Payment sheet** shows the whole flow: month rent, discount only when present,
+fine/khata lines, total, paid, left (p7). App: Money tab cash sheet → `BillBreakdown`
+(`components/bill-extras.tsx`) over `billRows()` in `lib/admin-money.ts` (tested).
+Web: the resident payment-track sheet's months now carry `lines` from the ledger
+read and print the same rows. Open: device look.
+☑ **C2 Statement PDF** in the report PDF's format: date, particulars, Dr, Cr, running
+balance, opening and closing balance (p3). App and web Statement PDF buttons now
+download Reports' bank-style statement (`reports/statement/pdf`) for the months on
+screen (`pdfMonths`), CSV unchanged; that PDF now starts from the hostel's opening
+bank balance, so its balance is the app's `statementCredits` running total (tested).
+Overall keeps its all-branches PDF. Open: device look at a downloaded PDF.
+☑ **C3 Expense screen**: the quick buttons change the "Rice 25 kg" label to match;
 payment methods show real eSewa, Khalti, Bank, Cash marks as vectors (`wallet-mark.tsx`
-first) (p8).
+first) (p8). Hint follows the tapped tile (`EXPENSE_WHAT_EXAMPLE`, shared, app + web);
+Paid by = four `WalletMark` tiles. eSewa/Khalti are the owner's PNG marks, Bank/Cash
+our vector glyphs — true SVG brand marks need vector files from the owner. Open: device look.
 
 ## Phase 5 — Stock (p3, p6)
 
