@@ -28,6 +28,7 @@ import { HostelAdminProfilePageContent } from "@/app/_components/hostel-admin-pr
 import { HostelAdminReconcilePageContent } from "@/app/_components/hostel-admin-reconcile-page";
 import { HostelAdminKycPageContent } from "@/app/_components/hostel-admin-kyc-page";
 import { HostelAdminKhataPageContent } from "@/app/_components/khata-pages";
+import { HostelAdminBackupPageContent } from "@/app/_components/hostel-admin-backup-page";
 import { HostelAdminLeavePageContent } from "@/app/_components/hostel-admin-leave-page";
 import { HostelAdminReferralsPageContent } from "@/app/_components/hostel-admin-referrals-page";
 import { HostelAdminReportsPageContent } from "@/app/_components/hostel-admin-reports-page";
@@ -71,6 +72,8 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   "invite-hostels": () => <HostelAdminInviteHostelsPageContent />,
   khata: () => <HostelAdminKhataPageContent />,
   kyc: () => <HostelAdminKycPageContent />,
+  // Google Drive backup — owner only (docs/FIELD_REVIEW_2026_10_27.md I6).
+  backup: () => <HostelAdminBackupPageContent />,
   // Leave the platform — owner only (docs/HOSTEL_LEAVE_PLATFORM.md).
   leave: () => <HostelAdminLeavePageContent />,
   maintenance: () => <HostelAdminMaintenancePageContent />,

@@ -358,29 +358,85 @@ key offline), backups-only bucket with its own token, `daily/` + `monthly/` + ma
 with per-collection counts, fails under 20 collections. Alert = GitHub's failed-run email.
 Open: owner setup (BACKUP.md steps 1–5) and a first green run. The superadmin status
 row moves to I2, where there is a *verified* result to show.
-☐ **I2 Restore drill**: script restores an archive into a separate database (an M0 in a
+☑ **I2 Restore drill**: script restores an archive into a separate database (an M0 in a
 second Atlas project) and compares counts per collection. Nothing says "backed up"
 before this passes.
-☐ **I3 Tenant export**: every `hostelId` collection mapped — residents, finance, staff,
+**Done in code 2026-10-27** — `apps/web/scripts/backup-drill.mjs`: download → SHA-256 vs
+manifest → `age -d | mongorestore --nsFrom/--nsTo restore_check.*` into a spare cluster →
+per-collection counts vs manifest → PASSED/FAILED posted to `POST /api/v1/cron/platform-backup`.
+Least privilege: the server holds no bucket key; the workflow and the drill post counts with
+the cron secret (`PlatformBackupReport`). Superadmin dashboard row: last backup, stale badge
+after 30 h, "Not verified" until a drill passes. Tests: `platform-backup.service.test.ts`.
+Open: owner setup (spare Atlas M0, read-only R2 token, `BACKUP_CRON_SECRET` +
+`BACKUP_REPORT_URL` in GitHub), then the first drill.
+☑ **I3 Tenant export**: every `hostelId` collection mapped — residents, finance, staff,
 stock, branches and the rest, all of it; export filtered server-side by the authorised
 hostel (branches included); a test proves one hostel's export holds nothing of another's.
 Drive backup is offered from the **Pro plan up** (Q4), gated server-side.
-☐ **I4 Customer key**: the owner's phone generates a key pair; the private key stays on
+**Done in code 2026-10-27** — `modules/backup/tenant-export.ts`: 72 collections
+exported and restorable, 17 exported as the hostel's record only (Hostel, User — no
+credentials, subscription bills, audit log, payout account…), 23 excluded with a reason
+(secrets, our analytics, referral and field-sales ledgers, reporter identities). Scope is
+the root hostel + its branches (a branch exports only itself); a shared user keeps only
+this hostel's ids. Packed as Extended JSON chunks with a SHA-256 each. Pro+ gate in
+`backup.service.ts` (`planRank ≥ pro`, read through `billingHostelId`). Tests:
+`tenant-export.test.ts` — fails on any `hostelId` model not mapped; no leak across two
+hostels with branches. Not in the archive: file bytes (photos, documents stay in R2;
+their `FileAsset` rows are in).
+☑ **I4 Customer key**: the owner's phone generates a key pair; the private key stays on
 the phone (SecureStore) and in a printed recovery kit (words + QR); only the public key
 reaches the server. Each backup gets a fresh AES-256-GCM key sealed to it (libsodium /
 age format), so the server can back up on schedule and still cannot read the archive.
 Security review before any "end-to-end encrypted" wording.
-☐ **I5 Google Drive `appDataFolder`**: OAuth `drive.appdata` scope, refresh token
+**Done in code 2026-10-27** — `packages/shared/src/backup/sealed-archive.ts` (one file,
+NaCl passed in; web and app both use `tweetnacl`, audited, pure JS). X25519 sealed box
+wraps a fresh 32-byte key per backup; data is XSalsa20-Poly1305 (libsodium format, not
+AES-GCM — reason in the threat model); hostel id + time sealed with the key so an edited
+header does not open. Phone: `lib/backup.ts` makes the pair, private key in SecureStore
+(`WHEN_UNLOCKED_THIS_DEVICE_ONLY`), kit = 14 groups of 4 (Crockford base32 + checksum)
++ QR (`toqr`). Server stores the public key only. Threat model: `docs/BACKUP.md`.
+Tests: `sealed-archive.test.ts` (round trip, wrong key, flipped byte, edited header, mistyped
+code). **Native:** Hermes has no secure random, so making a key needs `expo-crypto`
+(pinned in package.json + lock) — it rides Phase 6's native build; restore works without it.
+Open: the security review; no "end-to-end encrypted" wording anywhere until then; printing
+the kit (no print module yet — the sheet is written down by hand).
+☑ **I5 Google Drive `appDataFolder`**: OAuth `drive.appdata` scope, refresh token
 encrypted server-side, scheduled upload, reconnect on revoke, quota errors shown.
 External: Google's OAuth consent-screen verification for the scope — check in the
 Cloud console first.
-☐ **I6 Backup screen** (web + app, owner only): Drive status, last backup + integrity
+**Done in code 2026-10-27** — `modules/backup/google-drive.ts` (plain fetch, resumable
+upload, `drive.appdata` + `email` only), `backup.service.ts`: signed OAuth state (HMAC,
+10 min), refresh token sealed with `FINANCE_MASTER_KEY` (also rewrapped by the rotation
+script), cron `POST /api/v1/cron/customer-backup` (hourly; each hostel once per 20 h, oldest
+first), Drive MD5 compared after upload ("checked"), newest 30 kept in Drive. `invalid_grant`
+→ REVOKED + Reconnect; `storageQuotaExceeded` → QUOTA_FULL with the message on screen.
+Pro+ gate on connect and on every scheduled run. Open: owner setup (Google OAuth client +
+consent-screen verification for `drive.appdata`, env, cron-job.org entry), first live run.
+☑ **I6 Backup screen** (web + app, owner only): Drive status, last backup + integrity
 check, history, download (ciphertext), recovery-kit status. Honest wording only
 ("Last backup 23 Oct, 02:00 · checked").
-☐ **I7 Restore**: download → recovery kit → verify → decrypt on device → preview → confirm
+**Done in code 2026-10-27** — app `manage/backup.tsx` (Settings → Backup): status facts,
+set up / replace key + kit sheet, connect / reconnect / disconnect Drive, Back up now,
+history grouped by day with Checked / Not checked / Failed, Download (ciphertext via
+`downloadToDevice`), Restore. Web `/hostel-admin/backup` (Settings → Backup): the same
+facts, Drive connect, Back up now, history + download via `downloadFile`; the key is made
+and restore runs in the app, where the key lives. Server refuses wardens (owner check).
+Open: device pass after the native build; web check in the browser.
+☑ **I7 Restore**: download → recovery kit → verify → decrypt on device → preview → confirm
 → import with audit log; refuses another hostel's archive.
-☐ **I8 Drills**: lost DB, deleted rows, revoked Drive, lost kit, tampered archive,
+**Done in code 2026-10-27** — the app downloads the file to its cache, checks SHA-512
+against our record, the header's hostel against the open hostel and the key's fingerprint,
+decrypts on the phone, shows the counts, confirms (`openConfirm`, PIN), then sends each
+chunk; the server takes a chunk only if its SHA-256 is recorded for **this** hostel's run,
+refuses rows of any other hostel, adds missing rows only (never overwrites or deletes),
+never restores platform records (Hostel, User, plan bills…), and audit-logs each chunk
+(`BACKUP_RESTORED`). Tests: `backup.service.test.ts`. Open: device pass; scanning the kit's
+QR on restore (typed code works today).
+☑ **I8 Drills**: lost DB, deleted rows, revoked Drive, lost kit, tampered archive,
 cross-tenant restore.
+**Documented 2026-10-27** — `docs/BACKUP.md` → Drills: how to run each of the six, what passing
+looks like, a Last-run column. Cross-tenant and tamper rejection are automated in the tests;
+the other drills wait for the owner setup and a device build.
 
 ## Open questions
 

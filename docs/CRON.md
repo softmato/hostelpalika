@@ -187,6 +187,17 @@ midnight bills each month on its first day. Every other day's run answers
 
 ## Check it works
 
+## 18. Customer backup
+
+- Title: `Customer backup`
+- URL: `https://hostelpalika.com/api/v1/cron/customer-backup`
+- Method: `POST`
+- Header: `x-cron-secret`: `<CRON_SECRET>`
+- Crontab: `5 * * * *` (hourly; each connected hostel is backed up once a day, oldest first)
+
+`/api/v1/cron/platform-backup` is not scheduled here: the GitHub backup workflow and the
+restore drill post to it (docs/BACKUP.md).
+
 Press **TEST RUN** after creating each job.
 
 | Response | Meaning |
@@ -198,3 +209,4 @@ Press **TEST RUN** after creating each job.
 
 The auth check is in [`apps/web/src/lib/cron-auth.ts`](../apps/web/src/lib/cron-auth.ts). A new
 cron route uses `validateCronRequest` and gets a block above.
+

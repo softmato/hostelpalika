@@ -176,6 +176,7 @@ async function rewrapAll(kind, rows, write) {
 const secrets = mongoose.connection.db.collection("encryptedsecrets");
 const payoutAccounts = mongoose.connection.db.collection("hostelpayoutaccounts");
 const bookings = mongoose.connection.db.collection("bookings");
+const backups = mongoose.connection.db.collection("hostelbackups");
 
 // Mirrors `scopeOf` in secret-store.ts, where the provider is folded into the
 // purpose. If that composition changes, this line changes with it — a script
@@ -231,16 +232,33 @@ const refundResult = await rewrapAll(
     ),
 );
 
-const rewrapped = secretResult.rewrapped + payoutResult.rewrapped + refundResult.rewrapped;
-const failed = secretResult.failed + payoutResult.failed + refundResult.failed;
+// Mirrors `TOKEN_PURPOSE` in backup/backup.service.ts — the Drive refresh token.
+const driveResult = await rewrapAll(
+  "Drive backup token(s)",
+  (await backups.find({ "drive.token": { $exists: true } }).toArray()).map((row) => ({
+    aad: `${ENVELOPE_FORMAT}:${row.hostelId.toString()}:DRIVE_REFRESH_TOKEN`,
+    envelope: row.drive.token,
+    id: row._id,
+    label: `Drive token for hostel ${row.hostelId}`,
+  })),
+  (id, wrapped) =>
+    backups.updateOne(
+      { _id: id },
+      { $set: Object.fromEntries(Object.entries(wrapped).map(([key, value]) => [`drive.token.${key}`, value])) },
+    ),
+);
+
+const rewrapped = secretResult.rewrapped + payoutResult.rewrapped + refundResult.rewrapped + driveResult.rewrapped;
+const failed = secretResult.failed + payoutResult.failed + refundResult.failed + driveResult.failed;
 const remaining = dryRun
-  ? secretResult.remaining + payoutResult.remaining + refundResult.remaining
+  ? secretResult.remaining + payoutResult.remaining + refundResult.remaining + driveResult.remaining
   : (await secrets.countDocuments({ keyId: { $ne: target.id } })) +
     (await payoutAccounts.countDocuments({ "number.keyId": { $ne: target.id } })) +
     (await bookings.countDocuments({
       "refundAccount.number": { $exists: true },
       "refundAccount.number.keyId": { $ne: target.id },
-    }));
+    })) +
+    (await backups.countDocuments({ "drive.token": { $exists: true }, "drive.token.keyId": { $ne: target.id } }));
 
 console.table([
   { metric: "rewrapped", value: rewrapped },

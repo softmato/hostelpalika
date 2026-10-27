@@ -90,3 +90,15 @@ jobs:
           s3 manifest.json "s3://$BUCKET/latest.json"
 
           echo "Backed up $collections collections, $(stat -c %s "$file") bytes encrypted."
+
+      # Tells the superadmin status row a backup was made (docs/BACKUP.md I2).
+      # Counts and a hash only; the server never gets a key to the bucket.
+      - name: Report to the status row
+        if: ${{ vars.BACKUP_REPORT_URL != '' }}
+        env:
+          CRON_SECRET: ${{ secrets.BACKUP_CRON_SECRET }}
+          REPORT_URL: ${{ vars.BACKUP_REPORT_URL }}
+        run: |
+          set -euo pipefail
+          { printf '{"kind":"BACKUP","manifest":'; cat manifest.json; printf '}'; } |
+            curl -fsS -o /dev/null -X POST -H "content-type: application/json" -H "x-cron-secret: $CRON_SECRET" --data-binary @- "$REPORT_URL"
