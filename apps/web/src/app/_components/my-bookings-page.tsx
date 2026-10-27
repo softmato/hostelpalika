@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 import { Building2, ChevronRight, Download, QrCode } from "@/components/icons";
 import Link from "next/link";
@@ -133,7 +134,7 @@ function BookingList() {
               <div className="min-w-0">
                 <p className="truncate font-bold text-foreground">{booking.hostelName}</p>
                 <p className="mt-0.5 text-sm text-muted-foreground">
-                  {booking.roomType} · {booking.code} · {at(booking.createdAt)}
+                  {roomTypeLabel(booking.roomType)} · {booking.code} · {at(booking.createdAt)}
                 </p>
               </div>
             </div>
@@ -309,7 +310,7 @@ function BookingDetail({ bookingId }: { bookingId: string }) {
             <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Booking {current.code}</p>
             <h1 className="mt-1 text-2xl font-extrabold text-foreground">{current.statusLabel}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              {current.roomType} at{" "}
+              {roomTypeLabel(current.roomType)} at{" "}
               <Link
                 className="font-bold text-brand-teal hover:underline"
                 href={`/hostels/${encodeURIComponent(current.hostel.slug)}`}

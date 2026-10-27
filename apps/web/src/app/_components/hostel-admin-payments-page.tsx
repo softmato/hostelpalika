@@ -1,4 +1,5 @@
 "use client";
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { ExportMenu } from "@/components/export-menu";
 import { downloadTable } from "@/lib/downloads/downloader";
 
@@ -878,7 +879,7 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
                                 <p className="font-semibold text-foreground">{name}</p>
                                 <p className="text-xs text-muted-foreground">
                                   {row.resident.roomType
-                                    ? `${row.resident.roomType} · `
+                                    ? `${roomTypeLabel(row.resident.roomType)} · `
                                     : ""}
                                   {row.resident.phone}
                                   {movedInThisMonth

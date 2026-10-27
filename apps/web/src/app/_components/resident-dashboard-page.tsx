@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { Bell, MessageSquareWarning, Moon, WalletCards } from "@/components/icons";
 import Link from "next/link";
 import { memo } from "react";
@@ -42,7 +43,7 @@ export const ResidentDashboardPageContent = memo(function ResidentDashboardPageC
 
   const firstName = dashboard?.resident.firstName ?? "Resident";
   const unreadNotices = dashboard?.notices.filter((notice) => !notice.isRead).length ?? 0;
-  const bedTypeLabel = dashboard?.accommodation.roomType?.replaceAll("_", " ") || "—";
+  const bedTypeLabel = roomTypeLabel(dashboard?.accommodation.roomType) || "—";
   const latestPayment = dashboard?.feeStatus.latestPayment;
   /*
    * The invoice the amount card is actually about.

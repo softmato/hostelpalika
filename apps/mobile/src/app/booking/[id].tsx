@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback } from "react";
@@ -165,7 +166,7 @@ export default function BookingScreen() {
               <Text variant="caption">Booking {data.code}</Text>
               <Text className="mt-1 text-xl font-bold text-foreground">{data.statusLabel}</Text>
               <Text className="mt-0.5 text-sm text-muted-foreground">
-                {data.roomType} at {data.hostel.name}
+                {roomTypeLabel(data.roomType)} at {data.hostel.name}
               </Text>
             </View>
             <Badge label={isOpenBooking(data.status) ? "Open" : "Ended"} tone={isOpenBooking(data.status) ? "success" : "neutral"} />

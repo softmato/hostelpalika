@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { AlertTriangle, CheckCircle2, Loader2 } from "@/components/icons";
 import { useMemo, useState } from "react";
 
@@ -107,7 +108,7 @@ export function ExistingResidentsSheet({
         column.key === "roomNumber"
           ? () =>
               (numberedRooms ?? []).map((room) => ({
-                label: `${room.number} · ${floorName(room.floor)} · ${room.roomType} (${room.free} free)`,
+                label: `${room.number} · ${floorName(room.floor)} · ${roomTypeLabel(room.roomType)} (${room.free} free)`,
                 value: room.number,
               }))
           : column.key === "roomType"

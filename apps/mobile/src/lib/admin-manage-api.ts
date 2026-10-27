@@ -2317,10 +2317,10 @@ export type BedType = (typeof BED_TYPES)[number];
 
 export const BED_TYPE_LABELS: Record<BedType, string> = {
   DORMITORY: "Dormitory",
-  DOUBLE_SHARING: "Double sharing",
-  FOUR_SHARING: "Four sharing",
-  SINGLE: "Single",
-  TRIPLE_SHARING: "Triple sharing",
+  DOUBLE_SHARING: "Double Sharing Room",
+  FOUR_SHARING: "Four Sharing Room",
+  SINGLE: "Single Sitter Room",
+  TRIPLE_SHARING: "Triple Sharing Room",
 };
 
 /**

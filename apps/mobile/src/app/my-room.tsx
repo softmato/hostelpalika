@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
 
@@ -97,7 +98,7 @@ export default function MyRoomScreen() {
           <View>
             <SectionHeader title="Waiting for the warden" />
             <Card className="gap-3">
-              <Text>{`You asked for ${roomLine(request.to) ?? "a room"}${request.to ? ` (${request.to.roomType})` : ""}.`}</Text>
+              <Text>{`You asked for ${roomLine(request.to) ?? "a room"}${request.to ? ` (${roomTypeLabel(request.to.roomType)})` : ""}.`}</Text>
               <Button label="Cancel request" loading={busy} onPress={() => void run(cancelRoomChange, "Request cancelled")} variant="outline" />
             </Card>
           </View>

@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { assertPlanRoom } from "@/modules/billing/plan-limits";
 import { Types } from "mongoose";
 import type { z } from "zod";
@@ -1060,7 +1061,7 @@ export async function createResident(
 
   if (room && room.roomType !== input.roomType) {
     throw new ResidentServiceError(
-      `Room ${room.number} is ${room.roomType}, not ${input.roomType}.`,
+      `Room ${room.number} is ${roomTypeLabel(room.roomType)}, not ${roomTypeLabel(input.roomType)}.`,
       "ROOM_TYPE_MISMATCH",
       409,
     );

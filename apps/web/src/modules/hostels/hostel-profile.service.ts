@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { connectToDatabase } from "@/lib/db";
 import { buildAddressQuery } from "@/lib/maps/geocoding";
 import { geocodeAndCacheHostel } from "@/modules/hostels/hostel-geo.service";
@@ -162,7 +163,7 @@ export async function updateHostelAdminProfile(
 
       if (occupied) {
         throw new HostelServiceError(
-          `Residents live in ${occupied.roomType}. Move them to another room type before removing it.`,
+          `Residents live in ${roomTypeLabel(occupied.roomType)}. Move them to another room type before removing it.`,
           "ROOM_TYPE_OCCUPIED",
           409,
         );

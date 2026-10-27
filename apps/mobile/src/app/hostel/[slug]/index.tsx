@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useRef, useState } from "react";
@@ -703,7 +704,7 @@ function RoomTypes({
               <View className="flex-row items-center gap-3">
                 {photos[0] ? (
                   <Pressable
-                    accessibilityLabel={`${room.roomType} photos`}
+                    accessibilityLabel={`${roomTypeLabel(room.roomType)} photos`}
                     accessibilityRole="imagebutton"
                     onPress={() =>
                       openAssetViewer(
@@ -716,7 +717,7 @@ function RoomTypes({
                   </Pressable>
                 ) : null}
                 <Text className="flex-1 text-base font-semibold text-foreground">
-                  {room.roomType}
+                  {roomTypeLabel(room.roomType)}
                 </Text>
               </View>
               <View className="mt-1">

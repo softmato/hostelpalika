@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -273,7 +274,7 @@ export function RoomSection({
     >
       <ChoiceChips
         onToggle={(value) => onChange({ roomType: value })}
-        options={withCurrent(ROOM_TYPE_OPTIONS, room.roomType)}
+        options={withCurrent(ROOM_TYPE_OPTIONS, room.roomType).map((option) => ({ ...option, label: roomTypeLabel(option.value) }))}
         value={room.roomType}
       />
 

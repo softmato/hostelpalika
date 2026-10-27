@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import "server-only";
 
 import type { Types } from "mongoose";
@@ -183,7 +184,7 @@ async function remindHostel(booking: BookingRecord, hoursLeft: number) {
 
   await notifyHostel(booking, {
     action: "booking_answer_reminder",
-    body: `${booking.guest.name}'s ${booking.roomType} booking (${booking.code}) needs your answer by ${answerBy}.`,
+    body: `${booking.guest.name}'s ${roomTypeLabel(booking.roomType)} booking (${booking.code}) needs your answer by ${answerBy}.`,
     email: (contact) =>
       bookingAnswerReminderEmail({
         answerBy,

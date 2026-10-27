@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
@@ -95,7 +96,7 @@ export default function ManageBookingsScreen() {
   const confirm = (booking: HostelBooking) =>
     openConfirm({
       confirmLabel: "Confirm booking",
-      message: `Holds one ${booking.roomType} bed for ${booking.guest.name}. Admit them by scanning their ID card when they arrive.`,
+      message: `Holds one ${roomTypeLabel(booking.roomType)} bed for ${booking.guest.name}. Admit them by scanning their ID card when they arrive.`,
       onConfirm: () => run(booking, "confirm"),
       title: "Confirm this booking?",
     });
@@ -113,7 +114,7 @@ export default function ManageBookingsScreen() {
         <View className="flex-1">
           <Text className="text-base font-semibold text-foreground">{booking.guest.name}</Text>
           <Text variant="caption">
-            {booking.roomType} · {booking.code}
+            {roomTypeLabel(booking.roomType)} · {booking.code}
           </Text>
         </View>
         <Badge

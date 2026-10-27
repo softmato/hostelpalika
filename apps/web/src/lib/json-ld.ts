@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import {
   PLATFORM_NAME,
   PLATFORM_PLAY_STORE_URL,
@@ -305,7 +306,7 @@ export function hostelJsonLd(hostel: HostelJsonLdInput): JsonLd {
     makesOffer: rooms.length
       ? rooms.map((room) => ({
           "@type": "Offer",
-          name: `${room.roomType} room`,
+          name: roomTypeLabel(room.roomType),
           priceSpecification: {
             "@type": "UnitPriceSpecification",
             price: room.monthlyRent,

@@ -1,6 +1,6 @@
 "use client";
 
-import { bedsForRoomType } from "@hostel/shared/constants/room-types";
+import { bedsForRoomType, roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { Building2, Loader2, Plus, Trash2 } from "@/components/icons";
 import { useEffect, useRef, useState } from "react";
 
@@ -370,7 +370,7 @@ export function FloorsPanel() {
           {data.unassigned.map((person) => (
             <div className="flex flex-wrap items-center gap-3 text-[13.5px]" key={person.id}>
               <span className="mr-auto font-medium text-foreground">
-                {person.name} <span className="text-[12.5px] text-muted-foreground">· {person.roomType}</span>
+                {person.name} <span className="text-[12.5px] text-muted-foreground">· {roomTypeLabel(person.roomType)}</span>
               </span>
               <select
                 className={cn(INPUT, "w-auto")}
@@ -420,7 +420,7 @@ export function FloorsPanel() {
                 const count = typeTargets[config.roomType] ?? config.rooms;
                 return (
                   <tr className="border-t border-border/70" key={config.roomType}>
-                    <td className="px-4 py-2.5 font-semibold text-foreground">{config.roomType}</td>
+                    <td className="px-4 py-2.5 font-semibold text-foreground">{roomTypeLabel(config.roomType)}</td>
                     <td className="px-4 py-2.5">
                       <Stepper disabled={busy} label={`${config.roomType} rooms`} onChange={(next) => setTypeTarget(config.roomType, next)} value={count} />
                     </td>
@@ -453,7 +453,7 @@ export function FloorsPanel() {
                   >
                     <Glyph className="size-4 shrink-0" name="bed" />
                     <span className="min-w-0">
-                      <span className="block truncate text-[13px] font-semibold">{roomType}</span>
+                      <span className="block truncate text-[13px] font-semibold">{roomTypeLabel(roomType)}</span>
                       <span className={cn("block text-[11px]", on ? "text-white/80" : "text-muted-foreground")}>{beds(roomType)}</span>
                     </span>
                   </button>
@@ -471,7 +471,7 @@ export function FloorsPanel() {
                   <span className="flex gap-2">
                     <select className={cn(INPUT, "w-44")} onChange={(event) => setBulkType(event.target.value)} value={bulkType || types[0]}>
                       {types.map((type) => (
-                        <option key={type} value={type}>{`${type} (${beds(type)})`}</option>
+                        <option key={type} value={type}>{`${roomTypeLabel(type)} (${beds(type)})`}</option>
                       ))}
                     </select>
                     <Button disabled={busy} onClick={() => void retype(chosen, bulkType || types[0]).then((ok) => ok && setSelected([]))} size="sm" type="button">Apply</Button>
@@ -547,7 +547,7 @@ export function FloorsPanel() {
                             )}
                             key={room.id}
                             onClick={(event) => clickTile(room, event)}
-                            title={`${room.roomType} · ${room.residents.map((person) => person.name).join(", ") || "Empty"}`}
+                            title={`${roomTypeLabel(room.roomType)} · ${room.residents.map((person) => person.name).join(", ") || "Empty"}`}
                             type="button"
                           >
                             <span className="font-heading text-[15px] font-bold leading-tight text-foreground">{room.number}</span>

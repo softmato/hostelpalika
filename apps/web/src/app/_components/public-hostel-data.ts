@@ -186,10 +186,5 @@ export function mapPublicHostelToSummary(hostel: PublicHostel): HostelSummary {
   };
 }
 
-export function roomTypeLabel(roomType: string) {
-  return roomType
-    .replaceAll("_", " ")
-    .replaceAll("-", " ")
-    .toLowerCase()
-    .replace(/\b\w/g, (letter) => letter.toUpperCase());
-}
+/** One room-type name everywhere (field review B1). */
+export { roomTypeLabel } from "@hostel/shared/constants/room-types";

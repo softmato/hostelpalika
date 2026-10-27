@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { useState } from "react";
 
 import { FIELD, useAction } from "@/app/_components/booking-admin-ui";
@@ -58,7 +59,7 @@ function ShortStaysForm({ settings }: { settings: ShortStaySettingsView }) {
         {settings.rooms.map((room) => (
           <label className="grid items-center gap-2 sm:grid-cols-[1fr_10rem]" key={room.roomType}>
             <span>
-              <span className="font-semibold text-foreground">{room.roomType}</span>
+              <span className="font-semibold text-foreground">{roomTypeLabel(room.roomType)}</span>
               <span className="block text-xs text-muted-foreground">
                 {room.floor && room.monthlyRent
                   ? `${rupees(room.monthlyRent)} a month · at least ${rupees(room.floor)} a night`

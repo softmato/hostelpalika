@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { useCallback, useMemo, useState } from "react";
 import { Linking, View } from "react-native";
 
@@ -337,7 +338,7 @@ export default function ManageReferralsScreen() {
                       {leader.name}
                     </Text>
                     <Text variant="caption">
-                      {`${leader.code}${leader.roomType ? ` · ${leader.roomType}` : ""}`}
+                      {`${leader.code}${leader.roomType ? ` · ${roomTypeLabel(leader.roomType)}` : ""}`}
                     </Text>
                   </View>
                   <Badge

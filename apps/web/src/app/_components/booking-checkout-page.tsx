@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 import { BedDouble, CalendarCheck, ShieldCheck } from "@/components/icons";
 import Link from "next/link";
@@ -101,26 +102,26 @@ function RoomPhotos({ cover, photos, roomType }: { cover: string | null; photos:
   }
 
   const items: LightboxItem[] = shown.map((src, index) => ({
-    caption: `${roomType} — photo ${index + 1} of ${shown.length}`,
+    caption: `${roomTypeLabel(roomType)} — photo ${index + 1} of ${shown.length}`,
     kind: "image",
     src,
   }));
 
   return (
     <div className="mt-5 border-t border-border pt-4">
-      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{roomType}</p>
+      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{roomTypeLabel(roomType)}</p>
       <div className="mt-2 grid grid-cols-3 gap-2">
         {shown.map((url, index) => (
           <button
             className="aspect-square overflow-hidden rounded-lg border border-border bg-muted transition hover:opacity-90"
             key={`${url}-${index}`}
             onClick={() => setOpenAt(index)}
-            title={`${roomType} photo ${index + 1}`}
+            title={`${roomTypeLabel(roomType)} photo ${index + 1}`}
             type="button"
           >
             {/* Photo hosts are not in next/image's remotePatterns, as on the hostel page. */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img alt={`${roomType} photo ${index + 1}`} className="h-full w-full object-cover" src={url} />
+            <img alt={`${roomTypeLabel(roomType)} photo ${index + 1}`} className="h-full w-full object-cover" src={url} />
           </button>
         ))}
       </div>
@@ -199,7 +200,7 @@ function RoomChooser({ availability, slug }: { availability: BookingAvailability
                   href={`/book/${encodeURIComponent(slug)}?room=${encodeURIComponent(room.roomType)}`}
                 >
                   <PhotoStack photos={room.photos} roomType={room.roomType} />
-                  <span className="min-w-0 flex-1 truncate">{room.roomType}</span>
+                  <span className="min-w-0 flex-1 truncate">{roomTypeLabel(room.roomType)}</span>
                   <span className="shrink-0 font-semibold text-muted-foreground">{rupees(room.fee)} fee</span>
                 </Link>
               </li>

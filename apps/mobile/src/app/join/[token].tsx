@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { View } from "react-native";
@@ -372,7 +373,7 @@ function JoinForm({
                 key={candidate.roomType}
                 label={
                   candidate.monthlyRent
-                    ? `${candidate.roomType} · ${formatMoney(candidate.monthlyRent)}`
+                    ? `${roomTypeLabel(candidate.roomType)} · ${formatMoney(candidate.monthlyRent)}`
                     : candidate.roomType
                 }
                 onPress={() => set({ roomType: candidate.roomType })}
@@ -503,7 +504,7 @@ function RequestStatus({
       </Card>
 
       <Card padding="px-4 py-1">
-        <FactRow label="Room type" value={request.roomType} />
+        <FactRow label="Room type" value={roomTypeLabel(request.roomType)} />
         <FactRow label="Rent" value={request.rentLabel} />
         {request.partPaid ? <FactRow label="Part paid" value={formatMoney(request.partPaid)} /> : null}
         <FactRow label="Deposit paid" value={formatMoney(request.depositPaid)} />

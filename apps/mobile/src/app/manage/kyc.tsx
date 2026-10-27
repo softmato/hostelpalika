@@ -1,4 +1,4 @@
-import { bedsForRoomType, ROOM_TYPE_OPTIONS } from "@hostel/constants/room-types";
+import { bedsForRoomType, ROOM_TYPE_OPTIONS, roomTypeLabel } from "@hostel/constants/room-types";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { usePreventRemove } from "expo-router/react-navigation";
@@ -440,13 +440,13 @@ function PhotosStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
 
             return (
               <View className="gap-2" key={config.roomType}>
-                <Text variant="label">{config.roomType}</Text>
+                <Text variant="label">{roomTypeLabel(config.roomType)}</Text>
                 <PhotoStrip
               large
               disabled={Boolean(uploadingFor)}
                   busy={uploadingFor === targetKey(target)}
                   limit={PHOTO_LIMITS.ROOM}
-                  name={config.roomType}
+                  name={roomTypeLabel(config.roomType)}
                   onAdd={(source) => void addPhotos(target, shots.length, source)}
                   onRemove={removePhoto}
                   photos={shots}
@@ -898,7 +898,7 @@ function RatesStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
         setRents((current) => Object.fromEntries(Object.entries(current).filter(([key]) => key !== roomType)));
       }
     },
-    title: `Remove ${roomType}?`,
+    title: `Remove ${roomTypeLabel(roomType)}?`,
   });
 
   if (hostel.loading || fees.loading) return <SkeletonCard rows={3} />;
@@ -908,7 +908,7 @@ function RatesStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
 
   return <View className="gap-4">
     <View className="flex-row flex-wrap gap-2">
-      {unpicked.map((option) => <Pressable accessibilityLabel={`Add ${option}`} accessibilityRole="button" className="min-h-11 flex-row items-center gap-1.5 rounded-xl border border-border px-3 active:opacity-70" disabled={saving} key={option} onPress={() => void addType(option)}><Glyph color={colors.primary} name="add" size={16} /><Text variant="label">{option}</Text></Pressable>)}
+      {unpicked.map((option) => <Pressable accessibilityLabel={`Add ${roomTypeLabel(option)}`} accessibilityRole="button" className="min-h-11 flex-row items-center gap-1.5 rounded-xl border border-border px-3 active:opacity-70" disabled={saving} key={option} onPress={() => void addType(option)}><Glyph color={colors.primary} name="add" size={16} /><Text variant="label">{roomTypeLabel(option)}</Text></Pressable>)}
       <Pressable accessibilityLabel="Add another room type" accessibilityRole="button" className="min-h-11 flex-row items-center gap-1.5 rounded-xl border border-dashed border-border px-3 active:opacity-70" disabled={saving} onPress={() => setNaming("")}><Glyph color={colors.primary} name="create" size={16} /><Text variant="label">Other</Text></Pressable>
     </View>
     {types.map((type) => {
@@ -918,12 +918,12 @@ function RatesStep({ onSaved }: { onSaved: () => Promise<void> | void }) {
       return <Card className="gap-3" key={type.roomType}>
         <View className="flex-row items-center gap-3">
           <View className="h-10 w-10 items-center justify-center rounded-xl bg-brand-soft"><Glyph color={colors.primary} name="bed" size={20} /></View>
-          <View className="flex-1"><Text variant="label">{type.roomType}</Text><Text variant="caption">{beds} {beds === 1 ? "bed" : "beds"} a room</Text></View>
+          <View className="flex-1"><Text variant="label">{roomTypeLabel(type.roomType)}</Text><Text variant="caption">{beds} {beds === 1 ? "bed" : "beds"} a room</Text></View>
           {savedRent(type.roomType) ? null : <Badge label="Not priced" tone="warning" />}
-          <IconButton label={`Remove ${type.roomType}`} name="trash" onPress={() => removeType(type.roomType)} size="sm" />
+          <IconButton label={`Remove ${roomTypeLabel(type.roomType)}`} name="trash" onPress={() => removeType(type.roomType)} size="sm" />
         </View>
-        <Input accessibilityLabel={`${type.roomType} rent`} keyboardType="number-pad" label="Rent / month" leading={<Glyph color={colors.mutedForeground} name="cash" size={18} />} onChangeText={(text) => setRents((current) => ({ ...current, [type.roomType]: digits(text) }))} placeholder="12000" value={rentOf(type.roomType)} variant="line" />
-        <PhotoStrip busy={uploadingFor === targetKey(target)} disabled={Boolean(uploadingFor)} limit={PHOTO_LIMITS.ROOM} name={type.roomType} onAdd={(source) => void addPhotos(target, shots.length, source)} onRemove={removePhoto} photos={shots} />
+        <Input accessibilityLabel={`${roomTypeLabel(type.roomType)} rent`} keyboardType="number-pad" label="Rent / month" leading={<Glyph color={colors.mutedForeground} name="cash" size={18} />} onChangeText={(text) => setRents((current) => ({ ...current, [type.roomType]: digits(text) }))} placeholder="12000" value={rentOf(type.roomType)} variant="line" />
+        <PhotoStrip busy={uploadingFor === targetKey(target)} disabled={Boolean(uploadingFor)} limit={PHOTO_LIMITS.ROOM} name={roomTypeLabel(type.roomType)} onAdd={(source) => void addPhotos(target, shots.length, source)} onRemove={removePhoto} photos={shots} />
       </Card>;
     })}
     {types.length ? <>

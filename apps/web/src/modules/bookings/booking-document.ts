@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { PDFDocument } from "pdf-lib";
 
 import { amountInWords } from "@/modules/billing/documents/amount-in-words";
@@ -79,7 +80,7 @@ export function bookingDocumentLayout(
 ): BookingDocumentInput {
   const currency = booking.currency ?? "NPR";
   const money = (amount: number) => `${currency} ${documentAmount(amount)}`;
-  const forLine = `Booking fee - ${booking.roomType}, ${booking.hostelSnapshot.name}`;
+  const forLine = `Booking fee - ${roomTypeLabel(booking.roomType)}, ${booking.hostelSnapshot.name}`;
   const guestParty = (eyebrow: string, detail = booking.guest.email ?? "") => ({
     detail,
     eyebrow,

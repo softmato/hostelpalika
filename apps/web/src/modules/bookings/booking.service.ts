@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import "server-only";
 
 import { Types } from "mongoose";
@@ -564,7 +565,7 @@ export async function createBooking(
   await notifyGuest(created, {
     action: "booking_invoice",
     attachments: invoicePaper ? [invoicePaper] : undefined,
-    body: `Pay Rs ${amountDue(created).toLocaleString("en-IN")} with code ${created.code} to book ${created.roomType} at ${created.hostelSnapshot.name}.`,
+    body: `Pay Rs ${amountDue(created).toLocaleString("en-IN")} with code ${created.code} to book ${roomTypeLabel(created.roomType)} at ${created.hostelSnapshot.name}.`,
     email: bookingInvoiceEmail({
       booking: bookingFacts(created),
       bookingUrl: appUrl(guestBookingPath(created)),

@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import type { Types } from "mongoose";
 
 import { REALTIME_TOPIC } from "@/lib/realtime/channels";
@@ -149,7 +150,7 @@ export async function claimBedForRoomType(hostelId: Types.ObjectId, roomType: st
 
   if ((target.vacantBeds ?? 0) <= 0) {
     throw new CapacityError(
-      `No vacant beds left in "${roomType}".`,
+      `No vacant beds left in "${roomTypeLabel(roomType)}".`,
       "ROOM_TYPE_FULL",
       409,
     );

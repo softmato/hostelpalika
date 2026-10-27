@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import "server-only";
 
 import { Types } from "mongoose";
@@ -270,7 +271,7 @@ export async function markBookingPaid(
 
   await notifyHostel(paid, {
     action: "booking_request",
-    body: `${paid.guest.name} booked ${paid.stay ? `${paid.stay.nights} nights (${stayDatesText(paid.stay)}) in ` : ""}a ${paid.roomType}. Answer by ${when(hostelAnswerBy)}.`,
+    body: `${paid.guest.name} booked ${paid.stay ? `${paid.stay.nights} nights (${stayDatesText(paid.stay)}) in ` : ""}a ${roomTypeLabel(paid.roomType)}. Answer by ${when(hostelAnswerBy)}.`,
     email: (contact) =>
       bookingRequestEmail({
         answerBy: when(hostelAnswerBy),

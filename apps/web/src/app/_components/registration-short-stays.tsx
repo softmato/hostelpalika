@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { useEffect, useState } from "react";
 
 import { browserApi } from "@/lib/browser-api";
@@ -98,7 +99,7 @@ export function RegistrationShortStays({
             return (
               <label className="grid items-center gap-2 sm:grid-cols-[1fr_10rem]" key={room.roomType}>
                 <span>
-                  <span className="font-semibold text-foreground">{room.roomType}</span>
+                  <span className="font-semibold text-foreground">{roomTypeLabel(room.roomType)}</span>
                   <span className={`block text-xs ${low ? "text-destructive" : "text-muted-foreground"}`}>
                     {floor ? `At least Rs ${floor.toLocaleString("en-IN")} a night` : "Enter its monthly rent first"}
                   </span>

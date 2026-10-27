@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
 
@@ -68,7 +69,7 @@ function ShortStaysForm({ onSaved, settings }: { onSaved: () => void; settings: 
           }
           key={room.roomType}
           keyboardType="number-pad"
-          label={`${room.roomType} · a night`}
+          label={`${roomTypeLabel(room.roomType)} · a night`}
           onChangeText={(value) => setRates((current) => ({ ...current, [room.roomType]: value }))}
           value={rates[room.roomType] ?? ""}
         />

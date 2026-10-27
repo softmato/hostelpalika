@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "../../../constants/room-types";
 import { PLATFORM_NAME } from "../../../brand/brand";
 import {
   ctaButton,
@@ -76,7 +77,7 @@ export function bookingClosedForHostelEmail(
 
   return {
     category: "billing",
-    subject: `${copy.heading} — ${input.guestName}, ${input.roomType}`,
+    subject: `${copy.heading} — ${input.guestName}, ${roomTypeLabel(input.roomType)}`,
     html: emailLayout({
       bodyHtml: [
         greeting(input.name),
@@ -245,7 +246,7 @@ export function bookingRequestEmail(
       ].join(""),
       eyebrow: "New booking",
       heading: "You have a new booking",
-      preheader: `${input.guestName} booked a ${input.roomType}. Answer by ${input.answerBy}.`,
+      preheader: `${input.guestName} booked a ${roomTypeLabel(input.roomType)}. Answer by ${input.answerBy}.`,
     }),
   };
 }

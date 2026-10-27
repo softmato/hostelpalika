@@ -1,4 +1,4 @@
-import { ROOM_TYPE_OPTIONS } from "@hostel/constants/room-types";
+import { ROOM_TYPE_OPTIONS, roomTypeLabel } from "@hostel/constants/room-types";
 import { useCallback, useMemo, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 
@@ -202,7 +202,7 @@ export default function ManageRoomsScreen() {
     if (vacantBeds > capacity) {
       toastError(
         "More vacant than exist",
-        `${roomType} has ${capacity} bed(s) in total, so it cannot have ${vacantBeds} free.`,
+        `${roomTypeLabel(roomType)} has ${capacity} bed(s) in total, so it cannot have ${vacantBeds} free.`,
       );
       return;
     }
@@ -215,7 +215,7 @@ export default function ManageRoomsScreen() {
     ) {
       toastError(
         "Already listed",
-        `Edit “${roomType}” instead of adding it twice.`,
+        `Edit “${roomTypeLabel(roomType)}” instead of adding it twice.`,
       );
       return;
     }
@@ -239,7 +239,7 @@ export default function ManageRoomsScreen() {
 
     const ok = await save(
       next,
-      isNew ? `Added ${roomType}.` : `Updated ${roomType}.`,
+      isNew ? `Added ${roomTypeLabel(roomType)}.` : `Updated ${roomTypeLabel(roomType)}.`,
     );
 
     if (ok) {
@@ -254,7 +254,7 @@ export default function ManageRoomsScreen() {
       ).length;
 
       Alert.alert(
-        `Remove ${roomType}?`,
+        `Remove ${roomTypeLabel(roomType)}?`,
         attached > 0
           ? `Its ${attached} photo(s) go with it, and the public listing stops offering this room type.`
           : "The public listing stops offering this room type.",
@@ -264,7 +264,7 @@ export default function ManageRoomsScreen() {
             onPress: () => {
               void save(
                 configurations.filter((config) => config.roomType !== roomType),
-                `Removed ${roomType}.`,
+                `Removed ${roomTypeLabel(roomType)}.`,
               );
             },
             style: "destructive",
@@ -403,7 +403,7 @@ export default function ManageRoomsScreen() {
                     />
                   }
                   subtitle={`${config.rooms ?? 0} room(s) · ${config.bedsPerRoom ?? 0} bed(s) each · ${capacity} bed(s)`}
-                  title={config.roomType}
+                  title={roomTypeLabel(config.roomType)}
                 />
 
                 <Card className="gap-3">
@@ -426,7 +426,7 @@ export default function ManageRoomsScreen() {
                   <PhotoStrip
                     busy={uploadingFor === targetKey(target)}
                     limit={PHOTO_LIMITS.ROOM}
-                    name={config.roomType}
+                    name={roomTypeLabel(config.roomType)}
                     onAdd={(source) => void addPhotos(target, roomPhotos.length, source)}
                     onRemove={removePhoto}
                     photos={roomPhotos}
@@ -444,7 +444,7 @@ export default function ManageRoomsScreen() {
                       variant="outline"
                     />
                     <Pressable
-                      accessibilityLabel={`Remove ${config.roomType}`}
+                      accessibilityLabel={`Remove ${roomTypeLabel(config.roomType)}`}
                       accessibilityRole="button"
                       className="h-9 items-center justify-center rounded-lg border border-border px-3"
                       onPress={() => remove(config.roomType)}
@@ -500,7 +500,7 @@ export default function ManageRoomsScreen() {
                 ).map((type) => (
                   <Chip
                     key={type}
-                    label={type}
+                    label={roomTypeLabel(type)}
                     onPress={() =>
                       setDraft((prev) => ({ ...prev, roomType: type }))
                     }

@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import "server-only";
 
 import type { Types } from "mongoose";
@@ -130,7 +131,7 @@ export function checkShortStays(
 
     if (!room.floor) {
       throw new BookingError(
-        `Set a monthly rent for ${room.roomType} on the rate card first. The daily rate is checked against it.`,
+        `Set a monthly rent for ${roomTypeLabel(room.roomType)} on the rate card first. The daily rate is checked against it.`,
         "SHORT_STAY_ROOM_NOT_PRICED",
         422,
       );
@@ -138,7 +139,7 @@ export function checkShortStays(
 
     if (rate.dailyRate < room.floor) {
       throw new BookingError(
-        `${room.roomType} must be at least Rs ${room.floor.toLocaleString("en-IN")} a night.`,
+        `${roomTypeLabel(room.roomType)} must be at least Rs ${room.floor.toLocaleString("en-IN")} a night.`,
         "SHORT_STAY_RATE_TOO_LOW",
         422,
         { floor: room.floor, roomType: room.roomType },

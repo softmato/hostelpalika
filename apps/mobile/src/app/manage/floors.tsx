@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { router } from "expo-router";
 import { useCallback, useState } from "react";
 import { View } from "react-native";
@@ -146,7 +147,7 @@ export default function FloorsScreen() {
                   <CardRow
                     icon="person"
                     onPress={() => setAssign(person)}
-                    subtitle={person.roomType}
+                    subtitle={roomTypeLabel(person.roomType)}
                     title={person.name}
                     tone="warning"
                   />

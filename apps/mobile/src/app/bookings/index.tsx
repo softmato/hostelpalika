@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useCallback } from "react";
@@ -85,7 +86,7 @@ export default function MyBookingsScreen() {
                 }
                 onPress={() => router.push({ params: { id: booking.id }, pathname: "/booking/[id]" })}
                 right={<Badge label={booking.statusLabel} tone={isOpenBooking(booking.status) ? "success" : "neutral"} />}
-                subtitle={`${booking.roomType} · ${booking.code} · ${dates.date(booking.createdAt)}`}
+                subtitle={`${roomTypeLabel(booking.roomType)} · ${booking.code} · ${dates.date(booking.createdAt)}`}
                 title={booking.hostelName}
               />
             );

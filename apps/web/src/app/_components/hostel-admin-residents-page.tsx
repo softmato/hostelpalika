@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
 
 import {
@@ -1182,7 +1183,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
               ) : null}
               {cardBooking && !prefillOccupancy ? (
                 <p className="rounded-xl border border-brand-teal/30 bg-brand-teal/10 px-4 py-3 text-sm text-foreground">
-                  <strong>This card holds booking {cardBooking.code}.</strong> One {cardBooking.roomType} bed is held for{" "}
+                  <strong>This card holds booking {cardBooking.code}.</strong> One {roomTypeLabel(cardBooking.roomType)} bed is held for{" "}
                   {cardBooking.guestName}
                   {cardBooking.holdEndsAt
                     ? ` until ${formatHostelDateTime(cardBooking.holdEndsAt)}`
@@ -1257,7 +1258,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                   </option>
                   {roomTypeOptions.map((option) => (
                     <option key={option.roomType} value={option.roomType}>
-                      {option.roomType} ({option.vacantBeds} vacant ·{" "}
+                      {roomTypeLabel(option.roomType)} ({option.vacantBeds} vacant ·{" "}
                       {currency(option.monthlyRent)}/mo)
                     </option>
                   ))}
@@ -1472,7 +1473,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                               <DemoDataBadge label={resident.demoDataLabel} />
                             ) : (
                               <p className="text-xs text-muted-foreground">
-                                {resident.roomType}
+                                {roomTypeLabel(resident.roomType)}
                               </p>
                             )}
                           </div>
@@ -1480,7 +1481,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {resident.roomNumber ? `Room ${resident.roomNumber} · ` : ""}
-                        {resident.roomType}
+                        {roomTypeLabel(resident.roomType)}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {resident.phone}
@@ -1590,7 +1591,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {selectedResident.roomNumber ? `Room ${selectedResident.roomNumber} · ` : ""}
-                      {selectedResident.roomType}
+                      {roomTypeLabel(selectedResident.roomType)}
                       {selectedResident.specialFee
                         ? ` · Special fee Rs ${selectedResident.specialFee.amount.toLocaleString("en-IN")} (${selectedResident.specialFee.reason})`
                         : ""}
@@ -1683,7 +1684,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                     <div className="flex justify-between gap-3">
                       <dt className="text-muted-foreground">Room type</dt>
                       <dd className="font-medium text-foreground">
-                        {selectedResident.roomType}
+                        {roomTypeLabel(selectedResident.roomType)}
                       </dd>
                     </div>
                     {roomLayout.data?.tracking && selectedResident.status !== "MOVED_OUT" ? (
@@ -1712,7 +1713,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                                   value={room.id}
                                 >
                                   {`Room ${room.number} · ${floorName(room.floor)}${
-                                    room.roomType === selectedResident.roomType ? "" : ` · ${room.roomType}`
+                                    room.roomType === selectedResident.roomType ? "" : ` · ${roomTypeLabel(room.roomType)}`
                                   }${room.id === selectedResident.roomId ? "" : room.free > 0 ? ` (${room.free} free)` : " (full)"}`}
                                 </option>
                               ))}

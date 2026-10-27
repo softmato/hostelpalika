@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { useState } from "react";
 import { View } from "react-native";
 
@@ -85,7 +86,7 @@ export function AddRoomsSheet({
         <Select
           label="Room type"
           onChange={setRoomType}
-          options={roomTypes.map((type) => ({ label: type, value: type }))}
+          options={roomTypes.map((type) => ({ label: roomTypeLabel(type), value: type }))}
           placeholder={roomTypes.length ? "Pick a type" : "Add a room type first"}
           value={roomType}
         />

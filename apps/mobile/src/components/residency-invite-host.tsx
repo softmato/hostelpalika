@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import { AppState, View } from "react-native";
@@ -159,7 +160,7 @@ export function ResidencyInviteHost() {
       </View>
 
       <Card className="gap-1">
-        <FactRow label="Room type" value={invite.roomType} />
+        <FactRow label="Room type" value={roomTypeLabel(invite.roomType)} />
         <FactRow
           label="Rent"
           value={

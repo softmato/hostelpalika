@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import {
   Check,
   Copy,
@@ -282,7 +283,7 @@ export function JoinRequestsPanel() {
     const yes = await confirm({
       actionLabel: "Yes, add",
       description: [
-        `${roomNumber ? `Room ${roomNumber} · ` : ""}${request.roomType} · ${request.rentLabel}.`,
+        `${roomNumber ? `Room ${roomNumber} · ` : ""}${roomTypeLabel(request.roomType)} · ${request.rentLabel}.`,
         due > 0 ? `Bills of ${rupees(due)} are made now.` : "Nothing is billed now.",
         "They are told by email and in the app.",
       ].join(" "),
@@ -500,7 +501,7 @@ function RequestCard({
                 <option value="">Pick their room</option>
                 {roomOptions.map((room) => (
                   <option disabled={room.free <= 0} key={room.id} value={room.number}>
-                    {`Room ${room.number} · ${floorName(room.floor)}${room.roomType === request.roomType ? "" : ` · ${room.roomType}`} (${room.free > 0 ? `${room.free} free` : "full"})`}
+                    {`Room ${room.number} · ${floorName(room.floor)}${room.roomType === request.roomType ? "" : ` · ${roomTypeLabel(room.roomType)}`} (${room.free > 0 ? `${room.free} free` : "full"})`}
                   </option>
                 ))}
               </select>

@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "../../../constants/room-types";
 import {
   ctaButton,
   detailsTable,
@@ -116,7 +117,7 @@ export function residentRegisteredEmail(input: {
         detailsTable([
           {
             label: "Room",
-            value: [input.roomType.replaceAll("_", " "), input.roomNumber].filter(Boolean).join(" · "),
+            value: [roomTypeLabel(input.roomType), input.roomNumber].filter(Boolean).join(" · "),
           },
           { label: "Moving in", value: emailDate(input.moveInDate) ?? "" },
           { label: "Monthly rent", value: money(input.monthlyRent) },

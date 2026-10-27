@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "../../../constants/room-types";
 import { PLATFORM_NAME } from "../../../brand/brand";
 import {
   ctaButton,
@@ -80,7 +81,7 @@ export function bookingInvoiceEmail(
       ].join(""),
       eyebrow: "Bill",
       heading: "Please pay your booking fee",
-      preheader: `Pay ${rupees(payable(input.booking))} with code ${input.booking.code} to book ${input.booking.roomType} at ${input.booking.hostelName}.`,
+      preheader: `Pay ${rupees(payable(input.booking))} with code ${input.booking.code} to book ${roomTypeLabel(input.booking.roomType)} at ${input.booking.hostelName}.`,
     }),
   };
 }
@@ -184,7 +185,7 @@ export function bookingConfirmedEmail(
       ].join(""),
       eyebrow: "Booked",
       heading: "Your bed is booked",
-      preheader: `One ${input.booking.roomType} bed at ${input.booking.hostelName} is kept for you until ${input.holdEndsAt}.`,
+      preheader: `One ${roomTypeLabel(input.booking.roomType)} bed at ${input.booking.hostelName} is kept for you until ${input.holdEndsAt}.`,
     }),
   };
 }

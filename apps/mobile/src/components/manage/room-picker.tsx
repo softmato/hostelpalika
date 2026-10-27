@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { useMemo, useState } from "react";
 import { Pressable, View } from "react-native";
 
@@ -53,7 +54,7 @@ export function RoomPicker({
   if (floors.length === 0) {
     return (
       <Text variant="caption">
-        {roomType ? `No ${roomType} rooms are set up yet.` : "No rooms are set up yet."}
+        {roomType ? `No ${roomTypeLabel(roomType)} rooms are set up yet.` : "No rooms are set up yet."}
       </Text>
     );
   }
@@ -93,7 +94,7 @@ export function RoomPicker({
               </Text>
               {showType ? (
                 <Text numberOfLines={1} variant="caption">
-                  {room.roomType}
+                  {roomTypeLabel(room.roomType)}
                 </Text>
               ) : null}
               <Text numberOfLines={1} variant="caption">

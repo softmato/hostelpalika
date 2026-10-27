@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { Types } from "mongoose";
 import { z } from "zod";
 
@@ -460,7 +461,7 @@ export async function moveResidentToRoom(
   if (room.roomType !== resident.roomType) {
     await moveBedBetweenRoomTypes(id, resident.roomType, room.roomType).catch((error: unknown) => {
       if (error instanceof CapacityError) {
-        throw new RoomError(`No free ${room.roomType} bed is counted for this hostel.`, "ROOM_FULL", 409);
+        throw new RoomError(`No free ${roomTypeLabel(room.roomType)} bed is counted for this hostel.`, "ROOM_FULL", 409);
       }
       throw error;
     });
@@ -583,7 +584,7 @@ export async function askRoomChange(principal: ApiPrincipal, input: z.infer<type
     staff.map((userId) =>
       createInAppNotification({
         actionUrl: "/hostel-admin/rooms",
-        body: `${name} asks to move to Room ${room.number} (${room.roomType}, ${floorLabel(room.floor)}).${input.note ? ` “${input.note}”` : ""}`,
+        body: `${name} asks to move to Room ${room.number} (${roomTypeLabel(room.roomType)}, ${floorLabel(room.floor)}).${input.note ? ` “${input.note}”` : ""}`,
         category: "ROOM",
         data: { type: "ROOM_CHANGE_REQUEST" },
         hostelId: me.hostelId.toString(),

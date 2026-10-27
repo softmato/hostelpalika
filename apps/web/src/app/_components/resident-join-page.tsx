@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import {
   AlertTriangle,
   BedDouble,
@@ -461,7 +462,7 @@ function JoinForm({
               >
                 <BedDouble className={`size-5 shrink-0 ${active ? "text-brand-teal" : "text-muted-foreground"}`} />
                 <span className="min-w-0">
-                  <span className="block truncate text-sm font-semibold">{candidate.roomType}</span>
+                  <span className="block truncate text-sm font-semibold">{roomTypeLabel(candidate.roomType)}</span>
                   <span className="block text-xs text-muted-foreground">
                     {candidate.monthlyRent ? `${rupees(candidate.monthlyRent)} / month` : "Rent set by the hostel"}
                   </span>

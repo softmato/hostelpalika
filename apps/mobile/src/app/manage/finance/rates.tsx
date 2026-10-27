@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import {
   addBsMonths,
   bsPeriodBounds,
@@ -283,7 +284,7 @@ export default function ManageRatesScreen() {
                 }
                 key={option.roomType}
                 keyboardType="number-pad"
-                label={option.roomType}
+                label={roomTypeLabel(option.roomType)}
                 /*
                  * The same glyph for every room type, deliberately. A door for
                  * "Single" and a bunk for "Six Sharing" would be a second,

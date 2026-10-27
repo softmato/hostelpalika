@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { type ReactNode, useCallback, useMemo, useState } from "react";
@@ -840,7 +841,7 @@ function TopicBody({ row, topic }: { row: BranchOverall; topic: Topic }) {
         <Issue label="Bookings" state={state} />
         {state?.data ? <Preview empty="No requests." items={state.data.bookings.map((item) =>
           <ListRow icon="calendar" key={item.id} onPress={() => open(TOPIC_ROUTES.bookings)}
-            subtitle={`${item.roomType} · ${item.statusLabel}`} title={item.guest.name} />)} /> : null}
+            subtitle={`${roomTypeLabel(item.roomType)} · ${item.statusLabel}`} title={item.guest.name} />)} /> : null}
       </>;
     }
     case "notices": {

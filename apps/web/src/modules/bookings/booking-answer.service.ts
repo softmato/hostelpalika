@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import "server-only";
 
 import { Types } from "mongoose";
@@ -192,7 +193,7 @@ export async function announceEnding(ended: BookingRecord, previous: BookingStat
     jobs.push(
       notifyHostel(ended, {
         action: `booking_${cause.toLowerCase()}_hostel`,
-        body: `${ended.code} (${ended.guest.name}, ${ended.roomType}): ${title}.${hostelShare > 0 ? ` Your share ${rupees(hostelShare)}.` : ""}`,
+        body: `${ended.code} (${ended.guest.name}, ${roomTypeLabel(ended.roomType)}): ${title}.${hostelShare > 0 ? ` Your share ${rupees(hostelShare)}.` : ""}`,
         email: (contact) =>
           bookingClosedForHostelEmail({
             bookingsUrl: appUrl(hostelBookingsPath(ended)),
@@ -381,7 +382,7 @@ export async function confirmBooking(bookingId: string, principal: ApiPrincipal,
 
     if (code === "ROOM_TYPE_FULL" || code === "ROOM_TYPE_NOT_FOUND") {
       throw new BookingError(
-        `No vacant ${booking.roomType} bed is left to hold. Free one, or decline this booking.`,
+        `No vacant ${roomTypeLabel(booking.roomType)} bed is left to hold. Free one, or decline this booking.`,
         "ROOM_TYPE_FULL",
         409,
       );

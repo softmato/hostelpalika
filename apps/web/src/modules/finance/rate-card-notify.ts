@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import type { Types } from "mongoose";
 
 import { bsPeriodOf, formatBsPeriod } from "@/lib/hostel-day";
@@ -122,7 +123,7 @@ export async function notifyRateCardChanged(input: {
         await createInAppNotification({
           body:
             current === undefined
-              ? `From ${month}, ${roomType.replaceAll("_", " ")} at ${hostelName} is NPR ${next.toLocaleString("en-US")} a month.`
+              ? `From ${month}, ${roomTypeLabel(roomType)} at ${hostelName} is NPR ${next.toLocaleString("en-US")} a month.`
               : `From ${month}, your rent ${next > current ? "rises" : "falls"} from NPR ${current.toLocaleString("en-US")} to NPR ${next.toLocaleString("en-US")} a month.`,
           category: "PAYMENT",
           data: { effectiveFrom: input.effectiveFrom.toISOString(), roomType },

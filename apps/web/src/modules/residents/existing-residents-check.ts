@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { addBsMonths, bsPeriodBounds, formatBsPeriod } from "@/lib/hostel-day";
 import { computeInvoiceAmount } from "@/modules/finance/fee-schedule.service";
 
@@ -250,7 +251,7 @@ export function checkExistingResidents(rows: ListRow[], context: CheckContext): 
       } else if (!numberedRoom) {
         add("roomNumber", `There is no room ${row.roomNumber.trim()} in this hostel.`);
       } else if (room && !sameRoomType(numberedRoom.roomType, room.roomType)) {
-        add("roomNumber", `Room ${numberedRoom.number} is ${numberedRoom.roomType}, not ${room.roomType}.`);
+        add("roomNumber", `Room ${numberedRoom.number} is ${roomTypeLabel(numberedRoom.roomType)}, not ${roomTypeLabel(room.roomType)}.`);
       } else {
         const taken = (placed.get(numberedRoom.id) ?? 0) + 1;
 
@@ -290,7 +291,7 @@ export function checkExistingResidents(rows: ListRow[], context: CheckContext): 
     const rent = room?.monthlyRent ?? null;
 
     if (room && rent === null) {
-      add("monthlyRent", `${room.roomType} has no rent in the rate card. Set it in Fee schedule first.`);
+      add("monthlyRent", `${roomTypeLabel(room.roomType)} has no rent in the rate card. Set it in Fee schedule first.`);
     }
 
     let bills: BillPreview | null = null;
@@ -330,7 +331,7 @@ export function checkExistingResidents(rows: ListRow[], context: CheckContext): 
   for (const summary of summaries.values()) {
     if (summary.inList > summary.freeBeds) {
       listProblems.push(
-        `${summary.roomType} has ${summary.freeBeds} free ${summary.freeBeds === 1 ? "bed" : "beds"} but ${summary.inList} residents in this list. Change the beds in Rooms first.`,
+        `${roomTypeLabel(summary.roomType)} has ${summary.freeBeds} free ${summary.freeBeds === 1 ? "bed" : "beds"} but ${summary.inList} residents in this list. Change the beds in Rooms first.`,
       );
     }
   }

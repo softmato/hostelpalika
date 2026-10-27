@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import "server-only";
 
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
@@ -115,7 +116,7 @@ export async function ensureBookingInvoice(booking: BookingRecord): Promise<stri
     external_ref: `hh-bkg:${String(booking._id)}`,
     lines: [
       {
-        description: `Booking fee: ${booking.hostelSnapshot.name}, ${booking.roomType} (${booking.code})`,
+        description: `Booking fee: ${booking.hostelSnapshot.name}, ${roomTypeLabel(booking.roomType)} (${booking.code})`,
         quantity: 1,
         // The fee frozen on the booking, read on the server. Never a client figure.
         unit_price_minor: rupeesToPaisa(booking.fee),

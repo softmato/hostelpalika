@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { Check, FileText, Loader2, Plus, Trash2 } from "@/components/icons";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 
@@ -443,7 +444,7 @@ function RentStep({ onChange }: { onChange: () => void }) {
           {data.roomTypes.map((type) => (
             <label className={LABEL} key={type.roomType}>
               <span className="flex items-baseline justify-between gap-2">
-                {type.roomType} (Rs / month)
+                {roomTypeLabel(type.roomType)} (Rs / month)
                 {savedRent(type.roomType) ? null : <span className="text-xs font-semibold text-warning">Not priced</span>}
               </span>
               <input

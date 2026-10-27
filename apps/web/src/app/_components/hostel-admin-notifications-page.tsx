@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
 
 import { Bell, Check, Send } from "@/components/icons";
@@ -219,7 +220,7 @@ export const HostelAdminNotificationsPageContent = memo(
                               on ? current.filter((id) => id !== resident.id) : [...current, resident.id],
                             )
                           }
-                          title={resident.roomType}
+                          title={roomTypeLabel(resident.roomType)}
                           type="button"
                         >
                           {on ? <Check className="size-3.5" /> : null}

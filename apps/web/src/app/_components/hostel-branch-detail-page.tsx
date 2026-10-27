@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -158,7 +159,7 @@ export function HostelBranchDetailPage({ branchId }: { branchId: string }) {
                 <div key={room.roomType} className="rounded-xl border border-border p-4">
                   <h3 className="flex items-center gap-2 text-sm font-semibold">
                     <BedDouble className="size-4 text-brand-teal" />
-                    {room.roomType}
+                    {roomTypeLabel(room.roomType)}
                   </h3>
                   <dl className="mt-4 grid grid-cols-2 gap-3">
                     <Fact label="Rooms" value={room.rooms} />
@@ -216,7 +217,7 @@ export function HostelBranchDetailPage({ branchId }: { branchId: string }) {
                   {hostel.shortStays.rates?.map((rate) => (
                     <Fact
                       key={rate.roomType}
-                      label={`${rate.roomType} / night`}
+                      label={`${roomTypeLabel(rate.roomType)} / night`}
                       value={money(rate.dailyRate)}
                     />
                   ))}

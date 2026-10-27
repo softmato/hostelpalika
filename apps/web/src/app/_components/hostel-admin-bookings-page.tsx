@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { CalendarCheck, Download, HandCoins, Settings, Wallet } from "@/components/icons";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -74,7 +75,7 @@ export function HostelAdminBookingsPage() {
                   if (
                     await confirm({
                       actionLabel: "Confirm booking",
-                      description: `Holds one ${booking.roomType} bed for ${booking.guest.name}. Admit them by scanning their ID card when they arrive.`,
+                      description: `Holds one ${roomTypeLabel(booking.roomType)} bed for ${booking.guest.name}. Admit them by scanning their ID card when they arrive.`,
                       title: "Confirm this booking?",
                     })
                   ) {
@@ -98,7 +99,7 @@ export function HostelAdminBookingsPage() {
           key={booking.id}
         >
           <p className="text-[13.5px] font-semibold text-foreground">
-            {booking.roomType} <span className="font-mono text-[12px] font-normal text-muted-foreground">{booking.code}</span>
+            {roomTypeLabel(booking.roomType)} <span className="font-mono text-[12px] font-normal text-muted-foreground">{booking.code}</span>
           </p>
           <p className="text-[12.5px] text-muted-foreground">{guest}</p>
           <div className="flex flex-wrap gap-1.5 pt-1">
@@ -135,7 +136,7 @@ export function HostelAdminBookingsPage() {
           key={booking.id}
         >
           <p className="text-[13.5px] font-semibold text-foreground">
-            {booking.roomType} <span className="font-mono text-[12px] font-normal text-muted-foreground">{booking.code}</span>
+            {roomTypeLabel(booking.roomType)} <span className="font-mono text-[12px] font-normal text-muted-foreground">{booking.code}</span>
           </p>
           <p className="text-[12.5px] text-muted-foreground">{guest}</p>
           <div className="flex flex-wrap gap-1.5 pt-1">
@@ -176,7 +177,7 @@ export function HostelAdminBookingsPage() {
           {booking.strike ? <SoftBadge tone="rose">missed booking</SoftBadge> : null}
         </p>
         <p className="text-[12.5px] text-muted-foreground">
-          {guest} · {booking.roomType} · {at(booking.endedAt)}
+          {guest} · {roomTypeLabel(booking.roomType)} · {at(booking.endedAt)}
         </p>
         {booking.endReason ? <p className="text-[12.5px] text-muted-foreground">Reason: {booking.endReason}</p> : null}
         {booking.payout ? (

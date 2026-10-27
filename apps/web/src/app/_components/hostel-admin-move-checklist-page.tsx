@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { formatHostelDate } from "@hostel/shared/calendar/bs";
 
 import { ClipboardCheck, Home, LogIn, LogOut } from "@/components/icons";
@@ -257,7 +258,7 @@ export const HostelAdminMoveChecklistPage = memo(function HostelAdminMoveCheckli
                   <p className="truncate font-semibold text-foreground">{event.residentName}</p>
                   <p className="text-[12px] text-muted-foreground">
                     {event.type === "MOVE_IN" ? "Moved in" : "Moved out"}
-                    {event.roomType ? ` · ${event.roomType}` : ""}
+                    {event.roomType ? ` · ${roomTypeLabel(event.roomType)}` : ""}
                   </p>
                 </div>
                 <Chip glyph="calendar">{formatHostelDate(event.date)}</Chip>

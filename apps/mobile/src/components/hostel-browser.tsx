@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { router, useLocalSearchParams } from "expo-router";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pressable, RefreshControl, ScrollView, TextInput, View } from "react-native";
@@ -702,7 +703,7 @@ function QuickFilters({
     >
       {city ? <FilterChip label={city} onPress={onClearCity} removable selected /> : null}
       {filters.roomType ? (
-        <FilterChip label={filters.roomType} onPress={() => drop("roomType")} removable selected />
+        <FilterChip label={roomTypeLabel(filters.roomType)} onPress={() => drop("roomType")} removable selected />
       ) : null}
       {filters.facility ? (
         <FilterChip label={filters.facility} onPress={() => drop("facility")} removable selected />
@@ -907,7 +908,7 @@ function FilterSheet({
           {ROOM_TYPES.map((roomType) => (
             <Choice
               key={roomType}
-              label={roomType}
+              label={roomTypeLabel(roomType)}
               onPress={() => patch({ roomType })}
               selected={draft.roomType === roomType}
             />

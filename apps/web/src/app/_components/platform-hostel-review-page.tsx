@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
 
 import {
@@ -891,7 +892,7 @@ export const PlatformHostelReviewPageContent = memo(
                       {rooms.map((room) => (
                         <TableRow key={room.roomType}>
                           <TableCell className="font-semibold text-foreground">
-                            {room.roomType}
+                            {roomTypeLabel(room.roomType)}
                           </TableCell>
                           <TableCell className="text-right">{room.rooms}</TableCell>
                           <TableCell className="text-right">{room.bedsPerRoom}</TableCell>

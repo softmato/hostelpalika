@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { formatHostelDate } from "@hostel/shared/calendar/bs";
 
 import {
@@ -390,7 +391,7 @@ export const ResidentActivationPageContent = memo(
                       {activatedTarget
                         ? `Your resident access is now active${
                             activatedTarget.roomType
-                              ? ` for ${activatedTarget.roomType}`
+                              ? ` for ${roomTypeLabel(activatedTarget.roomType)}`
                               : ""
                           } at ${activatedTarget.hostelName}.`
                         : "Your resident access is now active."}
@@ -515,7 +516,7 @@ export const ResidentActivationPageContent = memo(
                                 <p className="text-[11px] text-slate-500 font-medium">
                                   Room type:{" "}
                                   <span className="font-bold text-[#0F172A]">
-                                    {target.roomType}
+                                    {roomTypeLabel(target.roomType)}
                                   </span>
                                 </p>
                               ) : null}

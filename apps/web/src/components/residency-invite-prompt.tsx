@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { BedDouble, Building2, Loader2, Wallet } from "@/components/icons";
 import { useEffect, useState } from "react";
 
@@ -144,7 +145,7 @@ export function ResidencyInvitePrompt() {
           <p className="flex items-center gap-3 px-4 py-3">
             <BedDouble className="size-4 text-muted-foreground" />
             <span className="text-muted-foreground">Room type</span>
-            <span className="ml-auto font-semibold text-foreground">{invite.roomType}</span>
+            <span className="ml-auto font-semibold text-foreground">{roomTypeLabel(invite.roomType)}</span>
           </p>
           <p className="flex items-center gap-3 px-4 py-3">
             <Wallet className="size-4 text-muted-foreground" />

@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { CalendarDays, ReceiptText } from "@/components/icons";
 import { memo } from "react";
 
@@ -189,7 +190,7 @@ export const ResidentPaymentTrackSheet = memo(function ResidentPaymentTrackSheet
               <SheetDescription className="text-[11.5px]">
                 Payment history
                 {data?.resident.roomType
-                  ? ` · ${data.resident.roomType.replaceAll("_", " ")}`
+                  ? ` · ${roomTypeLabel(data.resident.roomType)}`
                   : ""}
                 {data?.resident.moveInDate
                   ? ` · here since ${dayMonthYear(data.resident.moveInDate)}`

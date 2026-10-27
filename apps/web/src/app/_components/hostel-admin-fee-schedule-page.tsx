@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { CalendarClock, Coins, Layers, PartyPopper, Pencil, Plus, Trash2 } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
@@ -709,7 +710,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
                         <span className="flex size-9 items-center justify-center rounded-full bg-role-team-soft text-role-team">
                           <Layers className="size-[18px]" />
                         </span>
-                        <p className="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-foreground">{option.roomType}</p>
+                        <p className="min-w-0 flex-1 truncate text-[13.5px] font-semibold text-foreground">{roomTypeLabel(option.roomType)}</p>
                       </div>
                       <p className="font-heading text-[22px] font-bold leading-none tracking-tight text-foreground">
                         {now === "" ? <span className="text-[15px] text-amber-700 dark:text-amber-300">Not priced</span> : currency(now)}
@@ -810,7 +811,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
                                 : "No listed price yet"
                           }
                           key={option.roomType}
-                          label={`${option.roomType} (NPR / month)`}
+                          label={`${roomTypeLabel(option.roomType)} (NPR / month)`}
                           min="0"
                           name={`rate-${option.roomType}`}
                           step="1"
@@ -893,7 +894,7 @@ export const HostelAdminFeeSchedulePageContent = memo(
                       <Th>Effective</Th>
                       {historyColumns.map((roomType) => (
                         <Th align="right" key={roomType}>
-                          {roomType}
+                          {roomTypeLabel(roomType)}
                         </Th>
                       ))}
                       <Th align="right">Deposit</Th>

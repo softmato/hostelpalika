@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { Image } from "expo-image";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
@@ -92,11 +93,11 @@ function RoomPhotos({ photos, roomType }: { photos: string[]; roomType: string }
 
   return (
     <View className="mt-3 border-t border-border pt-3">
-      <Text variant="caption">{roomType}</Text>
+      <Text variant="caption">{roomTypeLabel(roomType)}</Text>
       <View className="mt-2 flex-row flex-wrap gap-2">
         {photos.map((uri, index) => (
           <Pressable
-            accessibilityLabel={`${roomType} photo ${index + 1}`}
+            accessibilityLabel={`${roomTypeLabel(roomType)} photo ${index + 1}`}
             accessibilityRole="imagebutton"
             key={uri}
             onPress={() => openAssetViewer(photos.map((url) => ({ title: roomType, url })), index)}
@@ -184,7 +185,7 @@ function RoomChooser({ availability, slug }: { availability: BookingAvailability
               left={photos.length > 0 ? <StackedThumb photos={photos} /> : undefined}
               onPress={() => router.setParams({ room: room.roomType, slug })}
               subtitle={`${formatMoney(room.fee)} booking fee`}
-              title={room.roomType}
+              title={roomTypeLabel(room.roomType)}
             />
           );
         })}

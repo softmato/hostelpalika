@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import {
   Clock3,
   ExternalLink,
@@ -131,7 +132,7 @@ function PaymentsTab() {
               {rupees(payment.amount)} · {payment.bookingCode}
             </p>
             <p className="text-[12.5px] text-muted-foreground">
-              {payment.guest.name} ({payment.guest.phone || payment.guest.email}) → {payment.hostelName}, {payment.roomType}
+              {payment.guest.name} ({payment.guest.phone || payment.guest.email}) → {payment.hostelName}, {roomTypeLabel(payment.roomType)}
             </p>
             <div className="flex flex-wrap gap-1.5 pt-0.5">
               <FactChip glyph="hash">{payment.reference || "No reference"}</FactChip>
@@ -211,7 +212,7 @@ function BookingsTab({ tab }: { tab: "all" | "holds" | "waiting" }) {
               </p>
               <p className="text-[12.5px] text-muted-foreground">
                 {booking.guest.name} ({booking.guest.phone || booking.guest.email}) → {booking.hostel.name}
-                {booking.hostel.phone ? ` · ${booking.hostel.phone}` : ""}, {booking.roomType}
+                {booking.hostel.phone ? ` · ${booking.hostel.phone}` : ""}, {roomTypeLabel(booking.roomType)}
               </p>
               <div className="flex flex-wrap gap-1.5 pt-0.5">
                 <FactChip glyph="cash">{`Fee ${rupees(booking.fee)}`}</FactChip>
@@ -351,7 +352,7 @@ function TransfersTab({ kind }: { kind: "PAYOUT" | "REFUND" }) {
               <span className="text-[12.5px] font-normal text-muted-foreground">{transfer.bookingCode}</span>
             </p>
             <p className="text-[12.5px] text-muted-foreground">
-              {kind === "REFUND" ? transfer.guestName : transfer.hostelName} · {transfer.roomType}
+              {kind === "REFUND" ? transfer.guestName : transfer.hostelName} · {roomTypeLabel(transfer.roomType)}
             </p>
             <div className="flex flex-wrap gap-1.5 pt-0.5">
               <FactChip glyph="time">{`Due since ${at(transfer.dueSince)}`}</FactChip>

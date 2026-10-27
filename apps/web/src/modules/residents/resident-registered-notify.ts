@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { Types } from "mongoose";
 
 import { createInAppNotification } from "@/modules/notifications/notification.service";
@@ -83,7 +84,7 @@ export async function notifyResidentRegistered(input: {
     const hostelName = await getHostelName(input.hostelId);
     const residentName =
       `${input.resident.firstName} ${input.resident.lastName}`.trim();
-    const room = [input.resident.roomType.replaceAll("_", " "), input.resident.roomNumber]
+    const room = [roomTypeLabel(input.resident.roomType), input.resident.roomNumber]
       .filter(Boolean)
       .join(" · ");
 

@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, View } from "react-native";
@@ -102,7 +103,7 @@ export default function JoinRequestsScreen() {
     openConfirm({
       confirmLabel: "Yes, add",
       message: [
-        `${roomNumber ? `Room ${roomNumber} · ` : ""}${request.roomType} · ${request.rentLabel}.`,
+        `${roomNumber ? `Room ${roomNumber} · ` : ""}${roomTypeLabel(request.roomType)} · ${request.rentLabel}.`,
         due > 0 ? `Bills of ${formatMoney(due)} are made now.` : "Nothing is billed now.",
         "They are told by email and in the app.",
       ].join(" "),
@@ -204,7 +205,7 @@ export default function JoinRequestsScreen() {
                       ? () => router.push(`/manage/resident/${request.residentId}`)
                       : undefined
                   }
-                  subtitle={`${request.roomType} · ${request.rentLabel}`}
+                  subtitle={`${roomTypeLabel(request.roomType)} · ${request.rentLabel}`}
                   title={request.fullName}
                   tone="success"
                 />
@@ -217,7 +218,7 @@ export default function JoinRequestsScreen() {
       <Sheet onClose={() => setPlacing(null)} open={placing !== null} tall title={placing ? `Room for ${placing.fullName}` : "Room"}>
         {placing && numberedRooms ? (
           <View className="gap-3 pb-2">
-            <Text variant="muted">{`They asked for ${placing.roomType}. Pick the floor, then the room.`}</Text>
+            <Text variant="muted">{`They asked for ${roomTypeLabel(placing.roomType)}. Pick the floor, then the room.`}</Text>
             {/* Their type's rooms; every room when none of that type is numbered yet. */}
             <RoomPicker
               onChange={(room) => add(placing, room.number)}
@@ -312,7 +313,7 @@ function RequestCard({
       </Pressable>
 
       <View>
-        <FactRow label="Room type" value={request.roomType} />
+        <FactRow label="Room type" value={roomTypeLabel(request.roomType)} />
         <FactRow label="Rent" value={request.rentLabel} />
         {request.partPaid ? <FactRow label="Part paid" value={formatMoney(request.partPaid)} /> : null}
         <FactRow label="Deposit paid" value={formatMoney(request.depositPaid)} />

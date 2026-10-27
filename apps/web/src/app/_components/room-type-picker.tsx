@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { Check, ChevronDown, Search } from "@/components/icons";
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
@@ -13,7 +14,7 @@ export function availableRoomTypes(selectedElsewhere: string[], search = ""): st
   return roomTypeOptions.filter(
     (option) =>
       !selectedElsewhere.includes(option) &&
-      option.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()),
+      `${option} ${roomTypeLabel(option)}`.toLocaleLowerCase().includes(search.trim().toLocaleLowerCase()),
   );
 }
 
@@ -81,7 +82,7 @@ export function RoomTypePicker({
           setOpen((current) => !current);
         }}
       >
-        <span className="truncate">{value || "Select a room type"}</span>
+        <span className="truncate">{roomTypeLabel(value) || "Select a room type"}</span>
         <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
       </button>
       {open && createPortal(
@@ -118,7 +119,7 @@ export function RoomTypePicker({
                   setOpen(false);
                 }}
               >
-                {option}
+                {roomTypeLabel(option)}
                 {option === value && <Check className="size-4 shrink-0 text-brand-teal" />}
               </button>
             ))}

@@ -46,6 +46,13 @@ export const GLYPHS = {
     "M20.5 14v-2.5A2.5 2.5 0 0 0 18 9h-7v5",
     "M8.5 11a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z",
   ],
+  // One storey of a building: slabs, a stair up from the ground (field review B3).
+  floor: [
+    "M4.5 20.5V9.2L12 3.8l7.5 5.4v11.3",
+    "M3 20.5h18",
+    "M4.5 15.5h15M4.5 10.5h15",
+    "M7 20.5v-1.7h1.7v-1.6h1.7v-1.7M17 15.5v-1.7h-1.7v-1.6h-1.7v-1.7",
+  ],
 
   // Navigation & arrows
   "chevron-forward": ["M9.5 6L15.5 12L9.5 18"],
@@ -1257,6 +1264,9 @@ export const SOLID_GLYPHS: Partial<Record<GlyphName, readonly string[]>> = {
     "M4 5.5a1 1 0 0 1 1 1V13h15.5a1 1 0 0 1 1 1v4.5a1 1 0 0 1-2 0V17H5v1.5a1 1 0 0 1-2 0v-12a1 1 0 0 1 1-1Z",
     "M8.9 10.4a1.9 1.9 0 1 1-3.8 0 1.9 1.9 0 0 1 3.8 0Z",
     "M11.5 8.3H18a3 3 0 0 1 3 3v.6h-9.5Z",
+  ],
+  floor: [
+    "M12 3.2a.9.9 0 0 1 .5.15l7.5 5.4a.9.9 0 0 1 .37.73v10.27H21a.75.75 0 0 1 0 1.5H3a.75.75 0 0 1 0-1.5h.63V9.48a.9.9 0 0 1 .37-.73l7.5-5.4A.9.9 0 0 1 12 3.2Z M5.25 9.9h13.5v1.2H5.25Z M5.25 14.9h13.5v1.2H5.25Z",
   ],
   bowl: [
     "M3.6 10.6h16.8c.5 0 .9.4.9.9 0 5-4 9-9 9h-.6c-5 0-9-4-9-9 0-.5.4-.9.9-.9Z",

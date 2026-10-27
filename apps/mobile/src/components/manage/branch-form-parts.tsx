@@ -24,7 +24,7 @@ import {
   type RoomRow,
   type ShortStayForm,
 } from "@/lib/hostel-registration";
-import { BEDS_BY_ROOM_TYPE } from "@hostel/constants/room-types";
+import { BEDS_BY_ROOM_TYPE, roomTypeLabel } from "@hostel/constants/room-types";
 
 /**
  * The pieces of "Add a branch" (`app/manage/branch-new.tsx`) that only that
@@ -58,7 +58,7 @@ export function roomTypeOptions(rooms: readonly RoomRow[], editingId: string | n
     return {
       disabled: taken,
       group: type.endsWith(ATTACHED) ? "Attached bathroom" : "Shared bathroom",
-      label: type.replace(ATTACHED, ""),
+      label: roomTypeLabel(type.replace(ATTACHED, "")),
       leading: <BedMark />,
       meta: beds ? plural(beds, "bed") : "—",
       tag: taken ? "Added" : undefined,
@@ -95,7 +95,7 @@ export function RoomTypeRow({ onMore, onPress, room }: { onMore: () => void; onP
       <BedMark />
       <View className="flex-1 gap-0.5">
         <Text numberOfLines={1} variant="label">
-          {room.roomType}
+          {roomTypeLabel(room.roomType)}
         </Text>
         <Text numberOfLines={1} style={{ fontVariant: ["tabular-nums"] }} variant="caption">
           {[
@@ -108,7 +108,7 @@ export function RoomTypeRow({ onMore, onPress, room }: { onMore: () => void; onP
         </Text>
       </View>
       <Pressable
-        accessibilityLabel={`More for ${room.roomType}`}
+        accessibilityLabel={`More for ${roomTypeLabel(room.roomType)}`}
         accessibilityRole="button"
         className="h-10 w-10 items-center justify-center rounded-full active:bg-muted"
         hitSlop={6}

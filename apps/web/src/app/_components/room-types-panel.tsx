@@ -1,6 +1,6 @@
 "use client";
 
-import { bedsForRoomType, ROOM_TYPE_OPTIONS } from "@hostel/shared/constants/room-types";
+import { bedsForRoomType, ROOM_TYPE_OPTIONS, roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { ImagePlus, Loader2, Pencil, Plus, Trash2 } from "@/components/icons";
 import { useCallback, useState, type ChangeEvent } from "react";
 
@@ -98,11 +98,11 @@ export function RoomTypesPanel() {
         ? "Its numbered rooms on every floor go with it. Refused while anybody lives in one of its beds."
         : "Refused while anybody lives in one of its beds.",
       pin: true,
-      title: `Remove ${config.roomType}?`,
+      title: `Remove ${roomTypeLabel(config.roomType)}?`,
       tone: "destructive",
     });
 
-    if (ok && (await save(configurations.filter((item) => item.roomType !== config.roomType), `${config.roomType} removed.`))) {
+    if (ok && (await save(configurations.filter((item) => item.roomType !== config.roomType), `${roomTypeLabel(config.roomType)} removed.`))) {
       setEditing(null);
     }
   }
@@ -165,7 +165,7 @@ export function RoomTypesPanel() {
                   </span>
                 </button>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-semibold text-foreground">{config.roomType}</p>
+                  <p className="truncate text-sm font-semibold text-foreground">{roomTypeLabel(config.roomType)}</p>
                   <p className="truncate text-xs text-muted-foreground">
                     {config.bedsPerRoom} {config.bedsPerRoom === 1 ? "bed" : "beds"} a room · {config.rooms}{" "}
                     {config.rooms === 1 ? "room" : "rooms"} · {config.vacantBeds}/{beds} free
@@ -174,7 +174,7 @@ export function RoomTypesPanel() {
                     {config.monthlyRent ? `${currency(config.monthlyRent)}/mo` : "Rent not set"}
                   </p>
                 </div>
-                <Button aria-label={`Edit ${config.roomType}`} onClick={() => setEditing(config)} size="icon" type="button" variant="ghost">
+                <Button aria-label={`Edit ${roomTypeLabel(config.roomType)}`} onClick={() => setEditing(config)} size="icon" type="button" variant="ghost">
                   <Pencil className="size-4" />
                 </Button>
               </article>
@@ -194,7 +194,7 @@ export function RoomTypesPanel() {
                 // Unpriced until the rate card prices it — zero is "not priced".
                 { bedsPerRoom, mealInclusion: "Included", monthlyRent: 0, rooms, roomType, vacantBeds: rooms * bedsPerRoom },
               ],
-              `${roomType} added.`,
+              `${roomTypeLabel(roomType)} added.`,
             );
             if (ok) setAdding(false);
           }}
@@ -221,12 +221,12 @@ export function RoomTypesPanel() {
                   configurations.map((config) =>
                     config.roomType === editing.roomType ? { ...config, bedsPerRoom, rooms, vacantBeds } : config,
                   ),
-                  `${editing.roomType} saved.`,
+                  `${roomTypeLabel(editing.roomType)} saved.`,
                 ).then((ok) => ok && setEditing(null));
               }}
             >
               <DialogHeader>
-                <DialogTitle>{editing.roomType}</DialogTitle>
+                <DialogTitle>{roomTypeLabel(editing.roomType)}</DialogTitle>
                 <DialogDescription>
                   {tracking ? "Rooms of this type are placed on the floors below." : "How many rooms, and how many beds are free now."}
                 </DialogDescription>
@@ -326,7 +326,7 @@ function AddRoomTypeDialog({
                 }}
                 type="button"
               >
-                {option}
+                {roomTypeLabel(option)}
               </button>
             ))}
           </div>
@@ -421,7 +421,7 @@ function RoomPhotosDialog({
     <Dialog onOpenChange={(open) => (open ? null : onClose())} open>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{roomType} photos</DialogTitle>
+          <DialogTitle>{roomTypeLabel(roomType)} photos</DialogTitle>
           <DialogDescription>
             {photos.length} of {ROOM_PHOTO_LIMIT}. Visitors see these when they open this room type.
           </DialogDescription>

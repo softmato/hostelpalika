@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
 
 import React, { useMemo, useState } from "react";
@@ -311,7 +312,7 @@ export const HostelAdminReportsPageContent = React.memo(
                 <span key="name">
                   {row.residentName}
                   <span className="block text-xs text-muted-foreground">
-                    {row.roomType}
+                    {roomTypeLabel(row.roomType)}
                   </span>
                 </span>,
                 row.month,

@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import Link from "next/link";
 import { memo } from "react";
 
@@ -86,7 +87,7 @@ export const ResidentProfilePageContent = memo(function ResidentProfilePageConte
   const profile = profileResource.data?.profile ?? null;
   const state = profileResource.state;
   const message = profileResource.message;
-  const bedTypeLabel = profile?.accommodation.roomType?.replaceAll("_", " ") || "—";
+  const bedTypeLabel = roomTypeLabel(profile?.accommodation.roomType) || "—";
   const fullName = profile ? `${profile.resident.firstName} ${profile.resident.lastName}` : "";
   const contactCount = (profile?.guardians.length ?? 0) + (profile?.emergencyContacts.length ?? 0);
 

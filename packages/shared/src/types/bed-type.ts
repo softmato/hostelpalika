@@ -32,12 +32,12 @@ export const BED_TYPE_OCCUPANCY: Record<BedType, number> = {
   DORMITORY: 5,
 };
 
-/** Display text. Sentence case — these appear inline in receipts and invoices. */
+/** Display text, the room-type names the owner chose (field review B1); they appear inline in receipts and invoices. */
 export const BED_TYPE_LABELS: Record<BedType, string> = {
-  SINGLE: "Single",
-  DOUBLE_SHARING: "Double sharing",
-  TRIPLE_SHARING: "Triple sharing",
-  FOUR_SHARING: "Four sharing",
+  SINGLE: "Single Sitter Room",
+  DOUBLE_SHARING: "Double Sharing Room",
+  TRIPLE_SHARING: "Triple Sharing Room",
+  FOUR_SHARING: "Four Sharing Room",
   DORMITORY: "Dormitory",
 };
 

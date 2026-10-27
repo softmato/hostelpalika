@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import type { Types } from "mongoose";
 
 import { createInAppNotification } from "@/modules/notifications/notification.service";
@@ -69,7 +70,7 @@ export async function notifyResidentRoomChanged(input: {
     const hostelName = await getHostelName(input.hostelId);
 
     await createInAppNotification({
-      body: `You have been moved from ${readable(input.previous.roomType)} to ${readable(input.resident.roomType)} at ${hostelName}.`,
+      body: `You have been moved from ${roomTypeLabel(input.previous.roomType)} to ${roomTypeLabel(input.resident.roomType)} at ${hostelName}.`,
       category: CATEGORY,
       data: {
         previousRoomType: input.previous.roomType,
@@ -157,11 +158,6 @@ const STATUS_NOTICE: Record<
     title: "Your stay is suspended",
   }),
 };
-
-/** `FOUR_SHARING` is a key, not a sentence. */
-function readable(roomType: string) {
-  return roomType.replaceAll("_", " ").toLowerCase();
-}
 
 function warn(action: string, error: unknown) {
   console.warn(

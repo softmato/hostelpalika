@@ -56,8 +56,14 @@ repaint. Open: web deploy, device check.
 
 ## Phase 2 — Rooms screen (p1–p4)
 
-☐ **B1 Names**: Single Sitter Room · Double Sharing Room · Triple Sharing Room · Four
+☑ **B1 Names**: Single Sitter Room · Double Sharing Room · Triple Sharing Room · Four
 Sharing Room. One label map in `packages/shared`, used by app, web, public listing, PDFs.
+**Done in code 2026-10-27** — `roomTypeLabel()` in `constants/room-types.ts` maps at
+display; stored values stay the key (rate card, capacity, photos match on them, and old
+bookings/receipts carry them). Wired into every screen that prints a type (app, web
+portals, public listing/compare/JSON-LD, booking PDF, booking + resident emails and
+notices, room-type pickers); `BED_TYPE_LABELS` (invoices) says the same names. A
+type the owner typed passes through. Open: web deploy, device look.
 ☐ **B2** Room types button at the top.
 ☐ **B3 Floors as tiles**: a vector floor glyph (new, in our icon set); Ground is one
 tile, each added floor adds one.

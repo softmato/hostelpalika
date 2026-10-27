@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import { addBsMonths, currentBsPeriod } from "@hostel/calendar/bs";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -1078,7 +1079,7 @@ function ConfirmStep({
             Booked through {APP_NAME}
           </Text>
           <Text className="mt-1 text-sm text-foreground">
-            Booking {cardBooking.code}: one {cardBooking.roomType} bed is held
+            Booking {cardBooking.code}: one {roomTypeLabel(cardBooking.roomType)} bed is held
             {cardBooking.holdEndsAt ? ` until ${dates.dateTime(cardBooking.holdEndsAt)}` : ""}. Registering them uses that
             bed and completes the booking.
           </Text>
@@ -1353,7 +1354,7 @@ function TermsStep({
                 <Chip
                   icon="bed"
                   key={config.roomType}
-                  label={`${config.roomType} · ${config.vacantBeds} free`}
+                  label={`${roomTypeLabel(config.roomType)} · ${config.vacantBeds} free`}
                   onPress={() => onPickRoom(config.roomType)}
                   tone={roomType === config.roomType ? "brand" : "neutral"}
                 />

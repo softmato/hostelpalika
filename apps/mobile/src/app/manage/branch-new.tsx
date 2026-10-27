@@ -1,3 +1,4 @@
+import { roomTypeLabel } from "@hostel/constants/room-types";
 import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -1168,7 +1169,7 @@ function BranchWizard({ main }: { main: { name: string; panNumber: string | null
         others={rooms}
       />
 
-      <Sheet bare onClose={() => setRoomMenu(null)} open={roomMenu !== null} title={roomMenu?.roomType}>
+      <Sheet bare onClose={() => setRoomMenu(null)} open={roomMenu !== null} title={roomTypeLabel(roomMenu?.roomType)}>
         <View className="pb-2">
           <SheetRow
             label="Edit"

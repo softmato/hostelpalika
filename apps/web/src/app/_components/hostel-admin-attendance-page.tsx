@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { HelpCircle, Home, MapPin, MapPinned, Navigation } from "@/components/icons";
 import { memo, useCallback, useMemo, useState } from "react";
 
@@ -284,7 +285,7 @@ export const HostelAdminAttendancePageContent = memo(
                         {row.resident.fullName}
                       </p>
                       <p className="text-[12px] text-muted-foreground">
-                        {row.resident.roomType}
+                        {roomTypeLabel(row.resident.roomType)}
                       </p>
                     </div>
                     <Chip tone={ZONE_TONE[row.zone]}>{zoneLabel(row.zone)}</Chip>

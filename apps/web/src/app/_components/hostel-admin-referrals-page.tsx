@@ -1,5 +1,6 @@
 "use client";
 
+import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { formatHostelDate } from "@hostel/shared/calendar/bs";
 
 import React, { useCallback, useMemo, useState, type FormEvent } from "react";
@@ -377,7 +378,7 @@ export const HostelAdminReferralsPageContent = React.memo(
                     <ShareBar total={topCount} value={referrer.joinedCount} />
                     <p className="truncate text-[11.5px] text-muted-foreground">
                       Code {referrer.code}
-                      {referrer.roomType ? ` · ${referrer.roomType}` : ""}
+                      {referrer.roomType ? ` · ${roomTypeLabel(referrer.roomType)}` : ""}
                     </p>
                   </div>
                 </li>

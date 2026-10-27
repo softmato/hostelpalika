@@ -26,6 +26,29 @@ export const BEDS_BY_ROOM_TYPE: Record<string, number> = Object.fromEntries(
   ]),
 );
 
+/**
+ * What a room type is called on screen and on paper (field review B1). The
+ * stored value stays the key — rate card, capacity and photos match on it —
+ * so only display goes through here. A type the owner typed passes unchanged;
+ * the old enum spelling ("DOUBLE_SHARING") reads as its type.
+ */
+const ROOM_TYPE_NAMES: Record<string, string> = {
+  "double sharing": "Double Sharing Room",
+  "four sharing": "Four Sharing Room",
+  single: "Single Sitter Room",
+  "single room": "Single Sitter Room",
+  "triple sharing": "Triple Sharing Room",
+};
+
+export function roomTypeLabel(roomType: string | null | undefined) {
+  if (!roomType) return "";
+
+  const [base, ...rest] = roomType.split(" — ");
+  const name = ROOM_TYPE_NAMES[base.replaceAll("_", " ").trim().toLowerCase()];
+
+  return name ? [name, ...rest].join(" — ") : roomType.replaceAll("_", " ");
+}
+
 const BED_WORDS: Record<string, number> = { single: 1, double: 2, two: 2, triple: 3, three: 3, four: 4, quad: 4, five: 5, six: 6, dorm: 6, dormitory: 6 };
 
 /**
