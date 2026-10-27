@@ -3,7 +3,6 @@ import { StyleSheet, View } from "react-native";
 import Animated, {
   cancelAnimation,
   Easing,
-  FadeInDown,
   ReduceMotion,
   type SharedValue,
   useAnimatedStyle,
@@ -16,6 +15,7 @@ import Animated, {
 import Svg, { Circle } from "react-native-svg";
 
 import { Glyph, type GlyphName } from "@/components/ui/glyph";
+import { MOTION, riseIn } from "@/constants/motion";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 
@@ -152,7 +152,7 @@ export function IntroHero({
 
       <Animated.View
         className="items-center gap-1.5 px-6"
-        entering={FadeInDown.delay(120).duration(360).reduceMotion(ReduceMotion.System)}
+        entering={riseIn(MOTION.stagger)}
       >
         <Text className="text-center" variant="title">
           {title}
@@ -179,9 +179,7 @@ export function IntroSteps({ steps }: { steps: { icon: GlyphName; label: string 
       {steps.map((step, index) => (
         <Animated.View
           className="flex-1 items-center gap-2"
-          entering={FadeInDown.delay(260 + index * 90)
-            .duration(320)
-            .reduceMotion(ReduceMotion.System)}
+          entering={riseIn((2 + index) * MOTION.stagger)}
           key={step.label}
         >
           <View className="h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">

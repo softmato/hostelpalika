@@ -94,6 +94,13 @@ export const PLATFORM_NAV: PortalNavGroup[] = [
         keywords: ["home", "overview", "kpi", "metrics", "analytics"],
         label: "Dashboard",
       },
+      {
+        description: "Our own usage watcher: app opens per person, time on each screen, features used, by role and hostel.",
+        href: "/platform/analytics",
+        icon: "chart",
+        keywords: ["usage", "screens", "time", "features", "opens", "activity"],
+        label: "Analytics",
+      },
     ],
     icon: "dashboard",
     label: "Overview",
@@ -1200,6 +1207,7 @@ export const PLATFORM_SEARCH_ENTRIES = withFieldEntries(searchEntriesFromNav(PLA
  */
 const SUPERADMIN_ONLY_PREFIXES = [
   "/platform/account-deletions",
+  "/platform/analytics",
   "/platform/bookings",
   "/platform/config",
   "/platform/hostel-leaves",

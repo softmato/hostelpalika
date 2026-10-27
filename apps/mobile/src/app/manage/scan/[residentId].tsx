@@ -4,6 +4,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Linking, Pressable, View } from "react-native";
 
 import { FLOAT_SHADOW, usePortalPaint } from "@/components/portal-shared";
+import { ActionCard, ActionCell } from "@/components/ui/action-grid";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge, StatusPill } from "@/components/ui/badge";
 import { Card, SectionHeader } from "@/components/ui/card";
@@ -330,57 +331,36 @@ function ActionRow({
   onRegister: () => void;
   phone: string | null;
 }) {
-  return (
-    <View className="-mt-9 flex-row gap-2">
-      <ActionCell
-        disabled={!phone}
-        icon="call"
-        label="Call"
-        onPress={() => phone && void Linking.openURL(`tel:${phone}`)}
-      />
-      <ActionCell
-        disabled={!phone}
-        icon="chatbubble"
-        label="Message"
-        onPress={() => phone && void Linking.openURL(`sms:${phone}`)}
-      />
-      {membership && onOpenRecord ? (
-        <ActionCell icon="folder-open" label="Full record" onPress={onOpenRecord} />
-      ) : (
-        <ActionCell icon="person-add" label="Register" onPress={onRegister} />
-      )}
-    </View>
-  );
-}
-
-function ActionCell({
-  disabled = false,
-  icon,
-  label,
-  onPress,
-}: {
-  disabled?: boolean;
-  icon: GlyphName;
-  label: string;
-  onPress: () => void;
-}) {
   const { colors } = useAppTheme();
 
+  // The shared four-up card (`action-grid.tsx`), not three bordered tiles: one
+  // shape for every row of doors in the app, still straddling the header.
   return (
-    <Pressable
-      accessibilityLabel={label}
-      accessibilityRole="button"
-      accessibilityState={{ disabled }}
-      className={`flex-1 items-center gap-1.5 rounded-2xl border border-border bg-card px-2 py-3 ${
-        disabled ? "opacity-40" : "active:opacity-70"
-      }`}
-      disabled={disabled}
-      onPress={onPress}
-      style={FLOAT_SHADOW}
-    >
-      <Glyph color={colors.primary} name={icon} size={19} />
-      <Text className="text-[11px] font-medium text-foreground">{label}</Text>
-    </Pressable>
+    <View className="-mt-9">
+      <ActionCard>
+        <ActionCell
+          disabled={!phone}
+          glyph={colors.primary}
+          icon="call"
+          label="Call"
+          onPress={() => phone && void Linking.openURL(`tel:${phone}`)}
+          tone="brand"
+        />
+        <ActionCell
+          disabled={!phone}
+          glyph={colors.primary}
+          icon="chatbubble"
+          label="Message"
+          onPress={() => phone && void Linking.openURL(`sms:${phone}`)}
+          tone="brand"
+        />
+        {membership && onOpenRecord ? (
+          <ActionCell glyph={colors.primary} icon="folder-open" label="Full record" onPress={onOpenRecord} tone="brand" />
+        ) : (
+          <ActionCell glyph={colors.primary} icon="person-add" label="Register" onPress={onRegister} tone="brand" />
+        )}
+      </ActionCard>
+    </View>
   );
 }
 

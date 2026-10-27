@@ -51,6 +51,18 @@ export const MOTION = {
   themeFade: { duration: 320, reduceMotion: ReduceMotion.System } satisfies WithTimingConfig,
 } as const;
 
+/**
+ * Rise 10px without fading: a screen's top-level block on mount (H2). No fade
+ * of its own because the navigator already fades the screen, and a second fade
+ * inside that one left the content faint after the transition ended.
+ */
+export function riseOnly(delay = 0) {
+  return FadeInDown.delay(delay)
+    .duration(MOTION.fast)
+    .withInitialValues({ opacity: 1, transform: [{ translateY: 10 }] })
+    .reduceMotion(ReduceMotion.System);
+}
+
 /** Rise 10px and fade in: a list row on first load. A screen body only rises (`Screen`). */
 export function riseIn(delay = 0) {
   return FadeInDown.delay(delay)

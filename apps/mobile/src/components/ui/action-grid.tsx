@@ -101,6 +101,7 @@ export function ActionRow({ children }: { children: ReactNode }) {
 
 export function ActionCell({
   badge,
+  disabled = false,
   glyph,
   grow = false,
   icon,
@@ -119,6 +120,8 @@ export function ActionCell({
    * at a glance, which is exactly what they are.
    */
   badge?: number;
+  /** Greyed and untappable — a door that is there but shut (no phone to call). */
+  disabled?: boolean;
   glyph: string;
   /**
    * The tile grows into the next screen's header (M8, `card-grow.tsx`). Only
@@ -173,8 +176,9 @@ export function ActionCell({
         .filter(Boolean)
         .join(", ")}
       accessibilityRole="button"
-      accessibilityState={selected === undefined ? undefined : { selected }}
-      className="flex-1 items-center gap-2"
+      accessibilityState={selected === undefined ? { disabled } : { disabled, selected }}
+      className={`flex-1 items-center gap-2 ${disabled ? "opacity-40" : ""}`}
+      disabled={disabled}
       onPress={() => {
         if (grow) {
           // `rounded-2xl`: the copy starts with the tile's own corners.

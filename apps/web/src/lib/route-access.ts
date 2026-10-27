@@ -75,6 +75,11 @@ export const protectedRouteRules: ProtectedRouteRule[] = [
     roles: [Role.SUPERADMIN],
   },
   {
+    // Per-person usage is superadmin-only, like the API behind it.
+    prefix: "/platform/analytics",
+    roles: [Role.SUPERADMIN],
+  },
+  {
     // Free plan time and partner commission are HostelPalika's money too.
     prefix: "/platform/referrals",
     roles: [Role.SUPERADMIN],

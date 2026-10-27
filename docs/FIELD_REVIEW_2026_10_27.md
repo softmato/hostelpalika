@@ -153,11 +153,24 @@ with no target.
 
 ## Phase 7 — Feel (p1, p3)
 
-☐ **H1 Icon arrangement**: menus audited against the references (tile grids, one size,
-aligned).
-☐ **H2 One entrance choreography per screen**: header, then cards staggered on one
+☑ **H1 Icon arrangement**: menus audited against the references (tile grids, one size,
+aligned). **Done 2026-10-27**: admin/resident Home + More already on `ActionTiles`/`MenuRow`;
+fixed cook Home (3 stacked door rows → one `ActionTiles` card, Khata badge) and the scan
+desk (hand-rolled bordered tiles → shared `ActionCard`; `ActionCell` gained `disabled`).
+Open: `ui_inspiration_folder` was not on disk to compare; near-duplicate tile rows left in
+invoice claim, statements import, overall downloads (other phases' screens).
+☑ **H2 One entrance choreography per screen**: header, then cards staggered on one
 interval, nothing on its own clock; Stock first. Continues `MOTION_AND_ICONS.md`.
-☐ **H3 Our own usage watcher** (p1, Q2): per user — app opens, time on each screen,
+**Done in code 2026-10-27**: `Screen` scroll bodies stagger top-level blocks on
+`MOTION.stagger` (`Entrance`, looks through one wrapper View); `Stagger` rows continue the
+block's slot; offer perks + intro hero moved onto the shared clock. M5 swipe springs on
+`MOTION.slide`, M7 hide-amount morph in `PaintedAmount`, M10 web skeleton shimmer.
+Open: device pass; M5 swipeable segment pages.
+◐ **H3 Our own usage watcher** — 2026-10-27: server done (`UsageEvent` TTL 90d +
+`UsageDaily` roll-ups, `POST /api/v1/usage/events`, `GET /api/v1/platform/usage`, roll-up
+test), superadmin Analytics tab at `/platform/analytics`. Needs `npm run db:indexes`.
+Open: app + web client watchers (screen enter/leave, foreground, features from API
+writes), web typecheck/lint, privacy copy + Play Data safety. (p1, Q2): per user — app opens, time on each screen,
 features used — so we see which screens need work and what is used most.
 - App + web: screen enter/leave from the router, app foreground; events queued in
   SQLite (G1) and sent in batches; never blocks a screen.
