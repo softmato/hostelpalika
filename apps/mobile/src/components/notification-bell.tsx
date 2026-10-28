@@ -6,6 +6,7 @@ import { useAppSelector } from "@/hooks/redux";
 import { useResource } from "@/hooks/use-resource";
 import {
   DEFAULT_NOTIFICATION_FILTER,
+  NOTIFICATION_CACHE,
   notificationQuery,
 } from "@/lib/notification-queries";
 import type { NotificationFeed } from "@/lib/notifications-api";
@@ -72,7 +73,7 @@ export function NotificationBell({
    */
   const feed = useResource<NotificationFeed>(
     useCallback(async () => (account ? await query.load() : EMPTY_FEED), [account, query]),
-    { cacheKey: account ? query.key : undefined, topics: query.topics },
+    { ...NOTIFICATION_CACHE, cacheKey: account ? query.key : undefined, topics: query.topics },
   );
 
   // A failed count is not worth reporting from an app bar: the bell shows no

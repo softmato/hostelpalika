@@ -171,7 +171,8 @@ export default function ManageFinanceScreen() {
             <RowDivider inset />
             <ListRow
               icon="calendar"
-              onPress={() => router.push("/manage/finance/money-rules")}
+              iconBgColor="#5856D6"
+              onPress={() => router.push("/manage/finance/money-rules?section=leaving")}
               subtitle={
                 rules.data
                   ? `Leaving month: ${rules.data.moveOutCharge === "FULL_MONTH" ? "full month" : "till the day"} · Days away ${rules.data.leave.enabled ? "on" : "off"}`
@@ -182,20 +183,14 @@ export default function ManageFinanceScreen() {
             <RowDivider inset />
             <ListRow
               icon="wallet"
-              onPress={() => router.push("/manage/finance/money-rules")}
+              iconBgColor="#007AFF"
+              onPress={() => router.push("/manage/finance/money-rules?section=opening")}
               subtitle={
                 rules.data?.openingBalance
-                  ? `${formatMoney(rules.data.openingBalance.amount)} on ${rules.data.openingBalance.asOf}`
+                  ? `Set · ${formatMoney(rules.data.openingBalance.amount)} on ${rules.data.openingBalance.asOf}`
                   : "Not set — your bank balance when you started"
               }
               title="Opening balance"
-            />
-            <RowDivider inset />
-            <ListRow
-              icon="information-circle"
-              onPress={() => router.push("/manage/finance/how-bills-work")}
-              subtitle="When bills go out, fall due and remind"
-              title="How bills work"
             />
           </Card>
         </View>

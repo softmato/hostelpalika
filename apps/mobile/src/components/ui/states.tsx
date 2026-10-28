@@ -1,6 +1,15 @@
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
-import Animated, { ReduceMotion, ZoomIn } from "react-native-reanimated";
+import Animated, {
+  Easing,
+  ReduceMotion,
+  useAnimatedStyle,
+  useReducedMotion,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  ZoomIn,
+} from "react-native-reanimated";
 import Svg, { Circle, Path } from "react-native-svg";
 
 import { Button } from "@/components/ui/button";
@@ -108,18 +117,43 @@ function sparkle(cx: number, cy: number, r: number) {
 
 const ART_SPARKS = sparkle(22, 24, 7) + sparkle(96, 92, 5);
 
-function StateArt({ name, tone }: { name: GlyphName; tone: StateTone }) {
+/**
+ * After it lands, the tile bobs a few points and the rings breathe — slow
+ * enough to read as alive rather than loading. One UI-thread loop, nothing on
+ * the JS thread; off with the phone's reduce-motion setting.
+ */
+function useIdle() {
+  const reduceMotion = useReducedMotion();
+  const t = useSharedValue(0);
+
+  useEffect(() => {
+    if (reduceMotion) return;
+    t.set(withRepeat(withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.sin) }), -1, true));
+  }, [reduceMotion, t]);
+
+  const tile = useAnimatedStyle(() => ({
+    transform: [{ translateY: -4 * t.get() }, { rotate: `${-6 + 3 * t.get()}deg` }],
+  }));
+  const rings = useAnimatedStyle(() => ({ transform: [{ scale: 1 + 0.04 * t.get() }] }));
+
+  return { rings, tile };
+}
+
+function StateArt({ name, size = ART_SIZE, tone }: { name: GlyphName; size?: number; tone: StateTone }) {
   const { colors } = useAppTheme();
   const ink = tone === "muted" ? colors.primary : colors[STATE_TONES[tone].ink];
   const center = ART_SIZE / 2;
+  const idle = useIdle();
+  const ratio = size / ART_SIZE;
 
   return (
     <Animated.View
       className="items-center justify-center"
       entering={ART_ENTER}
-      style={{ height: ART_SIZE, width: ART_SIZE }}
+      style={{ height: size, width: size }}
     >
-      <Svg height={ART_SIZE} style={StyleSheet.absoluteFill} viewBox={`0 0 ${ART_SIZE} ${ART_SIZE}`} width={ART_SIZE}>
+      <Animated.View style={[StyleSheet.absoluteFill, idle.rings]}>
+      <Svg height={size} viewBox={`0 0 ${ART_SIZE} ${ART_SIZE}`} width={size}>
         <Circle cx={center} cy={center} fill={ink} fillOpacity={0.06} r={56} />
         <Circle cx={center} cy={center} fill={ink} fillOpacity={0.1} r={41} />
         <Circle
@@ -138,22 +172,25 @@ function StateArt({ name, tone }: { name: GlyphName; tone: StateTone }) {
         <Circle cx={30} cy={102} fill={ink} fillOpacity={0.35} r={2} />
         <Path d={ART_SPARKS} fill={ink} fillOpacity={0.45} />
       </Svg>
+      </Animated.View>
 
-      <View
+      <Animated.View
         className="items-center justify-center rounded-2xl bg-card"
-        style={{
-          elevation: 4,
-          height: 54,
-          shadowColor: "#000000",
-          shadowOffset: { height: 4, width: 0 },
-          shadowOpacity: 0.1,
-          shadowRadius: 10,
-          transform: [{ rotate: "-6deg" }],
-          width: 54,
-        }}
+        style={[
+          {
+            elevation: 4,
+            height: 54 * ratio,
+            shadowColor: "#000000",
+            shadowOffset: { height: 4, width: 0 },
+            shadowOpacity: 0.1,
+            shadowRadius: 10,
+            width: 54 * ratio,
+          },
+          idle.tile,
+        ]}
       >
-        <Glyph color={ink} name={name} size={27} strokeWidth={1.8} />
-      </View>
+        <Glyph color={ink} name={name} size={27 * ratio} strokeWidth={1.8} />
+      </Animated.View>
     </Animated.View>
   );
 }
@@ -330,17 +367,60 @@ export function FailureState({
 export function EmptyCard({
   action,
   description,
+  icon,
   title,
 }: {
   action?: ReactNode;
   description?: string;
+  /** The art's glyph. Left out, it is read off the title — see {@link glyphFor}. */
+  icon?: GlyphName;
   title: string;
 }) {
   return (
     <Card>
-      <EmptyState action={action} compact description={description} title={title} />
+      <View className="items-center gap-2 px-6 py-5">
+        <StateArt name={icon ?? glyphFor(`${title} ${description ?? ""}`)} size={84} tone="muted" />
+        <Text className="text-center" variant="subtitle">
+          {title}
+        </Text>
+        {description ? (
+          <Text className="text-center" variant="muted">
+            {description}
+          </Text>
+        ) : null}
+        {action ? <View className="mt-2">{action}</View> : null}
+      </View>
     </Card>
   );
+}
+
+/*
+ * First match wins, so the specific words sit above the general ones — "stock"
+ * before "bought", "payment" before "month". Covers the hundred-odd EmptyCards
+ * without a glyph passed at each one; a caller that knows better passes `icon`.
+ */
+const GLYPH_WORDS: [RegExp, GlyphName][] = [
+  [/referr|invite|commission/i, "gift"],
+  [/stock|item|store|grocer/i, "cube"],
+  [/supplier|shop|bought from/i, "storefront"],
+  [/expense|spent|spend|cash box|wallet/i, "wallet"],
+  [/pay|paid|bill|invoice|fee|rent|due|owe|money|receipt|statement/i, "receipt"],
+  [/resident|people|tenant|student|guardian|warden|cook|staff|contact/i, "people"],
+  [/room|floor|bed/i, "bed"],
+  [/food|meal|menu|kitchen/i, "restaurant"],
+  [/complain/i, "chatbox-ellipses"],
+  [/notice|announce|push/i, "megaphone"],
+  [/repair|maintenance|fix/i, "construct"],
+  [/book|inquir|request|applic|form/i, "calendar"],
+  [/night|attendance|roll/i, "moon"],
+  [/report|chart|figure/i, "bar-chart"],
+  [/document|file|paper/i, "document-text"],
+  [/search|match|found/i, "search"],
+  [/notif|alert/i, "notifications"],
+];
+
+export function glyphFor(text: string): GlyphName {
+  return GLYPH_WORDS.find(([pattern]) => pattern.test(text))?.[1] ?? "inbox";
 }
 
 /**

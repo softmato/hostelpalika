@@ -11,8 +11,8 @@ import {
   UnderlineTabs,
   useStock,
 } from "@/components/stock/stock-parts";
+import { ActionCard, ActionCell } from "@/components/ui/action-grid";
 import { AppBar } from "@/components/ui/app-bar";
-import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Glyph } from "@/components/ui/glyph";
 import { Stagger } from "@/components/ui/layout";
@@ -134,6 +134,7 @@ function Overview({
   places: StockPlace[];
   readOnly: boolean;
 }) {
+  const { colors } = useAppTheme();
   const many = item.at.length > 1;
   const go = (pathname: "/stock/buy" | "/stock/count" | "/stock/send" | "/stock/use") =>
     router.push({ params: { itemId: item.id }, pathname });
@@ -157,26 +158,18 @@ function Overview({
       })}
 
       {readOnly ? null : (
-        <View className="flex-row gap-2">
+        <ActionCard>
           {item.kind === "STORE" ? (
-            <View className="flex-1">
-              <Button label="Use" onPress={() => go("/stock/use")} />
-            </View>
+            <ActionCell glyph={colors.primary} icon="restaurant" label="Use" onPress={() => go("/stock/use")} tone="brand" />
           ) : null}
-          <View className="flex-1">
-            <Button label="Buy" onPress={() => go("/stock/buy")} variant="outline" />
-          </View>
+          <ActionCell glyph={colors.success} icon="cart" label="Buy" onPress={() => go("/stock/buy")} tone="success" />
           {places.length > 1 ? (
-            <View className="flex-1">
-              <Button label="Send" onPress={() => go("/stock/send")} variant="outline" />
-            </View>
+            <ActionCell glyph={colors.primary} icon="arrow-redo" label="Send" onPress={() => go("/stock/send")} tone="brand" />
           ) : null}
           {item.kind === "STORE" ? (
-            <View className="flex-1">
-              <Button label="Stock check" onPress={() => go("/stock/count")} variant="outline" />
-            </View>
+            <ActionCell glyph={colors.warning} icon="clipboard" label="Stock check" onPress={() => go("/stock/count")} tone="warning" />
           ) : null}
-        </View>
+        </ActionCard>
       )}
     </Stagger>
   );

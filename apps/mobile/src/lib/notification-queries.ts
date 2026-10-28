@@ -72,6 +72,20 @@ async function loadFeed(filter: NotificationFilter, key: string) {
 export type NotificationQuery<T> = Query<T>;
 
 /**
+ * The feed's cache ages. Every reader passes these — `readQuery` evicts past
+ * `maxAgeMs`, so one reader on the defaults would empty it for the rest.
+ *
+ * Painted however old: the socket topic marks it stale the moment the server
+ * says it moved, and `loadFeed` only asks for newer rows, so opening the bell is
+ * the cached list at once and never skeletons. `staleMs` is the backstop for a
+ * socket event missed while the app was in the background.
+ */
+export const NOTIFICATION_CACHE = {
+  maxAgeMs: Number.POSITIVE_INFINITY,
+  staleMs: 10 * 60_000,
+} as const;
+
+/**
  * The filter the bell reads and the screen opens on.
  *
  * Not a default parameter on `feed` — a caller that forgot to pass one would
@@ -97,7 +111,7 @@ export const notificationQuery = {
 
 /** Warms one descriptor. Never throws, never re-asks something already fresh. */
 export function prefetchNotificationQuery<T>(query: NotificationQuery<T>) {
-  prefetchQuery(query.key, query.load, { topics: query.topics });
+  prefetchQuery(query.key, query.load, { ...NOTIFICATION_CACHE, topics: query.topics });
 }
 
 /**

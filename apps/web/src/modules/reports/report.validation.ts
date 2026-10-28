@@ -18,7 +18,8 @@ export const reportExportFormatSchema = z.enum(["csv", "pdf"]).default("csv");
 export const reportExportMonthsSchema = z.coerce
   .number()
   .int()
-  .refine((value) => [0, 1, 3, 6, 12].includes(value), "Choose 1, 3, 6 or 12 months, or everything.")
+  .min(0, "Choose how many months, or everything.")
+  .max(24, "Up to 24 months, or everything.")
   .default(0);
 
 export const platformReportExportSchema = z.object({

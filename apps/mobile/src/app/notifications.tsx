@@ -25,7 +25,7 @@ import { humanizeEnum } from "@/lib/format";
 import { type NightStatusReasonCode, reasonLabel } from "@/lib/night-status-actions";
 import { collapseNightPrompts } from "@/lib/night-status-notification";
 import { groupNotifications } from "@/lib/notification-groups";
-import { notificationQuery } from "@/lib/notification-queries";
+import { NOTIFICATION_CACHE, notificationQuery } from "@/lib/notification-queries";
 import {
   type AppNotification,
   type NotificationFeed,
@@ -151,7 +151,7 @@ const TILE_GLYPH: Record<
 function writeFeedRead() {
   for (const filter of ["all", "action"] as const) {
     const { key, topics } = notificationQuery.feed(filter);
-    const cached = readQuery<NotificationFeed>(key);
+    const cached = readQuery<NotificationFeed>(key, NOTIFICATION_CACHE);
 
     if (
       cached &&
@@ -199,6 +199,7 @@ export default function NotificationsScreen() {
   const query = notificationQuery.feed(filter === "unread" ? "all" : filter);
 
   const feed = useResource<NotificationFeed>(query.load, {
+    ...NOTIFICATION_CACHE,
     cacheKey: query.key,
     topics: query.topics,
   });
@@ -269,7 +270,7 @@ export default function NotificationsScreen() {
     // Read from the cache rather than from `data`: for a frame after a chip
     // change `data` can still be the other filter's page, and pruning against
     // the `action` page would drop every held row not waiting on a decision.
-    const allPage = readQuery<NotificationFeed>(notificationQuery.feed("all").key);
+    const allPage = readQuery<NotificationFeed>(notificationQuery.feed("all").key, NOTIFICATION_CACHE);
 
     dispatch(
       holdUnacknowledged({

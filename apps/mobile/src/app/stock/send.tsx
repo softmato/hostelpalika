@@ -166,7 +166,7 @@ export default function SendScreen() {
     >
       <Stagger className="gap-6 pb-4 pt-3">
         <View>
-          <SectionHeader title="To" />
+          <SectionHeader subtitle="Which building the goods go to" title="To" />
           <View className="flex-row flex-wrap gap-3">
             {others.map((place) => {
               const active = to?.id === place.id;
@@ -186,9 +186,14 @@ export default function SendScreen() {
                     name={active ? "checkmark-circle" : "business"}
                     size={24}
                   />
-                  <Text className="flex-1" numberOfLines={2} variant="label">
-                    {place.name}
-                  </Text>
+                  <View className="flex-1 gap-0.5">
+                    <Text numberOfLines={2} variant="label">
+                      {place.name}
+                    </Text>
+                    <Text numberOfLines={2} variant="caption">
+                      {[place.isMain ? "Main hostel" : "Branch", place.location].filter(Boolean).join(" · ")}
+                    </Text>
+                  </View>
                 </Pressable>
               );
             })}

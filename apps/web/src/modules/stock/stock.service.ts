@@ -109,7 +109,8 @@ export class StockError extends Error {
   }
 }
 
-type Place = { id: string; isMain: boolean; name: string };
+/** `location` is "Area, City" from the hostel record — what tells two branches apart on Send. */
+type Place = { id: string; isMain: boolean; location: string; name: string };
 
 export type StockActor = {
   /** The building the request is about. */
@@ -177,12 +178,24 @@ export async function resolveStockActor(principal: ApiPrincipal, everyBuilding =
     $or: [{ _id: groupId }, { parentHostelId: groupId }],
     isDeleted: { $ne: true },
   })
-    .select("name parentHostelId createdAt")
+    .select("name parentHostelId createdAt location.area location.city")
     .sort({ createdAt: 1 })
-    .lean<Array<{ _id: Types.ObjectId; name?: string; parentHostelId?: Types.ObjectId | null }>>();
+    .lean<
+      Array<{
+        _id: Types.ObjectId;
+        location?: { area?: string; city?: string };
+        name?: string;
+        parentHostelId?: Types.ObjectId | null;
+      }>
+    >();
 
   const places = rows
-    .map((row) => ({ id: row._id.toString(), isMain: !row.parentHostelId, name: row.name ?? "Hostel" }))
+    .map((row) => ({
+      id: row._id.toString(),
+      isMain: !row.parentHostelId,
+      location: [row.location?.area, row.location?.city].filter(Boolean).join(", "),
+      name: row.name ?? "Hostel",
+    }))
     .sort((a, b) => Number(b.isMain) - Number(a.isMain));
   const owner = principal.role === Role.HOSTEL_ADMIN;
   const held = new Set(

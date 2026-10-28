@@ -1,7 +1,7 @@
-import * as Clipboard from "expo-clipboard";
 import { useCallback, useState } from "react";
-import { Linking, Pressable, Share, View } from "react-native";
+import { View } from "react-native";
 
+import { HostelInviteCard } from "@/components/manage/hostel-invite-card";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,6 @@ import { type HostelInviteOverview, sendHostelInvite } from "@/lib/admin-manage-
 import { adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
 import { toastError, toastSuccess } from "@/lib/toast";
-import { PLATFORM_NAME } from "@hostel/brand/brand";
 
 /**
  * Invite hostels — the web portal's `invite-hostels` screen.
@@ -67,16 +66,6 @@ export default function InviteHostelsScreen() {
   return <InviteBody data={invites.data} header={header} resource={invites} />;
 }
 
-function shareMessage(data: HostelInviteOverview) {
-  return [
-    `We run our hostel on ${PLATFORM_NAME}.`,
-    data.theyGet.text
-      ? `Register yours with our code ${data.code} and get ${data.theyGet.text} extra, free:`
-      : `Register yours with our code ${data.code}:`,
-    data.link,
-  ].join(" ");
-}
-
 function InviteBody({
   data,
   header,
@@ -92,25 +81,6 @@ function InviteBody({
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [sending, setSending] = useState(false);
-
-  const copy = useCallback(async (value: string, label: string) => {
-    await Clipboard.setStringAsync(value);
-    toastSuccess(label);
-  }, []);
-
-  const share = useCallback(async () => {
-    try {
-      await Share.share({ message: shareMessage(data) });
-    } catch {
-      // Dismissed. The code is on screen and copyable.
-    }
-  }, [data]);
-
-  const whatsapp = useCallback(() => {
-    void Linking.openURL(`https://wa.me/?text=${encodeURIComponent(shareMessage(data))}`).catch(
-      () => void share(),
-    );
-  }, [data, share]);
 
   const sendEmail = useCallback(async () => {
     setSending(true);
@@ -137,49 +107,7 @@ function InviteBody({
           </Card>
         )}
 
-        <Card className="items-center gap-3">
-          <Text variant="label">Your hostel&apos;s code</Text>
-          <Pressable
-            accessibilityHint="Copies the code"
-            accessibilityLabel={`Referral code ${data.code}`}
-            accessibilityRole="button"
-            className="active:opacity-70"
-            onPress={() => void copy(data.code, "Code copied")}
-          >
-            <Text
-              className="text-center"
-              style={{ color: colors.primary, fontSize: 32, fontWeight: "800", letterSpacing: 4 }}
-            >
-              {data.code}
-            </Text>
-          </Pressable>
-          <Text className="text-center" numberOfLines={1} variant="caption">
-            {data.link}
-          </Text>
-
-          <Button className="w-full" icon="share-social" label="Share" onPress={() => void share()} />
-          <View className="w-full flex-row gap-2">
-            <Button className="flex-1" icon="chatbubble" label="WhatsApp" onPress={whatsapp} variant="outline" />
-            <Button
-              className="flex-1"
-              icon="link"
-              label="Copy link"
-              onPress={() => void copy(data.link, "Link copied")}
-              variant="outline"
-            />
-          </View>
-        </Card>
-
-        <View className="flex-row gap-3">
-          <Card className="flex-1 gap-1 p-3">
-            <Text variant="caption">They get</Text>
-            <Text variant="label">{data.theyGet.text || "Nothing extra"}</Text>
-          </Card>
-          <Card className="flex-1 gap-1 p-3">
-            <Text variant="caption">You get, per hostel</Text>
-            <Text variant="label">{data.youGet.text || "Nothing extra"}</Text>
-          </Card>
-        </View>
+        <HostelInviteCard data={data} />
 
         <Card padding="px-4 py-1">
           <ListRow

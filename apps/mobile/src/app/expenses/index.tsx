@@ -1,7 +1,9 @@
 import { ReceiptShareSettings } from "@/components/receipt-share-settings";
 import { Image } from "expo-image";
 import { router } from "expo-router";
-import { type ReactNode, useCallback, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
 import { Platform, Pressable, ScrollView, View } from "react-native";
 
 import {
@@ -46,7 +48,7 @@ import {
 import { cancelExpense, expenseQuery, type ExpenseLoad, walletQuery } from "@/lib/expenses-api";
 import { formatMoney } from "@/lib/format";
 import { adminQuery } from "@/lib/admin-queries";
-import { invalidateQuery } from "@/lib/query-cache";
+import { invalidateQuery, prefetchQuery } from "@/lib/query-cache";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { privateAssetSource } from "@/lib/uploads";
 import { addBsMonths, bsMonthName, periodParts } from "@hostel/calendar/bs";
@@ -87,7 +89,14 @@ export default function ExpensesScreen() {
     topics: query.topics,
   });
 
-  const home: ExpenseHome | null = resource.data?.kind === "ok" ? resource.data.home : null;
+  /*
+   * The month on screen stays until the next one lands, instead of blanking to
+   * skeletons on every step — that blank was the "slow" month switch.
+   */
+  const fresh: ExpenseHome | null = resource.data?.kind === "ok" ? resource.data.home : null;
+  const [last, setLast] = useState<ExpenseHome | null>(null);
+  if (fresh && fresh !== last) setLast(fresh);
+  const home = fresh ?? (resource.loading ? last : null);
   const denied = resource.data?.kind === "denied" ? resource.data : null;
   const days = useMemo(() => groupExpensesByDay(home?.expenses ?? []), [home]);
 
@@ -110,6 +119,32 @@ export default function ExpensesScreen() {
     },
     [home],
   );
+
+  // The month a swipe back lands on is already in the cache.
+  useEffect(() => {
+    if (!fresh) return;
+    const prev = expenseQuery(audience, addBsMonths(fresh.period, -1));
+    prefetchQuery(prev.key, prev.load, { topics: prev.topics });
+  }, [audience, fresh]);
+
+  /* One swipe is one month: left = newer, right = older. The card follows the finger, then springs back. */
+  const drag = useSharedValue(0);
+  const swipe = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-16, 16])
+        .failOffsetY([-12, 12])
+        .onUpdate((event) => {
+          drag.set(Math.max(-60, Math.min(60, event.translationX * 0.5)));
+        })
+        .onEnd((event) => {
+          if (event.translationX < -40) runOnJS(step)(1);
+          else if (event.translationX > 40) runOnJS(step)(-1);
+          drag.set(withSpring(0, { damping: 20, stiffness: 260 }));
+        }),
+    [drag, step],
+  );
+  const dragStyle = useAnimatedStyle(() => ({ transform: [{ translateX: drag.get() }] }));
 
   /** A "Got it" moves the box, the list and the owner's statement. */
   const answered = useCallback(() => {
@@ -172,7 +207,8 @@ export default function ExpensesScreen() {
 
       {home || resource.loading ? (
         <View className="px-5" style={{ marginTop: -STRADDLE }}>
-          <View className="gap-3 rounded-2xl border border-border bg-card p-4" style={FLOAT_SHADOW}>
+          <GestureDetector gesture={swipe}>
+          <Animated.View className="gap-3 rounded-2xl border border-border bg-card p-4" style={[FLOAT_SHADOW, dragStyle]}>
             {/* The month, with arrows: an owner looks back; nobody looks ahead. */}
             <View className="flex-row items-center justify-between">
               <Pressable
@@ -247,7 +283,8 @@ export default function ExpensesScreen() {
                 </Text>
               </View>
             )}
-          </View>
+          </Animated.View>
+          </GestureDetector>
         </View>
       ) : null}
     </View>

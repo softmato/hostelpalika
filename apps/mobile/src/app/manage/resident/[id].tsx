@@ -33,6 +33,7 @@ import {
   type ActivationIssue,
   deleteResident,
   issueActivationCode,
+  type FeeScheduleData,
   saveMoveInChecklist,
   setResidentFee,
   setResidentStatus,
@@ -74,7 +75,6 @@ import { toastError, toastSuccess } from "@/lib/toast";
 type Panel =
   | "activation"
   | "contact"
-  | "details"
   | "fee"
   | "guardian"
   | "moveIn"
@@ -153,6 +153,7 @@ export default function ManageResidentScreen() {
 
   const resident = data.data?.resident ?? null;
   const layoutQuery = roomsQuery.layout();
+  const feeQuery = adminQuery.feeSchedules();
   const layout = useResource<RoomLayout>(layoutQuery.load, {
     cacheKey: layoutQuery.key,
     topics: layoutQuery.topics,
@@ -169,7 +170,6 @@ export default function ManageResidentScreen() {
   );
   const roomTypes = data.data?.roomTypes ?? [];
   const ledger = data.data?.ledger ?? null;
-  const moveIn = data.data?.moveIn ?? null;
   const moveOut = data.data?.moveOut ?? null;
 
   /*
@@ -182,6 +182,23 @@ export default function ManageResidentScreen() {
     () => (ledger?.months ?? []).filter((month) => month.dueAmount > month.paidAmount),
     [ledger],
   );
+
+  const schedules = useResource<FeeScheduleData>(feeQuery.load, {
+    cacheKey: feeQuery.key,
+    topics: feeQuery.topics,
+  });
+
+  /* The rent this person is billed: their own rate, else the open rate card's line for their room type. */
+  const fee = useMemo(() => {
+    if (!resident) return 0;
+    if (resident.monthlyFee > 0) return resident.monthlyFee;
+    const open = schedules.data?.schedules.find((schedule) => schedule.effectiveTo === null);
+    return (
+      open?.rates.find((rate) => rate.roomType === resident.roomType)?.monthlyAmount ??
+      schedules.data?.roomTypes.find((type) => type.roomType === resident.roomType)?.monthlyRent ??
+      0
+    );
+  }, [resident, schedules.data]);
 
   const fullName = useMemo(
     () => (resident ? `${resident.firstName} ${resident.lastName}`.trim() : ""),
@@ -197,8 +214,6 @@ export default function ManageResidentScreen() {
         return;
       }
 
-      // `details` seeds nothing — it is a read-only panel now, and leaving the
-      // last sheet's draft in `form` is harmless because nothing there reads it.
       if (next === "roomType") {
         setForm({ roomType: resident.roomType });
       }
@@ -360,7 +375,7 @@ export default function ManageResidentScreen() {
             ) : null}
             <Chip icon="bed" label={roomTypeLabel(resident.roomType)} />
             {resident.roomNumber ? (
-              <Chip icon="business" label={roomLine(resident) ?? ""} tone="brand" />
+              <Chip icon="business" label={roomLine({ floor: resident.floor, number: resident.roomNumber }) ?? ""} tone="brand" />
             ) : null}
             <Chip icon="person" label={humanizeEnum(resident.residentType)} />
             <Chip
@@ -381,10 +396,11 @@ export default function ManageResidentScreen() {
                     <Money value={resident.specialFee.amount} />
                     <Text variant="caption">{`Special · ${resident.specialFee.reason || "no reason given"}`}</Text>
                   </View>
-                ) : resident.monthlyFee > 0 ? (
-                  <Money value={resident.monthlyFee} />
                 ) : (
-                  <Text variant="muted">On the fee schedule</Text>
+                  <View className="items-end">
+                    <Money value={fee} />
+                    <Text variant="caption">{resident.monthlyFee > 0 ? "Own rate" : "From the rate card"}</Text>
+                  </View>
                 )
               }
             />
@@ -392,22 +408,169 @@ export default function ManageResidentScreen() {
           </View>
         </Card>
 
+        <View className="gap-4">
+        <DetailSection title="Who they are">
+          <FactRow
+            label="Phone"
+            value={
+              resident.phone ? (
+                <Chip
+                  icon="call"
+                  label={resident.phone}
+                  onPress={() => void Linking.openURL(`tel:${resident.phone}`)}
+                  tone="brand"
+                />
+              ) : (
+                <Text variant="muted">Not on file</Text>
+              )
+            }
+          />
+          <FactRow
+            label="Email"
+            value={resident.email || <Text variant="muted">Not on file</Text>}
+          />
+          <FactRow label="They are a" value={humanizeEnum(resident.residentType)} />
+        </DetailSection>
+
+        {/* Their admission form — typed at the desk, sent through the Form QR, or read off their ID card. */}
+        <DetailsFacts details={resident.details} variant="sheet" />
+
+        {resident.documents?.length ? (
+          <DetailSection title="Documents">
+            {resident.documents.map((document, index) => (
+              <FactRow
+                key={document.assetId}
+                label={document.label}
+                value={
+                  <Chip
+                    icon="eye"
+                    label="Open"
+                    onPress={() =>
+                      openAssetViewer(
+                        resident.documents!.map((item) => ({
+                          assetId: item.assetId,
+                          caption: item.label,
+                          title: item.label,
+                        })),
+                        index,
+                      )
+                    }
+                    tone="brand"
+                  />
+                }
+              />
+            ))}
+          </DetailSection>
+        ) : null}
+
+        <DetailSection title="Their tenancy">
+          <FactRow label="Room type" value={roomTypeLabel(resident.roomType)} />
+          <FactRow label="Moved in" value={dates.date(resident.moveInDate)} />
+          {resident.billsOn ? <FactRow label="Billing" value={resident.billsOn} /> : null}
+          {resident.leavingOn ? (
+            <FactRow
+              label="Leaving on"
+              value={`${dates.date(resident.leavingOn)}${resident.leavingReason ? ` · ${resident.leavingReason}` : ""}`}
+            />
+          ) : null}
+          <FactRow label="Status" value={humanizeEnum(resident.status)} />
+          {resident.createdAt ? (
+            <FactRow label="On the roll since" value={dates.date(resident.createdAt)} />
+          ) : null}
+        </DetailSection>
+
+        {/*
+          The money, which is what this panel gets opened for as often as the
+          phone number. Both figures come from the ledger route — totalled by
+          the server across every invoice since move-in, rather than added up
+          here from the one month the Money tab happens to be showing.
+        */}
+        <DetailSection title="What they have paid">
+          {ledger ? (
+            <>
+              <FactRow label="Paid so far" value={<Money value={ledger.totals.paid} />} />
+              <FactRow
+                label="Still owed"
+                value={
+                  ledger.totals.outstanding > 0 ? (
+                    <Money owed value={ledger.totals.outstanding} />
+                  ) : (
+                    <Text className="text-sm font-medium text-success">
+                      Nothing outstanding
+                    </Text>
+                  )
+                }
+              />
+              <FactRow
+                label="Months settled"
+                value={`${ledger.totals.monthsPaid} of ${ledger.totals.monthsBilled}`}
+              />
+              {monthsOwed.length > 0 ? (
+                <FactRow
+                  label={monthsOwed.length === 1 ? "Month still open" : "Months still open"}
+                  value={monthsOwed.map((month) => dates.period(month.period)).join(", ")}
+                />
+              ) : null}
+            </>
+          ) : (
+            <Text variant="muted">{"No payments permission."}</Text>
+          )}
+
+          <FactRow
+            label="Monthly fee"
+            value={
+              <Money value={fee} />
+            }
+          />
+          <FactRow label="Deposit held" value={<Money value={resident.depositAmount} />} />
+        </DetailSection>
+
+        </View>
+
+        {/*
+          Every payment they have made, newest month first, heading outside the
+          card. From the same ledger the totals above come from.
+        */}
+        {ledger && ledger.months.some((month) => month.payments.length > 0) ? (
+          <View className="gap-2">
+            <SectionHeader title="Payment history" />
+            {[...ledger.months]
+              .filter((month) => month.payments.length > 0)
+              .reverse()
+              .map((month) => (
+                <View className="gap-1.5" key={month.period}>
+                  <View className="flex-row items-center justify-between px-1">
+                    <Text className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                      {dates.period(month.period)}
+                    </Text>
+                    <Text variant="caption">{`${humanizeEnum(month.status)} · due Rs ${month.dueAmount.toLocaleString("en-IN")}`}</Text>
+                  </View>
+                  <Card padding="px-4 py-1">
+                    {month.payments.map((payment, index) => (
+                      <View key={`${payment.occurredAt}-${index}`}>
+                        {index > 0 ? <RowDivider inset /> : null}
+                        <ListRow
+                          icon="receipt"
+                          subtitle={`${dates.date(payment.occurredAt)} · ${humanizeEnum(payment.method)}${payment.receiptNumber ? ` · ${payment.receiptNumber}` : ""}`}
+                          title={`Rs ${payment.amount.toLocaleString("en-IN")}`}
+                        />
+                      </View>
+                    ))}
+                  </Card>
+                </View>
+              ))}
+          </View>
+        ) : null}
+
         <View>
           <SectionHeader title="The record" />
           <Card padding="px-4 py-1">
-            <ListRow
-              icon="person-circle"
-              onPress={() => openPanel("details")}
-              subtitle="Everything on file, and what they have paid"
-              title="See details"
-            />
-            <RowDivider inset />
             {layout.data?.tracking && layout.data.rooms.length > 0 && resident.status !== "MOVED_OUT" ? (
               <>
                 <ListRow
                   icon="business"
                   onPress={() => setPanel("room")}
-                  subtitle={roomLine(resident) ?? "No room yet — pick one"}
+                  subtitle={roomLine({ floor: resident.floor, number: resident.roomNumber }) ?? "No room yet — pick one"}
                   title="Floor & room"
                 />
                 <RowDivider inset />
@@ -433,9 +596,7 @@ export default function ManageResidentScreen() {
               subtitle={
                 resident.specialFee
                   ? `Special fee · ${resident.specialFee.reason || "no reason given"}`
-                  : resident.monthlyFee > 0
-                    ? "A per-person override is set"
-                    : "Billed from the hostel's fee schedule"
+                  : `Rs ${fee.toLocaleString("en-IN")} a month · ${resident.monthlyFee > 0 ? "own rate" : "rate card"}`
               }
               title="Monthly fee"
             />
@@ -614,243 +775,6 @@ export default function ManageResidentScreen() {
         />
       </View>
 
-      {/* ------------------------------------------------------------------ */}
-      {/*
-        Read-only, and deliberately.
-
-        This was an edit form — name, phone, email, resident type, move-in date
-        and deposit, all writable by whoever had the phone. That is the wrong way
-        round: the identity on a record comes from the person themselves, through
-        the code they registered with, and a hostel that can retype somebody's
-        name and number can quietly make the record stop matching the human it is
-        about. So the panel shows; it does not edit.
-
-        What a hostel *decides* rather than *receives* still has its own row next
-        to this one — status, room type, the fee override — because those are the
-        hostel's facts about a tenancy, not the resident's facts about themselves.
-      */}
-      <Sheet onClose={() => setPanel(null)} open={panel === "details"} title={fullName}>
-        <View className="gap-5 pb-2">
-          <View className="flex-row items-center gap-3">
-            <PersonAvatar
-              image={resident.account?.image ?? resident.photo}
-              name={fullName}
-              size="lg"
-            />
-            <View className="flex-1 gap-1">
-              <Text variant="subtitle">{fullName}</Text>
-              <View className="flex-row flex-wrap items-center gap-2">
-                <StatusPill status={resident.status} />
-                {resident.userId ? (
-                  <Badge label="Has an app account" tone="success" />
-                ) : (
-                  <Badge label="No app account yet" tone="warning" />
-                )}
-              </View>
-            </View>
-          </View>
-
-          <DetailSection title="Who they are">
-            <FactRow
-              label="Phone"
-              value={
-                resident.phone ? (
-                  <Chip
-                    icon="call"
-                    label={resident.phone}
-                    onPress={() => void Linking.openURL(`tel:${resident.phone}`)}
-                    tone="brand"
-                  />
-                ) : (
-                  <Text variant="muted">Not on file</Text>
-                )
-              }
-            />
-            <FactRow
-              label="Email"
-              value={resident.email || <Text variant="muted">Not on file</Text>}
-            />
-            <FactRow label="They are a" value={humanizeEnum(resident.residentType)} />
-          </DetailSection>
-
-          {/* Their admission form — typed at the desk, sent through the Form QR, or read off their ID card. */}
-          <DetailsFacts details={resident.details} variant="sheet" />
-
-          {resident.documents?.length ? (
-            <DetailSection title="Documents">
-              {resident.documents.map((document, index) => (
-                <FactRow
-                  key={document.assetId}
-                  label={document.label}
-                  value={
-                    <Chip
-                      icon="eye"
-                      label="Open"
-                      onPress={() =>
-                        openAssetViewer(
-                          resident.documents!.map((item) => ({
-                            assetId: item.assetId,
-                            caption: item.label,
-                            title: item.label,
-                          })),
-                          index,
-                        )
-                      }
-                      tone="brand"
-                    />
-                  }
-                />
-              ))}
-            </DetailSection>
-          ) : null}
-
-          <DetailSection title="Their tenancy">
-            <FactRow label="Room type" value={roomTypeLabel(resident.roomType)} />
-            <FactRow label="Moved in" value={dates.date(resident.moveInDate)} />
-            {resident.billsOn ? <FactRow label="Billing" value={resident.billsOn} /> : null}
-            {resident.leavingOn ? (
-              <FactRow
-                label="Leaving on"
-                value={`${dates.date(resident.leavingOn)}${resident.leavingReason ? ` · ${resident.leavingReason}` : ""}`}
-              />
-            ) : null}
-            <FactRow label="Status" value={humanizeEnum(resident.status)} />
-            {resident.createdAt ? (
-              <FactRow label="On the roll since" value={dates.date(resident.createdAt)} />
-            ) : null}
-          </DetailSection>
-
-          {/*
-            The money, which is what this panel gets opened for as often as the
-            phone number. Both figures come from the ledger route — totalled by
-            the server across every invoice since move-in, rather than added up
-            here from the one month the Money tab happens to be showing.
-          */}
-          <DetailSection title="What they have paid">
-            {ledger ? (
-              <>
-                <FactRow label="Paid so far" value={<Money value={ledger.totals.paid} />} />
-                <FactRow
-                  label="Still owed"
-                  value={
-                    ledger.totals.outstanding > 0 ? (
-                      <Money owed value={ledger.totals.outstanding} />
-                    ) : (
-                      <Text className="text-sm font-medium text-success">
-                        Nothing outstanding
-                      </Text>
-                    )
-                  }
-                />
-                <FactRow
-                  label="Months settled"
-                  value={`${ledger.totals.monthsPaid} of ${ledger.totals.monthsBilled}`}
-                />
-                {monthsOwed.length > 0 ? (
-                  <FactRow
-                    label={monthsOwed.length === 1 ? "Month still open" : "Months still open"}
-                    value={monthsOwed.map((month) => dates.period(month.period)).join(", ")}
-                  />
-                ) : null}
-              </>
-            ) : (
-              <Text variant="muted">{"No payments permission."}</Text>
-            )}
-
-            <FactRow
-              label="Monthly fee"
-              value={
-                resident.monthlyFee > 0 ? (
-                  <Money value={resident.monthlyFee} />
-                ) : (
-                  <Text variant="muted">On the fee schedule</Text>
-                )
-              }
-            />
-            <FactRow label="Deposit held" value={<Money value={resident.depositAmount} />} />
-          </DetailSection>
-
-          <DetailSection title="Handover">
-            <FactRow
-              label="Move-in"
-              value={
-                moveIn?.completedAt ? (
-                  dates.date(moveIn.completedAt)
-                ) : (
-                  <Text variant="muted">Not recorded</Text>
-                )
-              }
-            />
-            {moveIn ? (
-              <>
-                <FactRow
-                  label="Documents"
-                  value={
-                    moveIn.documentsCollected.length > 0 ? (
-                      moveIn.documentsCollected.join(", ")
-                    ) : (
-                      <Text variant="muted">None listed</Text>
-                    )
-                  }
-                />
-                <FactRow
-                  label="Items given"
-                  value={
-                    moveIn.itemsProvided.length > 0 ? (
-                      moveIn.itemsProvided.join(", ")
-                    ) : (
-                      <Text variant="muted">None listed</Text>
-                    )
-                  }
-                />
-                <FactRow
-                  label="House rules"
-                  value={moveIn.rulesAccepted ? "Read and accepted" : "Not accepted"}
-                />
-              </>
-            ) : null}
-            <FactRow
-              label="Move-out"
-              value={
-                moveOut?.completedAt ? (
-                  dates.date(moveOut.completedAt)
-                ) : (
-                  <Text variant="muted">Still living here</Text>
-                )
-              }
-            />
-          </DetailSection>
-
-          <DetailSection title="Who to call">
-            <FactRow
-              label="Guardians"
-              value={
-                contacts.guardians.length > 0 ? (
-                  contacts.guardians
-                    .map((guardian) => `${guardian.firstName} ${guardian.lastName} · ${guardian.relation}`)
-                    .join(", ")
-                ) : (
-                  <Text variant="muted">Nobody listed</Text>
-                )
-              }
-            />
-            <FactRow
-              label="Emergency contacts"
-              value={
-                contacts.emergencyContacts.length > 0 ? (
-                  contacts.emergencyContacts
-                    .map((contact) => `${contact.name} · ${contact.phone}`)
-                    .join(", ")
-                ) : (
-                  <Text variant="muted">Nobody listed</Text>
-                )
-              }
-            />
-          </DetailSection>
-
-          <Text variant="caption">{"Name, phone and email come from the resident."}</Text>
-        </View>
-      </Sheet>
 
       {/* ------------------------------------------------------------------ */}
       {/*

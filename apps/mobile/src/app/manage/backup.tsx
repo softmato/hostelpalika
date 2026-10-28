@@ -4,10 +4,9 @@ import * as WebBrowser from "expo-web-browser";
 import { useCameraPermissions } from "expo-camera";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { View } from "react-native";
-import Svg, { Rect } from "react-native-svg";
-import { toQR } from "toqr";
 
 import { QrCamera } from "@/components/qr-camera";
+import { Qr } from "@/components/ui/qr";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -365,30 +364,6 @@ function History({
   );
 }
 
-function Qr({ text, size }: { size: number; text: string }) {
-  const { colors } = useAppTheme();
-  const modules = useMemo(() => toQR(text), [text]);
-  const width = Math.sqrt(modules.length);
-  const cell = size / (width + 8);
-
-  return (
-    <Svg height={size} width={size}>
-      <Rect fill={colors.background} height={size} width={size} />
-      {Array.from(modules, (on, index) =>
-        on ? (
-          <Rect
-            fill={colors.foreground}
-            height={cell}
-            key={index}
-            width={cell}
-            x={(4 + (index % width)) * cell}
-            y={(4 + Math.floor(index / width)) * cell}
-          />
-        ) : null,
-      )}
-    </Svg>
-  );
-}
 
 /** The recovery kit: the code to write on paper, and the same as a QR. */
 function KitSheet({

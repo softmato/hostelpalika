@@ -49,6 +49,8 @@ export type { StockBillStatus, StockEntryKind, StockEntryStatus, StockKind, Stoc
 export type StockPlace = {
   id: string;
   isMain: boolean;
+  /** "Area, City" — empty until the server that sends it is deployed. */
+  location?: string;
   /** This person acts for it. A warden sees only their own; the owner all. */
   mine: boolean;
   name: string;

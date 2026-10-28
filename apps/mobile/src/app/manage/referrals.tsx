@@ -2,12 +2,13 @@ import { roomTypeLabel } from "@hostel/constants/room-types";
 import { useCallback, useMemo, useState } from "react";
 import { Linking, View } from "react-native";
 
+import { HostelInviteCard } from "@/components/manage/hostel-invite-card";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge, StatusPill } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Chip } from "@/components/ui/layout";
+import { Chip, FactRow } from "@/components/ui/layout";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
@@ -24,6 +25,7 @@ import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
 import {
   confirmReferral,
+  type HostelInviteOverview,
   type ManagedReferral,
   type ReferralsPayload,
   updateReferralReward,
@@ -109,6 +111,11 @@ export default function ManageReferralsScreen() {
   const referrals = useResource<ReferralsPayload>(query.load, {
     cacheKey: query.key,
     topics: query.topics,
+  });
+  const inviteQuery = adminQuery.hostelInvites();
+  const invites = useResource<HostelInviteOverview>(inviteQuery.load, {
+    cacheKey: inviteQuery.key,
+    topics: inviteQuery.topics,
   });
 
   const rows = useMemo(() => referrals.data?.referrals ?? [], [referrals.data]);
@@ -207,46 +214,35 @@ export default function ManageReferralsScreen() {
       scroll
     >
       <View className="gap-5 pt-1">
-        {summary ? (
-          <View className="gap-4">
-            <Card padding="p-5" className="gap-4">
-              <Text variant="subtitle">Referral overview</Text>
-              <View className="flex-row flex-wrap gap-y-3">
-                {[
-                  { label: "Referred", value: summary.total },
-                  { label: "Joined", value: summary.joined },
-                  { label: "To confirm", value: summary.pendingConfirmation },
-                ].map((item) => (
-                  <View
-                    key={item.label}
-                    className="flex-1 gap-1 pr-2"
-                    style={{ minWidth: 72 }}
-                  >
-                    <Text variant="title">{item.value}</Text>
-                    <Text variant="caption">{item.label}</Text>
-                  </View>
-                ))}
-              </View>
-            </Card>
-
-            <Card padding="p-5" className="gap-4">
-              <View className="flex-row items-center justify-between">
-                <Text variant="label">Rewards waiting</Text>
-                <Money value={summary.rewardPendingAmount} />
-              </View>
-              <View className="flex-row items-center justify-between">
-                <Text variant="label">Approved</Text>
-                <Money value={summary.rewardApprovedAmount} />
-              </View>
-              <View className="flex-row items-center justify-between">
-                <Text variant="label">Paid out</Text>
-                <Money value={summary.rewardPaidAmount} />
-              </View>
-              <Text variant="caption">
-                All-time rewards across your hostel.
-              </Text>
-            </Card>
+        {invites.data ? (
+          <View>
+            <SectionHeader subtitle="Both hostels get extra time once theirs goes live" title="Invite a hostel" />
+            <HostelInviteCard data={invites.data} />
           </View>
+        ) : null}
+
+        <SectionHeader subtitle="People your residents brought in" title="Resident referrals" />
+
+        {summary ? (
+          <Card className="gap-4">
+            <View className="flex-row">
+              {[
+                { label: "Referred", value: summary.total },
+                { label: "Joined", value: summary.joined },
+                { label: "To confirm", value: summary.pendingConfirmation },
+              ].map((item) => (
+                <View className="flex-1 gap-0.5" key={item.label}>
+                  <Text variant="caption">{item.label}</Text>
+                  <Text className="text-lg font-semibold text-foreground">{item.value}</Text>
+                </View>
+              ))}
+            </View>
+            <View className="gap-2 border-t border-border pt-3">
+              <FactRow label="Rewards waiting" value={<Money value={summary.rewardPendingAmount} />} />
+              <FactRow label="Approved" value={<Money value={summary.rewardApprovedAmount} />} />
+              <FactRow label="Paid out" value={<Money value={summary.rewardPaidAmount} />} />
+            </View>
+          </Card>
         ) : null}
 
         <Segmented
@@ -262,8 +258,9 @@ export default function ManageReferralsScreen() {
 
         {rows.length === 0 ? (
           <EmptyCard
-            description="Residents share their code from the Refer a friend screen; anyone who enquires with it lands here."
-            title="Nothing here yet"
+            description="Residents share their code from Refer a friend; anyone who enquires with it lands here."
+            icon="gift"
+            title="No referrals yet"
           />
         ) : null}
 

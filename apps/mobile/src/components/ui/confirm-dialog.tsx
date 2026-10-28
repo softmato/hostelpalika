@@ -10,18 +10,16 @@ import {
 import {
   ActivityIndicator,
   BackHandler,
-  Platform,
   Pressable,
   StyleSheet,
   View,
 } from "react-native";
 import Animated, {
+  Easing,
   FadeIn,
   FadeOut,
-  useAnimatedProps,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
 
@@ -32,7 +30,6 @@ import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { readApiError } from "@/lib/api-contract";
 import { checkLockPin } from "@/lib/app-lock";
-import { appBlurTarget } from "@/lib/blur-target";
 import {
   closeConfirm,
   type ConfirmRequest,
@@ -79,34 +76,19 @@ import {
  * The palette rule still holds: the frosting is the theme's own card colour, the
  * confirm is `--destructive`, and the preferred action is the brand green.
  *
- * ## Why it is not a `<Modal>`, and why the blur is the reason
+ * ## Why it is not a `<Modal>`
  *
- * An Android `Modal` is a **separate window**. `BlurView` blurs what is behind
- * it *in its own window*, so a blurred backdrop inside a modal has nothing to
- * blur — the app the owner is looking at is in the window underneath. The
- * frosted screen this dialog is supposed to sit on would simply not appear
- * there, and only on Android, which is the worst kind of difference to ship.
+ * An Android `Modal` is a separate window, and opening one costs a window
+ * transition the dialog does not need. It draws as an absolute-fill overlay at
+ * the app root instead: the Android back button is handled with `BackHandler`,
+ * and covering the tab bar comes from being mounted at the root rather than
+ * inside a navigator.
  *
- * So it draws as an absolute-fill overlay at the app root instead, in the same
- * window as everything it covers. That costs the two things a modal gave for
- * free, and both are paid back below: the Android back button is handled with
- * `BackHandler`, and covering the tab bar comes from being mounted at the root
- * rather than inside a navigator.
+ * ## No backdrop blur
  *
- * ## `blurMethod`, which `GlassPanel` refuses
- *
- * That component's note is about the hero on the first screen the app opens:
- * Android's blur works by redrawing the target view into an offscreen buffer
- * every frame, and paying that forever for decoration nobody asked for is not a
- * trade. This one is a dialog. It is on screen while a question is being
- * answered and gone a second later, the frost *is* the point — the screen behind
- * has to read as pushed out of reach — and the scrim underneath still carries
- * the contrast, so a device that renders no blur at all gets a legible dialog
- * rather than a broken one.
- *
- * The prop is `blurMethod`; `experimentalBlurMethod` is the deprecated spelling
- * and warns on sight. On its own it still does nothing — Android also needs
- * `blurTarget`, which is the whole point of `lib/blur-target.ts`.
+ * There was one. On Android it re-captured the whole app every frame it
+ * animated, so the card arrived late and left a ghost behind on the way out
+ * (field video, 2026-10-28). The scrim alone carries the contrast.
  */
 
 /** The iOS alert's width in points. Fixed, not a fraction of the screen. */
@@ -118,74 +100,21 @@ const CARD_WIDTH_PIN = 316;
 const ACTION_HEIGHT = 44;
 
 /**
- * The scale the card animates in *from*. Just over 1, so it settles inward the
- * way the native alert does rather than growing out of nothing. There is no
- * matching scale on the way out: iOS fades its alert away, it does not shrink it.
+ * In fast, out faster: one eased fade for scrim and card together, and the card
+ * settling up from just under full size. Short enough to read as instant.
  */
-const OVERSHOOT = 1.08;
-
-/**
- * How far the frost is allowed to go, per theme, before
- * {@link BLUR_REDUCTION} divides it on Android.
- *
- * Deliberately light. The job is to push the screen behind out of focus so the
- * card is the only thing to read, not to erase it — at full strength the app
- * underneath becomes an anonymous smear, and the owner loses the context they
- * were asking the question *about*. The dark theme carries a little more
- * because its scrim is doing more of the work already.
- */
-const BLUR_LIGHT = 42;
-const BLUR_DARK = 48;
-
-/**
- * The divisor Android applies to `intensity`. It **divides** the radius, so a
- * smaller number is a heavier blur — halving it to 2 turned the screen behind
- * into an unreadable smear on the first device run. Left at the library's
- * default, which is the value tuned to match iOS at the same `intensity`.
- */
-const BLUR_REDUCTION = 4;
-
-/**
- * The frost arrives *after* the card, not with it.
- *
- * Everything fading up together reads as one flat layer being swapped in, and
- * the screen behind — which is the thing the owner was just looking at — appears
- * to have been replaced rather than pushed back. Letting the card land first and
- * then pulling focus off the screen underneath is the order the eye can follow,
- * and it is what the native iOS alert does with its own backdrop material.
- *
- * The blur view itself is only *mounted* after the delay: on Android its first
- * capture of the app stalls the UI thread, and mounted with the card it froze
- * the screen soft before the card could appear. The scrim is cheap and comes
- * with the card.
- */
-const BLUR_DELAY_MS = 160;
-const BLUR_DURATION_MS = 220;
-const SCRIM_DURATION_MS = 140;
-
-/**
- * `expo-blur` supports `intensity` as an animated prop, which is the only way to
- * ramp the blur: it is a native property, not a style, so `useAnimatedStyle`
- * cannot reach it and animating opacity instead would fade the *whole* frosted
- * layer in — the flat-swap reading again, one level down.
- */
-const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
+const OPEN_MS = 140;
+const CLOSE_MS = 100;
+const START_SCALE = 0.96;
 
 export type ConfirmDialogProps = ConfirmRequest & {
   /**
-   * Fires for the cancel action, for a tap on the blurred backdrop, for
-   * Android's back button, and again once {@link ConfirmRequest.onConfirm} has
-   * settled — so a caller closes the dialog in exactly one place regardless of
-   * how it ended.
+   * Fires for the cancel action, for a tap on the backdrop, for Android's back
+   * button, and again once {@link ConfirmRequest.onConfirm} has settled — so a
+   * caller closes the dialog in exactly one place regardless of how it ended.
    */
   onClose: () => void;
   open: boolean;
-  /**
-   * `false`: the scrim only, no blur. For a card drawn over the app lock — on
-   * Android the frost is a capture of the whole app, which is the portal the
-   * lock is there to hide.
-   */
-  frost?: boolean;
 };
 
 /**
@@ -196,7 +125,6 @@ export function ConfirmDialog({
   cancelLabel = "Cancel",
   confirmLabel,
   destructive = false,
-  frost: frosted = true,
   message,
   onCancel,
   onClose,
@@ -324,7 +252,6 @@ export function ConfirmDialog({
       cancelLabel={cancelLabel}
       confirmLabel={confirmLabel}
       destructive={destructive}
-      frosted={frosted}
       message={message}
       onBackdrop={single ? undefined : dismiss}
       onCancel={cancel}
@@ -355,7 +282,6 @@ function ConfirmCard({
   cancelLabel,
   confirmLabel,
   destructive,
-  frosted,
   message,
   onBackdrop,
   onCancel,
@@ -370,7 +296,6 @@ function ConfirmCard({
   cancelLabel: string | null;
   confirmLabel: string;
   destructive: boolean;
-  frosted: boolean;
   message?: string;
   /** Absent for an alert the backdrop must not close. */
   onBackdrop?: () => void;
@@ -386,32 +311,14 @@ function ConfirmCard({
 }) {
   const { colors, isDark } = useAppTheme();
 
-  const scale = useSharedValue(OVERSHOOT);
-  /** 0 = the screen as it was. Ramps to 1 once the card has landed. */
-  const frost = useSharedValue(0);
-  const dim = useSharedValue(0);
-  const [blurMounted, setBlurMounted] = useState(false);
+  const scale = useSharedValue(START_SCALE);
 
   useEffect(() => {
-    scale.value = withSpring(1, { damping: 20, stiffness: 420 });
-    dim.value = withTiming(1, { duration: SCRIM_DURATION_MS });
-    const timer = setTimeout(() => {
-      setBlurMounted(true);
-      frost.value = withTiming(1, { duration: BLUR_DURATION_MS });
-    }, BLUR_DELAY_MS);
-    return () => clearTimeout(timer);
-  }, [dim, frost, scale]);
+    scale.value = withTiming(1, { duration: OPEN_MS, easing: Easing.out(Easing.cubic) });
+  }, [scale]);
 
   const cardStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
-  }));
-
-  const blurProps = useAnimatedProps(() => ({
-    intensity: frost.value * (isDark ? BLUR_DARK : BLUR_LIGHT),
-  }));
-
-  const scrimStyle = useAnimatedStyle(() => ({
-    opacity: dim.value,
   }));
 
   /*
@@ -435,15 +342,8 @@ function ConfirmCard({
 
   return (
     <Animated.View
-      /*
-       * Only the card is inside this fade in practice: the backdrop starts at
-       * zero frost and ramps on its own clock, so what the owner sees is the
-       * alert arriving on an untouched screen, and the screen going soft behind
-       * it a beat later. On the way out both leave together — a dialog that
-       * unfrosts before it disappears reads as a bug.
-       */
-      entering={FadeIn.duration(100)}
-      exiting={FadeOut.duration(140)}
+      entering={FadeIn.duration(OPEN_MS).easing(Easing.out(Easing.cubic))}
+      exiting={FadeOut.duration(CLOSE_MS).easing(Easing.in(Easing.cubic))}
       style={StyleSheet.absoluteFill}
     >
       {/* The backdrop is a target too: tapping outside an alert cancels it —
@@ -455,35 +355,9 @@ function ConfirmCard({
         className="flex-1 items-center justify-center px-8"
         onPress={onBackdrop}
       >
-        {frosted && blurMounted ? (
-          <AnimatedBlurView
-            animatedProps={blurProps}
-            /*
-             * On Android the blur is a capture of a named view, not a sample of
-             * whatever is behind this one — so `blurMethod` alone renders a flat
-             * tint and logs that `blurTarget` was never configured. The target is
-             * the whole app, wrapped once at the root; see `lib/blur-target.ts`.
-             * iOS ignores both props and uses its own backdrop material.
-             */
-            blurMethod={Platform.OS === "android" ? "dimezisBlurView" : "none"}
-            blurReductionFactor={BLUR_REDUCTION}
-            blurTarget={appBlurTarget}
-            // White frost in light mode, black in dark: the blur has to read as
-            // the same screen pushed back, never as a colour laid over it.
-            style={StyleSheet.absoluteFill}
-            tint={isDark ? "dark" : "light"}
-          />
-        ) : null}
-        {/*
-          The blur alone is not contrast. It softens the screen behind without
-          darkening it, so on a pale screen in light mode the card would sit on
-          a ground of nearly its own colour — and on a device that renders no
-          blur there would be nothing between them at all. The scrim is what
-          makes the dialog the only legible thing on screen either way.
-        */}
-        <Animated.View
-          className={isDark ? "bg-black/45" : "bg-black/20"}
-          style={[StyleSheet.absoluteFill, scrimStyle]}
+        <View
+          className={isDark ? "bg-black/55" : "bg-black/35"}
+          style={StyleSheet.absoluteFill}
         />
 
         {/*

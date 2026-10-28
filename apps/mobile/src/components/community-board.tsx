@@ -61,6 +61,7 @@ import {
 } from "@/lib/community";
 import {
   DEFAULT_NOTIFICATION_FILTER,
+  NOTIFICATION_CACHE,
   notificationQuery,
 } from "@/lib/notification-queries";
 import type { NotificationFeed } from "@/lib/notifications-api";
@@ -742,7 +743,7 @@ function NotificationBell() {
           : { actionCount: 0, notifications: [], unreadCount: 0 },
       [account, query],
     ),
-    { cacheKey: account ? query.key : undefined, topics: query.topics },
+    { ...NOTIFICATION_CACHE, cacheKey: account ? query.key : undefined, topics: query.topics },
   );
 
   if (!account) {

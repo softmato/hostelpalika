@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import { View } from "react-native";
 
@@ -6,9 +7,11 @@ import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { FactRow } from "@/components/ui/layout";
 import { ListRow } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Segmented } from "@/components/ui/segmented";
+import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
@@ -16,17 +19,24 @@ import { Toggle } from "@/components/ui/toggle";
 import { useResource } from "@/hooks/use-resource";
 import { readApiError } from "@/lib/api-contract";
 import { type LeaveRule, type MoneyRules, moneyRulesQuery, saveMoneyRules } from "@/lib/money-rules-api";
+import { formatMoney } from "@/lib/format";
 import { toastError, toastSuccess } from "@/lib/toast";
 
 /**
  * Three money rules set once (docs/FIELD_FIXES_2026_10.md): where the
  * statement starts, how a leaving month is charged, and what days away take
  * off. Each section saves on its own.
+ *
+ * `?section=opening` shows only the opening balance, `?section=leaving` only the
+ * move-out and days-away rules — Finance settings has one row for each.
  */
 export default function MoneyRulesScreen() {
+  const { section } = useLocalSearchParams<{ section?: "leaving" | "opening" }>();
   const query = moneyRulesQuery();
   const rules = useResource<MoneyRules>(query.load, { cacheKey: query.key, topics: query.topics });
-  const header = <AppBar accent centerTitle showBack title="Money rules" />;
+  const [editing, setEditing] = useState(false);
+  const title = section === "opening" ? "Opening balance" : section === "leaving" ? "Move-out & days away" : "Money rules";
+  const header = <AppBar accent centerTitle showBack title={title} />;
 
   if (rules.loading) {
     return (
@@ -52,13 +62,25 @@ export default function MoneyRulesScreen() {
   return (
     <Screen header={header} onRefresh={rules.refresh} refreshing={rules.refreshing} scroll>
       <View className="gap-6 pt-1">
-        <View>
-          <SectionHeader subtitle="The statement starts from it" title="Opening balance" />
-          <Card>
-            <OpeningBalanceForm onSaved={() => rules.refresh()} saved={data.openingBalance} standalone />
-          </Card>
-        </View>
+        {section === "leaving" ? null : (
+          <View>
+            <SectionHeader subtitle="The statement starts from it" title="Opening balance" />
+            {data.openingBalance ? (
+              <Card className="gap-3">
+                <FactRow label="Amount" value={formatMoney(data.openingBalance.amount)} />
+                <FactRow label="As of" value={data.openingBalance.asOf} />
+                <Button icon="create" label="Edit" onPress={() => setEditing(true)} variant="outline" />
+              </Card>
+            ) : (
+              <Card>
+                <OpeningBalanceForm onSaved={() => rules.refresh()} saved={null} standalone />
+              </Card>
+            )}
+          </View>
+        )}
 
+        {section === "opening" ? null : (
+        <>
         <View>
           <SectionHeader subtitle="What the move-out sheet starts on" title="Leaving month" />
           <Card className="gap-3">
@@ -86,7 +108,20 @@ export default function MoneyRulesScreen() {
         <NoticeDays onSaved={() => rules.refresh()} saved={data.moveOutNoticeDays ?? 0} />
 
         <DaysAway onSaved={() => rules.refresh()} saved={data.leave} />
+        </>
+        )}
       </View>
+
+      <Sheet onClose={() => setEditing(false)} open={editing} title="Edit opening balance">
+        <OpeningBalanceForm
+          onSaved={async () => {
+            await rules.refresh();
+            setEditing(false);
+          }}
+          saved={data.openingBalance}
+          standalone
+        />
+      </Sheet>
     </Screen>
   );
 }

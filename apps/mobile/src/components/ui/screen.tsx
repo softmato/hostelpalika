@@ -21,16 +21,12 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { useBottomChrome } from "@/components/bottom-chrome";
-import { riseOnly } from "@/constants/motion";
 import { TAB_BAR_HEIGHT } from "@/components/tab-bar";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
 
-// The body rises in once, as one block, under the navigator's fade (M4).
-// Refreshes and tab switches don't remount, so neither replays it. One block on
-// purpose: the per-section stagger that replaced it (H2) held the last section
-// back by most of a second on every visit.
-const BODY_ENTER = riseOnly();
+// No entrance on the body: the navigator's own transition is the only motion a
+// screen gets, so the first frame is the finished screen (speed over motion).
 
 // Third-party scroll view: NativeWind has to be told which props carry classes.
 cssInterop(KeyboardAwareScrollView, {
@@ -356,9 +352,7 @@ export function Screen({
         */}
         <View className="flex-1">
           {bodyReady ? (
-            <Animated.View className="flex-1" entering={BODY_ENTER}>
-              {body}
-            </Animated.View>
+            <View className="flex-1">{body}</View>
           ) : (
             <View className="flex-1" />
           )}

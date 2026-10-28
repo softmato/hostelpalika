@@ -1,16 +1,13 @@
 import { router } from "expo-router";
-import { type ReactNode, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 import Animated, {
   Extrapolation,
   interpolate,
   useAnimatedStyle,
   useReducedMotion,
-  useSharedValue,
-  withTiming,
 } from "react-native-reanimated";
 
-import { claimGrow, landGrow } from "@/components/card-grow";
 import { Glyph } from "@/components/ui/glyph";
 import { useScreenScroll } from "@/components/ui/screen";
 import { Text } from "@/components/ui/text";
@@ -159,29 +156,6 @@ export function AppBar({
     ],
   }));
 
-  /*
-   * M8: an accented bar is where a tapped card lands (`card-grow.tsx`). It is
-   * claimed on mount so the bar is hidden from its first frame, and comes back
-   * as the card's copy fades over it.
-   */
-  const [grown] = useState(() => accent && claimGrow());
-  const bar = useRef<View>(null);
-  const landed = useRef(false);
-  const shown = useSharedValue(grown ? 0 : 1);
-  const shownMotion = useAnimatedStyle(() => ({ opacity: shown.get() }));
-
-  const onLayout = grown
-    ? () => {
-        if (landed.current) {
-          return;
-        }
-        landed.current = true;
-        landGrow(bar.current, HEADER_RADIUS, () =>
-          shown.set(withTiming(1, { duration: MOTION.fast })),
-        );
-      }
-    : undefined;
-
   const edgeMotion = useAnimatedStyle(() => ({
     opacity:
       large && scrollY
@@ -311,7 +285,7 @@ export function AppBar({
 
   if (centerTitle) {
     return (
-      <Animated.View onLayout={onLayout} ref={bar} style={[paint, shownMotion]}>
+      <View style={paint}>
         {/*
           Three columns with the outer two pinned to the same width, rather than
           an absolutely-positioned title over the row.
@@ -336,12 +310,12 @@ export function AppBar({
           </View>
         </View>
         {edge}
-      </Animated.View>
+      </View>
     );
   }
 
   return (
-    <Animated.View onLayout={onLayout} ref={bar} style={[paint, shownMotion]}>
+    <View style={paint}>
       <View className="min-h-14 flex-row items-center gap-3 px-4 pb-2 pt-1">
         {back}
 
@@ -350,6 +324,6 @@ export function AppBar({
         {actions}
       </View>
       {edge}
-    </Animated.View>
+    </View>
   );
 }

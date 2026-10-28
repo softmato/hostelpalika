@@ -683,11 +683,10 @@ function LockScreen({ account }: { account: ApiUser }) {
         </KeyboardAwareScrollView>
       ) : null}
 
-      {/* Drawn inside the lock: the app-wide host sits under it. No frost — see `frost`. */}
+      {/* Drawn inside the lock: the app-wide host sits under it. */}
       <ConfirmDialog
         confirmLabel="Sign out"
         destructive
-        frost={false}
         message="You will need your password or Google to sign in again."
         onClose={() => setConfirmingSignOut(false)}
         onConfirm={signOut}

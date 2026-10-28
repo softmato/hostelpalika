@@ -73,12 +73,10 @@ function AdminTabs() {
       { icon: "people", label: "Residents", name: "residents" },
       { icon: "chatbubbles", label: "Community", name: "community" },
       /*
-        `Finance`, the word the portal's sidebar uses for the same section —
-        with "Finance settings" for how money is charged and collected, on
-        both. A hostel owner who runs the browser on a laptop and the app on a
-        phone should not have to learn that the two are the same section.
+        `Payments`: what the tab is opened for — who paid, who owes. How money
+        is charged and collected stays under "Finance settings" inside it.
       */
-      { badge: counts.claim, icon: "card", label: "Finance", name: "money" },
+      { badge: counts.claim, icon: "card", label: "Payments", name: "money" },
       { icon: "grid", label: "More", name: "more" },
     ],
     [counts.claim],

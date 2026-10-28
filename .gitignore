@@ -80,3 +80,6 @@ fixtures/evidence-golden/*
 # Third-party agent skills (HyperFrames video tooling) — reinstall with: npx skills add heygen-com/hyperframes
 .agents/
 skills-lock.json
+
+# Standalone Go API — local only until it reaches parity (server/docs/PARITY.md)
+/server/

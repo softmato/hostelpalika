@@ -218,14 +218,11 @@ export function RoleTabs({
        * every frame of it, and on a budget phone the two showed through each
        * other for half a second (field video, 2026-10-27).
        *
-       * `freezeOnBlur`: a tab you have left stops re-rendering on every store or
-       * cache change behind the one you are on, and catches up when you come
-       * back. A preloaded tab nobody has opened yet is not frozen
-       * (`shouldFreeze` skips it), so the preloader still builds it.
+       * No `freezeOnBlur`: a frozen tab came back as a blank screen until React
+       * caught up on every change it had skipped (field video, 2026-10-28).
        */
       screenOptions={{
         animation: "none",
-        freezeOnBlur: true,
         headerShown: false,
         sceneStyle: { backgroundColor: colors.background },
       }}

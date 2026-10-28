@@ -43,6 +43,7 @@ import {
 import { type AdminReportsData, adminQuery } from "@/lib/admin-queries";
 import { API_BASE_URL } from "@/lib/api";
 import { readApiError } from "@/lib/api-contract";
+import { DownloadSheet, spanPeriods } from "@/components/manage/download-sheet";
 import { downloadToDevice } from "@/lib/documents";
 import { formatMoney, humanizeEnum } from "@/lib/format";
 import { toastError } from "@/lib/toast";
@@ -488,6 +489,25 @@ export default function ManageReportsScreen() {
     [dates],
   );
 
+  /** Every payment received over the last `months` BS months as a spreadsheet; `0` is everything. */
+  const exportStatementCsv = useCallback(async (months: number) => {
+    setDownloading(true);
+
+    try {
+      await downloadToDevice({
+        extension: "csv",
+        fileName: "payments-report",
+        label: "Payments spreadsheet",
+        mimeType: "text/csv",
+        url: `${API_BASE_URL}/api/v1/hostel-admin/reports/export?report=payments&format=csv&months=${months}`,
+      });
+    } catch (error) {
+      toastError("Could not export", readApiError(error, "The export did not download."));
+    } finally {
+      setDownloading(false);
+    }
+  }, []);
+
   const exportReport = useCallback(async (entry: ReportExport) => {
     setExporting(entry);
 
@@ -579,7 +599,7 @@ export default function ManageReportsScreen() {
                   tone={rateTone(finance.collectionRate)}
                 />
               </View>
-              <Text variant="display">{formatMoney(finance.collected)}</Text>
+              <Text className="text-2xl font-semibold tracking-tight text-foreground">{formatMoney(finance.collected)}</Text>
               <Meter
                 percent={finance.collectionRate}
                 label={`of ${formatMoney(finance.billed)} billed`}
@@ -655,7 +675,7 @@ export default function ManageReportsScreen() {
                       {plural(beds.vacant, "bed")} available now
                     </Text>
                   </View>
-                  <Text variant="title">{percent(beds.occupancyRate)}</Text>
+                  <Text className="text-lg font-semibold text-foreground">{percent(beds.occupancyRate)}</Text>
                   <Glyph
                     name="chevron-forward"
                     size={18}
@@ -750,7 +770,7 @@ export default function ManageReportsScreen() {
                 <Text variant="caption">
                   {mixed ? "Net received" : "Money received"}
                 </Text>
-                <Text variant="display">
+                <Text className="text-2xl font-semibold tracking-tight text-foreground">
                   {formatMoney(mixed ? overall.in - overall.out : overall.in)}
                 </Text>
               </View>
@@ -875,85 +895,33 @@ export default function ManageReportsScreen() {
         })}
       </Sheet>
 
-      <Sheet
-        bare
+      <DownloadSheet
+        busy={downloading}
         onClose={() => setSheet(null)}
+        onDownload={({ format, months }) => {
+          setSheet(null);
+          const to = report.period.month;
+          const earliest = byMonth.at(-1)?.month ?? addBsMonths(to, -23);
+          const range = spanPeriods(months, to, earliest, addBsMonths);
+          if (format === "pdf") void downloadStatement(range.from, range.to);
+          else void exportStatementCsv(months);
+        }}
         open={sheet === "pdf"}
-        title="Download PDF"
+        title="Download statement"
       >
-        {(() => {
-          const selected = report.period.month;
-          const yearStart = `${selected.slice(0, 4)}-01`;
-          const options = [
-            {
-              from: selected,
-              label: `Statement · ${dates.period(selected)}`,
-              to: selected,
-            },
-            {
-              from: addBsMonths(selected, -2),
-              label: `Statement · ${dates.period(addBsMonths(selected, -2))} to ${dates.period(selected)}`,
-              to: selected,
-            },
-            {
-              from: addBsMonths(selected, -5),
-              label: `Statement · last 6 months`,
-              to: selected,
-            },
-            ...(yearStart !== selected
-              ? [
-                  {
-                    from: yearStart,
-                    label: `Statement · ${dates.period(yearStart)} to ${dates.period(selected)}`,
-                    to: selected,
-                  },
-                ]
-              : []),
-          ];
-
-          return (
-            <>
-              {options.map((option) => (
-                <SheetRow
-                  key={option.label}
-                  label={option.label}
-                  onPress={() => {
-                    setSheet(null);
-                    void downloadStatement(option.from, option.to);
-                  }}
-                  subtitle={
-                    mixed
-                      ? "Bank-style · every credit and debit"
-                      : "Bank-style · every payment received"
-                  }
-                  trailing={
-                    <Glyph
-                      color={colors.mutedForeground}
-                      name="document-text"
-                      size={20}
-                    />
-                  }
-                />
-              ))}
-              <SheetRow
-                label={`Performance report · ${dates.period(selected)}`}
-                onPress={() => {
-                  setSheet(null);
-                  void downloadPdf();
-                }}
-                subtitle="Rent, residents and listing for the month"
-                trailing={
-                  <Glyph
-                    color={colors.mutedForeground}
-                    name="bar-chart"
-                    size={20}
-                  />
-                }
-              />
-            </>
-          );
-        })()}
-      </Sheet>
+        <View className="gap-2">
+          <Text className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Also</Text>
+          <SheetRow
+            label={`Performance report · ${dates.period(report.period.month)}`}
+            onPress={() => {
+              setSheet(null);
+              void downloadPdf();
+            }}
+            subtitle="Rent, residents and listing for the month"
+            trailing={<Glyph color={colors.mutedForeground} name="bar-chart" size={20} />}
+          />
+        </View>
+      </DownloadSheet>
 
       <Sheet
         bare

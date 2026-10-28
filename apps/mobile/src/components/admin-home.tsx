@@ -652,7 +652,6 @@ export function ServiceGrid({
     { href: "/manage/food", icon: "restaurant", label: "Food", tone: "warning" },
     { href: "/manage/notices", icon: "megaphone", label: "Notices", tone: "warning" },
     { href: "/manage/maintenance", icon: "construct", label: "Repairs", tone: "danger" },
-    { href: "/(admin)/residents", icon: "people", label: "Residents", tone: "admin" },
     // Were a full-width card and a money-row cell on Home; doors like the rest.
     { href: "/manage/bookings", icon: "calendar", label: "Bookings", tone: "warning" },
     ...(badges.khata === null
@@ -951,15 +950,14 @@ export function WaitingActions({
       */}
       <ActionCell
         glyph={colors.success}
-        grow
         icon="receipt"
         label="Statement"
         onPress={onStatement}
         tone="success"
       />
-      <ActionCell glyph={colors.warning} grow icon="cube" label="Stock" onPress={onStock} tone="warning" />
-      <ActionCell glyph={colors.success} grow icon="cash" label="Finance" onPress={onFinance} tone="success" />
-      <ActionCell glyph={colors.success} grow icon="wallet" label="Expenses" onPress={onExpenses} tone="success" />
+      <ActionCell glyph={colors.warning} icon="cube" label="Stock" onPress={onStock} tone="warning" />
+      <ActionCell glyph={colors.success} icon="cash" label="Finance" onPress={onFinance} tone="success" />
+      <ActionCell glyph={colors.success} icon="wallet" label="Expenses" onPress={onExpenses} tone="success" />
     </ActionCard>
     </KycFrost>
   );

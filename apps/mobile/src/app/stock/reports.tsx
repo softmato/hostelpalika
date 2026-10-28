@@ -7,7 +7,7 @@ import { categoryLabel, monthLabel, NoStockAccess, useStock } from "@/components
 import { AppBar } from "@/components/ui/app-bar";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
-import { DataCard } from "@/components/ui/data-card";
+import { DownloadSheet, type DownloadChoice } from "@/components/manage/download-sheet";
 import { Glyph } from "@/components/ui/glyph";
 import { Stagger } from "@/components/ui/layout";
 import { RowDivider } from "@/components/ui/list-row";
@@ -22,7 +22,7 @@ import { useResource } from "@/hooks/use-resource";
 import { readApiError } from "@/lib/api-contract";
 import { downloadToDevice } from "@/lib/documents";
 import { formatMoney } from "@/lib/format";
-import { formatQty, type ReportRange, reportFileUrl, reportQuery, type StockReportItem } from "@/lib/stock-api";
+import { formatQty, type ReportRange, reportFileUrl, reportQuery, type StockReport, type StockReportItem } from "@/lib/stock-api";
 import { toastError } from "@/lib/toast";
 
 /**
@@ -49,7 +49,8 @@ export default function StockReportsScreen() {
   const query = reportQuery(range);
   const resource = useResource(query.load, { cacheKey: query.key, topics: query.topics });
   const report = resource.data ?? null;
-  const [saving, setSaving] = useState<"csv" | "pdf" | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   const groups = useMemo(() => {
     const byCategory = new Map<string, StockReportItem[]>();
@@ -59,21 +60,23 @@ export default function StockReportsScreen() {
     return [...byCategory];
   }, [report]);
 
-  const download = async (format: "csv" | "pdf") => {
-    setSaving(format);
+  const download = async ({ format, months }: DownloadChoice) => {
+    const span: ReportRange = months === 1 ? "month" : months === 3 ? "quarter" : "year";
+    setSheetOpen(false);
+    setSaving(true);
 
     try {
       await downloadToDevice({
         extension: format,
-        fileName: `stock-report-${range}`,
+        fileName: `stock-report-${span}`,
         label: "Stock report",
         mimeType: format === "pdf" ? "application/pdf" : "text/csv",
-        url: reportFileUrl(range, format),
+        url: reportFileUrl(span, format),
       });
     } catch (error) {
       toastError("Could not download", readApiError(error, "The report did not download."));
     } finally {
-      setSaving(null);
+      setSaving(false);
     }
   };
 
@@ -123,14 +126,7 @@ export default function StockReportsScreen() {
     <Screen
       footer={
         report && report.items.length > 0 ? (
-          <View className="flex-row gap-3">
-            <View className="flex-1">
-              <Button icon="download" label="PDF" loading={saving === "pdf"} onPress={() => void download("pdf")} size="lg" variant="outline" />
-            </View>
-            <View className="flex-1">
-              <Button icon="download" label="CSV" loading={saving === "csv"} onPress={() => void download("csv")} size="lg" variant="outline" />
-            </View>
-          </View>
+          <Button icon="download" label="Download" loading={saving} onPress={() => setSheetOpen(true)} variant="outline" />
         ) : undefined
       }
       header={header}
@@ -147,22 +143,7 @@ export default function StockReportsScreen() {
           <EmptyCard description={report.label} title="Nothing bought or used" />
         ) : null}
 
-        {report?.range === range && report.totals ? (
-          <DataCard
-            segments={[
-              { label: `Used ${formatMoney(report.totals.usedValue)}`, tone: "brand", value: report.totals.usedValue },
-              { label: `Wasted ${formatMoney(report.totals.wastedValue)}`, tone: "danger", value: report.totals.wastedValue },
-              { label: `Missing ${formatMoney(report.totals.missingValue)}`, tone: "warning", value: report.totals.missingValue },
-            ]}
-            stats={[
-              { label: "Bought", value: formatMoney(report.totals.boughtValue) },
-              { label: "In store now", value: formatMoney(report.totals.stockValue) },
-              { label: "Days", value: String(report.days) },
-            ]}
-            title={`${report.label} · ${formatMoney(report.totals.usedValue + report.totals.wastedValue + report.totals.missingValue)} out`}
-            total={Math.max(1, report.totals.usedValue + report.totals.wastedValue + report.totals.missingValue)}
-          />
-        ) : null}
+        {report?.range === range && report.totals ? <Summary report={report} /> : null}
 
         {report?.range === range
           ? groups.map(([category, rows]) => (
@@ -215,7 +196,76 @@ export default function StockReportsScreen() {
           </View>
         ) : null}
       </Stagger>
+
+      <DownloadSheet
+        busy={saving}
+        onClose={() => setSheetOpen(false)}
+        onDownload={(choice) => void download(choice)}
+        open={sheetOpen}
+        spans={["1", "3", "12"]}
+        title="Download stock report"
+      />
     </Screen>
+  );
+}
+
+/** Out for the period, what came in and what is on the shelf — one label size, one value size. */
+function Summary({ report }: { report: StockReport }) {
+  const totals = report.totals!;
+  const out = totals.usedValue + totals.wastedValue + totals.missingValue;
+  const parts = [
+    { className: "bg-primary", label: "Used", value: totals.usedValue },
+    { className: "bg-destructive", label: "Wasted", value: totals.wastedValue },
+    { className: "bg-warning", label: "Missing", value: totals.missingValue },
+  ];
+
+  return (
+    <Card className="gap-4">
+      <View className="flex-row items-end justify-between">
+        <View className="gap-0.5">
+          <Text variant="caption">{`Out · ${report.label}`}</Text>
+          <Money value={out} />
+        </View>
+        <Text variant="caption">{`${report.days} days`}</Text>
+      </View>
+
+      <View className="flex-row">
+        <Stat label="Bought" value={formatMoney(totals.boughtValue)} />
+        <View className="w-px bg-border" />
+        <Stat label="In store now" value={formatMoney(totals.stockValue)} />
+      </View>
+
+      {out > 0 ? (
+        <View className="gap-2">
+          <View className="h-2 flex-row overflow-hidden rounded-full bg-muted">
+            {parts.map((part) =>
+              part.value > 0 ? <View className={part.className} key={part.label} style={{ flex: part.value }} /> : null,
+            )}
+          </View>
+          <View className="flex-row flex-wrap gap-x-4 gap-y-1">
+            {parts.map((part) => (
+              <View className="flex-row items-center gap-1.5" key={part.label}>
+                <View className={`h-2 w-2 rounded-full ${part.className}`} />
+                <Text variant="caption">{`${part.label} ${formatMoney(part.value)}`}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
+    </Card>
+  );
+}
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <View className="flex-1 gap-0.5 px-1">
+      <Text numberOfLines={1} variant="caption">
+        {label}
+      </Text>
+      <Text className="text-base font-semibold text-foreground" numberOfLines={1}>
+        {value}
+      </Text>
+    </View>
   );
 }
 
@@ -269,10 +319,10 @@ function ItemFigures({ item }: { item: StockReportItem }) {
 function Cell({ children, label, strong = false }: { children: ReactNode; label: string; strong?: boolean }) {
   return (
     <View className="flex-1 gap-0.5">
-      <Text style={{ fontSize: 10 }} variant="caption">
+      <Text numberOfLines={1} variant="caption">
         {label}
       </Text>
-      <Text className={strong ? "font-semibold" : undefined} numberOfLines={1} style={{ fontSize: 13 }}>
+      <Text className={`text-sm text-foreground ${strong ? "font-semibold" : ""}`} numberOfLines={1}>
         {children}
       </Text>
     </View>

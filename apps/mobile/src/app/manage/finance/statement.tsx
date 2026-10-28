@@ -12,7 +12,9 @@ import { Input } from "@/components/ui/input";
 import { FactRow } from "@/components/ui/layout";
 import { Money } from "@/components/ui/money";
 import { Screen } from "@/components/ui/screen";
-import { Sheet, SheetRow } from "@/components/ui/sheet";
+import { addBsMonths } from "@hostel/calendar/bs";
+import { type DownloadChoice, DownloadSheet, spanPeriods } from "@/components/manage/download-sheet";
+import { Sheet } from "@/components/ui/sheet";
 import { Skeleton, SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
@@ -44,7 +46,6 @@ import {
   isPartial,
   methodOptions,
   monthOptions,
-  pdfMonths,
   monthRange,
   NO_FILTER,
   OPENING_ID,
@@ -448,7 +449,6 @@ export default function ManageStatementScreen() {
    * selected, which is the one month nobody needs to pick.
    */
   const months = useMemo(() => monthOptions(credits), [credits]);
-  const pdfRange = useMemo(() => pdfMonths(filter, months), [filter, months]);
   const draftMonths = useMemo(() => activeMonthRange(draft), [draft]);
 
   const filterCount = activeFilterCount(filter);
@@ -485,8 +485,9 @@ export default function ManageStatementScreen() {
    * progress goes to the global toaster and the notification shade. `exporting`
    * exists only to stop a second tap.
    */
-  const exportAs = useCallback(async (format: "csv" | "pdf") => {
+  const exportAs = useCallback(async ({ format, months: span }: DownloadChoice) => {
     setExporting(true);
+    const range = spanPeriods(span, nepalPeriodKey(), months.at(-1) ?? nepalPeriodKey(), addBsMonths);
 
     try {
       await downloadToDevice({
@@ -500,15 +501,15 @@ export default function ManageStatementScreen() {
           : format === "pdf"
             ? // The bank-style statement Reports prints: S.N., date, particulars,
               // Dr, Cr, running balance, opening and closing — for the range on screen.
-              `${API_BASE_URL}${statementPdfPath(pdfRange.from, pdfRange.to)}`
-            : `${API_BASE_URL}/api/v1/hostel-admin/reports/export?format=${format}&report=payments`,
+              `${API_BASE_URL}${statementPdfPath(range.from, range.to)}`
+            : `${API_BASE_URL}/api/v1/hostel-admin/reports/export?format=${format}&report=payments&months=${span}`,
       });
     } catch (error) {
       toastError("Could not export", readApiError(error, "The export did not download."));
     } finally {
       setExporting(false);
     }
-  }, [overall, pdfRange]);
+  }, [months, overall]);
 
   const clearFilters = useCallback(() => {
     setFilter(NO_FILTER);
@@ -911,33 +912,17 @@ export default function ManageStatementScreen() {
         file is generated only after the choice, so nothing is built and thrown
         away.
       */}
-      <Sheet
-        bare
+      <DownloadSheet
+        busy={exporting}
+        formats={overall ? ["pdf"] : ["pdf", "csv"]}
         onClose={() => setFormatOpen(false)}
+        onDownload={(choice) => {
+          setFormatOpen(false);
+          void exportAs(choice);
+        }}
         open={formatOpen}
-        title="Export this statement"
-      >
-        <SheetRow
-          label="PDF"
-          onPress={() => {
-            setFormatOpen(false);
-            void exportAs("pdf");
-          }}
-          subtitle="Laid out to read, print or send on"
-          trailing={
-            <Glyph color={colors.mutedForeground} name="document-text" size={20} />
-          }
-        />
-        {overall ? null : <SheetRow
-          label="Spreadsheet"
-          onPress={() => {
-            setFormatOpen(false);
-            void exportAs("csv");
-          }}
-          subtitle="A CSV your accountant can open in Excel"
-          trailing={<Glyph color={colors.mutedForeground} name="grid" size={20} />}
-        />}
-      </Sheet>
+        title="Download statement"
+      />
 
       {/* --------------------------------------------------------- detail */}
       <Sheet

@@ -1,13 +1,12 @@
 import "@/global.css";
 
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
-import { BlurTargetView } from "expo-blur";
 import { router, Stack, usePathname, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
 import { useEffect, useRef, useState } from "react";
-import { AppState, Platform, StatusBar as RNStatusBar } from "react-native";
+import { AppState, Platform, StatusBar as RNStatusBar, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -22,7 +21,6 @@ import { startOfflineWrites } from "@/lib/offline-writes";
 import { BottomChromeProvider } from "@/components/bottom-chrome";
 import { AppLockHost, AppLockOffer } from "@/components/app-lock";
 import { AssetViewer } from "@/components/asset-viewer";
-import { CardGrowHost } from "@/components/card-grow";
 import { ThemeFadeHost } from "@/components/theme-fade";
 import {
   BootSplashCover,
@@ -48,7 +46,6 @@ import { useRoleSync } from "@/hooks/use-role-sync";
 import { useUploads } from "@/hooks/use-uploads";
 import { resolveHome } from "@/constants/roles";
 import { bootstrapSession, revalidateSession } from "@/lib/auth-session";
-import { appBlurTarget } from "@/lib/blur-target";
 import { startUploadNotifications } from "@/lib/upload-notifier";
 import { parkUsage, startUsage, trackOpen, trackScreen } from "@/lib/usage";
 import { persistor, store } from "@/store";
@@ -309,18 +306,7 @@ function RootShell() {
       */}
       <StatusBar style={isDark && splashGone ? "light" : "dark"} />
 
-      {/*
-        Everything the confirm dialog's backdrop blurs, named as one view.
-
-        Android cannot sample what is behind a layer the way iOS does, so
-        `expo-blur@57` requires the content to be captured to be pointed at
-        explicitly — without this the dialog logged "blurTarget has not been
-        configured" and fell back to a flat tint. See `lib/blur-target.ts`.
-
-        Layout-neutral: it is the `flex: 1` box the navigator was already filling
-        on its own.
-      */}
-      <BlurTargetView ref={appBlurTarget} style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
       {/*
         Screens fade up in place rather than sliding in from the edge.
 
@@ -330,16 +316,15 @@ function RootShell() {
         that is mostly a grid of icon tiles opening the thing under your thumb,
         that made a two-tap round trip feel like a journey.
 
-        `fade` is the popup reading of the same push: tap, and the destination
-        resolves where you already are. It stays a real push — the back gesture,
-        the stack and the tab bar underneath are all unchanged — so nothing here
-        is a modal presentation, only a different way of arriving.
+        `fade_from_bottom` is the popup reading of the same push: tap, and the
+        destination rises a few pixels into place over where you already are. It
+        stays a real push — the back gesture, the stack and the tab bar
+        underneath are all unchanged.
 
-        `animationDuration` is set once, on the default, because a crossfade
-        that runs for the length of a slide reads as lag rather than as motion:
-        the whole screen is mid-opacity for the middle of it, which is the one
-        frame a slide never shows. 180ms is inside the Doherty budget and long
-        enough not to strobe.
+        Not `fade`: that is a crossfade, so for the middle of every push and
+        every back *both* screens sit at half opacity on top of each other — the
+        double-exposed frame field testing kept catching on Android. Here only
+        the top screen moves; the one underneath stays opaque the whole time.
 
         The four `slide_from_bottom` screens below keep their animation on
         purpose — those are the "fill this in and finish" forms, and rising from
@@ -347,12 +332,12 @@ function RootShell() {
       */}
       <Stack
         screenOptions={{
-          animation: "fade",
+          animation: "fade_from_bottom",
           animationDuration: 180,
           contentStyle: { backgroundColor: colors.background },
-          // A screen covered by a push stops re-rendering until it is back on
-          // top, so the stack under a drill-down costs nothing meanwhile.
-          freezeOnBlur: true,
+          // No `freezeOnBlur`: unfreezing a screen on back is a blank frame
+          // until React catches up on everything it skipped (field video,
+          // 2026-10-28).
           headerShown: false,
         }}
       >
@@ -632,7 +617,6 @@ function RootShell() {
       <UsageWatcher />
 
       {/* A tapped card growing into the next screen's header (M8): over every screen. */}
-      <CardGrowHost />
 
       {/*
         Above the transient toasts and below nothing: an upload can outlive the
@@ -658,7 +642,7 @@ function RootShell() {
       <AppNoticeSheet />
       <SharedPaymentResume />
       <ReceiptNativeSync />
-      </BlurTargetView>
+      </View>
     </>
   );
 }

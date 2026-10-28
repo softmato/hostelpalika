@@ -541,7 +541,7 @@ function BranchAdminMoneyScreen() {
    * a size up; this bar was the only tab title still at bar-chrome size.
    */
   const header = (
-    <AppBar actions={<NotificationBell />} large title="Finance" />
+    <AppBar actions={<NotificationBell />} large title="Payments" />
   );
 
   if (money.loading) {
@@ -1214,7 +1214,7 @@ export default function AdminMoneyScreen() {
   const overall = useIsOverall();
   const { locked } = useKycLock();
 
-  if (locked) return <KycLockedScreen title="Finance" />;
+  if (locked) return <KycLockedScreen title="Payments" />;
 
   return overall ? <OverallTabScreen tab="money" /> : <BranchAdminMoneyScreen />;
 }
