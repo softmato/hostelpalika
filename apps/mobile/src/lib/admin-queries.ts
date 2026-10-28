@@ -920,6 +920,8 @@ export function prefetchAdminRoute(href: string) {
       return;
     case "/manage/referrals":
       prefetchAdminQuery(adminQuery.referrals(""));
+      // Its top card is the hostel invite.
+      prefetchAdminQuery(adminQuery.hostelInvites());
       return;
     case "/manage/announcements":
       prefetchAdminQuery(adminQuery.campaigns());

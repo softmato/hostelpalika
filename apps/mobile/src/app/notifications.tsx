@@ -14,6 +14,7 @@ import { Text } from "@/components/ui/text";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
+import { useFirstRows } from "@/hooks/use-first-rows";
 import { useResource } from "@/hooks/use-resource";
 import {
   type NotificationTone,
@@ -307,6 +308,7 @@ export default function NotificationsScreen() {
    * one heading and its last under another.
    */
   const groups = useMemo(() => groupNotifications(shownRows), [shownRows]);
+  const firstGroups = useFirstRows(groups);
 
   /*
    * The app-icon badge, written from the server's count.
@@ -505,7 +507,7 @@ export default function NotificationsScreen() {
           />
         ) : (
           <View className="gap-5">
-            {groups.map((group, g) => (
+            {firstGroups.map((group, g) => (
               <Stagger
                 className="gap-2.5"
                 // Rows above this day, its heading included, so the fade runs on down the page.

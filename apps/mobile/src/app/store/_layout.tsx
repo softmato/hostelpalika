@@ -7,7 +7,7 @@ export default function StoreDetailLayout() {
     <StoreCartProvider>
       <Stack
         screenOptions={{
-          animation: "fade_from_bottom",
+          animation: "ios_from_right",
           animationDuration: 180,
           headerShown: false,
         }}

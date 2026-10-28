@@ -39,5 +39,12 @@ push/back bug. Order is the order they were done.
 ## Referrals
 - ☑ Top of Referrals: hostel invite with QR of the registration link, code, Share / WhatsApp / Copy, and what both hostels get. Shared with Invite hostels (`HostelInviteCard`).
 
+## Second round (videos 9:10 / 9:12)
+- ☑ Header jumped a few points on every open and went see-through on back — that was `fade_from_bottom` moving the whole screen. Root + store stacks are now `ios_from_right` (opaque slide).
+- ☑ Statement and Notifications blank for a second on every open — the cache hit, but every row was built in one render. `useFirstRows` paints the first 12, the rest 300 ms later.
+- ☑ Referrals white for 2–3 s — the new QR drew ~400 SVG `<Rect>`s; now one `<Path>`. Invite query warmed on touch-down too.
+- ☑ Bookings (and every compact empty state) now draw the animated art, not a small disc.
+- ☑ Collect-cash sheet: no grey box, rent line without the repeated "Monthly rent — Kartik 2083 BS", one "To collect" figure until something is paid, actions in one row, collector as a plain line, note as a link.
+
 ## Still to do
 - ☐ Device pass on the Redmi (needs a JS reload; Send's location and Custom-month CSV need the web deploy).

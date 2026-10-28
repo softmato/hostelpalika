@@ -337,6 +337,13 @@ describe("billRows", () => {
       "Khata",
     ]);
     expect(rows[2]?.detail).toBe("3 days");
+    // The month is in the sheet's heading; only what is extra stays.
+    expect(rows[0]?.detail).toBeNull();
+    expect(
+      billRows([
+        { amount: 1, basis: "SCHEDULE", description: "Monthly rent — Kartik 2083 BS · Hostel Anniversary · 25% off" },
+      ])[0]?.detail,
+    ).toBe("Hostel Anniversary · 25% off");
     expect(rows.reduce((sum, r) => sum + r.amount, 0)).toBe(4_450);
   });
 

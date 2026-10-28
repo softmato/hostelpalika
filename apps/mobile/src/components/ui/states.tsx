@@ -67,25 +67,6 @@ const STATE_TONES = {
 
 export type StateTone = keyof typeof STATE_TONES;
 
-function StateIcon({
-  name,
-  tone,
-}: {
-  name: GlyphName;
-  tone: StateTone;
-}) {
-  const { colors } = useAppTheme();
-  const { background, ink } = STATE_TONES[tone];
-
-  return (
-    <View
-      className={`h-14 w-14 items-center justify-center rounded-full ${background}`}
-    >
-      <Glyph color={colors[ink]} name={name} size={26} />
-    </View>
-  );
-}
-
 /**
  * The full-size state's artwork: the glyph on a lifted tile, inside two soft
  * rings with a few flecks around it.
@@ -217,11 +198,10 @@ export function EmptyState({
   compact?: boolean;
   description?: string;
   /**
-   * The artwork's glyph. A full-size state always draws its art, with `inbox`
-   * when this is left out — a page that is nothing but two lines of text is the
-   * blank screen this exists to prevent. Compact states draw the small disc only
-   * when given one: inside a card of rows, the art is taller than the section
-   * it is apologising for.
+   * The artwork's glyph. Every state draws art — a page or a card that is
+   * nothing but two lines of text is the blank this exists to prevent. Left
+   * out, compact states read it off the title ({@link glyphFor}); full-size
+   * ones fall back to `inbox`.
    */
   icon?: GlyphName;
   title: string;
@@ -234,11 +214,9 @@ export function EmptyState({
       }`}
     >
       {compact ? (
-        icon ? (
-          <View className="pb-1">
-            <StateIcon name={icon} tone={tone} />
-          </View>
-        ) : null
+        <View className="pb-1">
+          <StateArt name={icon ?? glyphFor(`${title} ${description ?? ""}`)} size={84} tone={tone} />
+        </View>
       ) : (
         <View className="pb-2">
           <StateArt name={icon ?? "inbox"} tone={tone} />

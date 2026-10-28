@@ -45,7 +45,14 @@ export function billRows(lines: readonly BillLine[] | null | undefined): BillRow
 
     return line.basis === "MANUAL"
       ? { amount: line.amount, detail: null, kind: "rent", label: line.description }
-      : { amount: line.amount, detail: line.description, kind: "rent", label: "Month rent" };
+      : {
+          amount: line.amount,
+          // "Monthly rent — Kartik 2083 BS · Hostel Anniversary · 25% off": the label
+          // and the sheet's heading already say rent and the month; keep the rest.
+          detail: line.description.replace(/^Monthly rent(\s*—\s*[^·]*)?(·\s*)?/, "").trim() || null,
+          kind: "rent",
+          label: "Month rent",
+        };
   });
 
   return rows.sort((a, b) => BILL_ORDER[a.kind] - BILL_ORDER[b.kind]);

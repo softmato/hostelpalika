@@ -33,7 +33,6 @@ import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard, SkeletonRows } from "@/components/ui/skeleton";
 import { EmptyCard, ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
-import { readableRole } from "@/constants/roles";
 import { useAppSelector } from "@/hooks/redux";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
@@ -959,16 +958,13 @@ function BranchAdminMoneyScreen() {
                          * named in the portal's calendar, like every other month
                          * on the screen. See `hooks/use-dates.ts`.
                          */
-                        `${dates.period(open.payment.month)} invoice`
+                        dates.period(open.payment.month)
                       : `${dates.period(period)} — not billed`}
                   </Text>
                   <Text variant="caption">
-                    {[
-                      roomTypeLabel(open.resident.roomType),
-                      open.resident.roomNumber,
-                    ]
-                      .filter(Boolean)
-                      .join(" · ")}
+                    {open.resident.roomNumber
+                      ? `Room ${open.resident.roomNumber}`
+                      : roomTypeLabel(open.resident.roomType)}
                   </Text>
                 </View>
                 <StatusPill status={open.displayStatus} />
@@ -1031,7 +1027,7 @@ function BranchAdminMoneyScreen() {
                 ) : null}
                 <Chip
                   icon="person"
-                  label="Open their record"
+                  label="Record"
                   onPress={() => {
                     const residentId = open.resident.id;
 
@@ -1039,17 +1035,16 @@ function BranchAdminMoneyScreen() {
                     router.push(`/manage/resident/${residentId}`);
                   }}
                 />
+                {open.payment &&
+                open.payment.status !== "PAID" &&
+                open.payment.lines?.some((line) => line.basis === "FINE") ? (
+                  <Chip icon="close-circle" label="Waive fine" onPress={waiveFine} />
+                ) : null}
               </View>
             </View>
 
             {open.payment ? (
               <>
-                {open.payment.status !== "PAID" &&
-                open.payment.lines?.some((line) => line.basis === "FINE") ? (
-                  <View className="flex-row">
-                    <Chip icon="close-circle" label="Waive fine" onPress={waiveFine} />
-                  </View>
-                ) : null}
                 <View className="gap-3 border-t border-border pt-4">
                   <Input
                     keyboardType="number-pad"
@@ -1060,7 +1055,7 @@ function BranchAdminMoneyScreen() {
                       setCashError(null);
                     }}
                     placeholder="0"
-                    style={{ fontSize: 22, fontWeight: "700" }}
+                    style={{ fontSize: 20, fontWeight: "600" }}
                     value={cash.amount}
                   />
                   {amountOwed(open) > 1 ? (
@@ -1092,29 +1087,24 @@ function BranchAdminMoneyScreen() {
                       value={cash.collectedBy}
                     />
                   ) : (
-                    <Card padding="px-4 py-1">
-                      <CardRow
-                        left={
-                          <PersonAvatar
-                            image={cash.collectedBy === me ? account?.image : null}
-                            name={cash.collectedBy}
-                            size="sm"
-                          />
-                        }
-                        onPress={() => setEditCollector(true)}
-                        right={
-                          <Text className="text-primary" variant="label">
-                            Change
-                          </Text>
-                        }
-                        subtitle={
-                          cash.collectedBy === me && account
-                            ? `Collected by · ${readableRole(account.role)}`
-                            : "Collected by"
-                        }
-                        title={cash.collectedBy}
+                    <Pressable
+                      accessibilityLabel={`Collected by ${cash.collectedBy}. Change`}
+                      accessibilityRole="button"
+                      className="min-h-11 flex-row items-center gap-2 active:opacity-70"
+                      onPress={() => setEditCollector(true)}
+                    >
+                      <PersonAvatar
+                        image={cash.collectedBy === me ? account?.image : null}
+                        name={cash.collectedBy}
+                        size="sm"
                       />
-                    </Card>
+                      <Text className="flex-1" numberOfLines={1} variant="muted">
+                        {`Taken by ${cash.collectedBy}`}
+                      </Text>
+                      <Text className="text-primary" variant="label">
+                        Change
+                      </Text>
+                    </Pressable>
                   )}
 
                   {showNote ? (
@@ -1125,13 +1115,15 @@ function BranchAdminMoneyScreen() {
                       value={cash.note}
                     />
                   ) : (
-                    <View className="flex-row">
-                      <Chip
-                        icon="create"
-                        label="Add a note"
-                        onPress={() => setShowNote(true)}
-                      />
-                    </View>
+                    <Pressable
+                      accessibilityRole="button"
+                      className="min-h-11 justify-center self-start active:opacity-70"
+                      onPress={() => setShowNote(true)}
+                    >
+                      <Text className="text-primary" variant="label">
+                        + Add a note
+                      </Text>
+                    </Pressable>
                   )}
 
                   {cashError ? (

@@ -308,23 +308,14 @@ function RootShell() {
 
       <View style={{ flex: 1 }}>
       {/*
-        Screens fade up in place rather than sliding in from the edge.
+        `ios_from_right`: the new screen slides in over the old one, fully
+        opaque the whole way, and slides back out on back.
 
-        Every detail view here used to be `slide_from_right`, which is the
-        platform default and reads as *travel*: the screen you tapped from is
-        pushed sideways and the new one arrives from off-canvas. On a product
-        that is mostly a grid of icon tiles opening the thing under your thumb,
-        that made a two-tap round trip feel like a journey.
-
-        `fade_from_bottom` is the popup reading of the same push: tap, and the
-        destination rises a few pixels into place over where you already are. It
-        stays a real push — the back gesture, the stack and the tab bar
-        underneath are all unchanged.
-
-        Not `fade`: that is a crossfade, so for the middle of every push and
-        every back *both* screens sit at half opacity on top of each other — the
-        double-exposed frame field testing kept catching on Android. Here only
-        the top screen moves; the one underneath stays opaque the whole time.
+        Not `fade` (a crossfade: both screens half-visible mid-push) and not
+        `fade_from_bottom` (the screen rises a few points as it fades, so the
+        green header visibly jumps on every open and the screen goes see-through
+        on back). Field videos caught both. A slide has no frame where two
+        screens overlap or where the header is anywhere but the top.
 
         The four `slide_from_bottom` screens below keep their animation on
         purpose — those are the "fill this in and finish" forms, and rising from
@@ -332,7 +323,7 @@ function RootShell() {
       */}
       <Stack
         screenOptions={{
-          animation: "fade_from_bottom",
+          animation: "ios_from_right",
           animationDuration: 180,
           contentStyle: { backgroundColor: colors.background },
           // No `freezeOnBlur`: unfreezing a screen on back is a blank frame

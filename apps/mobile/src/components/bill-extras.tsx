@@ -1,7 +1,6 @@
 import { View } from "react-native";
 
 import { Glyph } from "@/components/ui/glyph";
-import { Meter } from "@/components/ui/meter";
 import { Money as Amount } from "@/components/ui/money";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
@@ -73,14 +72,16 @@ export function BillBreakdown({
   const rows = billRows(lines);
   const left = Math.max(0, dueAmount - paidAmount);
 
+  // No box: the rows, a hairline, then one figure — "To collect" until
+  // something is paid, then Paid and Left.
   return (
-    <View className="gap-2.5 rounded-2xl bg-muted p-4">
+    <View className="gap-2">
       {rows.map((row, index) => (
         <View className="flex-row items-start justify-between gap-3" key={`${row.kind}-${index}`}>
           <View className="flex-1">
-            <Text variant="label">{row.label}</Text>
+            <Text className="text-sm text-foreground">{row.label}</Text>
             {row.detail ? (
-              <Text numberOfLines={2} variant="caption">
+              <Text numberOfLines={1} variant="caption">
                 {row.detail}
               </Text>
             ) : null}
@@ -88,25 +89,18 @@ export function BillBreakdown({
           <Amount tone={row.amount < 0 ? "credit" : "default"} value={row.amount} />
         </View>
       ))}
-      <View className={`gap-2 ${rows.length ? "border-t border-border pt-2.5" : ""}`}>
-        <View className="flex-row justify-between">
-          <Text variant="label">Total</Text>
-          <Amount value={dueAmount} />
-        </View>
-        <View className="flex-row justify-between">
-          <Text variant="muted">Paid</Text>
-          <Amount tone="credit" value={paidAmount} />
-        </View>
-        <View className="flex-row items-end justify-between">
-          <Text variant="subtitle">Left</Text>
+      <View className="gap-1.5 border-t border-border pt-2">
+        {paidAmount > 0 ? (
+          <View className="flex-row justify-between">
+            <Text variant="muted">{`Paid of ${formatMoney(dueAmount)}`}</Text>
+            <Amount tone="credit" value={paidAmount} />
+          </View>
+        ) : null}
+        <View className="flex-row items-center justify-between">
+          <Text variant="subtitle">{paidAmount > 0 ? "Left" : "To collect"}</Text>
           <Amount owed size="large" value={left} />
         </View>
       </View>
-      <Meter
-        animated
-        label={null}
-        percent={dueAmount > 0 ? Math.round((paidAmount / dueAmount) * 100) : 100}
-      />
     </View>
   );
 }

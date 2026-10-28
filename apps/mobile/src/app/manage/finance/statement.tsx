@@ -22,6 +22,7 @@ import { WalletMark } from "@/components/ui/wallet-mark";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useDates } from "@/hooks/use-dates";
 import type { CalendarSystem } from "@/lib/calendar";
+import { useFirstRows } from "@/hooks/use-first-rows";
 import { useResource } from "@/hooks/use-resource";
 import { type AdminHostel, type AdminLedger } from "@/lib/admin-api";
 import { overallPdfPath, statementPdfPath } from "@/lib/admin-manage-api";
@@ -432,6 +433,7 @@ export default function ManageStatementScreen() {
   const credits = useMemo(() => statementCredits(ledger.data), [ledger.data]);
   const visible = useMemo(() => filterCredits(credits, filter), [credits, filter]);
   const days = useMemo(() => groupByDay(visible), [visible]);
+  const firstDays = useFirstRows(days);
   const summary = useMemo(
     () => statementSummary(credits, dates.calendar, new Date(), filter),
     [credits, dates.calendar, filter],
@@ -864,7 +866,7 @@ export default function ManageStatementScreen() {
             )
           ) : null}
 
-          {days.map((day) => (
+          {firstDays.map((day) => (
             <View className="gap-3" key={day.key}>
               {/*
                 The heading sits on the page, outside the cards — NOTES §5. It
