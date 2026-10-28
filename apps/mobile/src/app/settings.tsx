@@ -482,9 +482,7 @@ function NotificationSettings() {
           <Text className="pb-1" variant="label">
             Mute a type
           </Text>
-          <Text className="pb-2" variant="muted">
-            You will still see these in the app — this only stops the buzz.
-          </Text>
+          <Text className="pb-2" variant="muted">{"Still listed in the app, just silent."}</Text>
 
           {MUTABLE_CATEGORIES.map((category, index) => {
             const muted = preference.mutedCategories.includes(category.value);
@@ -533,11 +531,7 @@ function NotificationSettings() {
       <View className="pt-3">
         <Card className="gap-1">
           <Text variant="label">Urgent alerts always come through</Text>
-          <Text variant="muted">
-            An SOS reaches your phone whatever is set here — through quiet hours, a
-            muted type, and with push switched off. Nothing on this screen can
-            silence one, on purpose.
-          </Text>
+          <Text variant="muted">{"An SOS always comes through."}</Text>
         </Card>
       </View>
     </View>
@@ -652,9 +646,7 @@ function EmailSettings({ audience }: { audience: EmailAudience }) {
           );
         })}
       </Card>
-      <Text className="px-1 pt-2" variant="caption">
-        Receipts, sign-in codes, billing and safety emails are always sent.
-      </Text>
+      <Text className="px-1 pt-2" variant="caption">{"Receipts, codes, billing and safety emails always send."}</Text>
     </View>
   );
 }

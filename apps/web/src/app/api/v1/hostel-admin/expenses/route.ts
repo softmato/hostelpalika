@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { cachedRead } from "@/lib/redis-cache";
 import {
   createExpense,
   getExpenseHome,
@@ -29,7 +30,9 @@ export async function GET(request: NextRequest) {
     const query = expenseHomeQuerySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
     const actor = await resolveExpenseActor(principal, query.hostelId);
 
-    return withEtag(request, successResponse(await getExpenseHome(actor, query.period), "Expenses loaded"));
+    const home = await cachedRead(principal, `expenses${request.nextUrl.search}`, () => getExpenseHome(actor, query.period));
+
+    return withEtag(request, successResponse(home, "Expenses loaded"));
   } catch (error) {
     return handleRouteError(error);
   }

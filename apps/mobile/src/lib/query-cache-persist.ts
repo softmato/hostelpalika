@@ -51,11 +51,20 @@ function read(key: string): PersistedEntry | null {
   return { data: saved.data, key, storedAt: row.storedAt, topics: saved.topics ?? [] };
 }
 
-type Owner = { id: string; role: string } | null;
+type Owner = { id: string; role: string };
+
+/*
+ * Signed out is an owner too: the browsing visitor gets a `guest` file. It only
+ * ever holds public answers (listings, site config, the board), and without it
+ * the public Home rebuilt every row from the network on every launch — seconds
+ * of skeleton on the screen most people see first (field video, 2026-10-27).
+ * Signing in swaps it for the account's file, which deletes it.
+ */
+const GUEST: Owner = { id: "guest", role: "GUEST" };
 
 function ownerOf(): Owner {
   const account = store.getState().auth.account;
-  return account ? { id: account.id, role: account.role } : null;
+  return account ? { id: account.id, role: account.role } : GUEST;
 }
 
 /**
@@ -67,16 +76,16 @@ export async function hydrateQueryCache() {
   await loadActiveHostel();
 
   let owner = ownerOf();
-  await openAccountDb(owner?.id ?? null, owner?.role ?? null);
+  await openAccountDb(owner.id, owner.role);
   kvPrune(Date.now() - RESTORED_MAX_AGE_MS, MAX_ROWS);
 
   store.subscribe(() => {
     const next = ownerOf();
-    if (next?.id === owner?.id && next?.role === owner?.role) return;
+    if (next.id === owner.id && next.role === owner.role) return;
     owner = next;
     // A pending batch belongs to the account that is leaving.
     dirty.clear();
-    void openAccountDb(next?.id ?? null, next?.role ?? null);
+    void openAccountDb(next.id, next.role);
   });
 
   setQueryCacheDisk({
@@ -91,7 +100,9 @@ export async function hydrateQueryCache() {
     read,
     write(key) {
       dirty.add(key);
-      timer ??= setTimeout(flush, WRITE_DELAY_MS);
+      // Then at the next idle moment: serialising a burst of answers is real
+      // JS-thread work, and it must not land in the middle of a tap or a scroll.
+      timer ??= setTimeout(() => requestIdleCallback(flush, { timeout: 2_000 }), WRITE_DELAY_MS);
     },
   });
 }

@@ -17,13 +17,13 @@ import { toastError, toastInfo } from "@/lib/toast";
  * Owns the permission dance and the one reading, and nothing else — the sorting
  * itself is `sortByDistance` in `lib/geo.ts`, which is pure and tested.
  *
- * ## The coordinate lives here and dies here
+ * ## The coordinate never reaches the disk
  *
- * It is `useState`, not Redux. Redux is persisted by `redux-persist`, so a
+ * It is memory, not Redux. Redux is persisted by `redux-persist`, so a
  * coordinate dispatched into it would be written to the device's disk and kept
- * across launches — that is a location history, not a sort key. Unmount the
- * screen and the position is gone, which is the correct lifetime for something
- * used to order a list.
+ * across launches — that is a location history, not a sort key. The last fix is
+ * held for this run of the app (`lastFix`), so a remount paints sorted at once;
+ * closing the app forgets it.
  *
  * ## Every failure keeps the screen working
  *
@@ -73,14 +73,34 @@ export type NearbyStatus =
 /** Below this, a second reading keeps the first — see `refresh`. */
 const REFRESH_MOVE_METERS = 50;
 
+/*
+ * The last fix, in memory for this run of the app — never on disk, so the
+ * "never saved" promise holds. It is what lets Home come back from a hostel page
+ * or a tab change with the Nearby row already sorted, instead of locating again
+ * from nothing on every mount.
+ */
+let lastFix: Coordinates | null = null;
+
 export function useNearby({ auto = false }: { auto?: boolean } = {}) {
-  const [coordinates, setCoordinates] = useState<Coordinates | null>(null);
-  const [status, setStatus] = useState<NearbyStatus>("idle");
+  const [coordinates, setCoordinatesState] = useState<Coordinates | null>(lastFix);
+  // An `auto` screen is about to locate: a skeleton, not the "turn it on" card
+  // flashing for the frames before the permission check answers.
+  const [status, setStatus] = useState<NearbyStatus>(lastFix ? "ready" : auto ? "locating" : "idle");
+
+  const setCoordinates = useCallback(
+    (next: Coordinates | null | ((current: Coordinates | null) => Coordinates | null)) => {
+      setCoordinatesState((current) => {
+        lastFix = typeof next === "function" ? next(current) : next;
+        return lastFix;
+      });
+    },
+    [],
+  );
 
   const disable = useCallback(() => {
     setCoordinates(null);
     setStatus("idle");
-  }, []);
+  }, [setCoordinates]);
 
   const enable = useCallback(async ({ silent = false } = {}) => {
     // Raised before the first `await`, in the handler, so the spinner is on
@@ -129,7 +149,7 @@ export function useNearby({ auto = false }: { auto?: boolean } = {}) {
         "Check that location is switched on, then try again.",
       );
     }
-  }, []);
+  }, [setCoordinates]);
 
   /**
    * A second reading, with no dialogue and no visible `locating` state.
@@ -156,7 +176,7 @@ export function useNearby({ auto = false }: { auto?: boolean } = {}) {
       );
       setStatus("ready");
     }
-  }, []);
+  }, [setCoordinates]);
 
   /*
    * Read through a ref so the focus effect below depends only on stable
@@ -203,7 +223,14 @@ export function useNearby({ auto = false }: { auto?: boolean } = {}) {
          * who backgrounds the app while the dialogue is up is not asked again on
          * the way back in.
          */
-        if (statusRef.current !== "idle" || (await hasPromptedForLocation())) {
+        // No permission (any more): nothing to sort by, and nothing to wait for.
+        const answered = statusRef.current === "denied" || statusRef.current === "blocked";
+
+        if (statusRef.current === "locating" || statusRef.current === "ready") {
+          disable();
+        }
+
+        if (answered || (await hasPromptedForLocation())) {
           return;
         }
 
@@ -217,7 +244,7 @@ export function useNearby({ auto = false }: { auto?: boolean } = {}) {
       return () => {
         cancelled = true;
       };
-    }, [auto, enable, refresh]),
+    }, [auto, disable, enable, refresh]),
   );
 
   /** For the "Open settings" action a `blocked` state offers. */

@@ -824,10 +824,7 @@ export default function ManageStatementScreen() {
           {!ledger.loading && truncated ? (
             <View className="gap-1 rounded-xl border border-warning/40 bg-warning-soft p-3">
               <Text variant="label">Only the most recent 5,000 invoices</Text>
-              <Text variant="caption">
-                Older rows were left out, so the running total on each row is hidden rather than
-                shown short. The export has the full history.
-              </Text>
+              <Text variant="caption">{"Older rows hidden. The export has all."}</Text>
             </View>
           ) : null}
 

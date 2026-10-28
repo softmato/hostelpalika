@@ -153,10 +153,7 @@ export default function GuardianSafetyScreen() {
             <Glyph color={colors.warning} name="lock-closed" size={18} />
             <Text variant="label">No GPS tracking. No location history.</Text>
           </View>
-          <Text variant="muted">
-            We do not track or share live location. Status is updated only by hostel
-            staff, and shown to you as a day rather than a time.
-          </Text>
+          <Text variant="muted">{"No live location. Staff set the status."}</Text>
         </Card>
 
         <View>
@@ -217,7 +214,7 @@ export default function GuardianSafetyScreen() {
               {dashboard.complaints.length === 0 ? (
                 <View className="py-3">
                   <Text variant="muted">
-                    {`${dashboard.resident.fullName} has not raised anything with the hostel.`}
+                    {"Nothing raised"}
                   </Text>
                 </View>
               ) : (

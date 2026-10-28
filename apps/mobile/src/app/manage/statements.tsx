@@ -920,10 +920,7 @@ export default function ManageStatementsScreen() {
             {pending.suggestions.length === 0 ? (
               <View className="gap-1 rounded-2xl border border-border bg-muted p-3">
                 <Text variant="label">Nothing on this payment names a resident</Text>
-                <Text variant="caption">
-                  No name, no reference code we recognise. Ask around the hostel who paid
-                  this amount that day, then record it from their own page.
-                </Text>
+                <Text variant="caption">{"Unknown payer. Record it from their page."}</Text>
               </View>
             ) : (
               <View className="gap-2">
@@ -963,10 +960,7 @@ export default function ManageStatementsScreen() {
         title="What this screen does"
       >
         <View className="gap-4 pb-2">
-          <Text variant="caption">
-            Residents tell you they paid. This screen checks that against the money your
-            bank and wallets actually received.
-          </Text>
+          <Text variant="caption">{"Payments checked against your bank and wallets."}</Text>
 
           {BUCKET_ORDER.map((value) => (
             <View className="gap-1" key={value}>

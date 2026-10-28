@@ -325,10 +325,7 @@ function PermissionSheet({
           {pending ? (
             <Card className="gap-1">
               <Text variant="label">{pending}</Text>
-              <Text variant="muted">
-                They cannot see anything until they open the link in their email.
-                What you set here is waiting for them when they do.
-              </Text>
+              <Text variant="muted">{"Nothing shows until they open the email link."}</Text>
             </Card>
           ) : null}
 

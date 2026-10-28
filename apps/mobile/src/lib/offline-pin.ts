@@ -10,8 +10,19 @@
  *
  * Offline wrong tries are limited here: five free, then a wait that doubles
  * with each further miss, held in the same record so a relaunch does not reset
- * it. A four-digit PIN is a small space, so the hash is a second wall — the
- * first is SecureStore's Keystore encryption.
+ * it.
+ *
+ * ## One round, not twenty thousand
+ *
+ * The hash was PBKDF2 at 20k rounds, in plain JS on the JS thread. On a budget
+ * Redmi that held the thread for seconds — after every wrong PIN (keypad dead)
+ * and three seconds after every right one (Home dead) — field video,
+ * 2026-10-27. And it bought nothing: a PIN is one of 10,000, so whoever lifts
+ * this record out of the Keystore tries all of them on a laptop in under a
+ * second at any round count a phone can afford. The walls are SecureStore's
+ * Keystore encryption and the try limit below; the salted hash only keeps the
+ * PIN itself out of the record. Records written at the old count still check
+ * with their own `iterations`, and the next online unlock rewrites them.
  */
 
 import { pbkdf2Async } from "@noble/hashes/pbkdf2";
@@ -20,8 +31,7 @@ import { bytesToHex, randomBytes } from "@noble/hashes/utils";
 import * as SecureStore from "expo-secure-store";
 
 const KEY = "hh_lock_pin_local";
-// ponytail: tuned for a budget Redmi (~1s); raise once a device run shows the time.
-export const PIN_ITERATIONS = 20_000;
+export const PIN_ITERATIONS = 1;
 export const FREE_TRIES = 5;
 const FIRST_WAIT_MS = 60_000;
 const MAX_WAIT_MS = 60 * 60_000;
@@ -78,6 +88,9 @@ export async function forgetPin() {
 export async function forgetIfStale(accountId: string, pin: string) {
   const record = await readRecord();
   if (!record || record.accountId !== accountId) return;
+  // An old-count record is not worth seconds of a frozen keypad to test: drop
+  // it, and the next unlock that reaches the server writes a fresh one.
+  if (record.iterations !== PIN_ITERATIONS) return forgetPin();
   if ((await hashPin(pin, record.salt, record.iterations)) === record.hash) await forgetPin();
 }
 

@@ -204,10 +204,7 @@ export default function GuardianPaymentsScreen() {
             </View>
           ) : null}
 
-          <Text variant="muted">
-            Guardians can follow dues here but cannot settle them. Payment is made from
-            the resident&apos;s own portal, or directly with the hostel office.
-          </Text>
+          <Text variant="muted">{"View only. The resident pays."}</Text>
         </Card>
 
         <View>
@@ -279,9 +276,7 @@ export default function GuardianPaymentsScreen() {
             <Card padding="px-4 py-1">
               {dashboard.receipts.length === 0 ? (
                 <View className="py-3">
-                  <Text variant="muted">
-                    Receipts appear here as the hostel issues them.
-                  </Text>
+                  <Text variant="muted">{"No receipts yet."}</Text>
                 </View>
               ) : (
                 dashboard.receipts.map((receipt, index) => (

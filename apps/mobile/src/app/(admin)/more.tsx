@@ -49,6 +49,7 @@ const MANAGE_GROUPS: ManageRow[][] = [
     { href: "/manage/finance/statement", icon: "receipt", title: "Statement" },
     { href: "/stock", icon: "cube", title: "Stock", tone: "warning" },
     { href: "/manage/finance", icon: "cash", title: "Finance settings" },
+    { href: "/manage/finance/khata", icon: "book", title: "Khata" },
     { href: "/expenses", icon: "wallet", title: "Expenses" },
   ],
   [
@@ -75,6 +76,7 @@ const MANAGE_GROUPS: ManageRow[][] = [
     { href: "/manage/kyc", icon: "ribbon", ownerOnly: true, title: "Hostel KYC" },
     { href: "/manage/branches", icon: "business", title: "Branches" },
     { href: "/manage/billing", icon: "card", title: "Billing", tone: "danger" },
+    { href: "/manage/backup", icon: "cloud-upload", ownerOnly: true, title: "Backup" },
     { href: "/manage/settings", icon: "settings", title: "Settings", tone: "neutral" },
   ],
 ];

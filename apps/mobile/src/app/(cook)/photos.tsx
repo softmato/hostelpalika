@@ -180,9 +180,7 @@ export default function CookPhotosScreen() {
         <Card className="gap-3">
           <Text variant="subtitle">Show them what&apos;s cooking</Text>
           <Text variant="muted">
-            {`A photo of today's ${humanizeEnum(
-              mealTypeNow(),
-            ).toLowerCase()} appears on every resident's food screen straight away.`}
+            {`Shows on every resident's food screen`}
           </Text>
           <Button
             disabled={busy === "library"}

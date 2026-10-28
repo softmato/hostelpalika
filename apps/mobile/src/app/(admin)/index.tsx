@@ -22,7 +22,6 @@ import {
 import { useIsOverall } from "@/components/hostel-switcher";
 import { KycCard } from "@/components/manage/kyc-card";
 import { TrialWelcome } from "@/components/trial-welcome";
-import { usePayoutAccount } from "@/components/manage/payout-account-card";
 import { Badge } from "@/components/ui/badge";
 import { REALTIME_TOPIC } from "@/constants/topics";
 import { listHostelBookings } from "@/lib/admin-bookings-api";
@@ -176,7 +175,6 @@ function BranchAdminHomeScreen() {
     cacheKey: "hostel-bookings:requests",
     topics: [REALTIME_TOPIC.BOOKINGS],
   });
-  const payout = usePayoutAccount();
   // Same key as the Rooms screen: who still needs a room, and change requests.
   const roomLayout = roomsQuery.layout();
   const rooms = useResource(roomLayout.load, { cacheKey: roomLayout.key, topics: roomLayout.topics });
@@ -413,32 +411,6 @@ function BranchAdminHomeScreen() {
           <TrialWelcome />
 
           {/*
-            Bookings, for a hostel that takes them (a payout account is what
-            turns the Book button on) or has any — answering a request before
-            its time runs out is the one booking job that cannot wait.
-          */}
-          {bookings.data && (payout.data || bookings.data.counts.requests + bookings.data.counts.confirmed > 0) ? (
-            <CardRow
-              icon="calendar"
-              onPress={() => router.push("/manage/bookings")}
-              right={
-                bookings.data.counts.requests > 0 ? (
-                  <Badge label={`${bookings.data.counts.requests} new`} tone="warning" />
-                ) : undefined
-              }
-              subtitle={
-                bookings.data.counts.requests > 0
-                  ? `${bookings.data.counts.requests} waiting for your answer`
-                  : bookings.data.pause.pausedAt
-                    ? "Book button is paused"
-                    : `${bookings.data.counts.confirmed} confirmed · beds held`
-              }
-              title="Bookings"
-              tone={bookings.data.counts.requests > 0 ? "warning" : "brand"}
-            />
-          ) : null}
-
-          {/*
             Floor & room is on and somebody has no room yet — usually residents
             who were here before it was turned on — or asked to change rooms.
           */}
@@ -540,12 +512,6 @@ function BranchAdminHomeScreen() {
                 already reading rather than one section further down.
               */
               onStatement={() => router.push("/manage/finance/statement")}
-              khataPending={
-                khata.data && !khata.error
-                  ? khata.data.requests.length + khata.data.waiting.length
-                  : null
-              }
-              onKhata={() => router.push("/manage/finance/khata")}
             />
 
           </View>
@@ -573,6 +539,14 @@ function BranchAdminHomeScreen() {
               eleven — see `prefetchAdminRoute`.
             */}
             <ServiceGrid
+              badges={{
+                // Requests waiting for an answer: the one booking job with a clock on it.
+                bookings: bookings.data?.counts.requests,
+                khata:
+                  khata.data && !khata.error
+                    ? khata.data.requests.length + khata.data.waiting.length
+                    : null,
+              }}
               onOpen={(href: string) => router.push(href as never)}
               onPrefetch={prefetchAdminRoute}
               owner={account?.role === ROLE.HOSTEL_ADMIN}

@@ -511,10 +511,7 @@ export default function ManageResidentScreen() {
           />
           <Card className="gap-3">
             {contacts.guardians.length === 0 ? (
-              <Text variant="muted">
-                Nobody listed. A guardian is who gets told about an SOS or a long
-                absence.
-              </Text>
+              <Text variant="muted">{"No guardian yet."}</Text>
             ) : (
               contacts.guardians.map((guardian) => (
                 <View className="gap-2" key={guardian.id}>
@@ -757,10 +754,7 @@ export default function ManageResidentScreen() {
                 ) : null}
               </>
             ) : (
-              <Text variant="muted">
-                This account does not have the payments permission, so their history is
-                not shown here.
-              </Text>
+              <Text variant="muted">{"No payments permission."}</Text>
             )}
 
             <FactRow
@@ -854,11 +848,7 @@ export default function ManageResidentScreen() {
             />
           </DetailSection>
 
-          <Text variant="caption">
-            Name, phone and email are what the resident registered with and are not
-            edited here — a correction has to come from them. Room type, status and the
-            fee are the hostel&apos;s own, and each has its own row.
-          </Text>
+          <Text variant="caption">{"Name, phone and email come from the resident."}</Text>
         </View>
       </Sheet>
 
@@ -931,10 +921,7 @@ export default function ManageResidentScreen() {
             value={form.status ?? null}
           />
           {resident.status === "MOVED_OUT" ? null : (
-            <Text variant="caption">
-              Leaving the hostel? Use Move out at the bottom of their page — it frees the
-              bed and settles the deposit.
-            </Text>
+            <Text variant="caption">{"Leaving? Use Move out below."}</Text>
           )}
         </View>
       </Sheet>
@@ -947,10 +934,7 @@ export default function ManageResidentScreen() {
         title="Monthly fee"
       >
         <View className="gap-3 pb-2">
-          <Text variant="caption">
-            An override for this person only. Without one they are billed from the
-            hostel&apos;s fee schedule, which is what most residents should be on.
-          </Text>
+          <Text variant="caption">{"Overrides the fee schedule for this person."}</Text>
 
           <Input
             hint="Zero is allowed and means a deliberate free stay — it is not the same as having no override."
@@ -1005,10 +989,7 @@ export default function ManageResidentScreen() {
                 ) : null}
               </Card>
 
-              <Text variant="caption">
-                Only a hash of this is stored, so it cannot be looked up again — issuing
-                another one cancels this.
-              </Text>
+              <Text variant="caption">{"Shown once. A new one cancels this."}</Text>
 
               <Badge
                 label={
@@ -1134,7 +1115,7 @@ export default function ManageResidentScreen() {
       <Sheet onClose={() => setPanel(null)} open={panel === "room"} tall title="Floor & room">
         {layout.data ? (
           <View className="gap-3 pb-2">
-            <Text variant="caption">Any room with a free bed. A different type changes their rent from the next bill.</Text>
+            <Text variant="caption">{"Any room with a free bed."}</Text>
             <RoomPicker
               onChange={(room) => {
                 // Field review B8: shut and show the new room now; only a refusal rereads.

@@ -340,9 +340,7 @@ function UseSheet({
           </View>
 
           {over ? (
-            <Text className="text-center text-warning" variant="caption">
-              More than the store has. Check, then save if it is right.
-            </Text>
+            <Text className="text-center text-warning" variant="caption">{"More than the store has."}</Text>
           ) : null}
         </View>
       ) : null}

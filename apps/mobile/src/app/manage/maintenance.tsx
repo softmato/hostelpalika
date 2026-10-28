@@ -641,9 +641,7 @@ export default function ManageMaintenanceScreen() {
           />
 
           {serviceCards.length === 0 ? (
-            <Text variant="muted">
-              No trade matches that word. Clear the box to see all of them.
-            </Text>
+            <Text variant="muted">{"No match."}</Text>
           ) : (
             <ServiceCarousel
               cards={serviceCards}
@@ -833,10 +831,7 @@ export default function ManageMaintenanceScreen() {
         title="Call-out charges"
       >
         <View className="gap-3 pb-2">
-          <Text variant="caption">
-            Minimum fee per trade, set by HostelPalika. Shown before a job is
-            raised — never added to an invoice.
-          </Text>
+          <Text variant="caption">{"Minimum fee per trade."}</Text>
 
           <Card padding="px-4 py-1">
             {MAINTENANCE_CATEGORIES.map((category, index) => {
@@ -932,19 +927,14 @@ export default function ManageMaintenanceScreen() {
 
             {quotedCharge === null ? (
               <>
-                <Text className="text-center" variant="muted">
-                  No call-out charge is set for this trade.
-                </Text>
+                <Text className="text-center" variant="muted">{"No call-out charge."}</Text>
               </>
             ) : (
               <>
                 <Text className="text-2xl font-bold text-foreground">
                   {formatMoney(quotedCharge)}
                 </Text>
-                <Text className="text-center" variant="caption">
-                  The minimum fee for this job. The real cost depends on the work
-                  and is recorded when it is known.
-                </Text>
+                <Text className="text-center" variant="caption">{"Minimum fee. Final cost after the work."}</Text>
               </>
             )}
           </View>
@@ -1024,16 +1014,10 @@ export default function ManageMaintenanceScreen() {
                       label={providerFor(open.providerId)?.fullName ?? "Assigned"}
                       tone="brand"
                     />
-                    <Text variant="caption">
-                      Already assigned. Cancel and raise a new request to change
-                      who is coming.
-                    </Text>
+                    <Text variant="caption">{"Already assigned."}</Text>
                   </View>
                 ) : assignableProviders.length === 0 ? (
-                  <Text variant="muted">
-                    No approved provider matches this trade yet. Call somebody
-                    yourself and mark it contacted below.
-                  </Text>
+                  <Text variant="muted">{"No provider for this trade yet."}</Text>
                 ) : (
                   <View className="flex-row flex-wrap gap-2">
                     {assignableProviders.map((provider) => (
@@ -1170,10 +1154,7 @@ export default function ManageMaintenanceScreen() {
         title="Approved providers"
       >
         <View className="gap-3 pb-2">
-          <Text variant="caption">
-            Vetted by the platform, and their phone numbers are visible to hostel
-            staff only — the public directory hides them so nobody is cold-called.
-          </Text>
+          <Text variant="caption">{"Vetted by the platform."}</Text>
 
           {providers.length === 0 ? (
             <Text variant="muted">No approved providers cover your area yet.</Text>

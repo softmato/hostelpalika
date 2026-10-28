@@ -297,10 +297,9 @@ export async function checkLockPin(pin: string) {
       `That PIN did not work. ${offline.triesLeft} ${offline.triesLeft === 1 ? "try" : "tries"} left offline.`,
     );
   }
-  // Well behind the unlock: the hash takes a moment on a budget phone, and the
-  // first screen is painting. Re-hashed every time, because a PIN changed on
-  // another phone is only known by the server saying yes to a different one.
-  if (id) setTimeout(() => void rememberPin(id, pin).catch(() => {}), 3_000);
+  // Re-saved every time, because a PIN changed on another phone is only known
+  // by the server saying yes to a different one. One hash round: free.
+  if (id) void rememberPin(id, pin).catch(() => {});
 }
 
 /** First PIN needs nothing more; replacing one needs `proof`. */

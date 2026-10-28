@@ -707,9 +707,7 @@ function NotificationRow({
             {isNight ? <NightPromptAnswer notification={notification} /> : null}
 
             {expanded && notification.needsAction && !isNight ? (
-              <Text variant="caption">
-                This one is waiting on a decision. It can be actioned from the web portal.
-              </Text>
+              <Text variant="caption">{"Waiting on a decision."}</Text>
             ) : null}
           </View>
         </View>

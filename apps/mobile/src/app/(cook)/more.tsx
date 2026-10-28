@@ -137,9 +137,7 @@ export default function CookMoreScreen() {
             ) : logs.loading ? (
               <SkeletonRows rows={5} />
             ) : announcements.length === 0 ? (
-              <Text className="py-2" variant="muted">
-                Announce a meal from the Today tab and it appears here.
-              </Text>
+              <Text className="py-2" variant="muted">{"Announce a meal from Today."}</Text>
             ) : (
               announcements.map((log, index) => (
                 <View key={log.id}>

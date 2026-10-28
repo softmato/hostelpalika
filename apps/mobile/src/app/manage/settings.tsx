@@ -4,13 +4,12 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
 
-import { NightStatusPromptCard } from "@/components/night-status-prompt-card";
 import { AppBar } from "@/components/ui/app-bar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, SectionHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Chip, FactRow } from "@/components/ui/layout";
+import { Chip } from "@/components/ui/layout";
 import { ListRow, RowDivider } from "@/components/ui/list-row";
 import { Screen } from "@/components/ui/screen";
 import { Select } from "@/components/ui/select";
@@ -18,20 +17,14 @@ import { Sheet } from "@/components/ui/sheet";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/ui/states";
 import { Text } from "@/components/ui/text";
-import { Toggle } from "@/components/ui/toggle";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
 import {
-  type AttendanceSettings,
-  type CommunitySettings,
   geocodeHostelLocation,
   type GeocodeHit,
   requestHostelChange,
-  updateAttendanceSettings,
-  updateCommunitySettings,
   updateManagedHostel,
 } from "@/lib/admin-manage-api";
-import { FormDetailsSettings } from "@/components/manage/form-details-settings";
 import { type AdminSettingsData, adminQuery } from "@/lib/admin-queries";
 import { readApiError } from "@/lib/api-contract";
 import { formatMoney, humanizeEnum } from "@/lib/format";
@@ -89,7 +82,6 @@ const CHANGE_TYPES = [
 
 type Panel =
   | "about"
-  | "attendance"
   | "change"
   | "contact"
   | "facilities"
@@ -133,14 +125,13 @@ export default function ManageSettingsScreen() {
   const [geoQuery, setGeoQuery] = useState("");
   const [geoHits, setGeoHits] = useState<GeocodeHit[]>([]);
   const [geoBusy, setGeoBusy] = useState(false);
-  const [attendanceDraft, setAttendanceDraft] = useState<AttendanceSettings | null>(null);
 
   const { colors } = useAppTheme();
   const hostel = settings.data?.hostel ?? null;
   const community = settings.data?.community ?? null;
   const attendance = settings.data?.attendance ?? null;
 
-  const { refresh, setData } = settings;
+  const { setData } = settings;
 
   /*
    * Three of the saves on this screen do not re-ask the server afterwards, and
@@ -242,13 +233,9 @@ export default function ManageSettingsScreen() {
         setForm({ reason: "", requestedValue: "" });
       }
 
-      if (next === "attendance") {
-        setAttendanceDraft(attendance);
-      }
-
       setPanel(next);
     },
-    [attendance, hostel],
+    [hostel],
   );
 
   useEffect(() => {
@@ -273,47 +260,6 @@ export default function ManageSettingsScreen() {
       setGeoBusy(false);
     }
   }, [geoQuery]);
-
-  const saveCommunity = useCallback(
-    async (input: Partial<CommunitySettings>) => {
-      try {
-        const community = await updateCommunitySettings(input);
-
-        setData((current) => (current ? { ...current, community } : current));
-      } catch (error) {
-        toastError("Could not change that", readApiError(error));
-      }
-    },
-    [setData],
-  );
-
-  const saveAttendance = useCallback(async () => {
-    if (!attendanceDraft) {
-      return;
-    }
-
-    if (attendanceDraft.nearbyZoneRadiusMeters <= attendanceDraft.insideZoneRadiusMeters) {
-      toastError(
-        "Check the geofence",
-        "The nearby radius has to be larger than the inside one — the server refuses it otherwise.",
-      );
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      const attendance = await updateAttendanceSettings(attendanceDraft);
-
-      setData((current) => (current ? { ...current, attendance } : current));
-      toastSuccess("Attendance settings saved");
-      setPanel(null);
-    } catch (error) {
-      toastError("Could not save", readApiError(error));
-    } finally {
-      setSaving(false);
-    }
-  }, [attendanceDraft, setData]);
 
   const submitChangeRequest = useCallback(async () => {
     const requestedValue = form.requestedValue?.trim() ?? "";
@@ -391,7 +337,7 @@ export default function ManageSettingsScreen() {
 
           {hostel.nameChangeCount > 0 ? (
             <Text variant="caption">
-              {`Renamed ${hostel.nameChangeCount} time(s) since approval. Past the platform's limit, a rename becomes a change request.`}
+              {`Renamed ${hostel.nameChangeCount} time(s) since approval`}
             </Text>
           ) : null}
         </Card>
@@ -505,129 +451,67 @@ export default function ManageSettingsScreen() {
           </Card>
         </View>
 
+        {/*
+          Labels only: each row opens the screen that edits it, and its state is
+          the subtitle (field review, 2026-10-27). Community and attendance are
+          the owner's — a staff account gets `null` and simply has no row.
+        */}
         <View>
           <SectionHeader subtitle="Hostel-wide behaviour" title="Switches" />
-
-          <Card className="gap-3">
-            {community === null ? (
-              <Text variant="muted">
-                The community switches are for the hostel owner. This account signs in
-                as staff, so they are not shown.
-              </Text>
-            ) : (
+          <Card padding="px-4 py-1">
+            {community ? (
               <>
-                <View className="flex-row items-center justify-between gap-3">
-                  <View className="flex-1">
-                    <Text variant="label">Community</Text>
-                    <Text variant="caption">
-                      Lets your residents post on the platform-wide board.
-                    </Text>
-                  </View>
-                  <Toggle
-                    accessibilityLabel="Community enabled"
-                    onChange={(enabled) => void saveCommunity({ enabled })}
-                    value={community.enabled}
-                  />
-                </View>
-
-                <View className="flex-row items-center justify-between gap-3 border-t border-border pt-3">
-                  <View className="flex-1">
-                    <Text variant="label">Profanity filter</Text>
-                    <Text variant="caption">
-                      Holds posts with flagged language for a moderator instead of
-                      publishing them.
-                    </Text>
-                  </View>
-                  <Toggle
-                    accessibilityLabel="Profanity filter enabled"
-                    onChange={(profanityFilterEnabled) =>
-                      void saveCommunity({ profanityFilterEnabled })
-                    }
-                    value={community.profanityFilterEnabled}
-                  />
-                </View>
+                <ListRow
+                  icon="chatbubbles"
+                  iconBgColor="#30B0C7"
+                  onPress={() => router.push("/manage/community-settings")}
+                  subtitle={
+                    community.enabled
+                      ? `On · profanity filter ${community.profanityFilterEnabled ? "on" : "off"}`
+                      : "Off"
+                  }
+                  title="Community"
+                />
+                <RowDivider inset />
               </>
-            )}
+            ) : null}
+            <ListRow
+              icon="document-text"
+              iconBgColor="#FF9500"
+              onPress={() => router.push("/manage/form-details")}
+              subtitle="What the admission form asks for"
+              title="Admission form"
+            />
+            {attendance ? (
+              <>
+                <RowDivider inset />
+                <ListRow
+                  icon="location"
+                  iconBgColor="#FF3B30"
+                  onPress={() => router.push("/manage/attendance-settings")}
+                  subtitle={
+                    attendance.enabled
+                      ? `On · ${attendance.pingTimes.length} check-in(s) a day`
+                      : "Off"
+                  }
+                  title="Attendance"
+                />
+                <RowDivider inset />
+                <ListRow
+                  icon="moon"
+                  iconBgColor="#5E5CE6"
+                  onPress={() => router.push("/manage/night-status-settings")}
+                  subtitle={
+                    attendance.nightStatus.promptEnabled
+                      ? `Asking every night from ${attendance.nightStatus.promptTime}`
+                      : "Off"
+                  }
+                  title="Night status"
+                />
+              </>
+            ) : null}
           </Card>
         </View>
-
-        <FormDetailsSettings />
-
-        <View>
-          <SectionHeader
-            subtitle="The geofence, and how long its records are kept"
-            title="Attendance"
-          />
-          {attendance === null ? (
-            <Card>
-              <Text variant="muted">
-                The geofence is hostel-level configuration and belongs to the owner, so
-                it is not shown for this account.
-              </Text>
-            </Card>
-          ) : (
-            <Card className="gap-3">
-              <View className="flex-row items-center justify-between gap-3">
-                <View className="flex-1">
-                  <Text variant="label">
-                    {attendance.enabled ? "Tracking on" : "Tracking off"}
-                  </Text>
-                  <Text variant="caption">
-                    {attendance.enabled
-                      ? `${attendance.pingTimes.length} check-in(s) a day`
-                      : "Residents are not asked to check in."}
-                  </Text>
-                </View>
-                <Toggle
-                  accessibilityLabel="Attendance tracking enabled"
-                  onChange={(enabled) => {
-                    setAttendanceDraft({ ...attendance, enabled });
-                    void updateAttendanceSettings({ enabled })
-                      .then(() => refresh())
-                      .catch((error: unknown) =>
-                        toastError("Could not change that", readApiError(error)),
-                      );
-                  }}
-                  value={attendance.enabled}
-                />
-              </View>
-
-              <View className="gap-1 border-t border-border pt-3">
-                <FactRow label="Inside" value={`${attendance.insideZoneRadiusMeters} m`} />
-                <FactRow label="Nearby" value={`${attendance.nearbyZoneRadiusMeters} m`} />
-                <FactRow label="Check-ins" value={attendance.pingTimes.join(", ") || "—"} />
-                <FactRow label="Alert after" value={`${attendance.absenceAlertDays} day(s)`} />
-                <FactRow label="Kept for" value={`${attendance.retentionDays} day(s)`} />
-              </View>
-
-              <Text variant="caption">
-                Only the zone is stored — inside, nearby or outside. A check-in&apos;s
-                coordinates are discarded as it lands, so nothing here can be turned
-                into a location history.
-              </Text>
-
-              <Button
-                label="Change the geofence"
-                onPress={() => openPanel("attendance")}
-                size="sm"
-                variant="outline"
-              />
-            </Card>
-          )}
-        </View>
-
-        {attendance === null ? null : (
-          <View>
-            <SectionHeader
-              subtitle="Asked at your hour, again until answered"
-              title="Night status"
-            />
-            <NightStatusPromptCard
-              onSaved={refresh}
-              settings={attendance.nightStatus}
-            />
-          </View>
-        )}
 
         <View>
           <SectionHeader
@@ -647,22 +531,26 @@ export default function ManageSettingsScreen() {
 
         {/* Owner only, like the community switches (docs/HOSTEL_LEAVE_PLATFORM.md). */}
         {community === null ? null : (
-          <Card padding="px-4 py-1">
-            <ListRow
-              icon="cloud-upload"
-              iconBgColor={colors.brand}
-              onPress={() => router.push("/manage/backup")}
-              subtitle="Encrypted copy in your Google Drive"
-              title="Backup"
-            />
-            <ListRow
-              icon="door"
-              iconBgColor={colors.destructive}
-              onPress={() => router.push("/manage/leave")}
-              subtitle="Take your hostel off and get your data"
-              title={`Leave ${PLATFORM_NAME}`}
-            />
-          </Card>
+          <View>
+            <SectionHeader title="Your data" />
+            <Card padding="px-4 py-1">
+              <ListRow
+                icon="cloud-upload"
+                iconBgColor={colors.brand}
+                onPress={() => router.push("/manage/backup")}
+                subtitle="Encrypted copy in your Google Drive"
+                title="Backup"
+              />
+              <RowDivider inset />
+              <ListRow
+                icon="door"
+                iconBgColor={colors.destructive}
+                onPress={() => router.push("/manage/leave")}
+                subtitle="Take your hostel off and get your data"
+                title={`Leave ${PLATFORM_NAME}`}
+              />
+            </Card>
+          </View>
         )}
       </View>
 
@@ -1005,10 +893,7 @@ export default function ManageSettingsScreen() {
         title="Pricing"
       >
         <View className="gap-3 pb-2">
-          <Text variant="caption">
-            The range shown on the public listing and in search filters. Per-room-type
-            rent is set on the Rooms screen and is what a resident is actually billed.
-          </Text>
+          <Text variant="caption">{"Shown on your public listing."}</Text>
           <Input
             keyboardType="number-pad"
             label="Cheapest room (NPR)"
@@ -1105,83 +990,6 @@ export default function ManageSettingsScreen() {
 
       {/* ------------------------------------------------------------------ */}
       <Sheet
-        footer={<Button label="Save" loading={saving} onPress={() => void saveAttendance()} />}
-        onClose={() => setPanel(null)}
-        open={panel === "attendance"}
-        title="Geofence and retention"
-      >
-        {attendanceDraft ? (
-          <View className="gap-3 pb-2">
-            <Input
-              hint="10–500 m. Inside this circle counts as being in the hostel."
-              keyboardType="number-pad"
-              label="Inside radius (m)"
-              onChangeText={(value) =>
-                setAttendanceDraft((prev) =>
-                  prev ? { ...prev, insideZoneRadiusMeters: toNumber(value) } : prev,
-                )
-              }
-              value={String(attendanceDraft.insideZoneRadiusMeters)}
-            />
-            <Input
-              hint="20–2000 m, and it must be larger than the inside radius."
-              keyboardType="number-pad"
-              label="Nearby radius (m)"
-              onChangeText={(value) =>
-                setAttendanceDraft((prev) =>
-                  prev ? { ...prev, nearbyZoneRadiusMeters: toNumber(value) } : prev,
-                )
-              }
-              value={String(attendanceDraft.nearbyZoneRadiusMeters)}
-            />
-            <Input
-              hint="Up to six, as HH:mm, separated by commas."
-              label="Check-in times"
-              onChangeText={(value) =>
-                setAttendanceDraft((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        pingTimes: value
-                          .split(",")
-                          .map((time) => time.trim())
-                          .filter(Boolean)
-                          .slice(0, 6),
-                      }
-                    : prev,
-                )
-              }
-              placeholder="06:00, 22:00"
-              value={attendanceDraft.pingTimes.join(", ")}
-            />
-            <Input
-              hint="1–90. How many days away before the hostel and the guardian are told."
-              keyboardType="number-pad"
-              label="Alert after (days)"
-              onChangeText={(value) =>
-                setAttendanceDraft((prev) =>
-                  prev ? { ...prev, absenceAlertDays: toNumber(value) } : prev,
-                )
-              }
-              value={String(attendanceDraft.absenceAlertDays)}
-            />
-            <Input
-              hint="30–1095. Older check-in rows are deleted."
-              keyboardType="number-pad"
-              label="Keep records for (days)"
-              onChangeText={(value) =>
-                setAttendanceDraft((prev) =>
-                  prev ? { ...prev, retentionDays: toNumber(value) } : prev,
-                )
-              }
-              value={String(attendanceDraft.retentionDays)}
-            />
-          </View>
-        ) : null}
-      </Sheet>
-
-      {/* ------------------------------------------------------------------ */}
-      <Sheet
         footer={
           <Button label="Send it" loading={saving} onPress={() => void submitChangeRequest()} />
         }
@@ -1190,11 +998,7 @@ export default function ManageSettingsScreen() {
         title="Request a change"
       >
         <View className="gap-3 pb-2">
-          <Text variant="caption">
-            These three cannot be edited directly once a hostel is approved — they are
-            what the platform verified. A person reads the request and confirms by
-            email.
-          </Text>
+          <Text variant="caption">{"Verified fields. The platform team confirms by email."}</Text>
 
           <Select
             label="What should change"

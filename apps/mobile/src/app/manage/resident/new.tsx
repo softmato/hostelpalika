@@ -1360,10 +1360,7 @@ function TermsStep({
         />
         <Card className="gap-3">
           {rooms.length === 0 ? (
-            <Text variant="muted">
-              Every bed type is full. Free a bed by moving somebody out, or add
-              capacity on the Rooms screen.
-            </Text>
+            <Text variant="muted">{"Every bed is full."}</Text>
           ) : (
             <View className="flex-row flex-wrap gap-2">
               {rooms.map((config) => (
@@ -1765,10 +1762,7 @@ function CollectStep({ result }: { result: ResidentIntakeResult }) {
           title="Nothing to collect yet"
         />
         <Card>
-          <Text variant="muted">
-            No invoice was raised at registration, so there is no code to quote. Their
-            first bill and its code appear on their own screen when it is raised.
-          </Text>
+          <Text variant="muted">{"No bill yet, so no code to quote."}</Text>
         </Card>
       </View>
     );
@@ -1798,15 +1792,9 @@ function CollectStep({ result }: { result: ResidentIntakeResult }) {
       </View>
 
       {bills.length > 1 ? (
-        <Text className="px-1 text-xs text-muted-foreground">
-          Two invoices, so two payments — each one quotes its own code. A single
-          transfer for the total settles only the invoice whose code it carries.
-        </Text>
+        <Text className="px-1 text-xs text-muted-foreground">{"Two bills, two codes. Pay each with its own."}</Text>
       ) : (
-        <Text className="px-1 text-xs text-muted-foreground">
-          One payment, one code. It works for cash at the desk as well as a transfer —
-          the code is how the payment is matched to them either way.
-        </Text>
+        <Text className="px-1 text-xs text-muted-foreground">{"One payment, one code. Cash or transfer."}</Text>
       )}
 
       <HowToPay howToPay={result.howToPay} />
@@ -1839,11 +1827,7 @@ function HowToPay({
   if (!howToPay || !howToPay.usable || methods.length === 0) {
     return (
       <Card>
-        <Text variant="muted">
-          This hostel has no payment details set up yet, so there is nothing to
-          give them. Add an eSewa ID, a bank account or a payment QR under
-          Finance.
-        </Text>
+        <Text variant="muted">{"No payment details yet. Add them in Finance."}</Text>
       </Card>
     );
   }

@@ -253,9 +253,7 @@ export default function PayInvoiceScreen() {
               name="information-circle"
               size={16}
             />
-            <Text className="flex-1" variant="caption">
-              After payment, submit proof only for manual methods.
-            </Text>
+            <Text className="flex-1" variant="caption">{"Proof only for manual methods."}</Text>
           </Card>
         ) : null}
       </View>

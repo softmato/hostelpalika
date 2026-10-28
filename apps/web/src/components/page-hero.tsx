@@ -7,7 +7,7 @@ import type { IconComponent } from "@/components/icons";
 import { usePortalPageIcon } from "@/components/portal-page-context";
 
 /**
- * A portal page's header block: near-black with a green glow, the page's mark
+ * A portal page's header block: painted brand green, the page's mark
  * in a glass tile, the title, one line, and actions on the right.
  *
  * It wears `.dark` itself, so whatever a page passes as `actions` — outline
@@ -34,7 +34,9 @@ export function PageHero({
   const navGlyph: GlyphName | null = usePortalPageIcon();
 
   return (
-    <div className="dark relative overflow-hidden rounded-2xl bg-hero px-4 py-4 text-foreground shadow-sm ring-1 ring-white/5 md:px-5 md:py-[18px]">
+    // On brand green, the dark theme's own green buttons and grey captions
+    // would vanish: primary turns white-on-green, captions a soft white.
+    <div className="dark relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,var(--hero),var(--hero-to))] px-4 py-4 text-white shadow-sm ring-1 ring-white/10 [--muted-foreground:rgb(255_255_255/0.78)] [--primary-foreground:#0a8a4b] [--primary:#ffffff] md:px-5 md:py-[18px]">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(90%_140%_at_100%_0%,var(--hero-glow),transparent_60%)]"
@@ -42,7 +44,7 @@ export function PageHero({
       <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           {Icon || navGlyph ? (
-            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/[0.08] text-role-team ring-1 ring-white/10">
+            <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white ring-1 ring-white/20">
               {Icon ? (
                 <Icon className="size-[22px]" variant="solid" />
               ) : (

@@ -209,10 +209,7 @@ export default function SosScreen() {
               */
               <View className="gap-1 py-2">
                 <Text variant="label">No contacts on file</Text>
-                <Text variant="caption">
-                  Your hostel records these when you move in. Ask the office to
-                  add someone — they can&apos;t be added from the app yet.
-                </Text>
+                <Text variant="caption">{"Added by the hostel office."}</Text>
               </View>
             ) : (
               rows.map((contact, index) => (
@@ -279,7 +276,7 @@ export default function SosScreen() {
             />
 
             <Text className="text-center" variant="caption">
-              {`You'll get ${SOS_COUNTDOWN_SECONDS} seconds to cancel. Once it's sent, only hostel staff can close it.`}
+              {`${SOS_COUNTDOWN_SECONDS}s to cancel. Only staff can close it.`}
             </Text>
           </Card>
         </View>

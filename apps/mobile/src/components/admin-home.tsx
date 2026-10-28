@@ -613,10 +613,16 @@ export function HostelHero({
  * "Waiting for you", so More keeps the row.
  */
 export function ServiceGrid({
+  badges = {},
   onOpen,
   onPrefetch,
   owner = false,
 }: {
+  /**
+   * Counts on the Bookings and Khata tiles: requests to answer, khata asks to
+   * act on. `khata: null` hides that tile (no access, or still loading).
+   */
+  badges?: { bookings?: number; khata?: number | null };
   onOpen: (href: string) => void;
   /**
    * HOSTEL_ADMIN only draws the Wardens tile — its routes are
@@ -647,6 +653,11 @@ export function ServiceGrid({
     { href: "/manage/notices", icon: "megaphone", label: "Notices", tone: "warning" },
     { href: "/manage/maintenance", icon: "construct", label: "Repairs", tone: "danger" },
     { href: "/(admin)/residents", icon: "people", label: "Residents", tone: "admin" },
+    // Were a full-width card and a money-row cell on Home; doors like the rest.
+    { href: "/manage/bookings", icon: "calendar", label: "Bookings", tone: "warning" },
+    ...(badges.khata === null
+      ? []
+      : [{ href: "/manage/finance/khata", icon: "book", label: "Khata", tone: "success" } as const]),
     {
       href: "/manage/complaints",
       icon: "chatbox-ellipses",
@@ -684,7 +695,13 @@ export function ServiceGrid({
     column pitch, are `<ActionTiles>`'s job — see the note there for why this
     may never become a `flex-wrap`.
   */
+  const counts: Partial<Record<string, number>> = {
+    "/manage/bookings": badges.bookings,
+    "/manage/finance/khata": badges.khata ?? undefined,
+  };
+
   const tiles: ActionTile[] = services.map((service) => ({
+    badge: counts[service.href] || undefined,
     frozen: locked && isKycFrozenHref(service.href),
     glyph: glyph[service.tone],
     icon: service.icon,
@@ -909,18 +926,13 @@ export function QuickActions({
  * a single scroll. `more.tsx` keeps its row, having no "Waiting for you".
  */
 export function WaitingActions({
-  khataPending,
   onExpenses,
   onFinance,
-  onKhata,
   onStatement,
   onStock,
 }: {
-  /** Khata asks waiting on staff; null hides the cell (no access, or loading). */
-  khataPending: number | null;
   onExpenses: () => void;
   onFinance: () => void;
-  onKhata: () => void;
   /** `manage/finance/statement` — the ledger of credits, day by day. */
   onStatement: () => void;
   onStock: () => void;
@@ -948,17 +960,6 @@ export function WaitingActions({
       <ActionCell glyph={colors.warning} grow icon="cube" label="Stock" onPress={onStock} tone="warning" />
       <ActionCell glyph={colors.success} grow icon="cash" label="Finance" onPress={onFinance} tone="success" />
       <ActionCell glyph={colors.success} grow icon="wallet" label="Expenses" onPress={onExpenses} tone="success" />
-      {khataPending === null ? null : (
-        <ActionCell
-          badge={khataPending || undefined}
-          glyph={colors.success}
-          grow
-          icon="book"
-          label="Khata"
-          onPress={onKhata}
-          tone="success"
-        />
-      )}
     </ActionCard>
     </KycFrost>
   );

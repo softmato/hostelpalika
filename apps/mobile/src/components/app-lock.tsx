@@ -545,7 +545,7 @@ function LockScreen({ account }: { account: ApiUser }) {
     <Animated.View
       accessibilityViewIsModal
       exiting={FadeOut.duration(220)}
-      style={[StyleSheet.absoluteFill, styles.cover, { backgroundColor: colors.background }]}
+      style={[StyleSheet.absoluteFill, styles.cover, { backgroundColor: colors.card }]}
     >
       {revealed ? (
         <KeyboardAwareScrollView

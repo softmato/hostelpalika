@@ -12,14 +12,14 @@
 
 export const palette = {
   light: {
-    background: "#ffffff",
+    background: "#f7f7f6",
     foreground: "#1c1917",
     card: "#ffffff",
     cardForeground: "#1c1917",
     primary: "#0a8a4b",
     primaryForeground: "#ffffff",
     secondary: "#f4f4f5",
-    muted: "#f5f5f4",
+    muted: "#efefee",
     mutedForeground: "#78716c",
     destructive: "#dc2626",
     border: "#e7e5e4",

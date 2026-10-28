@@ -245,9 +245,7 @@ export default function JoinRequestsScreen() {
         title={sendingBack ? `Send back to ${sendingBack.fullName}` : "Send back"}
       >
         <View className="gap-4">
-          <Text variant="muted">
-            Say what to fix. They get a message and fix it on the same link — it stays one request.
-          </Text>
+          <Text variant="muted">{"Say what to fix. They fix it on the same link."}</Text>
           <View className="flex-row flex-wrap gap-2">
             {SEND_BACK_REASONS.map((preset) => (
               <Chip

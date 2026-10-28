@@ -114,10 +114,7 @@ export default function GuardianMoreScreen() {
                 title={GUARDIAN_PERMISSION_LABELS[key]}
               />
             ))}
-            <Text className="pb-2" variant="caption">
-              Only the resident can change these, from their own portal. The hostel cannot grant
-              them on your behalf.
-            </Text>
+            <Text className="pb-2" variant="caption">{"Only the resident can change these."}</Text>
           </MenuGroup>
 
           {/* Guardian access is time-boxed by the hostel; the expiry silently ends this account. */}

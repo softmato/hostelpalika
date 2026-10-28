@@ -154,7 +154,7 @@ async function readPosition(): Promise<LocationOutcome> {
      * indoors, which is 30 seconds of a spinner on a list that was already
      * usable.
      */
-    const cached = await Location.getLastKnownPositionAsync({ maxAge: 5 * 60 * 1000 });
+    const cached = await Location.getLastKnownPositionAsync({ maxAge: 30 * 60 * 1000 });
 
     if (cached && isUsableCoordinate(toCoordinates(cached))) {
       return { coordinates: toCoordinates(cached), kind: "granted" };

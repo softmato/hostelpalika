@@ -20,7 +20,12 @@
 
 @layer base {
   :root {
-    --background: 255 255 255; /* #ffffff */
+    /*
+      The page ground is a faint grey and cards stay white, the way the web
+      portal draws them (\`bg-muted/60\` under white cards) — a card reads as a
+      card without a heavier border or a shadow.
+    */
+    --background: 247 247 246; /* #f7f7f6 */
     --foreground: 28 25 23; /* #1c1917 */
     --card: 255 255 255; /* #ffffff */
     --card-foreground: 28 25 23; /* #1c1917 */
@@ -30,7 +35,7 @@
     --primary-foreground: 255 255 255; /* #ffffff */
     --secondary: 244 244 245; /* #f4f4f5 */
     --secondary-foreground: 24 24 27; /* #18181b */
-    --muted: 245 245 244; /* #f5f5f4 */
+    --muted: 239 239 238; /* #efefee — a shade under the ground, so a skeleton on it still shows */
     --muted-foreground: 120 113 108; /* #78716c */
     --accent: 245 245 244; /* #f5f5f4 */
     --accent-foreground: 28 25 23; /* #1c1917 */

@@ -132,9 +132,7 @@ export default function LeavingScreen() {
               value={day}
             />
             <Input label="Reason" multiline onChangeText={setReason} placeholder="Optional" value={why} />
-            <Text className="text-muted-foreground" variant="caption">
-              Rent stops on this day. The warden moves you out on the day.
-            </Text>
+            <Text className="text-muted-foreground" variant="caption">{"Rent stops on this day."}</Text>
           </Card>
         </View>
       </View>

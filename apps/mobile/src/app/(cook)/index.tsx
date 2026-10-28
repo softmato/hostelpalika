@@ -439,11 +439,7 @@ export default function CookTodayScreen() {
           );
         })}
 
-        <Text className="px-1 pt-1" variant="caption">
-          The message is built from today&apos;s menu automatically. If you have cooked
-          something else, announce it and tell residents in person — the menu is the
-          hostel office&apos;s to change.
-        </Text>
+        <Text className="px-1 pt-1" variant="caption">{"Built from today's menu."}</Text>
       </View>
     </Screen>
   );

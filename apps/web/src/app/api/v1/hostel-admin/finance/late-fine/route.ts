@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { cachedRead } from "@/lib/redis-cache";
 import { getLateFine, lateFineSaveSchema, saveLateFine } from "@/modules/finance/late-fine.service";
 import { resolveAdminHostelId } from "@/modules/hostels/hostel.service";
 
@@ -17,7 +18,9 @@ export async function GET(request: NextRequest) {
       request.nextUrl.searchParams.get("hostelId") ?? undefined,
     );
 
-    return withEtag(request, successResponse({ lateFine: await getLateFine(hostelId) }, "Late fine"));
+    const lateFine = await cachedRead(principal, `late-fine:${hostelId}`, () => getLateFine(hostelId));
+
+    return withEtag(request, successResponse({ lateFine }, "Late fine"));
   } catch (error) {
     return handleRouteError(error);
   }

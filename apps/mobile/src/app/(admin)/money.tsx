@@ -1014,7 +1014,7 @@ function BranchAdminMoneyScreen() {
               */}
               {isProRated(open, period) ? (
                 <Text variant="caption">
-                  {`Part month — billed from ${dates.date(open.resident.moveInDate)}, the day they moved in, so this is less than a full month's rent.`}
+                  {`Part month · from ${dates.date(open.resident.moveInDate)}`}
                 </Text>
               ) : null}
 
@@ -1195,11 +1195,7 @@ function BranchAdminMoneyScreen() {
                 </View>
               </>
             ) : (
-              <Text variant="muted">
-                Nothing has been billed to this person for this month, so there
-                is nothing to take cash against. Run billing from the Finance
-                screen.
-              </Text>
+              <Text variant="muted">{"Nothing billed this month."}</Text>
             )}
           </View>
         ) : null}

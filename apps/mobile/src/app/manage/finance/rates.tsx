@@ -300,9 +300,7 @@ export default function ManageRatesScreen() {
                 value={rates[option.roomType] ?? ""}
               />
             ))}
-            <Text variant="caption">
-              Blank means not charged. These rents also show on your public listing.
-            </Text>
+            <Text variant="caption">{"Blank = not charged. Shown publicly."}</Text>
           </Card>
         </View>
 
@@ -381,9 +379,7 @@ export default function ManageRatesScreen() {
                 <Glyph color={colors.foreground} name="chevron-forward" size={18} />
               </Pressable>
             </View>
-            <Text className="text-center" variant="caption">
-              Starts on the 1st. This month&apos;s residents keep their current rates.
-            </Text>
+            <Text className="text-center" variant="caption">{"Starts on the 1st."}</Text>
           </Card>
         </View>
       </View>

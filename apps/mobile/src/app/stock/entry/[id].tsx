@@ -320,9 +320,7 @@ export default function EntryDetailScreen() {
           {pendingCount && !entry.canApprove ? (
             <View className="flex-row items-center gap-2 rounded-xl bg-muted px-3 py-2.5">
               <Glyph color={colors.mutedForeground} name="information-circle" size={18} />
-              <Text className="flex-1" variant="caption">
-                The book changes only when the owner approves this count.
-              </Text>
+              <Text className="flex-1" variant="caption">{"Changes when the owner approves."}</Text>
             </View>
           ) : null}
 
@@ -331,9 +329,7 @@ export default function EntryDetailScreen() {
               {entry.status === "PENDING" ? (
                 <View className="flex-row items-center gap-2 rounded-xl bg-muted px-3 py-2.5">
                   <Glyph color={colors.mutedForeground} name="information-circle" size={18} />
-                  <Text className="flex-1" variant="caption">
-                    The receiving building confirms when the stock arrives.
-                  </Text>
+                  <Text className="flex-1" variant="caption">{"The other building confirms on arrival."}</Text>
                 </View>
               ) : null}
               <Card className="gap-0">

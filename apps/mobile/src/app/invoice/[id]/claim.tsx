@@ -1365,9 +1365,7 @@ function NotSentScreen({
         <View className="gap-2.5">
           <Button label="Try again" onPress={onRetry} variant="danger" />
           <Button label="Save and exit" onPress={onExit} variant="outline" />
-          <Text className="text-center" variant="caption">
-            Your details are saved. You can come back later.
-          </Text>
+          <Text className="text-center" variant="caption">{"Saved. Come back any time."}</Text>
         </View>
       }
       header={header}

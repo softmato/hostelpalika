@@ -199,7 +199,7 @@ export default function GuardianHomeScreen() {
           <Card className="gap-2">
             <Text variant="subtitle">Nothing is shared yet</Text>
             <Text variant="muted">
-              {`${wardName} has not turned on any sharing for this guardian account. You can see that they are a resident here; fees, meals, notices and night status stay private until they choose otherwise.`}
+              {`${wardName} hasn't shared anything yet`}
             </Text>
           </Card>
         ) : null}
@@ -209,9 +209,7 @@ export default function GuardianHomeScreen() {
             <SectionHeader subtitle="What the kitchen is serving" title="Today's meals" />
             <Card className="gap-2">
               {dashboard.food.length === 0 ? (
-                <Text variant="muted">
-                  The hostel has not published a routine for today.
-                </Text>
+                <Text variant="muted">{"No routine today."}</Text>
               ) : (
                 /*
                  * The same meal block the resident's own screens use. A parent
@@ -251,9 +249,7 @@ export default function GuardianHomeScreen() {
             <SectionHeader title="From the hostel" />
             <Card className="gap-2">
               {dashboard.notices.length === 0 ? (
-                <Text variant="muted">
-                  Notices addressed to guardians appear here.
-                </Text>
+                <Text variant="muted">{"No notices."}</Text>
               ) : (
                 dashboard.notices.map((notice) => (
                   <View

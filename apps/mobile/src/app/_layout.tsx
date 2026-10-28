@@ -350,6 +350,9 @@ function RootShell() {
           animation: "fade",
           animationDuration: 180,
           contentStyle: { backgroundColor: colors.background },
+          // A screen covered by a push stops re-rendering until it is back on
+          // top, so the stack under a drill-down costs nothing meanwhile.
+          freezeOnBlur: true,
           headerShown: false,
         }}
       >

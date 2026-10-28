@@ -22,14 +22,14 @@ import Animated, {
 
 import { useBottomChrome } from "@/components/bottom-chrome";
 import { riseOnly } from "@/constants/motion";
-import { Entrance } from "@/components/ui/layout";
 import { TAB_BAR_HEIGHT } from "@/components/tab-bar";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useSystemInsets } from "@/hooks/use-system-insets";
 
-// A body that is not a scroll view rises in once as one block (M4); a
-// scrolling body staggers its blocks instead (`Entrance`, H2). Refreshes and tab
-// switches don't remount, so neither replays.
+// The body rises in once, as one block, under the navigator's fade (M4).
+// Refreshes and tab switches don't remount, so neither replays it. One block on
+// purpose: the per-section stagger that replaced it (H2) held the last section
+// back by most of a second on every visit.
 const BODY_ENTER = riseOnly();
 
 // Third-party scroll view: NativeWind has to be told which props carry classes.
@@ -318,7 +318,7 @@ export function Screen({
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}
     >
-      <Entrance>{children}</Entrance>
+      {children}
     </KeyboardAwareScrollView>
   ) : (
     <View
@@ -356,7 +356,7 @@ export function Screen({
         */}
         <View className="flex-1">
           {bodyReady ? (
-            <Animated.View className="flex-1" entering={scroll ? undefined : BODY_ENTER}>
+            <Animated.View className="flex-1" entering={BODY_ENTER}>
               {body}
             </Animated.View>
           ) : (

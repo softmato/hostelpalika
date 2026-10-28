@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { cachedRead } from "@/lib/redis-cache";
 import { reportExportResponse } from "@/modules/reports/report-response";
 import { getStockReport, resolveStockActor, stockReportExport } from "@/modules/stock/stock.service";
 import { stockReportQuerySchema } from "@/modules/stock/stock.validation";
@@ -14,7 +15,11 @@ export async function GET(request: NextRequest) {
   try {
     const principal = await requireHostelCapability(request, "manageStock");
     const query = stockReportQuerySchema.parse(Object.fromEntries(request.nextUrl.searchParams));
-    const report = await getStockReport(await resolveStockActor(principal, query.scope === "all"), query.range);
+    const load = async () => getStockReport(await resolveStockActor(principal, query.scope === "all"), query.range);
+    const report =
+      query.scope === "all" || query.format
+        ? await load()
+        : await cachedRead(principal, `stock-report${request.nextUrl.search}`, load);
 
     if (query.format) return reportExportResponse(stockReportExport(report), { format: query.format, scopeName: report.scope });
 

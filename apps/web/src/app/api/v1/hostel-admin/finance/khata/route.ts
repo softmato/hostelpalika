@@ -3,6 +3,7 @@ import type { NextRequest } from "next/server";
 import { requireHostelCapability } from "@/lib/api-auth";
 import { handleRouteError, successResponse } from "@/lib/api-response";
 import { withEtag } from "@/lib/etag";
+import { cachedRead } from "@/lib/redis-cache";
 import {
   getKhataOverview,
   khataItemsSchema,
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
       request.nextUrl.searchParams.get("hostelId") ?? undefined,
     );
 
-    return withEtag(request, successResponse(await getKhataOverview(hostelId), "Khata"));
+    return withEtag(request, successResponse(await cachedRead(principal, `khata:${hostelId}`, () => getKhataOverview(hostelId)), "Khata"));
   } catch (error) {
     return handleRouteError(error);
   }

@@ -1,6 +1,6 @@
-import { Tabs, useIsFocused } from "expo-router";
-import { type ComponentProps, type ReactNode, useEffect, useMemo, useRef } from "react";
-import { Animated, type ColorValue, Easing, View } from "react-native";
+import { Tabs } from "expo-router";
+import { type ComponentProps, useEffect, useRef } from "react";
+import { type ColorValue, View } from "react-native";
 
 import { AnimatedTabBar } from "@/components/tab-bar";
 import { PersonAvatar } from "@/components/ui/avatar";
@@ -34,37 +34,18 @@ export type TabDef = {
   name: string;
 };
 
-/** How long a tab change runs. The fade is visible for all of it. */
-const TRANSITION_MS = 220;
-
 /**
- * Opacity against a scene's tab progress: 0 when focused, 1 to the right of the
- * focused tab, -1 to the left.
- *
- * Scenes stack in route order, not focus order: react-native-screens drops the
- * navigator's `zIndex` (its `Screen.tsx` overrides it with `undefined`). Of the
- * two tabs in a change the higher index is on top, and that is always the one
- * on the `[0, 1]` side of centre. So that side does all the fading, and the
- * `[-1, 0]` side stays fully opaque underneath until it reaches -1 exactly.
- *
- * Going right, the new tab fades in over the old one; going left, the old tab
- * fades off the new one. Either way the change shows from the first frame, and
- * every frame is the two tabs mixed with no background between them. Fading
- * both at once is what drew half a new tab over a quarter of the old one — and
- * a curve that assumed the focused tab was on top sat still going left.
- *
- * Both ends are 0 so a tab parked outside the change never shows through.
+ * How long after a tab change the preloader keeps its hands off. A change is
+ * instant now (see `RoleTabs`), so this only has to cover the focused tab's own
+ * first render.
  */
-const DISSOLVE = {
-  inputRange: [-1, -0.999, 0, 1],
-  outputRange: [0, 1, 1, 0],
-};
+const QUIET_MS = 300;
 
 type TabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>["tabBar"]>>[0];
 
 /**
  * Mounts the tabs behind the landing one while the app is idle, so the first
- * tap on a tab only has to animate.
+ * tap on a tab only has to show it.
  *
  * The navigator mounts a tab on its first visit and starts the change animation
  * only after that render commits, so a first visit sat still while a whole
@@ -96,7 +77,7 @@ function TabPreloader({
       visited.current.add(focused);
     }
 
-    quietUntil.current = Date.now() + TRANSITION_MS + 150;
+    quietUntil.current = Date.now() + QUIET_MS;
   }, [focused]);
 
   useEffect(() => {
@@ -149,50 +130,6 @@ function TabPreloader({
 }
 
 /**
- * The layer a tab fades on.
- *
- * The navigator would fade its own scene view, and on Android that is not a
- * fade of the screen: React Native views default to non-overlapping alpha, so
- * the opacity is pushed down onto every child separately. The tab's white
- * ground, its cards and its text each turn half-transparent on their own and
- * the other tab shows through every layer of them — a washed-out frame that is
- * neither tab. `needsOffscreenAlphaCompositing` draws the screen into one
- * buffer and fades that, so it fades as a picture. The buffer exists only while
- * opacity is below 1, which is the length of a change.
- *
- * The ground lives here, not in `sceneStyle`, because it has to fade with the
- * screen; an opaque scene view outside this layer would hide the tab beneath.
- */
-function TabScene({
-  background,
-  children,
-  readProgress,
-}: {
-  background: string;
-  children: ReactNode;
-  readProgress: () => Animated.Value | undefined;
-}) {
-  /*
-   * Read on every render, and focus forces one. The navigator can hand a scene
-   * a new progress value (after sign-out resets the store, say) without
-   * re-rendering this layer; holding the old one left a tab stuck at opacity 0
-   * — a white screen — until something else happened to re-render it.
-   */
-  useIsFocused();
-  const progress = readProgress();
-  const opacity = useMemo(() => progress?.interpolate(DISSOLVE) ?? 1, [progress]);
-
-  return (
-    <Animated.View
-      needsOffscreenAlphaCompositing
-      style={{ backgroundColor: background, flex: 1, opacity }}
-    >
-      {children}
-    </Animated.View>
-  );
-}
-
-/**
  * The bottom tab bar for a signed-in role.
  *
  * One component for all five signed-in audiences, differing only in accent
@@ -227,7 +164,6 @@ export function RoleTabs({
 
   const hasCommunity = tabs.some((tab) => tab.name === "community");
   const tabNames = tabs.map((tab) => tab.name);
-  const progressByKey = useRef(new Map<string, Animated.Value>());
 
   /*
    * The community warm-up lives here rather than in six group layouts, because
@@ -276,28 +212,23 @@ export function RoleTabs({
           <AnimatedTabBar {...props} accent={accent} />
         </>
       )}
-      // The fade is drawn by `TabScene`, which says why the navigator can't.
-      screenLayout={({ children, route }) => (
-        <TabScene background={colors.background} readProgress={() => progressByKey.current.get(route.key)}>
-          {children}
-        </TabScene>
-      )}
-      screenOptions={({ route }) => ({
+      /*
+       * A tab change is instant, the way the system's own tab bars are. The
+       * dissolve that was here drew both tabs through an offscreen buffer for
+       * every frame of it, and on a budget phone the two showed through each
+       * other for half a second (field video, 2026-10-27).
+       *
+       * `freezeOnBlur`: a tab you have left stops re-rendering on every store or
+       * cache change behind the one you are on, and catches up when you come
+       * back. A preloaded tab nobody has opened yet is not frozen
+       * (`shouldFreeze` skips it), so the preloader still builds it.
+       */
+      screenOptions={{
+        animation: "none",
+        freezeOnBlur: true,
         headerShown: false,
-        sceneStyle: { backgroundColor: "transparent" },
-        // A dissolve with no slide — `DISSOLVE` says why only one scene fades.
-        animation: "shift",
-        transitionSpec: {
-          animation: "timing",
-          config: { duration: TRANSITION_MS, easing: Easing.out(Easing.cubic) },
-        },
-        // Styles nothing: it is the one place the navigator hands out a scene's
-        // progress, and it runs before that scene's layout renders.
-        sceneStyleInterpolator: ({ current }: { current: { progress: Animated.Value } }) => {
-          progressByKey.current.set(route.key, current.progress);
-          return { sceneStyle: {} };
-        },
-      })}
+        sceneStyle: { backgroundColor: colors.background },
+      }}
     >
       {tabs.map((tab) => (
         <Tabs.Screen

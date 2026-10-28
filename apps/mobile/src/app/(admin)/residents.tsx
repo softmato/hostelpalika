@@ -420,10 +420,7 @@ function BranchAdminResidentsScreen() {
         */}
         {roster.total > 0 ? existingEntry : null}
 
-        <Text className="px-1" variant="caption">
-          Tap anyone to open their record — details, status, activation code, guardians
-          and both checklists. Pull a row left to ring them.
-        </Text>
+        <Text className="px-1" variant="caption">{"Tap to open · swipe left to call"}</Text>
       </View>
     </Screen>
   );

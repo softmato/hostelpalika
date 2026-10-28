@@ -388,9 +388,7 @@ export default function ManageCookScreen() {
             </View>
             <View className="flex-1">
               <Text variant="label">Cook enters stock used</Text>
-              <Text variant="caption">
-                Rice, daal, oil taken from the store. The cook never sees prices.
-              </Text>
+              <Text variant="caption">{"From the store · prices hidden"}</Text>
             </View>
             <Toggle
               accessibilityLabel="Cook enters stock used"
@@ -408,9 +406,7 @@ export default function ManageCookScreen() {
             </View>
             <View className="flex-1">
               <Text variant="label">Cook can add expenses</Text>
-              <Text variant="caption">
-                For vegetables, gas and market shopping. The cook sees only what they added.
-              </Text>
+              <Text variant="caption">{"Market shopping · own entries only"}</Text>
             </View>
             <Toggle
               accessibilityLabel="Cook can add expenses"
@@ -428,9 +424,7 @@ export default function ManageCookScreen() {
             </View>
             <View className="flex-1">
               <Text variant="label">Cooks lock the app with a fingerprint</Text>
-              <Text variant="caption">
-                Each cook is asked to turn it on, then the app asks for their finger every time it opens.
-              </Text>
+              <Text variant="caption">{"Fingerprint on every open."}</Text>
             </View>
             <Toggle
               accessibilityLabel="Cooks lock the app with a fingerprint"
@@ -595,9 +589,7 @@ export default function ManageCookScreen() {
               value={email}
             />
           ) : (
-            <Text variant="caption">
-              We show a sign-in and password once. No email needed.
-            </Text>
+            <Text variant="caption">{"Sign-in shown once. No email needed."}</Text>
           )}
         </View>
       </Sheet>
@@ -653,9 +645,7 @@ export default function ManageCookScreen() {
             <Text variant="caption">Tap either line to copy it.</Text>
           </Card>
 
-          <Text variant="caption">
-            Also emailed to you. Lost it later? Issue a new one.
-          </Text>
+          <Text variant="caption">{"Also emailed to you."}</Text>
         </View>
       </Sheet>
 
