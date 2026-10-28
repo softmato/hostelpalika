@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Open_Sans } from "next/font/google";
+import { Geist, Geist_Mono, Open_Sans, Roboto_Slab } from "next/font/google";
 
 import {
   PLATFORM_NAME,
@@ -29,6 +29,12 @@ const geistSans = Geist({
 const openSans = Open_Sans({
   subsets: ["latin"],
   variable: "--font-open-sans",
+});
+
+// Variable weight axis, so the home headline's proximity effect still works.
+const robotoSlab = Roboto_Slab({
+  subsets: ["latin"],
+  variable: "--font-roboto-slab",
 });
 
 const geistMono = Geist_Mono({
@@ -115,9 +121,16 @@ export default async function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${openSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${openSans.variable} ${robotoSlab.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
+        {/* Arms the homepage entrance (globals.css) before first paint, and only
+            for a real document load of "/" — not a back/forward restore. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){var n=performance.getEntriesByType("navigation")[0];if(n&&location.pathname==="/"&&new URL(n.name).pathname==="/"&&n.type!=="back_forward")document.documentElement.setAttribute("data-home-entrance","")})()`,
+          }}
+        />
         <ThemeProvider>
           <QueryProvider>
             <SiteConfigProvider config={siteConfig}>

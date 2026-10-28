@@ -101,7 +101,6 @@ function SignupFormContent({ googleClientId }: SignupFormProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [agreeToTerms, setAgreeToTerms] = useState(false);
 
   // OTP inputs
@@ -196,11 +195,6 @@ function SignupFormContent({ googleClientId }: SignupFormProps) {
   async function requestOtp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
-
-    if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
 
     if (!agreeToTerms) {
       setError("Please agree to the Terms of Service and Privacy Policy.");
@@ -393,7 +387,7 @@ function SignupFormContent({ googleClientId }: SignupFormProps) {
           title="Create account"
         />
 
-        <div className="grid grid-cols-2 gap-1 rounded-xl bg-[#F4F6F8] p-1">
+        <div className="grid grid-cols-2 gap-1 rounded-xl border border-slate-200 bg-[#F4F6F8] p-1">
           <button
             className={`flex items-center justify-center gap-1.5 rounded-lg py-2 text-[13px] font-medium transition ${
               activeTab === "email"
@@ -484,26 +478,6 @@ function SignupFormContent({ googleClientId }: SignupFormProps) {
                 onChange={setPassword}
                 placeholder="Create a password"
                 value={password}
-              />
-            </AuthField>
-
-            <AuthField
-              hint={
-                password && confirmPassword && password !== confirmPassword ? (
-                  <span className="font-medium text-red-500">
-                    Passwords do not match.
-                  </span>
-                ) : undefined
-              }
-              htmlFor="signup-confirm-password"
-              label="Confirm password"
-            >
-              <PasswordInput
-                autoComplete="new-password"
-                id="signup-confirm-password"
-                onChange={setConfirmPassword}
-                placeholder="Re-enter your password"
-                value={confirmPassword}
               />
             </AuthField>
 

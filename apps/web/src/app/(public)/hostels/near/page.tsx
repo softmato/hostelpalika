@@ -5,17 +5,10 @@ import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 import { PublicNearIndexPage } from "@/app/_components/public-location-page";
 import { JsonLd } from "@/components/json-ld";
 import { breadcrumbJsonLd, itemListJsonLd } from "@/lib/json-ld";
-import { loadNearPlaces } from "@/lib/near-pages";
+import { loadNearIndex } from "@/lib/near-pages";
 import { pageMetadata } from "@/lib/seo";
 
-async function places() {
-  return (await loadNearPlaces()).map((place) => ({
-    city: place.city,
-    count: place.distances.size,
-    href: `/hostels/near/${place.slug}`,
-    label: place.name,
-  }));
-}
+const places = loadNearIndex;
 
 export async function generateMetadata(): Promise<Metadata> {
   const list = await places();

@@ -1,5 +1,6 @@
-import { ShieldCheck } from "@/components/icons";
 import Link from "next/link";
+
+import { ToggleCard } from "@/components/smooth-collapse";
 
 import type { RolePage } from "@/lib/role-pages";
 
@@ -33,52 +34,44 @@ export function PublicRolePage({
         />
 
         <header className="max-w-3xl">
-          <p className="text-sm font-semibold text-primary">For {page.label.toLowerCase()}</p>
-          <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {page.headline}
           </h1>
-          <p className="mt-4 text-base leading-7 text-muted-foreground">{page.intro}</p>
+          <p className="sr-only">{page.intro}</p>
         </header>
 
-        <section className="mt-10 grid gap-4 sm:grid-cols-2">
+        <section className="mt-10 grid items-start gap-4 sm:grid-cols-2">
           {page.does.map((item) => (
-            <div className="rounded-2xl border border-border bg-surface p-6" key={item.title}>
-              <h2 className="font-heading text-lg font-bold text-foreground">{item.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.body}</p>
-            </div>
+            <ToggleCard defaultOpen key={item.title} title={item.title}>
+              <p className="text-sm leading-6 text-muted-foreground">{item.body}</p>
+            </ToggleCard>
           ))}
-          <div className="rounded-2xl border border-border bg-surface p-6">
-            <h2 className="flex items-center gap-2 font-heading text-lg font-bold text-foreground">
-              <ShieldCheck className="size-5 text-primary" />
-              PIN and fingerprint lock
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">{lockNote}</p>
-          </div>
-        </section>
-
-        <section className="mt-10 rounded-2xl border border-border bg-surface p-6">
-          <h2 className="font-heading text-lg font-bold text-foreground">How you get access</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">{page.join}</p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Link
-              className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition hover:bg-primary/90"
-              href={owner ? "/register-hostel" : page.slug === "residents" ? "/hostels" : "/login"}
-            >
-              {owner ? "List your hostel" : page.slug === "residents" ? "Find a hostel" : "Log in"}
-            </Link>
-            <Link
-              className="inline-flex items-center rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary/50"
-              href={owner ? "/plans-pricing" : "/hostel-management-software"}
-            >
-              {owner ? "Plans & pricing" : "How the whole hostel works together"}
-            </Link>
-          </div>
+          <ToggleCard defaultOpen title="PIN and fingerprint lock">
+            <p className="text-sm leading-6 text-muted-foreground">{lockNote}</p>
+          </ToggleCard>
+          <ToggleCard defaultOpen title="How you get access">
+            <p className="text-sm leading-6 text-muted-foreground">{page.join}</p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <Link
+                className="inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-bold text-primary-foreground transition hover:bg-primary/90"
+                href={owner ? "/register-hostel" : page.slug === "residents" ? "/hostels" : "/login"}
+              >
+                {owner ? "List your hostel" : page.slug === "residents" ? "Find a hostel" : "Log in"}
+              </Link>
+              <Link
+                className="inline-flex items-center rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary/50"
+                href={owner ? "/plans-pricing" : "/hostel-management-software"}
+              >
+                {owner ? "Plans & pricing" : "How the whole hostel works together"}
+              </Link>
+            </div>
+          </ToggleCard>
         </section>
 
         <SeoFaq entries={page.faq} title={`Questions from ${page.label.toLowerCase()}`} />
 
-        <section className="mt-16 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-border bg-surface p-6">
+        <section className="mt-16 space-y-6">
+          <div>
             <h2 className="font-heading text-lg font-bold text-foreground">Everyone else in the hostel</h2>
             <div className="mt-4 flex flex-wrap gap-2">
               {others.map((link) => (

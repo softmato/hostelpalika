@@ -97,7 +97,6 @@ import {
 } from "@/lib/listing-tier";
 import {
   buildNearPlaceIndex,
-  NEAR_RADIUS_METERS,
   type NearPlace,
   type NearPlaceSourceRow,
 } from "@/lib/near-places";
@@ -3818,7 +3817,20 @@ export async function listPublicHostelsNear(placeSlug: string) {
     return null;
   }
 
-  const ids = [...place.distances.keys()].map((id) => new Types.ObjectId(id));
+  const [entry] = await hostelsForPlaces([place]);
+
+  return { hostels: entry.hostels, place };
+}
+
+/** Every campus with its hostels, nearest first — one query for the whole `/hostels/near` index. */
+export async function listPublicHostelsNearAll() {
+  return hostelsForPlaces(await listPublicNearbyPlaces());
+}
+
+async function hostelsForPlaces(places: NearPlace[]) {
+  const ids = [...new Set(places.flatMap((place) => [...place.distances.keys()]))].map(
+    (id) => new Types.ObjectId(id),
+  );
   const [found, tiers] = await Promise.all([
     HostelModel.find({
       _id: { $in: ids },
@@ -3829,17 +3841,26 @@ export async function listPublicHostelsNear(placeSlug: string) {
     publicListingTiers(),
   ]);
   const ratings = await ratingSummariesFor(found.map((hostel) => hostel._id));
+  const byId = new Map(
+    found.map((hostel) => [
+      hostel._id.toString(),
+      {
+        ...serializePublicHostel(hostel),
+        listingTier: tierOfHostel(hostel, tiers),
+        ratingSummary: publicRating(hostel._id.toString(), ratings),
+      },
+    ]),
+  );
 
-  const hostels = found
-    .map((hostel) => ({
-      ...serializePublicHostel(hostel),
-      distanceMeters: place.distances.get(hostel._id.toString()) ?? NEAR_RADIUS_METERS,
-      listingTier: tierOfHostel(hostel, tiers),
-      ratingSummary: publicRating(hostel._id.toString(), ratings),
-    }))
-    .sort((a, b) => compareListingTier(a, b) || a.distanceMeters - b.distanceMeters);
-
-  return { hostels, place };
+  return places.map((place) => ({
+    hostels: [...place.distances]
+      .flatMap(([id, distanceMeters]) => {
+        const hostel = byId.get(id);
+        return hostel ? [{ ...hostel, distanceMeters }] : [];
+      })
+      .sort((a, b) => compareListingTier(a, b) || a.distanceMeters - b.distanceMeters),
+    place,
+  }));
 }
 
 /**

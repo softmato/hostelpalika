@@ -34,6 +34,7 @@ import {
   type IconComponent,
 } from "@/components/icons";
 
+import { FAQ_LIMIT } from "@/lib/json-ld";
 import type { PublicSiteConfig } from "@/modules/platform-config/site-config.service";
 import type { ContentPage } from "@/modules/platform-config/site-config.validation";
 
@@ -86,7 +87,7 @@ export function resolveWebFaq(
   faq: Array<{ answer: string; question: string }>,
   identity: SiteIdentity,
 ) {
-  return faq.map((entry) => ({
+  return faq.slice(0, FAQ_LIMIT).map((entry) => ({
     answer: fillPlaceholders(WEB_ANSWERS[entry.question] ?? entry.answer, identity),
     question: fillPlaceholders(entry.question, identity),
   }));

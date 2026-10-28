@@ -11,8 +11,9 @@
   --card-foreground: oklch(0.147 0.004 49.25);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.147 0.004 49.25);
-  --primary: oklch(0.508 0.118 165.612);
-  --primary-foreground: oklch(0.979 0.021 166.113);
+  /* The brand green, the same token the app uses (`--primary` in apps/mobile). */
+  --primary: #0a8a4b;
+  --primary-foreground: #ffffff;
   --secondary: oklch(0.967 0.001 286.375);
   --secondary-foreground: oklch(0.21 0.006 285.885);
   --muted: oklch(0.97 0.001 106.424);
@@ -85,12 +86,14 @@
   --role-guardian: #0a8a4b;
   --role-guardian-soft: #e7f4ec;
   /*
-   * The page header block (`PortalPageHeader`): near-black with a green glow,
-   * the FoneBiz-style hero. Defined only here, not under `.dark`, because the
-   * block wears `.dark` itself to re-theme its buttons and must keep this ground.
+   * The page header block (`PortalPageHeader`): a painted brand-green block,
+   * the same gradient as the app's home card (`adminHero.light` in
+   * apps/mobile). Defined only here, not under `.dark`, because the block wears
+   * `.dark` itself to re-theme its buttons and must keep this ground.
    */
-  --hero: #0f1512;
-  --hero-glow: rgba(18, 169, 93, 0.24);
+  --hero: #0a8a4b;
+  --hero-to: #046b48;
+  --hero-glow: rgba(255, 255, 255, 0.14);
   /*
    * The field team's tone. An agent works for the platform, but the desk is the
    * one portal an outsider is walked through on a phone in a hostel lobby, and
@@ -113,19 +116,38 @@
    * now sits a shade lighter than the card it is in.
    */
   --field: #ffffff;
-  --chart-1: oklch(0.508 0.118 165.612);
+  --chart-1: #0a8a4b;
   --chart-2: oklch(0.967 0.001 286.375);
   --chart-3: oklch(0.21 0.006 285.885);
   --chart-4: oklch(0.553 0.013 58.071);
   --chart-5: oklch(0.577 0.245 27.325);
   --sidebar: oklch(0.967 0.001 106.424);
   --sidebar-foreground: oklch(0.147 0.004 49.25);
-  --sidebar-primary: oklch(0.508 0.118 165.612);
-  --sidebar-primary-foreground: oklch(0.979 0.021 166.113);
+  --sidebar-primary: #0a8a4b;
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: oklch(0.97 0.001 106.424);
   --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
   --sidebar-border: oklch(0.923 0.003 48.717);
   --sidebar-ring: oklch(0.709 0.01 56.259);
+}
+
+/*
+ * Tailwind's emerald, re-centred on the brand green. A hundred-odd
+ * `emerald-*` classes (paid, verified, success) were a bluer green than the
+ * product's; this makes every one of them, and any written later, land on it.
+ */
+@theme {
+  --color-emerald-50: #ecf8f1;
+  --color-emerald-100: #d3efdf;
+  --color-emerald-200: #a8dfbf;
+  --color-emerald-300: #72c999;
+  --color-emerald-400: #3db574;
+  --color-emerald-500: #12a95d;
+  --color-emerald-600: #0a8a4b;
+  --color-emerald-700: #087040;
+  --color-emerald-800: #075a35;
+  --color-emerald-900: #064a2c;
+  --color-emerald-950: #032a19;
 }
 
 @theme inline {
@@ -229,20 +251,20 @@ body {
 }
 
 .dark {
-  --background: oklch(0.147 0.004 49.25);
+  --background: oklch(0.195 0.004 49.25);
   --foreground: oklch(0.985 0.001 106.423);
-  --card: oklch(0.216 0.006 56.043);
+  --card: oklch(0.245 0.006 56.043);
   --card-foreground: oklch(0.985 0.001 106.423);
-  --popover: oklch(0.216 0.006 56.043);
+  --popover: oklch(0.245 0.006 56.043);
   --popover-foreground: oklch(0.985 0.001 106.423);
-  --primary: oklch(0.432 0.095 166.913);
-  --primary-foreground: oklch(0.979 0.021 166.113);
+  --primary: #12a95d;
+  --primary-foreground: #04140c;
   --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.268 0.007 34.298);
-  --skeleton: oklch(0.34 0.008 34.298);
+  --muted: oklch(0.295 0.007 34.298);
+  --skeleton: oklch(0.36 0.008 34.298);
   --muted-foreground: oklch(0.709 0.01 56.259);
-  --accent: oklch(0.268 0.007 34.298);
+  --accent: oklch(0.295 0.007 34.298);
   --accent-foreground: oklch(0.985 0.001 106.423);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
@@ -269,16 +291,16 @@ body {
   --role-guardian-soft: #10301f;
   --role-team: #12a95d;
   --role-team-soft: #10301f;
-  --field: oklch(0.262 0.007 56.043);
-  --chart-1: oklch(0.432 0.095 166.913);
+  --field: oklch(0.29 0.007 56.043);
+  --chart-1: #12a95d;
   --chart-2: oklch(0.274 0.006 286.033);
   --chart-3: oklch(0.985 0 0);
   --chart-4: oklch(0.709 0.01 56.259);
   --chart-5: oklch(0.704 0.191 22.216);
   --sidebar: oklch(0.216 0.006 56.043);
   --sidebar-foreground: oklch(0.985 0.001 106.423);
-  --sidebar-primary: oklch(0.432 0.095 166.913);
-  --sidebar-primary-foreground: oklch(0.979 0.021 166.113);
+  --sidebar-primary: #12a95d;
+  --sidebar-primary-foreground: #04140c;
   --sidebar-accent: oklch(0.268 0.007 34.298);
   --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
   --sidebar-border: oklch(1 0 0 / 10%);
@@ -797,4 +819,132 @@ body {
   :is([data-slot="skeleton"], .animate-pulse[class*="bg-muted"], .animate-pulse.bg-skeleton) {
     animation: none;
   }
+}
+
+/* Homepage entrance. Armed by the inline script in layout.tsx and cleared by
+   useHomeEntrance; pure CSS so it is already running on the first server-rendered
+   paint. `backwards` holds each piece hidden through its delay. */
+@media (prefers-reduced-motion: no-preference) {
+  html[data-home-entrance] [data-home-entrance] {
+    animation: home-entrance 650ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: var(--he-delay, 0ms);
+  }
+  html[data-home-entrance] [data-home-entrance="logo"] { --he-x: -28px; }
+  html[data-home-entrance] [data-home-entrance="actions"] { --he-x: 28px; --he-delay: 60ms; }
+  html[data-home-entrance] [data-home-entrance="art-left"] { --he-x: -24px; --he-delay: 100ms; }
+  html[data-home-entrance] [data-home-entrance="art-right"] { --he-x: 24px; --he-delay: 100ms; }
+  html[data-home-entrance] [data-home-entrance="chip"] { --he-y: 12px; --he-delay: 100ms; }
+  html[data-home-entrance] [data-home-entrance="headline"] { --he-y: 18px; --he-delay: 160ms; }
+  html[data-home-entrance] [data-home-entrance="search"] { --he-y: 20px; --he-delay: 240ms; }
+  html[data-home-entrance] [data-home-entrance="trust"] { --he-y: 12px; --he-delay: 320ms; }
+  /* The nav's links drop in one after another; the nav itself stays put. */
+  html[data-home-entrance] [data-home-entrance="nav"] { animation: none; }
+  html[data-home-entrance] [data-home-entrance="nav"] > * {
+    --he-y: -16px;
+    --he-delay: calc(30ms + var(--he-i, 0) * 25ms);
+    animation: home-entrance 650ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+    animation-delay: var(--he-delay);
+  }
+  html[data-home-entrance] [data-home-entrance="nav"] > :nth-child(2) { --he-i: 1; }
+  html[data-home-entrance] [data-home-entrance="nav"] > :nth-child(3) { --he-i: 2; }
+  html[data-home-entrance] [data-home-entrance="nav"] > :nth-child(4) { --he-i: 3; }
+  html[data-home-entrance] [data-home-entrance="nav"] > :nth-child(5) { --he-i: 4; }
+  html[data-home-entrance] [data-home-entrance="nav"] > :nth-child(6) { --he-i: 5; }
+  html[data-home-entrance] [data-home-entrance="nav"] > :nth-child(7) { --he-i: 6; }
+  html[data-home-entrance] [data-home-entrance="nav"] > :nth-child(8) { --he-i: 7; }
+  html[data-home-entrance] [data-home-entrance="nav"] > :nth-child(9) { --he-i: 8; }
+}
+
+@keyframes home-entrance {
+  from { opacity: 0; transform: translate3d(var(--he-x, 0), var(--he-y, 0), 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+/* The hero's leaves drift in place; each sets its own duration and delay. */
+@keyframes hero-leaf-float {
+  from { transform: translate3d(0, 0, 0) rotate(-6deg); }
+  to { transform: translate3d(0, -18px, 0) rotate(8deg); }
+}
+.hero-leaf {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hero-leaf-float 6s ease-in-out infinite alternate;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-leaf { animation: none; }
+}
+
+/* Software page: hero chips drift gently; cards draw a moving green border on hover. */
+@keyframes hp-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+.hp-float {
+  animation: hp-float 4.5s ease-in-out infinite;
+  animation-delay: var(--float-delay, 0s);
+}
+@property --hp-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes hp-border-spin {
+  to { --hp-angle: 360deg; }
+}
+.hp-card {
+  position: relative;
+  transition: box-shadow 0.35s ease, transform 0.35s ease;
+}
+.hp-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 2px;
+  background: conic-gradient(from var(--hp-angle), transparent 0 55%, var(--primary) 80%, transparent 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+.hp-card:hover { box-shadow: 0 8px 24px -12px color-mix(in oklab, var(--primary) 45%, transparent); }
+.hp-card:hover::before {
+  opacity: 1;
+  animation: hp-border-spin 2.6s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hp-float, .hp-card:hover::before { animation: none; }
+}
+
+/* Step connectors: a dashed line that flows toward the next step, with a nudging arrow head. */
+@keyframes hp-dash-y { to { background-position-y: 12px; } }
+@keyframes hp-dash-x { to { background-position-x: 12px; } }
+@keyframes hp-nudge-y { 0%, 100% { transform: translateY(-2px); } 50% { transform: translateY(3px); } }
+@keyframes hp-nudge-x { 0%, 100% { transform: translateX(-2px); } 50% { transform: translateX(3px); } }
+.hp-dash-v {
+  background: repeating-linear-gradient(180deg, var(--primary) 0 6px, transparent 6px 12px);
+  background-size: 2px 12px;
+  animation: hp-dash-y 0.9s linear infinite;
+}
+.hp-dash-h {
+  background: repeating-linear-gradient(90deg, var(--primary) 0 6px, transparent 6px 12px);
+  background-size: 12px 2px;
+  animation: hp-dash-x 0.9s linear infinite;
+}
+.hp-nudge-y { animation: hp-nudge-y 1.2s ease-in-out infinite; }
+.hp-nudge-x { animation: hp-nudge-x 1.2s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .hp-dash-v, .hp-dash-h, .hp-nudge-y, .hp-nudge-x { animation: none; }
+}
+
+/* S-curve connector between zig-zag steps. */
+@keyframes hp-dash-offset { to { stroke-dashoffset: -14; } }
+.hp-dash-path {
+  stroke-dasharray: 7 7;
+  animation: hp-dash-offset 0.9s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hp-dash-path { animation: none; }
 }

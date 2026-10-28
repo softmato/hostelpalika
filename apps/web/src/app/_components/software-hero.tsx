@@ -17,13 +17,14 @@ export function SoftwareHeroVisual() {
       <div className="absolute left-1/2 top-1/2 flex size-36 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-[2rem] bg-primary text-primary-foreground shadow-xl">
         <Building2 className="size-16" />
       </div>
-      {HERO_CHIPS.map(({ Icon, label, pos }) => (
+      {HERO_CHIPS.map(({ Icon, label, pos }, index) => (
         <div
           className={cn(
-            "absolute flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm font-semibold text-foreground shadow-md",
+            "hp-float absolute flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2 text-sm font-semibold text-foreground shadow-md",
             pos,
           )}
           key={label}
+          style={{ "--float-delay": `${index * -1.1}s` } as React.CSSProperties}
         >
           <Icon className="size-4 text-primary" />
           {label}

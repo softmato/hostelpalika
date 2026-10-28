@@ -5,6 +5,7 @@ import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 
 import { ContentSectionIcon } from "@/components/content-sections";
 import { GooglePlayBadge } from "@/components/google-play-badge";
+import { AreaAccordion, MoreToggle, ToggleCard } from "@/components/smooth-collapse";
 import { formatNpr } from "@/lib/json-ld";
 import { ROLE_LINKS } from "@/lib/role-links";
 import type {
@@ -125,25 +126,15 @@ export function SoftwarePage({
         </header>
 
         {lead ? (
-          <div className="mt-12 max-w-3xl text-base leading-relaxed text-muted-foreground">
+          <div className="sr-only">
             <p>{lead}</p>
-            {moreIntro.length ? (
-              <details className="group mt-3">
-                <summary className="cursor-pointer list-none text-sm font-bold text-primary group-open:hidden">
-                  Read more
-                </summary>
-                <div className="space-y-3">
-                  {moreIntro.map((paragraph) => (
-                    <p key={paragraph}>{paragraph}</p>
-                  ))}
-                </div>
-              </details>
-            ) : null}
+            {moreIntro.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
           </div>
         ) : null}
 
         <RolesSection />
-        <WorkflowSection />
         <ModuleAtlas modules={modules} />
 
         {page.sections.length ? (
@@ -152,7 +143,10 @@ export function SoftwarePage({
               const [first, ...rest] = section.body;
 
               return (
-                <div className="rounded-2xl bg-muted/40 p-6" key={section.title}>
+                <div
+                  className="hp-card rounded-2xl border border-border bg-surface p-6"
+                  key={section.title}
+                >
                   <div className="flex items-center gap-3">
                     <ModuleIcon slug={section.icon} />
                     <h2 className="font-heading text-lg font-bold text-foreground">{section.title}</h2>
@@ -161,16 +155,13 @@ export function SoftwarePage({
                     <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{first}</p>
                   ) : null}
                   {rest.length ? (
-                    <details className="group mt-2">
-                      <summary className="cursor-pointer list-none text-sm font-bold text-primary group-open:hidden">
-                        Read more
-                      </summary>
+                    <MoreToggle>
                       <div className="space-y-3 text-sm leading-relaxed text-muted-foreground">
                         {rest.map((paragraph) => (
                           <p key={paragraph}>{paragraph}</p>
                         ))}
                       </div>
-                    </details>
+                    </MoreToggle>
                   ) : null}
                 </div>
               );
@@ -185,7 +176,16 @@ export function SoftwarePage({
             <SectionTitle>Start in {page.steps.length} steps</SectionTitle>
             <ol className="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
               {page.steps.map((step, index) => (
-                <li key={step.title}>
+                <li className="relative" key={step.title}>
+                  {index < page.steps.length - 1 ? (
+                    <span
+                      aria-hidden
+                      className="absolute left-[3.25rem] right-[-1.25rem] top-[1.125rem] hidden items-center lg:flex"
+                    >
+                      <span className="hp-dash-h h-0.5 flex-1" />
+                      <ArrowRight className="hp-nudge-x -ml-1 size-4 shrink-0 text-primary" />
+                    </span>
+                  ) : null}
                   <span className="flex size-10 items-center justify-center rounded-full bg-primary font-heading text-base font-bold text-primary-foreground">
                     {index + 1}
                   </span>
@@ -206,7 +206,7 @@ export function SoftwarePage({
               {plans.map((plan) => (
                 <div
                   className={cn(
-                    "rounded-2xl border bg-surface p-6",
+                    "hp-card rounded-2xl border bg-surface p-6",
                     plan.featured ? "border-primary shadow-md" : "border-border",
                   )}
                   key={plan.id}
@@ -244,6 +244,8 @@ export function SoftwarePage({
             ))}
           </div>
         </section>
+
+        <WorkflowSection />
 
         <SeoFaq entries={page.faq} title="Questions hostel owners ask" />
 
@@ -289,44 +291,29 @@ export function FeaturesHubPage({
         />
 
         <header className="max-w-3xl">
-          <p className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-sm font-semibold text-primary">
-            <BadgeCheck className="size-4" />
-            Features
-          </p>
-          <h1 className="mt-4 font-heading text-3xl font-bold tracking-tight text-foreground md:text-4xl">
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground md:text-4xl">
             {title}
           </h1>
-          <p className="mt-3 line-clamp-2 text-base leading-relaxed text-muted-foreground">
-            {description}
-          </p>
+          <p className="sr-only">{description}</p>
         </header>
 
-        <div className="mt-14 space-y-14">
-          {modules.map((entry) => (
-            <section className="scroll-mt-28" id={entry.slug} key={entry.slug}>
-              <div className="flex items-center gap-4">
-                <ModuleIcon slug={entry.module.icon} />
-                <div className="min-w-0 flex-1">
-                  <h2 className="font-heading text-xl font-bold text-foreground">
-                    <Link className="transition hover:text-primary" href={`/features/${entry.slug}`}>
-                      {entry.module.name}
-                    </Link>
-                  </h2>
-                  <p className="line-clamp-1 text-sm text-muted-foreground">{entry.headline}</p>
-                </div>
-                <Link
-                  className="hidden shrink-0 items-center gap-1 text-sm font-bold text-primary sm:inline-flex"
-                  href={`/features/${entry.slug}`}
-                >
-                  View all
-                  <ArrowRight className="size-4" />
-                </Link>
-              </div>
-              <ul className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-10 space-y-4">
+          {modules.map((entry, moduleIndex) => (
+            <AreaAccordion
+              count={entry.services.length}
+              defaultOpen={moduleIndex === 0}
+              href={`/features/${entry.slug}`}
+              icon={<ModuleIcon slug={entry.module.icon} />}
+              id={entry.slug}
+              key={entry.slug}
+              subtitle={entry.headline}
+              title={entry.module.name}
+            >
+              <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {entry.services.map((service, index) => (
                   <li key={service.slug}>
                     <Link
-                      className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface p-5 transition hover:-translate-y-0.5 hover:border-primary/50 hover:shadow-md"
+                      className="hp-card group relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface p-5 transition hover:-translate-y-0.5"
                       href={`/plans-pricing/${service.slug}`}
                     >
                       <span
@@ -352,7 +339,7 @@ export function FeaturesHubPage({
                   </li>
                 ))}
               </ul>
-            </section>
+            </AreaAccordion>
           ))}
         </div>
 
@@ -392,7 +379,7 @@ export function FeatureModulePage({
         </header>
 
         {entry.intro.length ? (
-          <div className="mt-8 max-w-3xl space-y-4 text-base leading-relaxed text-muted-foreground">
+          <div className="sr-only">
             {entry.intro.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}
@@ -467,11 +454,10 @@ export function ComparisonPage({
         />
 
         <header className="max-w-3xl">
-          <Eyebrow>Compare</Eyebrow>
-          <h1 className="mt-2 font-heading text-4xl font-bold tracking-tight text-foreground">
+          <h1 className="font-heading text-4xl font-bold tracking-tight text-foreground">
             {comparison.title}
           </h1>
-          <div className="mt-4 space-y-4 text-lg leading-relaxed text-muted-foreground">
+          <div className="sr-only">
             {comparison.intro.map((paragraph) => (
               <p key={paragraph}>{paragraph}</p>
             ))}
@@ -479,50 +465,37 @@ export function ComparisonPage({
         </header>
 
         {comparison.rows.length ? (
-          <section className="mt-12 overflow-x-auto rounded-2xl border border-border bg-surface">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="w-1/5 px-5 py-4 font-heading font-bold text-foreground" scope="col">
-                    The job
-                  </th>
-                  <th className="px-5 py-4 font-heading font-bold text-muted-foreground" scope="col">
-                    {comparison.name}
-                  </th>
-                  <th className="px-5 py-4 font-heading font-bold text-primary" scope="col">
-                    {PLATFORM_NAME}
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {comparison.rows.map((row) => (
-                  <tr key={row.label}>
-                    <th className="px-5 py-4 align-top font-semibold text-foreground" scope="row">
-                      {row.label}
-                    </th>
-                    <td className="px-5 py-4 align-top leading-relaxed text-muted-foreground">
-                      {row.them}
-                    </td>
-                    <td className="px-5 py-4 align-top font-medium leading-relaxed text-foreground">
+          <section className="mt-10 space-y-3">
+            {comparison.rows.map((row) => (
+              <ToggleCard defaultOpen key={row.label} title={row.label}>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl bg-muted/40 p-4">
+                    <p className="font-heading text-sm font-bold text-muted-foreground">
+                      {comparison.name}
+                    </p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{row.them}</p>
+                  </div>
+                  <div className="rounded-xl bg-primary/10 p-4">
+                    <p className="font-heading text-sm font-bold text-primary">{PLATFORM_NAME}</p>
+                    <p className="mt-1.5 text-sm font-medium leading-relaxed text-foreground">
                       {row.us}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    </p>
+                  </div>
+                </div>
+              </ToggleCard>
+            ))}
           </section>
         ) : null}
 
         {comparison.stayWith.length ? (
-          <section className="mt-12 max-w-3xl rounded-2xl border border-border bg-surface p-6">
-            <h2 className="font-heading text-lg font-bold text-foreground">
-              When {comparison.name.toLowerCase()} may still be enough
-            </h2>
-            <ul className="mt-3 list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted-foreground">
-              {comparison.stayWith.map((reason) => (
-                <li key={reason}>{reason}</li>
-              ))}
-            </ul>
+          <section className="mt-3">
+            <ToggleCard title={`When ${comparison.name.toLowerCase()} may still be enough`}>
+              <ul className="list-disc space-y-2 pl-5 text-sm leading-relaxed text-muted-foreground">
+                {comparison.stayWith.map((reason) => (
+                  <li key={reason}>{reason}</li>
+                ))}
+              </ul>
+            </ToggleCard>
           </section>
         ) : null}
 

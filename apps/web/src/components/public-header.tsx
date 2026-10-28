@@ -164,11 +164,11 @@ export function PublicHeader({ active }: PublicHeaderProps) {
   // first frame, and let `/auth/me` correct it.
   const snapshot = useSyncExternalStore(noSubscribe, readHeaderSnapshot, () => undefined);
   const user = isSessionChecked ? sessionUser : (snapshot ?? null);
-  const isHeaderReady = isSessionChecked || snapshot !== undefined;
   const [menuOpen, setMenuOpen] = useState(false);
   const [getAppOpen, setGetAppOpen] = useState(false);
   const [navOpen, setNavOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [folded, setFolded] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   // Comes with the session in the same request, so there is no second lookup to
   // wait on and no window where the wrong tabs are on screen.
@@ -220,8 +220,15 @@ export function PublicHeader({ active }: PublicHeaderProps) {
   }, [menuOpen]);
 
   useEffect(() => {
+    let lastY = window.scrollY;
     function onScroll() {
-      setScrolled(window.scrollY > 50);
+      const y = window.scrollY;
+      setScrolled(y > 50);
+      // Folds on the way down, unfolds the moment the page moves back up —
+      // it does not wait to reach the top. A few px of slack ignores jitter.
+      if (y <= 50 || lastY - y > 4) setFolded(false);
+      else if (y - lastY > 4) setFolded(true);
+      if (Math.abs(y - lastY) > 4) lastY = y;
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -266,7 +273,7 @@ export function PublicHeader({ active }: PublicHeaderProps) {
           className="flex shrink-0 items-center gap-2 lg:pl-10"
         >
           {/* Full name at the top of the page; folds into the HP mark once it scrolls. */}
-          <BrandWordmark folded={scrolled} height={18} />
+          <BrandWordmark folded={folded} height={18} />
         </Link>
 
         {/* Eight destinations plus More only fit from lg, tight there and roomy
@@ -316,7 +323,7 @@ export function PublicHeader({ active }: PublicHeaderProps) {
           <ThemeToggle className="hidden sm:inline-flex" />
           {/* A hostel this account took off the platform, still claimable (docs/HOSTEL_LEAVE_PLATFORM.md). */}
           {isSessionChecked && sessionUser ? <ClaimHostelButton /> : null}
-          {isHeaderReady ? (
+          {
             user ? (
               <div ref={menuRef} className="relative">
                 <button
@@ -421,15 +428,10 @@ export function PublicHeader({ active }: PublicHeaderProps) {
                 )}
               </div>
             ) : (
+              // Painted at once; flips to the avatar if the session turns up.
               signedOutActions
             )
-          ) : (
-            // Same box as the real buttons, so the centred nav does not slide
-            // when the session answer lands.
-            <div aria-hidden="true" className="invisible">
-              {signedOutActions}
-            </div>
-          )}
+          }
           <button
             type="button"
             aria-label="Open menu"

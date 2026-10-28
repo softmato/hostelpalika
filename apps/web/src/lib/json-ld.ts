@@ -191,11 +191,14 @@ export function breadcrumbJsonLd(items: Array<{ name: string; path: string }>): 
   };
 }
 
+/** No FAQ on the site shows more than this — the visible list and its markup both stop here. */
+export const FAQ_LIMIT = 6;
+
 /** Only for a FAQ that is visible on the same page. */
 export function faqJsonLd(
   entries: Array<{ answer: string; question: string }>,
 ): JsonLd | null {
-  const faq = entries.filter((entry) => entry.question && entry.answer);
+  const faq = entries.filter((entry) => entry.question && entry.answer).slice(0, FAQ_LIMIT);
 
   if (faq.length === 0) {
     return null;

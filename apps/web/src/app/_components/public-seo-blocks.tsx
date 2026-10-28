@@ -8,6 +8,8 @@ import {
   PLATFORM_VENDOR_URL,
 } from "@hostel/shared/brand/brand";
 
+import { FaqAccordion } from "@/components/smooth-collapse";
+import { FAQ_LIMIT } from "@/lib/json-ld";
 import { cn } from "@/lib/utils";
 
 import { StarsCtaCard } from "./stars-cta-card";
@@ -33,7 +35,7 @@ export function SeoChip({
     <Link
       aria-current={active ? "page" : undefined}
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-sm font-semibold transition",
+        "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-sm font-semibold transition",
         active
           ? "border-primary bg-primary text-primary-foreground"
           : "border-border bg-surface text-foreground hover:border-primary/50 hover:text-primary",
@@ -98,53 +100,17 @@ export function SeoFaq({
   entries: Array<{ answer: string; question: string }>;
   title: string;
 }) {
+  entries = entries.slice(0, FAQ_LIMIT);
+
   if (entries.length === 0) {
     return null;
   }
 
   return (
-    <section className="mt-16 grid items-center gap-10 lg:grid-cols-[minmax(0,0.6fr)_minmax(0,1fr)]">
-      <svg
-        aria-hidden
-        className="mx-auto hidden w-full max-w-sm text-primary lg:block"
-        fill="none"
-        viewBox="0 0 320 280"
-      >
-        <circle cx="160" cy="140" fill="currentColor" opacity=".08" r="120" />
-        <rect x="52" y="60" width="150" height="104" rx="22" fill="currentColor" opacity=".18" />
-        <path d="M84 164v36l40-36z" fill="currentColor" opacity=".18" />
-        <rect x="118" y="100" width="150" height="104" rx="22" fill="currentColor" />
-        <path d="M232 204v36l-40-36z" fill="currentColor" />
-        <path
-          d="M171 140c0-10 8-17 22-17s22 7 22 16c0 14-17 15-17 28m0 10v1"
-          stroke="var(--surface, #fff)"
-          strokeLinecap="round"
-          strokeWidth="9"
-        />
-        <circle cx="52" cy="40" r="6" fill="currentColor" opacity=".4" />
-        <circle cx="284" cy="96" r="9" fill="currentColor" opacity=".25" />
-        <circle cx="262" cy="236" r="5" fill="currentColor" opacity=".4" />
-      </svg>
-      <div>
-        <h2 className="font-heading text-2xl font-bold text-foreground">{title}</h2>
-        <div className="mt-6 divide-y divide-border rounded-2xl border border-border bg-surface">
-          {entries.map((entry, index) => (
-            <details className="group px-5 py-4" key={entry.question} open={index === 0}>
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-foreground">
-                {entry.question}
-                <span
-                  aria-hidden
-                  className="text-lg text-primary transition group-open:rotate-45"
-                >
-                  +
-                </span>
-              </summary>
-              <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                {entry.answer}
-              </p>
-            </details>
-          ))}
-        </div>
+    <section className="mt-16">
+      <div className="mx-auto max-w-3xl">
+        <h2 className="text-center font-heading text-2xl font-bold text-foreground">{title}</h2>
+        <FaqAccordion entries={entries} />
       </div>
     </section>
   );

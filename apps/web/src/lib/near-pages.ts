@@ -15,6 +15,7 @@ import { PAID_PLACEMENT_NOTE } from "@/lib/listing-tier";
 import { formatDistance, NEAR_RADIUS_METERS, type NearPlace } from "@/lib/near-places";
 import {
   listPublicHostelsNear,
+  listPublicHostelsNearAll,
   listPublicNearbyPlaces,
 } from "@/modules/hostels/hostel.service";
 
@@ -35,6 +36,29 @@ import {
 export const loadNearPlaces = cache(async (): Promise<NearPlace[]> => listPublicNearbyPlaces());
 
 export type NearPageHostel = HostelSummary & { distance: string; distanceMeters: number };
+
+export type NearIndexPlace = {
+  city: string;
+  count: number;
+  hostels: NearPageHostel[];
+  href: string;
+  label: string;
+};
+
+/** `/hostels/near` — every campus with the hostels near it, nearest distance shown on each. */
+export const loadNearIndex = cache(async (): Promise<NearIndexPlace[]> =>
+  (await listPublicHostelsNearAll()).map(({ hostels, place }) => ({
+    city: place.city,
+    count: hostels.length,
+    hostels: hostels.map((hostel) => ({
+      ...mapPublicHostelToSummary(hostel as PublicHostel),
+      distance: formatDistance(hostel.distanceMeters),
+      distanceMeters: hostel.distanceMeters,
+    })),
+    href: `/hostels/near/${place.slug}`,
+    label: place.name,
+  })),
+);
 
 export type NearPage = {
   cityPath: string | null;

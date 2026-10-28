@@ -19,7 +19,7 @@ import {
 import { breadcrumbJsonLd, faqJsonLd, formatNpr, itemListJsonLd } from "@/lib/json-ld";
 import { PAID_PLACEMENT_NOTE } from "@/lib/listing-tier";
 import { haversineMeters } from "@/lib/maps/nearby";
-import { loadNearPlaces } from "@/lib/near-pages";
+import { loadNearIndex, type NearIndexPlace } from "@/lib/near-pages";
 import { loadSiteConfig } from "@/lib/site-config-server";
 import {
   listPublicHostelLocations,
@@ -57,8 +57,8 @@ export type LocationPage = {
   heading: string;
   hostels: HostelSummary[];
   intro: string;
-  /** Campuses in this city with a listed hostel nearby — `/hostels/near/...`. */
-  nearLinks: Array<{ count: number; href: string; label: string }>;
+  /** Campuses in this city with a listed hostel nearby, each with its hostels and distances. */
+  nearColleges: NearIndexPlace[];
   /**
    * Area pages only: hostels in the same city within {@link NEARBY_AREA_METERS}
    * of one in the area, so "hostels in Baneshwor & nearby" is literally true.
@@ -249,14 +249,9 @@ export const loadLocationPage = cache(
       question: `Which is the best hostel in ${placeName}?`,
     });
 
-    const cityNear = (await loadNearPlaces().catch(() => []))
+    const nearColleges = (await loadNearIndex().catch(() => []))
       .filter((entry) => locationSlug(entry.city) === city.slug)
-      .slice(0, 12)
-      .map((entry) => ({
-        count: entry.distances.size,
-        href: `/hostels/near/${entry.slug}`,
-        label: `Near ${entry.name}`,
-      }));
+      .slice(0, 6);
 
     const cityPath = `/hostels/in/${city.slug}`;
     const crumbs = [
@@ -280,7 +275,7 @@ export const loadLocationPage = cache(
       heading,
       hostels: summaries,
       intro,
-      nearLinks: cityNear,
+      nearColleges,
       nearby,
       noindex: count === 0,
       orderNote,

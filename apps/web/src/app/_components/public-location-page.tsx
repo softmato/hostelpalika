@@ -5,7 +5,7 @@ import { PLATFORM_NAME } from "@hostel/shared/brand/brand";
 
 import type { CityIndexEntry } from "@/lib/hostel-locations";
 import type { LocationPage } from "@/lib/location-pages";
-import type { NearPage } from "@/lib/near-pages";
+import type { NearIndexPlace, NearPage } from "@/lib/near-pages";
 
 import { OwnerCallout, SeoChip, SeoCrumbs, SeoFaq } from "./public-seo-blocks";
 import { HostelCard, PublicShell } from "./shared";
@@ -70,21 +70,21 @@ export function PublicLocationPage({ page }: { page: LocationPage }) {
         </div>
 
         <header className="max-w-3xl">
-          <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
-            <MapPin className="size-4" />
-            Hostels in Nepal
-          </p>
-          <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {page.heading}
           </h1>
-          <p className="mt-3 text-base leading-7 text-muted-foreground">{page.intro}</p>
+          <p className="sr-only">{page.intro}</p>
           {page.hostels.length ? (
-            <p className="mt-2 text-xs text-muted-foreground">{page.orderNote}</p>
+            <p className="sr-only">{page.orderNote}</p>
           ) : null}
         </header>
 
-        <nav aria-label={`Hostels in ${page.city.name} by type and area`} className="mt-6 space-y-3">
-          <div className="flex flex-wrap gap-2">
+        {/* One line per filter; the area list scrolls sideways instead of wrapping into a wall of pills. */}
+        <nav
+          aria-label={`Hostels in ${page.city.name} by type and area`}
+          className="-mx-4 mt-6 space-y-2 sm:-mx-6"
+        >
+          <div className="flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
             {page.typeLinks
               .filter((link) => link.active || link.count > 0)
               .map((link) => (
@@ -92,7 +92,7 @@ export function PublicLocationPage({ page }: { page: LocationPage }) {
               ))}
           </div>
           {page.areaLinks.some((link) => link.count > 0) ? (
-            <div className="flex flex-wrap gap-2">
+            <div className="flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:px-6 [&::-webkit-scrollbar]:hidden">
               {page.areaLinks
                 .filter((link) => link.active || link.count > 0)
                 .map((link) => (
@@ -152,14 +152,14 @@ export function PublicLocationPage({ page }: { page: LocationPage }) {
           </section>
         ) : null}
 
-        {page.nearLinks.length ? (
+        {page.nearColleges.length ? (
           <section className="mt-12">
             <h2 className="font-heading text-xl font-bold text-foreground">
               Hostels near colleges in {page.city.name}
             </h2>
-            <div className="mt-4 flex flex-wrap gap-2">
-              {page.nearLinks.map((link) => (
-                <SeoChip key={link.href} {...link} />
+            <div className="mt-6 space-y-10">
+              {page.nearColleges.map((place) => (
+                <NearCollegeHostels key={place.href} place={place} />
               ))}
             </div>
           </section>
@@ -170,19 +170,7 @@ export function PublicLocationPage({ page }: { page: LocationPage }) {
           title={`Questions about hostels in ${page.placeName}`}
         />
 
-        <section className="mt-16 grid gap-4 lg:grid-cols-2">
-          {page.otherCities.length ? (
-            <div className="rounded-2xl border border-border bg-surface p-6">
-              <h2 className="font-heading text-lg font-bold text-foreground">
-                Hostels in other cities
-              </h2>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {page.otherCities.map((link) => (
-                  <SeoChip key={link.href} {...link} />
-                ))}
-              </div>
-            </div>
-          ) : null}
+        <section className="mt-16">
           <OwnerCallout
             body={`List it on ${PLATFORM_NAME} to be found here, and run residents, rent, food and safety from one app.`}
             title={`Run a hostel in ${page.city.name}?`}
@@ -302,9 +290,9 @@ export function PublicNearPlacePage({ page }: { page: NearPage }) {
           <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             {page.heading}
           </h1>
-          <p className="mt-3 text-base leading-7 text-muted-foreground">{page.intro}</p>
+          <p className="sr-only">{page.intro}</p>
           {page.placementNote ? (
-            <p className="mt-2 text-xs text-muted-foreground">{page.placementNote}</p>
+            <p className="sr-only">{page.placementNote}</p>
           ) : null}
         </header>
 
@@ -338,7 +326,7 @@ export function PublicNearPlacePage({ page }: { page: NearPage }) {
               </li>
             ))}
           </ol>
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="sr-only">
             Straight-line distance from each hostel&apos;s map pin.
           </p>
         </section>
@@ -374,12 +362,42 @@ export function PublicNearPlacePage({ page }: { page: NearPage }) {
   );
 }
 
-/** `/hostels/near` — every campus a listed hostel is near. */
-export function PublicNearIndexPage({
-  places,
-}: {
-  places: Array<{ city: string; count: number; href: string; label: string }>;
-}) {
+/** Hostels shown under each college; the rest sit behind its "View all". */
+const NEAR_INDEX_CARDS = 4;
+
+/** One college: its name, then its hostels with the approximate distance on each card. */
+function NearCollegeHostels({ place }: { place: NearIndexPlace }) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-4">
+        <h3 className="font-heading text-lg font-bold text-foreground">
+          <Link className="transition hover:text-primary" href={place.href}>
+            {place.label}
+          </Link>
+        </h3>
+        {place.count > NEAR_INDEX_CARDS ? (
+          <Link className="shrink-0 text-sm font-semibold text-primary" href={place.href}>
+            View all {place.count}
+          </Link>
+        ) : null}
+      </div>
+      <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {place.hostels.slice(0, NEAR_INDEX_CARDS).map((hostel) => (
+          <div className="relative" key={hostel.id}>
+            <HostelCard hostel={hostel} />
+            <span className="pointer-events-none absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-foreground/80 px-2.5 py-1 text-[11px] font-bold text-background backdrop-blur">
+              <MapPin className="size-3" />
+              about {hostel.distance}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** `/hostels/near` — every campus a listed hostel is near, with those hostels and their distance. */
+export function PublicNearIndexPage({ places }: { places: NearIndexPlace[] }) {
   const cities = [...new Set(places.map((place) => place.city || "Nepal"))];
 
   return (
@@ -393,14 +411,10 @@ export function PublicNearIndexPage({
           ]}
         />
         <header className="max-w-3xl">
-          <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary">
-            <MapPin className="size-4" />
-            Hostels in Nepal
-          </p>
-          <h1 className="mt-2 font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+          <h1 className="font-heading text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
             Hostels Near Colleges in Nepal
           </h1>
-          <p className="mt-3 text-base leading-7 text-muted-foreground">
+          <p className="sr-only">
             Every college and campus with at least one verified {PLATFORM_NAME} hostel within
             1.5 km, measured from the hostel&apos;s own map pin.
           </p>
@@ -409,17 +423,12 @@ export function PublicNearIndexPage({
         {places.length ? (
           cities.map((city) => (
             <section className="mt-10" key={city}>
-              <h2 className="font-heading text-lg font-bold text-foreground">{city}</h2>
-              <div className="mt-4 flex flex-wrap gap-2">
+              <h2 className="font-heading text-2xl font-bold text-foreground">{city}</h2>
+              <div className="mt-6 space-y-10">
                 {places
                   .filter((place) => (place.city || "Nepal") === city)
                   .map((place) => (
-                    <SeoChip
-                      count={place.count}
-                      href={place.href}
-                      key={place.href}
-                      label={place.label}
-                    />
+                    <NearCollegeHostels key={place.href} place={place} />
                   ))}
               </div>
             </section>

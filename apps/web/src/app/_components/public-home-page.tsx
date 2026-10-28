@@ -31,7 +31,6 @@ import {
   useMemo,
   useRef,
   useState,
-  type ReactNode,
 } from "react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -39,17 +38,18 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import VariableProximity from "@/components/react-bits/variable-proximity";
 import { useSiteConfig } from "@/components/site-config-provider";
 import { browserApi } from "@/lib/browser-api";
+import { parseSearchQuery } from "@/lib/search/query-parser";
 import { checkAuthWithRefresh } from "@/lib/auth-check";
 import { optimizedImage } from "@/lib/image-url";
 import { landingPathForRole } from "@/lib/route-access";
 import { Role } from "@/lib/roles";
 
 import { HeroPulseChip } from "./hero-pulse-chip";
+import { useHomeEntrance } from "./use-home-entrance";
 import { HomePlatformSection } from "./home-platform-section";
 import type { HostelSummary } from "./public-hostel-types";
 import { HostelCard, PublicShell, formatMoney } from "./shared";
 import { StarsCtaCard } from "./stars-cta-card";
-import { useHomeEntrance } from "./use-home-entrance";
 
 /** Outline of the room photo in the artwork's own 1671×941 coordinates. */
 const BLOB_PATH =
@@ -381,10 +381,10 @@ function HostelSnapshot({ hostel }: { hostel?: HostelSummary }) {
   );
 }
 
-function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: HostelSummary[] }) {
+function PublicHomePageContent({ hostels }: { hostels: HostelSummary[] }) {
   const router = useRouter();
   const pageRef = useRef<HTMLDivElement>(null);
-  useHomeEntrance(pageRef);
+  useHomeEntrance();
   const { hero, identity, platformStats, trustPoints } = useSiteConfig();
   const [searchVal, setSearchVal] = useState("");
   const [searching, setSearching] = useState(false);
@@ -405,13 +405,10 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
       return;
     }
 
-    setSearching(true);
-    try {
-      const { filters } = await browserApi<{ filters: Record<string, unknown> }>(
-        "/api/v1/public/search/parse",
-        { body: JSON.stringify({ query }), method: "POST" },
-      );
-
+    // Same keyword parser the API runs first. When it is confident the server
+    // would return exactly these filters, so skip the round-trip entirely.
+    const keyword = parseSearchQuery(query);
+    const go = (filters: Record<string, unknown>) => {
       const params = new URLSearchParams();
       for (const [key, value] of Object.entries(filters)) {
         if (value !== undefined && value !== null && value !== "") {
@@ -433,12 +430,35 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
       }
 
       router.push(`/hostels?${params.toString()}`);
+    };
+
+    if (keyword.confidence >= 0.6) {
+      go(keyword.filters);
+      return;
+    }
+
+    setSearching(true);
+    try {
+      // The LLM fallback can be slow; never hold the visitor longer than this.
+      const { filters } = await browserApi<{ filters: Record<string, unknown> }>(
+        "/api/v1/public/search/parse",
+        {
+          body: JSON.stringify({ query }),
+          method: "POST",
+          signal: AbortSignal.timeout(2500),
+        },
+      );
+      go(filters);
     } catch {
-      router.push(`/hostels?search=${encodeURIComponent(query)}`);
+      go(keyword.filters);
     } finally {
       setSearching(false);
     }
   }, [router, searchVal]);
+
+  useEffect(() => {
+    router.prefetch("/hostels");
+  }, [router]);
 
   useEffect(() => {
     async function redirectIfDashboardRole() {
@@ -465,9 +485,13 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
 
     gsap.registerPlugin(ScrollTrigger);
     const context = gsap.context(() => {
+      // Section images drift only a few percent, and only on desktop — phones skip it
+      // entirely, since a scrubbed transform on many large images is what made it lag.
+      if (!window.matchMedia("(min-width: 1024px)").matches) return;
+
       gsap.utils.toArray<HTMLElement>("[data-home-parallax]").forEach((visual) => {
         const section = visual.closest<HTMLElement>("section") ?? visual;
-        const amount = visual.dataset.parallaxDirection === "down" ? 7 : -7;
+        const amount = visual.dataset.parallaxDirection === "down" ? 3 : -3;
 
         gsap.fromTo(
           visual,
@@ -476,7 +500,7 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
             ease: "none",
             scrollTrigger: {
               end: "bottom top",
-              scrub: 0.65,
+              scrub: 0.3,
               start: "top bottom",
               trigger: section,
             },
@@ -587,7 +611,7 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
               </clipPath>
             </defs>
             <image clipPath="url(#home-hero-city-clip)" height="510" href="/home/hero-city.webp" width="640" x="0" y="250" className="dark:brightness-75" />
-            <path d={LEAF} className="fill-brand-teal/70" transform="translate(50 770) rotate(60)" />
+            <g transform="translate(50 770) rotate(60)"><path d={LEAF} className="hero-leaf fill-brand-teal/70" style={{ animationDuration: "6.5s" }} /></g>
           </svg>
           <svg
             aria-hidden
@@ -603,15 +627,15 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
             </defs>
             <path d="M1671 0C1620 80 1560 165 1470 198C1450 205 1440 212 1425 217L1671 195Z" className="fill-brand-teal/15" />
             <image clipPath="url(#home-hero-blob)" height="680" href="/home/hero-room.webp" width="571" x="1100" y="150" className="dark:brightness-90" />
-            <path d={LEAF} className="fill-brand-teal/70" transform="translate(1400 150) rotate(-35)" />
-            <path d={LEAF} className="fill-brand-teal/70" transform="translate(1470 850) rotate(-30) scale(.8)" />
+            <g transform="translate(1400 150) rotate(-35)"><path d={LEAF} className="hero-leaf fill-brand-teal/70" style={{ animationDelay: "-2s", animationDuration: "5.5s" }} /></g>
+            <g transform="translate(1470 850) rotate(-30) scale(.8)"><path d={LEAF} className="hero-leaf fill-brand-teal/70" style={{ animationDelay: "-4s", animationDuration: "7.5s" }} /></g>
           </svg>
           <div className="relative z-10 mx-auto flex max-w-[1448px] flex-col items-center px-4 pb-6 pt-28 text-center sm:px-6 sm:pt-32 lg:pt-36">
             <div data-home-entrance="chip">
               <HeroPulseChip />
             </div>
             <div data-home-entrance="headline" className="mt-6 flex w-full max-w-4xl flex-col items-center" ref={heroTextRef}>
-              <h1 className="font-heading text-[2.4rem] font-extrabold leading-[1.1] text-foreground sm:text-6xl lg:text-[68px]">
+              <h1 className="font-[family-name:var(--font-roboto-slab)] text-[2.4rem] font-extrabold leading-[1.1] text-foreground sm:text-6xl lg:text-[68px]">
                 <VariableProximity
                   containerRef={heroTextRef}
                   falloff="gaussian"
@@ -627,7 +651,7 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
               {heroTail ? (
                 <div
                   aria-hidden
-                  className="-mt-1 w-full font-heading text-brand-teal"
+                  className="-mt-1 w-full font-[family-name:var(--font-roboto-slab)] text-brand-teal"
                   style={{ height: "clamp(3.4rem, 8.4vw, 5.8rem)" }}
                 >
                   <div className="flex h-full items-center justify-center whitespace-nowrap font-extrabold leading-none">
@@ -722,7 +746,7 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
           />
         </section>
 
-        <section className="bg-surface py-14">
+        <section className="bg-background py-14">
           <div className="mx-auto max-w-[1448px] px-4 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
@@ -1185,8 +1209,6 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
           </div>
         </section>
 
-        {faq ? <div className="mx-auto max-w-[1448px] px-4 pb-14 sm:px-6">{faq}</div> : null}
-
         <section className="mx-auto max-w-[1448px] px-4 pb-14 sm:px-6">
           <StarsCtaCard contentClassName="flex flex-col gap-5 p-7 text-white sm:flex-row sm:items-center sm:justify-between sm:p-9">
             <div>
@@ -1213,11 +1235,10 @@ function PublicHomePageContent({ faq, hostels }: { faq?: ReactNode; hostels: Hos
   );
 }
 
-/** `faq` is rendered on the server and handed in, so its text is in the first response. */
-export function PublicHomePage({ faq, hostels }: { faq?: ReactNode; hostels: HostelSummary[] }) {
+export function PublicHomePage({ hostels }: { hostels: HostelSummary[] }) {
   return (
     <Suspense fallback={null}>
-      <PublicHomePageContent faq={faq} hostels={hostels} />
+      <PublicHomePageContent hostels={hostels} />
     </Suspense>
   );
 }

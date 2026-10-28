@@ -23,6 +23,7 @@ import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 
 import { ContentSectionIcon } from "@/components/content-sections";
+import { MoreToggle as More } from "@/components/smooth-collapse";
 import { formatNpr } from "@/lib/json-ld";
 import type { ResolvedModulePage } from "@/lib/seo-config";
 import { cn } from "@/lib/utils";
@@ -68,20 +69,6 @@ function IconTile({ Icon, className }: { Icon: Icon; className?: string }) {
     >
       <Icon className="size-5" />
     </span>
-  );
-}
-
-/** A "Read more" that is closed by default and fully present in the HTML. */
-function More({ children, label = "Read more" }: { children: ReactNode; label?: string }) {
-  return (
-    <details className="group mt-4 border-t border-border pt-3">
-      <summary className="flex cursor-pointer list-none items-center gap-1 text-sm font-bold text-primary [&::-webkit-details-marker]:hidden">
-        <span className="group-open:hidden">{label}</span>
-        <span className="hidden group-open:inline">Show less</span>
-        <ChevronDown className="size-4 transition group-open:rotate-180" />
-      </summary>
-      <div className="mt-3">{children}</div>
-    </details>
   );
 }
 
@@ -195,7 +182,7 @@ export function RolesSection() {
       </Heading>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {ROLES.map((role) => (
-          <article className="flex flex-col rounded-2xl border border-border bg-surface p-5" key={role.name}>
+          <article className="hp-card flex flex-col rounded-2xl border border-border bg-surface p-5" key={role.name}>
             <div className="flex items-center gap-3">
               <IconTile Icon={role.Icon} />
               <div className="min-w-0">
@@ -204,7 +191,7 @@ export function RolesSection() {
               </div>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-foreground">{role.tagline}</p>
-            <More>
+            <More label={`See all ${role.does.length} things they do`}>
               <Bullets items={role.does} />
             </More>
           </article>
@@ -324,24 +311,73 @@ export function WorkflowSection() {
       <Heading lead="From the day you register to the day a resident leaves, in the order a hostel actually lives it.">
         One hostel, start to finish
       </Heading>
-      <ol className="mt-8 grid gap-4 md:grid-cols-2">
-        {WORKFLOW.map((step, index) => (
-          <li className="flex flex-col rounded-2xl border border-border bg-surface p-5" key={step.title}>
-            <div className="flex items-center gap-3">
-              <IconTile Icon={step.Icon} />
-              <div className="min-w-0">
-                <p className="text-xs font-bold uppercase tracking-wider text-primary">
-                  Step {index + 1}
-                </p>
-                <h3 className="font-heading text-base font-bold text-foreground">{step.title}</h3>
+      {/* A vertical flow: step 1 is open in full, each next step is a short card, and a
+          dashed line with an arrow runs from one icon down to the next. */}
+      {/* An S-shaped path: cards zig-zag left, right, left…, and a dashed curve flows from
+          each card to the next with an arrow head. Below `lg` it is one column with a
+          straight dashed drop. Step 1 starts open. */}
+      <ol className="mt-10">
+        {WORKFLOW.map((step, index) => {
+          const last = index === WORKFLOW.length - 1;
+          const right = index % 2 === 1;
+
+          return (
+            <li key={step.title}>
+              <div
+                className={cn(
+                  "hp-card rounded-2xl border border-border bg-surface p-5 lg:w-[46%]",
+                  right && "lg:ml-auto",
+                )}
+              >
+                <div className="flex items-center gap-3">
+                  <IconTile
+                    className="size-12 rounded-2xl bg-primary text-primary-foreground shadow-md"
+                    Icon={step.Icon}
+                  />
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold uppercase tracking-wider text-primary">
+                      Step {index + 1}
+                    </p>
+                    <h3 className="font-heading text-base font-bold text-foreground">{step.title}</h3>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm leading-relaxed text-foreground">{step.summary}</p>
+                <More defaultOpen={index === 0} label="Full details">
+                  <Bullets items={step.details} />
+                </More>
               </div>
-            </div>
-            <p className="mt-3 text-sm leading-relaxed text-foreground">{step.summary}</p>
-            <More>
-              <Bullets items={step.details} />
-            </More>
-          </li>
-        ))}
+              {last ? null : (
+                <>
+                  <div aria-hidden className="flex flex-col items-center lg:hidden">
+                    <span className="hp-dash-v h-10 w-0.5" />
+                    <ChevronDown className="hp-nudge-y size-5 text-primary" />
+                  </div>
+                  <div aria-hidden className="relative hidden h-28 lg:block">
+                    <svg
+                      className="absolute inset-0 size-full text-primary"
+                      fill="none"
+                      preserveAspectRatio="none"
+                      viewBox="0 0 100 100"
+                    >
+                      <path
+                        className="hp-dash-path"
+                        d={right ? "M75 0 C75 45 25 55 25 92" : "M25 0 C25 45 75 55 75 92"}
+                        stroke="currentColor"
+                        strokeLinecap="round"
+                        strokeWidth="2"
+                        vectorEffect="non-scaling-stroke"
+                      />
+                    </svg>
+                    <ChevronDown
+                      className="hp-nudge-y absolute bottom-0 size-6 -translate-x-1/2 text-primary"
+                      style={{ left: right ? "25%" : "75%" }}
+                    />
+                  </div>
+                </>
+              )}
+            </li>
+          );
+        })}
       </ol>
     </section>
   );
@@ -366,7 +402,7 @@ export function ModuleAtlas({ modules }: { modules: ResolvedModulePage[] }) {
       <div className="mt-8 grid gap-4 lg:grid-cols-2">
         {modules.map((entry) => (
           <article
-            className="flex flex-col rounded-2xl border border-border bg-surface p-5"
+            className="hp-card flex flex-col rounded-2xl border border-border bg-surface p-5"
             id={entry.slug}
             key={entry.slug}
           >
@@ -470,7 +506,7 @@ export function ExtrasSection() {
       <Heading>Details that make it feel made for Nepal</Heading>
       <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {EXTRAS.map((extra) => (
-          <article className="rounded-2xl bg-muted/40 p-5" key={extra.title}>
+          <article className="hp-card rounded-2xl border border-border bg-surface p-5" key={extra.title}>
             <IconTile Icon={extra.Icon} />
             <h3 className="mt-4 font-heading text-base font-bold text-foreground">{extra.title}</h3>
             <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{extra.body}</p>

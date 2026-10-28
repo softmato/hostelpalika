@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { BrandMark } from "@/components/brand-mark";
+import DriftWall from "@/components/react-bits/drift-wall";
 import { useSiteConfig } from "@/components/site-config-provider";
-import { optimizedImage } from "@/lib/image-url";
 
 type AuthShellProps = {
   children: ReactNode;
@@ -14,19 +14,29 @@ type AuthShellProps = {
   mode: "login" | "signup";
 };
 
-const LOBBY_IMAGE =
-  "https://lh3.googleusercontent.com/aida-public/AB6AXuAD0NmbtkszFG87IhrLCwa2eHWDmk4NxOgpfoid2_zjZOx8uWA_hMcSeKmVOMRSjh6cGCyLc1Z9nGlZcL0Ki792qNxyaYBty13f2J3WQOuXIX_srJKrKQdS6r3NM_RDpDB3vErb3M4AXliIEEDa0efsPzIkws2iSLR5sBqDWjn4m6sUtt9ldLyN6Qa-ajl1zvazFY7UZ_2dAjeEU277a2C041A_ZzYl0_2dfHrJqKF0tb0-ivW1NlN_H88HwOtS1kTCG90Xs6WE0dc";
-
-const PANEL_COPY = {
-  login: {
-    body: "Rooms, residents, dues and daily attendance in one place — from the front desk or from your phone.",
-    headline: ["Everything", "Under", "One Roof"],
-  },
-  signup: {
-    body: "Discover verified hostels, compare facilities and prices, and book the room that fits you.",
-    headline: ["Find The", "Room That", "Fits You"],
-  },
-} as const;
+/**
+ * The platform's own screens, drifting: the phone app and the resident, warden
+ * and guardian portals, from `public/mockups`. Laid out five to a row because
+ * `DriftWall` deals items to its columns in turn, so every column gets a mix of
+ * app and portal.
+ */
+const WALL_ITEMS = [
+  "app-public-facing",
+  "resident-portal",
+  "warden-dashboard",
+  "app-public-map-screen",
+  "guardian-portal",
+  "warden-room-management",
+  "app-public-community-hostelviewpage",
+  "resident-portal-feepayment",
+  "warden-dashboard-finance",
+  "app-public-map-android-screen",
+  "resident-register-whole-process",
+  "warden-paymentsetup-statement",
+  "resident-portal-profile",
+  "warden-dashboard-transaction",
+  "resident-register-process-step-2",
+].map((name) => ({ image: `/mockups/${name}.webp` }));
 
 /**
  * Wordmark for the owner-configured site name. The first word stays ink and the
@@ -50,15 +60,22 @@ function SiteWordmark() {
 }
 
 /**
- * Two-column auth frame: a full-bleed photo panel on the left carrying the
- * tagline and one line of copy, and a single narrow centred column on the right
+ * Two-column auth frame: the platform's own pictures drifting edge to edge down
+ * the left (no copy over them), and a single narrow centred column on the right
  * that holds nothing but the form. The form column is deliberately the only
- * place with controls — feature bullets and trust badges used to sit beside the
- * fields and pulled the eye away from the one thing the page is for.
+ * place with controls.
  */
 export function AuthShell({ children, footer, mode }: AuthShellProps) {
-  const identity = useSiteConfig().identity;
-  const panel = PANEL_COPY[mode];
+  // The panel is hidden below `lg`, so the wall (and its animation loop) only
+  // exists where it can be seen.
+  const [showWall, setShowWall] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(min-width: 1024px)");
+    const sync = () => setShowWall(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
 
   const defaultFooter =
     mode === "login" ? (
@@ -78,51 +95,34 @@ export function AuthShell({ children, footer, mode }: AuthShellProps) {
     );
 
   return (
-    <main className="flex h-dvh w-full bg-white p-0 lg:p-3">
-      {/* ────── LEFT: photo panel ────── */}
-      <section className="relative hidden w-[46%] max-w-[660px] shrink-0 overflow-hidden rounded-3xl bg-[#04140C] lg:flex lg:flex-col lg:justify-between">
-        <div
-          aria-hidden
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url("${optimizedImage(LOBBY_IMAGE, 1200)}")` }}
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(4,20,12,0.55) 0%, rgba(4,20,12,0.30) 38%, rgba(4,20,12,0.92) 100%)",
-          }}
-        />
-        <div
-          aria-hidden
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(200deg, rgba(10,138,75,0.42) 0%, transparent 55%)",
-          }}
-        />
-
-        {/* Tagline, ruled like a chapter mark */}
-        <div className="relative z-10 flex items-center gap-4 px-10 pt-10">
-          <span className="text-[11px] font-semibold uppercase tracking-[0.22em] text-white/75">
-            {identity.tagline || identity.siteName}
-          </span>
-          <span className="h-px flex-1 bg-white/25" />
-        </div>
-
-        <div className="relative z-10 px-10 pb-12">
-          <h2 className="font-heading text-[46px] font-extrabold leading-[1.06] tracking-tight text-white xl:text-[54px]">
-            {panel.headline.map((line) => (
-              <span className="block" key={line}>
-                {line}
-              </span>
-            ))}
-          </h2>
-          <p className="mt-5 max-w-[400px] text-[13px] leading-relaxed text-white/70">
-            {panel.body}
-          </p>
-        </div>
+    <main className="flex h-dvh w-full bg-white">
+      {/* ────── LEFT: the drifting wall, edge to edge, no words ────── */}
+      <section
+        aria-hidden
+        className="relative hidden w-[58%] shrink-0 overflow-hidden lg:block"
+        style={{ background: "radial-gradient(120% 90% at 50% 40%, #20252b 0%, #101318 55%, #07080a 100%)" }}
+      >
+        {showWall ? (
+          <DriftWall
+            className="drift-wall--devices"
+            columns={5}
+            depth={40}
+            dim={1}
+            fade={0.3}
+            gap={2}
+            items={WALL_ITEMS}
+            lift={50}
+            parallax={0.8}
+            perspective={1400}
+            roll={7}
+            speed={26}
+            tilt={20}
+            tileHeight={195}
+            tileWidth={280}
+            turn={18}
+            variance={0.35}
+          />
+        ) : null}
       </section>
 
       {/* ────── RIGHT: the form, and only the form ────── */}

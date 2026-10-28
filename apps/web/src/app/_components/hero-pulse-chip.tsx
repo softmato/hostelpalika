@@ -44,7 +44,9 @@ export function HeroPulseChip() {
   const { apps, identity } = useSiteConfig();
   const [pulse, setPulse] = useState<Pulse | null>(null);
   const [phone, setPhone] = useState<Phone>(null);
-  const [index, setIndex] = useState(0);
+  // Tracked by id, not position: when the live lines load in ahead of it, the
+  // line on screen stays put instead of being swapped for another.
+  const [shown, setShown] = useState("trust");
   const [paused, setPaused] = useState(false);
   const [width, setWidth] = useState<number | null>(null);
   const slots = useRef<(HTMLElement | null)[]>([]);
@@ -113,14 +115,14 @@ export function HeroPulseChip() {
   }, [apps.androidPlayUrl, identity.siteName, phone, pulse]);
 
   const count = messages.length;
-  const active = index % count;
+  const active = Math.max(0, messages.findIndex((message) => message.id === shown));
   const activeId = messages[active]?.id;
 
   useEffect(() => {
     if (paused || count < 2) return undefined;
-    const timer = window.setTimeout(() => setIndex((current) => (current + 1) % count), HOLD_MS);
+    const timer = window.setTimeout(() => setShown(messages[(active + 1) % count].id), HOLD_MS);
     return () => window.clearTimeout(timer);
-  }, [active, count, paused]);
+  }, [active, count, messages, paused]);
 
   // The chip hugs the line on show, easing to the next line's width as it changes.
   useLayoutEffect(() => {
@@ -141,7 +143,7 @@ export function HeroPulseChip() {
         <span className="relative inline-flex size-2 rounded-full bg-brand-teal" />
       </span>
       <span
-        className="grid overflow-hidden transition-[width] duration-500 ease-out motion-reduce:transition-none"
+        className="relative grid overflow-hidden transition-[width] duration-500 ease-out motion-reduce:transition-none"
         style={width === null ? undefined : { width }}
       >
         {messages.map((message, position) => {
@@ -152,7 +154,7 @@ export function HeroPulseChip() {
             : isLeaving
               ? "pointer-events-none -translate-y-3 opacity-0 blur-[3px]"
               : "pointer-events-none translate-y-3 opacity-0 blur-[3px]";
-          const className = `col-start-1 row-start-1 w-max justify-self-start whitespace-nowrap transition-[opacity,transform,filter] duration-500 ease-out motion-reduce:transition-none ${state}`;
+          const className = `col-start-1 row-start-1 w-max justify-self-start ${isActive ? "" : "absolute left-0 top-0"} whitespace-nowrap transition-[opacity,transform,filter] duration-500 ease-out motion-reduce:transition-none ${state}`;
           const label = isActive ? (
             <ShinyText color={BRAND} delay={0} shineColor={SHINE} shineWidth={55} speed={1.4} trigger="view">
               {message.text}

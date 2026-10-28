@@ -65,13 +65,6 @@ const FAQS: FaqEntry[] = [
   },
   {
     answer:
-      "No. If you can use a phone for calls and messages, you can use this. Every screen is one list and the button you need on it.",
-    id: "hostel-skills",
-    question: "Do I need technical skills?",
-    role: "hostel",
-  },
-  {
-    answer:
       "One price for the whole hostel, set by how many residents you have. The three plans are above. Pay every month, or once for the year and pay less.",
     id: "hostel-cost",
     question: "How much does it cost?",
@@ -93,27 +86,6 @@ const FAQS: FaqEntry[] = [
   },
   {
     answer:
-      "Yes. A month here is a Bikram Sambat month — Bhadra 2083, not August 2026. Bills and reports follow it.",
-    id: "hostel-calendar",
-    question: "Does it use the Nepali calendar?",
-    role: "hostel",
-  },
-  {
-    answer:
-      "Yes. Each staff member gets their own login and sees only their own work. You decide whether they can see the money side.",
-    id: "hostel-staff",
-    question: "Can my warden use it too?",
-    role: "hostel",
-  },
-  {
-    answer:
-      "Yes, on the Max plan. Each building keeps its own rooms and residents, and you get one report and one bill for all of them.",
-    id: "hostel-multi",
-    question: "Can I run more than one hostel?",
-    role: "hostel",
-  },
-  {
-    answer:
       "Your hostel's data is yours alone — no other hostel can see it. Every change is saved with who made it and when.",
     id: "hostel-safe",
     question: "Is my data safe?",
@@ -124,13 +96,6 @@ const FAQS: FaqEntry[] = [
       "Yes. Leave any time from Settings once your plan bills are paid. We email you all your data from your first day — residents, bills, payments, receipts, expenses and more — as an Excel workbook, plus a file other software can import. We also hold your hostel for a few days, so you can change your mind and claim it back exactly as it was.",
     id: "hostel-leave",
     question: "Can I leave and take my data with me?",
-    role: "hostel",
-  },
-  {
-    answer:
-      "You can move up or down a plan whenever you want. Your residents, bills and old records stay exactly where they are.",
-    id: "hostel-change-plan",
-    question: "Can I change my plan later?",
     role: "hostel",
   },
 
@@ -165,23 +130,9 @@ const FAQS: FaqEntry[] = [
   },
   {
     answer:
-      "Yes. The week's menu is in the app, and you can say what you thought of each meal.",
-    id: "resident-food",
-    question: "Can I see the food menu?",
-    role: "resident",
-  },
-  {
-    answer:
       "No. Attendance only saves that you were in or out for the day. Your location is never stored.",
     id: "resident-location",
     question: "Does the app track my location?",
-    role: "resident",
-  },
-  {
-    answer:
-      "Only what you allow. Your parent gets their own login, and every part of it stays switched off until you turn it on.",
-    id: "resident-guardian",
-    question: "What can my parents see?",
     role: "resident",
   },
   {
