@@ -1,0 +1,63 @@
+# Production stack. Local runs add compose.local.yaml on top:
+#   docker compose -f deploy/compose.yaml -f deploy/compose.local.yaml up -d --build
+name: hostelpalika
+
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    environment:
+      API_HOST: ${API_HOST:-api.hostelpalika.com}
+      TS_UPSTREAM: ${TS_UPSTREAM:-https://hostelpalika.com}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      api:
+        condition: service_healthy
+    networks:
+      backend:
+        ipv4_address: 172.28.0.10 # = TRUSTED_PROXIES; the only hop allowed to set X-Forwarded-For
+
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: hostelpalika-api:${API_TAG:-local}
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      API_ADDR: ":8080"
+      TRUSTED_PROXIES: 172.28.0.10
+      GOMEMLIMIT: 850MiB # ≈ 85 % of the limit below
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    stop_grace_period: 30s # > shutdownGrace in cmd/api, so in-flight work drains before SIGKILL
+    depends_on:
+      - redis
+    networks: [backend]
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks: [backend] # never published to the host
+
+networks:
+  backend:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+
+volumes:
+  caddy_data:
+  caddy_config:

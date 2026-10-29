@@ -1,0 +1,34 @@
+[
+  {
+    "name": "get",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/health"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "API is healthy",
+        "data": {
+          "service": "hostelpalika-web",
+          "status": "ok"
+        }
+      }
+    },
+    "recorded": "https://hostelpalika.com 541e46cf"
+  },
+  {
+    "name": "wrong method",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/health"
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "https://hostelpalika.com 541e46cf"
+  }
+]

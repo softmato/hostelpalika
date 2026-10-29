@@ -1,0 +1,42 @@
+# Local overlay: a throwaway Mongo replica set (transactions need one), Caddy
+# on https://localhost, the TS fallback pointed at a local `next dev`, and
+# Mongo/Redis published on 127.0.0.1 only so `go test` can reach them.
+# Never put the production URI in here.
+services:
+  caddy:
+    environment:
+      API_HOST: localhost
+      TS_UPSTREAM: http://host.docker.internal:3000
+
+  api:
+    environment:
+      APP_ENV: development
+      MONGODB_URI: mongodb://mongo:27017/hostelpalika_dev?replicaSet=rs0
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  redis:
+    ports:
+      - "127.0.0.1:6380:6379"
+
+  mongo:
+    image: mongo:8.0
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:27018:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      # Initiates the one-node set on first boot; healthy once it is primary.
+      # The member host is "mongo", so connect from the host with directConnection=true.
+      test: ["CMD", "mongosh", "--quiet", "--eval", "try { rs.status().ok } catch (e) { rs.initiate({_id: 'rs0', members: [{_id: 0, host: 'mongo:27017'}]}).ok }"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    networks: [backend]
+
+volumes:
+  mongo_data:

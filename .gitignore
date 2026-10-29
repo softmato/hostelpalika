@@ -81,5 +81,3 @@ fixtures/evidence-golden/*
 .agents/
 skills-lock.json
 
-# Standalone Go API — local only until it reaches parity (server/docs/PARITY.md)
-/server/

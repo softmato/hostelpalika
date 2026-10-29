@@ -1,0 +1,5 @@
+bin
+docs
+testdata
+deploy
+.env

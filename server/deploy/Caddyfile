@@ -1,0 +1,22 @@
+# Strangler routing (ARCHITECTURE.md §11): ported paths go to Go, everything
+# else to the TS server. Porting a group = add its path to @go; rollback =
+# remove it and `caddy reload`.
+
+{$API_HOST} {
+	encode zstd gzip
+
+	@go path /api/v1/health
+	handle @go {
+		reverse_proxy api:8080 {
+			header_up X-Request-Id {http.request.uuid}
+			health_uri /api/v1/health
+			health_interval 10s
+		}
+	}
+
+	handle {
+		reverse_proxy {$TS_UPSTREAM} {
+			header_up Host {upstream_hostport}
+		}
+	}
+}
