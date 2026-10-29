@@ -75,25 +75,25 @@ Once every printed line is handled, **move the baseline**: replace `41b0ef10` in
 | ☑ | ETag / 304 | `lib/etag.ts` | same tag bytes (FNV-1a, UTF-16; `httpx.ETag`); `cache.Respond` answers the 304 from cached bytes + tag before any work |
 | ☑ | Background work | `lib/after-response.ts` (`after()`) | tracked goroutine, drained on shutdown |
 | ☐ | Cron auth | `lib/cron-auth.ts` — `x-cron-secret` | kept for manual triggers |
-| ☐ | Realtime | `lib/realtime/*` — Pusher: `private-user-*`, `private-hostel-*`, `private-platform`, `private-global`, `presence-hostel-registration-track-sheet`; topic/category bridge | `pusher-http-go`, same channels, same events |
-| ☐ | Push (mobile) | Expo push + receipts (`PushTicket`, `DeviceToken`) | plain HTTP to Expo |
-| ☐ | Push (web) | `web-push` + VAPID, `DeviceToken.platform = "WEB"`, one fan-out `sendPushToUsers` | `webpush-go`, same fan-out |
-| ☐ | Email | `packages/shared/src/email/{sender,identity}.ts`, Resend, per-category mailboxes, topic opt-out, `List-Unsubscribe`, ≤1 routine email/person/day | `resend-go`, same rules |
-| ☐ | File storage | `lib/r2.ts`, two buckets (public/private — security boundary), presigned URLs, `lib/uploads/*` (sniff, verify, integrity) | `aws-sdk-go-v2/s3` + presign |
-| ☐ | Image processing | `sharp`, `lib/image-optimizer.ts`, `lib/sharp.ts` | `govips` (libvips, same engine as sharp) |
-| ☐ | PDF out | `pdf-lib` (receipts, agreements, statements, exports) | see ARCHITECTURE.md §6 |
-| ☐ | PDF in | `unpdf` (statement import) | `pdftotext` (poppler) |
-| ☐ | Spreadsheets | `xlsx` (SheetJS), `papaparse`, `lib/csv.ts` | `excelize`, `encoding/csv` |
-| ☐ | Raster cards | `@napi-rs/canvas` (ID cards, `lib/platform-id-card.server.ts`) | SVG template → libvips |
-| ☐ | QR codes | `qrcode` | `skip2/go-qrcode` |
-| ☐ | Zip streams | `lib/zip-stream.ts` | `archive/zip` streaming |
-| ☐ | Personal-data crypto | `lib/personal-data-crypto.ts` — AES-256-GCM, `PERSONAL_DATA_ENCRYPTION_KEY` | `crypto/cipher` GCM, reads every existing ciphertext |
-| ☐ | Finance secrets | `EncryptedSecret`, `FINANCE_MASTER_KEY` + `_PREVIOUS` rotation | same |
-| ☐ | Sealed backups | `tweetnacl`, `packages/shared/src/backup/sealed-archive.ts` | `x/crypto/nacl`, archives open in both |
-| ☐ | Bikram Sambat calendar | `packages/shared/src/calendar/bs.ts`, `lib/hostel-day.ts` (UTC+5:45), `nepali-date-converter` | `internal/platform/bs`, shared test vectors |
-| ☐ | Night window | `packages/shared/src/night/night-window.ts` | same vectors |
-| ☐ | Plans catalogue | `packages/shared/src/plans/{catalog,lifetime}.ts` | same values |
-| ☐ | Money | paisa integers everywhere | `int64` paisa, never float |
+| ☑ | Realtime | `lib/realtime/*` — Pusher: `private-user-*`, `private-hostel-*`, `private-platform`, `private-global`, `presence-hostel-registration-track-sheet`; topic/category bridge | `pusher-http-go`, same channels, same events |
+| ☑ | Push (mobile) | Expo push + receipts (`PushTicket`, `DeviceToken`) | plain HTTP to Expo |
+| ☑ | Push (web) | `web-push` + VAPID, `DeviceToken.platform = "WEB"`, one fan-out `sendPushToUsers` | `webpush-go`, same fan-out |
+| ☑ | Email | `packages/shared/src/email/{sender,identity}.ts`, Resend, per-category mailboxes, topic opt-out, `List-Unsubscribe`, ≤1 routine email/person/day | `resend-go`, same rules |
+| ☑ | File storage | `lib/r2.ts`, two buckets (public/private — security boundary), presigned URLs, `lib/uploads/*` (sniff, verify, integrity) | `aws-sdk-go-v2/s3` + presign |
+| ☑ | Image processing | `sharp`, `lib/image-optimizer.ts`, `lib/sharp.ts` | `govips` (libvips, same engine as sharp) |
+| ☑ | PDF out | `pdf-lib` (receipts, agreements, statements, exports) | see ARCHITECTURE.md §6 |
+| ☑ | PDF in | `unpdf` (statement import) | `pdftotext` (poppler) |
+| ☑ | Spreadsheets | `xlsx` (SheetJS), `papaparse`, `lib/csv.ts` | `excelize`, `encoding/csv` |
+| ☐ | Raster cards (Phase 5) | `@napi-rs/canvas` (ID cards, `lib/platform-id-card.server.ts`) | SVG template → libvips |
+| ☑ | QR codes | `qrcode` | `skip2/go-qrcode` |
+| ☑ | Zip streams | `lib/zip-stream.ts` | `archive/zip` streaming |
+| ☑ | Personal-data crypto | `lib/personal-data-crypto.ts` — AES-256-GCM, `PERSONAL_DATA_ENCRYPTION_KEY` | `crypto/cipher` GCM, reads every existing ciphertext |
+| ☑ | Finance secrets | `EncryptedSecret`, `FINANCE_MASTER_KEY` + `_PREVIOUS` rotation | same |
+| ☑ | Sealed backups | `tweetnacl`, `packages/shared/src/backup/sealed-archive.ts` | `x/crypto/nacl`, archives open in both |
+| ☑ | Bikram Sambat calendar | `packages/shared/src/calendar/bs.ts`, `lib/hostel-day.ts` (UTC+5:45), `nepali-date-converter` | `internal/platform/bs`, shared test vectors |
+| ☑ | Night window | `packages/shared/src/night/night-window.ts` | same vectors |
+| ☑ | Plans catalogue | `packages/shared/src/plans/{catalog,lifetime}.ts` | `internal/platform/plans`; `defaults.json` written by the vector generator |
+| ☑ | Money | whole rupees (finance) + paisa (store, Softmato) | `internal/platform/money`, `int64`, never float |
 | ☑ | Logging | `lib/logger.ts` | `log/slog` JSON |
 | ☐ | Audit log | `modules/audit`, `AuditLog` | same rows |
 | ☐ | Usage counters | `modules/usage`, `ApiUsageCounter` | same rows |

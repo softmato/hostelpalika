@@ -1,0 +1,141 @@
+{
+ "cells": [
+  {
+   "value": null,
+   "cell": "",
+   "text": ""
+  },
+  {
+   "value": "plain",
+   "cell": "plain",
+   "text": "plain"
+  },
+  {
+   "value": "=SUM(A1)",
+   "cell": "'=SUM(A1)",
+   "text": "=SUM(A1)"
+  },
+  {
+   "value": "+977",
+   "cell": "'+977",
+   "text": "+977"
+  },
+  {
+   "value": "-5",
+   "cell": "'-5",
+   "text": "-5"
+  },
+  {
+   "value": "@x",
+   "cell": "'@x",
+   "text": "@x"
+  },
+  {
+   "value": "\tTab",
+   "cell": "'\tTab",
+   "text": "\tTab"
+  },
+  {
+   "value": "a,b",
+   "cell": "\"a,b\"",
+   "text": "a,b"
+  },
+  {
+   "value": "say \"hi\"",
+   "cell": "\"say \"\"hi\"\"\"",
+   "text": "say \"hi\""
+  },
+  {
+   "value": " lead",
+   "cell": "\" lead\"",
+   "text": " lead"
+  },
+  {
+   "value": "trail ",
+   "cell": "\"trail \"",
+   "text": "trail "
+  },
+  {
+   "value": "line\nbreak",
+   "cell": "\"line\nbreak\"",
+   "text": "line\nbreak"
+  },
+  {
+   "value": 0,
+   "cell": "0",
+   "text": "0"
+  },
+  {
+   "value": 1.5,
+   "cell": "1.5",
+   "text": "1.5"
+  },
+  {
+   "value": -2,
+   "cell": "-2",
+   "text": "-2"
+  },
+  {
+   "value": 1e+21,
+   "cell": "1e+21",
+   "text": "1e+21"
+  },
+  {
+   "value": 0.30000000000000004,
+   "cell": "0.30000000000000004",
+   "text": "0.30000000000000004"
+  },
+  {
+   "value": true,
+   "cell": "true",
+   "text": "true"
+  },
+  {
+   "value": "2026-08-17T00:00:00.000Z",
+   "cell": "Bhadra · 2083-05-01",
+   "text": "Bhadra · 2083-05-01"
+  },
+  {
+   "value": "2026-08-17T10:30:00Z",
+   "cell": "Bhadra · 2083-05-01",
+   "text": "Bhadra · 2083-05-01"
+  },
+  {
+   "value": "2026-13-45T99:99",
+   "cell": "2026-13-45T99:99",
+   "text": "2026-13-45T99:99"
+  },
+  {
+   "value": "plainstring",
+   "cell": "plainstring",
+   "text": "plainstring"
+  }
+ ],
+ "date": {
+  "at": "2026-08-17T06:00:00.000Z",
+  "cell": "Bhadra · 2083-05-01"
+ },
+ "table": "Name,\"Amount, NPR\"\r\nSita,1500\r\n'=cmd,\r\n",
+ "safeNames": [
+  {
+   "name": "a/bc:d*e?f\"g<h>i|j",
+   "safe": "a-bc-d-e-f-g-h-i-j"
+  },
+  {
+   "name": "  many   spaces  ",
+   "safe": "many spaces"
+  },
+  {
+   "name": "",
+   "safe": "file"
+  },
+  {
+   "name": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "safe": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  },
+  {
+   "name": "line\u0001break",
+   "safe": "line-break"
+  }
+ ]
+}

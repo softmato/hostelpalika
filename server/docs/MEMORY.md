@@ -7,8 +7,19 @@ Read this after README.md. Update it at the end of every session.
 - **Phases 0 and 1 done (2026-10-29).** Gate passed: the 20 `/api/v1/auth/*`
   routes are contract-green (`testdata/contract/auth/`, 113 cases recorded from
   TS), tokens work across TS and Go both ways, and a refresh through Go kills the
-  rotated-away token for TS (`router/interop_test.go`). **Next: Phase 2**
-  (shared domain libraries); Phases 3 and 4 may run alongside it.
+  rotated-away token for TS (`router/interop_test.go`).
+- **Phase 2 done (2026-10-29).** All 8 items ☑ (CHANGELOG has the per-library proof).
+  **Next: Phase 3** (public read path); Phase 4 may run alongside it.
+  Libraries: `platform/{bs,money,plans,crypto,storage,email,realtime,push,qr,export,sheets,pdf,pdfin,images}`.
+  Email attachments are still open — add with receipts. Raster ID cards are a Phase 5 item.
+  `push.Hooks` (filter, deep link, web link) are filled in by the notifications module.
+  A new PDF document = draw with `pdf.Cursor`, golden = the TS document, compare with `pdftest.Diff`.
+  `httpx.EncodeURIComponent` is the one JS-compatible encoder.
+- Vectors: `node_modules/.bin/jiti server/testdata/vectors/generate.ts` from the repo
+  root regenerates every `testdata/vectors/*.json`, `platform/bs/table.go` and
+  `platform/plans/defaults.json` from the TS code. Crypto/archive vectors are random
+  per run. `HP_WRITE_VECTORS=1 go test ./internal/platform/crypto` writes
+  `archive-go.json`, which the next generator run opens in TS (throws if it can't).
 - Item 5 was re-scoped: `tenant-isolation.test.ts` asserts service filters, so its
   cases are attached to the Phase 6 residents / notices+complaints+maintenance /
   finance items; PARITY's Tenant isolation row stays ☐ until they are green.

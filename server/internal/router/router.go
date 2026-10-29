@@ -73,6 +73,7 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	guards := authz.New(tokens, cookies, d.DB, cache.New(d.Redis), bg)
 	limiter := ratelimit.New(d.Redis, cfg.Limits.PublicFormMax, cfg.Limits.PublicFormWindow)
 	sender := email.NewSender(cfg.Email.ResendAPIKey, cfg.Email.Domain, cfg.Email.ReplyTo, d.DB)
+	sender.PrefSecret, sender.Outbound = cfg.Auth.AccessSecret, cfg.OutboundURL()
 	log := audit.New(d.DB)
 
 	authSvc := authmod.NewService(d.DB, cfg, tokens, auth.NewSessions(d.DB, cfg.Auth.RefreshTTL), sender, log)

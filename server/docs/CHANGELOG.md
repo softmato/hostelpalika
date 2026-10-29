@@ -23,6 +23,47 @@ these docs.
   two servers never serve live traffic together (ARCHITECTURE.md §11).
   ARCHITECTURE.md §5, ENVIRONMENT.md, PHASES.md updated.
 
+## [Phase 2] — 2026-10-29
+
+### Gate
+- Every Phase 2 library is held to output the TS code itself produced:
+  `node_modules/.bin/jiti server/testdata/vectors/generate.ts` writes
+  `testdata/vectors/*.json`, `testdata/golden/pdf/*` and the generated tables
+  (`bs/table.go`, `plans/defaults.json`, `realtime/topics.json`, `pdf/kerning.json`).
+- BS calendar + night window: 1,914 instants, 276 periods identical; a
+  one-constant mutation fails 143 checks.
+- Crypto: TS-sealed personal-data and finance envelopes open in Go; rotation,
+  scope binding and the blind index match. Sealed archives open both ways
+  (`HP_WRITE_VECTORS=1` writes a Go archive the generator opens in TS).
+- Pusher auth + signed batch query byte-identical to the `pusher` npm package.
+- Spreadsheets read cell-for-cell like SheetJS, including the real eSewa
+  `.xls`/`.xlsx` and Khalti exports in the repo.
+- PDF out: a page drawn through `pdf.Cursor` is glyph-identical (character,
+  font, size, position ±0.05pt) to `layout.ts` + pdf-lib; a 0.5pt layout
+  change fails it.
+- Images: WebP variants pixel-close to sharp (mean diff ≤4/255) with identical
+  sizes; integrity stats and evidence-hash pixels identical on opaque images.
+- `GIN_MODE=release go test -race -tags=sonic ./...` green.
+
+### Added / Changed
+- `platform/{bs,money,plans,crypto,storage,realtime,push,qr,export,sheets,pdf,pdfin,images}`.
+- `platform/email`: topic opt-out (`Notify`/`NotifyBatch`), unsubscribe line +
+  RFC 8058 headers, batch sends. The "one routine email a day" rule is job
+  cadence in TS, so it travels with the Phase 9 jobs.
+- `push.Hooks`: the preference filter and both routing tables are supplied by
+  the notifications module when it is ported.
+- `httpx.EncodeURIComponent` is the one JS-compatible encoder.
+- `.xls` via shakinm/xlsReader (extrame/xls crashed on plain BIFF8); a CFB root
+  entry named other than "Root Entry" (SheetJS writes "R") is normalised first.
+- QR: matrices can differ from npm `qrcode` (segmenting/mask); tests require
+  that every code scans back to its text and is pixel-identical where the
+  matrices agree.
+- Raster ID cards moved to a Phase 5 item (owned by no phase before).
+
+### Parity
+- routes ☑ this phase: 0 (total 20/512) — Phase 2 is libraries only
+- baseline unchanged: `41b0ef10`
+
 ## [Phase 0] — 2026-10-29
 
 ### Gate

@@ -1,0 +1,73 @@
+{
+ "secret": "vector-access-secret",
+ "topics": [
+  {
+   "audience": "resident",
+   "description": "Before and after your hostel fee is due",
+   "label": "Rent reminders",
+   "value": "RENT_REMINDERS"
+  },
+  {
+   "audience": "resident",
+   "description": "Urgent notices from your hostel",
+   "label": "Notices",
+   "value": "NOTICES"
+  },
+  {
+   "audience": "resident",
+   "description": "When a complaint you raised is resolved or rejected",
+   "label": "Complaint updates",
+   "value": "COMPLAINT_UPDATES"
+  },
+  {
+   "audience": "staff",
+   "description": "Morning summary of payments to verify and received, and unpaid fees",
+   "label": "Payment summaries",
+   "value": "PAYMENT_SUMMARY"
+  },
+  {
+   "audience": "staff",
+   "description": "New complaints, and ones past their deadline",
+   "label": "Complaint alerts",
+   "value": "COMPLAINT_ALERTS"
+  },
+  {
+   "audience": "staff",
+   "description": "Residents away longer than your alert limit",
+   "label": "Attendance alerts",
+   "value": "ATTENDANCE_ALERTS"
+  }
+ ],
+ "tokens": [
+  {
+   "address": "  Sita@Example.com ",
+   "token": "c2l0YUBleGFtcGxlLmNvbQ.I9UcpFqtC6JnwSo4AIsOUzBvwQv2qi3T9hEDpEkCoxQ",
+   "back": "sita@example.com",
+   "tampered": null
+  },
+  {
+   "address": "ram+hostel@gmail.com",
+   "token": "cmFtK2hvc3RlbEBnbWFpbC5jb20.BcpQNi8Poy-CZxgPFSP0rZRPLNoEWLad5S639Av0uE8",
+   "back": "ram+hostel@gmail.com",
+   "tampered": null
+  },
+  {
+   "address": "नेपाल@example.np",
+   "token": "4KSo4KWH4KSq4KS-4KSyQGV4YW1wbGUubnA.qyRZtKCulJm6laa5UWrYVoqFu5HdbPZ5Us_vAeeIqXA",
+   "back": "नेपाल@example.np",
+   "tampered": null
+  }
+ ],
+ "unsubscribe": [
+  {
+   "html": "<p>Hi</p><!--unsubscribe--><p>end</p>",
+   "pageUrl": "https://hostelpalika.com/email-preferences?token=a.b&topic=NOTICES",
+   "out": "<p>Hi</p><br><a href=\"https://hostelpalika.com/email-preferences?token=a.b&amp;topic=NOTICES\" style=\"color:inherit;text-decoration:underline;\">Unsubscribe or choose which emails you get</a><p>end</p>"
+  },
+  {
+   "html": "<p>bare fragment</p>",
+   "pageUrl": "https://hostelpalika.com/email-preferences?token=a.b&topic=NOTICES",
+   "out": "<p>bare fragment</p><p style=\"margin-top:24px;font-size:12px;line-height:18px;color:#71717a;\"><a href=\"https://hostelpalika.com/email-preferences?token=a.b&amp;topic=NOTICES\" style=\"color:inherit;text-decoration:underline;\">Unsubscribe or choose which emails you get</a></p>"
+  }
+ ]
+}

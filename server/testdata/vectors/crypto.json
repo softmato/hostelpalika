@@ -1,0 +1,172 @@
+{
+ "personal": [
+  {
+   "kind": "hex",
+   "key": "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff",
+   "sealed": [
+    {
+     "value": {
+      "fullName": "Sita Sharma",
+      "phone": "+9779800000000",
+      "citizenship": "12-34-56/7890"
+     },
+     "envelope": "v1.l6ltmUVCwIWv3eCb.peSbREAEf119mNSVSwvG1Q==.IdldzzSbBOedzLT8CWJTFG9m5sMYYDzIRYUm7rowp+GSJDhUJxjUOjBT2mq4p6zzSB1UfnBJSTwpo0JsIcm100Q94qTjHc8YI6chouVcrL2B"
+    },
+    {
+     "value": "plain <string> & \"quotes\" — नेपाल",
+     "envelope": "v1.5VniXUNPl6W1bT1b.mIsZgeonIrG9tEbq6AUoxA==./OdwwmUe2HhWEBBBluPn/4Iw00SBjgRCWeVZmngPoU9S7Z/PiAIUIxzvyfib4sWRfA=="
+    },
+    {
+     "value": [
+      1,
+      2.5,
+      null,
+      true
+     ],
+     "envelope": "v1.OMmnz8+FxnlrKjxo.FKvUFACoNyWKwIvvepgQvA==.xKN6kYPi6rgEosmTnXEbBGc="
+    }
+   ],
+   "lookups": [
+    {
+     "value": "Sita@Example.com ",
+     "hash": "ijaQ0hspiDO9E7SsawD9Dnfhh2c-pSEgt9JJc0-bYXw"
+    },
+    {
+     "value": "sita@example.com",
+     "hash": "ijaQ0hspiDO9E7SsawD9Dnfhh2c-pSEgt9JJc0-bYXw"
+    },
+    {
+     "value": "  +9779800000000",
+     "hash": "A8gpfbXwkqVw48DabIDjdzw5JgvuCy6y6grqA6r9GhI"
+    }
+   ]
+  },
+  {
+   "kind": "base64",
+   "key": "q83vASNFZ4mrze8BI0VniavN7wEjRWeJq83vASNFZ4k=",
+   "sealed": [
+    {
+     "value": {
+      "fullName": "Sita Sharma",
+      "phone": "+9779800000000",
+      "citizenship": "12-34-56/7890"
+     },
+     "envelope": "v1.3Xc8mzZhVHk1OoMx.UlRh4x187/jIO3VpGca5sA==.wtCO9A4MSGOZtcS9xCeS9DkfGdL3kJt4FZtH7+QuoEvc4QJRVB9ePIoN4qQHY+cTtWvlhvN6ZSx/BifrsJdBTZqEATjW13vcQYS25LOqQIbD"
+    },
+    {
+     "value": "plain <string> & \"quotes\" — नेपाल",
+     "envelope": "v1.lhrrgocR98KtDIMW.3kOpiEx8gaPAqdu9AmnQKQ==.XQUOc1kvIOFPPCPYBC3lvbPl5MPSTC6waxI1t3EOhTI6yasz+6Tca5JLSKhJmAn4bw=="
+    },
+    {
+     "value": [
+      1,
+      2.5,
+      null,
+      true
+     ],
+     "envelope": "v1.MoZrUcklcfRa3Rr2.eZGHkYkBIN125hT9nmwBFg==.BIa65AU29aCYhsG/5px528M="
+    }
+   ],
+   "lookups": [
+    {
+     "value": "Sita@Example.com ",
+     "hash": "o0YNFFoMmhhIeIdbKDnoFl6w8cEzuJi7QV6dnVTVg0s"
+    },
+    {
+     "value": "sita@example.com",
+     "hash": "o0YNFFoMmhhIeIdbKDnoFl6w8cEzuJi7QV6dnVTVg0s"
+    },
+    {
+     "value": "  +9779800000000",
+     "hash": "ykbYgvR2g__X8h1jpanJTF8cIdXQjiQMwcZ9dAmFc5M"
+    }
+   ]
+  },
+  {
+   "kind": "passphrase",
+   "key": "  not a 32-byte key, stretched with sha256  ",
+   "sealed": [
+    {
+     "value": {
+      "fullName": "Sita Sharma",
+      "phone": "+9779800000000",
+      "citizenship": "12-34-56/7890"
+     },
+     "envelope": "v1.yKVgrz8iRRgskcO6.P0vSoKBB2HPovM9nELVWQw==.NMeuBhZraC1ELxuTbYLM2hI6QvvU25g5V2ToAoc1EMpB3yD+QHRau9afPZuDXykzItkgMq0MJP1IyuK5E/FBC359HffM275pRI70sOvS6Cc2"
+    },
+    {
+     "value": "plain <string> & \"quotes\" — नेपाल",
+     "envelope": "v1.QLG2jtetwZK/wUBG.52TZ7Ardo25Sig10BG1oUw==.5GtX7s1Hscp3ZPZlogBhMiPigCTYfA8hBG/gNgyrCjCzuw0fzKCsgCxy1ZafxPKmZA=="
+    },
+    {
+     "value": [
+      1,
+      2.5,
+      null,
+      true
+     ],
+     "envelope": "v1.x861KAX4qXOpjZkU./6zVjAYoYEzhUmah0eKhuw==.hSo8B0EKKL2chjXyke5eA9A="
+    }
+   ],
+   "lookups": [
+    {
+     "value": "Sita@Example.com ",
+     "hash": "BvUGBu30b5Zn9wn9a5bY7napHgP6ZIeEWHrgBWdU3aU"
+    },
+    {
+     "value": "sita@example.com",
+     "hash": "BvUGBu30b5Zn9wn9a5bY7napHgP6ZIeEWHrgBWdU3aU"
+    },
+    {
+     "value": "  +9779800000000",
+     "hash": "U59iTa6hHdHrpfHPOwCRyN6U9YX5iJY4IsKRsbjpLlk"
+    }
+   ]
+  }
+ ],
+ "finance": {
+  "current": "ZmluYW5jZS1tYXN0ZXIta2V5LWN1cnJlbnQtMzJieXQ=",
+  "previous": "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90",
+  "keyIds": {
+   "current": "4b31eede60d2",
+   "previous": "79175e70eb22"
+  },
+  "scope": {
+   "hostelId": "66f000000000000000000001",
+   "purpose": "ESEWA:GATEWAY_SECRET"
+  },
+  "fingerprint": "741e0b16dbcd350f",
+  "sealed": [
+   {
+    "secret": "8gBm/:&EnhH.1/q",
+    "sealedWith": "current",
+    "envelope": {
+     "authTag": "BaHVKZdLMFYujGdI0NBJmQ==",
+     "ciphertext": "rbZsjD4DZ5T83cye+5lc",
+     "fingerprint": "741e0b16dbcd350f",
+     "format": "v1",
+     "iv": "vkSwc/J1lzyJeRxB",
+     "keyId": "4b31eede60d2",
+     "wrappedKey": "Ru4eRFJo4x9QrgZ8+Abt+t7/zU3fbwMrzIxwgwRd9mU=",
+     "wrappedKeyIv": "xf3Zfo3iX3Bp2c2T",
+     "wrappedKeyTag": "oq6OTO5nWHg+DkGFX7/aiQ=="
+    }
+   },
+   {
+    "secret": "live_secret_key_नेपाल",
+    "sealedWith": "previous",
+    "envelope": {
+     "authTag": "qasaqB7Q9r7/BTF/+ZW2HA==",
+     "ciphertext": "QAk6nWJKKuRE78/TmCn6sxbo1IU1TQOP89ai4COBqg==",
+     "fingerprint": "9baba65efcf62b14",
+     "format": "v1",
+     "iv": "DI//NgINxOl4nPoZ",
+     "keyId": "79175e70eb22",
+     "wrappedKey": "qNsWgz/oIonsUervoyfuAmbeURoomqasRT4d7sCveXQ=",
+     "wrappedKeyIv": "RS6y3pOZxTYbh/x7",
+     "wrappedKeyTag": "DFDY+IZQE4HNYgsQtgBwaA=="
+    }
+   }
+  ]
+ }
+}

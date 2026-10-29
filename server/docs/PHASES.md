@@ -50,14 +50,14 @@ holds the phase-level gates.
 
 **Needs:** Phase 1. **Unblocks:** any module that uses them (most do).
 
-- ☐ BS calendar + hostel day (UTC+5:45) + night window — test vectors generated from `packages/shared` and checked in under `server/testdata/vectors/`
-- ☐ Money helpers (paisa `int64`), plan catalogue values
-- ☐ Personal-data crypto + finance secret crypto — decrypt a sample of real-format ciphertexts produced by TS
-- ☐ R2 (both buckets, presign), upload verification
-- ☐ Email sender + identity + topic opt-out + daily cap; templates ported as each module needs them (`PARITY.md` §8)
-- ☐ Push fan-out (Expo + Web Push), Pusher publish + channel auth
-- ☐ Images (govips), PDF out, PDF in, xlsx, CSV, zip, QR — each with golden files
-- ☐ Sealed archive (nacl) — archives sealed by TS open in Go and the reverse
+- ☑ BS calendar + hostel day (UTC+5:45) + night window — test vectors generated from `packages/shared` and checked in under `server/testdata/vectors/`
+- ☑ Money helpers (paisa `int64`), plan catalogue values
+- ☑ Personal-data crypto + finance secret crypto — decrypt a sample of real-format ciphertexts produced by TS
+- ☑ R2 (both buckets, presign), upload verification — image-integrity (sharp) travels with the images item
+- ☑ Email sender + identity + topic opt-out + daily cap; templates ported as each module needs them (`PARITY.md` §8) — the daily cap is job cadence in TS (no code-level cap), so it travels with the Phase 9 jobs
+- ☑ Push fan-out (Expo + Web Push), Pusher publish + channel auth — the preference filter and the two routing tables are `push.Hooks`, filled in by the notifications module
+- ☑ Images (govips), PDF out, PDF in, xlsx, CSV, zip, QR — each with golden files. PDF out is the drawing layer + layout `Cursor` (glyph-identical to pdf-lib, incl. its measuring-only kerning) and the `pdftest` glyph harness; each document type is ported with its module and diffed against its TS output
+- ☑ Sealed archive (nacl) — archives sealed by TS open in Go and the reverse
 
 **Gate:** every library in `PARITY.md` §3 is ☑.
 
@@ -94,6 +94,7 @@ holds the phase-level gates.
 
 - ☐ `resident` (39), `guardian` (6), `cook` (11), `community` (10), `notifications` (4), `push` (4), `realtime` (2), `account` (9), `mobile` (1), `files` (5)
 - ☐ `bookings` signed-in routes except money: create/list, detail, cancel, quote, documents (`checkout`, `payment`, `return` wait for Phase 8)
+- ☐ Raster ID cards — `lib/platform-id-card.ts` (canvas drawing shared with the clients) rendered in Go with Inter; golden PNG against `@napi-rs/canvas` (`PARITY.md` §3 "Raster cards")
 
 **Gate:** a resident, a guardian and a cook can complete their daily flows on Go only.
 

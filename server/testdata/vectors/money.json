@@ -1,0 +1,367 @@
+{
+ "round": [
+  {
+   "value": 0,
+   "rupees": 0
+  },
+  {
+   "value": 0.4,
+   "rupees": 0
+  },
+  {
+   "value": 0.5,
+   "rupees": 1
+  },
+  {
+   "value": 0.6,
+   "rupees": 1
+  },
+  {
+   "value": 1.5,
+   "rupees": 2
+  },
+  {
+   "value": 2.5,
+   "rupees": 3
+  },
+  {
+   "value": -0.5,
+   "rupees": -1
+  },
+  {
+   "value": -1.5,
+   "rupees": -2
+  },
+  {
+   "value": -2.5,
+   "rupees": -3
+  },
+  {
+   "value": 1499.9999,
+   "rupees": 1500
+  },
+  {
+   "value": 333.3333,
+   "rupees": 333
+  },
+  {
+   "value": -333.5,
+   "rupees": -334
+  }
+ ],
+ "prorate": [
+  {
+   "monthly": 12000,
+   "days": 13,
+   "dim": 31,
+   "amount": 5032
+  },
+  {
+   "monthly": 12000,
+   "days": 31,
+   "dim": 31,
+   "amount": 12000
+  },
+  {
+   "monthly": 12000,
+   "days": 40,
+   "dim": 31,
+   "amount": 12000
+  },
+  {
+   "monthly": 12000,
+   "days": 0,
+   "dim": 30,
+   "amount": 0
+  },
+  {
+   "monthly": 12000,
+   "days": -2,
+   "dim": 30,
+   "amount": 0
+  },
+  {
+   "monthly": 9999,
+   "days": 1,
+   "dim": 32,
+   "amount": 312
+  },
+  {
+   "monthly": 7500,
+   "days": 15,
+   "dim": 29,
+   "amount": 3879
+  },
+  {
+   "monthly": 1,
+   "days": 1,
+   "dim": 3,
+   "amount": 0
+  },
+  {
+   "monthly": 12000,
+   "days": 5,
+   "dim": 0,
+   "amount": {
+    "error": true
+   }
+  }
+ ],
+ "split": [
+  {
+   "amount": 1000,
+   "parts": 3,
+   "shares": [
+    334,
+    333,
+    333
+   ]
+  },
+  {
+   "amount": 1000,
+   "parts": 1,
+   "shares": [
+    1000
+   ]
+  },
+  {
+   "amount": -1000,
+   "parts": 3,
+   "shares": [
+    -334,
+    -333,
+    -333
+   ]
+  },
+  {
+   "amount": 7,
+   "parts": 4,
+   "shares": [
+    2,
+    2,
+    2,
+    1
+   ]
+  },
+  {
+   "amount": 0,
+   "parts": 2,
+   "shares": [
+    0,
+    0
+   ]
+  },
+  {
+   "amount": 100,
+   "parts": 0,
+   "shares": {
+    "error": true
+   }
+  }
+ ],
+ "sum": [
+  {
+   "amounts": [
+    1,
+    2,
+    3
+   ],
+   "total": 6
+  },
+  {
+   "amounts": [],
+   "total": 0
+  },
+  {
+   "amounts": [
+    9007199254740991,
+    1
+   ],
+   "total": {
+    "error": true
+   }
+  }
+ ],
+ "format": [
+  {
+   "amount": 0,
+   "npr": "NPR 0",
+   "paisa": "0.00",
+   "storeNpr": "NPR 0.00",
+   "document": "0.00",
+   "planRate": "NPR 0",
+   "toPaisa": 0,
+   "toRupees": 0
+  },
+  {
+   "amount": 1,
+   "npr": "NPR 1",
+   "paisa": "0.01",
+   "storeNpr": "NPR 0.01",
+   "document": "1.00",
+   "planRate": "NPR 1",
+   "toPaisa": 100,
+   "toRupees": {
+    "error": true
+   }
+  },
+  {
+   "amount": 7,
+   "npr": "NPR 7",
+   "paisa": "0.07",
+   "storeNpr": "NPR 0.07",
+   "document": "7.00",
+   "planRate": "NPR 7",
+   "toPaisa": 700,
+   "toRupees": {
+    "error": true
+   }
+  },
+  {
+   "amount": -50,
+   "npr": "NPR -50",
+   "paisa": "-0.50",
+   "storeNpr": "NPR -0.50",
+   "document": "-50.00",
+   "planRate": "NPR -50",
+   "toPaisa": -5000,
+   "toRupees": {
+    "error": true
+   }
+  },
+  {
+   "amount": -1234567890,
+   "npr": "NPR -1,234,567,890",
+   "paisa": "-1,23,45,678.90",
+   "storeNpr": "NPR -12,345,678.90",
+   "document": "-1,23,45,67,890.00",
+   "planRate": "NPR -1,23,45,67,890",
+   "toPaisa": -123456789000,
+   "toRupees": {
+    "error": true
+   }
+  },
+  {
+   "amount": 99,
+   "npr": "NPR 99",
+   "paisa": "0.99",
+   "storeNpr": "NPR 0.99",
+   "document": "99.00",
+   "planRate": "NPR 99",
+   "toPaisa": 9900,
+   "toRupees": {
+    "error": true
+   }
+  },
+  {
+   "amount": 100,
+   "npr": "NPR 100",
+   "paisa": "1.00",
+   "storeNpr": "NPR 1.00",
+   "document": "100.00",
+   "planRate": "NPR 100",
+   "toPaisa": 10000,
+   "toRupees": 1
+  },
+  {
+   "amount": 999,
+   "npr": "NPR 999",
+   "paisa": "9.99",
+   "storeNpr": "NPR 9.99",
+   "document": "999.00",
+   "planRate": "NPR 999",
+   "toPaisa": 99900,
+   "toRupees": {
+    "error": true
+   }
+  },
+  {
+   "amount": 1000,
+   "npr": "NPR 1,000",
+   "paisa": "10.00",
+   "storeNpr": "NPR 10.00",
+   "document": "1,000.00",
+   "planRate": "NPR 1,000",
+   "toPaisa": 100000,
+   "toRupees": 10
+  },
+  {
+   "amount": 1499,
+   "npr": "NPR 1,499",
+   "paisa": "14.99",
+   "storeNpr": "NPR 14.99",
+   "document": "1,499.00",
+   "planRate": "NPR 1,499",
+   "toPaisa": 149900,
+   "toRupees": {
+    "error": true
+   }
+  },
+  {
+   "amount": 12000,
+   "npr": "NPR 12,000",
+   "paisa": "120.00",
+   "storeNpr": "NPR 120.00",
+   "document": "12,000.00",
+   "planRate": "NPR 12,000",
+   "toPaisa": 1200000,
+   "toRupees": 120
+  },
+  {
+   "amount": 123456,
+   "npr": "NPR 123,456",
+   "paisa": "1,234.56",
+   "storeNpr": "NPR 1,234.56",
+   "document": "1,23,456.00",
+   "planRate": "NPR 1,23,456",
+   "toPaisa": 12345600,
+   "toRupees": {
+    "error": true
+   }
+  },
+  {
+   "amount": 1234567,
+   "npr": "NPR 1,234,567",
+   "paisa": "12,345.67",
+   "storeNpr": "NPR 12,345.67",
+   "document": "12,34,567.00",
+   "planRate": "NPR 12,34,567",
+   "toPaisa": 123456700,
+   "toRupees": {
+    "error": true
+   }
+  },
+  {
+   "amount": 10000000,
+   "npr": "NPR 10,000,000",
+   "paisa": "1,00,000.00",
+   "storeNpr": "NPR 100,000.00",
+   "document": "1,00,00,000.00",
+   "planRate": "NPR 1,00,00,000",
+   "toPaisa": 1000000000,
+   "toRupees": 100000
+  },
+  {
+   "amount": -1500,
+   "npr": "NPR -1,500",
+   "paisa": "-15.00",
+   "storeNpr": "NPR -15.00",
+   "document": "-1,500.00",
+   "planRate": "NPR -1,500",
+   "toPaisa": -150000,
+   "toRupees": -15
+  },
+  {
+   "amount": -123456,
+   "npr": "NPR -123,456",
+   "paisa": "-1,234.56",
+   "storeNpr": "NPR -1,234.56",
+   "document": "-1,23,456.00",
+   "planRate": "NPR -1,23,456",
+   "toPaisa": -12345600,
+   "toRupees": {
+    "error": true
+   }
+  }
+ ]
+}

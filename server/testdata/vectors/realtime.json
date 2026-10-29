@@ -1,0 +1,131 @@
+{
+ "auths": [
+  {
+   "socketId": "123.456",
+   "channel": "private-user-66f000000000000000000009",
+   "member": null,
+   "auth": {
+    "auth": "vector-key:8b9add86129ae3f2e413c63c7bf42bf253d47bacc9e227c04412a4471c9adb5e"
+   }
+  },
+  {
+   "socketId": "1.2",
+   "channel": "presence-hostel-registration-track-sheet",
+   "member": {
+    "user_id": "u1",
+    "user_info": {
+     "name": "Sita <Agent>",
+     "role": "PLATFORM_AGENT"
+    }
+   },
+   "auth": {
+    "channel_data": "{\"user_id\":\"u1\",\"user_info\":{\"name\":\"Sita <Agent>\",\"role\":\"PLATFORM_AGENT\"}}",
+    "auth": "vector-key:ee87c7be86cdb88e2eaa7f2fb5438bd71e47c59eeb76ff97621aaabba0f04082"
+   }
+  }
+ ],
+ "signed": {
+  "now": 1793000000,
+  "body": "{\"batch\":[{\"channel\":\"private-hostel-66f000000000000000000001\",\"name\":\"resource:changed\",\"data\":\"{\\\"topics\\\":[\\\"residents\\\",\\\"payments\\\"]}\"}]}",
+  "query": "auth_key=vector-key&auth_timestamp=1793000000&auth_version=1.0&body_md5=8cc008af6e6e1b6e43aa54e302d05899&auth_signature=61ed8fcdc79ac48e3db15ca08e465d24d44ee3564b500794e8c816a99f613138"
+ },
+ "writes": [
+  {
+   "method": "POST",
+   "path": "/api/v1/hostel-admin/residents",
+   "topics": [
+    "residents",
+    "payments",
+    "rooms"
+   ]
+  },
+  {
+   "method": "PATCH",
+   "path": "/api/v1/hostel-admin/residents/abc/move",
+   "topics": [
+    "residents",
+    "payments",
+    "rooms"
+   ]
+  },
+  {
+   "method": "GET",
+   "path": "/api/v1/hostel-admin/residents",
+   "topics": []
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/hostel-admin/resident-scan/x",
+   "topics": [
+    "residents",
+    "payments",
+    "rooms"
+   ]
+  },
+  {
+   "method": "DELETE",
+   "path": "/api/v1/hostel-admin/room-types/1",
+   "topics": [
+    "rooms"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/hostel-admin/roomsx",
+   "topics": []
+  },
+  {
+   "method": "put",
+   "path": "/api/v1/resident/finance/claims",
+   "topics": [
+    "payments"
+   ]
+  },
+  {
+   "method": "POST",
+   "path": "/api/v1/platform/hostels",
+   "topics": []
+  }
+ ],
+ "endpoints": [
+  {
+   "topics": [
+    "residents",
+    "payments"
+   ],
+   "endpoints": [
+    "/api/v1/hostel-admin/residents*",
+    "/api/v1/hostel-admin/rooms*",
+    "/api/v1/hostel-admin/move-events*",
+    "/api/v1/hostel-admin/dashboard*",
+    "/api/v1/hostel-admin/reports*",
+    "/api/v1/hostel-admin/finance*",
+    "/api/v1/resident/finance*",
+    "/api/v1/cook/khata*",
+    "/api/v1/guardian/payments*",
+    "/api/v1/platform/billing*",
+    "/api/v1/platform/dashboard*"
+   ]
+  },
+  {
+   "topics": [
+    "store"
+   ],
+   "endpoints": [
+    "/api/v1/store/products*",
+    "/api/v1/store/orders*",
+    "/api/v1/platform/store*"
+   ]
+  },
+  {
+   "topics": [
+    "nope"
+   ],
+   "endpoints": []
+  },
+  {
+   "topics": [],
+   "endpoints": []
+  }
+ ]
+}

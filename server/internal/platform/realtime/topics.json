@@ -1,0 +1,174 @@
+{
+  "endpoints": {
+    "attendance": [
+      "/api/v1/hostel-admin/attendance*",
+      "/api/v1/resident/attendance*",
+      "/api/v1/guardian/attendance*",
+      "/api/v1/hostel-admin/dashboard*",
+      "/api/v1/hostel-admin/reports*"
+    ],
+    "bookings": [
+      "/api/v1/bookings*",
+      "/api/v1/hostel-admin/bookings*",
+      "/api/v1/platform/bookings*"
+    ],
+    "community": [
+      "/api/v1/community*",
+      "/api/v1/platform/community*"
+    ],
+    "complaints": [
+      "/api/v1/hostel-admin/complaints*",
+      "/api/v1/resident/complaints*",
+      "/api/v1/guardian/complaints*",
+      "/api/v1/hostel-admin/dashboard*",
+      "/api/v1/hostel-admin/reports*"
+    ],
+    "food": [
+      "/api/v1/hostel-admin/food*",
+      "/api/v1/resident/food*",
+      "/api/v1/guardian/food*"
+    ],
+    "hostels": [
+      "/api/v1/platform/hostels*",
+      "/api/v1/platform/dashboard*",
+      "/api/v1/hostel-admin/hostel*",
+      "/api/v1/hostel-admin/dashboard*",
+      "/api/v1/hostel-admin/reports*"
+    ],
+    "inquiries": [
+      "/api/v1/hostel-admin/inquiries*",
+      "/api/v1/platform/inquiries*",
+      "/api/v1/hostel-admin/dashboard*",
+      "/api/v1/hostel-admin/reports*"
+    ],
+    "maintenance": [
+      "/api/v1/hostel-admin/maintenance*",
+      "/api/v1/resident/maintenance*",
+      "/api/v1/service-provider/jobs*"
+    ],
+    "notices": [
+      "/api/v1/hostel-admin/notices*",
+      "/api/v1/resident/notices*",
+      "/api/v1/guardian/notices*"
+    ],
+    "notifications": [
+      "/api/v1/notifications*",
+      "/api/v1/hostel-admin/notifications*",
+      "/api/v1/platform/notifications*"
+    ],
+    "payments": [
+      "/api/v1/hostel-admin/finance*",
+      "/api/v1/resident/finance*",
+      "/api/v1/cook/khata*",
+      "/api/v1/guardian/payments*",
+      "/api/v1/platform/billing*",
+      "/api/v1/hostel-admin/dashboard*",
+      "/api/v1/hostel-admin/reports*",
+      "/api/v1/platform/dashboard*"
+    ],
+    "residents": [
+      "/api/v1/hostel-admin/residents*",
+      "/api/v1/hostel-admin/rooms*",
+      "/api/v1/hostel-admin/move-events*",
+      "/api/v1/hostel-admin/dashboard*",
+      "/api/v1/hostel-admin/reports*"
+    ],
+    "reviews": [
+      "/api/v1/platform/reviews*",
+      "/api/v1/hostel-admin/reviews*"
+    ],
+    "rooms": [
+      "/api/v1/hostel-admin/rooms*",
+      "/api/v1/hostel-admin/kyc*",
+      "/api/v1/resident/room*",
+      "/api/v1/hostel-admin/room-types*",
+      "/api/v1/hostel-admin/profile*",
+      "/api/v1/hostel-admin/dashboard*",
+      "/api/v1/hostel-admin/reports*"
+    ],
+    "safety": [
+      "/api/v1/hostel-admin/sos*",
+      "/api/v1/hostel-admin/night-status*",
+      "/api/v1/guardian/safety*",
+      "/api/v1/resident/sos*"
+    ],
+    "service-providers": [
+      "/api/v1/platform/service-providers*",
+      "/api/v1/hostel-admin/service-providers*",
+      "/api/v1/service-provider*"
+    ],
+    "store": [
+      "/api/v1/store/products*",
+      "/api/v1/store/orders*",
+      "/api/v1/platform/store*"
+    ]
+  },
+  "categories": {
+    "ACCOUNT": [],
+    "ACCOUNT_DELETION": [],
+    "ANNOUNCEMENT": [
+      "notices"
+    ],
+    "ATTENDANCE": [
+      "attendance"
+    ],
+    "BOOKING": [
+      "bookings"
+    ],
+    "COMMUNITY": [
+      "community"
+    ],
+    "COMPLAINT": [
+      "complaints"
+    ],
+    "ELECTRICIAN": [
+      "maintenance"
+    ],
+    "FOOD": [
+      "food"
+    ],
+    "GENERAL": [],
+    "HOSTEL_APPROVAL": [
+      "hostels"
+    ],
+    "INQUIRY": [
+      "inquiries"
+    ],
+    "KHATA": [
+      "payments"
+    ],
+    "MAINTENANCE": [
+      "maintenance"
+    ],
+    "NOTICE": [
+      "notices"
+    ],
+    "PAYMENT": [
+      "payments"
+    ],
+    "PLUMBER": [
+      "maintenance"
+    ],
+    "REVIEW": [
+      "reviews"
+    ],
+    "ROOM": [
+      "rooms"
+    ],
+    "SERVICE_PROVIDER": [
+      "service-providers"
+    ],
+    "SOS": [
+      "safety"
+    ],
+    "STOCK": [
+      "food"
+    ],
+    "STORE_ORDER": [
+      "store"
+    ],
+    "URGENT": [
+      "safety"
+    ]
+  }
+}

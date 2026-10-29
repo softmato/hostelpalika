@@ -110,6 +110,36 @@ type Message struct {
 	Subject  string
 	HTML     string
 	ReplyTo  string
+	// Unsubscribe is for optional mail only: a footer line (PageURL) and the
+	// RFC 8058 List-Unsubscribe headers (OneClickURL).
+	Unsubscribe *Unsubscribe
+}
+
+type Unsubscribe struct{ OneClickURL, PageURL string }
+
+// WithUnsubscribeLine puts the line in the layout's slot, or appends it to a bare fragment.
+func WithUnsubscribeLine(html, pageURL string) string {
+	line := `<a href="` + strings.ReplaceAll(pageURL, "&", "&amp;") + `" style="color:inherit;text-decoration:underline;">Unsubscribe or choose which emails you get</a>`
+	if strings.Contains(html, UnsubscribeSlot) {
+		return strings.Replace(html, UnsubscribeSlot, "<br>"+line, 1)
+	}
+	return html + `<p style="margin-top:24px;font-size:12px;line-height:18px;color:#71717a;">` + line + `</p>`
+}
+
+// body is messageBody: one message as Resend takes it.
+func body(m Message, from, replyTo string) map[string]any {
+	b := map[string]any{"from": from, "to": m.To, "subject": m.Subject, "html": m.HTML}
+	if m.Unsubscribe != nil {
+		b["html"] = WithUnsubscribeLine(m.HTML, m.Unsubscribe.PageURL)
+		b["headers"] = map[string]string{
+			"List-Unsubscribe":      "<" + m.Unsubscribe.OneClickURL + ">",
+			"List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+		}
+	}
+	if replyTo != "" {
+		b["reply_to"] = replyTo
+	}
+	return b
 }
 
 // Sender sends through Resend with the configured identity.
@@ -119,7 +149,9 @@ type Sender struct {
 	ReplyTo string // EMAIL_REPLY_TO, the fallback identity's reply address
 	DB      *mongo.Database
 	HTTP    *http.Client
-	URL     string // tests point this at a fake
+	URL     string // tests point this at a fake; the batch endpoint is URL + "/batch"
+	// For opt-out links: JWT_ACCESS_SECRET signs the token, Outbound is OutboundURL().
+	PrefSecret, Outbound string
 
 	mu       sync.Mutex
 	cached   *Identity
@@ -270,12 +302,8 @@ func (s *Sender) Send(ctx context.Context, m Message) Result {
 			"action", "email_skipped", "category", cat, "subject", m.Subject)
 		return Result{Reason: "not_configured"}
 	}
-	body := map[string]any{"from": from, "to": m.To, "subject": m.Subject, "html": m.HTML}
-	if replyTo != "" {
-		body["reply_to"] = replyTo
-	}
-	b, _ := json.Marshal(body)
-	res, err := s.post(ctx, b, 2)
+	b, _ := json.Marshal(body(m, from, replyTo))
+	res, err := s.post(ctx, s.URL, b, 2)
 	if err != nil {
 		slog.ErrorContext(ctx, err.Error(), "action", "email_send_failed", "category", cat, "subject", m.Subject)
 		return Result{Reason: "send_failed", Detail: err.Error()}
@@ -295,8 +323,8 @@ func (s *Sender) Send(ctx context.Context, m Message) Result {
 }
 
 // post retries a 429 after its retry-after (capped at 2 s), twice, as postToResend.
-func (s *Sender) post(ctx context.Context, body []byte, retries int) (*http.Response, error) {
-	req, err := http.NewRequestWithContext(context.WithoutCancel(ctx), http.MethodPost, s.URL, bytes.NewReader(body))
+func (s *Sender) post(ctx context.Context, url string, body []byte, retries int) (*http.Response, error) {
+	req, err := http.NewRequestWithContext(context.WithoutCancel(ctx), http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
@@ -312,5 +340,75 @@ func (s *Sender) post(ctx context.Context, body []byte, retries int) (*http.Resp
 		wait = min(ra, 2)
 	}
 	time.Sleep(time.Duration((wait + rand.Float64()*0.5) * float64(time.Second)))
-	return s.post(ctx, body, retries-1)
+	return s.post(ctx, url, body, retries-1)
+}
+
+// batchLimit is Resend's per-request cap.
+const batchLimit = 100
+
+// SendBatch is sendEmailBatch: one request per hundred, one Result per message, in order.
+func (s *Sender) SendBatch(ctx context.Context, msgs []Message) []Result {
+	results := make([]Result, 0, len(msgs))
+	if len(msgs) == 0 {
+		return results
+	}
+	id := s.Identity(ctx)
+	for start := 0; start < len(msgs); start += batchLimit {
+		slice := msgs[start:min(start+batchLimit, len(msgs))]
+		fail := func(reason, detail string) {
+			for range slice {
+				results = append(results, Result{Reason: reason, Detail: detail})
+			}
+		}
+		bodies := make([]map[string]any, 0, len(slice))
+		for _, m := range slice {
+			cat := m.Category
+			if cat == "" {
+				cat = Info
+			}
+			from := id.From(cat)
+			if from == "" {
+				break
+			}
+			replyTo := m.ReplyTo
+			if replyTo == "" {
+				replyTo = id.ReplyToFor(cat)
+			}
+			bodies = append(bodies, body(m, from, replyTo))
+		}
+		if s.APIKey == "" || len(bodies) != len(slice) {
+			slog.InfoContext(ctx, "Resend not configured (RESEND_API_KEY / EMAIL_DOMAIN); batch not sent.", "action", "email_skipped", "count", len(slice))
+			fail("not_configured", "")
+			continue
+		}
+		b, _ := json.Marshal(bodies)
+		res, err := s.post(ctx, s.URL+"/batch", b, 2)
+		if err != nil {
+			slog.ErrorContext(ctx, err.Error(), "action", "email_batch_failed", "count", len(slice))
+			fail("send_failed", err.Error())
+			continue
+		}
+		raw, _ := io.ReadAll(res.Body)
+		_ = res.Body.Close()
+		if res.StatusCode < 200 || res.StatusCode > 299 {
+			slog.ErrorContext(ctx, fmt.Sprintf("Resend returned %d", res.StatusCode), "action", "email_batch_failed", "count", len(slice))
+			fail("send_failed", string(raw))
+			continue
+		}
+		var payload struct {
+			Data []struct {
+				ID string `json:"id"`
+			} `json:"data"`
+		}
+		_ = json.Unmarshal(raw, &payload)
+		slog.InfoContext(ctx, "Email batch dispatched via Resend.", "action", "email_batch_sent", "count", len(slice))
+		for i := range slice {
+			r := Result{Sent: true}
+			if i < len(payload.Data) {
+				r.ID = payload.Data[i].ID
+			}
+			results = append(results, r)
+		}
+	}
+	return results
 }

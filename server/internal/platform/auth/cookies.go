@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 )
 
 // Cookie names: lib/auth-cookies.ts, lib/lock-pin-cookie.ts.
@@ -83,7 +85,7 @@ type Cookies struct {
 // Domain, Secure, HttpOnly, SameSite=lax. maxAge < 0 = session cookie.
 func (c *Cookies) set(h http.Header, name, value string, maxAge int, path string) {
 	var b strings.Builder
-	b.WriteString(name + "=" + encodeURIComponent(value) + "; Path=" + path)
+	b.WriteString(name + "=" + httpx.EncodeURIComponent(value) + "; Path=" + path)
 	if maxAge > 0 {
 		b.WriteString("; Expires=" + c.Tokens.now().Add(time.Duration(maxAge)*time.Second).UTC().Format(http.TimeFormat))
 	}
@@ -161,21 +163,4 @@ func (c *Cookies) PinUnlocked(r *http.Request, userID, sessionID string) bool {
 	// A missing claim is undefined in TS, which never equals "".
 	sid, ok := m["sessionId"].(string)
 	return ok && sub == userID && sid == sessionID
-}
-
-// encodeURIComponent: JS leaves A–Z a–z 0–9 and -_.!~*'() alone.
-func encodeURIComponent(s string) string {
-	const hex = "0123456789ABCDEF"
-	var b strings.Builder
-	for i := 0; i < len(s); i++ {
-		ch := s[i]
-		if 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || '0' <= ch && ch <= '9' || strings.IndexByte("-_.!~*'()", ch) >= 0 {
-			b.WriteByte(ch)
-		} else {
-			b.WriteByte('%')
-			b.WriteByte(hex[ch>>4])
-			b.WriteByte(hex[ch&15])
-		}
-	}
-	return b.String()
 }
