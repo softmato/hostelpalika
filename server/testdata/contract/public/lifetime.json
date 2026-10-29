@@ -1,0 +1,36 @@
+[
+  {
+    "name": "lifetime",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/lifetime"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Lifetime deal loaded",
+        "data": {
+          "lifetime": {
+            "endsOn": "",
+            "offers": [
+              {
+                "left": 1,
+                "monthly": 999,
+                "planId": "go",
+                "planName": "Go",
+                "price": 9999,
+                "seats": 2,
+                "sold": 1
+              }
+            ],
+            "startsOn": "",
+            "window": "open"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  }
+]

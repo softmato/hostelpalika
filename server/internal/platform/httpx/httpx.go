@@ -254,3 +254,9 @@ func Recover() gin.HandlerFunc {
 
 // ISO is Date#toISOString: UTC, milliseconds, Z.
 func ISO(t time.Time) string { return t.UTC().Format("2006-01-02T15:04:05.000Z") }
+
+// PublicCache is PUBLIC_CACHE: shared-cache only, so a browser still
+// revalidates. Never on an authed route.
+func PublicCache(c *gin.Context) {
+	c.Header("Cache-Control", "public, s-maxage=60, stale-while-revalidate=600")
+}

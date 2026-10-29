@@ -141,6 +141,9 @@ func Reset(ctx context.Context, db *mongo.Database) error {
 			{Key: "requestedRole", Value: "PUBLIC"}, {Key: "hostelIds", Value: none}, {Key: "cancelled", Value: false}, {Key: "executed", Value: false},
 			{Key: "scheduledDeletionAt", Value: now.Add(59 * day)}}},
 	}
+	for coll, docs := range publicDocs(now) {
+		inserts[coll] = append(inserts[coll], docs...)
+	}
 	for coll, docs := range inserts {
 		if _, err := db.Collection(coll).InsertMany(ctx, docs); err != nil {
 			return err

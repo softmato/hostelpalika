@@ -120,6 +120,9 @@ func Defaults() (Catalog, Lifetime) {
 	return d.Plans, d.Lifetime
 }
 
+// JSRound is Math.round: half rounds toward +∞.
+func JSRound(x float64) float64 { return jsRound(x) }
+
 // jsRound is Math.round: half rounds toward +∞.
 func jsRound(x float64) float64 {
 	r := math.Floor(x)

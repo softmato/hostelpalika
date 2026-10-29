@@ -1,0 +1,26 @@
+[
+  {
+    "name": "pulse",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/pulse"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Platform pulse loaded",
+        "data": {
+          "pulse": {
+            "hostels": null,
+            "residents": null,
+            "addedToday": 0,
+            "latest": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  }
+]

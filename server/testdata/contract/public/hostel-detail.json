@@ -1,0 +1,739 @@
+[
+  {
+    "name": "published",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Public hostel loaded",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate beside the pharmacy",
+              "photoUrl": ""
+            },
+            "capacitySummary": {
+              "totalBeds": 30,
+              "totalRooms": 12,
+              "vacantBeds": 4
+            },
+            "contact": {
+              "phone": "9800000001"
+            },
+            "demoDataLabel": "",
+            "description": "A test hostel near the lake.",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "coordinates": {
+              "lat": 27.7,
+              "lng": 85.31
+            },
+            "id": "6c00000000000000000000a3",
+            "isDemoData": false,
+            "location": {
+              "address": "Ring Road",
+              "area": "New Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Fixture Lakeside Hostel",
+            "nearbyPlaces": [
+              {
+                "coordinates": {
+                  "lat": 27.69,
+                  "lng": 85.33
+                },
+                "distance": 420.5,
+                "name": "Fixture Campus",
+                "type": "college"
+              }
+            ],
+            "photos": [
+              {
+                "alt": "Front",
+                "id": "6c0000000000000000000033",
+                "kind": "EXTERIOR",
+                "roomType": "",
+                "url": "https://cdn.contract.test/front.webp"
+              },
+              {
+                "alt": "",
+                "id": "6c0000000000000000000032",
+                "kind": "INTERIOR",
+                "roomType": "",
+                "url": "https://cdn.contract.test/inside.webp"
+              },
+              {
+                "alt": "Room",
+                "id": "6c0000000000000000000031",
+                "kind": "ROOM",
+                "roomType": "Single",
+                "url": "https://cdn.contract.test/room.webp"
+              }
+            ],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 9000,
+              "monthlyRentMax": 15000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 1,
+                "id": "6c0000000000000000000041",
+                "mealInclusion": "Optional",
+                "monthlyRent": 15000,
+                "rooms": 4,
+                "roomType": "Single",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6c0000000000000000000042",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 8,
+                "roomType": "Double",
+                "vacantBeds": 0
+              }
+            ],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "fixture-lakeside-hostel-baneshwor",
+            "verificationStatus": "VERIFIED",
+            "listingTier": null,
+            "otherBranches": [
+              {
+                "id": "6c00000000000000000000a4",
+                "name": "Fixture Lakeside Branch",
+                "slug": "fixture-lakeside-branch-koteshwor",
+                "area": "Koteshwor",
+                "city": "Kathmandu",
+                "photoUrl": "https://cdn.contract.test/branch.webp"
+              }
+            ],
+            "foodRoutine": {
+              "meals": [
+                {
+                  "dayOfWeek": "SUNDAY",
+                  "items": [
+                    "Tea",
+                    "Bread"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "",
+                  "timing": "7:00"
+                },
+                {
+                  "dayOfWeek": "MONDAY",
+                  "items": [
+                    "Dal",
+                    "Bhat"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "Chicken on Fridays",
+                  "timing": "19:30"
+                }
+              ],
+              "monthEndSpecial": {
+                "items": [
+                  "Sel roti"
+                ],
+                "note": ""
+              },
+              "timings": {
+                "BREAKFAST": "7:00",
+                "DINNER": "19:30"
+              },
+              "updatedAt": "2026-10-01T04:15:00.000Z"
+            },
+            "ratingSummary": {
+              "averageRating": 4.5,
+              "cleanlinessRating": 5,
+              "foodRating": 3,
+              "safetyRating": 4,
+              "total": 2
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "branch",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/fixture-lakeside-branch-koteshwor"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Public hostel loaded",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "capacitySummary": {},
+            "contact": {
+              "phone": ""
+            },
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "coordinates": {
+              "lat": 27.7,
+              "lng": 85.31
+            },
+            "id": "6c00000000000000000000a4",
+            "isDemoData": false,
+            "location": {
+              "address": "Ring Road",
+              "area": "Koteshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Fixture Lakeside Branch",
+            "nearbyPlaces": [],
+            "photos": [
+              {
+                "alt": "",
+                "id": "6c0000000000000000000034",
+                "kind": "INTERIOR",
+                "roomType": "",
+                "url": "https://cdn.contract.test/branch.webp"
+              }
+            ],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 8000,
+              "monthlyRentMax": 12000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "fixture-lakeside-branch-koteshwor",
+            "verificationStatus": "VERIFIED",
+            "listingTier": null,
+            "otherBranches": [
+              {
+                "id": "6c00000000000000000000a3",
+                "name": "Fixture Lakeside Hostel",
+                "slug": "fixture-lakeside-hostel-baneshwor",
+                "area": "New Baneshwor",
+                "city": "Kathmandu",
+                "photoUrl": "https://cdn.contract.test/front.webp"
+              }
+            ],
+            "foodRoutine": {
+              "meals": [],
+              "monthEndSpecial": null,
+              "timings": {},
+              "updatedAt": ""
+            },
+            "ratingSummary": {
+              "averageRating": 0,
+              "cleanlinessRating": 0,
+              "foodRating": 0,
+              "safetyRating": 0,
+              "total": 0
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "badged",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/budget-fixture-hostel-kalanki"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Public hostel loaded",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "capacitySummary": {},
+            "contact": {
+              "phone": ""
+            },
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "GIRLS",
+            "coordinates": {
+              "lat": 27.7,
+              "lng": 85.31
+            },
+            "id": "6c00000000000000000000a5",
+            "isDemoData": false,
+            "location": {
+              "address": "Ring Road",
+              "area": "Kalanki",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Budget Fixture Hostel",
+            "nearbyPlaces": [],
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 6000,
+              "monthlyRentMax": 8000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "budget-fixture-hostel-kalanki",
+            "verificationStatus": "VERIFIED",
+            "listingTier": {
+              "label": "Gold hostel",
+              "rank": 3,
+              "slug": "gold-hostel",
+              "tone": "gold"
+            },
+            "otherBranches": [],
+            "foodRoutine": {
+              "meals": [],
+              "monthEndSpecial": null,
+              "timings": {},
+              "updatedAt": ""
+            },
+            "ratingSummary": {
+              "averageRating": 0,
+              "cleanlinessRating": 0,
+              "foodRating": 0,
+              "safetyRating": 0,
+              "total": 0
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "unverified is hidden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/hidden-fixture-hostel"
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "demo by slug",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/saathi-ghar-boys-hostel-new-baneshwor"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Public hostel loaded",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "capacitySummary": {
+              "totalBeds": 44,
+              "totalRooms": 22,
+              "vacantBeds": 8
+            },
+            "contact": {
+              "phone": ""
+            },
+            "demoDataLabel": "",
+            "description": "A five-storey boys hostel two minutes from the Baneshwor bus stop. Rooms are cleaned daily, meals are home-style dal bhat, and the rooftop has a study corner with Wi-Fi.",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals",
+              "Laundry",
+              "CCTV",
+              "Study Room",
+              "Power Backup",
+              "RO Water",
+              "Bedding \u0026 Mattress"
+            ],
+            "food": {
+              "hasNonVeg": true,
+              "hasVeg": true,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "coordinates": {
+              "lat": 27.6908,
+              "lng": 85.3395
+            },
+            "id": "de4000000000000000000001",
+            "isDemoData": true,
+            "location": {
+              "address": "Shantinagar Marg, New Baneshwor",
+              "area": "New Baneshwor",
+              "city": "Kathmandu",
+              "lat": 27.6908,
+              "lng": 85.3395,
+              "province": "Bagmati"
+            },
+            "name": "Saathi Ghar Boys Hostel",
+            "nearbyPlaces": [],
+            "photos": [
+              {
+                "alt": "Saathi Ghar Boys Hostel — kitchen",
+                "kind": "INTERIOR",
+                "roomType": "",
+                "url": "https://images.pexels.com/photos/31944365/pexels-photo-31944365.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+              },
+              {
+                "alt": "Saathi Ghar Boys Hostel — dining hall",
+                "kind": "INTERIOR",
+                "roomType": "",
+                "url": "https://images.pexels.com/photos/4504004/pexels-photo-4504004.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+              },
+              {
+                "alt": "Saathi Ghar Boys Hostel — daily meal",
+                "kind": "INTERIOR",
+                "roomType": "",
+                "url": "https://images.pexels.com/photos/7351635/pexels-photo-7351635.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+              },
+              {
+                "alt": "Saathi Ghar Boys Hostel — single room",
+                "kind": "ROOM",
+                "roomType": "Single",
+                "url": "https://images.pexels.com/photos/39338470/pexels-photo-39338470.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+              },
+              {
+                "alt": "Saathi Ghar Boys Hostel — double room",
+                "kind": "ROOM",
+                "roomType": "Double",
+                "url": "https://images.pexels.com/photos/11062931/pexels-photo-11062931.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+              },
+              {
+                "alt": "Saathi Ghar Boys Hostel — triple room",
+                "kind": "ROOM",
+                "roomType": "Triple",
+                "url": "https://images.pexels.com/photos/5137980/pexels-photo-5137980.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+              }
+            ],
+            "pricing": {
+              "admissionFee": 3000,
+              "currency": "NPR",
+              "monthlyRentMax": 14500,
+              "monthlyRentMin": 9500
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 1,
+                "mealInclusion": "Included",
+                "monthlyRent": 14500,
+                "rooms": 6,
+                "roomType": "Single",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 11500,
+                "rooms": 10,
+                "roomType": "Double",
+                "vacantBeds": 3
+              },
+              {
+                "bedsPerRoom": 3,
+                "mealInclusion": "Included",
+                "monthlyRent": 9500,
+                "rooms": 6,
+                "roomType": "Triple",
+                "vacantBeds": 4
+              }
+            ],
+            "roomTypes": [
+              "Single",
+              "Double",
+              "Triple"
+            ],
+            "rules": [
+              "Gate closes at 10:00 PM",
+              "No smoking or alcohol inside the hostel",
+              "Visitors in the common room only",
+              "Inform the warden before staying out overnight"
+            ],
+            "slug": "saathi-ghar-boys-hostel-new-baneshwor",
+            "verificationStatus": "VERIFIED",
+            "listingTier": null,
+            "otherBranches": [],
+            "foodRoutine": {
+              "meals": [],
+              "monthEndSpecial": null,
+              "timings": {},
+              "updatedAt": ""
+            },
+            "ratingSummary": {
+              "averageRating": 4.4,
+              "cleanlinessRating": 4.5,
+              "foodRating": 4.2,
+              "safetyRating": 4.6,
+              "total": 38
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "demo by id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/de4000000000000000000001"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Public hostel loaded",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "capacitySummary": {
+              "totalBeds": 44,
+              "totalRooms": 22,
+              "vacantBeds": 8
+            },
+            "contact": {
+              "phone": ""
+            },
+            "demoDataLabel": "",
+            "description": "A five-storey boys hostel two minutes from the Baneshwor bus stop. Rooms are cleaned daily, meals are home-style dal bhat, and the rooftop has a study corner with Wi-Fi.",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals",
+              "Laundry",
+              "CCTV",
+              "Study Room",
+              "Power Backup",
+              "RO Water",
+              "Bedding \u0026 Mattress"
+            ],
+            "food": {
+              "hasNonVeg": true,
+              "hasVeg": true,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "coordinates": {
+              "lat": 27.6908,
+              "lng": 85.3395
+            },
+            "id": "de4000000000000000000001",
+            "isDemoData": true,
+            "location": {
+              "address": "Shantinagar Marg, New Baneshwor",
+              "area": "New Baneshwor",
+              "city": "Kathmandu",
+              "lat": 27.6908,
+              "lng": 85.3395,
+              "province": "Bagmati"
+            },
+            "name": "Saathi Ghar Boys Hostel",
+            "nearbyPlaces": [],
+            "photos": [
+              {
+                "alt": "Saathi Ghar Boys Hostel — kitchen",
+                "kind": "INTERIOR",
+                "roomType": "",
+                "url": "https://images.pexels.com/photos/31944365/pexels-photo-31944365.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+              },
+              {
+                "alt": "Saathi Ghar Boys Hostel — dining hall",
+                "kind": "INTERIOR",
+                "roomType": "",
+                "url": "https://images.pexels.com/photos/4504004/pexels-photo-4504004.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+              },
+              {
+                "alt": "Saathi Ghar Boys Hostel — daily meal",
+                "kind": "INTERIOR",
+                "roomType": "",
+                "url": "https://images.pexels.com/photos/7351635/pexels-photo-7351635.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+              },
+              {
+                "alt": "Saathi Ghar Boys Hostel — single room",
+                "kind": "ROOM",
+                "roomType": "Single",
+                "url": "https://images.pexels.com/photos/39338470/pexels-photo-39338470.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+              },
+              {
+                "alt": "Saathi Ghar Boys Hostel — double room",
+                "kind": "ROOM",
+                "roomType": "Double",
+                "url": "https://images.pexels.com/photos/11062931/pexels-photo-11062931.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+              },
+              {
+                "alt": "Saathi Ghar Boys Hostel — triple room",
+                "kind": "ROOM",
+                "roomType": "Triple",
+                "url": "https://images.pexels.com/photos/5137980/pexels-photo-5137980.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+              }
+            ],
+            "pricing": {
+              "admissionFee": 3000,
+              "currency": "NPR",
+              "monthlyRentMax": 14500,
+              "monthlyRentMin": 9500
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 1,
+                "mealInclusion": "Included",
+                "monthlyRent": 14500,
+                "rooms": 6,
+                "roomType": "Single",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "mealInclusion": "Included",
+                "monthlyRent": 11500,
+                "rooms": 10,
+                "roomType": "Double",
+                "vacantBeds": 3
+              },
+              {
+                "bedsPerRoom": 3,
+                "mealInclusion": "Included",
+                "monthlyRent": 9500,
+                "rooms": 6,
+                "roomType": "Triple",
+                "vacantBeds": 4
+              }
+            ],
+            "roomTypes": [
+              "Single",
+              "Double",
+              "Triple"
+            ],
+            "rules": [
+              "Gate closes at 10:00 PM",
+              "No smoking or alcohol inside the hostel",
+              "Visitors in the common room only",
+              "Inform the warden before staying out overnight"
+            ],
+            "slug": "saathi-ghar-boys-hostel-new-baneshwor",
+            "verificationStatus": "VERIFIED",
+            "listingTier": null,
+            "otherBranches": [],
+            "foodRoutine": {
+              "meals": [],
+              "monthEndSpecial": null,
+              "timings": {},
+              "updatedAt": ""
+            },
+            "ratingSummary": {
+              "averageRating": 4.4,
+              "cleanlinessRating": 4.5,
+              "foodRating": 4.2,
+              "safetyRating": 4.6,
+              "total": 38
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "missing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/nope"
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  }
+]

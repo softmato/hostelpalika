@@ -13,6 +13,13 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	authmod "github.com/softmato/hostelpalika/server/internal/modules/auth"
+	"github.com/softmato/hostelpalika/server/internal/modules/billing"
+	"github.com/softmato/hostelpalika/server/internal/modules/bookings"
+	"github.com/softmato/hostelpalika/server/internal/modules/hostels"
+	"github.com/softmato/hostelpalika/server/internal/modules/offerprogram"
+	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
+	"github.com/softmato/hostelpalika/server/internal/modules/reports"
+	"github.com/softmato/hostelpalika/server/internal/modules/reviews"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/auth"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
@@ -78,6 +85,15 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 
 	authSvc := authmod.NewService(d.DB, cfg, tokens, auth.NewSessions(d.DB, cfg.Auth.RefreshTTL), sender, log)
 	authmod.NewHandler(authSvc, guards, cookies, limiter).Register(v1)
+
+	siteConfig := platformconfig.New(d.DB)
+	platformconfig.NewHandler(siteConfig).Register(v1)
+	hostels.NewHandler(hostels.NewPublic(d.DB, siteConfig)).Register(v1)
+	reviews.NewHandler(d.DB).Register(v1)
+	reports.NewHandler(d.DB).Register(v1)
+	billing.NewHandler(d.DB, siteConfig).Register(v1)
+	offerprogram.NewHandler(d.DB).Register(v1)
+	bookings.NewHandler(bookings.NewService(d.DB, siteConfig)).Register(v1)
 }
 
 type healthData struct {

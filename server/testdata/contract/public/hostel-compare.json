@@ -1,0 +1,880 @@
+[
+  {
+    "name": "two real",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/compare?ids=6c00000000000000000000a3,6c00000000000000000000a5"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel comparison loaded",
+        "data": {
+          "hostels": [
+            {
+              "arrivalGuide": {
+                "note": "Blue gate beside the pharmacy",
+                "photoUrl": ""
+              },
+              "capacitySummary": {
+                "totalBeds": 30,
+                "totalRooms": 12,
+                "vacantBeds": 4
+              },
+              "contact": {
+                "phone": "9800000001"
+              },
+              "demoDataLabel": "",
+              "description": "A test hostel near the lake.",
+              "facilities": [
+                "Wi-Fi",
+                "Hot Water",
+                "Meals"
+              ],
+              "food": {
+                "hasVeg": true,
+                "hasNonVeg": false,
+                "mealsPerDay": 3
+              },
+              "hostelType": "BOYS",
+              "coordinates": {
+                "lat": 27.7,
+                "lng": 85.31
+              },
+              "id": "6c00000000000000000000a3",
+              "isDemoData": false,
+              "location": {
+                "address": "Ring Road",
+                "area": "New Baneshwor",
+                "city": "Kathmandu",
+                "province": "Bagmati",
+                "lat": 27.7,
+                "lng": 85.31,
+                "locationSource": "MANUAL"
+              },
+              "name": "Fixture Lakeside Hostel",
+              "nearbyPlaces": [
+                {
+                  "coordinates": {
+                    "lat": 27.69,
+                    "lng": 85.33
+                  },
+                  "distance": 420.5,
+                  "name": "Fixture Campus",
+                  "type": "college"
+                }
+              ],
+              "photos": [
+                {
+                  "alt": "Front",
+                  "id": "6c0000000000000000000033",
+                  "kind": "EXTERIOR",
+                  "roomType": "",
+                  "url": "https://cdn.contract.test/front.webp"
+                },
+                {
+                  "alt": "",
+                  "id": "6c0000000000000000000032",
+                  "kind": "INTERIOR",
+                  "roomType": "",
+                  "url": "https://cdn.contract.test/inside.webp"
+                },
+                {
+                  "alt": "Room",
+                  "id": "6c0000000000000000000031",
+                  "kind": "ROOM",
+                  "roomType": "Single",
+                  "url": "https://cdn.contract.test/room.webp"
+                }
+              ],
+              "pricing": {
+                "currency": "NPR",
+                "monthlyRentMin": 9000,
+                "monthlyRentMax": 15000,
+                "admissionFee": 2000
+              },
+              "roomConfigurations": [
+                {
+                  "bedsPerRoom": 1,
+                  "id": "6c0000000000000000000041",
+                  "mealInclusion": "Optional",
+                  "monthlyRent": 15000,
+                  "rooms": 4,
+                  "roomType": "Single",
+                  "vacantBeds": 1
+                },
+                {
+                  "bedsPerRoom": 2,
+                  "id": "6c0000000000000000000042",
+                  "mealInclusion": "Included",
+                  "monthlyRent": 9000,
+                  "rooms": 8,
+                  "roomType": "Double",
+                  "vacantBeds": 0
+                }
+              ],
+              "roomTypes": [
+                "Single",
+                "Double"
+              ],
+              "rules": [
+                "Gate closes at 9 pm"
+              ],
+              "slug": "fixture-lakeside-hostel-baneshwor",
+              "verificationStatus": "VERIFIED",
+              "foodRoutine": {
+                "meals": [
+                  {
+                    "dayOfWeek": "SUNDAY",
+                    "items": [
+                      "Tea",
+                      "Bread"
+                    ],
+                    "mealType": "BREAKFAST",
+                    "note": "",
+                    "timing": "7:00"
+                  },
+                  {
+                    "dayOfWeek": "MONDAY",
+                    "items": [
+                      "Dal",
+                      "Bhat"
+                    ],
+                    "mealType": "DINNER",
+                    "note": "Chicken on Fridays",
+                    "timing": "19:30"
+                  }
+                ],
+                "monthEndSpecial": {
+                  "items": [
+                    "Sel roti"
+                  ],
+                  "note": ""
+                },
+                "timings": {
+                  "BREAKFAST": "7:00",
+                  "DINNER": "19:30"
+                },
+                "updatedAt": "2026-10-01T04:15:00.000Z"
+              },
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "cleanlinessRating": 5,
+                "foodRating": 3,
+                "safetyRating": 4,
+                "total": 2
+              },
+              "comparison": {
+                "facilities": [
+                  "Wi-Fi",
+                  "Hot Water",
+                  "Meals"
+                ],
+                "foodScore": 3,
+                "locationText": "Ring Road, New Baneshwor, Kathmandu",
+                "monthlyFee": {
+                  "currency": "NPR",
+                  "max": 15000,
+                  "min": 9000
+                },
+                "ratingSummary": {
+                  "averageRating": 4.5,
+                  "cleanlinessRating": 5,
+                  "safetyRating": 4,
+                  "total": 2
+                },
+                "roomTypes": [
+                  "Single",
+                  "Double"
+                ],
+                "vacancy": 4,
+                "verificationStatus": "VERIFIED"
+              }
+            },
+            {
+              "arrivalGuide": null,
+              "capacitySummary": {},
+              "contact": {
+                "phone": ""
+              },
+              "demoDataLabel": "",
+              "description": "",
+              "facilities": [
+                "Wi-Fi",
+                "Hot Water",
+                "Meals"
+              ],
+              "food": {
+                "hasVeg": true,
+                "hasNonVeg": false,
+                "mealsPerDay": 3
+              },
+              "hostelType": "GIRLS",
+              "coordinates": {
+                "lat": 27.7,
+                "lng": 85.31
+              },
+              "id": "6c00000000000000000000a5",
+              "isDemoData": false,
+              "location": {
+                "address": "Ring Road",
+                "area": "Kalanki",
+                "city": "Kathmandu",
+                "province": "Bagmati",
+                "lat": 27.7,
+                "lng": 85.31,
+                "locationSource": "MANUAL"
+              },
+              "name": "Budget Fixture Hostel",
+              "nearbyPlaces": [],
+              "photos": [],
+              "pricing": {
+                "currency": "NPR",
+                "monthlyRentMin": 6000,
+                "monthlyRentMax": 8000,
+                "admissionFee": 2000
+              },
+              "roomConfigurations": [],
+              "roomTypes": [
+                "Single",
+                "Double"
+              ],
+              "rules": [
+                "Gate closes at 9 pm"
+              ],
+              "slug": "budget-fixture-hostel-kalanki",
+              "verificationStatus": "VERIFIED",
+              "foodRoutine": {
+                "meals": [],
+                "monthEndSpecial": null,
+                "timings": {},
+                "updatedAt": ""
+              },
+              "ratingSummary": {
+                "averageRating": 0,
+                "cleanlinessRating": 0,
+                "foodRating": 0,
+                "safetyRating": 0,
+                "total": 0
+              },
+              "comparison": {
+                "facilities": [
+                  "Wi-Fi",
+                  "Hot Water",
+                  "Meals"
+                ],
+                "foodScore": 0,
+                "locationText": "Ring Road, Kalanki, Kathmandu",
+                "monthlyFee": {
+                  "currency": "NPR",
+                  "max": 8000,
+                  "min": 6000
+                },
+                "ratingSummary": {
+                  "averageRating": 0,
+                  "cleanlinessRating": 0,
+                  "safetyRating": 0,
+                  "total": 0
+                },
+                "roomTypes": [
+                  "Single",
+                  "Double"
+                ],
+                "vacancy": 0,
+                "verificationStatus": "VERIFIED"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "real and demo",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/compare?ids=de4000000000000000000002,%206c00000000000000000000a3"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel comparison loaded",
+        "data": {
+          "hostels": [
+            {
+              "arrivalGuide": null,
+              "capacitySummary": {
+                "totalBeds": 29,
+                "totalRooms": 17,
+                "vacantBeds": 3
+              },
+              "contact": {
+                "phone": ""
+              },
+              "demoDataLabel": "",
+              "description": "A girls hostel on a quiet lane behind Putalisadak, walking distance from the colleges on the main road. Warden on site day and night, CCTV at every entrance.",
+              "facilities": [
+                "Wi-Fi",
+                "Hot Water",
+                "Meals",
+                "CCTV",
+                "Laundry",
+                "Housekeeping",
+                "Personal Cupboard (Daraz)",
+                "Personal Table \u0026 Chair",
+                "First Aid"
+              ],
+              "food": {
+                "hasNonVeg": true,
+                "hasVeg": true,
+                "mealsPerDay": 3
+              },
+              "hostelType": "GIRLS",
+              "coordinates": {
+                "lat": 27.7036,
+                "lng": 85.3229
+              },
+              "id": "de4000000000000000000002",
+              "isDemoData": true,
+              "location": {
+                "address": "Kamalpokhari Road, Putalisadak",
+                "area": "Putalisadak",
+                "city": "Kathmandu",
+                "lat": 27.7036,
+                "lng": 85.3229,
+                "province": "Bagmati"
+              },
+              "name": "Pathshala Girls Hostel",
+              "nearbyPlaces": [],
+              "photos": [
+                {
+                  "alt": "Pathshala Girls Hostel — kitchen",
+                  "kind": "INTERIOR",
+                  "roomType": "",
+                  "url": "https://images.pexels.com/photos/6375553/pexels-photo-6375553.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+                },
+                {
+                  "alt": "Pathshala Girls Hostel — study room",
+                  "kind": "INTERIOR",
+                  "roomType": "",
+                  "url": "https://images.pexels.com/photos/16504586/pexels-photo-16504586.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+                },
+                {
+                  "alt": "Pathshala Girls Hostel — daily meal",
+                  "kind": "INTERIOR",
+                  "roomType": "",
+                  "url": "https://images.pexels.com/photos/36885763/pexels-photo-36885763.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+                },
+                {
+                  "alt": "Pathshala Girls Hostel — single room",
+                  "kind": "ROOM",
+                  "roomType": "Single",
+                  "url": "https://images.pexels.com/photos/19836795/pexels-photo-19836795.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+                },
+                {
+                  "alt": "Pathshala Girls Hostel — single room",
+                  "kind": "ROOM",
+                  "roomType": "Single",
+                  "url": "https://images.pexels.com/photos/11295759/pexels-photo-11295759.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+                },
+                {
+                  "alt": "Pathshala Girls Hostel — double room",
+                  "kind": "ROOM",
+                  "roomType": "Double",
+                  "url": "https://images.pexels.com/photos/11062799/pexels-photo-11062799.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
+                }
+              ],
+              "pricing": {
+                "admissionFee": 4000,
+                "currency": "NPR",
+                "monthlyRentMax": 15500,
+                "monthlyRentMin": 12500
+              },
+              "roomConfigurations": [
+                {
+                  "bedsPerRoom": 1,
+                  "mealInclusion": "Included",
+                  "monthlyRent": 15500,
+                  "rooms": 5,
+                  "roomType": "Single",
+                  "vacantBeds": 1
+                },
+                {
+                  "bedsPerRoom": 2,
+                  "mealInclusion": "Included",
+                  "monthlyRent": 12500,
+                  "rooms": 12,
+                  "roomType": "Double",
+                  "vacantBeds": 2
+                }
+              ],
+              "roomTypes": [
+                "Single",
+                "Double"
+              ],
+              "rules": [
+                "Gate closes at 8:30 PM",
+                "Visitors in the reception area only, 9 AM to 6 PM",
+                "Inform the warden before staying out overnight",
+                "No cooking in the rooms"
+              ],
+              "slug": "pathshala-girls-hostel-putalisadak",
+              "verificationStatus": "VERIFIED",
+              "foodRoutine": {
+                "meals": [],
+                "monthEndSpecial": null,
+                "timings": {},
+                "updatedAt": ""
+              },
+              "ratingSummary": {
+                "averageRating": 4.7,
+                "cleanlinessRating": 4.8,
+                "foodRating": 4.5,
+                "safetyRating": 4.9,
+                "total": 52
+              },
+              "comparison": {
+                "facilities": [
+                  "Wi-Fi",
+                  "Hot Water",
+                  "Meals",
+                  "CCTV",
+                  "Laundry",
+                  "Housekeeping",
+                  "Personal Cupboard (Daraz)",
+                  "Personal Table \u0026 Chair",
+                  "First Aid"
+                ],
+                "foodScore": 4.5,
+                "locationText": "Kamalpokhari Road, Putalisadak, Putalisadak, Kathmandu",
+                "monthlyFee": {
+                  "currency": "NPR",
+                  "max": 15500,
+                  "min": 12500
+                },
+                "ratingSummary": {
+                  "averageRating": 4.7,
+                  "cleanlinessRating": 4.8,
+                  "safetyRating": 4.9,
+                  "total": 52
+                },
+                "roomTypes": [
+                  "Single",
+                  "Double"
+                ],
+                "vacancy": 3,
+                "verificationStatus": "VERIFIED"
+              }
+            },
+            {
+              "arrivalGuide": {
+                "note": "Blue gate beside the pharmacy",
+                "photoUrl": ""
+              },
+              "capacitySummary": {
+                "totalBeds": 30,
+                "totalRooms": 12,
+                "vacantBeds": 4
+              },
+              "contact": {
+                "phone": "9800000001"
+              },
+              "demoDataLabel": "",
+              "description": "A test hostel near the lake.",
+              "facilities": [
+                "Wi-Fi",
+                "Hot Water",
+                "Meals"
+              ],
+              "food": {
+                "hasVeg": true,
+                "hasNonVeg": false,
+                "mealsPerDay": 3
+              },
+              "hostelType": "BOYS",
+              "coordinates": {
+                "lat": 27.7,
+                "lng": 85.31
+              },
+              "id": "6c00000000000000000000a3",
+              "isDemoData": false,
+              "location": {
+                "address": "Ring Road",
+                "area": "New Baneshwor",
+                "city": "Kathmandu",
+                "province": "Bagmati",
+                "lat": 27.7,
+                "lng": 85.31,
+                "locationSource": "MANUAL"
+              },
+              "name": "Fixture Lakeside Hostel",
+              "nearbyPlaces": [
+                {
+                  "coordinates": {
+                    "lat": 27.69,
+                    "lng": 85.33
+                  },
+                  "distance": 420.5,
+                  "name": "Fixture Campus",
+                  "type": "college"
+                }
+              ],
+              "photos": [
+                {
+                  "alt": "Front",
+                  "id": "6c0000000000000000000033",
+                  "kind": "EXTERIOR",
+                  "roomType": "",
+                  "url": "https://cdn.contract.test/front.webp"
+                },
+                {
+                  "alt": "",
+                  "id": "6c0000000000000000000032",
+                  "kind": "INTERIOR",
+                  "roomType": "",
+                  "url": "https://cdn.contract.test/inside.webp"
+                },
+                {
+                  "alt": "Room",
+                  "id": "6c0000000000000000000031",
+                  "kind": "ROOM",
+                  "roomType": "Single",
+                  "url": "https://cdn.contract.test/room.webp"
+                }
+              ],
+              "pricing": {
+                "currency": "NPR",
+                "monthlyRentMin": 9000,
+                "monthlyRentMax": 15000,
+                "admissionFee": 2000
+              },
+              "roomConfigurations": [
+                {
+                  "bedsPerRoom": 1,
+                  "id": "6c0000000000000000000041",
+                  "mealInclusion": "Optional",
+                  "monthlyRent": 15000,
+                  "rooms": 4,
+                  "roomType": "Single",
+                  "vacantBeds": 1
+                },
+                {
+                  "bedsPerRoom": 2,
+                  "id": "6c0000000000000000000042",
+                  "mealInclusion": "Included",
+                  "monthlyRent": 9000,
+                  "rooms": 8,
+                  "roomType": "Double",
+                  "vacantBeds": 0
+                }
+              ],
+              "roomTypes": [
+                "Single",
+                "Double"
+              ],
+              "rules": [
+                "Gate closes at 9 pm"
+              ],
+              "slug": "fixture-lakeside-hostel-baneshwor",
+              "verificationStatus": "VERIFIED",
+              "foodRoutine": {
+                "meals": [
+                  {
+                    "dayOfWeek": "SUNDAY",
+                    "items": [
+                      "Tea",
+                      "Bread"
+                    ],
+                    "mealType": "BREAKFAST",
+                    "note": "",
+                    "timing": "7:00"
+                  },
+                  {
+                    "dayOfWeek": "MONDAY",
+                    "items": [
+                      "Dal",
+                      "Bhat"
+                    ],
+                    "mealType": "DINNER",
+                    "note": "Chicken on Fridays",
+                    "timing": "19:30"
+                  }
+                ],
+                "monthEndSpecial": {
+                  "items": [
+                    "Sel roti"
+                  ],
+                  "note": ""
+                },
+                "timings": {
+                  "BREAKFAST": "7:00",
+                  "DINNER": "19:30"
+                },
+                "updatedAt": "2026-10-01T04:15:00.000Z"
+              },
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "cleanlinessRating": 5,
+                "foodRating": 3,
+                "safetyRating": 4,
+                "total": 2
+              },
+              "comparison": {
+                "facilities": [
+                  "Wi-Fi",
+                  "Hot Water",
+                  "Meals"
+                ],
+                "foodScore": 3,
+                "locationText": "Ring Road, New Baneshwor, Kathmandu",
+                "monthlyFee": {
+                  "currency": "NPR",
+                  "max": 15000,
+                  "min": 9000
+                },
+                "ratingSummary": {
+                  "averageRating": 4.5,
+                  "cleanlinessRating": 5,
+                  "safetyRating": 4,
+                  "total": 2
+                },
+                "roomTypes": [
+                  "Single",
+                  "Double"
+                ],
+                "vacancy": 4,
+                "verificationStatus": "VERIFIED"
+              }
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "hidden one",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/compare?ids=6c00000000000000000000a3,6c00000000000000000000a6"
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "One or more hostels are not available for public comparison.",
+        "errorCode": "PUBLIC_HOSTEL_COMPARE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "duplicate",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/compare?ids=6c00000000000000000000a3,6c00000000000000000000a3"
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "One or more hostels are not available for public comparison.",
+        "errorCode": "PUBLIC_HOSTEL_COMPARE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "one only",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/compare?ids=6c00000000000000000000a3"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "ids": [
+              "Select at least 2 hostels to compare."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Select at least 2 hostels to compare.",
+              "path": "ids"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "four",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/compare?ids=6c00000000000000000000a3,6c00000000000000000000a4,6c00000000000000000000a5,de4000000000000000000001"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "ids": [
+              "Compare up to 3 hostels at a time."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Compare up to 3 hostels at a time.",
+              "path": "ids"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/compare?ids=nothex,6c00000000000000000000a3"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "ids": [
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "ids.0"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "commas only",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/compare?ids=,,"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "ids": [
+              "Select at least 2 hostels to compare."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Select at least 2 hostels to compare.",
+              "path": "ids"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "blank",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/compare?ids=%20"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "ids": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "ids"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "missing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/compare"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "ids": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "ids"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  }
+]

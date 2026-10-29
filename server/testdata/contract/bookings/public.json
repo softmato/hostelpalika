@@ -1,0 +1,305 @@
+[
+  {
+    "name": "guide",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/guide"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "How booking works",
+        "data": {
+          "guide": {
+            "enabled": false,
+            "intro": [
+              "Booking a room on HostelPalika holds one bed for you at a real hostel while you get there. This page is the whole process: what you pay, who decides what, and every deadline on the way.",
+              "How much money comes back if a booking ends early is set out in the refund policy."
+            ],
+            "sections": [
+              {
+                "body": [
+                  "You pay a booking fee to HostelPalika, not to the hostel, and we ask the hostel to hold one bed of that room type for you.",
+                  "The fee is 7% of one month's rent for that room type. You see the exact amount in rupees before you pay anything.",
+                  "It is not rent, admission fee or deposit. The hostel charges those in the ordinary way when you move in.",
+                  "One booking at a time: finish or cancel the one you have before you start another."
+                ],
+                "icon": "bed",
+                "title": "What a booking is"
+              },
+              {
+                "body": [
+                  "The hostel has to be live here, taking bookings, and have a free bed of the room type you want. If it does not, the Book button says so instead of taking your money.",
+                  "You sign in with your own account and it needs an email address: the invoice, the receipt and every step below are emailed to you.",
+                  "You give the eSewa, Khalti or bank account a refund should go to, and accept the refund policy.",
+                  "Someone already living at a hostel cannot book a bed at that same hostel."
+                ],
+                "icon": "user-check",
+                "title": "Before you can book"
+              },
+              {
+                "body": [
+                  "Pick the room type and book. We raise your invoice straight away and email it to you.",
+                  "Pay the fee to our collection QR and send the screenshot. A booking with no screenshot closes after 24 hours, and it owes nothing and holds nothing.",
+                  "We check the screenshot within 24 hours and email you the receipt. If something is wrong with it we say why, and you can send another.",
+                  "The hostel then has 24 hours to confirm or decline. We tell you either way.",
+                  "Once it confirms, one bed is held for you for 7 days, counted in 24-hour blocks from that moment.",
+                  "Move in inside that window. The hostel scans your HostelPalika ID card, the held bed becomes yours, and the booking is finished."
+                ],
+                "icon": "receipt",
+                "title": "Step by step"
+              },
+              {
+                "body": [
+                  "Send your screenshot within 24 hours of booking.",
+                  "We answer it within 24 hours.",
+                  "The hostel answers within 24 hours of our check. If it never answers, the booking ends and you get the whole fee back.",
+                  "The bed is held for 7 days from the moment the hostel confirms, and we remind you 24 hours before the hold runs out.",
+                  "If you have not moved in when the hold ends, the booking ends as a no-show and the bed goes back to the hostel."
+                ],
+                "icon": "alert-triangle",
+                "title": "The deadlines"
+              },
+              {
+                "body": [
+                  "Cancel from My bookings whenever you like. The screen shows exactly what comes back before you press anything.",
+                  "Cancel before the hostel confirms and the whole fee comes back.",
+                  "After it confirms, what comes back depends on which day of the hold you cancel on. The refund policy lists every step.",
+                  "Refunds go to the account you gave when you booked. We send them by hand and email you the amount and the transaction ID."
+                ],
+                "icon": "credit-card",
+                "title": "Changing your mind"
+              },
+              {
+                "body": [
+                  "The Book button appears on your listing once bookings are switched on, your listing is live and the account we pay you into is verified. Add it under Bookings → Settings; we check it before any payout.",
+                  "Every request waits for you under Bookings. You have 24 hours from our payment check to confirm or decline, and we remind you before it runs out.",
+                  "Confirming holds one bed of that room type for 7 days. Admit the person the normal way, by scanning their ID card in Register a new resident, and the held bed becomes theirs.",
+                  "Whatever is not refunded is shared: 60% to the hostel, the rest to HostelPalika. We send your share by hand and email a payout advice with the transaction ID.",
+                  "Missing an answer, or cancelling a booking you had confirmed, counts as a missed booking. 3 of them inside 30 days pauses the Book button on your hostel until we turn it back on.",
+                  "Declining a request in time costs you nothing."
+                ],
+                "icon": "building",
+                "title": "If you run a hostel"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "policy",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/policy"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Refund policy",
+        "data": {
+          "policy": {
+            "customBody": null,
+            "intro": [
+              "This policy covers rooms booked on HostelPalika. A booking keeps the terms in force on the day it is made, and its invoice prints them."
+            ],
+            "sections": [
+              {
+                "body": [
+                  "The booking fee is 7% of one month's rent for the room type, shown before you book.",
+                  "You pay it to HostelPalika, not to the hostel. It does not count towards rent, admission fee or deposit.",
+                  "We check your payment screenshot within 24 hours. A booking with no screenshot closes after 24 hours and owes nothing."
+                ],
+                "icon": "credit-card",
+                "title": "The booking fee"
+              },
+              {
+                "body": [
+                  "You cancel before the hostel confirms.",
+                  "The hostel declines, or does not answer within 24 hours of our payment check.",
+                  "The hostel cancels after confirming.",
+                  "HostelPalika cancels the booking."
+                ],
+                "icon": "badge-check",
+                "title": "Full refund"
+              },
+              {
+                "body": [
+                  "One bed is held for you for 7 days, counted in 24-hour blocks from the moment the hostel confirms.",
+                  "Cancel on days 1–2 of the hold: 75% back.",
+                  "Cancel on days 3–5 of the hold: 50% back.",
+                  "Cancel on days 6–7 of the hold: 25% back.",
+                  "Not moved in when the hold ends: 0% back.",
+                  "When the hostel scans your ID card and admits you, the booking is complete and nothing is refunded."
+                ],
+                "icon": "alert-triangle",
+                "title": "After the hostel confirms"
+              },
+              {
+                "body": [
+                  "A short stay is a few nights, paid upfront with the booking fee. The fee is charged once for every started week between booking and move-in.",
+                  "Cancelled before the move-in day, declined, or not answered by the hostel: every night is refunded.",
+                  "Cancelled on the move-in day, or not checked in by the end of the next day: one night is kept and the rest refunded.",
+                  "Leaving before the move-out date: nights not stayed are not refunded."
+                ],
+                "icon": "calendar",
+                "title": "Short stays"
+              },
+              {
+                "body": [
+                  "Refunds go to the eSewa, Khalti or bank account you give when you book.",
+                  "When we send a refund, we email you the amount and the transaction ID.",
+                  "Whatever is not refunded is shared between the hostel and HostelPalika."
+                ],
+                "icon": "shield-check",
+                "title": "How refunds are sent"
+              }
+            ],
+            "shortStay": {
+              "hostelSharePercent": 70,
+              "maxAdvanceDays": 60,
+              "maxNights": 29,
+              "minMarkupPercent": 20
+            },
+            "updatedAt": "",
+            "version": "d278844cbbafa668"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "availability published",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/availability?hostel=fixture-lakeside-hostel-baneshwor"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking availability",
+        "data": {
+          "availability": {
+            "hostelReason": "BOOKINGS_OFF",
+            "rooms": [
+              {
+                "bookable": false,
+                "fee": null,
+                "photos": [
+                  "https://cdn.contract.test/room.webp"
+                ],
+                "reason": "BOOKINGS_OFF",
+                "roomType": "Single"
+              },
+              {
+                "bookable": false,
+                "fee": null,
+                "photos": [],
+                "reason": "BOOKINGS_OFF",
+                "roomType": "Double"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "availability by id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/availability?hostel=6c00000000000000000000a5"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking availability",
+        "data": {
+          "availability": {
+            "hostelReason": "BOOKINGS_OFF",
+            "rooms": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "availability demo",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/availability?hostel=de4000000000000000000001"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking availability",
+        "data": {
+          "availability": {
+            "hostelReason": "BOOKINGS_PAUSED",
+            "rooms": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "availability missing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/availability?hostel=nope"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking availability",
+        "data": {
+          "availability": {
+            "hostelReason": "HOSTEL_NOT_LIVE",
+            "rooms": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "availability blank",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/availability"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking availability",
+        "data": {
+          "availability": {
+            "hostelReason": "HOSTEL_NOT_LIVE",
+            "rooms": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  }
+]

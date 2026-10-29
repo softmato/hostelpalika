@@ -1,0 +1,43 @@
+[
+  {
+    "name": "perks",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/offer-perks"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Offer perks loaded",
+        "data": {
+          "perks": [
+            {
+              "description": "A coffee",
+              "giftValue": 500,
+              "id": "6c0000000000000000000062",
+              "imageUrl": "https://cdn.contract.test/gift.webp",
+              "kind": "GIFT",
+              "partner": "Fixture Cafe",
+              "percentOff": null,
+              "title": "Gift card"
+            },
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c0000000000000000000061",
+              "imageUrl": "",
+              "kind": "FEE_OFF",
+              "partner": "HostelPalika",
+              "percentOff": 10,
+              "title": "Rent off"
+            }
+          ],
+          "quarter": "Kartik – Poush 2083 BS"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  }
+]

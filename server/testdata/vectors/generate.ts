@@ -18,6 +18,8 @@ import * as plans from "../../../packages/shared/src/plans/catalog";
 import * as lifetime from "../../../packages/shared/src/plans/lifetime";
 import { createJiti } from "jiti";
 
+import { configVectors } from "./config";
+
 const here = join(process.cwd(), "server");
 const iso = (d: Date) => d.toISOString();
 const MS_DAY = 86_400_000;
@@ -233,7 +235,10 @@ const web = createJiti(__filename, {
   },
 });
 
-void (async () => {
+if (process.env.HP_ONLY === "config") {
+  void configVectors(web, here);
+} else void (async () => {
+  await configVectors(web, here);
   const finance = await web.import<typeof import("../../../apps/web/src/modules/finance/money")>(
     "../../../apps/web/src/modules/finance/money",
   );

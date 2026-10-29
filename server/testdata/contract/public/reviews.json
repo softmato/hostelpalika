@@ -1,0 +1,259 @@
+[
+  {
+    "name": "by slug",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/reviews"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reviews loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 2,
+            "totalPages": 1
+          },
+          "reviews": [
+            {
+              "comment": "",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "id": "6c0000000000000000000072",
+              "isVerifiedResident": true,
+              "overallRating": 5,
+              "reviewerName": "Verified resident",
+              "safetyRating": 4
+            },
+            {
+              "cleanlinessRating": 5,
+              "comment": "Clean rooms.",
+              "createdAt": "2026-09-28T04:15:00.000Z",
+              "foodRating": 3,
+              "id": "6c0000000000000000000071",
+              "isVerifiedResident": true,
+              "overallRating": 4,
+              "reviewerName": "Res I."
+            }
+          ],
+          "summary": {
+            "averageRating": 4.5,
+            "categories": {
+              "cleanliness": 5,
+              "food": 3,
+              "location": null,
+              "management": null,
+              "overall": 4.5,
+              "room": null,
+              "security": 4
+            },
+            "distribution": [
+              {
+                "count": 1,
+                "stars": 5
+              },
+              {
+                "count": 1,
+                "stars": 4
+              },
+              {
+                "count": 0,
+                "stars": 3
+              },
+              {
+                "count": 0,
+                "stars": 2
+              },
+              {
+                "count": 0,
+                "stars": 1
+              }
+            ],
+            "total": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "by id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/6c00000000000000000000a3/reviews"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reviews loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 2,
+            "totalPages": 1
+          },
+          "reviews": [
+            {
+              "comment": "",
+              "createdAt": "2026-09-29T04:15:00.000Z",
+              "id": "6c0000000000000000000072",
+              "isVerifiedResident": true,
+              "overallRating": 5,
+              "reviewerName": "Verified resident",
+              "safetyRating": 4
+            },
+            {
+              "cleanlinessRating": 5,
+              "comment": "Clean rooms.",
+              "createdAt": "2026-09-28T04:15:00.000Z",
+              "foodRating": 3,
+              "id": "6c0000000000000000000071",
+              "isVerifiedResident": true,
+              "overallRating": 4,
+              "reviewerName": "Res I."
+            }
+          ],
+          "summary": {
+            "averageRating": 4.5,
+            "categories": {
+              "cleanliness": 5,
+              "food": 3,
+              "location": null,
+              "management": null,
+              "overall": 4.5,
+              "room": null,
+              "security": 4
+            },
+            "distribution": [
+              {
+                "count": 1,
+                "stars": 5
+              },
+              {
+                "count": 1,
+                "stars": 4
+              },
+              {
+                "count": 0,
+                "stars": 3
+              },
+              {
+                "count": 0,
+                "stars": 2
+              },
+              {
+                "count": 0,
+                "stars": 1
+              }
+            ],
+            "total": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "id of nothing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/6c00000000000000000000ff/reviews"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reviews loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 0,
+            "totalPages": 0
+          },
+          "reviews": [],
+          "summary": {
+            "averageRating": 0,
+            "categories": {
+              "cleanliness": null,
+              "food": null,
+              "location": null,
+              "management": null,
+              "overall": null,
+              "room": null,
+              "security": null
+            },
+            "distribution": [
+              {
+                "count": 0,
+                "stars": 5
+              },
+              {
+                "count": 0,
+                "stars": 4
+              },
+              {
+                "count": 0,
+                "stars": 3
+              },
+              {
+                "count": 0,
+                "stars": 2
+              },
+              {
+                "count": 0,
+                "stars": 1
+              }
+            ],
+            "total": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "twelve chars",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/abcdefghijkl/reviews"
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "unknown slug",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/nope/reviews"
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  }
+]

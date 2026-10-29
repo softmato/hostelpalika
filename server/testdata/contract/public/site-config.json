@@ -1,0 +1,2602 @@
+[
+  {
+    "name": "public config",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/site-config"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Site configuration loaded",
+        "data": {
+          "config": {
+            "announcement": {
+              "enabled": false,
+              "link": "",
+              "linkLabel": "",
+              "message": "",
+              "tone": "info"
+            },
+            "appNotice": null,
+            "apps": {
+              "androidApkUrl": "",
+              "androidPlayUrl": "https://play.google.com/store/apps/details?id=com.softmato.hostelpalika",
+              "demoVideoUrl": ""
+            },
+            "content": {
+              "about": {
+                "highlights": [],
+                "intro": [
+                  "{siteName} was founded with a simple goal — make finding and managing student accommodation in Nepal easy, transparent, and trustworthy. What started as a directory has grown into a full-featured platform serving students, hostel owners, wardens, and guardians across the country.",
+                  "Today, {siteName} powers hundreds of verified hostel listings, processes thousands of inquiries every month, and provides hostel teams with modern tools to manage rooms, residents, payments, food quality, and safety.",
+                  "We are headquartered in Kathmandu, Nepal, and our team is passionate about using technology to solve real problems for students and hostel operators alike."
+                ],
+                "noteBody": "Reach out at {supportEmail} — or visit our office in Kathmandu, Nepal.",
+                "noteTitle": "Want to know more?",
+                "sections": [
+                  {
+                    "body": [
+                      "We believe every student deserves honest, verified information about their accommodation. Every listing on {siteName} goes through a verification process to ensure accuracy."
+                    ],
+                    "icon": "shield",
+                    "title": "Trust \u0026 Transparency"
+                  },
+                  {
+                    "body": [
+                      "Everything we build starts with the student experience — from easy search and comparison tools to seamless communication with hostel teams."
+                    ],
+                    "icon": "users",
+                    "title": "Student First"
+                  },
+                  {
+                    "body": [
+                      "We are modernising Nepal's hostel ecosystem with digital tools for payments, complaints, food feedback, and real-time vacancy tracking."
+                    ],
+                    "icon": "target",
+                    "title": "Innovation"
+                  },
+                  {
+                    "body": [
+                      "Hostel admins, wardens, and platform owners are held to clear standards. Our audit-logged system ensures every action is traceable."
+                    ],
+                    "icon": "eye",
+                    "title": "Accountability"
+                  },
+                  {
+                    "body": [
+                      "{siteName} connects not just students to hostels, but also families, guardians, and local service providers into one trusted network."
+                    ],
+                    "icon": "heart",
+                    "title": "Community"
+                  },
+                  {
+                    "body": [
+                      "Built for Nepal, by a team that understands the local landscape. We design for Nepali students, hostel culture, and the unique needs of the valley."
+                    ],
+                    "icon": "building",
+                    "title": "Local First"
+                  }
+                ],
+                "subtitle": "Our mission, our values, and the team behind Nepal's hostel platform"
+              },
+              "faq": [
+                {
+                  "answer": "Create an account from the sign-up form, fill in your details, verify your email or phone via OTP, and you are ready to go.",
+                  "question": "How do I create an account?"
+                },
+                {
+                  "answer": "Open Register Hostel and fill out the registration form. Our team will review and verify your listing within 2–3 business days.",
+                  "question": "How do I list my hostel?"
+                },
+                {
+                  "answer": "Yes, you can update your name, email, phone, and profile photo from your account settings after logging in.",
+                  "question": "Can I update my personal information?"
+                },
+                {
+                  "answer": "Use the inquiry system on the hostel detail page, or reach out to our support team directly via email or phone.",
+                  "question": "How do I report an issue with a hostel?"
+                },
+                {
+                  "answer": "Absolutely. We use encryption for all data in transit and at rest, and we never share your personal information with third parties without your consent.",
+                  "question": "Is my data secure on {siteName}?"
+                }
+              ],
+              "offerProgram": {
+                "highlights": [],
+                "intro": [
+                  "The Resident Offer Program is how {siteName} makes sure a payment reaches the right month, the right resident and the right hostel — without anyone having to chase it. It costs you one extra step when you pay, and it is the difference between a payment credited the same day and one sitting in a queue waiting to be identified by hand.",
+                  "Anyone can read the rules below. Applying needs a resident account."
+                ],
+                "noteBody": "Your hostel administration is the right first stop — they can see your invoices, your payments and every receipt issued to you. You can also reach them from the Fees \u0026 Payments page in your resident portal.",
+                "noteTitle": "Not sure about a payment or a receipt?",
+                "sections": [
+                  {
+                    "body": [
+                      "Every invoice you receive carries its own reference code — something like RUP-4821-K.",
+                      "Quote that code when you pay, and your payment is matched to the right month automatically, usually within minutes instead of waiting on a manual check.",
+                      "When your hostel verifies a payment that quoted its code, {siteName} issues a certified receipt — stamped for the Resident Offer Program, with a verification code anyone can check.",
+                      "Every quarter (three Nepali months), {siteName} gives offers to residents with certified receipts."
+                    ],
+                    "icon": "sparkles",
+                    "title": "What the Resident Offer Program is"
+                  },
+                  {
+                    "body": [
+                      "You must be a resident of a hostel that uses this platform — the programme runs on the invoices your hostel issues you.",
+                      "Your resident account must be active, with at least one invoice raised against it.",
+                      "There is no fee and no minimum. Eligibility is per resident, not per hostel.",
+                      "If you are not a resident yet, join a hostel on the platform first — the button below will not be available until then."
+                    ],
+                    "icon": "user-plus",
+                    "title": "Who is eligible"
+                  },
+                  {
+                    "body": [
+                      "Copy the reference code from your invoice or from the Fees \u0026 Payments page in your resident portal.",
+                      "Paste it into the remarks, purpose or notes field when you make the transfer or wallet payment.",
+                      "If your bank strips that field or does not offer one, pay as normal — your rent still counts. Only payments that quote the code are certified in the programme."
+                    ],
+                    "icon": "badge-check",
+                    "title": "What you need to do"
+                  },
+                  {
+                    "body": [
+                      "Upload your payment screenshot in the resident portal. We email you straight away to confirm we have it.",
+                      "Nothing is credited to your account until your hostel verifies the payment — a submitted proof is not yet a settled payment.",
+                      "Once it is verified, we email you the receipt as a PDF and keep a copy in the app and your portal. If your payment quoted its code, the receipt is added to the Resident Offer Program automatically."
+                    ],
+                    "icon": "receipt",
+                    "title": "What happens after you pay"
+                  },
+                  {
+                    "body": [
+                      "At the end of each quarter — Baisakh to Asar, Shrawan to Aswin, Kartik to Poush, Magh to Chaitra — {siteName} looks at who holds certified receipts for that quarter.",
+                      "Residents chosen get either part or all of their next monthly fee paid by {siteName} to their hostel, or a gift from {siteName}.",
+                      "A fee offer is taken off your next monthly bill by itself. For a gift, our team contacts you.",
+                      "The perks on offer are listed under Offer Program in the app and your resident portal. Paying every bill with its code is what counts."
+                    ],
+                    "icon": "gift",
+                    "title": "Quarterly offers"
+                  },
+                  {
+                    "body": [
+                      "A receipt number unique to that one payment — no two receipts ever share it, even for the same month.",
+                      "The amount paid, the date it was issued, and the exact dates the payment covers.",
+                      "The invoice reference code it was matched against, and — for a certified receipt — the Resident Offer Program stamp, a verification code and a QR code.",
+                      "If a receipt is ever corrected, the original is marked VOID and a replacement is issued with its own number. Both stay readable."
+                    ],
+                    "icon": "file-text",
+                    "title": "What is on your receipt"
+                  },
+                  {
+                    "body": [
+                      "Anyone holding a certified receipt — a landlord, a parent, a bank — can scan its QR code or enter its verification code on the Verify a receipt page (/verify-receipt).",
+                      "The page shows the amount, the hostel, the month and the resident's first name as {siteName} recorded them. If they differ from the paper, the paper is not genuine."
+                    ],
+                    "icon": "qr-code",
+                    "title": "Checking a receipt"
+                  },
+                  {
+                    "body": [
+                      "A receipt is our record that the hostel received money. It is not evidence that you sent it — those are opposite directions.",
+                      "Receipts we issue are marked so our system recognises them, and uploading one as proof of a payment will be refused, including a screenshot of it.",
+                      "For proof, upload the confirmation from the app or bank you paid with — the screen showing the money leaving your account.",
+                      "This protects you as much as the hostel: it is what stops one payment being counted twice and your balance going wrong."
+                    ],
+                    "icon": "shield-check",
+                    "title": "Why a receipt cannot be used as payment proof"
+                  }
+                ],
+                "subtitle": "Pay with your code, get certified receipts, and get quarterly offers"
+              },
+              "privacy": {
+                "highlights": [],
+                "intro": [
+                  "{siteName} (“we”, “our”, or “us”) is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our hostel management platform.",
+                  "By using {siteName}, you agree to the collection and use of information in accordance with this policy. If you do not agree, please discontinue use of the platform."
+                ],
+                "noteBody": "Contact our Data Protection team at {supportEmail}.",
+                "noteTitle": "Questions about this policy?",
+                "sections": [
+                  {
+                    "body": [
+                      "Personal information you provide when creating an account (name, email, phone number, role).",
+                      "Hostel details, photos, pricing, and facility information submitted by hostel admins.",
+                      "Resident data including room assignments, fee records, food preferences, and complaint history.",
+                      "Guardian information provided for resident emergency contacts and account linking.",
+                      "Payment evidence you upload — screenshots or receipts — which are stored privately and readable only by you and your hostel's staff.",
+                      "Identity documents you choose to add to your resident profile, encrypted at rest.",
+                      "If your hostel uses attendance tracking and you consent, whether you were inside or outside the hostel each day. See 'Location \u0026 Attendance' below.",
+                      "Usage data such as page visits, feature interactions, and device information to improve our service."
+                    ],
+                    "icon": "database",
+                    "title": "Information We Collect"
+                  },
+                  {
+                    "body": [
+                      "To operate, maintain, and improve the {siteName} platform and all its features.",
+                      "To facilitate communication between hostel admins, residents, and guardians.",
+                      "To process payments, generate receipts, and manage financial records.",
+                      "To send service-related notifications, updates, and important account information.",
+                      "To detect, prevent, and address technical issues, fraud, or abuse of the platform."
+                    ],
+                    "icon": "eye",
+                    "title": "How We Use Your Information"
+                  },
+                  {
+                    "body": [
+                      "Attendance tracking is optional. It runs only in the mobile app, only if your hostel has enabled it, and only after you have explicitly consented — the server refuses location data from an account that has not.",
+                      "Your coordinates are never stored. The app sends a reading, the server converts it into a single answer — inside the hostel, or outside — and discards the position. There is no map, no route and no location history to retrieve, because none is kept.",
+                      "One reading per day is retained. A later reading replaces an earlier one rather than adding to it.",
+                      "Your hostel's staff and any guardian you have linked can see the daily inside/outside status. They cannot see where you were.",
+                      "You can withdraw consent at any time, and you can delete your attendance history from the app, which removes those daily records outright."
+                    ],
+                    "icon": "map-pin",
+                    "title": "Location \u0026 Attendance"
+                  },
+                  {
+                    "body": [
+                      "We do not sell your personal information to third parties.",
+                      "Hostel-relevant resident data is shared only with the respective hostel administration.",
+                      "Guardian accounts receive limited, privacy-first access to resident information.",
+                      "We may share anonymised, aggregated data for analytics and platform improvement.",
+                      "We will disclose information if required by law or to protect the rights and safety of our users."
+                    ],
+                    "icon": "shield",
+                    "title": "Data Sharing \u0026 Disclosure"
+                  },
+                  {
+                    "body": [
+                      "All data transmitted between your device and our servers is encrypted using TLS/SSL protocols.",
+                      "Passwords are hashed and salted — we never store plain-text passwords.",
+                      "Payment evidence and identity documents are stored in private storage with no public address. They are reachable only through a link that we generate for an authorised viewer and that expires after fifteen minutes.",
+                      "The personal details on your resident profile are encrypted before they are written to our database.",
+                      "Each hostel's data is isolated from every other hostel's. A request for a record belonging to another hostel is answered as though it does not exist.",
+                      "Access to personal data is restricted to authorised personnel only.",
+                      "We regularly review and update our security practices to maintain data integrity.",
+                      "In the event of a data breach, affected users will be notified within 72 hours."
+                    ],
+                    "icon": "lock",
+                    "title": "Data Security"
+                  },
+                  {
+                    "body": [
+                      "You can review and update the personal details on your profile at any time while signed in.",
+                      "You can request account deletion from Privacy \u0026 your data in your account. What that does depends on who you are: a public user or a moved-out resident is closed immediately; a guardian's account is returned to a normal public account; a hostel owner's request is reviewed by us first, and their account stays active until it is approved.",
+                      "A resident who is still living in a hostel cannot delete their account, because the hostel needs an accurate record of who is in residence. Ask your hostel to complete your move-out first.",
+                      "Once a deletion starts, the account is closed at once and permanently erased 60 days later. During those 60 days you can cancel using the link in the confirmation email — you cannot sign in to cancel, which is why the link exists.",
+                      "Erasure removes your account, profile, notifications, devices, sessions and any attendance records. Payment and receipt records are kept, because a hostel's financial history cannot develop gaps — but they hold only amounts and dates, with nothing left linking them to you. Posts and comments you wrote stay in the conversation as anonymous.",
+                      "You can opt out of non-essential communications via your notification preferences.",
+                      "You have the right to file a complaint with your local data protection authority."
+                    ],
+                    "icon": "mail",
+                    "title": "Your Rights \u0026 Choices"
+                  },
+                  {
+                    "body": [
+                      "We set four cookies, all of them our own and all essential: two that keep you signed in, one that stops a single visitor inflating a hostel's view count, and one that limits how often search can call our language model.",
+                      "None of them can be read by JavaScript in your browser, and none is used for advertising.",
+                      "We use no third-party analytics, advertising or tracking cookies, so there is nothing here to opt out of and no consent banner to click through.",
+                      "You may block cookies in your browser settings, but signing in will not work without the session cookies."
+                    ],
+                    "icon": "globe",
+                    "title": "Cookies \u0026 Tracking"
+                  }
+                ],
+                "subtitle": ""
+              },
+              "registerHostel": {
+                "highlights": [
+                  {
+                    "label": "More enquiries once your hostel is listed",
+                    "value": "3×"
+                  },
+                  {
+                    "label": "Faster to fill an empty bed",
+                    "value": "2×"
+                  },
+                  {
+                    "label": "Less time chasing rent",
+                    "value": "70%"
+                  },
+                  {
+                    "label": "Parents who trust a hostel they can see",
+                    "value": "9 in 10"
+                  }
+                ],
+                "intro": [
+                  "Run your hostel from one place: rooms, residents, rent and food. Your residents and their parents get an app of their own."
+                ],
+                "noteBody": "List your property, manage residents, and give everyone their own portal — all from one place.",
+                "noteTitle": "Ready to bring your hostel online?",
+                "sections": [
+                  {
+                    "body": [
+                      "Open the dashboard and see how your hostel is doing today.",
+                      "Beds filled and beds empty",
+                      "Who has paid this month and who has not",
+                      "New complaints and requests waiting for you"
+                    ],
+                    "icon": "layout-dashboard",
+                    "title": "Everything on one screen"
+                  },
+                  {
+                    "body": [
+                      "Add your rooms once and set one rent for each sharing type.",
+                      "Single, two, three or four sharing",
+                      "Empty beds are counted for you",
+                      "Your public page always shows the same rates"
+                    ],
+                    "icon": "bed",
+                    "title": "Rooms and rates"
+                  },
+                  {
+                    "body": [
+                      "Add a new resident from your phone, step by step.",
+                      "Room, rent and joining fee in one go",
+                      "Admission fee and deposit on one bill",
+                      "They get their own login the same day"
+                    ],
+                    "icon": "user-plus",
+                    "title": "Register a resident in minutes"
+                  },
+                  {
+                    "body": [
+                      "Scan the resident's card and check their details before you save.",
+                      "Name, photo, age and home address",
+                      "Where they are from and what they do",
+                      "One person can live in only one hostel at a time"
+                    ],
+                    "icon": "qr-code",
+                    "title": "Know who is moving in"
+                  },
+                  {
+                    "body": [
+                      "Write your fee card and every month's bills are raised on their own.",
+                      "Months follow the Nepali calendar",
+                      "Change rates from a future month, old bills stay as they were",
+                      "Import your eSewa or Khalti statement to match payments"
+                    ],
+                    "icon": "wallet",
+                    "title": "Set your fees once"
+                  },
+                  {
+                    "body": [
+                      "Residents pay into your own eSewa, Khalti or bank account.",
+                      "Add your wallet and bank QR once",
+                      "Each bill has its own reference code",
+                      "Every payment shows who paid and for which month"
+                    ],
+                    "icon": "credit-card",
+                    "title": "Money goes straight to you"
+                  },
+                  {
+                    "body": [
+                      "All payments and bills for the month, in one place.",
+                      "Paid, part paid or due, next to each name",
+                      "Cash and online payments together",
+                      "Totals for the month counted for you"
+                    ],
+                    "icon": "receipt",
+                    "title": "Every rupee in one list"
+                  },
+                  {
+                    "body": [
+                      "Residents see their room, bill, food menu and notices on their phone.",
+                      "This week's menu and today's meals",
+                      "Report a complaint with a photo",
+                      "Night check-in and an SOS button"
+                    ],
+                    "icon": "home",
+                    "title": "An app for your residents"
+                  },
+                  {
+                    "body": [
+                      "No more chasing rent at the door.",
+                      "Pay by eSewa or Khalti",
+                      "Or send a payment screenshot for you to confirm",
+                      "The receipt stays in their app"
+                    ],
+                    "icon": "wallet",
+                    "title": "Residents pay from their phone"
+                  },
+                  {
+                    "body": [
+                      "Each resident gets an ID card with a QR code in the app.",
+                      "Photo, room and hostel on the card",
+                      "Staff can scan it to check who someone is",
+                      "Nothing to print or lose"
+                    ],
+                    "icon": "badge-check",
+                    "title": "A digital ID card for every resident"
+                  },
+                  {
+                    "body": [
+                      "Parents get their own login with just what they need to see.",
+                      "Fee status and receipts",
+                      "Food menu and hostel notices",
+                      "Night check-in summary and emergency contact"
+                    ],
+                    "icon": "heart",
+                    "title": "Parents stay in the loop"
+                  },
+                  {
+                    "body": [
+                      "Every hostel gets a public page students can find and share.",
+                      "Photos, rates and facilities",
+                      "Students call you or send an enquiry",
+                      "Reviews from people who lived there"
+                    ],
+                    "icon": "building",
+                    "title": "Your own hostel page"
+                  },
+                  {
+                    "body": [
+                      "Your hostel shows up on the map near their college.",
+                      "Distance and walking directions",
+                      "Price and rating on each hostel card",
+                      "Open your page straight from the map"
+                    ],
+                    "icon": "map-pin",
+                    "title": "Students find you on the map"
+                  },
+                  {
+                    "body": [
+                      "Verified hostels appear in the app's top picks and nearby lists.",
+                      "Search by city, area or college",
+                      "Compare hostels side by side",
+                      "A verified badge builds trust"
+                    ],
+                    "icon": "sparkles",
+                    "title": "Show up where students search"
+                  }
+                ],
+                "subtitle": "For Hostel Owners \u0026 Operators"
+              },
+              "serviceProviders": {
+                "highlights": [],
+                "intro": [
+                  "Join {siteName} as a service provider and receive real maintenance jobs — plumbing, electrical, cleaning and more.",
+                  "Hostels raise maintenance requests, and pick a provider in their area to send them to."
+                ],
+                "noteBody": "By continuing you agree this account is used to receive job offers from hostels in your trade and area. No web dashboard is required — once approved, you'll manage jobs from the {siteName} Provider mobile app.",
+                "noteTitle": "Before you apply",
+                "sections": [
+                  {
+                    "body": [
+                      "Fill in a short form. Only your name, phone, trades and area are required."
+                    ],
+                    "icon": "user-plus",
+                    "title": "Apply"
+                  },
+                  {
+                    "body": [
+                      "Our team checks your application and emails you the result with a clear reason."
+                    ],
+                    "icon": "badge-check",
+                    "title": "We review"
+                  },
+                  {
+                    "body": [
+                      "On approval you are emailed your Provider Identity Card, with a QR code you show at the gate."
+                    ],
+                    "icon": "shield",
+                    "title": "Get verified"
+                  },
+                  {
+                    "body": [
+                      "Hostels send you jobs in the Provider app. You agree the price with them directly — we take no cut."
+                    ],
+                    "icon": "wrench",
+                    "title": "Start getting work"
+                  }
+                ],
+                "subtitle": "Get Steady Maintenance Work from *Hostels* in Nepal"
+              },
+              "terms": {
+                "highlights": [],
+                "intro": [
+                  "Welcome to {siteName}. These Terms \u0026 Regulations (“Terms”) govern your access to and use of the {siteName} platform, including any related services, content, and functionality offered through our website and mobile applications.",
+                  "Please read these terms carefully before using the platform. Depending on your role — hostel admin, resident, guardian, or service provider — additional role-specific terms may apply."
+                ],
+                "noteBody": "Reach out to our support team at {supportEmail} or use the in-app support system.",
+                "noteTitle": "Have questions?",
+                "sections": [
+                  {
+                    "body": [
+                      "By accessing or using {siteName}, you agree to be bound by these Terms \u0026 Regulations.",
+                      "If you do not agree with any part of these terms, you must not use the platform.",
+                      "{siteName} reserves the right to update these terms at any time. Users will be notified of material changes via email or platform notice.",
+                      "Continued use of the platform after changes constitutes acceptance of the updated terms."
+                    ],
+                    "icon": "file-text",
+                    "title": "Acceptance of Terms"
+                  },
+                  {
+                    "body": [
+                      "You must provide accurate, current, and complete information when creating an account.",
+                      "You are solely responsible for maintaining the confidentiality of your login credentials.",
+                      "Sharing your account with unauthorised individuals is strictly prohibited.",
+                      "You must notify {siteName} immediately of any unauthorised use of your account.",
+                      "Each user may hold only one active account unless otherwise authorised.",
+                      "Users must be at least 16 years of age to create an account on {siteName}."
+                    ],
+                    "icon": "user-check",
+                    "title": "User Accounts \u0026 Responsibilities"
+                  },
+                  {
+                    "body": [
+                      "All hostel listings must include accurate and up-to-date information including pricing, availability, and facilities.",
+                      "Photos submitted must be genuine representations of the property — stock photos or misleading imagery are prohibited.",
+                      "Hostel admins are responsible for keeping room inventory, pricing, and vacancy status current.",
+                      "Any form of discriminatory listing criteria based on caste, religion, gender, or ethnicity is strictly forbidden.",
+                      "{siteName} reserves the right to remove or suspend listings that violate these rules."
+                    ],
+                    "icon": "home",
+                    "title": "Hostel Listing Rules"
+                  },
+                  {
+                    "body": [
+                      "All fee payments processed through {siteName} are subject to the stated service charges.",
+                      "{siteName} uses third-party payment processors and is not liable for any issues arising from their services.",
+                      "Refund policies are determined by individual hostels — {siteName} does not guarantee refunds.",
+                      "Platform owners and hostel admins are responsible for accurate financial reporting and tax compliance.",
+                      "Any disputes regarding payments must be raised within 14 days of the transaction date."
+                    ],
+                    "icon": "credit-card",
+                    "title": "Payments \u0026 Financial Terms"
+                  },
+                  {
+                    "body": [
+                      "Using the platform for any unlawful purpose or in violation of any applicable laws.",
+                      "Attempting to gain unauthorised access to any part of the platform, user accounts, or systems.",
+                      "Uploading or transmitting viruses, malware, or any code designed to disrupt the platform.",
+                      "Harassing, threatening, or abusing other users, hostel staff, or {siteName} personnel.",
+                      "Engaging in any activity that interferes with or disrupts the platform's services.",
+                      "Using bots, scrapers, or automated tools to extract data without prior written consent."
+                    ],
+                    "icon": "ban",
+                    "title": "Prohibited Activities"
+                  },
+                  {
+                    "body": [
+                      "{siteName} is provided “as is” without warranties of any kind, either express or implied.",
+                      "We do not guarantee that the platform will be uninterrupted, secure, or error-free at all times.",
+                      "{siteName} is not responsible for the actions, conduct, or content of hostel admins, residents, or guardians.",
+                      "In no event shall {siteName} be liable for any indirect, incidental, or consequential damages.",
+                      "The total liability of {siteName} for any claims shall not exceed the fees paid by you in the preceding 12 months."
+                    ],
+                    "icon": "alert-triangle",
+                    "title": "Limitation of Liability"
+                  },
+                  {
+                    "body": [
+                      "Any disputes arising from these terms shall first be attempted to be resolved through informal negotiation.",
+                      "If a dispute cannot be resolved informally, it shall be settled by binding arbitration in Kathmandu, Nepal.",
+                      "Users agree to resolve disputes on an individual basis — class actions are waived to the extent permitted by law.",
+                      "These terms are governed by the laws of Nepal, without regard to its conflict of law provisions."
+                    ],
+                    "icon": "scale",
+                    "title": "Dispute Resolution"
+                  },
+                  {
+                    "body": [
+                      "For questions about these terms, contact us at {supportEmail}.",
+                      "Legal notices should be sent to: {siteName} Legal, Kathmandu, Nepal.",
+                      "Response times for legal inquiries are typically within 5–7 business days.",
+                      "For urgent platform issues, use the in-app support system for fastest resolution."
+                    ],
+                    "icon": "mail",
+                    "title": "Contact \u0026 Support"
+                  }
+                ],
+                "subtitle": ""
+              }
+            },
+            "facilities": [
+              {
+                "enabled": true,
+                "icon": "wifi",
+                "label": "Free WiFi",
+                "slug": "wifi"
+              },
+              {
+                "enabled": true,
+                "icon": "utensils",
+                "label": "Meals Included",
+                "slug": "meals"
+              },
+              {
+                "enabled": true,
+                "icon": "shirt",
+                "label": "Laundry",
+                "slug": "laundry"
+              },
+              {
+                "enabled": true,
+                "icon": "car",
+                "label": "Parking",
+                "slug": "parking"
+              },
+              {
+                "enabled": true,
+                "icon": "shield",
+                "label": "24/7 Security",
+                "slug": "security"
+              },
+              {
+                "enabled": true,
+                "icon": "camera",
+                "label": "CCTV",
+                "slug": "cctv"
+              },
+              {
+                "enabled": true,
+                "icon": "zap",
+                "label": "Power Backup",
+                "slug": "power-backup"
+              },
+              {
+                "enabled": true,
+                "icon": "droplet",
+                "label": "Hot Water",
+                "slug": "hot-water"
+              },
+              {
+                "enabled": true,
+                "icon": "book",
+                "label": "Study Room",
+                "slug": "study-room"
+              },
+              {
+                "enabled": true,
+                "icon": "dumbbell",
+                "label": "Gym",
+                "slug": "gym"
+              }
+            ],
+            "platformStats": [],
+            "features": {
+              "compare": true,
+              "inquiries": true,
+              "publicRegistration": true,
+              "reviews": true,
+              "serviceProviderSignup": true
+            },
+            "hero": {
+              "headline": "Find a fixture hostel",
+              "primaryCtaHref": "/hostels",
+              "primaryCtaLabel": "Browse Hostels",
+              "searchPlaceholder": "Search by city, area, or hostel name",
+              "secondaryCtaHref": "/register-hostel",
+              "secondaryCtaLabel": "List Your Hostel",
+              "subheadline": "Stored by the contract fixture"
+            },
+            "identity": {
+              "address": "Kathmandu, Nepal",
+              "siteName": "HostelPalika",
+              "supportEmail": "support@softmato.com",
+              "supportPhone": "+977-1-5432123",
+              "supportLines": [],
+              "tagline": "A Hostel Management Eco-Software"
+            },
+            "legal": {
+              "privacy": {
+                "body": "",
+                "updatedAt": ""
+              },
+              "refund": {
+                "body": "",
+                "updatedAt": ""
+              },
+              "terms": {
+                "body": "",
+                "updatedAt": ""
+              }
+            },
+            "lifetime": {
+              "badge": "Lifetime deal",
+              "ctaLabel": "Claim lifetime",
+              "enabled": true,
+              "endsOn": "",
+              "note": "",
+              "offers": [
+                {
+                  "planId": "go",
+                  "price": 9999,
+                  "seats": 2
+                },
+                {
+                  "planId": "pro",
+                  "price": 0,
+                  "seats": 5
+                },
+                {
+                  "planId": "gone",
+                  "price": 100,
+                  "seats": 5
+                }
+              ],
+              "startsOn": "",
+              "subtitle": "",
+              "title": "Pay once. Use it for life."
+            },
+            "leaveHold": {
+              "max": 15,
+              "min": 5
+            },
+            "locations": [
+              {
+                "areas": [
+                  "Baneshwor",
+                  "Koteshwor",
+                  "Kirtipur",
+                  "Dillibazar",
+                  "Bhaisepati"
+                ],
+                "city": "Kathmandu",
+                "enabled": true
+              },
+              {
+                "areas": [
+                  "Lalitpur",
+                  "Bagdol",
+                  "Jhamsikhel"
+                ],
+                "city": "Lalitpur",
+                "enabled": true
+              },
+              {
+                "areas": [
+                  "Suryabinayak",
+                  "Thimi"
+                ],
+                "city": "Bhaktapur",
+                "enabled": true
+              },
+              {
+                "areas": [
+                  "Lakeside",
+                  "Bagar",
+                  "Chipledhunga"
+                ],
+                "city": "Pokhara",
+                "enabled": true
+              },
+              {
+                "areas": [
+                  "Bharatpur",
+                  "Narayangarh",
+                  "Sauraha"
+                ],
+                "city": "Chitwan",
+                "enabled": true
+              },
+              {
+                "areas": [
+                  "Biratnagar"
+                ],
+                "city": "Biratnagar",
+                "enabled": true
+              }
+            ],
+            "plans": {
+              "cycleLabels": {
+                "annual": "Annual",
+                "halfYearly": "6 months",
+                "monthly": "Monthly"
+              },
+              "event": {
+                "endsOn": "",
+                "label": "Festival offer",
+                "mode": "standard",
+                "note": ""
+              },
+              "modules": [
+                {
+                  "description": "Who lives here, which bed they hold, and how they arrive and leave.",
+                  "icon": "users",
+                  "id": "residents-rooms",
+                  "name": "Residents \u0026 Rooms"
+                },
+                {
+                  "description": "The rate card, the month's invoices, and the money that comes back.",
+                  "icon": "wallet",
+                  "id": "fees-payments",
+                  "name": "Fees \u0026 Payments"
+                },
+                {
+                  "description": "What is cooked, when it is ready, and what people thought of it.",
+                  "icon": "utensils",
+                  "id": "food-kitchen",
+                  "name": "Food \u0026 Kitchen"
+                },
+                {
+                  "description": "Who is in tonight, and what happens when something goes wrong.",
+                  "icon": "shield-check",
+                  "id": "attendance-safety",
+                  "name": "Attendance \u0026 Safety"
+                },
+                {
+                  "description": "Notices out, complaints in, and nothing sitting unread.",
+                  "icon": "bell",
+                  "id": "communication",
+                  "name": "Communication"
+                },
+                {
+                  "description": "Broken things reported, assigned and closed.",
+                  "icon": "wrench",
+                  "id": "maintenance",
+                  "name": "Maintenance"
+                },
+                {
+                  "description": "What a parent can see, and everything they cannot.",
+                  "icon": "user-round",
+                  "id": "guardian",
+                  "name": "Guardian Portal"
+                },
+                {
+                  "description": "Being found, being compared, and being chosen.",
+                  "icon": "building",
+                  "id": "listing-growth",
+                  "name": "Listing \u0026 Growth"
+                },
+                {
+                  "description": "The numbers behind the month, and who changed what.",
+                  "icon": "file-text",
+                  "id": "reporting",
+                  "name": "Reporting \u0026 Control"
+                }
+              ],
+              "page": {
+                "ctaBody": "The Max plan runs branches under one account — each with its own rooms, rent, staff and public page, all side by side in Overall on one bill. Need more buildings than Max covers? Talk to us.",
+                "ctaHref": "/contact",
+                "ctaLabel": "Talk to {siteName}",
+                "ctaTitle": "Running more than one property? Max has branches built in.",
+                "featuredBadge": "Most chosen",
+                "footnote": "Prices are per hostel and exclude applicable taxes. Move between plans as your resident count changes — {siteName} keeps your data either way.",
+                "subtitle": "Priced by how many residents you house. Open any service to see what it does before you pay for it.",
+                "title": "Plans \u0026 Pricing"
+              },
+              "plans": [
+                {
+                  "annualDiscountPercent": 17,
+                  "ctaHref": "/register-hostel",
+                  "ctaLabel": "Start with Go",
+                  "description": "A single hostel with room to grow into.",
+                  "featured": false,
+                  "eventDiscountPercent": 0,
+                  "halfYearlyDiscountPercent": 8,
+                  "id": "go",
+                  "listingTier": null,
+                  "maxBranches": 0,
+                  "maxResidents": 50,
+                  "monthly": 999,
+                  "name": "Go",
+                  "portalAccess": {
+                    "cooks": 1,
+                    "wardens": 1
+                  }
+                },
+                {
+                  "annualDiscountPercent": 14,
+                  "ctaHref": "/register-hostel",
+                  "ctaLabel": "Get Pro",
+                  "description": "A full house, or two floors of one.",
+                  "featured": true,
+                  "eventDiscountPercent": 0,
+                  "halfYearlyDiscountPercent": 7,
+                  "id": "pro",
+                  "listingTier": {
+                    "label": "Platinum hostel",
+                    "note": "Ranked above unbadged listings across search, the map and Compare.",
+                    "slug": "platinum-hostel",
+                    "tone": "platinum"
+                  },
+                  "maxBranches": 0,
+                  "maxResidents": 100,
+                  "monthly": 1699,
+                  "name": "Pro",
+                  "portalAccess": {
+                    "cooks": 3,
+                    "wardens": 2
+                  }
+                },
+                {
+                  "annualDiscountPercent": 11,
+                  "ctaHref": "/register-hostel",
+                  "ctaLabel": "Upgrade to Max",
+                  "description": "Large hostels and multi-property operators.",
+                  "featured": false,
+                  "eventDiscountPercent": 0,
+                  "halfYearlyDiscountPercent": 5,
+                  "id": "max",
+                  "listingTier": {
+                    "label": "Gold hostel",
+                    "note": "Ranked above unbadged listings across search, the map and Compare.",
+                    "slug": "gold-hostel",
+                    "tone": "gold"
+                  },
+                  "maxBranches": 3,
+                  "maxResidents": null,
+                  "monthly": 2499,
+                  "name": "Max",
+                  "portalAccess": {
+                    "cooks": null,
+                    "wardens": null
+                  }
+                }
+              ],
+              "services": [
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Warden"
+                  ],
+                  "blurb": "Every resident, their room, their guardian and their history in one list.",
+                  "module": "residents-rooms",
+                  "name": "Resident Management",
+                  "plan": "go",
+                  "slug": "resident-directory",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "A resident is created once, at admission or from an invite, and every other screen reads that one record — the bed map, the month's invoices, attendance, complaints. Change the room or the guardian and it changes everywhere."
+                  ],
+                  "what": [
+                    "Every resident, the bed they hold, the guardian attached to them, and the history of both."
+                  ],
+                  "why": [
+                    "The alternative is the same person written into a register, a rent diary and a group chat, with the three disagreeing by the second month and nobody sure which is right."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Warden"
+                  ],
+                  "blurb": "Rooms, beds and vacancies as a map you allocate from.",
+                  "module": "residents-rooms",
+                  "name": "Room \u0026 Bed Map",
+                  "plan": "go",
+                  "slug": "room-bed-map",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Rooms carry a type and their beds. Allocating a resident takes a bed and checking them out frees it, and what is free feeds the public listing without anyone updating it twice."
+                  ],
+                  "what": [
+                    "Rooms, the beds in them, and what is free — as a map you allocate from."
+                  ],
+                  "why": [
+                    "Occupancy is the number the whole business runs on. Counting it by hand at month end is counting it too late to do anything about it."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Resident"
+                  ],
+                  "blurb": "Admission fee and security deposit raised as one invoice on joining.",
+                  "module": "residents-rooms",
+                  "name": "Joining Bill",
+                  "plan": "go",
+                  "slug": "admissions",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "It is raised once, when the resident joins, and it carries no month the way rent does — one invoice, one reference code, both amounts on it."
+                  ],
+                  "what": [
+                    "The admission fee and the security deposit raised together as a single invoice when a resident moves in."
+                  ],
+                  "why": [
+                    "Joining is one moment for the resident, so it should be one payment and one receipt. Splitting it into two bills means two things to chase, two things to reconcile, and a deposit that goes missing from the paperwork the day it has to be returned."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Resident",
+                    "Warden"
+                  ],
+                  "blurb": "A resident registered once and carried as a QR card a warden scans at the gate.",
+                  "module": "residents-rooms",
+                  "name": "Register Resident with QR Code",
+                  "plan": "go",
+                  "slug": "resident-id-cards",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "The card is generated from the resident's own record, so it works for as long as they live there and stops the moment they check out. The warden scans the resident, not a number written on paper."
+                  ],
+                  "what": [
+                    "A resident registered once and carried as a QR card the warden scans at the gate."
+                  ],
+                  "why": [
+                    "Gate checks that depend on recognising faces stop working the week a new warden starts, and a handwritten pass is worth exactly as much as the paper it is on."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Warden"
+                  ],
+                  "blurb": "The handover list for a room, ticked on the way in and on the way out.",
+                  "module": "residents-rooms",
+                  "name": "Move-in \u0026 Move-out Checks",
+                  "plan": "go",
+                  "slug": "move-checklist",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "The same list is ticked twice — once at move-in, once at move-out — and kept against both the room and the resident who signed it."
+                  ],
+                  "what": [
+                    "The room's handover list, ticked on the way in and on the way out."
+                  ],
+                  "why": [
+                    "Almost every deposit argument is about the state of a room months ago. The only thing that settles it is what both sides agreed to on the day, written down."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Warden"
+                  ],
+                  "blurb": "Staff accounts holding only the parts of the portal their job needs.",
+                  "module": "residents-rooms",
+                  "name": "Staff Accounts \u0026 Roles",
+                  "plan": "pro",
+                  "slug": "warden-roles",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Staff are invited to the hostel and given a role, and the role decides which screens exist for them. The money side is a separate permission from the day-to-day one."
+                  ],
+                  "what": [
+                    "Staff accounts holding only the parts of the portal a job needs."
+                  ],
+                  "why": [
+                    "Everyone sharing the owner's login is one resignation away from a problem, and it makes every record of who did what meaningless."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Resident",
+                    "Guardian"
+                  ],
+                  "blurb": "The joining agreement read and signed on the resident's phone, and kept against their record.",
+                  "module": "residents-rooms",
+                  "name": "Digital Admission Agreements",
+                  "plan": "max",
+                  "slug": "admission-agreements",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "The hostel publishes its terms once. A joining resident reads and signs them on their own phone, and the signed copy is stored against their record where staff and the resident can both find it."
+                  ],
+                  "what": [
+                    "The joining agreement read and signed on the resident's phone, kept with their record instead of in a drawer."
+                  ],
+                  "why": [
+                    "A signed paper only settles an argument if someone can produce it. Two years and three wardens later, nobody can — and the terms a resident agreed to become whatever both sides remember."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "One rent per room type. The listing and every invoice read from it.",
+                  "module": "fees-payments",
+                  "name": "Room Rent \u0026 Records",
+                  "plan": "go",
+                  "slug": "rate-card",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Rent is set once per room type. The public listing's price and every invoice raised are projected from that one card, so a rent is changed in exactly one place."
+                  ],
+                  "what": [
+                    "One rent per room type, and the record of what each room holds."
+                  ],
+                  "why": [
+                    "When rent lives in the listing, the resident's record and the invoice, the three drift apart, and a resident is eventually billed a price the site never advertised."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Resident"
+                  ],
+                  "blurb": "Invoices raised automatically each month, with the receipt and the running balance against each resident.",
+                  "module": "fees-payments",
+                  "name": "Billing \u0026 Payment Tracking",
+                  "plan": "go",
+                  "slug": "monthly-invoicing",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Invoices are raised for the month automatically, on the Bikram Sambat calendar — a period is a BS month, not a Gregorian one borrowed and relabelled. The receipt and the running balance land on the resident's own ledger, in order."
+                  ],
+                  "what": [
+                    "The month's bills raised for you, with the receipt and the balance kept against each resident."
+                  ],
+                  "why": [
+                    "Nepali hostels bill by Nepali months. Software that quietly bills the 1st to the 31st of a foreign calendar makes the owner do the translation forever, and gets the length of the month wrong twice a year."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "A payment screenshot read, checked against the invoice, and flagged if it lies.",
+                  "module": "fees-payments",
+                  "name": "Payment Proof Checks",
+                  "plan": "go",
+                  "slug": "payment-evidence",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "The screenshot is read for the amount, the date, the payee and the transaction id, then checked against the invoice it claims to pay. Anything that does not line up is flagged for a person instead of quietly accepted.",
+                    "Only details the payer cannot control are trusted — the payee and the direction of the transfer among them — so an edited or reused image does not pass by looking right."
+                  ],
+                  "what": [
+                    "A payment screenshot read and checked against the invoice it is offered for."
+                  ],
+                  "why": [
+                    "A screenshot is the most common proof of payment in Nepal and also the easiest to edit, crop or send twice. Checking it is what makes accepting one safe enough to do at all."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "The wallet statement matched line by line against what the portal recorded.",
+                  "module": "fees-payments",
+                  "name": "Wallet Statement Matching",
+                  "plan": "pro",
+                  "slug": "reconciliation",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Export the wallet's own statement and each line is matched against a recorded payment. What matches is settled; what does not is listed for a person to look at."
+                  ],
+                  "what": [
+                    "The month's money as the wallet saw it, set against the month as the portal recorded it."
+                  ],
+                  "why": [
+                    "Money that reached the wallet but never reached the ledger is invisible until someone reconciles it — and by then it is a month of digging through screenshots."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "Collections, dues and arrears for a month, exportable.",
+                  "module": "fees-payments",
+                  "name": "Financial Reports \u0026 Statements",
+                  "plan": "pro",
+                  "slug": "finance-reports",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Collections, dues and arrears for a month, built from the same ledger the invoices sit on, and exportable."
+                  ],
+                  "what": [
+                    "The month's money in a form you can hand to someone else."
+                  ],
+                  "why": [
+                    "The figure an owner needs for a partner, a landlord or a loan has to come from the same place the resident's own screen reads, or the two will differ and both will be defended."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Resident",
+                    "Hostel admin"
+                  ],
+                  "blurb": "Residents who pay on time and bring a friend earn against next month.",
+                  "module": "fees-payments",
+                  "name": "Discounts \u0026 Referrals",
+                  "plan": "pro",
+                  "slug": "offer-program",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Eligibility is computed from the ledger — paid on time, still living here, brought someone who joined — and what is earned lands as a credit against the next invoice rather than as cash."
+                  ],
+                  "what": [
+                    "A discount a resident earns rather than negotiates: for paying on time, and for bringing someone who stays."
+                  ],
+                  "why": [
+                    "Collection improves when paying early is worth something, and a resident who recommends the place costs less than any advertising the hostel could buy."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Resident",
+                    "Guardian"
+                  ],
+                  "blurb": "Unpaid invoices chased on a schedule you set, escalating from the resident to their guardian.",
+                  "module": "fees-payments",
+                  "name": "Automatic Dues Chasing",
+                  "plan": "max",
+                  "slug": "dues-chasing",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "You set the ladder: a reminder to the resident, a firmer one later, then the guardian. Each step is sent only while the invoice is still unpaid, and the whole sequence stops the moment it is settled."
+                  ],
+                  "what": [
+                    "The follow-up on an overdue invoice, sent for you instead of remembered by you."
+                  ],
+                  "why": [
+                    "Chasing dues is the job every owner puts off, because it is the one that costs a relationship. Every week it is put off is a week the money is harder to collect — and a schedule does the asking without anyone having to be the villain."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Warden",
+                    "Cook"
+                  ],
+                  "blurb": "Every rupee spent logged with its bill photo, by category and by branch.",
+                  "module": "fees-payments",
+                  "name": "Expense Tracking",
+                  "plan": "go",
+                  "slug": "expense-tracking",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "The owner, wardens and cooks add an expense from the app. The owner decides who needs a bill photo, and totals and category bars update as entries come in."
+                  ],
+                  "what": [
+                    "Every expense the hostel makes, logged with the bill photo, a category and the branch it belongs to."
+                  ],
+                  "why": [
+                    "Spending kept in a notebook is reconstructed at month end. An entry made when the money leaves, with the bill attached, is the one that still matches in March."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Warden"
+                  ],
+                  "blurb": "Share a bill from any app and it lands as an expense, once.",
+                  "module": "fees-payments",
+                  "name": "Receipt Sharing to Expenses",
+                  "plan": "go",
+                  "slug": "receipt-sharing",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Share the image to HostelPalika from the phone's share sheet. The details are read from it and saved. The same receipt is never saved twice across a hostel and its branches."
+                  ],
+                  "what": [
+                    "A bill or payment receipt shared from another app straight into HostelPalika, where it is read and saved as an expense."
+                  ],
+                  "why": [
+                    "Retyping a bill is where amounts go wrong and receipts get lost. Sharing it takes seconds, and the duplicate check keeps two wardens from recording the same bill."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "Every credit and debit in one statement with a running balance, exportable as PDF.",
+                  "module": "fees-payments",
+                  "name": "Credit \u0026 Debit Statement",
+                  "plan": "go",
+                  "slug": "credit-debit-statement",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Rent received, expenses paid and cash transfers appear as dated entries. Money handed to a warden is shown as a transfer, not as spending. Export it as a PDF."
+                  ],
+                  "what": [
+                    "A statement of every credit and debit with a running balance, for a month or any range."
+                  ],
+                  "why": [
+                    "An owner should read the position of the hostel from one page and hand the same page to an accountant. A statement that mixes transfers into spending reads wrong."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Warden"
+                  ],
+                  "blurb": "Cash handed to a warden, confirmed with one tap, and what is left in the box.",
+                  "module": "fees-payments",
+                  "name": "Staff Cash Handover",
+                  "plan": "go",
+                  "slug": "staff-cash",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "The owner records the handover for a branch. The warden taps Got it before it counts. The box is what was accepted, minus what that warden has spent."
+                  ],
+                  "what": [
+                    "Cash handed from the owner to a warden, accepted by the warden with one tap, and tracked as a box."
+                  ],
+                  "why": [
+                    "Petty cash goes missing in the gap between handing it over and writing it down. Confirming each handover on both sides closes that gap."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Resident",
+                    "Cook"
+                  ],
+                  "blurb": "A fine after the free days, and khata items added to the next rent bill.",
+                  "module": "fees-payments",
+                  "name": "Late Fine \u0026 Khata",
+                  "plan": "go",
+                  "slug": "late-fine-khata",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "The owner sets the free days and the daily rate. The fine is recalculated each day on unpaid rent and can be waived. Khata items given to a resident appear as a line on the next rent bill."
+                  ],
+                  "what": [
+                    "A daily late fine once the free days pass, and khata items the hostel gives on credit that are added to the next rent bill."
+                  ],
+                  "why": [
+                    "Late rent needs a rule everyone knows in advance, and small credit needs a record. Both belong on the bill the resident already reads."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Resident",
+                    "Cook"
+                  ],
+                  "blurb": "The week's menu, published once and readable on every phone.",
+                  "module": "food-kitchen",
+                  "name": "Food Menu",
+                  "plan": "go",
+                  "slug": "food-menu",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "The week's menu is set per meal and published once. Residents open the app to today; the kitchen works from the same list."
+                  ],
+                  "what": [
+                    "What the kitchen is cooking this week, in the resident's hand instead of on the mess door."
+                  ],
+                  "why": [
+                    "A menu on the mess door answers the question only for the people already standing at the mess door."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Cook"
+                  ],
+                  "blurb": "The kitchen's own screen — today's menu, the ready log and stock alerts.",
+                  "module": "food-kitchen",
+                  "name": "Cook Portal",
+                  "plan": "go",
+                  "slug": "cook-portal",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "A cook signs in to their own account and sees the kitchen and nothing else — today's menu, the log of what has been served, and what is running low."
+                  ],
+                  "what": [
+                    "The kitchen's own screen: today's menu, the ready log and stock alerts."
+                  ],
+                  "why": [
+                    "Kitchen staff should not need the owner's portal, or the owner's password, to do their own job. Sharing one login to mark a meal ready is how a hostel ends up with an audit trail that names the owner for everything."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Resident"
+                  ],
+                  "blurb": "What residents thought of the meal, per meal, not once a year.",
+                  "module": "food-kitchen",
+                  "name": "Meal Ratings",
+                  "plan": "go",
+                  "slug": "meal-feedback",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Residents rate the meal that was actually served, from their own app, meal by meal. The ratings sit next to the menu, so a pattern shows up on its own."
+                  ],
+                  "what": [
+                    "What residents thought of the food, per meal."
+                  ],
+                  "why": [
+                    "Complaints arrive as moods and arguments, months after the fact. A rating against one meal is small enough to be honest and specific enough for the kitchen to act on."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Warden"
+                  ],
+                  "blurb": "Rice, daal, oil and vegetables tracked from the day they are bought to the branch they went to, with what is left in each store.",
+                  "module": "food-kitchen",
+                  "name": "Inventory Management",
+                  "plan": "max",
+                  "slug": "inventory-management",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Three taps, each when goods actually move: Bought when they arrive, Send when they go to a branch, and a Count of what is left. The branch taps Got it, so a short delivery shows up the same day."
+                  ],
+                  "what": [
+                    "How much of each item was bought, how much went to each building, and what is left in every store."
+                  ],
+                  "why": [
+                    "Bulk rice split between two buildings by hand is the stock nobody can account for at the end of the month."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Resident",
+                    "Warden",
+                    "Guardian"
+                  ],
+                  "blurb": "Inside or outside once a day, and who is in tonight. Coordinates are never stored.",
+                  "module": "attendance-safety",
+                  "name": "Daily Attendance \u0026 Night Status",
+                  "plan": "go",
+                  "slug": "daily-attendance",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "The resident marks themselves in or out from their phone, once a day, and the warden sees tonight's night status build up: who is in, who is out, and who never answered.",
+                    "The check confirms the resident is at the hostel without keeping where they were. Coordinates are never stored — a test in the codebase fails if they ever are."
+                  ],
+                  "what": [
+                    "Inside or outside, marked once a day, and the roll of who is in the building tonight."
+                  ],
+                  "why": [
+                    "A hostel is responsible for who is under its roof tonight, and a paper register answers that question only if someone is standing at the desk. Tracking where a resident actually goes answers a question nobody asked, so the design refuses to collect it."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Resident",
+                    "Warden",
+                    "Guardian"
+                  ],
+                  "blurb": "One press from the resident's header reaches staff and guardians at once.",
+                  "module": "attendance-safety",
+                  "name": "Emergency SOS",
+                  "plan": "go",
+                  "slug": "sos-alerts",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Raised from the resident's own header, it reaches staff and permitted guardians at once. The alert stays active for the day and clears when staff settle it."
+                  ],
+                  "what": [
+                    "One press that reaches staff and guardians at the same moment."
+                  ],
+                  "why": [
+                    "In an emergency the part that fails is finding the right number. One press, from a screen already open, removes that step entirely."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Warden",
+                    "Resident"
+                  ],
+                  "blurb": "A 4-digit PIN and biometric unlock on the app and every web portal.",
+                  "module": "attendance-safety",
+                  "name": "Security PIN \u0026 Biometric Lock",
+                  "plan": "go",
+                  "slug": "app-lock",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "The PIN is set once on the account. The app asks for it, or the biometric, when it opens. Web portals ask for it before they show anything."
+                  ],
+                  "what": [
+                    "A 4-digit PIN, with biometric unlock on the phone, that keeps the app and the web portals closed to anyone else."
+                  ],
+                  "why": [
+                    "A phone left on a table should not expose resident records and money. A PIN the account owns follows them across the app and the web."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Resident",
+                    "Guardian"
+                  ],
+                  "blurb": "Notices out, complaints and enquiries in, each with a status and an owner.",
+                  "module": "communication",
+                  "name": "Notices, Complaints \u0026 Enquiries",
+                  "plan": "go",
+                  "slug": "notices",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "A notice is posted once and delivered to the people it concerns. A complaint carries a status, an owner and a closing note. An enquiry from the public page lands in the same inbox as both."
+                  ],
+                  "what": [
+                    "Notices going out, and complaints and enquiries coming in — each with a status and someone answerable for it."
+                  ],
+                  "why": [
+                    "A board, a group chat and a phone call are three places for a message to be missed, and none of them can be asked later what was decided."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Resident",
+                    "Guardian"
+                  ],
+                  "blurb": "Panels that update themselves, and a push when the app is shut.",
+                  "module": "communication",
+                  "name": "Push Notifications",
+                  "plan": "pro",
+                  "slug": "notifications",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Panels update themselves as things change, and a push arrives when the app is closed. Delivery is scoped, so a resident, a warden and a guardian are each told only what is theirs."
+                  ],
+                  "what": [
+                    "Screens that update on their own, and a push when the app is shut."
+                  ],
+                  "why": [
+                    "Software that has to be refreshed to be right gets checked once a week, and an SOS or an unpaid invoice is not a once-a-week thing."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Resident",
+                    "Hostel admin"
+                  ],
+                  "blurb": "A fault raised with a photo, assigned, and closed when it is fixed.",
+                  "module": "maintenance",
+                  "name": "Repair Requests",
+                  "plan": "go",
+                  "slug": "maintenance-requests",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "A resident raises the fault against their room with a photo. It is assigned, worked, and closed with a note the resident can see."
+                  ],
+                  "what": [
+                    "A fault reported with a photo, assigned to someone, and closed when it is actually fixed."
+                  ],
+                  "why": [
+                    "“I told the warden” is not a record and it is not a queue. Without one, the loudest resident is repaired first and the quiet leak runs for a month."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Resident",
+                    "Service provider"
+                  ],
+                  "blurb": "Say what is broken instead of typing it. Nothing is transcribed.",
+                  "module": "maintenance",
+                  "name": "Voice Notes",
+                  "plan": "go",
+                  "slug": "voice-notes",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Recorded on the resident's phone, stored with the ticket, and played back by whoever is doing the repair. Nothing is transcribed — the recording is the report."
+                  ],
+                  "what": [
+                    "Say what is broken instead of typing it."
+                  ],
+                  "why": [
+                    "Describing a leak in written English is a barrier for the person who has to report it; holding a phone and talking is not. Transcribing it would only add a version that can be wrong."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Service provider"
+                  ],
+                  "blurb": "Verified plumbers, electricians and carpenters, reachable from the ticket.",
+                  "module": "maintenance",
+                  "name": "Verified Repair Workers",
+                  "plan": "pro",
+                  "slug": "provider-network",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Plumbers, electricians and carpenters are onboarded and verified on the platform. A ticket is assigned to one of them and carries the room, the photo and any voice note with it."
+                  ],
+                  "what": [
+                    "Verified trades, reachable from the ticket rather than from a list of numbers."
+                  ],
+                  "why": [
+                    "A hostel's own list of numbers is only as good as the last person who answered it, and the search for someone who will come today starts again with every repair."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Guardian",
+                    "Resident"
+                  ],
+                  "blurb": "A parent's own login, linked to their ward and nobody else's.",
+                  "module": "guardian",
+                  "name": "Parent Login",
+                  "plan": "go",
+                  "slug": "guardian-accounts",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "The guardian is invited, signs in as themselves, and is linked to their ward and nobody else's. What they can see is decided by the resident, and every part of it starts switched off."
+                  ],
+                  "what": [
+                    "A parent's own account, tied to their ward alone, showing only what that resident has allowed."
+                  ],
+                  "why": [
+                    "Parents ask anyway, and they ask the warden at the worst possible time. Giving them their own answer is better for everyone — but the resident is an adult, so nothing opens until they open it."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "Your hostel's public page — photos, rooms, rent and facilities.",
+                  "module": "listing-growth",
+                  "name": "Public Page for Hostel",
+                  "plan": "go",
+                  "slug": "public-listing",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Built from the records the portal already keeps — the rate card sets the price, the bed map sets what is free — so the page cannot advertise something the hostel is not."
+                  ],
+                  "what": [
+                    "The hostel's public page: photos, rooms, rent and facilities, kept current by the portal itself."
+                  ],
+                  "why": [
+                    "A listing maintained separately from the hostel's own data is out of date the day after it is written, and the first thing a visitor finds wrong is the price."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "A pin on the map, with directions that open in the visitor's phone.",
+                  "module": "listing-growth",
+                  "name": "Map Listing",
+                  "plan": "go",
+                  "slug": "map-presence",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "A pin placed from the hostel's address, shown wherever visitors browse by area, with directions that open in their own phone's map."
+                  ],
+                  "what": [
+                    "A pin on the map, and directions from wherever the visitor is."
+                  ],
+                  "why": [
+                    "Almost nobody looks for a hostel in general. They look for one near a campus, an office or a bus route, which is a question only a map can answer."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Resident",
+                    "Hostel admin"
+                  ],
+                  "blurb": "Ratings from people who actually lived there.",
+                  "module": "listing-growth",
+                  "name": "Reviews",
+                  "plan": "go",
+                  "slug": "reviews",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Left by residents of that hostel and shown on its listing, next to the facts the portal already publishes."
+                  ],
+                  "what": [
+                    "The hostel judged by the people who slept in it, on the same page that advertises it."
+                  ],
+                  "why": [
+                    "Every hostel describes itself well. The only account a family weighs against that is one from someone who has already slept there."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "Mattresses, buckets, cleaning supplies — ordered in the portal, paid on delivery.",
+                  "module": "listing-growth",
+                  "name": "Supply Store",
+                  "plan": "go",
+                  "slug": "supply-store",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "One catalogue serves every hostel on the platform. Order from the portal and pay cash when it arrives — no card, no advance."
+                  ],
+                  "what": [
+                    "Mattresses, buckets and cleaning supplies, ordered in the portal and paid on delivery."
+                  ],
+                  "why": [
+                    "Restocking is the errand that eats a morning and always happens on the day something else has gone wrong."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "Your public page laid out the way you want it, with your name and colours carried through the portal, the app and every receipt.",
+                  "module": "listing-growth",
+                  "name": "Customizable Public Page \u0026 Branding",
+                  "plan": "max",
+                  "slug": "public-page-branding",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Sections, order and imagery are chosen for the hostel instead of fixed by one template, and the hostel's name and colours are carried through the portal, the resident app and every document it produces."
+                  ],
+                  "what": [
+                    "The public page arranged the way the hostel wants it, and its brand on everything the software prints."
+                  ],
+                  "why": [
+                    "At a certain size a hostel is a business with a name of its own, and looking like every other listing on the platform costs it the thing it has spent years building."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin",
+                    "Warden"
+                  ],
+                  "blurb": "Occupancy, dues, open complaints and tonight's night status, on one screen.",
+                  "module": "reporting",
+                  "name": "Daily Dashboard",
+                  "plan": "go",
+                  "slug": "operations-dashboard",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Occupancy, dues, open complaints and tonight's night status, read live from the records the rest of the portal writes."
+                  ],
+                  "what": [
+                    "The four numbers the day starts with, on one screen."
+                  ],
+                  "why": [
+                    "The morning question is always the same, and answering it by opening four screens means it gets asked less often than it should."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "Trends across months — occupancy, collection rate, complaint load.",
+                  "module": "reporting",
+                  "name": "Monthly Trends",
+                  "plan": "pro",
+                  "slug": "operations-analytics",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "The same figures the dashboard shows for today, kept and lined up month against month: occupancy, collection rate, complaint load."
+                  ],
+                  "what": [
+                    "How the hostel has moved across months, not just where it is today."
+                  ],
+                  "why": [
+                    "One month is weather. The line across six is the business, and it is the only thing that tells an owner whether a change they made worked."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "Who changed what, when, and from where.",
+                  "module": "reporting",
+                  "name": "Audit Trail",
+                  "plan": "max",
+                  "slug": "audit-log",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Changes are written as they happen and read back per record: who made the change, when, and from where."
+                  ],
+                  "what": [
+                    "A record of who changed what, when, and from where."
+                  ],
+                  "why": [
+                    "Not for suspicion. For the day a rent looks wrong, a resident swears they were marked paid, or a room shows free when it is not — and the only useful question is what changed and who changed it."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "Add branches under your main hostel — each with its own rooms, rent, staff, KYC and public page — then see every building side by side in Overall, with one bill at the end of it.",
+                  "module": "reporting",
+                  "name": "Branches \u0026 Multi-Property Control",
+                  "plan": "max",
+                  "slug": "multi-property-control",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Each building keeps its own rooms, residents and staff, so a warden sees their property and not the others. The owner's view puts them side by side, and billing arrives as one."
+                  ],
+                  "what": [
+                    "Every property side by side, scoped to its own staff and rooms, on one bill."
+                  ],
+                  "why": [
+                    "Running three buildings as three separate accounts means logging in three times, adding up by hand, and never quite knowing which one is carrying the others."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "Beds coming free and rent expected in the months ahead, read from notices, checkouts and the rate card.",
+                  "module": "reporting",
+                  "name": "Occupancy \u0026 Revenue Forecast",
+                  "plan": "max",
+                  "slug": "occupancy-forecast",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Read forward from what is already known — notice periods served, checkouts planned, and the rate card — rather than from a guess about next month."
+                  ],
+                  "what": [
+                    "The beds coming free and the rent expected in the months ahead."
+                  ],
+                  "why": [
+                    "A bed you learn is empty on the first of the month is empty for that month. A bed you know is coming free in six weeks can be filled in six weeks."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "Residents, invoices and payments readable by whatever you already run, and a webhook the moment they change.",
+                  "module": "reporting",
+                  "name": "API Access \u0026 Webhooks",
+                  "plan": "max",
+                  "slug": "api-access",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Keys are issued per account and scoped to what they are for. Residents, invoices and payments can be read by another system, and a webhook fires the moment one of them changes, so nothing has to poll."
+                  ],
+                  "what": [
+                    "The hostel's own data, readable by whatever else the operator already runs, with a callback when it changes."
+                  ],
+                  "why": [
+                    "An operator at this size already has an accountant, a spreadsheet or a system of their own. Their data should reach it without a person retyping it once a month — and retyping is where the numbers stop matching."
+                  ]
+                },
+                {
+                  "audience": [
+                    "Hostel admin"
+                  ],
+                  "blurb": "Your data migrated for you, a named manager, and a support queue that answers you first.",
+                  "module": "reporting",
+                  "name": "Priority Support \u0026 Migration",
+                  "plan": "max",
+                  "slug": "priority-support",
+                  "demo": {
+                    "mobileAssetId": "",
+                    "webAssetId": ""
+                  },
+                  "how": [
+                    "Existing registers and rent records are imported at setup rather than typed in by the hostel, and the same named person stays with the account afterwards."
+                  ],
+                  "what": [
+                    "Your data moved for you, one person who knows the account, and a queue that reaches them first."
+                  ],
+                  "why": [
+                    "The riskiest week is the first one. A large hostel switching systems mid-month cannot afford to be learning the software and rebuilding its resident list at the same time."
+                  ]
+                }
+              ]
+            },
+            "questionCall": {
+              "enabled": true,
+              "label": "QuestionCall",
+              "url": "https://questioncall.com/app?install\u0026from=hostelpalika"
+            },
+            "seo": {
+              "alternateNames": [
+                "hostelpalika",
+                "hostelpalika.com",
+                "Hostel Palika",
+                "Palika Hostel",
+                "PalikaHostel",
+                "HostelPalika Nepal"
+              ],
+              "comparisons": [
+                {
+                  "description": "Running your hostel on Excel or Google Sheets? See where a spreadsheet stops — rent, payment proof, parents and night attendance — and what {siteName} does instead.",
+                  "faq": [
+                    {
+                      "answer": "Yes. When your hostel joins, the residents already living there are added through the existing-residents list, with the month each of them has paid up to, so nobody is billed twice.",
+                      "question": "Can I bring the residents from my spreadsheet into {siteName}?"
+                    },
+                    {
+                      "answer": "No. {siteName} has a dedicated app designed for phones, with its own screens for owners, wardens, cooks, residents and parents. Everything also works in a web browser when a bigger screen is easier.",
+                      "question": "Do my staff need a computer?"
+                    }
+                  ],
+                  "intro": [
+                    "Most hostels in Nepal start with a spreadsheet: one sheet for residents, one for rent, a column for every month. It works until the hostel fills up, a second person edits the file, or a parent calls to ask whether their child has paid.",
+                    "This is a plain comparison of a spreadsheet and {siteName} for the jobs a hostel does every month."
+                  ],
+                  "name": "Excel \u0026 Google Sheets",
+                  "rows": [
+                    {
+                      "label": "Monthly rent",
+                      "them": "Typed or copied every month. A missed row is a missed bill.",
+                      "us": "Invoices raised automatically every month from your rent for each room type."
+                    },
+                    {
+                      "label": "Payment proof",
+                      "them": "eSewa and Khalti screenshots arrive on WhatsApp and are checked by eye.",
+                      "us": "Screenshots are read and checked against the invoice, and wallet statements are matched line by line."
+                    },
+                    {
+                      "label": "Receipts and balances",
+                      "them": "Worked out by hand when someone asks.",
+                      "us": "A receipt for every recorded payment and a running balance on each resident's phone."
+                    },
+                    {
+                      "label": "Rooms and vacancies",
+                      "them": "Worked out from rows and memory.",
+                      "us": "A room and bed map you allocate from, with vacant beds always current."
+                    },
+                    {
+                      "label": "Who is in tonight",
+                      "them": "Not tracked, or kept in a separate paper register.",
+                      "us": "Night status from every resident. Location is used for the check and never stored."
+                    },
+                    {
+                      "label": "Parents",
+                      "them": "Calls and messages to the owner.",
+                      "us": "Their own login, showing fees, notices and safety alerts for their child only."
+                    },
+                    {
+                      "label": "On a phone",
+                      "them": "A spreadsheet squeezed onto a small screen.",
+                      "us": "A dedicated {siteName} app designed for phones, with separate screens for owners, wardens, cooks, residents and parents."
+                    },
+                    {
+                      "label": "Staff access",
+                      "them": "Anyone with the file can see and change everything.",
+                      "us": "Wardens and cooks get their own accounts, limited to the part of the work they do."
+                    },
+                    {
+                      "label": "Finding new residents",
+                      "them": "Nothing — the sheet is private.",
+                      "us": "A public page, a pin on the hostel map and a place in search where students and parents compare hostels."
+                    },
+                    {
+                      "label": "Cost",
+                      "them": "Free, plus the hours spent keeping it right.",
+                      "us": "Plans from {fromPrice} a month."
+                    }
+                  ],
+                  "slug": "excel-spreadsheets",
+                  "stayWith": [
+                    "You run a small house with a handful of long-term residents who pay in cash, and one person keeps the sheet.",
+                    "You only need a record of who lives where — not billing, parents, food or attendance."
+                  ],
+                  "title": "{siteName} vs Excel for Hostel Management"
+                },
+                {
+                  "description": "Still keeping residents, rent and night attendance in a register book? Compare a paper register with {siteName}, the hostel management system built for Nepal.",
+                  "faq": [
+                    {
+                      "answer": "Many hostels keep both at first. {siteName} does not stop you writing things down; it makes sure the record that matters is not the only copy.",
+                      "question": "Can I keep my register book as well?"
+                    }
+                  ],
+                  "intro": [
+                    "The register book is how most hostels in Nepal have always run: names and phone numbers at the front, rent ticked month by month, and another book at the gate for the night.",
+                    "It costs nothing and never needs charging. But it exists in one place, only the person holding it can answer a question, and it cannot tell a worried parent anything at ten at night."
+                  ],
+                  "name": "Paper register \u0026 notebooks",
+                  "rows": [
+                    {
+                      "label": "Resident records",
+                      "them": "One book at the desk. Lost or soaked, it is gone.",
+                      "us": "Every resident, room, guardian and history kept online and open in the {siteName} app on any staff phone."
+                    },
+                    {
+                      "label": "Rent due",
+                      "them": "Worked out by turning pages at the start of the month.",
+                      "us": "Invoices raised automatically in Bikram Sambat months, with each resident's running balance."
+                    },
+                    {
+                      "label": "Receipts",
+                      "them": "Handwritten, if at all.",
+                      "us": "A receipt for every recorded payment, on the resident's phone."
+                    },
+                    {
+                      "label": "Night attendance",
+                      "them": "A gate register someone has to read.",
+                      "us": "Night status from each resident and a list of who is in tonight for the warden."
+                    },
+                    {
+                      "label": "Emergencies",
+                      "them": "Phone calls, one person at a time.",
+                      "us": "One SOS press alerts the hostel staff and the resident's guardians together."
+                    },
+                    {
+                      "label": "Complaints",
+                      "them": "Told to whoever is at the desk, and forgotten.",
+                      "us": "Logged with a status and a person responsible until they are closed."
+                    },
+                    {
+                      "label": "Food menu",
+                      "them": "Written on a board in the dining hall.",
+                      "us": "The week's menu on every resident's phone, and a rating for each meal."
+                    }
+                  ],
+                  "slug": "paper-register",
+                  "stayWith": [
+                    "Your staff and residents do not use smartphones, or the hostel has no dependable internet.",
+                    "You want a signed paper record as well as a digital one — plenty of hostels keep both."
+                  ],
+                  "title": "{siteName} vs a Hostel Register Book"
+                }
+              ],
+              "keywords": [
+                "HostelPalika",
+                "hostelpalika",
+                "hostelpalika.com",
+                "Hostel Palika",
+                "palikahostel",
+                "Palika Hostel",
+                "hostel",
+                "hostels in Nepal",
+                "Nepal hostel",
+                "hostel Nepal",
+                "hostels in Kathmandu",
+                "boys hostel in Kathmandu",
+                "girls hostel in Kathmandu",
+                "hostel near me",
+                "hostel system",
+                "hostel management system",
+                "hostel management software",
+                "hostel management app",
+                "hostel app Nepal",
+                "hostel management system Nepal",
+                "hostel software Nepal",
+                "resident management system",
+                "hostel fee management",
+                "hostel billing software",
+                "hostel mess management",
+                "hostel attendance system",
+                "PG management software",
+                "Softmato",
+                "HostelPalika by Softmato"
+              ],
+              "modulePages": [
+                {
+                  "description": "A resident management system for hostels: every resident, room and bed in one list, a live bed map, one joining bill, QR resident cards and move-in checks.",
+                  "headline": "Resident Management System for Hostels",
+                  "intro": [
+                    "Every resident, the bed they hold, their guardian and their history sit in one list your wardens work from — no register book to reconcile at the end of the month.",
+                    "Rooms and vacancies show as a map you allocate from, a new resident's admission fee and deposit go out as a single bill, and every move-in and move-out is ticked against the same checklist."
+                  ],
+                  "moduleId": "residents-rooms",
+                  "slug": "resident-room-management"
+                },
+                {
+                  "description": "Hostel fee collection and billing software: monthly rent invoices raised on their own, eSewa and Khalti payment proof checked against the bill, and dues followed up.",
+                  "headline": "Hostel Fee Collection \u0026 Billing Software",
+                  "intro": [
+                    "Set one rent for each room type and invoices are raised every Bikram Sambat month, each with a receipt and a running balance on the resident's phone.",
+                    "When a resident sends an eSewa or Khalti screenshot, it is read and checked against the invoice before anyone marks it paid, and the wallet statement is matched against what the portal recorded."
+                  ],
+                  "moduleId": "fees-payments",
+                  "slug": "fee-collection-billing"
+                },
+                {
+                  "description": "Hostel mess and food management: the week's menu on every resident's phone, a cook screen with a ready log and stock alerts, and a rating for every meal.",
+                  "headline": "Hostel Mess \u0026 Food Management",
+                  "intro": [
+                    "The week's menu is published once and residents read it in the {siteName} app, so the board in the dining hall is no longer the only place it lives.",
+                    "Cooks get their own screen for today's menu, what is ready and what is running low, and residents rate each meal while they still remember it."
+                  ],
+                  "moduleId": "food-kitchen",
+                  "slug": "mess-food-management"
+                },
+                {
+                  "description": "A hostel attendance and safety system: daily attendance and night status that show who is in tonight, without storing locations, and an SOS that reaches staff and parents.",
+                  "headline": "Hostel Attendance \u0026 Safety System",
+                  "intro": [
+                    "Residents mark themselves inside or outside once a day, and wardens see who is in tonight at a glance. Location is used for the check and never stored.",
+                    "In an emergency, one press in the resident's app alerts the hostel staff and the resident's guardians together."
+                  ],
+                  "moduleId": "attendance-safety",
+                  "slug": "attendance-safety"
+                },
+                {
+                  "description": "Hostel notices and complaint management: notices residents actually read, complaints and enquiries with a status and an owner, and push updates to their phones.",
+                  "headline": "Hostel Notices \u0026 Complaint Management",
+                  "intro": [
+                    "Notices reach every resident at once, and complaints and enquiries come back with a status and a person responsible, so nothing is lost in a group chat.",
+                    "Staff screens update themselves while they are open, and a push notification reaches residents when the app is closed."
+                  ],
+                  "moduleId": "communication",
+                  "slug": "notices-complaints"
+                },
+                {
+                  "description": "Hostel maintenance management: faults reported with a photo or a voice note, assigned to staff or a verified repair worker, and closed when they are fixed.",
+                  "headline": "Hostel Maintenance Management",
+                  "intro": [
+                    "A resident reports what is broken with a photo, or simply says it in a voice note, and the request is assigned instead of being remembered.",
+                    "Verified plumbers, electricians and carpenters can be reached from the ticket, and the request stays open until the fault is fixed."
+                  ],
+                  "moduleId": "maintenance",
+                  "slug": "maintenance-management"
+                },
+                {
+                  "description": "A parent portal for hostels: each guardian gets a login linked only to their own child, with fees, notices, the menu and safety alerts.",
+                  "headline": "Parent Portal for Hostels",
+                  "intro": [
+                    "A guardian's login is linked to their own ward and nobody else's. They see what a parent needs — fees, notices, the menu and safety alerts — and nothing about other residents.",
+                    "Fewer calls to the owner, and a parent who can check for themselves instead of waiting to hear back."
+                  ],
+                  "moduleId": "guardian",
+                  "slug": "parent-portal"
+                },
+                {
+                  "description": "Get your hostel found in Nepal: a public page with photos, rooms, rent and real reviews, a pin on the hostel map, and a place where students compare hostels.",
+                  "headline": "Hostel Listing \u0026 Marketing in Nepal",
+                  "intro": [
+                    "Your hostel gets a public page with photos, rooms, rent and facilities, and reviews that only people who actually lived there can leave.",
+                    "It appears on the hostel map with directions that open on the visitor's phone, and in search and Compare, where students and parents choose between hostels."
+                  ],
+                  "moduleId": "listing-growth",
+                  "slug": "listing-marketing"
+                },
+                {
+                  "description": "Hostel reports and analytics: a daily dashboard of occupancy, dues and complaints, monthly trends, an audit trail, and control over more than one property.",
+                  "headline": "Hostel Reports \u0026 Analytics",
+                  "intro": [
+                    "One screen shows occupancy, dues, open complaints and tonight's night status, and monthly trends show whether collection and complaints are getting better or worse.",
+                    "Operators with more than one building see every property side by side, with staff and rooms scoped to their own building and a record of who changed what."
+                  ],
+                  "moduleId": "reporting",
+                  "slug": "reports-analytics"
+                }
+              ],
+              "pages": {
+                "about": {
+                  "description": "{siteName} is a hostel platform for Nepal — find verified hostels, and run a hostel's residents, rent, food and safety. A product of Softmato, Kathmandu.",
+                  "title": "About {siteName}"
+                },
+                "community": {
+                  "description": "Ask about hostels in Nepal, share photos and read what people living in hostels say about rent, food, rooms and daily life.",
+                  "title": "Hostel Community — Questions \u0026 Answers From Residents in Nepal"
+                },
+                "compare": {
+                  "description": "Compare up to three hostels in Nepal side by side — rent, room types, facilities, food, ratings and location — and choose the right one.",
+                  "title": "Compare Hostels in Nepal Side by Side"
+                },
+                "contact": {
+                  "description": "Questions about finding a hostel, listing yours, plans or your account? Contact the {siteName} team by email or phone.",
+                  "title": "Contact {siteName}"
+                },
+                "features": {
+                  "description": "Everything the {siteName} hostel management system does — residents and rooms, fee collection, food, attendance and safety, notices, maintenance, parents and reports.",
+                  "title": "Hostel Management System Features"
+                },
+                "home": {
+                  "description": "{siteName} is hostel management software for Nepal: owners, wardens, cooks, residents and parents manage rent, food and attendance. Find verified boys, girls and co-living hostels with photos, rent and reviews.",
+                  "title": "{siteName} — Hostels in Nepal \u0026 Hostel Management Software"
+                },
+                "hostels": {
+                  "description": "Search verified hostels in Nepal — Kathmandu, Lalitpur, Bhaktapur, Pokhara and more. Filter by area, rent, room type, food and facilities, then compare and enquire.",
+                  "title": "Best Hostels in Nepal — Compare Verified Boys, Girls \u0026 Co-living Hostels"
+                },
+                "login": {
+                  "description": "Log in to {siteName}. Residents, parents, hostel owners, wardens and cooks all sign in here.",
+                  "title": "Log in"
+                },
+                "map": {
+                  "description": "Every verified hostel on {siteName} on one map of Nepal. Search by area, see what is nearby and get directions to the door.",
+                  "title": "Hostel Map of Nepal — Find a Hostel Near You"
+                },
+                "offerProgram": {
+                  "description": "How rent payments are matched to the right month, verified by your hostel, and receipted under the {siteName} Resident Offer Program.",
+                  "title": "Resident Offer Program"
+                },
+                "plansPricing": {
+                  "description": "Hostel management system pricing in Nepal. Plans from {fromPrice} a month — see what each plan includes for residents, fees, food, safety and reports.",
+                  "title": "Hostel Management Software Pricing — Plans \u0026 Features"
+                },
+                "privacy": {
+                  "description": "How {siteName} collects, uses and protects the personal data of residents, guardians, hostel staff and visitors.",
+                  "title": "Privacy Policy"
+                },
+                "registerHostel": {
+                  "description": "List your hostel on {siteName} to reach students and parents searching for hostels in Nepal, and manage residents, rent and daily work from the same account.",
+                  "title": "List Your Hostel in Nepal"
+                },
+                "serviceProviders": {
+                  "description": "Plumbers, electricians, cleaners and other tradespeople: register with {siteName} and get matched with maintenance jobs from hostels across Nepal.",
+                  "title": "Hostel Maintenance Jobs for Tradespeople in Nepal"
+                },
+                "signup": {
+                  "description": "Create your {siteName} account to contact hostels in Nepal, join the hostel community and follow your hostel once you move in.",
+                  "title": "Create an Account"
+                },
+                "software": {
+                  "description": "Hostel management software for Nepal: rooms and beds, rent in Bikram Sambat months, eSewa and Khalti checks, food, night attendance, parents and a PIN-locked app.",
+                  "title": "Best Hostel Management Software in Nepal — Hostel Management System"
+                },
+                "terms": {
+                  "description": "The terms for using {siteName} — for people looking for hostels, residents, guardians, hostel owners and their staff.",
+                  "title": "Terms of Service"
+                },
+                "refundPolicy": {
+                  "description": "What a room booking on {siteName} costs, when the booking fee is refunded in full, and how much comes back after the hostel confirms.",
+                  "title": "Refund Policy"
+                },
+                "howBookingWorks": {
+                  "description": "How booking a hostel bed on {siteName} works: the booking fee, the payment check, how long the hostel has to answer, how long your bed is held and how you move in.",
+                  "title": "How Booking Works"
+                }
+              },
+              "software": {
+                "faq": [
+                  {
+                    "answer": "It is the system that replaces the register book, the rent notebook and the notice board. {siteName} keeps residents, rooms, monthly rent, payments, food menus, attendance and complaints in one account that staff, residents and parents use in the {siteName} app or a web browser.",
+                    "question": "What is a hostel management system?"
+                  },
+                  {
+                    "answer": "The best one for a Nepali hostel is one built for how hostels here run: rent billed in Bikram Sambat months, eSewa and Khalti payment proof checked against the invoice, a login for each parent, separate screens for wardens and cooks, and an app for the phones your team already uses. {siteName} does all of these, and it also lists your hostel where students and parents search. Plans start from {fromPrice} a month.",
+                    "question": "What is the best hostel management software in Nepal?"
+                  },
+                  {
+                    "answer": "The owner sets up the hostel, rooms and rent and invites the team. Wardens handle residents, rooms, payment checks and night status; cooks see the menu and head count; residents see their bills, receipts and a statement PDF with a running balance; parents see only their own child's fees, notices and safety alerts. Each person signs in to their own account and sees only their part.",
+                    "question": "How do owners, wardens, cooks, residents and parents use {siteName} together?"
+                  },
+                  {
+                    "answer": "Each account has its own 4-digit app-lock PIN. The app opens with the PIN or a fingerprint, and every web portal asks for the PIN before it opens. After ten wrong tries the PIN is blocked until it is reset with a code sent to the account's email.",
+                    "question": "How is the {siteName} app kept secure?"
+                  },
+                  {
+                    "answer": "A spreadsheet is free and works for a small house with one person keeping it. Once you have more residents, staff who share the work, or parents who ask what has been paid, {siteName} raises the monthly bills itself, checks payment screenshots, gives each role its own login and lists your hostel in search. The full side-by-side comparison is on the {siteName} vs Excel page.",
+                    "question": "Is hostel management software better than Excel?"
+                  },
+                  {
+                    "answer": "Yes. The {siteName} app is on Google Play for Android phones, with separate home screens for hostel owners, wardens, cooks, residents and parents, so each person sees only their own work. On an iPhone, open the website and add the app to your home screen. The same account also works on the web.",
+                    "question": "Is there a {siteName} app?"
+                  },
+                  {
+                    "answer": "Register your hostel online and upload its documents, or have a {siteName} team member register it with you. Once the documents are verified and your plan is active, the hostel goes live and your team can start adding rooms and residents.",
+                    "question": "How do I start using {siteName}?"
+                  },
+                  {
+                    "answer": "Plans start from {fromPrice} a month, and paying for six months or a year costs less per month. Everything each plan includes is listed on the Plans \u0026 Pricing page, so you know exactly what you are paying for.",
+                    "question": "How much does {siteName} cost?"
+                  },
+                  {
+                    "answer": "Plans are paid on the {siteName} website: scan the {siteName} QR code with your bank or wallet app and upload the payment proof. The {siteName} team confirms it and your plan shows as paid. Real-time online payment is being added.",
+                    "question": "How do I pay for my plan?"
+                  },
+                  {
+                    "answer": "No. Residents and parents do not buy a plan — their accounts come with the hostel's plan.",
+                    "question": "Do residents or parents have to pay for {siteName}?"
+                  },
+                  {
+                    "answer": "They are added through the existing-residents list, with the month each of them has already paid up to, so nobody is billed for a month they have paid.",
+                    "question": "What about the residents already living in my hostel?"
+                  },
+                  {
+                    "answer": "Yes. Residents pay the way they already do and upload the payment screenshot, which is checked against their invoice before the payment is recorded.",
+                    "question": "Can residents pay hostel fees with eSewa or Khalti?"
+                  },
+                  {
+                    "answer": "Yes. Rent periods are Bikram Sambat months, so invoices, receipts and dues show the months residents and parents already use.",
+                    "question": "Does billing follow the Nepali calendar?"
+                  },
+                  {
+                    "answer": "Yes. Wardens and cooks get their own logins that open only the part of the work they do. How many staff accounts you can add depends on your plan.",
+                    "question": "Can my wardens and cooks have their own accounts?"
+                  },
+                  {
+                    "answer": "Each guardian gets their own login linked only to their ward. They see fees, notices and safety alerts for their child and nothing about other residents.",
+                    "question": "Can parents see their child's hostel details?"
+                  },
+                  {
+                    "answer": "Residents' personal profiles are encrypted before they are stored, registration documents are kept in private storage that only reviewers can open, attendance checks never store a location, and every staff member, resident and parent sees only what their role allows.",
+                    "question": "Is our data safe and private?"
+                  },
+                  {
+                    "answer": "Yes. Resident, collection, complaint and occupancy reports download as CSV files that open in Excel or Google Sheets, so your records are never locked in.",
+                    "question": "Can I take my data out of {siteName}?"
+                  },
+                  {
+                    "answer": "Yes. Each hostel is listed as a boys, girls or co-living hostel, and the same tools run all three.",
+                    "question": "Does it work for boys hostels, girls hostels and co-living?"
+                  },
+                  {
+                    "answer": "Yes, on the Max plan. Add branches of your hostel from Branches in the portal or the app. Each branch has its own rooms, rent, staff, KYC and payment details and its own public page, and Overall shows every branch side by side with one bill for all of them.",
+                    "question": "Can I manage more than one hostel?"
+                  },
+                  {
+                    "answer": "Open Branches in your hostel portal or the app and tap Add branch. You fill in the branch's name, address, rooms and rent; it can use a different PAN and payout account from the main hostel. We review it before it goes live.",
+                    "question": "How do I add a branch?"
+                  },
+                  {
+                    "answer": "Yes. Every live hostel gets a public page with photos, rooms, rent and reviews, a pin on the hostel map, and a place in search and Compare, where students and parents choose where to stay.",
+                    "question": "Will students and parents be able to find my hostel?"
+                  },
+                  {
+                    "answer": "Write to or call the {siteName} team from the Contact page. Larger operators on the top plan also get their data migrated for them and a named account manager.",
+                    "question": "Where do I get help?"
+                  },
+                  {
+                    "answer": "{siteName} is a product of Softmato Technology Private Limited, a software company in Kathmandu, Nepal. More about Softmato is at softmato.com.",
+                    "question": "Who makes {siteName}?"
+                  }
+                ],
+                "headline": "Hostel management system built for Nepal",
+                "intro": [
+                  "{siteName} is hostel management software for boys hostels, girls hostels and co-living houses in Nepal. The rooms you rent, the people who live in them, what they owe and what they eat are kept in one place your whole team works from.",
+                  "It is also where students and parents look for hostels, so the hostel you run on {siteName} is a hostel they can find, compare and contact.",
+                  "{siteName} is a product of Softmato, a software company in Kathmandu, Nepal."
+                ],
+                "sections": [
+                  {
+                    "body": [
+                      "Hostel owners, wardens, cooks, residents, parents and verified repair workers all work on the same {siteName} platform, and it is where students and parents look for hostels too. A new resident can go from finding your hostel to paying their first rent without leaving it, and the hostel can order its supplies here as well, paid on delivery."
+                    ],
+                    "icon": "globe",
+                    "title": "One connected platform, not five separate tools"
+                  },
+                  {
+                    "body": [
+                      "Rent periods follow the Bikram Sambat calendar, so invoices, receipts and dues read the way residents and parents already count months."
+                    ],
+                    "icon": "receipt",
+                    "title": "Rent billed in Bikram Sambat months"
+                  },
+                  {
+                    "body": [
+                      "Residents pay the way they already do and send the proof. The screenshot is read and checked against the invoice, wallet statements are matched line by line, and anything that does not add up is flagged before it is marked paid."
+                    ],
+                    "icon": "wallet",
+                    "title": "eSewa and Khalti payments, checked"
+                  },
+                  {
+                    "body": [
+                      "Residents mark whether they are in each night and wardens see who is out. Location is used for the check and never stored, and an SOS reaches staff and guardians at the same moment."
+                    ],
+                    "icon": "shield-check",
+                    "title": "Night status parents can rely on"
+                  },
+                  {
+                    "body": [
+                      "The {siteName} app is designed for phones first. Owners, wardens, cooks, residents and parents each get their own screens: a cook sees the kitchen, a parent sees their own child, and nobody sees more than their job needs. The same account works on the web."
+                    ],
+                    "icon": "users",
+                    "title": "A dedicated app for every role in the hostel"
+                  },
+                  {
+                    "body": [
+                      "The owner registers the hostel, sets rooms and rent, and invites the team. Wardens run the floor — residents, rooms, payments to check and who is in tonight. Cooks see the menu and the head count. Each resident sees their own bill, receipts and a statement PDF with a running balance, and each parent sees only their own child: fees, notices and safety alerts.",
+                      "Every account belongs to one person and opens only their part of the hostel, so a cook never sees the rent book and a parent never sees another family."
+                    ],
+                    "icon": "building",
+                    "title": "How owners, wardens, cooks, residents and parents work together"
+                  },
+                  {
+                    "body": [
+                      "Every account has its own 4-digit app-lock PIN, and the {siteName} app opens with that PIN or the phone's fingerprint. Each web portal asks for the same PIN before it shows anything. Ten wrong tries in a row block the PIN until it is reset with a code sent to the account's email."
+                    ],
+                    "icon": "shield-check",
+                    "title": "Locked with a PIN and fingerprint"
+                  },
+                  {
+                    "body": [
+                      "The right software for a Nepali hostel bills in Bikram Sambat months, checks eSewa and Khalti payments, gives parents their own view, works on the phones your staff already carry, and keeps each role to its own work. {siteName} does each of these today — and lists your hostel where students and parents search, which no spreadsheet or register book can."
+                    ],
+                    "icon": "receipt",
+                    "title": "What the best hostel software for Nepal has to do"
+                  },
+                  {
+                    "body": [
+                      "Your hostel gets a public page with photos, room rent and reviews from real residents, a pin on the hostel map, and a place in search and Compare."
+                    ],
+                    "icon": "building",
+                    "title": "Found by the people looking for a room"
+                  }
+                ],
+                "steps": [
+                  {
+                    "body": "Fill in your hostel's details and upload its documents online, or have a {siteName} team member register it with you.",
+                    "title": "Register your hostel"
+                  },
+                  {
+                    "body": "The {siteName} team checks the documents, so every hostel on the platform is a real, verified hostel.",
+                    "title": "Get verified"
+                  },
+                  {
+                    "body": "Pick the plan that fits your hostel — monthly, six-monthly or yearly — then pay for it on the website by QR and upload the proof.",
+                    "title": "Choose your plan"
+                  },
+                  {
+                    "body": "Add rooms, beds and the rent for each room type, bring in the residents already living with you, and invite wardens, cooks and parents to the app.",
+                    "title": "Set up rooms and people"
+                  },
+                  {
+                    "body": "Invoices go out, payments are checked, the menu is published and night status comes in — the whole month's work in one place.",
+                    "title": "Run the month from the app"
+                  }
+                ],
+                "subtitle": "Residents, rooms, rent, food, attendance and parents — one system and one dedicated app instead of a register book, a spreadsheet and three WhatsApp groups."
+              },
+              "verification": {
+                "bing": "",
+                "google": ""
+              }
+            },
+            "social": {
+              "facebook": "",
+              "instagram": "",
+              "linkedin": "",
+              "tiktok": "",
+              "website": "",
+              "youtube": ""
+            },
+            "stats": [
+              {
+                "label": "Verified hostels",
+                "suffix": "+",
+                "value": "1,248"
+              },
+              {
+                "label": "Active residents",
+                "suffix": "+",
+                "value": "18,742"
+              },
+              {
+                "label": "Cities covered",
+                "suffix": "",
+                "value": "12"
+              },
+              {
+                "label": "Average rating",
+                "suffix": "/5",
+                "value": "4.6"
+              }
+            ],
+            "trustPoints": [
+              {
+                "description": "Every listing is checked against ownership papers before it goes live.",
+                "icon": "shield",
+                "title": "Verified listings only"
+              },
+              {
+                "description": "Monthly rent, deposit, and extra charges shown upfront — no surprises.",
+                "icon": "wallet",
+                "title": "Transparent pricing"
+              },
+              {
+                "description": "Reviews come from activated residents, not anonymous accounts.",
+                "icon": "star",
+                "title": "Real resident reviews"
+              },
+              {
+                "description": "Guardians get fee and safety visibility without invading privacy.",
+                "icon": "users",
+                "title": "Built for families"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  },
+  {
+    "name": "wrong method",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/site-config"
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 2be44935"
+  }
+]

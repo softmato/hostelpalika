@@ -10,7 +10,7 @@ next item. Never tick in batches.
 
 | | |
 |---|---|
-| Baseline commit | `41b0ef10` (`main`, 2026-10-29) |
+| Baseline commit | `2be44935` (`main`, 2026-10-29) |
 | Source of truth for behaviour | the TypeScript server at the baseline commit |
 | Inventory taken from | `apps/web/src/app/**/route.ts`, `apps/web/src/modules/*`, `apps/web/src/lib/*`, `packages/db/src/models/*`, `packages/shared/src/*`, `docs/CRON.md` |
 
@@ -28,7 +28,7 @@ anyone remembering to log a change; git already knows.
 **Before starting any port session, run:**
 
 ```bash
-git diff --name-status 41b0ef10..HEAD -- apps/web/src/app apps/web/src/modules apps/web/src/lib packages/db/src packages/shared/src docs/CRON.md
+git diff --name-status 2be44935..HEAD -- apps/web/src/app apps/web/src/modules apps/web/src/lib packages/db/src packages/shared/src docs/CRON.md
 ```
 
 For every line it prints:
@@ -39,7 +39,7 @@ For every line it prints:
 3. `D` (deleted) → strike the row (`~~path~~`) and delete the Go code for it.
 4. `R` (renamed) → update the row in place.
 
-Once every printed line is handled, **move the baseline**: replace `41b0ef10` in
+Once every printed line is handled, **move the baseline**: replace `2be44935` in
 §1 and in the command above with the new `HEAD` SHA, and add a line to the log.
 
 ### Intake log
@@ -49,6 +49,7 @@ Once every printed line is handled, **move the baseline**: replace `41b0ef10` in
 | 2026-10-28 | — → `7bf6c91b` | initial inventory | — | — |
 | 2026-10-29 | `7bf6c91b` → `541e46cf` | — | — (2 M: `reports/report.validation.ts`, `stock/stock.service.ts`; neither ported yet) | — |
 | 2026-10-29 | `541e46cf` → `41b0ef10` | — (no TS changes; only `server/` commits) | — | — |
+| 2026-10-29 | `41b0ef10` → `2be44935` | — (no TS changes; only `server/` commits) | — | — |
 
 ---
 
@@ -300,10 +301,10 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | POST | `/api/v1/bookings/:id/checkout` | requireApiPrincipal |  | bookings |
 | ☐ | POST | `/api/v1/bookings/:id/payment` | requireApiPrincipal |  | bookings |
 | ☐ | GET | `/api/v1/bookings/:id/return` | requireApiPrincipal |  | bookings |
-| ☐ | GET | `/api/v1/bookings/availability` | public | etag | bookings, hostels |
+| ☑ | GET | `/api/v1/bookings/availability` | public | etag | bookings, hostels |
 | ☐ | GET | `/api/v1/bookings/documents/:kind/:number` | requireApiPrincipal |  | bookings |
-| ☐ | GET | `/api/v1/bookings/guide` | public |  | bookings |
-| ☐ | GET | `/api/v1/bookings/policy` | public |  | bookings |
+| ☑ | GET | `/api/v1/bookings/guide` | public |  | bookings |
+| ☑ | GET | `/api/v1/bookings/policy` | public |  | bookings |
 | ☐ | GET | `/api/v1/bookings/quote` | loadApiPrincipal | etag | bookings |
 
 ### `community` (10)
@@ -399,7 +400,7 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | GET | `/api/v1/health` | public |  |  |
+| ☑ | GET | `/api/v1/health` | public |  |  |
 
 ### `hostel-admin` (179)
 
@@ -737,13 +738,13 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | POST | `/api/v1/public/hostel-applications/:id/resubmit-documents` | requireApiPrincipal |  | hostels |
 | ☐ | GET | `/api/v1/public/hostel-applications/my-applications` | requireApiPrincipal | etag | hostels |
 | ☐ | GET | `/api/v1/public/hostel-referral-codes/:code` | rateLimitPublicForm | etag | hostel-referrals |
-| ☐ | GET | `/api/v1/public/hostels` | public | etag | hostels |
-| ☐ | GET | `/api/v1/public/hostels/:slug` | public |  | hostels |
+| ☑ | GET | `/api/v1/public/hostels` | public | etag | hostels |
+| ☑ | GET | `/api/v1/public/hostels/:slug` | public |  | hostels |
 | ☐ | POST | `/api/v1/public/hostels/:slug/arriving` | rateLimitPublicForm, requireApiPrincipal |  | arrivals |
 | ☐ | POST | `/api/v1/public/hostels/:slug/inquiries` | rateLimitPublicForm, loadApiPrincipal |  | hostels, users |
-| ☐ | GET | `/api/v1/public/hostels/:slug/reviews` | public |  | reviews |
+| ☑ | GET | `/api/v1/public/hostels/:slug/reviews` | public |  | reviews |
 | ☐ | POST | `/api/v1/public/hostels/:slug/views` | rateLimitPublicForm, loadApiPrincipal |  | hostels |
-| ☐ | GET | `/api/v1/public/hostels/compare` | public | etag | hostels |
+| ☑ | GET | `/api/v1/public/hostels/compare` | public | etag | hostels |
 | ☐ | POST | `/api/v1/public/hostels/impressions` | rateLimitPublicForm |  | hostels |
 | ☐ | POST | `/api/v1/public/hostels/quick-register` | rateLimitPublicForm, requireApiPrincipal |  | hostels |
 | ☐ | POST | `/api/v1/public/hostels/register` | rateLimitPublicForm, loadApiPrincipal |  | hostels |
@@ -751,11 +752,11 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | POST | `/api/v1/public/inquiries/with-referral` | rateLimitPublicForm |  | referrals |
 | ☐ | GET | `/api/v1/public/join-requests/me` | requireApiPrincipal | etag | residents |
 | ☐ | GET POST | `/api/v1/public/join/:token` | rateLimitPublicForm, loadApiPrincipal, requireApiPrincipal | etag | residents |
-| ☐ | GET | `/api/v1/public/lifetime` | public |  | billing |
-| ☐ | GET | `/api/v1/public/offer-perks` | public |  | offer-program |
+| ☑ | GET | `/api/v1/public/lifetime` | public |  | billing |
+| ☑ | GET | `/api/v1/public/offer-perks` | public |  | offer-program |
 | ☐ | GET | `/api/v1/public/places` | rateLimitPublicForm | etag |  |
 | ☐ | POST | `/api/v1/public/plan-checkout` | rateLimitPublicForm |  | billing |
-| ☐ | GET | `/api/v1/public/pulse` | public |  | reports |
+| ☑ | GET | `/api/v1/public/pulse` | public |  | reports |
 | ☐ | POST | `/api/v1/public/search/parse` | public |  |  |
 | ☐ | GET | `/api/v1/public/service-providers` | public | etag | service-providers |
 | ☐ | GET | `/api/v1/public/service-providers/me` | requireApiPrincipal | etag | service-providers |
@@ -763,7 +764,7 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | PATCH | `/api/v1/public/service-providers/me/jobs/:id` | requireApiPrincipal |  | service-providers |
 | ☐ | POST | `/api/v1/public/service-providers/me/jobs/:id/accept` | requireApiPrincipal |  | service-providers |
 | ☐ | POST | `/api/v1/public/service-providers/register` | rateLimitPublicForm, requireApiPrincipal |  | service-providers |
-| ☐ | GET | `/api/v1/public/site-config` | public |  | platform-config |
+| ☑ | GET | `/api/v1/public/site-config` | public |  | platform-config |
 
 ### `push` (4)
 

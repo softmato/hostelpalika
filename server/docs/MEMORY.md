@@ -15,6 +15,19 @@ Read this after README.md. Update it at the end of every session.
   `push.Hooks` (filter, deep link, web link) are filled in by the notifications module.
   A new PDF document = draw with `pdf.Cursor`, golden = the TS document, compare with `pdftest.Diff`.
   `httpx.EncodeURIComponent` is the one JS-compatible encoder.
+- **Phase 3 in progress (2026-10-29).** 15 routes ☑ (health, site-config, hostels list/:slug/compare,
+  reviews, pulse, lifetime, offer-perks, bookings guide/policy/availability). Demo-hostels merge done.
+  New: `platform/ordered` (key-ordered JSON + lean BSON→JSON), `platform/zschema` (runs zod v4
+  descriptors from `testdata/vectors/zod-describe.ts`; superRefines are named by hand with
+  `nameSuperRefine`), `platform/pagination`, `valid/query.go`, modules `platformconfig`
+  (site config/operations/bookings rows), `food`, `reviews`, `reports`, `billing`, `offerprogram`,
+  `bookings`, `finance` (rate card). TS recorder: `bash server/testdata/contract/record-ts.sh`.
+  Fixture public data lives in `contract/fixture/public.go`; printed timestamps use `fixedAt`.
+  **Open:** the other public routes (writes, places/search/geocode, service providers, join,
+  admission form, files upload, referral preview, my-applications), hostel-registration (5),
+  feedback, usage, email-preferences, LLM search quota, maps, and the §9 web pages.
+  Gin gotcha: static POST-only siblings of `/public/hostels/:slug` (register, impressions,
+  quick-register) need explicit GET→405 handlers, or GET falls into `:slug`.
 - Vectors: `node_modules/.bin/jiti server/testdata/vectors/generate.ts` from the repo
   root regenerates every `testdata/vectors/*.json`, `platform/bs/table.go` and
   `platform/plans/defaults.json` from the TS code. Crypto/archive vectors are random
