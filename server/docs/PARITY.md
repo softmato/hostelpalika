@@ -59,8 +59,8 @@ Once every printed line is handled, **move the baseline**: replace `541e46cf` in
 | ☑ | Response envelope | `lib/api-response.ts` (`success/message/data`, `success/message/errorCode/details`) | `internal/platform/httpx` — byte-identical JSON |
 | ☑ | Validation errors | zod → 422 `VALIDATION_ERROR`, `details = { formErrors, fieldErrors, issues[] }` | same shape, same field paths |
 | ☑ | Error mapping | `handleRouteError` incl. `SoftmatoApiError` pass-through | `httpx.Fail(c, err)` |
-| ☐ | Auth tokens | `lib/auth.ts` — jose HS256 access/refresh, purpose tokens | `golang-jwt/jwt/v5`, **same secrets, same claims** |
-| ☐ | Refresh rotation | `lib/auth-refresh.ts` — every refresh revokes the old token | same, same `Session` rows |
+| ☑ | Auth tokens | `lib/auth.ts` — jose HS256 access/refresh, purpose tokens | `golang-jwt/jwt/v5`, **same secrets, same claims** |
+| ☑ | Refresh rotation | `lib/auth-refresh.ts` — every refresh revokes the old token | same, same `Session` rows |
 | ☐ | Cookies | `lib/auth-cookies.ts`, `lib/session-cookies.ts`, `lib/lock-pin-cookie.ts` (`hostelpalika_*` + legacy `hostelhub_*` fallbacks) | same names, plus `Domain=.hostelpalika.com` |
 | ☐ | Principal + guards | `lib/api-auth.ts` — 14 guards (`requireApiPrincipal`, `requirePlatformPrincipal`, `requireSuperadminPrincipal`, `requireTeamPrincipal`, `requireHostelStaffPrincipal`, `requireHostelCapability`, `requireHostelAdminPrincipal`, `requireHostelScopedPrincipal`, `requireResidentPrincipal`, `requireGuardianPrincipal`, `loadApiPrincipal`, `assertApiRoles`, `assertHostelScopedApiAccess`, `assertPrimaryCredentialPrincipal`) | Gin middleware per guard |
 | ☐ | Roles, permissions, capabilities | `lib/roles.ts`, `lib/permissions.ts`, `lib/warden-capability.ts`, `lib/route-access.ts`, `lib/tenant.ts` | `internal/platform/authz` |

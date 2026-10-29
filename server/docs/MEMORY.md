@@ -4,12 +4,14 @@ Read this after README.md. Update it at the end of every session.
 
 ## State (2026-10-29)
 
-- **Phase 0 done.** **Phase 1 in progress: items 1–2 of 10 ☑** (Mongo/Redis
-  clients + deep health; error mapping + zod validation). Next: item 3, JWT
-  issue/verify + refresh rotation + purpose tokens (`lib/auth.ts`, `lib/auth-refresh.ts`).
+- **Phase 0 done.** **Phase 1 in progress: items 1–3 of 10 ☑** (Mongo/Redis
+  clients + deep health; error mapping + zod validation; JWT + purpose tokens +
+  Session rotation). Next: item 4, cookies (`lib/auth-cookies.ts`,
+  `lib/session-cookies.ts`, `lib/lock-pin-cookie.ts`).
 - 0 of 512 routes ☑. PARITY baseline `541e46cf` (intake run 2026-10-29); run
   the intake (`PARITY.md` §2) again at the start of every port session.
-- `server/` is gitignored — nothing here is in git. Back it up.
+- `server/` is tracked in git since 2026-10-29 (`server/.gitignore` keeps `bin/` and `.env` out; `.gitattributes` pins LF).
+- Tests that need Mongo dial `127.0.0.1:27018/<throwaway db>?directConnection=true` (the container is a replica set advertising `mongo:27017`) and skip when it's down.
 
 ## How to work here
 
