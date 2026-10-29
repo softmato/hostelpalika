@@ -14,6 +14,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"regexp"
@@ -223,6 +224,13 @@ func Parse(lookup func(string) (string, bool)) (*Config, []string, error) {
 	c.TrustedProxies = r.list("TRUSTED_PROXIES")
 	c.SchedulerOn = r.str("SCHEDULER_ENABLED") == "true"
 	c.PprofAddr = r.str("PPROF_ADDR")
+	if c.PprofAddr != "" {
+		// Heap dumps hold tokens and personal data: loopback only, never the network.
+		host, _, err := net.SplitHostPort(c.PprofAddr)
+		if ip := net.ParseIP(host); err != nil || (host != "localhost" && (ip == nil || !ip.IsLoopback())) {
+			r.fail("PPROF_ADDR must be a loopback host:port, e.g. 127.0.0.1:6060")
+		}
+	}
 
 	access, accessSet := lookup("JWT_ACCESS_SECRET")
 	c.Auth = Auth{

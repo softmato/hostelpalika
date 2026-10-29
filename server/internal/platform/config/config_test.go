@@ -86,6 +86,8 @@ func TestParseErrors(t *testing.T) {
 		"bad ttl":       {map[string]string{"ACCESS_TOKEN_TTL": "15 minutes"}, "ACCESS_TOKEN_TTL"},
 		"bad int":       {map[string]string{"OTP_RATE_LIMIT_MAX": "five"}, "OTP_RATE_LIMIT_MAX"},
 		"bad env":       {map[string]string{"APP_ENV": "staging"}, "APP_ENV"},
+		"pprof public":  {map[string]string{"PPROF_ADDR": ":6060"}, "PPROF_ADDR"},
+		"pprof lan":     {map[string]string{"PPROF_ADDR": "10.0.0.5:6060"}, "PPROF_ADDR"},
 		"prod required": {map[string]string{"APP_ENV": "production", "MONGODB_URI": "mongodb+srv://x.mongodb.net"}, "R2_ENDPOINT, R2_ACCESS_KEY_ID"},
 	} {
 		t.Run(name, func(t *testing.T) {

@@ -9,6 +9,8 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.mongodb.org/mongo-driver/v2/x/mongo/driver/connstring"
+
+	"github.com/softmato/hostelpalika/server/internal/platform/obs"
 )
 
 // Connect opens the pool and pings it, so a bad URI fails boot rather than the
@@ -31,7 +33,8 @@ func Connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, e
 		SetMinPoolSize(5).
 		SetMaxPoolSize(50).
 		SetMaxConnIdleTime(5 * time.Minute).
-		SetServerSelectionTimeout(10 * time.Second))
+		SetServerSelectionTimeout(10 * time.Second).
+		SetMonitor(obs.MongoMonitor()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("mongo: %w", err)
 	}

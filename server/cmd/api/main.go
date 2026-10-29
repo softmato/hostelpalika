@@ -6,12 +6,14 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
+	_ "net/http/pprof" // registers on DefaultServeMux, served only on PPROF_ADDR
 	"os"
 	"os/signal"
 	"strings"
 	"syscall"
 	"time"
 
+	"github.com/softmato/hostelpalika/server/internal/platform/background"
 	"github.com/softmato/hostelpalika/server/internal/platform/config"
 	applog "github.com/softmato/hostelpalika/server/internal/platform/log"
 	"github.com/softmato/hostelpalika/server/internal/platform/mongo"
@@ -61,7 +63,8 @@ func run() error {
 		defer func() { _ = rdb.Close() }()
 	}
 
-	handler, err := router.New(cfg, router.Deps{DB: db, Redis: rdb})
+	bg := &background.Runner{}
+	handler, err := router.New(cfg, router.Deps{DB: db, Redis: rdb, Background: bg})
 	if err != nil {
 		return err
 	}
@@ -73,6 +76,16 @@ func run() error {
 		IdleTimeout:       120 * time.Second,
 		// No WriteTimeout: NDJSON progress routes stream for longer than any
 		// global value; each route gets its own context deadline instead.
+	}
+
+	// pprof on its own listener (config keeps it on localhost); never on the API port.
+	if cfg.PprofAddr != "" {
+		go func() {
+			slog.Info("pprof listening", "addr", cfg.PprofAddr)
+			if err := http.ListenAndServe(cfg.PprofAddr, nil); err != nil {
+				slog.Warn("pprof stopped", "error", err)
+			}
+		}()
 	}
 
 	errc := make(chan error, 1)
@@ -95,6 +108,10 @@ func run() error {
 	}
 	if err := <-errc; !errors.Is(err, http.ErrServerClosed) {
 		return err
+	}
+	// Handlers are done; let their afterResponse work land before Mongo closes.
+	if err := bg.Wait(sctx); err != nil {
+		slog.Warn("background work still running at shutdown", "error", err)
 	}
 	slog.Info("stopped cleanly")
 	return nil

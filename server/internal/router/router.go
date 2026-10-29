@@ -12,8 +12,10 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	"github.com/softmato/hostelpalika/server/internal/platform/background"
 	"github.com/softmato/hostelpalika/server/internal/platform/config"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
+	"github.com/softmato/hostelpalika/server/internal/platform/obs"
 )
 
 // Deps are the process-wide clients every module reads from. Redis may be nil
@@ -21,6 +23,8 @@ import (
 type Deps struct {
 	DB    *mongo.Database
 	Redis *goredis.Client
+	// Tracks afterResponse work so shutdown drains it; nil in tests that run none.
+	Background *background.Runner
 }
 
 func New(cfg *config.Config, d Deps) (*gin.Engine, error) {
@@ -34,7 +38,13 @@ func New(cfg *config.Config, d Deps) (*gin.Engine, error) {
 	// no content type. Gin's default writes "405 method not allowed" text.
 	r.HandleMethodNotAllowed = true
 	r.NoMethod(func(c *gin.Context) { c.AbortWithStatus(http.StatusMethodNotAllowed) })
-	r.Use(httpx.Recover())
+	// A *gin.Context handed on as a context.Context (slog, Mongo, Redis) must
+	// reach the request's own values: request id, timings.
+	r.ContextWithFallback = true
+	r.Use(httpx.Recover(), obs.Middleware())
+	if d.Background != nil {
+		r.Use(d.Background.Middleware())
+	}
 
 	v1 := r.Group("/api/v1")
 	v1.GET("/health", health(d))

@@ -9,6 +9,8 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
+
+	"github.com/softmato/hostelpalika/server/internal/platform/obs"
 )
 
 // Connect parses REDIS_URL and pings once. Redis is fail-open (DESIGN.md §1
@@ -31,6 +33,7 @@ func Connect(ctx context.Context, url string) (*redis.Client, error) {
 	opt.WriteTimeout = 500 * time.Millisecond
 	opt.MinIdleConns = 4
 	client := redis.NewClient(opt)
+	client.AddHook(obs.RedisHook{})
 
 	pctx, cancel := context.WithTimeout(ctx, 2*time.Second)
 	defer cancel()

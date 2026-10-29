@@ -1,0 +1,181 @@
+package auth
+
+import (
+	"net/http"
+	"net/url"
+	"strconv"
+	"strings"
+	"time"
+)
+
+// Cookie names: lib/auth-cookies.ts, lib/lock-pin-cookie.ts.
+const (
+	AccessCookie  = "hostelpalika_access_token"
+	RefreshCookie = "hostelpalika_refresh"
+	UnlockCookie  = "hostelpalika_unlock"
+
+	// The pre-proxy-refresh cookie, scoped to "/api" (and once "/api/v1/auth").
+	legacyRefreshPathCookie = "hostelhub_refresh_token"
+
+	// UnlockIdle is UNLOCK_IDLE_SECONDS; portal-account.tsx mirrors it.
+	UnlockIdle = 30 * time.Minute
+)
+
+// Older spellings, newest first, read as fallbacks and cleared on every write.
+var (
+	legacyAccessCookies  = []string{"hostelhub_access_token"}
+	legacyRefreshCookies = []string{"hostelhub_refresh", legacyRefreshPathCookie}
+	// The renamed pair that sat at "/" beside its replacements.
+	renamedRootCookies = []string{"hostelhub_access_token", "hostelhub_refresh"}
+)
+
+// cookieValue reads a cookie as Next's parseCookie does: the last duplicate
+// wins, the value is decodeURIComponent'd, and an undecodable one is absent.
+func cookieValue(r *http.Request, name string) string {
+	v := ""
+	for _, c := range r.Cookies() {
+		if c.Name != name {
+			continue
+		}
+		if d, err := url.PathUnescape(c.Value); err == nil {
+			v = d
+		}
+	}
+	return v
+}
+
+// first returns the first non-empty value; "" is a cleared cookie, not a session.
+func first(r *http.Request, names ...string) string {
+	for _, n := range names {
+		if v := cookieValue(r, n); v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
+// AccessCookieValue is readAccessTokenCookie.
+func AccessCookieValue(r *http.Request) string {
+	return first(r, append([]string{AccessCookie}, legacyAccessCookies...)...)
+}
+
+// RefreshCookieValue is readRefreshTokenCookieValue.
+func RefreshCookieValue(r *http.Request) string {
+	return first(r, append([]string{RefreshCookie}, legacyRefreshCookies...)...)
+}
+
+// HasSessionCookie: a session under any spelling.
+func HasSessionCookie(r *http.Request) bool {
+	return AccessCookieValue(r) != "" || RefreshCookieValue(r) != ""
+}
+
+// Cookies writes the session and unlock cookies byte-for-byte as Next's
+// ResponseCookies does. Secure = IsProduction (TS: NODE_ENV). Domain empty =
+// host-only, exactly as TS today; set (COOKIE_DOMAIN) it is added to every
+// cookie, for api.hostelpalika.com (ARCHITECTURE.md §4).
+type Cookies struct {
+	Tokens *Tokens
+	Secure bool
+	Domain string
+}
+
+// set is stringifyCookie: Path, Expires (only when maxAge > 0), Max-Age,
+// Domain, Secure, HttpOnly, SameSite=lax. maxAge < 0 = session cookie.
+func (c *Cookies) set(h http.Header, name, value string, maxAge int, path string) {
+	var b strings.Builder
+	b.WriteString(name + "=" + encodeURIComponent(value) + "; Path=" + path)
+	if maxAge > 0 {
+		b.WriteString("; Expires=" + c.Tokens.now().Add(time.Duration(maxAge)*time.Second).UTC().Format(http.TimeFormat))
+	}
+	if maxAge >= 0 {
+		b.WriteString("; Max-Age=" + strconv.Itoa(maxAge))
+	}
+	if c.Domain != "" {
+		b.WriteString("; Domain=" + c.Domain)
+	}
+	if c.Secure {
+		b.WriteString("; Secure")
+	}
+	b.WriteString("; HttpOnly; SameSite=lax")
+	h.Add("Set-Cookie", b.String())
+}
+
+// ApplySession is applySessionCookies. refresh "" is a reuse-window refresh:
+// only the access cookie is renewed.
+func (c *Cookies) ApplySession(h http.Header, access, refresh string) {
+	c.set(h, AccessCookie, access, int(c.Tokens.AccessTTL/time.Second), "/")
+	if refresh != "" {
+		c.set(h, RefreshCookie, refresh, int(c.Tokens.RefreshTTL/time.Second), "/")
+		c.set(h, legacyRefreshPathCookie, "", 0, "/api")
+	}
+	for _, n := range renamedRootCookies {
+		c.set(h, n, "", 0, "/")
+	}
+}
+
+// ClearSession is clearSessionCookies: every spelling, every path.
+func (c *Cookies) ClearSession(h http.Header) {
+	c.set(h, AccessCookie, "", 0, "/")
+	c.set(h, RefreshCookie, "", 0, "/")
+	for _, n := range renamedRootCookies {
+		c.set(h, n, "", 0, "/")
+	}
+	c.set(h, legacyRefreshPathCookie, "", 0, "/api")
+	// TS appends this one raw, so its attribute order differs.
+	raw := legacyRefreshPathCookie + "=; Path=/api/v1/auth; Max-Age=0"
+	if c.Domain != "" {
+		raw += "; Domain=" + c.Domain
+	}
+	raw += "; HttpOnly; SameSite=Lax"
+	if c.Secure {
+		raw += "; Secure"
+	}
+	h.Add("Set-Cookie", raw)
+}
+
+// ApplyPinUnlock is applyPinUnlockCookie: no max-age, dies with the browser;
+// the token inside lasts UnlockIdle.
+func (c *Cookies) ApplyPinUnlock(h http.Header, userID, sessionID string) error {
+	tok, err := c.Tokens.SignPurpose(PurposeInput{
+		UserID: userID, Purpose: LockPinUnlock, TTL: UnlockIdle,
+		Claims: map[string]string{"sessionId": sessionID},
+	})
+	if err != nil {
+		return err
+	}
+	c.set(h, UnlockCookie, tok, -1, "/")
+	return nil
+}
+
+// PinUnlocked is isPinUnlocked: the cookie names this user and this session.
+func (c *Cookies) PinUnlocked(r *http.Request, userID, sessionID string) bool {
+	tok := cookieValue(r, UnlockCookie)
+	if tok == "" {
+		return false
+	}
+	m, err := c.Tokens.VerifyPurpose(tok, LockPinUnlock)
+	if err != nil {
+		return false
+	}
+	sub, _ := m["sub"].(string)
+	// A missing claim is undefined in TS, which never equals "".
+	sid, ok := m["sessionId"].(string)
+	return ok && sub == userID && sid == sessionID
+}
+
+// encodeURIComponent: JS leaves A–Z a–z 0–9 and -_.!~*'() alone.
+func encodeURIComponent(s string) string {
+	const hex = "0123456789ABCDEF"
+	var b strings.Builder
+	for i := 0; i < len(s); i++ {
+		ch := s[i]
+		if 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || '0' <= ch && ch <= '9' || strings.IndexByte("-_.!~*'()", ch) >= 0 {
+			b.WriteByte(ch)
+		} else {
+			b.WriteByte('%')
+			b.WriteByte(hex[ch>>4])
+			b.WriteByte(hex[ch&15])
+		}
+	}
+	return b.String()
+}

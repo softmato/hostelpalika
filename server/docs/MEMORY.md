@@ -4,12 +4,22 @@ Read this after README.md. Update it at the end of every session.
 
 ## State (2026-10-29)
 
-- **Phase 0 done.** **Phase 1 in progress: items 1–3 of 10 ☑** (Mongo/Redis
-  clients + deep health; error mapping + zod validation; JWT + purpose tokens +
-  Session rotation). Next: item 4, cookies (`lib/auth-cookies.ts`,
-  `lib/session-cookies.ts`, `lib/lock-pin-cookie.ts`).
-- 0 of 512 routes ☑. PARITY baseline `541e46cf` (intake run 2026-10-29); run
-  the intake (`PARITY.md` §2) again at the start of every port session.
+- **Phase 0 done.** **Phase 1: items 1–4, 6, 8, 9, 10 ☑; items 5 and 7 part done.**
+  Item 7 is open for 304-before-work: cache the response bytes + their TS-identical
+  tag, answer If-None-Match from Redis (pure version tags would 304 stale data —
+  see the PHASES note).
+  Item 5's guards/roles/capabilities are built and green (`internal/platform/authz`),
+  but it stays ☐ until `tenant-isolation.test.ts` is ported — those cases assert
+  service filters (residents, complaints, notices, maintenance), so they land with
+  those modules in Phase 6. **Next: the Phase 1 gate** — the 20 `/api/v1/auth/*`
+  routes, which also need PARITY §3's still-open passwords/PIN (bcrypt), OTP and
+  mobile client header rows. Building those routes is when `authz.Guards`,
+  `auth.Cookies`, `ratelimit.Limiter`, `cache.Cache` and `audit.Log` get created
+  in `cmd/api` and handed over in `router.Deps` (only `Background` is wired today).
+- 0 of 512 routes ☑. PARITY baseline `41b0ef10` (intake run 2026-10-29, no TS
+  changes since `541e46cf`); run the intake (`PARITY.md` §2) again at the start of
+  every port session. Uncommitted TS edits in the working tree are not intake —
+  intake reads commits.
 - `server/` is tracked in git since 2026-10-29 (`server/.gitignore` keeps `bin/` and `.env` out; `.gitattributes` pins LF).
 - Tests that need Mongo dial `127.0.0.1:27018/<throwaway db>?directConnection=true` (the container is a replica set advertising `mongo:27017`) and skip when it's down.
 
@@ -46,8 +56,16 @@ Read this after README.md. Update it at the end of every session.
 
 - Every JSON body goes through `httpx` (`write`/`abort`, sonic no-HTML-escape,
   bare `application/json`). Never `c.JSON` — it escapes `<>&` unlike `JSON.stringify`.
+- Set-Cookie lines are built by hand (`auth.Cookies.set`), never `http.Cookie`/`c.SetCookie`:
+  Next writes `Path, Expires, Max-Age, Domain, Secure, HttpOnly, SameSite=lax` (lowercase).
+  New TS goldens: drop a temporary `src/lib/zz-*.test.ts` into apps/web, run vitest,
+  write results to a file (console output is swallowed), delete it.
+- Guards: `authz.Use(g.RequireX)` as route middleware, `authz.From(c)` in the handler.
+  A goroutine must never hold a `*gin.Context` (Gin recycles it) — use `background.Runner`.
+- Mongo writes mimic mongoose: `__v: 0`, timestamps, `minimize` drops empty objects,
+  undefined keys absent. Check a live row in the local copy before trusting a guess.
 - Request schemas: collect `valid.Issues` in zod-declared order, return `.Err()`.
   Messages must be zod v4's (`valid.Type`, `OneOf`, …); add a builder when a
   route needs a new one, checked against real zod output.
 - The Softmato client (later phase) must give its error a `SoftmatoRejection()` method.
-- No request id, Server-Timing, CORS, body limits, auth, guards yet.
+- No CORS or body limits yet (ARCHITECTURE.md §2 steps 5–6); per-route deadlines (`maxNs`) come with the routes.

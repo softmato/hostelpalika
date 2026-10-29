@@ -10,7 +10,7 @@ next item. Never tick in batches.
 
 | | |
 |---|---|
-| Baseline commit | `541e46cf` (`main`, 2026-10-29) |
+| Baseline commit | `41b0ef10` (`main`, 2026-10-29) |
 | Source of truth for behaviour | the TypeScript server at the baseline commit |
 | Inventory taken from | `apps/web/src/app/**/route.ts`, `apps/web/src/modules/*`, `apps/web/src/lib/*`, `packages/db/src/models/*`, `packages/shared/src/*`, `docs/CRON.md` |
 
@@ -28,7 +28,7 @@ anyone remembering to log a change; git already knows.
 **Before starting any port session, run:**
 
 ```bash
-git diff --name-status 541e46cf..HEAD -- apps/web/src/app apps/web/src/modules apps/web/src/lib packages/db/src packages/shared/src docs/CRON.md
+git diff --name-status 41b0ef10..HEAD -- apps/web/src/app apps/web/src/modules apps/web/src/lib packages/db/src packages/shared/src docs/CRON.md
 ```
 
 For every line it prints:
@@ -39,7 +39,7 @@ For every line it prints:
 3. `D` (deleted) → strike the row (`~~path~~`) and delete the Go code for it.
 4. `R` (renamed) → update the row in place.
 
-Once every printed line is handled, **move the baseline**: replace `541e46cf` in
+Once every printed line is handled, **move the baseline**: replace `41b0ef10` in
 §1 and in the command above with the new `HEAD` SHA, and add a line to the log.
 
 ### Intake log
@@ -48,6 +48,7 @@ Once every printed line is handled, **move the baseline**: replace `541e46cf` in
 |---|---|---|---|---|
 | 2026-10-28 | — → `7bf6c91b` | initial inventory | — | — |
 | 2026-10-29 | `7bf6c91b` → `541e46cf` | — | — (2 M: `reports/report.validation.ts`, `stock/stock.service.ts`; neither ported yet) | — |
+| 2026-10-29 | `541e46cf` → `41b0ef10` | — (no TS changes; only `server/` commits) | — | — |
 
 ---
 
@@ -61,18 +62,18 @@ Once every printed line is handled, **move the baseline**: replace `541e46cf` in
 | ☑ | Error mapping | `handleRouteError` incl. `SoftmatoApiError` pass-through | `httpx.Fail(c, err)` |
 | ☑ | Auth tokens | `lib/auth.ts` — jose HS256 access/refresh, purpose tokens | `golang-jwt/jwt/v5`, **same secrets, same claims** |
 | ☑ | Refresh rotation | `lib/auth-refresh.ts` — every refresh revokes the old token | same, same `Session` rows |
-| ☐ | Cookies | `lib/auth-cookies.ts`, `lib/session-cookies.ts`, `lib/lock-pin-cookie.ts` (`hostelpalika_*` + legacy `hostelhub_*` fallbacks) | same names, plus `Domain=.hostelpalika.com` |
-| ☐ | Principal + guards | `lib/api-auth.ts` — 14 guards (`requireApiPrincipal`, `requirePlatformPrincipal`, `requireSuperadminPrincipal`, `requireTeamPrincipal`, `requireHostelStaffPrincipal`, `requireHostelCapability`, `requireHostelAdminPrincipal`, `requireHostelScopedPrincipal`, `requireResidentPrincipal`, `requireGuardianPrincipal`, `loadApiPrincipal`, `assertApiRoles`, `assertHostelScopedApiAccess`, `assertPrimaryCredentialPrincipal`) | Gin middleware per guard |
-| ☐ | Roles, permissions, capabilities | `lib/roles.ts`, `lib/permissions.ts`, `lib/warden-capability.ts`, `lib/route-access.ts`, `lib/tenant.ts` | `internal/platform/authz` |
+| ☑ | Cookies | `lib/auth-cookies.ts`, `lib/session-cookies.ts`, `lib/lock-pin-cookie.ts` (`hostelpalika_*` + legacy `hostelhub_*` fallbacks) | same names, plus `Domain=.hostelpalika.com` |
+| ☑ | Principal + guards | `lib/api-auth.ts` — 14 guards (`requireApiPrincipal`, `requirePlatformPrincipal`, `requireSuperadminPrincipal`, `requireTeamPrincipal`, `requireHostelStaffPrincipal`, `requireHostelCapability`, `requireHostelAdminPrincipal`, `requireHostelScopedPrincipal`, `requireResidentPrincipal`, `requireGuardianPrincipal`, `loadApiPrincipal`, `assertApiRoles`, `assertHostelScopedApiAccess`, `assertPrimaryCredentialPrincipal`) | Gin middleware per guard |
+| ☑ | Roles, permissions, capabilities | `lib/roles.ts`, `lib/permissions.ts`, `lib/warden-capability.ts`, `lib/route-access.ts`, `lib/tenant.ts` | `internal/platform/authz` |
 | ☐ | Tenant isolation | `modules/tenant-isolation.test.ts` | the same test cases, ported first |
 | ☐ | Mobile client header | `x-hostelhub-client`, `x-hostel-id` (`lib/mobile-auth.ts`) | same headers |
 | ☐ | Passwords + PIN | `lib/password.ts` — bcrypt cost 12 | `x/crypto/bcrypt`, existing hashes verify unchanged |
 | ☐ | OTP | `OtpChallenge`, `OTP_*` env, `lib/auth-attempts.ts` | same rules |
-| ☐ | Rate limiting | `lib/rate-limit.ts` — in-memory per instance | Redis, shared by every instance |
-| ☐ | Read cache | `lib/redis-cache.ts` — per-user keys, per-hostel version, 60 s TTL, 150 ms timeout falls through to Mongo | same design on local Redis + `singleflight` |
+| ☑ | Rate limiting | `lib/rate-limit.ts` — in-memory per instance | Redis, shared by every instance |
+| ☑ | Read cache | `lib/redis-cache.ts` — per-user keys, per-hostel version, 60 s TTL, 150 ms timeout falls through to Mongo | same design on local Redis + `singleflight` |
 | ☐ | Cache invalidation | `bumpHostelCache`, `lib/realtime/announce-writes.ts`, `publishResourceChange`, `settleEvent` | same call sites |
-| ☐ | ETag / 304 | `lib/etag.ts` | same, plus version-derived ETags that skip Mongo |
-| ☐ | Background work | `lib/after-response.ts` (`after()`) | tracked goroutine, drained on shutdown |
+| ☐ | ETag / 304 | `lib/etag.ts` | same tag bytes (FNV-1a, UTF-16; `httpx.ETag` done), plus 304 answered from cached bytes + tag before any work (open, PHASES.md Phase 1) |
+| ☑ | Background work | `lib/after-response.ts` (`after()`) | tracked goroutine, drained on shutdown |
 | ☐ | Cron auth | `lib/cron-auth.ts` — `x-cron-secret` | kept for manual triggers |
 | ☐ | Realtime | `lib/realtime/*` — Pusher: `private-user-*`, `private-hostel-*`, `private-platform`, `private-global`, `presence-hostel-registration-track-sheet`; topic/category bridge | `pusher-http-go`, same channels, same events |
 | ☐ | Push (mobile) | Expo push + receipts (`PushTicket`, `DeviceToken`) | plain HTTP to Expo |
@@ -93,7 +94,7 @@ Once every printed line is handled, **move the baseline**: replace `541e46cf` in
 | ☐ | Night window | `packages/shared/src/night/night-window.ts` | same vectors |
 | ☐ | Plans catalogue | `packages/shared/src/plans/{catalog,lifetime}.ts` | same values |
 | ☐ | Money | paisa integers everywhere | `int64` paisa, never float |
-| ☐ | Logging | `lib/logger.ts` | `log/slog` JSON |
+| ☑ | Logging | `lib/logger.ts` | `log/slog` JSON |
 | ☐ | Audit log | `modules/audit`, `AuditLog` | same rows |
 | ☐ | Usage counters | `modules/usage`, `ApiUsageCounter` | same rows |
 | ☐ | Search + LLM | `lib/search/*`, `lib/llm/*` — Gemini/Groq/OpenRouter/Mistral/Cerebras key pools, `SEARCH_QUOTA_SECRET` | plain HTTP clients, same provider order |
