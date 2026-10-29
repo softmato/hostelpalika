@@ -1,0 +1,943 @@
+[
+  {
+    "name": "not an object",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": [
+        1
+      ]
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [
+            "Invalid input: expected object, received array"
+          ],
+          "fieldErrors": {},
+          "issues": [
+            {
+              "message": "Invalid input: expected object, received array",
+              "path": ""
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "bad fields",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "not an email",
+        "password": ""
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "identifier": [
+              "Enter a valid email address or temporary access username."
+            ],
+            "password": [
+              "Password is required."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter a valid email address or temporary access username.",
+              "path": "identifier"
+            },
+            {
+              "message": "Password is required.",
+              "path": "password"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "missing fields",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "identifier": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "password": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "identifier"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "password"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "wrong password",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "public@contract.test",
+        "password": "wrong"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid credentials.",
+        "errorCode": "INVALID_CREDENTIALS"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "unknown email",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "nobody@contract.test",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid credentials.",
+        "errorCode": "INVALID_CREDENTIALS"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "unverified",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "unverified@contract.test",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Email is not verified. Check your inbox for the verification link.",
+        "errorCode": "EMAIL_NOT_VERIFIED"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "suspended account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "inactive@contract.test",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid credentials.",
+        "errorCode": "INVALID_CREDENTIALS"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "public browser",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "public@contract.test",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUFVCTElDIiwiaG9zdGVsSWRzIjpbXSwic2Vzc2lvbklkIjoiNmFlMzA1NjY2YTUxMzgzN2I2MDY0OTk1IiwidG9rZW5UeXBlIjoiYWNjZXNzIiwic3ViIjoiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMDAxIiwiaWF0IjoxNzkzMjYyOTUwLCJleHAiOjE3OTMyNjM4NTB9.jP0xlmU6e9vkYlx5m0gJqvViCrSTBsr6UZmuzhhCxSU",
+          "user": {
+            "id": "6c0000000000000000000001",
+            "email": "public@contract.test",
+            "emailVerified": true,
+            "hostelIds": [],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract public",
+            "phone": null,
+            "role": "PUBLIC",
+            "redirectPath": "/",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "public mobile, case and spaces",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "headers": {
+        "x-hostelhub-client": "mobile"
+      },
+      "body": {
+        "identifier": "  PUBLIC@contract.test ",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUFVCTElDIiwiaG9zdGVsSWRzIjpbXSwic2Vzc2lvbklkIjoiNmFlMzA1NjY2YTUxMzgzN2I2MDY0OTk2IiwidG9rZW5UeXBlIjoiYWNjZXNzIiwic3ViIjoiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMDAxIiwiaWF0IjoxNzkzMjYyOTUwLCJleHAiOjE3OTMyNjM4NTB9.0xtOftL2wioNNnO-SiinUIX2eC0mbYSnKLhGFeuziX0",
+          "refreshToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUFVCTElDIiwiaG9zdGVsSWRzIjpbXSwic2Vzc2lvbklkIjoiNmFlMzA1NjY2YTUxMzgzN2I2MDY0OTk2IiwidG9rZW5UeXBlIjoicmVmcmVzaCIsInN1YiI6IjZjMDAwMDAwMDAwMDAwMDAwMDAwMDAwMSIsImlhdCI6MTc5MzI2Mjk1MCwiZXhwIjoxNzk1ODU0OTUwfQ.D_uBQdvB9cfsNX_0-ULePCk-ySp81ZvMqdQacrgMTLU",
+          "user": {
+            "id": "6c0000000000000000000001",
+            "email": "public@contract.test",
+            "emailVerified": true,
+            "hostelIds": [],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract public",
+            "phone": null,
+            "role": "PUBLIC",
+            "redirectPath": "/",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "invited warden activates",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "invited@contract.test",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiV0FSREVOIiwiaG9zdGVsSWRzIjpbIjZjMDAwMDAwMDAwMDAwMDAwMDAwMDBhMSJdLCJzZXNzaW9uSWQiOiI2YWUzMDU2NjZhNTEzODM3YjYwNjQ5OTciLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJzdWIiOiI2YzAwMDAwMDAwMDAwMDAwMDAwMDAwMDMiLCJpYXQiOjE3OTMyNjI5NTAsImV4cCI6MTc5MzI2Mzg1MH0.X9moFSOuWe1B-I__rEc7K4v9CH0GrY1728J-LgQLKQ4",
+          "user": {
+            "id": "6c0000000000000000000003",
+            "email": "invited@contract.test",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract invited",
+            "phone": null,
+            "role": "WARDEN",
+            "redirectPath": "/hostel-admin/dashboard",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": {
+              "hostelId": "6c00000000000000000000a1",
+              "hostelName": "Contract Hostel",
+              "locked": true,
+              "note": null,
+              "status": "DRAFT",
+              "submittedAt": null,
+              "trialDays": 3,
+              "trialEndsAt": "2026-11-08T08:35:49.255Z"
+            },
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "stranded resident released",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "stranded@contract.test",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUFVCTElDIiwiaG9zdGVsSWRzIjpbXSwic2Vzc2lvbklkIjoiNmFlMzA1NjY2YTUxMzgzN2I2MDY0OTk4IiwidG9rZW5UeXBlIjoiYWNjZXNzIiwic3ViIjoiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMDA4IiwiaWF0IjoxNzkzMjYyOTUwLCJleHAiOjE3OTMyNjM4NTB9.DOCkjP9HfQZc4Tz6wiiRdtrbcmThNKObUArt5owD1fg",
+          "user": {
+            "id": "6c0000000000000000000008",
+            "email": "stranded@contract.test",
+            "emailVerified": true,
+            "hostelIds": [],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract stranded",
+            "phone": null,
+            "role": "PUBLIC",
+            "redirectPath": "/",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "desk intake links",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "desk@contract.test",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUkVTSURFTlQiLCJob3N0ZWxJZHMiOlsiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMGExIl0sInNlc3Npb25JZCI6IjZhZTMwNTY2NmE1MTM4MzdiNjA2NDk5YiIsInRva2VuVHlwZSI6ImFjY2VzcyIsInN1YiI6IjZjMDAwMDAwMDAwMDAwMDAwMDAwMDAwYyIsImlhdCI6MTc5MzI2Mjk1MCwiZXhwIjoxNzkzMjYzODUwfQ.xHAEFcv_d_Kvss9K_zVd1uKr_bpWv_ntUKPtfmnGWYw",
+          "user": {
+            "id": "6c000000000000000000000c",
+            "email": "desk@contract.test",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract desk",
+            "phone": null,
+            "role": "RESIDENT",
+            "redirectPath": "/resident/dashboard",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "cook with fingerprint lock",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "kitchen@cook.local",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQ09PSyIsImhvc3RlbElkcyI6WyI2YzAwMDAwMDAwMDAwMDAwMDAwMDAwYTEiXSwic2Vzc2lvbklkIjoiNmFlMzA1NjY2YTUxMzgzN2I2MDY0OTljIiwidG9rZW5UeXBlIjoiYWNjZXNzIiwic3ViIjoiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMDA5IiwiaWF0IjoxNzkzMjYyOTUwLCJleHAiOjE3OTMyNjM4NTB9.-Cf8eXfhppLEjqMiK_4bvH9w8urHZTwM5mlTSz2TsHg",
+          "user": {
+            "id": "6c0000000000000000000009",
+            "email": "kitchen@cook.local",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract kitchen",
+            "phone": null,
+            "role": "COOK",
+            "redirectPath": "/cook",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "cookFingerprintLock": true,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "approved provider",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "provider@contract.test",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUFVCTElDIiwiaG9zdGVsSWRzIjpbXSwic2Vzc2lvbklkIjoiNmFlMzA1NjY2YTUxMzgzN2I2MDY0OTlkIiwidG9rZW5UeXBlIjoiYWNjZXNzIiwic3ViIjoiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMDBkIiwiaWF0IjoxNzkzMjYyOTUwLCJleHAiOjE3OTMyNjM4NTB9.oCKUUUtriqDKKt60K0NulWH9Yh0y4JNNyvlp3ZGpK_U",
+          "user": {
+            "id": "6c000000000000000000000d",
+            "email": "provider@contract.test",
+            "emailVerified": true,
+            "hostelIds": [],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract provider",
+            "phone": null,
+            "role": "PUBLIC",
+            "redirectPath": "/",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": true,
+            "viaTemporaryCredential": false
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "admin with pin",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "admin@contract.test",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiSE9TVEVMX0FETUlOIiwiaG9zdGVsSWRzIjpbIjZjMDAwMDAwMDAwMDAwMDAwMDAwMDBhMSJdLCJsb2NrUGluIjp0cnVlLCJzZXNzaW9uSWQiOiI2YWUzMDU2NjZhNTEzODM3YjYwNjQ5OWUiLCJ0b2tlblR5cGUiOiJhY2Nlc3MiLCJzdWIiOiI2YzAwMDAwMDAwMDAwMDAwMDAwMDAwMDUiLCJpYXQiOjE3OTMyNjI5NTAsImV4cCI6MTc5MzI2Mzg1MH0.ur6IsTd3LEdUfdlAK8AOLA-dg2IiKp3kis5uj3VBtvM",
+          "user": {
+            "id": "6c0000000000000000000005",
+            "email": "admin@contract.test",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "image": null,
+            "hasLockPin": true,
+            "mustChangePassword": false,
+            "name": "Contract admin",
+            "phone": null,
+            "role": "HOSTEL_ADMIN",
+            "redirectPath": "/hostel-admin/dashboard",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": {
+              "hostelId": "6c00000000000000000000a1",
+              "hostelName": "Contract Hostel",
+              "locked": true,
+              "note": null,
+              "status": "DRAFT",
+              "submittedAt": null,
+              "trialDays": 3,
+              "trialEndsAt": "2026-11-08T08:35:49.255Z"
+            },
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "temporary credential",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "contract-temp",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUFVCTElDIiwiaG9zdGVsSWRzIjpbXSwic2Vzc2lvbklkIjoiNmFlMzA1NjY2YTUxMzgzN2I2MDY0OTlmIiwidGVtcG9yYXJ5Q3JlZGVudGlhbElkIjoiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMGUxIiwidG9rZW5UeXBlIjoiYWNjZXNzIiwic3ViIjoiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMDAxIiwiaWF0IjoxNzkzMjYyOTUwLCJleHAiOjE3OTMyNjM4NTB9.ri0LaQNuLSBnMa6s6RZyuLE6tJztHkCx1nf5Os_IzyA",
+          "user": {
+            "id": "6c0000000000000000000001",
+            "email": "public@contract.test",
+            "emailVerified": true,
+            "hostelIds": [],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract public",
+            "phone": null,
+            "role": "PUBLIC",
+            "redirectPath": "/",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": true
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "revoked temporary credential",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "contract-gone",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid credentials.",
+        "errorCode": "INVALID_CREDENTIALS"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "temp username too short",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "ab",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "identifier": [
+              "Enter a valid email address or temporary access username."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter a valid email address or temporary access username.",
+              "path": "identifier"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "failure 1",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "limit@contract.test",
+        "password": "x"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid credentials.",
+        "errorCode": "INVALID_CREDENTIALS"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "failure 2",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "limit@contract.test",
+        "password": "x"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid credentials.",
+        "errorCode": "INVALID_CREDENTIALS"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "failure 3",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "limit@contract.test",
+        "password": "x"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid credentials.",
+        "errorCode": "INVALID_CREDENTIALS"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "failure 4",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "limit@contract.test",
+        "password": "x"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid credentials.",
+        "errorCode": "INVALID_CREDENTIALS"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "failure 5",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "limit@contract.test",
+        "password": "x"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid credentials.",
+        "errorCode": "INVALID_CREDENTIALS"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "sixth failure is limited",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "limit@contract.test",
+        "password": "x"
+      }
+    },
+    "masks": [
+      "details.retryAfterSeconds"
+    ],
+    "response": {
+      "status": 429,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Too many failed attempts. Please wait before trying again.",
+        "errorCode": "RATE_LIMITED",
+        "details": {
+          "retryAfterSeconds": 550
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  }
+]

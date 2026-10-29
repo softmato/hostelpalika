@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/bytedance/sonic"
 	"github.com/gin-gonic/gin"
@@ -72,6 +73,22 @@ func OK(c *gin.Context, data any, message string) {
 		message = defaultMessage
 	}
 	write(c, http.StatusOK, success{true, message, data})
+}
+
+// Envelope is the success envelope's bytes, exactly as write sends them.
+func Envelope(data any, message string) ([]byte, error) {
+	if message == "" {
+		message = defaultMessage
+	}
+	return enc.Marshal(success{true, message, data})
+}
+
+// Write is successResponse with a status (201 for a create).
+func Write(c *gin.Context, status int, data any, message string) {
+	if message == "" {
+		message = defaultMessage
+	}
+	write(c, status, success{true, message, data})
 }
 
 // Fail maps err to the error envelope, in handleRouteError's order:
@@ -234,3 +251,6 @@ func Recover() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// ISO is Date#toISOString: UTC, milliseconds, Z.
+func ISO(t time.Time) string { return t.UTC().Format("2006-01-02T15:04:05.000Z") }

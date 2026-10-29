@@ -4,22 +4,21 @@ Read this after README.md. Update it at the end of every session.
 
 ## State (2026-10-29)
 
-- **Phase 0 done.** **Phase 1: items 1–4, 6, 8, 9, 10 ☑; items 5 and 7 part done.**
-  Item 7 is open for 304-before-work: cache the response bytes + their TS-identical
-  tag, answer If-None-Match from Redis (pure version tags would 304 stale data —
-  see the PHASES note).
-  Item 5's guards/roles/capabilities are built and green (`internal/platform/authz`),
-  but it stays ☐ until `tenant-isolation.test.ts` is ported — those cases assert
-  service filters (residents, complaints, notices, maintenance), so they land with
-  those modules in Phase 6. **Next: the Phase 1 gate** — the 20 `/api/v1/auth/*`
-  routes, which also need PARITY §3's still-open passwords/PIN (bcrypt), OTP and
-  mobile client header rows. Building those routes is when `authz.Guards`,
-  `auth.Cookies`, `ratelimit.Limiter`, `cache.Cache` and `audit.Log` get created
-  in `cmd/api` and handed over in `router.Deps` (only `Background` is wired today).
-- 0 of 512 routes ☑. PARITY baseline `41b0ef10` (intake run 2026-10-29, no TS
-  changes since `541e46cf`); run the intake (`PARITY.md` §2) again at the start of
-  every port session. Uncommitted TS edits in the working tree are not intake —
-  intake reads commits.
+- **Phases 0 and 1 done (2026-10-29).** Gate passed: the 20 `/api/v1/auth/*`
+  routes are contract-green (`testdata/contract/auth/`, 113 cases recorded from
+  TS), tokens work across TS and Go both ways, and a refresh through Go kills the
+  rotated-away token for TS (`router/interop_test.go`). **Next: Phase 2**
+  (shared domain libraries); Phases 3 and 4 may run alongside it.
+- Item 5 was re-scoped: `tenant-isolation.test.ts` asserts service filters, so its
+  cases are attached to the Phase 6 residents / notices+complaints+maintenance /
+  finance items; PARITY's Tenant isolation row stays ☐ until they are green.
+- Ported for auth only, finish with their modules: `modules/hostels` (kyc/suspension
+  readers), `modules/residents` (desk-intake link + promotion), `modules/users`
+  (deletion cancel), `platform/email` (sender, identity, layout, 4 templates —
+  topic opt-out and the daily cap are still open).
+- 20 of 512 route files ☑ (the auth group). PARITY baseline
+  `41b0ef10`; run the intake (`PARITY.md` §2) at the start of every port session.
+  Uncommitted TS edits in the working tree are not intake — intake reads commits.
 - `server/` is tracked in git since 2026-10-29 (`server/.gitignore` keeps `bin/` and `.env` out; `.gitattributes` pins LF).
 - Tests that need Mongo dial `127.0.0.1:27018/<throwaway db>?directConnection=true` (the container is a replica set advertising `mongo:27017`) and skip when it's down.
 
@@ -35,6 +34,17 @@ Read this after README.md. Update it at the end of every session.
   (start Docker Desktop first). API `https://localhost` via Caddy, or `go run ./cmd/api`
   on the host (reads `server/.env`, talks to Mongo `127.0.0.1:27018`, Redis `127.0.0.1:6380`).
 - Fresh live data: `pwsh deploy/copy-live-db.ps1` (read-only from Atlas, replaces local `hostelpalika_dev`).
+- Contract cases that read data run on the **fixture database** (`internal/contract/fixture`,
+  `hostelpalika_contract`): fixed ids, test secrets, known passwords; reset before every
+  file in record and replay. `{{access:<user>:<role>[:<hostels>][:lockPin]}}` and
+  `{{purpose:<purpose>:<user>[:<version>]}}` mint tokens; `capture` feeds later cases.
+  Record: start TS with the contract env (`router/contract_test.go` contractEnv, plus empty
+  RESEND/UPSTASH/PUSHER keys — `fillMissing` keeps an empty var), check
+  `lock-pin/touch` with a minted bearer answers 200 before recording (proves the overrides),
+  then `go run ./cmd/dev record -base http://localhost:3100 -fixture <files in sorted order>`
+  in one run (TS's in-memory limiter carries across files, so does Go's replay).
+- Every multi-key response is an ordered struct, never `map[string]any`: sonic does not sort map keys.
+- Docker Desktop can stop under you; a Mongo test that "passes" in 12 s skipped on a dial timeout.
 - Record a contract: add the case to `testdata/contract/<group>/<file>.json`,
   `go run ./cmd/dev record -base <TS url> -baseline <sha> <file>`; replay is `go test ./internal/router`.
   Anything that reads data must be recorded from a TS server on the **local** copy, not prod.

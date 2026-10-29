@@ -557,3 +557,14 @@ func parseDotenvLine(line string) (key, value string, ok bool) {
 	}
 	return key, value, key != ""
 }
+
+var privateHost = regexp.MustCompile(`(?i)^(https?://)?(localhost|127\.\d+\.\d+\.\d+|0\.0\.0\.0|10\.\d+\.\d+\.\d+|192\.168\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+|\[?::1\]?|[^/]*\.local)(:\d+)?$`)
+
+// OutboundURL is lib/site.ts outboundUrl: links read in a mail client can never
+// be this machine, so a private APP_URL becomes the real site.
+func (c *Config) OutboundURL() string {
+	if privateHost.MatchString(c.AppURL) {
+		return "https://hostelpalika.com"
+	}
+	return c.AppURL
+}

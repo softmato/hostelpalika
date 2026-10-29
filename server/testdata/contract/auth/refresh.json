@@ -1,0 +1,272 @@
+[
+  {
+    "name": "missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/refresh"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Refresh token is missing.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "garbage body token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/refresh",
+      "headers": {
+        "x-hostelhub-client": "mobile"
+      },
+      "body": {
+        "refreshToken": "garbage"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Refresh session is invalid.",
+        "errorCode": "INVALID_SESSION"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "browser login",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "public@contract.test",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken"
+    ],
+    "capture": {
+      "rt": "cookie:hostelpalika_refresh"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUFVCTElDIiwiaG9zdGVsSWRzIjpbXSwic2Vzc2lvbklkIjoiNmFlMzA1NmU2YTUxMzgzN2I2MDY0OWE3IiwidG9rZW5UeXBlIjoiYWNjZXNzIiwic3ViIjoiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMDAxIiwiaWF0IjoxNzkzMjYyOTU4LCJleHAiOjE3OTMyNjM4NTh9.rEErJnbxsGKEosPLVpJkhNzUCHIlsgpDMclPzGChEPY",
+          "user": {
+            "id": "6c0000000000000000000001",
+            "email": "public@contract.test",
+            "emailVerified": true,
+            "hostelIds": [],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract public",
+            "phone": null,
+            "role": "PUBLIC",
+            "redirectPath": "/",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "browser refresh",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/refresh",
+      "headers": {
+        "cookie": "hostelpalika_refresh={{rt}}"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Token refreshed",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUFVCTElDIiwiaG9zdGVsSWRzIjpbXSwic2Vzc2lvbklkIjoiNmFlMzA1NmU2YTUxMzgzN2I2MDY0OWE3IiwidG9rZW5UeXBlIjoiYWNjZXNzIiwic3ViIjoiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMDAxIiwiaWF0IjoxNzkzMjYyOTU4LCJleHAiOjE3OTMyNjM4NTh9.rEErJnbxsGKEosPLVpJkhNzUCHIlsgpDMclPzGChEPY",
+          "user": {
+            "id": "6c0000000000000000000001",
+            "email": "public@contract.test",
+            "emailVerified": true,
+            "hostelIds": [],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract public",
+            "phone": null,
+            "role": "PUBLIC",
+            "redirectPath": "/",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "mobile login",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "headers": {
+        "x-hostelhub-client": "mobile"
+      },
+      "body": {
+        "identifier": "resident@contract.test",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken"
+    ],
+    "capture": {
+      "mrt": "data.refreshToken"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUkVTSURFTlQiLCJob3N0ZWxJZHMiOlsiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMGExIl0sInNlc3Npb25JZCI6IjZhZTMwNTZmNmE1MTM4MzdiNjA2NDlhOCIsInRva2VuVHlwZSI6ImFjY2VzcyIsInN1YiI6IjZjMDAwMDAwMDAwMDAwMDAwMDAwMDAwNyIsImlhdCI6MTc5MzI2Mjk1OSwiZXhwIjoxNzkzMjYzODU5fQ.pQT5sWonHk4mHV2NBffGPn7KyRLxCSw_fIJnA5La90A",
+          "refreshToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUkVTSURFTlQiLCJob3N0ZWxJZHMiOlsiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMGExIl0sInNlc3Npb25JZCI6IjZhZTMwNTZmNmE1MTM4MzdiNjA2NDlhOCIsInRva2VuVHlwZSI6InJlZnJlc2giLCJzdWIiOiI2YzAwMDAwMDAwMDAwMDAwMDAwMDAwMDciLCJpYXQiOjE3OTMyNjI5NTksImV4cCI6MTc5NTg1NDk1OX0.YrnvjV41CuzGUsmWNIys_qGDwN3Us3dsqNa8XcK8ZIw",
+          "user": {
+            "id": "6c0000000000000000000007",
+            "email": "resident@contract.test",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract resident",
+            "phone": null,
+            "role": "RESIDENT",
+            "redirectPath": "/resident/dashboard",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "mobile refresh",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/refresh",
+      "headers": {
+        "x-hostelhub-client": "mobile"
+      },
+      "body": {
+        "refreshToken": "{{mrt}}"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Token refreshed",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUkVTSURFTlQiLCJob3N0ZWxJZHMiOlsiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMGExIl0sInNlc3Npb25JZCI6IjZhZTMwNTZmNmE1MTM4MzdiNjA2NDlhOCIsInRva2VuVHlwZSI6ImFjY2VzcyIsInN1YiI6IjZjMDAwMDAwMDAwMDAwMDAwMDAwMDAwNyIsImlhdCI6MTc5MzI2Mjk1OSwiZXhwIjoxNzkzMjYzODU5fQ.pQT5sWonHk4mHV2NBffGPn7KyRLxCSw_fIJnA5La90A",
+          "refreshToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUkVTSURFTlQiLCJob3N0ZWxJZHMiOlsiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMGExIl0sInNlc3Npb25JZCI6IjZhZTMwNTZmNmE1MTM4MzdiNjA2NDlhOCIsInRva2VuVHlwZSI6InJlZnJlc2giLCJzdWIiOiI2YzAwMDAwMDAwMDAwMDAwMDAwMDAwMDciLCJpYXQiOjE3OTMyNjI5NTksImV4cCI6MTc5NTg1NDk1OX0.YrnvjV41CuzGUsmWNIys_qGDwN3Us3dsqNa8XcK8ZIw",
+          "user": {
+            "id": "6c0000000000000000000007",
+            "email": "resident@contract.test",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract resident",
+            "phone": null,
+            "role": "RESIDENT",
+            "redirectPath": "/resident/dashboard",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "legacy cookie name",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/refresh",
+      "headers": {
+        "cookie": "hostelhub_refresh_token=garbage"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Refresh session is invalid.",
+        "errorCode": "INVALID_SESSION"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  }
+]

@@ -1,0 +1,151 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/biometric/code"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "cook has no inbox",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/biometric/code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This account has no email address to send a code to.",
+        "errorCode": "NO_ACCOUNT_EMAIL"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "code",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/biometric/code",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.challengeId",
+      "data.devCode",
+      "data.expiresAt"
+    ],
+    "capture": {
+      "cid": "data.challengeId",
+      "code": "data.devCode"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Code sent",
+        "data": {
+          "challengeId": "6ae3055e6a513837b6064992",
+          "delivery": {
+            "channel": "email",
+            "provider": "development",
+            "status": "development"
+          },
+          "expiresAt": "2026-10-29T08:45:42.797Z",
+          "devCode": "341069"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "another account's challenge",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/biometric/verify",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "challengeId": "{{cid}}",
+        "code": "{{code}}"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "OTP challenge is invalid or expired.",
+        "errorCode": "OTP_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "verify",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/biometric/verify",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c000000000000000000a1}}"
+      },
+      "body": {
+        "challengeId": "{{cid}}",
+        "code": "{{code}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Code accepted",
+        "data": {
+          "verified": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "spent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/biometric/verify",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c000000000000000000a1}}"
+      },
+      "body": {
+        "challengeId": "{{cid}}",
+        "code": "{{code}}"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "OTP challenge is invalid or expired.",
+        "errorCode": "OTP_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  }
+]

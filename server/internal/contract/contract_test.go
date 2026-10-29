@@ -31,7 +31,7 @@ func TestDiff(t *testing.T) {
 		"absent ≠ masked": {200, "application/json", `{"success":true,"data":[{"n":1}]}`, 1},
 	} {
 		t.Run(name, func(t *testing.T) {
-			if d := Diff(c, tc.status, tc.ct, []byte(tc.body)); len(d) != tc.diffs {
+			if d := Diff(c, tc.status, tc.ct, nil, []byte(tc.body)); len(d) != tc.diffs {
 				t.Errorf("got %d diffs, want %d: %v", len(d), tc.diffs, d)
 			}
 		})

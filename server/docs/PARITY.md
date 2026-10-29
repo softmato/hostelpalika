@@ -65,14 +65,14 @@ Once every printed line is handled, **move the baseline**: replace `41b0ef10` in
 | ☑ | Cookies | `lib/auth-cookies.ts`, `lib/session-cookies.ts`, `lib/lock-pin-cookie.ts` (`hostelpalika_*` + legacy `hostelhub_*` fallbacks) | same names, plus `Domain=.hostelpalika.com` |
 | ☑ | Principal + guards | `lib/api-auth.ts` — 14 guards (`requireApiPrincipal`, `requirePlatformPrincipal`, `requireSuperadminPrincipal`, `requireTeamPrincipal`, `requireHostelStaffPrincipal`, `requireHostelCapability`, `requireHostelAdminPrincipal`, `requireHostelScopedPrincipal`, `requireResidentPrincipal`, `requireGuardianPrincipal`, `loadApiPrincipal`, `assertApiRoles`, `assertHostelScopedApiAccess`, `assertPrimaryCredentialPrincipal`) | Gin middleware per guard |
 | ☑ | Roles, permissions, capabilities | `lib/roles.ts`, `lib/permissions.ts`, `lib/warden-capability.ts`, `lib/route-access.ts`, `lib/tenant.ts` | `internal/platform/authz` |
-| ☐ | Tenant isolation | `modules/tenant-isolation.test.ts` | the same test cases, ported first |
-| ☐ | Mobile client header | `x-hostelhub-client`, `x-hostel-id` (`lib/mobile-auth.ts`) | same headers |
-| ☐ | Passwords + PIN | `lib/password.ts` — bcrypt cost 12 | `x/crypto/bcrypt`, existing hashes verify unchanged |
-| ☐ | OTP | `OtpChallenge`, `OTP_*` env, `lib/auth-attempts.ts` | same rules |
+| ☐ | Tenant isolation | `modules/tenant-isolation.test.ts` (guard layer ☑ in `authz`; service cases travel with their Phase 6 modules) | the same test cases, ported first |
+| ☑ | Mobile client header | `x-hostelhub-client`, `x-hostel-id` (`lib/mobile-auth.ts`) | same headers |
+| ☑ | Passwords + PIN | `lib/password.ts` — bcrypt cost 12 | `x/crypto/bcrypt`, existing hashes verify unchanged |
+| ☑ | OTP | `OtpChallenge`, `OTP_*` env, `lib/auth-attempts.ts` | same rules |
 | ☑ | Rate limiting | `lib/rate-limit.ts` — in-memory per instance | Redis, shared by every instance |
 | ☑ | Read cache | `lib/redis-cache.ts` — per-user keys, per-hostel version, 60 s TTL, 150 ms timeout falls through to Mongo | same design on local Redis + `singleflight` |
 | ☐ | Cache invalidation | `bumpHostelCache`, `lib/realtime/announce-writes.ts`, `publishResourceChange`, `settleEvent` | same call sites |
-| ☐ | ETag / 304 | `lib/etag.ts` | same tag bytes (FNV-1a, UTF-16; `httpx.ETag` done), plus 304 answered from cached bytes + tag before any work (open, PHASES.md Phase 1) |
+| ☑ | ETag / 304 | `lib/etag.ts` | same tag bytes (FNV-1a, UTF-16; `httpx.ETag`); `cache.Respond` answers the 304 from cached bytes + tag before any work |
 | ☑ | Background work | `lib/after-response.ts` (`after()`) | tracked goroutine, drained on shutdown |
 | ☐ | Cron auth | `lib/cron-auth.ts` — `x-cron-secret` | kept for manual triggers |
 | ☐ | Realtime | `lib/realtime/*` — Pusher: `private-user-*`, `private-hostel-*`, `private-platform`, `private-global`, `presence-hostel-registration-track-sheet`; topic/category bridge | `pusher-http-go`, same channels, same events |
@@ -101,7 +101,7 @@ Once every printed line is handled, **move the baseline**: replace `41b0ef10` in
 | ☐ | Evidence OCR | Vision (`GCP_VISION_SA_KEY`, RS256 service-account JWT) + Gemini fallback, monthly caps | `oauth2/google` + Vision REST |
 | ☐ | Maps | `lib/maps/*` — geocoding, Overpass nearby places, routing, upstream fetch politeness | same upstreams, same delays |
 | ☐ | Softmato billing | `@softmato/sdk`, `SOFTMATO_*`, `modules/billing/softmato/*` | HTTP client of the same calls |
-| ☐ | Google sign-in | Google ID token (`GOOGLE_CLIENT_ID`) | `google.golang.org/api/idtoken` |
+| ☑ | Google sign-in | Google ID token (`GOOGLE_CLIENT_ID`) | `google.golang.org/api/idtoken` |
 | ☐ | Google Drive backup | `GOOGLE_DRIVE_CLIENT_*`, `modules/backup` | `x/oauth2` + Drive v3 |
 | ☐ | QuestionCall | SSO `hp_code` handoff, conversion webhook (`QUESTIONCALL_WEBHOOK_SECRET`) | same |
 | ☐ | Demo hostels | `modules/hostels/demo-hostels.json` merged server-side | same file, same merge |
@@ -269,26 +269,26 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | POST | `/api/v1/auth/biometric/code` | requireApiPrincipal, assertPrimaryCredentialPrincipal |  | auth |
-| ☐ | POST | `/api/v1/auth/biometric/verify` | requireApiPrincipal, assertPrimaryCredentialPrincipal |  | auth |
-| ☐ | POST | `/api/v1/auth/cancel-account-deletion` | rateLimitPublicForm |  | users |
-| ☐ | POST | `/api/v1/auth/change-password` | public |  | auth |
-| ☐ | POST | `/api/v1/auth/forgot-password` | rateLimitPublicForm |  | auth |
-| ☐ | POST | `/api/v1/auth/google` | rateLimitPublicForm |  | auth |
-| ☐ | DELETE PUT | `/api/v1/auth/lock-pin` | requireApiPrincipal, assertPrimaryCredentialPrincipal |  | auth |
-| ☐ | POST | `/api/v1/auth/lock-pin/touch` | loadApiPrincipal |  |  |
-| ☐ | POST | `/api/v1/auth/lock-pin/verify` | requireApiPrincipal |  | auth |
-| ☐ | POST | `/api/v1/auth/login` | public |  | auth |
-| ☐ | POST | `/api/v1/auth/logout` | public |  | auth |
-| ☐ | GET | `/api/v1/auth/me` | public | etag | auth |
-| ☐ | POST | `/api/v1/auth/otp/request` | rateLimitAuthAttempts |  | auth |
-| ☐ | POST | `/api/v1/auth/otp/verify` | public |  | auth |
-| ☐ | POST | `/api/v1/auth/refresh` | public |  | auth |
-| ☐ | POST | `/api/v1/auth/register` | rateLimitAuthAttempts |  | auth |
-| ☐ | POST | `/api/v1/auth/resend-verification` | rateLimitPublicForm |  | auth |
-| ☐ | POST | `/api/v1/auth/reset-password` | rateLimitAuthAttempts |  | auth |
-| ☐ | POST | `/api/v1/auth/signup` | rateLimitPublicForm |  | auth |
-| ☐ | POST | `/api/v1/auth/verify-email` | rateLimitAuthAttempts |  | auth |
+| ☑ | POST | `/api/v1/auth/biometric/code` | requireApiPrincipal, assertPrimaryCredentialPrincipal |  | auth |
+| ☑ | POST | `/api/v1/auth/biometric/verify` | requireApiPrincipal, assertPrimaryCredentialPrincipal |  | auth |
+| ☑ | POST | `/api/v1/auth/cancel-account-deletion` | rateLimitPublicForm |  | users |
+| ☑ | POST | `/api/v1/auth/change-password` | public |  | auth |
+| ☑ | POST | `/api/v1/auth/forgot-password` | rateLimitPublicForm |  | auth |
+| ☑ | POST | `/api/v1/auth/google` | rateLimitPublicForm |  | auth |
+| ☑ | DELETE PUT | `/api/v1/auth/lock-pin` | requireApiPrincipal, assertPrimaryCredentialPrincipal |  | auth |
+| ☑ | POST | `/api/v1/auth/lock-pin/touch` | loadApiPrincipal |  |  |
+| ☑ | POST | `/api/v1/auth/lock-pin/verify` | requireApiPrincipal |  | auth |
+| ☑ | POST | `/api/v1/auth/login` | public |  | auth |
+| ☑ | POST | `/api/v1/auth/logout` | public |  | auth |
+| ☑ | GET | `/api/v1/auth/me` | public | etag | auth |
+| ☑ | POST | `/api/v1/auth/otp/request` | rateLimitAuthAttempts |  | auth |
+| ☑ | POST | `/api/v1/auth/otp/verify` | public |  | auth |
+| ☑ | POST | `/api/v1/auth/refresh` | public |  | auth |
+| ☑ | POST | `/api/v1/auth/register` | rateLimitAuthAttempts |  | auth |
+| ☑ | POST | `/api/v1/auth/resend-verification` | rateLimitPublicForm |  | auth |
+| ☑ | POST | `/api/v1/auth/reset-password` | rateLimitAuthAttempts |  | auth |
+| ☑ | POST | `/api/v1/auth/signup` | rateLimitPublicForm |  | auth |
+| ☑ | POST | `/api/v1/auth/verify-email` | rateLimitAuthAttempts |  | auth |
 
 ### `bookings` (11)
 

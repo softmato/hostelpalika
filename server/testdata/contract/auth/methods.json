@@ -1,0 +1,31 @@
+[
+  {
+    "name": "me is GET only",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/me"
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "empty body is not JSON",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login"
+    },
+    "response": {
+      "status": 500,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "errorCode": "INTERNAL_SERVER_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  }
+]

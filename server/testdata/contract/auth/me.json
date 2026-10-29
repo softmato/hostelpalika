@@ -1,0 +1,401 @@
+[
+  {
+    "name": "no token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/auth/me"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Access token is missing.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "garbage bearer",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "headers": {
+        "authorization": "Bearer garbage"
+      }
+    },
+    "response": {
+      "status": 500,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "errorCode": "INTERNAL_SERVER_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "public",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Authenticated user loaded",
+        "data": {
+          "user": {
+            "id": "6c0000000000000000000001",
+            "email": "public@contract.test",
+            "emailVerified": true,
+            "hostelIds": [],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract public",
+            "phone": null,
+            "role": "PUBLIC",
+            "redirectPath": "/",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "hostelSuspension": null,
+            "isServiceProvider": false,
+            "sessionStale": false,
+            "viaTemporaryCredential": false,
+            "pinLocked": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "stale role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Authenticated user loaded",
+        "data": {
+          "user": {
+            "id": "6c0000000000000000000007",
+            "email": "resident@contract.test",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract resident",
+            "phone": null,
+            "role": "RESIDENT",
+            "redirectPath": "/resident/dashboard",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "hostelSuspension": null,
+            "isServiceProvider": false,
+            "sessionStale": true,
+            "viaTemporaryCredential": false,
+            "pinLocked": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Authenticated user loaded",
+        "data": {
+          "user": {
+            "id": "6c0000000000000000000007",
+            "email": "resident@contract.test",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract resident",
+            "phone": null,
+            "role": "RESIDENT",
+            "redirectPath": "/resident/dashboard",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "hostelSuspension": null,
+            "isServiceProvider": false,
+            "sessionStale": true,
+            "viaTemporaryCredential": false,
+            "pinLocked": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "suspended warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000006:WARDEN:6c000000000000000000a2}}"
+      }
+    },
+    "masks": [
+      "data.user.hostelSuspension.graceEndsAt",
+      "data.user.hostelSuspension.startedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Authenticated user loaded",
+        "data": {
+          "user": {
+            "id": "6c0000000000000000000006",
+            "email": "warden@contract.test",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a2"
+            ],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract warden",
+            "phone": null,
+            "role": "WARDEN",
+            "redirectPath": "/hostel-admin/dashboard",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "hostelSuspension": {
+              "graceEndsAt": "2026-10-28T08:35:52.199Z",
+              "reason": "PLAN_PAYMENT",
+              "stage": "SUSPENDED",
+              "startedAt": "2026-10-24T08:35:52.199Z",
+              "hostelId": "6c00000000000000000000a2",
+              "hostelName": "Suspended Hostel"
+            },
+            "isServiceProvider": false,
+            "sessionStale": true,
+            "viaTemporaryCredential": false,
+            "pinLocked": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "admin cookie still owes pin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "headers": {
+        "cookie": "hostelpalika_access_token={{access:6c0000000000000000000005:HOSTEL_ADMIN:6c000000000000000000a1:lockPin}}"
+      }
+    },
+    "masks": [
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Authenticated user loaded",
+        "data": {
+          "user": {
+            "id": "6c0000000000000000000005",
+            "email": "admin@contract.test",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "image": null,
+            "hasLockPin": true,
+            "mustChangePassword": false,
+            "name": "Contract admin",
+            "phone": null,
+            "role": "HOSTEL_ADMIN",
+            "redirectPath": "/hostel-admin/dashboard",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": {
+              "hostelId": "6c00000000000000000000a1",
+              "hostelName": "Contract Hostel",
+              "locked": true,
+              "note": null,
+              "status": "DRAFT",
+              "submittedAt": null,
+              "trialDays": 3,
+              "trialEndsAt": "2026-11-08T08:35:52.199Z"
+            },
+            "hostelSuspension": null,
+            "isServiceProvider": false,
+            "sessionStale": true,
+            "viaTemporaryCredential": false,
+            "pinLocked": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "admin bearer",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c000000000000000000a1:lockPin}}"
+      }
+    },
+    "masks": [
+      "data.user.hostelKyc.trialEndsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Authenticated user loaded",
+        "data": {
+          "user": {
+            "id": "6c0000000000000000000005",
+            "email": "admin@contract.test",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "image": null,
+            "hasLockPin": true,
+            "mustChangePassword": false,
+            "name": "Contract admin",
+            "phone": null,
+            "role": "HOSTEL_ADMIN",
+            "redirectPath": "/hostel-admin/dashboard",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": {
+              "hostelId": "6c00000000000000000000a1",
+              "hostelName": "Contract Hostel",
+              "locked": true,
+              "note": null,
+              "status": "DRAFT",
+              "submittedAt": null,
+              "trialDays": 3,
+              "trialEndsAt": "2026-11-08T08:35:52.199Z"
+            },
+            "hostelSuspension": null,
+            "isServiceProvider": false,
+            "sessionStale": true,
+            "viaTemporaryCredential": false,
+            "pinLocked": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "cook",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Authenticated user loaded",
+        "data": {
+          "user": {
+            "id": "6c0000000000000000000009",
+            "email": "kitchen@cook.local",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract kitchen",
+            "phone": null,
+            "role": "COOK",
+            "redirectPath": "/cook",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "cookFingerprintLock": true,
+            "hostelKyc": null,
+            "hostelSuspension": null,
+            "isServiceProvider": false,
+            "sessionStale": true,
+            "viaTemporaryCredential": false,
+            "pinLocked": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "inactive",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/auth/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000004:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "User no longer has access.",
+        "errorCode": "USER_INACTIVE"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  }
+]

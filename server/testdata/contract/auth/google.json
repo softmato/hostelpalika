@@ -1,0 +1,56 @@
+[
+  {
+    "name": "bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/google",
+      "body": {
+        "idToken": "short"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "idToken": [
+              "Google ID token is required."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Google ID token is required.",
+              "path": "idToken"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "forged token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/google",
+      "body": {
+        "idToken": "eyJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIxIn0.c2lnbmF0dXJl"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Google sign-in token is invalid.",
+        "errorCode": "GOOGLE_TOKEN_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  }
+]

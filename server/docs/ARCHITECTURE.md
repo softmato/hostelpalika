@@ -171,9 +171,11 @@ Go additions on top of the TS design:
 - **singleflight** — concurrent misses for the same key run one Mongo query.
 - **pre-serialized bytes** — the cached value is the final JSON; a hit is
   written to the socket without decoding or re-encoding.
-- **version ETags** — for cached routes the ETag is derived from
-  `(userId, hostel version, routeKey)`, so `If-None-Match` is answered `304`
-  after one Redis `GET`, without touching the payload or Mongo.
+- **304 before work** — a cached route stores the finished envelope with its
+  ETag beside it (`r:{hostelId}:{version}:{userId}:{routeKey}`), so `If-None-Match`
+  is answered `304` after two Redis GETs, without Mongo or re-encoding. The tag is
+  TS's body hash, not one derived from the version alone: a change that does not
+  bump the version must still show within the 60 s TTL (`cache.Respond`).
 
 ## 6. Files, images and documents
 

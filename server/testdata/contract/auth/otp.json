@@ -1,0 +1,443 @@
+[
+  {
+    "name": "bad channel and address",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/otp/request",
+      "body": {
+        "channel": "sms",
+        "identifier": "bad"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "channel": [
+              "Invalid input: expected \"email\""
+            ],
+            "identifier": [
+              "Expected a valid email address."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected \"email\"",
+              "path": "channel"
+            },
+            {
+              "message": "Expected a valid email address.",
+              "path": "identifier"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "bad address only",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/otp/request",
+      "body": {
+        "channel": "email",
+        "identifier": "bad"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "identifier": [
+              "Expected a valid email address.",
+              "Expected a valid email address."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Expected a valid email address.",
+              "path": "identifier"
+            },
+            {
+              "message": "Expected a valid email address.",
+              "path": "identifier"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "taken address",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/otp/request",
+      "body": {
+        "channel": "email",
+        "identifier": "public@contract.test"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "An account already exists for this email. Try signing in.",
+        "errorCode": "ACCOUNT_ALREADY_EXISTS"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "request",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/otp/request",
+      "body": {
+        "channel": "email",
+        "identifier": "New.Person@contract.test"
+      }
+    },
+    "masks": [
+      "data.challengeId",
+      "data.devCode",
+      "data.expiresAt"
+    ],
+    "capture": {
+      "cid": "data.challengeId",
+      "code": "data.devCode"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "OTP challenge created",
+        "data": {
+          "challengeId": "6ae3056a6a513837b60649a1",
+          "delivery": {
+            "channel": "email",
+            "provider": "development",
+            "status": "development"
+          },
+          "expiresAt": "2026-10-29T08:45:54.015Z",
+          "devCode": "684837"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "cooldown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/otp/request",
+      "body": {
+        "channel": "email",
+        "identifier": "new.person@contract.test"
+      }
+    },
+    "response": {
+      "status": 429,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Please wait before requesting another OTP.",
+        "errorCode": "OTP_RESEND_COOLDOWN"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "verify bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/otp/verify",
+      "body": {
+        "challengeId": "x",
+        "code": "12"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "challengeId": [
+              "Expected a MongoDB ObjectId."
+            ],
+            "code": [
+              "Expected a 6-digit OTP code."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Expected a MongoDB ObjectId.",
+              "path": "challengeId"
+            },
+            {
+              "message": "Expected a 6-digit OTP code.",
+              "path": "code"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "verify unknown challenge",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/otp/verify",
+      "body": {
+        "challengeId": "6c00000000000000000000ee",
+        "code": "123456"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "OTP challenge is invalid or expired.",
+        "errorCode": "OTP_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "verify wrong code",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/otp/verify",
+      "body": {
+        "challengeId": "{{cid}}",
+        "code": "000000"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "OTP code is incorrect.",
+        "errorCode": "OTP_INCORRECT"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "verify",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/otp/verify",
+      "body": {
+        "challengeId": "{{cid}}",
+        "code": "{{code}}"
+      }
+    },
+    "masks": [
+      "data.challengeId",
+      "data.verifiedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "OTP verified",
+        "data": {
+          "challengeId": "6ae3056a6a513837b60649a1",
+          "channel": "email",
+          "identifier": "new.person@contract.test",
+          "verifiedAt": "2026-10-29T08:35:54.530Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "register bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/register",
+      "body": {
+        "email": "",
+        "name": "x",
+        "otpChallengeId": "nope",
+        "password": "short"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid email address",
+              "Email is required."
+            ],
+            "name": [
+              "Name is required."
+            ],
+            "otpChallengeId": [
+              "Expected a MongoDB ObjectId."
+            ],
+            "password": [
+              "Password must be at least 8 characters."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            },
+            {
+              "message": "Name is required.",
+              "path": "name"
+            },
+            {
+              "message": "Expected a MongoDB ObjectId.",
+              "path": "otpChallengeId"
+            },
+            {
+              "message": "Password must be at least 8 characters.",
+              "path": "password"
+            },
+            {
+              "message": "Email is required.",
+              "path": "email"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "register wrong email",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/register",
+      "body": {
+        "email": "other@contract.test",
+        "name": "New Person",
+        "otpChallengeId": "{{cid}}",
+        "password": "long-enough-1"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Verified OTP does not match this registration.",
+        "errorCode": "REGISTRATION_OTP_MISMATCH"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "register",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/register",
+      "body": {
+        "email": "new.person@contract.test",
+        "name": "New Person",
+        "otpChallengeId": "{{cid}}",
+        "password": "long-enough-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken",
+      "data.user.id"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Registration successful",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUFVCTElDIiwiaG9zdGVsSWRzIjpbXSwic2Vzc2lvbklkIjoiNmFlMzA1NmI2YTUxMzgzN2I2MDY0OWEzIiwidG9rZW5UeXBlIjoiYWNjZXNzIiwic3ViIjoiNmFlMzA1NmI2YTUxMzgzN2I2MDY0OWEyIiwiaWF0IjoxNzkzMjYyOTU1LCJleHAiOjE3OTMyNjM4NTV9.8LT-SCbBR-SCuk1nV520-PRrxq-Ce4fYM4TT0d19TLY",
+          "user": {
+            "id": "6ae3056b6a513837b60649a2",
+            "email": "new.person@contract.test",
+            "emailVerified": true,
+            "hostelIds": [],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "New Person",
+            "phone": null,
+            "role": "PUBLIC",
+            "redirectPath": "/",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "register again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/register",
+      "body": {
+        "email": "new.person@contract.test",
+        "name": "New Person",
+        "otpChallengeId": "{{cid}}",
+        "password": "long-enough-1"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "An account already exists for this email.",
+        "errorCode": "ACCOUNT_ALREADY_EXISTS"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  }
+]

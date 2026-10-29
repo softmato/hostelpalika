@@ -1,0 +1,355 @@
+[
+  {
+    "name": "set signed out",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/auth/lock-pin",
+      "body": {
+        "pin": "1234"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "set bad body",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/auth/lock-pin",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "pin": "12a"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "pin": [
+              "Enter 4 digits."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter 4 digits.",
+              "path": "pin"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "set first pin",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/auth/lock-pin",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "pin": "4321"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "PIN saved",
+        "data": {
+          "hasLockPin": true
+        }
+      },
+      "setCookie": [
+        "hostelpalika_unlock=<value>; Path=/; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "replace without proof",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/auth/lock-pin",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c000000000000000000a1:lockPin}}"
+      },
+      "body": {
+        "pin": "5555"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Enter your current PIN or the code sent to your email.",
+        "errorCode": "LOCK_PIN_PROOF_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "replace wrong pin",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/auth/lock-pin",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c000000000000000000a1:lockPin}}"
+      },
+      "body": {
+        "pin": "5555",
+        "currentPin": "0000"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Wrong PIN. Try again.",
+        "errorCode": "LOCK_PIN_INCORRECT"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "replace with pin",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/auth/lock-pin",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c000000000000000000a1:lockPin}}"
+      },
+      "body": {
+        "pin": "5555",
+        "currentPin": "1234"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "PIN saved",
+        "data": {
+          "hasLockPin": true
+        }
+      },
+      "setCookie": [
+        "hostelpalika_unlock=<value>; Path=/; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "verify wrong",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/lock-pin/verify",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c000000000000000000a1:lockPin}}"
+      },
+      "body": {
+        "pin": "0000"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Wrong PIN. Try again.",
+        "errorCode": "LOCK_PIN_INCORRECT"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "verify",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/lock-pin/verify",
+      "headers": {
+        "cookie": "hostelpalika_access_token={{access:6c0000000000000000000005:HOSTEL_ADMIN:6c000000000000000000a1:lockPin}}"
+      },
+      "body": {
+        "pin": "5555"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Unlocked",
+        "data": {
+          "verified": true
+        }
+      },
+      "setCookie": [
+        "hostelpalika_unlock=<value>; Path=/; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "touch signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/lock-pin/touch"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "touch still locked",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/lock-pin/touch",
+      "headers": {
+        "cookie": "hostelpalika_access_token={{access:6c0000000000000000000005:HOSTEL_ADMIN:6c000000000000000000a1:lockPin}}"
+      }
+    },
+    "response": {
+      "status": 423,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Enter your PIN to continue.",
+        "errorCode": "LOCK_PIN_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "touch bearer",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/lock-pin/touch",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c000000000000000000a1:lockPin}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Still here",
+        "data": {
+          "idleSeconds": 1800
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "pin locked browser elsewhere",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/biometric/code",
+      "headers": {
+        "cookie": "hostelpalika_access_token={{access:6c0000000000000000000005:HOSTEL_ADMIN:6c000000000000000000a1:lockPin}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Code sent",
+        "data": {
+          "challengeId": "6ae305646a513837b6064994",
+          "delivery": {
+            "channel": "email",
+            "provider": "development",
+            "status": "development"
+          },
+          "expiresAt": "2026-10-29T08:45:48.812Z",
+          "devCode": "686425"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10",
+    "masks": [
+      "data.challengeId",
+      "data.devCode",
+      "data.expiresAt"
+    ]
+  },
+  {
+    "name": "remove",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/auth/lock-pin",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c000000000000000000a1:lockPin}}"
+      },
+      "body": {
+        "currentPin": "5555"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "App lock is off",
+        "data": {
+          "hasLockPin": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "remove when none",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/auth/lock-pin",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "App lock is off",
+        "data": {
+          "hasLockPin": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  }
+]

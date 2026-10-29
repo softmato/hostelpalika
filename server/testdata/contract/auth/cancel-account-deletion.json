@@ -1,0 +1,116 @@
+[
+  {
+    "name": "bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/cancel-account-deletion",
+      "body": {
+        "token": ""
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "token": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "token"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "forged",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/cancel-account-deletion",
+      "body": {
+        "token": "forged"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This cancellation link is invalid or has expired.",
+        "errorCode": "INVALID_TOKEN"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "cancel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/cancel-account-deletion",
+      "body": {
+        "token": "{{purpose:cancel-account-deletion:6c000000000000000000000b}}"
+      }
+    },
+    "masks": [
+      "data.request.cancelledAt",
+      "data.request.requestedAt",
+      "data.request.scheduledDeletionAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account deletion cancelled",
+        "data": {
+          "request": {
+            "cancelled": true,
+            "cancelledAt": "2026-10-29T08:35:45.254Z",
+            "executed": false,
+            "hostelIds": [],
+            "id": "6c00000000000000000000f1",
+            "kind": "SELF_SERVICE",
+            "reason": "contract",
+            "requestedAt": "2026-10-28T08:35:43.956Z",
+            "requestedEmail": "deleting@contract.test",
+            "requestedRole": "PUBLIC",
+            "scheduledDeletionAt": "2026-12-27T08:35:43.956Z",
+            "userId": "6c000000000000000000000b"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "nothing left",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/cancel-account-deletion",
+      "body": {
+        "token": "{{purpose:cancel-account-deletion:6c000000000000000000000b}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "There is no deletion request to cancel on this account.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  }
+]

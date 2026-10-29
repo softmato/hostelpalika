@@ -21,23 +21,51 @@ import (
 	"time"
 
 	"github.com/softmato/hostelpalika/server/internal/contract"
+	"github.com/softmato/hostelpalika/server/internal/contract/fixture"
+	appmongo "github.com/softmato/hostelpalika/server/internal/platform/mongo"
 )
 
 func main() {
+	// mint prints a contract-secret token for a fixture spec (see fixture.Mint).
+	if len(os.Args) == 3 && os.Args[1] == "mint" {
+		t, ok := fixture.Mint(os.Args[2])
+		if !ok {
+			os.Exit(1)
+		}
+		fmt.Println(t)
+		return
+	}
 	if len(os.Args) < 2 || os.Args[1] != "record" {
-		fmt.Fprintln(os.Stderr, "usage: dev record -base URL case.json...")
+		fmt.Fprintln(os.Stderr, "usage: dev record -base URL [-fixture] case.json...")
 		os.Exit(2)
 	}
 	fs := flag.NewFlagSet("record", flag.ExitOnError)
 	base := fs.String("base", "http://localhost:3000", "TS server base URL")
 	baseline := fs.String("baseline", "", "git SHA of the TS code being recorded (PARITY.md baseline)")
+	withFixture := fs.Bool("fixture", false, "reset the contract database (fixture.URI) before each file; the TS server must be reading it")
 	_ = fs.Parse(os.Args[2:]) // ExitOnError: never returns an error
 	for _, path := range fs.Args() {
+		if *withFixture {
+			if err := resetFixture(); err != nil {
+				fmt.Fprintln(os.Stderr, "fixture:", err)
+				os.Exit(1)
+			}
+		}
 		if err := record(*base, *baseline, path); err != nil {
 			fmt.Fprintln(os.Stderr, "record:", err)
 			os.Exit(1)
 		}
 	}
+}
+
+func resetFixture() error {
+	ctx := context.Background()
+	client, db, err := appmongo.Connect(ctx, fixture.URI)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = client.Disconnect(ctx) }()
+	return fixture.Reset(ctx, db)
 }
 
 func record(base, baseline, path string) error {
@@ -46,39 +74,43 @@ func record(base, baseline, path string) error {
 		return err
 	}
 	client := &http.Client{
-		Timeout: 30 * time.Second,
+		Timeout: 60 * time.Second, // next dev compiles a route on its first hit
 		// Record redirects as TS answers them, don't follow them.
 		CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse },
 	}
+	vars := map[string]string{}
 	for i := range cases {
 		c := &cases[i]
+		method, reqPath, headers, raw := c.Request.Prepare(vars)
 		var body io.Reader
-		if len(c.Request.Body) > 0 {
-			body = bytes.NewReader(c.Request.Body)
+		if raw != nil {
+			body = bytes.NewReader(raw)
 		}
-		req, err := http.NewRequestWithContext(context.Background(), c.Request.Method, strings.TrimRight(base, "/")+c.Request.Path, body)
+		req, err := http.NewRequestWithContext(context.Background(), method, strings.TrimRight(base, "/")+reqPath, body)
 		if err != nil {
 			return fmt.Errorf("%s: %w", c.Name, err)
 		}
 		if body != nil {
 			req.Header.Set("Content-Type", "application/json")
 		}
-		for k, v := range c.Request.Headers {
+		for k, v := range headers {
 			req.Header.Set(k, v)
 		}
 		res, err := client.Do(req)
 		if err != nil {
 			return fmt.Errorf("%s: %w", c.Name, err)
 		}
-		raw, err := io.ReadAll(res.Body)
+		out, err := io.ReadAll(res.Body)
 		_ = res.Body.Close() // fully read
 		if err != nil {
 			return fmt.Errorf("%s: %w", c.Name, err)
 		}
-		c.Response = &contract.Response{Status: res.StatusCode, ContentType: res.Header.Get("Content-Type")}
-		if json.Valid(raw) {
-			c.Response.Body = raw
+		cookies := res.Header.Values("Set-Cookie")
+		c.Response = &contract.Response{Status: res.StatusCode, ContentType: res.Header.Get("Content-Type"), SetCookie: contract.NormalizeCookies(cookies)}
+		if json.Valid(out) {
+			c.Response.Body = out
 		}
+		contract.Collect(*c, cookies, out, vars)
 		c.Recorded = strings.TrimSpace(base + " " + baseline)
 		fmt.Printf("%s %s %s → %d\n", c.Name, c.Request.Method, c.Request.Path, res.StatusCode)
 	}

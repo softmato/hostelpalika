@@ -43,6 +43,9 @@ func ETag() gin.HandlerFunc {
 	}
 }
 
+// ETagOf is the tag withEtag gives a body.
+func ETagOf(body []byte) string { return etagOf(body) }
+
 func etagOf(body []byte) string {
 	units := utf16.Encode([]rune(string(body)))
 	h := uint32(0x811c9dc5)

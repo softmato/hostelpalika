@@ -1,0 +1,349 @@
+[
+  {
+    "name": "bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/signup",
+      "body": {
+        "email": "x",
+        "name": "a",
+        "password": "p"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Expected a valid email address."
+            ],
+            "name": [
+              "Name is required."
+            ],
+            "password": [
+              "Password must be at least 8 characters."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Expected a valid email address.",
+              "path": "email"
+            },
+            {
+              "message": "Name is required.",
+              "path": "name"
+            },
+            {
+              "message": "Password must be at least 8 characters.",
+              "path": "password"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "taken",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/signup",
+      "body": {
+        "email": "public@contract.test",
+        "name": "Someone",
+        "password": "long-enough-1"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "An account already exists for this email.",
+        "errorCode": "ACCOUNT_ALREADY_EXISTS"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "signup",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/signup",
+      "body": {
+        "email": " Fresh@Contract.test",
+        "name": " Fresh Person ",
+        "password": "long-enough-1"
+      }
+    },
+    "masks": [
+      "data.userId"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Account created. Check your inbox for the verification link.",
+        "data": {
+          "email": "fresh@contract.test",
+          "userId": "6ae305706a513837b60649a9"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "not verified yet",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "fresh@contract.test",
+        "password": "long-enough-1"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Email is not verified. Check your inbox for the verification link.",
+        "errorCode": "EMAIL_NOT_VERIFIED"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "resend for unverified",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/resend-verification",
+      "body": {
+        "email": "fresh@contract.test"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "If that email needs verification, a new link has been sent.",
+        "data": {
+          "requested": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "resend for unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/resend-verification",
+      "body": {
+        "email": "nobody@contract.test"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "If that email needs verification, a new link has been sent.",
+        "data": {
+          "requested": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "resend bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/resend-verification",
+      "body": {
+        "email": 5
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid input: expected string, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "email"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "verify short token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/verify-email",
+      "body": {
+        "token": "short"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "token": [
+              "Verification token is required."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Verification token is required.",
+              "path": "token"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "verify forged token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/verify-email",
+      "body": {
+        "token": "a.very-long-but-forged.token-value"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Verification link is invalid or expired.",
+        "errorCode": "VERIFICATION_TOKEN_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "verify",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/verify-email",
+      "body": {
+        "token": "{{purpose:verify-email:6c0000000000000000000002}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Email verified. You can now log in.",
+        "data": {
+          "verified": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "verify unknown account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/verify-email",
+      "body": {
+        "token": "{{purpose:verify-email:6c00000000000000000000ee}}"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Account no longer exists.",
+        "errorCode": "USER_INACTIVE"
+      }
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  },
+  {
+    "name": "now signs in",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "body": {
+        "identifier": "unverified@contract.test",
+        "password": "Contract-pass-1"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.refreshToken"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Login successful",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUFVCTElDIiwiaG9zdGVsSWRzIjpbXSwic2Vzc2lvbklkIjoiNmFlMzA1NzE2YTUxMzgzN2I2MDY0OWFhIiwidG9rZW5UeXBlIjoiYWNjZXNzIiwic3ViIjoiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMDAyIiwiaWF0IjoxNzkzMjYyOTYxLCJleHAiOjE3OTMyNjM4NjF9.rzrZTaMVvNhqb4CpCm43ACPYEkACpTigzxvgf6AS2d4",
+          "user": {
+            "id": "6c0000000000000000000002",
+            "email": "unverified@contract.test",
+            "emailVerified": true,
+            "hostelIds": [],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract unverified",
+            "phone": null,
+            "role": "PUBLIC",
+            "redirectPath": "/",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 41b0ef10"
+  }
+]

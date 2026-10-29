@@ -4,9 +4,12 @@
 package contract
 
 import (
+	"regexp"
+
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/softmato/hostelpalika/server/internal/contract/fixture"
 	"mime"
 	"os"
 	"path/filepath"
@@ -20,9 +23,12 @@ type Case struct {
 	Request Request `json:"request"`
 	// Masks are dot paths (`data.items.0.id`, `*` matches any key or index) whose
 	// values can't match by design: generated ids, timestamps, reference codes.
-	Masks    []string  `json:"masks,omitempty"`
-	Response *Response `json:"response,omitempty"` // nil until recorded
-	Recorded string    `json:"recorded,omitempty"` // TS base URL + baseline, for the reader
+	Masks []string `json:"masks,omitempty"`
+	// Capture saves response values for later cases in the file, as
+	// {{name}}: a dot path into the body, or "cookie:<name>" from Set-Cookie.
+	Capture  map[string]string `json:"capture,omitempty"`
+	Response *Response         `json:"response,omitempty"` // nil until recorded
+	Recorded string            `json:"recorded,omitempty"` // TS base URL + baseline, for the reader
 }
 
 type Request struct {
@@ -36,6 +42,9 @@ type Response struct {
 	Status      int             `json:"status"`
 	ContentType string          `json:"contentType"`
 	Body        json.RawMessage `json:"body,omitempty"`
+	// SetCookie is every Set-Cookie line, values and Expires dates blanked
+	// (NormalizeCookies): names, paths and flags must match exactly.
+	SetCookie []string `json:"setCookie,omitempty"`
 }
 
 // Files returns every case file under root, sorted.
@@ -73,9 +82,12 @@ func Save(path string, cases []Case) error {
 // Diff compares a Go response with the recording and returns what differs.
 // The media type is compared without parameters: Next sends
 // `application/json`, Gin adds `; charset=utf-8`, and no client reads it.
-func Diff(c Case, status int, contentType string, body []byte) []string {
+func Diff(c Case, status int, contentType string, setCookie []string, body []byte) []string {
 	want := c.Response
 	var diffs []string
+	if got := NormalizeCookies(setCookie); !reflect.DeepEqual(got, want.SetCookie) && (len(got) > 0 || len(want.SetCookie) > 0) {
+		diffs = append(diffs, fmt.Sprintf("set-cookie:\n  got  %q\n  want %q", got, want.SetCookie))
+	}
 	if status != want.Status {
 		diffs = append(diffs, fmt.Sprintf("status: got %d, want %d", status, want.Status))
 	}
@@ -183,4 +195,78 @@ func order(raw []byte) string {
 		}
 	}
 	return strings.Join(keys, "\x00")
+}
+
+// NormalizeCookies blanks what changes per run: a non-empty value and Expires.
+func NormalizeCookies(lines []string) []string {
+	var out []string
+	for _, l := range lines {
+		parts := strings.Split(l, "; ")
+		if name, val, ok := strings.Cut(parts[0], "="); ok && val != "" {
+			parts[0] = name + "=<value>"
+		}
+		for i, p := range parts[1:] {
+			if strings.HasPrefix(p, "Expires=") {
+				parts[i+1] = "Expires=<date>"
+			}
+		}
+		out = append(out, strings.Join(parts, "; "))
+	}
+	return out
+}
+
+var placeholder = regexp.MustCompile(`\{\{([^{}]+)\}\}`)
+
+// Expand fills {{name}}: a captured value, else a fixture-minted token.
+func Expand(s string, vars map[string]string) string {
+	return placeholder.ReplaceAllStringFunc(s, func(m string) string {
+		name := m[2 : len(m)-2]
+		if v, ok := vars[name]; ok {
+			return v
+		}
+		if t, ok := fixture.Mint(name); ok {
+			return t
+		}
+		return m
+	})
+}
+
+// Prepare is the request with every placeholder filled.
+func (r Request) Prepare(vars map[string]string) (method, path string, headers map[string]string, body []byte) {
+	headers = map[string]string{}
+	for k, v := range r.Headers {
+		headers[k] = Expand(v, vars)
+	}
+	if len(r.Body) > 0 {
+		body = []byte(Expand(string(r.Body), vars))
+	}
+	return r.Method, Expand(r.Path, vars), headers, body
+}
+
+// Collect stores a case's captures from the raw response.
+func Collect(c Case, setCookie []string, body []byte, vars map[string]string) {
+	if len(c.Capture) == 0 {
+		return
+	}
+	var doc any
+	_ = json.Unmarshal(body, &doc)
+	for name, path := range c.Capture {
+		if cookie, ok := strings.CutPrefix(path, "cookie:"); ok {
+			for _, l := range setCookie {
+				if v, ok := strings.CutPrefix(strings.SplitN(l, ";", 2)[0], cookie+"="); ok && v != "" {
+					vars[name] = v
+				}
+			}
+			continue
+		}
+		node := doc
+		for _, k := range strings.Split(path, ".") {
+			if m, ok := node.(map[string]any); ok {
+				node = m[k]
+			}
+		}
+		if s, ok := node.(string); ok {
+			vars[name] = s
+		}
+	}
 }

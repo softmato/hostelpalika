@@ -12,10 +12,17 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	authmod "github.com/softmato/hostelpalika/server/internal/modules/auth"
+	"github.com/softmato/hostelpalika/server/internal/platform/audit"
+	"github.com/softmato/hostelpalika/server/internal/platform/auth"
+	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/background"
+	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/config"
+	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/obs"
+	"github.com/softmato/hostelpalika/server/internal/platform/ratelimit"
 )
 
 // Deps are the process-wide clients every module reads from. Redis may be nil
@@ -48,7 +55,28 @@ func New(cfg *config.Config, d Deps) (*gin.Engine, error) {
 
 	v1 := r.Group("/api/v1")
 	v1.GET("/health", health(d))
+	if d.DB != nil {
+		mountAPI(v1, cfg, d)
+	}
 	return r, nil
+}
+
+// mountAPI builds the platform services every module shares and mounts the
+// ported route groups. Needs a database; the no-DB router serves health only.
+func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
+	bg := d.Background
+	if bg == nil {
+		bg = &background.Runner{}
+	}
+	tokens := auth.NewTokens(cfg.Auth.AccessSecret, cfg.Auth.RefreshSecret, cfg.Auth.AccessTTL, cfg.Auth.RefreshTTL)
+	cookies := &auth.Cookies{Tokens: tokens, Secure: cfg.IsProduction(), Domain: cfg.CookieDomain}
+	guards := authz.New(tokens, cookies, d.DB, cache.New(d.Redis), bg)
+	limiter := ratelimit.New(d.Redis, cfg.Limits.PublicFormMax, cfg.Limits.PublicFormWindow)
+	sender := email.NewSender(cfg.Email.ResendAPIKey, cfg.Email.Domain, cfg.Email.ReplyTo, d.DB)
+	log := audit.New(d.DB)
+
+	authSvc := authmod.NewService(d.DB, cfg, tokens, auth.NewSessions(d.DB, cfg.Auth.RefreshTTL), sender, log)
+	authmod.NewHandler(authSvc, guards, cookies, limiter).Register(v1)
 }
 
 type healthData struct {
