@@ -108,6 +108,9 @@ const hostelSchema = new Schema(
         alt: { type: String, trim: true },
         fileAssetId: { ref: "FileAsset", type: Schema.Types.ObjectId },
         url: { type: String, trim: true },
+        // The 640px WebP beside the original (lib/image-optimizer), written after
+        // upload; cards read this, the full viewer reads `url`. Empty until made.
+        mediumUrl: { type: String, trim: true },
         // EXTERIOR (max 3) leads the public listing; INTERIOR (max 20) fills
         // the gallery; ROOM (max 10 per room type) illustrates one entry of
         // roomConfigurations. Limits enforced in the profile service.

@@ -20,7 +20,8 @@
     "build:production": "eas build --profile production --platform android",
     "build:test": "expo export --platform android --output-dir dist",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "postinstall": "node scripts/patch-native-deps.mjs"
   },
   "dependencies": {
     "@expo/metro-runtime": "~57.0.10",

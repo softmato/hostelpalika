@@ -50,6 +50,7 @@ Once every printed line is handled, **move the baseline**: replace `2be44935` in
 | 2026-10-29 | `7bf6c91b` → `541e46cf` | — | — (2 M: `reports/report.validation.ts`, `stock/stock.service.ts`; neither ported yet) | — |
 | 2026-10-29 | `541e46cf` → `41b0ef10` | — (no TS changes; only `server/` commits) | — | — |
 | 2026-10-29 | `41b0ef10` → `2be44935` | — (no TS changes; only `server/` commits) | — | — |
+| 2026-10-29 | `2be44935` → working tree (uncommitted) | `Hostel.photos[].mediumUrl` (640px WebP card copy); `npm --prefix apps/web run backfill:photo-variants` | `GET /public/hostels`, `/public/hostels/:slug`, `/public/hostels/compare` — every photo now carries `mediumUrl` (`""` until made); `POST /hostel-admin/profile/photos` (☐) must run `attachPhotoVariant` after responding: `lib/image-optimizer` MEDIUM variant → `photos.$[p].mediumUrl` | — |
 
 ---
 
@@ -738,13 +739,13 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | POST | `/api/v1/public/hostel-applications/:id/resubmit-documents` | requireApiPrincipal |  | hostels |
 | ☐ | GET | `/api/v1/public/hostel-applications/my-applications` | requireApiPrincipal | etag | hostels |
 | ☐ | GET | `/api/v1/public/hostel-referral-codes/:code` | rateLimitPublicForm | etag | hostel-referrals |
-| ☑ | GET | `/api/v1/public/hostels` | public | etag | hostels |
-| ☑ | GET | `/api/v1/public/hostels/:slug` | public |  | hostels |
+| ☐ | GET | `/api/v1/public/hostels` | public | etag | hostels |
+| ☐ | GET | `/api/v1/public/hostels/:slug` | public |  | hostels |
 | ☐ | POST | `/api/v1/public/hostels/:slug/arriving` | rateLimitPublicForm, requireApiPrincipal |  | arrivals |
 | ☐ | POST | `/api/v1/public/hostels/:slug/inquiries` | rateLimitPublicForm, loadApiPrincipal |  | hostels, users |
 | ☑ | GET | `/api/v1/public/hostels/:slug/reviews` | public |  | reviews |
 | ☐ | POST | `/api/v1/public/hostels/:slug/views` | rateLimitPublicForm, loadApiPrincipal |  | hostels |
-| ☑ | GET | `/api/v1/public/hostels/compare` | public | etag | hostels |
+| ☐ | GET | `/api/v1/public/hostels/compare` | public | etag | hostels |
 | ☐ | POST | `/api/v1/public/hostels/impressions` | rateLimitPublicForm |  | hostels |
 | ☐ | POST | `/api/v1/public/hostels/quick-register` | rateLimitPublicForm, requireApiPrincipal |  | hostels |
 | ☐ | POST | `/api/v1/public/hostels/register` | rateLimitPublicForm, loadApiPrincipal |  | hostels |

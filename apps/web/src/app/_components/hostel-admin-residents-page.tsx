@@ -21,6 +21,7 @@ import Link from "next/link";
 import {
   memo,
   useCallback,
+  useEffect,
   useMemo,
   useState,
   type FormEvent,
@@ -54,6 +55,7 @@ import {
 import { useWorkspaceHref } from "@/hooks/use-workspace-href";
 import { browserApi } from "@/lib/browser-api";
 import { ExportMenu } from "@/components/export-menu";
+import type { ResidentDetails } from "@/modules/residents/resident-details";
 import { downloadTable, type TableFormat } from "@/lib/downloads/downloader";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
@@ -74,7 +76,7 @@ import {
 import { ResidentDaysAway } from "./money-rules-panel";
 import { CHARGE_KEYS, ResidentCharges } from "./resident-charges-field";
 import { ResidentMoveOutDialog } from "./resident-move-out-dialog";
-import { JoinLinkButton, JoinRequestsPanel } from "./resident-join-panel";
+import { JoinLinkButton, JoinRequestsButton, JoinRequestsPanel } from "./resident-join-panel";
 import {
   ADMISSION_FORMS_URL,
   AdmissionFormsPanel,
@@ -324,9 +326,177 @@ function FormSection({
         <h4 className="text-sm font-bold text-foreground">{title}</h4>
         <p className="text-xs text-muted-foreground">{description}</p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
+      <div className="grid items-start gap-4 sm:grid-cols-2 lg:grid-cols-3">{children}</div>
     </section>
   );
+}
+
+/** Mounts on open, unmounts after the close has eased out; `shown` flips a frame later so the open animates. */
+function useEaseMount(open: boolean, ms = 300) {
+  const [mounted, setMounted] = useState(open);
+  const [shown, setShown] = useState(open);
+
+  useEffect(() => {
+    if (open) {
+      setMounted(true);
+      const frame = requestAnimationFrame(() => requestAnimationFrame(() => setShown(true)));
+      return () => cancelAnimationFrame(frame);
+    }
+    setShown(false);
+    const timer = setTimeout(() => setMounted(false), ms);
+    return () => clearTimeout(timer);
+  }, [open, ms]);
+
+  return { mounted, shown };
+}
+
+/** Height and fade ease together (0fr → 1fr), in place; the parent's space-y-6 gap rides inside as pb-6. */
+function EaseBox({ children, open }: { children: ReactNode; open: boolean }) {
+  return (
+    <div
+      className={cn(
+        "!m-0 grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+        open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+      )}
+      inert={!open}
+    >
+      <div className="-m-1 min-h-0 overflow-hidden p-1">
+        <div className="pb-6">{children}</div>
+      </div>
+    </div>
+  );
+}
+
+const GENDER_OPTIONS = [
+  ["MALE", "Male"],
+  ["FEMALE", "Female"],
+  ["OTHER", "Other"],
+] as const;
+const FOOD_OPTIONS = [
+  ["VEG", "Vegetarian"],
+  ["EGGETARIAN", "Only egg"],
+  ["NON_VEG", "Non-veg"],
+] as const;
+const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
+const FAMILY = [
+  ["father", "Father", "Father's name"],
+  ["mother", "Mother", "Mother's name"],
+  ["spouse", "Spouse", "Spouse name"],
+] as const;
+
+/** The paper admission form's questions, as the app asks them on its no-card path. Names are `d.<key>`. */
+function AdmissionFields() {
+  return (
+    <>
+      <FormSection description="Everything the paper form asks. Only the name and number above are required." title="Personal">
+        <FormInput label="Date of birth" name="d.dateOfBirth" type="date" />
+        <FormSelect defaultValue="" label="Gender" name="d.gender">
+          <option value="">Select</option>
+          {GENDER_OPTIONS.map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </FormSelect>
+        <FormSelect defaultValue="" label="Blood group" name="d.bloodGroup">
+          <option value="">Select</option>
+          {BLOOD_GROUPS.map((group) => (
+            <option key={group} value={group}>{group}</option>
+          ))}
+        </FormSelect>
+        <FormSelect defaultValue="" label="Food" name="d.food">
+          <option value="">Select</option>
+          {FOOD_OPTIONS.map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </FormSelect>
+      </FormSection>
+
+      <FormSection description="Where they are from." title="Address">
+        <FormInput label="District" name="d.district" />
+        <FormInput label="Metro / Municipality / Rural" name="d.municipality" />
+        <FormInput label="Ward no." name="d.wardNo" />
+        <FormInput label="Street / Tole / Chowk" name="d.tole" />
+      </FormSection>
+
+      <FormSection description="From their citizenship certificate." title="Citizenship">
+        <FormInput label="Citizenship no." name="d.citizenshipNo" />
+        <FormInput label="Date of issue" name="d.citizenshipIssuedOn" placeholder="2078-04-12" />
+        <FormInput label="Place of issue" name="d.citizenshipIssuedAt" />
+      </FormSection>
+
+      <FormSection description="School or college, and how long they will stay." title="Study">
+        <FormInput label="Name of the educational institute" name="d.institution" />
+        <FormInput label="Level of study" name="d.levelOfStudy" placeholder="Bachelor" />
+        <FormInput label="Class time" name="d.classTime" placeholder="6 – 11 AM" />
+        <FormInput label="How long in the hostel" name="d.stayDuration" placeholder="1 year" />
+      </FormSection>
+
+      <FormSection description="Fill in whoever applies. A number saves them as a guardian record." title="Family">
+        {FAMILY.map(([key, , label]) => (
+          <div className="grid gap-4 sm:col-span-2 sm:grid-cols-3 lg:col-span-3" key={key}>
+            <FormInput label={label} name={`d.${key}Name`} />
+            <FormInput label="Contact no." name={`d.${key}Phone`} />
+            <FormInput label="Occupation" name={`d.${key}Occupation`} />
+          </div>
+        ))}
+      </FormSection>
+
+      <FormSection description="Someone near the hostel they can be reached through." title="Local guardian">
+        <FormInput label="Name" name="d.localName" />
+        <FormInput label="Relation" name="d.localRelation" placeholder="Uncle" />
+        <FormInput label="Contact no." name="d.localPhone" />
+        <FormInput label="Occupation" name="d.localOccupation" />
+        <FormInput label="Address" name="d.localAddress" />
+      </FormSection>
+
+      <FormSection description="Anything the hostel should know." title="Health">
+        <FormInput label="Any disease? (if any)" name="d.medicalNotes" placeholder="Optional" />
+      </FormSection>
+    </>
+  );
+}
+
+/** The form's answers as the server's `details`; blank boxes are left out. */
+function detailsFromForm(form: FormData): ResidentDetails | undefined {
+  const v = (key: string) => optionalField(form, `d.${key}`);
+  const family = FAMILY.filter(([key]) => (v(`${key}Name`) ?? "").length >= 2).map(([key, relation]) => ({
+    name: v(`${key}Name`)!,
+    occupation: v(`${key}Occupation`),
+    phone: v(`${key}Phone`),
+    relation,
+  }));
+  const local = v("localName");
+  const details: ResidentDetails = {
+    // Selects with fixed options; the server's schema still checks each value.
+    bloodGroup: v("bloodGroup") as ResidentDetails["bloodGroup"],
+    citizenshipIssuedAt: v("citizenshipIssuedAt"),
+    citizenshipIssuedOn: v("citizenshipIssuedOn"),
+    citizenshipNo: v("citizenshipNo"),
+    classTime: v("classTime"),
+    dateOfBirth: v("dateOfBirth"),
+    district: v("district"),
+    family,
+    food: v("food") as ResidentDetails["food"],
+    gender: v("gender") as ResidentDetails["gender"],
+    institution: v("institution"),
+    levelOfStudy: v("levelOfStudy"),
+    localGuardian:
+      local && local.length >= 2
+        ? {
+            address: v("localAddress"),
+            name: local,
+            occupation: v("localOccupation"),
+            phone: v("localPhone"),
+            relation: (v("localRelation") ?? "").length >= 2 ? v("localRelation")! : "Local guardian",
+          }
+        : undefined,
+    medicalNotes: v("medicalNotes"),
+    municipality: v("municipality"),
+    stayDuration: v("stayDuration"),
+    tole: v("tole"),
+    wardNo: v("wardNo"),
+  };
+
+  return Object.values(details).some((value) => (Array.isArray(value) ? value.length : value !== undefined)) ? details : undefined;
 }
 
 /**
@@ -406,6 +576,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
   const [statusFilter, setStatusFilter] = useState("ACTIVE");
   const [typeFilter, setTypeFilter] = useState("ALL");
   const [showAddForm, setShowAddForm] = useState(false);
+  const addForm = useEaseMount(showAddForm);
   const [lookupId, setLookupId] = useState("");
   const [lookupBusy, setLookupBusy] = useState(false);
   const [lookupError, setLookupError] = useState("");
@@ -422,6 +593,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
   /** The Form QR submission this registration answers, when it came from one. */
   const [fromForm, setFromForm] = useState<AdmissionForm | null>(null);
   const [formQrOpen, setFormQrOpen] = useState(false);
+  const [joinOpen, setJoinOpen] = useState(false);
   const invalidate = useInvalidateResources();
   /** "identify" asks for the resident ID first; "form" is the actual registration. */
   const [addStep, setAddStep] = useState<"identify" | "form">("identify");
@@ -730,6 +902,8 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
       event.preventDefault();
       const formElement = event.currentTarget;
       const form = new FormData(formElement);
+      // Typed by hand (no card, no Form QR): the admission-form answers on this screen.
+      const manualDetails = prefill || fromForm ? undefined : detailsFromForm(form);
 
       setSaveBusy(true);
 
@@ -798,7 +972,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
             // The Form QR they filled: the server files their paper details and
             // marks the form added.
             admissionFormId: fromForm?.id,
-            details: fromForm?.details ?? undefined,
+            details: fromForm?.details ?? manualDetails,
           }),
           method: "POST",
         });
@@ -829,9 +1003,9 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
         }
 
         // Their family and local guardian from the form — what the app writes too.
-        if (fromForm) {
+        if (fromForm || manualDetails) {
           const residentId = created.resident.id;
-          const { emergencyContact, guardians } = detailsContacts(fromForm.details);
+          const { emergencyContact, guardians } = detailsContacts(fromForm?.details ?? manualDetails ?? null);
           const outcomes = await Promise.allSettled([
             ...guardians.map((guardian) =>
               browserApi(`/api/v1/hostel-admin/residents/${residentId}/guardians`, {
@@ -986,6 +1160,12 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
         actions={
           <>
             <JoinLinkButton />
+            <JoinRequestsButton onToggle={() => setJoinOpen((value) => !value)} open={joinOpen} />
+            <ExportMenu
+              disabled={exporting}
+              label={exporting ? "Exporting…" : "Export"}
+              onExport={({ format }) => void exportResidents(format)}
+            />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button aria-label="More resident actions" className="size-9 rounded-xl" size="icon" type="button" variant="outline">
@@ -1039,7 +1219,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
 
       <AdmissionFormsPanel onRegister={registerFromForm} />
 
-      <JoinRequestsPanel />
+      <JoinRequestsPanel open={joinOpen} />
 
       {/* Floor & room is on and some residents — usually those from before — have no room yet. */}
       {roomLayout.data?.tracking && roomLayout.data.rooms.length > 0 && roomLayout.data.unassigned.length > 0 ? (
@@ -1059,7 +1239,8 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
         </Link>
       ) : null}
 
-      {showAddForm ? (
+      {addForm.mounted ? (
+        <EaseBox open={addForm.shown}>
         <SectionCard
           actions={
             <Button
@@ -1241,6 +1422,9 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
               />
             </FormSection>
 
+            {/* A scanned card or a sent Form QR already answered all of this. */}
+            {!prefill && !fromForm ? <AdmissionFields /> : null}
+
             <FormSection
               description="Picking a room type sets that type's monthly rent automatically."
               title="Room & stay"
@@ -1339,6 +1523,7 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
             </div>
           </form>
         </SectionCard>
+        </EaseBox>
       ) : null}
 
       <div className="grid gap-5 xl:grid-cols-[1fr_360px]">
@@ -1398,11 +1583,6 @@ export const HostelAdminResidentsPage = memo(function HostelAdminResidentsPage()
                 <Users className="size-3.5" />
                 {residentsQuery.pagination?.total ?? filteredResidents.length} residents
               </span>
-              <ExportMenu
-                disabled={exporting}
-                label={exporting ? "Exporting…" : "Export"}
-                onExport={({ format }) => void exportResidents(format)}
-              />
             </div>
           </div>
 

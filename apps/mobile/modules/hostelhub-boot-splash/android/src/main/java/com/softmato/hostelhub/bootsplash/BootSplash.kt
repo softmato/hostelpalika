@@ -29,12 +29,12 @@ import android.widget.ImageView
  * Timeline and geometry. `src/components/brand-splash.tsx` plays the same
  * animation for phones without this module (iOS, the PWA) — keep the two in step.
  */
-private const val STRIP_DELAY_MS = 300L
-private const val STRIP_MS = 450L
+private const val STRIP_DELAY_MS = 200L
+private const val STRIP_MS = 300L
 private const val STRIP_RISE_DP = 14f
-private const val SHINE_DELAY_MS = 750L
-private const val SHINE_MS = 750L
-private const val FADE_OUT_MS = 320L
+private const val SHINE_DELAY_MS = 500L
+private const val SHINE_MS = 500L
+private const val FADE_OUT_MS = 220L
 
 /** The system draws `splashscreen_logo` in a 288dp icon box; drawing it in the same box lands every pixel in place. */
 private const val LOGO_DP = 288f
@@ -58,7 +58,7 @@ private const val LOADER_HEIGHT_DP = 3f
 /** Bar centre below the screen centre: the wordmark's ink ends 43dp down (imageWidth 210), then a 22dp gap. */
 private const val LOADER_OFFSET_DP = 67f
 private const val LOADER_HOLD = 0.85f
-private const val LOADER_FINISH_MS = 220L
+private const val LOADER_FINISH_MS = 160L
 /** `brand` and `brandSoft` in src/constants/theme.ts. */
 private const val LOADER_FILL = 0xFF0A8A4B.toInt()
 private const val LOADER_TRACK = 0xFFE6F4EC.toInt()

@@ -2,7 +2,17 @@ import { bedsForRoomType, roomTypeLabel } from "@hostel/constants/room-types";
 import { router } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
-import Animated, { FadeIn, FadeOut, ReduceMotion } from "react-native-reanimated";
+import { Gesture, GestureDetector, GestureHandlerRootView } from "react-native-gesture-handler";
+import Animated, {
+  FadeIn,
+  FadeOut,
+  ReduceMotion,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
 
 import { NumberStepper } from "@/components/step-flow";
 import { ActionTiles } from "@/components/ui/action-grid";
@@ -33,6 +43,7 @@ import {
   deleteRoom,
   floorLabel,
   getRoomLayout,
+  orderRooms,
   type Room,
   type RoomLayout,
   roomsQuery,
@@ -259,6 +270,10 @@ function FloorPlan({
   const [selected, setSelected] = useState<string[]>([]);
   const [openNumber, setOpenNumber] = useState<string | null>(null);
   const [sheet, setSheet] = useState<"type" | "renumber" | null>(null);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const [order, setOrder] = useState<{ floor: number; ids: string[] } | null>(null);
+  const spots = useRef(new Map<string, { height: number; width: number; x: number; y: number }>());
   const taken = rooms.map((room) => room.number);
   const current = floors.find((entry) => entry.floor === floorPick) ?? floors[0];
   const open = rooms.find((room) => room.number === openNumber) ?? null;
@@ -291,13 +306,42 @@ function FloorPlan({
     else setOpenNumber(room.number);
   };
 
+  // A long press that never moves still selects, as it always did.
+  const pressSelect = (id: string) => setSelected((list) => [...new Set([...list, id])]);
+
   const chosen = rooms.filter((room) => selected.includes(room.id)).sort(byNumber);
 
   if (!current) {
     return <EmptyCard action={<Button disabled={busy} icon="add" label="Add ground floor" onPress={addFloor} />} title="No floors added yet" />;
   }
 
-  const onFloor = [...current.rooms].sort(byNumber);
+  // The server sends each floor in the owner's dragged order; a drop shows at once, before the save returns.
+  const onFloor = order?.floor === current.floor ? [...current.rooms].sort((a, b) => order.ids.indexOf(a.id) - order.ids.indexOf(b.id)) : current.rooms;
+  const hitTile = (id: string, dx: number, dy: number) => {
+    const from = spots.current.get(id);
+    if (!from) return null;
+    const cx = from.x + from.width / 2 + dx;
+    const cy = from.y + from.height / 2 + dy;
+    return onFloor.find((room) => {
+      const spot = spots.current.get(room.id);
+      return room.id !== id && spot && cx >= spot.x && cx <= spot.x + spot.width && cy >= spot.y && cy <= spot.y + spot.height;
+    })?.id ?? null;
+  };
+  const dropOn = (id: string, dx: number, dy: number, moved: boolean) => {
+    setOverId(null);
+    setDragId(null);
+    if (!moved) {
+      pressSelect(id);
+      return;
+    }
+    const target = hitTile(id, dx, dy);
+    if (!target) return;
+    const ids = onFloor.map((room) => room.id).filter((roomId) => roomId !== id);
+    ids.splice(onFloor.findIndex((room) => room.id === target), 0, id);
+    const real = ids.filter((roomId) => !roomId.startsWith("new:"));
+    setOrder({ floor: current.floor, ids });
+    void run(() => orderRooms(current.floor, real)).then(() => setOrder(null));
+  };
   const ofChip = chip ? onFloor.filter((room) => room.roomType === chip).length : 0;
 
   return (
@@ -395,24 +439,42 @@ function FloorPlan({
           </Animated.View>
         ) : null}
 
-        <View className="flex-row flex-wrap justify-between gap-y-2">
+        <GestureHandlerRootView className="flex-row flex-wrap justify-between gap-y-2">
           {onFloor.map((room) => {
             const isNew = fresh.includes(room.number);
             return (
-              <Animated.View className="w-[23%]" entering={isNew ? fade.in : undefined} exiting={fade.out} key={room.number}>
-                <RoomTile
-                  fresh={isNew}
-                  onLongPress={() => !room.id.startsWith("new:") && setSelected((list) => [...new Set([...list, room.id])])}
-                  onPress={() => !room.id.startsWith("new:") && pressTile(room)}
-                  room={room}
-                  selected={selected.includes(room.id)}
-                />
+              <Animated.View
+                className="w-[23%]"
+                entering={isNew ? fade.in : undefined}
+                exiting={fade.out}
+                key={room.number}
+                onLayout={(event) => spots.current.set(room.id, event.nativeEvent.layout)}
+                style={{ zIndex: dragId === room.id ? 10 : 0 }}
+              >
+                <DragTile
+                  enabled={!busy && !room.id.startsWith("new:")}
+                  id={room.id}
+                  onDrag={(id, dx, dy) => {
+                    const next = hitTile(id, dx, dy);
+                    setOverId((was) => (was === next ? was : next));
+                  }}
+                  onDrop={dropOn}
+                  onLift={setDragId}
+                  over={overId === room.id}
+                >
+                  <RoomTile
+                    fresh={isNew}
+                    onPress={() => !room.id.startsWith("new:") && pressTile(room)}
+                    room={room}
+                    selected={selected.includes(room.id)}
+                  />
+                </DragTile>
               </Animated.View>
             );
           })}
           {/* Keeps the last row's tiles their own width. */}
           {Array.from({ length: (4 - (onFloor.length % 4)) % 4 }, (_, at) => <View className="w-[23%]" key={`gap:${at}`} />)}
-        </View>
+        </GestureHandlerRootView>
       </Card>
 
       <RoomSheet busy={busy} onClose={() => setOpenNumber(null)} room={open} run={run} types={types} />
@@ -463,8 +525,70 @@ function renumber(first: string, count: number) {
   return Array.from({ length: count }, (_, at) => `${prefix}${String(Number(digits) + at).padStart(digits.length, "0")}`);
 }
 
+/**
+ * Hold a tile and it lifts out of the grid; drag it over another room and let go
+ * to put it there. Letting go without moving selects it. The order is saved per floor.
+ */
+function DragTile({
+  children,
+  enabled,
+  id,
+  onDrag,
+  onDrop,
+  onLift,
+  over,
+}: {
+  children: React.ReactNode;
+  enabled: boolean;
+  id: string;
+  onDrag: (id: string, dx: number, dy: number) => void;
+  onDrop: (id: string, dx: number, dy: number, moved: boolean) => void;
+  onLift: (id: string) => void;
+  over: boolean;
+}) {
+  const x = useSharedValue(0);
+  const y = useSharedValue(0);
+  const lift = useSharedValue(0);
+
+  const pan = Gesture.Pan()
+    .enabled(enabled)
+    .activateAfterLongPress(300)
+    .onStart(() => {
+      lift.value = withTiming(1, { duration: 120 });
+      runOnJS(onLift)(id);
+    })
+    .onUpdate((event) => {
+      x.value = event.translationX;
+      y.value = event.translationY;
+      runOnJS(onDrag)(id, event.translationX, event.translationY);
+    })
+    .onEnd((event) => {
+      runOnJS(onDrop)(id, event.translationX, event.translationY, Math.abs(event.translationX) > 10 || Math.abs(event.translationY) > 10);
+    })
+    .onFinalize(() => {
+      x.value = withSpring(0, { damping: 18, stiffness: 220 });
+      y.value = withSpring(0, { damping: 18, stiffness: 220 });
+      lift.value = withTiming(0, { duration: 160 });
+    });
+
+  const style = useAnimatedStyle(() => ({
+    elevation: lift.value * 8,
+    shadowColor: "#000",
+    shadowOffset: { height: 6, width: 0 },
+    shadowOpacity: lift.value * 0.25,
+    shadowRadius: 10,
+    transform: [{ translateX: x.value }, { translateY: y.value }, { scale: 1 + lift.value * 0.08 }],
+  }));
+
+  return (
+    <GestureDetector gesture={pan}>
+      <Animated.View style={[style, over ? { opacity: 0.55 } : null]}>{children}</Animated.View>
+    </GestureDetector>
+  );
+}
+
 /** A room; one added this pass has a dashed brand edge until the screen is left. */
-function RoomTile({ fresh, onLongPress, onPress, room, selected }: { fresh: boolean; onLongPress: () => void; onPress: () => void; room: Room; selected: boolean }) {
+function RoomTile({ fresh, onPress, room, selected }: { fresh: boolean; onPress: () => void; room: Room; selected: boolean }) {
   const { colors } = useAppTheme();
   const taken = room.beds - room.free;
   const full = room.free <= 0 && room.beds > 0 && taken > 0;
@@ -477,8 +601,6 @@ function RoomTile({ fresh, onLongPress, onPress, room, selected }: { fresh: bool
       className={`w-full items-center gap-1 rounded-xl border-2 py-2.5 active:opacity-70 ${
         selected ? "border-primary bg-brand-soft" : fresh ? "border-dashed border-primary bg-brand-soft" : full ? "border-destructive/40" : "border-border"
       }`}
-      delayLongPress={300}
-      onLongPress={onLongPress}
       onPress={onPress}
     >
       <Text className="font-bold text-foreground">{room.number}</Text>

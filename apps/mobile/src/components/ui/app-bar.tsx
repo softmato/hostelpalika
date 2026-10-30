@@ -109,6 +109,16 @@ const SIDE_SLOT = 40;
  */
 const HEADER_RADIUS = 20;
 
+/** The invisible raised strip over the bar's bottom edge — see `wrap` in `AppBar`. */
+const Z_ANCHOR = {
+  bottom: 0,
+  elevation: 8,
+  height: 8,
+  left: 0,
+  position: "absolute",
+  right: 0,
+} as const;
+
 /**
  * The top bar, and the only thing allowed to touch the status bar.
  *
@@ -283,8 +293,27 @@ export function AppBar({
       />
     ) : null;
 
+  /*
+   * Field videos 2026-10-28 (9:44, 10:19): on Android every accented bar lost
+   * its green for two frames at the end of each push and the start of each
+   * back — the native fade's start/end — and with white ink on the page colour
+   * the whole bar read as gone. The only two screens that never did were
+   * Billing and Stock, and both wrap the bar with an `elevation: 8` card
+   * overlapping its bottom edge. A wrapper alone did not help (10:19 video);
+   * the elevated sibling is what they share, so every bar gets one.
+   *
+   * `Z_ANCHOR` has no background, so Android's outline for it has zero alpha
+   * and it casts no shadow — it only gives the wrapper a raised child.
+   */
+  const wrap = (bar: ReactNode) => (
+    <View collapsable={false}>
+      {bar}
+      <View collapsable={false} pointerEvents="none" style={Z_ANCHOR} />
+    </View>
+  );
+
   if (centerTitle) {
-    return (
+    return wrap(
       <View style={paint}>
         {/*
           Three columns with the outer two pinned to the same width, rather than
@@ -310,11 +339,11 @@ export function AppBar({
           </View>
         </View>
         {edge}
-      </View>
+      </View>,
     );
   }
 
-  return (
+  return wrap(
     <View style={paint}>
       <View className="min-h-14 flex-row items-center gap-3 px-4 pb-2 pt-1">
         {back}
@@ -324,6 +353,6 @@ export function AppBar({
         {actions}
       </View>
       {edge}
-    </View>
+    </View>,
   );
 }

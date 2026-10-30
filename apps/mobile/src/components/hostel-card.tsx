@@ -9,6 +9,7 @@ import { useAppTheme } from "@/hooks/use-app-theme";
 import { API_BASE_URL } from "@/lib/api";
 import {
   campusDistanceLabel,
+  cardPhotoUrl,
   coverPhoto,
   formatDistance,
   locationLabel,
@@ -18,6 +19,7 @@ import {
 } from "@/lib/hostel-display";
 import { absoluteMediaUrl } from "@/lib/media";
 import { HOSTEL_TYPE_LABELS, type PublicHostel } from "@/lib/public-api";
+import { prefetchHostelPage } from "@/lib/public-queries";
 
 /**
  * One hostel, as every discovery surface draws it.
@@ -217,7 +219,7 @@ export const HostelCard = memo(function HostelCard({
    * Branching on the *resolved* URL means an unresolvable photo falls through
    * to the placeholder below rather than rendering a broken image.
    */
-  const coverUri = absoluteMediaUrl(cover?.url, API_BASE_URL);
+  const coverUri = absoluteMediaUrl(cardPhotoUrl(cover), API_BASE_URL);
   const rating = ratingDisplay(hostel.ratingSummary);
   const vacancy = vacancyLabel(hostel.capacitySummary);
   const campus = showCampusDistance ? campusDistanceLabel(hostel.nearbyPlaces) : null;
@@ -249,6 +251,7 @@ export const HostelCard = memo(function HostelCard({
         isCarousel ? "w-64" : "w-full"
       }`}
       onPress={() => router.push(`/hostel/${hostel.slug}`)}
+      onPressIn={() => prefetchHostelPage(hostel.slug)}
     >
       <View>
         {coverUri ? (

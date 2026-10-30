@@ -33,7 +33,7 @@
  * box on the next launch.
  */
 
-import { coverPhoto, locationLabel, priceRange } from "@/lib/hostel-display";
+import { cardPhotoUrl, coverPhoto, locationLabel, priceRange } from "@/lib/hostel-display";
 import type { PublicHostel } from "@/lib/public-api";
 
 export type SavedHostel = {
@@ -54,7 +54,7 @@ export function savedSnapshot(
   savedAt: number = Date.now(),
 ): SavedHostel {
   return {
-    coverUrl: coverPhoto(hostel.photos)?.url ?? null,
+    coverUrl: cardPhotoUrl(coverPhoto(hostel.photos)) ?? null,
     id: hostel.id,
     name: hostel.name,
     place: locationLabel(hostel.location),

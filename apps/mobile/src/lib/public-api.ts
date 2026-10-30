@@ -64,6 +64,8 @@ export type HostelPhoto = {
   id?: string;
   /** Exterior leads the gallery — the server sorts, the client does not. */
   kind: "EXTERIOR" | "INTERIOR" | "ROOM";
+  /** The server's 640px WebP; empty until made. Cards read `cardPhotoUrl`. */
+  mediumUrl?: string;
   roomType: string;
   url: string;
 };

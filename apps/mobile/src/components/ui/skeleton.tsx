@@ -2,6 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useEffect } from "react";
 import { StyleSheet, View, type ViewStyle } from "react-native";
 import Animated, {
+  cancelAnimation,
   Easing,
   ReduceMotion,
   useAnimatedStyle,
@@ -60,6 +61,9 @@ export function Skeleton({
       -1,
       false,
     );
+    // An uncancelled loop outlives the view and keeps writing to a dead tag
+    // every frame — Reanimated logs a full stack trace for each one.
+    return () => cancelAnimation(sweep);
   }, [sweep]);
 
   const band = useAnimatedStyle(() => ({

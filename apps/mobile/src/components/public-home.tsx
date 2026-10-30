@@ -352,6 +352,9 @@ function HomeShortcuts({ browseHref }: { browseHref: string }) {
     };
   });
   const restTuck = useAnimatedStyle(() => {
+    // Unmeasured, the range is [-24, 0] and clamps the card to opacity 0 — it
+    // stayed invisible on first paint until something else committed.
+    if (cardHeight.value === 0) return { opacity: 1, transform: [{ scale: 1 }] };
     const y = Math.max(0, scrollY?.value ?? 0);
     const range = [cardTop.value - 24, cardTop.value + cardHeight.value * 0.6];
 

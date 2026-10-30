@@ -14,6 +14,14 @@ import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 
+import { Image } from "expo-image";
+
+import { API_BASE_URL } from "@/lib/api";
+import { showcaseHostels } from "@/lib/home-sections";
+import { cardPhotoUrl, coverPhoto } from "@/lib/hostel-display";
+import { absoluteMediaUrl } from "@/lib/media";
+import { prefetchPublicQuery, publicQuery } from "@/lib/public-queries";
+import { fetchQuery, readQuery } from "@/lib/query-cache";
 import { hydrateQueryCache } from "@/lib/query-cache-persist";
 import { OfflineStampHost } from "@/components/offline-stamp";
 import { startOfflineWrites } from "@/lib/offline-writes";
@@ -54,6 +62,46 @@ import { setReady } from "@/store/slices/authSlice";
 // Held until the boot gate in app/index.tsx has chosen a route. See §0 of
 // docs/MOBILE_APP_PHASES.md — hiding it earlier is what causes the login flash.
 void SplashScreen.preventAutoHideAsync();
+
+/**
+ * Longest the launch screen waits for Home's first answer once the app is
+ * mounted. The request has been running since the cache opened, and the brand
+ * animation is ~1 s (Android's own cap for an animated splash), so this only
+ * covers a slow network; past it Home shows skeletons rather than a held splash.
+ */
+const HOME_WAIT_MS = 500;
+
+let homeWarm: Promise<unknown> = Promise.resolve();
+
+/**
+ * Starts the public Home's reads while the launch screen is still up, instead
+ * of when Home mounts after it. Resolves when Home can paint filled: at once
+ * from a cached answer, else when the catalogue and its first cover photos are
+ * in. Never rejects. Other portals load their own home and are not waited on.
+ */
+function warmPublicHome(): Promise<unknown> {
+  const account = store.getState().auth.account;
+  const home = account
+    ? resolveHome({ isApprovedProvider: account.isServiceProvider, isResidentActivated: true, role: account.role })
+    : "/(browse)";
+  if (home !== "/(browse)") return Promise.resolve();
+
+  const hostels = publicQuery.hostels();
+  prefetchPublicQuery(publicQuery.siteConfig());
+  if (readQuery(hostels.key)) {
+    prefetchPublicQuery(hostels);
+    return Promise.resolve();
+  }
+
+  return fetchQuery(hostels.key, hostels.load, hostels.topics)
+    .then((all) => {
+      const covers = showcaseHostels(all, 2)
+        .map((hostel) => absoluteMediaUrl(cardPhotoUrl(coverPhoto(hostel.photos)), API_BASE_URL))
+        .filter((uri): uri is string => uri !== null);
+      return covers.length > 0 ? Image.prefetch(covers, "disk") : undefined;
+    })
+    .catch(() => undefined);
+}
 
 /**
  * Keeps `pathRef` on the current route. A leaf, so the per-navigation re-render
@@ -187,8 +235,12 @@ function RootShell() {
    * screen the boot contract exists to hide is never among them.
    */
   useEffect(() => {
-    void SplashScreen.hideAsync();
-    releaseBootSplash();
+    // Held for Home's first answer (fetched since the cache opened), at most
+    // HOME_WAIT_MS, so the splash lifts onto a filled screen, not skeletons.
+    void Promise.race([homeWarm, new Promise((resolve) => setTimeout(resolve, HOME_WAIT_MS))]).then(() => {
+      void SplashScreen.hideAsync();
+      releaseBootSplash();
+    });
   }, []);
 
   useEffect(() => {
@@ -308,14 +360,9 @@ function RootShell() {
 
       <View style={{ flex: 1 }}>
       {/*
-        `ios_from_right`: the new screen slides in over the old one, fully
-        opaque the whole way, and slides back out on back.
-
-        Not `fade` (a crossfade: both screens half-visible mid-push) and not
-        `fade_from_bottom` (the screen rises a few points as it fades, so the
-        green header visibly jumps on every open and the screen goes see-through
-        on back). Field videos caught both. A slide has no frame where two
-        screens overlap or where the header is anywhere but the top.
+        A 150 ms cross-fade (`fade`), FoneBiz's motion — the owner picked it
+        over `fade_from_bottom` on 2026-10-29, whose Android timing is a fixed
+        350 ms in / 250 ms out. Never a sideways slide.
 
         The four `slide_from_bottom` screens below keep their animation on
         purpose — those are the "fill this in and finish" forms, and rising from
@@ -323,8 +370,9 @@ function RootShell() {
       */}
       <Stack
         screenOptions={{
-          animation: "ios_from_right",
-          animationDuration: 180,
+          animation: "fade",
+          // iOS only; Android's fade is react-native-screens' own 150 ms.
+          animationDuration: 150,
           contentStyle: { backgroundColor: colors.background },
           // No `freezeOnBlur`: unfreezing a screen on back is a blank frame
           // until React catches up on everything it skipped (field video,
@@ -693,7 +741,10 @@ export default function RootLayout() {
           onBeforeLift={() => {
             primeColorScheme(store.getState().ui.themePreference);
             // Then anything saved offline last time goes out (G3).
-            return hydrateQueryCache().then(startOfflineWrites);
+            return hydrateQueryCache().then(() => {
+              homeWarm = warmPublicHome();
+              startOfflineWrites();
+            });
           }}
           persistor={persistor}
         >

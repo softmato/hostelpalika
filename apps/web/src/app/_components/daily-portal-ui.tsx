@@ -348,8 +348,99 @@ export function HostelCard({
   );
 }
 
+/**
+ * The hostel and what is owed to it, as one card: photo and full details on top,
+ * the bill (amount, how late, a Pay button) as a panel under them. A resident
+ * opening the dashboard is asking "where do I live and what do I owe", and those
+ * were two cards a screen apart.
+ */
+export function HostelBillCard({
+  action,
+  address,
+  amount,
+  chips,
+  dueDate,
+  name,
+  note,
+  photoUrl,
+  slug,
+}: {
+  action?: ReactNode;
+  address: string;
+  amount: number;
+  chips?: ReactNode;
+  dueDate?: string | null;
+  name: string;
+  note?: ReactNode;
+  photoUrl?: string;
+  slug?: string;
+}) {
+  const clear = amount <= 0;
+
+  return (
+    <section className="overflow-hidden rounded-2xl border border-border bg-card">
+      <div className="grid md:grid-cols-[280px_1fr]">
+        <div className="relative h-44 bg-muted md:h-full md:min-h-[300px]">
+          {photoUrl ? (
+            <div
+              aria-label={`${name} exterior`}
+              className="size-full bg-cover bg-center"
+              role="img"
+              style={{ backgroundImage: `url("${photoUrl}")` }}
+            />
+          ) : (
+            <span className="flex size-full items-center justify-center text-muted-foreground">
+              <Glyph className="size-12" name="hostel" />
+            </span>
+          )}
+        </div>
+        <div className="flex min-w-0 flex-col gap-4 p-5">
+          <div className="min-w-0 space-y-2.5">
+            <div className="flex items-center gap-2">
+              <h2 className="truncate font-heading text-[22px] font-bold tracking-tight text-foreground">{name}</h2>
+              <Glyph className="size-5 shrink-0 text-role-team" name="shield-checkmark" variant="solid" />
+            </div>
+            <p className="flex items-center gap-1.5 text-[13.5px] text-muted-foreground">
+              <Glyph className="size-4 shrink-0" name="location" />
+              <span className="truncate">{address}</span>
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {chips}
+              {slug ? (
+                <FactChip glyph="open" href={`/hostels/${slug}`} tone="brand">
+                  Hostel page
+                </FactChip>
+              ) : null}
+            </div>
+          </div>
+          <div className="mt-auto space-y-3 rounded-xl bg-muted/60 p-4">
+            <div className="flex items-end justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                  {clear ? "All paid" : "You owe"}
+                </p>
+                <p className="mt-0.5 font-heading text-[30px] font-bold leading-none tracking-tight text-foreground tabular-nums">
+                  {currency(amount)}
+                </p>
+                {note ? <div className="mt-1.5 text-[12.5px] text-muted-foreground">{note}</div> : null}
+              </div>
+              {clear ? null : action}
+            </div>
+            {!clear && dueDate ? <DueBar dueDate={dueDate} /> : null}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /** A menu of destinations as icon tiles. */
-export function TileGrid({ items }: { items: { glyph: GlyphName; href: string; label: string }[] }) {
+export function TileGrid({
+  items,
+}: {
+  /** `badge` is a count that needs doing — shown only when above zero. */
+  items: { badge?: number; glyph: GlyphName; href: string; label: string }[];
+}) {
   return (
     <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
       {items.map((item) => (
@@ -358,8 +449,13 @@ export function TileGrid({ items }: { items: { glyph: GlyphName; href: string; l
           href={item.href}
           key={item.href}
         >
-          <span className="flex size-10 items-center justify-center rounded-xl bg-role-team-soft text-role-team">
+          <span className="relative flex size-10 items-center justify-center rounded-xl bg-role-team-soft text-role-team">
             <Glyph className="size-5" name={item.glyph} />
+            {item.badge ? (
+              <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-role-team px-1.5 text-[11px] font-bold leading-none text-white ring-2 ring-card tabular-nums">
+                {item.badge > 99 ? "99+" : item.badge}
+              </span>
+            ) : null}
           </span>
           <span className="text-[12px] font-semibold text-foreground">{item.label}</span>
         </Link>

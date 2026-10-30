@@ -1,6 +1,7 @@
 import { type ReactNode, useEffect } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
 import Animated, {
+  cancelAnimation,
   Easing,
   ReduceMotion,
   useAnimatedStyle,
@@ -109,7 +110,10 @@ function useIdle() {
 
   useEffect(() => {
     if (reduceMotion) return;
-    t.set(withRepeat(withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.sin) }), -1, true));
+    // Two breaths, then still: an endless loop keeps a frame busy for as long as
+    // the screen sits in the stack, visible or not.
+    t.set(withRepeat(withTiming(1, { duration: 1800, easing: Easing.inOut(Easing.sin) }), 4, true));
+    return () => cancelAnimation(t);
   }, [reduceMotion, t]);
 
   const tile = useAnimatedStyle(() => ({

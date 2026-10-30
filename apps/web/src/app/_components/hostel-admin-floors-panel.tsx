@@ -2,9 +2,11 @@
 
 import { bedsForRoomType, roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { Building2, Loader2, Plus, Trash2 } from "@/components/icons";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { useConfirm } from "@/app/_components/confirm-dialog";
+import { formatMoney } from "@/app/_components/shared";
 import { Glyph, type GlyphName } from "@/components/glyph";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useResidents } from "@/hooks/use-hostel-admin";
 import { browserApi } from "@/lib/browser-api";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
@@ -38,7 +41,7 @@ type Room = {
   free: number;
   id: string;
   number: string;
-  residents: { id: string; name: string }[];
+  residents: { due?: number; id: string; name: string; photo?: string | null; since?: string | null }[];
   roomType: string;
 };
 
@@ -92,12 +95,99 @@ function renumber(first: string, count: number) {
 }
 
 const INPUT = "h-10 w-full rounded-xl border border-border bg-background px-3 text-[13.5px] outline-none focus:border-brand-teal";
-const LABEL = "grid gap-1 text-[11px] font-semibold text-muted-foreground";
+/** Every control in the selection bar: one height, one radius. */
+const BAR_CONTROL = "h-9 !rounded-[0.45rem]";
+const LABEL ="grid gap-1 text-[11px] font-semibold text-muted-foreground";
 
 const beds = (roomType: string) => {
   const count = bedsForRoomType(roomType);
   return `${count} ${count === 1 ? "bed" : "beds"}`;
 };
+
+/** A dark-green hand with a white rim, so the cursor shows on white tiles as well as on green. */
+const hand = (grabbing: boolean) =>
+  `url("data:image/svg+xml,${encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 24 24'><path d='${
+      grabbing
+        ? "M6 11V9a1.5 1.5 0 0 1 3 0V8a1.5 1.5 0 0 1 3 0v.5a1.5 1.5 0 0 1 3 0V10a1.5 1.5 0 0 1 3 0v4.5c0 3-2 5.5-5.5 5.5S7 18 6 15.5z"
+        : "M8 13V5.5a1.5 1.5 0 0 1 3 0V11h.5V4a1.5 1.5 0 0 1 3 0v7h.5V5.5a1.5 1.5 0 0 1 3 0V14c0 3.5-2.5 6-6 6-2.5 0-4-1.2-5-3.2L4.5 13.5a1.5 1.5 0 0 1 2.4-1.7z"
+    }' fill='#064e2b' stroke='white' stroke-width='1.6' stroke-linejoin='round'/></svg>`,
+  )}") 14 14, ${grabbing ? "grabbing" : "grab"}`;
+
+const TIP_DELAY = 500;
+const TIP_WIDTH = 256;
+
+function Initial({ name, photo, size = "size-9" }: { name: string; photo?: string | null; size?: string }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <span className={cn("flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-brand-teal/10 text-[12px] font-bold text-brand-teal", size)}>
+      {photo && !failed ? (
+        // eslint-disable-next-line @next/next/no-img-element -- small resident avatar
+        <img alt="" className="size-full object-cover" onError={() => setFailed(true)} referrerPolicy="no-referrer" src={photo} />
+      ) : (
+        name.trim().charAt(0).toUpperCase()
+      )}
+    </span>
+  );
+}
+
+/** The beds of a room as marks: taken ones muted, free ones green. */
+function BedMarks({ room }: { room: Room }) {
+  const taken = room.beds - room.free;
+  return (
+    <span className="flex flex-wrap gap-1.5">
+      {Array.from({ length: room.beds }, (_, at) => (
+        <span className={cn("flex size-8 items-center justify-center rounded-lg", at < taken ? "bg-muted text-muted-foreground" : "bg-brand-teal/10 text-brand-teal")} key={at}>
+          <Glyph className="size-4" name="bed" variant={at < taken ? "solid" : "line"} />
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** Minimal read-only peek at a room, shown beside its tile after the pointer rests on it. */
+function RoomTip({ open, rect, room }: { open: boolean; rect: DOMRect; room: Room }) {
+  const right = rect.right + 10 + TIP_WIDTH <= window.innerWidth;
+  const left = right ? rect.right + 10 : Math.max(8, rect.left - 10 - TIP_WIDTH);
+  const top = Math.min(Math.max(8, rect.top + rect.height / 2 - 80), window.innerHeight - 300);
+  const free = room.free > 0 ? `${room.free} of ${room.beds} free` : "Full";
+  return createPortal(
+    <div
+      className={cn(
+        "pointer-events-none fixed z-50 grid gap-2 rounded-xl border border-border bg-popover p-3 text-popover-foreground shadow-lg transition duration-150",
+        open ? "translate-x-0 opacity-100 ease-out" : cn("opacity-0 ease-in", right ? "-translate-x-1" : "translate-x-1"),
+      )}
+      style={{ left, top, width: TIP_WIDTH }}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <p className="font-heading text-[15px] font-bold leading-tight">Room {room.number}</p>
+          <p className="truncate text-[12px] text-muted-foreground">{roomTypeLabel(room.roomType)}</p>
+        </div>
+        <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[10.5px] font-semibold text-muted-foreground">{floorName(room.floor)}</span>
+      </div>
+      <div className="grid gap-1.5 border-t border-border pt-2.5">
+        <BedMarks room={room} />
+        <p className={cn("text-[12px] font-semibold", room.free > 0 ? "text-brand-teal" : "text-destructive")}>{free}</p>
+      </div>
+      {room.residents.length ? (
+        <ul className="grid gap-1.5 border-t border-border pt-2.5">
+          {room.residents.slice(0, 4).map((person) => (
+            <li className="flex items-center gap-2 text-[12.5px] font-medium" key={person.id}>
+              <Initial name={person.name} photo={person.photo} size="size-6" />
+              <span className="min-w-0 flex-1 truncate">{person.name}</span>
+              {person.due ? <span className="shrink-0 text-[11px] font-semibold text-warning">{formatMoney(person.due)}</span> : null}
+            </li>
+          ))}
+          {room.residents.length > 4 ? <li className="text-[11.5px] text-muted-foreground">+{room.residents.length - 4} more</li> : null}
+        </ul>
+      ) : (
+        <p className="border-t border-border pt-2.5 text-[12px] text-muted-foreground">Nobody lives here yet.</p>
+      )}
+    </div>,
+    document.body,
+  );
+}
 
 /** − n +, saving once the count settles. */
 function Stepper({ disabled, label, onChange, value }: { disabled?: boolean; label: string; onChange: (next: number) => void; value: number }) {
@@ -155,6 +245,41 @@ export function FloorsPanel() {
   const [editing, setEditing] = useState<Room | null>(null);
   const [bulkType, setBulkType] = useState("");
   const [bulkFirst, setBulkFirst] = useState("");
+  const [tip, setTip] = useState<{ open: boolean; rect: DOMRect; roomId: string } | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const [pendingOrder, setPendingOrder] = useState<{ floor: number; ids: string[] } | null>(null);
+  const tipTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  // Only the timers run while the pointer travels across tiles; state changes once it rests.
+  const peek = (roomId: string, target: HTMLElement) => {
+    clearTimeout(tipTimer.current);
+    tipTimer.current = setTimeout(() => {
+      const rect = target.getBoundingClientRect();
+      setTip({ open: false, rect, roomId });
+      requestAnimationFrame(() => requestAnimationFrame(() => setTip((current) => (current ? { ...current, open: true } : current))));
+    }, TIP_DELAY);
+  };
+  const unpeek = () => {
+    clearTimeout(tipTimer.current);
+    setTip((current) => (current?.open ? { ...current, open: false } : null));
+    tipTimer.current = setTimeout(() => setTip(null), 160);
+  };
+  useEffect(() => () => clearTimeout(tipTimer.current), []);
+
+  // Faces come from the Residents tab's cached roster (same account picture it draws), not a new lookup per room.
+  const roster = useResidents();
+  const faces = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const resident of roster.data?.residents ?? []) if (resident.account?.image) map.set(resident.id, resident.account.image);
+    return map;
+  }, [roster.data]);
+  const roomRows = layout.data?.rooms;
+  const rooms = useMemo(
+    () => (roomRows ?? []).map((room) => ({ ...room, residents: room.residents.map((person) => ({ ...person, photo: faces.get(person.id) ?? person.photo })) })),
+    [roomRows, faces],
+  );
 
   /** `true` when the work went through, so a form knows to close. */
   const run = async (work: () => Promise<unknown>, done = "") => {
@@ -178,13 +303,14 @@ export function FloorsPanel() {
 
   const data = layout.data;
   const configs = profile.data?.hostel.roomConfigurations ?? [];
-  const rooms = data?.rooms ?? [];
   const taken = rooms.map((room) => room.number);
   const types = data?.roomTypes ?? [];
   const typeFor = (onFloor: Room[]) =>
     paint ?? [...onFloor].sort((a, b) => onFloor.filter((room) => room.roomType === b.roomType).length - onFloor.filter((room) => room.roomType === a.roomType).length)[0]?.roomType ?? types[0];
 
-  const [floorTargets, setFloorTarget] = useSettled<number>((floor, target) => {
+  const [floorTargets, setFloorTarget] = useSettled<number>((key, target) => {
+    // Object keys come back as strings; "0" never equals floor 0, which made every add look like a whole new floor.
+    const floor = Number(key);
     const onFloor = rooms.filter((room) => room.floor === floor).sort(byNumber);
     void run(async () => {
       if (target > onFloor.length) {
@@ -195,7 +321,7 @@ export function FloorsPanel() {
         });
         return;
       }
-      for (const room of onFloor.slice(target).reverse()) await browserApi(`${BASE}/${room.id}`, { method: "DELETE" });
+      await Promise.all(onFloor.slice(target).map((room) => browserApi(`${BASE}/${room.id}`, { method: "DELETE" })));
     });
   });
 
@@ -271,9 +397,25 @@ export function FloorsPanel() {
     }
   };
 
+  /** Moves the dragged room to where `target` sits and saves the floor's order. */
+  const dropOn = (target: Room, onFloor: Room[]) => {
+    const from = onFloor.find((room) => room.id === dragId);
+    setDragId(null);
+    setOverId(null);
+    if (!from || from.id === target.id || from.floor !== target.floor) return;
+    const ids = onFloor.map((room) => room.id).filter((id) => id !== from.id);
+    ids.splice(onFloor.findIndex((room) => room.id === target.id), 0, from.id);
+    setPendingOrder({ floor: target.floor, ids });
+    void run(() => browserApi(`${BASE}/order`, { body: JSON.stringify({ floor: target.floor, ids }), method: "PUT" })).then(() => setPendingOrder(null));
+  };
+
   const removeChosen = async () => {
-    const ok = await confirm({ actionLabel: "Remove", description: "Only empty rooms can be removed.", pin: true, title: `Remove ${chosen.length} rooms?`, tone: "destructive" });
-    if (ok && (await run(async () => { for (const room of chosen) await browserApi(`${BASE}/${room.id}`, { method: "DELETE" }); }, `${chosen.length} rooms removed.`))) setSelected([]);
+    const ok = await confirm({ actionLabel: "Remove", description: "Only empty rooms can be removed.", title: `Remove ${chosen.length} ${chosen.length === 1 ? "room" : "rooms"}?`, tone: "destructive" });
+    if (!ok) return;
+    setRemoving(true);
+    const done = await run(() => Promise.all(chosen.map((room) => browserApi(`${BASE}/${room.id}`, { method: "DELETE" }))), `${chosen.length} removed.`);
+    setRemoving(false);
+    if (done) setSelected([]);
   };
 
   const renumberChosen = () => {
@@ -464,32 +606,32 @@ export function FloorsPanel() {
 
           <div className="space-y-3">
             {chosen.length ? (
-              <div className="flex flex-wrap items-end gap-3 rounded-2xl border border-brand-teal/40 bg-brand-teal/5 p-3">
-                <p className="mr-auto self-center text-sm font-semibold text-foreground">{chosen.length} rooms selected</p>
-                <label className={LABEL}>
-                  Set type
-                  <span className="flex gap-2">
-                    <select className={cn(INPUT, "w-44")} onChange={(event) => setBulkType(event.target.value)} value={bulkType || types[0]}>
+              <div className="sticky top-2 z-20 grid gap-3 rounded-2xl border border-brand-teal/40 bg-card/95 p-3 shadow-md backdrop-blur lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
+                <div className="flex items-center gap-2">
+                  <Button aria-label="Clear selection" className="size-8 rounded-full" disabled={removing} onClick={() => setSelected([])} size="icon" type="button" variant="ghost">
+                    <Glyph className="size-4" name="close" />
+                  </Button>
+                  <p className="text-sm font-semibold text-foreground">
+                    {chosen.length} {chosen.length === 1 ? "room" : "rooms"} selected
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div className="flex items-center gap-2">
+                    <select aria-label="Set type" className={cn(INPUT, BAR_CONTROL, "min-w-0 flex-1")} onChange={(event) => setBulkType(event.target.value)} value={bulkType || types[0]}>
                       {types.map((type) => (
                         <option key={type} value={type}>{`${roomTypeLabel(type)} (${beds(type)})`}</option>
                       ))}
                     </select>
-                    <Button disabled={busy} onClick={() => void retype(chosen, bulkType || types[0]).then((ok) => ok && setSelected([]))} size="sm" type="button">Apply</Button>
-                  </span>
-                </label>
-                <label className={LABEL}>
-                  Renumber from
-                  <span className="flex gap-2">
-                    <input className={cn(INPUT, "w-24")} onChange={(event) => setBulkFirst(event.target.value)} placeholder={chosen[0]?.number} value={bulkFirst} />
-                    <Button disabled={busy} onClick={renumberChosen} size="sm" type="button" variant="outline">Renumber</Button>
-                  </span>
-                </label>
-                <Button className="text-destructive" disabled={busy} onClick={() => void removeChosen()} size="sm" type="button" variant="outline">
-                  <Trash2 className="size-4" />
-                  Remove
-                </Button>
-                <Button aria-label="Clear selection" onClick={() => setSelected([])} size="sm" type="button" variant="ghost">
-                  <Glyph className="size-4" name="close" />
+                    <Button className={BAR_CONTROL} disabled={busy} onClick={() => void retype(chosen, bulkType || types[0]).then((ok) => ok && setSelected([]))} size="sm" type="button">Set type</Button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input aria-label="Renumber from" className={cn(INPUT, BAR_CONTROL, "min-w-0 flex-1")} onChange={(event) => setBulkFirst(event.target.value)} placeholder={`Start at ${chosen[0]?.number ?? ""}`} value={bulkFirst} />
+                    <Button className={BAR_CONTROL} disabled={busy} onClick={renumberChosen} size="sm" type="button" variant="outline">Renumber</Button>
+                  </div>
+                </div>
+                <Button className={cn(BAR_CONTROL, "text-destructive")} disabled={busy} onClick={() => void removeChosen()} size="sm" type="button" variant="outline">
+                  {removing ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+                  {removing ? "Removing…" : "Remove"}
                 </Button>
               </div>
             ) : null}
@@ -513,7 +655,9 @@ export function FloorsPanel() {
             ) : null}
 
             {floors.map((floor) => {
-              const onFloor = rooms.filter((room) => room.floor === floor).sort(byNumber);
+              // The API sends each floor in the owner's dragged order; a drop shows at once, before the save returns.
+              const saved = rooms.filter((room) => room.floor === floor);
+              const onFloor = pendingOrder?.floor === floor ? [...saved].sort((a, b) => pendingOrder.ids.indexOf(a.id) - pendingOrder.ids.indexOf(b.id)) : saved;
               const shut = collapsed.includes(floor);
               return (
                 <div className="rounded-2xl border border-border/70 bg-card p-3.5" key={floor}>
@@ -524,7 +668,7 @@ export function FloorsPanel() {
                       onClick={() => setCollapsed((current) => (shut ? current.filter((value) => value !== floor) : [...current, floor]))}
                       type="button"
                     >
-                      <Glyph className="size-4" name={shut ? "chevron-forward" : "chevron-down"} />
+                      <Glyph className={cn("size-4 transition-transform duration-300 ease-out", shut && "-rotate-90")} name="chevron-down" />
                       <span>
                         <span className="block font-heading text-[14px] font-semibold text-foreground">{floorName(floor)}</span>
                         <span className="block text-[12px] text-muted-foreground">{onFloor.length} rooms</span>
@@ -532,7 +676,12 @@ export function FloorsPanel() {
                     </button>
                     <Stepper disabled={busy} label={`rooms on ${floorName(floor)}`} onChange={(next) => setFloorTarget(floor, next)} value={floorTargets[floor] ?? onFloor.length} />
                   </div>
-                  {shut ? null : (
+                  {/* 0fr → 1fr animates the height without measuring it; `inert` keeps hidden tiles out of the tab order. */}
+                  <div
+                    className={cn("grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]", shut ? "grid-rows-[0fr] opacity-0" : "grid-rows-[1fr] opacity-100")}
+                    inert={shut}
+                  >
+                    <div className="-m-1 min-h-0 overflow-hidden p-1">
                     <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6 xl:grid-cols-8">
                       {onFloor.map((room) => {
                         const on = selected.includes(room.id);
@@ -544,10 +693,40 @@ export function FloorsPanel() {
                             className={cn(
                               "relative flex flex-col items-center gap-1 rounded-xl border-2 py-2.5 transition hover:border-brand-teal",
                               on ? "border-brand-teal bg-brand-teal/10" : full ? "border-destructive/40" : "border-border",
+                              dragId === room.id && "opacity-40",
+                              overId === room.id && dragId !== room.id && "scale-[1.04] border-brand-teal ring-2 ring-brand-teal/30",
                             )}
+                            draggable
                             key={room.id}
-                            onClick={(event) => clickTile(room, event)}
-                            title={`${roomTypeLabel(room.roomType)} · ${room.residents.map((person) => person.name).join(", ") || "Empty"}`}
+                            style={{ cursor: hand(dragId !== null) }}
+                            onDragEnd={() => {
+                              setDragId(null);
+                              setOverId(null);
+                            }}
+                            onDragOver={(event) => {
+                              const from = rooms.find((item) => item.id === dragId);
+                              if (!from || from.floor !== room.floor) return;
+                              event.preventDefault();
+                              if (overId !== room.id) setOverId(room.id);
+                            }}
+                            onDragStart={(event) => {
+                              unpeek();
+                              event.dataTransfer.effectAllowed = "move";
+                              event.dataTransfer.setData("text/plain", room.id);
+                              setDragId(room.id);
+                            }}
+                            onDrop={(event) => {
+                              event.preventDefault();
+                              dropOn(room, onFloor);
+                            }}
+                            onBlur={unpeek}
+                            onClick={(event) => {
+                              unpeek();
+                              clickTile(room, event);
+                            }}
+                            onFocus={(event) => !editing && peek(room.id, event.currentTarget)}
+                            onPointerEnter={(event) => event.pointerType === "mouse" && !editing && peek(room.id, event.currentTarget)}
+                            onPointerLeave={unpeek}
                             type="button"
                           >
                             <span className="font-heading text-[15px] font-bold leading-tight text-foreground">{room.number}</span>
@@ -565,7 +744,8 @@ export function FloorsPanel() {
                         );
                       })}
                     </div>
-                  )}
+                    </div>
+                  </div>
                 </div>
               );
             })}
@@ -584,6 +764,8 @@ export function FloorsPanel() {
           </div>
         </div>
       )}
+
+      {tip && rooms.find((room) => room.id === tip.roomId) ? <RoomTip open={tip.open} rect={tip.rect} room={rooms.find((room) => room.id === tip.roomId) as Room} /> : null}
 
       <Dialog onOpenChange={(open) => (open ? null : setEditing(null))} open={editing !== null}>
         <DialogContent className="sm:max-w-md">
@@ -630,12 +812,33 @@ export function FloorsPanel() {
                   </select>
                 </label>
               </div>
-              <div className="h-1.5 overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full bg-brand-teal" style={{ width: `${editing.beds ? ((editing.beds - editing.free) / editing.beds) * 100 : 0}%` }} />
+              <div className="grid gap-2">
+                <BedMarks room={editing} />
+                <p className="text-[12px] text-muted-foreground">
+                  {editing.free > 0 ? `${editing.free} of ${editing.beds} ${editing.beds === 1 ? "bed" : "beds"} free` : "Full"} · {roomTypeLabel(editing.roomType)} · {floorName(editing.floor)}
+                </p>
               </div>
-              <p className="text-[13px] text-muted-foreground">
-                {editing.residents.length ? editing.residents.map((person) => person.name).join(", ") : "No residents yet"}
-              </p>
+              <div className="grid gap-1">
+                <p className="text-[11px] font-semibold text-muted-foreground">Living here</p>
+                {editing.residents.length ? (
+                  editing.residents.map((person) => (
+                    <div className="flex items-center gap-3 rounded-xl py-1.5" key={person.id}>
+                      <Initial name={person.name} photo={person.photo} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-[13.5px] font-semibold text-foreground">{person.name}</p>
+                        {person.since ? <p className="text-[11.5px] text-muted-foreground">Since {new Date(person.since).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}</p> : null}
+                      </div>
+                      {person.due === undefined ? null : person.due > 0 ? (
+                        <span className="rounded-full bg-warning/10 px-2 py-0.5 text-[11px] font-semibold text-warning">{formatMoney(person.due)} due</span>
+                      ) : (
+                        <span className="rounded-full bg-brand-teal/10 px-2 py-0.5 text-[11px] font-semibold text-brand-teal">Paid up</span>
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-[13px] text-muted-foreground">Nobody lives here yet.</p>
+                )}
+              </div>
               <DialogFooter className="sm:justify-between">
                 <Button
                   className="text-destructive"
@@ -645,7 +848,6 @@ export function FloorsPanel() {
                     const ok = await confirm({
                       actionLabel: "Delete room",
                       description: "Only an empty room can be removed.",
-                      pin: true,
                       title: `Delete Room ${room.number}?`,
                       tone: "destructive",
                     });

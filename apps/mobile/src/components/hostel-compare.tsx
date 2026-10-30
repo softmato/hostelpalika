@@ -14,7 +14,7 @@ import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { useResource } from "@/hooks/use-resource";
 import { API_BASE_URL } from "@/lib/api";
-import { coverPhoto, priceRange, ratingDisplay } from "@/lib/hostel-display";
+import { cardPhotoUrl, coverPhoto, priceRange, ratingDisplay } from "@/lib/hostel-display";
 import { absoluteMediaUrl } from "@/lib/media";
 import {
   COMPARE_MIN,
@@ -249,7 +249,7 @@ function HeadCell({ hostel }: { hostel: ComparedHostel }) {
   const { colors } = useAppTheme();
   const cover = coverPhoto(hostel.photos);
   // Stored relative; a phone has no origin to resolve against. See lib/media.ts.
-  const coverUri = absoluteMediaUrl(cover?.url, API_BASE_URL);
+  const coverUri = absoluteMediaUrl(cardPhotoUrl(cover), API_BASE_URL);
   const rating = ratingDisplay(hostel.ratingSummary);
 
   return (

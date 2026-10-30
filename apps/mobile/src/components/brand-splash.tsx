@@ -44,12 +44,12 @@ const STRIP_WIDTH = 136;
 const STRIP_HEIGHT = 55;
 const STRIP_BOTTOM = 60;
 
-const STRIP_DELAY_MS = 300;
-const STRIP_MS = 450;
+const STRIP_DELAY_MS = 200;
+const STRIP_MS = 300;
 const STRIP_RISE = 14;
-const SHINE_DELAY_MS = 750;
-const SHINE_MS = 750;
-const FADE_OUT_MS = 320;
+const SHINE_DELAY_MS = 500;
+const SHINE_MS = 500;
+const FADE_OUT_MS = 220;
 
 const SHINE_TRAVEL = 83;
 const SHINE_BAND = 33;
@@ -60,7 +60,7 @@ const LOADER_HEIGHT = 3;
 /** Bar centre below the screen centre: under the wordmark's ink, then a 22dp gap. */
 const LOADER_OFFSET = 67;
 const LOADER_HOLD = 0.85;
-const LOADER_FINISH_MS = 220;
+const LOADER_FINISH_MS = 160;
 
 /** The ground colour, clear → 60% (`99`) → clear: invisible over the canvas, a shine over the ink. */
 const GROUND = palette.light.background;

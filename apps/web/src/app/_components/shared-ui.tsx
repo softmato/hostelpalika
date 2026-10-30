@@ -1,8 +1,8 @@
 "use client";
 
-import { Glyph } from "@/components/glyph";
+import { Glyph, type GlyphName } from "@/components/glyph";
 import { RefreshCw } from "@/components/icons";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
@@ -198,13 +198,50 @@ export function LoadingRows() {
 }
 
 /** Nothing here yet: one mark and one line, no box. */
-export function EmptyState({ label }: { label: string }) {
+/**
+ * The picture every empty page and card wears: soft rings, a slowly turning
+ * dashed orbit, a floating tile carrying the page's glyph and a few twinkling
+ * sparks. A blank with two lines of text reads as broken; this reads as "nothing
+ * here yet", the way the app's empty screens do.
+ */
+export function EmptyArt({ glyph = "inbox", size = 120 }: { glyph?: GlyphName; size?: number }) {
+  return (
+    <div aria-hidden className="relative text-role-team" style={{ height: size, width: size }}>
+      <svg className="absolute inset-0 size-full" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" fill="currentColor" fillOpacity="0.06" r="56" />
+        <circle cx="60" cy="60" fill="currentColor" fillOpacity="0.1" r="41" />
+        <circle
+          className="empty-ring"
+          cx="60"
+          cy="60"
+          fill="none"
+          r="49"
+          stroke="currentColor"
+          strokeDasharray="2 6"
+          strokeLinecap="round"
+          strokeOpacity="0.35"
+          strokeWidth="1.4"
+        />
+        <circle className="empty-twinkle" cx="101" cy="30" fill="currentColor" r="3.5" />
+        <circle className="empty-twinkle" cx="14" cy="78" fill="currentColor" r="2.5" style={{ "--twinkle-delay": "0.8s" } as CSSProperties} />
+        <circle className="empty-twinkle" cx="30" cy="104" fill="currentColor" r="2" style={{ "--twinkle-delay": "1.5s" } as CSSProperties} />
+      </svg>
+      <span
+        className="empty-float absolute left-1/2 top-1/2 flex items-center justify-center rounded-2xl bg-card shadow-md ring-1 ring-border"
+        style={{ height: size * 0.45, marginLeft: -size * 0.225, marginTop: -size * 0.225, width: size * 0.45 }}
+      >
+        <Glyph className="size-1/2" name={glyph} />
+      </span>
+    </div>
+  );
+}
+
+export function EmptyState({ action, glyph, label }: { action?: ReactNode; glyph?: GlyphName; label: string }) {
   return (
     <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
-      <span className="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
-        <Glyph className="size-[22px]" name="inbox" />
-      </span>
+      <EmptyArt glyph={glyph} />
       <p className="max-w-xs text-sm font-medium text-muted-foreground">{label}</p>
+      {action}
     </div>
   );
 }

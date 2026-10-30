@@ -15,6 +15,7 @@ import { currency, EmptyState } from "@/app/_components/shared-ui";
 import { FilterButton, FilterChoice } from "@/components/filter-panel";
 import { Button } from "@/components/ui/button";
 import { ResidentClaimForm } from "@/app/_components/resident-claim-form";
+import { cn } from "@/lib/utils";
 import { ShareReceiptSteps } from "@/app/_components/share-receipt-steps";
 import { ResidentPayInvoicePanel } from "@/app/_components/resident-pay-invoice-panel";
 import { MethodIcon, methodKey, methodLabel, type PayMethod } from "@/app/_components/payment-method-ui";
@@ -242,6 +243,7 @@ export const ResidentPaymentsPageContent = memo(function ResidentPaymentsPageCon
    * total that changes underneath a part-filled claim is its own bug.
    */
   const [claimInvoice, setClaimInvoice] = useState<Payment | null>(null);
+  const [guideOpen, setGuideOpen] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const invalidate = useInvalidateResources();
 
@@ -436,7 +438,17 @@ export const ResidentPaymentsPageContent = memo(function ResidentPaymentsPageCon
               }}
             />
             <OfferProgramBanner code={stats.nextDue.referenceCode} />
-            <ShareReceiptSteps />
+          </div>
+          {/* Sits under the right column and, when opened, grows to the whole
+              row: the first column eases down to 0fr, so it is one motion. */}
+          <div
+            className={cn(
+              "grid transition-[grid-template-columns,column-gap] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none lg:col-span-2",
+              guideOpen ? "lg:grid-cols-[0fr_1fr] lg:gap-x-0" : "lg:grid-cols-[1.3fr_1fr] lg:gap-x-4",
+            )}
+          >
+            <div className="min-w-0" />
+            <ShareReceiptSteps onOpenChange={setGuideOpen} open={guideOpen} />
           </div>
         </div>
       ) : null}

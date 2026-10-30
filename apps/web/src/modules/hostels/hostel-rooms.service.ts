@@ -145,10 +145,38 @@ export async function isRoomTracking(hostelId: Types.ObjectId | string) {
 }
 
 async function loadRooms(hostelId: Types.ObjectId) {
-  return HostelRoomModel.find({ hostelId, isDeleted: false })
-    .sort({ floor: 1, number: 1 })
-    .select("beds floor number roomType")
-    .lean<RoomRow[]>();
+  const rows = await HostelRoomModel.find({ hostelId, isDeleted: false })
+    .select("beds floor number position roomType")
+    .lean<(RoomRow & { position?: number })[]>();
+
+  return rows.sort(
+    (a, b) =>
+      a.floor - b.floor ||
+      (a.position ?? Number.MAX_SAFE_INTEGER) - (b.position ?? Number.MAX_SAFE_INTEGER) ||
+      a.number.localeCompare(b.number, undefined, { numeric: true }),
+  );
+}
+
+export const roomOrderSchema = z.object({
+  floor: z.coerce.number().int().min(-5).max(200),
+  hostelId: objectId.optional(),
+  /** Every room of the floor, in the order the owner dragged them. */
+  ids: z.array(objectId).min(1).max(300),
+});
+
+/** Saves a floor's drag order; the web and the app both read it back through the layout. */
+export async function orderRooms(hostelId: Types.ObjectId | string, input: z.infer<typeof roomOrderSchema>) {
+  await connectToDatabase();
+
+  const id = oid(hostelId);
+
+  await HostelRoomModel.bulkWrite(
+    input.ids.map((roomId, position) => ({
+      updateOne: { filter: { _id: oid(roomId), floor: input.floor, hostelId: id, isDeleted: false }, update: { $set: { position } } },
+    })),
+  );
+
+  return getRoomLayout(id);
 }
 
 async function loadLiveResidents(hostelId: Types.ObjectId) {

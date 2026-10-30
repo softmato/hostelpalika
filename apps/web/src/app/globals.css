@@ -35,11 +35,12 @@
    *
    * Dark mode needed no change — its pairing already measures ~6:1.
    */
-  --muted-foreground: oklch(0.47 0.012 58.071);
+  --muted-foreground: oklch(0.37 0.012 58.071);
   --accent: oklch(0.97 0.001 106.424);
   --accent-foreground: oklch(0.216 0.006 56.043);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.923 0.003 48.717);
+  /* Was 0.923 (#e7e5e4) — white cards on a white page vanished. 0.86 ≈ #d3d0ce. */
+  --border: oklch(0.86 0.004 48.717);
   /*
    * The edge of a control you are meant to type in — deliberately **not**
    * `--border`.
@@ -947,4 +948,15 @@ body {
 }
 @media (prefers-reduced-motion: reduce) {
   .hp-dash-path { animation: none; }
+}
+
+/* Empty states: a dashed ring turns slowly, the tile floats, the sparks twinkle — the app's empty screens, on the web. */
+@keyframes empty-ring { to { transform: rotate(360deg); } }
+@keyframes empty-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+@keyframes empty-twinkle { 0%, 100% { opacity: 0.25; transform: scale(0.8); } 50% { opacity: 0.9; transform: scale(1.15); } }
+.empty-ring { transform-origin: 60px 60px; animation: empty-ring 28s linear infinite; }
+.empty-float { animation: empty-float 3.6s ease-in-out infinite; }
+.empty-twinkle { transform-box: fill-box; transform-origin: center; animation: empty-twinkle 2.4s ease-in-out infinite; animation-delay: var(--twinkle-delay, 0s); }
+@media (prefers-reduced-motion: reduce) {
+  .empty-ring, .empty-float, .empty-twinkle { animation: none; }
 }

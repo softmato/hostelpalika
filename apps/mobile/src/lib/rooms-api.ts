@@ -116,6 +116,11 @@ export async function updateRoom(
   return unwrap(await api.patch<ApiEnvelope<RoomLayout>>(`/hostel-admin/rooms/${id}`, input));
 }
 
+/** Saves where the owner dragged a floor's rooms; the web reads the same order. */
+export async function orderRooms(floor: number, ids: string[]) {
+  return unwrap(await api.put<ApiEnvelope<RoomLayout>>("/hostel-admin/rooms/order", { floor, ids }));
+}
+
 export async function deleteRoom(id: string) {
   return unwrap(await api.delete<ApiEnvelope<RoomLayout>>(`/hostel-admin/rooms/${id}`));
 }

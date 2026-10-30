@@ -4,6 +4,7 @@ import { setStatusBarStyle } from "expo-status-bar";
 import { useCallback, useEffect, useState } from "react";
 import { Pressable, TextInput, View } from "react-native";
 import Animated, {
+  cancelAnimation,
   Easing,
   interpolate,
   useAnimatedStyle,
@@ -400,6 +401,7 @@ export function DiscoveryHeader({
  */
 const SWEEP_MS = 2_200;
 const REST_MS = 1_400;
+const SWEEP_PASSES = 3;
 
 /** The moving band, wider than the button so it enters and leaves off-face. */
 const BAND_WIDTH = Math.round(MAP_BUTTON * 1.5);
@@ -422,9 +424,12 @@ function MapButton() {
         withTiming(0, { duration: 0 }),
         withTiming(0, { duration: REST_MS }),
       ),
-      -1,
+      // A few passes, then rest: Home stays mounted under every pushed screen,
+      // so a forever loop here never stops costing frames.
+      SWEEP_PASSES,
       false,
     );
+    return () => cancelAnimation(sweep);
   }, [reducedMotion, sweep]);
 
   const band = useAnimatedStyle(() => ({

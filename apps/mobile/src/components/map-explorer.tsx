@@ -428,11 +428,11 @@ export const MapExplorer = forwardRef<MapHandle, MapExplorerProps>(function MapE
               beforeId={base.reliefBelow}
               id="terrain-shade"
               key="terrain-shade"
+              // No highlight/shadow colour: MLRN 11.4 sends a colour where the
+              // native setter reads a colour array, and the cast kills the app.
               paint={{
                 "hillshade-accent-color": isDark ? "rgba(0,0,0,0.3)" : "rgba(0,0,0,0.12)",
-                "hillshade-exaggeration": 0.55,
-                "hillshade-highlight-color": isDark ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.35)",
-                "hillshade-shadow-color": isDark ? "rgba(0,0,0,0.6)" : "rgba(40,48,40,0.45)",
+                "hillshade-exaggeration": isDark ? 0.4 : 0.3,
               }}
               type="hillshade"
             />

@@ -22,26 +22,49 @@ const STEPS = [
  * opening the four steps in place. In place rather than a dialog because the
  * claim form that carries it is already a modal.
  */
-export function ShareReceiptSteps({ className }: { className?: string }) {
-  const [open, setOpen] = useState(false);
+export function ShareReceiptSteps({
+  className,
+  onOpenChange,
+  open: controlled,
+}: {
+  className?: string;
+  onOpenChange?: (open: boolean) => void;
+  /** Controlled by a page that widens the card when it opens; uncontrolled in the claim form. */
+  open?: boolean;
+}) {
+  const [inner, setInner] = useState(false);
+  const open = controlled ?? inner;
 
   return (
     <div className={cn("rounded-xl bg-brand-teal/10", className)}>
       <button
         aria-expanded={open}
         className="flex w-full items-center gap-2.5 px-3 py-2.5 text-left text-[13px] font-semibold text-brand-teal"
-        onClick={() => setOpen((value) => !value)}
+        onClick={() => {
+          setInner(!open);
+          onOpenChange?.(!open);
+        }}
         type="button"
       >
         <Share2 aria-hidden className="size-4 shrink-0" />
         <span className="flex-1">See how to share your receipt straight to the app</span>
-        <ChevronDown aria-hidden className={cn("size-4 shrink-0 transition-transform", open && "rotate-180")} />
+        <ChevronDown
+          aria-hidden
+          className={cn("size-4 shrink-0 transition-transform duration-500 ease-out", open && "rotate-180")}
+        />
       </button>
 
-      {open ? (
-        <ol className="grid grid-cols-2 gap-3 px-3 pb-3 sm:grid-cols-4">
+      {/* 0fr -> 1fr animates the height without measuring it. */}
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+        inert={!open}
+      >
+        <ol className="grid min-h-0 grid-cols-2 gap-4 overflow-hidden px-3 sm:grid-cols-4">
           {STEPS.map((title, index) => (
-            <li className="grid content-start gap-2" key={title}>
+            <li className="mx-auto mb-3 grid w-full max-w-[260px] content-start gap-2 first:mt-0" key={title}>
               <Image
                 alt={`Step ${index + 1}: ${title}`}
                 className="h-auto w-full rounded-2xl"
@@ -56,7 +79,7 @@ export function ShareReceiptSteps({ className }: { className?: string }) {
             </li>
           ))}
         </ol>
-      ) : null}
+      </div>
     </div>
   );
 }

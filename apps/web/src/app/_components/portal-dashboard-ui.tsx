@@ -6,6 +6,8 @@ import { ChevronDown, Star, TrendingDown, TrendingUp, X } from "@/components/ico
 import Link from "next/link";
 import type { ComponentProps, ReactNode } from "react";
 
+import { EmptyArt } from "@/app/_components/shared-ui";
+import type { GlyphName } from "@/components/glyph";
 import { PageHero } from "@/components/page-hero";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -603,10 +605,12 @@ export function AreaSparkline({
   );
 }
 
-export function EmptyInline({ label }: { label: string }) {
+export function EmptyInline({ action, glyph, label }: { action?: ReactNode; glyph?: GlyphName; label: string }) {
   return (
-    <div className="rounded-lg border border-dashed border-border bg-muted/20 px-3 py-8 text-center text-[12.5px] text-muted-foreground">
+    <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border bg-muted/20 px-3 py-5 text-center text-[12.5px] text-muted-foreground">
+      <EmptyArt glyph={glyph} size={84} />
       {label}
+      {action}
     </div>
   );
 }

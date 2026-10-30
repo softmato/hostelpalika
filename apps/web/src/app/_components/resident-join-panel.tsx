@@ -13,6 +13,7 @@ import {
 } from "@/components/icons";
 import { useState } from "react";
 
+import { Glyph } from "@/components/glyph";
 import { WhatsAppMark } from "@/components/whatsapp-mark";
 import { useConfirm } from "@/app/_components/confirm-dialog";
 import { Button } from "@/components/ui/button";
@@ -259,7 +260,7 @@ function floorName(floor: number) {
   return `${floor}${suffix} floor`;
 }
 
-export function JoinRequestsPanel() {
+export function JoinRequestsPanel({ open = false }: { open?: boolean }) {
   const list = usePortalResource<JoinRequests>(REQUESTS_URL, { errorMessage: "Could not load join requests." });
   const layout = usePortalResource<RoomLayout>("/api/v1/hostel-admin/rooms");
   const numberedRooms = layout.data?.tracking && layout.data.rooms.length ? layout.data.rooms : null;
@@ -309,6 +310,17 @@ export function JoinRequestsPanel() {
   }
 
   return (
+    // Closed by default; the header's "Join requests" button eases it open in place. The parent's
+    // space-y-6 gap moves inside (pb-6) so a closed panel leaves no gap behind.
+    <div
+      className={cn(
+        "!m-0 grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)]",
+        open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+      )}
+      inert={!open}
+    >
+      <div className="-m-1 min-h-0 overflow-hidden p-1">
+        <div className="pb-6">
     <SectionCard
       description="Residents who sent their details through your join link. Check them against your book, then add."
       title={waiting.length ? `Join requests · ${waiting.length} waiting` : "Join requests"}
@@ -364,6 +376,27 @@ export function JoinRequestsPanel() {
       ) : null}
       {confirmDialog}
     </SectionCard>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Header button: toggles the panel and counts who is waiting. Hidden when nobody has sent details. */
+export function JoinRequestsButton({ onToggle, open }: { onToggle: () => void; open: boolean }) {
+  const list = usePortalResource<JoinRequests>(REQUESTS_URL, { errorMessage: "Could not load join requests." });
+  const requests = list.data?.requests ?? [];
+  const waiting = requests.filter((request) => request.status === "PENDING").length;
+
+  if (requests.length === 0) return null;
+
+  return (
+    <RoleButton aria-expanded={open} onClick={onToggle} tone="admin" type="button" variant="outline">
+      <UserCheck className="size-4" />
+      Join requests
+      {waiting > 0 ? <span className="rounded-full bg-white px-1.5 text-[11px] font-bold leading-5 text-[#0a8a4b]">{waiting}</span> : null}
+      <Glyph className={cn("size-3.5 transition-transform duration-300 ease-out", open && "rotate-180")} name="chevron-down" />
+    </RoleButton>
   );
 }
 

@@ -8,10 +8,10 @@ import {
   useCallback,
   useState,
   useEffect,
-  useRef,
   type FormEvent,
 } from "react";
 
+import { CodeSlots } from "@/components/code-slots";
 import { destinationForRole } from "@/lib/route-access";
 import { Role } from "@/lib/roles";
 
@@ -105,7 +105,6 @@ function SignupFormContent({ googleClientId }: SignupFormProps) {
 
   // OTP inputs
   const [otpArray, setOtpArray] = useState<string[]>(Array(6).fill(""));
-  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   // Timer state
   const [countdown, setCountdown] = useState(42);
@@ -138,45 +137,6 @@ function SignupFormContent({ googleClientId }: SignupFormProps) {
 
     return () => clearInterval(timer);
   }, [step, countdown]);
-
-  // Handle OTP focus transitions
-  const handleOtpChange = (value: string, index: number) => {
-    const val = value.replace(/[^0-9]/g, "");
-    if (!val) {
-      const newOtp = [...otpArray];
-      newOtp[index] = "";
-      setOtpArray(newOtp);
-      return;
-    }
-
-    const newOtp = [...otpArray];
-    newOtp[index] = val.slice(-1);
-    setOtpArray(newOtp);
-
-    // Auto-focus next input
-    if (index < 5 && val) {
-      otpRefs.current[index + 1]?.focus();
-    }
-  };
-
-  const handleOtpKeyDown = (
-    event: React.KeyboardEvent<HTMLInputElement>,
-    index: number,
-  ) => {
-    if (event.key === "Backspace") {
-      if (!otpArray[index] && index > 0) {
-        // Clear previous input and focus it
-        const newOtp = [...otpArray];
-        newOtp[index - 1] = "";
-        setOtpArray(newOtp);
-        otpRefs.current[index - 1]?.focus();
-      } else {
-        const newOtp = [...otpArray];
-        newOtp[index] = "";
-        setOtpArray(newOtp);
-      }
-    }
-  };
 
   async function sendOtp() {
     const data = await authRequest<OtpRequestData>("/api/v1/auth/otp/request", {
@@ -324,23 +284,22 @@ function SignupFormContent({ googleClientId }: SignupFormProps) {
           ) : null}
 
           <form className="flex flex-col gap-5" onSubmit={completeSignup}>
-            <div className="flex justify-center gap-2">
-              {otpArray.map((digit, index) => (
-                <input
-                  aria-label={`OTP digit ${index + 1} of ${otpArray.length}`}
-                  className="size-12 rounded-xl border border-transparent bg-[#F4F6F8] text-center text-[18px] font-semibold text-[#0F172A] outline-none transition focus:border-[#0A8A4B] focus:bg-white focus:ring-2 focus:ring-[#0A8A4B]/15"
-                  inputMode="numeric"
-                  key={index}
-                  maxLength={1}
-                  onChange={(event) => handleOtpChange(event.target.value, index)}
-                  onKeyDown={(event) => handleOtpKeyDown(event, index)}
-                  ref={(element) => {
-                    otpRefs.current[index] = element;
-                  }}
-                  type="text"
-                  value={digit}
-                />
-              ))}
+            <div className="flex justify-center">
+              <CodeSlots
+                accentColor="#0A8A4B"
+                autoFocus
+                dangerColor="#DC2626"
+                digitColor="#ffffff"
+                edgeColor="#CBD5E1"
+                gap={10}
+                inkColor="#0A8A4B"
+                length={6}
+                onChange={(code) => setOtpArray(Array.from({ length: 6 }, (_, at) => code[at] ?? ""))}
+                radius={14}
+                slotColor="#EEF2F6"
+                slotSize={52}
+                value={otpArray.join("")}
+              />
             </div>
 
             <p className="text-center text-[13px] text-slate-500">

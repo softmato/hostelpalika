@@ -36,7 +36,7 @@ export function PageHero({
   return (
     // On brand green, the dark theme's own green buttons and grey captions
     // would vanish: primary turns white-on-green, captions a soft white.
-    <div className="dark relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,var(--hero),var(--hero-to))] px-4 py-4 text-white shadow-sm ring-1 ring-white/10 [--muted-foreground:rgb(255_255_255/0.78)] [--primary-foreground:#0a8a4b] [--primary:#ffffff] md:px-5 md:py-[18px]">
+    <div className="dark relative overflow-hidden rounded-2xl bg-[linear-gradient(135deg,var(--hero),var(--hero-to))] px-4 py-4 text-white shadow-sm ring-1 ring-white/10 [--foreground:#ffffff] [--muted-foreground:rgb(255_255_255/0.9)] [--primary-foreground:#0a8a4b] [--primary:#ffffff] md:px-5 md:py-[18px]">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(90%_140%_at_100%_0%,var(--hero-glow),transparent_60%)]"
@@ -56,13 +56,18 @@ export function PageHero({
             {breadcrumb}
             <h1 className="truncate font-heading text-lg font-bold tracking-tight md:text-xl">{title}</h1>
             {description ? (
-              <p className="line-clamp-1 text-[12.5px] text-muted-foreground" title={description}>
+              <p className="line-clamp-1 text-[12.5px] text-white/90" title={description}>
                 {description}
               </p>
             ) : null}
           </div>
         </div>
-        {actions ? <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div> : null}
+        {/* Outline/soft buttons carry green text meant for a white page; on the green hero they go white-on-glass. */}
+        {actions ? (
+          <div className="flex shrink-0 flex-wrap items-center gap-2 [&_button[class*='border-role-']]:!border-white/40 [&_button[class*='border-role-']]:!bg-white/15 [&_button[class*='border-role-']]:!text-white [&_button[class*='border-role-']:hover]:!bg-white/25 [&_button[class*='border-role-']_svg]:!text-white [&_a[class*='border-role-']]:!border-white/40 [&_a[class*='border-role-']]:!bg-white/15 [&_a[class*='border-role-']]:!text-white">
+            {actions}
+          </div>
+        ) : null}
       </div>
     </div>
   );

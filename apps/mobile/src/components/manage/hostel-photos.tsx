@@ -13,6 +13,7 @@ import { openAssetViewer } from "@/lib/asset-viewer";
 import { openConfirm } from "@/lib/confirm";
 import { absoluteMediaUrl } from "@/lib/media";
 import { toastError, toastSuccess } from "@/lib/toast";
+import { prepareEvidenceForUpload } from "@/lib/evidence-image";
 import { uploadAsset } from "@/lib/uploads";
 
 /**
@@ -115,7 +116,16 @@ export function useHostelPhotoActions({
         // each file by name, and a failed third photo should not take the two
         // that already landed with it.
         for (const asset of result.assets) {
-          const assetId = await uploadAsset(asset, {
+          // A 1600px copy: every Home card downloads this file, and a 4000px
+          // camera original is megabytes per card on a phone connection.
+          const prepared = await prepareEvidenceForUpload({
+            fileName: asset.fileName,
+            height: asset.height,
+            mimeType: asset.mimeType,
+            uri: asset.uri,
+            width: asset.width,
+          });
+          const assetId = await uploadAsset(prepared, {
             accessLevel: "PUBLIC",
             label: `${name} photo`,
           });

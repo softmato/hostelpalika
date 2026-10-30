@@ -20,12 +20,14 @@ type BranchesView = {
   branches: Array<{
     area: string;
     city: string;
+    coverUrl: string | null;
     id: string;
     name: string;
     slug: string;
     status: string;
   }>;
   main: {
+    coverUrl: string | null;
     id: string;
     name: string;
     slug: string;
@@ -132,8 +134,13 @@ export function HostelBranchesPageContent({ lock = null }: { lock?: string | nul
                     className="group flex h-full flex-col gap-4 rounded-2xl border border-border bg-background p-5 transition hover:border-brand-teal/40 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <span className="flex size-11 items-center justify-center rounded-xl bg-brand-teal/10 text-brand-teal">
-                        <Glyph className="size-6" name={index === 0 ? "hostel" : "branch"} />
+                      <span className="flex size-14 items-center justify-center overflow-hidden rounded-xl bg-brand-teal/10 text-brand-teal">
+                        {branch.coverUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element -- stored exterior photo thumbnail
+                          <img alt="" className="size-full object-cover" src={branch.coverUrl} />
+                        ) : (
+                          <Glyph className="size-6" name={index === 0 ? "hostel" : "branch"} />
+                        )}
                       </span>
                       <SoftBadge tone={status.tone}>{status.label}</SoftBadge>
                     </div>

@@ -18,6 +18,9 @@ import {
   rupees,
 } from "@/app/_components/booking-ui";
 import { useConfirm } from "@/app/_components/confirm-dialog";
+import { PortalPageHeader, RoleButton } from "@/app/_components/portal-dashboard-ui";
+import { EmptyState } from "@/app/_components/shared-ui";
+import { SectionTitle } from "@/app/_components/daily-portal-ui";
 import { requestResidentProfileForm, requestResidentQr } from "@/components/resident-identity";
 import { ApiRequestError, browserApi } from "@/lib/browser-api";
 import { downloadFile } from "@/lib/downloads/downloader";
@@ -92,7 +95,46 @@ function Shell({ children }: { children: ReactNode }) {
 
 /* ── The list ──────────────────────────────────────────────────────────── */
 
-function BookingList() {
+/**
+ * `portal` is the resident portal's own copy of these pages: same data, but the
+ * rows open `/resident/bookings/…`, the past is split from what is still open,
+ * and nothing sends the resident out to the public site except the one button
+ * that is meant to ("Explore other hostels").
+ */
+function BookingRow({ base, booking }: { base: string; booking: GuestBookingSummary }) {
+  return (
+    <li>
+      <Link
+        className="flex items-center justify-between gap-4 p-4 transition hover:bg-muted"
+        href={`${base}/${encodeURIComponent(booking.id)}`}
+      >
+        <div className="flex min-w-0 items-center gap-4">
+          <HostelPhoto className="size-14" name={booking.hostelName} url={booking.coverPhotoUrl} />
+          <div className="min-w-0">
+            <p className="truncate font-bold text-foreground">{booking.hostelName}</p>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {roomTypeLabel(booking.roomType)} · {booking.code} · {at(booking.createdAt)}
+            </p>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-3">
+          <span
+            className={cn(
+              "rounded-full px-2.5 py-1 text-xs font-bold",
+              OPEN.has(booking.status) ? "bg-brand-teal/10 text-brand-teal" : "bg-muted text-muted-foreground",
+            )}
+          >
+            {booking.statusLabel}
+          </span>
+          <ChevronRight className="size-4 text-muted-foreground" />
+        </div>
+      </Link>
+    </li>
+  );
+}
+
+function BookingList({ portal = false }: { portal?: boolean }) {
+  const base = portal ? "/resident/bookings" : "/bookings";
   const [bookings, setBookings] = useState<GuestBookingSummary[] | null>(null);
   const [error, setError] = useState("");
 
@@ -111,6 +153,22 @@ function BookingList() {
   }
 
   if (bookings.length === 0) {
+    if (portal) {
+      return (
+        <div className="rounded-2xl border border-border bg-card">
+          <EmptyState
+            action={
+              <RoleButton asChild className="mt-1 h-10 px-5" tone="team">
+                <Link href="/hostels">Explore hostels</Link>
+              </RoleButton>
+            }
+            glyph="calendar"
+            label="You have not booked a room yet."
+          />
+        </div>
+      );
+    }
+
     return (
       <Card>
         <p className="text-sm text-muted-foreground">You have not booked a room yet.</p>
@@ -121,36 +179,42 @@ function BookingList() {
     );
   }
 
+  const listClass = "divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface shadow-sm";
+
+  if (portal) {
+    const open = bookings.filter((booking) => OPEN.has(booking.status));
+    const past = bookings.filter((booking) => !OPEN.has(booking.status));
+
+    return (
+      <div className="space-y-6">
+        {open.length > 0 ? (
+          <section className="space-y-3">
+            <SectionTitle>Current</SectionTitle>
+            <ul className={listClass}>
+              {open.map((booking) => (
+                <BookingRow base={base} booking={booking} key={booking.id} />
+              ))}
+            </ul>
+          </section>
+        ) : null}
+        {past.length > 0 ? (
+          <section className="space-y-3">
+            <SectionTitle>Past bookings</SectionTitle>
+            <ul className={listClass}>
+              {past.map((booking) => (
+                <BookingRow base={base} booking={booking} key={booking.id} />
+              ))}
+            </ul>
+          </section>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
-    <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface shadow-sm">
+    <ul className={listClass}>
       {bookings.map((booking) => (
-        <li key={booking.id}>
-          <Link
-            className="flex items-center justify-between gap-4 p-4 transition hover:bg-muted"
-            href={`/bookings/${encodeURIComponent(booking.id)}`}
-          >
-            <div className="flex min-w-0 items-center gap-4">
-              <HostelPhoto className="size-14" name={booking.hostelName} url={booking.coverPhotoUrl} />
-              <div className="min-w-0">
-                <p className="truncate font-bold text-foreground">{booking.hostelName}</p>
-                <p className="mt-0.5 text-sm text-muted-foreground">
-                  {roomTypeLabel(booking.roomType)} · {booking.code} · {at(booking.createdAt)}
-                </p>
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-3">
-              <span
-                className={cn(
-                  "rounded-full px-2.5 py-1 text-xs font-bold",
-                  OPEN.has(booking.status) ? "bg-brand-teal/10 text-brand-teal" : "bg-muted text-muted-foreground",
-                )}
-              >
-                {booking.statusLabel}
-              </span>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </div>
-          </Link>
-        </li>
+        <BookingRow base={base} booking={booking} key={booking.id} />
       ))}
     </ul>
   );
@@ -214,7 +278,7 @@ function timeline(booking: GuestBookingDetail): Array<[string, string]> {
   ];
 }
 
-function BookingDetail({ bookingId }: { bookingId: string }) {
+function BookingDetail({ bookingId, portal = false }: { bookingId: string; portal?: boolean }) {
   const user = useSessionStore((state) => state.user);
   const { confirm, confirmDialog } = useConfirm();
   const [booking, setBooking] = useState<GuestBookingDetail | null>(null);
@@ -311,12 +375,16 @@ function BookingDetail({ bookingId }: { bookingId: string }) {
             <h1 className="mt-1 text-2xl font-extrabold text-foreground">{current.statusLabel}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {roomTypeLabel(current.roomType)} at{" "}
-              <Link
-                className="font-bold text-brand-teal hover:underline"
-                href={`/hostels/${encodeURIComponent(current.hostel.slug)}`}
-              >
-                {current.hostel.name}
-              </Link>
+              {portal ? (
+                <span className="font-bold text-foreground">{current.hostel.name}</span>
+              ) : (
+                <Link
+                  className="font-bold text-brand-teal hover:underline"
+                  href={`/hostels/${encodeURIComponent(current.hostel.slug)}`}
+                >
+                  {current.hostel.name}
+                </Link>
+              )}
             </p>
           </div>
         </div>
@@ -438,5 +506,35 @@ export function MyBookingDetailPage({ bookingId }: { bookingId: string }) {
         <BookingDetail bookingId={bookingId} />
       </SignedOutGate>
     </Shell>
+  );
+}
+
+/* ── Inside the resident portal ────────────────────────────────────────── */
+
+export function ResidentBookingsPageContent() {
+  return (
+    <div className="mx-auto max-w-[1448px] space-y-5">
+      <PortalPageHeader
+        actions={
+          <RoleButton asChild className="h-9 px-4" tone="team">
+            <Link href="/hostels">Explore other hostels</Link>
+          </RoleButton>
+        }
+        description="Every room you have booked, current and past."
+        title="My bookings"
+      />
+      <BookingList portal />
+    </div>
+  );
+}
+
+export function ResidentBookingDetailPageContent({ bookingId }: { bookingId: string }) {
+  return (
+    <div className="mx-auto max-w-3xl space-y-5">
+      <Link className="inline-block text-sm font-semibold text-brand-teal hover:underline" href="/resident/bookings">
+        ← My bookings
+      </Link>
+      <BookingDetail bookingId={bookingId} portal />
+    </div>
   );
 }

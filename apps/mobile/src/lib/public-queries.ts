@@ -1,10 +1,12 @@
 import { REALTIME_TOPIC } from "@/constants/topics";
 import {
   comparePublicHostels,
+  getPublicHostel,
   type HostelFilters,
   listPublicHostels,
   type PublicHostel,
 } from "@/lib/public-api";
+import { getBookingAvailability } from "@/lib/booking-api";
 import { getMyJoinRequest, type MyJoinRequest } from "@/lib/join-api";
 import { getPublicOfferPerks, type PublicOfferPerks } from "@/lib/offer-program-api";
 import { defineQuery, prefetchQuery, type Query } from "@/lib/query-cache";
@@ -100,4 +102,14 @@ export const publicQuery = {
 /** Warms one descriptor. Never throws, never re-asks something already fresh. */
 export function prefetchPublicQuery<T>(query: PublicQuery<T>) {
   prefetchQuery(query.key, query.load, { topics: query.topics });
+}
+
+/**
+ * Starts a hostel page's two reads on touch-down, under the keys
+ * `app/hostel/[slug]` reads, so the page opens onto data (or a request already
+ * half done) instead of starting one after the transition.
+ */
+export function prefetchHostelPage(slug: string) {
+  prefetchQuery(`public-hostel:${slug}`, () => getPublicHostel(slug));
+  prefetchQuery(`booking-availability:${slug}`, () => getBookingAvailability(slug));
 }

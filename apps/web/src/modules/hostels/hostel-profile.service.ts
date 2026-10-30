@@ -5,6 +5,11 @@ import { geocodeAndCacheHostel } from "@/modules/hostels/hostel-geo.service";
 import { summarizeConfigurations } from "@/modules/hostels/hostel-capacity.service";
 import { getOpenFeeSchedule } from "@/modules/finance/fee-schedule.service";
 import { sendNotificationEmail } from "@/modules/residents/resident-notify";
+import { afterResponse } from "@/lib/after-response";
+import { type ImageVariantRecord, optimizeImage } from "@/lib/image-optimizer";
+import type { Types } from "mongoose";
+import { getPublicUrl, publicBucket } from "@/lib/r2";
+import { FileAssetModel } from "@hostel/db/models/FileAsset";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { HostelRoomModel } from "@hostel/db/models/HostelRoom";
 import { ResidentModel } from "@hostel/db/models/Resident";
@@ -333,9 +338,49 @@ export async function addHostelAdminProfilePhoto(
 
   await auditHostelAction(principal, hostel._id, "HOSTEL_PROFILE_PHOTO_ADDED");
 
+  if (input.fileAssetId) {
+    const fileAssetId = String(input.fileAssetId);
+    afterResponse(() => attachPhotoVariant(hostel._id, fileAssetId));
+  }
+
   return {
     hostel: serializeHostel(updatedHostel),
   };
+}
+
+/**
+ * Makes the photo's 640px WebP (beside the original in the public bucket) and
+ * records its URL on every hostel photo that points at the asset, so listing
+ * cards stop downloading camera originals. Idempotent and best-effort: a
+ * private asset, a non-image or a missing resizer leaves `url` as the only copy.
+ */
+export async function attachPhotoVariant(hostelId: Types.ObjectId | string, fileAssetId: string) {
+  const asset = await FileAssetModel.findOne({ _id: fileAssetId, isDeleted: false });
+
+  if (!asset || asset.bucket !== publicBucket() || !asset.mimeType?.startsWith("image/")) {
+    return null;
+  }
+
+  let medium = (asset.variants as ImageVariantRecord[] | undefined)?.find(
+    (variant) => variant.variant === "MEDIUM",
+  );
+
+  if (!medium) {
+    const variants = await optimizeImage(asset.bucket, asset.key, asset.mimeType);
+    medium = variants.find((variant) => variant.variant === "MEDIUM");
+    if (!medium) return null;
+    asset.variants = variants;
+    await asset.save();
+  }
+
+  const mediumUrl = getPublicUrl(medium.key);
+  await HostelModel.updateOne(
+    { _id: hostelId },
+    { $set: { "photos.$[photo].mediumUrl": mediumUrl } },
+    { arrayFilters: [{ "photo.fileAssetId": asset._id }] },
+  );
+
+  return mediumUrl;
 }
 
 /**

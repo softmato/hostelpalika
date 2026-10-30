@@ -931,8 +931,8 @@ export const RESIDENT_NAV: PortalNavGroup[] = [
     items: [
       { href: "/resident/dashboard", icon: "dashboard", label: "Dashboard" },
       { href: "/resident/profile", icon: "user", label: "My Profile" },
-      // The public booking pages: a resident who booked before moving in finds its receipt here.
-      { href: "/bookings", icon: "calendar", keywords: ["booking", "refund"], label: "My Bookings" },
+      // Their own copy of the booking pages, inside the portal: a resident who booked before moving in finds its receipt here.
+      { href: "/resident/bookings", icon: "calendar", keywords: ["booking", "refund"], label: "My Bookings" },
     ],
   },
   {

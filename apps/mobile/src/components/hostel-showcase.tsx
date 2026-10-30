@@ -17,9 +17,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
 import { API_BASE_URL } from "@/lib/api";
-import { coverPhoto, locationLabel, priceRange, ratingDisplay } from "@/lib/hostel-display";
+import { cardPhotoUrl, coverPhoto, locationLabel, priceRange, ratingDisplay } from "@/lib/hostel-display";
 import { absoluteMediaUrl } from "@/lib/media";
 import { HOSTEL_TYPE_LABELS, type PublicHostel } from "@/lib/public-api";
+import { prefetchHostelPage } from "@/lib/public-queries";
 
 /**
  * The top of the home screen: real listings, sliding on their own.
@@ -275,7 +276,7 @@ function ShowcaseCard({
   const { colors } = useAppTheme();
 
   const cover = coverPhoto(hostel.photos);
-  const uri = absoluteMediaUrl(cover?.url, API_BASE_URL);
+  const uri = absoluteMediaUrl(cardPhotoUrl(cover), API_BASE_URL);
   const rating = ratingDisplay(hostel.ratingSummary);
   const imageWidth = Math.round(width * IMAGE_RATIO);
 
@@ -285,6 +286,7 @@ function ShowcaseCard({
       accessibilityRole="button"
       className="flex-row overflow-hidden rounded-3xl border border-border bg-card active:opacity-90"
       onPress={() => router.push(`/hostel/${hostel.slug}`)}
+      onPressIn={() => prefetchHostelPage(hostel.slug)}
       style={{ height: CARD_HEIGHT, width }}
     >
       <View style={{ width: imageWidth }}>

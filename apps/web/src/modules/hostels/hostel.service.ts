@@ -212,6 +212,7 @@ export type HostelRecord = {
     /** Set only on ROOM photos — matches roomConfigurations[].roomType. */
     roomType?: string;
     url?: string;
+    mediumUrl?: string;
   }>;
   pricing?: {
     admissionFee?: number;
@@ -442,6 +443,7 @@ export function serializeHostel(hostel: HostelRecord) {
       fileAssetId: photo.fileAssetId?.toString(),
       id: photo._id?.toString(),
       kind: photo.kind ?? "INTERIOR",
+      mediumUrl: photo.mediumUrl ?? "",
       roomType: photo.roomType ?? "",
       url: photo.url ?? "",
     })),
@@ -527,6 +529,7 @@ export function serializePublicHostel(hostel: HostelRecord) {
         alt: photo.alt ?? "",
         id: photo._id?.toString(),
         kind: photo.kind ?? "INTERIOR",
+        mediumUrl: photo.mediumUrl ?? "",
         roomType: photo.roomType ?? "",
         url: photo.url ?? "",
       })),

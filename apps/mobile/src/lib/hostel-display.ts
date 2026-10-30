@@ -86,6 +86,20 @@ export function coverPhoto(photos: HostelPhoto[]): HostelPhoto | null {
     ?? null;
 }
 
+/**
+ * The URL a card should download: the server's 640px copy when it exists, a
+ * 640px ask of the demo listings' Pexels photos, else the original. A card is
+ * at most ~300dp wide; the full viewer keeps reading `url`.
+ */
+export function cardPhotoUrl(photo: HostelPhoto | null | undefined): string | undefined {
+  if (!photo) return undefined;
+  if (photo.mediumUrl) return photo.mediumUrl;
+  if (photo.url.startsWith("https://images.pexels.com/")) {
+    return photo.url.replace(/([?&])w=\d+/, "$1w=640").replace(/([?&])h=\d+/, "$1h=480");
+  }
+  return photo.url;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Distance                                                                   */
 /* -------------------------------------------------------------------------- */

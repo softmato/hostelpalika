@@ -101,7 +101,7 @@ const CATEGORY_PATHS: Record<string, Record<string, string>> = {
     ACCOUNT_DELETION: "/resident/settings",
     ANNOUNCEMENT: "/resident/notices",
     ATTENDANCE: "/resident/attendance",
-    BOOKING: "/bookings",
+    BOOKING: "/resident/bookings",
     COMMUNITY: "/community",
     COMPLAINT: "/resident/complaints",
     ELECTRICIAN: "/resident/complaints",

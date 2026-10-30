@@ -12,6 +12,7 @@ import {
 import Animated, {
   Easing,
   interpolate,
+  cancelAnimation,
   runOnJS,
   type SharedValue,
   useAnimatedScrollHandler,
@@ -617,6 +618,7 @@ function ScanWindow({
       -1,
       true,
     );
+    return () => cancelAnimation(progress);
   }, [live, progress]);
 
   const sweep = useAnimatedStyle(() => ({
