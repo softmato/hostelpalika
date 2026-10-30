@@ -1,0 +1,848 @@
+[
+  {
+    "name": "not json",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "content-type": "application/json",
+        "user-agent": "sp-12"
+      },
+      "body": "{bad"
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 500,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "errorCode": "INTERNAL_SERVER_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "user-agent": "sp-13"
+      },
+      "body": {}
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "area": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "fullName": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "phone": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "area"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "fullName"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "phone"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad fields",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "user-agent": "sp-14"
+      },
+      "body": {
+        "fullName": "x",
+        "phone": "1",
+        "area": "a",
+        "city": "c",
+        "email": "nope",
+        "categories": [
+          "NOPE"
+        ],
+        "category": "X",
+        "documents": [
+          {}
+        ],
+        "photoAssetId": "zz",
+        "availability": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "area": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "availability": [
+              "Too big: expected string to have \u003c=240 characters"
+            ],
+            "categories": [
+              "Invalid option: expected one of \"PLUMBER\"|\"ELECTRICIAN\"|\"DOCTOR_CLINIC\"|\"INTERNET_TECHNICIAN\"|\"CLEANER\"|\"CARPENTER\"|\"PAINTER\"|\"WATER_SUPPLIER\"|\"APPLIANCE_REPAIR\"|\"ROOM_REPAIR\"|\"OTHER\""
+            ],
+            "category": [
+              "Invalid option: expected one of \"PLUMBER\"|\"ELECTRICIAN\"|\"DOCTOR_CLINIC\"|\"INTERNET_TECHNICIAN\"|\"CLEANER\"|\"CARPENTER\"|\"PAINTER\"|\"WATER_SUPPLIER\"|\"APPLIANCE_REPAIR\"|\"ROOM_REPAIR\"|\"OTHER\""
+            ],
+            "city": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "documents": [
+              "Invalid input: expected string, received undefined",
+              "Invalid input: expected string, received undefined",
+              "Invalid input: expected string, received undefined"
+            ],
+            "email": [
+              "Invalid email address"
+            ],
+            "fullName": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "phone": [
+              "Too small: expected string to have \u003e=7 characters"
+            ],
+            "photoAssetId": [
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "area"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=240 characters",
+              "path": "availability"
+            },
+            {
+              "message": "Invalid option: expected one of \"PLUMBER\"|\"ELECTRICIAN\"|\"DOCTOR_CLINIC\"|\"INTERNET_TECHNICIAN\"|\"CLEANER\"|\"CARPENTER\"|\"PAINTER\"|\"WATER_SUPPLIER\"|\"APPLIANCE_REPAIR\"|\"ROOM_REPAIR\"|\"OTHER\"",
+              "path": "categories.0"
+            },
+            {
+              "message": "Invalid option: expected one of \"PLUMBER\"|\"ELECTRICIAN\"|\"DOCTOR_CLINIC\"|\"INTERNET_TECHNICIAN\"|\"CLEANER\"|\"CARPENTER\"|\"PAINTER\"|\"WATER_SUPPLIER\"|\"APPLIANCE_REPAIR\"|\"ROOM_REPAIR\"|\"OTHER\"",
+              "path": "category"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "city"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "documents.0.claimToken"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "documents.0.documentType"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "documents.0.fileAssetId"
+            },
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "fullName"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=7 characters",
+              "path": "phone"
+            },
+            {
+              "message": "Invalid object id.",
+              "path": "photoAssetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "no trade",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "user-agent": "sp-15"
+      },
+      "body": {
+        "fullName": "No Trade",
+        "phone": "9811111112",
+        "area": "Chabahil"
+      }
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "categories": [
+              "Select at least one trade."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Select at least one trade.",
+              "path": "categories"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty trades",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "user-agent": "sp-16"
+      },
+      "body": {
+        "fullName": "New Provider",
+        "phone": "9811111111",
+        "area": "Chabahil",
+        "categories": []
+      }
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "categories": [
+              "Too small: expected array to have \u003e=1 items",
+              "Select at least one trade."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected array to have \u003e=1 items",
+              "path": "categories"
+            },
+            {
+              "message": "Select at least one trade.",
+              "path": "categories"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "too many docs",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "user-agent": "sp-17"
+      },
+      "body": {
+        "fullName": "New Provider",
+        "phone": "9811111111",
+        "area": "Chabahil",
+        "categories": [
+          "PLUMBER"
+        ],
+        "documents": [
+          {
+            "claimToken": "tttttttttttttttttttt",
+            "documentType": "Licence",
+            "fileAssetId": "6c0000000000000000000d01"
+          },
+          {
+            "claimToken": "tttttttttttttttttttt",
+            "documentType": "Licence",
+            "fileAssetId": "6c0000000000000000000d01"
+          },
+          {
+            "claimToken": "tttttttttttttttttttt",
+            "documentType": "Licence",
+            "fileAssetId": "6c0000000000000000000d01"
+          },
+          {
+            "claimToken": "tttttttttttttttttttt",
+            "documentType": "Licence",
+            "fileAssetId": "6c0000000000000000000d01"
+          },
+          {
+            "claimToken": "tttttttttttttttttttt",
+            "documentType": "Licence",
+            "fileAssetId": "6c0000000000000000000d01"
+          },
+          {
+            "claimToken": "tttttttttttttttttttt",
+            "documentType": "Licence",
+            "fileAssetId": "6c0000000000000000000d01"
+          },
+          {
+            "claimToken": "tttttttttttttttttttt",
+            "documentType": "Licence",
+            "fileAssetId": "6c0000000000000000000d01"
+          },
+          {
+            "claimToken": "tttttttttttttttttttt",
+            "documentType": "Licence",
+            "fileAssetId": "6c0000000000000000000d01"
+          },
+          {
+            "claimToken": "tttttttttttttttttttt",
+            "documentType": "Licence",
+            "fileAssetId": "6c0000000000000000000d01"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "documents": [
+              "Too big: expected array to have \u003c=8 items"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected array to have \u003c=8 items",
+              "path": "documents"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "valid but signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "user-agent": "sp-18"
+      },
+      "body": {
+        "fullName": "New Provider",
+        "phone": "9811111111",
+        "area": "Chabahil",
+        "categories": [
+          "PLUMBER"
+        ]
+      }
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "already approved",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-19"
+      },
+      "body": {
+        "fullName": "New Provider",
+        "phone": "9811111111",
+        "area": "Chabahil",
+        "categories": [
+          "PLUMBER"
+        ]
+      }
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This account is already registered as a service provider.",
+        "errorCode": "SERVICE_PROVIDER_ALREADY_REGISTERED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "already pending",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ea:PUBLIC}}",
+        "user-agent": "sp-20"
+      },
+      "body": {
+        "fullName": "New Provider",
+        "phone": "9811111111",
+        "area": "Chabahil",
+        "categories": [
+          "PLUMBER"
+        ]
+      }
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You already have an application under review.",
+        "errorCode": "SERVICE_PROVIDER_ALREADY_REGISTERED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "matched by email",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ed:PUBLIC}}",
+        "user-agent": "sp-21"
+      },
+      "body": {
+        "fullName": "New Provider",
+        "phone": "9811111111",
+        "area": "Chabahil",
+        "categories": [
+          "PLUMBER"
+        ]
+      }
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This account is already registered as a service provider.",
+        "errorCode": "SERVICE_PROVIDER_ALREADY_REGISTERED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad claim",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ec:PUBLIC}}",
+        "user-agent": "sp-22"
+      },
+      "body": {
+        "fullName": "New Provider",
+        "phone": "9811111111",
+        "area": "Chabahil",
+        "categories": [
+          "PLUMBER"
+        ],
+        "documents": [
+          {
+            "claimToken": "tttttttttttttttttttt",
+            "documentType": "Licence",
+            "fileAssetId": "6c0000000000000000000d01"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "\"Licence\" could not be verified. Upload it again.",
+        "errorCode": "REGISTRATION_DOCUMENT_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "sent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ec:PUBLIC}}",
+        "user-agent": "sp-23"
+      },
+      "body": {
+        "fullName": "New Provider",
+        "phone": "9811111111",
+        "area": "Chabahil",
+        "categories": [
+          "PLUMBER",
+          "PLUMBER",
+          "CLEANER"
+        ],
+        "email": " New@Prov.Test ",
+        "city": " Lalitpur ",
+        "availability": " day ",
+        "description": " d ",
+        "experience": " 5 ",
+        "category": "ELECTRICIAN"
+      }
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider registration submitted",
+        "data": {
+          "application": {
+            "id": "6ae42202c4cb64601682f90e",
+            "providerId": "6ae42202c4cb64601682f90d",
+            "rejectionReason": "",
+            "status": "PENDING",
+            "submittedAt": "2026-10-30T04:50:10.707Z"
+          },
+          "documents": [],
+          "provider": {
+            "area": "Chabahil",
+            "availability": "day",
+            "categories": [
+              "PLUMBER",
+              "CLEANER",
+              "ELECTRICIAN"
+            ],
+            "category": "PLUMBER",
+            "city": "Lalitpur",
+            "createdAt": "2026-10-30T04:50:10.700Z",
+            "description": "d",
+            "email": "new@prov.test",
+            "experience": "5",
+            "fullName": "New Provider",
+            "id": "6ae42202c4cb64601682f90d",
+            "phone": "9811111111",
+            "ratingSummary": {
+              "averageRating": 0,
+              "totalReviews": 0
+            },
+            "rejectionReason": "",
+            "status": "PENDING_APPROVAL",
+            "updatedAt": "2026-10-30T04:50:10.700Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "again after sent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ec:PUBLIC}}",
+        "user-agent": "sp-24"
+      },
+      "body": {
+        "fullName": "New Provider",
+        "phone": "9811111111",
+        "area": "Chabahil",
+        "categories": [
+          "PLUMBER"
+        ]
+      }
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You already have an application under review.",
+        "errorCode": "SERVICE_PROVIDER_ALREADY_REGISTERED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "re-apply after rejection",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000eb:PUBLIC}}",
+        "user-agent": "sp-25"
+      },
+      "body": {
+        "fullName": "Gita Again",
+        "phone": "9822222222",
+        "area": "Kalanki",
+        "category": "PAINTER"
+      }
+    },
+    "masks": [
+      "data.application.id",
+      "data.application.providerId",
+      "data.application.submittedAt",
+      "data.provider.id",
+      "data.provider.createdAt",
+      "data.provider.updatedAt",
+      "data.documents.0.id",
+      "data.documents.0.providerId",
+      "data.documents.0.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider registration submitted",
+        "data": {
+          "application": {
+            "id": "6ae42202c4cb64601682f910",
+            "providerId": "6ae42202c4cb64601682f90f",
+            "rejectionReason": "",
+            "status": "PENDING",
+            "submittedAt": "2026-10-30T04:50:10.815Z"
+          },
+          "documents": [],
+          "provider": {
+            "area": "Kalanki",
+            "availability": "",
+            "categories": [
+              "PAINTER"
+            ],
+            "category": "PAINTER",
+            "city": "Kathmandu",
+            "createdAt": "2026-10-30T04:50:10.809Z",
+            "description": "",
+            "email": "",
+            "experience": "",
+            "fullName": "Gita Again",
+            "id": "6ae42202c4cb64601682f90f",
+            "phone": "9822222222",
+            "ratingSummary": {
+              "averageRating": 0,
+              "totalReviews": 0
+            },
+            "rejectionReason": "",
+            "status": "PENDING_APPROVAL",
+            "updatedAt": "2026-10-30T04:50:10.809Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "GET refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/register",
+      "headers": {
+        "user-agent": "sp-26"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

@@ -1,6 +1,7 @@
 package fixture
 
 import (
+	"fmt"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -62,7 +63,7 @@ func publicDocs(now time.Time) map[string][]any {
 				e{Key: "capacitySummary", Value: d{{Key: "totalBeds", Value: 30}, {Key: "totalRooms", Value: 12}, {Key: "vacantBeds", Value: 4}}},
 				e{Key: "arrivalGuide", Value: d{{Key: "note", Value: "  Blue gate beside the pharmacy  "}, {Key: "photoUrl", Value: ""}}},
 				e{Key: "photos", Value: bson.A{
-					d{{Key: "_id", Value: oid("31")}, {Key: "kind", Value: "ROOM"}, {Key: "roomType", Value: "Single"}, {Key: "url", Value: "https://cdn.contract.test/room.webp"}, {Key: "alt", Value: "Room"}},
+					d{{Key: "_id", Value: oid("31")}, {Key: "kind", Value: "ROOM"}, {Key: "roomType", Value: "Single"}, {Key: "url", Value: "https://cdn.contract.test/room.webp"}, {Key: "mediumUrl", Value: "https://cdn.contract.test/room-640.webp"}, {Key: "alt", Value: "Room"}},
 					d{{Key: "_id", Value: oid("32")}, {Key: "kind", Value: "INTERIOR"}, {Key: "url", Value: "https://cdn.contract.test/inside.webp"}},
 					d{{Key: "_id", Value: oid("33")}, {Key: "kind", Value: "EXTERIOR"}, {Key: "url", Value: "https://cdn.contract.test/front.webp"}, {Key: "alt", Value: "Front"}},
 				}},
@@ -113,6 +114,60 @@ func publicDocs(now time.Time) map[string][]any {
 			d{{Key: "_id", Value: oid("62")}, {Key: "title", Value: "Gift card"}, {Key: "kind", Value: "GIFT"}, {Key: "giftValue", Value: 500}, {Key: "partner", Value: "Fixture Cafe"}, {Key: "description", Value: "A coffee"}, {Key: "imageUrl", Value: "https://cdn.contract.test/gift.webp"}, {Key: "isActive", Value: true}, {Key: "sortOrder", Value: 1}, {Key: "createdAt", Value: fixedAt}},
 			d{{Key: "_id", Value: oid("63")}, {Key: "title", Value: "Retired"}, {Key: "kind", Value: "GIFT"}, {Key: "isActive", Value: false}, {Key: "sortOrder", Value: 0}, {Key: "createdAt", Value: fixedAt}},
 		},
+		"hostelreferralcodes": {
+			d{{Key: "_id", Value: oid("a7")}, {Key: "code", Value: "PARTNER1"}, {Key: "kind", Value: "PARTNER"}, {Key: "name", Value: "Fixture Partner"}, {Key: "commissionType", Value: "PERCENT"},
+				{Key: "commissionValue", Value: 5}, {Key: "offerDays", Value: 10}, {Key: "offerMonths", Value: 2}, {Key: "status", Value: "ACTIVE"}, {Key: "createdAt", Value: fixedAt}},
+			d{{Key: "_id", Value: oid("a8")}, {Key: "code", Value: "FIXT123456"}, {Key: "kind", Value: "HOSTEL"}, {Key: "hostelId", Value: HostelPublished}, {Key: "status", Value: "ACTIVE"}, {Key: "createdAt", Value: fixedAt}},
+			d{{Key: "_id", Value: oid("a9")}, {Key: "code", Value: "RETIRED1"}, {Key: "kind", Value: "PARTNER"}, {Key: "name", Value: "Retired"}, {Key: "offerDays", Value: 0}, {Key: "offerMonths", Value: 1}, {Key: "status", Value: "INACTIVE"}, {Key: "createdAt", Value: fixedAt}},
+			d{{Key: "_id", Value: oid("aa")}, {Key: "code", Value: "ORPHAN99"}, {Key: "kind", Value: "HOSTEL"}, {Key: "hostelId", Value: oid("ff")}, {Key: "status", Value: "ACTIVE"}, {Key: "createdAt", Value: fixedAt}},
+			d{{Key: "_id", Value: oid("ab")}, {Key: "code", Value: "GIFTONLY"}, {Key: "kind", Value: "PARTNER"}, {Key: "name", Value: "Days only"}, {Key: "offerDays", Value: 1}, {Key: "offerMonths", Value: 0}, {Key: "status", Value: "ACTIVE"}, {Key: "createdAt", Value: fixedAt}},
+		},
+		// The two owners: staff a public inquiry or an arrival is told to.
+		"users": {
+			ownerUser(OwnerPublished, "owner@contract.test", "Fixture Owner", HostelPublished, now),
+			ownerUser(OwnerCheap, "owner2@contract.test", "Budget Owner", HostelCheap, now),
+			// Same address, a second record: what the public form creates when the owner re-registers.
+			ownerUser(oid("e7"), "owner@contract.test", "Fixture Owner (twin)", oid("fe"), now),
+		},
+		"hostelapplications": {
+			d{{Key: "_id", Value: oid("e3")}, {Key: "hostelId", Value: HostelPublished}, {Key: "applicantId", Value: OwnerPublished}, {Key: "submittedBy", Value: OwnerPublished},
+				{Key: "status", Value: "NEEDS_MORE_INFO"}, {Key: "source", Value: "PUBLIC"}, {Key: "submittedByAgentId", Value: nil},
+				{Key: "requestedDocuments", Value: bson.A{d{{Key: "documentType", Value: "Citizenship"}, {Key: "note", Value: "Front and back"}}, d{{Key: "documentType", Value: "PAN"}}}},
+				{Key: "infoRequestNote", Value: "Please send your ID"}, {Key: "infoRequestedAt", Value: fixedAt}, {Key: "infoRequestedBy", Value: UserAdmin},
+				{Key: "snapshot", Value: d{{Key: "name", Value: "Fixture Lakeside Hostel"}, {Key: "city", Value: "Kathmandu"}, {Key: "zStale", Value: bson.A{1, "two"}}}},
+				{Key: "isDeleted", Value: false}, {Key: "createdAt", Value: fixedAt.Add(-48 * time.Hour)}, {Key: "updatedAt", Value: fixedAt}, {Key: "__v", Value: 0}},
+			d{{Key: "_id", Value: oid("e4")}, {Key: "hostelId", Value: oid("fe")}, {Key: "applicantId", Value: oid("e7")}, {Key: "submittedBy", Value: oid("e7")},
+				{Key: "status", Value: "PENDING"}, {Key: "source", Value: "PUBLIC"}, {Key: "requestedDocuments", Value: bson.A{}},
+				{Key: "snapshot", Value: d{{Key: "name", Value: "Twin Pending Hostel"}}},
+				{Key: "isDeleted", Value: false}, {Key: "createdAt", Value: fixedAt.Add(-24 * time.Hour)}, {Key: "updatedAt", Value: fixedAt.Add(-time.Hour)}, {Key: "__v", Value: 0}},
+			d{{Key: "_id", Value: oid("e5")}, {Key: "hostelId", Value: oid("fd")}, {Key: "applicantId", Value: OwnerPublished}, {Key: "submittedBy", Value: OwnerPublished},
+				{Key: "status", Value: "REJECTED"}, {Key: "rejectionReason", Value: "Blurry"}, {Key: "reviewedAt", Value: fixedAt}, {Key: "notes", Value: "n"}, {Key: "requestedDocuments", Value: bson.A{}},
+				{Key: "isDeleted", Value: true}, {Key: "createdAt", Value: fixedAt}, {Key: "updatedAt", Value: fixedAt}, {Key: "__v", Value: 0}},
+			d{{Key: "_id", Value: oid("e6")}, {Key: "hostelId", Value: HostelCheap}, {Key: "applicantId", Value: OwnerCheap}, {Key: "submittedBy", Value: OwnerCheap},
+				{Key: "status", Value: "APPROVED"}, {Key: "source", Value: "PUBLIC"}, {Key: "reviewedAt", Value: fixedAt}, {Key: "requestedDocuments", Value: bson.A{}},
+				{Key: "isDeleted", Value: false}, {Key: "createdAt", Value: fixedAt}, {Key: "updatedAt", Value: fixedAt.Add(time.Hour)}, {Key: "__v", Value: 0}},
+		},
+		"admissionformlinks": {
+			d{{Key: "_id", Value: oid("c3")}, {Key: "hostelId", Value: HostelPublished}, {Key: "token", Value: "formtoken01"}, {Key: "enabled", Value: true}, {Key: "guardianDocRequired", Value: false}, {Key: "createdAt", Value: fixedAt}, {Key: "updatedAt", Value: fixedAt}},
+			d{{Key: "_id", Value: oid("c4")}, {Key: "hostelId", Value: HostelCheap}, {Key: "token", Value: "formoff0001"}, {Key: "enabled", Value: false}, {Key: "createdAt", Value: fixedAt}, {Key: "updatedAt", Value: fixedAt}},
+			d{{Key: "_id", Value: oid("c5")}, {Key: "hostelId", Value: HostelBranch}, {Key: "token", Value: "formguard001"}, {Key: "enabled", Value: true}, {Key: "guardianDocRequired", Value: true}, {Key: "createdAt", Value: fixedAt}, {Key: "updatedAt", Value: fixedAt}},
+			d{{Key: "_id", Value: oid("c6")}, {Key: "hostelId", Value: HostelHidden}, {Key: "token", Value: "formfull0001"}, {Key: "enabled", Value: true}, {Key: "createdAt", Value: fixedAt}, {Key: "updatedAt", Value: fixedAt}},
+			d{{Key: "_id", Value: oid("c7")}, {Key: "hostelId", Value: oid("fd")}, {Key: "token", Value: "formgone0001"}, {Key: "enabled", Value: true}, {Key: "createdAt", Value: fixedAt}, {Key: "updatedAt", Value: fixedAt}},
+		},
+		"admissionforms": fullQueue(),
+		"fileassets": {
+			regDoc(oid("d2"), nil, "PRIVATE", fixedAt), regDoc(oid("d3"), UserPublic, "PRIVATE", fixedAt), regDoc(oid("d4"), nil, "PRIVATE", fixedAt), regDoc(oid("d5"), nil, "PUBLIC", fixedAt),
+			regUpload(oid("d7"), "image/jpeg", nil), regUpload(oid("d8"), "application/pdf", nil), regUpload(oid("d9"), "image/png", nil),
+			regUpload(oid("da"), "image/webp", HostelCheap), regUpload(oid("db"), "text/plain", nil), regUpload(oid("dc"), "image/jpeg", nil),
+		},
+		// Five messages inside the last hour: UserProvider is over the feedback budget.
+		"feedbacks": {
+			d{{Key: "_id", Value: oid("f2")}, {Key: "kind", Value: "BUG"}, {Key: "message", Value: "one"}, {Key: "userId", Value: UserProvider}, {Key: "status", Value: "NEW"}, {Key: "createdAt", Value: now.Add(-10 * time.Minute)}},
+			d{{Key: "_id", Value: oid("f3")}, {Key: "kind", Value: "BUG"}, {Key: "message", Value: "two"}, {Key: "userId", Value: UserProvider}, {Key: "status", Value: "NEW"}, {Key: "createdAt", Value: now.Add(-11 * time.Minute)}},
+			d{{Key: "_id", Value: oid("f4")}, {Key: "kind", Value: "BUG"}, {Key: "message", Value: "three"}, {Key: "userId", Value: UserProvider}, {Key: "status", Value: "NEW"}, {Key: "createdAt", Value: now.Add(-12 * time.Minute)}},
+			d{{Key: "_id", Value: oid("f5")}, {Key: "kind", Value: "BUG"}, {Key: "message", Value: "four"}, {Key: "userId", Value: UserProvider}, {Key: "status", Value: "NEW"}, {Key: "createdAt", Value: now.Add(-13 * time.Minute)}},
+			d{{Key: "_id", Value: oid("f6")}, {Key: "kind", Value: "BUG"}, {Key: "message", Value: "five"}, {Key: "userId", Value: UserProvider}, {Key: "status", Value: "NEW"}, {Key: "createdAt", Value: now.Add(-14 * time.Minute)}},
+		},
 		"hostelsubscriptions": {
 			d{{Key: "_id", Value: oid("b4")}, {Key: "hostelId", Value: HostelHidden}, {Key: "planId", Value: "go"},
 				{Key: "status", Value: "ACTIVE"}, {Key: "lifetimeSince", Value: fixedAt}, {Key: "currentPeriodEnd", Value: time.Date(2099, 12, 31, 18, 14, 59, 999e6, time.UTC)}},
@@ -120,4 +175,52 @@ func publicDocs(now time.Time) map[string][]any {
 				{Key: "status", Value: "ACTIVE"}, {Key: "currentPeriodEnd", Value: now.Add(20 * day)}},
 		},
 	}
+}
+
+// regUpload is a private registration upload of a given type, optionally already tied to a hostel.
+func regUpload(id bson.ObjectID, mime string, hostel any) d {
+	row := regDoc(id, nil, "PRIVATE", fixedAt)
+	for i := range row {
+		if row[i].Key == "mimeType" {
+			row[i].Value = mime
+		}
+	}
+	if hostel != nil {
+		row = append(row, e{Key: "hostelId", Value: hostel})
+	}
+	return row
+}
+
+// regDoc is a registration document uploaded through public/files/upload.
+func regDoc(id bson.ObjectID, owner any, access string, at time.Time) d {
+	row := d{{Key: "_id", Value: id}}
+	if owner != nil {
+		row = append(row, e{Key: "ownerId", Value: owner})
+	}
+	return append(row, e{Key: "accessLevel", Value: access}, e{Key: "bucket", Value: "private"}, e{Key: "fileName", Value: "id.pdf"}, e{Key: "key", Value: "registration-documents/" + id.Hex()},
+		e{Key: "kind", Value: "REGISTRATION_DOCUMENT"}, e{Key: "mimeType", Value: "application/pdf"}, e{Key: "sizeBytes", Value: 1234}, e{Key: "status", Value: "ACTIVE"},
+		e{Key: "storageProvider", Value: "CLOUDFLARE_R2"}, e{Key: "variants", Value: bson.A{}}, e{Key: "isDeleted", Value: false},
+		e{Key: "createdAt", Value: at}, e{Key: "updatedAt", Value: at}, e{Key: "__v", Value: 0})
+}
+
+func ownerUser(id bson.ObjectID, email, name string, hostel bson.ObjectID, now time.Time) d {
+	return d{{Key: "_id", Value: id}, {Key: "name", Value: name}, {Key: "email", Value: email}, {Key: "image", Value: nil}, {Key: "emailVerified", Value: true},
+		{Key: "emailVerifiedAt", Value: now.Add(-24 * time.Hour)}, {Key: "authProvider", Value: "LOCAL"}, {Key: "role", Value: "HOSTEL_ADMIN"},
+		{Key: "mustChangePassword", Value: false}, {Key: "tokenVersion", Value: 0}, {Key: "hostelIds", Value: bson.A{hostel}}, {Key: "status", Value: "ACTIVE"},
+		{Key: "isDemoData", Value: false}, {Key: "isDeleted", Value: false}, {Key: "createdAt", Value: now.Add(-24 * time.Hour)}, {Key: "updatedAt", Value: now.Add(-24 * time.Hour)}, {Key: "__v", Value: 0}}
+}
+
+// fullQueue is one waiting form on the published hostel (a phone that sends again
+// replaces it) and sixty on the hidden one (its queue is full).
+func fullQueue() []any {
+	rows := []any{d{{Key: "_id", Value: oid("c8")}, {Key: "hostelId", Value: HostelPublished}, {Key: "userId", Value: nil}, {Key: "firstName", Value: "Old"}, {Key: "lastName", Value: "Form"},
+		{Key: "phone", Value: "9800000055"}, {Key: "email", Value: "old@contract.test"}, {Key: "residentType", Value: "STUDENT"}, {Key: "detailsData", Value: nil}, {Key: "photoAssetId", Value: nil},
+		{Key: "documents", Value: bson.A{}}, {Key: "status", Value: "PENDING"}, {Key: "submittedAt", Value: fixedAt}, {Key: "decidedAt", Value: nil}, {Key: "residentId", Value: nil},
+		{Key: "createdAt", Value: fixedAt}, {Key: "updatedAt", Value: fixedAt}, {Key: "__v", Value: 0}}}
+	for i := 0; i < 60; i++ {
+		id, _ := bson.ObjectIDFromHex("6c0000000000000000001" + fmt.Sprintf("%03x", i))
+		rows = append(rows, d{{Key: "_id", Value: id}, {Key: "hostelId", Value: HostelHidden}, {Key: "firstName", Value: "Q"}, {Key: "lastName", Value: "Row"}, {Key: "phone", Value: fmt.Sprintf("98100%05d", i)},
+			{Key: "status", Value: "PENDING"}, {Key: "submittedAt", Value: fixedAt}, {Key: "createdAt", Value: fixedAt}, {Key: "updatedAt", Value: fixedAt}})
+	}
+	return rows
 }

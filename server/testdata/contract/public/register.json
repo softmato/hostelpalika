@@ -1,0 +1,1593 @@
+[
+  {
+    "name": "not json",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/register",
+      "headers": {
+        "content-type": "application/json",
+        "user-agent": "reg-1"
+      },
+      "body": "{bad"
+    },
+    "masks": [
+      "data.application.applicantId",
+      "data.application.submittedBy",
+      "data.hostel.roomConfigurations.0.id",
+      "data.hostel.photos.0.id",
+      "data.hostel.photos.1.id",
+      "data.application.id",
+      "data.application.hostelId",
+      "data.application.createdAt",
+      "data.application.updatedAt",
+      "data.application.submittedAt",
+      "data.hostel.id",
+      "data.hostel.slug",
+      "data.hostel.referencePrefix",
+      "data.hostel.createdAt",
+      "data.hostel.updatedAt",
+      "data.hostel.ownerId",
+      "data.hostel.kyc.trialEndsAt",
+      "data.hostel.kyc.submittedAt"
+    ],
+    "response": {
+      "status": 500,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "errorCode": "INTERNAL_SERVER_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/register",
+      "headers": {
+        "user-agent": "reg-2"
+      },
+      "body": {}
+    },
+    "masks": [
+      "data.application.applicantId",
+      "data.application.submittedBy",
+      "data.hostel.roomConfigurations.0.id",
+      "data.hostel.photos.0.id",
+      "data.hostel.photos.1.id",
+      "data.application.id",
+      "data.application.hostelId",
+      "data.application.createdAt",
+      "data.application.updatedAt",
+      "data.application.submittedAt",
+      "data.hostel.id",
+      "data.hostel.slug",
+      "data.hostel.referencePrefix",
+      "data.hostel.createdAt",
+      "data.hostel.updatedAt",
+      "data.hostel.ownerId",
+      "data.hostel.kyc.trialEndsAt",
+      "data.hostel.kyc.submittedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "location": [
+              "Invalid input: expected object, received undefined"
+            ],
+            "name": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "applicant": [
+              "Invalid input: expected object, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "location"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "name"
+            },
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "applicant"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad fields",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/register",
+      "headers": {
+        "user-agent": "reg-3"
+      },
+      "body": {
+        "name": "x",
+        "location": {
+          "area": "a"
+        },
+        "applicant": {
+          "name": "o",
+          "phone": "1",
+          "email": "bad"
+        },
+        "roomConfigurations": [
+          {}
+        ],
+        "panNumber": "12",
+        "yearEstablished": "20",
+        "securityDeposit": -1
+      }
+    },
+    "masks": [
+      "data.application.applicantId",
+      "data.application.submittedBy",
+      "data.hostel.roomConfigurations.0.id",
+      "data.hostel.photos.0.id",
+      "data.hostel.photos.1.id",
+      "data.application.id",
+      "data.application.hostelId",
+      "data.application.createdAt",
+      "data.application.updatedAt",
+      "data.application.submittedAt",
+      "data.hostel.id",
+      "data.hostel.slug",
+      "data.hostel.referencePrefix",
+      "data.hostel.createdAt",
+      "data.hostel.updatedAt",
+      "data.hostel.ownerId",
+      "data.hostel.kyc.trialEndsAt",
+      "data.hostel.kyc.submittedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "location": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "name": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "securityDeposit": [
+              "Too small: expected number to be \u003e=0"
+            ],
+            "roomConfigurations": [
+              "Invalid input: expected number, received NaN",
+              "Invalid option: expected one of \"Included\"|\"Not Included\"|\"Optional\"",
+              "Invalid input: expected number, received NaN",
+              "Invalid input: expected string, received undefined"
+            ],
+            "applicant": [
+              "Invalid email address",
+              "Too small: expected string to have \u003e=2 characters",
+              "Too small: expected string to have \u003e=7 characters"
+            ],
+            "panNumber": [
+              "A PAN/VAT number is 9 digits."
+            ],
+            "yearEstablished": [
+              "Year established should be four digits."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "location.area"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "name"
+            },
+            {
+              "message": "Too small: expected number to be \u003e=0",
+              "path": "securityDeposit"
+            },
+            {
+              "message": "Invalid input: expected number, received NaN",
+              "path": "roomConfigurations.0.bedsPerRoom"
+            },
+            {
+              "message": "Invalid option: expected one of \"Included\"|\"Not Included\"|\"Optional\"",
+              "path": "roomConfigurations.0.mealInclusion"
+            },
+            {
+              "message": "Invalid input: expected number, received NaN",
+              "path": "roomConfigurations.0.rooms"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "roomConfigurations.0.roomType"
+            },
+            {
+              "message": "Invalid email address",
+              "path": "applicant.email"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "applicant.name"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=7 characters",
+              "path": "applicant.phone"
+            },
+            {
+              "message": "A PAN/VAT number is 9 digits.",
+              "path": "panNumber"
+            },
+            {
+              "message": "Year established should be four digits.",
+              "path": "yearEstablished"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "discount over fee",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/register",
+      "headers": {
+        "user-agent": "reg-4"
+      },
+      "body": {
+        "name": "Contract Hostel 2",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Baneshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Owner Person",
+          "phone": "9800000002",
+          "email": "owner2@reg.test"
+        },
+        "contact": {
+          "phone": "9800000002"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "referralAdmissionDiscount": 5000
+      }
+    },
+    "masks": [
+      "data.application.applicantId",
+      "data.application.submittedBy",
+      "data.hostel.roomConfigurations.0.id",
+      "data.hostel.photos.0.id",
+      "data.hostel.photos.1.id",
+      "data.application.id",
+      "data.application.hostelId",
+      "data.application.createdAt",
+      "data.application.updatedAt",
+      "data.application.submittedAt",
+      "data.hostel.id",
+      "data.hostel.slug",
+      "data.hostel.referencePrefix",
+      "data.hostel.createdAt",
+      "data.hostel.updatedAt",
+      "data.hostel.ownerId",
+      "data.hostel.kyc.trialEndsAt",
+      "data.hostel.kyc.submittedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "referralAdmissionDiscount": [
+              "A referral discount cannot be more than the admission fee."
+            ]
+          },
+          "issues": [
+            {
+              "message": "A referral discount cannot be more than the admission fee.",
+              "path": "referralAdmissionDiscount"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "room photo unknown type",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/register",
+      "headers": {
+        "user-agent": "reg-5"
+      },
+      "body": {
+        "name": "Contract Hostel 3",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Baneshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Owner Person",
+          "phone": "9800000003",
+          "email": "owner3@reg.test"
+        },
+        "contact": {
+          "phone": "9800000003"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "photos": [
+          {
+            "kind": "ROOM",
+            "roomType": "Nope",
+            "url": "/x.jpg"
+          },
+          {
+            "kind": "ROOM",
+            "url": "/y.jpg"
+          },
+          {
+            "url": "ftp://bad"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "data.application.applicantId",
+      "data.application.submittedBy",
+      "data.hostel.roomConfigurations.0.id",
+      "data.hostel.photos.0.id",
+      "data.hostel.photos.1.id",
+      "data.application.id",
+      "data.application.hostelId",
+      "data.application.createdAt",
+      "data.application.updatedAt",
+      "data.application.submittedAt",
+      "data.hostel.id",
+      "data.hostel.slug",
+      "data.hostel.referencePrefix",
+      "data.hostel.createdAt",
+      "data.hostel.updatedAt",
+      "data.hostel.ownerId",
+      "data.hostel.kyc.trialEndsAt",
+      "data.hostel.kyc.submittedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "photos": [
+              "Photo URL must start with / or http(s)://",
+              "\"Nope\" is not one of the room types on this hostel.",
+              "A room photo has to say which room type it is of."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Photo URL must start with / or http(s)://",
+              "path": "photos.2.url"
+            },
+            {
+              "message": "\"Nope\" is not one of the room types on this hostel.",
+              "path": "photos.0.roomType"
+            },
+            {
+              "message": "A room photo has to say which room type it is of.",
+              "path": "photos.1.roomType"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "anonymous sent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/register",
+      "headers": {
+        "user-agent": "reg-6"
+      },
+      "body": {
+        "name": "Contract Hostel 1",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Baneshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Owner Person",
+          "phone": "9800000001",
+          "email": "owner1@reg.test"
+        },
+        "contact": {
+          "phone": "9800000001"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        }
+      }
+    },
+    "masks": [
+      "data.application.applicantId",
+      "data.application.submittedBy",
+      "data.hostel.roomConfigurations.0.id",
+      "data.hostel.photos.0.id",
+      "data.hostel.photos.1.id",
+      "data.application.id",
+      "data.application.hostelId",
+      "data.application.createdAt",
+      "data.application.updatedAt",
+      "data.application.submittedAt",
+      "data.hostel.id",
+      "data.hostel.slug",
+      "data.hostel.referencePrefix",
+      "data.hostel.createdAt",
+      "data.hostel.updatedAt",
+      "data.hostel.ownerId",
+      "data.hostel.kyc.trialEndsAt",
+      "data.hostel.kyc.submittedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel registration submitted",
+        "data": {
+          "application": {
+            "applicantId": "6ae41f26c4cb64601682f8c4",
+            "hostelId": "6ae41f26c4cb64601682f8c5",
+            "id": "6ae41f26c4cb64601682f8c7",
+            "infoRequestNote": "",
+            "infoRequestedAt": null,
+            "notes": "",
+            "rejectionReason": "",
+            "requestedDocuments": [],
+            "reviewedAt": null,
+            "snapshot": {
+              "applicant": {
+                "email": "owner1@reg.test",
+                "name": "Owner Person",
+                "phone": "9800000001"
+              },
+              "contact": {
+                "phone": "9800000001"
+              },
+              "documents": [],
+              "location": {
+                "address": "Near the chowk",
+                "area": "Baneshwor",
+                "city": "Kathmandu"
+              },
+              "name": "Contract Hostel 1",
+              "pricing": {
+                "admissionFee": 2000,
+                "currency": "NPR"
+              },
+              "roomConfigurations": [
+                {
+                  "bedsPerRoom": 2,
+                  "mealInclusion": "Included",
+                  "monthlyRent": 9000,
+                  "rooms": 3,
+                  "roomType": "Double",
+                  "vacantBeds": 2
+                }
+              ],
+              "selectedPlan": null
+            },
+            "status": "PENDING",
+            "submittedAt": "2026-10-30T04:37:58.340Z",
+            "submittedBy": "6ae41f26c4cb64601682f8c4"
+          },
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9800000001"
+            },
+            "createdAt": "2026-10-30T04:37:58.331Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": true
+            },
+            "hostelType": "BOYS",
+            "id": "6ae41f26c4cb64601682f8c5",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "address": "Near the chowk",
+              "locationSource": "GEOCODED"
+            },
+            "name": "Contract Hostel 1",
+            "nameChangeCount": 0,
+            "ownerId": "6ae41f26c4cb64601682f8c4",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae41f26c4cb64601682f8c6",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 2
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "contract-hostel-1-baneshwor",
+            "status": "PENDING_APPROVAL",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-10-30T04:37:58.331Z",
+            "verificationStatus": "PENDING"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "same email again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/register",
+      "headers": {
+        "user-agent": "reg-7"
+      },
+      "body": {
+        "name": "Another Hostel",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Baneshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Owner Person",
+          "phone": "9800000001",
+          "email": "owner1@reg.test"
+        },
+        "contact": {
+          "phone": "9800000001"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        }
+      }
+    },
+    "masks": [
+      "data.application.applicantId",
+      "data.application.submittedBy",
+      "data.hostel.roomConfigurations.0.id",
+      "data.hostel.photos.0.id",
+      "data.hostel.photos.1.id",
+      "data.application.id",
+      "data.application.hostelId",
+      "data.application.createdAt",
+      "data.application.updatedAt",
+      "data.application.submittedAt",
+      "data.hostel.id",
+      "data.hostel.slug",
+      "data.hostel.referencePrefix",
+      "data.hostel.createdAt",
+      "data.hostel.updatedAt",
+      "data.hostel.ownerId",
+      "data.hostel.kyc.trialEndsAt",
+      "data.hostel.kyc.submittedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel registration submitted",
+        "data": {
+          "application": {
+            "applicantId": "6ae41f26c4cb64601682f8c4",
+            "hostelId": "6ae41f26c4cb64601682f8cb",
+            "id": "6ae41f26c4cb64601682f8cd",
+            "infoRequestNote": "",
+            "infoRequestedAt": null,
+            "notes": "",
+            "rejectionReason": "",
+            "requestedDocuments": [],
+            "reviewedAt": null,
+            "snapshot": {
+              "applicant": {
+                "email": "owner1@reg.test",
+                "name": "Owner Person",
+                "phone": "9800000001"
+              },
+              "contact": {
+                "phone": "9800000001"
+              },
+              "documents": [],
+              "location": {
+                "address": "Near the chowk",
+                "area": "Baneshwor",
+                "city": "Kathmandu"
+              },
+              "name": "Another Hostel",
+              "pricing": {
+                "admissionFee": 2000,
+                "currency": "NPR"
+              },
+              "roomConfigurations": [
+                {
+                  "bedsPerRoom": 2,
+                  "mealInclusion": "Included",
+                  "monthlyRent": 9000,
+                  "rooms": 3,
+                  "roomType": "Double",
+                  "vacantBeds": 2
+                }
+              ],
+              "selectedPlan": null
+            },
+            "status": "PENDING",
+            "submittedAt": "2026-10-30T04:37:58.499Z",
+            "submittedBy": "6ae41f26c4cb64601682f8c4"
+          },
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9800000001"
+            },
+            "createdAt": "2026-10-30T04:37:58.489Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": true
+            },
+            "hostelType": "BOYS",
+            "id": "6ae41f26c4cb64601682f8cb",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "address": "Near the chowk",
+              "locationSource": "GEOCODED"
+            },
+            "name": "Another Hostel",
+            "nameChangeCount": 0,
+            "ownerId": "6ae41f26c4cb64601682f8c4",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae41f26c4cb64601682f8cc",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 2
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "another-hostel-baneshwor",
+            "status": "PENDING_APPROVAL",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-10-30T04:37:58.489Z",
+            "verificationStatus": "PENDING"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "same phone other email",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/register",
+      "headers": {
+        "user-agent": "reg-8"
+      },
+      "body": {
+        "name": "Contract Hostel 1",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Baneshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Owner Person",
+          "phone": "9800000001",
+          "email": "other@reg.test"
+        },
+        "contact": {
+          "phone": "9800000001"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        }
+      }
+    },
+    "masks": [
+      "data.application.applicantId",
+      "data.application.submittedBy",
+      "data.hostel.roomConfigurations.0.id",
+      "data.hostel.photos.0.id",
+      "data.hostel.photos.1.id",
+      "data.application.id",
+      "data.application.hostelId",
+      "data.application.createdAt",
+      "data.application.updatedAt",
+      "data.application.submittedAt",
+      "data.hostel.id",
+      "data.hostel.slug",
+      "data.hostel.referencePrefix",
+      "data.hostel.createdAt",
+      "data.hostel.updatedAt",
+      "data.hostel.ownerId",
+      "data.hostel.kyc.trialEndsAt",
+      "data.hostel.kyc.submittedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel registration submitted",
+        "data": {
+          "application": {
+            "applicantId": "6ae41f26c4cb64601682f8c4",
+            "hostelId": "6ae41f26c4cb64601682f8d1",
+            "id": "6ae41f26c4cb64601682f8d3",
+            "infoRequestNote": "",
+            "infoRequestedAt": null,
+            "notes": "",
+            "rejectionReason": "",
+            "requestedDocuments": [],
+            "reviewedAt": null,
+            "snapshot": {
+              "applicant": {
+                "email": "other@reg.test",
+                "name": "Owner Person",
+                "phone": "9800000001"
+              },
+              "contact": {
+                "phone": "9800000001"
+              },
+              "documents": [],
+              "location": {
+                "address": "Near the chowk",
+                "area": "Baneshwor",
+                "city": "Kathmandu"
+              },
+              "name": "Contract Hostel 1",
+              "pricing": {
+                "admissionFee": 2000,
+                "currency": "NPR"
+              },
+              "roomConfigurations": [
+                {
+                  "bedsPerRoom": 2,
+                  "mealInclusion": "Included",
+                  "monthlyRent": 9000,
+                  "rooms": 3,
+                  "roomType": "Double",
+                  "vacantBeds": 2
+                }
+              ],
+              "selectedPlan": null
+            },
+            "status": "PENDING",
+            "submittedAt": "2026-10-30T04:37:58.606Z",
+            "submittedBy": "6ae41f26c4cb64601682f8c4"
+          },
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9800000001"
+            },
+            "createdAt": "2026-10-30T04:37:58.595Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": true
+            },
+            "hostelType": "BOYS",
+            "id": "6ae41f26c4cb64601682f8d1",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "address": "Near the chowk",
+              "locationSource": "GEOCODED"
+            },
+            "name": "Contract Hostel 1",
+            "nameChangeCount": 0,
+            "ownerId": "6ae41f26c4cb64601682f8c4",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae41f26c4cb64601682f8d2",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 2
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "contract-hostel-1-baneshwor-2",
+            "status": "PENDING_APPROVAL",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-10-30T04:37:58.595Z",
+            "verificationStatus": "PENDING"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "signed in",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/register",
+      "headers": {
+        "authorization": "Bearer {{access:6c000000000000000000000c:PUBLIC}}",
+        "user-agent": "reg-9"
+      },
+      "body": {
+        "name": "Contract Hostel 4",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Baneshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Owner Person",
+          "phone": "9800000004",
+          "email": "owner4@reg.test"
+        },
+        "contact": {
+          "phone": "9800000004"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        }
+      }
+    },
+    "masks": [
+      "data.application.applicantId",
+      "data.application.submittedBy",
+      "data.hostel.roomConfigurations.0.id",
+      "data.hostel.photos.0.id",
+      "data.hostel.photos.1.id",
+      "data.application.id",
+      "data.application.hostelId",
+      "data.application.createdAt",
+      "data.application.updatedAt",
+      "data.application.submittedAt",
+      "data.hostel.id",
+      "data.hostel.slug",
+      "data.hostel.referencePrefix",
+      "data.hostel.createdAt",
+      "data.hostel.updatedAt",
+      "data.hostel.ownerId",
+      "data.hostel.kyc.trialEndsAt",
+      "data.hostel.kyc.submittedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel registration submitted",
+        "data": {
+          "application": {
+            "applicantId": "6c000000000000000000000c",
+            "hostelId": "6ae41f26c4cb64601682f8d7",
+            "id": "6ae41f26c4cb64601682f8d9",
+            "infoRequestNote": "",
+            "infoRequestedAt": null,
+            "notes": "",
+            "rejectionReason": "",
+            "requestedDocuments": [],
+            "reviewedAt": null,
+            "snapshot": {
+              "applicant": {
+                "email": "desk@contract.test",
+                "name": "Owner Person",
+                "phone": "9800000004"
+              },
+              "contact": {
+                "phone": "9800000004"
+              },
+              "documents": [],
+              "location": {
+                "address": "Near the chowk",
+                "area": "Baneshwor",
+                "city": "Kathmandu"
+              },
+              "name": "Contract Hostel 4",
+              "pricing": {
+                "admissionFee": 2000,
+                "currency": "NPR"
+              },
+              "roomConfigurations": [
+                {
+                  "bedsPerRoom": 2,
+                  "mealInclusion": "Included",
+                  "monthlyRent": 9000,
+                  "rooms": 3,
+                  "roomType": "Double",
+                  "vacantBeds": 2
+                }
+              ],
+              "selectedPlan": null
+            },
+            "status": "PENDING",
+            "submittedAt": "2026-10-30T04:37:58.711Z",
+            "submittedBy": "6c000000000000000000000c"
+          },
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9800000004"
+            },
+            "createdAt": "2026-10-30T04:37:58.703Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": true
+            },
+            "hostelType": "BOYS",
+            "id": "6ae41f26c4cb64601682f8d7",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "address": "Near the chowk",
+              "locationSource": "GEOCODED"
+            },
+            "name": "Contract Hostel 4",
+            "nameChangeCount": 0,
+            "ownerId": "6c000000000000000000000c",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae41f26c4cb64601682f8d8",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 2
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "contract-hostel-4-baneshwor",
+            "status": "PENDING_APPROVAL",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-10-30T04:37:58.703Z",
+            "verificationStatus": "PENDING"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "full body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/register",
+      "headers": {
+        "user-agent": "reg-10"
+      },
+      "body": {
+        "name": "Contract Hostel 5",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Baneshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Owner Person",
+          "phone": "9800000005",
+          "email": "owner5@reg.test"
+        },
+        "contact": {
+          "phone": "9800000005"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "description": "A nice place",
+        "facilities": [
+          "WiFi",
+          "Laundry"
+        ],
+        "roomTypes": [
+          "Double"
+        ],
+        "rules": [
+          "No smoking"
+        ],
+        "notes": "n",
+        "landmark": "Chowk",
+        "mapLink": "https://maps.example/x",
+        "panNumber": "123456789",
+        "yearEstablished": "2020",
+        "totalFloors": 3,
+        "alternatePhone": "9811111111",
+        "food": {
+          "mealsPerDay": 2,
+          "hasVeg": true,
+          "hasNonVeg": false
+        },
+        "capacitySummary": {
+          "totalBeds": 6,
+          "totalRooms": 3,
+          "vacantBeds": 2
+        },
+        "securityDeposit": 3000,
+        "shortStays": {
+          "enabled": false,
+          "minNights": 2,
+          "rates": []
+        }
+      }
+    },
+    "masks": [
+      "data.application.applicantId",
+      "data.application.submittedBy",
+      "data.hostel.roomConfigurations.0.id",
+      "data.hostel.photos.0.id",
+      "data.hostel.photos.1.id",
+      "data.application.id",
+      "data.application.hostelId",
+      "data.application.createdAt",
+      "data.application.updatedAt",
+      "data.application.submittedAt",
+      "data.hostel.id",
+      "data.hostel.slug",
+      "data.hostel.referencePrefix",
+      "data.hostel.createdAt",
+      "data.hostel.updatedAt",
+      "data.hostel.ownerId",
+      "data.hostel.kyc.trialEndsAt",
+      "data.hostel.kyc.submittedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel registration submitted",
+        "data": {
+          "application": {
+            "applicantId": "6ae41f26c4cb64601682f8dd",
+            "hostelId": "6ae41f26c4cb64601682f8de",
+            "id": "6ae41f26c4cb64601682f8e0",
+            "infoRequestNote": "",
+            "infoRequestedAt": null,
+            "notes": "n",
+            "rejectionReason": "",
+            "requestedDocuments": [],
+            "reviewedAt": null,
+            "snapshot": {
+              "applicant": {
+                "email": "owner5@reg.test",
+                "name": "Owner Person",
+                "phone": "9800000005"
+              },
+              "capacitySummary": {
+                "totalBeds": 6,
+                "totalRooms": 3,
+                "vacantBeds": 2
+              },
+              "contact": {
+                "phone": "9800000005"
+              },
+              "documents": [],
+              "location": {
+                "address": "Near the chowk",
+                "area": "Baneshwor",
+                "city": "Kathmandu"
+              },
+              "name": "Contract Hostel 5",
+              "pricing": {
+                "admissionFee": 2000,
+                "currency": "NPR"
+              },
+              "roomConfigurations": [
+                {
+                  "bedsPerRoom": 2,
+                  "mealInclusion": "Included",
+                  "monthlyRent": 9000,
+                  "rooms": 3,
+                  "roomType": "Double",
+                  "vacantBeds": 2
+                }
+              ],
+              "selectedPlan": null
+            },
+            "status": "PENDING",
+            "submittedAt": "2026-10-30T04:37:58.815Z",
+            "submittedBy": "6ae41f26c4cb64601682f8dd"
+          },
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {
+              "totalRooms": 3,
+              "totalBeds": 6,
+              "vacantBeds": 2
+            },
+            "contact": {
+              "phone": "9800000005",
+              "alternatePhone": "9811111111"
+            },
+            "createdAt": "2026-10-30T04:37:58.808Z",
+            "demoDataLabel": "",
+            "description": "A nice place",
+            "facilities": [
+              "WiFi",
+              "Laundry"
+            ],
+            "food": {
+              "mealsPerDay": 2,
+              "hasVeg": true,
+              "hasNonVeg": false
+            },
+            "hostelType": "BOYS",
+            "id": "6ae41f26c4cb64601682f8de",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "address": "Near the chowk",
+              "landmark": "Chowk",
+              "mapLink": "https://maps.example/x",
+              "locationSource": "GEOCODED"
+            },
+            "name": "Contract Hostel 5",
+            "nameChangeCount": 0,
+            "ownerId": "6ae41f26c4cb64601682f8dd",
+            "panNumber": "123456789",
+            "parentHostelId": null,
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae41f26c4cb64601682f8df",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 2
+              }
+            ],
+            "roomTypes": [
+              "Double"
+            ],
+            "rules": [
+              "No smoking"
+            ],
+            "slug": "contract-hostel-5-baneshwor",
+            "status": "PENDING_APPROVAL",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 3,
+            "updatedAt": "2026-10-30T04:37:58.808Z",
+            "verificationStatus": "PENDING"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "with photos",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/register",
+      "headers": {
+        "user-agent": "reg-11"
+      },
+      "body": {
+        "name": "Contract Hostel 6",
+        "hostelType": "BOYS",
+        "location": {
+          "area": "Baneshwor",
+          "city": "Kathmandu",
+          "address": "Near the chowk"
+        },
+        "applicant": {
+          "name": "Owner Person",
+          "phone": "9800000006",
+          "email": "owner6@reg.test"
+        },
+        "contact": {
+          "phone": "9800000006"
+        },
+        "roomConfigurations": [
+          {
+            "roomType": "Double",
+            "bedsPerRoom": 2,
+            "rooms": 3,
+            "vacantBeds": 2,
+            "monthlyRent": 9000,
+            "mealInclusion": "Included"
+          }
+        ],
+        "pricing": {
+          "admissionFee": 2000
+        },
+        "photos": [
+          {
+            "url": "/a.jpg",
+            "alt": "front",
+            "kind": "EXTERIOR"
+          },
+          {
+            "url": "https://x.test/b.jpg",
+            "kind": "ROOM",
+            "roomType": "Double"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "data.application.applicantId",
+      "data.application.submittedBy",
+      "data.hostel.roomConfigurations.0.id",
+      "data.hostel.photos.0.id",
+      "data.hostel.photos.1.id",
+      "data.application.id",
+      "data.application.hostelId",
+      "data.application.createdAt",
+      "data.application.updatedAt",
+      "data.application.submittedAt",
+      "data.hostel.id",
+      "data.hostel.slug",
+      "data.hostel.referencePrefix",
+      "data.hostel.createdAt",
+      "data.hostel.updatedAt",
+      "data.hostel.ownerId",
+      "data.hostel.kyc.trialEndsAt",
+      "data.hostel.kyc.submittedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel registration submitted",
+        "data": {
+          "application": {
+            "applicantId": "6ae41f26c4cb64601682f8e4",
+            "hostelId": "6ae41f26c4cb64601682f8e5",
+            "id": "6ae41f26c4cb64601682f8e9",
+            "infoRequestNote": "",
+            "infoRequestedAt": null,
+            "notes": "",
+            "rejectionReason": "",
+            "requestedDocuments": [],
+            "reviewedAt": null,
+            "snapshot": {
+              "applicant": {
+                "email": "owner6@reg.test",
+                "name": "Owner Person",
+                "phone": "9800000006"
+              },
+              "contact": {
+                "phone": "9800000006"
+              },
+              "documents": [],
+              "location": {
+                "address": "Near the chowk",
+                "area": "Baneshwor",
+                "city": "Kathmandu"
+              },
+              "name": "Contract Hostel 6",
+              "pricing": {
+                "admissionFee": 2000,
+                "currency": "NPR"
+              },
+              "roomConfigurations": [
+                {
+                  "bedsPerRoom": 2,
+                  "mealInclusion": "Included",
+                  "monthlyRent": 9000,
+                  "rooms": 3,
+                  "roomType": "Double",
+                  "vacantBeds": 2
+                }
+              ],
+              "selectedPlan": null
+            },
+            "status": "PENDING",
+            "submittedAt": "2026-10-30T04:37:58.914Z",
+            "submittedBy": "6ae41f26c4cb64601682f8e4"
+          },
+          "hostel": {
+            "arrivalGuide": null,
+            "archivedAt": null,
+            "archiveReason": "",
+            "capacitySummary": {},
+            "contact": {
+              "phone": "9800000006"
+            },
+            "createdAt": "2026-10-30T04:37:58.902Z",
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": true
+            },
+            "hostelType": "BOYS",
+            "id": "6ae41f26c4cb64601682f8e5",
+            "isArchived": false,
+            "isDemoData": false,
+            "purgeScheduledAt": null,
+            "location": {
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "address": "Near the chowk",
+              "locationSource": "GEOCODED"
+            },
+            "name": "Contract Hostel 6",
+            "nameChangeCount": 0,
+            "ownerId": "6ae41f26c4cb64601682f8e4",
+            "panNumber": null,
+            "parentHostelId": null,
+            "photos": [
+              {
+                "alt": "front",
+                "id": "6ae41f26c4cb64601682f8e7",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "/a.jpg"
+              },
+              {
+                "alt": "",
+                "id": "6ae41f26c4cb64601682f8e8",
+                "kind": "ROOM",
+                "mediumUrl": "",
+                "roomType": "Double",
+                "url": "https://x.test/b.jpg"
+              }
+            ],
+            "pricing": {
+              "currency": "NPR",
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 2,
+                "id": "6ae41f26c4cb64601682f8e6",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 3,
+                "roomType": "Double",
+                "vacantBeds": 2
+              }
+            ],
+            "roomTypes": [],
+            "rules": [],
+            "slug": "contract-hostel-6-baneshwor",
+            "status": "PENDING_APPROVAL",
+            "suspension": null,
+            "kyc": null,
+            "totalFloors": 0,
+            "updatedAt": "2026-10-30T04:37:58.902Z",
+            "verificationStatus": "PENDING"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "GET refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/register",
+      "headers": {
+        "user-agent": "reg-99"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

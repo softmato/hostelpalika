@@ -1,0 +1,78 @@
+[
+  {
+    "name": "no query",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/places",
+      "headers": {
+        "user-agent": "pl-1"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Type at least 3 letters.",
+        "errorCode": "QUERY_TOO_SHORT"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "too short",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/places?q=ab",
+      "headers": {
+        "user-agent": "pl-2"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Type at least 3 letters.",
+        "errorCode": "QUERY_TOO_SHORT"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "too short after trim",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/places?q=%20%20ab%20%20",
+      "headers": {
+        "user-agent": "pl-3"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Type at least 3 letters.",
+        "errorCode": "QUERY_TOO_SHORT"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "wrong method",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/places",
+      "headers": {
+        "user-agent": "pl-4"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

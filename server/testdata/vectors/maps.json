@@ -1,0 +1,546 @@
+{
+ "links": [
+  {
+   "url": "",
+   "out": null
+  },
+  {
+   "url": "  ",
+   "out": null
+  },
+  {
+   "url": "27.7172, 85.3240",
+   "out": {
+    "coordinates": {
+     "lat": 27.7172,
+     "lng": 85.324
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "@27.7172,85.3240",
+   "out": {
+    "coordinates": {
+     "lat": 27.7172,
+     "lng": 85.324
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "27.7172 85.3240",
+   "out": {
+    "coordinates": {
+     "lat": 27.7172,
+     "lng": 85.324
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "27.7172,85.3240",
+   "out": {
+    "coordinates": {
+     "lat": 27.7172,
+     "lng": 85.324
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "0,0",
+   "out": null
+  },
+  {
+   "url": "91,10",
+   "out": null
+  },
+  {
+   "url": "-27.5, -85.5",
+   "out": {
+    "coordinates": {
+     "lat": -27.5,
+     "lng": -85.5
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "12345",
+   "out": null
+  },
+  {
+   "url": "plain text query",
+   "out": null
+  },
+  {
+   "url": "Baneshwor, Kathmandu",
+   "out": null
+  },
+  {
+   "url": "https://www.google.com/maps/place/New+Baneshwor/@27.6935,85.3419,17z/data=!3m1!4b1!4m6!3m5!1s0x0:0x0!8m2!3d27.6930!4d85.3420",
+   "out": {
+    "coordinates": {
+     "lat": 27.693,
+     "lng": 85.342
+    },
+    "kind": "coordinates",
+    "label": "New Baneshwor"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps/@27.6935,85.3419,17z",
+   "out": {
+    "coordinates": {
+     "lat": 27.6935,
+     "lng": 85.3419
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps/place/Royal+Rapti+Hostel/@27.69,85.34,15z",
+   "out": {
+    "coordinates": {
+     "lat": 27.69,
+     "lng": 85.34
+    },
+    "kind": "coordinates",
+    "label": "Royal Rapti Hostel"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps/place/Royal%20Rapti%20Hostel",
+   "out": {
+    "kind": "place",
+    "query": "Royal Rapti Hostel"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps/search/hostel+near+me/",
+   "out": {
+    "kind": "place",
+    "query": "hostel near me"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps/dir/Thamel/Baneshwor",
+   "out": {
+    "kind": "place",
+    "query": "Thamel"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps?q=27.7,85.3",
+   "out": {
+    "coordinates": {
+     "lat": 27.7,
+     "lng": 85.3
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps?q=Thamel+Kathmandu",
+   "out": {
+    "kind": "place",
+    "query": "Thamel Kathmandu"
+   }
+  },
+  {
+   "url": "https://maps.google.com/?ll=27.7,85.3",
+   "out": {
+    "coordinates": {
+     "lat": 27.7,
+     "lng": 85.3
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "https://maps.google.com/?daddr=27.71,85.32",
+   "out": {
+    "coordinates": {
+     "lat": 27.71,
+     "lng": 85.32
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "https://maps.google.com/?center=27.71,85.32&q=Foo",
+   "out": {
+    "coordinates": {
+     "lat": 27.71,
+     "lng": 85.32
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "https://www.openstreetmap.org/?mlat=27.7&mlon=85.3",
+   "out": {
+    "coordinates": {
+     "lat": 27.7,
+     "lng": 85.3
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "https://www.openstreetmap.org/#map=17/27.6935/85.3419",
+   "out": {
+    "coordinates": {
+     "lat": 27.6935,
+     "lng": 85.3419
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "https://www.openstreetmap.org/#map=17.5/27.6935/85.3419",
+   "out": {
+    "coordinates": {
+     "lat": 27.6935,
+     "lng": 85.3419
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "https://osm.org/go/abc",
+   "out": {
+    "kind": "shortLink",
+    "url": "https://osm.org/go/abc"
+   }
+  },
+  {
+   "url": "https://goo.gl/maps/abc123",
+   "out": {
+    "kind": "shortLink",
+    "url": "https://goo.gl/maps/abc123"
+   }
+  },
+  {
+   "url": "https://maps.app.goo.gl/xyz",
+   "out": {
+    "kind": "shortLink",
+    "url": "https://maps.app.goo.gl/xyz"
+   }
+  },
+  {
+   "url": "https://share.google/g7znZy6lJWDsMM2rq",
+   "out": {
+    "kind": "shortLink",
+    "url": "https://share.google/g7znZy6lJWDsMM2rq"
+   }
+  },
+  {
+   "url": "http://bit.ly/3abc",
+   "out": {
+    "kind": "shortLink",
+    "url": "http://bit.ly/3abc"
+   }
+  },
+  {
+   "url": "https://g.co/kgs/abc",
+   "out": {
+    "kind": "shortLink",
+    "url": "https://g.co/kgs/abc"
+   }
+  },
+  {
+   "url": "https://a.goo.gl/x?y=1#z",
+   "out": {
+    "kind": "shortLink",
+    "url": "https://a.goo.gl/x?y=1#z"
+   }
+  },
+  {
+   "url": "https://goo.gl",
+   "out": {
+    "kind": "shortLink",
+    "url": "https://goo.gl/"
+   }
+  },
+  {
+   "url": "www.google.com/maps/@27.7,85.3,15z",
+   "out": {
+    "coordinates": {
+     "lat": 27.7,
+     "lng": 85.3
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "maps.google.com/?q=27.7,85.3",
+   "out": {
+    "coordinates": {
+     "lat": 27.7,
+     "lng": 85.3
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "https://example.com/",
+   "out": null
+  },
+  {
+   "url": "https://example.com/place/%3Cb%3E",
+   "out": {
+    "kind": "place",
+    "query": "<b>"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps/place/123,456/@27.7,85.3,15z",
+   "out": {
+    "coordinates": {
+     "lat": 27.7,
+     "lng": 85.3
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps/place/data=!4m2/@27.7,85.3,15z",
+   "out": {
+    "coordinates": {
+     "lat": 27.7,
+     "lng": 85.3
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps/place/Kathmandu+Durbar+Square",
+   "out": {
+    "kind": "place",
+    "query": "Kathmandu Durbar Square"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps?query=Bhaktapur",
+   "out": {
+    "kind": "place",
+    "query": "Bhaktapur"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps?q=12,34",
+   "out": {
+    "coordinates": {
+     "lat": 12,
+     "lng": 34
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps?q=%20%20",
+   "out": null
+  },
+  {
+   "url": "https://www.google.com/maps/@0,0,10z",
+   "out": null
+  },
+  {
+   "url": "https://www.google.com/maps/@91.5,85,10z",
+   "out": null
+  },
+  {
+   "url": "https://apple.com/maps?ll=27.7,85.3&q=Home",
+   "out": {
+    "coordinates": {
+     "lat": 27.7,
+     "lng": 85.3
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "http://",
+   "out": null
+  },
+  {
+   "url": "https://",
+   "out": null
+  },
+  {
+   "url": "ftp://x/y",
+   "out": null
+  },
+  {
+   "url": "HTTPS://WWW.GOOGLE.COM/maps/@27.7,85.3,15z",
+   "out": {
+    "coordinates": {
+     "lat": 27.7,
+     "lng": 85.3
+    },
+    "kind": "coordinates"
+   }
+  },
+  {
+   "url": "https://www.google.com/maps/place/%C3%9Cber+Caf%C3%A9/@27.7,85.3,15z",
+   "out": {
+    "coordinates": {
+     "lat": 27.7,
+     "lng": 85.3
+    },
+    "kind": "coordinates",
+    "label": "Über Café"
+   }
+  }
+ ],
+ "tidy": [
+  {
+   "value": "Kathmandu Metropolitan City",
+   "out": "Kathmandu"
+  },
+  {
+   "value": "Bagamati Province",
+   "out": "Bagamati"
+  },
+  {
+   "value": "Lalitpur Sub-Metropolitan City",
+   "out": "Lalitpur"
+  },
+  {
+   "value": "Bhaktapur Municipality",
+   "out": "Bhaktapur"
+  },
+  {
+   "value": "Province",
+   "out": "Province"
+  },
+  {
+   "value": " Kathmandu District ",
+   "out": "Kathmandu District"
+  },
+  {
+   "value": "Pokhara",
+   "out": "Pokhara"
+  },
+  {
+   "value": "",
+   "out": null
+  },
+  {
+   "value": null,
+   "out": null
+  },
+  {
+   "value": "Gokarneshwor Municipality",
+   "out": "Gokarneshwor"
+  },
+  {
+   "value": "Chandragiri Rural Municipality",
+   "out": "Chandragiri"
+  },
+  {
+   "value": "Metropolitan City",
+   "out": "Metropolitan City"
+  },
+  {
+   "value": "X  Province",
+   "out": "X"
+  },
+  {
+   "value": "Kaski district",
+   "out": "Kaski"
+  }
+ ],
+ "variants": [
+  {
+   "query": "Narephat, Narephat, Kathmandu, Nepal",
+   "out": [
+    "Narephat, Kathmandu, Nepal",
+    "Kathmandu, Nepal",
+    "Nepal"
+   ]
+  },
+  {
+   "query": "A, B, C",
+   "out": [
+    "A, B, C",
+    "B, C",
+    "C"
+   ]
+  },
+  {
+   "query": "  a ,A, b ",
+   "out": [
+    "a, b",
+    "b"
+   ]
+  },
+  {
+   "query": "single",
+   "out": [
+    "single"
+   ]
+  },
+  {
+   "query": "",
+   "out": []
+  },
+  {
+   "query": ",,",
+   "out": []
+  },
+  {
+   "query": "Royal Rapti Boys Hostel, New Baneshwor, Kathmandu",
+   "out": [
+    "Royal Rapti Boys Hostel, New Baneshwor, Kathmandu",
+    "New Baneshwor, Kathmandu",
+    "Kathmandu"
+   ]
+  }
+ ],
+ "address": [
+  {
+   "parts": {
+    "address": "Ring Road",
+    "area": "Baneshwor",
+    "city": "Kathmandu",
+    "province": "Bagmati",
+    "country": "Nepal"
+   },
+   "out": "Ring Road, Baneshwor, Kathmandu, Bagmati, Nepal"
+  },
+  {
+   "parts": {
+    "area": " Baneshwor ",
+    "city": "Kathmandu"
+   },
+   "out": "Baneshwor, Kathmandu, Nepal"
+  },
+  {
+   "parts": {},
+   "out": "Nepal"
+  },
+  {
+   "parts": {
+    "country": ""
+   },
+   "out": ""
+  },
+  {
+   "parts": {
+    "country": "India",
+    "city": "Delhi"
+   },
+   "out": "Delhi, India"
+  },
+  {
+   "parts": {
+    "address": "  ",
+    "city": "X"
+   },
+   "out": "X, Nepal"
+  }
+ ]
+}

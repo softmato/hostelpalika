@@ -1,0 +1,241 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/register/geocode?q=Thamel",
+      "headers": {
+        "user-agent": "rg-1"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "nothing to look up",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/register/geocode",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "rg-2"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "q": [
+              "Provide a search query, or a lat/lng pair to look up."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Provide a search query, or a lat/lng pair to look up.",
+              "path": "q"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad values",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/register/geocode?lat=95\u0026lng=-181\u0026limit=20\u0026q=a",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "rg-3"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "lat": [
+              "Too big: expected number to be \u003c=90"
+            ],
+            "limit": [
+              "Too big: expected number to be \u003c=8"
+            ],
+            "lng": [
+              "Too small: expected number to be \u003e=-180"
+            ],
+            "q": [
+              "Too small: expected string to have \u003e=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected number to be \u003c=90",
+              "path": "lat"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=8",
+              "path": "limit"
+            },
+            {
+              "message": "Too small: expected number to be \u003e=-180",
+              "path": "lng"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "q"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "not numbers",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/register/geocode?lat=abc\u0026lng=\u0026limit=1.5\u0026near=%20x%20",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "rg-4"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "lat": [
+              "Invalid input: expected number, received NaN"
+            ],
+            "limit": [
+              "Invalid input: expected int, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected number, received NaN",
+              "path": "lat"
+            },
+            {
+              "message": "Invalid input: expected int, received number",
+              "path": "limit"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "only lat",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/register/geocode?lat=27.7",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "rg-5"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "q": [
+              "Provide a search query, or a lat/lng pair to look up."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Provide a search query, or a lat/lng pair to look up.",
+              "path": "q"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "short q alone",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/register/geocode?q=a",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "rg-7"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "q": [
+              "Too small: expected string to have \u003e=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "q"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "POST refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/register/geocode",
+      "headers": {
+        "user-agent": "rg-6"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

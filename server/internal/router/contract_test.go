@@ -22,8 +22,10 @@ var contractEnv = map[string]string{
 	"APP_URL":           "http://localhost:3000",
 	"MONGODB_URI":       fixture.URI,
 	"JWT_ACCESS_SECRET": fixture.AccessSecret, "JWT_REFRESH_SECRET": fixture.RefreshSecret,
-	"OTP_HASH_SECRET":  fixture.OTPSecret,
-	"GOOGLE_CLIENT_ID": fixture.GoogleClient,
+	"OTP_HASH_SECRET":              fixture.OTPSecret,
+	"GOOGLE_CLIENT_ID":             fixture.GoogleClient,
+	"PERSONAL_DATA_ENCRYPTION_KEY": "0000000000000000000000000000000000000000000000000000000000000001",
+	"FINANCE_MASTER_KEY":           "0000000000000000000000000000000000000000000000000000000000000002",
 }
 
 // TestContract replays every recorded TS response against the Go router.
@@ -84,6 +86,9 @@ func TestContract(t *testing.T) {
 				r.ServeHTTP(w, req)
 				cookies := w.Header().Values("Set-Cookie")
 				for _, d := range contract.Diff(c, w.Code, w.Header().Get("Content-Type"), cookies, w.Body.Bytes()) {
+					t.Errorf("%s: %s", c.Name, d)
+				}
+				for _, d := range contract.DiffLocation(c, w.Header().Get("Location")) {
 					t.Errorf("%s: %s", c.Name, d)
 				}
 				contract.Collect(c, cookies, w.Body.Bytes(), vars)

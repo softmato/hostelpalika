@@ -1,0 +1,234 @@
+[
+  {
+    "name": "too short",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-referral-codes/ab",
+      "headers": {
+        "user-agent": "rc-1"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That referral code is not valid. Check it, or carry on with a normal registration.",
+        "errorCode": "REFERRAL_CODE_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "symbols only",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-referral-codes/---",
+      "headers": {
+        "user-agent": "rc-2"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That referral code is not valid. Check it, or carry on with a normal registration.",
+        "errorCode": "REFERRAL_CODE_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unknown",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-referral-codes/NOSUCHCODE",
+      "headers": {
+        "user-agent": "rc-3"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That referral code is not valid. Check it, or carry on with a normal registration.",
+        "errorCode": "REFERRAL_CODE_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "inactive",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-referral-codes/RETIRED1",
+      "headers": {
+        "user-agent": "rc-4"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That referral code is not valid. Check it, or carry on with a normal registration.",
+        "errorCode": "REFERRAL_CODE_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "partner",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-referral-codes/PARTNER1",
+      "headers": {
+        "user-agent": "rc-5"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral code",
+        "data": {
+          "code": "PARTNER1",
+          "from": "Fixture Partner",
+          "kind": "PARTNER",
+          "reward": {
+            "days": 10,
+            "months": 2
+          },
+          "rewardText": "2 months and 10 days"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "partner typed loosely",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-referral-codes/partner-1",
+      "headers": {
+        "user-agent": "rc-6"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral code",
+        "data": {
+          "code": "PARTNER1",
+          "from": "Fixture Partner",
+          "kind": "PARTNER",
+          "reward": {
+            "days": 10,
+            "months": 2
+          },
+          "rewardText": "2 months and 10 days"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "hostel code",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-referral-codes/fixt123456",
+      "headers": {
+        "user-agent": "rc-7"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral code",
+        "data": {
+          "code": "FIXT123456",
+          "from": "Fixture Lakeside Hostel",
+          "kind": "HOSTEL",
+          "reward": {
+            "days": 0,
+            "months": 1
+          },
+          "rewardText": "1 month"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "hostel gone",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-referral-codes/ORPHAN99",
+      "headers": {
+        "user-agent": "rc-8"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That referral code is not valid. Check it, or carry on with a normal registration.",
+        "errorCode": "REFERRAL_CODE_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "days only",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-referral-codes/GIFTONLY",
+      "headers": {
+        "user-agent": "rc-9"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral code",
+        "data": {
+          "code": "GIFTONLY",
+          "from": "Days only",
+          "kind": "PARTNER",
+          "reward": {
+            "days": 1,
+            "months": 0
+          },
+          "rewardText": "1 day"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "POST refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-referral-codes/PARTNER1",
+      "headers": {
+        "user-agent": "rc-10"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

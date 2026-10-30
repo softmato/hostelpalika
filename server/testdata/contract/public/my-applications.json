@@ -1,0 +1,182 @@
+[
+  {
+    "name": "no token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-applications/my-applications",
+      "headers": {
+        "user-agent": "ma-1"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "owner sees own and twin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-applications/my-applications",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "ma-2"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Applications loaded",
+        "data": {
+          "applications": [
+            {
+              "applicantId": "6c00000000000000000000e7",
+              "hostelId": "6c00000000000000000000fe",
+              "id": "6c00000000000000000000e4",
+              "infoRequestNote": "",
+              "infoRequestedAt": null,
+              "notes": "",
+              "rejectionReason": "",
+              "requestedDocuments": [],
+              "reviewedAt": null,
+              "snapshot": {
+                "name": "Twin Pending Hostel"
+              },
+              "status": "PENDING",
+              "submittedAt": "2026-10-01T03:15:00.000Z",
+              "submittedBy": "6c00000000000000000000e7",
+              "hostelName": "Twin Pending Hostel",
+              "hostelStatus": "PENDING_APPROVAL",
+              "verificationStatus": "PENDING"
+            },
+            {
+              "applicantId": "6c0000000000000000000010",
+              "hostelId": "6c00000000000000000000a3",
+              "id": "6c00000000000000000000e3",
+              "infoRequestNote": "Please send your ID",
+              "infoRequestedAt": "2026-10-01T04:15:00.000Z",
+              "notes": "",
+              "rejectionReason": "",
+              "requestedDocuments": [
+                {
+                  "documentType": "Citizenship",
+                  "note": "Front and back"
+                },
+                {
+                  "documentType": "PAN",
+                  "note": ""
+                }
+              ],
+              "reviewedAt": null,
+              "snapshot": {
+                "name": "Fixture Lakeside Hostel",
+                "city": "Kathmandu",
+                "zStale": [
+                  1,
+                  "two"
+                ]
+              },
+              "status": "NEEDS_MORE_INFO",
+              "submittedAt": "2026-10-01T04:15:00.000Z",
+              "submittedBy": "6c0000000000000000000010",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelStatus": "PUBLISHED",
+              "verificationStatus": "VERIFIED"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "other owner",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-applications/my-applications",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000011:PUBLIC}}",
+        "user-agent": "ma-3"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Applications loaded",
+        "data": {
+          "applications": [
+            {
+              "applicantId": "6c0000000000000000000011",
+              "hostelId": "6c00000000000000000000a5",
+              "id": "6c00000000000000000000e6",
+              "infoRequestNote": "",
+              "infoRequestedAt": null,
+              "notes": "",
+              "rejectionReason": "",
+              "requestedDocuments": [],
+              "reviewedAt": "2026-10-01T04:15:00.000Z",
+              "snapshot": {},
+              "status": "APPROVED",
+              "submittedAt": "2026-10-01T05:15:00.000Z",
+              "submittedBy": "6c0000000000000000000011",
+              "hostelName": "Budget Fixture Hostel",
+              "hostelStatus": "PUBLISHED",
+              "verificationStatus": "VERIFIED"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "none yet",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-applications/my-applications",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "ma-4"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Applications loaded",
+        "data": {
+          "applications": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "POST refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/my-applications",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "ma-5"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

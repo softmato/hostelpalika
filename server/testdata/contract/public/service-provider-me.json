@@ -1,0 +1,292 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me",
+      "headers": {
+        "user-agent": "sp-27"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "approved",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-28"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider application loaded",
+        "data": {
+          "provider": {
+            "area": "Baneshwor",
+            "availability": "Mornings",
+            "categories": [
+              "PLUMBER",
+              "ELECTRICIAN"
+            ],
+            "category": "PLUMBER",
+            "city": "Kathmandu",
+            "description": "Twenty years",
+            "documentCount": 1,
+            "email": "9801000001@prov.test",
+            "experience": "20 yrs",
+            "fullName": "Ram Plumber",
+            "id": "6c0000000000000000000074",
+            "phone": "9801000001",
+            "rejectionReason": "",
+            "status": "APPROVED",
+            "submittedAt": "2026-09-29T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "single trade",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e9:PUBLIC}}",
+        "user-agent": "sp-29"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider application loaded",
+        "data": {
+          "provider": {
+            "area": "Koteshwor",
+            "availability": "",
+            "categories": [
+              "CLEANER"
+            ],
+            "category": "CLEANER",
+            "city": "Kathmandu",
+            "description": "",
+            "documentCount": 0,
+            "email": "9801000002@prov.test",
+            "experience": "",
+            "fullName": "Sita Cleaner",
+            "id": "6c0000000000000000000075",
+            "phone": "9801000002",
+            "rejectionReason": "",
+            "status": "APPROVED",
+            "submittedAt": "2026-09-29T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "pending",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ea:PUBLIC}}",
+        "user-agent": "sp-30"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider application loaded",
+        "data": {
+          "provider": {
+            "area": "Baneshwor",
+            "availability": "",
+            "categories": [
+              "PAINTER"
+            ],
+            "category": "PAINTER",
+            "city": "Kathmandu",
+            "description": "",
+            "documentCount": 0,
+            "email": "9801000003@prov.test",
+            "experience": "",
+            "fullName": "Hari Painter",
+            "id": "6c0000000000000000000076",
+            "phone": "9801000003",
+            "rejectionReason": "",
+            "status": "PENDING_APPROVAL",
+            "submittedAt": "2026-09-29T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "rejected",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000eb:PUBLIC}}",
+        "user-agent": "sp-31"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider application loaded",
+        "data": {
+          "provider": {
+            "area": "Kalanki",
+            "availability": "",
+            "categories": [
+              "CARPENTER"
+            ],
+            "category": "CARPENTER",
+            "city": "Kathmandu",
+            "description": "",
+            "documentCount": 0,
+            "email": "9801000004@prov.test",
+            "experience": "",
+            "fullName": "Gita Carpenter",
+            "id": "6c0000000000000000000077",
+            "phone": "9801000004",
+            "rejectionReason": "Photo unclear",
+            "status": "REJECTED",
+            "submittedAt": "2026-09-29T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "never applied",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ec:PUBLIC}}",
+        "user-agent": "sp-32"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider application loaded",
+        "data": {
+          "provider": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "legacy by email",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ed:PUBLIC}}",
+        "user-agent": "sp-33"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider application loaded",
+        "data": {
+          "provider": {
+            "area": "Baneshwor",
+            "availability": "",
+            "categories": [
+              "ELECTRICIAN"
+            ],
+            "category": "ELECTRICIAN",
+            "city": "Kathmandu",
+            "description": "",
+            "documentCount": 0,
+            "email": "9801000005@prov.test",
+            "experience": "",
+            "fullName": "Legacy Electrician",
+            "id": "6c0000000000000000000078",
+            "phone": "9801000005",
+            "rejectionReason": "",
+            "status": "APPROVED",
+            "submittedAt": "2026-09-29T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "legacy again",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ed:PUBLIC}}",
+        "user-agent": "sp-34"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service provider application loaded",
+        "data": {
+          "provider": {
+            "area": "Baneshwor",
+            "availability": "",
+            "categories": [
+              "ELECTRICIAN"
+            ],
+            "category": "ELECTRICIAN",
+            "city": "Kathmandu",
+            "description": "",
+            "documentCount": 0,
+            "email": "9801000005@prov.test",
+            "experience": "",
+            "fullName": "Legacy Electrician",
+            "id": "6c0000000000000000000078",
+            "phone": "9801000005",
+            "rejectionReason": "",
+            "status": "APPROVED",
+            "submittedAt": "2026-09-29T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

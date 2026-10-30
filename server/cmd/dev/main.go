@@ -107,6 +107,9 @@ func record(base, baseline, path string) error {
 		}
 		cookies := res.Header.Values("Set-Cookie")
 		c.Response = &contract.Response{Status: res.StatusCode, ContentType: res.Header.Get("Content-Type"), SetCookie: contract.NormalizeCookies(cookies)}
+		if loc := res.Header.Get("Location"); loc != "" {
+			c.Response.Location = contract.PathAndQuery(loc)
+		}
 		if json.Valid(out) {
 			c.Response.Body = out
 		}

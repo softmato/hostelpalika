@@ -1,0 +1,1225 @@
+[
+  {
+    "name": "no token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "user-agent": "js-1"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "not json",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "content-type": "application/json",
+        "user-agent": "js-2"
+      },
+      "body": "{bad"
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 500,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "errorCode": "INTERNAL_SERVER_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-3"
+      },
+      "body": {}
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "paidTill": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "roomType": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "paidTill"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "roomType"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "wrong types",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-4"
+      },
+      "body": {
+        "paidTill": "soon",
+        "roomType": "",
+        "depositPaid": "abc",
+        "partPaid": -5,
+        "joinedDate": "nope",
+        "note": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "depositPaid": [
+              "Invalid input: expected number, received NaN"
+            ],
+            "joinedDate": [
+              "Invalid input: expected date, received Date"
+            ],
+            "note": [
+              "Too big: expected string to have \u003c=300 characters"
+            ],
+            "paidTill": [
+              "Choose if this month's rent is paid."
+            ],
+            "partPaid": [
+              "Too small: expected number to be \u003e=0"
+            ],
+            "roomType": [
+              "Choose your room type."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected number, received NaN",
+              "path": "depositPaid"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "joinedDate"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=300 characters",
+              "path": "note"
+            },
+            {
+              "message": "Choose if this month's rent is paid.",
+              "path": "paidTill"
+            },
+            {
+              "message": "Too small: expected number to be \u003e=0",
+              "path": "partPaid"
+            },
+            {
+              "message": "Choose your room type.",
+              "path": "roomType"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "paisa",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-5"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single",
+        "depositPaid": 10.5
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "depositPaid": [
+              "Write rupees without paisa."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Write rupees without paisa.",
+              "path": "depositPaid"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unknown link",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/nosuch",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-6"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This link does not work any more. Ask your hostel for the new one.",
+        "errorCode": "JOIN_LINK_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "no card",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000051:PUBLIC}}",
+        "user-agent": "js-7"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Make your ID card first. The hostel checks you against it.",
+        "errorCode": "JOIN_NEEDS_CARD"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "private card",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000052:PUBLIC}}",
+        "user-agent": "js-8"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your ID card is set to private. Turn on sharing so the hostel can see it, then send.",
+        "errorCode": "JOIN_CARD_PRIVATE"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "lives elsewhere",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000053:PUBLIC}}",
+        "user-agent": "js-9"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You are still a resident of Budget Fixture Hostel. They must move you out first.",
+        "errorCode": "JOIN_LIVES_SOMEWHERE"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "already a resident here",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000054:PUBLIC}}",
+        "user-agent": "js-10"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You are already a resident here.",
+        "errorCode": "JOIN_LIVES_SOMEWHERE"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "room not on the list",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-11"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "Penthouse"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Choose your room type from the list.",
+        "errorCode": "JOIN_REQUEST_INVALID",
+        "details": {
+          "field": "roomType"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "one-word name",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000056:PUBLIC}}",
+        "user-agent": "js-12"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your ID card needs your first and last name. Fix it on your ID card.",
+        "errorCode": "JOIN_REQUEST_INVALID",
+        "details": {
+          "field": "fullName"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "phone already used here",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000055:PUBLIC}}",
+        "user-agent": "js-13"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel already has a resident with your phone or email. Ask them — you may be added already.",
+        "errorCode": "JOIN_REQUEST_INVALID",
+        "details": {
+          "field": "phone"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "too far back",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-14"
+      },
+      "body": {
+        "paidTill": "2000-01",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt",
+      "message"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "More than 12 months due. Put the older money in Old dues.",
+        "errorCode": "JOIN_REQUEST_INVALID",
+        "details": {
+          "field": "paidTill"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "too far ahead",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-15"
+      },
+      "body": {
+        "paidTill": "2999-01",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt",
+      "message"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Paid more than 12 months ahead. Check the month.",
+        "errorCode": "JOIN_REQUEST_INVALID",
+        "details": {
+          "field": "paidTill"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "part paid too large",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-16"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single",
+        "partPaid": 999999
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt",
+      "message"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Part paid must be less than Kartik 2083 rent (Rs 15000). If it is all paid, choose one month fewer.",
+        "errorCode": "JOIN_REQUEST_INVALID",
+        "details": {
+          "field": "partPaid"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "joined in the future",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-17"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single",
+        "joinedDate": "2999-01-01"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt",
+      "message"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Joined date cannot be in the future.",
+        "errorCode": "JOIN_REQUEST_INVALID",
+        "details": {
+          "field": "joinedDate"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "part paid with nothing due",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-18"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:0}}",
+        "roomType": "single",
+        "partPaid": 5
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt",
+      "message"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Nothing is due, so nothing can be part paid.",
+        "errorCode": "JOIN_REQUEST_INVALID",
+        "details": {
+          "field": "partPaid"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "sent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-19"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single",
+        "note": "  hello  ",
+        "depositPaid": "500"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request sent",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "link": "OPEN",
+          "request": {
+            "bills": {
+              "months": [
+                {
+                  "amount": 15000,
+                  "label": "Kartik 2083",
+                  "period": "2083-07"
+                }
+              ],
+              "oldDues": 0,
+              "partPaid": 0,
+              "total": 15000
+            },
+            "cardId": "HPR-READY01",
+            "decidedAt": null,
+            "depositPaid": 500,
+            "email": "joiner@contract.test",
+            "fullName": "Joy Joiner",
+            "id": "6ae41b2ac4cb64601682f871",
+            "joinedDate": null,
+            "note": "hello",
+            "paidTill": "2083-06",
+            "partPaid": 0,
+            "phone": "9811111111",
+            "problems": [],
+            "rejectReason": "",
+            "rent": 15000,
+            "rentLabel": "1 month due (Kartik)",
+            "residentId": null,
+            "roomType": "Single",
+            "sends": 1,
+            "sentAt": "2026-10-30T04:20:58.909Z",
+            "status": "PENDING"
+          },
+          "roomTypes": [
+            {
+              "monthlyRent": 15000,
+              "roomType": "Single"
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Double"
+            }
+          ],
+          "token": "joinopen0001",
+          "viewer": {
+            "card": "READY",
+            "cardId": "HPR-READY01",
+            "email": "joiner@contract.test",
+            "fullName": "Joy Joiner",
+            "hasPhoto": true,
+            "livesAt": null,
+            "phone": "9811111111",
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "sent again while waiting",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-20"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-2}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request sent",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "link": "OPEN",
+          "request": {
+            "bills": {
+              "months": [
+                {
+                  "amount": 15000,
+                  "label": "Aswin 2083",
+                  "period": "2083-06"
+                },
+                {
+                  "amount": 15000,
+                  "label": "Kartik 2083",
+                  "period": "2083-07"
+                }
+              ],
+              "oldDues": 0,
+              "partPaid": 0,
+              "total": 30000
+            },
+            "cardId": "HPR-READY01",
+            "decidedAt": null,
+            "depositPaid": 0,
+            "email": "joiner@contract.test",
+            "fullName": "Joy Joiner",
+            "id": "6ae41b2ac4cb64601682f871",
+            "joinedDate": null,
+            "note": "",
+            "paidTill": "2083-05",
+            "partPaid": 0,
+            "phone": "9811111111",
+            "problems": [],
+            "rejectReason": "",
+            "rent": 15000,
+            "rentLabel": "2 months due (Aswin to Kartik)",
+            "residentId": null,
+            "roomType": "Single",
+            "sends": 1,
+            "sentAt": "2026-10-30T04:20:59.091Z",
+            "status": "PENDING"
+          },
+          "roomTypes": [
+            {
+              "monthlyRent": 15000,
+              "roomType": "Single"
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Double"
+            }
+          ],
+          "token": "joinopen0001",
+          "viewer": {
+            "card": "READY",
+            "cardId": "HPR-READY01",
+            "email": "joiner@contract.test",
+            "fullName": "Joy Joiner",
+            "hasPhoto": true,
+            "livesAt": null,
+            "phone": "9811111111",
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "fixing a sent-back request",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000057:PUBLIC}}",
+        "user-agent": "js-21"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request sent",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "link": "OPEN",
+          "request": {
+            "bills": {
+              "months": [
+                {
+                  "amount": 15000,
+                  "label": "Kartik 2083",
+                  "period": "2083-07"
+                }
+              ],
+              "oldDues": 0,
+              "partPaid": 0,
+              "total": 15000
+            },
+            "cardId": "HPR-RETN001",
+            "decidedAt": null,
+            "depositPaid": 0,
+            "email": "returned@contract.test",
+            "fullName": "Rita Returned",
+            "id": "6c00000000000000000000c0",
+            "joinedDate": null,
+            "note": "",
+            "paidTill": "2083-06",
+            "partPaid": 0,
+            "phone": "9811111116",
+            "problems": [],
+            "rejectReason": "",
+            "rent": 15000,
+            "rentLabel": "1 month due (Kartik)",
+            "residentId": null,
+            "roomType": "Single",
+            "sends": 2,
+            "sentAt": "2026-10-30T04:20:59.265Z",
+            "status": "PENDING"
+          },
+          "roomTypes": [
+            {
+              "monthlyRent": 15000,
+              "roomType": "Single"
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Double"
+            }
+          ],
+          "token": "joinopen0001",
+          "viewer": {
+            "card": "READY",
+            "cardId": "HPR-RETN001",
+            "email": "returned@contract.test",
+            "fullName": "Rita Returned",
+            "hasPhoto": true,
+            "livesAt": null,
+            "phone": "9811111116",
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "being added right now",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000058:PUBLIC}}",
+        "user-agent": "js-22"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The hostel is adding you right now.",
+        "errorCode": "JOIN_REQUEST_BUSY"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "moved out and back",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000059:PUBLIC}}",
+        "user-agent": "js-23"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request sent",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "link": "OPEN",
+          "request": {
+            "bills": {
+              "months": [
+                {
+                  "amount": 15000,
+                  "label": "Kartik 2083",
+                  "period": "2083-07"
+                }
+              ],
+              "oldDues": 0,
+              "partPaid": 0,
+              "total": 15000
+            },
+            "cardId": "HPR-AGAN001",
+            "decidedAt": null,
+            "depositPaid": 0,
+            "email": "again@contract.test",
+            "fullName": "Ann Again",
+            "id": "6c00000000000000000000c2",
+            "joinedDate": null,
+            "note": "",
+            "paidTill": "2083-06",
+            "partPaid": 0,
+            "phone": "9811111118",
+            "problems": [],
+            "rejectReason": "",
+            "rent": 15000,
+            "rentLabel": "1 month due (Kartik)",
+            "residentId": null,
+            "roomType": "Single",
+            "sends": 1,
+            "sentAt": "2026-10-30T04:20:59.540Z",
+            "status": "PENDING"
+          },
+          "roomTypes": [
+            {
+              "monthlyRent": 15000,
+              "roomType": "Single"
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Double"
+            }
+          ],
+          "token": "joinopen0001",
+          "viewer": {
+            "card": "READY",
+            "cardId": "HPR-AGAN001",
+            "email": "again@contract.test",
+            "fullName": "Ann Again",
+            "hasPhoto": true,
+            "livesAt": null,
+            "phone": "9811111118",
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "paused link",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinoff00001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-24"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel has paused its join link. Ask them.",
+        "errorCode": "JOIN_LINK_OFF"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "full link",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/join/joinfull0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "js-25"
+      },
+      "body": {
+        "paidTill": "{{bsperiod:-1}}",
+        "roomType": "single"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This link is full. Ask your hostel to allow more requests.",
+        "errorCode": "JOIN_LINK_FULL"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "PUT refused",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "user-agent": "js-99"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

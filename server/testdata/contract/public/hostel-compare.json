@@ -71,6 +71,7 @@
                   "alt": "Front",
                   "id": "6c0000000000000000000033",
                   "kind": "EXTERIOR",
+                  "mediumUrl": "",
                   "roomType": "",
                   "url": "https://cdn.contract.test/front.webp"
                 },
@@ -78,6 +79,7 @@
                   "alt": "",
                   "id": "6c0000000000000000000032",
                   "kind": "INTERIOR",
+                  "mediumUrl": "",
                   "roomType": "",
                   "url": "https://cdn.contract.test/inside.webp"
                 },
@@ -85,6 +87,7 @@
                   "alt": "Room",
                   "id": "6c0000000000000000000031",
                   "kind": "ROOM",
+                  "mediumUrl": "https://cdn.contract.test/room-640.webp",
                   "roomType": "Single",
                   "url": "https://cdn.contract.test/room.webp"
                 }
@@ -290,7 +293,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "real and demo",
@@ -355,36 +358,42 @@
                 {
                   "alt": "Pathshala Girls Hostel — kitchen",
                   "kind": "INTERIOR",
+                  "mediumUrl": "",
                   "roomType": "",
                   "url": "https://images.pexels.com/photos/6375553/pexels-photo-6375553.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
                 },
                 {
                   "alt": "Pathshala Girls Hostel — study room",
                   "kind": "INTERIOR",
+                  "mediumUrl": "",
                   "roomType": "",
                   "url": "https://images.pexels.com/photos/16504586/pexels-photo-16504586.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
                 },
                 {
                   "alt": "Pathshala Girls Hostel — daily meal",
                   "kind": "INTERIOR",
+                  "mediumUrl": "",
                   "roomType": "",
                   "url": "https://images.pexels.com/photos/36885763/pexels-photo-36885763.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
                 },
                 {
                   "alt": "Pathshala Girls Hostel — single room",
                   "kind": "ROOM",
+                  "mediumUrl": "",
                   "roomType": "Single",
                   "url": "https://images.pexels.com/photos/19836795/pexels-photo-19836795.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
                 },
                 {
                   "alt": "Pathshala Girls Hostel — single room",
                   "kind": "ROOM",
+                  "mediumUrl": "",
                   "roomType": "Single",
                   "url": "https://images.pexels.com/photos/11295759/pexels-photo-11295759.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
                 },
                 {
                   "alt": "Pathshala Girls Hostel — double room",
                   "kind": "ROOM",
+                  "mediumUrl": "",
                   "roomType": "Double",
                   "url": "https://images.pexels.com/photos/11062799/pexels-photo-11062799.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
                 }
@@ -529,6 +538,7 @@
                   "alt": "Front",
                   "id": "6c0000000000000000000033",
                   "kind": "EXTERIOR",
+                  "mediumUrl": "",
                   "roomType": "",
                   "url": "https://cdn.contract.test/front.webp"
                 },
@@ -536,6 +546,7 @@
                   "alt": "",
                   "id": "6c0000000000000000000032",
                   "kind": "INTERIOR",
+                  "mediumUrl": "",
                   "roomType": "",
                   "url": "https://cdn.contract.test/inside.webp"
                 },
@@ -543,6 +554,7 @@
                   "alt": "Room",
                   "id": "6c0000000000000000000031",
                   "kind": "ROOM",
+                  "mediumUrl": "https://cdn.contract.test/room-640.webp",
                   "roomType": "Single",
                   "url": "https://cdn.contract.test/room.webp"
                 }
@@ -655,7 +667,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "hidden one",
@@ -672,7 +684,7 @@
         "errorCode": "PUBLIC_HOSTEL_COMPARE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "duplicate",
@@ -689,7 +701,7 @@
         "errorCode": "PUBLIC_HOSTEL_COMPARE_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "one only",
@@ -720,7 +732,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "four",
@@ -751,7 +763,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "bad id",
@@ -782,7 +794,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "commas only",
@@ -813,7 +825,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "blank",
@@ -844,7 +856,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "missing",
@@ -875,6 +887,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   }
 ]

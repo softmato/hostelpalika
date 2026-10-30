@@ -1,0 +1,150 @@
+[
+  {
+    "name": "unknown token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/admission-form/nosuchtoken",
+      "headers": {
+        "user-agent": "af-1"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This form does not work any more. Ask the hostel for their new QR.",
+        "errorCode": "ADMISSION_FORM_LINK_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "open",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "af-2"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form loaded",
+        "data": {
+          "guardianDocRequired": false,
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "open": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "paused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/admission-form/formoff0001",
+      "headers": {
+        "user-agent": "af-3"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form loaded",
+        "data": {
+          "guardianDocRequired": false,
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Budget Fixture Hostel"
+          },
+          "open": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "guardian id needed",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/admission-form/formguard001",
+      "headers": {
+        "user-agent": "af-4"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form loaded",
+        "data": {
+          "guardianDocRequired": true,
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Branch"
+          },
+          "open": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "hostel gone",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/admission-form/formgone0001",
+      "headers": {
+        "user-agent": "af-5"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This form does not work any more. Ask the hostel for their new QR.",
+        "errorCode": "ADMISSION_FORM_LINK_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "padded token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/admission-form/%20formtoken01%20",
+      "headers": {
+        "user-agent": "af-6"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form loaded",
+        "data": {
+          "guardianDocRequired": false,
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "open": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

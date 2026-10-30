@@ -1,0 +1,823 @@
+[
+  {
+    "name": "no token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "user-agent": "rs-1"
+      },
+      "body": {
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "not json",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "content-type": "application/json",
+        "user-agent": "rs-2"
+      },
+      "body": "{bad"
+    },
+    "response": {
+      "status": 500,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "errorCode": "INTERNAL_SERVER_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-3"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "documents": [
+              "Invalid input: expected array, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected array, received undefined",
+              "path": "documents"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "none",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-4"
+      },
+      "body": {
+        "documents": []
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "documents": [
+              "Upload at least one document."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Upload at least one document.",
+              "path": "documents"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "not an array",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-5"
+      },
+      "body": {
+        "documents": "x"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "documents": [
+              "Invalid input: expected array, received string"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected array, received string",
+              "path": "documents"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bare element",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-6"
+      },
+      "body": {
+        "documents": [
+          {}
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "documents": [
+              "Invalid input: expected string, received undefined",
+              "Invalid input: expected string, received undefined",
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "documents.0.claimToken"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "documents.0.documentType"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "documents.0.fileAssetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "short fields",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-7"
+      },
+      "body": {
+        "documents": [
+          {
+            "claimToken": "x",
+            "documentType": "a",
+            "fileAssetId": "zz"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "documents": [
+              "Too small: expected string to have \u003e=20 characters",
+              "Too small: expected string to have \u003e=2 characters",
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=20 characters",
+              "path": "documents.0.claimToken"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "documents.0.documentType"
+            },
+            {
+              "message": "Invalid object id.",
+              "path": "documents.0.fileAssetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "element not object",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-8"
+      },
+      "body": {
+        "documents": [
+          5
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "documents": [
+              "Invalid input: expected object, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected object, received number",
+              "path": "documents.0"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "thirteen",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-9"
+      },
+      "body": {
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "documents": [
+              "Too big: expected array to have \u003c=12 items"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected array to have \u003c=12 items",
+              "path": "documents"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad hostel id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/nope/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-10"
+      },
+      "body": {
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid hostel id.",
+        "errorCode": "INVALID_HOSTEL_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "no application",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000fe/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-11"
+      },
+      "body": {
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "No application was found for this hostel.",
+        "errorCode": "APPLICATION_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "twelve char id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/abcdefghijkl/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-12"
+      },
+      "body": {
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid hostel id.",
+        "errorCode": "INVALID_HOSTEL_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "forged claim",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-13"
+      },
+      "body": {
+        "documents": [
+          {
+            "claimToken": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "\"Citizenship\" could not be verified. Upload it again.",
+        "errorCode": "REGISTRATION_DOCUMENT_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "owned by someone else",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-14"
+      },
+      "body": {
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d3}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d3"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "\"Citizenship\" is no longer available. Upload it again.",
+        "errorCode": "REGISTRATION_DOCUMENT_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "public asset",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-15"
+      },
+      "body": {
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d5}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d5"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "\"Citizenship\" is no longer available. Upload it again.",
+        "errorCode": "REGISTRATION_DOCUMENT_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "asset gone",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-16"
+      },
+      "body": {
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d6}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d6"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "\"Citizenship\" is no longer available. Upload it again.",
+        "errorCode": "REGISTRATION_DOCUMENT_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "resubmitted",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-17"
+      },
+      "body": {
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d4}}",
+            "documentType": "PAN card",
+            "fileAssetId": "6c00000000000000000000d4"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Documents resubmitted",
+        "data": {
+          "application": {
+            "applicantId": "6c0000000000000000000010",
+            "hostelId": "6c00000000000000000000a3",
+            "id": "6c00000000000000000000e3",
+            "infoRequestNote": "",
+            "infoRequestedAt": "2026-10-01T04:15:00.000Z",
+            "notes": "",
+            "rejectionReason": "",
+            "requestedDocuments": [],
+            "reviewedAt": null,
+            "snapshot": {
+              "name": "Fixture Lakeside Hostel",
+              "city": "Kathmandu",
+              "zStale": [
+                1,
+                "two"
+              ]
+            },
+            "status": "PENDING",
+            "submittedAt": "2026-09-29T04:15:00.000Z",
+            "submittedBy": "6c0000000000000000000010"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "again, same files",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-18"
+      },
+      "body": {
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d2}}",
+            "documentType": "Citizenship",
+            "fileAssetId": "6c00000000000000000000d2"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Documents resubmitted",
+        "data": {
+          "application": {
+            "applicantId": "6c0000000000000000000010",
+            "hostelId": "6c00000000000000000000a3",
+            "id": "6c00000000000000000000e3",
+            "infoRequestNote": "",
+            "infoRequestedAt": "2026-10-01T04:15:00.000Z",
+            "notes": "",
+            "rejectionReason": "",
+            "requestedDocuments": [],
+            "reviewedAt": null,
+            "snapshot": {
+              "name": "Fixture Lakeside Hostel",
+              "city": "Kathmandu",
+              "zStale": [
+                1,
+                "two"
+              ]
+            },
+            "status": "PENDING",
+            "submittedAt": "2026-09-29T04:15:00.000Z",
+            "submittedBy": "6c0000000000000000000010"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "status after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-applications/my-applications",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-19"
+      }
+    },
+    "masks": [
+      "data.applications.1.submittedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Applications loaded",
+        "data": {
+          "applications": [
+            {
+              "applicantId": "6c00000000000000000000e7",
+              "hostelId": "6c00000000000000000000fe",
+              "id": "6c00000000000000000000e4",
+              "infoRequestNote": "",
+              "infoRequestedAt": null,
+              "notes": "",
+              "rejectionReason": "",
+              "requestedDocuments": [],
+              "reviewedAt": null,
+              "snapshot": {
+                "name": "Twin Pending Hostel"
+              },
+              "status": "PENDING",
+              "submittedAt": "2026-10-01T03:15:00.000Z",
+              "submittedBy": "6c00000000000000000000e7",
+              "hostelName": "Twin Pending Hostel",
+              "hostelStatus": "PENDING_APPROVAL",
+              "verificationStatus": "PENDING"
+            },
+            {
+              "applicantId": "6c0000000000000000000010",
+              "hostelId": "6c00000000000000000000a3",
+              "id": "6c00000000000000000000e3",
+              "infoRequestNote": "",
+              "infoRequestedAt": "2026-10-01T04:15:00.000Z",
+              "notes": "",
+              "rejectionReason": "",
+              "requestedDocuments": [],
+              "reviewedAt": null,
+              "snapshot": {
+                "name": "Fixture Lakeside Hostel",
+                "city": "Kathmandu",
+                "zStale": [
+                  1,
+                  "two"
+                ]
+              },
+              "status": "PENDING",
+              "submittedAt": "2026-10-30T03:59:15.446Z",
+              "submittedBy": "6c0000000000000000000010",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelStatus": "PUBLISHED",
+              "verificationStatus": "VERIFIED"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "GET refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostel-applications/6c00000000000000000000a3/resubmit-documents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "rs-20"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

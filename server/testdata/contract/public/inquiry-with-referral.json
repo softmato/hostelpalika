@@ -1,0 +1,412 @@
+[
+  {
+    "name": "not json",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/inquiries/with-referral",
+      "headers": {
+        "content-type": "application/json",
+        "user-agent": "wr-1"
+      },
+      "body": "{bad"
+    },
+    "masks": [
+      "data.inquiry.id",
+      "data.referral.id",
+      "data.referral.inquiryId",
+      "data.referral.createdAt",
+      "data.referral.updatedAt"
+    ],
+    "response": {
+      "status": 500,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "errorCode": "INTERNAL_SERVER_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/inquiries/with-referral",
+      "headers": {
+        "user-agent": "wr-2"
+      },
+      "body": {}
+    },
+    "masks": [
+      "data.inquiry.id",
+      "data.referral.id",
+      "data.referral.inquiryId",
+      "data.referral.createdAt",
+      "data.referral.updatedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "name": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "phone": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "referralCode": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "name"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "phone"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "referralCode"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad fields",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/inquiries/with-referral",
+      "headers": {
+        "user-agent": "wr-3"
+      },
+      "body": {
+        "name": "S",
+        "phone": "1",
+        "referralCode": "abc",
+        "email": "nope",
+        "message": "mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm"
+      }
+    },
+    "masks": [
+      "data.inquiry.id",
+      "data.referral.id",
+      "data.referral.inquiryId",
+      "data.referral.createdAt",
+      "data.referral.updatedAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid email address"
+            ],
+            "message": [
+              "Too big: expected string to have \u003c=1200 characters"
+            ],
+            "name": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "phone": [
+              "Too small: expected string to have \u003e=7 characters"
+            ],
+            "referralCode": [
+              "Too small: expected string to have \u003e=4 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=1200 characters",
+              "path": "message"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "name"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=7 characters",
+              "path": "phone"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=4 characters",
+              "path": "referralCode"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unknown code",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/inquiries/with-referral",
+      "headers": {
+        "user-agent": "wr-4"
+      },
+      "body": {
+        "name": "Sita Rai",
+        "phone": "9800000123",
+        "referralCode": "NOPE1234"
+      }
+    },
+    "masks": [
+      "data.inquiry.id",
+      "data.referral.id",
+      "data.referral.inquiryId",
+      "data.referral.createdAt",
+      "data.referral.updatedAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Referral code was not found.",
+        "errorCode": "REFERRAL_CODE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "retired code",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/inquiries/with-referral",
+      "headers": {
+        "user-agent": "wr-5"
+      },
+      "body": {
+        "name": "Sita Rai",
+        "phone": "9800000123",
+        "referralCode": "RESOLD1"
+      }
+    },
+    "masks": [
+      "data.inquiry.id",
+      "data.referral.id",
+      "data.referral.inquiryId",
+      "data.referral.createdAt",
+      "data.referral.updatedAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Referral code was not found.",
+        "errorCode": "REFERRAL_CODE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "already referred",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/inquiries/with-referral",
+      "headers": {
+        "user-agent": "wr-6"
+      },
+      "body": {
+        "name": "Sita Rai",
+        "phone": "9877777777",
+        "referralCode": "resref1"
+      }
+    },
+    "masks": [
+      "data.inquiry.id",
+      "data.referral.id",
+      "data.referral.inquiryId",
+      "data.referral.createdAt",
+      "data.referral.updatedAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This referral inquiry already exists.",
+        "errorCode": "REFERRAL_ALREADY_EXISTS"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "earlier one was cancelled",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/inquiries/with-referral",
+      "headers": {
+        "user-agent": "wr-7"
+      },
+      "body": {
+        "name": "  Padded Name  ",
+        "phone": "9866666666",
+        "referralCode": "resref1"
+      }
+    },
+    "masks": [
+      "data.inquiry.id",
+      "data.referral.id",
+      "data.referral.inquiryId",
+      "data.referral.createdAt",
+      "data.referral.updatedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral inquiry submitted",
+        "data": {
+          "inquiry": {
+            "id": "6ae41ceac4cb64601682f880",
+            "status": "NEW"
+          },
+          "referral": {
+            "converted": false,
+            "createdAt": "2026-10-30T04:28:26.955Z",
+            "email": "",
+            "hostelId": "6c00000000000000000000a3",
+            "id": "6ae41ceac4cb64601682f881",
+            "inquiryId": "6ae41ceac4cb64601682f880",
+            "message": "",
+            "name": "Padded Name",
+            "phone": "9866666666",
+            "referralCodeId": "6c0000000000000000000021",
+            "referrerResidentId": "6c000000000000000000001c",
+            "status": "INQUIRY_CREATED",
+            "updatedAt": "2026-10-30T04:28:26.955Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "sent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/inquiries/with-referral",
+      "headers": {
+        "user-agent": "wr-8"
+      },
+      "body": {
+        "name": "Sita Rai",
+        "phone": "9800000123",
+        "referralCode": "resref1",
+        "email": " Sita@Example.com ",
+        "message": " hello "
+      }
+    },
+    "masks": [
+      "data.inquiry.id",
+      "data.referral.id",
+      "data.referral.inquiryId",
+      "data.referral.createdAt",
+      "data.referral.updatedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral inquiry submitted",
+        "data": {
+          "inquiry": {
+            "id": "6ae41ceac4cb64601682f882",
+            "status": "NEW"
+          },
+          "referral": {
+            "converted": false,
+            "createdAt": "2026-10-30T04:28:26.995Z",
+            "email": "Sita@Example.com",
+            "hostelId": "6c00000000000000000000a3",
+            "id": "6ae41ceac4cb64601682f883",
+            "inquiryId": "6ae41ceac4cb64601682f882",
+            "message": "hello",
+            "name": "Sita Rai",
+            "phone": "9800000123",
+            "referralCodeId": "6c0000000000000000000021",
+            "referrerResidentId": "6c000000000000000000001c",
+            "status": "INQUIRY_CREATED",
+            "updatedAt": "2026-10-30T04:28:26.995Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "sent again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/inquiries/with-referral",
+      "headers": {
+        "user-agent": "wr-9"
+      },
+      "body": {
+        "name": "Sita Rai",
+        "phone": "9800000123",
+        "referralCode": "resref1"
+      }
+    },
+    "masks": [
+      "data.inquiry.id",
+      "data.referral.id",
+      "data.referral.inquiryId",
+      "data.referral.createdAt",
+      "data.referral.updatedAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This referral inquiry already exists.",
+        "errorCode": "REFERRAL_ALREADY_EXISTS"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "GET refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/inquiries/with-referral",
+      "headers": {
+        "user-agent": "wr-99"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

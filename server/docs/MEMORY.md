@@ -9,25 +9,32 @@ Read this after README.md. Update it at the end of every session.
   TS), tokens work across TS and Go both ways, and a refresh through Go kills the
   rotated-away token for TS (`router/interop_test.go`).
 - **Phase 2 done (2026-10-29).** All 8 items ☑ (CHANGELOG has the per-library proof).
-  **Next: Phase 3** (public read path); Phase 4 may run alongside it.
+  Phase 3 is next to finish; Phase 4 may run alongside it.
   Libraries: `platform/{bs,money,plans,crypto,storage,email,realtime,push,qr,export,sheets,pdf,pdfin,images}`.
   Email attachments are still open — add with receipts. Raster ID cards are a Phase 5 item.
   `push.Hooks` (filter, deep link, web link) are filled in by the notifications module.
   A new PDF document = draw with `pdf.Cursor`, golden = the TS document, compare with `pdftest.Diff`.
   `httpx.EncodeURIComponent` is the one JS-compatible encoder.
-- **Phase 3 in progress (2026-10-29).** 15 routes ☑ (health, site-config, hostels list/:slug/compare,
-  reviews, pulse, lifetime, offer-perks, bookings guide/policy/availability). Demo-hostels merge done.
-  New: `platform/ordered` (key-ordered JSON + lean BSON→JSON), `platform/zschema` (runs zod v4
-  descriptors from `testdata/vectors/zod-describe.ts`; superRefines are named by hand with
-  `nameSuperRefine`), `platform/pagination`, `valid/query.go`, modules `platformconfig`
-  (site config/operations/bookings rows), `food`, `reviews`, `reports`, `billing`, `offerprogram`,
-  `bookings`, `finance` (rate card). TS recorder: `bash server/testdata/contract/record-ts.sh`.
-  Fixture public data lives in `contract/fixture/public.go`; printed timestamps use `fixedAt`.
-  **Open:** the other public routes (writes, places/search/geocode, service providers, join,
-  admission form, files upload, referral preview, my-applications), hostel-registration (5),
-  feedback, usage, email-preferences, LLM search quota, maps, and the §9 web pages.
-  Gin gotcha: static POST-only siblings of `/public/hostels/:slug` (register, impressions,
-  quick-register) need explicit GET→405 handlers, or GET falls into `:slug`.
+- **Phase 3 nearly done (2026-10-30).** 31 of the 32 `public/*` routes are contract-green, plus
+  bookings guide/policy/availability, feedback, usage, email-preferences, push public-key, health.
+  **Not ported:** `POST /public/plan-checkout` and the 5 `hostel-registration/*` routes (they sit on the
+  subscription service + Softmato payments, ~9k lines of `modules/billing`, Phase 5), and the maps
+  nearby/routing libs (no Phase 3 route needs them). No web page was switched to the Go API.
+  New modules: `feedback`, `usage`, `notifications` (service + email prefs + push key), `arrivals`,
+  `files` (upload, claims, registration documents, applicant photo), `hostelreferrals`, `referrals`,
+  `search`, `serviceproviders`, and in `hostels`: writes/inquiry/geocode/applications/quick/register
+  (`NewHostelDoc` = mongoose `create` order + defaults, nested defaults land after the given keys),
+  in `residents`: admission form + join link + `CheckExistingResidents`; libs `platform/{maps,llm,search}`,
+  `valid.Form` (`Hard`, `Num` coerce, `Email`, `Nest`, `Join`, `JoinScalar`), email blocks + hostel/provider templates.
+  Contract harness: placeholders `{{claim:<assetId>}}` and `{{bsperiod:±N}}`; a case may set
+  `unorderedKeys` when the key order comes from a Mongo `$group`; `fixture/{join,providers}.go`.
+  `public/service-provider-accept.json` is hand-written from the TS service: the TS dev server on :3100
+  answered 404 for that path (its build lacks the route). Re-record it when it serves the route.
+  Deviations: `files/upload` to the public bucket answers 503 when R2 is unset (TS writes Next's `public/uploads`).
+  Gotchas: Gin — static POST-only siblings of `/public/hostels/:slug` need explicit GET→405 handlers.
+  Fixture ids only need to be unique per collection, but `oid("xx")` is shared by every case file: grep
+  before using one (a join user on `ee` broke `auth/signup`). BS-month fixtures need masks (`currentMonth`, `bills`).
+  Array-element issues are `key.i` (use `JoinScalar`), not `key.i.v`.
 - Vectors: `node_modules/.bin/jiti server/testdata/vectors/generate.ts` from the repo
   root regenerates every `testdata/vectors/*.json`, `platform/bs/table.go` and
   `platform/plans/defaults.json` from the TS code. Crypto/archive vectors are random

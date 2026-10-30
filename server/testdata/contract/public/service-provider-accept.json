@@ -1,0 +1,221 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b5/accept",
+      "headers": {
+        "user-agent": "sp-40"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "hand-written from service-provider.service.ts: the TS server on :3100 answers 404 for this path (route not in its build)"
+  },
+  {
+    "name": "not a provider",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b5/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ec:PUBLIC}}",
+        "user-agent": "sp-41"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Job was not found.",
+        "errorCode": "MAINTENANCE_REQUEST_NOT_FOUND"
+      }
+    },
+    "recorded": "hand-written from service-provider.service.ts: the TS server on :3100 answers 404 for this path (route not in its build)"
+  },
+  {
+    "name": "pending provider",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b5/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ea:PUBLIC}}",
+        "user-agent": "sp-42"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Job was not found.",
+        "errorCode": "MAINTENANCE_REQUEST_NOT_FOUND"
+      }
+    },
+    "recorded": "hand-written from service-provider.service.ts: the TS server on :3100 answers 404 for this path (route not in its build)"
+  },
+  {
+    "name": "bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/me/jobs/nope/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-43"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid job id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "hand-written from service-provider.service.ts: the TS server on :3100 answers 404 for this path (route not in its build)"
+  },
+  {
+    "name": "not open",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b8/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-44"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Another provider already took this job, or the hostel closed it.",
+        "errorCode": "MAINTENANCE_JOB_TAKEN"
+      }
+    },
+    "recorded": "hand-written from service-provider.service.ts: the TS server on :3100 answers 404 for this path (route not in its build)"
+  },
+  {
+    "name": "unknown job",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000ff/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-45"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Another provider already took this job, or the hostel closed it.",
+        "errorCode": "MAINTENANCE_JOB_TAKEN"
+      }
+    },
+    "recorded": "hand-written from service-provider.service.ts: the TS server on :3100 answers 404 for this path (route not in its build)"
+  },
+  {
+    "name": "deleted job",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000be/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-46"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Another provider already took this job, or the hostel closed it.",
+        "errorCode": "MAINTENANCE_JOB_TAKEN"
+      }
+    },
+    "recorded": "hand-written from service-provider.service.ts: the TS server on :3100 answers 404 for this path (route not in its build)"
+  },
+  {
+    "name": "accepted",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b5/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-47"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Job accepted",
+        "data": {
+          "job": {
+            "id": "6c00000000000000000000b5",
+            "status": "CONTACTED"
+          }
+        }
+      }
+    },
+    "recorded": "hand-written from service-provider.service.ts: the TS server on :3100 answers 404 for this path (route not in its build)"
+  },
+  {
+    "name": "taken",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b5/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e9:PUBLIC}}",
+        "user-agent": "sp-48"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Another provider already took this job, or the hostel closed it.",
+        "errorCode": "MAINTENANCE_JOB_TAKEN"
+      }
+    },
+    "recorded": "hand-written from service-provider.service.ts: the TS server on :3100 answers 404 for this path (route not in its build)"
+  },
+  {
+    "name": "other trade",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b7/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-49"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Job accepted",
+        "data": {
+          "job": {
+            "id": "6c00000000000000000000b7",
+            "status": "CONTACTED"
+          }
+        }
+      }
+    },
+    "recorded": "hand-written from service-provider.service.ts: the TS server on :3100 answers 404 for this path (route not in its build)"
+  }
+]

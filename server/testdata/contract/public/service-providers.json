@@ -1,0 +1,562 @@
+[
+  {
+    "name": "all",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers",
+      "headers": {
+        "user-agent": "sp-1"
+      }
+    },
+    "unorderedKeys": true,
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service providers loaded",
+        "data": {
+          "countsByCategory": {
+            "PLUMBER": 2,
+            "ELECTRICIAN": 2,
+            "OTHER": 1,
+            "CLEANER": 1
+          },
+          "providers": [
+            {
+              "area": "Koteshwor",
+              "availability": "",
+              "categories": [
+                "CLEANER"
+              ],
+              "category": "CLEANER",
+              "city": "Kathmandu",
+              "description": "",
+              "experience": "",
+              "fullName": "Sita Cleaner",
+              "id": "6c0000000000000000000075",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "verified": true
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "ELECTRICIAN"
+              ],
+              "category": "ELECTRICIAN",
+              "city": "Kathmandu",
+              "description": "",
+              "experience": "",
+              "fullName": "Legacy Electrician",
+              "id": "6c0000000000000000000078",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "verified": true
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "OTHER"
+              ],
+              "category": "OTHER",
+              "city": "Kathmandu",
+              "description": "",
+              "experience": "",
+              "fullName": "Contract Provider",
+              "id": "6c00000000000000000000d1",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "verified": true
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "Mornings",
+              "categories": [
+                "PLUMBER",
+                "ELECTRICIAN"
+              ],
+              "category": "PLUMBER",
+              "city": "Kathmandu",
+              "description": "Twenty years",
+              "experience": "20 yrs",
+              "fullName": "Ram Plumber",
+              "id": "6c0000000000000000000074",
+              "photoAssetId": "6c000000000000000000007e",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "verified": true
+            },
+            {
+              "area": "Pokhara Lakeside",
+              "availability": "",
+              "categories": [
+                "PLUMBER"
+              ],
+              "category": "PLUMBER",
+              "city": "Pokhara",
+              "description": "",
+              "experience": "",
+              "fullName": "Other Town Plumber",
+              "id": "6c000000000000000000007a",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "verified": true
+            }
+          ],
+          "total": 5
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "plumbers",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers?category=PLUMBER",
+      "headers": {
+        "user-agent": "sp-2"
+      }
+    },
+    "unorderedKeys": true,
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service providers loaded",
+        "data": {
+          "countsByCategory": {
+            "CLEANER": 1,
+            "ELECTRICIAN": 2,
+            "PLUMBER": 2,
+            "OTHER": 1
+          },
+          "providers": [
+            {
+              "area": "Baneshwor",
+              "availability": "Mornings",
+              "categories": [
+                "PLUMBER",
+                "ELECTRICIAN"
+              ],
+              "category": "PLUMBER",
+              "city": "Kathmandu",
+              "description": "Twenty years",
+              "experience": "20 yrs",
+              "fullName": "Ram Plumber",
+              "id": "6c0000000000000000000074",
+              "photoAssetId": "6c000000000000000000007e",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "verified": true
+            },
+            {
+              "area": "Pokhara Lakeside",
+              "availability": "",
+              "categories": [
+                "PLUMBER"
+              ],
+              "category": "PLUMBER",
+              "city": "Pokhara",
+              "description": "",
+              "experience": "",
+              "fullName": "Other Town Plumber",
+              "id": "6c000000000000000000007a",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "verified": true
+            }
+          ],
+          "total": 5
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "electricians",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers?category=ELECTRICIAN",
+      "headers": {
+        "user-agent": "sp-3"
+      }
+    },
+    "unorderedKeys": true,
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service providers loaded",
+        "data": {
+          "countsByCategory": {
+            "CLEANER": 1,
+            "ELECTRICIAN": 2,
+            "PLUMBER": 2,
+            "OTHER": 1
+          },
+          "providers": [
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "ELECTRICIAN"
+              ],
+              "category": "ELECTRICIAN",
+              "city": "Kathmandu",
+              "description": "",
+              "experience": "",
+              "fullName": "Legacy Electrician",
+              "id": "6c0000000000000000000078",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "verified": true
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "Mornings",
+              "categories": [
+                "PLUMBER",
+                "ELECTRICIAN"
+              ],
+              "category": "PLUMBER",
+              "city": "Kathmandu",
+              "description": "Twenty years",
+              "experience": "20 yrs",
+              "fullName": "Ram Plumber",
+              "id": "6c0000000000000000000074",
+              "photoAssetId": "6c000000000000000000007e",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "verified": true
+            }
+          ],
+          "total": 5
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "by area",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers?area=bane",
+      "headers": {
+        "user-agent": "sp-4"
+      }
+    },
+    "unorderedKeys": true,
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service providers loaded",
+        "data": {
+          "countsByCategory": {
+            "OTHER": 1,
+            "PLUMBER": 1,
+            "ELECTRICIAN": 2
+          },
+          "providers": [
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "ELECTRICIAN"
+              ],
+              "category": "ELECTRICIAN",
+              "city": "Kathmandu",
+              "description": "",
+              "experience": "",
+              "fullName": "Legacy Electrician",
+              "id": "6c0000000000000000000078",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "verified": true
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "",
+              "categories": [
+                "OTHER"
+              ],
+              "category": "OTHER",
+              "city": "Kathmandu",
+              "description": "",
+              "experience": "",
+              "fullName": "Contract Provider",
+              "id": "6c00000000000000000000d1",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "verified": true
+            },
+            {
+              "area": "Baneshwor",
+              "availability": "Mornings",
+              "categories": [
+                "PLUMBER",
+                "ELECTRICIAN"
+              ],
+              "category": "PLUMBER",
+              "city": "Kathmandu",
+              "description": "Twenty years",
+              "experience": "20 yrs",
+              "fullName": "Ram Plumber",
+              "id": "6c0000000000000000000074",
+              "photoAssetId": "6c000000000000000000007e",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "verified": true
+            }
+          ],
+          "total": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "by city",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers?city=pokhara",
+      "headers": {
+        "user-agent": "sp-5"
+      }
+    },
+    "unorderedKeys": true,
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service providers loaded",
+        "data": {
+          "countsByCategory": {},
+          "providers": [],
+          "total": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "area regex chars",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers?area=a.*",
+      "headers": {
+        "user-agent": "sp-6"
+      }
+    },
+    "unorderedKeys": true,
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service providers loaded",
+        "data": {
+          "countsByCategory": {},
+          "providers": [],
+          "total": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad category",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers?category=NOPE",
+      "headers": {
+        "user-agent": "sp-7"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "category": [
+              "Invalid option: expected one of \"PLUMBER\"|\"ELECTRICIAN\"|\"DOCTOR_CLINIC\"|\"INTERNET_TECHNICIAN\"|\"CLEANER\"|\"CARPENTER\"|\"PAINTER\"|\"WATER_SUPPLIER\"|\"APPLIANCE_REPAIR\"|\"ROOM_REPAIR\"|\"OTHER\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"PLUMBER\"|\"ELECTRICIAN\"|\"DOCTOR_CLINIC\"|\"INTERNET_TECHNICIAN\"|\"CLEANER\"|\"CARPENTER\"|\"PAINTER\"|\"WATER_SUPPLIER\"|\"APPLIANCE_REPAIR\"|\"ROOM_REPAIR\"|\"OTHER\"",
+              "path": "category"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty area",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers?area=",
+      "headers": {
+        "user-agent": "sp-8"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "area": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "area"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "too long",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers?city=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+      "headers": {
+        "user-agent": "sp-9"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "city": [
+              "Too big: expected string to have \u003c=120 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected string to have \u003c=120 characters",
+              "path": "city"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "both",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers?category=CLEANER\u0026area=kote",
+      "headers": {
+        "user-agent": "sp-10"
+      }
+    },
+    "unorderedKeys": true,
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Service providers loaded",
+        "data": {
+          "countsByCategory": {
+            "CLEANER": 1
+          },
+          "providers": [
+            {
+              "area": "Koteshwor",
+              "availability": "",
+              "categories": [
+                "CLEANER"
+              ],
+              "category": "CLEANER",
+              "city": "Kathmandu",
+              "description": "",
+              "experience": "",
+              "fullName": "Sita Cleaner",
+              "id": "6c0000000000000000000075",
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "totalReviews": 3
+              },
+              "verified": true
+            }
+          ],
+          "total": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "post refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/service-providers",
+      "headers": {
+        "user-agent": "sp-11"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

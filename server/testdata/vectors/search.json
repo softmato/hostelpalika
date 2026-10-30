@@ -1,0 +1,1254 @@
+{
+ "now": 1790000000000,
+ "quotaSecret": "vector-quota-secret",
+ "parse": [
+  {
+   "query": "",
+   "out": {
+    "confidence": 1,
+    "filters": {},
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "   ",
+   "out": {
+    "confidence": 1,
+    "filters": {},
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "girls hostel",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "GIRLS"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "boys hostel in Baneshwor",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "BOYS",
+     "area": "Baneshwor"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "co-living space",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "CO_LIVING"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "mixed hostel",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "CO_LIVING"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "hostel in Baneshwor",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "area": "Baneshwor"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "rooms in New Baneshwor",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "area": "New Baneshwor"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "hostels in Pokhara",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "area": "Pokhara"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "hostel near Ghattekulo",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "area": "Ghattekulo"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "under 8k",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "maxPrice": 8000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "under 8 thousand",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "maxPrice": 8000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "below 12,000",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "maxPrice": 12000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "under 9",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "maxPrice": 9000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "above 10k",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "minPrice": 10000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "between 6k and 9k",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "minPrice": 6000,
+     "maxPrice": 9000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "7000-11000 rent",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "minPrice": 7000,
+     "maxPrice": 11000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "cheap hostel",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "maxPrice": 8000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "sasto hostel",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "maxPrice": 8000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "veg food hostel",
+   "out": {
+    "confidence": 0.5,
+    "filters": {
+     "food": "veg"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "non veg meals",
+   "out": {
+    "confidence": 0.5,
+    "filters": {
+     "food": "non-veg"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "non-veg meals",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "food": "non-veg"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "hostel with wifi",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "facility": "WiFi"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "attached bathroom single room",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "facility": "Attached bathroom",
+     "roomType": "Single"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "2 sharing in Koteshwor",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "area": "Koteshwor",
+     "roomType": "Double"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "triple sharing",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "roomType": "Triple"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "dorm in Thamel",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "area": "Thamel",
+     "roomType": "Dormitory"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "Pulchowk campus hostel",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "area": "Pulchowk"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "near Xavier",
+   "out": {
+    "confidence": 0,
+    "filters": {
+     "q": "Xavier"
+    },
+    "rawTextOnly": true,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "Tribhuvan University",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "q": "Tribhuvan University"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "hostel near Kathmandu University",
+   "out": {
+    "confidence": 0.5,
+    "filters": {
+     "area": "Kathmandu"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "girls hostel near Pulchowk under 10k with wifi veg",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "GIRLS",
+     "area": "Pulchowk",
+     "maxPrice": 10000,
+     "food": "veg",
+     "facility": "WiFi"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "a quiet place to study near my college please",
+   "out": {
+    "confidence": 0,
+    "filters": {
+     "q": "quiet study college"
+    },
+    "rawTextOnly": true,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "best hostel",
+   "out": {
+    "confidence": 0,
+    "filters": {
+     "q": "best hostel"
+    },
+    "rawTextOnly": true,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "find me a nice hostel",
+   "out": {
+    "confidence": 0,
+    "filters": {
+     "q": "find me a nice hostel"
+    },
+    "rawTextOnly": true,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "hostel",
+   "out": {
+    "confidence": 0,
+    "filters": {
+     "q": "hostel"
+    },
+    "rawTextOnly": true,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "the",
+   "out": {
+    "confidence": 0,
+    "filters": {
+     "q": "the"
+    },
+    "rawTextOnly": true,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "Royal Rapti Boys Hostel",
+   "out": {
+    "confidence": 0.5,
+    "filters": {
+     "type": "BOYS"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "boys hostel near Royal Rapti with parking and laundry",
+   "out": {
+    "confidence": 0.5,
+    "filters": {
+     "type": "BOYS",
+     "facility": "Parking"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "hot water and gym",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "facility": "Hot water"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "ac room",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "facility": "AC"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "cctv power backup",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "facility": "CCTV"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "inverter generator",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "facility": "Power backup"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "reading room",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "facility": "Study table"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "study table bike parking",
+   "out": {
+    "confidence": 0.5,
+    "filters": {
+     "facility": "Parking"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "between 5 and 8",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "minPrice": 5000,
+     "maxPrice": 8000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "up to 7k",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "maxPrice": 7000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "at least 5 thousand",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "minPrice": 5000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "minimum 4k",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "minPrice": 4000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "within 15000",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "maxPrice": 15000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "5-8k",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "minPrice": 5000,
+     "maxPrice": 8000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "5k to 9k",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "minPrice": 5000,
+     "maxPrice": 9000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "affordable boys hostel in Kalanki",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "BOYS",
+     "area": "Kalanki",
+     "maxPrice": 8000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "ladies hostel lalitpur",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "GIRLS",
+     "area": "Lalitpur"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "gents hostel bhaktapur",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "BOYS",
+     "area": "Bhaktapur"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "female only",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "GIRLS"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "male",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "BOYS"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "non veg boys hostel in Gwarko under 9k",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "BOYS",
+     "area": "Gwarko",
+     "maxPrice": 9000,
+     "food": "non-veg"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "hajar",
+   "out": {
+    "confidence": 0,
+    "filters": {
+     "q": "hajar"
+    },
+    "rawTextOnly": true,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "under 5 hajar",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "maxPrice": 5000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "under 99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "maxPrice": null
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "hostel near बानेश्वर",
+   "out": {
+    "confidence": 0,
+    "filters": {
+     "q": "बानेश्वर"
+    },
+    "rawTextOnly": true,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "सस्तो hostel",
+   "out": {
+    "confidence": 0,
+    "filters": {
+     "q": "सस्तो"
+    },
+    "rawTextOnly": true,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "Baneshwor   boys   under   8k",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "BOYS",
+     "area": "Baneshwor",
+     "maxPrice": 8000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "NEW BANESHWOR GIRLS",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "GIRLS",
+     "area": "New Baneshwor"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "wi-fi",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "facility": "WiFi"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "wifi internet",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "facility": "WiFi"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+   "out": {
+    "confidence": 0,
+    "filters": {
+     "q": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+    },
+    "rawTextOnly": true,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "hostel in the heart of Thamel with a lot of other words that do not match anything at all",
+   "out": {
+    "confidence": 0.16666666666666666,
+    "filters": {
+     "area": "Thamel"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "double room",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "roomType": "Double"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "single 1 sharing",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "roomType": "Single"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "one sharing",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "roomType": "Single"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "four sharing",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "roomType": "Dormitory"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "3sharing",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "roomType": "Triple"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "vegetarian",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "food": "veg"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "Vegetarian non-veg",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "food": "non-veg"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "non veg",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "food": "non-veg"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "boys girls",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "type": "GIRLS"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "Kupondole 6k-9k",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "area": "Kupondole",
+     "minPrice": 6000,
+     "maxPrice": 9000
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "dillibazar",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "area": "Dillibazar"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "Islington college",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "q": "Islington College"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "Trinity",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "q": "Trinity International College"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "KCM Gwarko",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "area": "Gwarko"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "Purwanchal",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "q": "Purwanchal Campus / Bhaktapur MC"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "amrit science",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "q": "Amrit Science Campus"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "kamalpokhari",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "q": "Islington College"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "St. Xavier's College",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "q": "St. Xavier's College"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  },
+  {
+   "query": "model college bagbazar",
+   "out": {
+    "confidence": 1,
+    "filters": {
+     "area": "Bagbazar"
+    },
+    "rawTextOnly": false,
+    "source": "keyword"
+   }
+  }
+ ],
+ "quota": {
+  "states": [
+   {
+    "state": {
+     "used": 0,
+     "windowEndsAt": 1790018000000
+    },
+    "encoded": "0.1790018000000.uk8dIA8KaMujNByCAknAz_g-JAGceu6a__J9R7Qdb7c",
+    "window": {
+     "used": 0,
+     "windowEndsAt": 1790018000000
+    },
+    "remaining": 10,
+    "maxAge": 18000
+   },
+   {
+    "state": {
+     "used": 9,
+     "windowEndsAt": 1790000000001
+    },
+    "encoded": "9.1790000000001.sgIq0KL_dRl7k6Caybxf8ZnQf0vsL3Z4dlmC8BiY2HY",
+    "window": {
+     "used": 9,
+     "windowEndsAt": 1790000000001
+    },
+    "remaining": 1,
+    "maxAge": 1
+   },
+   {
+    "state": {
+     "used": 10,
+     "windowEndsAt": 1790003600000
+    },
+    "encoded": "10.1790003600000.R29WQNkI5AfH_-5lw5jOyLAovZ3fwR0rAPFLPltjcek",
+    "window": {
+     "used": 10,
+     "windowEndsAt": 1790003600000
+    },
+    "remaining": 0,
+    "maxAge": 3600
+   },
+   {
+    "state": {
+     "used": 12,
+     "windowEndsAt": 1790003600000
+    },
+    "encoded": "12.1790003600000.gAcrgTG5Kl_Gp6bzmYB1_fMg79JoytG2DU_DiOmHSYI",
+    "window": {
+     "used": 12,
+     "windowEndsAt": 1790003600000
+    },
+    "remaining": 0,
+    "maxAge": 3600
+   },
+   {
+    "state": {
+     "used": 3,
+     "windowEndsAt": 1789999999995
+    },
+    "encoded": "3.1789999999995.-RPm4OWAPmtcHPgHSCz1H_UtoTIXNPziPcbNPbGpvgM",
+    "window": {
+     "used": 0,
+     "windowEndsAt": 1790018000000
+    },
+    "remaining": 7,
+    "maxAge": 1
+   }
+  ],
+  "raws": [
+   {
+    "raw": null,
+    "window": {
+     "used": 0,
+     "windowEndsAt": 1790018000000
+    }
+   },
+   {
+    "raw": "",
+    "window": {
+     "used": 0,
+     "windowEndsAt": 1790018000000
+    }
+   },
+   {
+    "raw": "junk",
+    "window": {
+     "used": 0,
+     "windowEndsAt": 1790018000000
+    }
+   },
+   {
+    "raw": "1.2",
+    "window": {
+     "used": 0,
+     "windowEndsAt": 1790018000000
+    }
+   },
+   {
+    "raw": "1.2.3",
+    "window": {
+     "used": 0,
+     "windowEndsAt": 1790018000000
+    }
+   },
+   {
+    "raw": "a.b.c",
+    "window": {
+     "used": 0,
+     "windowEndsAt": 1790018000000
+    }
+   },
+   {
+    "raw": "0.1790000000000.AAAA",
+    "window": {
+     "used": 0,
+     "windowEndsAt": 1790018000000
+    }
+   }
+  ],
+  "tampered": {
+   "cookie": "0.1790000001000.Few5o1OttCH-HX-dweBNkcUoS6NzeO2D-frlyAqqU_4",
+   "window": {
+    "used": 0,
+    "windowEndsAt": 1790018000000
+   }
+  }
+ },
+ "model": [
+  {
+   "raw": "",
+   "extracted": "",
+   "sanitized": "",
+   "parsed": null
+  },
+  {
+   "raw": "   ",
+   "extracted": "",
+   "sanitized": "",
+   "parsed": null
+  },
+  {
+   "raw": "{\"area\":\"Thamel\"}",
+   "extracted": "{\"area\":\"Thamel\"}",
+   "sanitized": "{\"area\":\"Thamel\"}",
+   "parsed": {
+    "area": "Thamel"
+   }
+  },
+  {
+   "raw": "```json\n{\"type\":\"BOYS\",\"maxPrice\":8000}\n```",
+   "extracted": "{\"type\":\"BOYS\",\"maxPrice\":8000}",
+   "sanitized": "{\"type\":\"BOYS\",\"maxPrice\":8000}",
+   "parsed": {
+    "type": "BOYS",
+    "maxPrice": 8000
+   }
+  },
+  {
+   "raw": "Sure! Here you go: {\"q\":\"Royal\"} Hope it helps",
+   "extracted": "{\"q\":\"Royal\"}",
+   "sanitized": "{\"q\":\"Royal\"}",
+   "parsed": {
+    "q": "Royal"
+   }
+  },
+  {
+   "raw": "[1,2,3]",
+   "extracted": "[1,2,3]",
+   "sanitized": "[1,2,3]",
+   "parsed": [
+    1,
+    2,
+    3
+   ]
+  },
+  {
+   "raw": "prefix [{\"a\":1}] suffix",
+   "extracted": "[{\"a\":1}]",
+   "sanitized": "[{\"a\":1}]",
+   "parsed": [
+    {
+     "a": 1
+    }
+   ]
+  },
+  {
+   "raw": "{\"a\": \"line\nbreak\"}",
+   "extracted": "{\"a\": \"line\nbreak\"}",
+   "sanitized": "{\"a\": \"line\\nbreak\"}",
+   "parsed": {
+    "a": "line\nbreak"
+   }
+  },
+  {
+   "raw": "{“area”: “Thamel”}",
+   "extracted": "{“area”: “Thamel”}",
+   "sanitized": "{\"area\": \"Thamel\"}",
+   "parsed": {
+    "area": "Thamel"
+   }
+  },
+  {
+   "raw": "{\"a\":\"tab\there\"}",
+   "extracted": "{\"a\":\"tab\there\"}",
+   "sanitized": "{\"a\":\"tab\\there\"}",
+   "parsed": {
+    "a": "tab\there"
+   }
+  },
+  {
+   "raw": "{bad json",
+   "extracted": "{bad json",
+   "sanitized": "{bad json",
+   "parsed": null
+  },
+  {
+   "raw": "null",
+   "extracted": "null",
+   "sanitized": "null",
+   "parsed": null
+  },
+  {
+   "raw": "42",
+   "extracted": "42",
+   "sanitized": "42",
+   "parsed": 42
+  },
+  {
+   "raw": "{\"a\":\"bad \\q escape\"}",
+   "extracted": "{\"a\":\"bad \\q escape\"}",
+   "sanitized": "{\"a\":\"bad \\\\q escape\"}",
+   "parsed": {
+    "a": "bad \\q escape"
+   }
+  },
+  {
+   "raw": "{\"area\":\"Thamel\"} {\"area\":\"Balaju\"}",
+   "extracted": "{\"area\":\"Thamel\"} {\"area\":\"Balaju\"}",
+   "sanitized": "{\"area\":\"Thamel\"} {\"area\":\"Balaju\"}",
+   "parsed": null
+  },
+  {
+   "raw": "```\n{\"food\":\"veg\"}\n```",
+   "extracted": "{\"food\":\"veg\"}",
+   "sanitized": "{\"food\":\"veg\"}",
+   "parsed": {
+    "food": "veg"
+   }
+  },
+  {
+   "raw": "{\"a\":\"x\u0001y\"}",
+   "extracted": "{\"a\":\"x\u0001y\"}",
+   "sanitized": "{\"a\":\"x y\"}",
+   "parsed": {
+    "a": "x y"
+   }
+  }
+ ]
+}

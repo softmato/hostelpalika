@@ -1,0 +1,124 @@
+[
+  {
+    "name": "no token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join-requests/me",
+      "headers": {
+        "user-agent": "jm-1"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "nothing sent",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join-requests/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "jm-2"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join request loaded",
+        "data": {
+          "request": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "waiting",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join-requests/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000058:PUBLIC}}",
+        "user-agent": "jm-3"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join request loaded",
+        "data": {
+          "request": {
+            "hostelName": "Fixture Lakeside Hostel",
+            "reason": "",
+            "status": "PENDING",
+            "token": "joinopen0001"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "sent back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join-requests/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000057:PUBLIC}}",
+        "user-agent": "jm-4"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join request loaded",
+        "data": {
+          "request": {
+            "hostelName": "Fixture Lakeside Hostel",
+            "reason": "Photo is blurry",
+            "status": "REJECTED",
+            "token": "joinopen0001"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "added only",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join-requests/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000059:PUBLIC}}",
+        "user-agent": "jm-5"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join request loaded",
+        "data": {
+          "request": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

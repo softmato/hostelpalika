@@ -1,0 +1,298 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/arriving",
+      "headers": {
+        "user-agent": "ar-1"
+      },
+      "body": {
+        "minutes": 10,
+        "mode": "foot"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/arriving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "ar-2"
+      },
+      "body": {
+        "minutes": 0,
+        "mode": "rocket"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "minutes": [
+              "Too small: expected number to be \u003e=1"
+            ],
+            "mode": [
+              "Invalid option: expected one of \"car\"|\"foot\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e=1",
+              "path": "minutes"
+            },
+            {
+              "message": "Invalid option: expected one of \"car\"|\"foot\"",
+              "path": "mode"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "fractional minutes",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/arriving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "ar-3"
+      },
+      "body": {
+        "minutes": 1.5,
+        "mode": "car"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "minutes": [
+              "Invalid input: expected int, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected int, received number",
+              "path": "minutes"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "too many minutes",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/arriving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "ar-4"
+      },
+      "body": {
+        "minutes": 601,
+        "mode": "car"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "minutes": [
+              "Too big: expected number to be \u003c=600"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected number to be \u003c=600",
+              "path": "minutes"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unknown hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/nope-nope/arriving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "ar-5"
+      },
+      "body": {
+        "minutes": 10,
+        "mode": "car"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "only staff is the traveller",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/arriving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000010:PUBLIC}}",
+        "user-agent": "ar-6"
+      },
+      "body": {
+        "minutes": 10,
+        "mode": "foot"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel told",
+        "data": {
+          "sent": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "told",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/arriving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "ar-7"
+      },
+      "body": {
+        "minutes": 12,
+        "mode": "foot"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel told",
+        "data": {
+          "sent": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "repeat is a no-op",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/arriving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "ar-8"
+      },
+      "body": {
+        "minutes": 3,
+        "mode": "car"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel told",
+        "data": {
+          "sent": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "another traveller by id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/6c00000000000000000000a5/arriving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000002:PUBLIC}}",
+        "user-agent": "ar-9"
+      },
+      "body": {
+        "minutes": 600,
+        "mode": "car"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel told",
+        "data": {
+          "sent": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "GET refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/arriving",
+      "headers": {
+        "user-agent": "ar-10"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

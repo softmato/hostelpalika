@@ -1,0 +1,408 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b8",
+      "headers": {
+        "user-agent": "sp-51"
+      },
+      "body": {
+        "status": "COMPLETED"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "not json",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b8",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "content-type": "application/json",
+        "user-agent": "sp-52"
+      },
+      "body": "{bad"
+    },
+    "response": {
+      "status": 500,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "errorCode": "INTERNAL_SERVER_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b8",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-53"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "status": [
+              "Invalid option: expected one of \"CONTACTED\"|\"COMPLETED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"CONTACTED\"|\"COMPLETED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "cancelled refused",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b8",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-54"
+      },
+      "body": {
+        "status": "CANCELLED",
+        "note": "nnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnnn"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "note": [
+              "Too big: expected string to have \u003c=800 characters"
+            ],
+            "status": [
+              "Invalid option: expected one of \"CONTACTED\"|\"COMPLETED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected string to have \u003c=800 characters",
+              "path": "note"
+            },
+            {
+              "message": "Invalid option: expected one of \"CONTACTED\"|\"COMPLETED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "not a provider",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b8",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ec:PUBLIC}}",
+        "user-agent": "sp-55"
+      },
+      "body": {
+        "status": "COMPLETED"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Job was not found.",
+        "errorCode": "MAINTENANCE_REQUEST_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-56"
+      },
+      "body": {
+        "status": "COMPLETED"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid job id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unknown",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000ff",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-57"
+      },
+      "body": {
+        "status": "COMPLETED"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Job was not found.",
+        "errorCode": "MAINTENANCE_REQUEST_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "someone elses",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000bb",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-58"
+      },
+      "body": {
+        "status": "COMPLETED"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Job was not found.",
+        "errorCode": "MAINTENANCE_REQUEST_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "closed",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b9",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-59"
+      },
+      "body": {
+        "status": "CONTACTED"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This job is already closed. Ask the hostel to reopen it.",
+        "errorCode": "MAINTENANCE_REQUEST_CLOSED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "cancelled job",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000ba",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-60"
+      },
+      "body": {
+        "status": "COMPLETED"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This job is already closed. Ask the hostel to reopen it.",
+        "errorCode": "MAINTENANCE_REQUEST_CLOSED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "completed",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b8",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-61"
+      },
+      "body": {
+        "status": "COMPLETED",
+        "note": " done "
+      }
+    },
+    "masks": [
+      "data.job.completedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Job updated",
+        "data": {
+          "job": {
+            "completedAt": "2026-10-30T04:50:08.234Z",
+            "id": "6c00000000000000000000b8",
+            "status": "COMPLETED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "again",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b8",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-62"
+      },
+      "body": {
+        "status": "COMPLETED"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This job is already closed. Ask the hostel to reopen it.",
+        "errorCode": "MAINTENANCE_REQUEST_CLOSED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "contacted",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000bd",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-63"
+      },
+      "body": {
+        "status": "CONTACTED"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Job updated",
+        "data": {
+          "job": {
+            "completedAt": null,
+            "id": "6c00000000000000000000bd",
+            "status": "CONTACTED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "same status",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000bc",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-64"
+      },
+      "body": {
+        "status": "CONTACTED"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Job updated",
+        "data": {
+          "job": {
+            "completedAt": null,
+            "id": "6c00000000000000000000bc",
+            "status": "CONTACTED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "GET refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me/jobs/6c00000000000000000000b8",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-65"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

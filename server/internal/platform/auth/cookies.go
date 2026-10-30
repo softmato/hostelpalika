@@ -84,23 +84,32 @@ type Cookies struct {
 // set is stringifyCookie: Path, Expires (only when maxAge > 0), Max-Age,
 // Domain, Secure, HttpOnly, SameSite=lax. maxAge < 0 = session cookie.
 func (c *Cookies) set(h http.Header, name, value string, maxAge int, path string) {
+	SetCookie(h, name, value, maxAge, path, c.Domain, c.Secure, c.Tokens.now())
+}
+
+// SetCookie writes one Set-Cookie line the way Next does (see set), for the
+// few cookies outside the session pair (visitor id, search quota).
+func SetCookie(h http.Header, name, value string, maxAge int, path, domain string, secure bool, now time.Time) {
 	var b strings.Builder
 	b.WriteString(name + "=" + httpx.EncodeURIComponent(value) + "; Path=" + path)
 	if maxAge > 0 {
-		b.WriteString("; Expires=" + c.Tokens.now().Add(time.Duration(maxAge)*time.Second).UTC().Format(http.TimeFormat))
+		b.WriteString("; Expires=" + now.Add(time.Duration(maxAge)*time.Second).UTC().Format(http.TimeFormat))
 	}
 	if maxAge >= 0 {
 		b.WriteString("; Max-Age=" + strconv.Itoa(maxAge))
 	}
-	if c.Domain != "" {
-		b.WriteString("; Domain=" + c.Domain)
+	if domain != "" {
+		b.WriteString("; Domain=" + domain)
 	}
-	if c.Secure {
+	if secure {
 		b.WriteString("; Secure")
 	}
 	b.WriteString("; HttpOnly; SameSite=lax")
 	h.Add("Set-Cookie", b.String())
 }
+
+// CookieValue is the named cookie's value from the request, or "".
+func CookieValue(r *http.Request, name string) string { return cookieValue(r, name) }
 
 // ApplySession is applySessionCookies. refresh "" is a reuse-window refresh:
 // only the access cookie is renewed.

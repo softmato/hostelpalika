@@ -1,0 +1,1071 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/usage/events",
+      "headers": {
+        "user-agent": "us-1"
+      },
+      "body": {
+        "client": "app",
+        "events": [
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/usage/events",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "us-2"
+      },
+      "body": {
+        "client": "tv",
+        "events": [
+          {
+            "at": "nonsense",
+            "kind": "screen",
+            "durationMs": 99999999999,
+            "screen": 5
+          },
+          "x"
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "client": [
+              "Invalid option: expected one of \"app\"|\"web\""
+            ],
+            "events": [
+              "Invalid input: expected date, received Date",
+              "Too big: expected number to be \u003c=21600000",
+              "Invalid input: expected string, received number",
+              "Invalid input: expected object, received string"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"app\"|\"web\"",
+              "path": "client"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "events.0.at"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=21600000",
+              "path": "events.0.durationMs"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "events.0.screen"
+            },
+            {
+              "message": "Invalid input: expected object, received string",
+              "path": "events.1"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty events",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/usage/events",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "us-3"
+      },
+      "body": {
+        "client": "web",
+        "events": []
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "events": [
+              "Too small: expected array to have \u003e=1 items"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected array to have \u003e=1 items",
+              "path": "events"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "too many events",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/usage/events",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "us-3b"
+      },
+      "body": {
+        "client": "web",
+        "events": [
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "events": [
+              "Too big: expected array to have \u003c=200 items"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected array to have \u003c=200 items",
+              "path": "events"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "stale events dropped",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/usage/events",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "us-4"
+      },
+      "body": {
+        "client": "app",
+        "events": [
+          {
+            "at": "2020-01-01T00:00:00Z",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "screen"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "feature",
+            "feature": "  "
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Usage recorded",
+        "data": {
+          "recorded": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "recorded",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/usage/events",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c000000000000000000a1}}",
+        "user-agent": "us-5"
+      },
+      "body": {
+        "client": "app",
+        "events": [
+          {
+            "at": "{{now}}",
+            "kind": "open"
+          },
+          {
+            "at": "{{now}}",
+            "kind": "screen",
+            "screen": "/manage/scan/66ab00000000000000000001?x=1",
+            "durationMs": 4200
+          },
+          {
+            "at": "{{now}}",
+            "kind": "feature",
+            "feature": "POST /api/v1/hostel-admin/expenses/66ab00000000000000000001"
+          },
+          {
+            "at": "2099-01-01T00:00:00Z",
+            "kind": "open"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Usage recorded",
+        "data": {
+          "recorded": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

@@ -1,0 +1,306 @@
+[
+  {
+    "name": "bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/impressions",
+      "headers": {
+        "user-agent": "im-1"
+      },
+      "body": {
+        "hostelIds": [
+          1,
+          "a"
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelIds": [
+              "Invalid input: expected string, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "hostelIds.0"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty list",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/impressions",
+      "headers": {
+        "user-agent": "im-2"
+      },
+      "body": {
+        "hostelIds": []
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelIds": [
+              "Too small: expected array to have \u003e=1 items"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected array to have \u003e=1 items",
+              "path": "hostelIds"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "no list",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/impressions",
+      "headers": {
+        "user-agent": "im-3"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelIds": [
+              "Invalid input: expected array, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected array, received undefined",
+              "path": "hostelIds"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "too many",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/impressions",
+      "headers": {
+        "user-agent": "im-4"
+      },
+      "body": {
+        "hostelIds": [
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a",
+          "a"
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelIds": [
+              "Too big: expected array to have \u003c=60 items"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected array to have \u003c=60 items",
+              "path": "hostelIds"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "recorded",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/impressions",
+      "headers": {
+        "user-agent": "im-5"
+      },
+      "body": {
+        "hostelIds": [
+          "6c00000000000000000000a3",
+          "6c00000000000000000000a3",
+          "not-an-id",
+          "6c00000000000000000000a5"
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Listing appearance recorded",
+        "data": {
+          "recorded": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "only junk still ok",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/impressions",
+      "headers": {
+        "user-agent": "im-6"
+      },
+      "body": {
+        "hostelIds": [
+          "nope"
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Listing appearance recorded",
+        "data": {
+          "recorded": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "not json",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/impressions",
+      "headers": {
+        "user-agent": "im-7"
+      },
+      "body": "nope"
+    },
+    "response": {
+      "status": 500,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "errorCode": "INTERNAL_SERVER_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "GET refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/impressions",
+      "headers": {
+        "user-agent": "im-8"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

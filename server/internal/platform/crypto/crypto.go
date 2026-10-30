@@ -105,6 +105,9 @@ func b64(b []byte) string { return base64.StdEncoding.EncodeToString(b) }
 // ErrPersonalFormat is "Stored personal data is in an unrecognised format."
 var ErrPersonalFormat = errors.New("Stored personal data is in an unrecognised format.")
 
+// ErrPersonalKeyMissing is what a profile read or write throws without the key.
+var ErrPersonalKeyMissing = errors.New("PERSONAL_DATA_ENCRYPTION_KEY is required to store or read resident profiles. Generate one with: openssl rand -base64 32")
+
 // Personal seals UserResidentProfile and Resident.detailsData blobs.
 type Personal struct{ key []byte }
 
@@ -112,7 +115,7 @@ type Personal struct{ key []byte }
 // and any other passphrase stretched with SHA-256 rather than rejected.
 func NewPersonal(raw string) (*Personal, error) {
 	if raw == "" {
-		return nil, errors.New("PERSONAL_DATA_ENCRYPTION_KEY is required to store or read resident profiles. Generate one with: openssl rand -base64 32")
+		return nil, ErrPersonalKeyMissing
 	}
 	trimmed := strings.TrimSpace(raw)
 	key := keyCandidate(trimmed)

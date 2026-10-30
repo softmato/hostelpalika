@@ -6,30 +6,47 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	goredis "github.com/redis/go-redis/v9"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
+	"github.com/softmato/hostelpalika/server/internal/modules/arrivals"
 	authmod "github.com/softmato/hostelpalika/server/internal/modules/auth"
 	"github.com/softmato/hostelpalika/server/internal/modules/billing"
 	"github.com/softmato/hostelpalika/server/internal/modules/bookings"
+	"github.com/softmato/hostelpalika/server/internal/modules/feedback"
+	"github.com/softmato/hostelpalika/server/internal/modules/files"
+	"github.com/softmato/hostelpalika/server/internal/modules/hostelreferrals"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostels"
+	"github.com/softmato/hostelpalika/server/internal/modules/notifications"
 	"github.com/softmato/hostelpalika/server/internal/modules/offerprogram"
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
+	"github.com/softmato/hostelpalika/server/internal/modules/referrals"
 	"github.com/softmato/hostelpalika/server/internal/modules/reports"
+	"github.com/softmato/hostelpalika/server/internal/modules/residents"
 	"github.com/softmato/hostelpalika/server/internal/modules/reviews"
+	searchmod "github.com/softmato/hostelpalika/server/internal/modules/search"
+	"github.com/softmato/hostelpalika/server/internal/modules/serviceproviders"
+	"github.com/softmato/hostelpalika/server/internal/modules/usage"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/auth"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/background"
 	"github.com/softmato/hostelpalika/server/internal/platform/cache"
 	"github.com/softmato/hostelpalika/server/internal/platform/config"
+	"github.com/softmato/hostelpalika/server/internal/platform/crypto"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
+	"github.com/softmato/hostelpalika/server/internal/platform/llm"
+	"github.com/softmato/hostelpalika/server/internal/platform/maps"
 	"github.com/softmato/hostelpalika/server/internal/platform/obs"
+	"github.com/softmato/hostelpalika/server/internal/platform/push"
 	"github.com/softmato/hostelpalika/server/internal/platform/ratelimit"
+	"github.com/softmato/hostelpalika/server/internal/platform/realtime"
+	"github.com/softmato/hostelpalika/server/internal/platform/storage"
 )
 
 // Deps are the process-wide clients every module reads from. Redis may be nil
@@ -82,18 +99,48 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	sender := email.NewSender(cfg.Email.ResendAPIKey, cfg.Email.Domain, cfg.Email.ReplyTo, d.DB)
 	sender.PrefSecret, sender.Outbound = cfg.Auth.AccessSecret, cfg.OutboundURL()
 	log := audit.New(d.DB)
+	rt := realtime.New(cfg.Pusher)
+	pushSender := push.New(d.DB, cfg.Push, notifications.Hooks(d.DB))
+	notify := &notifications.Service{DB: d.DB, Push: pushSender, RT: rt, Cache: cache.New(d.Redis), BG: bg}
 
 	authSvc := authmod.NewService(d.DB, cfg, tokens, auth.NewSessions(d.DB, cfg.Auth.RefreshTTL), sender, log)
 	authmod.NewHandler(authSvc, guards, cookies, limiter).Register(v1)
 
 	siteConfig := platformconfig.New(d.DB)
 	platformconfig.NewHandler(siteConfig).Register(v1)
-	hostels.NewHandler(hostels.NewPublic(d.DB, siteConfig)).Register(v1)
+	pubHostels := hostels.NewPublic(d.DB, siteConfig)
+	hostels.NewHandler(pubHostels).Register(v1)
+	hostels.NewWrites(hostels.WriteDeps{DB: d.DB, Guards: guards, Limiter: limiter, Secure: cfg.IsProduction(), Public: pubHostels,
+		Mail: sender, Notify: notify, RT: rt, Cache: cache.New(d.Redis), Outbound: cfg.OutboundURL()}).Register(v1)
+	arrivals.NewHandler(d.DB, guards, limiter, notify).Register(v1)
+	claims := files.Claims{Secret: cfg.Auth.AccessSecret}
+	hostels.NewApplications(d.DB, guards, claims, log).Register(v1)
+	files.NewHandler(d.DB, storage.New(cfg.R2), cfg.R2, limiter, claims).Register(v1)
+	personal, _ := crypto.NewPersonal(cfg.Crypto.PersonalDataKey)
+	(&residents.Public{DB: d.DB, Guards: guards, Limiter: limiter, Claims: claims, Personal: personal, Notify: notify, RT: rt, Cache: cache.New(d.Redis)}).Register(v1)
+	refs := hostelreferrals.NewService(d.DB)
+	bookingsSvc := bookings.NewService(d.DB, siteConfig)
+	(&hostels.Registration{Refs: refs, DB: d.DB, Guards: guards, Limiter: limiter, Claims: claims, Mail: sender, Notify: notify, Audit: log, RT: rt, Cache: cache.New(d.Redis), Outbound: cfg.OutboundURL(),
+		FinanceKey: cfg.Crypto.FinanceMasterKey, FinancePrev: cfg.Crypto.FinanceMasterKeyPrev, PersonalKey: cfg.Crypto.PersonalDataKey,
+		ShortStayLimits: func(ctx context.Context) (float64, float64) {
+			c := bookingsSvc.BookingConfig(ctx)
+			return c.ShortStayMinMarkupPercent, c.ShortStayMaxNights
+		}}).Register(v1)
+	referrals.NewHandler(d.DB, limiter).Register(v1)
+	(&serviceproviders.Handler{DB: d.DB, Guards: guards, Limiter: limiter, Claims: claims, Mail: sender, Notify: notify, Audit: log, RT: rt, Cache: cache.New(d.Redis), Outbound: cfg.OutboundURL()}).Register(v1)
+	hostelreferrals.NewHandler(refs, limiter).Register(v1)
+	(&hostels.Quick{DB: d.DB, Guards: guards, Limiter: limiter, Refs: refs, Config: siteConfig, Mail: sender, Notify: notify, Audit: log, SiteURL: strings.TrimRight(cfg.AppURL, "/")}).Register(v1)
+	hostels.NewGeo(maps.NewClient(cfg.Google.MapsAPIKey, cfg.AppURL), guards, limiter).Register(v1)
+	searchmod.NewHandler(llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder), cfg.LLM.SearchQuotaSecret, cfg.CookieSecure).Register(v1)
 	reviews.NewHandler(d.DB).Register(v1)
 	reports.NewHandler(d.DB).Register(v1)
 	billing.NewHandler(d.DB, siteConfig).Register(v1)
 	offerprogram.NewHandler(d.DB).Register(v1)
-	bookings.NewHandler(bookings.NewService(d.DB, siteConfig)).Register(v1)
+	bookings.NewHandler(bookingsSvc).Register(v1)
+
+	feedback.NewHandler(d.DB, guards, limiter).Register(v1)
+	usage.NewHandler(d.DB, guards, limiter).Register(v1)
+	notifications.NewHandler(d.DB, guards, sender, pushSender).Register(v1)
 }
 
 type healthData struct {

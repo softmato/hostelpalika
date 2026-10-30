@@ -70,6 +70,7 @@
                 "alt": "Front",
                 "id": "6c0000000000000000000033",
                 "kind": "EXTERIOR",
+                "mediumUrl": "",
                 "roomType": "",
                 "url": "https://cdn.contract.test/front.webp"
               },
@@ -77,6 +78,7 @@
                 "alt": "",
                 "id": "6c0000000000000000000032",
                 "kind": "INTERIOR",
+                "mediumUrl": "",
                 "roomType": "",
                 "url": "https://cdn.contract.test/inside.webp"
               },
@@ -84,6 +86,7 @@
                 "alt": "Room",
                 "id": "6c0000000000000000000031",
                 "kind": "ROOM",
+                "mediumUrl": "https://cdn.contract.test/room-640.webp",
                 "roomType": "Single",
                 "url": "https://cdn.contract.test/room.webp"
               }
@@ -180,7 +183,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "branch",
@@ -236,6 +239,7 @@
                 "alt": "",
                 "id": "6c0000000000000000000034",
                 "kind": "INTERIOR",
+                "mediumUrl": "",
                 "roomType": "",
                 "url": "https://cdn.contract.test/branch.webp"
               }
@@ -284,7 +288,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "badged",
@@ -376,7 +380,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "unverified is hidden",
@@ -393,7 +397,7 @@
         "errorCode": "HOSTEL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "demo by slug",
@@ -457,36 +461,42 @@
               {
                 "alt": "Saathi Ghar Boys Hostel — kitchen",
                 "kind": "INTERIOR",
+                "mediumUrl": "",
                 "roomType": "",
                 "url": "https://images.pexels.com/photos/31944365/pexels-photo-31944365.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
               },
               {
                 "alt": "Saathi Ghar Boys Hostel — dining hall",
                 "kind": "INTERIOR",
+                "mediumUrl": "",
                 "roomType": "",
                 "url": "https://images.pexels.com/photos/4504004/pexels-photo-4504004.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
               },
               {
                 "alt": "Saathi Ghar Boys Hostel — daily meal",
                 "kind": "INTERIOR",
+                "mediumUrl": "",
                 "roomType": "",
                 "url": "https://images.pexels.com/photos/7351635/pexels-photo-7351635.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
               },
               {
                 "alt": "Saathi Ghar Boys Hostel — single room",
                 "kind": "ROOM",
+                "mediumUrl": "",
                 "roomType": "Single",
                 "url": "https://images.pexels.com/photos/39338470/pexels-photo-39338470.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
               },
               {
                 "alt": "Saathi Ghar Boys Hostel — double room",
                 "kind": "ROOM",
+                "mediumUrl": "",
                 "roomType": "Double",
                 "url": "https://images.pexels.com/photos/11062931/pexels-photo-11062931.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
               },
               {
                 "alt": "Saathi Ghar Boys Hostel — triple room",
                 "kind": "ROOM",
+                "mediumUrl": "",
                 "roomType": "Triple",
                 "url": "https://images.pexels.com/photos/5137980/pexels-photo-5137980.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
               }
@@ -555,7 +565,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "demo by id",
@@ -619,36 +629,42 @@
               {
                 "alt": "Saathi Ghar Boys Hostel — kitchen",
                 "kind": "INTERIOR",
+                "mediumUrl": "",
                 "roomType": "",
                 "url": "https://images.pexels.com/photos/31944365/pexels-photo-31944365.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
               },
               {
                 "alt": "Saathi Ghar Boys Hostel — dining hall",
                 "kind": "INTERIOR",
+                "mediumUrl": "",
                 "roomType": "",
                 "url": "https://images.pexels.com/photos/4504004/pexels-photo-4504004.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
               },
               {
                 "alt": "Saathi Ghar Boys Hostel — daily meal",
                 "kind": "INTERIOR",
+                "mediumUrl": "",
                 "roomType": "",
                 "url": "https://images.pexels.com/photos/7351635/pexels-photo-7351635.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
               },
               {
                 "alt": "Saathi Ghar Boys Hostel — single room",
                 "kind": "ROOM",
+                "mediumUrl": "",
                 "roomType": "Single",
                 "url": "https://images.pexels.com/photos/39338470/pexels-photo-39338470.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
               },
               {
                 "alt": "Saathi Ghar Boys Hostel — double room",
                 "kind": "ROOM",
+                "mediumUrl": "",
                 "roomType": "Double",
                 "url": "https://images.pexels.com/photos/11062931/pexels-photo-11062931.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
               },
               {
                 "alt": "Saathi Ghar Boys Hostel — triple room",
                 "kind": "ROOM",
+                "mediumUrl": "",
                 "roomType": "Triple",
                 "url": "https://images.pexels.com/photos/5137980/pexels-photo-5137980.jpeg?auto=compress\u0026cs=tinysrgb\u0026w=940\u0026h=650"
               }
@@ -717,7 +733,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   },
   {
     "name": "missing",
@@ -734,6 +750,6 @@
         "errorCode": "HOSTEL_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100 8bea0625"
   }
 ]

@@ -1,0 +1,1750 @@
+[
+  {
+    "name": "not json",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "content-type": "application/json",
+        "user-agent": "afp-1"
+      },
+      "body": "{bad"
+    },
+    "response": {
+      "status": 500,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "errorCode": "INTERNAL_SERVER_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-2"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "firstName": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "lastName": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "phone": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "email": [
+              "Write your email."
+            ],
+            "details": [
+              "Invalid input: expected object, received undefined"
+            ],
+            "photo": [
+              "Invalid input: expected object, received undefined"
+            ],
+            "agreed": [
+              "Tick that you agree to the hostel's rules."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "firstName"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "lastName"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "phone"
+            },
+            {
+              "message": "Write your email.",
+              "path": "email"
+            },
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "details"
+            },
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "photo"
+            },
+            {
+              "message": "Tick that you agree to the hostel's rules.",
+              "path": "agreed"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "everything wrong",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-3"
+      },
+      "body": {
+        "firstName": 5,
+        "lastName": "",
+        "phone": "12",
+        "email": "nope",
+        "residentType": "KING",
+        "details": {
+          "dateOfBirth": "x",
+          "gender": "X",
+          "bloodGroup": "Z",
+          "food": 3,
+          "district": "ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "family": [
+            {},
+            {
+              "name": "A",
+              "relation": "R",
+              "phone": "ppppppppppppppppppppppppp"
+            },
+            {},
+            {
+              "name": "A",
+              "relation": "R",
+              "phone": "ppppppppppppppppppppppppp"
+            },
+            {},
+            {
+              "name": "A",
+              "relation": "R",
+              "phone": "ppppppppppppppppppppppppp"
+            },
+            {},
+            {
+              "name": "A",
+              "relation": "R",
+              "phone": "ppppppppppppppppppppppppp"
+            }
+          ],
+          "localGuardian": {},
+          "signature": "zzz"
+        },
+        "photo": {
+          "claimToken": "x",
+          "fileAssetId": "zz"
+        },
+        "documents": [
+          {},
+          {
+            "claimToken": "yyyyyyyyyy",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "PASSPORT"
+          },
+          5,
+          {},
+          {}
+        ],
+        "agreed": "yes"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "firstName": [
+              "Invalid input: expected string, received number"
+            ],
+            "lastName": [
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "phone": [
+              "Too small: expected string to have \u003e=7 characters"
+            ],
+            "email": [
+              "Write your email."
+            ],
+            "residentType": [
+              "Invalid option: expected one of \"STUDENT\"|\"WORKING_PROFESSIONAL\"|\"OTHER\""
+            ],
+            "details": [
+              "Write the date of birth as YYYY-MM-DD.",
+              "Invalid option: expected one of \"MALE\"|\"FEMALE\"|\"OTHER\"|\"PREFER_NOT_TO_SAY\"",
+              "Invalid option: expected one of \"A+\"|\"A-\"|\"B+\"|\"B-\"|\"AB+\"|\"AB-\"|\"O+\"|\"O-\"|\"UNKNOWN\"",
+              "Invalid option: expected one of \"NO_PREFERENCE\"|\"VEG\"|\"NON_VEG\"|\"EGGETARIAN\"|\"VEGAN\"",
+              "Too big: expected string to have \u003c=60 characters",
+              "Invalid input: expected string, received undefined",
+              "Invalid input: expected string, received undefined",
+              "Too small: expected string to have \u003e=2 characters",
+              "Too big: expected string to have \u003c=24 characters",
+              "Too small: expected string to have \u003e=2 characters",
+              "Invalid input: expected string, received undefined",
+              "Invalid input: expected string, received undefined",
+              "Too small: expected string to have \u003e=2 characters",
+              "Too big: expected string to have \u003c=24 characters",
+              "Too small: expected string to have \u003e=2 characters",
+              "Invalid input: expected string, received undefined",
+              "Invalid input: expected string, received undefined",
+              "Too small: expected string to have \u003e=2 characters",
+              "Too big: expected string to have \u003c=24 characters",
+              "Too small: expected string to have \u003e=2 characters",
+              "Invalid input: expected string, received undefined",
+              "Invalid input: expected string, received undefined",
+              "Too small: expected string to have \u003e=2 characters",
+              "Too big: expected string to have \u003c=24 characters",
+              "Too small: expected string to have \u003e=2 characters",
+              "Too big: expected array to have \u003c=6 items",
+              "Invalid input: expected string, received undefined",
+              "Invalid input: expected string, received undefined",
+              "That signature could not be read. Clear it and sign again.",
+              "Sign in the box before saving."
+            ],
+            "photo": [
+              "Too small: expected string to have \u003e=10 characters",
+              "That photo could not be read."
+            ],
+            "documents": [
+              "Invalid input: expected string, received undefined",
+              "Invalid input: expected string, received undefined",
+              "Invalid option: expected one of \"APPLICANT_ID\"|\"GUARDIAN_ID\"",
+              "Invalid option: expected one of \"APPLICANT_ID\"|\"GUARDIAN_ID\"",
+              "Invalid input: expected object, received number",
+              "Invalid input: expected string, received undefined",
+              "Invalid input: expected string, received undefined",
+              "Invalid option: expected one of \"APPLICANT_ID\"|\"GUARDIAN_ID\"",
+              "Invalid input: expected string, received undefined",
+              "Invalid input: expected string, received undefined",
+              "Invalid option: expected one of \"APPLICANT_ID\"|\"GUARDIAN_ID\"",
+              "Too big: expected array to have \u003c=4 items"
+            ],
+            "agreed": [
+              "Tick that you agree to the hostel's rules."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "firstName"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "lastName"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=7 characters",
+              "path": "phone"
+            },
+            {
+              "message": "Write your email.",
+              "path": "email"
+            },
+            {
+              "message": "Invalid option: expected one of \"STUDENT\"|\"WORKING_PROFESSIONAL\"|\"OTHER\"",
+              "path": "residentType"
+            },
+            {
+              "message": "Write the date of birth as YYYY-MM-DD.",
+              "path": "details.dateOfBirth"
+            },
+            {
+              "message": "Invalid option: expected one of \"MALE\"|\"FEMALE\"|\"OTHER\"|\"PREFER_NOT_TO_SAY\"",
+              "path": "details.gender"
+            },
+            {
+              "message": "Invalid option: expected one of \"A+\"|\"A-\"|\"B+\"|\"B-\"|\"AB+\"|\"AB-\"|\"O+\"|\"O-\"|\"UNKNOWN\"",
+              "path": "details.bloodGroup"
+            },
+            {
+              "message": "Invalid option: expected one of \"NO_PREFERENCE\"|\"VEG\"|\"NON_VEG\"|\"EGGETARIAN\"|\"VEGAN\"",
+              "path": "details.food"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=60 characters",
+              "path": "details.district"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "details.family.0.name"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "details.family.0.relation"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "details.family.1.name"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=24 characters",
+              "path": "details.family.1.phone"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "details.family.1.relation"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "details.family.2.name"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "details.family.2.relation"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "details.family.3.name"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=24 characters",
+              "path": "details.family.3.phone"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "details.family.3.relation"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "details.family.4.name"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "details.family.4.relation"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "details.family.5.name"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=24 characters",
+              "path": "details.family.5.phone"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "details.family.5.relation"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "details.family.6.name"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "details.family.6.relation"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "details.family.7.name"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=24 characters",
+              "path": "details.family.7.phone"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "details.family.7.relation"
+            },
+            {
+              "message": "Too big: expected array to have \u003c=6 items",
+              "path": "details.family"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "details.localGuardian.name"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "details.localGuardian.relation"
+            },
+            {
+              "message": "That signature could not be read. Clear it and sign again.",
+              "path": "details.signature"
+            },
+            {
+              "message": "Sign in the box before saving.",
+              "path": "details.signature"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=10 characters",
+              "path": "photo.claimToken"
+            },
+            {
+              "message": "That photo could not be read.",
+              "path": "photo.fileAssetId"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "documents.0.claimToken"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "documents.0.fileAssetId"
+            },
+            {
+              "message": "Invalid option: expected one of \"APPLICANT_ID\"|\"GUARDIAN_ID\"",
+              "path": "documents.0.kind"
+            },
+            {
+              "message": "Invalid option: expected one of \"APPLICANT_ID\"|\"GUARDIAN_ID\"",
+              "path": "documents.1.kind"
+            },
+            {
+              "message": "Invalid input: expected object, received number",
+              "path": "documents.2"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "documents.3.claimToken"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "documents.3.fileAssetId"
+            },
+            {
+              "message": "Invalid option: expected one of \"APPLICANT_ID\"|\"GUARDIAN_ID\"",
+              "path": "documents.3.kind"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "documents.4.claimToken"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "documents.4.fileAssetId"
+            },
+            {
+              "message": "Invalid option: expected one of \"APPLICANT_ID\"|\"GUARDIAN_ID\"",
+              "path": "documents.4.kind"
+            },
+            {
+              "message": "Too big: expected array to have \u003c=4 items",
+              "path": "documents"
+            },
+            {
+              "message": "Tick that you agree to the hostel's rules.",
+              "path": "agreed"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "phone letters",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-4"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "call me maybe",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "phone": [
+              "Enter a phone number."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter a phone number.",
+              "path": "phone"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "not agreed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-5"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": false
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "agreed": [
+              "Tick that you agree to the hostel's rules."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Tick that you agree to the hostel's rules.",
+              "path": "agreed"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "agreed missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-6"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "agreed": [
+              "Tick that you agree to the hostel's rules."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Tick that you agree to the hostel's rules.",
+              "path": "agreed"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "details missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-7"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "details": [
+              "Invalid input: expected object, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "details"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "signature too short",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-8"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M1 1L2 2"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "details": [
+              "Sign in the box before saving."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Sign in the box before saving.",
+              "path": "details.signature"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "signature outside box",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-9"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L999 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "details": [
+              "Sign in the box before saving."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Sign in the box before saving.",
+              "path": "details.signature"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "details wrong shape",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-10"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": "x",
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "details": [
+              "Invalid input: expected object, received string"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected object, received string",
+              "path": "details"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "blank optional fields",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-11"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "",
+          "gender": "",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80",
+          "district": "   "
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Write your date of birth.",
+        "errorCode": "ADMISSION_FORM_INCOMPLETE"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unknown link",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/nosuchtoken",
+      "headers": {
+        "user-agent": "afp-12"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This form does not work any more. Ask the hostel for their new QR.",
+        "errorCode": "ADMISSION_FORM_LINK_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "link paused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formoff0001",
+      "headers": {
+        "user-agent": "afp-13"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is not taking forms right now.",
+        "errorCode": "ADMISSION_FORM_OFF"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "no birth date",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-14"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Write your date of birth.",
+        "errorCode": "ADMISSION_FORM_INCOMPLETE"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "no gender",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-15"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Choose your gender.",
+        "errorCode": "ADMISSION_FORM_INCOMPLETE"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "no parent phone",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-16"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Write your father's or mother's contact number.",
+        "errorCode": "ADMISSION_FORM_INCOMPLETE"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "no signature",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-17"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ]
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Sign the form.",
+        "errorCode": "ADMISSION_FORM_INCOMPLETE"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "no id document",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-18"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Add a photo of your citizenship or ID.",
+        "errorCode": "ADMISSION_FORM_DOCUMENT_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "guardian id required",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formguard001",
+      "headers": {
+        "user-agent": "afp-19"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel needs your guardian's citizenship or ID too.",
+        "errorCode": "ADMISSION_FORM_DOCUMENT_MISSING"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "forged photo",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-20"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That photo could not be checked. Add it again.",
+        "errorCode": "APPLICANT_PHOTO_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "photo is a pdf",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-21"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d8}}",
+          "fileAssetId": "6c00000000000000000000d8"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That photo is no longer available. Add it again.",
+        "errorCode": "APPLICANT_PHOTO_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "photo already on another hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-22"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000da}}",
+          "fileAssetId": "6c00000000000000000000da"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That photo is no longer available. Add it again.",
+        "errorCode": "APPLICANT_PHOTO_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "document is text",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-23"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000db}}",
+            "fileAssetId": "6c00000000000000000000db",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That document is no longer available. Add it again.",
+        "errorCode": "APPLICANT_PHOTO_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "sent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-24"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form sent",
+        "data": {
+          "hostelName": "Fixture Lakeside Hostel",
+          "sent": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "sent again, same phone",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-25"
+      },
+      "body": {
+        "firstName": "Sita again",
+        "lastName": "Rai",
+        "phone": "9800000077",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form sent",
+        "data": {
+          "hostelName": "Fixture Lakeside Hostel",
+          "sent": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "sent while signed in",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "afp-26"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000066",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000d7}}",
+          "fileAssetId": "6c00000000000000000000d7"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          },
+          {
+            "claimToken": "{{claim:6c00000000000000000000d9}}",
+            "fileAssetId": "6c00000000000000000000d9",
+            "kind": "GUARDIAN_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Form sent",
+        "data": {
+          "hostelName": "Fixture Lakeside Hostel",
+          "sent": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "queue full",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/admission-form/formfull0001",
+      "headers": {
+        "user-agent": "afp-27"
+      },
+      "body": {
+        "firstName": "Sita",
+        "lastName": "Rai",
+        "phone": "9800000088",
+        "email": "Sita@Contract.Test",
+        "details": {
+          "dateOfBirth": "2004-05-06",
+          "gender": "FEMALE",
+          "family": [
+            {
+              "name": "Hari Rai",
+              "relation": "Father",
+              "phone": "9801234567"
+            }
+          ],
+          "signature": "M10 10L20 20L30 30L40 40L50 50L60 60L70 70L80 80"
+        },
+        "photo": {
+          "claimToken": "{{claim:6c00000000000000000000dc}}",
+          "fileAssetId": "6c00000000000000000000dc"
+        },
+        "documents": [
+          {
+            "claimToken": "{{claim:6c00000000000000000000d8}}",
+            "fileAssetId": "6c00000000000000000000d8",
+            "kind": "APPLICANT_ID"
+          }
+        ],
+        "agreed": true
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That document is no longer available. Add it again.",
+        "errorCode": "APPLICANT_PHOTO_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "PUT refused",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/public/admission-form/formtoken01",
+      "headers": {
+        "user-agent": "afp-99"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

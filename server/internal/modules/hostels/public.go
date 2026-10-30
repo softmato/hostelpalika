@@ -99,6 +99,7 @@ func serializePublic(h hostelDoc) ordered.Map {
 			{Key: "alt", Value: or(p.val("alt"), "")},
 			{Key: "id", Value: idOf(p.val("_id"))},
 			{Key: "kind", Value: or(p.val("kind"), "INTERIOR")},
+			{Key: "mediumUrl", Value: or(p.val("mediumUrl"), "")},
 			{Key: "roomType", Value: or(p.val("roomType"), "")},
 			{Key: "url", Value: or(p.val("url"), "")},
 		})

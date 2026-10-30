@@ -1,0 +1,292 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/feedback",
+      "headers": {
+        "user-agent": "fb-1"
+      },
+      "body": {
+        "kind": "BUG",
+        "message": "hello there"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/feedback",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "fb-2"
+      },
+      "body": {
+        "kind": "NOPE",
+        "message": "x",
+        "platform": "TV",
+        "screenshotAssetIds": [
+          "zz",
+          1
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "kind": [
+              "Invalid option: expected one of \"FEEDBACK\"|\"BUG\"|\"IMPROVEMENT\""
+            ],
+            "message": [
+              "Write a few words."
+            ],
+            "platform": [
+              "Invalid option: expected one of \"WEB\"|\"APP\""
+            ],
+            "screenshotAssetIds": [
+              "Invalid id.",
+              "Invalid input: expected string, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"FEEDBACK\"|\"BUG\"|\"IMPROVEMENT\"",
+              "path": "kind"
+            },
+            {
+              "message": "Write a few words.",
+              "path": "message"
+            },
+            {
+              "message": "Invalid option: expected one of \"WEB\"|\"APP\"",
+              "path": "platform"
+            },
+            {
+              "message": "Invalid id.",
+              "path": "screenshotAssetIds.0"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "screenshotAssetIds.1"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "quota reached",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/feedback",
+      "headers": {
+        "authorization": "Bearer {{access:6c000000000000000000000d:PUBLIC}}",
+        "user-agent": "fb-3"
+      },
+      "body": {
+        "kind": "BUG",
+        "message": "hello there"
+      }
+    },
+    "response": {
+      "status": 429,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You have sent several messages recently. Please try again in a while.",
+        "errorCode": "RATE_LIMITED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "sent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/feedback",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "fb-4"
+      },
+      "body": {
+        "kind": "IMPROVEMENT",
+        "message": "  Make rent easier  ",
+        "page": "/manage",
+        "appVersion": "1.2.3",
+        "screenshotAssetIds": [
+          "6c00000000000000000000aa"
+        ]
+      }
+    },
+    "masks": [
+      "data.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Thanks — we have it.",
+        "data": {
+          "id": "6ae40de2c4cb64601682f838"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "burst 1",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/feedback",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "fb-5"
+      },
+      "body": {
+        "kind": "BUG",
+        "message": "burst one"
+      }
+    },
+    "masks": [
+      "data.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Thanks — we have it.",
+        "data": {
+          "id": "6ae40de2c4cb64601682f839"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "burst 2",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/feedback",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "fb-5"
+      },
+      "body": {
+        "kind": "BUG",
+        "message": "burst two"
+      }
+    },
+    "masks": [
+      "data.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Thanks — we have it.",
+        "data": {
+          "id": "6ae40de2c4cb64601682f83a"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "burst 3",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/feedback",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "fb-5"
+      },
+      "body": {
+        "kind": "BUG",
+        "message": "burst three"
+      }
+    },
+    "masks": [
+      "data.id"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Thanks — we have it.",
+        "data": {
+          "id": "6ae40de2c4cb64601682f83b"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "burst 4 limited",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/feedback",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "fb-5"
+      },
+      "body": {
+        "kind": "BUG",
+        "message": "burst four"
+      }
+    },
+    "masks": [
+      "details.retryAfterSeconds"
+    ],
+    "response": {
+      "status": 429,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Too many requests. Please wait before submitting again.",
+        "errorCode": "RATE_LIMITED",
+        "details": {
+          "retryAfterSeconds": 60
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "wrong method",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/feedback",
+      "headers": {
+        "user-agent": "fb-6"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

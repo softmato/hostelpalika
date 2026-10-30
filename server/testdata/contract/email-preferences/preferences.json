@@ -1,0 +1,173 @@
+[
+  {
+    "name": "unsubscribe bad token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/email-preferences/unsubscribe?token=nope\u0026topic=NOTICES",
+      "headers": {
+        "user-agent": "ep-1"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This unsubscribe link is not valid.",
+        "errorCode": "INVALID_UNSUBSCRIBE_LINK"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unsubscribe bad topic",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/email-preferences/unsubscribe?token={{preference:Reader@Contract.test}}\u0026topic=SPAM",
+      "headers": {
+        "user-agent": "ep-2"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This unsubscribe link is not valid.",
+        "errorCode": "INVALID_UNSUBSCRIBE_LINK"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unsubscribe ok",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/email-preferences/unsubscribe?token={{preference:Reader@Contract.test}}\u0026topic=NOTICES",
+      "headers": {
+        "user-agent": "ep-3"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Unsubscribed",
+        "data": {
+          "unsubscribed": "NOTICES"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unsubscribe again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/email-preferences/unsubscribe?token={{preference:Reader@Contract.test}}\u0026topic=RENT_REMINDERS",
+      "headers": {
+        "user-agent": "ep-4"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Unsubscribed",
+        "data": {
+          "unsubscribed": "RENT_REMINDERS"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unsubscribe GET refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/email-preferences/unsubscribe?token={{preference:Reader@Contract.test}}\u0026topic=NOTICES",
+      "headers": {
+        "user-agent": "ep-5"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "form bad token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/email-preferences",
+      "headers": {
+        "content-type": "application/x-www-form-urlencoded",
+        "user-agent": "ep-6"
+      },
+      "body": "token=nope\u0026topic=NOTICES"
+    },
+    "response": {
+      "status": 303,
+      "contentType": "",
+      "location": "/email-preferences?token=nope\u0026topic=NOTICES"
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "form mute",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/email-preferences",
+      "headers": {
+        "content-type": "application/x-www-form-urlencoded",
+        "user-agent": "ep-7"
+      },
+      "body": "token={{preference:Reader@Contract.test}}\u0026topic=NOTICES\u0026mute=COMPLAINT_UPDATES"
+    },
+    "response": {
+      "status": 303,
+      "contentType": "",
+      "location": "/email-preferences?token=cmVhZGVyQGNvbnRyYWN0LnRlc3Q.3ULsRdYG95BANhZhNqFbzEzImAxL_gLASNiCT4GNiOs\u0026topic=NOTICES\u0026saved=1"
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "form save",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/email-preferences",
+      "headers": {
+        "content-type": "application/x-www-form-urlencoded",
+        "user-agent": "ep-8"
+      },
+      "body": "token={{preference:Reader@Contract.test}}\u0026shown=NOTICES\u0026shown=RENT_REMINDERS\u0026receive=NOTICES"
+    },
+    "response": {
+      "status": 303,
+      "contentType": "",
+      "location": "/email-preferences?token=cmVhZGVyQGNvbnRyYWN0LnRlc3Q.3ULsRdYG95BANhZhNqFbzEzImAxL_gLASNiCT4GNiOs\u0026saved=1"
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "form no topic",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/email-preferences",
+      "headers": {
+        "content-type": "application/x-www-form-urlencoded",
+        "user-agent": "ep-9"
+      },
+      "body": "token=nope\u0026topic=SPAM"
+    },
+    "response": {
+      "status": 303,
+      "contentType": "",
+      "location": "/email-preferences?token=nope"
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

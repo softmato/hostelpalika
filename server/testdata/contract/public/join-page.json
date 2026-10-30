@@ -1,0 +1,842 @@
+[
+  {
+    "name": "unknown link",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/nosuch",
+      "headers": {
+        "user-agent": "jg-1"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This link does not work any more. Ask your hostel for the new one.",
+        "errorCode": "JOIN_LINK_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "user-agent": "jg-2"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join link loaded",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "link": "OPEN",
+          "request": null,
+          "roomTypes": [
+            {
+              "monthlyRent": 15000,
+              "roomType": "Single"
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Double"
+            }
+          ],
+          "token": "joinopen0001",
+          "viewer": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "padded token",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/%20joinopen0001%20",
+      "headers": {
+        "user-agent": "jg-3"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join link loaded",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "link": "OPEN",
+          "request": null,
+          "roomTypes": [
+            {
+              "monthlyRent": 15000,
+              "roomType": "Single"
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Double"
+            }
+          ],
+          "token": "joinopen0001",
+          "viewer": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "card ready",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "jg-4"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join link loaded",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "link": "OPEN",
+          "request": null,
+          "roomTypes": [
+            {
+              "monthlyRent": 15000,
+              "roomType": "Single"
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Double"
+            }
+          ],
+          "token": "joinopen0001",
+          "viewer": {
+            "card": "READY",
+            "cardId": "HPR-READY01",
+            "email": "joiner@contract.test",
+            "fullName": "Joy Joiner",
+            "hasPhoto": true,
+            "livesAt": null,
+            "phone": "9811111111",
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "no card",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000051:PUBLIC}}",
+        "user-agent": "jg-5"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join link loaded",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "link": "OPEN",
+          "request": null,
+          "roomTypes": [
+            {
+              "monthlyRent": 15000,
+              "roomType": "Single"
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Double"
+            }
+          ],
+          "token": "joinopen0001",
+          "viewer": {
+            "card": "NONE",
+            "cardId": null,
+            "email": "nocard@contract.test",
+            "fullName": "No Card",
+            "hasPhoto": false,
+            "livesAt": null,
+            "phone": "",
+            "photoUpdatedAt": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "private card",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000052:PUBLIC}}",
+        "user-agent": "jg-6"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join link loaded",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "link": "OPEN",
+          "request": null,
+          "roomTypes": [
+            {
+              "monthlyRent": 15000,
+              "roomType": "Single"
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Double"
+            }
+          ],
+          "token": "joinopen0001",
+          "viewer": {
+            "card": "PRIVATE",
+            "cardId": "HPR-PRIV001",
+            "email": "private@contract.test",
+            "fullName": "Pia Private",
+            "hasPhoto": true,
+            "livesAt": null,
+            "phone": "9811111112",
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "lives elsewhere",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000053:PUBLIC}}",
+        "user-agent": "jg-7"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join link loaded",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "link": "OPEN",
+          "request": null,
+          "roomTypes": [
+            {
+              "monthlyRent": 15000,
+              "roomType": "Single"
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Double"
+            }
+          ],
+          "token": "joinopen0001",
+          "viewer": {
+            "card": "READY",
+            "cardId": "HPR-LIVE001",
+            "email": "living@contract.test",
+            "fullName": "Lee Living",
+            "hasPhoto": true,
+            "livesAt": {
+              "hostelName": "Budget Fixture Hostel",
+              "sameHostel": false
+            },
+            "phone": "9811111113",
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "lives here",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000054:PUBLIC}}",
+        "user-agent": "jg-8"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join link loaded",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "link": "OPEN",
+          "request": null,
+          "roomTypes": [
+            {
+              "monthlyRent": 15000,
+              "roomType": "Single"
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Double"
+            }
+          ],
+          "token": "joinopen0001",
+          "viewer": {
+            "card": "READY",
+            "cardId": "HPR-HERE001",
+            "email": "here@contract.test",
+            "fullName": "Hana Here",
+            "hasPhoto": true,
+            "livesAt": {
+              "hostelName": "Fixture Lakeside Hostel",
+              "sameHostel": true
+            },
+            "phone": "9811111114",
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "sent back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000057:PUBLIC}}",
+        "user-agent": "jg-9"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join link loaded",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "link": "OPEN",
+          "request": {
+            "bills": {
+              "months": [
+                {
+                  "amount": 15000,
+                  "label": "Jestha 2083",
+                  "period": "2083-02"
+                },
+                {
+                  "amount": 15000,
+                  "label": "Asar 2083",
+                  "period": "2083-03"
+                },
+                {
+                  "amount": 15000,
+                  "label": "Shrawan 2083",
+                  "period": "2083-04"
+                },
+                {
+                  "amount": 15000,
+                  "label": "Bhadra 2083",
+                  "period": "2083-05"
+                },
+                {
+                  "amount": 15000,
+                  "label": "Aswin 2083",
+                  "period": "2083-06"
+                },
+                {
+                  "amount": 15000,
+                  "label": "Kartik 2083",
+                  "period": "2083-07"
+                }
+              ],
+              "oldDues": 0,
+              "partPaid": 0,
+              "total": 90000
+            },
+            "cardId": "HPR-CARD",
+            "decidedAt": "2026-10-01T04:15:00.000Z",
+            "depositPaid": 0,
+            "email": "person@contract.test",
+            "fullName": "Rita Returned",
+            "id": "6c00000000000000000000c0",
+            "joinedDate": null,
+            "note": "",
+            "paidTill": "2083-01",
+            "partPaid": 0,
+            "phone": "9833333333",
+            "problems": [],
+            "rejectReason": "Photo is blurry",
+            "rent": 15000,
+            "rentLabel": "6 months due (Jestha to Kartik)",
+            "residentId": null,
+            "roomType": "Single",
+            "sends": 1,
+            "sentAt": "2026-10-01T04:15:00.000Z",
+            "status": "REJECTED"
+          },
+          "roomTypes": [
+            {
+              "monthlyRent": 15000,
+              "roomType": "Single"
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Double"
+            }
+          ],
+          "token": "joinopen0001",
+          "viewer": {
+            "card": "READY",
+            "cardId": "HPR-RETN001",
+            "email": "returned@contract.test",
+            "fullName": "Rita Returned",
+            "hasPhoto": true,
+            "livesAt": null,
+            "phone": "9811111116",
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "being added",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000058:PUBLIC}}",
+        "user-agent": "jg-10"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join link loaded",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Fixture Lakeside Hostel"
+          },
+          "link": "OPEN",
+          "request": {
+            "bills": {
+              "months": [
+                {
+                  "amount": 15000,
+                  "label": "Jestha 2083",
+                  "period": "2083-02"
+                },
+                {
+                  "amount": 15000,
+                  "label": "Asar 2083",
+                  "period": "2083-03"
+                },
+                {
+                  "amount": 15000,
+                  "label": "Shrawan 2083",
+                  "period": "2083-04"
+                },
+                {
+                  "amount": 15000,
+                  "label": "Bhadra 2083",
+                  "period": "2083-05"
+                },
+                {
+                  "amount": 15000,
+                  "label": "Aswin 2083",
+                  "period": "2083-06"
+                },
+                {
+                  "amount": 15000,
+                  "label": "Kartik 2083",
+                  "period": "2083-07"
+                }
+              ],
+              "oldDues": 0,
+              "partPaid": 0,
+              "total": 90000
+            },
+            "cardId": "HPR-CARD",
+            "decidedAt": "2026-10-30T04:20:52.753Z",
+            "depositPaid": 0,
+            "email": "person@contract.test",
+            "fullName": "Some Person",
+            "id": "6c00000000000000000000c1",
+            "joinedDate": null,
+            "note": "",
+            "paidTill": "2083-01",
+            "partPaid": 0,
+            "phone": "9833333333",
+            "problems": [],
+            "rejectReason": "",
+            "rent": 15000,
+            "rentLabel": "6 months due (Jestha to Kartik)",
+            "residentId": null,
+            "roomType": "Single",
+            "sends": 1,
+            "sentAt": "2026-10-01T04:15:00.000Z",
+            "status": "PENDING"
+          },
+          "roomTypes": [
+            {
+              "monthlyRent": 15000,
+              "roomType": "Single"
+            },
+            {
+              "monthlyRent": 9000,
+              "roomType": "Double"
+            }
+          ],
+          "token": "joinopen0001",
+          "viewer": {
+            "card": "READY",
+            "cardId": "HPR-BUSY001",
+            "email": "busy@contract.test",
+            "fullName": "Bo Busy",
+            "hasPhoto": true,
+            "livesAt": null,
+            "phone": "9811111117",
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "paused link",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/joinoff00001",
+      "headers": {
+        "user-agent": "jg-11"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join link loaded",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Join Off Hostel"
+          },
+          "link": "OFF",
+          "request": null,
+          "roomTypes": [
+            {
+              "monthlyRent": 7000,
+              "roomType": "Single"
+            }
+          ],
+          "token": "joinoff00001",
+          "viewer": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "full link, no rooms",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/joinfull0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "jg-12"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Join link loaded",
+        "data": {
+          "currentMonth": {
+            "label": "Kartik 2083",
+            "period": "2083-07"
+          },
+          "hostel": {
+            "city": "Kathmandu",
+            "name": "Join Full Hostel"
+          },
+          "link": "FULL",
+          "request": null,
+          "roomTypes": [
+            {
+              "monthlyRent": 7000,
+              "roomType": "Single"
+            }
+          ],
+          "token": "joinfull0001",
+          "viewer": {
+            "card": "READY",
+            "cardId": "HPR-READY01",
+            "email": "joiner@contract.test",
+            "fullName": "Joy Joiner",
+            "hasPhoto": true,
+            "livesAt": null,
+            "phone": "9811111111",
+            "photoUpdatedAt": "2026-10-01T04:15:00.000Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "hostel gone",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/joingone0001",
+      "headers": {
+        "user-agent": "jg-13"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is no longer on the app.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unknown account",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/join/joinopen0001",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ff:PUBLIC}}",
+        "user-agent": "jg-14"
+      }
+    },
+    "masks": [
+      "data.currentMonth",
+      "data.request.bills",
+      "data.request.rentLabel",
+      "data.request.sentAt",
+      "data.request.id",
+      "data.request.decidedAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "User was not found.",
+        "errorCode": "USER_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

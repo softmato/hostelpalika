@@ -1,0 +1,556 @@
+[
+  {
+    "name": "no token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "user-agent": "qr-1"
+      },
+      "body": {
+        "hostelName": "  My New Hostel ",
+        "ownerName": "Sita Rai",
+        "phone": "+977 98-0123 4567"
+      }
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "not json",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "content-type": "application/json",
+        "user-agent": "qr-2"
+      },
+      "body": "{bad"
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 500,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "errorCode": "INTERNAL_SERVER_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "qr-3"
+      },
+      "body": {}
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelName": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "ownerName": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "phone": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "hostelName"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "ownerName"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "phone"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad fields",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "qr-4"
+      },
+      "body": {
+        "hostelName": "x",
+        "ownerName": "y",
+        "phone": "abc",
+        "referralCode": "zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz"
+      }
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelName": [
+              "Enter your hostel's name."
+            ],
+            "ownerName": [
+              "Enter the owner's name."
+            ],
+            "phone": [
+              "Too small: expected string to have \u003e=7 characters",
+              "Expected a valid phone number."
+            ],
+            "referralCode": [
+              "Too big: expected string to have \u003c=40 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter your hostel's name.",
+              "path": "hostelName"
+            },
+            {
+              "message": "Enter the owner's name.",
+              "path": "ownerName"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=7 characters",
+              "path": "phone"
+            },
+            {
+              "message": "Expected a valid phone number.",
+              "path": "phone"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=40 characters",
+              "path": "referralCode"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "phone letters",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "qr-5"
+      },
+      "body": {
+        "hostelName": "  My New Hostel ",
+        "ownerName": "Sita Rai",
+        "phone": "call 123456"
+      }
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "phone": [
+              "Expected a valid phone number."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Expected a valid phone number.",
+              "path": "phone"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unknown account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ff:PUBLIC}}",
+        "user-agent": "qr-6"
+      },
+      "body": {
+        "hostelName": "  My New Hostel ",
+        "ownerName": "Sita Rai",
+        "phone": "+977 98-0123 4567"
+      }
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Sign in again to register your hostel.",
+        "errorCode": "USER_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "hostel admin",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:PUBLIC}}",
+        "user-agent": "qr-7"
+      },
+      "body": {
+        "hostelName": "  My New Hostel ",
+        "ownerName": "Sita Rai",
+        "phone": "+977 98-0123 4567"
+      }
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You already run a hostel portal. Add another building from it as a branch.",
+        "errorCode": "ACCOUNT_HAS_ROLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "other role",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:PUBLIC}}",
+        "user-agent": "qr-8"
+      },
+      "body": {
+        "hostelName": "  My New Hostel ",
+        "ownerName": "Sita Rai",
+        "phone": "+977 98-0123 4567"
+      }
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This account is already used for another role. Sign in with a different account to register a hostel.",
+        "errorCode": "ACCOUNT_HAS_ROLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "email not verified",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000002:PUBLIC}}",
+        "user-agent": "qr-9"
+      },
+      "body": {
+        "hostelName": "  My New Hostel ",
+        "ownerName": "Sita Rai",
+        "phone": "+977 98-0123 4567"
+      }
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Verify your email first, then register your hostel.",
+        "errorCode": "EMAIL_NOT_VERIFIED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "already filed another way",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000053:PUBLIC}}",
+        "user-agent": "qr-10"
+      },
+      "body": {
+        "hostelName": "  My New Hostel ",
+        "ownerName": "Sita Rai",
+        "phone": "+977 98-0123 4567"
+      }
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You already registered Filed Hostel. Our team will email you about it.",
+        "errorCode": "ALREADY_REGISTERED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad referral code",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000052:PUBLIC}}",
+        "user-agent": "qr-11"
+      },
+      "body": {
+        "hostelName": "  My New Hostel ",
+        "ownerName": "Sita Rai",
+        "phone": "+977 98-0123 4567",
+        "referralCode": "NOPE"
+      }
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That referral code is not valid. Check it, or carry on with a normal registration.",
+        "errorCode": "REFERRAL_CODE_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "opened",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "qr-12"
+      },
+      "body": {
+        "hostelName": "  My New Hostel ",
+        "ownerName": "Sita Rai",
+        "phone": "+977 98-0123 4567",
+        "referralCode": "partner-1"
+      }
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Your hostel portal is open",
+        "data": {
+          "hostelId": "6ae41c88c4cb64601682f875",
+          "name": "My New Hostel",
+          "slug": "my-new-hostel",
+          "trialDays": 3,
+          "trialEndsAt": "2026-11-02T18:14:59.999Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "opened twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000050:PUBLIC}}",
+        "user-agent": "qr-13"
+      },
+      "body": {
+        "hostelName": "  My New Hostel ",
+        "ownerName": "Sita Rai",
+        "phone": "+977 98-0123 4567"
+      }
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You already run a hostel portal. Add another building from it as a branch.",
+        "errorCode": "ACCOUNT_HAS_ROLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "phone on another account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000055:PUBLIC}}",
+        "user-agent": "qr-14"
+      },
+      "body": {
+        "hostelName": "Second One",
+        "ownerName": "Sita Rai",
+        "phone": "+977 98-0123 4567"
+      }
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "+977 98-0123 4567 is already on another HostelPalika account. Use a different phone number.",
+        "errorCode": "PHONE_IN_USE"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "picks the half-done hostel up",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000054:PUBLIC}}",
+        "user-agent": "qr-15"
+      },
+      "body": {
+        "hostelName": "  My New Hostel ",
+        "ownerName": "Sita Rai",
+        "phone": "9811119999"
+      }
+    },
+    "masks": [
+      "data.hostelId",
+      "data.trialEndsAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Your hostel portal is open",
+        "data": {
+          "hostelId": "6c0000000000000000000020",
+          "name": "Half Done Hostel",
+          "slug": "half-done-hostel",
+          "trialDays": 3,
+          "trialEndsAt": "2026-11-02T18:14:59.999Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "GET refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/quick-register",
+      "headers": {
+        "user-agent": "qr-99"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

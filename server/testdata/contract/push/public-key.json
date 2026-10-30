@@ -1,0 +1,43 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/push/public-key",
+      "headers": {
+        "user-agent": "pk-1"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "not configured",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/push/public-key",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "pk-2"
+      }
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Browser notifications are not configured on this deployment.",
+        "errorCode": "WEB_PUSH_NOT_CONFIGURED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

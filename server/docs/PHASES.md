@@ -67,11 +67,10 @@ holds the phase-level gates.
 
 **Needs:** Phase 2. **Unblocks:** web SEO pages moving off direct Mongo.
 
-- ☐ `public` (32), `bookings` public reads (`availability`, `guide`, `policy`), `hostel-registration` (5), `feedback`, `usage`, `email-preferences`, `health`
-- ☐ Demo hostels merge, search + LLM search quota, maps (geocoding, nearby, routing)
-- ☐ Web pages in `PARITY.md` §9 that only read public data switch to `fetch(API_URL)` (`API_URL` is the TS origin until cut-over, so a page switches early only if its TS route exists; the rest switch at cut-over)
+- ☑ `public` — 31 of 32 routes: everything but `POST /public/plan-checkout` (moved to Phase 8, see there); `bookings` public reads (`availability`, `guide`, `policy`), `feedback`, `usage`, `email-preferences`, `health`
+- ☑ Demo hostels merge, search + LLM search quota, maps geocoding (`platform/maps`, `platform/llm`, `platform/search`)
 
-**Gate:** home, city/near pages, hostel detail and software pages render from the Go API with no `@/modules` import.
+**Gate:** every Phase 3 route green in the contract suite (web page switch moved to Phase 10: server first, web last).
 
 ---
 
@@ -135,6 +134,7 @@ moves last within it:
 
 - ☐ `webhooks/:provider` (eSewa, Khalti, Fonepay), `webhooks/softmato`, `integrations/questioncall/*`
 - ☐ `bookings/:id/checkout`, `bookings/:id/payment`, `bookings/:id/return`
+- ☐ `POST /public/plan-checkout` and `hostel-registration` (5: `[hostelId]/invoice|pay|plan|state`, `return`) — moved from Phase 3: they read the subscription state (Phase 7) and run the Softmato plan payment
 - ☐ Checkout intents, settlement, reconciliation, gateway health — **offline shadow**: replay real provider events (the stored webhook/verification payloads) against the live-data copy and compare Go's resulting rows with what TS wrote for the same events
 
 **Gate:** replaying a full `gateway-settlement-recon` window shows zero drift between Go's rows and TS's.
@@ -146,6 +146,7 @@ moves last within it:
 **Needs:** the module each job touches is on Go.
 
 - ☐ Each of the 19 jobs in `PARITY.md` §5 ported, with one observed run on the local stack against the live-data copy (outbound calls faked) matching what the TS job did for the same data
+- ☐ Maps nearby (Overpass) and routing in `platform/maps` — moved from Phase 3: only the nearby-places job and the owner profile call them, so they land with the first of those
 
 **Gate:** all 19 jobs proven locally; switching them on is part of the cut-over.
 
@@ -154,6 +155,8 @@ moves last within it:
 ## Phase 10 — Cut-over and cleanup
 
 **Needs:** every phase above.
+
+- ☐ Web pages in `PARITY.md` §9 that only read public data switch to `fetch(API_URL)`; home, city/near pages, hostel detail and software pages render from the Go API with no `@/modules` import (moved from Phase 3)
 
 - ☐ Cut-over (ARCHITECTURE.md §11 step 3): final change intake + full contract run at HEAD, Go on the Kathmandu VPS against production Atlas (warm, `/health?deep=1` green), web `API_URL` → `api.hostelpalika.com` + rewrite on, app/PWA base URL by OTA, cron-job.org off, `SCHEDULER_ENABLED=true`
 - ☐ Rollback lever proven before the switch: Caddy `BACKEND=ts` answers from Vercel TS

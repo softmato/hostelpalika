@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"github.com/softmato/hostelpalika/server/internal/contract/fixture"
 	"mime"
+	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -24,6 +25,9 @@ type Case struct {
 	// Masks are dot paths (`data.items.0.id`, `*` matches any key or index) whose
 	// values can't match by design: generated ids, timestamps, reference codes.
 	Masks []string `json:"masks,omitempty"`
+	// KeyOrder off: an object in the answer takes its key order from a $group the
+	// server runs (a count per category), so only the values are compared.
+	UnorderedKeys bool `json:"unorderedKeys,omitempty"`
 	// Capture saves response values for later cases in the file, as
 	// {{name}}: a dot path into the body, or "cookie:<name>" from Set-Cookie.
 	Capture  map[string]string `json:"capture,omitempty"`
@@ -45,6 +49,26 @@ type Response struct {
 	// SetCookie is every Set-Cookie line, values and Expires dates blanked
 	// (NormalizeCookies): names, paths and flags must match exactly.
 	SetCookie []string `json:"setCookie,omitempty"`
+	// Location is a redirect's target as path and query: the origin is the
+	// server's own, so it differs per host.
+	Location string `json:"location,omitempty"`
+}
+
+// PathAndQuery is a Location without its origin.
+func PathAndQuery(location string) string {
+	u, err := url.Parse(location)
+	if err != nil {
+		return location
+	}
+	return u.RequestURI()
+}
+
+// DiffLocation compares a redirect's Location with the recording.
+func DiffLocation(c Case, location string) []string {
+	if got := PathAndQuery(location); location == "" && c.Response.Location == "" || got == c.Response.Location {
+		return nil
+	}
+	return []string{fmt.Sprintf("location: got %q, want %q", PathAndQuery(location), c.Response.Location)}
 }
 
 // Files returns every case file under root, sorted.
@@ -112,7 +136,7 @@ func Diff(c Case, status int, contentType string, setCookie []string, body []byt
 		g, _ := json.Marshal(got)
 		e, _ := json.Marshal(exp)
 		diffs = append(diffs, fmt.Sprintf("body:\n  got  %s\n  want %s", g, e))
-	} else if order(body) != order(want.Body) {
+	} else if !c.UnorderedKeys && order(body) != order(want.Body) {
 		// Key order matters to some clients (RULES.md §2); DeepEqual ignores it.
 		diffs = append(diffs, "body: same values, different key order")
 	}
@@ -239,6 +263,11 @@ func (r Request) Prepare(vars map[string]string) (method, path string, headers m
 	}
 	if len(r.Body) > 0 {
 		body = []byte(Expand(string(r.Body), vars))
+		// A JSON string is a raw body (a form post), sent as written.
+		var raw string
+		if r.Body[0] == '"' && json.Unmarshal(r.Body, &raw) == nil {
+			body = []byte(Expand(raw, vars))
+		}
 	}
 	return r.Method, Expand(r.Path, vars), headers, body
 }

@@ -1,0 +1,238 @@
+[
+  {
+    "name": "not multipart",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/files/upload",
+      "headers": {
+        "user-agent": "fu-1"
+      },
+      "body": {
+        "file": "x"
+      }
+    },
+    "response": {
+      "status": 500,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Internal server error",
+        "errorCode": "INTERNAL_SERVER_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "no file",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/files/upload",
+      "headers": {
+        "content-type": "multipart/form-data; boundary=----contractboundary",
+        "user-agent": "fu-2"
+      },
+      "body": "------contractboundary\r\nContent-Disposition: form-data; name=\"visibility\"\r\n\r\nprivate\r\n------contractboundary--\r\n"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "File is required",
+        "errorCode": "VALIDATION_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "file is a text field",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/files/upload",
+      "headers": {
+        "content-type": "multipart/form-data; boundary=----contractboundary",
+        "user-agent": "fu-3"
+      },
+      "body": "------contractboundary\r\nContent-Disposition: form-data; name=\"file\"\r\n\r\nhello\r\n------contractboundary--\r\n"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "File type not allowed. Accepted: JPEG, PNG, WebP, PDF, TXT",
+        "errorCode": "FILE_TYPE_NOT_ALLOWED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty text field",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/files/upload",
+      "headers": {
+        "content-type": "multipart/form-data; boundary=----contractboundary",
+        "user-agent": "fu-4"
+      },
+      "body": "------contractboundary\r\nContent-Disposition: form-data; name=\"file\"\r\n\r\n\r\n------contractboundary--\r\n"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "File is required",
+        "errorCode": "VALIDATION_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "type not allowed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/files/upload",
+      "headers": {
+        "content-type": "multipart/form-data; boundary=----contractboundary",
+        "user-agent": "fu-5"
+      },
+      "body": "------contractboundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"a.exe\"\r\nContent-Type: application/x-msdownload\r\n\r\nMZ\r\n------contractboundary--\r\n"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "File type not allowed. Accepted: JPEG, PNG, WebP, PDF, TXT",
+        "errorCode": "FILE_TYPE_NOT_ALLOWED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "public non-image",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/files/upload",
+      "headers": {
+        "content-type": "multipart/form-data; boundary=----contractboundary",
+        "user-agent": "fu-6"
+      },
+      "body": "------contractboundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"a.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 x\r\n------contractboundary\r\nContent-Disposition: form-data; name=\"visibility\"\r\n\r\npublic\r\n------contractboundary--\r\n"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Only JPEG, PNG or WebP images can be published.",
+        "errorCode": "FILE_TYPE_NOT_ALLOWED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "content mismatch",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/files/upload",
+      "headers": {
+        "content-type": "multipart/form-data; boundary=----contractboundary",
+        "user-agent": "fu-7"
+      },
+      "body": "------contractboundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"a.png\"\r\nContent-Type: image/png\r\n\r\nthis is not a png\r\n------contractboundary--\r\n"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The uploaded file is not a recognised image, PDF or document. Please upload the original file rather than a renamed copy.",
+        "errorCode": "UPLOAD_CONTENT_MISMATCH"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "binary text",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/files/upload",
+      "headers": {
+        "content-type": "multipart/form-data; boundary=----contractboundary",
+        "user-agent": "fu-8"
+      },
+      "body": "------contractboundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"a.txt\"\r\nContent-Type: text/plain\r\n\r\nabc\u0000def\r\n------contractboundary--\r\n"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The uploaded file is not text, though it was sent as a text file.",
+        "errorCode": "UPLOAD_CONTENT_MISMATCH"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "private storage not configured",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/files/upload",
+      "headers": {
+        "content-type": "multipart/form-data; boundary=----contractboundary",
+        "user-agent": "fu-9"
+      },
+      "body": "------contractboundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"a.txt\"\r\nContent-Type: text/plain\r\n\r\nhello\r\n------contractboundary--\r\n"
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Document storage is not configured on this deployment.",
+        "errorCode": "STORAGE_NOT_CONFIGURED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "private pdf storage not configured",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/files/upload",
+      "headers": {
+        "content-type": "multipart/form-data; boundary=----contractboundary",
+        "user-agent": "fu-9b"
+      },
+      "body": "------contractboundary\r\nContent-Disposition: form-data; name=\"file\"; filename=\"a.pdf\"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.4 hello\r\n------contractboundary--\r\n"
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Document storage is not configured on this deployment.",
+        "errorCode": "STORAGE_NOT_CONFIGURED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "GET refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/files/upload",
+      "headers": {
+        "user-agent": "fu-11"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

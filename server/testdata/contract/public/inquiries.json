@@ -1,0 +1,802 @@
+[
+  {
+    "name": "bad body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/inquiries",
+      "headers": {
+        "user-agent": "iq-1"
+      },
+      "body": {
+        "name": "x",
+        "phone": "123",
+        "email": "nope",
+        "message": 5,
+        "preferredVisitDate": "zzz",
+        "gender": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid email address"
+            ],
+            "gender": [
+              "Too big: expected string to have \u003c=40 characters"
+            ],
+            "message": [
+              "Invalid input: expected string, received number"
+            ],
+            "name": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "phone": [
+              "Too small: expected string to have \u003e=7 characters"
+            ],
+            "preferredVisitDate": [
+              "Invalid input: expected date, received Date"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=40 characters",
+              "path": "gender"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "message"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "name"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=7 characters",
+              "path": "phone"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "preferredVisitDate"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty body",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/inquiries",
+      "headers": {
+        "user-agent": "iq-2"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "name": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "phone": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "name"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "phone"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unknown hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/nope-nope/inquiries",
+      "headers": {
+        "user-agent": "iq-3"
+      },
+      "body": {
+        "name": "Sita Rai",
+        "phone": "9800000000"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "hidden hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/hidden-fixture-hostel/inquiries",
+      "headers": {
+        "user-agent": "iq-3"
+      },
+      "body": {
+        "name": "Sita Rai",
+        "phone": "9800000000"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "sample listing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/saathi-ghar-boys-hostel-new-baneshwor/inquiries",
+      "headers": {
+        "user-agent": "iq-4"
+      },
+      "body": {
+        "name": "Sita Rai",
+        "phone": "9800000000"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is not taking enquiries right now.",
+        "errorCode": "HOSTEL_NOT_TAKING_INQUIRIES"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "minimal",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/inquiries",
+      "headers": {
+        "user-agent": "iq-5"
+      },
+      "body": {
+        "name": "  Sita Rai  ",
+        "phone": " 9800000000 "
+      }
+    },
+    "masks": [
+      "data.inquiry.id",
+      "data.inquiry.createdAt",
+      "data.inquiry.updatedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Inquiry submitted",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate beside the pharmacy",
+              "photoUrl": ""
+            },
+            "capacitySummary": {
+              "totalBeds": 30,
+              "totalRooms": 12,
+              "vacantBeds": 4
+            },
+            "contact": {
+              "phone": "9800000001"
+            },
+            "demoDataLabel": "",
+            "description": "A test hostel near the lake.",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "coordinates": {
+              "lat": 27.7,
+              "lng": 85.31
+            },
+            "id": "6c00000000000000000000a3",
+            "isDemoData": false,
+            "location": {
+              "address": "Ring Road",
+              "area": "New Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Fixture Lakeside Hostel",
+            "nearbyPlaces": [
+              {
+                "coordinates": {
+                  "lat": 27.69,
+                  "lng": 85.33
+                },
+                "distance": 420.5,
+                "name": "Fixture Campus",
+                "type": "college"
+              }
+            ],
+            "photos": [
+              {
+                "alt": "Front",
+                "id": "6c0000000000000000000033",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://cdn.contract.test/front.webp"
+              },
+              {
+                "alt": "",
+                "id": "6c0000000000000000000032",
+                "kind": "INTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://cdn.contract.test/inside.webp"
+              },
+              {
+                "alt": "Room",
+                "id": "6c0000000000000000000031",
+                "kind": "ROOM",
+                "mediumUrl": "https://cdn.contract.test/room-640.webp",
+                "roomType": "Single",
+                "url": "https://cdn.contract.test/room.webp"
+              }
+            ],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 9000,
+              "monthlyRentMax": 15000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 1,
+                "id": "6c0000000000000000000041",
+                "mealInclusion": "Optional",
+                "monthlyRent": 15000,
+                "rooms": 4,
+                "roomType": "Single",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6c0000000000000000000042",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 8,
+                "roomType": "Double",
+                "vacantBeds": 0
+              }
+            ],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "fixture-lakeside-hostel-baneshwor",
+            "verificationStatus": "VERIFIED"
+          },
+          "inquiry": {
+            "budgetRange": "",
+            "createdAt": "2026-10-30T03:45:09.642Z",
+            "email": "",
+            "gender": "",
+            "hostelId": "6c00000000000000000000a3",
+            "id": "6ae412c5c4cb64601682f84b",
+            "message": "",
+            "name": "Sita Rai",
+            "phone": "9800000000",
+            "preferredRoomType": "",
+            "source": "PUBLIC_WEBSITE",
+            "status": "NEW",
+            "updatedAt": "2026-10-30T03:45:09.642Z"
+          },
+          "shouldCollectProfile": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "full",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/inquiries",
+      "headers": {
+        "user-agent": "iq-6"
+      },
+      "body": {
+        "name": "Ram Thapa",
+        "phone": "9811111111",
+        "email": " Ram@Example.com ",
+        "message": "Is there \u003cb\u003ewifi\u003c/b\u003e?",
+        "gender": "male",
+        "budgetRange": "8-10k",
+        "preferredRoomType": "Double",
+        "preferredVisitDate": "2026-12-01T10:00:00.000Z"
+      }
+    },
+    "masks": [
+      "data.inquiry.id",
+      "data.inquiry.createdAt",
+      "data.inquiry.updatedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Inquiry submitted",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate beside the pharmacy",
+              "photoUrl": ""
+            },
+            "capacitySummary": {
+              "totalBeds": 30,
+              "totalRooms": 12,
+              "vacantBeds": 4
+            },
+            "contact": {
+              "phone": "9800000001"
+            },
+            "demoDataLabel": "",
+            "description": "A test hostel near the lake.",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "coordinates": {
+              "lat": 27.7,
+              "lng": 85.31
+            },
+            "id": "6c00000000000000000000a3",
+            "isDemoData": false,
+            "location": {
+              "address": "Ring Road",
+              "area": "New Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Fixture Lakeside Hostel",
+            "nearbyPlaces": [
+              {
+                "coordinates": {
+                  "lat": 27.69,
+                  "lng": 85.33
+                },
+                "distance": 420.5,
+                "name": "Fixture Campus",
+                "type": "college"
+              }
+            ],
+            "photos": [
+              {
+                "alt": "Front",
+                "id": "6c0000000000000000000033",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://cdn.contract.test/front.webp"
+              },
+              {
+                "alt": "",
+                "id": "6c0000000000000000000032",
+                "kind": "INTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://cdn.contract.test/inside.webp"
+              },
+              {
+                "alt": "Room",
+                "id": "6c0000000000000000000031",
+                "kind": "ROOM",
+                "mediumUrl": "https://cdn.contract.test/room-640.webp",
+                "roomType": "Single",
+                "url": "https://cdn.contract.test/room.webp"
+              }
+            ],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 9000,
+              "monthlyRentMax": 15000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 1,
+                "id": "6c0000000000000000000041",
+                "mealInclusion": "Optional",
+                "monthlyRent": 15000,
+                "rooms": 4,
+                "roomType": "Single",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6c0000000000000000000042",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 8,
+                "roomType": "Double",
+                "vacantBeds": 0
+              }
+            ],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "fixture-lakeside-hostel-baneshwor",
+            "verificationStatus": "VERIFIED"
+          },
+          "inquiry": {
+            "budgetRange": "8-10k",
+            "createdAt": "2026-10-30T03:45:09.815Z",
+            "email": "Ram@Example.com",
+            "gender": "male",
+            "hostelId": "6c00000000000000000000a3",
+            "id": "6ae412c5c4cb64601682f84d",
+            "message": "Is there \u003cb\u003ewifi\u003c/b\u003e?",
+            "name": "Ram Thapa",
+            "phone": "9811111111",
+            "preferredRoomType": "Double",
+            "preferredVisitDate": "2026-12-01T10:00:00.000Z",
+            "source": "PUBLIC_WEBSITE",
+            "status": "NEW",
+            "updatedAt": "2026-10-30T03:45:09.815Z"
+          },
+          "shouldCollectProfile": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "same email asks again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/inquiries",
+      "headers": {
+        "user-agent": "iq-7"
+      },
+      "body": {
+        "name": "Ram Thapa",
+        "phone": "9811111111",
+        "email": "ram@example.com"
+      }
+    },
+    "masks": [
+      "data.inquiry.id",
+      "data.inquiry.createdAt",
+      "data.inquiry.updatedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Inquiry submitted",
+        "data": {
+          "hostel": {
+            "arrivalGuide": {
+              "note": "Blue gate beside the pharmacy",
+              "photoUrl": ""
+            },
+            "capacitySummary": {
+              "totalBeds": 30,
+              "totalRooms": 12,
+              "vacantBeds": 4
+            },
+            "contact": {
+              "phone": "9800000001"
+            },
+            "demoDataLabel": "",
+            "description": "A test hostel near the lake.",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "BOYS",
+            "coordinates": {
+              "lat": 27.7,
+              "lng": 85.31
+            },
+            "id": "6c00000000000000000000a3",
+            "isDemoData": false,
+            "location": {
+              "address": "Ring Road",
+              "area": "New Baneshwor",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Fixture Lakeside Hostel",
+            "nearbyPlaces": [
+              {
+                "coordinates": {
+                  "lat": 27.69,
+                  "lng": 85.33
+                },
+                "distance": 420.5,
+                "name": "Fixture Campus",
+                "type": "college"
+              }
+            ],
+            "photos": [
+              {
+                "alt": "Front",
+                "id": "6c0000000000000000000033",
+                "kind": "EXTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://cdn.contract.test/front.webp"
+              },
+              {
+                "alt": "",
+                "id": "6c0000000000000000000032",
+                "kind": "INTERIOR",
+                "mediumUrl": "",
+                "roomType": "",
+                "url": "https://cdn.contract.test/inside.webp"
+              },
+              {
+                "alt": "Room",
+                "id": "6c0000000000000000000031",
+                "kind": "ROOM",
+                "mediumUrl": "https://cdn.contract.test/room-640.webp",
+                "roomType": "Single",
+                "url": "https://cdn.contract.test/room.webp"
+              }
+            ],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 9000,
+              "monthlyRentMax": 15000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [
+              {
+                "bedsPerRoom": 1,
+                "id": "6c0000000000000000000041",
+                "mealInclusion": "Optional",
+                "monthlyRent": 15000,
+                "rooms": 4,
+                "roomType": "Single",
+                "vacantBeds": 1
+              },
+              {
+                "bedsPerRoom": 2,
+                "id": "6c0000000000000000000042",
+                "mealInclusion": "Included",
+                "monthlyRent": 9000,
+                "rooms": 8,
+                "roomType": "Double",
+                "vacantBeds": 0
+              }
+            ],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "fixture-lakeside-hostel-baneshwor",
+            "verificationStatus": "VERIFIED"
+          },
+          "inquiry": {
+            "budgetRange": "",
+            "createdAt": "2026-10-30T03:45:09.948Z",
+            "email": "ram@example.com",
+            "gender": "",
+            "hostelId": "6c00000000000000000000a3",
+            "id": "6ae412c5c4cb64601682f84f",
+            "message": "",
+            "name": "Ram Thapa",
+            "phone": "9811111111",
+            "preferredRoomType": "",
+            "source": "PUBLIC_WEBSITE",
+            "status": "NEW",
+            "updatedAt": "2026-10-30T03:45:09.948Z"
+          },
+          "shouldCollectProfile": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "signed in",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/6c00000000000000000000a5/inquiries",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "user-agent": "iq-8"
+      },
+      "body": {
+        "name": "Gita Rai",
+        "phone": "9822222222",
+        "preferredVisitDate": "2026-12-01"
+      }
+    },
+    "masks": [
+      "data.inquiry.id",
+      "data.inquiry.createdAt",
+      "data.inquiry.updatedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Inquiry submitted",
+        "data": {
+          "hostel": {
+            "arrivalGuide": null,
+            "capacitySummary": {},
+            "contact": {
+              "phone": ""
+            },
+            "demoDataLabel": "",
+            "description": "",
+            "facilities": [
+              "Wi-Fi",
+              "Hot Water",
+              "Meals"
+            ],
+            "food": {
+              "hasVeg": true,
+              "hasNonVeg": false,
+              "mealsPerDay": 3
+            },
+            "hostelType": "GIRLS",
+            "coordinates": {
+              "lat": 27.7,
+              "lng": 85.31
+            },
+            "id": "6c00000000000000000000a5",
+            "isDemoData": false,
+            "location": {
+              "address": "Ring Road",
+              "area": "Kalanki",
+              "city": "Kathmandu",
+              "province": "Bagmati",
+              "lat": 27.7,
+              "lng": 85.31,
+              "locationSource": "MANUAL"
+            },
+            "name": "Budget Fixture Hostel",
+            "nearbyPlaces": [],
+            "photos": [],
+            "pricing": {
+              "currency": "NPR",
+              "monthlyRentMin": 6000,
+              "monthlyRentMax": 8000,
+              "admissionFee": 2000
+            },
+            "roomConfigurations": [],
+            "roomTypes": [
+              "Single",
+              "Double"
+            ],
+            "rules": [
+              "Gate closes at 9 pm"
+            ],
+            "slug": "budget-fixture-hostel-kalanki",
+            "verificationStatus": "VERIFIED"
+          },
+          "inquiry": {
+            "budgetRange": "",
+            "createdAt": "2026-10-30T03:45:10.064Z",
+            "email": "",
+            "gender": "",
+            "hostelId": "6c00000000000000000000a5",
+            "id": "6ae412c6c4cb64601682f851",
+            "message": "",
+            "name": "Gita Rai",
+            "phone": "9822222222",
+            "preferredRoomType": "",
+            "preferredVisitDate": "2026-12-01T00:00:00.000Z",
+            "source": "PUBLIC_WEBSITE",
+            "status": "NEW",
+            "updatedAt": "2026-10-30T03:45:10.064Z"
+          },
+          "shouldCollectProfile": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "GET refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/inquiries",
+      "headers": {
+        "user-agent": "iq-9"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

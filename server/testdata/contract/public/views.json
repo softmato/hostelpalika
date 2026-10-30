@@ -1,0 +1,302 @@
+[
+  {
+    "name": "unknown hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/nope-nope/views",
+      "headers": {
+        "user-agent": "pv-1"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "hidden hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/hidden-fixture-hostel/views",
+      "headers": {
+        "user-agent": "pv-1"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel was not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "first visit mints cookie",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/views",
+      "headers": {
+        "referer": "https://example.com/x",
+        "user-agent": "pv-2"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "View recorded",
+        "data": {
+          "counted": true,
+          "hostelId": "6c00000000000000000000a3",
+          "prompt": {
+            "reason": null,
+            "shouldCollectProfile": false,
+            "viewedHostels": 1,
+            "views": 1
+          },
+          "viewCount": 1
+        }
+      },
+      "setCookie": [
+        "hh_visitor=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=31536000; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "first view with cookie",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/views",
+      "headers": {
+        "cookie": "hh_visitor=0123456789abcdef0123456789abcdef",
+        "user-agent": "pv-3"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "View recorded",
+        "data": {
+          "counted": true,
+          "hostelId": "6c00000000000000000000a3",
+          "prompt": {
+            "reason": null,
+            "shouldCollectProfile": false,
+            "viewedHostels": 1,
+            "views": 1
+          },
+          "viewCount": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "repeat within window",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/views",
+      "headers": {
+        "cookie": "hh_visitor=0123456789abcdef0123456789abcdef",
+        "user-agent": "pv-3"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "View recorded",
+        "data": {
+          "counted": false,
+          "hostelId": "6c00000000000000000000a3",
+          "prompt": {
+            "reason": null,
+            "shouldCollectProfile": false,
+            "viewedHostels": 1,
+            "views": 1
+          },
+          "viewCount": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "by id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/6c00000000000000000000a5/views",
+      "headers": {
+        "cookie": "hh_visitor=0123456789abcdef0123456789abcdef",
+        "user-agent": "pv-3"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "View recorded",
+        "data": {
+          "counted": true,
+          "hostelId": "6c00000000000000000000a5",
+          "prompt": {
+            "reason": null,
+            "shouldCollectProfile": false,
+            "viewedHostels": 2,
+            "views": 2
+          },
+          "viewCount": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "third visit asks for profile",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/budget-fixture-hostel-kalanki/views",
+      "headers": {
+        "cookie": "hh_visitor=0123456789abcdef0123456789abcdef",
+        "user-agent": "pv-3"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "View recorded",
+        "data": {
+          "counted": false,
+          "hostelId": "6c00000000000000000000a5",
+          "prompt": {
+            "reason": null,
+            "shouldCollectProfile": false,
+            "viewedHostels": 2,
+            "views": 2
+          },
+          "viewCount": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "signed in",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/views",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}",
+        "cookie": "hh_visitor=fedcba9876543210fedcba9876543210",
+        "user-agent": "pv-4"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "View recorded",
+        "data": {
+          "counted": true,
+          "hostelId": "6c00000000000000000000a3",
+          "prompt": {
+            "reason": null,
+            "shouldCollectProfile": false,
+            "viewedHostels": 1,
+            "views": 1
+          },
+          "viewCount": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "bad cookie value is replaced",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/views",
+      "headers": {
+        "cookie": "hh_visitor=short",
+        "user-agent": "pv-5"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "View recorded",
+        "data": {
+          "counted": true,
+          "hostelId": "6c00000000000000000000a3",
+          "prompt": {
+            "reason": null,
+            "shouldCollectProfile": false,
+            "viewedHostels": 1,
+            "views": 1
+          },
+          "viewCount": 4
+        }
+      },
+      "setCookie": [
+        "hh_visitor=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=31536000; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "stale bearer",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/views",
+      "headers": {
+        "authorization": "Bearer junk",
+        "user-agent": "pv-6"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your session has expired.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "GET refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/hostels/fixture-lakeside-hostel-baneshwor/views",
+      "headers": {
+        "user-agent": "pv-7"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

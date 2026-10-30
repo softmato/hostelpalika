@@ -7,6 +7,10 @@ package fixture
 
 import (
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
+	"strconv"
 	"strings"
 	"time"
 
@@ -15,6 +19,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/softmato/hostelpalika/server/internal/platform/auth"
+	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 )
 
 // URI is where both servers read the fixture database.
@@ -129,7 +134,7 @@ func Reset(ctx context.Context, db *mongo.Database) error {
 				{Key: "lastName", Value: "Intake"}, {Key: "phone", Value: "9800000000"}, {Key: "deskIntake", Value: true}, {Key: "accountLinkDeclinedAt", Value: nil},
 				{Key: "status", Value: "ACTIVE"}, {Key: "isDeleted", Value: false}, {Key: "createdAt", Value: now.Add(-day)}},
 		},
-		"serviceproviders": {bson.D{{Key: "_id", Value: oid("d1")}, {Key: "userId", Value: UserProvider}, {Key: "status", Value: "APPROVED"}, {Key: "isDeleted", Value: false}}},
+		"serviceproviders": {providerRow(oid("d1"), UserProvider, "Contract Provider", "9801000099", "OTHER", []string{"OTHER"}, "Baneshwor", "APPROVED", now)},
 		"temporarycredentials": {
 			bson.D{{Key: "_id", Value: oid("e1")}, {Key: "userId", Value: UserPublic}, {Key: "username", Value: "contract-temp"}, {Key: "passwordHash", Value: pw},
 				{Key: "label", Value: "contract"}, {Key: "expiresAt", Value: now.Add(day)}, {Key: "revokedAt", Value: nil}, {Key: "useCount", Value: 0}},
@@ -142,6 +147,12 @@ func Reset(ctx context.Context, db *mongo.Database) error {
 			{Key: "scheduledDeletionAt", Value: now.Add(59 * day)}}},
 	}
 	for coll, docs := range publicDocs(now) {
+		inserts[coll] = append(inserts[coll], docs...)
+	}
+	for coll, docs := range providerDocs(now) {
+		inserts[coll] = append(inserts[coll], docs...)
+	}
+	for coll, docs := range joinDocs(now) {
 		inserts[coll] = append(inserts[coll], docs...)
 	}
 	for coll, docs := range inserts {
@@ -158,12 +169,35 @@ func Reset(ctx context.Context, db *mongo.Database) error {
 //
 //	access:<userHex>:<role>[:<hostelHex>,…][:lockPin]   an access token (session "contract")
 //	purpose:<purpose>:<userHex>[:<tokenVersion>]        a purpose token
+//	now · today:<±days> · preference:<email> · claim:<assetId> · bsperiod:<±months>             a timestamp, a date, an email-preferences token
 //
 // Unknown specs come back unchanged, so captured values can share the syntax.
 func Mint(spec string) (string, bool) {
 	tokens := auth.NewTokens(AccessSecret, RefreshSecret, 15*time.Minute, 30*24*time.Hour)
 	parts := strings.Split(spec, ":")
 	switch {
+	case spec == "now": // an ISO timestamp for bodies the server windows by its clock
+		return time.Now().UTC().Format("2006-01-02T15:04:05.000Z"), true
+	case parts[0] == "today" && len(parts) == 2: // today+N days as YYYY-MM-DD (N may be negative)
+		n, _ := strconv.Atoi(parts[1])
+		return time.Now().UTC().AddDate(0, 0, n).Format("2006-01-02"), true
+	case parts[0] == "bsperiod" && len(parts) == 2: // the BS month key N months from now
+		n, _ := strconv.Atoi(parts[1])
+		cur, err := bs.PeriodOf(time.Now())
+		if err != nil {
+			return spec, false
+		}
+		out, err := bs.AddMonths(cur, n)
+		return out, err == nil
+	case parts[0] == "claim" && len(parts) == 2: // a registration-document claim token for an asset id
+		mac := hmac.New(sha256.New, []byte(AccessSecret))
+		mac.Write([]byte("registration-document:" + parts[1]))
+		return base64.RawURLEncoding.EncodeToString(mac.Sum(nil)), true
+	case parts[0] == "preference" && len(parts) == 2: // an email-preferences token for an address
+		addr := strings.ToLower(strings.TrimSpace(parts[1]))
+		mac := hmac.New(sha256.New, []byte(AccessSecret))
+		mac.Write([]byte("email-preferences:" + addr))
+		return base64.RawURLEncoding.EncodeToString([]byte(addr)) + "." + base64.RawURLEncoding.EncodeToString(mac.Sum(nil)), true
 	case parts[0] == "access" && len(parts) >= 3:
 		in := auth.TokenInput{UserID: parts[1], Role: parts[2], HostelIDs: []string{}, SessionID: "6c00000000000000000000ff"}
 		for _, p := range parts[3:] {

@@ -1,0 +1,326 @@
+[
+  {
+    "name": "no body fields",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/search/parse",
+      "headers": {
+        "user-agent": "sp-1"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "query": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "query"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "empty after trim",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/search/parse",
+      "headers": {
+        "user-agent": "sp-2"
+      },
+      "body": {
+        "query": "   "
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "query": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "query"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "too long",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/search/parse",
+      "headers": {
+        "user-agent": "sp-3"
+      },
+      "body": {
+        "query": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "query": [
+              "Too big: expected string to have \u003c=200 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected string to have \u003c=200 characters",
+              "path": "query"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "wrong type",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/search/parse",
+      "headers": {
+        "user-agent": "sp-4"
+      },
+      "body": {
+        "query": 5
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "query": [
+              "Invalid input: expected string, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "query"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "keyword is confident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/search/parse",
+      "headers": {
+        "user-agent": "sp-5"
+      },
+      "body": {
+        "query": "  girls hostel in Baneshwor under 8k  "
+      }
+    },
+    "masks": [
+      "data.quota.resetsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Search parsed",
+        "data": {
+          "filters": {
+            "type": "GIRLS",
+            "area": "Baneshwor",
+            "maxPrice": 8000
+          },
+          "quota": {
+            "limit": 10,
+            "remaining": 10,
+            "resetsAt": "2026-10-30T08:37:28.549Z"
+          },
+          "source": "keyword"
+        }
+      },
+      "setCookie": [
+        "hh_search_quota=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=18000; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "keyword with room and facility",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/search/parse",
+      "headers": {
+        "user-agent": "sp-6"
+      },
+      "body": {
+        "query": "boys 2 sharing with wifi veg between 6k and 9k"
+      }
+    },
+    "masks": [
+      "data.quota.resetsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Search parsed",
+        "data": {
+          "filters": {
+            "type": "BOYS",
+            "minPrice": 6000,
+            "maxPrice": 9000,
+            "food": "veg",
+            "facility": "WiFi",
+            "roomType": "Double"
+          },
+          "quota": {
+            "limit": 10,
+            "remaining": 10,
+            "resetsAt": "2026-10-30T08:37:28.579Z"
+          },
+          "source": "keyword"
+        }
+      },
+      "setCookie": [
+        "hh_search_quota=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=18000; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "unexplained falls back to text",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/search/parse",
+      "headers": {
+        "user-agent": "sp-7"
+      },
+      "body": {
+        "query": "a quiet place to study near Royal Rapti"
+      }
+    },
+    "masks": [
+      "data.quota.resetsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Search parsed",
+        "data": {
+          "filters": {
+            "q": "quiet study Royal Rapti"
+          },
+          "quota": {
+            "limit": 10,
+            "remaining": 10,
+            "resetsAt": "2026-10-30T08:37:28.608Z"
+          },
+          "source": "keyword"
+        }
+      },
+      "setCookie": [
+        "hh_search_quota=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=18000; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "only filler words",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/public/search/parse",
+      "headers": {
+        "user-agent": "sp-8"
+      },
+      "body": {
+        "query": "the hostel"
+      }
+    },
+    "masks": [
+      "data.quota.resetsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Search parsed",
+        "data": {
+          "filters": {
+            "q": "the hostel"
+          },
+          "quota": {
+            "limit": 10,
+            "remaining": 10,
+            "resetsAt": "2026-10-30T08:37:28.635Z"
+          },
+          "source": "keyword"
+        }
+      },
+      "setCookie": [
+        "hh_search_quota=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=18000; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "GET refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/search/parse",
+      "headers": {
+        "user-agent": "sp-9"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]

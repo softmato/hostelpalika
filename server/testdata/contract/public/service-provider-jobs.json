@@ -1,0 +1,338 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me/jobs",
+      "headers": {
+        "user-agent": "sp-35"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "approved",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me/jobs",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e8:PUBLIC}}",
+        "user-agent": "sp-36"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Jobs loaded",
+        "data": {
+          "available": [
+            {
+              "category": "PLUMBING",
+              "createdAt": "2026-10-01T02:15:00.000Z",
+              "description": "Leaking tap needs a look",
+              "hostelArea": "New Baneshwor",
+              "hostelCity": "Kathmandu",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelPhone": "",
+              "id": "6c00000000000000000000b5",
+              "inMyTrade": true,
+              "location": "Room 3",
+              "minimumCharge": 1500,
+              "priority": "MEDIUM",
+              "scheduledFor": null,
+              "status": "PENDING",
+              "title": "Leaking tap",
+              "voiceNoteAssetId": null
+            },
+            {
+              "category": "ELECTRICAL",
+              "createdAt": "2026-10-01T01:15:00.000Z",
+              "description": "Dead socket needs a look",
+              "hostelArea": "New Baneshwor",
+              "hostelCity": "Kathmandu",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelPhone": "",
+              "id": "6c00000000000000000000b6",
+              "inMyTrade": true,
+              "location": "",
+              "minimumCharge": null,
+              "priority": "HIGH",
+              "scheduledFor": null,
+              "status": "PENDING",
+              "title": "Dead socket",
+              "voiceNoteAssetId": null
+            },
+            {
+              "category": "CLEANING",
+              "createdAt": "2026-10-01T00:15:00.000Z",
+              "description": "Mop the hall needs a look",
+              "hostelArea": "New Baneshwor",
+              "hostelCity": "Kathmandu",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelPhone": "",
+              "id": "6c00000000000000000000b7",
+              "inMyTrade": false,
+              "location": "",
+              "minimumCharge": null,
+              "priority": "MEDIUM",
+              "scheduledFor": null,
+              "status": "PENDING",
+              "title": "Mop the hall",
+              "voiceNoteAssetId": null
+            }
+          ],
+          "jobs": [
+            {
+              "category": "PLUMBING",
+              "createdAt": "2026-09-30T23:15:00.000Z",
+              "description": "Blocked drain needs a look",
+              "hostelArea": "New Baneshwor",
+              "hostelCity": "Kathmandu",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelPhone": "9800000001",
+              "id": "6c00000000000000000000b8",
+              "inMyTrade": true,
+              "location": "Kitchen",
+              "minimumCharge": null,
+              "priority": "URGENT",
+              "scheduledFor": "2026-10-02T04:15:00.000Z",
+              "status": "CONTACTED",
+              "title": "Blocked drain",
+              "voiceNoteAssetId": "6c000000000000000000007f"
+            },
+            {
+              "category": "PLUMBING",
+              "createdAt": "2026-09-30T21:15:00.000Z",
+              "description": "Second drain needs a look",
+              "hostelArea": "New Baneshwor",
+              "hostelCity": "Kathmandu",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelPhone": "9800000001",
+              "id": "6c00000000000000000000bc",
+              "inMyTrade": true,
+              "location": "",
+              "minimumCharge": null,
+              "priority": "MEDIUM",
+              "scheduledFor": null,
+              "status": "CONTACTED",
+              "title": "Second drain",
+              "voiceNoteAssetId": null
+            },
+            {
+              "category": "PLUMBING",
+              "createdAt": "2026-09-30T20:15:00.000Z",
+              "description": "Third drain needs a look",
+              "hostelArea": "New Baneshwor",
+              "hostelCity": "Kathmandu",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelPhone": "9800000001",
+              "id": "6c00000000000000000000bd",
+              "inMyTrade": true,
+              "location": "",
+              "minimumCharge": null,
+              "priority": "MEDIUM",
+              "scheduledFor": null,
+              "status": "SCHEDULED",
+              "title": "Third drain",
+              "voiceNoteAssetId": null
+            },
+            {
+              "category": "PLUMBING",
+              "createdAt": "2026-09-29T22:15:00.000Z",
+              "description": "Old repair needs a look",
+              "hostelArea": "New Baneshwor",
+              "hostelCity": "Kathmandu",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelPhone": "9800000001",
+              "id": "6c00000000000000000000b9",
+              "inMyTrade": true,
+              "location": "",
+              "minimumCharge": null,
+              "priority": "MEDIUM",
+              "scheduledFor": null,
+              "status": "COMPLETED",
+              "title": "Old repair",
+              "voiceNoteAssetId": null
+            },
+            {
+              "category": "ELECTRICAL",
+              "createdAt": "2026-09-29T21:15:00.000Z",
+              "description": "Called off needs a look",
+              "hostelArea": "New Baneshwor",
+              "hostelCity": "Kathmandu",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelPhone": "9800000001",
+              "id": "6c00000000000000000000ba",
+              "inMyTrade": true,
+              "location": "",
+              "minimumCharge": null,
+              "priority": "MEDIUM",
+              "scheduledFor": null,
+              "status": "CANCELLED",
+              "title": "Called off",
+              "voiceNoteAssetId": null
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "cleaner",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me/jobs",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e9:PUBLIC}}",
+        "user-agent": "sp-37"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Jobs loaded",
+        "data": {
+          "available": [
+            {
+              "category": "CLEANING",
+              "createdAt": "2026-10-01T00:15:00.000Z",
+              "description": "Mop the hall needs a look",
+              "hostelArea": "New Baneshwor",
+              "hostelCity": "Kathmandu",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelPhone": "",
+              "id": "6c00000000000000000000b7",
+              "inMyTrade": true,
+              "location": "",
+              "minimumCharge": null,
+              "priority": "MEDIUM",
+              "scheduledFor": null,
+              "status": "PENDING",
+              "title": "Mop the hall",
+              "voiceNoteAssetId": null
+            },
+            {
+              "category": "PLUMBING",
+              "createdAt": "2026-10-01T02:15:00.000Z",
+              "description": "Leaking tap needs a look",
+              "hostelArea": "New Baneshwor",
+              "hostelCity": "Kathmandu",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelPhone": "",
+              "id": "6c00000000000000000000b5",
+              "inMyTrade": false,
+              "location": "Room 3",
+              "minimumCharge": 1500,
+              "priority": "MEDIUM",
+              "scheduledFor": null,
+              "status": "PENDING",
+              "title": "Leaking tap",
+              "voiceNoteAssetId": null
+            },
+            {
+              "category": "ELECTRICAL",
+              "createdAt": "2026-10-01T01:15:00.000Z",
+              "description": "Dead socket needs a look",
+              "hostelArea": "New Baneshwor",
+              "hostelCity": "Kathmandu",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelPhone": "",
+              "id": "6c00000000000000000000b6",
+              "inMyTrade": false,
+              "location": "",
+              "minimumCharge": null,
+              "priority": "HIGH",
+              "scheduledFor": null,
+              "status": "PENDING",
+              "title": "Dead socket",
+              "voiceNoteAssetId": null
+            }
+          ],
+          "jobs": [
+            {
+              "category": "CLEANING",
+              "createdAt": "2026-09-30T22:15:00.000Z",
+              "description": "Someone else's job needs a look",
+              "hostelArea": "New Baneshwor",
+              "hostelCity": "Kathmandu",
+              "hostelName": "Fixture Lakeside Hostel",
+              "hostelPhone": "9800000001",
+              "id": "6c00000000000000000000bb",
+              "inMyTrade": true,
+              "location": "",
+              "minimumCharge": null,
+              "priority": "MEDIUM",
+              "scheduledFor": null,
+              "status": "CONTACTED",
+              "title": "Someone else's job",
+              "voiceNoteAssetId": null
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "pending provider",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me/jobs",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ea:PUBLIC}}",
+        "user-agent": "sp-38"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Jobs loaded",
+        "data": {
+          "available": [],
+          "jobs": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  },
+  {
+    "name": "never applied",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/public/service-providers/me/jobs",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000ec:PUBLIC}}",
+        "user-agent": "sp-39"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Jobs loaded",
+        "data": {
+          "available": [],
+          "jobs": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8bea0625"
+  }
+]
