@@ -45,7 +45,7 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          GIN_MODE=release go test -race -tags=sonic -v ./... | tee test.txt | grep -E '^(ok|FAIL|panic)|--- FAIL'
+          GIN_MODE=release go test -race -tags=sonic -v ./... | tee test.txt | grep -E '^(ok|FAIL|panic)|--- FAIL|^ +[a-z_]+_test\.go:[0-9]+:'
           ! grep -E -- '--- SKIP: (TestContract|TestAnonymousIsRefused)' test.txt
       - name: Static analysis
         run: go run honnef.co/go/tools/cmd/staticcheck@2025.1.1 ./...
