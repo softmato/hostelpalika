@@ -1,0 +1,313 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/hostel-leave",
+      "body": {
+        "requestId": "6c0000000000000000000061"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/hostel-leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "requestId": "x"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "requestId": [
+              "Invalid id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid id.",
+              "path": "requestId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/hostel-leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "requestId": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "requestId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "not mine",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/hostel-leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "requestId": "6c0000000000000000000061"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel cannot be claimed back — its hold has ended or it is not yours.",
+        "errorCode": "RECLAIM_NOT_AVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "past hold",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/hostel-leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "requestId": "6c0000000000000000000068"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel cannot be claimed back — its hold has ended or it is not yours.",
+        "errorCode": "RECLAIM_NOT_AVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "pending",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/hostel-leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "requestId": "6c000000000000000000006e"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel cannot be claimed back — its hold has ended or it is not yours.",
+        "errorCode": "RECLAIM_NOT_AVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "purge due",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/hostel-leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "requestId": "6c000000000000000000006f"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel's grace period has run out and it is queued for erasure. It can no longer be restored.",
+        "errorCode": "HOSTEL_PURGE_DUE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "after failure",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.hostels.*.filesUntil",
+      "data.hostels.*.holdUntil"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Held hostels loaded",
+        "data": {
+          "hostels": [
+            {
+              "canClaim": true,
+              "filesUntil": "2026-11-11T11:45:35.259Z",
+              "holdDays": 10,
+              "holdUntil": "2026-11-03T11:45:35.259Z",
+              "hostelName": "Left Hostel 61",
+              "requestId": "6c0000000000000000000061"
+            },
+            {
+              "canClaim": true,
+              "filesUntil": "2026-11-11T11:45:35.259Z",
+              "holdDays": 10,
+              "holdUntil": "2026-11-03T11:45:35.259Z",
+              "hostelName": "Left Hostel 6f",
+              "requestId": "6c000000000000000000006f"
+            },
+            {
+              "canClaim": false,
+              "filesUntil": "2026-11-11T11:45:35.259Z",
+              "holdDays": 10,
+              "holdUntil": "2026-10-31T11:45:35.259Z",
+              "hostelName": "Left Hostel 68",
+              "requestId": "6c0000000000000000000068"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "claim",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/hostel-leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "requestId": "6c0000000000000000000061"
+      }
+    },
+    "masks": [
+      "data.request.exportSentAt",
+      "data.request.holdUntil",
+      "data.request.reclaimedAt",
+      "data.request.requestedAt",
+      "data.request.reviewedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Your hostel is back",
+        "data": {
+          "hostelId": "6c0000000000000000000062",
+          "request": {
+            "branchCount": 1,
+            "exportSections": [
+              "residents"
+            ],
+            "exportSentAt": null,
+            "exportSentTo": null,
+            "holdDays": 10,
+            "holdUntil": "2026-11-03T11:45:35.259Z",
+            "hostelId": "6c0000000000000000000062",
+            "hostelName": "Left Hostel 61",
+            "id": "6c0000000000000000000061",
+            "ownerEmail": "public@contract.test",
+            "ownerName": "Owner",
+            "reason": "Closing",
+            "reclaimedAt": "2026-11-01T11:45:37.916Z",
+            "requestedAt": "2026-08-01T00:00:00.000Z",
+            "reviewNote": null,
+            "reviewedAt": null,
+            "status": "RECLAIMED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/hostel-leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "requestId": "6c0000000000000000000061"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel cannot be claimed back — its hold has ended or it is not yours.",
+        "errorCode": "RECLAIM_NOT_AVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

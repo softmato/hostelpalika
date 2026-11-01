@@ -104,10 +104,11 @@ type Notification struct {
 	Action, To, Subject, HTML string
 	Category                  Category
 	Topic                     Topic // "" = mail the person cannot refuse
+	Attachments               []Attachment
 }
 
 func (s *Sender) message(n Notification) Message {
-	m := Message{Category: n.Category, To: []string{n.To}, Subject: n.Subject, HTML: n.HTML}
+	m := Message{Category: n.Category, To: []string{n.To}, Subject: n.Subject, HTML: n.HTML, Attachments: n.Attachments}
 	if n.Topic != "" {
 		m.Unsubscribe = s.PreferenceLinks(n.To, n.Topic)
 	}

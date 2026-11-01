@@ -18,14 +18,15 @@
       "path": "/api/v1/auth/login"
     },
     "response": {
-      "status": 500,
+      "status": 400,
       "contentType": "application/json",
       "body": {
         "success": false,
-        "message": "Internal server error",
-        "errorCode": "INTERNAL_SERVER_ERROR"
+        "message": "The request body is not valid JSON.",
+        "errorCode": "INVALID_JSON"
       }
     },
-    "recorded": "http://localhost:3100 41b0ef10"
+    "recorded": "http://localhost:3100 41b0ef10",
+    "corrected": "R8: TS bug fixed on both sides, see docs/review_fixes_needed.md"
   }
 ]

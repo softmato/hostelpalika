@@ -1,0 +1,382 @@
+[
+  {
+    "name": "email signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/email-preferences"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "email get",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/email-preferences",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Email preferences loaded",
+        "data": {
+          "preference": {
+            "hasEmail": true,
+            "mutedTopics": []
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "email invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/account/email-preferences",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "mutedTopics": [
+          "nope"
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "mutedTopics": [
+              "Invalid option: expected one of \"RENT_REMINDERS\"|\"NOTICES\"|\"COMPLAINT_UPDATES\"|\"PAYMENT_SUMMARY\"|\"COMPLAINT_ALERTS\"|\"ATTENDANCE_ALERTS\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"RENT_REMINDERS\"|\"NOTICES\"|\"COMPLAINT_UPDATES\"|\"PAYMENT_SUMMARY\"|\"COMPLAINT_ALERTS\"|\"ATTENDANCE_ALERTS\"",
+              "path": "mutedTopics.0"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "email missing",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/account/email-preferences",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "mutedTopics": [
+              "Invalid input: expected array, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected array, received undefined",
+              "path": "mutedTopics"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "email patch",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/account/email-preferences",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "mutedTopics": [
+          "RENT_REMINDERS",
+          "RENT_REMINDERS"
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Email preferences saved",
+        "data": {
+          "preference": {
+            "hasEmail": true,
+            "mutedTopics": [
+              "RENT_REMINDERS"
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "email get after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/email-preferences",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Email preferences loaded",
+        "data": {
+          "preference": {
+            "hasEmail": true,
+            "mutedTopics": [
+              "RENT_REMINDERS"
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "notif defaults",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/notification-preferences",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notification preferences loaded",
+        "data": {
+          "preference": {
+            "mutedCategories": [],
+            "pushEnabled": true,
+            "quietHoursEnabled": false,
+            "quietHoursEnd": 420,
+            "quietHoursStart": 1320,
+            "timeZone": "Asia/Kathmandu"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "notif invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/account/notification-preferences",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "quietHoursEnd": 5000,
+        "quietHoursStart": 1.5,
+        "pushEnabled": "x",
+        "mutedCategories": [
+          ""
+        ],
+        "timeZone": ""
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "mutedCategories": [
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "pushEnabled": [
+              "Invalid input: expected boolean, received string"
+            ],
+            "quietHoursEnd": [
+              "Too big: expected number to be \u003c=1439"
+            ],
+            "quietHoursStart": [
+              "Invalid input: expected int, received number"
+            ],
+            "timeZone": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "mutedCategories.0"
+            },
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "pushEnabled"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=1439",
+              "path": "quietHoursEnd"
+            },
+            {
+              "message": "Invalid input: expected int, received number",
+              "path": "quietHoursStart"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "timeZone"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "notif patch",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/account/notification-preferences",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "pushEnabled": false,
+        "mutedCategories": [
+          " FOOD "
+        ]
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notification preferences saved",
+        "data": {
+          "preference": {
+            "mutedCategories": [
+              "FOOD"
+            ],
+            "pushEnabled": false,
+            "quietHoursEnabled": false,
+            "quietHoursEnd": 420,
+            "quietHoursStart": 1320,
+            "timeZone": "Asia/Kathmandu"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "notif patch more",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/account/notification-preferences",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "quietHoursEnabled": true,
+        "quietHoursEnd": 60,
+        "timeZone": "UTC"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notification preferences saved",
+        "data": {
+          "preference": {
+            "mutedCategories": [
+              "FOOD"
+            ],
+            "pushEnabled": false,
+            "quietHoursEnabled": true,
+            "quietHoursEnd": 60,
+            "quietHoursStart": 1320,
+            "timeZone": "UTC"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "notif get",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/notification-preferences",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notification preferences loaded",
+        "data": {
+          "preference": {
+            "mutedCategories": [
+              "FOOD"
+            ],
+            "pushEnabled": false,
+            "quietHoursEnabled": true,
+            "quietHoursEnd": 60,
+            "quietHoursStart": 1320,
+            "timeZone": "UTC"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

@@ -14,23 +14,39 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 
 	"github.com/softmato/hostelpalika/server/internal/modules/arrivals"
+	"github.com/softmato/hostelpalika/server/internal/modules/attendance"
 	authmod "github.com/softmato/hostelpalika/server/internal/modules/auth"
 	"github.com/softmato/hostelpalika/server/internal/modules/billing"
 	"github.com/softmato/hostelpalika/server/internal/modules/bookings"
+	"github.com/softmato/hostelpalika/server/internal/modules/community"
+	"github.com/softmato/hostelpalika/server/internal/modules/complaints"
+	"github.com/softmato/hostelpalika/server/internal/modules/expenses"
 	"github.com/softmato/hostelpalika/server/internal/modules/feedback"
 	"github.com/softmato/hostelpalika/server/internal/modules/files"
+	"github.com/softmato/hostelpalika/server/internal/modules/finance"
+	"github.com/softmato/hostelpalika/server/internal/modules/guardian"
+	"github.com/softmato/hostelpalika/server/internal/modules/hostelleave"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostelreferrals"
 	"github.com/softmato/hostelpalika/server/internal/modules/hostels"
+	"github.com/softmato/hostelpalika/server/internal/modules/khata"
+	"github.com/softmato/hostelpalika/server/internal/modules/kitchen"
+	"github.com/softmato/hostelpalika/server/internal/modules/notices"
 	"github.com/softmato/hostelpalika/server/internal/modules/notifications"
 	"github.com/softmato/hostelpalika/server/internal/modules/offerprogram"
 	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
 	"github.com/softmato/hostelpalika/server/internal/modules/referrals"
 	"github.com/softmato/hostelpalika/server/internal/modules/reports"
+	"github.com/softmato/hostelpalika/server/internal/modules/residentaccount"
+	"github.com/softmato/hostelpalika/server/internal/modules/residentfinance"
+	"github.com/softmato/hostelpalika/server/internal/modules/residentportal"
 	"github.com/softmato/hostelpalika/server/internal/modules/residents"
 	"github.com/softmato/hostelpalika/server/internal/modules/reviews"
+	"github.com/softmato/hostelpalika/server/internal/modules/safety"
 	searchmod "github.com/softmato/hostelpalika/server/internal/modules/search"
 	"github.com/softmato/hostelpalika/server/internal/modules/serviceproviders"
+	"github.com/softmato/hostelpalika/server/internal/modules/stock"
 	"github.com/softmato/hostelpalika/server/internal/modules/usage"
+	"github.com/softmato/hostelpalika/server/internal/modules/users"
 	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/auth"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
@@ -58,6 +74,15 @@ type Deps struct {
 	Background *background.Runner
 }
 
+// routeBudgets are the routes allowed past httpx.DefaultDeadline: TS's maxDuration,
+// and the upload doors, which read a body over slow mobile links first. Keys are
+// Gin paths; TestRouteBudgetsAreRoutes catches a typo.
+var routeBudgets = map[string]time.Duration{
+	"/api/v1/account/hostel-leave/:requestId/files/zip": 300 * time.Second,
+	"/api/v1/files/upload":                              120 * time.Second,
+	"/api/v1/public/files/upload":                       120 * time.Second,
+}
+
 func New(cfg *config.Config, d Deps) (*gin.Engine, error) {
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.New()
@@ -69,10 +94,11 @@ func New(cfg *config.Config, d Deps) (*gin.Engine, error) {
 	// no content type. Gin's default writes "405 method not allowed" text.
 	r.HandleMethodNotAllowed = true
 	r.NoMethod(func(c *gin.Context) { c.AbortWithStatus(http.StatusMethodNotAllowed) })
+	r.NoRoute(httpx.NotFound)
 	// A *gin.Context handed on as a context.Context (slog, Mongo, Redis) must
 	// reach the request's own values: request id, timings.
 	r.ContextWithFallback = true
-	r.Use(httpx.Recover(), obs.Middleware(), httpx.CORS(cfg.CORSOrigins))
+	r.Use(httpx.Recover(), httpx.Deadline(routeBudgets), obs.Middleware(), httpx.SecurityHeaders(), httpx.CORS(cfg.CORSOrigins), httpx.BodyLimit())
 	if d.Background != nil {
 		r.Use(d.Background.Middleware())
 	}
@@ -116,6 +142,7 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	claims := files.Claims{Secret: cfg.Auth.AccessSecret}
 	hostels.NewApplications(d.DB, guards, claims, log).Register(v1)
 	files.NewHandler(d.DB, storage.New(cfg.R2), cfg.R2, limiter, claims).Register(v1)
+	(&files.Assets{DB: d.DB, R2: storage.New(cfg.R2), R2Cfg: cfg.R2, Limits: cfg.Uploads, Guards: guards, Claims: claims}).Register(v1)
 	personal, _ := crypto.NewPersonal(cfg.Crypto.PersonalDataKey)
 	(&residents.Public{DB: d.DB, Guards: guards, Limiter: limiter, Claims: claims, Personal: personal, Notify: notify, RT: rt, Cache: cache.New(d.Redis)}).Register(v1)
 	refs := hostelreferrals.NewService(d.DB)
@@ -140,7 +167,30 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 
 	feedback.NewHandler(d.DB, guards, limiter).Register(v1)
 	usage.NewHandler(d.DB, guards, limiter).Register(v1)
-	notifications.NewHandler(d.DB, guards, sender, pushSender).Register(v1)
+	safetySvc := &safety.Service{DB: d.DB, Guards: guards, Tokens: tokens, Notify: notify, Mail: sender, Audit: log, RT: rt, Cache: cache.New(d.Redis),
+		AppURL: func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }}
+	safetySvc.Register(v1)
+	(&residentportal.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis), Safety: safetySvc, Notify: notify, Audit: log, Config: siteConfig, RT: rt, Bump: cache.New(d.Redis)}).Register(v1)
+	(&residentaccount.Handler{DB: d.DB, Guards: guards, Auth: authSvc, Cookies: cookies, Audit: log, Notify: notify, Mail: sender, ActivationSecret: cfg.Auth.ActivationCodeSecret}).Register(v1)
+	issuer := &users.Issuer{DB: d.DB, Mail: sender, Audit: log, AppURL: strings.TrimRight(cfg.AppURL, "/")}
+	appURL := func(path string) string { return residents.AppURL(cfg.OutboundURL(), path) }
+	(&hostelleave.Handler{DB: d.DB, Guards: guards, R2: storage.New(cfg.R2), Mail: sender, Audit: log, AppURL: appURL}).Register(v1)
+	(&residentfinance.Handler{DB: d.DB, Guards: guards, Production: cfg.IsProduction(), Limiter: limiter, Notify: notify, Audit: log, RT: rt, Bump: cache.New(d.Redis), R2: storage.New(cfg.R2),
+		Reader: &finance.Reader{DB: d.DB, Cfg: cfg.Evidence, GeminiKeys: cfg.LLM.Keys["gemini"]}}).Register(v1)
+	(&expenses.Handler{DB: d.DB, Guards: guards, Notify: notify, Audit: log, RT: rt, Bump: cache.New(d.Redis)}).Register(v1)
+	(&khata.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis)}).Register(v1)
+	(&stock.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis)}).Register(v1)
+	(&community.Handler{DB: d.DB, Guards: guards, Notify: notify, RT: rt, Bump: cache.New(d.Redis), BG: bg, LLM: llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder)}).Register(v1)
+	(&guardian.Service{DB: d.DB, Guards: guards, Notify: notify, Mail: sender, Audit: log, Issuer: issuer, AppURL: appURL}).Register(v1)
+	(&kitchen.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis), Notify: notify, Push: pushSender, Audit: log, Config: siteConfig, RT: rt, Issuer: issuer}).Register(v1)
+	(&notices.Handler{DB: d.DB, Guards: guards, Cache: cache.New(d.Redis)}).Register(v1)
+	(&complaints.Service{DB: d.DB, Guards: guards, Notify: notify, Mail: sender, Audit: log, Config: siteConfig, RT: rt, Cache: cache.New(d.Redis), AppURL: appURL}).Register(v1)
+	(&attendance.Handler{DB: d.DB, Guards: guards, Audit: log}).Register(v1)
+	notifications.NewHandler(d.DB, guards, sender, pushSender, rt, cfg.Pusher).Register(v1)
+	(&bookings.Signed{Service: bookingsSvc, Guards: guards, Limiter: limiter, Notify: notify, Mail: sender, Audit: log, RT: rt, Bump: cache.New(d.Redis), Outbound: cfg.OutboundURL(),
+		FinanceKeys: func() ([]crypto.MasterKey, error) {
+			return crypto.MasterKeys(cfg.Crypto.FinanceMasterKey, cfg.Crypto.FinanceMasterKeyPrev)
+		}, SoftmatoOn: cfg.Softmato.BaseURL != "" && cfg.Softmato.Secret != "" && cfg.Softmato.WebhookSecret != ""}).Register(v1)
 }
 
 type healthData struct {

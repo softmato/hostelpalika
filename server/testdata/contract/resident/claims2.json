@@ -1,0 +1,217 @@
+[
+  {
+    "name": "foreign hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-5"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c000000000000000000003f"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This file is not yours to submit. Upload the screenshot again.",
+        "errorCode": "ASSET_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "unfinished",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-5"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c0000000000000000000070"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This file did not finish uploading. Please upload the screenshot again.",
+        "errorCode": "ASSET_UPLOAD_INCOMPLETE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "expired",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-5"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c00000000000000000000e6"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That upload has expired. Please upload the screenshot again.",
+        "errorCode": "ASSET_UPLOAD_INCOMPLETE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "our statement",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-5"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c00000000000000000000e5"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That is your hostel statement, which we generated. Please upload the screenshot or receipt from the app you paid with.",
+        "errorCode": "EVIDENCE_IS_SYSTEM_DOCUMENT"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "blank",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-5"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c00000000000000000000e4"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That image is blank or too small to read. Please upload the screenshot from the app you paid with.",
+        "errorCode": "EVIDENCE_NOT_READABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "no txn",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-5"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "proofImageAssetId": "6c00000000000000000000e3"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Enter the transaction ID from your payment. It is on the confirmation screen of the app you paid with.",
+        "errorCode": "TXN_ID_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "junk txn",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-5"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "123456",
+        "proofImageAssetId": "6c00000000000000000000e3"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That does not look like a transaction ID. Open the app you paid with and copy the ID from the payment receipt.",
+        "errorCode": "TXN_ID_NOT_PLAUSIBLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "too much",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-5"
+      },
+      "body": {
+        "amount": 999999999,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c00000000000000000000e3"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That is much more than the 400000 still owed on this invoice. Check the amount and try again.",
+        "errorCode": "AMOUNT_OUT_OF_BOUNDS"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

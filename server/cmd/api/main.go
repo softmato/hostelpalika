@@ -17,6 +17,7 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/config"
 	applog "github.com/softmato/hostelpalika/server/internal/platform/log"
 	"github.com/softmato/hostelpalika/server/internal/platform/mongo"
+	"github.com/softmato/hostelpalika/server/internal/platform/obs"
 	"github.com/softmato/hostelpalika/server/internal/platform/redis"
 	"github.com/softmato/hostelpalika/server/internal/router"
 )
@@ -72,7 +73,7 @@ func run() error {
 		Addr:              cfg.Addr,
 		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
-		ReadTimeout:       30 * time.Second, // uploads go to R2 presigned; API bodies are small
+		ReadTimeout:       120 * time.Second, // /files/upload takes 10 MB over Nepali mobile links
 		IdleTimeout:       120 * time.Second,
 		// No WriteTimeout: NDJSON progress routes stream for longer than any
 		// global value; each route gets its own context deadline instead.
@@ -84,6 +85,17 @@ func run() error {
 			slog.Info("pprof listening", "addr", cfg.PprofAddr)
 			if err := http.ListenAndServe(cfg.PprofAddr, nil); err != nil {
 				slog.Warn("pprof stopped", "error", err)
+			}
+		}()
+	}
+
+	if cfg.MetricsAddr != "" {
+		metrics := &http.Server{Addr: cfg.MetricsAddr, Handler: obs.MetricsHandler(), ReadHeaderTimeout: 5 * time.Second}
+		defer func() { _ = metrics.Close() }() // exiting; nothing left to scrape
+		go func() {
+			slog.Info("metrics listening", "addr", cfg.MetricsAddr)
+			if err := metrics.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+				slog.Warn("metrics stopped", "error", err)
 			}
 		}()
 	}

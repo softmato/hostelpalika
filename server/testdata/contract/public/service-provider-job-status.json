@@ -35,15 +35,16 @@
       "body": "{bad"
     },
     "response": {
-      "status": 500,
+      "status": 400,
       "contentType": "application/json",
       "body": {
         "success": false,
-        "message": "Internal server error",
-        "errorCode": "INTERNAL_SERVER_ERROR"
+        "message": "The request body is not valid JSON.",
+        "errorCode": "INVALID_JSON"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 8bea0625",
+    "corrected": "R8: TS bug fixed on both sides, see docs/review_fixes_needed.md"
   },
   {
     "name": "empty",
@@ -106,7 +107,7 @@
           "formErrors": [],
           "fieldErrors": {
             "note": [
-              "Too big: expected string to have \u003c=800 characters"
+              "Too big: expected string to have <=800 characters"
             ],
             "status": [
               "Invalid option: expected one of \"CONTACTED\"|\"COMPLETED\""
@@ -114,7 +115,7 @@
           },
           "issues": [
             {
-              "message": "Too big: expected string to have \u003c=800 characters",
+              "message": "Too big: expected string to have <=800 characters",
               "path": "note"
             },
             {

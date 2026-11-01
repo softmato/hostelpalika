@@ -1,0 +1,214 @@
+[
+  {
+    "name": "no consent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/location/ping",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000037:RESIDENT:6c0000000000000000000037}}"
+      },
+      "body": {
+        "lat": 27.7,
+        "lng": 85.3
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Location tracking has not been consented to for this account.",
+        "errorCode": "LOCATION_CONSENT_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "consent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/consent",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000037:RESIDENT:6c0000000000000000000037}}"
+      },
+      "body": {
+        "granted": true
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Consent recorded",
+        "data": {
+          "consentType": "LOCATION_TRACKING",
+          "granted": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "inside",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/location/ping",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000037:RESIDENT:6c0000000000000000000037}}"
+      },
+      "body": {
+        "lat": 27.7,
+        "lng": 85.3
+      }
+    },
+    "masks": [
+      "data.attendance.id",
+      "data.attendance.day"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Attendance recorded",
+        "data": {
+          "attendance": {
+            "day": "2026-11-01",
+            "distanceMeters": 0,
+            "id": "6ae712602674f0823c8e8fae",
+            "residentId": "6c0000000000000000000038",
+            "source": "MOBILE_PING",
+            "zone": "INSIDE"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "same day nearby",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/location/ping",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000037:RESIDENT:6c0000000000000000000037}}"
+      },
+      "body": {
+        "lat": 27.701,
+        "lng": 85.3
+      }
+    },
+    "masks": [
+      "data.attendance.id",
+      "data.attendance.day"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Attendance recorded",
+        "data": {
+          "attendance": {
+            "day": "2026-11-01",
+            "distanceMeters": 111,
+            "id": "6ae712602674f0823c8e8fae",
+            "residentId": "6c0000000000000000000038",
+            "source": "MOBILE_PING",
+            "zone": "NEARBY"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "outside",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/location/ping",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000037:RESIDENT:6c0000000000000000000037}}"
+      },
+      "body": {
+        "lat": 27.8,
+        "lng": 85.3,
+        "recordedAt": "2026-01-15T10:00:00.000Z"
+      }
+    },
+    "masks": [
+      "data.attendance.id",
+      "data.attendance.day"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Attendance recorded",
+        "data": {
+          "attendance": {
+            "day": "2026-01-15",
+            "distanceMeters": 11119,
+            "id": "6ae712612674f0823c8e8faf",
+            "residentId": "6c0000000000000000000038",
+            "source": "MOBILE_PING",
+            "zone": "OUTSIDE"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "history shows image",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/attendance",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000037:RESIDENT:6c0000000000000000000037}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.attendance.*.day"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Attendance loaded",
+        "data": {
+          "attendance": [
+            {
+              "day": "2026-11-01",
+              "source": "MOBILE_PING",
+              "zone": "NEARBY"
+            }
+          ],
+          "consentGranted": true,
+          "resident": {
+            "createdAt": "2026-11-01T10:20:15.386Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Track",
+            "fullName": "Track Ed",
+            "hostelId": "6c0000000000000000000037",
+            "id": "6c0000000000000000000038",
+            "image": "https://img/t.png",
+            "lastName": "Ed",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000078",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000037"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

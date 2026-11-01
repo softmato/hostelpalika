@@ -218,3 +218,55 @@ func GreyPixels(b []byte, w, h int) ([]byte, error) {
 	}
 	return px, nil
 }
+
+// PrepareForVision is evidence-ocr's prepareForVision: a JPEG, PNG or WebP already
+// upright and small enough goes through untouched; anything else is rotated, shrunk
+// to fit maxEdge (never enlarged) and re-encoded as PNG.
+func PrepareForVision(b []byte, maxEdge int) ([]byte, string, error) {
+	img, err := load(b)
+	if err != nil {
+		return nil, "", err
+	}
+	defer img.Close()
+	mime := map[vips.ImageType]string{vips.ImageTypeJPEG: "image/jpeg", vips.ImageTypePNG: "image/png", vips.ImageTypeWEBP: "image/webp"}[img.Format()]
+	if mime != "" && img.Orientation() <= 1 && max(img.Width(), img.Height()) <= maxEdge {
+		return b, mime, nil
+	}
+	if err := img.AutoRotate(); err != nil {
+		return nil, "", err
+	}
+	if long := max(img.Width(), img.Height()); long > maxEdge {
+		if err := img.Resize(float64(maxEdge)/float64(long), vips.KernelLanczos3); err != nil {
+			return nil, "", err
+		}
+	}
+	out, _, err := img.ExportPng(&vips.PngExportParams{Compression: 6, Filter: vips.PngFilterNone, Interlace: false, Palette: false, Quality: 100, StripMetadata: true})
+	return out, "image/png", err
+}
+
+// Rasterize decodes any supported image to PNG with its pixel size; nil input or
+// junk is an error, which an ID card treats as no image.
+func Rasterize(b []byte) ([]byte, int, int, error) {
+	if len(b) == 0 {
+		return nil, 0, 0, errors.New("no image")
+	}
+	ref, err := load(b)
+	if err != nil {
+		return nil, 0, 0, err
+	}
+	defer ref.Close()
+	w, h := ref.Width(), ref.Height()
+	out, _, err := ref.ExportPng(vips.NewPngExportParams())
+	return out, w, h, err
+}
+
+// SVGToPNG renders an SVG through libvips (librsvg).
+func SVGToPNG(svg []byte) ([]byte, error) {
+	ref, err := load(svg)
+	if err != nil {
+		return nil, err
+	}
+	defer ref.Close()
+	out, _, err := ref.ExportPng(vips.NewPngExportParams())
+	return out, err
+}

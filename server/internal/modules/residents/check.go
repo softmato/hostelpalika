@@ -8,6 +8,7 @@ import (
 
 	"github.com/softmato/hostelpalika/server/internal/modules/finance"
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
+	"github.com/softmato/hostelpalika/server/internal/platform/email"
 )
 
 // existing-residents-check.ts: the "check list" for the existing-residents list,
@@ -110,18 +111,8 @@ var (
 		"single room": "Single Sitter Room", "triple sharing": "Triple Sharing Room"}
 )
 
-// RoomTypeLabel is roomTypeLabel (packages/shared constants/room-types.ts).
-func RoomTypeLabel(roomType string) string {
-	if roomType == "" {
-		return ""
-	}
-	parts := strings.Split(roomType, " — ")
-	base := strings.ToLower(strings.TrimSpace(strings.ReplaceAll(parts[0], "_", " ")))
-	if name, ok := roomTypeKey[base]; ok {
-		return strings.Join(append([]string{name}, parts[1:]...), " — ")
-	}
-	return strings.ReplaceAll(roomType, "_", " ")
-}
+// RoomTypeLabel is roomTypeLabel; the table lives with the templates that print it.
+func RoomTypeLabel(roomType string) string { return email.RoomTypeLabel(roomType) }
 
 func SameRoomType(a, b string) bool {
 	return strings.ToLower(strings.TrimSpace(a)) == strings.ToLower(strings.TrimSpace(b))

@@ -1,0 +1,1188 @@
+[
+  {
+    "name": "contacts signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/emergency-contacts"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "contacts wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/emergency-contacts",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "contacts",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/emergency-contacts",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Emergency contacts loaded",
+        "data": {
+          "contacts": [
+            {
+              "id": "6c0000000000000000000061",
+              "isPrimary": true,
+              "name": "First",
+              "phone": "9822",
+              "relation": "Mother"
+            },
+            {
+              "id": "6c0000000000000000000060",
+              "isPrimary": false,
+              "name": "Second",
+              "phone": "9811",
+              "relation": "Aunt"
+            }
+          ],
+          "resident": {
+            "createdAt": "2026-10-31T10:35:30.681Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "no profile",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/night-status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000008:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident profile was not found for this account.",
+        "errorCode": "RESIDENT_PROFILE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "night none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/night-status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Night status loaded",
+        "data": {
+          "resident": {
+            "createdAt": "2026-10-31T10:35:30.681Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          },
+          "sos": null,
+          "status": {
+            "checkedAt": null,
+            "isCurrentNight": false,
+            "night": null,
+            "note": "",
+            "reasonCode": null,
+            "source": "RESIDENT",
+            "status": "NOT_VERIFIED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "history none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/night-status/history",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Night status history loaded",
+        "data": {
+          "nights": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "night invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/night-status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "status": "NOPE",
+        "note": 5,
+        "reasonCode": "X",
+        "source": "Y",
+        "answeredAt": "yesterday"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "answeredAt": [
+              "Invalid ISO datetime"
+            ],
+            "note": [
+              "Invalid input: expected string, received number"
+            ],
+            "reasonCode": [
+              "Invalid option: expected one of \"HOME\"|\"FRIENDS\"|\"TRAVELLING\"|\"WORKING_LATE\"|\"HOSPITAL\"|\"OTHER\""
+            ],
+            "source": [
+              "Invalid option: expected one of \"APP\"|\"PUSH_ACTION\"|\"WEB\""
+            ],
+            "status": [
+              "Invalid option: expected one of \"INSIDE_HOSTEL\"|\"OUTSIDE_HOSTEL\"|\"NOT_VERIFIED\"|\"MARKED_SAFE\"|\"SOS_TRIGGERED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid ISO datetime",
+              "path": "answeredAt"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "note"
+            },
+            {
+              "message": "Invalid option: expected one of \"HOME\"|\"FRIENDS\"|\"TRAVELLING\"|\"WORKING_LATE\"|\"HOSPITAL\"|\"OTHER\"",
+              "path": "reasonCode"
+            },
+            {
+              "message": "Invalid option: expected one of \"APP\"|\"PUSH_ACTION\"|\"WEB\"",
+              "path": "source"
+            },
+            {
+              "message": "Invalid option: expected one of \"INSIDE_HOSTEL\"|\"OUTSIDE_HOSTEL\"|\"NOT_VERIFIED\"|\"MARKED_SAFE\"|\"SOS_TRIGGERED\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "night stale answeredAt",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/night-status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "status": "INSIDE_HOSTEL",
+        "answeredAt": "2020-01-01T10:00:00.000Z"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Night status updated",
+        "data": {
+          "resident": {
+            "createdAt": "2026-10-31T10:35:30.681Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          },
+          "status": {
+            "checkedAt": null,
+            "isCurrentNight": false,
+            "night": null,
+            "note": "",
+            "reasonCode": null,
+            "source": "RESIDENT",
+            "status": "NOT_VERIFIED"
+          },
+          "superseded": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "night save",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/night-status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "status": "OUTSIDE_HOSTEL",
+        "note": "  at home ",
+        "reasonCode": "HOME",
+        "source": "APP"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.status.checkedAt",
+      "data.status.id",
+      "data.status.updatedAt",
+      "data.status.night"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Night status updated",
+        "data": {
+          "resident": {
+            "createdAt": "2026-10-31T10:35:30.681Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          },
+          "status": {
+            "checkedAt": "2026-11-01T10:35:32.048Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae715f42674f0823c8e8fda",
+            "isCurrentNight": true,
+            "night": "2026-10-31",
+            "note": "at home",
+            "reasonCode": "HOME",
+            "residentId": "6c00000000000000000000c1",
+            "source": "RESIDENT",
+            "status": "OUTSIDE_HOSTEL",
+            "updatedAt": "2026-11-01T10:35:32.053Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "night get",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/night-status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.status.checkedAt",
+      "data.status.id",
+      "data.status.updatedAt",
+      "data.status.night"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Night status loaded",
+        "data": {
+          "resident": {
+            "createdAt": "2026-10-31T10:35:30.681Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          },
+          "sos": null,
+          "status": {
+            "checkedAt": "2026-11-01T10:35:32.048Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae715f42674f0823c8e8fda",
+            "isCurrentNight": true,
+            "night": "2026-10-31",
+            "note": "at home",
+            "reasonCode": "HOME",
+            "residentId": "6c00000000000000000000c1",
+            "source": "RESIDENT",
+            "status": "OUTSIDE_HOSTEL",
+            "updatedAt": "2026-11-01T10:35:32.053Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "night save no note",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/night-status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "status": "INSIDE_HOSTEL"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.status.checkedAt",
+      "data.status.id",
+      "data.status.updatedAt",
+      "data.status.night"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Night status updated",
+        "data": {
+          "resident": {
+            "createdAt": "2026-10-31T10:35:30.681Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          },
+          "status": {
+            "checkedAt": "2026-11-01T10:35:32.174Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae715f42674f0823c8e8fda",
+            "isCurrentNight": true,
+            "night": "2026-10-31",
+            "note": "",
+            "reasonCode": null,
+            "residentId": "6c00000000000000000000c1",
+            "source": "RESIDENT",
+            "status": "INSIDE_HOSTEL",
+            "updatedAt": "2026-11-01T10:35:32.178Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "history",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/night-status/history",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.nights.*.answeredAt",
+      "data.nights.*.night"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Night status history loaded",
+        "data": {
+          "nights": [
+            {
+              "answeredAt": "2026-11-01T10:35:32.186Z",
+              "changes": 2,
+              "night": "2026-10-31",
+              "note": null,
+              "reasonCode": null,
+              "source": "RESIDENT",
+              "status": "INSIDE_HOSTEL"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "answer bad token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/night-status/answer",
+      "headers": {
+        "authorization": "Bearer nope"
+      },
+      "body": {
+        "status": "INSIDE_HOSTEL"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This answer link is not valid.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "answer no token",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/night-status/answer",
+      "body": {
+        "status": "INSIDE_HOSTEL"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This answer link is not valid.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "answer stale",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/night-status/answer",
+      "headers": {
+        "authorization": "Bearer {{nightanswer:6c0000000000000000000007:6c00000000000000000000a1:2020-01-01}}"
+      },
+      "body": {
+        "status": "INSIDE_HOSTEL"
+      }
+    },
+    "response": {
+      "status": 410,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That question was for an earlier night.",
+        "errorCode": "NIGHT_STATUS_ANSWER_STALE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "answer wrong status",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/night-status/answer",
+      "headers": {
+        "authorization": "Bearer {{nightanswer:6c0000000000000000000007:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "status": "MARKED_SAFE"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "status": [
+              "Invalid option: expected one of \"INSIDE_HOSTEL\"|\"OUTSIDE_HOSTEL\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"INSIDE_HOSTEL\"|\"OUTSIDE_HOSTEL\"",
+              "path": "status"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "answer",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/night-status/answer",
+      "headers": {
+        "authorization": "Bearer {{nightanswer:6c0000000000000000000007:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "status": "OUTSIDE_HOSTEL",
+        "reasonCode": "FRIENDS"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.status.checkedAt",
+      "data.status.id",
+      "data.status.updatedAt",
+      "data.status.night"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Night status updated",
+        "data": {
+          "resident": {
+            "createdAt": "2026-10-31T10:35:30.681Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          },
+          "status": {
+            "checkedAt": "2026-11-01T10:35:32.318Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae715f42674f0823c8e8fda",
+            "isCurrentNight": true,
+            "night": "2026-10-31",
+            "note": "",
+            "reasonCode": "FRIENDS",
+            "residentId": "6c00000000000000000000c1",
+            "source": "RESIDENT",
+            "status": "OUTSIDE_HOSTEL",
+            "updatedAt": "2026-11-01T10:35:32.322Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "answer foreign hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/night-status/answer",
+      "headers": {
+        "authorization": "Bearer {{nightanswer:6c0000000000000000000007:6c00000000000000000000a2}}"
+      },
+      "body": {
+        "status": "INSIDE_HOSTEL"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident profile was not found for this account.",
+        "errorCode": "RESIDENT_PROFILE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "bell settled",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=action",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 0,
+          "notifications": [],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 0,
+            "totalPages": 0
+          },
+          "unreadCount": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "owl answers",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/night-status",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e7:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "status": "MARKED_SAFE"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.status.checkedAt",
+      "data.status.id",
+      "data.status.updatedAt",
+      "data.status.night"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Night status updated",
+        "data": {
+          "resident": {
+            "createdAt": "2026-11-01T10:35:30.681Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Night",
+            "fullName": "Night Owl",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000e8",
+            "image": null,
+            "lastName": "Owl",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000077",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c00000000000000000000e7"
+          },
+          "status": {
+            "checkedAt": "2026-11-01T10:35:32.427Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae715f42674f0823c8e8fdb",
+            "isCurrentNight": true,
+            "night": "2026-10-31",
+            "note": "",
+            "reasonCode": null,
+            "residentId": "6c00000000000000000000e8",
+            "source": "RESIDENT",
+            "status": "MARKED_SAFE",
+            "updatedAt": "2026-11-01T10:35:32.431Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "owl's row carries the answer",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e7:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.createdAt",
+      "data.notifications.*.readAt",
+      "data.notifications.*.actionTakenAt",
+      "data.notifications.*.data.night"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 0,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "COMPLETED",
+              "actionTakenAt": "2026-11-01T10:35:32.446Z",
+              "actionTakenKey": "MARKED_SAFE",
+              "body": "Answer",
+              "category": "NIGHT_STATUS",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:35:30.681Z",
+              "data": {
+                "night": "2026-10-31",
+                "answer": {
+                  "note": null,
+                  "reasonCode": null,
+                  "status": "MARKED_SAFE"
+                }
+              },
+              "id": "6c0000000000000000000096",
+              "isRead": true,
+              "kind": "ACTION",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "readAt": "2026-11-01T10:35:32.446Z",
+              "status": "SENT",
+              "title": "Tonight?",
+              "userId": "6c00000000000000000000e7"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 1,
+            "totalPages": 1
+          },
+          "unreadCount": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "sos list empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/sos",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "SOS alerts",
+        "data": {
+          "alerts": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "sos invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/sos",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "guardianAlertEnabled": "yes",
+        "message": 3
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "guardianAlertEnabled": [
+              "Invalid input: expected boolean, received string"
+            ],
+            "message": [
+              "Invalid input: expected string, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "guardianAlertEnabled"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "message"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "sos",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/sos",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "guardianAlertEnabled": true,
+        "message": " help "
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.alert.id",
+      "data.alert.createdAt",
+      "data.alert.updatedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "SOS alert triggered",
+        "data": {
+          "alert": {
+            "createdAt": "2026-11-01T10:35:32.580Z",
+            "guardianAlertEnabled": true,
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae715f4e6822539292ba499",
+            "message": "help",
+            "residentId": "6c00000000000000000000c1",
+            "status": "ACTIVE",
+            "triggeredBy": "6c0000000000000000000007",
+            "updatedAt": "2026-11-01T10:35:32.580Z"
+          },
+          "notified": {
+            "guardians": 3,
+            "staff": 1
+          },
+          "resident": {
+            "createdAt": "2026-10-31T10:35:30.681Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "sos list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/sos",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.alerts.*.id",
+      "data.alerts.*.createdAt",
+      "data.alerts.*.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "SOS alerts",
+        "data": {
+          "alerts": [
+            {
+              "createdAt": "2026-11-01T10:35:32.580Z",
+              "guardianAlertEnabled": true,
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae715f4e6822539292ba499",
+              "message": "help",
+              "residentId": "6c00000000000000000000c1",
+              "status": "ACTIVE",
+              "triggeredBy": "6c0000000000000000000007",
+              "updatedAt": "2026-11-01T10:35:32.580Z"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "night after sos",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/night-status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.status.checkedAt",
+      "data.status.id",
+      "data.status.updatedAt",
+      "data.status.night",
+      "data.sos.id",
+      "data.sos.createdAt",
+      "data.sos.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Night status loaded",
+        "data": {
+          "resident": {
+            "createdAt": "2026-10-31T10:35:30.681Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          },
+          "sos": {
+            "createdAt": "2026-11-01T10:35:32.580Z",
+            "guardianAlertEnabled": true,
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae715f4e6822539292ba499",
+            "message": "help",
+            "residentId": "6c00000000000000000000c1",
+            "status": "ACTIVE",
+            "triggeredBy": "6c0000000000000000000007",
+            "updatedAt": "2026-11-01T10:35:32.580Z"
+          },
+          "status": {
+            "checkedAt": "2026-11-01T10:35:32.605Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae715f42674f0823c8e8fda",
+            "isCurrentNight": true,
+            "night": "2026-10-31",
+            "note": "SOS alert triggered.",
+            "reasonCode": null,
+            "residentId": "6c00000000000000000000c1",
+            "source": "SOS",
+            "status": "SOS_TRIGGERED",
+            "updatedAt": "2026-11-01T10:35:32.614Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "admin got the row",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=action",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt",
+      "data.notifications.*.data.alertId"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/hostel-admin/sos-alerts",
+              "body": "Res Ident raised an emergency SOS. Respond immediately.",
+              "category": "SOS",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:35:32.693Z",
+              "data": {
+                "alertId": "6ae715f4e6822539292ba499",
+                "priority": "URGENT"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae715f4e6822539292ba49d",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "URGENT",
+              "status": "SENT",
+              "title": "🚨 Emergency SOS",
+              "userId": "6c0000000000000000000005"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 1,
+            "totalPages": 1
+          },
+          "unreadCount": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

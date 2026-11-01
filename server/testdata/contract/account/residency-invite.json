@@ -1,0 +1,270 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/residency-invite"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "no invite",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/residency-invite",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invite loaded",
+        "data": {
+          "invite": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "not public",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/residency-invite",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invite loaded",
+        "data": {
+          "invite": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invite",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/residency-invite",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000026:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invite loaded",
+        "data": {
+          "invite": {
+            "dueAmount": 0,
+            "firstName": "In",
+            "hostelName": "Contract Hostel",
+            "paidTill": "Bhadra 2083",
+            "residentId": "6c0000000000000000000025",
+            "roomType": "SINGLE"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "accept bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/residency-invite/x/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000026:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invite was not found.",
+        "errorCode": "RESIDENCY_INVITE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "accept not for you",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/residency-invite/6c0000000000000000000025/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Sign in with the email your hostel has for you.",
+        "errorCode": "RESIDENCY_INVITE_NOT_FOR_YOU"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "accept other address",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/residency-invite/6c0000000000000000000025/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invite is no longer open. Ask your hostel if this is a mistake.",
+        "errorCode": "RESIDENCY_INVITE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "decline",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/residency-invite/6c0000000000000000000025/decline",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000026:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Noted",
+        "data": {
+          "declined": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invite gone",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/residency-invite",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000026:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invite loaded",
+        "data": {
+          "invite": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "admin told",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/hostel-admin/residents",
+              "body": "Someone signed in with invitee@contract.test and said they are not In Vitee. Check the email on their record.",
+              "category": "RESIDENT",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:25:04.732Z",
+              "data": {
+                "residentId": "6c0000000000000000000025"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae71380e6822539292ba47e",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Check In Vitee's email",
+              "userId": "6c0000000000000000000005"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Admin",
+              "category": "NOTICE",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:24:51.828Z",
+              "data": {},
+              "id": "6c0000000000000000000094",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Not yours",
+              "userId": "6c0000000000000000000005"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 2,
+            "totalPages": 1
+          },
+          "unreadCount": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

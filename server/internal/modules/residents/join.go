@@ -849,7 +849,9 @@ func (p *Public) sendJoinRequest(ctx context.Context, token string, in joinIn, u
 			doc = append(doc, bson.E{Key: "status", Value: "PENDING"}, bson.E{Key: "rejectReason", Value: ""}, bson.E{Key: "sends", Value: 1}, bson.E{Key: "sentAt", Value: now},
 				bson.E{Key: "decidedAt", Value: nil}, bson.E{Key: "residentId", Value: nil}, bson.E{Key: "createdAt", Value: now}, bson.E{Key: "updatedAt", Value: now}, bson.E{Key: "__v", Value: 0})
 			if _, err := apps.InsertOne(ctx, doc); err != nil {
-				_, _ = p.DB.Collection("residentjoinlinks").UpdateOne(ctx, bson.D{{Key: "_id", Value: link.ID}}, bson.D{{Key: "$inc", Value: bson.D{{Key: "used", Value: -1}}}})
+				if _, undo := p.DB.Collection("residentjoinlinks").UpdateOne(ctx, bson.D{{Key: "_id", Value: link.ID}}, bson.D{{Key: "$inc", Value: bson.D{{Key: "used", Value: -1}}}}); undo != nil {
+					slog.ErrorContext(ctx, "join link undo failed; one use stays spent", "link", link.ID.Hex(), "error", undo)
+				}
 				if !mongo.IsDuplicateKeyError(err) {
 					return err
 				}

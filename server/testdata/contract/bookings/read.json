@@ -1,0 +1,2388 @@
+[
+  {
+    "name": "quote signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=fixture-lakeside-hostel-baneshwor\u0026roomType=Single"
+    },
+    "capture": {
+      "pv": "data.quote.policyVersion"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking quote",
+        "data": {
+          "quote": {
+            "available": true,
+            "fee": 1050,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+              "hostelType": "BOYS",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "openBooking": null,
+            "payment": {
+              "checkHours": 24,
+              "qrReady": true,
+              "unpaidWindowHours": 24
+            },
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 24,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 788,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 525,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 263,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "policyVersion": "d278844cbbafa668",
+            "reason": null,
+            "reasonMessage": null,
+            "room": {
+              "bedsPerRoom": 1,
+              "bookable": true,
+              "dailyRate": 1000,
+              "fee": 1050,
+              "mealInclusion": "Optional",
+              "monthlyRent": 15000,
+              "photos": [
+                "https://cdn.contract.test/room.webp"
+              ],
+              "reason": null,
+              "roomType": "Single",
+              "vacantBeds": 1
+            },
+            "shortStay": {
+              "available": true,
+              "dailyRate": 1000,
+              "error": null,
+              "limits": {
+                "maxAdvanceDays": 60,
+                "maxNights": 29,
+                "minNights": 2
+              },
+              "quote": null
+            },
+            "terms": {
+              "feePercent": 7,
+              "holdDays": 7,
+              "hostelAnswerHours": 24
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote no hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?roomType=Single"
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote hidden hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=nope\u0026roomType=Single"
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote no room",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=fixture-lakeside-hostel-baneshwor\u0026roomType=Penthouse"
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel does not have that room type.",
+        "errorCode": "ROOM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote full room",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=fixture-lakeside-hostel-baneshwor\u0026roomType=Double"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking quote",
+        "data": {
+          "quote": {
+            "available": false,
+            "fee": 630,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+              "hostelType": "BOYS",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "openBooking": null,
+            "payment": {
+              "checkHours": 24,
+              "qrReady": true,
+              "unpaidWindowHours": 24
+            },
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 24,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 473,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 315,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 158,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "policyVersion": "d278844cbbafa668",
+            "reason": "FULL",
+            "reasonMessage": "This room type is full.",
+            "room": {
+              "bedsPerRoom": 2,
+              "bookable": false,
+              "dailyRate": null,
+              "fee": 630,
+              "mealInclusion": null,
+              "monthlyRent": 9000,
+              "photos": [],
+              "reason": "FULL",
+              "roomType": "Double",
+              "vacantBeds": 0
+            },
+            "shortStay": {
+              "available": false,
+              "dailyRate": null,
+              "error": null,
+              "limits": {
+                "maxAdvanceDays": 60,
+                "maxNights": 29,
+                "minNights": 2
+              },
+              "quote": null
+            },
+            "terms": {
+              "feePercent": 7,
+              "holdDays": 7,
+              "hostelAnswerHours": 24
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote unlisted room",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=budget-fixture-hostel-kalanki\u0026roomType=Single"
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel does not have that room type.",
+        "errorCode": "ROOM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote signed in with open",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=fixture-lakeside-hostel-baneshwor\u0026roomType=Single",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking quote",
+        "data": {
+          "quote": {
+            "available": true,
+            "fee": 1050,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+              "hostelType": "BOYS",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "openBooking": {
+              "code": "BK-01TEST",
+              "hostelName": "Fixture Lakeside Hostel",
+              "id": "6b0000000000000000000001"
+            },
+            "payment": {
+              "checkHours": 24,
+              "qrReady": true,
+              "unpaidWindowHours": 24
+            },
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 24,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 788,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 525,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 263,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "policyVersion": "d278844cbbafa668",
+            "reason": null,
+            "reasonMessage": null,
+            "room": {
+              "bedsPerRoom": 1,
+              "bookable": true,
+              "dailyRate": 1000,
+              "fee": 1050,
+              "mealInclusion": "Optional",
+              "monthlyRent": 15000,
+              "photos": [
+                "https://cdn.contract.test/room.webp"
+              ],
+              "reason": null,
+              "roomType": "Single",
+              "vacantBeds": 1
+            },
+            "shortStay": {
+              "available": true,
+              "dailyRate": 1000,
+              "error": null,
+              "limits": {
+                "maxAdvanceDays": 60,
+                "maxNights": 29,
+                "minNights": 2
+              },
+              "quote": null
+            },
+            "terms": {
+              "feePercent": 7,
+              "holdDays": 7,
+              "hostelAnswerHours": 24
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote stay ok",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=fixture-lakeside-hostel-baneshwor\u0026roomType=Single\u0026moveIn={{today:3}}\u0026moveOut={{today:6}}"
+    },
+    "masks": [
+      "data.quote.shortStay.quote.moveIn",
+      "data.quote.shortStay.quote.moveOut"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking quote",
+        "data": {
+          "quote": {
+            "available": true,
+            "fee": 1050,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+              "hostelType": "BOYS",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "openBooking": null,
+            "payment": {
+              "checkHours": 24,
+              "qrReady": true,
+              "unpaidWindowHours": 24
+            },
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 24,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 788,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 525,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 263,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "policyVersion": "d278844cbbafa668",
+            "reason": null,
+            "reasonMessage": null,
+            "room": {
+              "bedsPerRoom": 1,
+              "bookable": true,
+              "dailyRate": 1000,
+              "fee": 1050,
+              "mealInclusion": "Optional",
+              "monthlyRent": 15000,
+              "photos": [
+                "https://cdn.contract.test/room.webp"
+              ],
+              "reason": null,
+              "roomType": "Single",
+              "vacantBeds": 1
+            },
+            "shortStay": {
+              "available": true,
+              "dailyRate": 1000,
+              "error": null,
+              "limits": {
+                "maxAdvanceDays": 60,
+                "maxNights": 29,
+                "minNights": 2
+              },
+              "quote": {
+                "fee": 1050,
+                "holdBlocks": 1,
+                "moveIn": "2026-11-04",
+                "moveOut": "2026-11-07",
+                "nights": 3,
+                "stayAmount": 3000,
+                "total": 4050
+              }
+            },
+            "terms": {
+              "feePercent": 7,
+              "holdDays": 7,
+              "hostelAnswerHours": 24
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote stay long ahead",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=fixture-lakeside-hostel-baneshwor\u0026roomType=Single\u0026moveIn={{today:12}}\u0026moveOut={{today:15}}"
+    },
+    "masks": [
+      "data.quote.shortStay.quote.moveIn",
+      "data.quote.shortStay.quote.moveOut"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking quote",
+        "data": {
+          "quote": {
+            "available": true,
+            "fee": 1050,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+              "hostelType": "BOYS",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "openBooking": null,
+            "payment": {
+              "checkHours": 24,
+              "qrReady": true,
+              "unpaidWindowHours": 24
+            },
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 24,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 788,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 525,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 263,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "policyVersion": "d278844cbbafa668",
+            "reason": null,
+            "reasonMessage": null,
+            "room": {
+              "bedsPerRoom": 1,
+              "bookable": true,
+              "dailyRate": 1000,
+              "fee": 1050,
+              "mealInclusion": "Optional",
+              "monthlyRent": 15000,
+              "photos": [
+                "https://cdn.contract.test/room.webp"
+              ],
+              "reason": null,
+              "roomType": "Single",
+              "vacantBeds": 1
+            },
+            "shortStay": {
+              "available": true,
+              "dailyRate": 1000,
+              "error": null,
+              "limits": {
+                "maxAdvanceDays": 60,
+                "maxNights": 29,
+                "minNights": 2
+              },
+              "quote": {
+                "fee": 2100,
+                "holdBlocks": 2,
+                "moveIn": "2026-11-13",
+                "moveOut": "2026-11-16",
+                "nights": 3,
+                "stayAmount": 3000,
+                "total": 5100
+              }
+            },
+            "terms": {
+              "feePercent": 7,
+              "holdDays": 7,
+              "hostelAnswerHours": 24
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote stay short",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=fixture-lakeside-hostel-baneshwor\u0026roomType=Single\u0026moveIn={{today:3}}\u0026moveOut={{today:4}}"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking quote",
+        "data": {
+          "quote": {
+            "available": true,
+            "fee": 1050,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+              "hostelType": "BOYS",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "openBooking": null,
+            "payment": {
+              "checkHours": 24,
+              "qrReady": true,
+              "unpaidWindowHours": 24
+            },
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 24,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 788,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 525,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 263,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "policyVersion": "d278844cbbafa668",
+            "reason": null,
+            "reasonMessage": null,
+            "room": {
+              "bedsPerRoom": 1,
+              "bookable": true,
+              "dailyRate": 1000,
+              "fee": 1050,
+              "mealInclusion": "Optional",
+              "monthlyRent": 15000,
+              "photos": [
+                "https://cdn.contract.test/room.webp"
+              ],
+              "reason": null,
+              "roomType": "Single",
+              "vacantBeds": 1
+            },
+            "shortStay": {
+              "available": true,
+              "dailyRate": 1000,
+              "error": {
+                "code": "SHORT_STAY_TOO_SHORT",
+                "message": "This hostel takes stays of at least 2 nights."
+              },
+              "limits": {
+                "maxAdvanceDays": 60,
+                "maxNights": 29,
+                "minNights": 2
+              },
+              "quote": null
+            },
+            "terms": {
+              "feePercent": 7,
+              "holdDays": 7,
+              "hostelAnswerHours": 24
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote stay bad dates",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=fixture-lakeside-hostel-baneshwor\u0026roomType=Single\u0026moveIn=nope\u0026moveOut={{today:4}}"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking quote",
+        "data": {
+          "quote": {
+            "available": true,
+            "fee": 1050,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+              "hostelType": "BOYS",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "openBooking": null,
+            "payment": {
+              "checkHours": 24,
+              "qrReady": true,
+              "unpaidWindowHours": 24
+            },
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 24,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 788,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 525,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 263,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "policyVersion": "d278844cbbafa668",
+            "reason": null,
+            "reasonMessage": null,
+            "room": {
+              "bedsPerRoom": 1,
+              "bookable": true,
+              "dailyRate": 1000,
+              "fee": 1050,
+              "mealInclusion": "Optional",
+              "monthlyRent": 15000,
+              "photos": [
+                "https://cdn.contract.test/room.webp"
+              ],
+              "reason": null,
+              "roomType": "Single",
+              "vacantBeds": 1
+            },
+            "shortStay": {
+              "available": true,
+              "dailyRate": 1000,
+              "error": {
+                "code": "SHORT_STAY_DATES_INVALID",
+                "message": "Pick a move-in date and a later move-out date."
+              },
+              "limits": {
+                "maxAdvanceDays": 60,
+                "maxNights": 29,
+                "minNights": 2
+              },
+              "quote": null
+            },
+            "terms": {
+              "feePercent": 7,
+              "holdDays": 7,
+              "hostelAnswerHours": 24
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote stay past",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=fixture-lakeside-hostel-baneshwor\u0026roomType=Single\u0026moveIn={{today:-3}}\u0026moveOut={{today:4}}"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking quote",
+        "data": {
+          "quote": {
+            "available": true,
+            "fee": 1050,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+              "hostelType": "BOYS",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "openBooking": null,
+            "payment": {
+              "checkHours": 24,
+              "qrReady": true,
+              "unpaidWindowHours": 24
+            },
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 24,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 788,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 525,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 263,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "policyVersion": "d278844cbbafa668",
+            "reason": null,
+            "reasonMessage": null,
+            "room": {
+              "bedsPerRoom": 1,
+              "bookable": true,
+              "dailyRate": 1000,
+              "fee": 1050,
+              "mealInclusion": "Optional",
+              "monthlyRent": 15000,
+              "photos": [
+                "https://cdn.contract.test/room.webp"
+              ],
+              "reason": null,
+              "roomType": "Single",
+              "vacantBeds": 1
+            },
+            "shortStay": {
+              "available": true,
+              "dailyRate": 1000,
+              "error": {
+                "code": "SHORT_STAY_DATES_INVALID",
+                "message": "Pick a move-in date between today and 60 days from now."
+              },
+              "limits": {
+                "maxAdvanceDays": 60,
+                "maxNights": 29,
+                "minNights": 2
+              },
+              "quote": null
+            },
+            "terms": {
+              "feePercent": 7,
+              "holdDays": 7,
+              "hostelAnswerHours": 24
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote stay too far",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=fixture-lakeside-hostel-baneshwor\u0026roomType=Single\u0026moveIn={{today:300}}\u0026moveOut={{today:303}}"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking quote",
+        "data": {
+          "quote": {
+            "available": true,
+            "fee": 1050,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+              "hostelType": "BOYS",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "openBooking": null,
+            "payment": {
+              "checkHours": 24,
+              "qrReady": true,
+              "unpaidWindowHours": 24
+            },
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 24,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 788,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 525,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 263,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "policyVersion": "d278844cbbafa668",
+            "reason": null,
+            "reasonMessage": null,
+            "room": {
+              "bedsPerRoom": 1,
+              "bookable": true,
+              "dailyRate": 1000,
+              "fee": 1050,
+              "mealInclusion": "Optional",
+              "monthlyRent": 15000,
+              "photos": [
+                "https://cdn.contract.test/room.webp"
+              ],
+              "reason": null,
+              "roomType": "Single",
+              "vacantBeds": 1
+            },
+            "shortStay": {
+              "available": true,
+              "dailyRate": 1000,
+              "error": {
+                "code": "SHORT_STAY_DATES_INVALID",
+                "message": "Pick a move-in date between today and 60 days from now."
+              },
+              "limits": {
+                "maxAdvanceDays": 60,
+                "maxNights": 29,
+                "minNights": 2
+              },
+              "quote": null
+            },
+            "terms": {
+              "feePercent": 7,
+              "holdDays": 7,
+              "hostelAnswerHours": 24
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote stay too long",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=fixture-lakeside-hostel-baneshwor\u0026roomType=Single\u0026moveIn={{today:3}}\u0026moveOut={{today:300}}"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking quote",
+        "data": {
+          "quote": {
+            "available": true,
+            "fee": 1050,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+              "hostelType": "BOYS",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "openBooking": null,
+            "payment": {
+              "checkHours": 24,
+              "qrReady": true,
+              "unpaidWindowHours": 24
+            },
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 24,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 788,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 525,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 263,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "policyVersion": "d278844cbbafa668",
+            "reason": null,
+            "reasonMessage": null,
+            "room": {
+              "bedsPerRoom": 1,
+              "bookable": true,
+              "dailyRate": 1000,
+              "fee": 1050,
+              "mealInclusion": "Optional",
+              "monthlyRent": 15000,
+              "photos": [
+                "https://cdn.contract.test/room.webp"
+              ],
+              "reason": null,
+              "roomType": "Single",
+              "vacantBeds": 1
+            },
+            "shortStay": {
+              "available": true,
+              "dailyRate": 1000,
+              "error": {
+                "code": "SHORT_STAY_TOO_LONG",
+                "message": "A short stay is at most 29 nights. Book monthly for longer."
+              },
+              "limits": {
+                "maxAdvanceDays": 60,
+                "maxNights": 29,
+                "minNights": 2
+              },
+              "quote": null
+            },
+            "terms": {
+              "feePercent": 7,
+              "holdDays": 7,
+              "hostelAnswerHours": 24
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "list anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "list none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Your bookings",
+        "data": {
+          "bookings": []
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "list one",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000009:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.bookings.*.createdAt",
+      "data.bookings.*.holdEndsAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Your bookings",
+        "data": {
+          "bookings": [
+            {
+              "code": "BK-09TEST",
+              "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+              "createdAt": "2026-10-30T15:16:51.783Z",
+              "fee": 1500,
+              "holdEndsAt": null,
+              "hostelName": "Fixture Lakeside Hostel",
+              "id": "6b0000000000000000000009",
+              "roomType": "Single",
+              "status": "CANCELLED_BY_USER",
+              "statusLabel": "Cancelled"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "detail anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/6b0000000000000000000001"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "detail bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Booking not found.",
+        "errorCode": "BOOKING_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "detail not mine",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/6b0000000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000005:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Booking not found.",
+        "errorCode": "BOOKING_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "detail pending",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/6b0000000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.booking.createdAt",
+      "data.booking.paymentDueBy",
+      "data.booking.hostelAnswerBy",
+      "data.booking.holdEndsAt",
+      "data.booking.confirmedAt",
+      "data.booking.paymentVerifiedAt",
+      "data.booking.paymentSubmittedAt",
+      "data.booking.endedAt",
+      "data.booking.schedule.noShow.after",
+      "data.booking.schedule.steps.*.until",
+      "data.booking.refund.sentAt",
+      "data.booking.plannedMoveIn",
+      "data.booking.stay.moveIn",
+      "data.booking.stay.moveOut",
+      "data.booking.stay.dates",
+      "data.booking.pay.payBy"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking",
+        "data": {
+          "booking": {
+            "cancel": {
+              "allowed": true,
+              "refund": 0,
+              "refundPercent": 0
+            },
+            "checkedInAt": null,
+            "code": "BK-01TEST",
+            "confirmedAt": null,
+            "createdAt": "2026-10-30T15:16:51.783Z",
+            "currency": "NPR",
+            "endReason": null,
+            "endedAt": null,
+            "fee": 1500,
+            "holdEndsAt": null,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "hostelAnswerBy": null,
+            "id": "6b0000000000000000000001",
+            "invoiceNumber": "HH-BKI-2083-84-000001",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "paymentDueBy": "2026-11-01T21:16:51.783Z",
+            "paymentRejection": null,
+            "paymentSubmittedAt": null,
+            "paymentVerifiedAt": null,
+            "plannedMoveIn": null,
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 48,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 1125,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 750,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 375,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "receiptNumber": null,
+            "refund": null,
+            "refundAccount": {
+              "holderName": "Guest Holder",
+              "maskedNumber": "••••4321",
+              "method": "ESEWA",
+              "methodLabel": "eSewa"
+            },
+            "roomType": "Single",
+            "schedule": null,
+            "settlement": null,
+            "status": "AWAITING_PAYMENT",
+            "statusLabel": "Waiting for payment",
+            "stay": null,
+            "total": 1500,
+            "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+            "pay": {
+              "amount": 1500,
+              "checkHours": 24,
+              "payBy": "2026-11-01T21:16:51.783Z",
+              "qr": {
+                "label": "Scan to pay",
+                "url": "https://cdn.contract.test/qr.png"
+              },
+              "reference": "BK-01TEST"
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "detail lapsed",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/6b0000000000000000000002",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000002:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.booking.createdAt",
+      "data.booking.paymentDueBy",
+      "data.booking.hostelAnswerBy",
+      "data.booking.holdEndsAt",
+      "data.booking.confirmedAt",
+      "data.booking.paymentVerifiedAt",
+      "data.booking.paymentSubmittedAt",
+      "data.booking.endedAt",
+      "data.booking.schedule.noShow.after",
+      "data.booking.schedule.steps.*.until",
+      "data.booking.refund.sentAt",
+      "data.booking.plannedMoveIn",
+      "data.booking.stay.moveIn",
+      "data.booking.stay.moveOut",
+      "data.booking.stay.dates",
+      "data.booking.pay.payBy"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking",
+        "data": {
+          "booking": {
+            "cancel": {
+              "allowed": false,
+              "refund": 0,
+              "refundPercent": 0
+            },
+            "checkedInAt": null,
+            "code": "BK-02TEST",
+            "confirmedAt": null,
+            "createdAt": "2026-10-30T15:16:51.783Z",
+            "currency": "NPR",
+            "endReason": "No payment arrived in time.",
+            "endedAt": "2026-11-01T15:16:54.478Z",
+            "fee": 1500,
+            "holdEndsAt": null,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "hostelAnswerBy": null,
+            "id": "6b0000000000000000000002",
+            "invoiceNumber": "HH-BKI-2083-84-000002",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "paymentDueBy": "2026-11-01T14:16:51.783Z",
+            "paymentRejection": null,
+            "paymentSubmittedAt": null,
+            "paymentVerifiedAt": null,
+            "plannedMoveIn": null,
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 48,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 1125,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 750,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 375,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "receiptNumber": null,
+            "refund": null,
+            "refundAccount": {
+              "holderName": "Guest Holder",
+              "maskedNumber": "••••4321",
+              "method": "ESEWA",
+              "methodLabel": "eSewa"
+            },
+            "roomType": "Single",
+            "schedule": null,
+            "settlement": null,
+            "status": "EXPIRED",
+            "statusLabel": "Not paid in time",
+            "stay": null,
+            "total": 1500,
+            "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+            "pay": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "detail lapsed again",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/6b0000000000000000000002",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000002:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.booking.createdAt",
+      "data.booking.paymentDueBy",
+      "data.booking.hostelAnswerBy",
+      "data.booking.holdEndsAt",
+      "data.booking.confirmedAt",
+      "data.booking.paymentVerifiedAt",
+      "data.booking.paymentSubmittedAt",
+      "data.booking.endedAt",
+      "data.booking.schedule.noShow.after",
+      "data.booking.schedule.steps.*.until",
+      "data.booking.refund.sentAt",
+      "data.booking.plannedMoveIn",
+      "data.booking.stay.moveIn",
+      "data.booking.stay.moveOut",
+      "data.booking.stay.dates",
+      "data.booking.pay.payBy"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking",
+        "data": {
+          "booking": {
+            "cancel": {
+              "allowed": false,
+              "refund": 0,
+              "refundPercent": 0
+            },
+            "checkedInAt": null,
+            "code": "BK-02TEST",
+            "confirmedAt": null,
+            "createdAt": "2026-10-30T15:16:51.783Z",
+            "currency": "NPR",
+            "endReason": "No payment arrived in time.",
+            "endedAt": "2026-11-01T15:16:54.478Z",
+            "fee": 1500,
+            "holdEndsAt": null,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "hostelAnswerBy": null,
+            "id": "6b0000000000000000000002",
+            "invoiceNumber": "HH-BKI-2083-84-000002",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "paymentDueBy": "2026-11-01T14:16:51.783Z",
+            "paymentRejection": null,
+            "paymentSubmittedAt": null,
+            "paymentVerifiedAt": null,
+            "plannedMoveIn": null,
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 48,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 1125,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 750,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 375,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "receiptNumber": null,
+            "refund": null,
+            "refundAccount": {
+              "holderName": "Guest Holder",
+              "maskedNumber": "••••4321",
+              "method": "ESEWA",
+              "methodLabel": "eSewa"
+            },
+            "roomType": "Single",
+            "schedule": null,
+            "settlement": null,
+            "status": "EXPIRED",
+            "statusLabel": "Not paid in time",
+            "stay": null,
+            "total": 1500,
+            "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+            "pay": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "detail review",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/6b0000000000000000000004",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000004:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.booking.createdAt",
+      "data.booking.paymentDueBy",
+      "data.booking.hostelAnswerBy",
+      "data.booking.holdEndsAt",
+      "data.booking.confirmedAt",
+      "data.booking.paymentVerifiedAt",
+      "data.booking.paymentSubmittedAt",
+      "data.booking.endedAt",
+      "data.booking.schedule.noShow.after",
+      "data.booking.schedule.steps.*.until",
+      "data.booking.refund.sentAt",
+      "data.booking.plannedMoveIn",
+      "data.booking.stay.moveIn",
+      "data.booking.stay.moveOut",
+      "data.booking.stay.dates",
+      "data.booking.pay.payBy"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking",
+        "data": {
+          "booking": {
+            "cancel": {
+              "allowed": false,
+              "refund": 0,
+              "refundPercent": 0
+            },
+            "checkedInAt": null,
+            "code": "BK-04TEST",
+            "confirmedAt": null,
+            "createdAt": "2026-10-30T15:16:51.783Z",
+            "currency": "NPR",
+            "endReason": null,
+            "endedAt": null,
+            "fee": 1500,
+            "holdEndsAt": null,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "hostelAnswerBy": null,
+            "id": "6b0000000000000000000004",
+            "invoiceNumber": "HH-BKI-2083-84-000004",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "paymentDueBy": "2026-11-01T21:16:51.783Z",
+            "paymentRejection": null,
+            "paymentSubmittedAt": "2026-11-01T14:16:51.783Z",
+            "paymentVerifiedAt": null,
+            "plannedMoveIn": null,
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 48,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 1125,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 750,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 375,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "receiptNumber": null,
+            "refund": null,
+            "refundAccount": {
+              "holderName": "Guest Holder",
+              "maskedNumber": "••••4321",
+              "method": "ESEWA",
+              "methodLabel": "eSewa"
+            },
+            "roomType": "Single",
+            "schedule": null,
+            "settlement": null,
+            "status": "PAYMENT_IN_REVIEW",
+            "statusLabel": "Checking payment",
+            "stay": null,
+            "total": 1500,
+            "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+            "pay": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "detail waiting",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/6b0000000000000000000005",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000005:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.booking.createdAt",
+      "data.booking.paymentDueBy",
+      "data.booking.hostelAnswerBy",
+      "data.booking.holdEndsAt",
+      "data.booking.confirmedAt",
+      "data.booking.paymentVerifiedAt",
+      "data.booking.paymentSubmittedAt",
+      "data.booking.endedAt",
+      "data.booking.schedule.noShow.after",
+      "data.booking.schedule.steps.*.until",
+      "data.booking.refund.sentAt",
+      "data.booking.plannedMoveIn",
+      "data.booking.stay.moveIn",
+      "data.booking.stay.moveOut",
+      "data.booking.stay.dates",
+      "data.booking.pay.payBy"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking",
+        "data": {
+          "booking": {
+            "cancel": {
+              "allowed": true,
+              "refund": 1500,
+              "refundPercent": 100
+            },
+            "checkedInAt": null,
+            "code": "BK-05TEST",
+            "confirmedAt": null,
+            "createdAt": "2026-10-30T15:16:51.783Z",
+            "currency": "NPR",
+            "endReason": null,
+            "endedAt": null,
+            "fee": 1500,
+            "holdEndsAt": null,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "hostelAnswerBy": "2026-11-02T01:16:51.783Z",
+            "id": "6b0000000000000000000005",
+            "invoiceNumber": "HH-BKI-2083-84-000005",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "paymentDueBy": "2026-11-01T21:16:51.783Z",
+            "paymentRejection": null,
+            "paymentSubmittedAt": null,
+            "paymentVerifiedAt": "2026-10-31T15:16:51.783Z",
+            "plannedMoveIn": null,
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 48,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 1125,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 750,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 375,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "receiptNumber": null,
+            "refund": null,
+            "refundAccount": {
+              "holderName": "Guest Holder",
+              "maskedNumber": "••••4321",
+              "method": "ESEWA",
+              "methodLabel": "eSewa"
+            },
+            "roomType": "Single",
+            "schedule": null,
+            "settlement": null,
+            "status": "AWAITING_HOSTEL",
+            "statusLabel": "Waiting for the hostel",
+            "stay": null,
+            "total": 1500,
+            "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+            "pay": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "detail confirmed",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/6b0000000000000000000007",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000007:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.booking.createdAt",
+      "data.booking.paymentDueBy",
+      "data.booking.hostelAnswerBy",
+      "data.booking.holdEndsAt",
+      "data.booking.confirmedAt",
+      "data.booking.paymentVerifiedAt",
+      "data.booking.paymentSubmittedAt",
+      "data.booking.endedAt",
+      "data.booking.schedule.noShow.after",
+      "data.booking.schedule.steps.*.until",
+      "data.booking.refund.sentAt",
+      "data.booking.plannedMoveIn",
+      "data.booking.stay.moveIn",
+      "data.booking.stay.moveOut",
+      "data.booking.stay.dates",
+      "data.booking.pay.payBy"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking",
+        "data": {
+          "booking": {
+            "cancel": {
+              "allowed": true,
+              "refund": 1125,
+              "refundPercent": 75
+            },
+            "checkedInAt": null,
+            "code": "BK-07TEST",
+            "confirmedAt": "2026-11-01T14:16:51.783Z",
+            "createdAt": "2026-10-30T15:16:51.783Z",
+            "currency": "NPR",
+            "endReason": null,
+            "endedAt": null,
+            "fee": 1500,
+            "holdEndsAt": "2026-11-08T14:16:51.783Z",
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "hostelAnswerBy": null,
+            "id": "6b0000000000000000000007",
+            "invoiceNumber": "HH-BKI-2083-84-000007",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "paymentDueBy": "2026-11-01T21:16:51.783Z",
+            "paymentRejection": null,
+            "paymentSubmittedAt": null,
+            "paymentVerifiedAt": "2026-10-31T15:16:51.783Z",
+            "plannedMoveIn": "2026-11-11",
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 48,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 1125,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 750,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 375,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "receiptNumber": null,
+            "refund": null,
+            "refundAccount": {
+              "holderName": "Guest Holder",
+              "maskedNumber": "••••4321",
+              "method": "ESEWA",
+              "methodLabel": "eSewa"
+            },
+            "roomType": "Single",
+            "schedule": {
+              "noShow": {
+                "after": "2026-11-08T14:16:51.783Z",
+                "refund": 0,
+                "refundPercent": 0
+              },
+              "steps": [
+                {
+                  "fromDay": 1,
+                  "refund": 1125,
+                  "refundPercent": 75,
+                  "throughDay": 2,
+                  "until": "2026-11-03T14:16:51.783Z"
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 750,
+                  "refundPercent": 50,
+                  "throughDay": 5,
+                  "until": "2026-11-06T14:16:51.783Z"
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 375,
+                  "refundPercent": 25,
+                  "throughDay": 7,
+                  "until": "2026-11-08T14:16:51.783Z"
+                }
+              ]
+            },
+            "settlement": null,
+            "status": "CONFIRMED",
+            "statusLabel": "Confirmed",
+            "stay": null,
+            "total": 1500,
+            "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+            "pay": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "detail ended",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/6b0000000000000000000009",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000009:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.booking.createdAt",
+      "data.booking.paymentDueBy",
+      "data.booking.hostelAnswerBy",
+      "data.booking.holdEndsAt",
+      "data.booking.confirmedAt",
+      "data.booking.paymentVerifiedAt",
+      "data.booking.paymentSubmittedAt",
+      "data.booking.endedAt",
+      "data.booking.schedule.noShow.after",
+      "data.booking.schedule.steps.*.until",
+      "data.booking.refund.sentAt",
+      "data.booking.plannedMoveIn",
+      "data.booking.stay.moveIn",
+      "data.booking.stay.moveOut",
+      "data.booking.stay.dates",
+      "data.booking.pay.payBy"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking",
+        "data": {
+          "booking": {
+            "cancel": {
+              "allowed": false,
+              "refund": 0,
+              "refundPercent": 0
+            },
+            "checkedInAt": null,
+            "code": "BK-09TEST",
+            "confirmedAt": "2026-10-31T19:16:51.783Z",
+            "createdAt": "2026-10-30T15:16:51.783Z",
+            "currency": "NPR",
+            "endReason": null,
+            "endedAt": "2026-11-01T05:16:51.783Z",
+            "fee": 1500,
+            "holdEndsAt": null,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "hostelAnswerBy": null,
+            "id": "6b0000000000000000000009",
+            "invoiceNumber": "HH-BKI-2083-84-000009",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "paymentDueBy": "2026-11-01T21:16:51.783Z",
+            "paymentRejection": null,
+            "paymentSubmittedAt": null,
+            "paymentVerifiedAt": "2026-10-31T15:16:51.783Z",
+            "plannedMoveIn": null,
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 48,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 1125,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 750,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 375,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "receiptNumber": "HH-BKR-2083-84-00000009",
+            "refund": {
+              "amount": 1125,
+              "documentNumber": "HH-BRF-2083-84-00000009",
+              "sentAt": "2026-11-01T13:16:51.783Z",
+              "status": "SENT",
+              "transactionId": "TX-555"
+            },
+            "refundAccount": {
+              "holderName": "Guest Holder",
+              "maskedNumber": "••••4321",
+              "method": "ESEWA",
+              "methodLabel": "eSewa"
+            },
+            "roomType": "Single",
+            "schedule": {
+              "noShow": {
+                "after": "2026-11-07T19:16:51.783Z",
+                "refund": 0,
+                "refundPercent": 0
+              },
+              "steps": [
+                {
+                  "fromDay": 1,
+                  "refund": 1125,
+                  "refundPercent": 75,
+                  "throughDay": 2,
+                  "until": "2026-11-02T19:16:51.783Z"
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 750,
+                  "refundPercent": 50,
+                  "throughDay": 5,
+                  "until": "2026-11-05T19:16:51.783Z"
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 375,
+                  "refundPercent": 25,
+                  "throughDay": 7,
+                  "until": "2026-11-07T19:16:51.783Z"
+                }
+              ]
+            },
+            "settlement": {
+              "refund": 1125,
+              "refundPercent": 75
+            },
+            "status": "CANCELLED_BY_USER",
+            "statusLabel": "Cancelled",
+            "stay": null,
+            "total": 1500,
+            "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+            "pay": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "detail stay",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/6b000000000000000000000a",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000a:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.booking.createdAt",
+      "data.booking.paymentDueBy",
+      "data.booking.hostelAnswerBy",
+      "data.booking.holdEndsAt",
+      "data.booking.confirmedAt",
+      "data.booking.paymentVerifiedAt",
+      "data.booking.paymentSubmittedAt",
+      "data.booking.endedAt",
+      "data.booking.schedule.noShow.after",
+      "data.booking.schedule.steps.*.until",
+      "data.booking.refund.sentAt",
+      "data.booking.plannedMoveIn",
+      "data.booking.stay.moveIn",
+      "data.booking.stay.moveOut",
+      "data.booking.stay.dates",
+      "data.booking.pay.payBy"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking",
+        "data": {
+          "booking": {
+            "cancel": {
+              "allowed": true,
+              "refund": 6000,
+              "refundPercent": 100
+            },
+            "checkedInAt": null,
+            "code": "BK-0aTEST",
+            "confirmedAt": null,
+            "createdAt": "2026-10-30T15:16:51.783Z",
+            "currency": "NPR",
+            "endReason": null,
+            "endedAt": null,
+            "fee": 3000,
+            "holdEndsAt": null,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "hostelAnswerBy": "2026-11-02T01:16:51.783Z",
+            "id": "6b000000000000000000000a",
+            "invoiceNumber": "HH-BKI-2083-84-00000a",
+            "kind": "SHORT_STAY",
+            "monthlyRent": 15000,
+            "paymentDueBy": "2026-11-01T21:16:51.783Z",
+            "paymentRejection": null,
+            "paymentSubmittedAt": null,
+            "paymentVerifiedAt": "2026-10-31T15:16:51.783Z",
+            "plannedMoveIn": "2026-11-11",
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 48,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 2250,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 1500,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 750,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "receiptNumber": null,
+            "refund": null,
+            "refundAccount": {
+              "holderName": "Guest Holder",
+              "maskedNumber": "••••4321",
+              "method": "ESEWA",
+              "methodLabel": "eSewa"
+            },
+            "roomType": "Single",
+            "schedule": null,
+            "settlement": null,
+            "status": "AWAITING_HOSTEL",
+            "statusLabel": "Waiting for the hostel",
+            "stay": {
+              "amount": 3000,
+              "dailyRate": 1000,
+              "dates": "11 Nov 2026 – 14 Nov 2026 (Kartik 25–28)",
+              "holdBlocks": 2,
+              "moveIn": "2026-11-11",
+              "moveOut": "2026-11-14",
+              "nights": 3
+            },
+            "total": 6000,
+            "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+            "pay": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "doc anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/documents/invoice/HH-BKI-2083-84-0000000009"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "doc bad kind",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/documents/nope/x",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000009:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "doc payout refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/documents/payout/HH-BRF-2083-84-00000009",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000009:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "doc missing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/documents/invoice/none",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000009:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "doc not mine",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/documents/invoice/HH-BKI-2083-84-000009",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "doc invoice",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/documents/invoice/HH-BKI-2083-84-000009",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000009:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "doc receipt",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/documents/receipt/HH-BKR-2083-84-00000009",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000009:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "doc refund",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/documents/refund/HH-BRF-2083-84-00000009",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000009:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "doc softmato invoice",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/documents/invoice/HH-BKI-2083-84-00000b",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000b:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "doc softmato receipt",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/documents/receipt/TXN-00000456",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000b:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Our parent company's server is not responding right now. We have saved this and will email you to complete it as soon as the server is back. Thank you for your patience.",
+        "errorCode": "SOFTMATO_UNAVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "doc unpaid receipt",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/documents/receipt/none",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100"
+  }
+]

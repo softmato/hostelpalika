@@ -13,7 +13,7 @@
         "message": "How booking works",
         "data": {
           "guide": {
-            "enabled": false,
+            "enabled": true,
             "intro": [
               "Booking a room on HostelPalika holds one bed for you at a real hostel while you get there. This page is the whole process: what you pay, who decides what, and every deadline on the way.",
               "How much money comes back if a booking ends early is set out in the refund policy."
@@ -89,7 +89,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "policy",
@@ -173,7 +173,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "availability published",
@@ -189,22 +189,22 @@
         "message": "Booking availability",
         "data": {
           "availability": {
-            "hostelReason": "BOOKINGS_OFF",
+            "hostelReason": null,
             "rooms": [
               {
-                "bookable": false,
-                "fee": null,
+                "bookable": true,
+                "fee": 1050,
                 "photos": [
                   "https://cdn.contract.test/room.webp"
                 ],
-                "reason": "BOOKINGS_OFF",
+                "reason": null,
                 "roomType": "Single"
               },
               {
                 "bookable": false,
-                "fee": null,
+                "fee": 630,
                 "photos": [],
-                "reason": "BOOKINGS_OFF",
+                "reason": "FULL",
                 "roomType": "Double"
               }
             ]
@@ -212,7 +212,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "availability by id",
@@ -228,13 +228,13 @@
         "message": "Booking availability",
         "data": {
           "availability": {
-            "hostelReason": "BOOKINGS_OFF",
+            "hostelReason": "NO_PAYOUT_ACCOUNT",
             "rooms": []
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "availability demo",
@@ -256,7 +256,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "availability missing",
@@ -278,7 +278,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "availability blank",
@@ -300,6 +300,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100"
   }
 ]

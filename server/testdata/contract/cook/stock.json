@@ -1,0 +1,1052 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/stock"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "admin refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/stock",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "home",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/stock",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.today.*.at",
+      "data.createdAt",
+      "data.id",
+      "data.on"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Kitchen stock loaded",
+        "data": {
+          "hostelName": "Contract Hostel",
+          "items": [
+            {
+              "id": "6c00000000000000000000d3",
+              "left": 2.5,
+              "low": false,
+              "name": "Oil",
+              "packSize": null,
+              "packUnit": null,
+              "unit": "LITRE"
+            },
+            {
+              "id": "6c00000000000000000000d1",
+              "left": 11.5,
+              "low": false,
+              "name": "Rice",
+              "packSize": null,
+              "packUnit": null,
+              "unit": "KG"
+            },
+            {
+              "id": "6c00000000000000000000d5",
+              "left": 50,
+              "low": false,
+              "name": "Flour",
+              "packSize": 25,
+              "packUnit": "SACK",
+              "unit": "KG"
+            }
+          ],
+          "today": [
+            {
+              "at": "2026-11-01T09:12:14.539Z",
+              "by": "Someone",
+              "canUndo": false,
+              "entryId": "6c00000000000000000000d9",
+              "itemId": "6c00000000000000000000d3",
+              "kind": "WASTE",
+              "name": "Oil",
+              "qty": 0.5,
+              "unit": "KG"
+            },
+            {
+              "at": "2026-11-01T08:12:14.539Z",
+              "by": "You",
+              "canUndo": true,
+              "entryId": "6c00000000000000000000d8",
+              "itemId": "6c00000000000000000000d1",
+              "kind": "USE",
+              "name": "Rice",
+              "qty": 1,
+              "unit": "KG"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "lines": [
+              "Invalid input: expected array, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected array, received undefined",
+              "path": "lines"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "none",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "lines": []
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "lines": [
+              "Pick what you used."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Pick what you used.",
+              "path": "lines"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "clientRequestId": "a",
+        "kind": "BUY",
+        "lines": [
+          3,
+          {
+            "itemId": "x",
+            "qty": -1,
+            "packQty": "z"
+          },
+          {
+            "itemId": "6c00000000000000000000d1",
+            "qty": 0
+          },
+          {
+            "itemId": "6c00000000000000000000d1",
+            "qty": 100001
+          }
+        ],
+        "note": 4,
+        "wasteReason": "X"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "clientRequestId": [
+              "Too small: expected string to have \u003e=8 characters"
+            ],
+            "kind": [
+              "Invalid option: expected one of \"USE\"|\"WASTE\""
+            ],
+            "lines": [
+              "Invalid input: expected object, received number",
+              "Invalid id.",
+              "Write how much.",
+              "Write how much.",
+              "Write how much.",
+              "Write how much.",
+              "That is too much. Check it."
+            ],
+            "note": [
+              "Invalid input: expected string, received number"
+            ],
+            "wasteReason": [
+              "Invalid option: expected one of \"SPOILED\"|\"EXPIRED\"|\"DAMAGED\"|\"OTHER\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=8 characters",
+              "path": "clientRequestId"
+            },
+            {
+              "message": "Invalid option: expected one of \"USE\"|\"WASTE\"",
+              "path": "kind"
+            },
+            {
+              "message": "Invalid input: expected object, received number",
+              "path": "lines.0"
+            },
+            {
+              "message": "Invalid id.",
+              "path": "lines.1.itemId"
+            },
+            {
+              "message": "Write how much.",
+              "path": "lines.1.packQty"
+            },
+            {
+              "message": "Write how much.",
+              "path": "lines.1.qty"
+            },
+            {
+              "message": "Write how much.",
+              "path": "lines.1.qty"
+            },
+            {
+              "message": "Write how much.",
+              "path": "lines.2.qty"
+            },
+            {
+              "message": "That is too much. Check it.",
+              "path": "lines.3.qty"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "note"
+            },
+            {
+              "message": "Invalid option: expected one of \"SPOILED\"|\"EXPIRED\"|\"DAMAGED\"|\"OTHER\"",
+              "path": "wasteReason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "unknown item",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "lines": [
+          {
+            "itemId": "6c00000000000000000000ff",
+            "qty": 1
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "One of the items is not there any more. Pick again.",
+        "errorCode": "ITEM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "old item",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "lines": [
+          {
+            "itemId": "6c00000000000000000000d4",
+            "qty": 1
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "One of the items is not there any more. Pick again.",
+        "errorCode": "ITEM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "daily",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "lines": [
+          {
+            "itemId": "6c00000000000000000000d2",
+            "qty": 1
+          }
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Tomato is a daily item. It is used the day it comes, so it is not entered again.",
+        "errorCode": "DAILY_NOT_TRACKED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "use crossing low",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "clientRequestId": "stock-req-1",
+        "lines": [
+          {
+            "itemId": "6c00000000000000000000d1",
+            "qty": 1.5
+          },
+          {
+            "itemId": "6c00000000000000000000d1",
+            "qty": 0.5
+          }
+        ],
+        "note": " Lunch "
+      }
+    },
+    "masks": [
+      "data.today.*.at",
+      "data.createdAt",
+      "data.id",
+      "data.on"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "amount": null,
+          "approvedByName": null,
+          "bill": null,
+          "canApprove": false,
+          "canCancel": true,
+          "canReceive": false,
+          "cancelReason": null,
+          "createdAt": "2026-11-01T11:12:20.171Z",
+          "hostelId": "6c00000000000000000000a1",
+          "hostelName": "Contract Hostel",
+          "id": "6ae71e94e6822539292ba580",
+          "kind": "USE",
+          "lines": [
+            {
+              "amount": null,
+              "itemId": "6c00000000000000000000d1",
+              "name": "Rice",
+              "packQty": null,
+              "packUnit": null,
+              "qty": 2,
+              "rate": null,
+              "receivedQty": null,
+              "systemQty": null,
+              "unit": "KG"
+            }
+          ],
+          "mine": true,
+          "note": "Lunch",
+          "on": "2026-11-01",
+          "receivedAt": null,
+          "receivedByName": null,
+          "recordedByName": "Contract kitchen",
+          "recordedRole": "COOK",
+          "status": "DONE",
+          "supplier": "",
+          "toHostelId": null,
+          "toHostelName": null,
+          "useFor": "KITCHEN",
+          "wasteReason": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "seen",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "clientRequestId": "stock-req-1",
+        "lines": [
+          {
+            "itemId": "6c00000000000000000000d1",
+            "qty": 9
+          }
+        ]
+      }
+    },
+    "masks": [
+      "data.today.*.at",
+      "data.createdAt",
+      "data.id",
+      "data.on"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Already saved",
+        "data": {
+          "amount": null,
+          "approvedByName": null,
+          "bill": null,
+          "canApprove": false,
+          "canCancel": true,
+          "canReceive": false,
+          "cancelReason": null,
+          "createdAt": "2026-11-01T11:12:20.171Z",
+          "hostelId": "6c00000000000000000000a1",
+          "hostelName": "Contract Hostel",
+          "id": "6ae71e94e6822539292ba580",
+          "kind": "USE",
+          "lines": [
+            {
+              "amount": null,
+              "itemId": "6c00000000000000000000d1",
+              "name": "Rice",
+              "packQty": null,
+              "packUnit": null,
+              "qty": 2,
+              "rate": null,
+              "receivedQty": null,
+              "systemQty": null,
+              "unit": "KG"
+            }
+          ],
+          "mine": true,
+          "note": "Lunch",
+          "on": "2026-11-01",
+          "receivedAt": null,
+          "receivedByName": null,
+          "recordedByName": "Contract kitchen",
+          "recordedRole": "COOK",
+          "status": "DONE",
+          "supplier": "",
+          "toHostelId": null,
+          "toHostelName": null,
+          "useFor": "KITCHEN",
+          "wasteReason": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "packs",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "lines": [
+          {
+            "itemId": "6c00000000000000000000d5",
+            "qty": 1,
+            "packQty": 1
+          },
+          {
+            "itemId": "6c00000000000000000000d5",
+            "qty": 1,
+            "packQty": 1
+          }
+        ]
+      }
+    },
+    "masks": [
+      "data.today.*.at",
+      "data.createdAt",
+      "data.id",
+      "data.on"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "amount": null,
+          "approvedByName": null,
+          "bill": null,
+          "canApprove": false,
+          "canCancel": true,
+          "canReceive": false,
+          "cancelReason": null,
+          "createdAt": "2026-11-01T11:12:20.308Z",
+          "hostelId": "6c00000000000000000000a1",
+          "hostelName": "Contract Hostel",
+          "id": "6ae71e94e6822539292ba581",
+          "kind": "USE",
+          "lines": [
+            {
+              "amount": null,
+              "itemId": "6c00000000000000000000d5",
+              "name": "Flour",
+              "packQty": 2,
+              "packUnit": "SACK",
+              "qty": 50,
+              "rate": null,
+              "receivedQty": null,
+              "systemQty": null,
+              "unit": "KG"
+            }
+          ],
+          "mine": true,
+          "note": "",
+          "on": "2026-11-01",
+          "receivedAt": null,
+          "receivedByName": null,
+          "recordedByName": "Contract kitchen",
+          "recordedRole": "COOK",
+          "status": "DONE",
+          "supplier": "",
+          "toHostelId": null,
+          "toHostelName": null,
+          "useFor": "KITCHEN",
+          "wasteReason": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "waste",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "kind": "WASTE",
+        "lines": [
+          {
+            "itemId": "6c00000000000000000000d3",
+            "qty": 0.25
+          }
+        ]
+      }
+    },
+    "masks": [
+      "data.today.*.at",
+      "data.createdAt",
+      "data.id",
+      "data.on"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "amount": null,
+          "approvedByName": null,
+          "bill": null,
+          "canApprove": false,
+          "canCancel": true,
+          "canReceive": false,
+          "cancelReason": null,
+          "createdAt": "2026-11-01T11:12:20.381Z",
+          "hostelId": "6c00000000000000000000a1",
+          "hostelName": "Contract Hostel",
+          "id": "6ae71e94e6822539292ba582",
+          "kind": "WASTE",
+          "lines": [
+            {
+              "amount": null,
+              "itemId": "6c00000000000000000000d3",
+              "name": "Oil",
+              "packQty": null,
+              "packUnit": null,
+              "qty": 0.25,
+              "rate": null,
+              "receivedQty": null,
+              "systemQty": null,
+              "unit": "LITRE"
+            }
+          ],
+          "mine": true,
+          "note": "",
+          "on": "2026-11-01",
+          "receivedAt": null,
+          "receivedByName": null,
+          "recordedByName": "Contract kitchen",
+          "recordedRole": "COOK",
+          "status": "DONE",
+          "supplier": "",
+          "toHostelId": null,
+          "toHostelName": null,
+          "useFor": null,
+          "wasteReason": "SPOILED"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/stock",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.today.*.at",
+      "data.today.*.entryId"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Kitchen stock loaded",
+        "data": {
+          "hostelName": "Contract Hostel",
+          "items": [
+            {
+              "id": "6c00000000000000000000d1",
+              "left": 9.5,
+              "low": true,
+              "name": "Rice",
+              "packSize": null,
+              "packUnit": null,
+              "unit": "KG"
+            },
+            {
+              "id": "6c00000000000000000000d5",
+              "left": 0,
+              "low": false,
+              "name": "Flour",
+              "packSize": 25,
+              "packUnit": "SACK",
+              "unit": "KG"
+            },
+            {
+              "id": "6c00000000000000000000d3",
+              "left": 2.25,
+              "low": false,
+              "name": "Oil",
+              "packSize": null,
+              "packUnit": null,
+              "unit": "LITRE"
+            }
+          ],
+          "today": [
+            {
+              "at": "2026-11-01T11:12:20.381Z",
+              "by": "You",
+              "canUndo": true,
+              "entryId": "6ae71e94e6822539292ba582",
+              "itemId": "6c00000000000000000000d3",
+              "kind": "WASTE",
+              "name": "Oil",
+              "qty": 0.25,
+              "unit": "LITRE"
+            },
+            {
+              "at": "2026-11-01T11:12:20.308Z",
+              "by": "You",
+              "canUndo": true,
+              "entryId": "6ae71e94e6822539292ba581",
+              "itemId": "6c00000000000000000000d5",
+              "kind": "USE",
+              "name": "Flour",
+              "qty": 50,
+              "unit": "KG"
+            },
+            {
+              "at": "2026-11-01T11:12:20.171Z",
+              "by": "You",
+              "canUndo": true,
+              "entryId": "6ae71e94e6822539292ba580",
+              "itemId": "6c00000000000000000000d1",
+              "kind": "USE",
+              "name": "Rice",
+              "qty": 2,
+              "unit": "KG"
+            },
+            {
+              "at": "2026-11-01T09:12:14.539Z",
+              "by": "Someone",
+              "canUndo": false,
+              "entryId": "6c00000000000000000000d9",
+              "itemId": "6c00000000000000000000d3",
+              "kind": "WASTE",
+              "name": "Oil",
+              "qty": 0.5,
+              "unit": "KG"
+            },
+            {
+              "at": "2026-11-01T08:12:14.539Z",
+              "by": "You",
+              "canUndo": true,
+              "entryId": "6c00000000000000000000d8",
+              "itemId": "6c00000000000000000000d1",
+              "kind": "USE",
+              "name": "Rice",
+              "qty": 1,
+              "unit": "KG"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "low bell",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=unread",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt",
+      "data.notifications.*.data.entryId"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 0,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Admin",
+              "category": "NOTICE",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:12:14.539Z",
+              "data": {},
+              "id": "6c0000000000000000000094",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Not yours",
+              "userId": "6c0000000000000000000005"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 1,
+            "totalPages": 1
+          },
+          "unreadCount": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "undo bad",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock/entries/x/undo",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "ENTRY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "undo others",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock/entries/6c00000000000000000000d9/undo",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You cannot cancel this.",
+        "errorCode": "ENTRY_NOT_CANCELLABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "undo old",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock/entries/6c00000000000000000000d7/undo",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You cannot cancel this.",
+        "errorCode": "ENTRY_NOT_CANCELLABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "undo buy",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock/entries/6c00000000000000000000db/undo",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You cannot cancel this.",
+        "errorCode": "ENTRY_NOT_CANCELLABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "undo cancelled",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock/entries/6c00000000000000000000da/undo",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You cannot cancel this.",
+        "errorCode": "ENTRY_NOT_CANCELLABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "undo",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock/entries/6c00000000000000000000d8/undo",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.today.*.at",
+      "data.createdAt",
+      "data.id",
+      "data.on"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Undone",
+        "data": {
+          "amount": null,
+          "approvedByName": null,
+          "bill": null,
+          "canApprove": false,
+          "canCancel": false,
+          "canReceive": false,
+          "cancelReason": "Undone by the kitchen",
+          "createdAt": "2026-11-01T08:12:14.539Z",
+          "hostelId": "6c00000000000000000000a1",
+          "hostelName": "Contract Hostel",
+          "id": "6c00000000000000000000d8",
+          "kind": "USE",
+          "lines": [
+            {
+              "amount": null,
+              "itemId": "6c00000000000000000000d1",
+              "name": "Rice",
+              "packQty": null,
+              "packUnit": null,
+              "qty": 1,
+              "rate": null,
+              "receivedQty": null,
+              "systemQty": null,
+              "unit": "KG"
+            }
+          ],
+          "mine": true,
+          "note": "",
+          "on": "2026-11-01",
+          "receivedAt": null,
+          "receivedByName": null,
+          "recordedByName": "Someone",
+          "recordedRole": "COOK",
+          "status": "CANCELLED",
+          "supplier": "",
+          "toHostelId": null,
+          "toHostelName": null,
+          "useFor": null,
+          "wasteReason": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "undo twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/stock/entries/6c00000000000000000000d8/undo",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You cannot cancel this.",
+        "errorCode": "ENTRY_NOT_CANCELLABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

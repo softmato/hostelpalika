@@ -14,6 +14,16 @@
         "data": {
           "perks": [
             {
+              "description": "",
+              "giftValue": null,
+              "id": "6c00000000000000000000a8",
+              "imageUrl": "",
+              "kind": "FEE_OFF",
+              "partner": "HostelPalika",
+              "percentOff": 50,
+              "title": "Half off"
+            },
+            {
               "description": "A coffee",
               "giftValue": 500,
               "id": "6c0000000000000000000062",
@@ -38,6 +48,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 2be44935"
+    "recorded": "http://localhost:3100"
   }
 ]

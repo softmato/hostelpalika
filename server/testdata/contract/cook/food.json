@@ -1,0 +1,1207 @@
+[
+  {
+    "name": "today signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/today"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "today wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/today",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "today",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/today",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.today.date",
+      "data.today.meals.*.dayOfWeek",
+      "data.today.routine.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Today's kitchen brief loaded",
+        "data": {
+          "today": {
+            "announced": [],
+            "date": "2026-11-01",
+            "hostel": {
+              "id": "6c00000000000000000000a1",
+              "name": "Contract Hostel",
+              "slug": ""
+            },
+            "meals": [
+              {
+                "dayOfWeek": "SUNDAY",
+                "items": [
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "07:00"
+              },
+              {
+                "dayOfWeek": "SUNDAY",
+                "items": [
+                  "Rice",
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": ""
+              }
+            ],
+            "routine": {
+              "meals": [
+                {
+                  "dayOfWeek": "SUNDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "SUNDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                },
+                {
+                  "dayOfWeek": "MONDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "MONDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                },
+                {
+                  "dayOfWeek": "TUESDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "TUESDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                },
+                {
+                  "dayOfWeek": "WEDNESDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "WEDNESDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                },
+                {
+                  "dayOfWeek": "THURSDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "THURSDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                },
+                {
+                  "dayOfWeek": "FRIDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "FRIDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                },
+                {
+                  "dayOfWeek": "SATURDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "SATURDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                }
+              ],
+              "monthEndSpecial": null,
+              "timings": {
+                "BREAKFAST": "07:00"
+              },
+              "updatedAt": "2026-11-01T11:14:13.741Z"
+            },
+            "residentCount": 4,
+            "expensesEnabled": true,
+            "stockEnabled": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "today admin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/today",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.today.date",
+      "data.today.meals.*.dayOfWeek",
+      "data.today.routine.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Today's kitchen brief loaded",
+        "data": {
+          "today": {
+            "announced": [],
+            "date": "2026-11-01",
+            "hostel": {
+              "id": "6c00000000000000000000a1",
+              "name": "Contract Hostel",
+              "slug": ""
+            },
+            "meals": [
+              {
+                "dayOfWeek": "SUNDAY",
+                "items": [
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "07:00"
+              },
+              {
+                "dayOfWeek": "SUNDAY",
+                "items": [
+                  "Rice",
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": ""
+              }
+            ],
+            "routine": {
+              "meals": [
+                {
+                  "dayOfWeek": "SUNDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "SUNDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                },
+                {
+                  "dayOfWeek": "MONDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "MONDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                },
+                {
+                  "dayOfWeek": "TUESDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "TUESDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                },
+                {
+                  "dayOfWeek": "WEDNESDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "WEDNESDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                },
+                {
+                  "dayOfWeek": "THURSDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "THURSDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                },
+                {
+                  "dayOfWeek": "FRIDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "FRIDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                },
+                {
+                  "dayOfWeek": "SATURDAY",
+                  "items": [
+                    "Rice",
+                    "Dal"
+                  ],
+                  "mealType": "DINNER",
+                  "note": "",
+                  "timing": ""
+                },
+                {
+                  "dayOfWeek": "SATURDAY",
+                  "items": [
+                    "Tea"
+                  ],
+                  "mealType": "BREAKFAST",
+                  "note": "Hot",
+                  "timing": "07:00"
+                }
+              ],
+              "monthEndSpecial": null,
+              "timings": {
+                "BREAKFAST": "07:00"
+              },
+              "updatedAt": "2026-11-01T11:14:13.741Z"
+            },
+            "residentCount": 4,
+            "expensesEnabled": true,
+            "stockEnabled": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "today foreign hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/today?hostelId=6c00000000000000000000a2",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "residents",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Residents loaded",
+        "data": {
+          "residents": [
+            {
+              "fullName": "Desk Intake",
+              "id": "6c00000000000000000000c2"
+            },
+            {
+              "fullName": "In Vitee",
+              "id": "6c0000000000000000000025",
+              "roomType": "SINGLE"
+            },
+            {
+              "fullName": "Night Owl",
+              "id": "6c00000000000000000000e8",
+              "roomType": "SINGLE"
+            },
+            {
+              "fullName": "Res Ident",
+              "id": "6c00000000000000000000c1",
+              "roomType": "SINGLE"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "logs",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/food-ready",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food ready log loaded",
+        "data": {
+          "logs": [
+            {
+              "announcedAt": "2026-09-01T14:00:00.000Z",
+              "announcedBy": "Kitchen Ram",
+              "id": "6c00000000000000000000b9",
+              "mealType": "DINNER",
+              "message": "Dinner is ready.",
+              "notifiedCount": 3
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "announce invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/food-ready",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "mealType": "X",
+        "deviceInfo": 3,
+        "useMenuDescription": "y",
+        "message": 5
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "deviceInfo": [
+              "Invalid input: expected record, received number"
+            ],
+            "mealType": [
+              "Invalid option: expected one of \"BREAKFAST\"|\"LUNCH\"|\"SNACKS\"|\"DINNER\""
+            ],
+            "message": [
+              "Invalid input: expected string, received number"
+            ],
+            "useMenuDescription": [
+              "Invalid input: expected boolean, received string"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected record, received number",
+              "path": "deviceInfo"
+            },
+            {
+              "message": "Invalid option: expected one of \"BREAKFAST\"|\"LUNCH\"|\"SNACKS\"|\"DINNER\"",
+              "path": "mealType"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "message"
+            },
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "useMenuDescription"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "announce foreign",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/food-ready",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "mealType": "LUNCH",
+        "hostelId": "6c00000000000000000000a2"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "announce no timing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/food-ready",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "mealType": "LUNCH",
+        "deviceInfo": {
+          "brand": "Xiaomi",
+          "model": "Xiaomi 12"
+        }
+      }
+    },
+    "masks": [
+      "data.announcement.id",
+      "data.announcement.announcedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Residents notified",
+        "data": {
+          "announcement": {
+            "announcedAt": "2026-11-01T11:14:16.416Z",
+            "id": "6ae71f08e6822539292ba586",
+            "mealType": "LUNCH",
+            "message": "Lunch is ready.",
+            "notifiedCount": 2,
+            "staffNotifiedCount": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "announce cooldown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/food-ready",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "mealType": "LUNCH"
+      }
+    },
+    "response": {
+      "status": 429,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "lunch was already announced recently. Try again in 120 minute(s).",
+        "errorCode": "FOOD_READY_COOLDOWN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "announce message",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/food-ready",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "mealType": "SNACKS",
+        "message": " Tea time "
+      }
+    },
+    "masks": [
+      "data.announcement.id",
+      "data.announcement.announcedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Residents notified",
+        "data": {
+          "announcement": {
+            "announcedAt": "2026-11-01T11:14:16.689Z",
+            "id": "6ae71f08e6822539292ba58b",
+            "mealType": "SNACKS",
+            "message": "Tea time",
+            "notifiedCount": 2,
+            "staffNotifiedCount": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "resident bell",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=unread",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt",
+      "data.notifications.*.readAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Tea time",
+              "category": "FOOD",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:14:16.715Z",
+              "data": {
+                "mealType": "SNACKS"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae71f08e6822539292ba588",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "HIGH",
+              "status": "SENT",
+              "title": "Food is ready",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Lunch is ready.",
+              "category": "FOOD",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:14:16.448Z",
+              "data": {
+                "mealType": "LUNCH"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae71f08e6822539292ba583",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "HIGH",
+              "status": "SENT",
+              "title": "Food is ready",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Pay soon",
+              "category": "BILLING",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:14:13.741Z",
+              "data": {
+                "z": 1,
+                "a": "x"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000091",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "HIGH",
+              "status": "SENT",
+              "title": "Rent due",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [
+                {
+                  "endpoint": "/x",
+                  "key": "IN",
+                  "label": "In",
+                  "method": "POST",
+                  "tone": "default"
+                }
+              ],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/night",
+              "body": "Answer",
+              "category": "NIGHT_STATUS",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T09:14:13.741Z",
+              "data": {},
+              "id": "6c0000000000000000000092",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Night?",
+              "userId": "6c0000000000000000000007"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 4,
+            "totalPages": 1
+          },
+          "unreadCount": 4
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "admin bell",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt",
+      "data.notifications.*.body"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 0,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Contract Hostel · 16:59 · 2 resident(s) notified. “Tea time”",
+              "category": "FOOD",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:14:16.737Z",
+              "data": {
+                "mealType": "SNACKS",
+                "audience": "STAFF"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae71f08e6822539292ba58a",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Kitchen announced snacks",
+              "userId": "6c0000000000000000000005"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Contract Hostel · 16:59 · 2 resident(s) notified. Announced from Xiaomi 12. “Lunch is ready.”",
+              "category": "FOOD",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:14:16.495Z",
+              "data": {
+                "mealType": "LUNCH",
+                "audience": "STAFF"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae71f08e6822539292ba585",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Kitchen announced lunch",
+              "userId": "6c0000000000000000000005"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Admin",
+              "category": "NOTICE",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:14:13.741Z",
+              "data": {},
+              "id": "6c0000000000000000000094",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Not yours",
+              "userId": "6c0000000000000000000005"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 3,
+            "totalPages": 1
+          },
+          "unreadCount": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "photos",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/food-photos",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food photos loaded",
+        "data": {
+          "cursor": null,
+          "days": [
+            {
+              "day": "2026-09-01",
+              "mealsCovered": 2,
+              "photos": [
+                {
+                  "caption": "Nice",
+                  "cookName": "",
+                  "date": "2026-09-01T14:00:00.000Z",
+                  "id": "6c00000000000000000000b7",
+                  "mealType": "DINNER",
+                  "photoAssetId": "photo-2",
+                  "source": "RESIDENT",
+                  "uploadedAt": "2026-09-01T14:00:00.000Z"
+                },
+                {
+                  "caption": "",
+                  "cookName": "Kitchen Ram",
+                  "date": "2026-09-01T06:00:00.000Z",
+                  "id": "6c00000000000000000000b6",
+                  "mealType": "LUNCH",
+                  "photoAssetId": "photo-1",
+                  "source": "KITCHEN",
+                  "uploadedAt": "2026-09-01T06:00:00.000Z"
+                }
+              ]
+            },
+            {
+              "day": "2026-08-31",
+              "mealsCovered": 1,
+              "photos": [
+                {
+                  "caption": "",
+                  "cookName": "Previous Contract cook",
+                  "date": "2026-08-31T06:00:00.000Z",
+                  "id": "6c00000000000000000000b8",
+                  "mealType": "LUNCH",
+                  "photoAssetId": "photo-3",
+                  "source": "KITCHEN",
+                  "uploadedAt": "2026-08-31T06:00:00.000Z"
+                }
+              ]
+            }
+          ],
+          "hasMore": false,
+          "total": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "photos cursor",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/food-photos?cursor=2026-09-01T06:00:00.000Z|2026-09-01T06:00:00.000Z",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food photos loaded",
+        "data": {
+          "cursor": null,
+          "days": [
+            {
+              "day": "2026-08-31",
+              "mealsCovered": 1,
+              "photos": [
+                {
+                  "caption": "",
+                  "cookName": "Previous Contract cook",
+                  "date": "2026-08-31T06:00:00.000Z",
+                  "id": "6c00000000000000000000b8",
+                  "mealType": "LUNCH",
+                  "photoAssetId": "photo-3",
+                  "source": "KITCHEN",
+                  "uploadedAt": "2026-08-31T06:00:00.000Z"
+                }
+              ]
+            }
+          ],
+          "hasMore": false,
+          "total": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "photos bad cursor",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/food-photos?cursor=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food photos loaded",
+        "data": {
+          "cursor": null,
+          "days": [
+            {
+              "day": "2026-09-01",
+              "mealsCovered": 2,
+              "photos": [
+                {
+                  "caption": "Nice",
+                  "cookName": "",
+                  "date": "2026-09-01T14:00:00.000Z",
+                  "id": "6c00000000000000000000b7",
+                  "mealType": "DINNER",
+                  "photoAssetId": "photo-2",
+                  "source": "RESIDENT",
+                  "uploadedAt": "2026-09-01T14:00:00.000Z"
+                },
+                {
+                  "caption": "",
+                  "cookName": "Kitchen Ram",
+                  "date": "2026-09-01T06:00:00.000Z",
+                  "id": "6c00000000000000000000b6",
+                  "mealType": "LUNCH",
+                  "photoAssetId": "photo-1",
+                  "source": "KITCHEN",
+                  "uploadedAt": "2026-09-01T06:00:00.000Z"
+                }
+              ]
+            },
+            {
+              "day": "2026-08-31",
+              "mealsCovered": 1,
+              "photos": [
+                {
+                  "caption": "",
+                  "cookName": "Previous Contract cook",
+                  "date": "2026-08-31T06:00:00.000Z",
+                  "id": "6c00000000000000000000b8",
+                  "mealType": "LUNCH",
+                  "photoAssetId": "photo-3",
+                  "source": "KITCHEN",
+                  "uploadedAt": "2026-08-31T06:00:00.000Z"
+                }
+              ]
+            }
+          ],
+          "hasMore": false,
+          "total": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "photo invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/food-photos",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "mealType": [
+              "Invalid option: expected one of \"BREAKFAST\"|\"LUNCH\"|\"SNACKS\"|\"DINNER\""
+            ],
+            "date": [
+              "Invalid input: expected date, received Date"
+            ],
+            "photoAssetId": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"BREAKFAST\"|\"LUNCH\"|\"SNACKS\"|\"DINNER\"",
+              "path": "mealType"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "date"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "photoAssetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "photo",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/food-photos",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "date": "2026-09-02",
+        "mealType": "LUNCH",
+        "photoAssetId": "a2"
+      }
+    },
+    "masks": [
+      "data.photo.id",
+      "data.photo.uploadedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food photo uploaded",
+        "data": {
+          "photo": {
+            "caption": "",
+            "date": "2026-09-02T00:00:00.000Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae71f09e6822539292ba58d",
+            "mealType": "LUNCH",
+            "photoAssetId": "a2",
+            "uploadedAt": "2026-11-01T11:14:17.077Z",
+            "uploadedBy": "6c0000000000000000000009"
+          },
+          "resident": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

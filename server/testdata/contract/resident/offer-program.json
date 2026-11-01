@@ -1,0 +1,110 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/offer-program"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "program",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/offer-program",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.quarter.from",
+      "data.quarter.to",
+      "data.quarter.key",
+      "data.quarter.label"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Offer Program",
+        "data": {
+          "awards": [
+            {
+              "appliedAmount": 25000,
+              "appliedAt": null,
+              "appliedPeriod": "Bhadra 2083 BS",
+              "awardedAt": "2026-09-01T00:00:00.000Z",
+              "deliveredAt": null,
+              "hostelPaidAt": null,
+              "id": "6c00000000000000000000a9",
+              "kind": "FEE_OFF",
+              "note": "",
+              "percentOff": 50,
+              "quarter": "2083-Q2",
+              "quarterLabel": "Shrawan – Aswin 2083 BS",
+              "status": "APPLIED",
+              "title": "Half off"
+            }
+          ],
+          "perks": [
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c00000000000000000000a8",
+              "imageUrl": "",
+              "isActive": true,
+              "kind": "FEE_OFF",
+              "partner": "HostelPalika",
+              "percentOff": 50,
+              "sortOrder": 1,
+              "title": "Half off"
+            },
+            {
+              "description": "A coffee",
+              "giftValue": 500,
+              "id": "6c0000000000000000000062",
+              "imageUrl": "https://cdn.contract.test/gift.webp",
+              "isActive": true,
+              "kind": "GIFT",
+              "partner": "Fixture Cafe",
+              "percentOff": null,
+              "sortOrder": 1,
+              "title": "Gift card"
+            },
+            {
+              "description": "",
+              "giftValue": null,
+              "id": "6c0000000000000000000061",
+              "imageUrl": "",
+              "isActive": true,
+              "kind": "FEE_OFF",
+              "partner": "HostelPalika",
+              "percentOff": 10,
+              "sortOrder": 2,
+              "title": "Rent off"
+            }
+          ],
+          "quarter": {
+            "certifiedAmount": 0,
+            "certifiedCount": 0,
+            "from": "2026-10-18T00:00:00.000Z",
+            "key": "2083-Q3",
+            "label": "Kartik – Poush 2083 BS",
+            "to": "2027-01-14T23:59:59.999Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

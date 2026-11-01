@@ -88,8 +88,10 @@ func linkDeskIntake(ctx context.Context, db *mongo.Database, log *audit.Log, use
 		HostelID: resident.HostelID, Name: strings.TrimSpace(resident.FirstName + " " + resident.LastName),
 		PerformedBy: userID, Phone: resident.Phone, UserID: userID,
 	}, now); err != nil {
-		_, _ = residents.UpdateOne(ctx, bson.D{{Key: "_id", Value: resident.ID}, {Key: "userId", Value: userID}},
-			bson.D{{Key: "$unset", Value: bson.D{{Key: "userId", Value: ""}}}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}})
+		if _, undo := residents.UpdateOne(ctx, bson.D{{Key: "_id", Value: resident.ID}, {Key: "userId", Value: userID}},
+			bson.D{{Key: "$unset", Value: bson.D{{Key: "userId", Value: ""}}}, {Key: "$set", Value: bson.D{{Key: "updatedAt", Value: now}}}}); undo != nil {
+			slog.ErrorContext(ctx, "desk intake undo failed; the resident stays linked", "resident", resident.ID.Hex(), "error", undo)
+		}
 		return false, nil
 	}
 	_ = log.Write(ctx, audit.Entry{
@@ -111,9 +113,25 @@ type Promotion struct {
 // Intake may not overwrite these roles.
 var protectedRoles = map[string]bool{"HOSTEL_ADMIN": true, "SUPERADMIN": true}
 
+// ClearedMembership is one staff place stood down, named as the person would know it.
+type ClearedMembership struct{ HostelName, Role string }
+
+// Promoted is promoteAccountToResident's answer.
+type Promoted struct {
+	ActivatedInvite    bool
+	ClearedMemberships []ClearedMembership
+	ClearedRole        string
+	Upgraded           bool
+}
+
+// Cleared is hasClearance: whether becoming a resident took anything away.
+func (p Promoted) Cleared() bool {
+	return p.ClearedRole != "" || len(p.ClearedMemberships) > 0 || p.ActivatedInvite
+}
+
 // PromoteAccountToResident makes one account a RESIDENT, standing down what
-// contradicted it. It reports whether the role changed.
-func PromoteAccountToResident(ctx context.Context, db *mongo.Database, log *audit.Log, in Promotion, now time.Time) (bool, error) {
+// contradicted it.
+func PromoteAccountToResident(ctx context.Context, db *mongo.Database, log *audit.Log, in Promotion, now time.Time) (Promoted, error) {
 	var user struct {
 		ID        bson.ObjectID   `bson:"_id"`
 		Email     string          `bson:"email"`
@@ -125,17 +143,17 @@ func PromoteAccountToResident(ctx context.Context, db *mongo.Database, log *audi
 	}
 	err := db.Collection("users").FindOne(ctx, bson.D{{Key: "_id", Value: in.UserID}, {Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}}).Decode(&user)
 	if errors.Is(err, mongo.ErrNoDocuments) {
-		return false, httpx.NewError(404, "USER_NOT_FOUND", "That account no longer exists.", nil)
+		return Promoted{}, httpx.NewError(404, "USER_NOT_FOUND", "That account no longer exists.", nil)
 	}
 	if err != nil {
-		return false, err
+		return Promoted{}, err
 	}
 	previousRole := user.Role
 	if previousRole == "" {
 		previousRole = "PUBLIC"
 	}
 	if protectedRoles[previousRole] {
-		return false, httpx.NewError(409, "ROLE_TOO_PRIVILEGED", "This email belongs to an administrator account, which an intake may not change.", nil)
+		return Promoted{}, httpx.NewError(409, "ROLE_TOO_PRIVILEGED", "This email belongs to an administrator account, which an intake may not change.", nil)
 	}
 	alreadyHere := false
 	for _, h := range user.HostelIDs {
@@ -143,8 +161,9 @@ func PromoteAccountToResident(ctx context.Context, db *mongo.Database, log *audi
 	}
 	activatedInvite := user.Status == "INVITED"
 	var clearedRole any
+	clearedName := ""
 	if previousRole != "PUBLIC" && previousRole != "RESIDENT" {
-		clearedRole = previousRole
+		clearedRole, clearedName = previousRole, previousRole
 	}
 	set := bson.D{{Key: "role", Value: "RESIDENT"}}
 	if activatedInvite {
@@ -162,7 +181,7 @@ func PromoteAccountToResident(ctx context.Context, db *mongo.Database, log *audi
 		update = append(update, bson.E{Key: "$addToSet", Value: bson.D{{Key: "hostelIds", Value: in.HostelID}}})
 	}
 	if _, err := db.Collection("users").UpdateOne(ctx, bson.D{{Key: "_id", Value: user.ID}}, update); err != nil {
-		return false, err
+		return Promoted{}, err
 	}
 	cleared := standDownMemberships(ctx, db, user.ID, now)
 
@@ -174,7 +193,7 @@ func PromoteAccountToResident(ctx context.Context, db *mongo.Database, log *audi
 		if err := log.Write(ctx, audit.Entry{
 			ActorID: in.PerformedBy, HostelID: in.HostelID, Action: "USER_ROLE_UPGRADED", EntityType: "User", EntityID: user.ID.Hex(),
 			Metadata: bson.D{
-				{Key: "clearedMemberships", Value: cleared},
+				{Key: "clearedMemberships", Value: len(cleared)},
 				{Key: "clearedRole", Value: nullable(clearedRole)},
 				{Key: "email", Value: email},
 				{Key: "previousRole", Value: previousRole},
@@ -185,7 +204,7 @@ func PromoteAccountToResident(ctx context.Context, db *mongo.Database, log *audi
 			slog.ErrorContext(ctx, "Could not audit a resident promotion; the promotion stands.", "error", err, "userId", user.ID.Hex())
 		}
 	}
-	return previousRole != "RESIDENT", nil
+	return Promoted{activatedInvite, cleared, clearedName, previousRole != "RESIDENT"}, nil
 }
 
 // nullable keeps a null in metadata (audit.Write drops nil values, as
@@ -198,35 +217,63 @@ func nullable(v any) any {
 }
 
 // standDownMemberships removes every staff membership; never fatal. Returns
-// how many were stood down.
-func standDownMemberships(ctx context.Context, db *mongo.Database, userID bson.ObjectID, now time.Time) int {
+// what was stood down.
+func standDownMemberships(ctx context.Context, db *mongo.Database, userID bson.ObjectID, now time.Time) []ClearedMembership {
 	members := db.Collection("hostelmembers")
 	cur, err := members.Find(ctx, bson.D{{Key: "isDeleted", Value: bson.D{{Key: "$ne", Value: true}}}, {Key: "status", Value: bson.D{{Key: "$ne", Value: "REMOVED"}}}, {Key: "userId", Value: userID}})
 	if err != nil {
 		slog.ErrorContext(ctx, "Could not stand down memberships during resident promotion.", "error", err, "userId", userID.Hex())
-		return 0
+		return nil
 	}
 	var rows []struct {
-		ID   bson.ObjectID `bson:"_id"`
-		Role string        `bson:"role"`
+		ID       bson.ObjectID `bson:"_id"`
+		HostelID bson.ObjectID `bson:"hostelId"`
+		Role     string        `bson:"role"`
 	}
 	if err := cur.All(ctx, &rows); err != nil {
 		slog.ErrorContext(ctx, "Could not stand down memberships during resident promotion.", "error", err, "userId", userID.Hex())
-		return 0
+		return nil
 	}
-	staff := bson.A{}
+	staff, hostelIDs := bson.A{}, bson.A{}
 	for _, r := range rows {
 		if r.Role != "RESIDENT" {
 			staff = append(staff, r.ID)
+			hostelIDs = append(hostelIDs, r.HostelID)
 		}
 	}
 	if len(staff) == 0 {
-		return 0
+		return nil
 	}
 	if _, err := members.UpdateMany(ctx, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: staff}}}},
 		bson.D{{Key: "$set", Value: bson.D{{Key: "isDeleted", Value: true}, {Key: "status", Value: "REMOVED"}, {Key: "updatedAt", Value: now}}}}); err != nil {
 		slog.ErrorContext(ctx, "Could not stand down memberships during resident promotion.", "error", err, "userId", userID.Hex())
-		return 0
+		return nil
 	}
-	return len(staff)
+	names := map[string]string{}
+	if cur, err := db.Collection("hostels").Find(ctx, bson.D{{Key: "_id", Value: bson.D{{Key: "$in", Value: hostelIDs}}}}, options.Find().SetProjection(bson.D{{Key: "name", Value: 1}})); err == nil {
+		var hostels []struct {
+			ID   bson.ObjectID `bson:"_id"`
+			Name string        `bson:"name"`
+		}
+		if cur.All(ctx, &hostels) == nil {
+			for _, h := range hostels {
+				names[h.ID.Hex()] = h.Name
+			}
+		}
+	}
+	out := []ClearedMembership{}
+	for _, r := range rows {
+		if r.Role == "RESIDENT" {
+			continue
+		}
+		name, role := names[r.HostelID.Hex()], r.Role
+		if name == "" {
+			name = "a hostel"
+		}
+		if role == "" {
+			role = "WARDEN"
+		}
+		out = append(out, ClearedMembership{name, role})
+	}
+	return out
 }

@@ -1,0 +1,147 @@
+[
+  {
+    "name": "receipt anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/receipts/6c0000000000000000000032/pdf"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "receipt cook",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/receipts/6c0000000000000000000032/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "receipt",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/receipts/6c0000000000000000000032/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "someone else's",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/receipts/6c000000000000000000003a/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Receipt was not found.",
+        "errorCode": "RECEIPT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "missing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/receipts/6c00000000000000000000ff/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Receipt was not found.",
+        "errorCode": "RECEIPT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/receipts/x/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8",
+    "corrected": "R8: TS bug fixed on both sides, see docs/review_fixes_needed.md"
+  },
+  {
+    "name": "statement anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/statement/pdf"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "statement",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/statement/pdf",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

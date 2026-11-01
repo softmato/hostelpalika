@@ -14,6 +14,8 @@ import (
 	"github.com/bytedance/sonic"
 	goredis "github.com/redis/go-redis/v9"
 	"golang.org/x/sync/singleflight"
+
+	"github.com/softmato/hostelpalika/server/internal/platform/obs"
 )
 
 const (
@@ -62,11 +64,13 @@ func Read[T any](ctx context.Context, c *Cache, hostelIDs []string, userID, key 
 			Value T `json:"value"`
 		}
 		if sonic.Unmarshal(raw, &hit) == nil {
+			obs.CacheLookup(true)
 			return hit.Value, nil
 		}
 	} else if !errors.Is(err, goredis.Nil) {
 		return load()
 	}
+	obs.CacheLookup(false)
 
 	v, err, _ := c.group.Do(cacheKey, func() (any, error) {
 		value, err := load()

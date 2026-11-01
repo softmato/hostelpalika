@@ -92,13 +92,13 @@
   },
   {
    "value": "2026-08-17T00:00:00.000Z",
-   "cell": "Bhadra · 2083-05-01",
-   "text": "Bhadra · 2083-05-01"
+   "cell": "\"Bhadra 1, 2083 BS\"",
+   "text": "Bhadra 1, 2083 BS"
   },
   {
    "value": "2026-08-17T10:30:00Z",
-   "cell": "Bhadra · 2083-05-01",
-   "text": "Bhadra · 2083-05-01"
+   "cell": "\"Bhadra 1, 2083 BS\"",
+   "text": "Bhadra 1, 2083 BS"
   },
   {
    "value": "2026-13-45T99:99",
@@ -113,7 +113,7 @@
  ],
  "date": {
   "at": "2026-08-17T06:00:00.000Z",
-  "cell": "Bhadra · 2083-05-01"
+  "cell": "\"Bhadra 1, 2083 BS\""
  },
  "table": "Name,\"Amount, NPR\"\r\nSita,1500\r\n'=cmd,\r\n",
  "safeNames": [

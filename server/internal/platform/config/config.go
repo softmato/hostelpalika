@@ -39,6 +39,7 @@ type Config struct {
 	TrustedProxies []string
 	SchedulerOn    bool
 	PprofAddr      string
+	MetricsAddr    string // Prometheus; never published by compose
 
 	Auth     Auth
 	OTP      OTP
@@ -223,6 +224,7 @@ func Parse(lookup func(string) (string, bool)) (*Config, []string, error) {
 	c.CookieDomain = r.str("COOKIE_DOMAIN")
 	c.TrustedProxies = r.list("TRUSTED_PROXIES")
 	c.SchedulerOn = r.str("SCHEDULER_ENABLED") == "true"
+	c.MetricsAddr = r.str("METRICS_ADDR")
 	c.PprofAddr = r.str("PPROF_ADDR")
 	if c.PprofAddr != "" {
 		// Heap dumps hold tokens and personal data: loopback only, never the network.

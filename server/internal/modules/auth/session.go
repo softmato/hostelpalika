@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"net/http"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
@@ -91,6 +92,16 @@ func tokenInput(u *userRow, sessionID, tempID string) platauth.TokenInput {
 		LockPin:   u.LockPinSetAt != nil && u.Role != "PUBLIC" && tempID == "",
 		SessionID: sessionID, TemporaryCredentialID: tempID,
 	}
+}
+
+// IssueFor is issueSessionForUser for a module that just changed the account
+// (activation, accepting a residency invite); nil when the account is gone.
+func (s *Service) IssueFor(ctx context.Context, userID bson.ObjectID, ip, userAgent string) (*Issued, error) {
+	u, err := s.findUser(ctx, bson.D{{Key: "_id", Value: userID}})
+	if err != nil || u == nil {
+		return nil, err
+	}
+	return s.issueSession(ctx, u, reqCtx{IP: ip, UserAgent: userAgent}, "")
 }
 
 // issueSession is issueSessionForUser.
@@ -227,17 +238,15 @@ func (s *Service) Refresh(ctx context.Context, refreshToken string, cookieSessio
 	}}, nil
 }
 
-// errBadToken is what verifyAccessToken throws: a plain Error (or jose's),
-// which handleRouteError answers as a 500 — /me included.
-type errBadToken struct{}
-
-func (errBadToken) Error() string { return "Invalid authentication token." }
+// errBadToken: a token that fails verification is a 401, so a client refreshes or
+// signs out. TS answered it with a 500, which reads as "the server is down".
+var errBadToken = fail(http.StatusUnauthorized, "UNAUTHENTICATED", "Your session has expired.")
 
 // Me is getCurrentUser; the route adds pinLocked.
 func (s *Service) Me(ctx context.Context, accessToken string) (*MeUser, *platauth.Claims, error) {
 	claims, err := s.tokens.VerifyAccess(accessToken)
 	if err != nil {
-		return nil, nil, errBadToken{}
+		return nil, nil, errBadToken
 	}
 	via := claims.TemporaryCredentialID != ""
 	if via {

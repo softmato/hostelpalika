@@ -1,0 +1,78 @@
+[
+  {
+    "name": "accept",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/residency-invite/6c0000000000000000000025/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000026:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.accessToken",
+      "data.user.lastLoginAt",
+      "data.user.updatedAt",
+      "data.user.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Welcome to your hostel",
+        "data": {
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUkVTSURFTlQiLCJob3N0ZWxJZHMiOlsiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMGExIl0sInNlc3Npb25JZCI6IjZhZTcxMzczZTY4MjI1MzkyOTJiYTQ3ZCIsInRva2VuVHlwZSI6ImFjY2VzcyIsInN1YiI6IjZjMDAwMDAwMDAwMDAwMDAwMDAwMDAyNiIsImlhdCI6MTc5MzUyODY5MSwiZXhwIjoxNzkzNTI5NTkxfQ.CaCuY5OQnEaEkq66F4fIfJYTBObrqPO5sVIy6ZUeev8",
+          "residentId": "6c0000000000000000000025",
+          "user": {
+            "id": "6c0000000000000000000026",
+            "email": "invitee@contract.test",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Invitee",
+            "phone": "9800000025",
+            "role": "RESIDENT",
+            "redirectPath": "/resident/dashboard",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "accept twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/account/residency-invite/6c0000000000000000000025/accept",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000026:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Sign in with the email your hostel has for you.",
+        "errorCode": "RESIDENCY_INVITE_NOT_FOR_YOU"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

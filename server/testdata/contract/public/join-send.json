@@ -52,15 +52,16 @@
       "data.request.decidedAt"
     ],
     "response": {
-      "status": 500,
+      "status": 400,
       "contentType": "application/json",
       "body": {
         "success": false,
-        "message": "Internal server error",
-        "errorCode": "INTERNAL_SERVER_ERROR"
+        "message": "The request body is not valid JSON.",
+        "errorCode": "INVALID_JSON"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 8bea0625",
+    "corrected": "R8: TS bug fixed on both sides, see docs/review_fixes_needed.md"
   },
   {
     "name": "empty",
@@ -156,13 +157,13 @@
               "Invalid input: expected date, received Date"
             ],
             "note": [
-              "Too big: expected string to have \u003c=300 characters"
+              "Too big: expected string to have <=300 characters"
             ],
             "paidTill": [
               "Choose if this month's rent is paid."
             ],
             "partPaid": [
-              "Too small: expected number to be \u003e=0"
+              "Too small: expected number to be >=0"
             ],
             "roomType": [
               "Choose your room type."
@@ -178,7 +179,7 @@
               "path": "joinedDate"
             },
             {
-              "message": "Too big: expected string to have \u003c=300 characters",
+              "message": "Too big: expected string to have <=300 characters",
               "path": "note"
             },
             {
@@ -186,7 +187,7 @@
               "path": "paidTill"
             },
             {
-              "message": "Too small: expected number to be \u003e=0",
+              "message": "Too small: expected number to be >=0",
               "path": "partPaid"
             },
             {

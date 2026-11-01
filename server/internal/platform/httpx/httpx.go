@@ -5,8 +5,10 @@ package httpx
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"log/slog"
+	"mime/multipart"
 	"net/http"
 	"strings"
 	"time"
@@ -91,14 +93,24 @@ func Write(c *gin.Context, status int, data any, message string) {
 	write(c, status, success{true, message, data})
 }
 
+// ErrBadJSON and ErrBadForm are a client's mistake, so a 400. TS answered both
+// with a 500, which hid them among real faults (RULES.md §2).
+var (
+	ErrBadJSON = NewError(http.StatusBadRequest, "INVALID_JSON", "The request body is not valid JSON.", nil)
+	ErrBadForm = NewError(http.StatusBadRequest, "INVALID_FORM", "The request body is not a valid form.", nil)
+)
+
 // Fail maps err to the error envelope, in handleRouteError's order:
 // validation → 422, *Error → its own status, Softmato refusal → 502, unique
-// index → 409. Anything else is a 500 whose reason goes to the log, never the body.
+// index → 409. Then what TS let fall through to a 500: a body that is too big or
+// not a form, a malformed id, a deadline. Anything else is a 500 whose reason
+// goes to the log, never the body.
 func Fail(c *gin.Context, err error) {
 	var (
-		v *ValidationError
-		e *Error
-		s softmatoRejection
+		v      *ValidationError
+		e      *Error
+		s      softmatoRejection
+		tooBig *http.MaxBytesError
 	)
 	switch {
 	case errors.As(err, &v):
@@ -116,11 +128,26 @@ func Fail(c *gin.Context, err error) {
 			msg = "This is already saved. Refresh and check before adding it again."
 		}
 		abort(c, http.StatusConflict, failure{false, msg, "DUPLICATE_VALUE", nil})
+	case errors.As(err, &tooBig):
+		abort(c, http.StatusRequestEntityTooLarge, failure{false, "The request is too large.", "PAYLOAD_TOO_LARGE", nil})
+	case errors.Is(err, http.ErrNotMultipart), errors.Is(err, http.ErrMissingBoundary), errors.Is(err, multipart.ErrMessageTooLarge):
+		abort(c, ErrBadForm.Status, failure{false, ErrBadForm.Message, ErrBadForm.ErrorCode, nil})
+	case errors.Is(err, bson.ErrInvalidHex):
+		abort(c, http.StatusNotFound, failure{false, "Not found", "NOT_FOUND", nil})
+	case errors.Is(err, context.Canceled):
+		// The client left; nobody reads this and it is not a fault of ours.
+		abort(c, statusClientClosed, failure{false, "Request cancelled", "CLIENT_CLOSED", nil})
+	case errors.Is(err, context.DeadlineExceeded), mongo.IsTimeout(err):
+		slog.ErrorContext(c, "Request ran out of time", "error", err, "path", c.FullPath())
+		abort(c, http.StatusGatewayTimeout, failure{false, "This took too long. Please try again.", "TIMEOUT", nil})
 	default:
 		slog.ErrorContext(c, "Unhandled API route error", "error", err, "path", c.FullPath())
 		abort(c, http.StatusInternalServerError, failure{false, "Internal server error", "INTERNAL_SERVER_ERROR", nil})
 	}
 }
+
+// statusClientClosed is nginx's 499, the usual mark for "client went away".
+const statusClientClosed = 499
 
 // softmatoRejection is implemented by the Softmato client's error type (ported
 // with the client). Matched by behaviour so httpx doesn't import the client,
@@ -134,6 +161,10 @@ var duplicateMessages = map[string]string{
 	"email": "This email is already used by another account.",
 	"phone": "This phone number is already used by another account.",
 }
+
+// DuplicateField is duplicateField for a service that retries on one key (code)
+// and refuses on another; "" when err is no E11000.
+func DuplicateField(err error) string { return duplicateField(err) }
 
 // duplicateField is the first key of the server's keyPattern, as TS reads
 // error.keyPattern. Single writes carry it per write error; findAndModify and
@@ -253,6 +284,8 @@ func Recover() gin.HandlerFunc {
 }
 
 // ISO is Date#toISOString: UTC, milliseconds, Z.
+func Bare(c *gin.Context, status int, v any) { write(c, status, v) }
+
 func ISO(t time.Time) string { return t.UTC().Format("2006-01-02T15:04:05.000Z") }
 
 // PublicCache is PUBLIC_CACHE: shared-cache only, so a browser still

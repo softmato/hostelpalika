@@ -1,0 +1,169 @@
+[
+  {
+    "name": "config signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/realtime/config"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "config off",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/realtime/config",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Realtime is not configured",
+        "data": {
+          "channels": [],
+          "cluster": "",
+          "enabled": false,
+          "key": ""
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "auth signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/realtime/auth",
+      "headers": {
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      "body": "socket_id=1.2&channel_name=private-global"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "auth missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/realtime/auth",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      "body": "socket_id=1.2"
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "error": "Missing socket_id or channel_name"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "auth forbidden",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/realtime/auth",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      "body": "socket_id=1.2&channel_name=private-platform"
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "error": "Forbidden channel"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "auth foreign hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/realtime/auth",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      "body": "socket_id=1.2&channel_name=private-hostel-6c00000000000000000000a2"
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "error": "Forbidden channel"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "auth off",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/realtime/auth",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      "body": "socket_id=1.2&channel_name=private-global"
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "error": "Realtime is not configured"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "auth not a form",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/realtime/auth",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "a": 1
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The request body is not a valid form.",
+        "errorCode": "INVALID_FORM"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8",
+    "corrected": "R8: TS bug fixed on both sides, see docs/review_fixes_needed.md"
+  }
+]

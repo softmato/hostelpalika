@@ -199,3 +199,47 @@ func dataMap(m ordered.Map) map[string]any {
 	}
 	return out
 }
+
+// BatchedInput is createOrUpdateBatchedNotification's argument.
+type BatchedInput struct {
+	Body, Category string
+	Data           ordered.Map
+	DedupeKey      string
+	HostelID       string
+	Title, UserID  string
+}
+
+// CreateOrUpdateBatched rewrites the unread row with this dedupe key, or creates it.
+// TS also $sets createdAt, but Mongoose's timestamps strip that from the update, so
+// the row keeps its place in the bell; this keeps that behaviour.
+func (s *Service) CreateOrUpdateBatched(ctx context.Context, in BatchedInput) error {
+	data := append(ordered.Map{}, in.Data...).Set("dedupeKey", in.DedupeKey)
+	uid, _ := objectID(in.UserID)
+	now := time.Now().UTC().Truncate(time.Millisecond)
+	var old struct {
+		ID        bson.ObjectID  `bson:"_id"`
+		ActionURL string         `bson:"actionUrl"`
+		CreatedAt time.Time      `bson:"createdAt"`
+		HostelID  *bson.ObjectID `bson:"hostelId"`
+		Kind      string         `bson:"kind"`
+		Priority  string         `bson:"priority"`
+	}
+	err := s.DB.Collection("notifications").FindOneAndUpdate(ctx,
+		bson.D{{Key: "category", Value: in.Category}, {Key: "data.dedupeKey", Value: in.DedupeKey}, {Key: "readAt", Value: bson.D{{Key: "$exists", Value: false}}}, {Key: "userId", Value: uid}},
+		bson.D{{Key: "$set", Value: bson.D{{Key: "body", Value: in.Body}, {Key: "data", Value: ordered.ToBSON(data)}, {Key: "title", Value: in.Title}, {Key: "updatedAt", Value: now}}}},
+		options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&old)
+	if err == nil {
+		hostel := ""
+		if old.HostelID != nil {
+			hostel = old.HostelID.Hex()
+		}
+		s.publish(ctx, Row{ID: old.ID, CreatedAt: old.CreatedAt, Kind: old.Kind, Priority: old.Priority,
+			Input: Input{ActionURL: old.ActionURL, Body: in.Body, Category: in.Category, Data: data, HostelID: hostel, Title: in.Title, UserID: in.UserID}})
+		return nil
+	}
+	if err != mongo.ErrNoDocuments {
+		return err
+	}
+	_, err = s.CreateInApp(ctx, Input{Body: in.Body, Category: in.Category, Data: data, HostelID: in.HostelID, Title: in.Title, UserID: in.UserID})
+	return err
+}

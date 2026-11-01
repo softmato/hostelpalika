@@ -26,15 +26,16 @@
       }
     },
     "response": {
-      "status": 500,
+      "status": 401,
       "contentType": "application/json",
       "body": {
         "success": false,
-        "message": "Internal server error",
-        "errorCode": "INTERNAL_SERVER_ERROR"
+        "message": "Your session has expired.",
+        "errorCode": "UNAUTHENTICATED"
       }
     },
-    "recorded": "http://localhost:3100 41b0ef10"
+    "recorded": "http://localhost:3100 41b0ef10",
+    "corrected": "R7: TS bug fixed on both sides, see docs/review_fixes_needed.md"
   },
   {
     "name": "public",

@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -42,7 +41,7 @@ const (
 )
 
 // ErrNotConfigured is returned by every call when R2 env is missing.
-var ErrNotConfigured = errors.New("R2_ENDPOINT, R2_ACCESS_KEY_ID, and R2_SECRET_ACCESS_KEY must be set")
+var ErrNotConfigured = httpx.NewError(http.StatusServiceUnavailable, "STORAGE_NOT_CONFIGURED", "Document storage is not configured on this deployment.", nil)
 
 // R2 is safe for concurrent use.
 type R2 struct {
@@ -81,7 +80,7 @@ func (r *R2) ready() error {
 
 func bucketName(name, env string) (string, error) {
 	if name == "" {
-		return "", fmt.Errorf("%s must be set. See docs/ENVIRONMENT.md.", env)
+		return "", fmt.Errorf("%s must be set. See docs/ENVIRONMENT.md: %w", env, ErrNotConfigured)
 	}
 	return name, nil
 }
@@ -152,7 +151,7 @@ func (r *R2) PresignRead(ctx context.Context, bucket, key, downloadName string) 
 // PublicURL is R2_PUBLIC_URL/key — for public-bucket keys only.
 func (r *R2) PublicURL(key string) (string, error) {
 	if r.cfg.PublicURL == "" {
-		return "", errors.New("R2_PUBLIC_URL must be set to build public object URLs")
+		return "", fmt.Errorf("R2_PUBLIC_URL must be set to build public object URLs: %w", ErrNotConfigured)
 	}
 	return r.cfg.PublicURL + "/" + strings.TrimLeft(key, "/"), nil
 }

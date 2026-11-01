@@ -1,0 +1,509 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.hostels.*.filesUntil",
+      "data.hostels.*.holdUntil"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Held hostels loaded",
+        "data": {
+          "hostels": [
+            {
+              "canClaim": true,
+              "filesUntil": "2026-11-11T14:42:17.078Z",
+              "holdDays": 10,
+              "holdUntil": "2026-11-03T14:42:17.078Z",
+              "hostelName": "Left Hostel 61",
+              "requestId": "6c0000000000000000000061"
+            },
+            {
+              "canClaim": true,
+              "filesUntil": "2026-11-11T14:42:17.078Z",
+              "holdDays": 10,
+              "holdUntil": "2026-11-03T14:42:17.078Z",
+              "hostelName": "Left Hostel 6f",
+              "requestId": "6c000000000000000000006f"
+            },
+            {
+              "canClaim": false,
+              "filesUntil": "2026-11-11T14:42:17.078Z",
+              "holdDays": 10,
+              "holdUntil": "2026-10-31T14:42:17.078Z",
+              "hostelName": "Left Hostel 68",
+              "requestId": "6c0000000000000000000068"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "list none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.hostels.*.filesUntil",
+      "data.hostels.*.holdUntil"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Held hostels loaded",
+        "data": {
+          "hostels": [
+            {
+              "canClaim": false,
+              "filesUntil": "2026-11-11T14:42:17.078Z",
+              "holdDays": 10,
+              "holdUntil": "2026-11-03T14:42:17.078Z",
+              "hostelName": "Left Hostel 6a",
+              "requestId": "6c000000000000000000006a"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "files anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/6c0000000000000000000061/files"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "files",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/6c0000000000000000000061/files",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.filesUntil",
+      "data.holdUntil"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Files loaded",
+        "data": {
+          "files": [
+            {
+              "group": "Records",
+              "id": "6c0000000000000000000064",
+              "record": "section",
+              "section": {
+                "key": "residents",
+                "label": "Residents",
+                "order": 0
+              },
+              "kind": "RECORDS",
+              "name": "left-residents.csv",
+              "sizeBytes": 20,
+              "uploadedAt": "2026-09-01T06:00:00.000Z"
+            },
+            {
+              "group": "Records",
+              "id": "6c0000000000000000000065",
+              "record": "csv",
+              "section": null,
+              "kind": "RECORDS",
+              "name": "left-csv.zip",
+              "sizeBytes": 30,
+              "uploadedAt": "2026-09-01T06:00:00.000Z"
+            },
+            {
+              "group": "Records",
+              "id": "6c0000000000000000000066",
+              "record": "excel",
+              "section": null,
+              "kind": "RECORDS",
+              "name": "left.xlsx",
+              "sizeBytes": 40,
+              "uploadedAt": "2026-09-01T06:00:00.000Z"
+            },
+            {
+              "group": "Payment proofs",
+              "id": "6c0000000000000000000067",
+              "record": null,
+              "section": null,
+              "kind": "PAYMENT_PROOF",
+              "name": "kept.png",
+              "sizeBytes": 50,
+              "uploadedAt": "2026-09-01T06:00:00.000Z"
+            }
+          ],
+          "filesUntil": "2026-11-11T14:42:17.078Z",
+          "holdUntil": "2026-11-03T14:42:17.078Z",
+          "hostelName": "Left Hostel 61",
+          "fileLinksLeft": 200,
+          "parts": [
+            {
+              "bytes": 110,
+              "files": 3,
+              "left": 2,
+              "part": 1
+            }
+          ],
+          "recordsPending": false,
+          "totalBytes": 140
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "files pending records",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/6c0000000000000000000068/files",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.filesUntil",
+      "data.holdUntil"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Files loaded",
+        "data": {
+          "files": [],
+          "filesUntil": "2026-11-11T14:42:17.078Z",
+          "holdUntil": "2026-10-31T14:42:17.078Z",
+          "hostelName": "Left Hostel 68",
+          "fileLinksLeft": 200,
+          "parts": [],
+          "recordsPending": true,
+          "totalBytes": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "files other",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/6c0000000000000000000061/files",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "These files are no longer available — they are kept for 30 days after leaving.",
+        "errorCode": "LEAVE_FILES_NOT_AVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "files gone",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/6c00000000000000000000ff/files",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "These files are no longer available — they are kept for 30 days after leaving.",
+        "errorCode": "LEAVE_FILES_NOT_AVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "files bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/x/files",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid hostel id.",
+        "errorCode": "INVALID_HOSTEL_ID"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "one anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/6c0000000000000000000061/files/6c0000000000000000000064"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "one missing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/6c0000000000000000000061/files/6c00000000000000000000ff",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "File not found.",
+        "errorCode": "FILE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "zip anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/6c0000000000000000000061/files/zip"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "zip no part",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/6c0000000000000000000061/files/zip?part=9",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That part does not exist.",
+        "errorCode": "LEAVE_FILES_PART_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "zip",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/6c0000000000000000000061/files/zip",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/zip"
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "zip again",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/6c0000000000000000000061/files/zip?part=1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/zip"
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "zip tired",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/6c0000000000000000000061/files/zip?part=1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 429,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You have downloaded this 3 times today. You can download it again tomorrow.",
+        "errorCode": "LEAVE_ZIP_DOWNLOADS_EXHAUSTED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "files after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/account/hostel-leave/6c0000000000000000000061/files",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.filesUntil",
+      "data.holdUntil"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Files loaded",
+        "data": {
+          "files": [
+            {
+              "group": "Records",
+              "id": "6c0000000000000000000064",
+              "record": "section",
+              "section": {
+                "key": "residents",
+                "label": "Residents",
+                "order": 0
+              },
+              "kind": "RECORDS",
+              "name": "left-residents.csv",
+              "sizeBytes": 20,
+              "uploadedAt": "2026-09-01T06:00:00.000Z"
+            },
+            {
+              "group": "Records",
+              "id": "6c0000000000000000000065",
+              "record": "csv",
+              "section": null,
+              "kind": "RECORDS",
+              "name": "left-csv.zip",
+              "sizeBytes": 30,
+              "uploadedAt": "2026-09-01T06:00:00.000Z"
+            },
+            {
+              "group": "Records",
+              "id": "6c0000000000000000000066",
+              "record": "excel",
+              "section": null,
+              "kind": "RECORDS",
+              "name": "left.xlsx",
+              "sizeBytes": 40,
+              "uploadedAt": "2026-09-01T06:00:00.000Z"
+            },
+            {
+              "group": "Payment proofs",
+              "id": "6c0000000000000000000067",
+              "record": null,
+              "section": null,
+              "kind": "PAYMENT_PROOF",
+              "name": "kept.png",
+              "sizeBytes": 50,
+              "uploadedAt": "2026-09-01T06:00:00.000Z"
+            }
+          ],
+          "filesUntil": "2026-11-11T14:42:17.078Z",
+          "holdUntil": "2026-11-03T14:42:17.078Z",
+          "hostelName": "Left Hostel 61",
+          "fileLinksLeft": 200,
+          "parts": [
+            {
+              "bytes": 110,
+              "files": 3,
+              "left": 0,
+              "part": 1
+            }
+          ],
+          "recordsPending": false,
+          "totalBytes": 140
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  }
+]

@@ -3,6 +3,7 @@ package ratelimit
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http/httptest"
 	"testing"
 	"time"
@@ -67,7 +68,21 @@ func TestRedis(t *testing.T) {
 		}
 		rdb.Del(context.Background(), k)
 	}
-	if len(keys) != 3 {
+	// a, b and x, plus the IP total of each namespace.
+	if len(keys) != 5 {
 		t.Errorf("keys %v", keys)
+	}
+}
+
+func TestRotatingUserAgentHitsTheIPBudget(t *testing.T) {
+	gin.SetMode(gin.ReleaseMode)
+	l := New(nil, 10, time.Minute)
+	for i := range 2 * ipBudgetFactor {
+		if err := hit(l, "form", fmt.Sprintf("agent-%d", i)); err != nil {
+			t.Fatalf("hit %d refused: %v", i+1, err)
+		}
+	}
+	if hit(l, "form", "one-more-agent") == nil {
+		t.Fatal("changing the user-agent must not escape the limit")
 	}
 }

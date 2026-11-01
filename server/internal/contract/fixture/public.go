@@ -59,6 +59,7 @@ func publicDocs(now time.Time) map[string][]any {
 		"hostels": {
 			hostelRow(HostelPublished, OwnerPublished, "Fixture Lakeside Hostel", "fixture-lakeside-hostel-baneshwor", "New Baneshwor", 9000, 15000, now,
 				e{Key: "description", Value: "A test hostel near the lake."},
+				e{Key: "shortStays", Value: d{{Key: "enabled", Value: true}, {Key: "minNights", Value: 2}, {Key: "rates", Value: bson.A{d{{Key: "dailyRate", Value: 1000}, {Key: "roomType", Value: "Single"}}}}}},
 				e{Key: "contact", Value: d{{Key: "email", Value: "owner@contract.test"}, {Key: "phone", Value: "9800000001"}}},
 				e{Key: "capacitySummary", Value: d{{Key: "totalBeds", Value: 30}, {Key: "totalRooms", Value: 12}, {Key: "vacantBeds", Value: 4}}},
 				e{Key: "arrivalGuide", Value: d{{Key: "note", Value: "  Blue gate beside the pharmacy  "}, {Key: "photoUrl", Value: ""}}},
@@ -107,7 +108,8 @@ func publicDocs(now time.Time) map[string][]any {
 				{Key: "offers", Value: bson.A{d{{Key: "planId", Value: "go"}, {Key: "price", Value: 9999}, {Key: "seats", Value: 2}},
 					d{{Key: "planId", Value: "pro"}, {Key: "price", Value: 0}, {Key: "seats", Value: 5}},
 					d{{Key: "planId", Value: "gone"}, {Key: "price", Value: 100}, {Key: "seats", Value: 5}}}}}}},
-			d{{Key: "_id", Value: oid("93")}, {Key: "key", Value: "operations"}, {Key: "value", Value: d{{Key: "leaveHoldMinDays", Value: 5}, {Key: "trialDays", Value: 3}}}},
+			d{{Key: "_id", Value: oid("96")}, {Key: "key", Value: "bookings"}, {Key: "value", Value: d{{Key: "enabled", Value: true}}}},
+			d{{Key: "_id", Value: oid("93")}, {Key: "key", Value: "operations"}, {Key: "value", Value: d{{Key: "leaveHoldMinDays", Value: 5}, {Key: "trialDays", Value: 3}, {Key: "collectionQrUrl", Value: "https://cdn.contract.test/qr.png"}}}},
 		},
 		"offerperks": {
 			d{{Key: "_id", Value: oid("61")}, {Key: "title", Value: "Rent off"}, {Key: "kind", Value: "FEE_OFF"}, {Key: "percentOff", Value: 10}, {Key: "isActive", Value: true}, {Key: "sortOrder", Value: 2}, {Key: "createdAt", Value: fixedAt}},

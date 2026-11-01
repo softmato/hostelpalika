@@ -2,15 +2,12 @@ package valid
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 
 	"github.com/gin-gonic/gin"
-)
 
-// errBadJSON is what `await request.json()` throws on a malformed body; TS
-// answers it with handleRouteError's generic 500, so it stays a plain error.
-var errBadJSON = errors.New("request body is not valid JSON")
+	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
+)
 
 // Body reads the request as JSON into any. An empty body is not JSON either.
 func Body(c *gin.Context) (any, error) {
@@ -20,7 +17,7 @@ func Body(c *gin.Context) (any, error) {
 	}
 	var v any
 	if json.Unmarshal(raw, &v) != nil {
-		return nil, errBadJSON
+		return nil, httpx.ErrBadJSON
 	}
 	return v, nil
 }

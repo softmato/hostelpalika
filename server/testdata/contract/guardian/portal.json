@@ -1,0 +1,520 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guardian/dashboard"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guardian/dashboard",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "no link",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guardian/dashboard",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:GUARDIAN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Guardian access was not found for this account.",
+        "errorCode": "GUARDIAN_ACCESS_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "dashboard all on",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guardian/dashboard",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000027:GUARDIAN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.dashboard.access.expiresAt",
+      "data.dashboard.food.*.dayOfWeek",
+      "data.dashboard.payments.*.dueDate"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian dashboard loaded",
+        "data": {
+          "dashboard": {
+            "access": {
+              "expiresAt": "2026-11-02T10:34:02.966Z",
+              "guardianId": "6c0000000000000000000019",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000028",
+              "phone": "9811111111",
+              "residentId": "6c00000000000000000000c1",
+              "status": "USED",
+              "userId": "6c0000000000000000000027"
+            },
+            "complaints": [
+              {
+                "id": "6c0000000000000000000041",
+                "status": "PENDING",
+                "title": "Late"
+              },
+              {
+                "id": "6c0000000000000000000040",
+                "status": "RESOLVED",
+                "title": "Leak"
+              }
+            ],
+            "food": [
+              {
+                "dayOfWeek": "SUNDAY",
+                "items": [
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "07:00"
+              },
+              {
+                "dayOfWeek": "SUNDAY",
+                "items": [
+                  "Rice",
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": ""
+              }
+            ],
+            "guardian": {
+              "id": "6c0000000000000000000019",
+              "name": "Guar Dian",
+              "phone": "9811111111",
+              "relation": "Father"
+            },
+            "hostel": {
+              "contact": {
+                "email": "",
+                "phone": ""
+              },
+              "id": "6c00000000000000000000a1",
+              "isVerified": false,
+              "location": {},
+              "name": "Contract Hostel",
+              "photoUrl": "",
+              "slug": ""
+            },
+            "notices": [
+              {
+                "category": "GENERAL",
+                "content": "Water off body",
+                "id": "6c0000000000000000000050",
+                "isUrgent": true,
+                "title": "Water off"
+              },
+              {
+                "category": "GENERAL",
+                "content": "Future body",
+                "id": "6c0000000000000000000053",
+                "isUrgent": false,
+                "title": "Future"
+              },
+              {
+                "category": "GENERAL",
+                "content": "Expired body",
+                "id": "6c0000000000000000000054",
+                "isUrgent": false,
+                "title": "Expired"
+              }
+            ],
+            "payments": [
+              {
+                "dueAmount": 100000,
+                "dueDate": "2026-11-03T10:34:02.966Z",
+                "id": "6c0000000000000000000013",
+                "month": null,
+                "paidAmount": 0,
+                "status": "PENDING_PROOF"
+              },
+              {
+                "dueAmount": 500000,
+                "dueDate": "2026-11-02T10:34:02.966Z",
+                "id": "6c0000000000000000000012",
+                "month": "2083-06",
+                "paidAmount": 100000,
+                "status": "PARTIAL"
+              },
+              {
+                "dueAmount": 500000,
+                "dueDate": "2026-10-02T10:34:02.966Z",
+                "id": "6c0000000000000000000011",
+                "month": "2083-05",
+                "paidAmount": 500000,
+                "status": "PAID"
+              }
+            ],
+            "permissions": {
+              "canViewComplaintStatus": true,
+              "canViewFood": true,
+              "canViewNotices": true,
+              "canViewPayments": true,
+              "canViewReceipts": true,
+              "canViewSafety": true
+            },
+            "receipts": [
+              {
+                "amount": 500000,
+                "id": "6c0000000000000000000032",
+                "issuedOn": "2026-09-01",
+                "month": "2083-05",
+                "receiptNumber": "R-2083-0001"
+              }
+            ],
+            "resident": {
+              "fullName": "Res Ident",
+              "id": "6c00000000000000000000c1",
+              "image": null,
+              "roomType": "SINGLE",
+              "status": "ACTIVE"
+            },
+            "safety": {
+              "asOf": null,
+              "status": "NOT_VERIFIED"
+            },
+            "summary": {
+              "dueAmount": 500000,
+              "unpaidCount": 2
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "dashboard all off",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guardian/dashboard",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000029:GUARDIAN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.dashboard.access.expiresAt",
+      "data.dashboard.food.*.dayOfWeek",
+      "data.dashboard.payments.*.dueDate"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian dashboard loaded",
+        "data": {
+          "dashboard": {
+            "access": {
+              "expiresAt": "2026-11-02T10:34:02.966Z",
+              "guardianId": "6c000000000000000000002b",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c000000000000000000002a",
+              "phone": "9811111111",
+              "residentId": "6c00000000000000000000c1",
+              "status": "USED",
+              "userId": "6c0000000000000000000029"
+            },
+            "complaints": [],
+            "food": [],
+            "guardian": {
+              "id": "6c000000000000000000002b",
+              "name": "Off Guard",
+              "phone": "9811111112",
+              "relation": "Uncle"
+            },
+            "hostel": {
+              "contact": {
+                "email": "",
+                "phone": ""
+              },
+              "id": "6c00000000000000000000a1",
+              "isVerified": false,
+              "location": {},
+              "name": "Contract Hostel",
+              "photoUrl": "",
+              "slug": ""
+            },
+            "notices": [],
+            "payments": [],
+            "permissions": {
+              "canViewComplaintStatus": false,
+              "canViewFood": false,
+              "canViewNotices": false,
+              "canViewPayments": false,
+              "canViewReceipts": false,
+              "canViewSafety": false
+            },
+            "receipts": [],
+            "resident": {
+              "fullName": "Res Ident",
+              "id": "6c00000000000000000000c1",
+              "image": null,
+              "roomType": "SINGLE",
+              "status": "ACTIVE"
+            },
+            "safety": null,
+            "summary": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "payments",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guardian/payments",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000027:GUARDIAN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.payments.*.dueDate"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian payments loaded",
+        "data": {
+          "payments": [
+            {
+              "dueAmount": 100000,
+              "dueDate": "2026-11-03T10:34:02.966Z",
+              "id": "6c0000000000000000000013",
+              "month": null,
+              "paidAmount": 0,
+              "status": "PENDING_PROOF"
+            },
+            {
+              "dueAmount": 500000,
+              "dueDate": "2026-11-02T10:34:02.966Z",
+              "id": "6c0000000000000000000012",
+              "month": "2083-06",
+              "paidAmount": 100000,
+              "status": "PARTIAL"
+            },
+            {
+              "dueAmount": 500000,
+              "dueDate": "2026-10-02T10:34:02.966Z",
+              "id": "6c0000000000000000000011",
+              "month": "2083-05",
+              "paidAmount": 500000,
+              "status": "PAID"
+            }
+          ],
+          "receipts": [
+            {
+              "amount": 500000,
+              "id": "6c0000000000000000000032",
+              "issuedOn": "2026-09-01",
+              "month": "2083-05",
+              "receiptNumber": "R-2083-0001"
+            }
+          ],
+          "summary": {
+            "dueAmount": 500000,
+            "unpaidCount": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "payments off",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guardian/payments",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000029:GUARDIAN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian payments loaded",
+        "data": {
+          "payments": [],
+          "receipts": [],
+          "summary": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "notices",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guardian/notices",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000027:GUARDIAN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian notices loaded",
+        "data": {
+          "notices": [
+            {
+              "category": "GENERAL",
+              "content": "Water off body",
+              "id": "6c0000000000000000000050",
+              "isUrgent": true,
+              "title": "Water off"
+            },
+            {
+              "category": "GENERAL",
+              "content": "Future body",
+              "id": "6c0000000000000000000053",
+              "isUrgent": false,
+              "title": "Future"
+            },
+            {
+              "category": "GENERAL",
+              "content": "Expired body",
+              "id": "6c0000000000000000000054",
+              "isUrgent": false,
+              "title": "Expired"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "food",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guardian/food",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000027:GUARDIAN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.food.*.dayOfWeek"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian food loaded",
+        "data": {
+          "food": [
+            {
+              "dayOfWeek": "SUNDAY",
+              "items": [
+                "Tea"
+              ],
+              "mealType": "BREAKFAST",
+              "note": "Hot",
+              "timing": "07:00"
+            },
+            {
+              "dayOfWeek": "SUNDAY",
+              "items": [
+                "Rice",
+                "Dal"
+              ],
+              "mealType": "DINNER",
+              "note": "",
+              "timing": ""
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "safety",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guardian/safety-summary",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000027:GUARDIAN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian safety summary loaded",
+        "data": {
+          "complaints": [
+            {
+              "id": "6c0000000000000000000041",
+              "status": "PENDING",
+              "title": "Late"
+            },
+            {
+              "id": "6c0000000000000000000040",
+              "status": "RESOLVED",
+              "title": "Leak"
+            }
+          ],
+          "safety": {
+            "asOf": null,
+            "status": "NOT_VERIFIED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

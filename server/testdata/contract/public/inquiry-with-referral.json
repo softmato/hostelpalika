@@ -18,15 +18,16 @@
       "data.referral.updatedAt"
     ],
     "response": {
-      "status": 500,
+      "status": 400,
       "contentType": "application/json",
       "body": {
         "success": false,
-        "message": "Internal server error",
-        "errorCode": "INTERNAL_SERVER_ERROR"
+        "message": "The request body is not valid JSON.",
+        "errorCode": "INVALID_JSON"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 8bea0625",
+    "corrected": "R8: TS bug fixed on both sides, see docs/review_fixes_needed.md"
   },
   {
     "name": "empty",
@@ -121,16 +122,16 @@
               "Invalid email address"
             ],
             "message": [
-              "Too big: expected string to have \u003c=1200 characters"
+              "Too big: expected string to have <=1200 characters"
             ],
             "name": [
-              "Too small: expected string to have \u003e=2 characters"
+              "Too small: expected string to have >=2 characters"
             ],
             "phone": [
-              "Too small: expected string to have \u003e=7 characters"
+              "Too small: expected string to have >=7 characters"
             ],
             "referralCode": [
-              "Too small: expected string to have \u003e=4 characters"
+              "Too small: expected string to have >=4 characters"
             ]
           },
           "issues": [
@@ -139,19 +140,19 @@
               "path": "email"
             },
             {
-              "message": "Too big: expected string to have \u003c=1200 characters",
+              "message": "Too big: expected string to have <=1200 characters",
               "path": "message"
             },
             {
-              "message": "Too small: expected string to have \u003e=2 characters",
+              "message": "Too small: expected string to have >=2 characters",
               "path": "name"
             },
             {
-              "message": "Too small: expected string to have \u003e=7 characters",
+              "message": "Too small: expected string to have >=7 characters",
               "path": "phone"
             },
             {
-              "message": "Too small: expected string to have \u003e=4 characters",
+              "message": "Too small: expected string to have >=4 characters",
               "path": "referralCode"
             }
           ]

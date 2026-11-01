@@ -1,0 +1,776 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/khata"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cook refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "mine",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.entries.*.id",
+      "data.entries.*.createdAt",
+      "data.entries.*.decidedAt",
+      "data.bills.*.invoiceId"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata",
+        "data": {
+          "bills": [],
+          "entries": [
+            {
+              "amount": 80,
+              "billed": false,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": null,
+              "id": "6c00000000000000000000f8",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": null,
+              "status": "REQUESTED",
+              "unitPrice": 40
+            },
+            {
+              "amount": 80,
+              "billed": false,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": "2026-11-01T11:12:09.321Z",
+              "id": "6c00000000000000000000f9",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": null,
+              "status": "GIVEN",
+              "unitPrice": 40
+            },
+            {
+              "amount": 80,
+              "billed": true,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": "2026-09-01T06:00:00.000Z",
+              "id": "6c00000000000000000000fa",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": null,
+              "status": "GIVEN",
+              "unitPrice": 40
+            }
+          ],
+          "items": [
+            {
+              "active": true,
+              "id": "6c00000000000000000000f1",
+              "imageAssetId": null,
+              "name": "Noodles",
+              "price": 40
+            }
+          ],
+          "status": "ACTIVE",
+          "unbilled": 80
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "bad action",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "X"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "action": [
+              "Invalid discriminator value. Expected 'OPEN' | 'ASK' | 'CANCEL'"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid discriminator value. Expected 'OPEN' | 'ASK' | 'CANCEL'",
+              "path": "action"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "no action",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "action": [
+              "Invalid discriminator value. Expected 'OPEN' | 'ASK' | 'CANCEL'"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid discriminator value. Expected 'OPEN' | 'ASK' | 'CANCEL'",
+              "path": "action"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "ask invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "ASK",
+        "itemId": 3,
+        "note": 4,
+        "quantity": 21
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "itemId": [
+              "Invalid input: expected string, received number"
+            ],
+            "note": [
+              "Invalid input: expected string, received number"
+            ],
+            "quantity": [
+              "Too big: expected number to be \u003c=20"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "itemId"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "note"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=20",
+              "path": "quantity"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cancel invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "CANCEL"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "entryId": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "entryId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "open already",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "OPEN"
+      }
+    },
+    "masks": [
+      "data.entries.*.id",
+      "data.entries.*.createdAt",
+      "data.entries.*.decidedAt",
+      "data.bills.*.invoiceId"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata updated",
+        "data": {
+          "bills": [],
+          "entries": [
+            {
+              "amount": 80,
+              "billed": false,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": null,
+              "id": "6c00000000000000000000f8",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": null,
+              "status": "REQUESTED",
+              "unitPrice": 40
+            },
+            {
+              "amount": 80,
+              "billed": false,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": "2026-11-01T11:12:09.321Z",
+              "id": "6c00000000000000000000f9",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": null,
+              "status": "GIVEN",
+              "unitPrice": 40
+            },
+            {
+              "amount": 80,
+              "billed": true,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": "2026-09-01T06:00:00.000Z",
+              "id": "6c00000000000000000000fa",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": null,
+              "status": "GIVEN",
+              "unitPrice": 40
+            }
+          ],
+          "items": [
+            {
+              "active": true,
+              "id": "6c00000000000000000000f1",
+              "imageAssetId": null,
+              "name": "Noodles",
+              "price": 40
+            }
+          ],
+          "status": "ACTIVE",
+          "unbilled": 80
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "off item",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "ASK",
+        "itemId": "6c00000000000000000000f2",
+        "quantity": 1
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That item is not on the list any more.",
+        "errorCode": "KHATA_ITEM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "ask",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "ASK",
+        "itemId": "6c00000000000000000000f1",
+        "quantity": 3,
+        "note": " Spicy "
+      }
+    },
+    "masks": [
+      "data.entries.*.id",
+      "data.entries.*.createdAt",
+      "data.entries.*.decidedAt",
+      "data.bills.*.invoiceId"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata updated",
+        "data": {
+          "bills": [],
+          "entries": [
+            {
+              "amount": 120,
+              "billed": false,
+              "createdAt": "2026-11-01T11:12:14.037Z",
+              "decidedAt": null,
+              "id": "6ae71e8ee6822539292ba57d",
+              "name": "Noodles",
+              "note": "Spicy",
+              "quantity": 3,
+              "resident": null,
+              "status": "REQUESTED",
+              "unitPrice": 40
+            },
+            {
+              "amount": 80,
+              "billed": false,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": null,
+              "id": "6c00000000000000000000f8",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": null,
+              "status": "REQUESTED",
+              "unitPrice": 40
+            },
+            {
+              "amount": 80,
+              "billed": false,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": "2026-11-01T11:12:09.321Z",
+              "id": "6c00000000000000000000f9",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": null,
+              "status": "GIVEN",
+              "unitPrice": 40
+            },
+            {
+              "amount": 80,
+              "billed": true,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": "2026-09-01T06:00:00.000Z",
+              "id": "6c00000000000000000000fa",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": null,
+              "status": "GIVEN",
+              "unitPrice": 40
+            }
+          ],
+          "items": [
+            {
+              "active": true,
+              "id": "6c00000000000000000000f1",
+              "imageAssetId": null,
+              "name": "Noodles",
+              "price": 40
+            }
+          ],
+          "status": "ACTIVE",
+          "unbilled": 80
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cook bell",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=unread",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt",
+      "data.notifications.*.data.entryId"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/cook/khata",
+              "body": "Res Ident asked on khata. “Spicy”",
+              "category": "KHATA",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:12:14.052Z",
+              "data": {
+                "entryId": "6ae71e8ee6822539292ba57d",
+                "type": "KHATA_ASK"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae71e8ee6822539292ba57e",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Noodles ×3",
+              "userId": "6c0000000000000000000009"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 1,
+            "totalPages": 1
+          },
+          "unreadCount": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cancel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "CANCEL",
+        "entryId": "6c00000000000000000000f8"
+      }
+    },
+    "masks": [
+      "data.entries.*.id",
+      "data.entries.*.createdAt",
+      "data.entries.*.decidedAt",
+      "data.bills.*.invoiceId"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata updated",
+        "data": {
+          "bills": [],
+          "entries": [
+            {
+              "amount": 120,
+              "billed": false,
+              "createdAt": "2026-11-01T11:12:14.037Z",
+              "decidedAt": null,
+              "id": "6ae71e8ee6822539292ba57d",
+              "name": "Noodles",
+              "note": "Spicy",
+              "quantity": 3,
+              "resident": null,
+              "status": "REQUESTED",
+              "unitPrice": 40
+            },
+            {
+              "amount": 80,
+              "billed": false,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": "2026-11-01T11:12:14.157Z",
+              "id": "6c00000000000000000000f8",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": null,
+              "status": "CANCELLED",
+              "unitPrice": 40
+            },
+            {
+              "amount": 80,
+              "billed": false,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": "2026-11-01T11:12:09.321Z",
+              "id": "6c00000000000000000000f9",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": null,
+              "status": "GIVEN",
+              "unitPrice": 40
+            },
+            {
+              "amount": 80,
+              "billed": true,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": "2026-09-01T06:00:00.000Z",
+              "id": "6c00000000000000000000fa",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": null,
+              "status": "GIVEN",
+              "unitPrice": 40
+            }
+          ],
+          "items": [
+            {
+              "active": true,
+              "id": "6c00000000000000000000f1",
+              "imageAssetId": null,
+              "name": "Noodles",
+              "price": 40
+            }
+          ],
+          "status": "ACTIVE",
+          "unbilled": 80
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cancel twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "CANCEL",
+        "entryId": "6c00000000000000000000f8"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "It was already answered.",
+        "errorCode": "KHATA_ENTRY_DECIDED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cancel junk",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "CANCEL",
+        "entryId": "x"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "It was already answered.",
+        "errorCode": "KHATA_ENTRY_DECIDED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "closed ask",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000037:RESIDENT:6c0000000000000000000037}}"
+      },
+      "body": {
+        "action": "ASK",
+        "itemId": "6c00000000000000000000f1",
+        "quantity": 1
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your khata is not open yet.",
+        "errorCode": "KHATA_NOT_ACTIVE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "open",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000037:RESIDENT:6c0000000000000000000037}}"
+      },
+      "body": {
+        "action": "OPEN"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata updated",
+        "data": {
+          "bills": [],
+          "entries": [],
+          "items": [],
+          "status": "REQUESTED",
+          "unbilled": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "open twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000037:RESIDENT:6c0000000000000000000037}}"
+      },
+      "body": {
+        "action": "OPEN"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata updated",
+        "data": {
+          "bills": [],
+          "entries": [],
+          "items": [],
+          "status": "REQUESTED",
+          "unbilled": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

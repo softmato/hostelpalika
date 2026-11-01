@@ -1,0 +1,831 @@
+[
+  {
+    "name": "list anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments"
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Comments loaded",
+        "data": {
+          "comments": [
+            {
+              "authorImage": null,
+              "authorName": "Contract admin",
+              "body": "Root",
+              "createdAt": "2026-11-01T09:01:11.001Z",
+              "id": "6c00000000000000000000c5",
+              "isDeleted": false,
+              "isMine": false,
+              "parentId": null,
+              "score": 1,
+              "viewerVote": 0,
+              "depth": 0
+            },
+            {
+              "authorImage": null,
+              "authorName": "Contract resident",
+              "body": "Reply",
+              "createdAt": "2026-11-01T10:01:11.001Z",
+              "id": "6c00000000000000000000c6",
+              "isDeleted": false,
+              "isMine": false,
+              "parentId": "6c00000000000000000000c5",
+              "score": 0,
+              "viewerVote": 0,
+              "depth": 1
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 2,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Comments loaded",
+        "data": {
+          "comments": [
+            {
+              "authorImage": null,
+              "authorName": "Contract admin",
+              "body": "Root",
+              "createdAt": "2026-11-01T09:01:11.001Z",
+              "id": "6c00000000000000000000c5",
+              "isDeleted": false,
+              "isMine": false,
+              "parentId": null,
+              "score": 1,
+              "viewerVote": 0,
+              "depth": 0
+            },
+            {
+              "authorImage": null,
+              "authorName": "Contract resident",
+              "body": "Reply",
+              "createdAt": "2026-11-01T10:01:11.001Z",
+              "id": "6c00000000000000000000c6",
+              "isDeleted": false,
+              "isMine": true,
+              "parentId": "6c00000000000000000000c5",
+              "score": 0,
+              "viewerVote": 0,
+              "depth": 1
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 2,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "list bad page",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments?page=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "page": [
+              "Invalid input: expected number, received NaN"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected number, received NaN",
+              "path": "page"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "list unreadable",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/6c00000000000000000000c4/comments",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Post was not found.",
+        "errorCode": "POST_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "add anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments",
+      "body": {
+        "body": "x"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "add invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "body": "",
+        "parentId": "x"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "body": [
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "parentId": [
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "body"
+            },
+            {
+              "message": "Invalid object id.",
+              "path": "parentId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "add",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "body": " fuck yes "
+      }
+    },
+    "masks": [
+      "data.comment.id",
+      "data.comment.createdAt",
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Comment added",
+        "data": {
+          "comment": {
+            "authorImage": null,
+            "authorName": "Contract admin",
+            "body": "**** yes",
+            "createdAt": "2026-11-01T11:01:12.838Z",
+            "id": "6ae71bf8e6822539292ba56c",
+            "isDeleted": false,
+            "isMine": true,
+            "parentId": null,
+            "score": 0,
+            "viewerVote": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "reply",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "body": "Re",
+        "parentId": "6c00000000000000000000c6"
+      }
+    },
+    "masks": [
+      "data.comment.id",
+      "data.comment.createdAt",
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Comment added",
+        "data": {
+          "comment": {
+            "authorImage": null,
+            "authorName": "Contract admin",
+            "body": "Re",
+            "createdAt": "2026-11-01T11:01:12.912Z",
+            "id": "6ae71bf8e6822539292ba56e",
+            "isDeleted": false,
+            "isMine": true,
+            "parentId": "6c00000000000000000000c6",
+            "score": 0,
+            "viewerVote": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "reply missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "body": "Re",
+        "parentId": "6c00000000000000000000ff"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The comment you replied to was not found.",
+        "errorCode": "COMMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "bell",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=unread",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt",
+      "data.notifications.*.readAt",
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Someone replied to your comment.",
+              "category": "COMMUNITY",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:01:12.929Z",
+              "data": {
+                "postId": "6c00000000000000000000c1"
+              },
+              "id": "6ae71bf8e6822539292ba56f",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "New reply",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Someone commented on your community post.",
+              "category": "COMMUNITY",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:01:12.852Z",
+              "data": {
+                "postId": "6c00000000000000000000c1"
+              },
+              "id": "6ae71bf8e6822539292ba56d",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "New comment",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Pay soon",
+              "category": "BILLING",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:01:11.001Z",
+              "data": {
+                "z": 1,
+                "a": "x"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000091",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "HIGH",
+              "status": "SENT",
+              "title": "Rent due",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [
+                {
+                  "endpoint": "/x",
+                  "key": "IN",
+                  "label": "In",
+                  "method": "POST",
+                  "tone": "default"
+                }
+              ],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/night",
+              "body": "Answer",
+              "category": "NIGHT_STATUS",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T09:01:11.001Z",
+              "data": {},
+              "id": "6c0000000000000000000092",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Night?",
+              "userId": "6c0000000000000000000007"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 4,
+            "totalPages": 1
+          },
+          "unreadCount": 4
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "vote invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments/6c00000000000000000000c5/vote",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "value": 2
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "value": [
+              "Invalid input"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input",
+              "path": "value"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "vote",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments/6c00000000000000000000c5/vote",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "value": 1
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Vote saved",
+        "data": {
+          "commentId": "6c00000000000000000000c5",
+          "score": 1,
+          "viewerVote": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "vote zero",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments/6c00000000000000000000c5/vote",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "value": 0
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Vote saved",
+        "data": {
+          "commentId": "6c00000000000000000000c5",
+          "score": 0,
+          "viewerVote": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "vote missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments/6c00000000000000000000ff/vote",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "value": 1
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Comment was not found.",
+        "errorCode": "COMMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "vote hidden",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments/6c00000000000000000000c7/vote",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "value": 1
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Comment was not found.",
+        "errorCode": "COMMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "delete not mine",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments/6c00000000000000000000c5",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Comment was not found.",
+        "errorCode": "COMMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "delete",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments/6c00000000000000000000c6",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Comment deleted",
+        "data": {
+          "commentId": "6c00000000000000000000c6",
+          "status": "HIDDEN"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "delete again",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments/6c00000000000000000000c6",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Comment was not found.",
+        "errorCode": "COMMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/6c00000000000000000000c1/comments",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.comments.*.id",
+      "data.comments.*.createdAt",
+      "data.comments.*.parentId",
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Comments loaded",
+        "data": {
+          "comments": [
+            {
+              "authorImage": null,
+              "authorName": "Contract admin",
+              "body": "Root",
+              "createdAt": "2026-11-01T09:01:11.001Z",
+              "id": "6c00000000000000000000c5",
+              "isDeleted": false,
+              "isMine": false,
+              "parentId": null,
+              "score": 0,
+              "viewerVote": 0,
+              "depth": 0
+            },
+            {
+              "authorImage": null,
+              "authorName": "Deleted",
+              "body": "",
+              "createdAt": "2026-11-01T10:01:11.001Z",
+              "id": "6c00000000000000000000c6",
+              "isDeleted": true,
+              "isMine": false,
+              "parentId": "6c00000000000000000000c5",
+              "score": 0,
+              "viewerVote": 0,
+              "depth": 1
+            },
+            {
+              "authorImage": null,
+              "authorName": "Contract admin",
+              "body": "Re",
+              "createdAt": "2026-11-01T11:01:12.912Z",
+              "id": "6ae71bf8e6822539292ba56e",
+              "isDeleted": false,
+              "isMine": false,
+              "parentId": "6c00000000000000000000c6",
+              "score": 0,
+              "viewerVote": 0,
+              "depth": 2
+            },
+            {
+              "authorImage": null,
+              "authorName": "Contract admin",
+              "body": "**** yes",
+              "createdAt": "2026-11-01T11:01:12.838Z",
+              "id": "6ae71bf8e6822539292ba56c",
+              "isDeleted": false,
+              "isMine": false,
+              "parentId": null,
+              "score": 0,
+              "viewerVote": 0,
+              "depth": 0
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 4,
+            "totalPages": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

@@ -34,7 +34,8 @@ func Connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, e
 		SetMaxPoolSize(50).
 		SetMaxConnIdleTime(5 * time.Minute).
 		SetServerSelectionTimeout(10 * time.Second).
-		SetMonitor(obs.MongoMonitor()))
+		SetMonitor(obs.MongoMonitor()).
+		SetPoolMonitor(obs.MongoPoolMonitor()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("mongo: %w", err)
 	}

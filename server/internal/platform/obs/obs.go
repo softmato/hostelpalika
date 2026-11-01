@@ -45,9 +45,12 @@ func Middleware() gin.HandlerFunc {
 		ctx := context.WithValue(applog.WithRequestID(c.Request.Context(), id), timingsKey{}, t)
 		c.Request = c.Request.WithContext(ctx)
 		c.Writer = &timingWriter{ResponseWriter: c.Writer, start: start, t: t}
+		httpInFlight.Inc()
+		defer httpInFlight.Dec()
 
 		c.Next()
 
+		recordRequest(c.Request.Method, c.FullPath(), c.Writer.Status(), time.Since(start))
 		level := slog.LevelInfo
 		if c.Request.URL.Path == "/api/v1/health" {
 			level = slog.LevelDebug // probes every few seconds
@@ -118,14 +121,18 @@ func (w *timingWriter) Flush() { w.stamp(); w.ResponseWriter.Flush() }
 
 // MongoMonitor adds every command's duration to its request's db time.
 func MongoMonitor() *event.CommandMonitor {
-	add := func(ctx context.Context, d time.Duration) {
+	add := func(ctx context.Context, name string, d time.Duration) {
 		if t := from(ctx); t != nil {
 			t.db.Add(int64(d))
 		}
+		mongoDuration.WithLabelValues(name).Observe(d.Seconds())
 	}
 	return &event.CommandMonitor{
-		Succeeded: func(ctx context.Context, e *event.CommandSucceededEvent) { add(ctx, e.Duration) },
-		Failed:    func(ctx context.Context, e *event.CommandFailedEvent) { add(ctx, e.Duration) },
+		Succeeded: func(ctx context.Context, e *event.CommandSucceededEvent) { add(ctx, e.CommandName, e.Duration) },
+		Failed: func(ctx context.Context, e *event.CommandFailedEvent) {
+			add(ctx, e.CommandName, e.Duration)
+			mongoFailures.WithLabelValues(e.CommandName).Inc()
+		},
 	}
 }
 
@@ -140,9 +147,7 @@ func (RedisHook) ProcessHook(next goredis.ProcessHook) goredis.ProcessHook {
 	return func(ctx context.Context, cmd goredis.Cmder) error {
 		start := time.Now()
 		err := next(ctx, cmd)
-		if t := from(ctx); t != nil {
-			t.redis.Add(int64(time.Since(start)))
-		}
+		recordRedis(ctx, "command", start, err)
 		return err
 	}
 }
@@ -151,9 +156,7 @@ func (RedisHook) ProcessPipelineHook(next goredis.ProcessPipelineHook) goredis.P
 	return func(ctx context.Context, cmds []goredis.Cmder) error {
 		start := time.Now()
 		err := next(ctx, cmds)
-		if t := from(ctx); t != nil {
-			t.redis.Add(int64(time.Since(start)))
-		}
+		recordRedis(ctx, "pipeline", start, err)
 		return err
 	}
 }

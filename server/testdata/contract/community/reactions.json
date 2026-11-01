@@ -1,0 +1,501 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c2/reactions",
+      "body": {
+        "type": "LIKE"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c2/reactions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "type": "X"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "type": [
+              "Invalid option: expected one of \"LIKE\"|\"LOVE\"|\"LAUGH\"|\"SAD\"|\"ANGRY\"|\"SUPPORT\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"LIKE\"|\"LOVE\"|\"LAUGH\"|\"SAD\"|\"ANGRY\"|\"SUPPORT\"",
+              "path": "type"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "change",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c2/reactions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "type": "LIKE"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reaction saved",
+        "data": {
+          "reaction": "LIKE"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "toggle off",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c2/reactions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "type": "LIKE"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reaction saved",
+        "data": {
+          "reaction": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "add",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/reactions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "type": "SAD"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reaction saved",
+        "data": {
+          "reaction": "SAD"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "add own",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/reactions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "type": "SAD"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reaction saved",
+        "data": {
+          "reaction": "SAD"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "bell batched",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=unread",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt",
+      "data.notifications.*.readAt",
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Someone reacted to your community post.",
+              "category": "COMMUNITY",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:01:15.518Z",
+              "data": {
+                "postId": "6c00000000000000000000c1",
+                "reactionCount": 1,
+                "dedupeKey": "community-reaction:6c00000000000000000000c1"
+              },
+              "id": "6ae71bfbe6822539292ba570",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "New reaction",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Pay soon",
+              "category": "BILLING",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:01:13.540Z",
+              "data": {
+                "z": 1,
+                "a": "x"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000091",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "HIGH",
+              "status": "SENT",
+              "title": "Rent due",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [
+                {
+                  "endpoint": "/x",
+                  "key": "IN",
+                  "label": "In",
+                  "method": "POST",
+                  "tone": "default"
+                }
+              ],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/night",
+              "body": "Answer",
+              "category": "NIGHT_STATUS",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T09:01:13.540Z",
+              "data": {},
+              "id": "6c0000000000000000000092",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Night?",
+              "userId": "6c0000000000000000000007"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 3,
+            "totalPages": 1
+          },
+          "unreadCount": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "post counts",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/6c00000000000000000000c1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Post loaded",
+        "data": {
+          "post": {
+            "authorImage": null,
+            "authorName": "Contract resident",
+            "body": "Public hello #kathmandu #food",
+            "commentCount": 2,
+            "createdAt": "2026-11-01T08:01:13.540Z",
+            "hostelId": null,
+            "hostelName": null,
+            "id": "6c00000000000000000000c1",
+            "isAnnouncement": false,
+            "isMine": true,
+            "media": [],
+            "reactionCount": 2,
+            "reactionCounts": {
+              "SAD": 2
+            },
+            "spaceType": "PUBLIC",
+            "status": "VISIBLE",
+            "viewerReaction": "SAD",
+            "visibility": "PUBLIC"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "report anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/report",
+      "body": {
+        "reason": "abc"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "report invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/report",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "a"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Too small: expected string to have \u003e=3 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=3 characters",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "report",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/report",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "spam here"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Report submitted",
+        "data": {
+          "reported": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "report twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/report",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "spam here"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Report submitted",
+        "data": {
+          "reported": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "report second",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/6c00000000000000000000c1/report",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "spam too"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Report submitted",
+        "data": {
+          "reported": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

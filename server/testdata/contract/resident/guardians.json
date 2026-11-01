@@ -1,0 +1,633 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/guardians"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/guardians",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.guardians.*.expiresAt",
+      "data.guardians.*.invitationExpiresAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardians loaded",
+        "data": {
+          "guardians": [
+            {
+              "accessId": "6c0000000000000000000028",
+              "email": "guardian@contract.test",
+              "expiresAt": "2026-11-02T10:35:32.909Z",
+              "guardianId": "6c0000000000000000000019",
+              "invitationPending": false,
+              "name": "Guar Dian",
+              "permissions": {
+                "canViewComplaintStatus": true,
+                "canViewFood": true,
+                "canViewNotices": true,
+                "canViewPayments": true,
+                "canViewReceipts": true,
+                "canViewSafety": true
+              },
+              "phone": "9811111111",
+              "relation": "Father",
+              "status": "USED"
+            },
+            {
+              "accessId": "6c000000000000000000002a",
+              "email": "offguard@contract.test",
+              "expiresAt": "2026-11-02T10:35:32.909Z",
+              "guardianId": "6c000000000000000000002b",
+              "invitationPending": false,
+              "name": "Off Guard",
+              "permissions": {
+                "canViewComplaintStatus": false,
+                "canViewFood": false,
+                "canViewNotices": false,
+                "canViewPayments": false,
+                "canViewReceipts": false,
+                "canViewSafety": false
+              },
+              "phone": "9811111112",
+              "relation": "Uncle",
+              "status": "USED"
+            },
+            {
+              "accessId": "6c000000000000000000002c",
+              "email": "newguard@contract.test",
+              "expiresAt": "2026-11-02T10:35:32.909Z",
+              "guardianId": "6c000000000000000000002d",
+              "invitationExpiresAt": "2026-11-01T11:35:32.909Z",
+              "invitationPending": true,
+              "name": "New Guard",
+              "permissions": {
+                "canViewComplaintStatus": false,
+                "canViewFood": false,
+                "canViewNotices": false,
+                "canViewPayments": false,
+                "canViewReceipts": false,
+                "canViewSafety": false
+              },
+              "phone": "9811111113",
+              "relation": "Aunt",
+              "status": "ACTIVE"
+            },
+            {
+              "accessId": "6c000000000000000000002e",
+              "email": "newguard@contract.test",
+              "expiresAt": "2026-11-02T10:35:32.909Z",
+              "guardianId": "6c000000000000000000002d",
+              "invitationExpiresAt": "2026-11-01T09:35:32.909Z",
+              "invitationPending": true,
+              "name": "New Guard",
+              "permissions": {
+                "canViewComplaintStatus": false,
+                "canViewFood": false,
+                "canViewNotices": false,
+                "canViewPayments": false,
+                "canViewReceipts": false,
+                "canViewSafety": false
+              },
+              "phone": "9811111113",
+              "relation": "Aunt",
+              "status": "ACTIVE"
+            },
+            {
+              "accessId": "6c000000000000000000002f",
+              "email": "resident@contract.test",
+              "expiresAt": "2026-11-02T10:35:32.909Z",
+              "guardianId": "6c000000000000000000002d",
+              "invitationExpiresAt": "2026-11-01T11:35:32.909Z",
+              "invitationPending": true,
+              "name": "New Guard",
+              "permissions": {
+                "canViewComplaintStatus": false,
+                "canViewFood": false,
+                "canViewNotices": false,
+                "canViewPayments": false,
+                "canViewReceipts": false,
+                "canViewSafety": false
+              },
+              "phone": "9811111113",
+              "relation": "Aunt",
+              "status": "ACTIVE"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invite invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/guardians",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "email": "nope",
+        "firstName": "",
+        "lastName": 3,
+        "phone": "1",
+        "relation": "x",
+        "permissions": {
+          "canViewFood": "y"
+        }
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "email": [
+              "Invalid email address"
+            ],
+            "firstName": [
+              "Too small: expected string to have >=1 characters"
+            ],
+            "lastName": [
+              "Invalid input: expected string, received number"
+            ],
+            "permissions": [
+              "Invalid input: expected boolean, received string"
+            ],
+            "phone": [
+              "Too small: expected string to have >=6 characters"
+            ],
+            "relation": [
+              "Too small: expected string to have >=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid email address",
+              "path": "email"
+            },
+            {
+              "message": "Too small: expected string to have >=1 characters",
+              "path": "firstName"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "lastName"
+            },
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "permissions.canViewFood"
+            },
+            {
+              "message": "Too small: expected string to have >=6 characters",
+              "path": "phone"
+            },
+            {
+              "message": "Too small: expected string to have >=2 characters",
+              "path": "relation"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invite",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/guardians",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "email": " Fresh@Contract.test ",
+        "firstName": " Fre ",
+        "lastName": "Sh",
+        "phone": "9812345678",
+        "relation": "Mother",
+        "permissions": {
+          "canViewFood": true
+        }
+      }
+    },
+    "masks": [
+      "data.guardian.accessId",
+      "data.guardian.guardianId",
+      "data.guardian.expiresAt",
+      "data.guardian.invitationExpiresAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian invited",
+        "data": {
+          "guardian": {
+            "accessId": "6ae715f6e6822539292ba4a1",
+            "email": "fresh@contract.test",
+            "expiresAt": "2027-11-01T10:35:34.140Z",
+            "guardianId": "6ae715f6e6822539292ba4a0",
+            "invitationExpiresAt": "2026-11-08T10:35:34.140Z",
+            "invitationPending": true,
+            "name": "Fre Sh",
+            "permissions": {
+              "canViewComplaintStatus": false,
+              "canViewFood": true,
+              "canViewNotices": false,
+              "canViewPayments": false,
+              "canViewReceipts": false,
+              "canViewSafety": false
+            },
+            "phone": "9812345678",
+            "relation": "Mother",
+            "status": "ACTIVE"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invite defaults",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/guardians",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "email": "plain@contract.test",
+        "firstName": "Pl",
+        "lastName": "Ain",
+        "phone": "9812345679",
+        "relation": "Father"
+      }
+    },
+    "masks": [
+      "data.guardian.accessId",
+      "data.guardian.guardianId",
+      "data.guardian.expiresAt",
+      "data.guardian.invitationExpiresAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian invited",
+        "data": {
+          "guardian": {
+            "accessId": "6ae715f6e6822539292ba4a5",
+            "email": "plain@contract.test",
+            "expiresAt": "2027-11-01T10:35:34.229Z",
+            "guardianId": "6ae715f6e6822539292ba4a4",
+            "invitationExpiresAt": "2026-11-08T10:35:34.229Z",
+            "invitationPending": true,
+            "name": "Pl Ain",
+            "permissions": {
+              "canViewComplaintStatus": false,
+              "canViewFood": false,
+              "canViewNotices": false,
+              "canViewPayments": false,
+              "canViewReceipts": false,
+              "canViewSafety": false
+            },
+            "phone": "9812345679",
+            "relation": "Father",
+            "status": "ACTIVE"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invite existing guardian",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/guardians",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "email": "newguard@contract.test",
+        "firstName": "Ig",
+        "lastName": "Nored",
+        "phone": "9812345670",
+        "relation": "Other"
+      }
+    },
+    "masks": [
+      "data.guardian.accessId",
+      "data.guardian.guardianId",
+      "data.guardian.expiresAt",
+      "data.guardian.invitationExpiresAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian invited",
+        "data": {
+          "guardian": {
+            "accessId": "6ae715f6e6822539292ba4a8",
+            "email": "newguard@contract.test",
+            "expiresAt": "2027-11-01T10:35:34.289Z",
+            "guardianId": "6c000000000000000000002d",
+            "invitationExpiresAt": "2026-11-08T10:35:34.289Z",
+            "invitationPending": true,
+            "name": "New Guard",
+            "permissions": {
+              "canViewComplaintStatus": false,
+              "canViewFood": false,
+              "canViewNotices": false,
+              "canViewPayments": false,
+              "canViewReceipts": false,
+              "canViewSafety": false
+            },
+            "phone": "9811111113",
+            "relation": "Aunt",
+            "status": "ACTIVE"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "patch invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/guardians/6c0000000000000000000028",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "canViewFood": "y"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "canViewFood": [
+              "Invalid input: expected boolean, received string"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "canViewFood"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "patch bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/guardians/x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid guardian access id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "patch not mine",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/guardians/6c000000000000000000006f",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Guardian access was not found.",
+        "errorCode": "GUARDIAN_ACCESS_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "patch",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/guardians/6c0000000000000000000028",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "canViewFood": false,
+        "canViewComplaintStatus": false
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian permissions updated",
+        "data": {
+          "permissions": {
+            "canViewComplaintStatus": false,
+            "canViewFood": false,
+            "canViewNotices": true,
+            "canViewPayments": true,
+            "canViewReceipts": true,
+            "canViewSafety": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8",
+    "corrected": "R9: keys left out of the PATCH keep their value, see docs/review_fixes_needed.md"
+  },
+  {
+    "name": "patch upsert",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/guardians/6c000000000000000000002a",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "canViewSafety": true
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian permissions updated",
+        "data": {
+          "permissions": {
+            "canViewComplaintStatus": false,
+            "canViewFood": false,
+            "canViewNotices": false,
+            "canViewPayments": false,
+            "canViewReceipts": false,
+            "canViewSafety": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "guardian told",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000027:GUARDIAN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/guardian/dashboard",
+              "body": "Res Ident changed what you can see at Contract Hostel.",
+              "category": "GUARDIAN",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:35:34.499Z",
+              "data": {
+                "audience": "GUARDIAN"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae715f6e6822539292ba4ac",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Your access changed",
+              "userId": "6c0000000000000000000027"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 1,
+            "totalPages": 1
+          },
+          "unreadCount": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "revoke",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/resident/guardians/6c000000000000000000002a",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian access revoked",
+        "data": {
+          "accessId": "6c000000000000000000002a",
+          "status": "REVOKED"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "revoked guardian",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/guardian/dashboard",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000029:GUARDIAN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Guardian access was not found for this account.",
+        "errorCode": "GUARDIAN_ACCESS_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

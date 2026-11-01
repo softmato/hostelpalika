@@ -1,0 +1,320 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "user-agent": "claims-4"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c00000000000000000000e3"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-4"
+      },
+      "body": {
+        "amount": 1.5,
+        "notifiedOnDevice": "x",
+        "paidAt": "nope",
+        "paymentMethod": "X",
+        "proofImageAssetId": "",
+        "referenceNote": 3,
+        "transactionCode": 4
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "amount": [
+              "Invalid input: expected int, received number"
+            ],
+            "notifiedOnDevice": [
+              "Invalid input: expected boolean, received string"
+            ],
+            "paidAt": [
+              "Invalid input: expected date, received Date"
+            ],
+            "paymentMethod": [
+              "Invalid option: expected one of \"CASH\"|\"ESEWA\"|\"KHALTI\"|\"FONEPAY\"|\"BANK_TRANSFER\"|\"OTHER\""
+            ],
+            "proofImageAssetId": [
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "referenceNote": [
+              "Invalid input: expected string, received number"
+            ],
+            "transactionCode": [
+              "Invalid input: expected string, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected int, received number",
+              "path": "amount"
+            },
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "notifiedOnDevice"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "paidAt"
+            },
+            {
+              "message": "Invalid option: expected one of \"CASH\"|\"ESEWA\"|\"KHALTI\"|\"FONEPAY\"|\"BANK_TRANSFER\"|\"OTHER\"",
+              "path": "paymentMethod"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "proofImageAssetId"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "referenceNote"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "transactionCode"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "zero",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-4"
+      },
+      "body": {
+        "amount": 0,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c00000000000000000000e3"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "amount": [
+              "Too small: expected number to be \u003e0"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e0",
+              "path": "amount"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "future",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-4"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c00000000000000000000e3",
+        "paidAt": "2099-01-01T00:00:00.000Z"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "paidAt": [
+              "That payment date is in the future. Enter the date you actually paid."
+            ]
+          },
+          "issues": [
+            {
+              "message": "That payment date is in the future. Enter the date you actually paid.",
+              "path": "paidAt"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "old",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-4"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c00000000000000000000e3",
+        "paidAt": "2001-01-01T00:00:00.000Z"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "paidAt": [
+              "That payment date is more than a year ago. Please contact your hostel about this payment."
+            ]
+          },
+          "issues": [
+            {
+              "message": "That payment date is more than a year ago. Please contact your hostel about this payment.",
+              "path": "paidAt"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "unknown invoice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c00000000000000000000ff/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-4"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c00000000000000000000e3"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invoice was not found.",
+        "errorCode": "INVOICE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "paid invoice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000011/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-4"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c00000000000000000000e3"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invoice is already paid.",
+        "errorCode": "INVOICE_ALREADY_PAID"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "not owned",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-4"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c0000000000000000000071"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This file is not yours to submit. Upload the screenshot again.",
+        "errorCode": "ASSET_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

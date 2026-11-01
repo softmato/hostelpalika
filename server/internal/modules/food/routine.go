@@ -4,6 +4,8 @@ package food
 
 import (
 	"context"
+	"github.com/softmato/hostelpalika/server/internal/platform/bs"
+	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
@@ -110,4 +112,50 @@ func Routines(ctx context.Context, db *mongo.Database, hostelIDs []bson.ObjectID
 		out[key] = serialize(row)
 	}
 	return out, nil
+}
+
+var (
+	routineDays  = []string{"SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"}
+	routineMeals = []string{"BREAKFAST", "LUNCH", "SNACKS", "DINNER"}
+)
+
+// DayOfWeekFor is dayOfWeekFor: the weekday in Nepal.
+func DayOfWeekFor(t time.Time) string { return routineDays[bs.CalendarDay(t).Weekday()] }
+
+// MealsOn is mealsOn over a serialized routine: that day's meals in meal order.
+func MealsOn(routine ordered.Map, t time.Time) []any {
+	day := DayOfWeekFor(t)
+	list, _ := routine.Get("meals")
+	meals, _ := list.([]any)
+	out := []any{}
+	for _, mealType := range routineMeals {
+		for _, m := range meals {
+			if get(m, "dayOfWeek") == day && get(m, "mealType") == mealType {
+				out = append(out, m)
+				break
+			}
+		}
+	}
+	return out
+}
+
+// Routine is getFoodRoutine: EMPTY_ROUTINE when the hostel has none.
+func Routine(ctx context.Context, db *mongo.Database, hostelID bson.ObjectID) (ordered.Map, error) {
+	all, err := Routines(ctx, db, []bson.ObjectID{hostelID})
+	if err != nil {
+		return nil, err
+	}
+	if r, ok := all[hostelID.Hex()].(ordered.Map); ok {
+		return r, nil
+	}
+	return Empty(), nil
+}
+
+// MealsToday is mealsOn(getFoodRoutine(hostel), t).
+func MealsToday(ctx context.Context, db *mongo.Database, hostelID bson.ObjectID, t time.Time) ([]any, error) {
+	r, err := Routine(ctx, db, hostelID)
+	if err != nil {
+		return nil, err
+	}
+	return MealsOn(r, t), nil
 }

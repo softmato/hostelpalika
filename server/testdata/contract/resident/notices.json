@@ -1,0 +1,325 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/notices"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/notices",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/notices",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.notices.*.createdAt",
+      "data.notices.*.updatedAt",
+      "data.notices.*.publishedAt",
+      "data.notices.*.readAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident notices loaded",
+        "data": {
+          "notices": [
+            {
+              "category": "GENERAL",
+              "content": "Water off body",
+              "createdAt": "2026-11-01T10:18:47.178Z",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000050",
+              "isRead": false,
+              "isUrgent": true,
+              "publishedAt": "2026-11-01T08:18:47.178Z",
+              "targetAudience": "ALL",
+              "title": "Water off",
+              "updatedAt": "2026-11-01T10:18:47.178Z"
+            },
+            {
+              "category": "GENERAL",
+              "content": "Rules body",
+              "createdAt": "2026-11-01T10:18:47.178Z",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000051",
+              "isRead": true,
+              "isUrgent": false,
+              "publishedAt": "2026-11-01T07:18:47.178Z",
+              "readAt": "2026-11-01T09:18:47.178Z",
+              "targetAudience": "RESIDENTS",
+              "title": "Rules",
+              "updatedAt": "2026-11-01T10:18:47.178Z"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 2,
+            "totalPages": 1
+          },
+          "resident": {
+            "createdAt": "2026-10-31T10:18:47.178Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/notices/x/read",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid notice id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read foreign hostel",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/notices/6c0000000000000000000055/read",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Notice was not found.",
+        "errorCode": "NOTICE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/notices/6c0000000000000000000050/read",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.notice.createdAt",
+      "data.notice.updatedAt",
+      "data.notice.publishedAt",
+      "data.notice.readAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notice marked as read",
+        "data": {
+          "notice": {
+            "category": "GENERAL",
+            "content": "Water off body",
+            "createdAt": "2026-11-01T10:18:47.178Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c0000000000000000000050",
+            "isRead": true,
+            "isUrgent": true,
+            "publishedAt": "2026-11-01T08:18:47.178Z",
+            "readAt": "2026-11-01T10:18:55.901Z",
+            "targetAudience": "ALL",
+            "title": "Water off",
+            "updatedAt": "2026-11-01T10:18:47.178Z"
+          },
+          "resident": {
+            "createdAt": "2026-10-31T10:18:47.178Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read again",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/notices/6c0000000000000000000050/read",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.notice.createdAt",
+      "data.notice.updatedAt",
+      "data.notice.publishedAt",
+      "data.notice.readAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notice marked as read",
+        "data": {
+          "notice": {
+            "category": "GENERAL",
+            "content": "Water off body",
+            "createdAt": "2026-11-01T10:18:47.178Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c0000000000000000000050",
+            "isRead": true,
+            "isUrgent": true,
+            "publishedAt": "2026-11-01T08:18:47.178Z",
+            "readAt": "2026-11-01T10:18:55.901Z",
+            "targetAudience": "ALL",
+            "title": "Water off",
+            "updatedAt": "2026-11-01T10:18:47.178Z"
+          },
+          "resident": {
+            "createdAt": "2026-10-31T10:18:47.178Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read all none left",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/notices/read-all",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notices marked as read",
+        "data": {
+          "marked": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read all other reader",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/notices/read-all",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e7:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notices marked as read",
+        "data": {
+          "marked": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

@@ -53,5 +53,32 @@ add("newHostelPending", pending.newHostelPendingEmail as never, [
   { city: "Kathmandu", hostelName: "A&B", ownerEmail: "o@x.test", ownerName: "Owner <O>", queueUrl: "https://x.test/q?a=1&b=2" },
 ]);
 
+const bookingGuest = await t("booking/guest");
+const bookingHostel = await t("booking/hostel");
+const bookingPlatform = await t("booking/platform");
+const facts = { code: "BK-7F3K2Q", fee: 1500, hostelName: "Royal <Rapti> & Co", monthlyRent: 15000, roomType: "Double Sharing", stay: null, total: 1500 };
+const stayFacts = { ...facts, fee: 3000, stay: { amount: 3000, dates: "4 Oct 2026 – 7 Oct 2026 (Asoj 18–21)", nights: 3 }, total: 6000 };
+const rows = [{ fromDay: 1, refund: 1125, refundPercent: 75, throughDay: 2 }, { fromDay: 3, refund: 750, refundPercent: 50, throughDay: 5 }, { fromDay: 6, refund: 375, refundPercent: 25, throughDay: 6 }];
+const invoice = { bookingUrl: "https://x.test/bookings/1", hostelAnswerHours: 48, invoiceNumber: "HH-BKI-2083-84-000012", name: "Sita", noShowRefund: 0, payBy: "Bhadra 16, 2083 BS (1 Sep 2026), 3:40 PM", paymentCheckHours: 12, policyUrl: "https://x.test/refund-policy", refundRows: rows };
+add("bookingInvoice", bookingGuest.bookingInvoiceEmail as never, [{ ...invoice, booking: facts }, { ...invoice, booking: stayFacts, name: null }]);
+const ended = { booking: facts, bookingUrl: "https://x.test/b/1", name: "Sita", refundTo: "eSewa ••••4321 (Sita)" };
+add("bookingEnded", bookingGuest.bookingEndedEmail as never, [
+  { ...ended, cause: "CANCELLED_BEFORE_CONFIRMATION", paid: true, refund: 1500, refundPercent: 100 },
+  { ...ended, cause: "CANCELLED_BY_USER", paid: true, refund: 0, refundPercent: 0 },
+  { ...ended, cause: "EXPIRED", paid: false, refund: 0, refundPercent: 0 },
+  { ...ended, booking: stayFacts, cause: "HOSTEL_NO_RESPONSE", paid: true, reason: "No <answer>", refund: 6000, refundPercent: 100 },
+  { ...ended, cause: "NO_SHOW", paid: true, refund: 75, refundPercent: 5.5 },
+]);
+const closed = { bookingsUrl: "https://x.test/h", code: "BK-7F3K2Q", guestName: "Sita", hostelName: "Royal <Rapti>", name: "Owner", roomType: "Double Sharing" };
+add("bookingClosedForHostel", bookingHostel.bookingClosedForHostelEmail as never, [
+  { ...closed, cause: "CANCELLED_BY_USER", hostelShare: 188 },
+  { ...closed, cause: "HOSTEL_NO_RESPONSE", hostelShare: 0, name: null, reason: "Late" },
+]);
+add("bookingHostelFaultRefund", bookingPlatform.bookingHostelFaultRefundEmail as never, [
+  { cause: "HOSTEL_NO_RESPONSE", code: "BK-7F3K2Q", guestName: "Sita", hostelName: "Royal <Rapti>", queueUrl: "https://x.test/q", refund: 1500, refundTo: "eSewa ••••4321 (Sita)", roomType: "Single" },
+]);
+add("bookingsPaused", bookingHostel.bookingsPausedEmail as never, [{ bookingsUrl: "https://x.test/h", hostelName: "Royal <Rapti>", name: "Owner", strikes: 3, windowDays: 30 }]);
+add("hostelBookingsPaused", bookingPlatform.hostelBookingsPausedEmail as never, [{ hostelName: "Royal <Rapti>", reviewUrl: "https://x.test/r", strikes: 3, windowDays: 30 }]);
+
 writeFileSync(join(process.cwd(), "server/testdata/vectors/emails.json"), `${JSON.stringify(vectors, undefined, 1)}\n`);
 console.log(`emails.json: ${vectors.length} vectors`);

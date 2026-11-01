@@ -193,3 +193,6 @@ func LandingPath(r Role) string {
 	}
 	return "/"
 }
+
+// GrantingPermissionKeys is grantingPermissionKeys for a caller outside the guards.
+func GrantingPermissionKeys(c Capability) []string { return grantingKeys(c) }

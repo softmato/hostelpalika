@@ -49,6 +49,7 @@ folder) — never the root `.env`, which points at production.
 | `TRUSTED_PROXIES` | Caddy's address on the Docker network |
 | `SCHEDULER_ENABLED` | `true` on the production API only; `false` locally and in tests |
 | `PPROF_ADDR` | `127.0.0.1:6060`; empty disables |
+| `METRICS_ADDR` | `:9090` in compose, never published to the host; serves Prometheus `/metrics`. Empty disables |
 | `GOMEMLIMIT` | ≈ 85 % of the container memory limit |
 
 ### Stay on the web (Vercel)

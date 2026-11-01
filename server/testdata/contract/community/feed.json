@@ -1,0 +1,923 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community"
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community feed loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Contract resident",
+              "body": "Public hello #kathmandu #food",
+              "commentCount": 2,
+              "createdAt": "2026-11-01T08:01:06.405Z",
+              "hostelId": null,
+              "hostelName": null,
+              "id": "6c00000000000000000000c1",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "spaceType": "PUBLIC",
+              "status": "VISIBLE",
+              "viewerReaction": null,
+              "visibility": "PUBLIC"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community feed loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 2,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Contract admin",
+              "body": "Hostel only #food",
+              "commentCount": 2,
+              "createdAt": "2026-11-01T09:01:06.405Z",
+              "hostelId": "6c00000000000000000000a1",
+              "hostelName": "Contract Hostel",
+              "id": "6c00000000000000000000c2",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 2,
+              "reactionCounts": {
+                "LOVE": 1
+              },
+              "spaceType": "HOSTEL",
+              "status": "VISIBLE",
+              "viewerReaction": "LOVE",
+              "visibility": "HOSTEL_ONLY"
+            },
+            {
+              "authorImage": null,
+              "authorName": "Contract resident",
+              "body": "Public hello #kathmandu #food",
+              "commentCount": 2,
+              "createdAt": "2026-11-01T08:01:06.405Z",
+              "hostelId": null,
+              "hostelName": null,
+              "id": "6c00000000000000000000c1",
+              "isAnnouncement": false,
+              "isMine": true,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "spaceType": "PUBLIC",
+              "status": "VISIBLE",
+              "viewerReaction": null,
+              "visibility": "PUBLIC"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "public account",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community feed loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Contract resident",
+              "body": "Public hello #kathmandu #food",
+              "commentCount": 2,
+              "createdAt": "2026-11-01T08:01:06.405Z",
+              "hostelId": null,
+              "hostelName": null,
+              "id": "6c00000000000000000000c1",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "spaceType": "PUBLIC",
+              "status": "VISIBLE",
+              "viewerReaction": null,
+              "visibility": "PUBLIC"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "search",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community?q=hello\u0026sort=top\u0026page=1\u0026pageSize=1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community feed loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 1,
+            "total": 1,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Contract resident",
+              "body": "Public hello #kathmandu #food",
+              "commentCount": 2,
+              "createdAt": "2026-11-01T08:01:06.405Z",
+              "hostelId": null,
+              "hostelName": null,
+              "id": "6c00000000000000000000c1",
+              "isAnnouncement": false,
+              "isMine": true,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "spaceType": "PUBLIC",
+              "status": "VISIBLE",
+              "viewerReaction": null,
+              "visibility": "PUBLIC"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "mine",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community?space=mine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community feed loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Contract admin",
+              "body": "Hostel only #food",
+              "commentCount": 2,
+              "createdAt": "2026-11-01T09:01:06.405Z",
+              "hostelId": "6c00000000000000000000a1",
+              "hostelName": "Contract Hostel",
+              "id": "6c00000000000000000000c2",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 2,
+              "reactionCounts": {
+                "LOVE": 1
+              },
+              "spaceType": "HOSTEL",
+              "status": "VISIBLE",
+              "viewerReaction": "LOVE",
+              "visibility": "HOSTEL_ONLY"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "public",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community?space=public",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community feed loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Contract resident",
+              "body": "Public hello #kathmandu #food",
+              "commentCount": 2,
+              "createdAt": "2026-11-01T08:01:06.405Z",
+              "hostelId": null,
+              "hostelName": null,
+              "id": "6c00000000000000000000c1",
+              "isAnnouncement": false,
+              "isMine": true,
+              "media": [],
+              "reactionCount": 0,
+              "reactionCounts": {},
+              "spaceType": "PUBLIC",
+              "status": "VISIBLE",
+              "viewerReaction": null,
+              "visibility": "PUBLIC"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "one space",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community?space=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community feed loaded",
+        "data": {
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 20,
+            "total": 1,
+            "totalPages": 1
+          },
+          "posts": [
+            {
+              "authorImage": null,
+              "authorName": "Contract admin",
+              "body": "Hostel only #food",
+              "commentCount": 2,
+              "createdAt": "2026-11-01T09:01:06.405Z",
+              "hostelId": "6c00000000000000000000a1",
+              "hostelName": "Contract Hostel",
+              "id": "6c00000000000000000000c2",
+              "isAnnouncement": false,
+              "isMine": false,
+              "media": [],
+              "reactionCount": 2,
+              "reactionCounts": {
+                "LOVE": 1
+              },
+              "spaceType": "HOSTEL",
+              "status": "VISIBLE",
+              "viewerReaction": "LOVE",
+              "visibility": "HOSTEL_ONLY"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "bad query",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community?space=x\u0026sort=y\u0026page=0\u0026pageSize=999",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "page": [
+              "Too small: expected number to be \u003e0"
+            ],
+            "pageSize": [
+              "Too big: expected number to be \u003c=100"
+            ],
+            "space": [
+              "Invalid object id."
+            ],
+            "sort": [
+              "Invalid option: expected one of \"new\"|\"top\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e0",
+              "path": "page"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=100",
+              "path": "pageSize"
+            },
+            {
+              "message": "Invalid object id.",
+              "path": "space"
+            },
+            {
+              "message": "Invalid option: expected one of \"new\"|\"top\"",
+              "path": "sort"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "get",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/6c00000000000000000000c1"
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Post loaded",
+        "data": {
+          "post": {
+            "authorImage": null,
+            "authorName": "Contract resident",
+            "body": "Public hello #kathmandu #food",
+            "commentCount": 2,
+            "createdAt": "2026-11-01T08:01:06.405Z",
+            "hostelId": null,
+            "hostelName": null,
+            "id": "6c00000000000000000000c1",
+            "isAnnouncement": false,
+            "isMine": false,
+            "media": [],
+            "reactionCount": 0,
+            "reactionCounts": {},
+            "spaceType": "PUBLIC",
+            "status": "VISIBLE",
+            "viewerReaction": null,
+            "visibility": "PUBLIC"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "get hostel anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/6c00000000000000000000c2"
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Post was not found.",
+        "errorCode": "POST_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "get hostel member",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/6c00000000000000000000c2",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Post loaded",
+        "data": {
+          "post": {
+            "authorImage": null,
+            "authorName": "Contract admin",
+            "body": "Hostel only #food",
+            "commentCount": 2,
+            "createdAt": "2026-11-01T09:01:06.405Z",
+            "hostelId": "6c00000000000000000000a1",
+            "hostelName": "Contract Hostel",
+            "id": "6c00000000000000000000c2",
+            "isAnnouncement": false,
+            "isMine": false,
+            "media": [],
+            "reactionCount": 2,
+            "reactionCounts": {
+              "LOVE": 1
+            },
+            "spaceType": "HOSTEL",
+            "status": "VISIBLE",
+            "viewerReaction": "LOVE",
+            "visibility": "HOSTEL_ONLY"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "get hidden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/6c00000000000000000000c3",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Post was not found.",
+        "errorCode": "POST_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "get bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid post id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "spaces anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/spaces"
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community spaces loaded",
+        "data": {
+          "spaces": [
+            {
+              "id": "public",
+              "isMine": false,
+              "name": "Public",
+              "postCount": 1
+            }
+          ],
+          "viewer": {
+            "canPost": false,
+            "hostelId": null,
+            "hostelName": null,
+            "spaceType": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "spaces",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/spaces",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community spaces loaded",
+        "data": {
+          "spaces": [
+            {
+              "id": "public",
+              "isMine": false,
+              "name": "Public",
+              "postCount": 1
+            },
+            {
+              "id": "6c00000000000000000000a1",
+              "isMine": true,
+              "name": "Contract Hostel",
+              "postCount": 1
+            }
+          ],
+          "viewer": {
+            "canPost": true,
+            "hostelId": "6c00000000000000000000a1",
+            "hostelName": "Contract Hostel",
+            "spaceType": "HOSTEL"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "sidebar",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/sidebar"
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community sidebar loaded",
+        "data": {
+          "popularHostels": [
+            {
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "rating": 4.5,
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            {
+              "id": "6c00000000000000000000a4",
+              "name": "Fixture Lakeside Branch",
+              "rating": null,
+              "slug": "fixture-lakeside-branch-koteshwor"
+            },
+            {
+              "id": "6c00000000000000000000a5",
+              "name": "Budget Fixture Hostel",
+              "rating": null,
+              "slug": "budget-fixture-hostel-kalanki"
+            },
+            {
+              "id": "6c00000000000000000000a6",
+              "name": "Hidden Fixture Hostel",
+              "rating": null,
+              "slug": "hidden-fixture-hostel"
+            }
+          ],
+          "sponsors": [
+            {
+              "accentColor": "#0a8a4b",
+              "ctaLabel": "View",
+              "highlight": "",
+              "id": "6c00000000000000000000c9",
+              "imageAssetId": "",
+              "imageUrl": "",
+              "linkUrl": "https://acme.example",
+              "name": "Acme",
+              "subtitle": ""
+            }
+          ],
+          "trendingTags": [
+            {
+              "count": 1,
+              "tag": "#food"
+            },
+            {
+              "count": 1,
+              "tag": "#kathmandu"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "sidebar member",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/sidebar",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Community sidebar loaded",
+        "data": {
+          "popularHostels": [
+            {
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "rating": 4.5,
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            {
+              "id": "6c00000000000000000000a4",
+              "name": "Fixture Lakeside Branch",
+              "rating": null,
+              "slug": "fixture-lakeside-branch-koteshwor"
+            },
+            {
+              "id": "6c00000000000000000000a5",
+              "name": "Budget Fixture Hostel",
+              "rating": null,
+              "slug": "budget-fixture-hostel-kalanki"
+            },
+            {
+              "id": "6c00000000000000000000a6",
+              "name": "Hidden Fixture Hostel",
+              "rating": null,
+              "slug": "hidden-fixture-hostel"
+            }
+          ],
+          "sponsors": [
+            {
+              "accentColor": "#0a8a4b",
+              "ctaLabel": "View",
+              "highlight": "",
+              "id": "6c00000000000000000000c9",
+              "imageAssetId": "",
+              "imageUrl": "",
+              "linkUrl": "https://acme.example",
+              "name": "Acme",
+              "subtitle": ""
+            }
+          ],
+          "trendingTags": [
+            {
+              "count": 2,
+              "tag": "#food"
+            },
+            {
+              "count": 1,
+              "tag": "#kathmandu"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "sponsor click",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/sponsors/6c00000000000000000000c9/click"
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Click recorded",
+        "data": {
+          "recorded": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "sponsor bad",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/sponsors/x/click"
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid sponsor id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "sponsor unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community/sponsors/6c00000000000000000000ff/click"
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Click recorded",
+        "data": {
+          "recorded": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

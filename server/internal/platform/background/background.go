@@ -7,13 +7,45 @@ import (
 	"context"
 	"log/slog"
 	"sync"
+	"time"
 
 	"github.com/gin-gonic/gin"
+
+	"github.com/softmato/hostelpalika/server/internal/platform/obs"
 )
 
 type Runner struct{ wg sync.WaitGroup }
 
-const queueKey = "background.after"
+const (
+	queueKey = "background.after"
+	// taskDeadline is the longest maxDuration a TS route had; after() died with it.
+	// Without one a hung provider call would hold its goroutine for ever.
+	taskDeadline = 5 * time.Minute
+	// maxRunning bounds concurrent work, so a burst queues here instead of
+	// exhausting the Mongo pool and the providers.
+	maxRunning = 256
+)
+
+var slots = make(chan struct{}, maxRunning)
+
+// Parallel runs each fn on its own goroutine and waits for all of them. A panic
+// in one is logged and costs only that one: a bare `go` would take the process.
+func Parallel(ctx context.Context, fns ...func()) {
+	var wg sync.WaitGroup
+	for _, fn := range fns {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			defer func() {
+				if p := recover(); p != nil {
+					slog.ErrorContext(ctx, "parallel work panicked", "panic", p)
+				}
+			}()
+			fn()
+		}()
+	}
+	wg.Wait()
+}
 
 // Go runs fn now on a tracked goroutine, detached from the request's
 // cancellation. Never fails anyone: errors and panics are logged and dropped —
@@ -27,6 +59,12 @@ func (r *Runner) Go(ctx context.Context, fn func(context.Context) error) {
 	r.wg.Add(1)
 	go func() {
 		defer r.wg.Done()
+		slots <- struct{}{}
+		defer func() { <-slots }()
+		ctx, cancel := context.WithTimeout(ctx, taskDeadline)
+		defer cancel()
+		done, failed := obs.BackgroundStarted(), true
+		defer func() { done(failed) }()
 		defer func() {
 			if p := recover(); p != nil {
 				slog.ErrorContext(ctx, "background work panicked", "panic", p)
@@ -34,7 +72,9 @@ func (r *Runner) Go(ctx context.Context, fn func(context.Context) error) {
 		}()
 		if err := fn(ctx); err != nil {
 			slog.WarnContext(ctx, "background work failed", "error", err)
+			return
 		}
+		failed = false
 	}()
 }
 

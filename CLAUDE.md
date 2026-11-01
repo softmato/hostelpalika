@@ -1,3 +1,12 @@
+## Go server work — READ `server/docs/MISSION.md` FIRST
+
+Any work in `server/` starts by reading `server/docs/MISSION.md`: the owner's binding
+brief, kept word for word. A bug found in the TS server is fixed in Go in the best way
+and in TS too, never copied (`server/docs/RULES.md` §2). Routes match the web exactly.
+Open findings live in `server/docs/review_fixes_needed.md`. All repo work is Claude's;
+outside work, Claude does what it can reach and the owner helps or does the rest
+(`MISSION.md` addition 4).
+
 ## Never quote a schedule, and never treat the repo as a ceiling
 
 Two rules that apply to every plan, review, estimate and answer in this project.

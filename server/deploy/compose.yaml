@@ -17,6 +17,9 @@ services:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
+    logging:
+      driver: json-file
+      options: { max-size: "50m", max-file: "5" }
     depends_on:
       api:
         condition: service_healthy
@@ -33,6 +36,7 @@ services:
     env_file: ../.env
     environment:
       API_ADDR: ":8080"
+      METRICS_ADDR: ":9090" # reachable on the backend network only; no ports entry on purpose
       TRUSTED_PROXIES: 172.28.0.10
       GOMEMLIMIT: 850MiB # ≈ 85 % of the limit below
     deploy:
@@ -40,8 +44,13 @@ services:
         limits:
           memory: 1g
     stop_grace_period: 30s # > shutdownGrace in cmd/api, so in-flight work drains before SIGKILL
+    security_opt: ["no-new-privileges:true"]
+    logging: &logs # one VPS: unrotated logs are how the disk fills
+      driver: json-file
+      options: { max-size: "50m", max-file: "5" }
     depends_on:
-      - redis
+      redis:
+        condition: service_healthy
     networks: [backend]
 
   redis:
@@ -50,6 +59,13 @@ services:
     command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
     volumes:
       - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+    security_opt: ["no-new-privileges:true"]
+    logging: *logs
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 2s
+      retries: 5
     networks: [backend] # never published to the host
 
 networks:

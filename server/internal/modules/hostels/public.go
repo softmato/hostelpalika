@@ -558,6 +558,30 @@ func firstPhotoURL(h hostelDoc, surface string) *string {
 	return nil
 }
 
+// ExteriorPhoto is resolveHostelPhotoUrls(photos, "EXTERIOR")[0] ?? null over a stored photos array.
+func ExteriorPhoto(photos bson.Raw) *string {
+	for _, kind := range photoFallback["EXTERIOR"] {
+		vals, err := bson.Raw(photos).Values()
+		if err != nil {
+			return nil
+		}
+		for _, v := range vals {
+			d, ok := v.DocumentOK()
+			if !ok {
+				continue
+			}
+			k, _ := d.Lookup("kind").StringValueOK()
+			if k != "EXTERIOR" && k != "ROOM" {
+				k = "INTERIOR"
+			}
+			if url, _ := d.Lookup("url").StringValueOK(); url != "" && k == kind {
+				return &url
+			}
+		}
+	}
+	return nil
+}
+
 // CompareQuery holds the ids, already split, trimmed and checked as ObjectIds.
 func (p *Public) Compare(ctx context.Context, idList []string) (ordered.Map, error) {
 	hostelIDs := make([]bson.ObjectID, len(idList))

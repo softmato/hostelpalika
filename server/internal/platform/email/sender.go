@@ -6,6 +6,7 @@ package email
 import (
 	"bytes"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -110,12 +111,20 @@ type Message struct {
 	Subject  string
 	HTML     string
 	ReplyTo  string
+	// Attachments ride on Send only; Resend's batch endpoint takes none.
+	Attachments []Attachment
 	// Unsubscribe is for optional mail only: a footer line (PageURL) and the
 	// RFC 8058 List-Unsubscribe headers (OneClickURL).
 	Unsubscribe *Unsubscribe
 }
 
 type Unsubscribe struct{ OneClickURL, PageURL string }
+
+// Attachment is EmailAttachment; Filename includes the extension.
+type Attachment struct {
+	Content  []byte
+	Filename string
+}
 
 // WithUnsubscribeLine puts the line in the layout's slot, or appends it to a bare fragment.
 func WithUnsubscribeLine(html, pageURL string) string {
@@ -302,24 +311,32 @@ func (s *Sender) Send(ctx context.Context, m Message) Result {
 			"action", "email_skipped", "category", cat, "subject", m.Subject)
 		return Result{Reason: "not_configured"}
 	}
-	b, _ := json.Marshal(body(m, from, replyTo))
+	payload := body(m, from, replyTo)
+	if len(m.Attachments) > 0 {
+		list := make([]map[string]string, len(m.Attachments))
+		for i, a := range m.Attachments {
+			list[i] = map[string]string{"content": base64.StdEncoding.EncodeToString(a.Content), "filename": a.Filename}
+		}
+		payload["attachments"] = list
+	}
+	b, _ := json.Marshal(payload)
 	res, err := s.post(ctx, s.URL, b, 2)
 	if err != nil {
 		slog.ErrorContext(ctx, err.Error(), "action", "email_send_failed", "category", cat, "subject", m.Subject)
 		return Result{Reason: "send_failed", Detail: err.Error()}
 	}
 	defer res.Body.Close()
-	raw, _ := io.ReadAll(res.Body)
+	raw, _ := io.ReadAll(io.LimitReader(res.Body, 1<<20))
 	if res.StatusCode < 200 || res.StatusCode > 299 {
 		slog.ErrorContext(ctx, fmt.Sprintf("Resend returned %d", res.StatusCode), "action", "email_send_failed", "category", cat, "from", from, "subject", m.Subject)
 		return Result{Reason: "send_failed", Detail: string(raw)}
 	}
-	var payload struct {
+	var sent struct {
 		ID string `json:"id"`
 	}
-	_ = json.Unmarshal(raw, &payload)
-	slog.InfoContext(ctx, "Email dispatched via Resend.", "action", "email_sent", "category", cat, "from", from, "subject", m.Subject, "emailId", payload.ID)
-	return Result{Sent: true, ID: payload.ID}
+	_ = json.Unmarshal(raw, &sent)
+	slog.InfoContext(ctx, "Email dispatched via Resend.", "action", "email_sent", "category", cat, "from", from, "subject", m.Subject, "emailId", sent.ID)
+	return Result{Sent: true, ID: sent.ID}
 }
 
 // post retries a 429 after its retry-after (capped at 2 s), twice, as postToResend.
@@ -339,7 +356,11 @@ func (s *Sender) post(ctx context.Context, url string, body []byte, retries int)
 	if ra, _ := strconv.ParseFloat(res.Header.Get("retry-after"), 64); ra > 0 {
 		wait = min(ra, 2)
 	}
-	time.Sleep(time.Duration((wait + rand.Float64()*0.5) * float64(time.Second)))
+	select {
+	case <-time.After(time.Duration((wait + rand.Float64()*0.5) * float64(time.Second))):
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 	return s.post(ctx, url, body, retries-1)
 }
 
@@ -388,7 +409,7 @@ func (s *Sender) SendBatch(ctx context.Context, msgs []Message) []Result {
 			fail("send_failed", err.Error())
 			continue
 		}
-		raw, _ := io.ReadAll(res.Body)
+		raw, _ := io.ReadAll(io.LimitReader(res.Body, 1<<20))
 		_ = res.Body.Close()
 		if res.StatusCode < 200 || res.StatusCode > 299 {
 			slog.ErrorContext(ctx, fmt.Sprintf("Resend returned %d", res.StatusCode), "action", "email_batch_failed", "count", len(slice))

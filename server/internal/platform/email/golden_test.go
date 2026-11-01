@@ -3,6 +3,7 @@ package email
 import (
 	"encoding/json"
 	"os"
+	"strconv"
 	"testing"
 )
 
@@ -40,6 +41,26 @@ func TestTemplatesMatchTS(t *testing.T) {
 			got = HostelPortalOpen(s("hostelName"), s("kycUrl"), s("ownerName"), int(days), s("trialEndsOn"))
 		case "hostelSubmissionReceived":
 			got = HostelSubmissionReceived(s("hostelName"), s("ownerName"))
+		case "bookingInvoice":
+			var rows []RefundRow
+			list, _ := in["refundRows"].([]any)
+			for _, r := range list {
+				m := r.(map[string]any)
+				rows = append(rows, RefundRow{FromDay: num(m["fromDay"]), ThroughDay: num(m["throughDay"]), RefundPercent: num(m["refundPercent"]), Refund: int64(m["refund"].(float64))})
+			}
+			got = BookingInvoice(BookingInvoiceInput{Booking: bookingFacts(in["booking"]), BookingURL: s("bookingUrl"), Name: s("name"), InvoiceNumber: s("invoiceNumber"), PayBy: s("payBy"), PolicyURL: s("policyUrl"),
+				HostelAnswerHours: num(in["hostelAnswerHours"]), PaymentCheckHours: num(in["paymentCheckHours"]), NoShowRefund: int64(in["noShowRefund"].(float64)), RefundRows: rows})
+		case "bookingEnded":
+			paid, _ := in["paid"].(bool)
+			got = BookingEnded(bookingFacts(in["booking"]), s("bookingUrl"), s("cause"), s("name"), paid, s("reason"), int64(in["refund"].(float64)), num(in["refundPercent"]), s("refundTo"))
+		case "bookingClosedForHostel":
+			got = BookingClosedForHostel(s("bookingsUrl"), s("cause"), s("code"), s("guestName"), s("hostelName"), int64(in["hostelShare"].(float64)), s("name"), s("reason"), s("roomType"))
+		case "bookingHostelFaultRefund":
+			got = BookingHostelFaultRefund(s("cause"), s("code"), s("guestName"), s("hostelName"), s("queueUrl"), s("reason"), int64(in["refund"].(float64)), s("refundTo"), s("roomType"))
+		case "bookingsPaused":
+			got = BookingsPaused(s("bookingsUrl"), s("hostelName"), s("name"), int64(in["strikes"].(float64)), num(in["windowDays"]))
+		case "hostelBookingsPaused":
+			got = HostelBookingsPaused(s("hostelName"), s("reviewUrl"), int64(in["strikes"].(float64)), num(in["windowDays"]))
 		default:
 			t.Fatalf("vector %d: no Go template for %q", i, v.Name)
 		}
@@ -48,4 +69,15 @@ func TestTemplatesMatchTS(t *testing.T) {
 				got.Category, v.Out.Category, got.Subject, v.Out.Subject, got.HTML == v.Out.HTML)
 		}
 	}
+}
+
+func num(v any) string { return strconv.FormatFloat(v.(float64), 'f', -1, 64) }
+
+func bookingFacts(v any) BookingFacts {
+	m := v.(map[string]any)
+	f := BookingFacts{Code: m["code"].(string), Fee: int64(m["fee"].(float64)), HostelName: m["hostelName"].(string), MonthlyRent: int64(m["monthlyRent"].(float64)), RoomType: m["roomType"].(string), Total: int64(m["total"].(float64))}
+	if st, ok := m["stay"].(map[string]any); ok {
+		f.Stay = &BookingStay{Amount: int64(st["amount"].(float64)), Dates: st["dates"].(string), Nights: int64(st["nights"].(float64))}
+	}
+	return f
 }

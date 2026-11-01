@@ -1,0 +1,1641 @@
+[
+  {
+    "name": "rate 0",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "user-agent": "c-38fa3e-rate"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "rate 1",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "user-agent": "c-38fa3e-rate"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "rate 2",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "user-agent": "c-38fa3e-rate"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "rate 3",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "user-agent": "c-38fa3e-rate"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "rate 4",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "user-agent": "c-38fa3e-rate"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "rate 5",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "user-agent": "c-38fa3e-rate"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "rate 6",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "user-agent": "c-38fa3e-rate"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "rate 7",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "user-agent": "c-38fa3e-rate"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "rate 8",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "user-agent": "c-38fa3e-rate"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "rate 9",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "user-agent": "c-38fa3e-rate"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "limited",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "user-agent": "c-38fa3e-rate"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "masks": [
+      "retryAfterSeconds",
+      "details.retryAfterSeconds",
+      "data.retryAfterSeconds"
+    ],
+    "response": {
+      "status": 429,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Too many requests. Please wait before submitting again.",
+        "errorCode": "RATE_LIMITED",
+        "details": {
+          "retryAfterSeconds": 900
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "quote",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/bookings/quote?hostel=fixture-lakeside-hostel-baneshwor\u0026roomType=Single",
+      "headers": {
+        "user-agent": "c-38fa3e-0"
+      }
+    },
+    "capture": {
+      "pv": "data.quote.policyVersion"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking quote",
+        "data": {
+          "quote": {
+            "available": true,
+            "fee": 1050,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+              "hostelType": "BOYS",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "openBooking": null,
+            "payment": {
+              "checkHours": 24,
+              "qrReady": true,
+              "unpaidWindowHours": 24
+            },
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 24,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 788,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 525,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 263,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "policyVersion": "d278844cbbafa668",
+            "reason": null,
+            "reasonMessage": null,
+            "room": {
+              "bedsPerRoom": 1,
+              "bookable": true,
+              "dailyRate": 1000,
+              "fee": 1050,
+              "mealInclusion": "Optional",
+              "monthlyRent": 15000,
+              "photos": [
+                "https://cdn.contract.test/room.webp"
+              ],
+              "reason": null,
+              "roomType": "Single",
+              "vacantBeds": 1
+            },
+            "shortStay": {
+              "available": true,
+              "dailyRate": 1000,
+              "error": null,
+              "limits": {
+                "maxAdvanceDays": 60,
+                "maxNights": 29,
+                "minNights": 2
+              },
+              "quote": null
+            },
+            "terms": {
+              "feePercent": 7,
+              "holdDays": 7,
+              "hostelAnswerHours": 24
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "user-agent": "c-38fa3e-0"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "staff refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}",
+        "user-agent": "c-38fa3e-0"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Room booking is for personal accounts. Sign in with your own account to book.",
+        "errorCode": "BOOKING_ACCOUNT_NOT_ALLOWED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-0"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "acceptPolicy": [
+              "Accept the refund policy to book."
+            ],
+            "hostel": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "policyVersion": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "refundAccount": [
+              "Invalid input: expected object, received undefined"
+            ],
+            "roomType": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Accept the refund policy to book.",
+              "path": "acceptPolicy"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "hostel"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "policyVersion"
+            },
+            {
+              "message": "Invalid input: expected object, received undefined",
+              "path": "refundAccount"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "roomType"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "array",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-0"
+      },
+      "body": []
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [
+            "Invalid input: expected object, received array"
+          ],
+          "fieldErrors": {},
+          "issues": [
+            {
+              "message": "Invalid input: expected object, received array",
+              "path": ""
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "all wrong",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-0"
+      },
+      "body": {
+        "acceptPolicy": false,
+        "hostel": "",
+        "kind": "YEARLY",
+        "moveIn": "way-too-long-value",
+        "moveOut": 7,
+        "plannedMoveIn": "soon",
+        "policyVersion": "",
+        "refundAccount": {
+          "holderName": "x",
+          "method": "BANK",
+          "number": "12"
+        },
+        "roomType": ""
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "acceptPolicy": [
+              "Accept the refund policy to book."
+            ],
+            "hostel": [
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "kind": [
+              "Invalid option: expected one of \"MONTHLY\"|\"SHORT_STAY\""
+            ],
+            "moveIn": [
+              "Too big: expected string to have \u003c=10 characters"
+            ],
+            "moveOut": [
+              "Invalid input: expected string, received number"
+            ],
+            "plannedMoveIn": [
+              "Use a date like 2026-09-20."
+            ],
+            "policyVersion": [
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "refundAccount": [
+              "Enter the name on the account.",
+              "Enter the bank's name.",
+              "Enter the account number: 6 to 24 letters or digits."
+            ],
+            "roomType": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Accept the refund policy to book.",
+              "path": "acceptPolicy"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "hostel"
+            },
+            {
+              "message": "Invalid option: expected one of \"MONTHLY\"|\"SHORT_STAY\"",
+              "path": "kind"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=10 characters",
+              "path": "moveIn"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "moveOut"
+            },
+            {
+              "message": "Use a date like 2026-09-20.",
+              "path": "plannedMoveIn"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "policyVersion"
+            },
+            {
+              "message": "Enter the name on the account.",
+              "path": "refundAccount.holderName"
+            },
+            {
+              "message": "Enter the bank's name.",
+              "path": "refundAccount.bankName"
+            },
+            {
+              "message": "Enter the account number: 6 to 24 letters or digits.",
+              "path": "refundAccount.number"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "roomType"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "no refund account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-0"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": "nope",
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "refundAccount": [
+              "Invalid input: expected object, received string"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected object, received string",
+              "path": "refundAccount"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "bad method",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-0"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita",
+          "method": "CASH",
+          "number": "9812345678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "refundAccount": [
+              "Invalid option: expected one of \"BANK\"|\"ESEWA\"|\"KHALTI\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"BANK\"|\"ESEWA\"|\"KHALTI\"",
+              "path": "refundAccount.method"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "long number",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-1"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita",
+          "method": "BANK",
+          "number": "11111111111111111111111111111111111111111"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "refundAccount": [
+              "Too big: expected string to have \u003c=40 characters",
+              "Enter the bank's name.",
+              "Enter the account number: 6 to 24 letters or digits."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected string to have \u003c=40 characters",
+              "path": "refundAccount.number"
+            },
+            {
+              "message": "Enter the bank's name.",
+              "path": "refundAccount.bankName"
+            },
+            {
+              "message": "Enter the account number: 6 to 24 letters or digits.",
+              "path": "refundAccount.number"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "bad wallet",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-1"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita",
+          "method": "KHALTI",
+          "number": "12345"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "refundAccount": [
+              "Enter the 10-digit mobile number your Khalti account uses."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter the 10-digit mobile number your Khalti account uses.",
+              "path": "refundAccount.number"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "bad bank",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-1"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "bankName": "x",
+          "holderName": "Sita",
+          "method": "BANK",
+          "number": "ab"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "refundAccount": [
+              "Enter the bank's name.",
+              "Enter the account number: 6 to 24 letters or digits."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Enter the bank's name.",
+              "path": "refundAccount.bankName"
+            },
+            {
+              "message": "Enter the account number: 6 to 24 letters or digits.",
+              "path": "refundAccount.number"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "no hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-1"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "nope",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Hostel not found.",
+        "errorCode": "HOSTEL_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "no room",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-1"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Penthouse"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel does not have that room type.",
+        "errorCode": "ROOM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "full room",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-1"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Double"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This room type is full.",
+        "errorCode": "BOOKING_UNAVAILABLE_FULL"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "policy moved",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-1"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "old",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The booking terms changed while this page was open. Read the updated refund policy and accept it again.",
+        "errorCode": "BOOKING_POLICY_CHANGED",
+        "details": {
+          "policyVersion": "d278844cbbafa668"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "no email",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000c:PUBLIC}}",
+        "user-agent": "c-38fa3e-1"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Add an email address to your account first. Your invoice and receipt are sent there.",
+        "errorCode": "BOOKING_EMAIL_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "has open",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b0000000000000000000001:PUBLIC}}",
+        "user-agent": "c-38fa3e-2"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You already have an open booking (BK-01TEST at Fixture Lakeside Hostel). Finish or cancel it first.",
+        "errorCode": "OPEN_BOOKING_EXISTS",
+        "details": {
+          "bookingId": "6b0000000000000000000001",
+          "code": "BK-01TEST"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "lives here",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000054:PUBLIC}}",
+        "user-agent": "c-38fa3e-2"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You already live at this hostel.",
+        "errorCode": "ALREADY_RESIDENT"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "bad planned",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-2"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single",
+        "plannedMoveIn": "2020-01-01"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Pick a move-in date between today and 60 days from now.",
+        "errorCode": "VALIDATION_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "stay off room",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-2"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "budget-fixture-hostel-kalanki",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single",
+        "kind": "SHORT_STAY"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel does not have that room type.",
+        "errorCode": "ROOM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "stay bad",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-2"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single",
+        "kind": "SHORT_STAY",
+        "moveIn": "{{today:3}}",
+        "moveOut": "{{today:4}}"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel takes stays of at least 2 nights.",
+        "errorCode": "SHORT_STAY_TOO_SHORT"
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "books",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-2"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "bankName": "Gone",
+          "branch": "Gone",
+          "holderName": " Sita Sharma ",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single",
+        "plannedMoveIn": "{{today:5}}"
+      }
+    },
+    "masks": [
+      "data.booking.id",
+      "data.booking.code",
+      "data.booking.pay.reference",
+      "data.booking.invoiceNumber",
+      "data.booking.createdAt",
+      "data.booking.paymentDueBy",
+      "data.booking.hostelAnswerBy",
+      "data.booking.holdEndsAt",
+      "data.booking.confirmedAt",
+      "data.booking.paymentVerifiedAt",
+      "data.booking.paymentSubmittedAt",
+      "data.booking.endedAt",
+      "data.booking.schedule.noShow.after",
+      "data.booking.schedule.steps.*.until",
+      "data.booking.refund.sentAt",
+      "data.booking.plannedMoveIn",
+      "data.booking.stay.moveIn",
+      "data.booking.stay.moveOut",
+      "data.booking.stay.dates",
+      "data.booking.pay.payBy"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking created. Pay the booking fee to send it to the hostel.",
+        "data": {
+          "booking": {
+            "cancel": {
+              "allowed": true,
+              "refund": 0,
+              "refundPercent": 0
+            },
+            "checkedInAt": null,
+            "code": "BK-26NQ2C",
+            "confirmedAt": null,
+            "createdAt": "2026-11-01T15:16:37.591Z",
+            "currency": "NPR",
+            "endReason": null,
+            "endedAt": null,
+            "fee": 1050,
+            "holdEndsAt": null,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "hostelAnswerBy": null,
+            "id": "6ae757d59cf2df7e79a8d698",
+            "invoiceNumber": "HH-BKI-2083/84-000001",
+            "kind": "MONTHLY",
+            "monthlyRent": 15000,
+            "paymentDueBy": "2026-11-02T15:16:37.518Z",
+            "paymentRejection": null,
+            "paymentSubmittedAt": null,
+            "paymentVerifiedAt": null,
+            "plannedMoveIn": "2026-11-06",
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 24,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 788,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 525,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 263,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "receiptNumber": null,
+            "refund": null,
+            "refundAccount": {
+              "holderName": "Sita Sharma",
+              "maskedNumber": "••••5678",
+              "method": "ESEWA",
+              "methodLabel": "eSewa"
+            },
+            "roomType": "Single",
+            "schedule": null,
+            "settlement": null,
+            "status": "AWAITING_PAYMENT",
+            "statusLabel": "Waiting for payment",
+            "stay": null,
+            "total": 1050,
+            "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+            "pay": {
+              "amount": 1050,
+              "checkHours": 24,
+              "payBy": "2026-11-02T15:16:37.518Z",
+              "qr": {
+                "label": "Scan to pay",
+                "url": "https://cdn.contract.test/qr.png"
+              },
+              "reference": "BK-26NQ2C"
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "second refused",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000f:PUBLIC}}",
+        "user-agent": "c-38fa3e-2"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "holderName": "Sita Sharma",
+          "method": "ESEWA",
+          "number": "98-1234 5678"
+        },
+        "roomType": "Single"
+      }
+    },
+    "masks": [
+      "details.bookingId",
+      "details.code",
+      "message"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You already have an open booking (BK-26NQ2C at Fixture Lakeside Hostel). Finish or cancel it first.",
+        "errorCode": "OPEN_BOOKING_EXISTS",
+        "details": {
+          "bookingId": "6ae757d59cf2df7e79a8d698",
+          "code": "BK-26NQ2C"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  },
+  {
+    "name": "books a stay",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/bookings",
+      "headers": {
+        "authorization": "Bearer {{access:6b000000000000000000000e:PUBLIC}}",
+        "user-agent": "c-38fa3e-2"
+      },
+      "body": {
+        "acceptPolicy": true,
+        "hostel": "fixture-lakeside-hostel-baneshwor",
+        "policyVersion": "{{pv}}",
+        "refundAccount": {
+          "bankName": "NIBL",
+          "branch": "Baneshwor",
+          "holderName": "Hari",
+          "method": "BANK",
+          "number": "ab12-3456"
+        },
+        "roomType": "Single",
+        "kind": "SHORT_STAY",
+        "moveIn": "{{today:12}}",
+        "moveOut": "{{today:15}}"
+      }
+    },
+    "masks": [
+      "data.booking.id",
+      "data.booking.code",
+      "data.booking.pay.reference",
+      "data.booking.invoiceNumber",
+      "data.booking.createdAt",
+      "data.booking.paymentDueBy",
+      "data.booking.hostelAnswerBy",
+      "data.booking.holdEndsAt",
+      "data.booking.confirmedAt",
+      "data.booking.paymentVerifiedAt",
+      "data.booking.paymentSubmittedAt",
+      "data.booking.endedAt",
+      "data.booking.schedule.noShow.after",
+      "data.booking.schedule.steps.*.until",
+      "data.booking.refund.sentAt",
+      "data.booking.plannedMoveIn",
+      "data.booking.stay.moveIn",
+      "data.booking.stay.moveOut",
+      "data.booking.stay.dates",
+      "data.booking.pay.payBy"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Booking created. Pay the booking fee to send it to the hostel.",
+        "data": {
+          "booking": {
+            "cancel": {
+              "allowed": true,
+              "refund": 0,
+              "refundPercent": 0
+            },
+            "checkedInAt": null,
+            "code": "BK-EG268Q",
+            "confirmedAt": null,
+            "createdAt": "2026-11-01T15:16:37.823Z",
+            "currency": "NPR",
+            "endReason": null,
+            "endedAt": null,
+            "fee": 2100,
+            "holdEndsAt": null,
+            "hostel": {
+              "address": "Ring Road, New Baneshwor, Kathmandu",
+              "id": "6c00000000000000000000a3",
+              "name": "Fixture Lakeside Hostel",
+              "phone": "9800000001",
+              "slug": "fixture-lakeside-hostel-baneshwor"
+            },
+            "hostelAnswerBy": null,
+            "id": "6ae757d59cf2df7e79a8d69d",
+            "invoiceNumber": "HH-BKI-2083/84-000002",
+            "kind": "SHORT_STAY",
+            "monthlyRent": 15000,
+            "paymentDueBy": "2026-11-02T15:16:37.783Z",
+            "paymentRejection": null,
+            "paymentSubmittedAt": null,
+            "paymentVerifiedAt": null,
+            "plannedMoveIn": "2026-11-13",
+            "policy": {
+              "holdDays": 7,
+              "hostelAnswerHours": 24,
+              "noShowRefund": 0,
+              "noShowRefundPercent": 0,
+              "rows": [
+                {
+                  "fromDay": 1,
+                  "refund": 1575,
+                  "refundPercent": 75,
+                  "throughDay": 2
+                },
+                {
+                  "fromDay": 3,
+                  "refund": 1050,
+                  "refundPercent": 50,
+                  "throughDay": 5
+                },
+                {
+                  "fromDay": 6,
+                  "refund": 525,
+                  "refundPercent": 25,
+                  "throughDay": 7
+                }
+              ]
+            },
+            "receiptNumber": null,
+            "refund": null,
+            "refundAccount": {
+              "holderName": "Hari",
+              "maskedNumber": "••••3456",
+              "method": "BANK",
+              "methodLabel": "Bank account"
+            },
+            "roomType": "Single",
+            "schedule": null,
+            "settlement": null,
+            "status": "AWAITING_PAYMENT",
+            "statusLabel": "Waiting for payment",
+            "stay": {
+              "amount": 3000,
+              "dailyRate": 1000,
+              "dates": "13 Nov 2026 – 16 Nov 2026 (Kartik 27–30)",
+              "holdBlocks": 2,
+              "moveIn": "2026-11-13",
+              "moveOut": "2026-11-16",
+              "nights": 3
+            },
+            "total": 5100,
+            "coverPhotoUrl": "https://cdn.contract.test/front.webp",
+            "pay": {
+              "amount": 5100,
+              "checkHours": 24,
+              "payBy": "2026-11-02T15:16:37.783Z",
+              "qr": {
+                "label": "Scan to pay",
+                "url": "https://cdn.contract.test/qr.png"
+              },
+              "reference": "BK-EG268Q"
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100"
+  }
+]

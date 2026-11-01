@@ -1,0 +1,399 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/room"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "no live resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/room",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000008:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You are not living in a hostel right now.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "options",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/room",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "My room",
+        "data": {
+          "current": null,
+          "freeRooms": [
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "roomType": "Single Room"
+            }
+          ],
+          "request": null,
+          "tracking": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/room",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "toRoomId": "x",
+        "note": 5
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "note": [
+              "Invalid input: expected string, received number"
+            ],
+            "toRoomId": [
+              "Invalid id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "note"
+            },
+            {
+              "message": "Invalid id.",
+              "path": "toRoomId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "foreign room",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/room",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "toRoomId": "6c00000000000000000000a6"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That room is not in this hostel.",
+        "errorCode": "ROOM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "ask",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/room",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "toRoomId": "6c00000000000000000000a4",
+        "note": " near window "
+      }
+    },
+    "masks": [
+      "data.request.id",
+      "data.request.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request sent",
+        "data": {
+          "current": null,
+          "freeRooms": [
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "roomType": "Single Room"
+            }
+          ],
+          "request": {
+            "createdAt": "2026-11-01T10:41:40.719Z",
+            "declineReason": null,
+            "id": "6ae71764e6822539292ba4cd",
+            "status": "PENDING",
+            "to": {
+              "floor": 1,
+              "number": "9",
+              "roomType": "Single Room"
+            }
+          },
+          "tracking": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "admin bell",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=action",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/hostel-admin/rooms",
+              "body": "Res Ident asks to move to Room 9 (Single Sitter Room, 1st floor). “near window”",
+              "category": "ROOM",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:41:40.756Z",
+              "data": {
+                "type": "ROOM_CHANGE_REQUEST"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae71764e6822539292ba4ce",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Room change request",
+              "userId": "6c0000000000000000000005"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 1,
+            "totalPages": 1
+          },
+          "unreadCount": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "ask again replaces",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/room",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "toRoomId": "6c00000000000000000000a5"
+      }
+    },
+    "masks": [
+      "data.request.id",
+      "data.request.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request sent",
+        "data": {
+          "current": null,
+          "freeRooms": [
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "roomType": "Single Room"
+            }
+          ],
+          "request": {
+            "createdAt": "2026-11-01T10:41:40.858Z",
+            "declineReason": null,
+            "id": "6ae71764e6822539292ba4cf",
+            "status": "PENDING",
+            "to": {
+              "floor": 2,
+              "number": "1",
+              "roomType": "Single Room"
+            }
+          },
+          "tracking": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cancel",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/resident/room",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request cancelled",
+        "data": {
+          "current": null,
+          "freeRooms": [
+            {
+              "beds": 1,
+              "floor": 1,
+              "free": 1,
+              "id": "6c00000000000000000000a4",
+              "number": "9",
+              "roomType": "Single Room"
+            },
+            {
+              "beds": 2,
+              "floor": 1,
+              "free": 2,
+              "id": "6c00000000000000000000a0",
+              "number": "10",
+              "roomType": "Double Sharing"
+            },
+            {
+              "beds": 1,
+              "floor": 2,
+              "free": 1,
+              "id": "6c00000000000000000000a5",
+              "number": "1",
+              "roomType": "Single Room"
+            }
+          ],
+          "request": null,
+          "tracking": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

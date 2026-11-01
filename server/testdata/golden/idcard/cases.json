@@ -1,0 +1,62 @@
+[
+  {
+    "CardType": "RESIDENT",
+    "Email": "resident@example.com",
+    "Face": "front",
+    "FullName": "Asha Bahadur Gurung",
+    "Name": "resident-front",
+    "Photo": false,
+    "QR": true,
+    "Signature": ""
+  },
+  {
+    "CardType": "RESIDENT",
+    "Email": "resident@example.com",
+    "Face": "back",
+    "FullName": "Asha Bahadur Gurung",
+    "Name": "resident-back",
+    "Photo": false,
+    "QR": false,
+    "Signature": "M40 150L120 60L200 140L300 50L420 150L560 70M100 180L500 180M300 20"
+  },
+  {
+    "CardType": "HOSTEL_OWNER",
+    "Email": "a-very-long-email-address-that-cannot-possibly-fit-on-the-card@example.com",
+    "Face": "front",
+    "FullName": "A Very Long Name That Runs Right Off The Card Edge",
+    "Name": "owner-front",
+    "Photo": true,
+    "QR": true,
+    "Signature": ""
+  },
+  {
+    "CardType": "HOSTEL_OWNER",
+    "Email": "",
+    "Face": "back",
+    "FullName": "Owner",
+    "Name": "owner-back",
+    "Photo": false,
+    "QR": false,
+    "Signature": ""
+  },
+  {
+    "CardType": "SERVICE_PROVIDER",
+    "Email": "",
+    "Face": "front",
+    "FullName": "Ram",
+    "Name": "provider-front",
+    "Photo": false,
+    "QR": false,
+    "Signature": ""
+  },
+  {
+    "CardType": "SERVICE_PROVIDER",
+    "Email": "",
+    "Face": "back",
+    "FullName": "Ram",
+    "Name": "provider-back",
+    "Photo": false,
+    "QR": false,
+    "Signature": ""
+  }
+]

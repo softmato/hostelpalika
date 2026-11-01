@@ -110,7 +110,8 @@ func Reset(ctx context.Context, db *mongo.Database) error {
 				{Key: "suspension", Value: bson.D{{Key: "graceEndsAt", Value: now.Add(-day)}, {Key: "reason", Value: "PLAN_PAYMENT"}, {Key: "startedAt", Value: now.Add(-5 * day)}}}},
 		},
 		"hostelsubscriptions": {bson.D{{Key: "_id", Value: oid("b1")}, {Key: "hostelId", Value: HostelKyc}, {Key: "trialDays", Value: 3}, {Key: "trialEndsAt", Value: now.Add(10 * day)}}},
-		"hostelsettings":      {bson.D{{Key: "_id", Value: oid("b2")}, {Key: "hostelId", Value: HostelKyc}, {Key: "cookFingerprintLock", Value: true}}},
+		"hostelsettings": {bson.D{{Key: "_id", Value: oid("b2")}, {Key: "hostelId", Value: HostelKyc}, {Key: "cookFingerprintLock", Value: true}, {Key: "cookCanRecordExpenses", Value: true},
+			{Key: "khataItems", Value: bson.A{bson.D{{Key: "_id", Value: oid("f1")}, {Key: "name", Value: "Noodles"}, {Key: "price", Value: 40}, {Key: "active", Value: true}, {Key: "imageAssetId", Value: nil}}, bson.D{{Key: "_id", Value: oid("f2")}, {Key: "name", Value: "Off"}, {Key: "price", Value: 10}, {Key: "active", Value: false}}}}}},
 		"users": {
 			user(UserPublic, "public@contract.test", "PUBLIC", "ACTIVE", true, none),
 			user(UserUnverified, "unverified@contract.test", "PUBLIC", "ACTIVE", false, none),
@@ -128,8 +129,9 @@ func Reset(ctx context.Context, db *mongo.Database) error {
 			user(UserProvider, "provider@contract.test", "PUBLIC", "ACTIVE", true, none),
 		},
 		"residents": {
-			bson.D{{Key: "_id", Value: oid("c1")}, {Key: "hostelId", Value: HostelKyc}, {Key: "userId", Value: UserResident}, {Key: "firstName", Value: "Res"},
-				{Key: "lastName", Value: "Ident"}, {Key: "status", Value: "ACTIVE"}, {Key: "isDeleted", Value: false}, {Key: "createdAt", Value: now.Add(-day)}},
+			bson.D{{Key: "_id", Value: oid("c1")}, {Key: "hostelId", Value: HostelKyc}, {Key: "userId", Value: UserResident}, {Key: "khata", Value: bson.D{{Key: "status", Value: "ACTIVE"}}}, {Key: "firstName", Value: "Res"},
+				{Key: "lastName", Value: "Ident"}, {Key: "email", Value: "resident@contract.test"}, {Key: "phone", Value: "9800000007"}, {Key: "roomType", Value: "SINGLE"}, {Key: "depositAmount", Value: 500000},
+				{Key: "moveInDate", Value: time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)}, {Key: "status", Value: "ACTIVE"}, {Key: "isDeleted", Value: false}, {Key: "createdAt", Value: now.Add(-day)}},
 			bson.D{{Key: "_id", Value: oid("c2")}, {Key: "hostelId", Value: HostelKyc}, {Key: "email", Value: "desk@contract.test"}, {Key: "firstName", Value: "Desk"},
 				{Key: "lastName", Value: "Intake"}, {Key: "phone", Value: "9800000000"}, {Key: "deskIntake", Value: true}, {Key: "accountLinkDeclinedAt", Value: nil},
 				{Key: "status", Value: "ACTIVE"}, {Key: "isDeleted", Value: false}, {Key: "createdAt", Value: now.Add(-day)}},
@@ -150,6 +152,12 @@ func Reset(ctx context.Context, db *mongo.Database) error {
 		inserts[coll] = append(inserts[coll], docs...)
 	}
 	for coll, docs := range providerDocs(now) {
+		inserts[coll] = append(inserts[coll], docs...)
+	}
+	for coll, docs := range residentDocs(now) {
+		inserts[coll] = append(inserts[coll], docs...)
+	}
+	for coll, docs := range bookingDocs(now) {
 		inserts[coll] = append(inserts[coll], docs...)
 	}
 	for coll, docs := range joinDocs(now) {
@@ -208,6 +216,13 @@ func Mint(spec string) (string, bool) {
 			}
 		}
 		t, err := tokens.SignAccess(in)
+		return t, err == nil
+	case parts[0] == "nightanswer" && len(parts) >= 3: // the shade's token; a 4th part overrides the night
+		night := bs.NightKey(time.Now())
+		if len(parts) > 3 {
+			night = parts[3]
+		}
+		t, err := tokens.SignPurpose(auth.PurposeInput{UserID: parts[1], Purpose: auth.NightStatusAnswer, TTL: time.Hour, Claims: map[string]string{"hostelId": parts[2], "night": night}})
 		return t, err == nil
 	case parts[0] == "purpose" && len(parts) >= 3:
 		in := auth.PurposeInput{UserID: parts[2], Purpose: auth.Purpose(parts[1]), TTL: time.Hour}

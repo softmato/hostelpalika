@@ -1,0 +1,55 @@
+name: Go server
+
+on:
+  push:
+    branches: [main]
+    paths: ["server/**", ".github/workflows/server.yml"]
+  pull_request:
+    paths: ["server/**", ".github/workflows/server.yml"]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: server
+    services:
+      redis:
+        image: redis:7
+        ports: ["6380:6379"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+      - name: System libraries (libvips, poppler)
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libvips-dev poppler-utils pkg-config
+      # The contract fixtures dial a replica set on 27018 (MEMORY.md).
+      - name: Start Mongo
+        run: |
+          docker run -d --name mongo -p 27018:27017 mongo:8.0 --replSet rs0 --bind_ip_all
+          for i in $(seq 1 30); do
+            docker exec mongo mongosh --quiet --eval 'try { rs.status().ok } catch (e) { rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]}).ok }' && break
+            sleep 2
+          done
+      - name: Format
+        run: test -z "$(gofmt -l cmd internal)"
+      - name: Vet
+        run: go vet ./...
+      # A skipped contract suite must not pass as green: without Mongo it skips.
+      - name: Test with the race detector
+        shell: bash
+        run: |
+          set -o pipefail
+          GIN_MODE=release go test -race -tags=sonic -v ./... | tee test.txt | grep -E '^(ok|FAIL|panic)|--- FAIL'
+          ! grep -E -- '--- SKIP: (TestContract|TestAnonymousIsRefused)' test.txt
+      - name: Static analysis
+        run: go run honnef.co/go/tools/cmd/staticcheck@2025.1.1 ./...
+      - name: Known vulnerabilities
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
+      - name: Image builds
+        run: docker build -f deploy/Dockerfile .

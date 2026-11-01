@@ -1,0 +1,175 @@
+[
+  {
+    "name": "status signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/push/status"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "status",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/push/status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Browser notification status loaded",
+        "data": {
+          "configured": false,
+          "enabled": true,
+          "subscriptions": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "subscribe unconfigured",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/push/subscribe",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Browser notifications are not configured on this deployment.",
+        "errorCode": "WEB_PUSH_NOT_CONFIGURED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "unsubscribe invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/push/unsubscribe",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "endpoint": "x"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "endpoint": [
+              "Too small: expected string to have \u003e=12 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=12 characters",
+              "path": "endpoint"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "unsubscribe no match",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/push/unsubscribe",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "endpoint": "https://push.example/none"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Browser notifications are off",
+        "data": {
+          "revoked": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "unsubscribe",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/push/unsubscribe",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "endpoint": " https://push.example/res "
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Browser notifications are off",
+        "data": {
+          "revoked": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "status after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/push/status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Browser notification status loaded",
+        "data": {
+          "configured": false,
+          "enabled": false,
+          "subscriptions": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

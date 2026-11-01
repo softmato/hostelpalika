@@ -1,0 +1,1499 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/expenses"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "admin refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "bad query",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/expenses?hostelId=x\u0026period=y",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid id."
+            ],
+            "period": [
+              "Month must be YYYY-MM."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Month must be YYYY-MM.",
+              "path": "period"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "foreign hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/expenses?hostelId=6c00000000000000000000a2",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "home",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.expenses.*.createdAt",
+      "data.pendingCash.*.createdAt",
+      "data.expenses.*.spentOn",
+      "data.pendingCash.*.spentOn",
+      "data.currentPeriod",
+      "data.period"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expenses loaded",
+        "data": {
+          "canSeeTotals": false,
+          "categories": [
+            {
+              "hidden": false,
+              "id": "6c00000000000000000000f6",
+              "name": "Tea"
+            }
+          ],
+          "currentPeriod": "2083-07",
+          "expenses": [
+            {
+              "amount": 1500,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GAS",
+              "categoryLabel": "Gas",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6c00000000000000000000f3",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000009",
+                "name": "Cook",
+                "role": "COOK"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-01",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "2 cylinders"
+            },
+            {
+              "amount": 300,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "CUSTOM",
+              "categoryLabel": "Tea",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "customCategoryId": "6c00000000000000000000f6",
+              "id": "6c00000000000000000000f5",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000009",
+                "name": "Staff",
+                "role": "COOK"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-01",
+              "status": "VOID",
+              "voidReason": "Wrong",
+              "voidedAt": "2026-09-01T06:00:00.000Z",
+              "what": ""
+            },
+            {
+              "amount": 700,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "PENDING",
+              "cashTo": {
+                "name": "Cook",
+                "userId": "6c0000000000000000000009"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6c00000000000000000000f0",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Owner",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-01",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            }
+          ],
+          "mine": {
+            "count": 1,
+            "out": 1500
+          },
+          "pendingCash": [
+            {
+              "amount": 700,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "PENDING",
+              "cashTo": {
+                "name": "Cook",
+                "userId": "6c0000000000000000000009"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6c00000000000000000000f0",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Owner",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-01",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            }
+          ],
+          "people": [
+            {
+              "holdsCash": false,
+              "name": "Kitchen Ram",
+              "role": "COOK",
+              "userId": "6c0000000000000000000009"
+            }
+          ],
+          "period": "2083-07",
+          "proofRequired": true,
+          "role": "COOK",
+          "totals": null,
+          "wallet": null,
+          "wallets": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "bad month",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/expenses?period=9999-01",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.expenses.*.createdAt",
+      "data.pendingCash.*.createdAt",
+      "data.expenses.*.spentOn",
+      "data.pendingCash.*.spentOn",
+      "data.currentPeriod",
+      "data.period"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expenses loaded",
+        "data": {
+          "canSeeTotals": false,
+          "categories": [
+            {
+              "hidden": false,
+              "id": "6c00000000000000000000f6",
+              "name": "Tea"
+            }
+          ],
+          "currentPeriod": "2083-07",
+          "expenses": [
+            {
+              "amount": 1500,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "GAS",
+              "categoryLabel": "Gas",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6c00000000000000000000f3",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000009",
+                "name": "Cook",
+                "role": "COOK"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-01",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": "2 cylinders"
+            },
+            {
+              "amount": 300,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": null,
+              "cashTo": null,
+              "category": "CUSTOM",
+              "categoryLabel": "Tea",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "customCategoryId": "6c00000000000000000000f6",
+              "id": "6c00000000000000000000f5",
+              "mine": true,
+              "paidBy": "CASH",
+              "payer": "STAFF",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000009",
+                "name": "Staff",
+                "role": "COOK"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-01",
+              "status": "VOID",
+              "voidReason": "Wrong",
+              "voidedAt": "2026-09-01T06:00:00.000Z",
+              "what": ""
+            },
+            {
+              "amount": 700,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "PENDING",
+              "cashTo": {
+                "name": "Cook",
+                "userId": "6c0000000000000000000009"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6c00000000000000000000f0",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Owner",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-01",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            }
+          ],
+          "mine": {
+            "count": 1,
+            "out": 1500
+          },
+          "pendingCash": [
+            {
+              "amount": 700,
+              "cashNote": null,
+              "cashRespondedAt": null,
+              "cashStatus": "PENDING",
+              "cashTo": {
+                "name": "Cook",
+                "userId": "6c0000000000000000000009"
+              },
+              "category": "STAFF_CASH",
+              "categoryLabel": "Cash to warden",
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "customCategoryId": null,
+              "id": "6c00000000000000000000f0",
+              "mine": false,
+              "paidBy": "CASH",
+              "payer": "HOSTEL",
+              "photoAssetId": null,
+              "recordedBy": {
+                "id": "6c0000000000000000000005",
+                "name": "Owner",
+                "role": "HOSTEL_ADMIN"
+              },
+              "salaryFor": null,
+              "spentOn": "2026-11-01",
+              "status": "RECORDED",
+              "voidReason": null,
+              "voidedAt": null,
+              "what": ""
+            }
+          ],
+          "people": [
+            {
+              "holdsCash": false,
+              "name": "Kitchen Ram",
+              "role": "COOK",
+              "userId": "6c0000000000000000000009"
+            }
+          ],
+          "period": "2083-07",
+          "proofRequired": true,
+          "role": "COOK",
+          "totals": null,
+          "wallet": null,
+          "wallets": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "too far back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/expenses?period=1900-01",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.expenses.*.createdAt",
+      "data.pendingCash.*.createdAt",
+      "data.expenses.*.spentOn",
+      "data.pendingCash.*.spentOn",
+      "data.currentPeriod",
+      "data.period"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Pick a month to show.",
+        "errorCode": "INVALID_PERIOD"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "no amount",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "amount": [
+              "Write how much you paid."
+            ],
+            "category": [
+              "Invalid option: expected one of \"GROCERIES\"|\"VEGETABLES_MEAT\"|\"GAS\"|\"ELECTRICITY\"|\"WATER\"|\"INTERNET\"|\"SALARY\"|\"STAFF_CASH\"|\"RENT\"|\"REPAIR\"|\"CLEANING\"|\"OTHER\"|\"CUSTOM\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Write how much you paid.",
+              "path": "amount"
+            },
+            {
+              "message": "Invalid option: expected one of \"GROCERIES\"|\"VEGETABLES_MEAT\"|\"GAS\"|\"ELECTRICITY\"|\"WATER\"|\"INTERNET\"|\"SALARY\"|\"STAFF_CASH\"|\"RENT\"|\"REPAIR\"|\"CLEANING\"|\"OTHER\"|\"CUSTOM\"",
+              "path": "category"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 1.5,
+        "category": "X",
+        "clientRequestId": "a",
+        "customCategoryId": "x",
+        "paidBy": "Z",
+        "photoAssetId": "x",
+        "salaryFor": {
+          "name": "",
+          "userId": "x"
+        },
+        "sharedReceipt": "y",
+        "spentOn": "x",
+        "cashTo": {
+          "userId": 3
+        },
+        "what": 5
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "amount": [
+              "Write the amount in whole rupees."
+            ],
+            "category": [
+              "Invalid option: expected one of \"GROCERIES\"|\"VEGETABLES_MEAT\"|\"GAS\"|\"ELECTRICITY\"|\"WATER\"|\"INTERNET\"|\"SALARY\"|\"STAFF_CASH\"|\"RENT\"|\"REPAIR\"|\"CLEANING\"|\"OTHER\"|\"CUSTOM\""
+            ],
+            "clientRequestId": [
+              "Too small: expected string to have \u003e=8 characters"
+            ],
+            "customCategoryId": [
+              "Invalid id."
+            ],
+            "paidBy": [
+              "Invalid option: expected one of \"CASH\"|\"ESEWA\"|\"KHALTI\"|\"BANK\""
+            ],
+            "photoAssetId": [
+              "Invalid id."
+            ],
+            "salaryFor": [
+              "Write their name.",
+              "Invalid id."
+            ],
+            "sharedReceipt": [
+              "Invalid input: expected boolean, received string"
+            ],
+            "spentOn": [
+              "Date must be YYYY-MM-DD."
+            ],
+            "cashTo": [
+              "Invalid input: expected string, received number"
+            ],
+            "what": [
+              "Invalid input: expected string, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Write the amount in whole rupees.",
+              "path": "amount"
+            },
+            {
+              "message": "Invalid option: expected one of \"GROCERIES\"|\"VEGETABLES_MEAT\"|\"GAS\"|\"ELECTRICITY\"|\"WATER\"|\"INTERNET\"|\"SALARY\"|\"STAFF_CASH\"|\"RENT\"|\"REPAIR\"|\"CLEANING\"|\"OTHER\"|\"CUSTOM\"",
+              "path": "category"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=8 characters",
+              "path": "clientRequestId"
+            },
+            {
+              "message": "Invalid id.",
+              "path": "customCategoryId"
+            },
+            {
+              "message": "Invalid option: expected one of \"CASH\"|\"ESEWA\"|\"KHALTI\"|\"BANK\"",
+              "path": "paidBy"
+            },
+            {
+              "message": "Invalid id.",
+              "path": "photoAssetId"
+            },
+            {
+              "message": "Write their name.",
+              "path": "salaryFor.name"
+            },
+            {
+              "message": "Invalid id.",
+              "path": "salaryFor.userId"
+            },
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "sharedReceipt"
+            },
+            {
+              "message": "Date must be YYYY-MM-DD.",
+              "path": "spentOn"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "cashTo.userId"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "what"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "too big",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 100000001,
+        "category": "GAS"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "amount": [
+              "That amount is too big. Check it."
+            ]
+          },
+          "issues": [
+            {
+              "message": "That amount is too big. Check it.",
+              "path": "amount"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "zero",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 0,
+        "category": "GAS"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "amount": [
+              "Write how much you paid."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Write how much you paid.",
+              "path": "amount"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "other no what",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 5,
+        "category": "OTHER"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "what": [
+              "Write what it was for."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Write what it was for.",
+              "path": "what"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "custom none",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 5,
+        "category": "CUSTOM"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "customCategoryId": [
+              "Pick one of your categories."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Pick one of your categories.",
+              "path": "customCategoryId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cash no target",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 5,
+        "category": "STAFF_CASH"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "cashTo": [
+              "Pick the warden who got the money."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Pick the warden who got the money.",
+              "path": "cashTo"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cash denied",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 5,
+        "category": "STAFF_CASH",
+        "cashTo": {
+          "userId": "6c0000000000000000000009"
+        }
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Only the owner can give cash to a warden.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "no proof",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 5,
+        "category": "GAS"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Add a photo of the bill or the goods.",
+        "errorCode": "PROOF_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "duplicate",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 5,
+        "category": "GAS",
+        "clientRequestId": "seen-request-1"
+      }
+    },
+    "masks": [
+      "data.createdAt",
+      "data.spentOn"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Already saved",
+        "data": {
+          "amount": 1500,
+          "cashNote": null,
+          "cashRespondedAt": null,
+          "cashStatus": null,
+          "cashTo": null,
+          "category": "GAS",
+          "categoryLabel": "Gas",
+          "createdAt": "2026-09-01T06:00:00.000Z",
+          "customCategoryId": null,
+          "id": "6c00000000000000000000f3",
+          "mine": true,
+          "paidBy": "CASH",
+          "payer": "STAFF",
+          "photoAssetId": null,
+          "recordedBy": {
+            "id": "6c0000000000000000000009",
+            "name": "Cook",
+            "role": "COOK"
+          },
+          "salaryFor": null,
+          "spentOn": "2026-11-01",
+          "status": "RECORDED",
+          "voidReason": null,
+          "voidedAt": null,
+          "what": "2 cylinders"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "bad date",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 5,
+        "category": "GAS",
+        "spentOn": "2026-02-31"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That date does not exist.",
+        "errorCode": "INVALID_DATE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "future",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 5,
+        "category": "GAS",
+        "spentOn": "2099-01-01"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The date cannot be in the future.",
+        "errorCode": "DATE_IN_FUTURE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "old",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 5,
+        "category": "GAS",
+        "spentOn": "2020-01-01"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That date is too long ago. Check the year.",
+        "errorCode": "DATE_TOO_OLD"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "custom hidden",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 5,
+        "category": "CUSTOM",
+        "customCategoryId": "6c00000000000000000000f7"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That category is not there any more. Pick another.",
+        "errorCode": "CATEGORY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "not owned",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 5,
+        "category": "GAS",
+        "photoAssetId": "6c0000000000000000000070"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This photo is not yours to attach. Add it again.",
+        "errorCode": "ASSET_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "not ready",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 5,
+        "category": "GAS",
+        "photoAssetId": "6c000000000000000000007e"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The photo has not finished uploading. Try again.",
+        "errorCode": "ASSET_NOT_READY"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "add",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 1234567,
+        "category": "SALARY",
+        "paidBy": "BANK",
+        "photoAssetId": "6c000000000000000000007f",
+        "what": " Pay ",
+        "clientRequestId": "new-request-1",
+        "salaryFor": {
+          "name": "Hari",
+          "userId": "6c0000000000000000000005"
+        }
+      }
+    },
+    "masks": [
+      "data.id",
+      "data.createdAt",
+      "data.spentOn"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expense added",
+        "data": {
+          "amount": 1234567,
+          "cashNote": null,
+          "cashRespondedAt": null,
+          "cashStatus": null,
+          "cashTo": null,
+          "category": "SALARY",
+          "categoryLabel": "Salary",
+          "createdAt": "2026-11-01T11:11:43.369Z",
+          "customCategoryId": null,
+          "id": "6ae71e6fe6822539292ba573",
+          "mine": true,
+          "paidBy": "BANK",
+          "payer": "STAFF",
+          "photoAssetId": "6c000000000000000000007f",
+          "recordedBy": {
+            "id": "6c0000000000000000000009",
+            "name": "Kitchen Ram",
+            "role": "COOK"
+          },
+          "salaryFor": {
+            "name": "Hari",
+            "userId": null
+          },
+          "spentOn": "2026-11-01",
+          "status": "RECORDED",
+          "voidReason": null,
+          "voidedAt": null,
+          "what": "Pay"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "add custom shared",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 2500,
+        "category": "CUSTOM",
+        "customCategoryId": "6c00000000000000000000f6",
+        "photoAssetId": "6c000000000000000000007f",
+        "sharedReceipt": true
+      }
+    },
+    "masks": [
+      "data.id",
+      "data.createdAt",
+      "data.spentOn"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expense added",
+        "data": {
+          "amount": 2500,
+          "cashNote": null,
+          "cashRespondedAt": null,
+          "cashStatus": null,
+          "cashTo": null,
+          "category": "CUSTOM",
+          "categoryLabel": "Tea",
+          "createdAt": "2026-11-01T11:11:43.638Z",
+          "customCategoryId": "6c00000000000000000000f6",
+          "id": "6ae71e6fe6822539292ba576",
+          "mine": true,
+          "paidBy": "CASH",
+          "payer": "STAFF",
+          "photoAssetId": "6c000000000000000000007f",
+          "recordedBy": {
+            "id": "6c0000000000000000000009",
+            "name": "Kitchen Ram",
+            "role": "COOK"
+          },
+          "salaryFor": null,
+          "spentOn": "2026-11-01",
+          "status": "RECORDED",
+          "voidReason": null,
+          "voidedAt": null,
+          "what": ""
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "receipt seen",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "amount": 2500,
+        "category": "GAS",
+        "photoAssetId": "6c000000000000000000007f",
+        "sharedReceipt": true
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Already added: Rs 2,500 by Kitchen Ram.",
+        "errorCode": "RECEIPT_ALREADY_SAVED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "admin bell",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=unread",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt",
+      "data.notifications.*.data.expenseId",
+      "data.notifications.*.body"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 0,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/app/expenses",
+              "body": "Kitchen Ram recorded Rs 2,500.",
+              "category": "PAYMENT",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:11:43.678Z",
+              "data": {
+                "expenseId": "6ae71e6fe6822539292ba576",
+                "type": "STAFF_EXPENSE_RECORDED"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae71e6fe6822539292ba578",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "New expense recorded",
+              "userId": "6c0000000000000000000005"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/app/expenses",
+              "body": "Kitchen Ram recorded Rs 12,34,567 — Pay.",
+              "category": "PAYMENT",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:11:43.546Z",
+              "data": {
+                "expenseId": "6ae71e6fe6822539292ba573",
+                "type": "STAFF_EXPENSE_RECORDED"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae71e6fe6822539292ba575",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "New expense recorded",
+              "userId": "6c0000000000000000000005"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Admin",
+              "category": "NOTICE",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:11:31.372Z",
+              "data": {},
+              "id": "6c0000000000000000000094",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Not yours",
+              "userId": "6c0000000000000000000005"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 3,
+            "totalPages": 1
+          },
+          "unreadCount": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "void invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses/6c00000000000000000000f3/void",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "x"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "reason": [
+              "Too small: expected string to have \u003e=3 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=3 characters",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "void bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses/x/void",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "because"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Expense not found.",
+        "errorCode": "EXPENSE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "void other",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses/6c00000000000000000000f4/void",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "because"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Expense not found.",
+        "errorCode": "EXPENSE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "void done",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses/6c00000000000000000000f5/void",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": "because"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This expense is already cancelled.",
+        "errorCode": "EXPENSE_ALREADY_VOID"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "void",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/expenses/6c00000000000000000000f3/void",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "reason": " Bought twice "
+      }
+    },
+    "masks": [
+      "data.voidedAt",
+      "data.spentOn"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Expense cancelled",
+        "data": {
+          "amount": 1500,
+          "cashNote": null,
+          "cashRespondedAt": null,
+          "cashStatus": null,
+          "cashTo": null,
+          "category": "GAS",
+          "categoryLabel": "Gas",
+          "createdAt": "2026-09-01T06:00:00.000Z",
+          "customCategoryId": null,
+          "id": "6c00000000000000000000f3",
+          "mine": true,
+          "paidBy": "CASH",
+          "payer": "STAFF",
+          "photoAssetId": null,
+          "recordedBy": {
+            "id": "6c0000000000000000000009",
+            "name": "Cook",
+            "role": "COOK"
+          },
+          "salaryFor": null,
+          "spentOn": "2026-11-01",
+          "status": "VOID",
+          "voidReason": "Bought twice",
+          "voidedAt": "2026-11-01T11:11:57.020Z",
+          "what": "2 cylinders"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

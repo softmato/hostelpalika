@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -34,8 +35,8 @@ import (
 const platformName = "HostelPalika" // PLATFORM_NAME
 
 type CancelStep struct {
-	RefundPercent float64 `json:"refundPercent"`
-	ThroughDay    float64 `json:"throughDay"`
+	RefundPercent float64 `json:"refundPercent" bson:"refundPercent"`
+	ThroughDay    float64 `json:"throughDay" bson:"throughDay"`
 }
 
 // Config is BookingConfig (the `bookings` platformsettings row).
@@ -340,19 +341,85 @@ type bookableHostel struct {
 	BookingPause *struct {
 		PausedAt *time.Time `bson:"pausedAt"`
 	} `bson:"bookingPause"`
-	IsDeleted bool `bson:"isDeleted"`
-	Photos    []struct {
+	Contact *struct {
+		Phone *string `bson:"phone"`
+	} `bson:"contact"`
+	HostelType *string `bson:"hostelType"`
+	IsDeleted  bool    `bson:"isDeleted"`
+	Location   *struct {
+		Address *string `bson:"address"`
+		Area    *string `bson:"area"`
+		City    *string `bson:"city"`
+	} `bson:"location"`
+	Name   string `bson:"name"`
+	Photos []struct {
 		Kind     string `bson:"kind"`
 		RoomType string `bson:"roomType"`
 		URL      string `bson:"url"`
 	} `bson:"photos"`
 	RoomConfigurations []struct {
-		RoomType   string   `bson:"roomType"`
-		VacantBeds *float64 `bson:"vacantBeds"`
+		BedsPerRoom   *float64 `bson:"bedsPerRoom"`
+		MealInclusion *string  `bson:"mealInclusion"`
+		RoomType      string   `bson:"roomType"`
+		VacantBeds    *float64 `bson:"vacantBeds"`
 	} `bson:"roomConfigurations"`
+	ShortStays *struct {
+		Enabled   bool     `bson:"enabled"`
+		MinNights *float64 `bson:"minNights"`
+		Rates     []struct {
+			DailyRate float64 `bson:"dailyRate"`
+			RoomType  string  `bson:"roomType"`
+		} `bson:"rates"`
+	} `bson:"shortStays"`
+	Slug               string            `bson:"slug"`
 	Status             string            `bson:"status"`
 	Suspension         *authz.Suspension `bson:"suspension"`
 	VerificationStatus string            `bson:"verificationStatus"`
+}
+
+func photoKind(k string) string {
+	if k != "EXTERIOR" && k != "ROOM" {
+		return "INTERIOR"
+	}
+	return k
+}
+
+// cover is hostelCoverPhoto: the first exterior, else interior, else room.
+func (h *bookableHostel) cover() *string {
+	for _, kind := range []string{"EXTERIOR", "INTERIOR", "ROOM"} {
+		for _, p := range h.Photos {
+			if p.URL != "" && photoKind(p.Kind) == kind {
+				url := p.URL
+				return &url
+			}
+		}
+	}
+	return nil
+}
+
+// address is hostelAddress: trimmed, de-duplicated parts.
+func (h *bookableHostel) address() string {
+	if h.Location == nil {
+		return ""
+	}
+	var parts []string
+	for _, v := range []*string{h.Location.Address, h.Location.Area, h.Location.City} {
+		if v == nil {
+			continue
+		}
+		t := zschema.JSTrim(*v)
+		if t != "" && !slices.Contains(parts, t) {
+			parts = append(parts, t)
+		}
+	}
+	return strings.Join(parts, ", ")
+}
+
+func (h *bookableHostel) phone() string {
+	if h.Contact != nil && h.Contact.Phone != nil {
+		return *h.Contact.Phone
+	}
+	return ""
 }
 
 func (s *Service) loadBookable(ctx context.Context, ref string) (*bookableHostel, error) {
@@ -418,25 +485,45 @@ func bookingFee(rent, feePercent float64) (int64, error) {
 	return max(1, r), err
 }
 
-// Availability is the route's projection of hostelAvailability.
-func (s *Service) Availability(ctx context.Context, ref string) (*availability, error) {
-	if hostels.IsDemoRef(ref) {
-		r := "BOOKINGS_PAUSED"
-		return &availability{HostelReason: &r, Rooms: []room{}}, nil
-	}
-	var h *bookableHostel
-	if ref != "" {
-		var err error
-		if h, err = s.loadBookable(ctx, ref); err != nil {
-			return nil, err
+type stayLimits struct {
+	MaxAdvanceDays float64 `json:"maxAdvanceDays"`
+	MaxNights      float64 `json:"maxNights"`
+	MinNights      float64 `json:"minNights"`
+}
+
+// fullRoom is RoomAvailability.
+type fullRoom struct {
+	BedsPerRoom   *float64 `json:"bedsPerRoom"`
+	Bookable      bool     `json:"bookable"`
+	DailyRate     *int64   `json:"dailyRate"`
+	Fee           *int64   `json:"fee"`
+	MealInclusion *string  `json:"mealInclusion"`
+	MonthlyRent   *int64   `json:"monthlyRent"`
+	Photos        []string `json:"photos"`
+	Reason        *string  `json:"reason"`
+	RoomType      string   `json:"roomType"`
+	VacantBeds    float64  `json:"vacantBeds"`
+}
+
+// fullAvailability is HostelAvailability.
+type fullAvailability struct {
+	HostelReason *string
+	Rooms        []fullRoom
+	ShortStays   *stayLimits
+}
+
+func (a *fullAvailability) find(roomType string) *fullRoom {
+	for i := range a.Rooms {
+		if roomType != "" && a.Rooms[i].RoomType != "" && finance.SameRoomType(a.Rooms[i].RoomType, roomType) {
+			return &a.Rooms[i]
 		}
 	}
-	if h == nil || h.IsDeleted {
-		r := "HOSTEL_NOT_LIVE"
-		return &availability{HostelReason: &r, Rooms: []room{}}, nil
-	}
-	now := time.Now()
-	c := s.BookingConfig(ctx)
+	return nil
+}
+
+// availabilityOf is hostelAvailability: the one answer for the Book buttons, the
+// checkout's quote and the create call.
+func (s *Service) availabilityOf(ctx context.Context, h *bookableHostel, c Config, now time.Time) (*fullAvailability, error) {
 	hostelReason, err := s.hostelReason(ctx, h, c, now)
 	if err != nil {
 		return nil, err
@@ -449,7 +536,11 @@ func (s *Service) Availability(ctx context.Context, ref string) (*availability, 
 	if err != nil {
 		return nil, err
 	}
-	out := &availability{HostelReason: hostelReason, Rooms: []room{}}
+	out := &fullAvailability{HostelReason: hostelReason, Rooms: []fullRoom{}}
+	stays := h.ShortStays
+	if stays != nil && !stays.Enabled {
+		stays = nil
+	}
 	for _, rc := range h.RoomConfigurations {
 		var rent *float64
 		if r := finance.RateForRoomType(schedule, rc.RoomType); r != nil {
@@ -470,24 +561,84 @@ func (s *Service) Availability(ctx context.Context, ref string) (*availability, 
 				reason = &r
 			}
 		}
-		rm := room{Bookable: reason == nil, Photos: []string{}, Reason: reason, RoomType: rc.RoomType}
+		rm := fullRoom{BedsPerRoom: rc.BedsPerRoom, Bookable: reason == nil, MealInclusion: rc.MealInclusion, Photos: []string{}, Reason: reason, RoomType: rc.RoomType, VacantBeds: vacant}
 		if priced {
 			fee, err := bookingFee(*rent, c.FeePercent)
 			if err != nil {
 				return nil, err
 			}
-			rm.Fee = &fee
+			monthly := int64(*rent)
+			rm.Fee, rm.MonthlyRent = &fee, &monthly
+			if stays != nil {
+				for _, rate := range stays.Rates {
+					if rate.DailyRate != 0 && finance.SameRoomType(rate.RoomType, rc.RoomType) {
+						floor := max(1, math.Ceil(*rent*(100+c.ShortStayMinMarkupPercent)/3000))
+						daily := int64(math.Max(rate.DailyRate, floor))
+						rm.DailyRate = &daily
+						break
+					}
+				}
+			}
 		}
 		for _, p := range h.Photos {
-			kind := p.Kind
-			if kind != "EXTERIOR" && kind != "ROOM" {
-				kind = "INTERIOR"
-			}
-			if p.URL != "" && kind == "ROOM" && (rc.RoomType == "" || p.RoomType == rc.RoomType) && len(rm.Photos) < 6 {
+			if p.URL != "" && photoKind(p.Kind) == "ROOM" && (rc.RoomType == "" || p.RoomType == rc.RoomType) && len(rm.Photos) < 6 {
 				rm.Photos = append(rm.Photos, p.URL)
 			}
 		}
 		out.Rooms = append(out.Rooms, rm)
+	}
+	if stays != nil {
+		minNights := 1.0
+		if stays.MinNights != nil {
+			minNights = *stays.MinNights
+		}
+		out.ShortStays = &stayLimits{c.ShortStayMaxAdvanceDays, c.ShortStayMaxNights, math.Min(minNights, c.ShortStayMaxNights)}
+	}
+	return out, nil
+}
+
+// currentPolicyVersion is bookingPolicyVersion(termsFromConfig(config), legal.refund).
+func (s *Service) currentPolicyVersion(ctx context.Context, c Config) (string, error) {
+	legalRaw, err := s.cfg.Section(ctx, "legal")
+	if err != nil {
+		return "", err
+	}
+	var legal struct {
+		Refund struct {
+			Body      string `json:"body"`
+			UpdatedAt string `json:"updatedAt"`
+		} `json:"refund"`
+	}
+	if err := platformconfig.Decode(legalRaw, &legal); err != nil {
+		return "", err
+	}
+	return PolicyVersion(c, legal.Refund.Body, legal.Refund.UpdatedAt), nil
+}
+
+// Availability is the route's projection of hostelAvailability.
+func (s *Service) Availability(ctx context.Context, ref string) (*availability, error) {
+	if hostels.IsDemoRef(ref) {
+		r := "BOOKINGS_PAUSED"
+		return &availability{HostelReason: &r, Rooms: []room{}}, nil
+	}
+	var h *bookableHostel
+	if ref != "" {
+		var err error
+		if h, err = s.loadBookable(ctx, ref); err != nil {
+			return nil, err
+		}
+	}
+	if h == nil || h.IsDeleted {
+		r := "HOSTEL_NOT_LIVE"
+		return &availability{HostelReason: &r, Rooms: []room{}}, nil
+	}
+	full, err := s.availabilityOf(ctx, h, s.BookingConfig(ctx), time.Now())
+	if err != nil {
+		return nil, err
+	}
+	out := &availability{HostelReason: full.HostelReason, Rooms: make([]room, len(full.Rooms))}
+	for i, r := range full.Rooms {
+		out.Rooms[i] = room{r.Bookable, r.Fee, r.Photos, r.Reason, r.RoomType}
 	}
 	return out, nil
 }

@@ -146,6 +146,9 @@ func fixed2(paisa int64, lakh bool) string {
 // GroupIN is a whole number with en-IN lakh grouping: 1,23,456.
 func GroupIN(n int64) string { return grouped(n, true) }
 
+// GroupUS is toLocaleString("en-US") for a whole number.
+func GroupUS(n int64) string { return grouped(n, false) }
+
 // FormatNPR is "NPR 12,000" — the finance rendering, en-US grouping.
 func FormatNPR(rupees int64) string { return Currency + " " + grouped(rupees, false) }
 

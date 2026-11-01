@@ -62,12 +62,12 @@
           "formErrors": [],
           "fieldErrors": {
             "hostelIds": [
-              "Too small: expected array to have \u003e=1 items"
+              "Too small: expected array to have >=1 items"
             ]
           },
           "issues": [
             {
-              "message": "Too small: expected array to have \u003e=1 items",
+              "message": "Too small: expected array to have >=1 items",
               "path": "hostelIds"
             }
           ]
@@ -196,12 +196,12 @@
           "formErrors": [],
           "fieldErrors": {
             "hostelIds": [
-              "Too big: expected array to have \u003c=60 items"
+              "Too big: expected array to have <=60 items"
             ]
           },
           "issues": [
             {
-              "message": "Too big: expected array to have \u003c=60 items",
+              "message": "Too big: expected array to have <=60 items",
               "path": "hostelIds"
             }
           ]
@@ -278,15 +278,16 @@
       "body": "nope"
     },
     "response": {
-      "status": 500,
+      "status": 400,
       "contentType": "application/json",
       "body": {
         "success": false,
-        "message": "Internal server error",
-        "errorCode": "INTERNAL_SERVER_ERROR"
+        "message": "The request body is not valid JSON.",
+        "errorCode": "INVALID_JSON"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 8bea0625",
+    "corrected": "R8: TS bug fixed on both sides, see docs/review_fixes_needed.md"
   },
   {
     "name": "GET refused",

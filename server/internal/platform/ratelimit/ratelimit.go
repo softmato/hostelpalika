@@ -15,6 +15,7 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
+	"github.com/softmato/hostelpalika/server/internal/platform/obs"
 )
 
 // Auth endpoints: 5 attempts per 15 minutes per client, per endpoint.
@@ -22,6 +23,7 @@ const (
 	AuthAttemptLimit  = 5
 	AuthAttemptWindow = 15 * time.Minute
 	maxBuckets        = 10_000
+	ipBudgetFactor    = 6
 )
 
 type Limiter struct {
@@ -51,11 +53,14 @@ func clientKey(c *gin.Context) string {
 	if ua == "" {
 		ua = "unknown-agent"
 	}
-	ip := c.ClientIP()
-	if ip == "" {
-		ip = "unknown-ip"
+	return clientIP(c) + ":" + ua
+}
+
+func clientIP(c *gin.Context) string {
+	if ip := c.ClientIP(); ip != "" {
+		return ip
 	}
-	return ip + ":" + ua
+	return "unknown-ip"
 }
 
 // PublicForm is rateLimitPublicForm with the configured budget.
@@ -69,20 +74,31 @@ func (l *Limiter) AuthAttempts(c *gin.Context, namespace string) error {
 	return l.Check(c, namespace, AuthAttemptLimit, AuthAttemptWindow)
 }
 
-// Check counts this request; over the limit it returns TS's 429.
+// Check counts this request; over either budget it returns TS's 429. The
+// user-agent keeps one hostel's Wi-Fi from sharing one budget, but a client picks
+// its own, so one IP also has a total across every user-agent (TS's bug: rotate
+// the header and the limit was gone). Same ratio as lib/auth-attempts.ts.
 func (l *Limiter) Check(c *gin.Context, namespace string, limit int, window time.Duration) error {
-	key := "rl:" + namespace + ":" + clientKey(c)
-	count, ttl, err := l.hitRedis(c, key, window)
-	if err != nil {
-		count, ttl = l.hitMemory(key, window)
+	ttl, over := l.hit(c, "rl:"+namespace+":"+clientKey(c), limit, window)
+	if ttlIP, overIP := l.hit(c, "rl:"+namespace+":ip:"+clientIP(c), limit*ipBudgetFactor, window); overIP {
+		ttl, over = ttlIP, true
 	}
-	if count <= limit {
+	if !over {
 		return nil
 	}
 	retry := int(math.Max(1, math.Ceil(ttl.Seconds())))
+	obs.RateLimited(namespace)
 	return httpx.NewError(http.StatusTooManyRequests, "RATE_LIMITED",
 		"Too many requests. Please wait before submitting again.",
 		map[string]int{"retryAfterSeconds": retry})
+}
+
+func (l *Limiter) hit(ctx context.Context, key string, limit int, window time.Duration) (time.Duration, bool) {
+	count, ttl, err := l.hitRedis(ctx, key, window)
+	if err != nil {
+		count, ttl = l.hitMemory(key, window)
+	}
+	return ttl, count > limit
 }
 
 // hitRedis: INCR, start the window on the first hit only (NX), read what is left.

@@ -2,7 +2,8 @@
 
 ## 1. Before any task
 
-1. Read `README.md`, then the `PHASES.md` phase in progress, then its rows in `PARITY.md`.
+1. Read `MISSION.md` (the owner's binding brief), then `README.md`, then the
+   `PHASES.md` phase in progress, then its rows in `PARITY.md`.
 2. Run the change intake (`PARITY.md` §2). Handle every line before porting.
 3. Read the TS route **and** the service it calls **and** the model. Port what
    the code does, not what a doc or a client type says it does — the server has
@@ -15,8 +16,18 @@
   field order where clients depend on it, `null` vs absent, number vs string.
 - Same side effects: rows written, notifications, pushes, emails, realtime
   events, cache bumps, audit entries — in the same order where order matters.
-- A bug found while porting is fixed in TS first, then ported. Go never
-  "quietly fixes" behaviour; the spec has to move first.
+- **The bug rule (owner, 2026-11-01; applies from Phase 6 on, and to the review of
+  Phases 0–5).** Whatever bug, mistake or error the TS server has, fix it in Go in
+  the best way and make it more production grade, and also fix it in TS (minor or
+  better). The Go server is what matters in the end; TS will be discarded. So:
+  1. Never copy a bug because it is the spec. Paths and methods stay exact
+     (`TestRoutesMatchWeb`); correct behaviour wins over a recorded wrong answer.
+  2. Fix TS in the same change, so a later re-record agrees. A big TS rewrite is not
+     owed: the smallest TS fix that stops the harm is enough.
+  3. Correct the contract case by hand and set its `corrected` field to the finding.
+  4. Log the finding in `review_fixes_needed.md`.
+  5. A client that depends on the wrong answer gets fixed with it. Check
+     `apps/web` and `apps/mobile` before changing a status code or field.
 - No route is ☑ without a green contract test at the current baseline.
 
 ## 3. Tenant isolation (the most important rule)
@@ -71,7 +82,8 @@ couldn't do it.
 ## 8. What the AI must never do unprompted
 
 - Run `eas build` / `submit` / `update`, deploy, or push. Hand over the commands.
-- Change the TS server's behaviour to make a contract test pass.
+- Change the TS server's behaviour just to make a contract test pass (a real bug
+  fixed under §2's bug rule is the one exception).
 - Point anything at the production database or Redis.
 - Delete TS routes, modules or env vars before `PARITY.md` §11 says so.
 - Write durations into plans or docs.
@@ -84,3 +96,5 @@ couldn't do it.
 - `Server-Timing` within the DESIGN.md §2 budget on the local stack
 - Row ticked in `PARITY.md`
 - `CHANGELOG.md` line if it closes a phase gate
+- Long-running route added to `routeBudgets` in `router.go`
+- Any bug met on the way fixed under §2's bug rule and logged

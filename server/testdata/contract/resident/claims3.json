@@ -1,0 +1,715 @@
+[
+  {
+    "name": "read anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/evidence/6c00000000000000000000e3/read",
+      "headers": {
+        "user-agent": "claims-6"
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read bad",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/evidence/x/read",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-6"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "File not found",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read foreign",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/evidence/6c0000000000000000000071/read",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-6"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "File not found",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read unfinished",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/evidence/6c0000000000000000000070/read",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-6"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This file did not finish uploading.",
+        "errorCode": "ASSET_UPLOAD_INCOMPLETE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read no fetch",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/evidence/6c00000000000000000000e3/read?format=json\u0026invoiceId=6c0000000000000000000012",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-6"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Receipt read",
+        "data": {
+          "fields": {},
+          "looksLikeReceipt": true,
+          "notPayment": false,
+          "reason": "fetch-failed",
+          "reference": null,
+          "refusal": null,
+          "statementGuidance": null,
+          "stage": "done",
+          "systemDocument": false,
+          "text": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read stream",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/evidence/6c00000000000000000000e7/read",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-6"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/x-ndjson; charset=utf-8",
+      "body": {
+        "fields": {},
+        "looksLikeReceipt": true,
+        "notPayment": false,
+        "reason": "not-measured",
+        "reference": null,
+        "refusal": null,
+        "statementGuidance": null,
+        "stage": "done",
+        "systemDocument": false,
+        "text": false
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "submit",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-6"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c00000000000000000000e3",
+        "paidAt": "2026-10-01T00:00:00.000Z",
+        "referenceNote": " For October ",
+        "notifiedOnDevice": true
+      }
+    },
+    "masks": [
+      "data.eventId"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment proof submitted",
+        "data": {
+          "created": true,
+          "eventId": "6ae722b9e6822539292ba598",
+          "status": "PENDING"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "same asset",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-6"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c00000000000000000000e3"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This screenshot has already been submitted. Please upload the screenshot for this payment.",
+        "errorCode": "EVIDENCE_ALREADY_USED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "same code",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-6"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "ESEWA",
+        "transactionCode": "1QAXP2M",
+        "proofImageAssetId": "6c00000000000000000000e7"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Transaction ID 1QAXP2M has already been recorded for a payment. Each payment has its own ID — check the ID on this transfer.",
+        "errorCode": "TXN_ID_ALREADY_CLAIMED",
+        "details": {
+          "priorPeriod": "2083-06",
+          "priorSubmittedAt": "2026-10-01T00:00:00.000Z",
+          "transactionCode": "1QAXP2M"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cash",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/claims",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-6"
+      },
+      "body": {
+        "amount": 100,
+        "paymentMethod": "CASH",
+        "proofImageAssetId": "6c00000000000000000000e7"
+      }
+    },
+    "masks": [
+      "data.eventId"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment proof submitted",
+        "data": {
+          "created": true,
+          "eventId": "6ae722bae6822539292ba59c",
+          "status": "PENDING"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/invoices",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-6"
+      }
+    },
+    "masks": [
+      "data.invoices.*.dueDate",
+      "data.invoices.*.paidDate",
+      "data.claims.*.occurredAt",
+      "data.claims.*.eventId"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payments",
+        "data": {
+          "claims": [
+            {
+              "allGreen": false,
+              "amount": 100,
+              "checks": [
+                {
+                  "detail": "Attached, but nothing could read it — open it before approving",
+                  "key": "EVIDENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "Nothing unusual about the file itself",
+                  "key": "FILE",
+                  "ok": true
+                },
+                {
+                  "detail": "Receiving account not checked — open it",
+                  "key": "PAYEE",
+                  "ok": false
+                },
+                {
+                  "detail": "Claimed 100 against 400000 outstanding",
+                  "key": "AMOUNT",
+                  "ok": false
+                },
+                {
+                  "detail": "Invoice is PARTIAL",
+                  "key": "INVOICE_OPEN",
+                  "ok": true
+                },
+                {
+                  "detail": "Did not quote HP-PART1",
+                  "key": "REFERENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "No similar screenshot seen",
+                  "key": "SIMILARITY",
+                  "ok": true
+                }
+              ],
+              "confirmation": "UNCONFIRMED",
+              "eventId": "6ae722bae6822539292ba59c",
+              "evidenceAssetId": "6c00000000000000000000e7",
+              "evidenceMimeType": "image/png",
+              "invoiceId": "6c0000000000000000000012",
+              "method": "CASH",
+              "occurredAt": "2026-11-01T11:30:02.207Z",
+              "period": "2083-06",
+              "referenceNote": null,
+              "rejectionReason": null,
+              "residentId": "6c00000000000000000000c1",
+              "residentName": "Res Ident",
+              "reviewFlags": [
+                "EVIDENCE_NOT_MACHINE_CHECKED"
+              ],
+              "status": "PENDING",
+              "transactionCode": null
+            },
+            {
+              "allGreen": false,
+              "amount": 100,
+              "checks": [
+                {
+                  "detail": "Attached, but nothing could read it — open it before approving",
+                  "key": "EVIDENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "File is saved by an image editor, re-encoded outside a phone, a photo, not a screenshot, cropped or resized — ask for the original",
+                  "key": "FILE",
+                  "ok": false
+                },
+                {
+                  "detail": "Receiving account not checked — open it",
+                  "key": "PAYEE",
+                  "ok": false
+                },
+                {
+                  "detail": "Claimed 100 against 400000 outstanding",
+                  "key": "AMOUNT",
+                  "ok": false
+                },
+                {
+                  "detail": "Invoice is PARTIAL",
+                  "key": "INVOICE_OPEN",
+                  "ok": true
+                },
+                {
+                  "detail": "Did not quote HP-PART1",
+                  "key": "REFERENCE",
+                  "ok": false
+                },
+                {
+                  "detail": "No similar screenshot seen",
+                  "key": "SIMILARITY",
+                  "ok": true
+                }
+              ],
+              "confirmation": "UNCONFIRMED",
+              "eventId": "6ae722b9e6822539292ba598",
+              "evidenceAssetId": "6c00000000000000000000e3",
+              "evidenceMimeType": "image/png",
+              "invoiceId": "6c0000000000000000000012",
+              "method": "ESEWA",
+              "occurredAt": "2026-10-01T00:00:00.000Z",
+              "period": "2083-06",
+              "referenceNote": "For October",
+              "rejectionReason": null,
+              "residentId": "6c00000000000000000000c1",
+              "residentName": "Res Ident",
+              "reviewFlags": [
+                "EVIDENCE_NOT_MACHINE_CHECKED",
+                "EVIDENCE_EDITOR_SIGNATURE",
+                "EVIDENCE_FILE_RE_ENCODED",
+                "EVIDENCE_NOT_A_SCREENSHOT",
+                "EVIDENCE_DIMENSIONS_UNUSUAL",
+                "EVIDENCE_TXN_ID_SHAPE_OK"
+              ],
+              "status": "PENDING",
+              "transactionCode": "1QAXP2M"
+            }
+          ],
+          "credit": 250,
+          "invoices": [
+            {
+              "dueAmount": 100000,
+              "dueDate": "2026-11-03T11:29:59.840Z",
+              "id": "6c0000000000000000000013",
+              "month": null,
+              "paidAmount": 0,
+              "status": "PENDING_PROOF",
+              "lines": [],
+              "receipts": [],
+              "referenceCode": "HP-JOIN1"
+            },
+            {
+              "dueAmount": 500000,
+              "dueDate": "2026-11-02T11:29:59.840Z",
+              "id": "6c0000000000000000000012",
+              "month": "2083-06",
+              "paidAmount": 100000,
+              "status": "PENDING_PROOF",
+              "lines": [],
+              "receipts": [],
+              "referenceCode": "HP-PART1"
+            },
+            {
+              "dueAmount": 500000,
+              "dueDate": "2026-10-02T11:29:59.840Z",
+              "id": "6c0000000000000000000011",
+              "method": "ESEWA",
+              "month": "2083-05",
+              "paidAmount": 500000,
+              "paidDate": "2026-10-03T07:29:59.840Z",
+              "status": "PAID",
+              "lines": [
+                {
+                  "amount": 500000,
+                  "basis": "RENT",
+                  "bedType": null,
+                  "description": "Rent",
+                  "prorationBasis": null
+                }
+              ],
+              "receipts": [],
+              "referenceCode": "HP-PAID1"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "admin bell",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=unread",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}",
+        "user-agent": "claims-6"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt",
+      "data.notifications.*.readAt",
+      "data.notifications.*.data.eventId",
+      "data.notifications.*.actions.*.endpoint"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 2,
+          "notifications": [
+            {
+              "actions": [
+                {
+                  "endpoint": "/api/v1/hostel-admin/finance/events/6ae722bae6822539292ba59c/approve",
+                  "key": "approve",
+                  "label": "Verify payment",
+                  "method": "POST",
+                  "tone": "default"
+                }
+              ],
+              "actionState": "PENDING",
+              "actionUrl": "/hostel-admin/payments",
+              "body": "Res Ident submitted proof of NPR 100 for 2083-06.",
+              "category": "PAYMENT",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:30:02.246Z",
+              "data": {
+                "eventId": "6ae722bae6822539292ba59c"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae722bae6822539292ba59e",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Payment proof submitted",
+              "userId": "6c0000000000000000000005"
+            },
+            {
+              "actions": [
+                {
+                  "endpoint": "/api/v1/hostel-admin/finance/events/6ae722b9e6822539292ba598/approve",
+                  "key": "approve",
+                  "label": "Verify payment",
+                  "method": "POST",
+                  "tone": "default"
+                }
+              ],
+              "actionState": "PENDING",
+              "actionUrl": "/hostel-admin/payments",
+              "body": "Res Ident submitted proof of NPR 100 for 2083-06.",
+              "category": "PAYMENT",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:30:01.977Z",
+              "data": {
+                "eventId": "6ae722b9e6822539292ba598"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae722b9e6822539292ba59a",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Payment proof submitted",
+              "userId": "6c0000000000000000000005"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Admin",
+              "category": "NOTICE",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:29:59.840Z",
+              "data": {},
+              "id": "6c0000000000000000000094",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Not yours",
+              "userId": "6c0000000000000000000005"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 3,
+            "totalPages": 1
+          },
+          "unreadCount": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "my bell",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=unread",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}",
+        "user-agent": "claims-6"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt",
+      "data.notifications.*.readAt",
+      "data.notifications.*.data.eventId",
+      "data.notifications.*.actions.*.endpoint"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/payments",
+              "body": "Your proof of NPR 100 for 2083-06 was sent to your hostel to check. Nothing is credited until they verify it.",
+              "category": "PAYMENT",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:30:02.263Z",
+              "data": {
+                "invoiceId": "6c0000000000000000000012"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae722bae6822539292ba59f",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Payment proof sent",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/payments",
+              "body": "Your proof of NPR 100 for 2083-06 was sent to your hostel to check. Nothing is credited until they verify it.",
+              "category": "PAYMENT",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:30:01.995Z",
+              "data": {
+                "invoiceId": "6c0000000000000000000012"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae722b9e6822539292ba59b",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Payment proof sent",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Pay soon",
+              "category": "BILLING",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:29:59.840Z",
+              "data": {
+                "z": 1,
+                "a": "x"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000091",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "HIGH",
+              "status": "SENT",
+              "title": "Rent due",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [
+                {
+                  "endpoint": "/x",
+                  "key": "IN",
+                  "label": "In",
+                  "method": "POST",
+                  "tone": "default"
+                }
+              ],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/night",
+              "body": "Answer",
+              "category": "NIGHT_STATUS",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T09:29:59.840Z",
+              "data": {},
+              "id": "6c0000000000000000000092",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Night?",
+              "userId": "6c0000000000000000000007"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 4,
+            "totalPages": 1
+          },
+          "unreadCount": 4
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

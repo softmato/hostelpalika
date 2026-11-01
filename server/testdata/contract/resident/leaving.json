@@ -1,0 +1,365 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/leaving"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/leaving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.earliest"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Leaving notice",
+        "data": {
+          "earliest": "2026-11-01",
+          "leavingOn": null,
+          "leavingOnLabel": null,
+          "noticeDays": 0,
+          "reason": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cancel nothing",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/resident/leaving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.earliest"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notice cancelled",
+        "data": {
+          "earliest": "2026-11-01",
+          "leavingOn": null,
+          "leavingOnLabel": null,
+          "noticeDays": 0,
+          "reason": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/resident/leaving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "date": "soon",
+        "reason": 5
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "date": [
+              "Pick a day."
+            ],
+            "reason": [
+              "Invalid input: expected string, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Pick a day.",
+              "path": "date"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "too soon",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/resident/leaving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "date": "2020-01-01"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Pick today or a later day.",
+        "errorCode": "LEAVING_TOO_SOON"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "save",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/resident/leaving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "date": "2099-01-01",
+        "reason": " moving "
+      }
+    },
+    "masks": [
+      "data.earliest"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Leaving day saved",
+        "data": {
+          "earliest": "2026-11-01",
+          "leavingOn": "2099-01-01",
+          "leavingOnLabel": "",
+          "noticeDays": 0,
+          "reason": "moving"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "get saved",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/leaving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.earliest"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Leaving notice",
+        "data": {
+          "earliest": "2026-11-01",
+          "leavingOn": "2099-01-01",
+          "leavingOnLabel": "",
+          "noticeDays": 0,
+          "reason": "moving"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "change",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/resident/leaving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "date": "2099-02-01"
+      }
+    },
+    "masks": [
+      "data.earliest"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Leaving day saved",
+        "data": {
+          "earliest": "2026-11-01",
+          "leavingOn": "2099-02-01",
+          "leavingOnLabel": "",
+          "noticeDays": 0,
+          "reason": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "admin bell",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 2,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/hostel-admin/residents",
+              "body": "Leaving on .",
+              "category": "ACCOUNT",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:41:33.169Z",
+              "data": {
+                "residentId": "6c00000000000000000000c1",
+                "type": "RESIDENT_LEAVING"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae7175de6822539292ba4c2",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Res Ident changed their leaving day",
+              "userId": "6c0000000000000000000005"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/hostel-admin/residents",
+              "body": "Leaving on . moving",
+              "category": "ACCOUNT",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:41:33.069Z",
+              "data": {
+                "residentId": "6c00000000000000000000c1",
+                "type": "RESIDENT_LEAVING"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae7175de6822539292ba4c1",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Res Ident is leaving",
+              "userId": "6c0000000000000000000005"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Admin",
+              "category": "NOTICE",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:41:31.555Z",
+              "data": {},
+              "id": "6c0000000000000000000094",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Not yours",
+              "userId": "6c0000000000000000000005"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 3,
+            "totalPages": 1
+          },
+          "unreadCount": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cancel",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/resident/leaving",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.earliest"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notice cancelled",
+        "data": {
+          "earliest": "2026-11-01",
+          "leavingOn": null,
+          "leavingOnLabel": null,
+          "noticeDays": 0,
+          "reason": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

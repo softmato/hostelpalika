@@ -403,10 +403,7 @@ func FormatPeriodYear(period string) string {
 	return fmt.Sprintf("%d %s", year, Era)
 }
 
-// DateSeparator sits between the month name and the numbers.
-const DateSeparator = "·"
-
-// FormatDate is the platform's one date format, "Baisakh · 2083-01-15";
+// FormatDate is the platform's one date format, "Baisakh 15, 2083 BS";
 // empty for the zero time or off the table.
 func FormatDate(t time.Time) string {
 	if t.IsZero() {
@@ -416,7 +413,7 @@ func FormatDate(t time.Time) string {
 	if err != nil {
 		return ""
 	}
-	return fmt.Sprintf("%s %s %d-%02d-%02d", MonthName(d.Month), DateSeparator, d.Year, d.Month, d.Day)
+	return fmt.Sprintf("%s %d, %d %s", MonthName(d.Month), d.Day, d.Year, Era)
 }
 
 // FormatHostelDate is FormatDate with a stand-in for an empty or unreadable value.
@@ -445,7 +442,7 @@ func FormatHostelTime(t time.Time, empty string) string {
 	return fmt.Sprintf("%d:%02d %s", h, minute, suffix)
 }
 
-// FormatHostelDateTime is "Baisakh · 2083-01-15, 2:45 pm".
+// FormatHostelDateTime is "Baisakh 15, 2083 BS, 2:45 pm".
 func FormatHostelDateTime(t time.Time, empty string) string {
 	date := FormatHostelDate(t, "")
 	if date == "" {

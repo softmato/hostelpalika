@@ -74,6 +74,20 @@ func New() *Doc {
 	return d
 }
 
+// StampSystem writes stampSystemDocument's three metadata fields.
+func (d *Doc) StampSystem(stamp string) {
+	d.f.SetSubject(stamp, true)
+	d.f.SetCreator(stamp, true)
+	d.f.SetKeywords(stamp, true)
+}
+
+// SetMeta is pdf-lib's setTitle, setProducer and setCreator.
+func (d *Doc) SetMeta(title, producer, creator string) {
+	d.f.SetTitle(title, true)
+	d.f.SetProducer(producer, true)
+	d.f.SetCreator(creator, true)
+}
+
 // AddPage starts another A4 page; drawing continues on it.
 func (d *Doc) AddPage() { d.f.AddPage() }
 

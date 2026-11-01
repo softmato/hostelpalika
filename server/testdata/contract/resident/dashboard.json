@@ -1,0 +1,534 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/dashboard"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/dashboard",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "no profile",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/dashboard",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000008:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident profile was not found for this account.",
+        "errorCode": "RESIDENT_PROFILE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "dashboard",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/dashboard",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.dashboard.resident.createdAt",
+      "data.dashboard.resident.updatedAt",
+      "data.dashboard.notices.*.publishedAt",
+      "data.dashboard.feeStatus.latestPayment.dueDate",
+      "data.dashboard.feeStatus.nextDue.dueDate",
+      "data.dashboard.complaints.recent.*.createdAt",
+      "data.dashboard.foodMenu.*.dayOfWeek"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident dashboard loaded",
+        "data": {
+          "dashboard": {
+            "accommodation": {
+              "roomType": "SINGLE"
+            },
+            "complaints": {
+              "openCount": 1,
+              "recent": [
+                {
+                  "category": "OTHER",
+                  "createdAt": "2026-10-31T10:35:28.928Z",
+                  "id": "6c0000000000000000000041",
+                  "isOverdue": true,
+                  "status": "PENDING",
+                  "title": "Late"
+                },
+                {
+                  "category": "MAINTENANCE",
+                  "createdAt": "2026-10-30T10:35:28.928Z",
+                  "id": "6c0000000000000000000040",
+                  "isOverdue": false,
+                  "status": "RESOLVED",
+                  "title": "Leak"
+                }
+              ]
+            },
+            "feeStatus": {
+              "dueAmount": 500000,
+              "latestPayment": {
+                "dueAmount": 100000,
+                "dueDate": "2026-11-03T10:35:28.928Z",
+                "id": "6c0000000000000000000013",
+                "month": null,
+                "paidAmount": 0,
+                "status": "PENDING_PROOF"
+              },
+              "nextDue": {
+                "dueAmount": 500000,
+                "dueDate": "2026-11-02T10:35:28.928Z",
+                "id": "6c0000000000000000000012",
+                "month": "2083-06",
+                "paidAmount": 100000,
+                "status": "PARTIAL"
+              },
+              "pendingProofs": 1,
+              "unpaidCount": 2
+            },
+            "foodMenu": [
+              {
+                "dayOfWeek": "SUNDAY",
+                "items": [
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "07:00"
+              },
+              {
+                "dayOfWeek": "SUNDAY",
+                "items": [
+                  "Rice",
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": ""
+              }
+            ],
+            "hostel": {
+              "contact": {},
+              "id": "6c00000000000000000000a1",
+              "location": {},
+              "name": "Contract Hostel",
+              "photoUrl": "",
+              "slug": "contract-hostel"
+            },
+            "nightStatus": {
+              "checkedAt": null,
+              "isCurrentNight": false,
+              "night": null,
+              "note": "",
+              "reasonCode": null,
+              "source": "RESIDENT",
+              "status": "NOT_VERIFIED"
+            },
+            "notices": [
+              {
+                "category": "GENERAL",
+                "content": "Water off body",
+                "id": "6c0000000000000000000050",
+                "isRead": false,
+                "isUrgent": true,
+                "publishedAt": "2026-11-01T08:35:28.928Z",
+                "title": "Water off"
+              },
+              {
+                "category": "GENERAL",
+                "content": "Rules body",
+                "id": "6c0000000000000000000051",
+                "isRead": true,
+                "isUrgent": false,
+                "publishedAt": "2026-11-01T07:35:28.928Z",
+                "title": "Rules"
+              }
+            ],
+            "resident": {
+              "createdAt": "2026-10-31T10:35:28.928Z",
+              "depositAmount": 500000,
+              "email": "resident@contract.test",
+              "firstName": "Res",
+              "fullName": "Res Ident",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c00000000000000000000c1",
+              "image": null,
+              "lastName": "Ident",
+              "moveInDate": "2026-01-01T00:00:00.000Z",
+              "phone": "9800000007",
+              "residentType": "STUDENT",
+              "roomType": "SINGLE",
+              "status": "ACTIVE",
+              "userId": "6c0000000000000000000007"
+            },
+            "sos": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "empty one",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/dashboard",
+      "headers": {
+        "authorization": "Bearer {{access:6c00000000000000000000e7:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.dashboard.resident.createdAt",
+      "data.dashboard.resident.updatedAt",
+      "data.dashboard.notices.*.publishedAt",
+      "data.dashboard.feeStatus.latestPayment.dueDate",
+      "data.dashboard.feeStatus.nextDue.dueDate",
+      "data.dashboard.complaints.recent.*.createdAt",
+      "data.dashboard.foodMenu.*.dayOfWeek"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident dashboard loaded",
+        "data": {
+          "dashboard": {
+            "accommodation": {
+              "roomType": "SINGLE"
+            },
+            "complaints": {
+              "openCount": 0,
+              "recent": []
+            },
+            "feeStatus": {
+              "dueAmount": 0,
+              "latestPayment": null,
+              "nextDue": null,
+              "pendingProofs": 0,
+              "unpaidCount": 0
+            },
+            "foodMenu": [
+              {
+                "dayOfWeek": "SUNDAY",
+                "items": [
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "07:00"
+              },
+              {
+                "dayOfWeek": "SUNDAY",
+                "items": [
+                  "Rice",
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": ""
+              }
+            ],
+            "hostel": {
+              "contact": {},
+              "id": "6c00000000000000000000a1",
+              "location": {},
+              "name": "Contract Hostel",
+              "photoUrl": "",
+              "slug": "contract-hostel"
+            },
+            "nightStatus": {
+              "checkedAt": null,
+              "isCurrentNight": false,
+              "night": null,
+              "note": "",
+              "reasonCode": null,
+              "source": "RESIDENT",
+              "status": "NOT_VERIFIED"
+            },
+            "notices": [
+              {
+                "category": "GENERAL",
+                "content": "Water off body",
+                "id": "6c0000000000000000000050",
+                "isRead": false,
+                "isUrgent": true,
+                "publishedAt": "2026-11-01T08:35:28.928Z",
+                "title": "Water off"
+              },
+              {
+                "category": "GENERAL",
+                "content": "Rules body",
+                "id": "6c0000000000000000000051",
+                "isRead": false,
+                "isUrgent": false,
+                "publishedAt": "2026-11-01T07:35:28.928Z",
+                "title": "Rules"
+              }
+            ],
+            "resident": {
+              "createdAt": "2026-11-01T10:35:28.928Z",
+              "depositAmount": 0,
+              "email": "",
+              "firstName": "Night",
+              "fullName": "Night Owl",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c00000000000000000000e8",
+              "image": null,
+              "lastName": "Owl",
+              "moveInDate": "2026-01-01T00:00:00.000Z",
+              "phone": "9800000077",
+              "residentType": "STUDENT",
+              "roomType": "SINGLE",
+              "status": "ACTIVE",
+              "userId": "6c00000000000000000000e7"
+            },
+            "sos": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "me",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/me",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.profile.resident.createdAt",
+      "data.profile.resident.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident profile loaded",
+        "data": {
+          "profile": {
+            "accommodation": {
+              "roomType": "SINGLE"
+            },
+            "emergencyContacts": [
+              {
+                "id": "6c0000000000000000000061",
+                "isPrimary": true,
+                "name": "First",
+                "phone": "9822",
+                "relation": "Mother"
+              },
+              {
+                "id": "6c0000000000000000000060",
+                "isPrimary": false,
+                "name": "Second",
+                "phone": "9811",
+                "relation": "Aunt"
+              }
+            ],
+            "guardians": [
+              {
+                "email": "guardian@contract.test",
+                "firstName": "Guar",
+                "id": "6c0000000000000000000019",
+                "isPrimary": true,
+                "lastName": "Dian",
+                "phone": "9811111111",
+                "relation": "Father"
+              },
+              {
+                "email": "newguard@contract.test",
+                "firstName": "New",
+                "id": "6c000000000000000000002d",
+                "isPrimary": false,
+                "lastName": "Guard",
+                "phone": "9811111113",
+                "relation": "Aunt"
+              },
+              {
+                "email": "offguard@contract.test",
+                "firstName": "Off",
+                "id": "6c000000000000000000002b",
+                "isPrimary": false,
+                "lastName": "Guard",
+                "phone": "9811111112",
+                "relation": "Uncle"
+              }
+            ],
+            "hostel": {
+              "contact": {},
+              "id": "6c00000000000000000000a1",
+              "location": {},
+              "name": "Contract Hostel",
+              "photoUrl": "",
+              "slug": "contract-hostel"
+            },
+            "resident": {
+              "createdAt": "2026-10-31T10:35:28.928Z",
+              "depositAmount": 500000,
+              "email": "resident@contract.test",
+              "firstName": "Res",
+              "fullName": "Res Ident",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c00000000000000000000c1",
+              "image": null,
+              "lastName": "Ident",
+              "moveInDate": "2026-01-01T00:00:00.000Z",
+              "phone": "9800000007",
+              "residentType": "STUDENT",
+              "roomType": "SINGLE",
+              "status": "ACTIVE",
+              "userId": "6c0000000000000000000007"
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "profile",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/profile",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.profile.resident.createdAt",
+      "data.profile.resident.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident profile loaded",
+        "data": {
+          "profile": {
+            "accommodation": {
+              "roomType": "SINGLE"
+            },
+            "emergencyContacts": [
+              {
+                "id": "6c0000000000000000000061",
+                "isPrimary": true,
+                "name": "First",
+                "phone": "9822",
+                "relation": "Mother"
+              },
+              {
+                "id": "6c0000000000000000000060",
+                "isPrimary": false,
+                "name": "Second",
+                "phone": "9811",
+                "relation": "Aunt"
+              }
+            ],
+            "guardians": [
+              {
+                "email": "guardian@contract.test",
+                "firstName": "Guar",
+                "id": "6c0000000000000000000019",
+                "isPrimary": true,
+                "lastName": "Dian",
+                "phone": "9811111111",
+                "relation": "Father"
+              },
+              {
+                "email": "newguard@contract.test",
+                "firstName": "New",
+                "id": "6c000000000000000000002d",
+                "isPrimary": false,
+                "lastName": "Guard",
+                "phone": "9811111113",
+                "relation": "Aunt"
+              },
+              {
+                "email": "offguard@contract.test",
+                "firstName": "Off",
+                "id": "6c000000000000000000002b",
+                "isPrimary": false,
+                "lastName": "Guard",
+                "phone": "9811111112",
+                "relation": "Uncle"
+              }
+            ],
+            "hostel": {
+              "contact": {},
+              "id": "6c00000000000000000000a1",
+              "location": {},
+              "name": "Contract Hostel",
+              "photoUrl": "",
+              "slug": "contract-hostel"
+            },
+            "resident": {
+              "createdAt": "2026-10-31T10:35:28.928Z",
+              "depositAmount": 500000,
+              "email": "resident@contract.test",
+              "firstName": "Res",
+              "fullName": "Res Ident",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c00000000000000000000c1",
+              "image": null,
+              "lastName": "Ident",
+              "moveInDate": "2026-01-01T00:00:00.000Z",
+              "phone": "9800000007",
+              "residentType": "STUDENT",
+              "roomType": "SINGLE",
+              "status": "ACTIVE",
+              "userId": "6c0000000000000000000007"
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

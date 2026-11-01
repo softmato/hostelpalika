@@ -1,0 +1,424 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/activate",
+      "body": {}
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/activate",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "code": "x",
+        "deviceInfo": 3
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "code": [
+              "Too small: expected string to have \u003e=6 characters"
+            ],
+            "deviceInfo": [
+              "Invalid input: expected record, received number"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=6 characters",
+              "path": "code"
+            },
+            {
+              "message": "Invalid input: expected record, received number",
+              "path": "deviceInfo"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "unknown code",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/activate",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "code": "NOSUCHCODE"
+      }
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Activation code is invalid.",
+        "errorCode": "ACTIVATION_CODE_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "used",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/activate",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "code": "USEDCODE"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Activation code was already used or cancelled.",
+        "errorCode": "ACTIVATION_CODE_USED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "expired",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/activate",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "code": "LATECODE"
+      }
+    },
+    "response": {
+      "status": 410,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Activation code has expired.",
+        "errorCode": "ACTIVATION_CODE_EXPIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "resident gone",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/activate",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "code": "GONECODE"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "status bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/activation-status?code=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "code": [
+              "Too small: expected string to have \u003e=6 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=6 characters",
+              "path": "code"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "status none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/activation-status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Activation status loaded",
+        "data": {
+          "activation": null,
+          "isActivated": false,
+          "resident": null,
+          "target": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "status code",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/activation-status?code=DEADBEEF",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.activation.createdAt",
+      "data.activation.expiresAt",
+      "data.activation.usedAt",
+      "data.activation.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Activation status loaded",
+        "data": {
+          "activation": {
+            "createdAt": "2026-11-01T10:25:05.171Z",
+            "createdBy": "6c0000000000000000000005",
+            "expiresAt": "2026-11-01T11:25:05.171Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c0000000000000000000020",
+            "residentId": "6c0000000000000000000021",
+            "status": "PENDING"
+          },
+          "isActivated": false,
+          "resident": null,
+          "target": {
+            "area": "",
+            "city": "",
+            "hostelName": "Contract Hostel",
+            "photoUrl": null,
+            "roomType": "DOUBLE",
+            "verified": false
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "already a resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/activate",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "code": "DEADBEEF"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This account is already linked to another active resident profile.",
+        "errorCode": "RESIDENT_ACCOUNT_ALREADY_LINKED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "activate",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/activate",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "code": " deadbeef ",
+        "deviceInfo": {
+          "a": 1
+        }
+      }
+    },
+    "masks": [
+      "data.activation.createdAt",
+      "data.activation.expiresAt",
+      "data.activation.usedAt",
+      "data.activation.updatedAt",
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.accessToken"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident activated",
+        "data": {
+          "activation": {
+            "createdAt": "2026-11-01T10:25:05.171Z",
+            "createdBy": "6c0000000000000000000005",
+            "expiresAt": "2026-11-01T11:25:05.171Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c0000000000000000000020",
+            "residentId": "6c0000000000000000000021",
+            "status": "USED",
+            "usedAt": "2026-11-01T10:25:11.107Z",
+            "usedBy": "6c0000000000000000000001"
+          },
+          "accessToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiUkVTSURFTlQiLCJob3N0ZWxJZHMiOlsiNmMwMDAwMDAwMDAwMDAwMDAwMDAwMGExIl0sInNlc3Npb25JZCI6IjZhZTcxMzg3ZTY4MjI1MzkyOTJiYTQ4MCIsInRva2VuVHlwZSI6ImFjY2VzcyIsInN1YiI6IjZjMDAwMDAwMDAwMDAwMDAwMDAwMDAwMSIsImlhdCI6MTc5MzUyODcxMSwiZXhwIjoxNzkzNTI5NjExfQ.Q8QHpRIp9JzlNqdH4sZaePt3KUT-I22jRSIo6q2lZfQ",
+          "resident": {
+            "createdAt": "2026-11-01T10:25:05.171Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Code",
+            "fullName": "Code Holder",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c0000000000000000000021",
+            "image": null,
+            "lastName": "Holder",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000021",
+            "residentType": "STUDENT",
+            "roomType": "DOUBLE",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-01T10:25:11.125Z",
+            "userId": "6c0000000000000000000001"
+          },
+          "user": {
+            "id": "6c0000000000000000000001",
+            "email": "public@contract.test",
+            "emailVerified": true,
+            "hostelIds": [
+              "6c00000000000000000000a1"
+            ],
+            "image": null,
+            "hasLockPin": false,
+            "mustChangePassword": false,
+            "name": "Contract public",
+            "phone": null,
+            "role": "RESIDENT",
+            "redirectPath": "/resident/dashboard",
+            "status": "ACTIVE",
+            "userResidentId": null,
+            "hostelKyc": null,
+            "isServiceProvider": false,
+            "viaTemporaryCredential": false
+          }
+        }
+      },
+      "setCookie": [
+        "hostelpalika_access_token=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=900; HttpOnly; SameSite=lax",
+        "hostelpalika_refresh=\u003cvalue\u003e; Path=/; Expires=\u003cdate\u003e; Max-Age=2592000; HttpOnly; SameSite=lax",
+        "hostelhub_refresh_token=; Path=/api; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_access_token=; Path=/; Max-Age=0; HttpOnly; SameSite=lax",
+        "hostelhub_refresh=; Path=/; Max-Age=0; HttpOnly; SameSite=lax"
+      ]
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "status after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/activation-status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Activation status loaded",
+        "data": {
+          "activation": null,
+          "isActivated": true,
+          "resident": {
+            "createdAt": "2026-11-01T10:25:05.171Z",
+            "depositAmount": 0,
+            "email": "",
+            "firstName": "Code",
+            "fullName": "Code Holder",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c0000000000000000000021",
+            "image": null,
+            "lastName": "Holder",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000021",
+            "residentType": "STUDENT",
+            "roomType": "DOUBLE",
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-01T10:25:11.125Z",
+            "userId": "6c0000000000000000000001"
+          },
+          "target": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

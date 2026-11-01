@@ -1,0 +1,307 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/invoices"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cook refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/invoices",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/invoices",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.invoices.*.dueDate",
+      "data.invoices.*.paidDate",
+      "data.claims.*.occurredAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payments",
+        "data": {
+          "claims": [],
+          "credit": 250,
+          "invoices": [
+            {
+              "dueAmount": 100000,
+              "dueDate": "2026-11-03T11:18:58.105Z",
+              "id": "6c0000000000000000000013",
+              "month": null,
+              "paidAmount": 0,
+              "status": "PENDING_PROOF",
+              "lines": [],
+              "receipts": [],
+              "referenceCode": "HP-JOIN1"
+            },
+            {
+              "dueAmount": 500000,
+              "dueDate": "2026-11-02T11:18:58.105Z",
+              "id": "6c0000000000000000000012",
+              "month": "2083-06",
+              "paidAmount": 100000,
+              "status": "PARTIAL",
+              "lines": [],
+              "receipts": [],
+              "referenceCode": "HP-PART1"
+            },
+            {
+              "dueAmount": 500000,
+              "dueDate": "2026-10-02T11:18:58.105Z",
+              "id": "6c0000000000000000000011",
+              "method": "ESEWA",
+              "month": "2083-05",
+              "paidAmount": 500000,
+              "paidDate": "2026-10-03T07:18:58.105Z",
+              "status": "PAID",
+              "lines": [
+                {
+                  "amount": 500000,
+                  "basis": "RENT",
+                  "bedType": null,
+                  "description": "Rent",
+                  "prorationBasis": null
+                }
+              ],
+              "receipts": [],
+              "referenceCode": "HP-PAID1"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "pay anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/pay-instructions"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "pay",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000012/pay-instructions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.dueDate"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment instructions",
+        "data": {
+          "amountDue": 400000,
+          "bedLabel": null,
+          "extras": [],
+          "credit": 250,
+          "displayName": "Contract Hostel Pvt",
+          "dueDate": "2026-11-02T11:18:58.105Z",
+          "instructions": "Quote the code",
+          "invoiceId": "6c0000000000000000000012",
+          "methods": [
+            {
+              "kind": "GATEWAY",
+              "provider": "ESEWA",
+              "sandbox": true
+            },
+            {
+              "kind": "QR",
+              "assetId": "6c0000000000000000000070",
+              "notice": "This QR is a personal Fonepay account, which can receive at most NPR 5,000 per day. Pay in parts across days, or use the bank transfer below."
+            },
+            {
+              "kind": "KHALTI",
+              "id": "9800000002"
+            },
+            {
+              "kind": "KHALTI",
+              "id": "9800000004"
+            },
+            {
+              "kind": "BANK",
+              "accountName": "Contract",
+              "accountNumber": "0001",
+              "bankName": "NIC"
+            },
+            {
+              "kind": "BANK",
+              "accountName": null,
+              "accountNumber": "0002",
+              "bankName": null
+            }
+          ],
+          "period": "2083-06",
+          "referenceCode": "HP-PART1",
+          "status": "PARTIAL",
+          "tier": "TIER_1",
+          "usable": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "pay paid",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/invoices/6c0000000000000000000011/pay-instructions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.dueDate"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment instructions",
+        "data": {
+          "amountDue": 0,
+          "bedLabel": null,
+          "extras": [],
+          "credit": 250,
+          "displayName": "Contract Hostel Pvt",
+          "dueDate": "2026-10-02T11:18:58.105Z",
+          "instructions": "Quote the code",
+          "invoiceId": "6c0000000000000000000011",
+          "methods": [
+            {
+              "kind": "GATEWAY",
+              "provider": "ESEWA",
+              "sandbox": true
+            },
+            {
+              "kind": "QR",
+              "assetId": "6c0000000000000000000070",
+              "notice": null
+            },
+            {
+              "kind": "KHALTI",
+              "id": "9800000002"
+            },
+            {
+              "kind": "KHALTI",
+              "id": "9800000004"
+            },
+            {
+              "kind": "BANK",
+              "accountName": "Contract",
+              "accountNumber": "0001",
+              "bankName": "NIC"
+            },
+            {
+              "kind": "BANK",
+              "accountName": null,
+              "accountNumber": "0002",
+              "bankName": null
+            }
+          ],
+          "period": "2083-05",
+          "referenceCode": "HP-PAID1",
+          "status": "PAID",
+          "tier": "TIER_1",
+          "usable": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "pay bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/invoices/x/pay-instructions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invoice was not found.",
+        "errorCode": "INVOICE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "pay foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/finance/invoices/6c00000000000000000000ff/pay-instructions",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invoice was not found.",
+        "errorCode": "INVOICE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"crypto/rand"
+	"crypto/subtle"
 	"errors"
 	"math/big"
 	"net/http"
@@ -235,7 +236,7 @@ func (s *Service) OTPVerify(ctx context.Context, challengeID, code string) (*otp
 	if err != nil {
 		return nil, err
 	}
-	if ch.CodeHash != s.hashOTP(ch.Identifier, code) {
+	if subtle.ConstantTimeCompare([]byte(ch.CodeHash), []byte(s.hashOTP(ch.Identifier, code))) != 1 {
 		return nil, fail(http.StatusBadRequest, "OTP_INCORRECT", "OTP code is incorrect.")
 	}
 	verifiedAt := s.now().Truncate(time.Millisecond)

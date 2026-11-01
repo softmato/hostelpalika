@@ -640,6 +640,118 @@ if (process.env.HP_ONLY === "config") {
   cursor.line(theme.MARGIN.left, "Amount in words: Twelve Thousand Rupees Only — “paid” in full", { size: theme.SIZE.footnote });
   writeFileSync(join(here, "testdata/golden/pdf/cursor.pdf"), await doc.save({ useObjectStreams: false }));
 
+  // The resident's receipt and statement, drawn by the same code the routes call.
+  const receiptPdf = await web.import<typeof import("../../../apps/web/src/modules/finance/receipt-pdf")>(
+    "../../../apps/web/src/modules/finance/receipt-pdf",
+  );
+  const stamp = new Date("2026-09-01T06:00:00.000Z");
+  writeFileSync(join(here, "testdata/golden/pdf/receipt.pdf"), await receiptPdf.renderReceiptPdf({
+    amount: 12500, coversFrom: new Date("2026-08-17T00:00:00.000Z"), coversTo: new Date("2026-09-16T00:00:00.000Z"), hostelName: "Education Light Hostel",
+    invoiceLines: [{ amount: 12000, description: "Rent" }, { amount: 500, description: "Late fine with a very long description that should be cut before it runs off the page" }],
+    invoicePeriod: "Bhadra 2083 BS", issuedAt: stamp, method: "Paid by HostelPalika - Resident Offer Program", receiptNumber: "RCP-EDU-2083-05-00012", referenceCode: "EDU-0002-P", residentName: "Sita Sharma é",
+  }));
+  writeFileSync(join(here, "testdata/golden/pdf/receipt-certified.pdf"), await receiptPdf.renderReceiptPdf({
+    amount: 9000, certificationCode: "HP-7KQ2-9XWM", hostelName: "Education Light Hostel", issuedAt: stamp, receiptNumber: "RCP-EDU-2083-05-00013", residentName: "Ram",
+  }));
+  writeFileSync(join(here, "testdata/golden/pdf/receipt-void.pdf"), await receiptPdf.renderReceiptPdf({
+    amount: 9000, hostelName: "Education Light Hostel", issuedAt: stamp, receiptNumber: "RCP-EDU-2083-05-00014", residentName: "Ram", voidReason: "Entered twice", voidedAt: stamp,
+  }));
+  writeFileSync(join(here, "testdata/golden/pdf/statement.pdf"), await receiptPdf.renderStatementPdf({
+    generatedAt: stamp, hostelName: "Education Light Hostel", residentName: "Sita Sharma",
+    rows: Array.from({ length: 30 }, (_, i) => ({ dueAmount: 12000 + i, paidAmount: i % 2 ? 12000 : 0, period: i ? `Month ${i}` : "One-off", status: i % 2 ? "PAID" : "UNPAID" })),
+  }));
+
+  /* -------------------------------------------------------- evidence reading */
+
+  const evOcr = await web.import<typeof import("../../../apps/web/src/modules/finance/evidence-ocr")>("../../../apps/web/src/modules/finance/evidence-ocr");
+  const evDir = await web.import<typeof import("../../../apps/web/src/modules/finance/evidence-direction")>("../../../apps/web/src/modules/finance/evidence-direction");
+  const evPay = await web.import<typeof import("../../../apps/web/src/modules/finance/evidence-payee")>("../../../apps/web/src/modules/finance/evidence-payee");
+  const evRec = await web.import<typeof import("../../../apps/web/src/modules/finance/evidence-receipt")>("../../../apps/web/src/modules/finance/evidence-receipt");
+  const evTxn = await web.import<typeof import("../../../apps/web/src/modules/finance/transaction-code")>("../../../apps/web/src/modules/finance/transaction-code");
+  const evRules = await web.import<typeof import("../../../apps/web/src/modules/finance/txn-id-rules")>("../../../apps/web/src/modules/finance/txn-id-rules");
+  const evRef = await web.import<typeof import("../../../apps/web/src/modules/finance/reference-code")>("../../../apps/web/src/modules/finance/reference-code");
+  const evLabels = await web.import<typeof import("../../../apps/web/src/modules/finance/receipt-labels")>("../../../apps/web/src/modules/finance/receipt-labels");
+  const evMain = await web.import<typeof import("../../../apps/web/src/modules/finance/evidence")>("../../../apps/web/src/modules/finance/evidence");
+  const evProv = await web.import<typeof import("../../../apps/web/src/modules/finance/evidence-provenance")>("../../../apps/web/src/modules/finance/evidence-provenance");
+  const evCode = evRef.generateReferenceCode("EDU", 2);
+  const texts = [
+    `eSewa\nPayment Successful\nRs. 8,500.00\nTransaction Code: 8823119471\nSent to: Sunrise Boys Hostel\nFrom: 9801234521\nRemarks: ${evCode}\nDate: 2026-08-04 10:14 AM`,
+    "Khalti\nPayment Successful\nAmount Rs. 8,500\nPurchase Order ID  KHL7734X21\nPaid to  Sunrise Boys Hostel\nMobile  9801234521\nRemarks  EDU-0002-P",
+    "EBL EVEREST BANK\nPayment Receipt\nReference Code   111903076\nDate/Time   10 Aug 2026,07:10 PM\nChannel   Online\nAmount (NPR)   8,500.00\nInitiator   9709155982\nQr Merchant Name   Sunrise Boys Hostel\nRemarks   EDU-0002-P\nStatus   SUCCESS",
+    "Fonepay\nTrace ID: 998877665544\nQR Merchant Name: Everest Mart\nAmount: 1,200\nFrom: 98000\nPurpose: tea",
+    "connectIPS\nBeneficiary Name  Sunrise Hostel Pvt Ltd\nTo Account 00112233445566\nTransfer Amount NPR 15,000.50\nRRN 123456789012\nDebited From 77",
+    "Account Statement\nDate  Particulars  Debit  Credit  Balance\n2026-08-01  Load  100.00  5000.00",
+    "eSewa\nYou received from Ram\nAmount credited Rs. 500\nReference Code: 1QAXP2M",
+    "Khalti\nPayment failed\nAmount Rs. 500\nTransaction ID: ABC12345",
+    "Connect IPS transaction cancelled\nRs 700",
+    "Bank transfer pending\nRs. 900\nTxn ID: 77889900",
+    "Lunch menu for the whole of next week: dal bhat, momo, chowmein and tea every morning at nine.",
+    "रु ८,५०० paid\nTransaction Code: 8823119471",
+    "RCP-EDU-2083-05-00012 receipt\nComputer-generated receipt. Not a proof-of-payment upload.",
+    "Nabil Bank\nCitizens Bank\nTotal Amount: 3 000\nPaid to:\nHari Prasad (9801234567)\nRemarks - rent  Status - done",
+    "Standard Chartered DR 100 CR 200\nreceiver name: ***MASKED***\nTo: n/a",
+    "Sent to Global IME\u00a0Bank\u00a0Ltd\nAmount\u00a0Paid : 1,000\ntxn no 44556677",
+    "",
+    "Rs 0",
+  ];
+  const identity = evPay.hostelPayeeIdentity(
+    { bankAccountName: "Sunrise Hostel Pvt Ltd", bankAccountNumber: "00112233445566", displayName: "Sunrise Boys Hostel", esewaId: "9800000001", extraAccounts: [{ accountName: "Second", number: "123" }, { accountName: null, number: "99887766" }], qrPayeeName: "  ", qrPayeeNumber: "9801 234 567" },
+    "Sunrise",
+  );
+  const facts = { amount: 8500, referenceCode: evCode, transactionCode: "8823119471" };
+  writeJson("evidence.json", {
+    code: evCode,
+    identity,
+    facts,
+    texts: texts.map((text) => {
+      const receipt = evRec.parseReceipt(text);
+      const direction = evDir.readEvidenceDirection(text);
+      const payee = evPay.readPayeeOnEvidence(text, identity, receipt.payee);
+      return {
+        text,
+        receipt: { amount: receipt.amount, direction: receipt.direction, payee: receipt.payee, provider: receipt.provider, shape: receipt.shape, txnId: receipt.txnId },
+        direction: { direction: direction.direction, isLedgerView: direction.isLedgerView, outcome: direction.outcome, strongCredit: direction.strongCredit },
+        directionRefusal: evDir.directionRefusal(direction),
+        outcomeRefusal: evDir.outcomeRefusal(direction),
+        payee: { payee: payee.payeeOnEvidence, verdict: payee.verdict },
+        payeeRefusal: evPay.payeeRefusal(payee),
+        fields: evOcr.extractClaimFields(text),
+        flags: evOcr.evidenceTextFlags(text, facts),
+        looksLike: evOcr.looksLikePaymentReceipt(text),
+        notPayment: evOcr.isDefinitelyNotPaymentEvidence(text),
+        references: evRef.extractReferenceCodes(text),
+        statement: evRec.looksLikeStatement(text),
+        bank: evLabels.receiptBank(text),
+        system: evMain.systemDocumentKindFromText(text),
+      };
+    }),
+    codes: ["", "abc", "ABC-12", "PAID", "TESTING", "AAAAAAAA", "123456", "654321", "ABCDEFG", "1QAXP2M", "1qax-p2m", "8823119471", "QWERTY"].map((value) => ({
+      value, problem: evTxn.transactionCodeProblem(value), esewa: evRules.txnIdFlags("ESEWA", value), bank: evRules.txnIdFlags("BANK_TRANSFER", value),
+    })),
+    hamming: [["0f0f", "0f0e"], ["ffffffffffffffff", "0000000000000000"], ["ab", "abc"], ["zz", "zz"], ["00000000000000ff", "0000000000000000"]].map(([a, b]) => ({ a, b, near: evMain.isPerceptualNearDuplicate(a!, b!) })),
+  });
+  console.log("evidence.json written");
+
+  const evSharp = (await import("sharp")).default;
+  const gradient = Buffer.alloc(400 * 300 * 3);
+  for (let y = 0; y < 300; y += 1) for (let x = 0; x < 400; x += 1) {
+    const at = (y * 400 + x) * 3;
+    gradient[at] = (x * 255) / 400; gradient[at + 1] = (y * 255) / 300; gradient[at + 2] = ((x ^ y) & 16) ? 200 : 40;
+  }
+  const raw = { raw: { channels: 3 as const, height: 300, width: 400 } };
+  const samples: Record<string, Buffer> = {
+    jpeg: await evSharp(gradient, raw).jpeg({ quality: 80 }).toBuffer(),
+    jpeg95: await evSharp(gradient, raw).jpeg({ quality: 95 }).toBuffer(),
+    png: await evSharp(gradient, raw).png().toBuffer(),
+    tall: await evSharp(gradient, raw).resize(1080, 2400, { fit: "fill" }).png().toBuffer(),
+  };
+  const provenance: Record<string, unknown> = {};
+  for (const [name, bytes] of Object.entries(samples)) {
+    provenance[name] = { bytes: bytes.toString("base64"), flags: evProv.provenanceFlags(evProv.readEvidenceProvenance(bytes)), hash: await evMain.computePerceptualHash(bytes), provenance: evProv.readEvidenceProvenance(bytes) };
+  }
+  writeJson("provenance.json", provenance);
+  console.log("provenance.json written");
+
   // PDF-in sample: text the extractor must find, written by pdf-lib.
   const sample = await PDFDocument.create();
   const sp = sample.addPage();

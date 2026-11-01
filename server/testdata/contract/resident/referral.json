@@ -1,0 +1,223 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/referral"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/referral",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "creates the code",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/referral",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.referralCode.id",
+      "data.referralCode.createdAt",
+      "data.referralCode.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral code loaded",
+        "data": {
+          "referralCode": {
+            "code": "HH000700C1",
+            "convertedCount": 0,
+            "createdAt": "2026-11-01T10:41:37.596Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae71761e6822539292ba4c8",
+            "joinedCount": 0,
+            "link": "/inquiry?ref=HH000700C1",
+            "residentId": "6c00000000000000000000c1",
+            "rewardCount": 0,
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-01T10:41:37.596Z",
+            "userId": "6c0000000000000000000007"
+          },
+          "referrals": [
+            {
+              "converted": true,
+              "createdAt": "2026-09-01T00:00:00.000Z",
+              "email": "",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c00000000000000000000aa",
+              "message": "",
+              "name": "Friend",
+              "phone": "9800000099",
+              "referralCodeId": "6c00000000000000000000ab",
+              "referrerResidentId": "6c00000000000000000000c1",
+              "status": "REWARDED",
+              "updatedAt": "2026-09-01T00:00:00.000Z",
+              "reward": {
+                "amount": 50000,
+                "hostelId": "6c00000000000000000000a1",
+                "id": "6c00000000000000000000ac",
+                "notes": "",
+                "referralId": "6c00000000000000000000aa",
+                "referrerResidentId": "6c00000000000000000000c1",
+                "rewardType": "CASH",
+                "status": "APPROVED"
+              }
+            }
+          ],
+          "resident": {
+            "createdAt": "2026-10-31T10:41:36.363Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          },
+          "summary": {
+            "converted": 1,
+            "joined": 1,
+            "rewardApprovedAmount": 50000,
+            "rewardPaidAmount": 0,
+            "sent": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "same code again",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/referral",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.referralCode.id",
+      "data.referralCode.createdAt",
+      "data.referralCode.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Referral code loaded",
+        "data": {
+          "referralCode": {
+            "code": "HH000700C1",
+            "convertedCount": 0,
+            "createdAt": "2026-11-01T10:41:37.596Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae71761e6822539292ba4c8",
+            "joinedCount": 0,
+            "link": "/inquiry?ref=HH000700C1",
+            "residentId": "6c00000000000000000000c1",
+            "rewardCount": 0,
+            "status": "ACTIVE",
+            "updatedAt": "2026-11-01T10:41:37.596Z",
+            "userId": "6c0000000000000000000007"
+          },
+          "referrals": [
+            {
+              "converted": true,
+              "createdAt": "2026-09-01T00:00:00.000Z",
+              "email": "",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c00000000000000000000aa",
+              "message": "",
+              "name": "Friend",
+              "phone": "9800000099",
+              "referralCodeId": "6c00000000000000000000ab",
+              "referrerResidentId": "6c00000000000000000000c1",
+              "status": "REWARDED",
+              "updatedAt": "2026-09-01T00:00:00.000Z",
+              "reward": {
+                "amount": 50000,
+                "hostelId": "6c00000000000000000000a1",
+                "id": "6c00000000000000000000ac",
+                "notes": "",
+                "referralId": "6c00000000000000000000aa",
+                "referrerResidentId": "6c00000000000000000000c1",
+                "rewardType": "CASH",
+                "status": "APPROVED"
+              }
+            }
+          ],
+          "resident": {
+            "createdAt": "2026-10-31T10:41:36.363Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          },
+          "summary": {
+            "converted": 1,
+            "joined": 1,
+            "rewardApprovedAmount": 50000,
+            "rewardPaidAmount": 0,
+            "sent": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

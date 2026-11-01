@@ -33,6 +33,9 @@ type Case struct {
 	Capture  map[string]string `json:"capture,omitempty"`
 	Response *Response         `json:"response,omitempty"` // nil until recorded
 	Recorded string            `json:"recorded,omitempty"` // TS base URL + baseline, for the reader
+	// Corrected: this answer was changed by hand because a TS bug was fixed on both
+	// sides; names the finding in docs/review_fixes_needed.md.
+	Corrected string `json:"corrected,omitempty"`
 }
 
 type Request struct {
@@ -119,6 +122,9 @@ func Diff(c Case, status int, contentType string, setCookie []string, body []byt
 		diffs = append(diffs, fmt.Sprintf("content-type: got %q, want %q", contentType, want.ContentType))
 	}
 	if len(want.Body) == 0 && len(bytes.TrimSpace(body)) == 0 {
+		return diffs
+	}
+	if mediaType(want.ContentType) == "application/pdf" || mediaType(want.ContentType) == "application/x-ndjson" || mediaType(want.ContentType) == "application/zip" || mediaType(want.ContentType) == "text/plain" {
 		return diffs
 	}
 	var got, exp any

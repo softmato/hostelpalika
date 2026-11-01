@@ -4,14 +4,14 @@ This folder documents the standalone backend that replaces the API routes living
 inside `apps/web` today. One Go service, in Docker on a VPS, consumed by the web
 (Vercel) and the mobile app / PWA alike.
 
-`server/` is **gitignored** until the Go server reaches parity (see `/server/` in
-the root `.gitignore`). That means nothing here is backed up by git — copy the
-folder somewhere safe until it is committed.
+`server/` is tracked in git (since 2026-10-29); `bin/` and `.env` stay out.
 
 ## Reading order
 
 For an AI assistant or developer starting a session:
 
+0. **`MISSION.md`** — ⭐⭐ the owner's binding brief. Read it first, every session. It wins over everything below
+0. **`review_fixes_needed.md`** — ⭐ review of the finished phases: what is fixed, what is still owed
 1. **`PRD.md`** — what this server is, why it exists, what "done" means
 2. **`ARCHITECTURE.md`** — stack, request path, Redis, crons, realtime, the REST-vs-GraphQL decision
 3. **`PHASES.md`** — ⭐ what to build now, and in what order
@@ -25,13 +25,14 @@ For an AI assistant or developer starting a session:
 11. **`TESTING.md`** — contract tests against the TypeScript server, load tests
 12. **`CHANGELOG.md`** — what changed, by phase
 
-`MEMORY.md` is created when the first line of Go is written, not before.
+`MEMORY.md` — read after this file: where the work stands, and the commands.
 
 ## Golden rules
 
-1. **The TypeScript server is the specification.** Same paths, same JSON, same
-   status codes, same side effects. A client must not be able to tell which
-   server answered.
+1. **The TypeScript server is the specification, except its bugs.** Same paths and
+   methods, always (`TestRoutesMatchWeb`). Same JSON, status codes and side effects,
+   unless that behaviour is a bug: then fix it in Go in the best way and in TS too
+   (`RULES.md` §2). TS will be discarded; the Go server is what has to be right.
 2. **Run the change intake (`PARITY.md` §2) before every port session.** The TS
    server keeps changing; git tells you what moved.
 3. **Tick `PARITY.md` one item at a time** — port, contract test green, ☐ → ☑.

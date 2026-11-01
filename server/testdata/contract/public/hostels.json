@@ -3201,7 +3201,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "search q",
@@ -3548,7 +3548,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "regex chars in q",
@@ -3567,7 +3567,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "city exact any case",
@@ -5448,7 +5448,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "area + type",
@@ -5535,7 +5535,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "facilities all",
@@ -7680,7 +7680,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "facility one",
@@ -9168,7 +9168,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "food veg",
@@ -12372,7 +12372,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "food non-veg",
@@ -14786,7 +14786,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "room type",
@@ -15610,7 +15610,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "price window",
@@ -17885,7 +17885,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "short stays",
@@ -17966,6 +17966,129 @@
                 "foodRating": 0,
                 "safetyRating": 0,
                 "total": 0
+              }
+            },
+            {
+              "arrivalGuide": {
+                "note": "Blue gate beside the pharmacy",
+                "photoUrl": ""
+              },
+              "capacitySummary": {
+                "totalBeds": 30,
+                "totalRooms": 12,
+                "vacantBeds": 4
+              },
+              "contact": {
+                "phone": "9800000001"
+              },
+              "demoDataLabel": "",
+              "description": "A test hostel near the lake.",
+              "facilities": [
+                "Wi-Fi",
+                "Hot Water",
+                "Meals"
+              ],
+              "food": {
+                "hasVeg": true,
+                "hasNonVeg": false,
+                "mealsPerDay": 3
+              },
+              "hostelType": "BOYS",
+              "coordinates": {
+                "lat": 27.7,
+                "lng": 85.31
+              },
+              "id": "6c00000000000000000000a3",
+              "isDemoData": false,
+              "location": {
+                "address": "Ring Road",
+                "area": "New Baneshwor",
+                "city": "Kathmandu",
+                "province": "Bagmati",
+                "lat": 27.7,
+                "lng": 85.31,
+                "locationSource": "MANUAL"
+              },
+              "name": "Fixture Lakeside Hostel",
+              "nearbyPlaces": [
+                {
+                  "coordinates": {
+                    "lat": 27.69,
+                    "lng": 85.33
+                  },
+                  "distance": 420.5,
+                  "name": "Fixture Campus",
+                  "type": "college"
+                }
+              ],
+              "photos": [
+                {
+                  "alt": "Front",
+                  "id": "6c0000000000000000000033",
+                  "kind": "EXTERIOR",
+                  "mediumUrl": "",
+                  "roomType": "",
+                  "url": "https://cdn.contract.test/front.webp"
+                },
+                {
+                  "alt": "",
+                  "id": "6c0000000000000000000032",
+                  "kind": "INTERIOR",
+                  "mediumUrl": "",
+                  "roomType": "",
+                  "url": "https://cdn.contract.test/inside.webp"
+                },
+                {
+                  "alt": "Room",
+                  "id": "6c0000000000000000000031",
+                  "kind": "ROOM",
+                  "mediumUrl": "https://cdn.contract.test/room-640.webp",
+                  "roomType": "Single",
+                  "url": "https://cdn.contract.test/room.webp"
+                }
+              ],
+              "pricing": {
+                "currency": "NPR",
+                "monthlyRentMin": 9000,
+                "monthlyRentMax": 15000,
+                "admissionFee": 2000
+              },
+              "roomConfigurations": [
+                {
+                  "bedsPerRoom": 1,
+                  "id": "6c0000000000000000000041",
+                  "mealInclusion": "Optional",
+                  "monthlyRent": 15000,
+                  "rooms": 4,
+                  "roomType": "Single",
+                  "vacantBeds": 1
+                },
+                {
+                  "bedsPerRoom": 2,
+                  "id": "6c0000000000000000000042",
+                  "mealInclusion": "Included",
+                  "monthlyRent": 9000,
+                  "rooms": 8,
+                  "roomType": "Double",
+                  "vacantBeds": 0
+                }
+              ],
+              "roomTypes": [
+                "Single",
+                "Double"
+              ],
+              "rules": [
+                "Gate closes at 9 pm"
+              ],
+              "slug": "fixture-lakeside-hostel-baneshwor",
+              "verificationStatus": "VERIFIED",
+              "listingTier": null,
+              "ratingSummary": {
+                "averageRating": 4.5,
+                "cleanlinessRating": 5,
+                "foodRating": 3,
+                "safetyRating": 4,
+                "total": 2
               }
             },
             {
@@ -19031,7 +19154,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "bad values",
@@ -19104,7 +19227,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "empty number is 0",
@@ -19123,7 +19246,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   },
   {
     "name": "etag 304",
@@ -19473,6 +19596,6 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100"
   }
 ]

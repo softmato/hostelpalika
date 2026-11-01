@@ -1,0 +1,668 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "all",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.createdAt",
+      "data.notifications.*.readAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Pay soon",
+              "category": "BILLING",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T09:01:11.247Z",
+              "data": {
+                "z": 1,
+                "a": "x"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000091",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "HIGH",
+              "status": "SENT",
+              "title": "Rent due",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [
+                {
+                  "endpoint": "/x",
+                  "key": "IN",
+                  "label": "In",
+                  "method": "POST",
+                  "tone": "default"
+                }
+              ],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/night",
+              "body": "Answer",
+              "category": "NIGHT_STATUS",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T08:01:11.247Z",
+              "data": {},
+              "id": "6c0000000000000000000092",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Night?",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Read",
+              "category": "NOTICE",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T07:01:11.247Z",
+              "data": {},
+              "id": "6c0000000000000000000093",
+              "isRead": true,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "readAt": "2026-11-01T07:01:11.247Z",
+              "status": "SENT",
+              "title": "Old",
+              "userId": "6c0000000000000000000007"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 3,
+            "totalPages": 1
+          },
+          "unreadCount": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "unread",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=unread",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.createdAt",
+      "data.notifications.*.readAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Pay soon",
+              "category": "BILLING",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T09:01:11.247Z",
+              "data": {
+                "z": 1,
+                "a": "x"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000091",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "HIGH",
+              "status": "SENT",
+              "title": "Rent due",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [
+                {
+                  "endpoint": "/x",
+                  "key": "IN",
+                  "label": "In",
+                  "method": "POST",
+                  "tone": "default"
+                }
+              ],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/night",
+              "body": "Answer",
+              "category": "NIGHT_STATUS",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T08:01:11.247Z",
+              "data": {},
+              "id": "6c0000000000000000000092",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Night?",
+              "userId": "6c0000000000000000000007"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 2,
+            "totalPages": 1
+          },
+          "unreadCount": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "action",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=action",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.createdAt",
+      "data.notifications.*.readAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [
+                {
+                  "endpoint": "/x",
+                  "key": "IN",
+                  "label": "In",
+                  "method": "POST",
+                  "tone": "default"
+                }
+              ],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/night",
+              "body": "Answer",
+              "category": "NIGHT_STATUS",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T08:01:11.247Z",
+              "data": {},
+              "id": "6c0000000000000000000092",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Night?",
+              "userId": "6c0000000000000000000007"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 1,
+            "totalPages": 1
+          },
+          "unreadCount": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "since future",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?since=2099-01-01",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 0,
+            "totalPages": 0
+          },
+          "unreadCount": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "since garbage ignored",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?since=nope\u0026filter=bad",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.createdAt",
+      "data.notifications.*.readAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Pay soon",
+              "category": "BILLING",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T09:01:11.247Z",
+              "data": {
+                "z": 1,
+                "a": "x"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000091",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "HIGH",
+              "status": "SENT",
+              "title": "Rent due",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [
+                {
+                  "endpoint": "/x",
+                  "key": "IN",
+                  "label": "In",
+                  "method": "POST",
+                  "tone": "default"
+                }
+              ],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/night",
+              "body": "Answer",
+              "category": "NIGHT_STATUS",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T08:01:11.247Z",
+              "data": {},
+              "id": "6c0000000000000000000092",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Night?",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Read",
+              "category": "NOTICE",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T07:01:11.247Z",
+              "data": {},
+              "id": "6c0000000000000000000093",
+              "isRead": true,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "readAt": "2026-11-01T07:01:11.247Z",
+              "status": "SENT",
+              "title": "Old",
+              "userId": "6c0000000000000000000007"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 3,
+            "totalPages": 1
+          },
+          "unreadCount": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/notifications/xyz/read",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid notification id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read someone else's",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/notifications/6c0000000000000000000094/read",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Notification was not found.",
+        "errorCode": "NOTIFICATION_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/notifications/6c0000000000000000000091/read",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notification.createdAt",
+      "data.notification.readAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notification marked read",
+        "data": {
+          "notification": {
+            "actions": [],
+            "actionState": "PENDING",
+            "body": "Pay soon",
+            "category": "BILLING",
+            "channel": "IN_APP",
+            "createdAt": "2026-11-01T09:01:11.247Z",
+            "data": {
+              "z": 1,
+              "a": "x"
+            },
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c0000000000000000000091",
+            "isRead": true,
+            "kind": "NORMAL",
+            "needsAction": false,
+            "priority": "HIGH",
+            "readAt": "2026-11-01T10:01:22.048Z",
+            "status": "SENT",
+            "title": "Rent due",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "resolve bad state",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/notifications/6c0000000000000000000092/resolve",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "state": "PENDING",
+        "actionKey": 5
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "actionKey": [
+              "Invalid input: expected string, received number"
+            ],
+            "state": [
+              "Invalid option: expected one of \"COMPLETED\"|\"DISMISSED\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "actionKey"
+            },
+            {
+              "message": "Invalid option: expected one of \"COMPLETED\"|\"DISMISSED\"",
+              "path": "state"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "resolve normal row",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/notifications/6c0000000000000000000093/resolve",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Notification was not found.",
+        "errorCode": "NOTIFICATION_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "resolve",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/notifications/6c0000000000000000000092/resolve",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "state": "DISMISSED",
+        "actionKey": "no"
+      }
+    },
+    "masks": [
+      "data.notification.createdAt",
+      "data.notification.readAt",
+      "data.notification.actionTakenAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notification resolved",
+        "data": {
+          "notification": {
+            "actions": [
+              {
+                "endpoint": "/x",
+                "key": "IN",
+                "label": "In",
+                "method": "POST",
+                "tone": "default"
+              }
+            ],
+            "actionState": "DISMISSED",
+            "actionTakenAt": "2026-11-01T10:01:25.515Z",
+            "actionTakenKey": "no",
+            "actionUrl": "/resident/night",
+            "body": "Answer",
+            "category": "NIGHT_STATUS",
+            "channel": "IN_APP",
+            "createdAt": "2026-11-01T08:01:11.247Z",
+            "data": {},
+            "id": "6c0000000000000000000092",
+            "isRead": true,
+            "kind": "ACTION",
+            "needsAction": false,
+            "priority": "NORMAL",
+            "readAt": "2026-11-01T10:01:25.515Z",
+            "status": "SENT",
+            "title": "Night?",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read all",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/notifications/read-all",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications marked as read",
+        "data": {
+          "markedRead": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "read all again",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/notifications/read-all",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications marked as read",
+        "data": {
+          "markedRead": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "wrong method",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/notifications/read-all",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 405,
+      "contentType": ""
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

@@ -16,9 +16,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
+	"github.com/softmato/hostelpalika/server/internal/platform/config"
 	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 	"github.com/softmato/hostelpalika/server/internal/platform/push"
+	"github.com/softmato/hostelpalika/server/internal/platform/realtime"
 )
 
 type Handler struct {
@@ -26,16 +28,19 @@ type Handler struct {
 	guards *authz.Guards
 	mail   *email.Sender
 	push   *push.Sender
+	rt     *realtime.Client
+	pusher config.Pusher
 }
 
-func NewHandler(db *mongo.Database, guards *authz.Guards, mail *email.Sender, p *push.Sender) *Handler {
-	return &Handler{db, guards, mail, p}
+func NewHandler(db *mongo.Database, guards *authz.Guards, mail *email.Sender, p *push.Sender, rt *realtime.Client, pusher config.Pusher) *Handler {
+	return &Handler{db, guards, mail, p, rt, pusher}
 }
 
 func (h *Handler) Register(v1 *gin.RouterGroup) {
 	v1.POST("/email-preferences", h.form)
 	v1.POST("/email-preferences/unsubscribe", h.unsubscribe)
 	v1.GET("/push/public-key", httpx.ETag(), h.publicKey)
+	h.registerInbox(v1)
 }
 
 func norm(addr string) string { return strings.ToLower(strings.TrimSpace(addr)) }

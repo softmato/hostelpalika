@@ -2,6 +2,7 @@ package authz
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"slices"
 	"strings"
@@ -86,7 +87,11 @@ func (g *Guards) Load(c *gin.Context) (*Principal, error) {
 	}
 	p, err := g.load(c, token, bearer != "")
 	if err != nil {
-		// TS catches every failure inside its try, a DB error included.
+		// A database fault must not read as "signed out": TS's catch-all logged the
+		// whole app out on a blip. Only a bad token is the client's problem.
+		if !errors.Is(err, auth.ErrInvalidToken) {
+			return nil, err
+		}
 		if bearer != "" {
 			return nil, errExpired
 		}

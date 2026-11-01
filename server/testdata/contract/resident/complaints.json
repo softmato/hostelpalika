@@ -1,0 +1,877 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/complaints"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.complaints.*.createdAt",
+      "data.complaints.*.updatedAt",
+      "data.complaints.*.slaDueAt",
+      "data.complaints.*.resolvedAt",
+      "data.complaints.*.updates.*.createdAt",
+      "data.complaints.*.attachments.*.uploadedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Complaints loaded",
+        "data": {
+          "complaints": [
+            {
+              "adminResponse": "",
+              "attachments": [],
+              "category": "OTHER",
+              "createdAt": "2026-10-31T10:18:38.390Z",
+              "description": "",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000041",
+              "isAnonymous": true,
+              "isOverdue": true,
+              "residentId": "6c00000000000000000000c1",
+              "slaDueAt": "2026-11-01T09:18:38.390Z",
+              "status": "PENDING",
+              "title": "Late",
+              "updatedAt": "2026-10-31T10:18:38.390Z",
+              "updates": []
+            },
+            {
+              "adminResponse": "Fixed",
+              "attachments": [
+                {
+                  "complaintId": "6c0000000000000000000040",
+                  "fileAssetId": "abc",
+                  "hostelId": "6c00000000000000000000a1",
+                  "id": "6c0000000000000000000044",
+                  "uploadedAt": "2026-11-01T09:18:38.390Z",
+                  "uploadedBy": "6c0000000000000000000007"
+                }
+              ],
+              "category": "MAINTENANCE",
+              "createdAt": "2026-10-30T10:18:38.390Z",
+              "description": "Tap",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000040",
+              "isAnonymous": false,
+              "isOverdue": false,
+              "residentId": "6c00000000000000000000c1",
+              "resolvedAt": "2026-11-01T09:18:38.390Z",
+              "slaDueAt": "2026-11-01T09:18:38.390Z",
+              "status": "RESOLVED",
+              "title": "Leak",
+              "updatedAt": "2026-11-01T09:18:38.390Z",
+              "updates": [
+                {
+                  "actorId": "6c0000000000000000000005",
+                  "actorRole": "HOSTEL_ADMIN",
+                  "complaintId": "6c0000000000000000000040",
+                  "createdAt": "2026-11-01T09:18:38.390Z",
+                  "hostelId": "6c00000000000000000000a1",
+                  "id": "6c0000000000000000000043",
+                  "message": "",
+                  "nextStatus": "RESOLVED",
+                  "previousStatus": "PENDING",
+                  "type": "STATUS_CHANGE"
+                }
+              ]
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 2,
+            "totalPages": 1
+          },
+          "resident": {
+            "createdAt": "2026-10-31T10:18:38.390Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "category": "X",
+        "description": "a",
+        "isAnonymous": "y",
+        "title": "b",
+        "clientRequestId": "s",
+        "voiceNoteAssetId": "nope",
+        "attachmentAssetIds": [
+          ""
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "attachmentAssetIds": [
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "category": [
+              "Invalid option: expected one of \"FOOD\"|\"ROOM\"|\"MAINTENANCE\"|\"SAFETY\"|\"PAYMENT\"|\"STAFF\"|\"NOISE\"|\"OTHER\""
+            ],
+            "clientRequestId": [
+              "Too small: expected string to have \u003e=8 characters"
+            ],
+            "description": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "isAnonymous": [
+              "Invalid input: expected boolean, received string"
+            ],
+            "title": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "voiceNoteAssetId": [
+              "Invalid object id."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "attachmentAssetIds.0"
+            },
+            {
+              "message": "Invalid option: expected one of \"FOOD\"|\"ROOM\"|\"MAINTENANCE\"|\"SAFETY\"|\"PAYMENT\"|\"STAFF\"|\"NOISE\"|\"OTHER\"",
+              "path": "category"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=8 characters",
+              "path": "clientRequestId"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "description"
+            },
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "isAnonymous"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "title"
+            },
+            {
+              "message": "Invalid object id.",
+              "path": "voiceNoteAssetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "say something",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "description": [
+              "Say what happened, either typed or recorded."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Say what happened, either typed or recorded.",
+              "path": "description"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "idempotent retry",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "description": "Again",
+        "clientRequestId": "client-request-1"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.complaint.id",
+      "data.complaint.createdAt",
+      "data.complaint.updatedAt",
+      "data.complaint.slaDueAt",
+      "data.complaint.resolvedAt",
+      "data.complaint.confirmedAt",
+      "data.complaint.updates.*.id",
+      "data.complaint.updates.*.createdAt",
+      "data.complaint.updates.*.complaintId",
+      "data.complaint.attachments.*.id",
+      "data.complaint.attachments.*.complaintId",
+      "data.complaint.attachments.*.uploadedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Complaint submitted",
+        "data": {
+          "complaint": {
+            "adminResponse": "Fixed",
+            "attachments": [],
+            "category": "MAINTENANCE",
+            "createdAt": "2026-10-30T10:18:38.390Z",
+            "description": "Tap",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c0000000000000000000040",
+            "isAnonymous": false,
+            "isOverdue": false,
+            "residentId": "6c00000000000000000000c1",
+            "resolvedAt": "2026-11-01T09:18:38.390Z",
+            "slaDueAt": "2026-11-01T09:18:38.390Z",
+            "status": "RESOLVED",
+            "title": "Leak",
+            "updatedAt": "2026-11-01T09:18:38.390Z",
+            "updates": []
+          },
+          "resident": {
+            "createdAt": "2026-10-31T10:18:38.390Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "create",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "description": "  The tap\nleaks ",
+        "category": "ROOM",
+        "attachmentAssetIds": [
+          "a1"
+        ],
+        "clientRequestId": "client-request-2"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.complaint.id",
+      "data.complaint.createdAt",
+      "data.complaint.updatedAt",
+      "data.complaint.slaDueAt",
+      "data.complaint.resolvedAt",
+      "data.complaint.confirmedAt",
+      "data.complaint.updates.*.id",
+      "data.complaint.updates.*.createdAt",
+      "data.complaint.updates.*.complaintId",
+      "data.complaint.attachments.*.id",
+      "data.complaint.attachments.*.complaintId",
+      "data.complaint.attachments.*.uploadedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Complaint submitted",
+        "data": {
+          "complaint": {
+            "adminResponse": "",
+            "attachments": [
+              {
+                "complaintId": "6ae71201e6822539292ba46f",
+                "fileAssetId": "a1",
+                "hostelId": "6c00000000000000000000a1",
+                "id": "6ae71201e6822539292ba470",
+                "uploadedAt": "2026-11-01T10:18:41.179Z",
+                "uploadedBy": "6c0000000000000000000007"
+              }
+            ],
+            "category": "ROOM",
+            "createdAt": "2026-11-01T10:18:41.061Z",
+            "description": "The tap\nleaks",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae71201e6822539292ba46f",
+            "isAnonymous": false,
+            "isOverdue": false,
+            "residentId": "6c00000000000000000000c1",
+            "slaDueAt": "2026-11-04T10:18:41.060Z",
+            "status": "PENDING",
+            "title": "The tap",
+            "updatedAt": "2026-11-01T10:18:41.061Z",
+            "updates": [
+              {
+                "actorId": "6c0000000000000000000007",
+                "actorRole": "RESIDENT",
+                "complaintId": "6ae71201e6822539292ba46f",
+                "createdAt": "2026-11-01T10:18:41.180Z",
+                "hostelId": "6c00000000000000000000a1",
+                "id": "6ae71201e6822539292ba471",
+                "message": "Complaint submitted by resident.",
+                "nextStatus": "PENDING",
+                "type": "CREATED"
+              }
+            ]
+          },
+          "resident": {
+            "createdAt": "2026-10-31T10:18:38.390Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "create titled anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "description": "x y",
+        "title": " My title ",
+        "isAnonymous": true
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.complaint.id",
+      "data.complaint.createdAt",
+      "data.complaint.updatedAt",
+      "data.complaint.slaDueAt",
+      "data.complaint.resolvedAt",
+      "data.complaint.confirmedAt",
+      "data.complaint.updates.*.id",
+      "data.complaint.updates.*.createdAt",
+      "data.complaint.updates.*.complaintId",
+      "data.complaint.attachments.*.id",
+      "data.complaint.attachments.*.complaintId",
+      "data.complaint.attachments.*.uploadedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Complaint submitted",
+        "data": {
+          "complaint": {
+            "adminResponse": "",
+            "attachments": [],
+            "category": "OTHER",
+            "createdAt": "2026-11-01T10:18:41.370Z",
+            "description": "x y",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae71201e6822539292ba474",
+            "isAnonymous": true,
+            "isOverdue": false,
+            "residentId": "6c00000000000000000000c1",
+            "slaDueAt": "2026-11-04T10:18:41.369Z",
+            "status": "PENDING",
+            "title": "My title",
+            "updatedAt": "2026-11-01T10:18:41.370Z",
+            "updates": [
+              {
+                "actorId": "6c0000000000000000000007",
+                "actorRole": "RESIDENT",
+                "complaintId": "6ae71201e6822539292ba474",
+                "createdAt": "2026-11-01T10:18:41.381Z",
+                "hostelId": "6c00000000000000000000a1",
+                "id": "6ae71201e6822539292ba475",
+                "message": "Complaint submitted by resident.",
+                "nextStatus": "PENDING",
+                "type": "CREATED"
+              }
+            ]
+          },
+          "resident": {
+            "createdAt": "2026-10-31T10:18:38.390Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "voice missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "voiceNoteAssetId": "6c000000000000000000006f"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That recording did not finish uploading. Record it again.",
+        "errorCode": "VOICE_NOTE_NOT_READY"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "voice not complete",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "voiceNoteAssetId": "6c0000000000000000000070"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That recording did not finish uploading. Record it again.",
+        "errorCode": "VOICE_NOTE_NOT_READY"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "voice foreign",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "voiceNoteAssetId": "6c0000000000000000000072"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That recording did not finish uploading. Record it again.",
+        "errorCode": "VOICE_NOTE_NOT_READY"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "voice not audio",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "voiceNoteAssetId": "6c0000000000000000000073"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That recording was not found. Record it again.",
+        "errorCode": "VOICE_NOTE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "admin bell",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=action",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt",
+      "data.notifications.*.data.complaintId"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 2,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/hostel-admin/complaints",
+              "body": "An anonymous resident filed a other complaint: My title",
+              "category": "COMPLAINT",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:18:41.420Z",
+              "data": {
+                "complaintId": "6ae71201e6822539292ba474"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae71201e6822539292ba477",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "New complaint",
+              "userId": "6c0000000000000000000005"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/hostel-admin/complaints",
+              "body": "Res Ident filed a room complaint: The tap",
+              "category": "COMPLAINT",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:18:41.293Z",
+              "data": {
+                "complaintId": "6ae71201e6822539292ba46f"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae71201e6822539292ba473",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "New complaint",
+              "userId": "6c0000000000000000000005"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 2,
+            "totalPages": 1
+          },
+          "unreadCount": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "confirm invalid",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/complaints/6c0000000000000000000040/confirm-resolution",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "note": "x"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "note": [
+              "Too small: expected string to have \u003e=2 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "note"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "confirm bad id",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/complaints/x/confirm-resolution",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid complaint id.",
+        "errorCode": "INVALID_OBJECT_ID"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "confirm someone else's",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/complaints/6c0000000000000000000042/confirm-resolution",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Complaint was not found.",
+        "errorCode": "COMPLAINT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "confirm unresolved",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/complaints/6c0000000000000000000041/confirm-resolution",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Only resolved complaints can be confirmed.",
+        "errorCode": "COMPLAINT_NOT_RESOLVED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "confirm",
+    "request": {
+      "method": "PATCH",
+      "path": "/api/v1/resident/complaints/6c0000000000000000000040/confirm-resolution",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "note": " thanks "
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.complaint.id",
+      "data.complaint.createdAt",
+      "data.complaint.updatedAt",
+      "data.complaint.slaDueAt",
+      "data.complaint.resolvedAt",
+      "data.complaint.confirmedAt",
+      "data.complaint.updates.*.id",
+      "data.complaint.updates.*.createdAt",
+      "data.complaint.updates.*.complaintId",
+      "data.complaint.attachments.*.id",
+      "data.complaint.attachments.*.complaintId",
+      "data.complaint.attachments.*.uploadedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Complaint resolution confirmed",
+        "data": {
+          "complaint": {
+            "adminResponse": "Fixed",
+            "attachments": [],
+            "category": "MAINTENANCE",
+            "confirmedAt": "2026-11-01T10:18:47.036Z",
+            "createdAt": "2026-10-30T10:18:38.390Z",
+            "description": "Tap",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c0000000000000000000040",
+            "isAnonymous": false,
+            "isOverdue": false,
+            "residentId": "6c00000000000000000000c1",
+            "resolvedAt": "2026-11-01T09:18:38.390Z",
+            "slaDueAt": "2026-11-01T09:18:38.390Z",
+            "status": "RESOLVED",
+            "title": "Leak",
+            "updatedAt": "2026-11-01T10:18:47.037Z",
+            "updates": [
+              {
+                "actorId": "6c0000000000000000000007",
+                "actorRole": "RESIDENT",
+                "complaintId": "6c0000000000000000000040",
+                "createdAt": "2026-11-01T10:18:47.051Z",
+                "hostelId": "6c00000000000000000000a1",
+                "id": "6ae71207e6822539292ba478",
+                "message": "thanks",
+                "type": "RESIDENT_CONFIRMATION"
+              }
+            ]
+          },
+          "resident": {
+            "createdAt": "2026-10-31T10:18:38.390Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

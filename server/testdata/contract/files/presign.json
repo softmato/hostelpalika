@@ -1,0 +1,251 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/presign",
+      "body": {
+        "fileName": "a.png",
+        "mimeType": "image/png",
+        "sizeBytes": 100
+      }
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "bad json",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/presign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": "not json"
+    },
+    "response": {
+      "status": 400,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The request body is not valid JSON.",
+        "errorCode": "INVALID_JSON"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8",
+    "corrected": "R8: TS bug fixed on both sides, see docs/review_fixes_needed.md"
+  },
+  {
+    "name": "missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/presign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "fileName": "a"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "fileName, mimeType, and sizeBytes are required",
+        "errorCode": "VALIDATION_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "zero size",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/presign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "fileName": "a",
+        "mimeType": "image/png",
+        "sizeBytes": 0
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "fileName, mimeType, and sizeBytes are required",
+        "errorCode": "VALIDATION_ERROR"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "bad type",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/presign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "fileName": "a",
+        "mimeType": "application/x-msdownload",
+        "sizeBytes": 10
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "File MIME type is not allowed.",
+        "errorCode": "FILE_TYPE_NOT_ALLOWED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "too big",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/presign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "fileName": "a",
+        "mimeType": "image/png",
+        "sizeBytes": 99999999999
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Image exceeds the 5242880 byte upload limit.",
+        "errorCode": "FILE_TYPE_NOT_ALLOWED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "foreign hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/presign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "fileName": "a.png",
+        "mimeType": "image/png",
+        "sizeBytes": 100,
+        "hostelId": "6c00000000000000000000a2"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Access denied",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "financial no scope",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/presign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "fileName": "a.png",
+        "mimeType": "image/png",
+        "sizeBytes": 100,
+        "kind": "PAYMENT_PROOF"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "A hostelId is required for payment-related uploads.",
+        "errorCode": "HOSTEL_SCOPE_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "r2 off",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/presign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "fileName": "a.png",
+        "mimeType": "image/png",
+        "sizeBytes": 100,
+        "kind": "PAYMENT_PROOF"
+      }
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Document storage is not configured on this deployment.",
+        "errorCode": "STORAGE_NOT_CONFIGURED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8",
+    "corrected": "R22: TS bug fixed on both sides, see docs/review_fixes_needed.md"
+  },
+  {
+    "name": "platform kind r2 off",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/presign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "fileName": "a.png",
+        "mimeType": "image/png",
+        "sizeBytes": 100,
+        "kind": "BOOKING_PAYMENT_PROOF",
+        "hostelId": "6c00000000000000000000a2"
+      }
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Document storage is not configured on this deployment.",
+        "errorCode": "STORAGE_NOT_CONFIGURED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8",
+    "corrected": "R22: TS bug fixed on both sides, see docs/review_fixes_needed.md"
+  }
+]

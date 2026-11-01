@@ -1,0 +1,246 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/mobile/device-token",
+      "body": {}
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/mobile/device-token",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "platform": "BLACKBERRY",
+        "token": "x",
+        "capabilities": [
+          "",
+          5
+        ]
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "capabilities": [
+              "Too small: expected string to have \u003e=1 characters",
+              "Invalid input: expected string, received number"
+            ],
+            "platform": [
+              "Invalid option: expected one of \"IOS\"|\"ANDROID\"|\"WEB\""
+            ],
+            "token": [
+              "Too small: expected string to have \u003e=8 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "capabilities.0"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "capabilities.1"
+            },
+            {
+              "message": "Invalid option: expected one of \"IOS\"|\"ANDROID\"|\"WEB\"",
+              "path": "platform"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=8 characters",
+              "path": "token"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "save",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/mobile/device-token",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "platform": "ANDROID",
+        "token": " ExponentPushToken[new] ",
+        "capabilities": [
+          "a"
+        ]
+      }
+    },
+    "masks": [
+      "data.deviceToken.id",
+      "data.deviceToken.lastSeenAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Device token saved",
+        "data": {
+          "deviceToken": {
+            "deviceId": "",
+            "id": "6ae70de62674f0823c8e8f98",
+            "lastSeenAt": "2026-11-01T10:01:10.975Z",
+            "platform": "ANDROID",
+            "status": "ACTIVE",
+            "token": "ExponentPushToken[new]",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "save again other device id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/mobile/device-token",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "platform": "IOS",
+        "token": "ExponentPushToken[new]",
+        "deviceId": "d1"
+      }
+    },
+    "masks": [
+      "data.deviceToken.id",
+      "data.deviceToken.lastSeenAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Device token saved",
+        "data": {
+          "deviceToken": {
+            "deviceId": "d1",
+            "id": "6ae70de62674f0823c8e8f98",
+            "lastSeenAt": "2026-11-01T10:01:11.019Z",
+            "platform": "IOS",
+            "status": "ACTIVE",
+            "token": "ExponentPushToken[new]",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "revoke invalid",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/mobile/device-token",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "token": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "token"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "revoke other user's",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/mobile/device-token",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "token": "ExponentPushToken[new]"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Device token revoked",
+        "data": {
+          "revoked": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "revoke",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/mobile/device-token",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "token": "ExponentPushToken[new]"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Device token revoked",
+        "data": {
+          "revoked": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

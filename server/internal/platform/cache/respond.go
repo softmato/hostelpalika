@@ -11,6 +11,7 @@ import (
 	goredis "github.com/redis/go-redis/v9"
 
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
+	"github.com/softmato/hostelpalika/server/internal/platform/obs"
 )
 
 // Respond is a TS route's withEtag(successResponse(await cachedRead(…), message))
@@ -47,11 +48,15 @@ func Respond[T any](c *gin.Context, ch *Cache, hostelIDs []string, userID, key, 
 		cancel()
 		if err == nil {
 			if tag, body, found := bytes.Cut(raw, []byte("\n")); found {
+				obs.CacheLookup(true)
 				send(c, string(tag), body)
 				return
 			}
 		} else if !errors.Is(err, goredis.Nil) {
 			ok = false // Redis trouble: straight to the database
+		}
+		if ok {
+			obs.CacheLookup(false)
 		}
 	}
 	if !ok {

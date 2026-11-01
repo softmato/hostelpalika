@@ -45,15 +45,16 @@
       "data.trialEndsAt"
     ],
     "response": {
-      "status": 500,
+      "status": 400,
       "contentType": "application/json",
       "body": {
         "success": false,
-        "message": "Internal server error",
-        "errorCode": "INTERNAL_SERVER_ERROR"
+        "message": "The request body is not valid JSON.",
+        "errorCode": "INVALID_JSON"
       }
     },
-    "recorded": "http://localhost:3100 8bea0625"
+    "recorded": "http://localhost:3100 8bea0625",
+    "corrected": "R8: TS bug fixed on both sides, see docs/review_fixes_needed.md"
   },
   {
     "name": "empty",
@@ -146,11 +147,11 @@
               "Enter the owner's name."
             ],
             "phone": [
-              "Too small: expected string to have \u003e=7 characters",
+              "Too small: expected string to have >=7 characters",
               "Expected a valid phone number."
             ],
             "referralCode": [
-              "Too big: expected string to have \u003c=40 characters"
+              "Too big: expected string to have <=40 characters"
             ]
           },
           "issues": [
@@ -163,7 +164,7 @@
               "path": "ownerName"
             },
             {
-              "message": "Too small: expected string to have \u003e=7 characters",
+              "message": "Too small: expected string to have >=7 characters",
               "path": "phone"
             },
             {
@@ -171,7 +172,7 @@
               "path": "phone"
             },
             {
-              "message": "Too big: expected string to have \u003c=40 characters",
+              "message": "Too big: expected string to have <=40 characters",
               "path": "referralCode"
             }
           ]

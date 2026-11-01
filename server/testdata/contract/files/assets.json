@@ -1,0 +1,332 @@
+[
+  {
+    "name": "complete signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/6c0000000000000000000070/complete"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication required",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "complete bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/nope/complete",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8",
+    "corrected": "R8: TS bug fixed on both sides, see docs/review_fixes_needed.md"
+  },
+  {
+    "name": "complete missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/6c000000000000000000006f/complete",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "File asset not found",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "complete not owner",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/6c0000000000000000000071/complete",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Access denied",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "complete already",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/6c0000000000000000000073/complete",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Upload already verified",
+        "data": {
+          "assetId": "6c0000000000000000000073",
+          "contentHash": "abc",
+          "mimeType": "image/png",
+          "sizeBytes": 10
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "complete r2 off",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/6c0000000000000000000070/complete",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Document storage is not configured on this deployment.",
+        "errorCode": "STORAGE_NOT_CONFIGURED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8",
+    "corrected": "R22: TS bug fixed on both sides, see docs/review_fixes_needed.md"
+  },
+  {
+    "name": "optimize signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/6c0000000000000000000070/optimize"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication required",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "optimize not owner",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/files/6c0000000000000000000071/optimize",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Access denied",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "url bad variant",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/files/6c0000000000000000000070/url?variant=huge"
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invalid variant. Must be one of: ORIGINAL, THUMBNAIL, MEDIUM, LARGE",
+        "errorCode": "INVALID_VARIANT"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "url missing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/files/6c000000000000000000006f/url"
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "File asset not found",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "url signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/files/6c0000000000000000000070/url"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication required for private assets",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "url denied kind",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/files/6c0000000000000000000070/url",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Access denied",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "url foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/files/6c0000000000000000000072/url",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Access denied",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "url note not provider",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/files/6c0000000000000000000074/url",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Access denied",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "url provider unassigned",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/files/6c0000000000000000000074/url",
+      "headers": {
+        "authorization": "Bearer {{access:6c000000000000000000000d:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Access denied",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "url owner r2 off",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/files/6c0000000000000000000070/url",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Document storage is not configured on this deployment.",
+        "errorCode": "STORAGE_NOT_CONFIGURED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8",
+    "corrected": "R22: TS bug fixed on both sides, see docs/review_fixes_needed.md"
+  },
+  {
+    "name": "url public no base",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/files/6c0000000000000000000073/url?format=json"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication required for private assets",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

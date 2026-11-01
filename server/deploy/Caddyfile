@@ -5,6 +5,12 @@
 {$API_HOST} {
 	encode zstd gzip
 
+	# Refused here before it costs the API anything; the API's own limits
+	# (httpx.BodyLimit) are the real ones and are per content type.
+	request_body {
+		max_size 13MB
+	}
+
 	@go path /api/v1/health
 	handle @go {
 		reverse_proxy api:8080 {

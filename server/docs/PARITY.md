@@ -10,7 +10,7 @@ next item. Never tick in batches.
 
 | | |
 |---|---|
-| Baseline commit | `8e965ad8` (`main`, 2026-11-01) |
+| Baseline commit | `6281d03d` (`main`, 2026-11-01) |
 | Source of truth for behaviour | the TypeScript server at the baseline commit |
 | Inventory taken from | `apps/web/src/app/**/route.ts`, `apps/web/src/modules/*`, `apps/web/src/lib/*`, `packages/db/src/models/*`, `packages/shared/src/*`, `docs/CRON.md` |
 
@@ -28,7 +28,7 @@ anyone remembering to log a change; git already knows.
 **Before starting any port session, run:**
 
 ```bash
-git diff --name-status 8e965ad8..HEAD -- apps/web/src/app apps/web/src/modules apps/web/src/lib packages/db/src packages/shared/src docs/CRON.md
+git diff --name-status 6281d03d..HEAD -- apps/web/src/app apps/web/src/modules apps/web/src/lib packages/db/src packages/shared/src docs/CRON.md
 ```
 
 For every line it prints:
@@ -39,7 +39,7 @@ For every line it prints:
 3. `D` (deleted) → strike the row (`~~path~~`) and delete the Go code for it.
 4. `R` (renamed) → update the row in place.
 
-Once every printed line is handled, **move the baseline**: replace `8e965ad8` in
+Once every printed line is handled, **move the baseline**: replace `6281d03d` in
 §1 and in the command above with the new `HEAD` SHA, and add a line to the log.
 
 ### Intake log
@@ -52,6 +52,7 @@ Once every printed line is handled, **move the baseline**: replace `8e965ad8` in
 | 2026-10-29 | `41b0ef10` → `2be44935` | — (no TS changes; only `server/` commits) | — | — |
 | 2026-10-29 | `2be44935` → working tree (uncommitted) | `Hostel.photos[].mediumUrl` (640px WebP card copy); `npm --prefix apps/web run backfill:photo-variants` | `GET /public/hostels`, `/public/hostels/:slug`, `/public/hostels/compare` — every photo now carries `mediumUrl` (`""` until made); `POST /hostel-admin/profile/photos` (☐) must run `attachPhotoVariant` after responding: `lib/image-optimizer` MEDIUM variant → `photos.$[p].mediumUrl` | — |
 | 2026-10-30 | `2be44935` → `8e965ad8` | `PUT /hostel-admin/rooms/order` (new, ☐, hostels); `Hostel.photos[].mediumUrl` is committed now (`8e965ad8`), so the working-tree entry above is closed | `GET /public/hostels`, `/:slug`, `/compare` — `mediumUrl` is in the Go serializers and the three fixtures were re-recorded; `hostel-profile.service.ts`, `hostel-rooms.service.ts` and `notifications/web-routing.ts` changed (all ☐, to read when their module is ported) | — |
+| 2026-11-01 | `8e965ad8` → `6281d03d` | — (Phase 4: client base URL, `lib/api-url.ts`, cookie domain; Go `auth.Cookies` already matches) | — | — |
 
 ---
 
@@ -59,7 +60,7 @@ Once every printed line is handled, **move the baseline**: replace `8e965ad8` in
 
 | ☐ | Concern | TypeScript today | Go target |
 |---|---|---|---|
-| ☐ | Config + boot validation | `lib/env.ts`, `lib/load-root-env.ts` | `internal/platform/config` — typed struct from env, fail fast on boot |
+| ☑ | Config + boot validation | `lib/env.ts`, `lib/load-root-env.ts` | `internal/platform/config` — typed struct from env, fail fast on boot |
 | ☑ | Response envelope | `lib/api-response.ts` (`success/message/data`, `success/message/errorCode/details`) | `internal/platform/httpx` — byte-identical JSON |
 | ☑ | Validation errors | zod → 422 `VALIDATION_ERROR`, `details = { formErrors, fieldErrors, issues[] }` | same shape, same field paths |
 | ☑ | Error mapping | `handleRouteError` incl. `SoftmatoApiError` pass-through | `httpx.Fail(c, err)` |
@@ -87,7 +88,7 @@ Once every printed line is handled, **move the baseline**: replace `8e965ad8` in
 | ☑ | PDF out | `pdf-lib` (receipts, agreements, statements, exports) | see ARCHITECTURE.md §6 |
 | ☑ | PDF in | `unpdf` (statement import) | `pdftotext` (poppler) |
 | ☑ | Spreadsheets | `xlsx` (SheetJS), `papaparse`, `lib/csv.ts` | `excelize`, `encoding/csv` |
-| ☐ | Raster cards (Phase 5) | `@napi-rs/canvas` (ID cards, `lib/platform-id-card.server.ts`) | SVG template → libvips |
+| ☑ | Raster cards (Phase 5) | `@napi-rs/canvas` (ID cards, `lib/platform-id-card.server.ts`) | `platform/idcard`: SVG with Inter as glyph outlines (own GPOS kerning) → libvips; golden PNGs |
 | ☑ | QR codes | `qrcode` | `skip2/go-qrcode` |
 | ☑ | Zip streams | `lib/zip-stream.ts` | `archive/zip` streaming |
 | ☑ | Personal-data crypto | `lib/personal-data-crypto.ts` — AES-256-GCM, `PERSONAL_DATA_ENCRYPTION_KEY` | `crypto/cipher` GCM, reads every existing ciphertext |
@@ -258,15 +259,15 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | GET PATCH | `/api/v1/account/email-preferences` | requireApiPrincipal | etag | notifications |
-| ☐ | GET POST | `/api/v1/account/hostel-leave` | requireApiPrincipal |  | hostels |
-| ☐ | GET | `/api/v1/account/hostel-leave/:requestId/files` | requireApiPrincipal |  | hostels |
-| ☐ | GET | `/api/v1/account/hostel-leave/:requestId/files/:fileId` | requireApiPrincipal |  | hostels |
-| ☐ | GET | `/api/v1/account/hostel-leave/:requestId/files/zip` | requireApiPrincipal | max300s | hostels |
-| ☐ | GET PATCH | `/api/v1/account/notification-preferences` | requireApiPrincipal | etag | notifications |
-| ☐ | GET | `/api/v1/account/residency-invite` | requireApiPrincipal | etag | residents |
-| ☐ | POST | `/api/v1/account/residency-invite/:residentId/accept` | requireApiPrincipal |  | residents |
-| ☐ | POST | `/api/v1/account/residency-invite/:residentId/decline` | requireApiPrincipal |  | residents |
+| ☑ | GET PATCH | `/api/v1/account/email-preferences` | requireApiPrincipal | etag | notifications |
+| ☑ | GET POST | `/api/v1/account/hostel-leave` | requireApiPrincipal |  | hostels |
+| ☑ | GET | `/api/v1/account/hostel-leave/:requestId/files` | requireApiPrincipal |  | hostels |
+| ☑ | GET | `/api/v1/account/hostel-leave/:requestId/files/:fileId` | requireApiPrincipal |  | hostels |
+| ☑ | GET | `/api/v1/account/hostel-leave/:requestId/files/zip` | requireApiPrincipal | max300s | hostels |
+| ☑ | GET PATCH | `/api/v1/account/notification-preferences` | requireApiPrincipal | etag | notifications |
+| ☑ | GET | `/api/v1/account/residency-invite` | requireApiPrincipal | etag | residents |
+| ☑ | POST | `/api/v1/account/residency-invite/:residentId/accept` | requireApiPrincipal |  | residents |
+| ☑ | POST | `/api/v1/account/residency-invite/:residentId/decline` | requireApiPrincipal |  | residents |
 
 ### `auth` (20)
 
@@ -297,48 +298,48 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | GET POST | `/api/v1/bookings` | requireApiPrincipal, rateLimitPublicForm | etag | bookings |
-| ☐ | GET | `/api/v1/bookings/:id` | requireApiPrincipal | etag | bookings |
-| ☐ | POST | `/api/v1/bookings/:id/cancel` | requireApiPrincipal |  | bookings |
+| ☑ | GET POST | `/api/v1/bookings` | requireApiPrincipal, rateLimitPublicForm | etag | bookings |
+| ☑ | GET | `/api/v1/bookings/:id` | requireApiPrincipal | etag | bookings |
+| ☑ | POST | `/api/v1/bookings/:id/cancel` | requireApiPrincipal |  | bookings |
 | ☐ | POST | `/api/v1/bookings/:id/checkout` | requireApiPrincipal |  | bookings |
 | ☐ | POST | `/api/v1/bookings/:id/payment` | requireApiPrincipal |  | bookings |
 | ☐ | GET | `/api/v1/bookings/:id/return` | requireApiPrincipal |  | bookings |
 | ☑ | GET | `/api/v1/bookings/availability` | public | etag | bookings, hostels |
-| ☐ | GET | `/api/v1/bookings/documents/:kind/:number` | requireApiPrincipal |  | bookings |
+| ☑ | GET | `/api/v1/bookings/documents/:kind/:number` | requireApiPrincipal |  | bookings |
 | ☑ | GET | `/api/v1/bookings/guide` | public |  | bookings |
 | ☑ | GET | `/api/v1/bookings/policy` | public |  | bookings |
-| ☐ | GET | `/api/v1/bookings/quote` | loadApiPrincipal | etag | bookings |
+| ☑ | GET | `/api/v1/bookings/quote` | loadApiPrincipal | etag | bookings |
 
 ### `community` (10)
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | GET POST | `/api/v1/community` | loadApiPrincipal, requireApiPrincipal | etag | community |
-| ☐ | DELETE GET | `/api/v1/community/:postId` | loadApiPrincipal, requireApiPrincipal | etag | community |
-| ☐ | GET POST | `/api/v1/community/:postId/comments` | loadApiPrincipal, requireApiPrincipal | etag | community |
-| ☐ | DELETE | `/api/v1/community/:postId/comments/:commentId` | requireApiPrincipal |  | community |
-| ☐ | POST | `/api/v1/community/:postId/comments/:commentId/vote` | requireApiPrincipal |  | community |
-| ☐ | POST | `/api/v1/community/:postId/reactions` | requireApiPrincipal |  | community |
-| ☐ | POST | `/api/v1/community/:postId/report` | requireApiPrincipal |  | community |
-| ☐ | GET | `/api/v1/community/sidebar` | loadApiPrincipal | etag | community, sponsors |
-| ☐ | GET | `/api/v1/community/spaces` | loadApiPrincipal | etag | community |
-| ☐ | POST | `/api/v1/community/sponsors/:sponsorId/click` | public |  | sponsors |
+| ☑ | GET POST | `/api/v1/community` | loadApiPrincipal, requireApiPrincipal | etag | community |
+| ☑ | DELETE GET | `/api/v1/community/:postId` | loadApiPrincipal, requireApiPrincipal | etag | community |
+| ☑ | GET POST | `/api/v1/community/:postId/comments` | loadApiPrincipal, requireApiPrincipal | etag | community |
+| ☑ | DELETE | `/api/v1/community/:postId/comments/:commentId` | requireApiPrincipal |  | community |
+| ☑ | POST | `/api/v1/community/:postId/comments/:commentId/vote` | requireApiPrincipal |  | community |
+| ☑ | POST | `/api/v1/community/:postId/reactions` | requireApiPrincipal |  | community |
+| ☑ | POST | `/api/v1/community/:postId/report` | requireApiPrincipal |  | community |
+| ☑ | GET | `/api/v1/community/sidebar` | loadApiPrincipal | etag | community, sponsors |
+| ☑ | GET | `/api/v1/community/spaces` | loadApiPrincipal | etag | community |
+| ☑ | POST | `/api/v1/community/sponsors/:sponsorId/click` | public |  | sponsors |
 
 ### `cook` (11)
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | POST | `/api/v1/cook/accept-invitation` | public |  | food |
-| ☐ | GET POST | `/api/v1/cook/expenses` | requireApiPrincipal, assertApiRoles | etag | finance |
-| ☐ | POST | `/api/v1/cook/expenses/:id/void` | requireApiPrincipal, assertApiRoles |  | finance |
-| ☐ | GET POST | `/api/v1/cook/food-photos` | requireApiPrincipal, assertApiRoles | etag | food |
-| ☐ | GET POST | `/api/v1/cook/food-ready` | requireApiPrincipal, assertApiRoles | redis etag | food |
-| ☐ | GET | `/api/v1/cook/khata` | requireApiPrincipal, assertApiRoles | etag | finance, food |
-| ☐ | POST | `/api/v1/cook/khata/:id` | requireApiPrincipal, assertApiRoles |  | finance, food |
-| ☐ | GET | `/api/v1/cook/residents` | requireApiPrincipal, assertApiRoles | redis etag | food |
-| ☐ | GET POST | `/api/v1/cook/stock` | requireApiPrincipal, assertApiRoles | etag | stock |
-| ☐ | POST | `/api/v1/cook/stock/entries/:id/undo` | requireApiPrincipal, assertApiRoles |  | stock |
-| ☐ | GET | `/api/v1/cook/today` | requireApiPrincipal, assertApiRoles | redis etag | food |
+| ☑ | POST | `/api/v1/cook/accept-invitation` | public |  | food |
+| ☑ | GET POST | `/api/v1/cook/expenses` | requireApiPrincipal, assertApiRoles | etag | finance |
+| ☑ | POST | `/api/v1/cook/expenses/:id/void` | requireApiPrincipal, assertApiRoles |  | finance |
+| ☑ | GET POST | `/api/v1/cook/food-photos` | requireApiPrincipal, assertApiRoles | etag | food |
+| ☑ | GET POST | `/api/v1/cook/food-ready` | requireApiPrincipal, assertApiRoles | redis etag | food |
+| ☑ | GET | `/api/v1/cook/khata` | requireApiPrincipal, assertApiRoles | etag | finance, food |
+| ☑ | POST | `/api/v1/cook/khata/:id` | requireApiPrincipal, assertApiRoles |  | finance, food |
+| ☑ | GET | `/api/v1/cook/residents` | requireApiPrincipal, assertApiRoles | redis etag | food |
+| ☑ | GET POST | `/api/v1/cook/stock` | requireApiPrincipal, assertApiRoles | etag | stock |
+| ☑ | POST | `/api/v1/cook/stock/entries/:id/undo` | requireApiPrincipal, assertApiRoles |  | stock |
+| ☑ | GET | `/api/v1/cook/today` | requireApiPrincipal, assertApiRoles | redis etag | food |
 
 ### `cron` (19)
 
@@ -381,22 +382,22 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | POST | `/api/v1/files/:assetId/complete` | loadApiPrincipal |  | finance |
-| ☐ | POST | `/api/v1/files/:assetId/optimize` | loadApiPrincipal |  |  |
-| ☐ | GET | `/api/v1/files/:assetId/url` | loadApiPrincipal | etag |  |
-| ☐ | POST | `/api/v1/files/presign` | requireApiPrincipal |  | residents |
-| ☐ | POST | `/api/v1/files/upload` | loadApiPrincipal |  | finance |
+| ☑ | POST | `/api/v1/files/:assetId/complete` | loadApiPrincipal |  | finance |
+| ☑ | POST | `/api/v1/files/:assetId/optimize` | loadApiPrincipal |  |  |
+| ☑ | GET | `/api/v1/files/:assetId/url` | loadApiPrincipal | etag |  |
+| ☑ | POST | `/api/v1/files/presign` | requireApiPrincipal |  | residents |
+| ☑ | POST | `/api/v1/files/upload` | loadApiPrincipal |  | finance |
 
 ### `guardian` (6)
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | POST | `/api/v1/guardian/accept-invitation` | public |  | guardian |
-| ☐ | GET | `/api/v1/guardian/dashboard` | requireGuardianPrincipal | etag | guardian |
-| ☐ | GET | `/api/v1/guardian/food` | requireGuardianPrincipal | etag | guardian |
-| ☐ | GET | `/api/v1/guardian/notices` | requireGuardianPrincipal | etag | guardian |
-| ☐ | GET | `/api/v1/guardian/payments` | requireGuardianPrincipal | etag | guardian |
-| ☐ | GET | `/api/v1/guardian/safety-summary` | requireGuardianPrincipal | etag | guardian |
+| ☑ | POST | `/api/v1/guardian/accept-invitation` | public |  | guardian |
+| ☑ | GET | `/api/v1/guardian/dashboard` | requireGuardianPrincipal | etag | guardian |
+| ☑ | GET | `/api/v1/guardian/food` | requireGuardianPrincipal | etag | guardian |
+| ☑ | GET | `/api/v1/guardian/notices` | requireGuardianPrincipal | etag | guardian |
+| ☑ | GET | `/api/v1/guardian/payments` | requireGuardianPrincipal | etag | guardian |
+| ☑ | GET | `/api/v1/guardian/safety-summary` | requireGuardianPrincipal | etag | guardian |
 
 ### `health` (1)
 
@@ -610,16 +611,16 @@ row says otherwise; tick it once that decision is confirmed per row.
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | DELETE POST | `/api/v1/mobile/device-token` | requireApiPrincipal |  | notifications |
+| ☑ | DELETE POST | `/api/v1/mobile/device-token` | requireApiPrincipal |  | notifications |
 
 ### `notifications` (4)
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | GET | `/api/v1/notifications` | requireApiPrincipal | etag | notifications |
-| ☐ | PATCH | `/api/v1/notifications/:id/read` | requireApiPrincipal |  | notifications |
-| ☐ | PATCH | `/api/v1/notifications/:id/resolve` | requireApiPrincipal |  | notifications |
-| ☐ | PATCH | `/api/v1/notifications/read-all` | requireApiPrincipal |  | notifications |
+| ☑ | GET | `/api/v1/notifications` | requireApiPrincipal | etag | notifications |
+| ☑ | PATCH | `/api/v1/notifications/:id/read` | requireApiPrincipal |  | notifications |
+| ☑ | PATCH | `/api/v1/notifications/:id/resolve` | requireApiPrincipal |  | notifications |
+| ☑ | PATCH | `/api/v1/notifications/read-all` | requireApiPrincipal |  | notifications |
 
 ### `platform` (99)
 
@@ -774,60 +775,60 @@ row says otherwise; tick it once that decision is confirmed per row.
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
 | ☑ | GET | `/api/v1/push/public-key` | requireApiPrincipal | etag | notifications |
-| ☐ | GET | `/api/v1/push/status` | requireApiPrincipal | etag | notifications |
-| ☐ | POST | `/api/v1/push/subscribe` | requireApiPrincipal |  | notifications |
-| ☐ | POST | `/api/v1/push/unsubscribe` | requireApiPrincipal |  | notifications |
+| ☑ | GET | `/api/v1/push/status` | requireApiPrincipal | etag | notifications |
+| ☑ | POST | `/api/v1/push/subscribe` | requireApiPrincipal |  | notifications |
+| ☑ | POST | `/api/v1/push/unsubscribe` | requireApiPrincipal |  | notifications |
 
 ### `realtime` (2)
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | POST | `/api/v1/realtime/auth` | requireApiPrincipal, authorizeRealtimeChannel |  |  |
-| ☐ | GET | `/api/v1/realtime/config` | requireApiPrincipal | etag |  |
+| ☑ | POST | `/api/v1/realtime/auth` | requireApiPrincipal, authorizeRealtimeChannel |  |  |
+| ☑ | GET | `/api/v1/realtime/config` | requireApiPrincipal | etag |  |
 
 ### `resident` (39)
 
 | ☐ | Methods | Path | Guard | Notes | Modules |
 |---|---|---|---|---|---|
-| ☐ | POST | `/api/v1/resident/activate` | requireApiPrincipal |  | residents |
-| ☐ | GET | `/api/v1/resident/activation-status` | requireApiPrincipal | etag | residents |
-| ☐ | DELETE GET | `/api/v1/resident/attendance` | requireResidentPrincipal | etag | attendance |
-| ☐ | GET POST | `/api/v1/resident/complaints` | requireResidentPrincipal | etag | complaints |
-| ☐ | PATCH | `/api/v1/resident/complaints/:id/confirm-resolution` | requireResidentPrincipal |  | complaints |
-| ☐ | POST | `/api/v1/resident/consent` | requireResidentPrincipal |  | attendance |
-| ☐ | GET | `/api/v1/resident/dashboard` | requireResidentPrincipal | redis etag | residents |
-| ☐ | GET | `/api/v1/resident/emergency-contacts` | requireResidentPrincipal | etag | safety |
-| ☐ | GET | `/api/v1/resident/finance/checkout/:reference` | requireResidentPrincipal | etag | finance |
-| ☐ | POST | `/api/v1/resident/finance/evidence/:assetId/read` | requireResidentPrincipal | max30s | finance, residents |
-| ☐ | GET | `/api/v1/resident/finance/invoices` | requireResidentPrincipal | etag | finance |
-| ☐ | POST | `/api/v1/resident/finance/invoices/:id/checkout` | requireResidentPrincipal |  | finance |
-| ☐ | POST | `/api/v1/resident/finance/invoices/:id/claims` | rateLimitPublicForm, requireResidentPrincipal |  | finance |
-| ☐ | GET | `/api/v1/resident/finance/invoices/:id/pay-instructions` | requireResidentPrincipal | etag | finance |
-| ☐ | GET POST | `/api/v1/resident/finance/khata` | requireResidentPrincipal | etag | finance |
-| ☐ | GET | `/api/v1/resident/finance/receipts/:id/pdf` | requireResidentPrincipal |  | finance, residents |
-| ☐ | GET | `/api/v1/resident/finance/statement/pdf` | requireResidentPrincipal |  | finance, residents |
-| ☐ | GET | `/api/v1/resident/food` | requireResidentPrincipal | redis etag | food |
-| ☐ | POST | `/api/v1/resident/food/feedback` | requireResidentPrincipal |  | food |
-| ☐ | POST | `/api/v1/resident/food/photos` | requireResidentPrincipal |  | food |
-| ☐ | GET POST | `/api/v1/resident/guardians` | requireResidentPrincipal | etag | guardian |
-| ☐ | DELETE PATCH | `/api/v1/resident/guardians/:id` | requireResidentPrincipal |  | guardian |
-| ☐ | DELETE GET PUT | `/api/v1/resident/leaving` | requireResidentPrincipal |  | move-checklist |
-| ☐ | POST | `/api/v1/resident/location/ping` | requireResidentPrincipal |  | attendance |
-| ☐ | GET | `/api/v1/resident/me` | requireResidentPrincipal | etag | residents |
-| ☐ | GET POST | `/api/v1/resident/night-status` | requireResidentPrincipal | etag | safety |
-| ☐ | POST | `/api/v1/resident/night-status/answer` | verifyPurposeToken |  | safety |
-| ☐ | GET | `/api/v1/resident/night-status/history` | requireResidentPrincipal | etag | safety |
-| ☐ | GET | `/api/v1/resident/notices` | requireResidentPrincipal | redis etag | notices |
-| ☐ | PATCH | `/api/v1/resident/notices/:id/read` | requireResidentPrincipal |  | notices |
-| ☐ | POST | `/api/v1/resident/notices/read-all` | requireResidentPrincipal |  | notices |
-| ☐ | GET | `/api/v1/resident/offer-program` | requireResidentPrincipal | etag | offer-program |
-| ☐ | GET | `/api/v1/resident/profile` | requireResidentPrincipal | etag | residents |
-| ☐ | POST | `/api/v1/resident/questioncall/click` | requireResidentPrincipal |  | questioncall |
-| ☐ | GET | `/api/v1/resident/questioncall/status` | requireResidentPrincipal | etag | questioncall |
-| ☐ | GET | `/api/v1/resident/referral` | requireResidentPrincipal | etag | referrals |
-| ☐ | POST | `/api/v1/resident/reviews` | requireResidentPrincipal |  | reviews |
-| ☐ | DELETE GET POST | `/api/v1/resident/room` | requireResidentPrincipal | etag | hostels |
-| ☐ | GET POST | `/api/v1/resident/sos` | requireResidentPrincipal | etag | safety |
+| ☑ | POST | `/api/v1/resident/activate` | requireApiPrincipal |  | residents |
+| ☑ | GET | `/api/v1/resident/activation-status` | requireApiPrincipal | etag | residents |
+| ☑ | DELETE GET | `/api/v1/resident/attendance` | requireResidentPrincipal | etag | attendance |
+| ☑ | GET POST | `/api/v1/resident/complaints` | requireResidentPrincipal | etag | complaints |
+| ☑ | PATCH | `/api/v1/resident/complaints/:id/confirm-resolution` | requireResidentPrincipal |  | complaints |
+| ☑ | POST | `/api/v1/resident/consent` | requireResidentPrincipal |  | attendance |
+| ☑ | GET | `/api/v1/resident/dashboard` | requireResidentPrincipal | redis etag | residents |
+| ☑ | GET | `/api/v1/resident/emergency-contacts` | requireResidentPrincipal | etag | safety |
+| ☐ | GET | `/api/v1/resident/finance/checkout/:reference` | requireResidentPrincipal | etag | finance (Phase 8) |
+| ☑ | POST | `/api/v1/resident/finance/evidence/:assetId/read` | requireResidentPrincipal | max30s | finance, residents |
+| ☑ | GET | `/api/v1/resident/finance/invoices` | requireResidentPrincipal | etag | finance |
+| ☐ | POST | `/api/v1/resident/finance/invoices/:id/checkout` | requireResidentPrincipal |  | finance (Phase 8) |
+| ☑ | POST | `/api/v1/resident/finance/invoices/:id/claims` | rateLimitPublicForm, requireResidentPrincipal |  | finance |
+| ☑ | GET | `/api/v1/resident/finance/invoices/:id/pay-instructions` | requireResidentPrincipal | etag | finance |
+| ☑ | GET POST | `/api/v1/resident/finance/khata` | requireResidentPrincipal | etag | finance |
+| ☑ | GET | `/api/v1/resident/finance/receipts/:id/pdf` | requireResidentPrincipal |  | finance, residents |
+| ☑ | GET | `/api/v1/resident/finance/statement/pdf` | requireResidentPrincipal |  | finance, residents |
+| ☑ | GET | `/api/v1/resident/food` | requireResidentPrincipal | redis etag | food |
+| ☑ | POST | `/api/v1/resident/food/feedback` | requireResidentPrincipal |  | food |
+| ☑ | POST | `/api/v1/resident/food/photos` | requireResidentPrincipal |  | food |
+| ☑ | GET POST | `/api/v1/resident/guardians` | requireResidentPrincipal | etag | guardian |
+| ☑ | DELETE PATCH | `/api/v1/resident/guardians/:id` | requireResidentPrincipal |  | guardian |
+| ☑ | DELETE GET PUT | `/api/v1/resident/leaving` | requireResidentPrincipal |  | move-checklist |
+| ☑ | POST | `/api/v1/resident/location/ping` | requireResidentPrincipal |  | attendance |
+| ☑ | GET | `/api/v1/resident/me` | requireResidentPrincipal | etag | residents |
+| ☑ | GET POST | `/api/v1/resident/night-status` | requireResidentPrincipal | etag | safety |
+| ☑ | POST | `/api/v1/resident/night-status/answer` | verifyPurposeToken |  | safety |
+| ☑ | GET | `/api/v1/resident/night-status/history` | requireResidentPrincipal | etag | safety |
+| ☑ | GET | `/api/v1/resident/notices` | requireResidentPrincipal | redis etag | notices |
+| ☑ | PATCH | `/api/v1/resident/notices/:id/read` | requireResidentPrincipal |  | notices |
+| ☑ | POST | `/api/v1/resident/notices/read-all` | requireResidentPrincipal |  | notices |
+| ☑ | GET | `/api/v1/resident/offer-program` | requireResidentPrincipal | etag | offer-program |
+| ☑ | GET | `/api/v1/resident/profile` | requireResidentPrincipal | etag | residents |
+| ☑ | POST | `/api/v1/resident/questioncall/click` | requireResidentPrincipal |  | questioncall |
+| ☑ | GET | `/api/v1/resident/questioncall/status` | requireResidentPrincipal | etag | questioncall |
+| ☑ | GET | `/api/v1/resident/referral` | requireResidentPrincipal | etag | referrals |
+| ☑ | POST | `/api/v1/resident/reviews` | requireResidentPrincipal |  | reviews |
+| ☑ | DELETE GET POST | `/api/v1/resident/room` | requireResidentPrincipal | etag | hostels |
+| ☑ | GET POST | `/api/v1/resident/sos` | requireResidentPrincipal | etag | safety |
 
 ### `store` (13)
 
@@ -984,7 +985,7 @@ matches the TS output for the same input (subject, HTML, text, headers).
 | ☐ | `billing/subscription-receipt.ts` |
 | ☐ | `booking/guest.ts` |
 | ☐ | `booking/hostel.ts` |
-| ☐ | `booking/parts.ts` |
+| ☑ | `booking/parts.ts` |
 | ☐ | `booking/payout-account.ts` |
 | ☐ | `booking/platform.ts` |
 | ☐ | `cook/credentials.ts` |

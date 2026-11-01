@@ -1,0 +1,131 @@
+[
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/accept-invitation",
+      "body": {
+        "token": "x",
+        "name": "y"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "name": [
+              "Too small: expected string to have \u003e=2 characters"
+            ],
+            "token": [
+              "Too small: expected string to have \u003e=16 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=2 characters",
+              "path": "name"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=16 characters",
+              "path": "token"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/accept-invitation",
+      "body": {
+        "token": "cook-token-99999999999"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invitation is not valid.",
+        "errorCode": "COOK_INVITATION_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "expired",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/accept-invitation",
+      "body": {
+        "token": "cook-token-00000000002"
+      }
+    },
+    "response": {
+      "status": 410,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invitation has expired. Ask the hostel to send a new one.",
+        "errorCode": "COOK_INVITATION_EXPIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "accept",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/accept-invitation",
+      "body": {
+        "token": "cook-token-00000000001",
+        "name": " Sita "
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invitation accepted",
+        "data": {
+          "accepted": true,
+          "accountCreated": true,
+          "email": "cookinvite@contract.test",
+          "hostelName": "Contract Hostel",
+          "requiresLogin": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/accept-invitation",
+      "body": {
+        "token": "cook-token-00000000001"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invitation is not valid.",
+        "errorCode": "COOK_INVITATION_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

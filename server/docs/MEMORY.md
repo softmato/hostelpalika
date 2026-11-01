@@ -4,6 +4,19 @@ Read this after README.md. Update it at the end of every session.
 
 ## State (2026-11-01)
 
+- **`MISSION.md` is the owner's binding brief: read it first.** The owner's bug rule replaced "TS is the spec, even its bugs": a TS bug is fixed in Go in the best way and in TS too (`RULES.md` §2); paths and methods stay exact.
+- **Phases 0–5 reviewed; `review_fixes_needed.md` is the list, ticked one by one.** Added: `httpx/guard.go` (body limit, deadline, security headers, JSON 404), `obs/metrics.go` (`METRICS_ADDR`), `background.Parallel`, IP-wide limiter budget, `TestRoutesMatchWeb`, `TestAnonymousIsRefused`, `.github/workflows/server.yml`. New route past 30 s → `routeBudgets` in `router.go`.
+- **Roadmap:** Phase 6 is next. New Phase 10 = production grade (measured), Phase 11 = cut-over. Phase 7 carries the superadmin log viewer.
+- Measured: 613 TS method+path pairs, 179 on Go, 0 mismatched, 434 to port (`hostel-admin` 223, `platform` 123, cron 19, `users` 18, `team` 16, `store` 16). `ROUTES_LIST=<file> go test -run TestRoutesMatchWeb ./internal/router` writes the list.
+- **All repo work is Claude's; outside work Claude does what it can reach and the owner mostly helps or does the rest (`MISSION.md` addition 4).** Phase 6 starts with the "Open items" table in `review_fixes_needed.md`.
+- Uncommitted TS work (`saved-hostels`, `PLAN_OVERDUE`, finance, branches, `bs.ts`) is not in the intake: Claude runs it from the working tree at the start of Phase 6. Go's `bs.FormatDate` already follows the uncommitted `bs.ts`, so TS at HEAD still prints the old date format until the owner's change lands.
+- `C:` was 99 % full with a 17 GB Go build cache, which made the linker fail with "cannot open file". If that error comes back, it is the disk: `go clean -cache`.
+- A contract answer changed for a fixed bug carries a `corrected` field naming the finding. Correct by hand, or re-record from a TS server that has the fix.
+- Python rewriting a file here: write to `<file>.tmp`, then `os.replace`. A direct open failed once with Errno 22.
+
+- **Phase 5 done (2026-11-01); Phase 6 is next, and PHASES.md says it starts once Phase 5 is ticked (Phase 4 still waits on the Vercel cookie release).** Booking modules: `bookings/{signed,terms,document}.go`, `platform/idcard`. Ported + contract-green: notifications, push, realtime, mobile, account prefs + invite, files, safety, notices, complaints, attendance, guardian, dashboard/profile/activate, referral, offer-program, reviews, questioncall, leaving, room. Modules: `safety`, `notices`, `complaints`, `attendance`, `guardian`, `residentaccount` (needs auth for sessions), `residentportal`, `users/issue.go`; `finance/{ledger,evidence}.go`. Fixture: `contract/fixture/resident.go`.
+  Gotchas found: an `undefined` nested inside a Mixed value reaches Mongo as **null** (settle's `data.answer`); zod's `.partial()` keeps `.default()`, so PATCH /resident/guardians/:id writes false for every key left out (TS bug, kept as spec, fix in TS first); `go test -run` splits on `/`, so filter by group name only; on-day values (`foodMenu.dayOfWeek`) must be masked.
+
 - **Phase 3 done; Phase 4 code done (2026-11-01).** Contract suite replayed green with Mongo + Redis up
   (start Docker first: without it Mongo tests skip and "ok" proves little). PARITY baseline moved to `8e965ad8`, intake empty.
   Phase 4's one open item needs the user: `COOKIE_DOMAIN=.hostelpalika.com` on Vercel + a deploy. Web calls go through
@@ -89,7 +102,7 @@ Read this after README.md. Update it at the end of every session.
 
 ## Decisions to keep
 
-- The whole TS backend in `apps/web` is the spec: same wire bytes, faster inside.
+- The whole TS backend in `apps/web` is the spec: same paths and methods always, same wire bytes unless the behaviour is a bug (then fix both, `RULES.md` §2), faster inside.
 - No seeds — local data is a copy of live.
 - The Go server never gets the production URI; config refuses Atlas outside `APP_ENV=production`.
 - Redis: Go uses **its own in-compose Redis, production included, from day one**
@@ -115,4 +128,14 @@ Read this after README.md. Update it at the end of every session.
   Messages must be zod v4's (`valid.Type`, `OneOf`, …); add a builder when a
   route needs a new one, checked against real zod output.
 - The Softmato client (later phase) must give its error a `SoftmatoRejection()` method.
-- No body limits yet (ARCHITECTURE.md §2 step 6); per-route deadlines (`maxNs`) come with the routes.
+- Body limits and deadlines are global now (`httpx/guard.go`); only long routes need a `routeBudgets` entry.
+
+## Left behind by Phase 5
+
+- Not run against real services: Vision, Gemini, R2 evidence fetch, presigned links, real ZIP contents. Needs a run with real keys before cut-over.
+- Softmato client is Phase 8. Until then a configured deployment writes `softmatotasks` rows (`BOOKING_PAYMENT`, `REFUND_FILING`) and redraws a Softmato receipt it has no local copy of.
+- `booking/guest.ts`, `hostel.ts`, `platform.ts` are ported only as far as Phase 5 sends them; the rest land with the routes in Phases 6 and 8, so those rows stay ☐. The payout advice layout lands with the hostel route.
+- Harness: `create.json` needs a fresh `user-agent` tag per recording, since TS's in-memory limiter survives between runs (`booking-create`: 10 per 15 min).
+- Check a raster golden by eye, not by the number alone: blank text scored only 4/255, and the first threshold of 3 nearly let it pass.
+- Go numbers written to Mongo go through `jsInt` where TS writes a JS number: an `int64` lands as `NumberLong`.
+- Fixed 2026-11-01 under the bug rule: receipts/x/pdf (now 404) and PATCH guardians (keys left out stay as they are). Left as is on purpose: a batched notification keeps its `createdAt`, so the row keeps its place in the bell.

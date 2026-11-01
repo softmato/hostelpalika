@@ -1,0 +1,439 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/khata"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "resident refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "orders",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.recent.*.decidedAt",
+      "data.decidedAt",
+      "data.recent.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata asks",
+        "data": {
+          "recent": [
+            {
+              "amount": 80,
+              "billed": false,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": "2026-11-01T11:11:57.461Z",
+              "id": "6c00000000000000000000f9",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": {
+                "id": "6c00000000000000000000c1",
+                "name": "Res Ident",
+                "roomNumber": null
+              },
+              "status": "GIVEN",
+              "unitPrice": 40
+            }
+          ],
+          "waiting": [
+            {
+              "amount": 80,
+              "billed": false,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": null,
+              "id": "6c00000000000000000000f8",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": {
+                "id": "6c00000000000000000000c1",
+                "name": "Res Ident",
+                "roomNumber": null
+              },
+              "status": "REQUESTED",
+              "unitPrice": 40
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "orders admin",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/khata",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.recent.*.decidedAt",
+      "data.decidedAt",
+      "data.recent.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Khata asks",
+        "data": {
+          "recent": [
+            {
+              "amount": 80,
+              "billed": false,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": "2026-11-01T11:11:57.461Z",
+              "id": "6c00000000000000000000f9",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": {
+                "id": "6c00000000000000000000c1",
+                "name": "Res Ident",
+                "roomNumber": null
+              },
+              "status": "GIVEN",
+              "unitPrice": 40
+            }
+          ],
+          "waiting": [
+            {
+              "amount": 80,
+              "billed": false,
+              "createdAt": "2026-09-01T06:00:00.000Z",
+              "decidedAt": null,
+              "id": "6c00000000000000000000f8",
+              "name": "Noodles",
+              "note": null,
+              "quantity": 2,
+              "resident": {
+                "id": "6c00000000000000000000c1",
+                "name": "Res Ident",
+                "roomNumber": null
+              },
+              "status": "REQUESTED",
+              "unitPrice": 40
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/cook/khata?hostelId=6c00000000000000000000a2",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/khata/6c00000000000000000000f8",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "X"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "action": [
+              "Invalid option: expected one of \"GIVE\"|\"DECLINE\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"GIVE\"|\"DECLINE\"",
+              "path": "action"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/khata/x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "GIVE"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That ask was not found.",
+        "errorCode": "KHATA_ENTRY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/khata/6c00000000000000000000ff",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "GIVE"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That ask was not found.",
+        "errorCode": "KHATA_ENTRY_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "give",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/khata/6c00000000000000000000f8",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "GIVE"
+      }
+    },
+    "masks": [
+      "data.recent.*.decidedAt",
+      "data.decidedAt",
+      "data.recent.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Given",
+        "data": {
+          "amount": 80,
+          "billed": false,
+          "createdAt": "2026-09-01T06:00:00.000Z",
+          "decidedAt": "2026-11-01T11:12:08.824Z",
+          "id": "6c00000000000000000000f8",
+          "name": "Noodles",
+          "note": null,
+          "quantity": 2,
+          "resident": null,
+          "status": "GIVEN",
+          "unitPrice": 40
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/cook/khata/6c00000000000000000000f8",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "action": "DECLINE"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Someone already answered this ask.",
+        "errorCode": "KHATA_ENTRY_DECIDED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "bell",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=unread",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt",
+      "data.notifications.*.readAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/khata",
+              "body": "Rs 80 added to your khata — it goes on next month's bill.",
+              "category": "KHATA",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T11:12:08.867Z",
+              "data": {
+                "entryId": "6c00000000000000000000f8",
+                "type": "KHATA_ASK_ANSWERED"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae71e88e6822539292ba57c",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Noodles ×2 given",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Pay soon",
+              "category": "BILLING",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:11:57.461Z",
+              "data": {
+                "z": 1,
+                "a": "x"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c0000000000000000000091",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "HIGH",
+              "status": "SENT",
+              "title": "Rent due",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [
+                {
+                  "endpoint": "/x",
+                  "key": "IN",
+                  "label": "In",
+                  "method": "POST",
+                  "tone": "default"
+                }
+              ],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/night",
+              "body": "Answer",
+              "category": "NIGHT_STATUS",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T09:11:57.461Z",
+              "data": {},
+              "id": "6c0000000000000000000092",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Night?",
+              "userId": "6c0000000000000000000007"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 3,
+            "totalPages": 1
+          },
+          "unreadCount": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

@@ -1,0 +1,729 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/food"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/food",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "food",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/food",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.routine.updatedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident food loaded",
+        "data": {
+          "photos": [
+            {
+              "caption": "Nice",
+              "date": "2026-09-01T14:00:00.000Z",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c00000000000000000000b7",
+              "mealType": "DINNER",
+              "photoAssetId": "photo-2",
+              "residentId": "6c00000000000000000000c1",
+              "uploadedAt": "2026-09-01T14:00:00.000Z",
+              "uploadedBy": "6c0000000000000000000007"
+            },
+            {
+              "caption": "",
+              "date": "2026-09-01T06:00:00.000Z",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c00000000000000000000b6",
+              "mealType": "LUNCH",
+              "photoAssetId": "photo-1",
+              "uploadedAt": "2026-09-01T06:00:00.000Z",
+              "uploadedBy": "6c0000000000000000000009"
+            },
+            {
+              "caption": "",
+              "date": "2026-08-31T06:00:00.000Z",
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6c00000000000000000000b8",
+              "mealType": "LUNCH",
+              "photoAssetId": "photo-3",
+              "uploadedAt": "2026-08-31T06:00:00.000Z",
+              "uploadedBy": "6c00000000000000000000bb"
+            }
+          ],
+          "resident": {
+            "createdAt": "2026-10-31T10:46:35.770Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          },
+          "routine": {
+            "meals": [
+              {
+                "dayOfWeek": "SUNDAY",
+                "items": [
+                  "Rice",
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": ""
+              },
+              {
+                "dayOfWeek": "SUNDAY",
+                "items": [
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "07:00"
+              },
+              {
+                "dayOfWeek": "MONDAY",
+                "items": [
+                  "Rice",
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": ""
+              },
+              {
+                "dayOfWeek": "MONDAY",
+                "items": [
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "07:00"
+              },
+              {
+                "dayOfWeek": "TUESDAY",
+                "items": [
+                  "Rice",
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": ""
+              },
+              {
+                "dayOfWeek": "TUESDAY",
+                "items": [
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "07:00"
+              },
+              {
+                "dayOfWeek": "WEDNESDAY",
+                "items": [
+                  "Rice",
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": ""
+              },
+              {
+                "dayOfWeek": "WEDNESDAY",
+                "items": [
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "07:00"
+              },
+              {
+                "dayOfWeek": "THURSDAY",
+                "items": [
+                  "Rice",
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": ""
+              },
+              {
+                "dayOfWeek": "THURSDAY",
+                "items": [
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "07:00"
+              },
+              {
+                "dayOfWeek": "FRIDAY",
+                "items": [
+                  "Rice",
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": ""
+              },
+              {
+                "dayOfWeek": "FRIDAY",
+                "items": [
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "07:00"
+              },
+              {
+                "dayOfWeek": "SATURDAY",
+                "items": [
+                  "Rice",
+                  "Dal"
+                ],
+                "mealType": "DINNER",
+                "note": "",
+                "timing": ""
+              },
+              {
+                "dayOfWeek": "SATURDAY",
+                "items": [
+                  "Tea"
+                ],
+                "mealType": "BREAKFAST",
+                "note": "Hot",
+                "timing": "07:00"
+              }
+            ],
+            "monthEndSpecial": null,
+            "timings": {
+              "BREAKFAST": "07:00"
+            },
+            "updatedAt": "2026-11-01T10:46:35.770Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "feedback invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/food/feedback",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "date": "nope",
+        "mealType": "X",
+        "rating": 9,
+        "comment": 3,
+        "isAnonymous": "y"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "date": [
+              "Invalid input: expected date, received Date"
+            ],
+            "mealType": [
+              "Invalid option: expected one of \"BREAKFAST\"|\"LUNCH\"|\"SNACKS\"|\"DINNER\""
+            ],
+            "rating": [
+              "Too big: expected number to be \u003c=5"
+            ],
+            "comment": [
+              "Invalid input: expected string, received number"
+            ],
+            "isAnonymous": [
+              "Invalid input: expected boolean, received string"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "date"
+            },
+            {
+              "message": "Invalid option: expected one of \"BREAKFAST\"|\"LUNCH\"|\"SNACKS\"|\"DINNER\"",
+              "path": "mealType"
+            },
+            {
+              "message": "Too big: expected number to be \u003c=5",
+              "path": "rating"
+            },
+            {
+              "message": "Invalid input: expected string, received number",
+              "path": "comment"
+            },
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "isAnonymous"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "feedback missing date",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/food/feedback",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "mealType": "LUNCH",
+        "rating": "3"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "date": [
+              "Invalid input: expected date, received Date"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "date"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "feedback good",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/food/feedback",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "date": "2026-09-01",
+        "mealType": "LUNCH",
+        "rating": "4",
+        "comment": " fine "
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.feedback.id",
+      "data.feedback.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food feedback submitted",
+        "data": {
+          "feedback": {
+            "comment": "fine",
+            "createdAt": "2026-11-01T10:46:39.553Z",
+            "date": "2026-09-01T00:00:00.000Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae7188fe6822539292ba4e4",
+            "isAnonymous": false,
+            "mealType": "LUNCH",
+            "rating": 4,
+            "residentId": "6c00000000000000000000c1"
+          },
+          "resident": {
+            "createdAt": "2026-10-31T10:46:35.770Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "feedback bad",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/food/feedback",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "date": "2026-09-01T10:00:00.000Z",
+        "mealType": "DINNER",
+        "rating": 1,
+        "isAnonymous": true
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.feedback.id",
+      "data.feedback.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food feedback submitted",
+        "data": {
+          "feedback": {
+            "comment": "",
+            "createdAt": "2026-11-01T10:46:39.661Z",
+            "date": "2026-09-01T10:00:00.000Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae7188fe6822539292ba4e6",
+            "isAnonymous": true,
+            "mealType": "DINNER",
+            "rating": 1,
+            "residentId": "6c00000000000000000000c1"
+          },
+          "resident": {
+            "createdAt": "2026-10-31T10:46:35.770Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "admin told of low",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 1,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/hostel-admin/food",
+              "body": "Res Ident at Contract Hostel — 1/5 for dinner, with no comment left.",
+              "category": "FOOD",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:46:39.700Z",
+              "data": {
+                "audience": "STAFF"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae7188fe6822539292ba4e9",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Low food rating",
+              "userId": "6c0000000000000000000005"
+            },
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "Admin",
+              "category": "NOTICE",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:46:35.770Z",
+              "data": {},
+              "id": "6c0000000000000000000094",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Not yours",
+              "userId": "6c0000000000000000000005"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 2,
+            "totalPages": 1
+          },
+          "unreadCount": 2
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "cook told of low",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000009:COOK:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 0,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "body": "1/5 for dinner, with no comment left.",
+              "category": "FOOD",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:46:39.700Z",
+              "data": {
+                "audience": "COOK"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae7188fe6822539292ba4e8",
+              "isRead": false,
+              "kind": "NORMAL",
+              "needsAction": false,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "A resident rated your food",
+              "userId": "6c0000000000000000000009"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 1,
+            "totalPages": 1
+          },
+          "unreadCount": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "photo invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/food/photos",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "mealType": "X",
+        "photoAssetId": ""
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "mealType": [
+              "Invalid option: expected one of \"BREAKFAST\"|\"LUNCH\"|\"SNACKS\"|\"DINNER\""
+            ],
+            "date": [
+              "Invalid input: expected date, received Date"
+            ],
+            "photoAssetId": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"BREAKFAST\"|\"LUNCH\"|\"SNACKS\"|\"DINNER\"",
+              "path": "mealType"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "date"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "photoAssetId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "photo",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/food/photos",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "date": "2026-09-02",
+        "mealType": "LUNCH",
+        "photoAssetId": " a1 ",
+        "caption": " tasty "
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.photo.id",
+      "data.photo.uploadedAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food photo uploaded",
+        "data": {
+          "photo": {
+            "caption": "tasty",
+            "date": "2026-09-02T00:00:00.000Z",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6ae71890e6822539292ba4ea",
+            "mealType": "LUNCH",
+            "photoAssetId": "a1",
+            "residentId": "6c00000000000000000000c1",
+            "uploadedAt": "2026-11-01T10:46:40.899Z",
+            "uploadedBy": "6c0000000000000000000007"
+          },
+          "resident": {
+            "createdAt": "2026-10-31T10:46:35.770Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

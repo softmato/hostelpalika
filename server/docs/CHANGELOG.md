@@ -3,6 +3,38 @@
 Newest first. One entry per closed phase gate, plus any decision that changes
 these docs.
 
+## [Review of Phases 0–5] — 2026-11-01
+
+### Decided by the owner
+- `MISSION.md` holds the binding brief. A TS bug is fixed in Go and in TS, never copied (`RULES.md` §2). Routes match the web exactly. Logs, categories and levels are visible in the superadmin portal (Phase 7). `RULES.md`, `PHASES.md` and `README.md` changed to match.
+- Phases: new Phase 10 (production grade, measured), cut-over is now Phase 11.
+- All repo work is Claude's, with full permission, including the CI push. Outside work: Claude does what it can reach, and the owner mostly helps or does the rest (`MISSION.md` addition 4).
+
+### Fixed (`review_fixes_needed.md`)
+- Bodies capped, every request has a deadline, background work bounded with a deadline, no bare goroutines in fan-out, DB faults no longer sign people out, limiter has an IP-wide budget, garbage token is a 401, client mistakes are 4xx, guardian PATCH keeps the keys it was not sent, security headers on, sponsor impressions count every sponsor.
+- `TestRoutesMatchWeb` and `TestAnonymousIsRefused` guard paths and auth for every route to come.
+
+### New dependency
+- `prometheus/client_golang`: `MISSION.md` §11 needs latency distributions, pool use and Go runtime metrics, and writing histograms and the exposition format by hand would be more code to maintain than this one library. Served on `METRICS_ADDR`, never published.
+
+## [Phase 5] — 2026-11-01
+
+### Gate
+- Resident, guardian and cook surfaces replay green against TS recordings on Go only, `go test -race -tags=sonic ./...` clean.
+- Gateway checkout for residents moved to Phase 8 with the booking checkout routes. Until then a resident on Go pays by QR and sends proof.
+
+### Added / Changed
+- Signed-in bookings: create, list, detail, cancel, quote, documents. Email attachments in the sender. Rows written by cancel and create diffed against TS field by field; that diff caught money landing as `NumberLong` where JS writes int32.
+- `platform/idcard`: ID card PNGs with embedded Inter as outlines plus a GPOS pair-kerning reader, because `x/image` reads only the legacy `kern` table and lines wrapped at a different word without it.
+- New TS-generated goldens: `testdata/vectors/bookings.ts`, `testdata/vectors/idcards.ts`; booking templates added to `emails.ts`.
+
+### Parity
+- Baseline moved: `8e965ad8` → `6281d03d`.
+- `bs.FormatDate` now prints `Baisakh 15, 2083 BS`, following the uncommitted change in `packages/shared/src/calendar/bs.ts`. Other uncommitted TS backend files are not yet reviewed against Go: the baseline diff will show them once they are committed.
+- TS bugs kept as spec, to fix in TS first: batched notification `createdAt` is stripped by Mongoose; `GET /resident/finance/receipts/x/pdf` answers 500 on a malformed id; `PATCH /resident/guardians/:id` writes false for omitted permissions.
+
+---
+
 ## [Unreleased]
 
 ### 2026-11-01 — Phase 4 code: cookie domain, one API setting, CORS

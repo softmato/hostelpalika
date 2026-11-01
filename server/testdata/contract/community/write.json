@@ -1,0 +1,292 @@
+[
+  {
+    "name": "create anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community",
+      "body": {
+        "body": "x"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "create invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "body": "",
+        "visibility": "X",
+        "media": [
+          1,
+          {
+            "assetId": "",
+            "kind": "Z"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "body": [
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "visibility": [
+              "Invalid option: expected one of \"PUBLIC\"|\"HOSTEL_ONLY\""
+            ],
+            "media": [
+              "Invalid input: expected object, received number",
+              "Too small: expected string to have \u003e=1 characters",
+              "Invalid option: expected one of \"IMAGE\"|\"VIDEO\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "body"
+            },
+            {
+              "message": "Invalid option: expected one of \"PUBLIC\"|\"HOSTEL_ONLY\"",
+              "path": "visibility"
+            },
+            {
+              "message": "Invalid input: expected object, received number",
+              "path": "media.0"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "media.1.assetId"
+            },
+            {
+              "message": "Invalid option: expected one of \"IMAGE\"|\"VIDEO\"",
+              "path": "media.1.kind"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "create",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "body": " shit happens ",
+        "visibility": "HOSTEL_ONLY",
+        "media": [
+          {
+            "assetId": "a",
+            "kind": "IMAGE"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "data.post.id",
+      "data.post.createdAt",
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Post published",
+        "data": {
+          "post": {
+            "authorImage": null,
+            "authorName": "Contract resident",
+            "body": "**** happens",
+            "commentCount": 0,
+            "createdAt": "2026-11-01T11:01:10.414Z",
+            "hostelId": "6c00000000000000000000a1",
+            "hostelName": "Contract Hostel",
+            "id": "6ae71bf6e6822539292ba546",
+            "isAnnouncement": false,
+            "isMine": true,
+            "media": [
+              {
+                "assetId": "a",
+                "kind": "IMAGE"
+              }
+            ],
+            "reactionCount": 0,
+            "reactionCounts": {},
+            "spaceType": "HOSTEL",
+            "status": "VISIBLE",
+            "viewerReaction": null,
+            "visibility": "HOSTEL_ONLY"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "create public account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/community",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000001:PUBLIC}}"
+      },
+      "body": {
+        "body": "From nowhere",
+        "visibility": "HOSTEL_ONLY"
+      }
+    },
+    "masks": [
+      "data.post.id",
+      "data.post.createdAt",
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Post published",
+        "data": {
+          "post": {
+            "authorImage": null,
+            "authorName": "Contract public",
+            "body": "From nowhere",
+            "commentCount": 0,
+            "createdAt": "2026-11-01T11:01:10.465Z",
+            "hostelId": null,
+            "hostelName": null,
+            "id": "6ae71bf6e6822539292ba547",
+            "isAnnouncement": false,
+            "isMine": true,
+            "media": [],
+            "reactionCount": 0,
+            "reactionCounts": {},
+            "spaceType": "PUBLIC",
+            "status": "VISIBLE",
+            "viewerReaction": null,
+            "visibility": "PUBLIC"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "delete not mine",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/community/6c00000000000000000000c2",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Post was not found.",
+        "errorCode": "POST_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "delete mine",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/community/6c00000000000000000000c1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Post deleted",
+        "data": {
+          "postId": "6c00000000000000000000c1",
+          "status": "HIDDEN"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "deleted gone",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/community/6c00000000000000000000c1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.posts.*.createdAt",
+      "data.post.createdAt",
+      "data.comments.*.createdAt"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Post was not found.",
+        "errorCode": "POST_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

@@ -1,0 +1,233 @@
+[
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/guardian/accept-invitation",
+      "body": {
+        "token": "short",
+        "name": ""
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "name": [
+              "Too small: expected string to have \u003e=1 characters"
+            ],
+            "token": [
+              "Too small: expected string to have \u003e=16 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "name"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=16 characters",
+              "path": "token"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/guardian/accept-invitation",
+      "body": {
+        "token": "no-such-token-000000"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invitation is not valid.",
+        "errorCode": "GUARDIAN_INVITATION_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "expired",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/guardian/accept-invitation",
+      "body": {
+        "token": "invite-token-0000000002"
+      }
+    },
+    "response": {
+      "status": 410,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invitation has expired. Ask the resident to send a new one.",
+        "errorCode": "GUARDIAN_INVITATION_EXPIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "role clash",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/guardian/accept-invitation",
+      "body": {
+        "token": "invite-token-0000000003"
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This email already belongs to an account with a different role.",
+        "errorCode": "EMAIL_ALREADY_HAS_ROLE"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "accept",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/guardian/accept-invitation",
+      "body": {
+        "token": "invite-token-0000000001"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Guardian invitation accepted",
+        "data": {
+          "accepted": true,
+          "accountCreated": true,
+          "email": "newguard@contract.test",
+          "hostelName": "Contract Hostel",
+          "requiresLogin": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "accept twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/guardian/accept-invitation",
+      "body": {
+        "token": "invite-token-0000000001"
+      }
+    },
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This invitation is not valid.",
+        "errorCode": "GUARDIAN_INVITATION_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "resident told",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/notifications?filter=action",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.notifications.*.id",
+      "data.notifications.*.createdAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Notifications loaded",
+        "data": {
+          "actionCount": 2,
+          "notifications": [
+            {
+              "actions": [],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/guardians",
+              "body": "New Guard accepted your invitation and can now see what you allowed.",
+              "category": "GUARDIAN",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T10:34:02.748Z",
+              "data": {
+                "audience": "RESIDENT"
+              },
+              "hostelId": "6c00000000000000000000a1",
+              "id": "6ae7159ae6822539292ba483",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Guardian linked",
+              "userId": "6c0000000000000000000007"
+            },
+            {
+              "actions": [
+                {
+                  "endpoint": "/x",
+                  "key": "IN",
+                  "label": "In",
+                  "method": "POST",
+                  "tone": "default"
+                }
+              ],
+              "actionState": "PENDING",
+              "actionUrl": "/resident/night",
+              "body": "Answer",
+              "category": "NIGHT_STATUS",
+              "channel": "IN_APP",
+              "createdAt": "2026-11-01T08:33:55.303Z",
+              "data": {},
+              "id": "6c0000000000000000000092",
+              "isRead": false,
+              "kind": "ACTION",
+              "needsAction": true,
+              "priority": "NORMAL",
+              "status": "SENT",
+              "title": "Night?",
+              "userId": "6c0000000000000000000007"
+            }
+          ],
+          "pagination": {
+            "hasMore": false,
+            "page": 1,
+            "pageSize": 100,
+            "total": 2,
+            "totalPages": 1
+          },
+          "unreadCount": 3
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

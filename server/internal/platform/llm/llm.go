@@ -60,7 +60,7 @@ type Router struct {
 }
 
 func New(keys map[string][]string, order []string) *Router {
-	return &Router{Keys: keys, Order: order, HTTP: &http.Client{}, Now: time.Now, exhausted: map[string]time.Time{}}
+	return &Router{Keys: keys, Order: order, HTTP: &http.Client{Timeout: providerTimeout}, Now: time.Now, exhausted: map[string]time.Time{}}
 }
 
 var errExhausted = errors.New("All AI providers and keys are currently exhausted or unconfigured.")
@@ -118,6 +118,13 @@ func (r *Router) endpoint(p, def string) string {
 	return def
 }
 
+const (
+	// providerTimeout: the request's own deadline usually ends a stuck call first;
+	// this also covers callers with no deadline.
+	providerTimeout = 30 * time.Second
+	maxReply        = 4 << 20
+)
+
 func (r *Router) post(ctx context.Context, url string, headers map[string]string, body any, out any) (int, error) {
 	raw, _ := json.Marshal(body)
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(raw))
@@ -136,7 +143,7 @@ func (r *Router) post(ctx context.Context, url string, headers map[string]string
 	if res.StatusCode < 200 || res.StatusCode > 299 {
 		return res.StatusCode, nil
 	}
-	b, err := io.ReadAll(res.Body)
+	b, err := io.ReadAll(io.LimitReader(res.Body, maxReply))
 	if err != nil {
 		return res.StatusCode, err
 	}

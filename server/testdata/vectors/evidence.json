@@ -1,0 +1,834 @@
+{
+ "code": "EDU-0002-P",
+ "identity": {
+  "accountIds": [
+   "9800000001",
+   "00112233445566",
+   "99887766",
+   "9801234567"
+  ],
+  "names": [
+   "Sunrise Boys Hostel",
+   "Sunrise Hostel Pvt Ltd",
+   "Second",
+   "Sunrise"
+  ]
+ },
+ "facts": {
+  "amount": 8500,
+  "referenceCode": "EDU-0002-P",
+  "transactionCode": "8823119471"
+ },
+ "texts": [
+  {
+   "text": "eSewa\nPayment Successful\nRs. 8,500.00\nTransaction Code: 8823119471\nSent to: Sunrise Boys Hostel\nFrom: 9801234521\nRemarks: EDU-0002-P\nDate: 2026-08-04 10:14 AM",
+   "receipt": {
+    "amount": 8500,
+    "direction": "DEBIT",
+    "payee": "Sunrise Boys Hostel",
+    "provider": "ESEWA",
+    "shape": "RECEIPT",
+    "txnId": "8823119471"
+   },
+   "direction": {
+    "direction": "DEBIT",
+    "isLedgerView": false,
+    "outcome": "SUCCESS",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": "Sunrise Boys Hostel",
+    "verdict": "MATCHED"
+   },
+   "payeeRefusal": null,
+   "fields": {
+    "amount": 8500,
+    "transactionCode": "8823119471",
+    "referenceCode": "EDU-0002-P",
+    "method": "ESEWA"
+   },
+   "flags": [
+    "EVIDENCE_TEXT_MATCHES_CLAIM",
+    "EVIDENCE_REFERENCE_ON_IMAGE"
+   ],
+   "looksLike": true,
+   "notPayment": false,
+   "references": [
+    "EDU-0002-P"
+   ],
+   "statement": false,
+   "bank": null,
+   "system": null
+  },
+  {
+   "text": "Khalti\nPayment Successful\nAmount Rs. 8,500\nPurchase Order ID  KHL7734X21\nPaid to  Sunrise Boys Hostel\nMobile  9801234521\nRemarks  EDU-0002-P",
+   "receipt": {
+    "amount": 8500,
+    "direction": "DEBIT",
+    "payee": "Sunrise Boys Hostel",
+    "provider": "KHALTI",
+    "shape": "RECEIPT",
+    "txnId": "KHL7734X21"
+   },
+   "direction": {
+    "direction": "DEBIT",
+    "isLedgerView": false,
+    "outcome": "SUCCESS",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": "Sunrise Boys Hostel",
+    "verdict": "MATCHED"
+   },
+   "payeeRefusal": null,
+   "fields": {
+    "amount": 8500,
+    "transactionCode": "KHL7734X21",
+    "referenceCode": "EDU-0002-P",
+    "method": "KHALTI"
+   },
+   "flags": [
+    "EVIDENCE_TEXT_MATCHES_CLAIM",
+    "EVIDENCE_REFERENCE_ON_IMAGE"
+   ],
+   "looksLike": true,
+   "notPayment": false,
+   "references": [
+    "EDU-0002-P"
+   ],
+   "statement": false,
+   "bank": null,
+   "system": null
+  },
+  {
+   "text": "EBL EVEREST BANK\nPayment Receipt\nReference Code   111903076\nDate/Time   10 Aug 2026,07:10 PM\nChannel   Online\nAmount (NPR)   8,500.00\nInitiator   9709155982\nQr Merchant Name   Sunrise Boys Hostel\nRemarks   EDU-0002-P\nStatus   SUCCESS",
+   "receipt": {
+    "amount": 8500,
+    "direction": "DEBIT",
+    "payee": "Sunrise Boys Hostel",
+    "provider": "BANK",
+    "shape": "RECEIPT",
+    "txnId": "111903076"
+   },
+   "direction": {
+    "direction": "DEBIT",
+    "isLedgerView": false,
+    "outcome": "SUCCESS",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": "Sunrise Boys Hostel",
+    "verdict": "MATCHED"
+   },
+   "payeeRefusal": null,
+   "fields": {
+    "transactionCode": "111903076",
+    "referenceCode": "EDU-0002-P",
+    "method": "BANK_TRANSFER"
+   },
+   "flags": [
+    "EVIDENCE_TEXT_MATCHES_CLAIM",
+    "EVIDENCE_REFERENCE_ON_IMAGE"
+   ],
+   "looksLike": true,
+   "notPayment": false,
+   "references": [
+    "EDU-0002-P"
+   ],
+   "statement": false,
+   "bank": {
+    "key": "everest",
+    "name": "Everest Bank"
+   },
+   "system": null
+  },
+  {
+   "text": "Fonepay\nTrace ID: 998877665544\nQR Merchant Name: Everest Mart\nAmount: 1,200\nFrom: 98000\nPurpose: tea",
+   "receipt": {
+    "amount": 1200,
+    "direction": "DEBIT",
+    "payee": "Everest Mart",
+    "provider": "FONEPAY",
+    "shape": "RECEIPT",
+    "txnId": "998877665544"
+   },
+   "direction": {
+    "direction": "DEBIT",
+    "isLedgerView": false,
+    "outcome": "UNKNOWN",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": "Everest Mart",
+    "verdict": "MATCHED"
+   },
+   "payeeRefusal": null,
+   "fields": {
+    "amount": 1200,
+    "transactionCode": "998877665544",
+    "method": "FONEPAY"
+   },
+   "flags": [
+    "EVIDENCE_NO_TEXT_FOUND"
+   ],
+   "looksLike": true,
+   "notPayment": false,
+   "references": [],
+   "statement": false,
+   "bank": null,
+   "system": null
+  },
+  {
+   "text": "connectIPS\nBeneficiary Name  Sunrise Hostel Pvt Ltd\nTo Account 00112233445566\nTransfer Amount NPR 15,000.50\nRRN 123456789012\nDebited From 77",
+   "receipt": {
+    "amount": 15000,
+    "direction": "DEBIT",
+    "payee": "Sunrise Hostel Pvt Ltd",
+    "provider": "CONNECTIPS",
+    "shape": "RECEIPT",
+    "txnId": "123456789012"
+   },
+   "direction": {
+    "direction": "DEBIT",
+    "isLedgerView": false,
+    "outcome": "UNKNOWN",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": "Sunrise Hostel Pvt Ltd",
+    "verdict": "MATCHED"
+   },
+   "payeeRefusal": null,
+   "fields": {
+    "amount": 15000,
+    "transactionCode": "123456789012",
+    "method": "BANK_TRANSFER"
+   },
+   "flags": [
+    "EVIDENCE_NO_TEXT_FOUND"
+   ],
+   "looksLike": true,
+   "notPayment": false,
+   "references": [],
+   "statement": false,
+   "bank": null,
+   "system": null
+  },
+  {
+   "text": "Account Statement\nDate  Particulars  Debit  Credit  Balance\n2026-08-01  Load  100.00  5000.00",
+   "receipt": {
+    "amount": null,
+    "direction": null,
+    "payee": null,
+    "provider": "UNKNOWN",
+    "shape": "STATEMENT",
+    "txnId": null
+   },
+   "direction": {
+    "direction": "UNKNOWN",
+    "isLedgerView": false,
+    "outcome": "UNKNOWN",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": null,
+    "verdict": "UNKNOWN"
+   },
+   "payeeRefusal": null,
+   "fields": {},
+   "flags": [
+    "EVIDENCE_NO_TEXT_FOUND"
+   ],
+   "looksLike": true,
+   "notPayment": false,
+   "references": [],
+   "statement": true,
+   "bank": null,
+   "system": null
+  },
+  {
+   "text": "eSewa\nYou received from Ram\nAmount credited Rs. 500\nReference Code: 1QAXP2M",
+   "receipt": {
+    "amount": 500,
+    "direction": null,
+    "payee": null,
+    "provider": "ESEWA",
+    "shape": "RECEIPT",
+    "txnId": "1QAXP2M"
+   },
+   "direction": {
+    "direction": "CREDIT",
+    "isLedgerView": false,
+    "outcome": "UNKNOWN",
+    "strongCredit": true
+   },
+   "directionRefusal": "That receipt shows money coming *into* your account, not a payment you made. Please upload the receipt for the payment you sent to the hostel — the one showing the money leaving your account.",
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": null,
+    "verdict": "UNKNOWN"
+   },
+   "payeeRefusal": null,
+   "fields": {
+    "amount": 500,
+    "transactionCode": "1QAXP2M",
+    "method": "ESEWA"
+   },
+   "flags": [
+    "EVIDENCE_NO_TEXT_FOUND"
+   ],
+   "looksLike": true,
+   "notPayment": false,
+   "references": [],
+   "statement": false,
+   "bank": null,
+   "system": null
+  },
+  {
+   "text": "Khalti\nPayment failed\nAmount Rs. 500\nTransaction ID: ABC12345",
+   "receipt": {
+    "amount": 500,
+    "direction": null,
+    "payee": null,
+    "provider": "KHALTI",
+    "shape": "RECEIPT",
+    "txnId": "ABC12345"
+   },
+   "direction": {
+    "direction": "UNKNOWN",
+    "isLedgerView": false,
+    "outcome": "FAILED",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": "That receipt says the transaction failed, so no money left your account. Please upload the receipt for a payment that went through.",
+   "payee": {
+    "payee": null,
+    "verdict": "UNKNOWN"
+   },
+   "payeeRefusal": null,
+   "fields": {
+    "amount": 500,
+    "transactionCode": "ABC12345",
+    "method": "KHALTI"
+   },
+   "flags": [
+    "EVIDENCE_NO_TEXT_FOUND"
+   ],
+   "looksLike": true,
+   "notPayment": false,
+   "references": [],
+   "statement": false,
+   "bank": null,
+   "system": null
+  },
+  {
+   "text": "Connect IPS transaction cancelled\nRs 700",
+   "receipt": {
+    "amount": 700,
+    "direction": null,
+    "payee": null,
+    "provider": "CONNECTIPS",
+    "shape": "RECEIPT",
+    "txnId": null
+   },
+   "direction": {
+    "direction": "UNKNOWN",
+    "isLedgerView": false,
+    "outcome": "CANCELLED",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": "That receipt says the transaction was cancelled, so no money left your account. Please upload the receipt for a payment that went through.",
+   "payee": {
+    "payee": null,
+    "verdict": "UNKNOWN"
+   },
+   "payeeRefusal": null,
+   "fields": {
+    "amount": 700,
+    "method": "BANK_TRANSFER"
+   },
+   "flags": [
+    "EVIDENCE_NO_TEXT_FOUND"
+   ],
+   "looksLike": true,
+   "notPayment": false,
+   "references": [],
+   "statement": false,
+   "bank": null,
+   "system": null
+  },
+  {
+   "text": "Bank transfer pending\nRs. 900\nTxn ID: 77889900",
+   "receipt": {
+    "amount": 900,
+    "direction": null,
+    "payee": null,
+    "provider": "BANK",
+    "shape": "RECEIPT",
+    "txnId": "77889900"
+   },
+   "direction": {
+    "direction": "UNKNOWN",
+    "isLedgerView": false,
+    "outcome": "PENDING",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": null,
+    "verdict": "UNKNOWN"
+   },
+   "payeeRefusal": null,
+   "fields": {
+    "amount": 900,
+    "transactionCode": "77889900",
+    "method": "BANK_TRANSFER"
+   },
+   "flags": [
+    "EVIDENCE_NO_TEXT_FOUND"
+   ],
+   "looksLike": true,
+   "notPayment": false,
+   "references": [],
+   "statement": false,
+   "bank": null,
+   "system": null
+  },
+  {
+   "text": "Lunch menu for the whole of next week: dal bhat, momo, chowmein and tea every morning at nine.",
+   "receipt": {
+    "amount": null,
+    "direction": null,
+    "payee": null,
+    "provider": "UNKNOWN",
+    "shape": "UNKNOWN",
+    "txnId": null
+   },
+   "direction": {
+    "direction": "UNKNOWN",
+    "isLedgerView": false,
+    "outcome": "UNKNOWN",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": null,
+    "verdict": "UNKNOWN"
+   },
+   "payeeRefusal": null,
+   "fields": {},
+   "flags": [
+    "EVIDENCE_NOT_A_PAYMENT_RECORD"
+   ],
+   "looksLike": false,
+   "notPayment": true,
+   "references": [],
+   "statement": false,
+   "bank": null,
+   "system": null
+  },
+  {
+   "text": "रु ८,५०० paid\nTransaction Code: 8823119471",
+   "receipt": {
+    "amount": null,
+    "direction": null,
+    "payee": null,
+    "provider": "UNKNOWN",
+    "shape": "UNKNOWN",
+    "txnId": null
+   },
+   "direction": {
+    "direction": "UNKNOWN",
+    "isLedgerView": false,
+    "outcome": "UNKNOWN",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": null,
+    "verdict": "UNKNOWN"
+   },
+   "payeeRefusal": null,
+   "fields": {
+    "transactionCode": "8823119471"
+   },
+   "flags": [
+    "EVIDENCE_TEXT_MATCHES_CLAIM"
+   ],
+   "looksLike": true,
+   "notPayment": false,
+   "references": [],
+   "statement": false,
+   "bank": null,
+   "system": null
+  },
+  {
+   "text": "RCP-EDU-2083-05-00012 receipt\nComputer-generated receipt. Not a proof-of-payment upload.",
+   "receipt": {
+    "amount": null,
+    "direction": null,
+    "payee": null,
+    "provider": "UNKNOWN",
+    "shape": "UNKNOWN",
+    "txnId": null
+   },
+   "direction": {
+    "direction": "UNKNOWN",
+    "isLedgerView": false,
+    "outcome": "UNKNOWN",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": null,
+    "verdict": "UNKNOWN"
+   },
+   "payeeRefusal": null,
+   "fields": {},
+   "flags": [
+    "EVIDENCE_NOT_A_PAYMENT_RECORD"
+   ],
+   "looksLike": false,
+   "notPayment": false,
+   "references": [],
+   "statement": false,
+   "bank": null,
+   "system": "RECEIPT"
+  },
+  {
+   "text": "Nabil Bank\nCitizens Bank\nTotal Amount: 3 000\nPaid to:\nHari Prasad (9801234567)\nRemarks - rent  Status - done",
+   "receipt": {
+    "amount": 3000,
+    "direction": null,
+    "payee": null,
+    "provider": "BANK",
+    "shape": "RECEIPT",
+    "txnId": null
+   },
+   "direction": {
+    "direction": "DEBIT",
+    "isLedgerView": false,
+    "outcome": "UNKNOWN",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": "Hari Prasad (9801234567)",
+    "verdict": "MATCHED"
+   },
+   "payeeRefusal": null,
+   "fields": {
+    "amount": 3,
+    "method": "BANK_TRANSFER"
+   },
+   "flags": [
+    "EVIDENCE_NO_TEXT_FOUND"
+   ],
+   "looksLike": true,
+   "notPayment": false,
+   "references": [],
+   "statement": false,
+   "bank": {
+    "key": "nabil",
+    "name": "Nabil Bank"
+   },
+   "system": null
+  },
+  {
+   "text": "Standard Chartered DR 100 CR 200\nreceiver name: ***MASKED***\nTo: n/a",
+   "receipt": {
+    "amount": null,
+    "direction": null,
+    "payee": null,
+    "provider": "UNKNOWN",
+    "shape": "STATEMENT",
+    "txnId": null
+   },
+   "direction": {
+    "direction": "DEBIT",
+    "isLedgerView": false,
+    "outcome": "UNKNOWN",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": "***MASKED***",
+    "verdict": "FOREIGN"
+   },
+   "payeeRefusal": "That receipt shows the money went to ***MASKED***, which is not an account this hostel collects payments in. If you were asked to pay that account, please check with the hostel office before submitting — payments to any other account cannot be credited to your invoice.",
+   "fields": {},
+   "flags": [
+    "EVIDENCE_NOT_A_PAYMENT_RECORD"
+   ],
+   "looksLike": false,
+   "notPayment": true,
+   "references": [],
+   "statement": true,
+   "bank": {
+    "key": "standard-chartered",
+    "name": "Standard Chartered"
+   },
+   "system": null
+  },
+  {
+   "text": "Sent to Global IME Bank Ltd\nAmount Paid : 1,000\ntxn no 44556677",
+   "receipt": {
+    "amount": null,
+    "direction": null,
+    "payee": null,
+    "provider": "BANK",
+    "shape": "RECEIPT",
+    "txnId": null
+   },
+   "direction": {
+    "direction": "DEBIT",
+    "isLedgerView": false,
+    "outcome": "UNKNOWN",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": "Global IME Bank Ltd",
+    "verdict": "FOREIGN"
+   },
+   "payeeRefusal": "That receipt shows the money went to Global IME Bank Ltd, which is not an account this hostel collects payments in. If you were asked to pay that account, please check with the hostel office before submitting — payments to any other account cannot be credited to your invoice.",
+   "fields": {
+    "amount": 1000,
+    "transactionCode": "44556677",
+    "method": "BANK_TRANSFER"
+   },
+   "flags": [
+    "EVIDENCE_NO_TEXT_FOUND"
+   ],
+   "looksLike": true,
+   "notPayment": false,
+   "references": [],
+   "statement": false,
+   "bank": {
+    "key": "global-ime",
+    "name": "Global IME"
+   },
+   "system": null
+  },
+  {
+   "text": "",
+   "receipt": {
+    "amount": null,
+    "direction": null,
+    "payee": null,
+    "provider": "UNKNOWN",
+    "shape": "UNKNOWN",
+    "txnId": null
+   },
+   "direction": {
+    "direction": "UNKNOWN",
+    "isLedgerView": false,
+    "outcome": "UNKNOWN",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": null,
+    "verdict": "UNKNOWN"
+   },
+   "payeeRefusal": null,
+   "fields": {},
+   "flags": [
+    "EVIDENCE_NOT_A_PAYMENT_RECORD"
+   ],
+   "looksLike": false,
+   "notPayment": false,
+   "references": [],
+   "statement": false,
+   "bank": null,
+   "system": null
+  },
+  {
+   "text": "Rs 0",
+   "receipt": {
+    "amount": null,
+    "direction": null,
+    "payee": null,
+    "provider": "UNKNOWN",
+    "shape": "UNKNOWN",
+    "txnId": null
+   },
+   "direction": {
+    "direction": "UNKNOWN",
+    "isLedgerView": false,
+    "outcome": "UNKNOWN",
+    "strongCredit": false
+   },
+   "directionRefusal": null,
+   "outcomeRefusal": null,
+   "payee": {
+    "payee": null,
+    "verdict": "UNKNOWN"
+   },
+   "payeeRefusal": null,
+   "fields": {},
+   "flags": [
+    "EVIDENCE_NOT_A_PAYMENT_RECORD"
+   ],
+   "looksLike": false,
+   "notPayment": false,
+   "references": [],
+   "statement": false,
+   "bank": null,
+   "system": null
+  }
+ ],
+ "codes": [
+  {
+   "value": "",
+   "problem": null,
+   "esewa": [],
+   "bank": []
+  },
+  {
+   "value": "abc",
+   "problem": "That transaction ID looks too short. Open the app you paid with and copy the full transaction or reference ID from the payment receipt.",
+   "esewa": [
+    "EVIDENCE_TXN_ID_MALFORMED"
+   ],
+   "bank": []
+  },
+  {
+   "value": "ABC-12",
+   "problem": "That transaction ID looks too short. Open the app you paid with and copy the full transaction or reference ID from the payment receipt.",
+   "esewa": [
+    "EVIDENCE_TXN_ID_MALFORMED"
+   ],
+   "bank": []
+  },
+  {
+   "value": "PAID",
+   "problem": "That transaction ID looks too short. Open the app you paid with and copy the full transaction or reference ID from the payment receipt.",
+   "esewa": [
+    "EVIDENCE_TXN_ID_MALFORMED"
+   ],
+   "bank": []
+  },
+  {
+   "value": "TESTING",
+   "problem": "Please enter the real transaction ID from your payment receipt, not a placeholder.",
+   "esewa": [
+    "EVIDENCE_TXN_ID_SHAPE_OK"
+   ],
+   "bank": []
+  },
+  {
+   "value": "AAAAAAAA",
+   "problem": "That does not look like a transaction ID. Open the app you paid with and copy the ID from the payment receipt.",
+   "esewa": [
+    "EVIDENCE_TXN_ID_MALFORMED"
+   ],
+   "bank": []
+  },
+  {
+   "value": "123456",
+   "problem": "That does not look like a transaction ID. Open the app you paid with and copy the ID from the payment receipt.",
+   "esewa": [
+    "EVIDENCE_TXN_ID_MALFORMED"
+   ],
+   "bank": []
+  },
+  {
+   "value": "654321",
+   "problem": "That does not look like a transaction ID. Open the app you paid with and copy the ID from the payment receipt.",
+   "esewa": [
+    "EVIDENCE_TXN_ID_MALFORMED"
+   ],
+   "bank": []
+  },
+  {
+   "value": "ABCDEFG",
+   "problem": "That does not look like a transaction ID. Open the app you paid with and copy the ID from the payment receipt.",
+   "esewa": [
+    "EVIDENCE_TXN_ID_SHAPE_OK"
+   ],
+   "bank": []
+  },
+  {
+   "value": "1QAXP2M",
+   "problem": null,
+   "esewa": [
+    "EVIDENCE_TXN_ID_SHAPE_OK"
+   ],
+   "bank": []
+  },
+  {
+   "value": "1qax-p2m",
+   "problem": null,
+   "esewa": [
+    "EVIDENCE_TXN_ID_SHAPE_OK"
+   ],
+   "bank": []
+  },
+  {
+   "value": "8823119471",
+   "problem": null,
+   "esewa": [
+    "EVIDENCE_TXN_ID_MALFORMED"
+   ],
+   "bank": []
+  },
+  {
+   "value": "QWERTY",
+   "problem": "Please enter the real transaction ID from your payment receipt, not a placeholder.",
+   "esewa": [
+    "EVIDENCE_TXN_ID_MALFORMED"
+   ],
+   "bank": []
+  }
+ ],
+ "hamming": [
+  {
+   "a": "0f0f",
+   "b": "0f0e",
+   "near": true
+  },
+  {
+   "a": "ffffffffffffffff",
+   "b": "0000000000000000",
+   "near": false
+  },
+  {
+   "a": "ab",
+   "b": "abc",
+   "near": false
+  },
+  {
+   "a": "zz",
+   "b": "zz",
+   "near": false
+  },
+  {
+   "a": "00000000000000ff",
+   "b": "0000000000000000",
+   "near": true
+  }
+ ]
+}

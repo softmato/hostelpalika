@@ -128,6 +128,9 @@ func NewPersonal(raw string) (*Personal, error) {
 
 // Encrypt seals JSON bytes (what JSON.stringify produced on the TS side).
 func (p *Personal) Encrypt(plainJSON []byte) (string, error) {
+	if p == nil {
+		return "", ErrPersonalKeyMissing
+	}
 	iv := random(ivBytes)
 	ciphertext, tag, err := seal(p.key, iv, plainJSON, nil)
 	if err != nil {
@@ -138,6 +141,9 @@ func (p *Personal) Encrypt(plainJSON []byte) (string, error) {
 
 // Decrypt returns the JSON bytes an envelope holds.
 func (p *Personal) Decrypt(envelope string) ([]byte, error) {
+	if p == nil {
+		return nil, ErrPersonalKeyMissing
+	}
 	parts := strings.Split(envelope, ".")
 	for len(parts) < 4 {
 		parts = append(parts, "")

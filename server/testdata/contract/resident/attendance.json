@@ -1,0 +1,354 @@
+[
+  {
+    "name": "signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/attendance"
+    },
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "history",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/attendance",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.attendance.*.day"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Attendance loaded",
+        "data": {
+          "attendance": [
+            {
+              "day": "2026-10-30",
+              "source": "MOBILE_PING",
+              "zone": "INSIDE"
+            }
+          ],
+          "consentGranted": false,
+          "resident": {
+            "createdAt": "2026-10-31T10:18:28.755Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "ping invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/location/ping",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "lat": 100,
+        "lng": "x",
+        "accuracyMeters": -1,
+        "recordedAt": "nope"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "lat": [
+              "Too big: expected number to be \u003c=90"
+            ],
+            "lng": [
+              "Invalid input: expected number, received string"
+            ],
+            "accuracyMeters": [
+              "Too small: expected number to be \u003e=0"
+            ],
+            "recordedAt": [
+              "Invalid input: expected date, received Date"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected number to be \u003c=90",
+              "path": "lat"
+            },
+            {
+              "message": "Invalid input: expected number, received string",
+              "path": "lng"
+            },
+            {
+              "message": "Too small: expected number to be \u003e=0",
+              "path": "accuracyMeters"
+            },
+            {
+              "message": "Invalid input: expected date, received Date",
+              "path": "recordedAt"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "ping no consent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/location/ping",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "lat": 27.7,
+        "lng": 85.3
+      }
+    },
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Location tracking has not been consented to for this account.",
+        "errorCode": "LOCATION_CONSENT_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "consent invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/consent",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "consentType": "X",
+        "source": "Y"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "consentType": [
+              "Invalid option: expected one of \"LOCATION_TRACKING\"|\"TERMS_OF_USE\"|\"PRIVACY_POLICY\""
+            ],
+            "granted": [
+              "Invalid input: expected boolean, received undefined"
+            ],
+            "source": [
+              "Invalid option: expected one of \"WEB\"|\"MOBILE\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"LOCATION_TRACKING\"|\"TERMS_OF_USE\"|\"PRIVACY_POLICY\"",
+              "path": "consentType"
+            },
+            {
+              "message": "Invalid input: expected boolean, received undefined",
+              "path": "granted"
+            },
+            {
+              "message": "Invalid option: expected one of \"WEB\"|\"MOBILE\"",
+              "path": "source"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "consent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/consent",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "granted": true,
+        "policyVersion": " v1 ",
+        "source": "MOBILE"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Consent recorded",
+        "data": {
+          "consentType": "LOCATION_TRACKING",
+          "granted": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "ping disabled",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/location/ping",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "lat": 27.7,
+        "lng": 85.3
+      }
+    },
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel has attendance tracking switched off.",
+        "errorCode": "ATTENDANCE_DISABLED"
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "history consented",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/attendance",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.resident.createdAt",
+      "data.resident.updatedAt",
+      "data.attendance.*.day"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Attendance loaded",
+        "data": {
+          "attendance": [
+            {
+              "day": "2026-10-30",
+              "source": "MOBILE_PING",
+              "zone": "INSIDE"
+            }
+          ],
+          "consentGranted": true,
+          "resident": {
+            "createdAt": "2026-10-31T10:18:28.755Z",
+            "depositAmount": 500000,
+            "email": "resident@contract.test",
+            "firstName": "Res",
+            "fullName": "Res Ident",
+            "hostelId": "6c00000000000000000000a1",
+            "id": "6c00000000000000000000c1",
+            "image": null,
+            "lastName": "Ident",
+            "moveInDate": "2026-01-01T00:00:00.000Z",
+            "phone": "9800000007",
+            "residentType": "STUDENT",
+            "roomType": "SINGLE",
+            "status": "ACTIVE",
+            "userId": "6c0000000000000000000007"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "erase",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/resident/attendance",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Location history deleted",
+        "data": {
+          "deletedCount": 1
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "erase again",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/resident/attendance",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Location history deleted",
+        "data": {
+          "deletedCount": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]

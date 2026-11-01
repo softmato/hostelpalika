@@ -328,7 +328,7 @@ func (s *Sender) postBatch(ctx context.Context, batch []map[string]any) []ticket
 		return nil
 	}
 	defer res.Body.Close()
-	raw, _ := io.ReadAll(res.Body)
+	raw, _ := io.ReadAll(io.LimitReader(res.Body, 4<<20))
 	if res.StatusCode < 200 || res.StatusCode > 299 {
 		slog.ErrorContext(ctx, "Expo rejected a push batch", "action", "push_batch_http_error", "body", string(raw[:min(len(raw), 400)]), "count", len(batch), "status", res.StatusCode)
 		return nil
@@ -435,6 +435,11 @@ func (s *Sender) sendWeb(targets []device, body []byte, urgent bool) (int, []str
 			wg.Add(1)
 			go func(t device) {
 				defer wg.Done()
+				defer func() {
+					if p := recover(); p != nil {
+						slog.Error("web push panicked", "panic", p)
+					}
+				}()
 				res, err := webpush.SendNotification(body, &webpush.Subscription{
 					Endpoint: t.Token, Keys: webpush.Keys{Auth: t.Keys.Auth, P256dh: t.Keys.P256dh},
 				}, &webpush.Options{

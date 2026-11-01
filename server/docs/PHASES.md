@@ -8,6 +8,24 @@ Each phase ends with a `CHANGELOG.md` entry and, once code exists, a
 `MEMORY.md` update. The per-route and per-model ☐ live in `PARITY.md`; this file
 holds the phase-level gates.
 
+`MISSION.md` is the owner's binding brief; these phases are how it gets done, and
+they may be revised when the code shows a better order.
+
+**Rules for every phase from 6 on:**
+
+1. **The bug rule (`RULES.md` §2).** A bug, mistake or error found in TS is fixed in
+   Go in the best way, made more production grade, and fixed in TS too. It is never
+   copied because it is the spec. Log it in `review_fixes_needed.md`.
+2. **Routes match the web exactly.** `TestRoutesMatchWeb` fails on any path or method
+   with no `route.ts`; `TestAnonymousIsRefused` fails on a non-public route with no guard.
+3. **Production grade while porting, not after:** bounded reads (limit or stream), a
+   `routeBudgets` entry for anything past 30 s, no bare `go`, no ignored write in a
+   critical path, a transaction where a partial write would lose money.
+4. **Workflow per item (`MISSION.md` §17):** inspect, plan, implement, verify, review,
+   update docs, report what was actually verified.
+5. **Review after each phase:** read the phase's code once for what parity cannot
+   see, and add findings to `review_fixes_needed.md` before the next phase starts.
+
 ---
 
 ## Phase 0 — Ground
@@ -78,7 +96,7 @@ holds the phase-level gates.
 
 **Needs:** Phase 1 (auth on Go). Can run alongside Phase 3.
 
-- ☐ TS server widens auth cookies to `Domain=.hostelpalika.com` (ARCHITECTURE.md §4); release stays live until active sessions have refreshed — **code done 2026-11-01:** `COOKIE_DOMAIN` in `lib/session-cookies.ts` + `lib/lock-pin-cookie.ts`, host-only copy expired first, old `hostelhub_*` cleared host-only, Go `auth.Cookies` the same. **Left:** set `COOKIE_DOMAIN=.hostelpalika.com` on Vercel and deploy; this stays ☐ until that release has been live long enough for sessions to refresh
+- ☐ TS server widens auth cookies to `Domain=.hostelpalika.com` (ARCHITECTURE.md §4); release stays live until active sessions have refreshed — **code done 2026-11-01:** `COOKIE_DOMAIN` in `lib/session-cookies.ts` + `lib/lock-pin-cookie.ts`, host-only copy expired first, old `hostelhub_*` cleared host-only, Go `auth.Cookies` the same. **Left, outside work (`review_fixes_needed.md`, "Open items"):** set `COOKIE_DOMAIN=.hostelpalika.com` on Vercel and deploy; this stays ☐ until that release has been live long enough for sessions to refresh
 - ☑ Web: one `API_URL` / `NEXT_PUBLIC_API_URL`; every client call uses it — `lib/api-url.ts` (`apiUrl`, `apiFetch`, `pusherChannelAuth`); `browserApi`, the downloader, upload XHR, raw fetches, Pusher auth, and JSX `src`/`href`/form actions. Empty = this origin rather than the literal `https://hostelpalika.com`, so local and preview builds keep calling themselves. Paths saved in data stay relative on purpose and reach the API host through the rewrite below
 - ☑ App + PWA: same base-URL setting, value unchanged until cut-over (the switch ships by OTA if the runtime fingerprint allows, else in the next native build) — already `API_BASE_URL` / `EXPO_PUBLIC_API_URL` in `apps/mobile/src/lib/api.ts`; the receipt-sheet native module is handed that URL for its refresh, and its own `https://hostelpalika.com` is only a fallback
 - ☑ Web `/api/*` → `api.hostelpalika.com` rewrite (`beforeFiles`) behind an env flag, off until cut-over — `API_REWRITE_ENABLED=true` + `API_URL` in `next.config.ts`; `/api/v1/*` only, because `/api/receipt-share` and the AASA handler stay on the web
@@ -92,11 +110,11 @@ holds the phase-level gates.
 
 **Needs:** Phases 2 and 4.
 
-- ☐ `resident` (39), `guardian` (6), `cook` (11), `community` (10), `notifications` (4), `push` (4), `realtime` (2), `account` (9), `mobile` (1), `files` (5)
-- ☐ `bookings` signed-in routes except money: create/list, detail, cancel, quote, documents (`checkout`, `payment`, `return` wait for Phase 8)
-- ☐ Raster ID cards — `lib/platform-id-card.ts` (canvas drawing shared with the clients) rendered in Go with Inter; golden PNG against `@napi-rs/canvas` (`PARITY.md` §3 "Raster cards")
+- ☑ `resident` (37 of 39; both checkout routes moved to Phase 8, see there), `guardian` (6), `cook` (11), `community` (10), `notifications` (4), `push` (4), `realtime` (2), `account` (9), `mobile` (1), `files` (5). Cook's owner and warden sides are Phase 6; a hostel-leave export reports `recordsPending` until Phase 7 builds it
+- ☑ `bookings` signed-in routes except money: create/list, detail, cancel, quote, documents (`checkout`, `payment`, `return` wait for Phase 8) — `modules/bookings/{signed,terms,document}.go`; email attachments in the sender; six booking templates against TS vectors; invoice, receipt and refund note against TS goldens. The rows both servers write were diffed field by field for cancel and create. The Softmato client is Phase 8: until then a configured deployment queues `BOOKING_PAYMENT` and `REFUND_FILING` tasks instead of calling it, and a Softmato receipt with no local copy is redrawn by us
+- ☑ Raster ID cards — `platform/idcard`, drawn from the same geometry as `lib/platform-id-card.ts`: an SVG with Inter as glyph outlines and GPOS pair kerning, rendered by libvips. Six golden PNGs from `@napi-rs/canvas`, mean difference under 0.8/255. Library only: its callers (`sendIdCardEmail`) are Phase 7 approvals
 
-**Gate:** a resident, a guardian and a cook can complete their daily flows on Go only.
+**Gate:** a resident, a guardian and a cook can complete their daily flows on Go only. **Passed 2026-11-01 by contract replay,** with one carve-out decided that day: paying through a gateway (resident checkout, booking checkout) is Phase 8, so a resident on Go pays by QR and sends proof. Not exercised against real services: Vision and Gemini calls, R2 evidence fetch, presigned links, real ZIP contents. They are off in the contract environment and need a run with real keys before cut-over.
 
 ---
 
@@ -104,14 +122,21 @@ holds the phase-level gates.
 
 **Needs:** Phase 5 (shared notification paths).
 
-The biggest group (179 routes). Port module by module, in this order, so money
+**Start here, before any module:** the "Open items" table in `review_fixes_needed.md`:
+intake of the uncommitted TS work (R31), push and get CI green (R17), then the Phase 4
+cookie release. Claude does the first two; the cookie release is outside work, so Claude
+does it if it can reach Vercel, and otherwise hands the owner the step and moves on
+(`MISSION.md` addition 4). Phase 6 does not wait for it.
+
+The biggest group (223 routes). Port module by module, in this order, so money
 moves last within it:
 
 - ☐ rooms/floors, residents (incl. existing-residents list, join link, admission forms, Form QR), arrivals, move-checklist — with `tenant-isolation.test.ts`'s resident cases (`getResidentById` scoped + 404, `listResidents` list/count/search `$or` scoped, foreign `hostelId` → 404 before any query)
 - ☐ food, notices, complaints, maintenance (voice notes), safety (SOS, night status), attendance — with the notices/complaints (incl. summary aggregate)/maintenance tenant cases
 - ☐ stock/inventory, store orders, wardens, team members, reports, exports
 - ☐ KYC wizard + signed agreement, hostel leave, backup (Drive OAuth callback), settings
-- ☐ finance: invoices, receipts, khata, late fine, deposits, expenses, staff cash, statement import, evidence pipeline, reconciliation — with the approve/reject-claim tenant cases (`hostelId: {$in: caller's}`, foreign claim → 404 CLAIM_NOT_FOUND)
+- ☐ finance: invoices, receipts, khata, late fine, deposits, expenses, staff cash, statement import, evidence pipeline, reconciliation — with the approve/reject-claim tenant cases (`hostelId: {$in: caller's}`, foreign claim → 404 CLAIM_NOT_FOUND). Settling, approving and billing runs use a transaction where a partial write loses money (`review_fixes_needed.md` R28)
+- ☐ Review of Phase 6 (bug rule; findings logged and fixed before Phase 7)
 
 **Gate:** a hostel admin and a warden run a full month (BS month) — bills issued, paid, receipted, reported — on Go only.
 
@@ -124,8 +149,16 @@ moves last within it:
 - ☐ `platform` (99), `platform-admin` (2), `team` (16), `store` (13), `users` (11)
 - ☐ Site config / SEO config / page copy editors
 - ☐ Referrals (hostel + partner), offer program, subscriptions, manual plan-payment review
+- ☐ **Server logs in the superadmin portal** (owner's requirement, `MISSION.md` addition 3). All of it visible and filterable by a superadmin:
+  - Every log line carries a **level** (debug, info, warn, error) and a **category** (`http`, `auth`, `security`, `payments`, `email`, `push`, `realtime`, `database`, `redis`, `storage`, `jobs`, `llm`), plus time, message, request id, route, status, duration, user id, hostel id. Categories are one list in `platform/log`, not free text
+  - Go stores warn and above, and any info line marked operational, in a `serverlogs` collection with a TTL index. Stored through a bounded in-process batcher, so a request never waits for a log write and a Mongo outage cannot grow memory: when full it drops and counts the drop. Stdout stays complete either way. A surge (a log flood during an outage) is capped per category
+  - The existing redaction holds in the store too: never tokens, cookies, passwords, PINs, OTPs, personal data or coordinates (`RULES.md` §4). A test writes each kind through the logger and reads the stored row
+  - `GET /api/v1/platform/logs` (superadmin guard): filter by level, category, route, request id, user, hostel, time range and text; cursor pagination, newest first. `GET /api/v1/platform/logs/summary`: counts by level and category over a range. These are new routes with no `route.ts`, so each gets an entry in `goOnlyAllowed` with this reason
+  - Level per category settable by a superadmin (site config), applied without a restart
+  - Portal page: `/platform/logs` on the web and a native `manage` screen in the app, in `portal-nav.ts` and its search. Filters, level and category chips, a row opens the full entry, one request id shows the whole request's lines. Beside it a health strip from the metrics: request rate, p95, error rate, Mongo pool use, cache hit rate, rate-limit refusals
+  - The web page reads through `API_URL`, so it goes live with cut-over
 
-**Gate:** superadmin and team flows complete on Go only.
+**Gate:** superadmin and team flows complete on Go only, and a failing request can be found in the portal by its request id.
 
 ---
 
@@ -153,7 +186,37 @@ moves last within it:
 
 ---
 
-## Phase 10 — Cut-over and cleanup
+## Phase 10 — Production grade (after every route is on Go)
+
+**Needs:** Phases 6–9. Added 2026-11-01 from `MISSION.md`. Not a formality: the gate is
+measured. Findings land in `review_fixes_needed.md`.
+
+**Targets (the numbers to prove, not claims).** Server time, excluding the client's
+network: the p95 budgets in DESIGN.md §2, with the measured Kathmandu–Mumbai round
+trip added for each Mongo call on the VPS. p50 and p99 are recorded beside each p95;
+p99 is set once the first VPS run shows the real tail. Error rate under 0.1 %
+excluding 4xx. Cache hit rate over 80 % on cacheable routes. Budgets: API 1 GB, Redis
+256 MB, Mongo pool 50. Workload is derived from real data first: hostels × residents
+× requests per active user, from the `UsageDaily` rows, and turned into req/s and
+concurrency before any test.
+
+- ☐ `cmd/indexes`: port `apps/web/scripts/ensure-indexes.mjs` so a fresh database can be built with TS gone (R19)
+- ☐ Module-by-module read against `MISSION.md` §3 Phase B: correctness, not only parity (R27)
+- ☐ Query review on the live-data copy: `explain` for each hot route, N+1s, reads with no limit (R29), slow-query log
+- ☐ Load tests with k6 on the local stack, then the VPS: cold cache, warm cache, sustained, burst. Results recorded with environment, duration, concurrency, throughput, percentiles, errors and resources (`testdata/k6/results/`). A local number is never quoted as production capacity
+- ☐ Profile under load (CPU, heap, allocations, block, mutex); fix what the profile proves, measure again
+- ☐ Failure tests: Redis down, Mongo slow or down, provider hanging, overload and recovery, SIGTERM under load with no lost request
+- ☐ Multi-instance check: two API containers behind Caddy, limits shared, jobs not doubled, no sticky-session need. Say plainly where scaling the API would not help because the limit is Atlas
+- ☐ Race, static analysis and vulnerability checks clean in CI (R17)
+- ☐ Tracing decision: request id through logs is the default; add OpenTelemetry only if a real incident shows it is needed
+- ☐ Operator docs: runbook, alerts on the metrics, deploy, rollback and recovery steps, secret handling
+- ☐ Final readiness report against `MISSION.md` §21, listing anything not met
+
+**Gate:** targets met and recorded on the VPS; no Critical or High open in `review_fixes_needed.md`.
+
+---
+
+## Phase 11 — Cut-over and cleanup
 
 **Needs:** every phase above.
 
@@ -164,9 +227,8 @@ moves last within it:
 - ☐ Rollback window passed with TS still deployable; then everything in `PARITY.md` §11
 - ☐ Upstash dropped from the web's env
 - ☐ Web drops `MONGODB_URI`, the API routes, `modules/` and server-only `lib`
-- ☐ `server/` committed
 
-**Gate:** `PARITY.md` has no ☐ left.
+**Gate:** `PARITY.md` has no ☐ left; `ROUTES_COMPLETE=1 go test ./internal/router` passes before TS is removed.
 
 ---
 

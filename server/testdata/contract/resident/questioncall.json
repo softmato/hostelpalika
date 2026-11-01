@@ -1,0 +1,151 @@
+[
+  {
+    "name": "status none",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/questioncall/status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "QuestionCall status loaded",
+        "data": {
+          "clickCount": 0,
+          "converted": false,
+          "eligible": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "click invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/questioncall/click",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "deviceType": "fax"
+      }
+    },
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "deviceType": [
+              "Invalid option: expected one of \"web\"|\"android\"|\"ios\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"web\"|\"android\"|\"ios\"",
+              "path": "deviceType"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "click not json",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/questioncall/click",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": "nope"
+    },
+    "masks": [
+      "data.clickId",
+      "data.ssoCode"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "QuestionCall click recorded",
+        "data": {
+          "clickId": "6ae71760e6822539292ba4c4",
+          "redirectUrl": "https://questioncall.com/app?install\u0026from=hostelpalika",
+          "ssoCode": "6ae71760e6822539292ba4c4.dL4wQSbXwvX2OGPCyyL4m-AH54Wcc6i1vZroP8Y3_mo"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "click",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/resident/questioncall/click",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "deviceType": "android"
+      }
+    },
+    "masks": [
+      "data.clickId",
+      "data.ssoCode"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "QuestionCall click recorded",
+        "data": {
+          "clickId": "6ae71760e6822539292ba4c6",
+          "redirectUrl": "https://questioncall.com/app?install\u0026from=hostelpalika",
+          "ssoCode": "6ae71760e6822539292ba4c6.kI1Q27N0WTfOPibKhij87FIuZa4xeYeM1K2ABTv0K-4"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  },
+  {
+    "name": "status after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/resident/questioncall/status",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "data.lastClickedAt"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "QuestionCall status loaded",
+        "data": {
+          "clickCount": 2,
+          "converted": false,
+          "eligible": true,
+          "lastClickedAt": "2026-11-01T10:41:36.250Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 8e965ad8"
+  }
+]
