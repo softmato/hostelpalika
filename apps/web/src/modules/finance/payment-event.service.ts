@@ -447,8 +447,10 @@ export async function reverseEvent(
     );
   }
 
+  // Scoped to the caller's hostels: this looked up any hostel's event by id.
   const original = await PaymentEventModel.findOne({
     _id: eventId,
+    hostelId: { $in: options.principal.hostelIds },
   }).lean<PaymentEventRecord | null>();
 
   if (!original) {

@@ -22,6 +22,24 @@ import (
 // ponytail: 50 is a guess sized under M0's 500 while TS instances still share
 // it; size from Atlas's connection graph once Go carries the traffic.
 func Connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, error) {
+	return connect(ctx, uri)
+}
+
+// InTx runs fn in one transaction: all of its writes land, or none do. fn may run
+// more than once (the driver retries a transient conflict), so it must only touch
+// Mongo through the ctx it is given and reset anything it collects at its start.
+// Notifications and audit lines go after InTx returns, never inside fn.
+func InTx(ctx context.Context, db *mongo.Database, fn func(ctx context.Context) error) error {
+	session, err := db.Client().StartSession()
+	if err != nil {
+		return fmt.Errorf("mongo: start session: %w", err)
+	}
+	defer session.EndSession(ctx)
+	_, err = session.WithTransaction(ctx, func(ctx context.Context) (any, error) { return nil, fn(ctx) })
+	return err
+}
+
+func connect(ctx context.Context, uri string) (*mongo.Client, *mongo.Database, error) {
 	cs, err := connstring.ParseAndValidate(uri)
 	if err != nil {
 		return nil, nil, fmt.Errorf("mongo: %w", err)

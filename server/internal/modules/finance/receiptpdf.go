@@ -292,11 +292,25 @@ func periodCoverage(period string) (from, to *time.Time) {
 // RenderReceiptByID is renderReceiptById for one resident: another resident's receipt
 // reads as missing, never forbidden.
 func RenderReceiptByID(ctx context.Context, db *mongo.Database, id string, resident bson.ObjectID) ([]byte, string, error) {
-	missing := Err("RECEIPT_NOT_FOUND", "Receipt was not found.")
 	oid, err := bson.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, "", fmt.Errorf("receipt id %q: %w", id, err) // TS answers 500 here: mongoose's CastError
 	}
+	return renderReceipt(ctx, db, bson.D{{Key: "_id", Value: oid}, {Key: "residentId", Value: resident}})
+}
+
+// RenderReceiptForHostels is renderReceiptById for staff: outside their hostels reads as missing.
+func RenderReceiptForHostels(ctx context.Context, db *mongo.Database, id bson.ObjectID, hostels bson.A) ([]byte, string, error) {
+	return renderReceipt(ctx, db, bson.D{{Key: "_id", Value: id}, {Key: "hostelId", Value: bson.D{{Key: "$in", Value: hostels}}}})
+}
+
+// RenderReceiptForMail renders a receipt the server itself is sending.
+func RenderReceiptForMail(ctx context.Context, db *mongo.Database, id bson.ObjectID) ([]byte, string, error) {
+	return renderReceipt(ctx, db, bson.D{{Key: "_id", Value: id}})
+}
+
+func renderReceipt(ctx context.Context, db *mongo.Database, filter bson.D) ([]byte, string, error) {
+	missing := Err("RECEIPT_NOT_FOUND", "Receipt was not found.")
 	var rc struct {
 		Amount     int64          `bson:"amount"`
 		Cert       *string        `bson:"certificationCode"`
@@ -309,7 +323,7 @@ func RenderReceiptByID(ctx context.Context, db *mongo.Database, id string, resid
 		VoidReason *string        `bson:"voidReason"`
 		VoidedAt   *time.Time     `bson:"voidedAt"`
 	}
-	err = db.Collection("receipts").FindOne(ctx, bson.D{{Key: "_id", Value: oid}, {Key: "residentId", Value: resident}}).Decode(&rc)
+	err := db.Collection("receipts").FindOne(ctx, filter).Decode(&rc)
 	if err == mongo.ErrNoDocuments {
 		return nil, "", missing
 	}

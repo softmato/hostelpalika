@@ -94,7 +94,11 @@ export async function recordCashPayment(
     );
   }
 
-  const invoice = await InvoiceModel.findOne({ _id: input.invoiceId }).lean<{
+  // Scoped to the caller's hostels: this looked up any hostel's invoice by id.
+  const invoice = await InvoiceModel.findOne({
+    _id: input.invoiceId,
+    hostelId: { $in: principal.hostelIds },
+  }).lean<{
     _id: Types.ObjectId;
     hostelId: Types.ObjectId;
     residentId: Types.ObjectId;
@@ -102,7 +106,7 @@ export async function recordCashPayment(
   } | null>();
 
   if (!invoice) {
-    throw new FinanceServiceError("Invoice was not found.", "FEE_SCHEDULE_MISSING");
+    throw new FinanceServiceError("Invoice was not found.", "INVOICE_NOT_FOUND");
   }
 
   if (invoice.status === "VOID") {
