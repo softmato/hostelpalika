@@ -1,7 +1,7 @@
 "use client";
 
 import { roomTypeLabel } from "@hostel/shared/constants/room-types";
-import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
+import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
 
 import {
   CircleCheck,
@@ -374,6 +374,176 @@ function PersonRow({ contact, label }: { contact: NonNullable<Contact>; label: s
 
 const PHOTO_KIND_ORDER = { EXTERIOR: 0, INTERIOR: 1, ROOM: 2 } as const;
 
+type HostelBilling = {
+  invoices: Array<{
+    amount: number;
+    cycleLabel: string;
+    dueAt: string | null;
+    issuedAt: string | null;
+    outstanding: number;
+    paid: number;
+    planName: string;
+    printedNumber: string;
+    status: string;
+  }>;
+  payments: Array<{
+    amount: number;
+    method: string;
+    paidAt: string | null;
+    printedNumber: string | null;
+    provider: string | null;
+    status: string;
+  }>;
+  plan: {
+    amountDue: number;
+    amountPaid: number;
+    cycleLabel: string | null;
+    currentPeriodEnd: string | null;
+    daysRemaining: number | null;
+    dueBy: string | null;
+    lifetime: boolean;
+    planName: string | null;
+    price: number | null;
+    status: string;
+    trialEndsAt: string | null;
+  } | null;
+};
+
+function useHostelBilling(hostelId: string) {
+  return usePortalResource<HostelBilling>(platformEndpoints.hostelBilling(hostelId), {
+    errorMessage: "Could not load billing.",
+  });
+}
+
+function BillingTile({ label, note, tone, value }: { label: string; note?: string; tone?: "bad" | "good"; value: string }) {
+  return (
+    <div className="rounded-xl border border-border bg-card px-4 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">{label}</p>
+      <p
+        className={cn(
+          "mt-1 truncate text-[17px] font-bold text-foreground",
+          tone === "bad" && "text-destructive",
+          tone === "good" && "text-role-team",
+        )}
+      >
+        {value}
+      </p>
+      {note ? <p className="truncate text-[12px] text-muted-foreground">{note}</p> : null}
+    </div>
+  );
+}
+
+/** What this hostel owes us and has paid us — the first thing a platform admin looks for. */
+function HostelBillingSummary({ hostelId }: { hostelId: string }) {
+  const { data, state } = useHostelBilling(hostelId);
+
+  if (state === "loading") return <LoadingRows />;
+
+  const plan = data?.plan;
+  const paidTotal = (data?.payments ?? []).filter((p) => p.status === "SETTLED").reduce((sum, p) => sum + p.amount, 0);
+
+  if (!plan) {
+    return <BillingTile label="Plan" note="No plan billing recorded for this hostel." value="No plan" />;
+  }
+
+  const overdue = plan.amountDue > 0 && plan.dueBy && Date.parse(plan.dueBy) < Date.now();
+  const onTrial = !plan.planName && plan.trialEndsAt;
+
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <BillingTile
+        label="Plan"
+        note={onTrial ? "Free trial" : [plan.cycleLabel, plan.price ? currency(plan.price) : null].filter(Boolean).join(" · ")}
+        value={plan.planName ?? (onTrial ? "Trial" : "None")}
+      />
+      <BillingTile
+        label={onTrial ? "Trial ends" : "Runs until"}
+        note={plan.daysRemaining !== null ? `${plan.daysRemaining} day${plan.daysRemaining === 1 ? "" : "s"} left` : plan.status.replaceAll("_", " ")}
+        value={
+          plan.lifetime
+            ? "Lifetime"
+            : formatHostelDate(onTrial ? plan.trialEndsAt : plan.currentPeriodEnd)
+        }
+      />
+      <BillingTile
+        label="Due now"
+        note={plan.dueBy && plan.amountDue > 0 ? `${overdue ? "Overdue since" : "Pay by"} ${formatHostelDate(plan.dueBy)}` : "Nothing owed"}
+        tone={plan.amountDue > 0 ? "bad" : "good"}
+        value={currency(plan.amountDue)}
+      />
+      <BillingTile label="Paid to us" note={`Current invoice ${currency(plan.amountPaid)}`} value={currency(paidTotal)} />
+    </div>
+  );
+}
+
+/** Every invoice and payment between this hostel and us — the other direction from resident rent. */
+function HostelPaymentHistory({ hostelId }: { hostelId: string }) {
+  const { data, state } = useHostelBilling(hostelId);
+  const invoices = data?.invoices ?? [];
+  const payments = data?.payments ?? [];
+
+  if (state === "loading") return <LoadingRows />;
+  if (invoices.length === 0 && payments.length === 0) {
+    return <EmptyState label="No plan invoices or payments for this hostel yet." />;
+  }
+
+  return (
+    <div className="space-y-5">
+      <DataTable className="min-w-[640px]">
+        <TableHeader>
+          <TableRow className="hover:bg-transparent">
+            <TableCell>Invoice</TableCell>
+            <TableCell>Plan</TableCell>
+            <TableCell>Due</TableCell>
+            <TableCell>Status</TableCell>
+            <TableCell className="text-right">Billed</TableCell>
+            <TableCell className="text-right">Paid</TableCell>
+            <TableCell className="text-right">Owed</TableCell>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {invoices.map((invoice) => (
+            <TableRow key={invoice.printedNumber}>
+              <TableCell className="text-muted-foreground">{invoice.printedNumber}</TableCell>
+              <TableCell>{invoice.planName} · {invoice.cycleLabel}</TableCell>
+              <TableCell>{formatHostelDate(invoice.dueAt)}</TableCell>
+              <TableCell>{invoice.status.replaceAll("_", " ")}</TableCell>
+              <TableCell className="text-right">{currency(invoice.amount)}</TableCell>
+              <TableCell className="text-right">{currency(invoice.paid)}</TableCell>
+              <TableCell className="text-right font-semibold text-foreground">{currency(invoice.outstanding)}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </DataTable>
+
+      {payments.length > 0 ? (
+        <DataTable className="min-w-[560px]">
+          <TableHeader>
+            <TableRow className="hover:bg-transparent">
+              <TableCell>Paid on</TableCell>
+              <TableCell>Receipt</TableCell>
+              <TableCell>Method</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell className="text-right">Amount</TableCell>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {payments.map((payment, index) => (
+              <TableRow key={`${payment.printedNumber}-${index}`}>
+                <TableCell>{formatHostelDateTime(payment.paidAt)}</TableCell>
+                <TableCell className="text-muted-foreground">{payment.printedNumber ?? "—"}</TableCell>
+                <TableCell>{(payment.provider ?? payment.method).replaceAll("_", " ")}</TableCell>
+                <TableCell>{payment.status.replaceAll("_", " ")}</TableCell>
+                <TableCell className="text-right font-semibold text-foreground">{currency(payment.amount)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </DataTable>
+      ) : null}
+    </div>
+  );
+}
+
 export const PlatformHostelReviewPageContent = memo(
   function PlatformHostelReviewPageContent() {
     const params = useParams<{ id: string }>();
@@ -633,6 +803,7 @@ export const PlatformHostelReviewPageContent = memo(
       { key: "original", label: "Original form" },
       { count: photoItems.length, key: "photos", label: "Photos" },
       { count: documents.length, key: "documents", label: "Documents" },
+      { key: "payments", label: "History payments" },
     ];
 
     return (
@@ -792,6 +963,8 @@ export const PlatformHostelReviewPageContent = memo(
             </RoleButton>
           ) : null}
         </div>
+
+        <HostelBillingSummary hostelId={params.id} />
 
         <TabBar onChange={setTab} tabs={tabs} value={tab} />
 
@@ -1156,6 +1329,8 @@ export const PlatformHostelReviewPageContent = memo(
             </div>
           )
         ) : null}
+
+        {tab === "payments" ? <HostelPaymentHistory hostelId={params.id} /> : null}
 
         {/* ── Uploaded paperwork, shown in place ──────────────────── */}
         {tab === "documents" ? (

@@ -39,7 +39,6 @@ import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 import { cn } from "@/lib/utils";
 
-import { HostelAdminCooksPanel } from "./hostel-admin-cooks-panel";
 import { field, optionalField, PageHeader } from "./hostel-admin-shared";
 import { Chip } from "./hostel-admin-page-ui";
 
@@ -658,7 +657,7 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
             </Button>
           ) : undefined
         }
-        description="The weekly menu residents see, and who cooks it."
+        description="The weekly menu residents see."
         icon={ChefHat}
         title="Food"
       />
@@ -667,17 +666,6 @@ export const HostelAdminFoodPage = memo(function HostelAdminFoodPage() {
           {message}
         </div>
       ) : null}
-
-      {/*
-        The roster, not a collapsed credentials drawer.
-
-        Deciding what the kitchen serves and deciding who may say it is ready
-        are the same person's decisions, so the section stays on this page — but
-        it is now a list with two ways in, a rotation and a removal, and that is
-        `HostelAdminCooksPanel`'s job rather than four more pieces of state on
-        the menu editor.
-      */}
-      <HostelAdminCooksPanel />
 
       <div data-kyc="food">{renderRoutineCard()}</div>
       {routineEditor}

@@ -145,7 +145,8 @@ export async function startHostelSuspension(
 
   // Conditional, so a double-clicked Suspend starts one clock and sends one email.
   const started = await HostelModel.findOneAndUpdate(
-    { _id: objectId, "suspension.startedAt": null },
+    // A record dated ahead (an overdue plan's, a trial's) is still just a schedule: a hand start replaces it.
+    { _id: objectId, $or: [{ "suspension.startedAt": null }, { "suspension.startedAt": { $gt: now } }] },
     {
       $set: {
         suspension: {

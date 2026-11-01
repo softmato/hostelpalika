@@ -56,18 +56,16 @@ export function PageHero({
             {breadcrumb}
             <h1 className="truncate font-heading text-lg font-bold tracking-tight md:text-xl">{title}</h1>
             {description ? (
-              <p className="line-clamp-1 text-[12.5px] text-white/90" title={description}>
+              <p className="line-clamp-1 text-[12.5px] font-medium text-white" title={description}>
                 {description}
               </p>
             ) : null}
           </div>
         </div>
         {/* Outline/soft buttons carry green text meant for a white page; on the green hero they go white-on-glass. */}
-        {actions ? (
-          <div className="flex shrink-0 flex-wrap items-center gap-2 [&_button[class*='border-role-']]:!border-white/40 [&_button[class*='border-role-']]:!bg-white/15 [&_button[class*='border-role-']]:!text-white [&_button[class*='border-role-']:hover]:!bg-white/25 [&_button[class*='border-role-']_svg]:!text-white [&_a[class*='border-role-']]:!border-white/40 [&_a[class*='border-role-']]:!bg-white/15 [&_a[class*='border-role-']]:!text-white">
-            {actions}
-          </div>
-        ) : null}
+        <div className="flex shrink-0 flex-wrap items-center gap-2 [&>span]:!text-white [&>span]:!border-white/40 [&>span>svg]:!text-white [&_button[class*='border-role-']]:!border-white/40 [&_button[class*='border-role-']]:!bg-white/15 [&_button[class*='border-role-']]:!text-white [&_button[class*='border-role-']:hover]:!bg-white/25 [&_button[class*='border-role-']_svg]:!text-white [&_a[class*='border-role-']]:!border-white/40 [&_a[class*='border-role-']]:!bg-white/15 [&_a[class*='border-role-']]:!text-white [&_button[class*='dark:bg-input']]:!border-white/40 [&_button[class*='dark:bg-input']]:!bg-white/15 [&_button[class*='dark:bg-input']]:!text-white [&_button[class*='dark:bg-input']:hover]:!bg-white/25 [&_button[class*='dark:bg-input']_svg]:!text-white [&_button:not([class*='bg-'])]:!text-white">
+          {actions}
+        </div>
       </div>
     </div>
   );

@@ -27,6 +27,8 @@ import { ReferralModel } from "@hostel/db/models/Referral";
 import { ReferralRewardModel } from "@hostel/db/models/ReferralReward";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { ServiceProviderModel } from "@hostel/db/models/ServiceProvider";
+import { HostelPageViewModel } from "@hostel/db/models/HostelPageView";
+import { formatBsPeriodMonth } from "@hostel/shared/calendar/bs";
 import { getHostelViewStats } from "@/modules/hostels/hostel-view.service";
 import { periodOf } from "@/modules/finance/billing.service";
 import { countableResidentIds } from "@/modules/finance/resident-scope";
@@ -632,6 +634,31 @@ async function buildHostelAdminDashboardReport(
     getHostelViewStats(scopedHostelIds),
   ]);
 
+  // The last six BS months, oldest first: billed, collected and public views.
+  const monthly = await Promise.all(
+    Array.from({ length: 6 }, (_, index) => addBsMonths(periodOf(new Date()), index - 5)).map(
+      async (period) => {
+        const { end, start } = bsPeriodBounds(period);
+        const [totals, views] = await Promise.all([
+          collectionTotals(ledgerScopeFrom(scoped, { period, residentIds })),
+          scopedHostelIds.length === 0
+            ? 0
+            : HostelPageViewModel.countDocuments({
+                createdAt: { $gte: start, $lte: end },
+                hostelId: { $in: scopedHostelIds },
+              }),
+        ]);
+
+        return {
+          collected: totals.paidAmount,
+          label: formatBsPeriodMonth(period),
+          raised: totals.dueAmount,
+          views,
+        };
+      },
+    ),
+  );
+
   // Only meaningful for a single hostel: a multi-hostel admin's dashboard would
   // otherwise nudge about whichever one happens to sort first, which is worse
   // than not nudging at all.
@@ -647,6 +674,7 @@ async function buildHostelAdminDashboardReport(
       foodFeedback,
       maintenanceRequests,
       monthlyDues: paymentTotals.dueAmount,
+      trend: monthly,
       paidAmount: paymentTotals.paidAmount,
       pendingPaymentProofs,
       publicViewsLast30Days: viewStats.publicViewsLast30Days,

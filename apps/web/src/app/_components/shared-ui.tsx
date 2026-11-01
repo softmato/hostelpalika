@@ -97,7 +97,10 @@ export function Input({
 }) {
   return (
     <label className="grid gap-2 text-sm font-semibold text-foreground">
-      {label}
+      <span>
+        {label}
+        {required ? <span aria-hidden className="ml-0.5 text-destructive">*</span> : null}
+      </span>
       <input
         className={cn(
           "h-11 rounded-md border border-border bg-background px-3 text-sm font-normal outline-none focus:border-role-admin",
@@ -141,7 +144,10 @@ export function Select({
 }) {
   return (
     <label className="grid gap-2 text-sm font-semibold text-foreground">
-      {label}
+      <span>
+        {label}
+        {required ? <span aria-hidden className="ml-0.5 text-destructive">*</span> : null}
+      </span>
       <select
         className="h-11 rounded-md border border-border bg-background px-3 text-sm font-normal outline-none focus:border-role-admin"
         defaultValue={defaultValue}

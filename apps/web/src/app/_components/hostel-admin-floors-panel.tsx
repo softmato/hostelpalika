@@ -57,6 +57,7 @@ type Place = { floor: number; free?: number; number: string; roomType: string } 
 
 type Request = { from: Place; id: string; note: string | null; resident: { id: string; name: string }; to: Place };
 
+const FRESH_MS = 3400;
 const BASE = "/api/v1/hostel-admin/rooms";
 
 export function floorName(floor: number) {
@@ -211,24 +212,82 @@ function Stepper({ disabled, label, onChange, value }: { disabled?: boolean; lab
   );
 }
 
-/** A count that waits for the clicks to stop, then `apply`s once. */
-function useSettled<K extends string | number>(apply: (key: K, value: number) => void) {
+/**
+ * A count that waits for the clicks to stop, then `apply`s once.
+ *
+ * Two things the first version got wrong, both visible as a count jumping
+ * 5 → 4 → 5:
+ *  - it cleared the shown target the moment the save *started*, so the stepper
+ *    fell back to the old server count until the reply landed. The target now
+ *    stays on screen until every save has finished and the data has refreshed.
+ *  - the stepper was locked while saving, so clicks during a save were lost or
+ *    raced it. Clicks are now always taken; saves run one after another, each
+ *    reading the freshest layout.
+ */
+function useSettled<K extends string | number>(
+  apply: (key: K, value: number) => Promise<unknown>,
+  /** Whether the data on screen has already caught up with this target. */
+  matches: (key: K, value: number) => boolean,
+) {
   const [targets, setTargets] = useState<Partial<Record<K, number>>>({});
+  const [idle, setIdle] = useState(false);
   const latest = useRef(apply);
+  const queued = useRef<Partial<Record<K, number>>>({});
+  const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const chain = useRef<Promise<unknown>>(Promise.resolve());
+  const outstanding = useRef(0);
+
   useEffect(() => {
     latest.current = apply;
   });
-  useEffect(() => {
-    const entries = Object.entries(targets) as [K, number][];
-    if (!entries.length) return;
-    const timer = setTimeout(() => {
-      setTargets({});
-      for (const [key, value] of entries) latest.current(key, value);
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [targets]);
+  useEffect(() => () => clearTimeout(timer.current), []);
 
-  return [targets, (key: K, value: number) => setTargets((current) => ({ ...current, [key]: value }))] as const;
+  const flush = () => {
+    const batch = queued.current;
+    queued.current = {};
+    outstanding.current += 1;
+    chain.current = chain.current
+      .then(async () => {
+        // One tick, so the layout the previous save refreshed has rendered before it is read.
+        await new Promise((resolve) => setTimeout(resolve));
+        for (const [key, value] of Object.entries(batch) as [K, number][]) await latest.current(key, value);
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        outstanding.current -= 1;
+        if (outstanding.current === 0 && Object.keys(queued.current).length === 0) setIdle(true);
+      });
+  };
+
+  const set = (key: K, value: number) => {
+    setTargets((current) => ({ ...current, [key]: value }));
+    setIdle(false);
+    queued.current[key] = value;
+    clearTimeout(timer.current);
+    timer.current = setTimeout(flush, 250);
+  };
+
+  // The saves are done, but the refreshed data can land a beat later: let go of the
+  // targets only once the screen's own data agrees (or, if a save failed, after a moment),
+  // so the count never dips back to the old number in between.
+  useEffect(() => {
+    if (!idle) return;
+    const entries = Object.entries(targets) as [K, number][];
+    const release = () => {
+      setTargets({});
+      setIdle(false);
+    };
+
+    if (entries.every(([key, value]) => matches(key, value))) {
+      release();
+      return;
+    }
+
+    const timer = setTimeout(release, 1500);
+    return () => clearTimeout(timer);
+  });
+
+  return [targets, set] as const;
 }
 
 export function FloorsPanel() {
@@ -251,6 +310,14 @@ export function FloorsPanel() {
   const [overId, setOverId] = useState<string | null>(null);
   const [pendingOrder, setPendingOrder] = useState<{ floor: number; ids: string[] } | null>(null);
   const tipTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  // Room numbers that just appeared: their tile plays a green fade-in for FRESH_MS, then looks like any other.
+  const [fresh, setFresh] = useState<string[]>([]);
+  const seenNumbers = useRef<string[] | null>(null);
+  const markFresh = (numbers: string[]) => {
+    if (!numbers.length) return;
+    setFresh((current) => [...new Set([...current, ...numbers])]);
+    setTimeout(() => setFresh((current) => current.filter((number) => !numbers.includes(number))), FRESH_MS);
+  };
 
   // Only the timers run while the pointer travels across tiles; state changes once it rests.
   const peek = (roomId: string, target: HTMLElement) => {
@@ -301,6 +368,14 @@ export function FloorsPanel() {
     }
   };
 
+  // A room that turns up without a ghost (another action, another tab's change) gets the same welcome.
+  useEffect(() => {
+    const numbers = rooms.map((room) => room.number);
+    const before = seenNumbers.current;
+    seenNumbers.current = numbers;
+    if (before && layout.data) markFresh(numbers.filter((number) => !before.includes(number)));
+  }, [rooms, layout.data]);
+
   const data = layout.data;
   const configs = profile.data?.hostel.roomConfigurations ?? [];
   const taken = rooms.map((room) => room.number);
@@ -312,7 +387,8 @@ export function FloorsPanel() {
     // Object keys come back as strings; "0" never equals floor 0, which made every add look like a whole new floor.
     const floor = Number(key);
     const onFloor = rooms.filter((room) => room.floor === floor).sort(byNumber);
-    void run(async () => {
+    if (target === onFloor.length) return Promise.resolve();
+    return run(async () => {
       if (target > onFloor.length) {
         const roomType = typeFor(onFloor);
         await browserApi(BASE, {
@@ -323,10 +399,11 @@ export function FloorsPanel() {
       }
       await Promise.all(onFloor.slice(target).map((room) => browserApi(`${BASE}/${room.id}`, { method: "DELETE" })));
     });
-  });
+  }, (key, value) => rooms.filter((room) => room.floor === Number(key)).length === value);
 
   const [typeTargets, setTypeTarget] = useSettled<string>((roomType, count) => {
-    void run(() =>
+    if (configs.find((config) => config.roomType === roomType)?.rooms === count) return Promise.resolve();
+    return run(() =>
       browserApi(hostelAdminEndpoints.profile, {
         body: JSON.stringify({
           roomConfigurations: configs.map((config) => {
@@ -340,7 +417,7 @@ export function FloorsPanel() {
         method: "PATCH",
       }),
     );
-  });
+  }, (roomType, count) => configs.find((config) => config.roomType === roomType)?.rooms === count);
 
   if (!data) {
     return (
@@ -564,7 +641,7 @@ export function FloorsPanel() {
                   <tr className="border-t border-border/70" key={config.roomType}>
                     <td className="px-4 py-2.5 font-semibold text-foreground">{roomTypeLabel(config.roomType)}</td>
                     <td className="px-4 py-2.5">
-                      <Stepper disabled={busy} label={`${config.roomType} rooms`} onChange={(next) => setTypeTarget(config.roomType, next)} value={count} />
+                      <Stepper label={`${config.roomType} rooms`} onChange={(next) => setTypeTarget(config.roomType, next)} value={count} />
                     </td>
                     <td className="px-4 py-2.5 text-right tabular-nums">{bedsForRoomType(config.roomType)}</td>
                     <td className="px-4 py-2.5 text-right tabular-nums">{count * bedsForRoomType(config.roomType)}</td>
@@ -659,6 +736,11 @@ export function FloorsPanel() {
               const saved = rooms.filter((room) => room.floor === floor);
               const onFloor = pendingOrder?.floor === floor ? [...saved].sort((a, b) => pendingOrder.ids.indexOf(a.id) - pendingOrder.ids.indexOf(b.id)) : saved;
               const shut = collapsed.includes(floor);
+              // The stepper's number is the truth the owner just asked for: show it now, before the save returns.
+              const goal = floorTargets[floor];
+              const shown = goal !== undefined && goal < onFloor.length ? onFloor.slice(0, goal) : onFloor;
+              const ghostNumbers = goal !== undefined && goal > onFloor.length ? nextRoomNumbers(floor, taken, Math.min(goal - onFloor.length, 40)) : [];
+              const ghostBeds = bedsForRoomType(typeFor(onFloor));
               return (
                 <div className="rounded-2xl border border-border/70 bg-card p-3.5" key={floor}>
                   <div className="flex items-center gap-2">
@@ -671,10 +753,17 @@ export function FloorsPanel() {
                       <Glyph className={cn("size-4 transition-transform duration-300 ease-out", shut && "-rotate-90")} name="chevron-down" />
                       <span>
                         <span className="block font-heading text-[14px] font-semibold text-foreground">{floorName(floor)}</span>
-                        <span className="block text-[12px] text-muted-foreground">{onFloor.length} rooms</span>
+                        <span className="block text-[12px] text-muted-foreground">{shown.length + ghostNumbers.length} rooms</span>
                       </span>
                     </button>
-                    <Stepper disabled={busy} label={`rooms on ${floorName(floor)}`} onChange={(next) => setFloorTarget(floor, next)} value={floorTargets[floor] ?? onFloor.length} />
+                    <Stepper
+                      label={`rooms on ${floorName(floor)}`}
+                      onChange={(next) => {
+                        markFresh(next > onFloor.length ? nextRoomNumbers(floor, taken, Math.min(next - onFloor.length, 40)) : []);
+                        setFloorTarget(floor, next);
+                      }}
+                      value={goal ?? onFloor.length}
+                    />
                   </div>
                   {/* 0fr → 1fr animates the height without measuring it; `inert` keeps hidden tiles out of the tab order. */}
                   <div
@@ -683,7 +772,7 @@ export function FloorsPanel() {
                   >
                     <div className="-m-1 min-h-0 overflow-hidden p-1">
                     <div className="mt-3 grid grid-cols-4 gap-2 sm:grid-cols-6 xl:grid-cols-8">
-                      {onFloor.map((room) => {
+                      {shown.map((room) => {
                         const on = selected.includes(room.id);
                         const used = room.beds - room.free;
                         const full = room.free <= 0 && used > 0;
@@ -695,9 +784,10 @@ export function FloorsPanel() {
                               on ? "border-brand-teal bg-brand-teal/10" : full ? "border-destructive/40" : "border-border",
                               dragId === room.id && "opacity-40",
                               overId === room.id && dragId !== room.id && "scale-[1.04] border-brand-teal ring-2 ring-brand-teal/30",
+                              fresh.includes(room.number) && "room-fresh",
                             )}
                             draggable
-                            key={room.id}
+                            key={room.number}
                             style={{ cursor: hand(dragId !== null) }}
                             onDragEnd={() => {
                               setDragId(null);
@@ -743,6 +833,21 @@ export function FloorsPanel() {
                           </button>
                         );
                       })}
+                      {/* Same key as the real tile that replaces it, so the fade carries on without a flash. */}
+                      {ghostNumbers.map((number) => (
+                        <button
+                          className="room-fresh relative flex flex-col items-center gap-1 rounded-xl border-2 border-border py-2.5"
+                          disabled
+                          key={number}
+                          type="button"
+                        >
+                          <span className="font-heading text-[15px] font-bold leading-tight text-foreground">{number}</span>
+                          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                            <Glyph className="size-3.5" name="bed" />
+                            {ghostBeds}
+                          </span>
+                        </button>
+                      ))}
                     </div>
                     </div>
                   </div>

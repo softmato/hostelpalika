@@ -504,7 +504,11 @@ export async function notifyClaimReviewed(input: {
       actionUrl: "/resident/payments",
       body:
         input.outcome.kind === "verified"
-          ? `Your payment for ${period} is verified.${
+          ? `NPR ${input.outcome.verifiedAmount.toLocaleString("en-US")} received for ${period}.${
+              input.outcome.remainingAmount > 0
+                ? ` NPR ${input.outcome.remainingAmount.toLocaleString("en-US")} still due.`
+                : " Fully paid."
+            }${
               input.outcome.certificationCode
                 ? " Your receipt was added to the Resident Offer Program."
                 : input.outcome.receiptNumber

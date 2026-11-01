@@ -9,10 +9,16 @@ import { HostelAdminBookingsPage } from "@/app/_components/hostel-admin-bookings
 import { HostelBranchesPageContent } from "@/app/_components/hostel-branches-page";
 import { HostelAdminCommunityPageContent } from "@/app/_components/hostel-admin-community-page";
 import { HostelAdminComplaintsPage } from "@/app/_components/hostel-admin-complaints-page";
+import { HostelAdminCooksPage } from "@/app/_components/hostel-admin-cooks-page";
 import { HostelAdminDashboardPageContent } from "@/app/_components/hostel-admin-dashboard-page";
 import { HostelAdminExistingResidentsPage } from "@/app/_components/hostel-admin-existing-residents-page";
 import { HostelAdminExpensesPageContent } from "@/app/_components/hostel-admin-expenses-page";
-import { HostelAdminFeeSchedulePageContent } from "@/app/_components/hostel-admin-fee-schedule-page";
+import {
+  HostelAdminFeeSchedulePageContent,
+  HostelAdminFestivalDiscountsPageContent,
+  HostelAdminLateFinePageContent,
+  HostelAdminMoneyRulesPageContent,
+} from "@/app/_components/hostel-admin-fee-schedule-page";
 import { HostelAdminFoodPage } from "@/app/_components/hostel-admin-food-page";
 import { HostelAdminInquiriesPageContent } from "@/app/_components/hostel-admin-inquiries-page";
 import { HostelAdminInviteHostelsPageContent } from "@/app/_components/hostel-admin-invite-hostels-page";
@@ -20,7 +26,6 @@ import { HostelAdminMaintenancePageContent } from "@/app/_components/hostel-admi
 import { HostelAdminMoveChecklistPage } from "@/app/_components/hostel-admin-move-checklist-page";
 import { HostelAdminNightStatusPage } from "@/app/_components/hostel-admin-night-status-page";
 import { HostelAdminNoticesPage } from "@/app/_components/hostel-admin-notices-page";
-import { HostelAdminNotificationsPageContent } from "@/app/_components/hostel-admin-notifications-page";
 import { HostelAdminPaymentGatewaysPageContent } from "@/app/_components/hostel-admin-payment-gateways-page";
 import { HostelAdminPaymentProfilePageContent } from "@/app/_components/hostel-admin-payment-profile-page";
 import { HostelAdminPaymentsPage } from "@/app/_components/hostel-admin-payments-page";
@@ -30,7 +35,6 @@ import { HostelAdminKycPageContent } from "@/app/_components/hostel-admin-kyc-pa
 import { HostelAdminKhataPageContent } from "@/app/_components/khata-pages";
 import { HostelAdminBackupPageContent } from "@/app/_components/hostel-admin-backup-page";
 import { HostelAdminLeavePageContent } from "@/app/_components/hostel-admin-leave-page";
-import { HostelAdminReferralsPageContent } from "@/app/_components/hostel-admin-referrals-page";
 import { HostelAdminReportsPageContent } from "@/app/_components/hostel-admin-reports-page";
 import { HostelAdminResidentsPage } from "@/app/_components/hostel-admin-residents-page";
 import { HostelAdminRoomsPageContent } from "@/app/_components/hostel-admin-rooms-page";
@@ -54,12 +58,16 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   // a different merchant of record.
   billing: () => <HostelAdminBillingPageContent />,
   community: () => <HostelAdminCommunityPageContent />,
+  cooks: () => <HostelAdminCooksPage />,
   complaints: () => <HostelAdminComplaintsPage />,
   dashboard: () => <HostelAdminDashboardPageContent />,
   // Deviation §3.4: the fee-schedule editor **replaces** the old Fee Plans page.
   // The key stays so bookmarked links still resolve.
   "fee-plans": () => <HostelAdminFeeSchedulePageContent />,
   "fee-schedule": () => <HostelAdminFeeSchedulePageContent />,
+  "festival-discounts": () => <HostelAdminFestivalDiscountsPageContent />,
+  "late-fine": () => <HostelAdminLateFinePageContent />,
+  "money-rules": () => <HostelAdminMoneyRulesPageContent />,
   food: () => <HostelAdminFoodPage />,
   // The admin's *personal* notification feed. `notifications` below is the
   // outbound campaign composer — a different thing that happens to share a
@@ -80,7 +88,7 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   "move-in-out": () => <HostelAdminMoveChecklistPage />,
   "night-status": () => <HostelAdminNightStatusPage />,
   notices: () => <HostelAdminNoticesPage />,
-  notifications: () => <HostelAdminNotificationsPageContent />,
+  notifications: () => <NotificationsPageContent />,
   // Its own screen rather than a section of `payment-setup`: that form is a
   // broad PATCH of display text and account numbers, and a signing key must not
   // travel through it.
@@ -90,7 +98,7 @@ export const HOSTEL_ADMIN_SCREENS: Record<string, (slug: string) => ReactNode> =
   profile: () => <HostelAdminProfilePageContent />,
   branches: async (slug) => <HostelBranchesPageContent lock={await branchesLock(slug)} />,
   reconcile: () => <HostelAdminReconcilePageContent />,
-  referrals: () => <HostelAdminReferralsPageContent />,
+  referrals: () => <HostelAdminInviteHostelsPageContent />,
   reports: () => <HostelAdminReportsPageContent />,
   residents: () => <HostelAdminResidentsPage />,
   "existing-residents": () => <HostelAdminExistingResidentsPage />,

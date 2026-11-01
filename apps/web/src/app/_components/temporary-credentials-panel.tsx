@@ -260,41 +260,23 @@ export const TemporaryCredentialsPanel = memo(function TemporaryCredentialsPanel
   }
 
   return (
-    <Panel title="Temporary access logins">
+    <Panel
+      action={
+        <span className="text-[12px] font-medium text-muted-foreground">
+          {activeCount} of {limit} active
+        </span>
+      }
+      title="Temporary access logins"
+    >
       <div className="grid gap-4">
-        <p className="text-sm text-muted-foreground">
-          <KeyRound aria-hidden="true" className="mr-2 inline size-4" />
-          Create a second username and password that opens{" "}
-          <strong>this same account</strong> — same screens, same data — so you can let
-          someone in for a while without sharing your real password. Each one expires on
-          its own, and you can revoke it at any time.
-        </p>
-
-        {/*
-         * The form asks for a username and nothing else, which reads like a
-         * missing field unless it says where the password comes from — so it
-         * says it here, before the button rather than after it.
-         */}
-        <p className="text-sm text-muted-foreground">
-          You choose the username. <strong>The password is generated for you</strong> and
-          shown once, here, the moment you create it — copy it then and pass both halves
-          to whoever needs them. It is stored only as a hash, so it cannot be looked up
-          later; if it is lost, revoke the login and create another.
-        </p>
-
-        <div
-          className={cn(
-            "flex items-start gap-2 rounded-lg border p-3 text-[12px] text-muted-foreground",
-            styles.soft,
-          )}
-        >
-          <ShieldAlert aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
+        {/* The long explanation lives here, closed: what it is, and where the password comes from. */}
+        <p className="flex items-start gap-2 text-sm text-muted-foreground">
+          <KeyRound aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
           <span>
-            Whoever holds it can do almost everything you can. It cannot change your
-            password, and it cannot create or revoke temporary logins — those stay with
-            you.
+            Let someone into this account for a while with their own username and password.
+            It expires on its own and you can revoke it any time.
           </span>
-        </div>
+        </p>
 
         {message ? (
           <div className="rounded-lg border border-border bg-muted/40 p-3 text-sm">
@@ -305,8 +287,7 @@ export const TemporaryCredentialsPanel = memo(function TemporaryCredentialsPanel
         {issued ? (
           <div className={cn("grid gap-2 rounded-lg border p-3", styles.soft)}>
             <p className="text-[12px] font-semibold text-foreground">
-              Copy the password now — it is stored only as a hash and cannot be shown
-              again. Lost it? Revoke this login and create another.
+              Copy the password now — it cannot be shown again.
             </p>
             <dl className="grid gap-1 text-sm">
               <div className="flex flex-wrap items-center gap-2">
@@ -327,15 +308,9 @@ export const TemporaryCredentialsPanel = memo(function TemporaryCredentialsPanel
           </div>
         ) : null}
 
-        <form className="grid gap-4" onSubmit={create}>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-            <Input
-              hint="Letters, digits, dots, dashes. No @ — that is reserved for email logins."
-              label="Username"
-              name="username"
-              placeholder="e.g. accountant-oct"
-              required
-            />
+        <form className="grid gap-2" onSubmit={create}>
+          <div className="grid items-end gap-3 sm:grid-cols-2 xl:grid-cols-[1.2fr_0.9fr_1.2fr_auto]">
+            <Input label="Username" name="username" placeholder="e.g. accountant-oct" required />
             <Select defaultValue="24" label="Expires after" name="expiresInHours">
               {EXPIRY_OPTIONS.map((option) => (
                 <option key={option.hours} value={option.hours}>
@@ -343,34 +318,23 @@ export const TemporaryCredentialsPanel = memo(function TemporaryCredentialsPanel
                 </option>
               ))}
             </Select>
-            <Input
-              hint="Only you see this — it is there to remind you who has it."
-              label="Note (optional)"
-              name="label"
-              placeholder="e.g. Accountant, October audit"
-            />
-          </div>
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-[11px] text-muted-foreground">
-              {activeCount} of {limit} active.
-            </p>
+            <Input label="Note" name="label" placeholder="Optional — who is it for?" />
             <button
               className={cn(
-                "rounded-md px-4 py-2.5 text-sm font-semibold text-white transition focus-visible:outline-2 focus-visible:outline-offset-2",
+                "h-10 rounded-md px-4 text-sm font-semibold text-white transition focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-60",
                 styles.button,
               )}
               disabled={busy || activeCount >= limit}
               type="submit"
             >
-              {busy ? "Working…" : "Create temporary login"}
+              {busy ? "Working…" : "Create login"}
             </button>
           </div>
-          {activeCount >= limit ? (
-            <p className="text-[11px] text-muted-foreground">
-              You have reached the limit of {limit} active logins. Revoke one to create
-              another.
-            </p>
-          ) : null}
+          <p className="text-[11.5px] text-muted-foreground">
+            {activeCount >= limit
+              ? `Limit of ${limit} active logins reached. Revoke one to add another.`
+              : "Letters, digits, dots and dashes. The password is generated and shown once. It cannot change your password or manage logins."}
+          </p>
         </form>
 
         {resource.state === "loading" ? <LoadingRows /> : null}

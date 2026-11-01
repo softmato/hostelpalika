@@ -23,12 +23,14 @@ import {
   useTrialEndedBlock,
 } from "@/components/kyc-gate";
 import { NotificationBell } from "@/components/notification-bell";
+import { PortalBootSplash } from "@/components/auth-loading-overlay";
 import { PortalAccount } from "@/components/portal-account";
 import { PortalPageIconProvider } from "@/components/portal-page-context";
 import { PortalSearch, revealField } from "@/components/portal-search";
 import { SupportDialog } from "@/components/support-dialog";
 import { AppNoticeDialog } from "@/components/app-notice-dialog";
 import { RealtimeProvider } from "@/components/realtime-provider";
+import { TodayChip } from "@/components/today-chip";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UsageWatcher } from "@/components/usage-watcher";
 import { Badge } from "@/components/ui/badge";
@@ -575,6 +577,7 @@ export function PortalShell({
        the public pages never attempt an authenticated subscription. Everything
        inside — the bell and every panel's cached queries — updates from it. */
     <RealtimeProvider>
+    <PortalBootSplash />
     {/* Viewport-height frame: the sidebar and top bar stay put while only the
         nav list and the content pane scroll. */}
     <div
@@ -661,6 +664,24 @@ export function PortalShell({
         </aside>
       )}
 
+      {/* Rides the sidebar's right edge — same width and easing as the sidebar —
+          so it always sits on the line, arrow turning with the state. */}
+      <button
+        aria-label={sidebarCollapsed ? "Expand navigation" : "Collapse navigation"}
+        className={cn(
+          "absolute z-40 hidden size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-background text-slate-600 shadow-sm transition-[left,background-color] duration-300 ease-out hover:bg-muted md:flex dark:bg-card dark:text-slate-300",
+          cleanHeader ? "top-8" : "top-7",
+        )}
+        onClick={handleNavToggle}
+        style={{ left: twoTier ? (sidebarCollapsed ? 80 : 312) : sidebarCollapsed ? 68 : 248 }}
+        type="button"
+      >
+        <Glyph
+          className={cn("size-3.5 transition-transform duration-300", sidebarCollapsed && "rotate-180")}
+          name="chevron-back"
+        />
+      </button>
+
       <Sheet onOpenChange={setMobileNavOpen} open={mobileNavOpen}>
         <SheetContent
           className="flex w-[264px] flex-col gap-0 p-0 sm:max-w-[264px]"
@@ -691,7 +712,7 @@ export function PortalShell({
                     : "Collapse navigation"
                   : "Open navigation"
               }
-              className="size-8 rounded-lg text-slate-600 dark:text-slate-300"
+              className="size-8 rounded-lg text-slate-600 md:hidden dark:text-slate-300"
               onClick={handleNavToggle}
               size="icon"
               type="button"
@@ -711,6 +732,7 @@ export function PortalShell({
             />
 
             <div className="ml-auto flex items-center gap-1.5 md:gap-2">
+              <TodayChip className="hidden lg:inline-flex" />
               {workspaceSwitcher ? (
                 <div className="min-w-0 max-w-[45vw] md:max-w-none">{workspaceSwitcher}</div>
               ) : null}

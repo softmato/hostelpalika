@@ -432,16 +432,14 @@ describe("claimChecks", () => {
 });
 
 describe("listReviewQueue", () => {
-  it("drops a claim whose resident has been deleted", async () => {
-    // Approving it would move money for somebody removed from the product, and
-    // it would make the queue disagree with the pending count above it.
+  it("keeps a claim whose resident has been deleted", async () => {
     mocks.eventFind.mockReturnValue(chain([greenEvent()]));
     mocks.residentFind.mockReturnValue(chain([]));
 
-    await expect(listReviewQueue(hostelId)).resolves.toEqual([]);
-    expect(mocks.residentFind).toHaveBeenCalledWith(
-      expect.objectContaining({ isDeleted: { $ne: true } }),
-    );
+    const rows = await listReviewQueue(hostelId);
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]?.residentName).toBe("Removed resident");
   });
 
   it("marks a clean row all-green", async () => {

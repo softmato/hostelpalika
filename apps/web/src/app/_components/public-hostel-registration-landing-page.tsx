@@ -12,6 +12,7 @@ import {
   type Easing,
   type Variants,
 } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -167,30 +168,127 @@ function CountUp({ text }: { text: string }) {
   );
 }
 
+/** Real, published hostels that have an exterior photo — their faces are the proof. */
+function useTrustedHostelFaces() {
+  const { data } = useQuery({
+    queryFn: async () => {
+      const { hostels } = await browserApi<{
+        hostels: Array<{ isDemoData?: boolean; name: string; photos: Array<{ kind?: string; mediumUrl?: string; url?: string }> }>;
+      }>("/api/v1/public/hostels");
+
+      return hostels
+        .filter((hostel) => !hostel.isDemoData)
+        .flatMap((hostel) => {
+          const photo = hostel.photos.find((entry) => entry.kind === "EXTERIOR" && (entry.mediumUrl || entry.url));
+          return photo ? [{ name: hostel.name, src: photo.mediumUrl || photo.url || "" }] : [];
+        })
+        .filter((face, index, all) => all.findIndex((other) => other.src === face.src) === index);
+    },
+    queryKey: ["trusted-hostel-faces"],
+    staleTime: 10 * 60_000,
+  });
+
+  return data ?? NO_FACES;
+}
+
+const NO_FACES: { name: string; src: string }[] = []; // stable identity: the effects below key on it
+const FACE_SLOTS = 4;
+
+/**
+ * The four circles each show one hostel from the pool already in the query
+ * cache. Every couple of seconds one circle — in turn — crossfades to a random
+ * hostel none of the circles is showing. No request is made after the first.
+ */
 function TrustedHostels() {
+  const pool = useTrustedHostelFaces();
+  const reduced = useReducedMotion();
+  const [shown, setShown] = useState<number[]>([]);
+  const turn = useRef(0);
+  const shownRef = useRef<number[]>([]);
+  shownRef.current = shown;
+
+  useEffect(() => {
+    setShown(pool.slice(0, FACE_SLOTS).map((_, index) => index));
+  }, [pool]);
+
+  useEffect(() => {
+    if (reduced || pool.length <= FACE_SLOTS) return;
+    let alive = true;
+    const timer = setInterval(() => {
+      const free = pool.map((_, index) => index).filter((index) => !shownRef.current.includes(index));
+      if (!free.length) return;
+      const pick = free[Math.floor(Math.random() * free.length)];
+      const slot = turn.current++ % FACE_SLOTS;
+      // Swap only once the photo is decoded, so a circle never goes blank mid-fade.
+      const img = new window.Image();
+      img.onload = () => {
+        if (!alive) return;
+        setShown((current) => {
+          if (current.includes(pick)) return current;
+          const next = [...current];
+          next[slot] = pick;
+          return next;
+        });
+      };
+      img.src = pool[pick].src;
+    }, 2600);
+    return () => {
+      alive = false;
+      clearInterval(timer);
+    };
+  }, [pool, reduced]);
+
+  const faces = shown.map((index) => pool[index]).filter(Boolean);
+
   return (
     <TooltipProvider>
       <div className="mt-9 flex items-center gap-3" aria-label="Trusted hostels">
         <div className="flex -space-x-2">
-          {TRUSTED_HOSTELS.map((hostel) => (
-            <Tooltip key={hostel.name}>
-              <TooltipTrigger asChild>
+          {faces.length
+            ? faces.map((hostel, slot) => (
                 <button
                   aria-label={hostel.name}
-                  className={cn(
-                    "flex size-10 items-center justify-center rounded-full border-2 border-background bg-gradient-to-br text-[10px] font-extrabold text-white shadow-sm transition-transform hover:z-10 hover:-translate-y-1 focus:z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal/50",
-                    hostel.tone,
-                  )}
+                  className="group relative size-10 rounded-full border-2 border-background bg-muted shadow-sm transition-transform hover:z-10 hover:-translate-y-1 focus:z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal/50"
+                  key={slot}
                   type="button"
                 >
-                  {hostel.initials}
+                  <span className="absolute inset-0 overflow-hidden rounded-full">
+                    <AnimatePresence initial={false}>
+                      {/* The old photo stays solid underneath while the new one fades in: no white dip. */}
+                      <motion.img
+                        alt=""
+                        animate={{ opacity: 1 }}
+                        className="absolute inset-0 size-full object-cover"
+                        exit={{ opacity: 1, transition: { duration: 1 } }}
+                        initial={{ opacity: 0 }}
+                        key={hostel.src}
+                        src={hostel.src}
+                        transition={{ duration: 0.9, ease: "easeInOut" }}
+                      />
+                    </AnimatePresence>
+                  </span>
+                  <span className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs font-medium text-background opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                    {hostel.name}
+                  </span>
                 </button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-foreground text-background">
-                {hostel.name}
-              </TooltipContent>
-            </Tooltip>
-          ))}
+              ))
+            : TRUSTED_HOSTELS.map((hostel) => (
+                <Tooltip key={hostel.name}>
+                  <TooltipTrigger asChild>
+                    <button
+                      aria-label={hostel.name}
+                      className={cn(
+                        "flex size-10 items-center justify-center rounded-full border-2 border-background bg-gradient-to-br text-[10px] font-extrabold text-white shadow-sm transition-transform hover:z-10 hover:-translate-y-1 focus:z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-teal/50",
+                        hostel.tone,
+                      )}
+                      type="button"
+                    >
+                      {hostel.initials}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent className="bg-foreground text-background">{hostel.name}</TooltipContent>
+                </Tooltip>
+              ))}
         </div>
         <p className="text-sm font-medium leading-snug text-muted-foreground">
           Trusted by hostel owners
@@ -265,7 +363,7 @@ export function PublicHostelRegistrationLandingPage() {
   }));
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showBottomCta, setShowBottomCta] = useState(false);
-  const featureRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLElement>(null);
   const { scrollY } = useScroll();
   const router = useRouter();
 
@@ -314,15 +412,19 @@ export function PublicHostelRegistrationLandingPage() {
     return () => clearInterval(slideInterval);
   }, []);
 
+  // The floating button gives way once the closing CTA (which has its own
+  // register button) reaches the viewport, and stays away through the footer.
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => setShowBottomCta(entry.isIntersecting),
-      { threshold: 0 },
-    );
-    const el = featureRef.current;
-    if (el) observer.observe(el);
+    const update = () => {
+      const el = ctaRef.current;
+      setShowBottomCta(!el || el.getBoundingClientRect().top > window.innerHeight - 80);
+    };
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
     return () => {
-      if (el) observer.unobserve(el);
+      window.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
     };
   }, []);
 
@@ -457,7 +559,10 @@ export function PublicHostelRegistrationLandingPage() {
                     </span>
                     Live on {siteName}
                   </p>
-                  <div className="mt-6 grid gap-6 sm:grid-cols-3">
+                  <div
+                    className="mt-6 grid gap-6 sm:[grid-template-columns:repeat(var(--n),minmax(0,1fr))]"
+                    style={{ "--n": platformStats.length } as React.CSSProperties}
+                  >
                     {platformStats.map((stat) => (
                       <div className="text-center" key={stat.label}>
                         <p className="text-3xl font-extrabold text-foreground sm:text-4xl md:text-5xl">
@@ -513,7 +618,6 @@ export function PublicHostelRegistrationLandingPage() {
 
         {/* Features with scroll-triggered images */}
         <section
-          ref={featureRef}
           className="mx-auto max-w-[1200px] px-5 py-16 sm:px-6 md:py-28"
         >
           <motion.div
@@ -612,7 +716,7 @@ export function PublicHostelRegistrationLandingPage() {
         </section>
 
         {/* Bottom CTA */}
-        <section className="border-t border-border bg-gradient-to-b from-background to-muted/20">
+        <section className="border-t border-border bg-gradient-to-b from-background to-muted/20" ref={ctaRef}>
           <div className="mx-auto max-w-[1200px] px-6 py-20 md:py-28">
             <motion.div
               className="mx-auto max-w-2xl text-center"
@@ -662,17 +766,20 @@ export function PublicHostelRegistrationLandingPage() {
       {/* Floating bottom register button - appears on scroll */}
       <motion.div
         className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 md:bottom-8"
-        style={{
-          opacity: bottomCtaOpacity,
-          pointerEvents: showBottomCta ? "auto" : ("none" as const),
-        }}
+        style={{ opacity: bottomCtaOpacity }}
       >
+        <motion.div
+          animate={{ opacity: showBottomCta ? 1 : 0, y: showBottomCta ? 0 : 24 }}
+          style={{ pointerEvents: showBottomCta ? "auto" : "none" }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+        >
         <RegisterHostelStart
           className="inline-flex h-12 items-center gap-2 rounded-2xl bg-brand-teal px-6 text-sm font-bold text-white shadow-xl shadow-brand-teal/30 transition hover:brightness-110 md:h-14 md:px-8 md:text-base"
         >
           Register Your Hostel Now
           <ArrowRight className="size-4" />
         </RegisterHostelStart>
+        </motion.div>
       </motion.div>
     </PublicShell>
   );

@@ -169,26 +169,48 @@ function Switch({ checked, label, onChange }: { checked: boolean; label: string;
 /* Bill extras — the fine and khata on one bill                               */
 /* ------------------------------------------------------------------------- */
 
+/**
+ * What a late-fine line grows by. The line is written "… × 3 days" with
+ * amount = perDay × days, so both figures come back out of it.
+ */
+export function fineGrowth(line: { amount: number; description: string }) {
+  const days = Number(/×\s*(\d+)\s*day/.exec(line.description)?.[1]);
+
+  return days > 0 ? { days, perDay: Math.round(line.amount / days) } : null;
+}
+
+/** "Rs 140 a day · 3 days late — grows every day until paid". */
+export function fineDetail(line: { amount: number; description: string }) {
+  const growth = fineGrowth(line);
+
+  return growth
+    ? `${currency(growth.perDay)} a day · ${growth.days} day${growth.days === 1 ? "" : "s"} late — grows every day until paid`
+    : line.description.replace(/^Late fine — /, "");
+}
+
 /** "+ Rs 150 fine" / "+ Rs 240 khata" under a bill's amount, with an optional Waive. */
 export function BillExtraTags({
+  fineWaived,
   lines,
   onWaive,
 }: {
+  fineWaived?: boolean;
   lines?: BillLine[] | null;
   onWaive?: () => void;
 }) {
   const fine = lines?.find((line) => line.basis === "FINE");
   const khata = lines?.find((line) => line.basis === "KHATA");
 
-  if (!fine && !khata) {
+  if (!fine && !khata && !fineWaived) {
     return null;
   }
 
   return (
     <span className="mt-1 flex flex-wrap items-center gap-1.5">
+      {fineWaived && !fine ? <SoftBadge tone="green">Fine waived</SoftBadge> : null}
       {fine ? (
         <SoftBadge tone="amber">
-          <span title={fine.description}>{`+ ${currency(fine.amount)} fine`}</span>
+          <span title={fine.description}>{`+ ${currency(fine.amount)} fine${fineGrowth(fine) ? ` · +${currency(fineGrowth(fine)!.perDay)}/day` : ""}`}</span>
         </SoftBadge>
       ) : null}
       {fine && onWaive ? (
@@ -239,8 +261,8 @@ export function BillExtraRows({ lines }: { lines?: BillLine[] | null }) {
             </span>
             <span className="min-w-0 flex-1">
               <span className="block text-[13px] font-semibold text-foreground">{fine ? "Late fine" : "Khata"}</span>
-              <span className="block truncate text-[11.5px] text-muted-foreground">
-                {line.description.replace(/^(Late fine|Khata) — /, "")}
+              <span className="block text-[11.5px] text-muted-foreground">
+                {fine ? fineDetail(line) : line.description.replace(/^Khata — /, "")}
               </span>
             </span>
             <span className="text-[13px] font-semibold text-foreground">{currency(line.amount)}</span>

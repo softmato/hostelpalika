@@ -82,6 +82,8 @@ export const HostelAdminTransactionsPageContent = memo(
     const [methodFilter, setMethodFilter] = useState("");
     const [monthFilter, setMonthFilter] = useState("");
     const [page, setPage] = useState(1);
+    /** The collected-of-billed bar opens under the cards while the Collected card is hovered. */
+    const [showShare, setShowShare] = useState(false);
 
     const paymentsResource = usePortalResource<{
       entries: Payment[];
@@ -206,14 +208,30 @@ export const HostelAdminTransactionsPageContent = memo(
                   value={ledger.length}
                 />
               )}
-              <MetricCard
-                icon={Wallet}
-                label="Collected"
-                note="Received to date"
-                noteTone="green"
-                tone="green"
-                value={currency(totals.collected)}
-              />
+              <div
+                className="relative"
+                onBlur={() => setShowShare(false)}
+                onFocus={() => setShowShare(true)}
+                onMouseEnter={() => setShowShare(true)}
+                onMouseLeave={() => setShowShare(false)}
+              >
+                <MetricCard
+                  icon={Wallet}
+                  label="Collected"
+                  note="Received to date"
+                  noteTone="green"
+                  tone="green"
+                  value={currency(totals.collected)}
+                />
+                {totals.collected + totals.outstanding > 0 ? (
+                  <span className="pointer-events-none absolute bottom-2.5 left-[65px] right-5 h-1 overflow-hidden rounded-full bg-foreground/15">
+                    <span
+                      className="block h-full rounded-full bg-emerald-500 transition-[width] duration-500 ease-out"
+                      style={{ width: `${Math.round((totals.collected / (totals.collected + totals.outstanding)) * 100)}%` }}
+                    />
+                  </span>
+                ) : null}
+              </div>
               <MetricCard
                 icon={BadgeDollarSign}
                 label="Fully Settled"
@@ -232,12 +250,20 @@ export const HostelAdminTransactionsPageContent = memo(
               />
             </div>
 
-            <div className="rounded-2xl border border-border/70 bg-card px-4 py-3">
-              <ShareBar
-                label="collected of billed"
-                total={totals.collected + totals.outstanding}
-                value={totals.collected}
-              />
+            <div
+              className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${
+                showShare ? "grid-rows-[1fr] opacity-100" : "mb-0 grid-rows-[0fr] opacity-0"
+              }`}
+            >
+              <div className="min-h-0 overflow-hidden">
+                <div className="rounded-2xl border border-border/70 bg-card px-4 py-3">
+                  <ShareBar
+                    label="collected of billed"
+                    total={totals.collected + totals.outstanding}
+                    value={totals.collected}
+                  />
+                </div>
+              </div>
             </div>
 
             <Panel>

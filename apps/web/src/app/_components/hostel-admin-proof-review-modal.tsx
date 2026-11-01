@@ -12,6 +12,7 @@ import { CLAIM_REJECTION_REASONS } from "@/modules/finance/claim.validation";
 
 import type { PaymentProof } from "./hostel-admin-shared";
 import { InitialsAvatar, SoftBadge } from "./portal-dashboard-ui";
+import { ProofActions } from "./proof-actions";
 
 /**
  * The full review of one claim: evidence left, everything else right (§11.4).
@@ -82,22 +83,20 @@ function ClaimFacts({ proof }: { proof: PaymentProof }) {
 }
 
 export const ProofReviewModal = memo(function ProofReviewModal({
-  busy,
   onApprove,
   onClose,
   onReject,
+  processing,
   proof,
   residentName,
 }: {
-  busy?: boolean;
   onApprove: () => void;
   onClose: () => void;
   onReject: (reason: string) => void;
+  processing?: "approve" | "reject" | null;
   proof: PaymentProof | null;
   residentName: string;
 }) {
-  const [rejecting, setRejecting] = useState(false);
-
   if (!proof) {
     return null;
   }
@@ -112,7 +111,6 @@ export const ProofReviewModal = memo(function ProofReviewModal({
     <Dialog
       onOpenChange={(open) => {
         if (!open) {
-          setRejecting(false);
           onClose();
         }
       }}
@@ -269,59 +267,11 @@ export const ProofReviewModal = memo(function ProofReviewModal({
               </div>
             ) : (
               <div className="shrink-0 space-y-2 border-t border-border/60 p-4">
-                {rejecting ? (
-                  <>
-                    <FormSelect
-                      label="Why is this being rejected?"
-                      name="rejectionReason"
-                      onChange={(event) => {
-                        const code = event.target
-                          .value as keyof typeof CLAIM_REJECTION_REASONS;
-
-                        if (code) {
-                          onReject(CLAIM_REJECTION_REASONS[code]);
-                        }
-                      }}
-                    >
-                      <option value="">Choose a reason…</option>
-                      {Object.entries(CLAIM_REJECTION_REASONS).map(([code, label]) => (
-                        <option key={code} value={code}>
-                          {label}
-                        </option>
-                      ))}
-                    </FormSelect>
-                    <Button
-                      className="w-full rounded-lg"
-                      onClick={() => setRejecting(false)}
-                      type="button"
-                      variant="outline"
-                    >
-                      Cancel
-                    </Button>
-                  </>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button
-                      className="h-10 flex-1 rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90"
-                      disabled={busy}
-                      onClick={onApprove}
-                      type="button"
-                    >
-                      <Check className="size-4" />
-                      Approve
-                    </Button>
-                    <Button
-                      className="h-10 flex-1 rounded-lg"
-                      disabled={busy}
-                      onClick={() => setRejecting(true)}
-                      type="button"
-                      variant="destructive"
-                    >
-                      <X className="size-4" />
-                      Reject
-                    </Button>
-                  </div>
-                )}
+                <ProofActions
+                  onApprove={onApprove}
+                  onReject={onReject}
+                  processing={processing ?? null}
+                />
               </div>
             )}
           </div>

@@ -1,17 +1,17 @@
 "use client";
 
 import { apiUrl } from "@/lib/api-url";
-import { AlertTriangle, Check, FileText, Maximize2, X } from "@/components/icons";
-import { memo, useState } from "react";
+import { AlertTriangle, Check, FileText, Loader2, Maximize2 } from "@/components/icons";
+import { memo } from "react";
 
-import { currency, Select as FormSelect } from "@/app/_components/shared-ui";
+import { currency } from "@/app/_components/shared-ui";
 import { Button } from "@/components/ui/button";
 import { timeAgo } from "@/lib/format-month";
-import { CLAIM_REJECTION_REASONS } from "@/modules/finance/claim.validation";
 import { cn } from "@/lib/utils";
 
 import type { PaymentProof } from "./hostel-admin-shared";
 import { EmptyInline, InitialsAvatar, SectionCard } from "./portal-dashboard-ui";
+import { ProofActions } from "./proof-actions";
 
 /**
  * The owner's review queue (target §11.4, plan item 3.5).
@@ -78,23 +78,21 @@ function EvidenceThumb({
 
 function ClaimRow({
   bedLabel,
-  busy,
   name,
   onApprove,
   onOpen,
   onReject,
+  processing,
   proof,
 }: {
   bedLabel: string | null;
-  busy: boolean;
   name: string;
   onApprove: () => void;
   onOpen: () => void;
   onReject: (reason: string) => void;
+  processing: "approve" | "reject" | null;
   proof: PaymentProof;
 }) {
-  const [rejecting, setRejecting] = useState(false);
-
   return (
     <li className="rounded-xl border border-border/70 bg-muted/10 p-3 transition hover:border-role-admin/40 sm:p-4">
       <div className="flex gap-4">
@@ -163,66 +161,19 @@ function ClaimRow({
         </div>
       </div>
 
-      {rejecting ? (
-        <div className="mt-3 grid gap-2 border-t border-border/60 pt-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-          <FormSelect
-            label="Why is this being rejected?"
-            name="rejectionReason"
-            onChange={(event) => {
-              const code = event.target.value as keyof typeof CLAIM_REJECTION_REASONS;
-
-              if (code) {
-                onReject(CLAIM_REJECTION_REASONS[code]);
-              }
-            }}
-          >
-            <option value="">Choose a reason…</option>
-            {Object.entries(CLAIM_REJECTION_REASONS).map(([code, label]) => (
-              <option key={code} value={code}>
-                {label}
-              </option>
-            ))}
-          </FormSelect>
-          <Button
-            className="h-9 rounded-lg"
-            onClick={() => setRejecting(false)}
-            type="button"
-            variant="outline"
-          >
-            Cancel
-          </Button>
-        </div>
-      ) : (
-        <div className="mt-3 flex flex-wrap gap-2 border-t border-border/60 pt-3">
-          <Button
-            className="h-9 rounded-lg bg-emerald-600 text-white hover:bg-emerald-600/90"
-            disabled={busy}
-            onClick={onApprove}
-            type="button"
-          >
-            <Check className="size-3.5" />
-            Approve
-          </Button>
-          <Button
-            className="h-9 rounded-lg"
-            disabled={busy}
-            onClick={() => setRejecting(true)}
-            type="button"
-            variant="destructive"
-          >
-            <X className="size-3.5" />
-            Reject
-          </Button>
-          <Button
-            className="h-9 rounded-lg"
-            onClick={onOpen}
-            type="button"
-            variant="outline"
-          >
-            Open &amp; review
-          </Button>
-        </div>
-      )}
+      <div className="mt-3 border-t border-border/60 pt-3">
+        <ProofActions
+          extra={
+            <Button className="h-9 rounded-lg" onClick={onOpen} type="button" variant="outline">
+              Open &amp; review
+            </Button>
+          }
+          onApprove={onApprove}
+          onReject={onReject}
+          processing={processing}
+          size="sm"
+        />
+      </div>
     </li>
   );
 }
@@ -230,23 +181,23 @@ function ClaimRow({
 export const HostelAdminReviewQueue = memo(function HostelAdminReviewQueue({
   approvingAll,
   bedLabelByResidentId,
-  busy,
   claims,
   nameFor,
   onApprove,
   onApproveAll,
   onOpen,
   onReject,
+  processing,
 }: {
   approvingAll: boolean;
   bedLabelByResidentId: Map<string, string | null>;
-  busy: boolean;
   claims: PaymentProof[];
   nameFor: (proof: PaymentProof) => string;
   onApprove: (eventId: string) => void;
   onApproveAll: () => void;
   onOpen: (eventId: string) => void;
   onReject: (eventId: string, reason: string) => void;
+  processing: { action: "approve" | "reject"; id: string } | null;
 }) {
   const anyGreen = claims.some((proof) => proof.allGreen);
 
@@ -261,7 +212,7 @@ export const HostelAdminReviewQueue = memo(function HostelAdminReviewQueue({
             size="sm"
             type="button"
           >
-            <Check className="size-3.5" />
+            {approvingAll ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
             {approvingAll ? "Approving…" : "Approve all"}
           </Button>
         ) : null
@@ -276,12 +227,12 @@ export const HostelAdminReviewQueue = memo(function HostelAdminReviewQueue({
           {claims.map((proof) => (
             <ClaimRow
               bedLabel={bedLabelByResidentId.get(proof.residentId) ?? null}
-              busy={busy}
               key={proof.eventId}
               name={nameFor(proof)}
               onApprove={() => onApprove(proof.eventId)}
               onOpen={() => onOpen(proof.eventId)}
               onReject={(reason) => onReject(proof.eventId, reason)}
+              processing={processing?.id === proof.eventId ? processing.action : null}
               proof={proof}
             />
           ))}

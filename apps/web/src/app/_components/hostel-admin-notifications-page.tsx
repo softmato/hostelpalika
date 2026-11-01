@@ -3,7 +3,7 @@
 import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
 
-import { Bell, Check, Send } from "@/components/icons";
+import { Check, Send } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
 import {
@@ -22,9 +22,7 @@ import { browserApi } from "@/lib/browser-api";
 import { cn } from "@/lib/utils";
 import { hostelAdminEndpoints } from "@/lib/hostel-admin-endpoints";
 import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
-import { NotificationsPageContent } from "./notifications-page";
 import { Message, field, optionalField } from "./portal-shared";
-import { PageHeader } from "./core-portal-shared";
 
 type Campaign = {
   audience: string;
@@ -57,6 +55,7 @@ function shortDateTime(value?: string) {
     : "—";
 }
 
+/** Compose + sent/scheduled campaigns; mounted on the Notices page beside push notices. */
 export const HostelAdminNotificationsPageContent = memo(
   function HostelAdminNotificationsPageContent() {
     const [actionMessage, setActionMessage] = useState("");
@@ -133,18 +132,7 @@ export const HostelAdminNotificationsPageContent = memo(
     );
 
     return (
-      <div className="mx-auto max-w-[1448px] space-y-5">
-        <PageHeader
-          action={
-            <RoleButton className="h-9 rounded-xl" onClick={() => setComposing(true)} tone="admin" type="button">
-              <Send className="size-4" />
-              Compose
-            </RoleButton>
-          }
-          description="Send, schedule and track notices to residents."
-          icon={Bell}
-          title="Notifications"
-        />
+      <div className="space-y-5">
         {composing ? null : <Message value={actionMessage} />}
 
         <Dialog onOpenChange={setComposing} open={composing}>
@@ -247,13 +235,21 @@ export const HostelAdminNotificationsPageContent = memo(
           </DialogContent>
         </Dialog>
 
-        <Panel title="Sent & scheduled">
+        <Panel
+          action={
+            <RoleButton className="h-9 rounded-xl" onClick={() => setComposing(true)} tone="admin" type="button">
+              <Send className="size-4" />
+              Send notification
+            </RoleButton>
+          }
+          title="Sent & scheduled notifications"
+        >
           {campaignsResource.state === "loading" ? <LoadingRows /> : null}
           {campaignsResource.state === "error" ? (
             <EmptyState label="Campaigns could not be loaded." />
           ) : null}
           {campaignsResource.state !== "loading" && campaigns.length === 0 ? (
-            <EmptyState label="Nothing sent yet. Compose your first one from the header." />
+            <EmptyState label="Nothing sent yet. Use “Send notification” to send your first one." />
           ) : null}
 
           <div className="grid gap-3 lg:grid-cols-2">
@@ -287,8 +283,6 @@ export const HostelAdminNotificationsPageContent = memo(
             ))}
           </div>
         </Panel>
-
-        <NotificationsPageContent />
       </div>
     );
   },

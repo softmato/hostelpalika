@@ -9,6 +9,7 @@ import { currency } from "@/app/_components/shared-ui";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { PageHero } from "@/components/page-hero";
 import { WalletMark } from "@/components/wallet-mark";
 import {
   activeFilterCount,
@@ -95,6 +96,7 @@ export function StatementView({
   rows,
   subtitle,
   title = "Statement",
+  wide = false,
 }: {
   /** "Balance" when money goes both ways, "Total paid" on a resident's own. */
   balanceLabel: string;
@@ -110,6 +112,8 @@ export function StatementView({
   rows: StatementRow[];
   subtitle: string;
   title?: string;
+  /** Full-width with the portal page header: the hostel admin desktop screen. */
+  wide?: boolean;
 }) {
   const [filter, setFilter] = useState<StatementFilter>(NO_FILTER);
   const [draft, setDraft] = useState<StatementFilter>(NO_FILTER);
@@ -129,9 +133,12 @@ export function StatementView({
   const clear = () => setFilter((current) => ({ ...NO_FILTER, query: current.query }));
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className={wide ? "space-y-4" : "mx-auto max-w-3xl"}>
+      {wide ? (
+        <PageHero actions={exportAction ? exportAction(visible) : null} description={subtitle} title={title} />
+      ) : null}
       {/* The painted bar, rounded at the bottom, with the summary card on its edge. */}
-      <div className="rounded-b-[28px] rounded-t-2xl bg-brand-teal px-5 pb-12 pt-5 text-white sm:px-6">
+      <div className={cn("rounded-b-[28px] rounded-t-2xl bg-brand-teal px-5 pb-12 pt-5 text-white sm:px-6", wide && "hidden")}>
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
             <h1 className="font-heading text-2xl font-bold tracking-tight">{title}</h1>
@@ -141,7 +148,7 @@ export function StatementView({
         </div>
       </div>
 
-      <div className="-mt-8 px-3 sm:px-5">
+      <div className={wide ? "" : "-mt-8 px-3 sm:px-5"}>
         <Link
           className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3.5 shadow-lg transition hover:bg-muted/40"
           href={overviewHref ?? "#"}
@@ -176,7 +183,7 @@ export function StatementView({
       </div>
 
       {/* Search, then the filter button — the reference's hairline between them. */}
-      <div className="space-y-3 px-3 pb-3 pt-4 sm:px-5">
+      <div className={cn("space-y-3 pb-3", wide ? "" : "px-3 pt-4 sm:px-5")}>
         <div className="flex items-center gap-2">
           <label className="flex h-11 flex-1 items-center gap-2 rounded-2xl border border-border bg-card px-3.5">
             <input
@@ -236,9 +243,9 @@ export function StatementView({
         ) : null}
       </div>
 
-      <div className="h-px bg-border" />
-      {/* The pill that straddles the hairline and opens the quick ranges. */}
-      <div className="-mt-[15px] flex justify-center">
+      <div className={cn("h-px bg-border", wide && "hidden")} />
+      {/* The pill that straddles the hairline and opens the quick ranges; the wide web page leaves it out. */}
+      <div className={cn("-mt-[15px] flex justify-center", wide && "hidden")}>
         <button
           aria-label={rangesOpen ? "Hide the quick ranges" : "Show the quick ranges"}
           className="flex size-[30px] items-center justify-center rounded-full bg-brand-teal text-white shadow transition hover:opacity-90"
@@ -249,7 +256,7 @@ export function StatementView({
         </button>
       </div>
 
-      <div className="space-y-5 px-3 pb-10 pt-4 sm:px-5">
+      <div className={cn("space-y-5 pb-10", wide ? "" : "px-3 pt-4 sm:px-5")}>
         {loading ? (
           <div className="space-y-3">
             {[0, 1, 2, 3].map((index) => (
@@ -487,14 +494,28 @@ export function StatementView({
 /** The bar's export control, white on the paint: a PDF to hand on, or a spreadsheet to reconcile. */
 export function StatementExportButton({
   disabled,
+  labelled = false,
   onExport,
 }: {
   disabled?: boolean;
+  /** A labelled "Export" button, for the portal page header, instead of the round icon. */
+  labelled?: boolean;
   onExport: (format: TableFormat) => void;
 }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
+        {labelled ? (
+          <Button
+            className="h-10 gap-2 rounded-xl !border !border-white/40 !bg-white/15 px-4 !text-white hover:!bg-white/25 [&_svg]:!text-white"
+            disabled={disabled}
+            type="button"
+            variant="outline"
+          >
+            <Download className="size-4" />
+            Export
+          </Button>
+        ) : (
         <button
           aria-label="Export this statement"
           className="flex size-10 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25 disabled:opacity-50"
@@ -503,6 +524,7 @@ export function StatementExportButton({
         >
           <Download className="size-5" />
         </button>
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem onSelect={() => onExport("pdf")}>

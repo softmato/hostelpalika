@@ -63,6 +63,8 @@ const userSchema = new Schema(
       default: "ACTIVE",
     },
     lastLoginAt: Date,
+    /** Hostels this person hearted. Anonymous hearts live in the browser and are merged in at login. */
+    savedHostelIds: [{ ref: "Hostel", type: Schema.Types.ObjectId }],
     createdBy: { ref: "User", type: Schema.Types.ObjectId },
     updatedBy: { ref: "User", type: Schema.Types.ObjectId },
     isDemoData: { type: Boolean, default: false },

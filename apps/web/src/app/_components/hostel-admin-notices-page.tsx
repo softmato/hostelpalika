@@ -19,6 +19,7 @@ import { useInvalidateResources, usePortalResource } from "@/lib/portal-query";
 
 import { field, optionalField, type Notice } from "./hostel-admin-shared";
 import { HostelAdminNoticePushes } from "./hostel-admin-notice-pushes";
+import { HostelAdminNotificationsPageContent } from "./hostel-admin-notifications-page";
 
 const CATEGORIES = [
   "GENERAL",
@@ -97,6 +98,7 @@ export const HostelAdminNoticesPage = memo(function HostelAdminNoticesPage() {
       ) : null}
 
       <HostelAdminNoticePushes />
+      <HostelAdminNotificationsPageContent />
 
       <div>
         <SectionCard title={`Published · ${notices.length}`}>

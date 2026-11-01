@@ -55,6 +55,9 @@ vi.mock("@/modules/hostels/hostel-view.service", () => ({
   getHostelViewStats: mocks.viewStats,
 }));
 
+vi.mock("@hostel/db/models/HostelPageView", () => ({
+  HostelPageViewModel: { countDocuments: vi.fn().mockResolvedValue(0) },
+}));
 vi.mock("@hostel/db/models/Hostel", () => ({
   HostelModel: { find: mocks.hostelFind },
 }));

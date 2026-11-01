@@ -1,11 +1,12 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import type { ReactNode } from "react";
 
 import { MetricCard } from "@/app/_components/portal-dashboard-ui";
 import { currency, EmptyState } from "@/app/_components/shared-ui";
+import type { GlyphName } from "@/components/glyph";
 import type { IconComponent } from "@/components/icons";
-import { monthLabel } from "@/lib/format-month";
 import { formatBsPeriodMonth } from "@/lib/hostel-day";
 
 export type CountMap = Record<string, number>;
@@ -43,48 +44,64 @@ export function StatTile({
   );
 }
 
-/** Horizontal bars for a `{ STATUS: count }` breakdown. */
+const SEGMENT_COLORS = ["#0a8a4b", "#f59e0b", "#6366f1", "#f43f5e", "#94a3b8"];
+const SEGMENTS_SHOWN = 4;
+
+/**
+ * A `{ STATUS: count }` breakdown as one stacked bar with a short legend, in
+ * place of a bar per row: the same figures in a fifth of the height. The biggest
+ * few get a colour each; the long tail is folded into "Other".
+ */
 export function Breakdown({
   emptyLabel = "No data yet.",
+  glyph,
   map,
   total,
 }: {
   emptyLabel?: string;
+  /** The empty state's own icon, so each section's empty card is told apart. */
+  glyph?: GlyphName;
   map: CountMap;
   total?: number;
 }) {
-  const entries = Object.entries(map ?? {}).sort((left, right) => right[1] - left[1]);
+  const sorted = Object.entries(map ?? {})
+    .filter(([, count]) => count > 0)
+    .sort((left, right) => right[1] - left[1]);
 
-  if (entries.length === 0) {
-    return <EmptyState label={emptyLabel} />;
+  if (sorted.length === 0) {
+    return <EmptyState glyph={glyph} label={emptyLabel} />;
   }
 
-  const max = total ?? entries.reduce((sum, [, count]) => sum + count, 0) ?? 1;
+  const entries: Array<[string, number]> =
+    sorted.length > SEGMENTS_SHOWN + 1
+      ? [
+          ...sorted.slice(0, SEGMENTS_SHOWN),
+          ["Other", sorted.slice(SEGMENTS_SHOWN).reduce((sum, [, count]) => sum + count, 0)],
+        ]
+      : sorted;
+  const sum = total ?? entries.reduce((acc, [, count]) => acc + count, 0);
 
   return (
-    <dl className="grid gap-2.5">
-      {entries.map(([label, count]) => (
-        <div key={label}>
-          <div className="flex items-baseline justify-between gap-3">
-            <dt className="truncate text-xs font-medium text-foreground">
-              {label.replaceAll("_", " ")}
-            </dt>
-            <dd className="shrink-0 text-xs font-bold text-foreground">
-              {count.toLocaleString()}
-              <span className="ml-1.5 font-normal text-muted-foreground">
-                {max > 0 ? `${Math.round((count / max) * 100)}%` : "0%"}
-              </span>
-            </dd>
-          </div>
-          <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-role-admin"
-              style={{ width: max > 0 ? `${Math.max((count / max) * 100, 2)}%` : "0%" }}
-            />
-          </div>
-        </div>
-      ))}
-    </dl>
+    <div>
+      <div className="flex h-2 gap-0.5 overflow-hidden rounded-full bg-muted">
+        {entries.map(([label, count], index) => (
+          <div
+            key={label}
+            style={{ background: SEGMENT_COLORS[index % SEGMENT_COLORS.length], width: `${(count / sum) * 100}%` }}
+            title={`${label.replaceAll("_", " ")}: ${count}`}
+          />
+        ))}
+      </div>
+      <ul className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1">
+        {entries.map(([label, count], index) => (
+          <li className="flex items-center gap-1.5 text-xs text-muted-foreground" key={label}>
+            <span className="size-2 rounded-full" style={{ background: SEGMENT_COLORS[index % SEGMENT_COLORS.length] }} />
+            <span className="capitalize">{label.replaceAll("_", " ").toLowerCase()}</span>
+            <span className="font-semibold tabular-nums text-foreground">{count.toLocaleString()}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -140,50 +157,22 @@ function axisMonth(month: string) {
 }
 
 /**
- * Due-vs-collected columns per month, straight off the payment ledger. Bars are
- * scaled to the largest month so an empty ledger renders flat rather than broken.
+ * Due-vs-collected per month, straight off the payment ledger, as a bar or a line chart.
  */
-export function CollectionChart({ points }: { points: MonthlyPoint[] }) {
-  const peak = Math.max(...points.map((point) => point.due), 1);
+const ReportBarLineChart = dynamic(() => import("@/components/report-bar-line-chart"), {
+  loading: () => <div className="h-[340px] w-full animate-pulse rounded-xl bg-muted" />,
+  ssr: false,
+});
 
+export function CollectionChart({ points }: { points: MonthlyPoint[] }) {
   return (
-    <div>
-      <div className="flex items-end gap-2 sm:gap-3" style={{ height: 160 }}>
-        {points.map((point) => (
-          <div className="flex flex-1 flex-col items-center gap-1" key={point.month}>
-            <span className="text-[10px] font-semibold text-muted-foreground">
-              {point.due > 0 ? `${point.collectionRate}%` : ""}
-            </span>
-            <div
-              className="relative flex w-full items-end justify-center gap-0.5"
-              style={{ height: 120 }}
-              title={`${monthLabel(point.month)} — due ${point.due}, collected ${point.paid}`}
-            >
-              {/* A tint of the collected green with an edge: plain muted vanished on the card. */}
-              <div
-                className="w-1/2 rounded-t bg-role-admin/25 ring-1 ring-inset ring-role-admin/40"
-                style={{ height: `${Math.max((point.due / peak) * 100, 1)}%` }}
-              />
-              <div
-                className="w-1/2 rounded-t bg-role-admin"
-                style={{ height: `${Math.max((point.paid / peak) * 100, 1)}%` }}
-              />
-            </div>
-            <span className="text-[11px] font-medium text-muted-foreground">
-              {axisMonth(point.month)}
-            </span>
-          </div>
-        ))}
-      </div>
-      <div className="mt-3 flex items-center gap-4 text-[11px] text-muted-foreground">
-        <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-sm bg-role-admin/25 ring-1 ring-inset ring-role-admin/40" /> Billed
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="size-2.5 rounded-sm bg-role-admin" /> Collected
-        </span>
-      </div>
-    </div>
+    <ReportBarLineChart
+      points={points.map((point) => ({
+        billed: point.due,
+        collected: point.paid,
+        label: axisMonth(point.month),
+      }))}
+    />
   );
 }
 

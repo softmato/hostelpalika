@@ -878,22 +878,6 @@ export const HostelAdminFeeSchedulePageContent = memo(
               </DialogContent>
             </Dialog>
 
-            <MonthDiscounts />
-            <LateFinePanel />
-            <div data-kyc="opening">
-              <MoneyRulesPanel />
-            </div>
-            <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
-              <h3 className="text-sm font-semibold">How bills work</h3>
-              <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
-                <li>First bill at registration — to the month end, or a whole month on Same day.</li>
-                <li>Then one bill a month: on the 1st, or on their own day.</li>
-                <li>Due on the bill's last day, or after the late-fine free days.</li>
-                <li>Reminders 7 and 5 days before, then twice a day from 3 days until paid.</li>
-                <li>Leaving: they pick the day, rent stops on it, the warden moves them out.</li>
-              </ul>
-            </div>
-
             <Panel title="Past rates">
               {pastSchedules.length === 0 ? (
                 <EmptyState label="No rates have finished yet." />
@@ -970,3 +954,55 @@ export const HostelAdminFeeSchedulePageContent = memo(
     );
   },
 );
+
+/* The rest of what this page used to hold, one screen each under Finance settings. */
+export const HostelAdminFestivalDiscountsPageContent = memo(function HostelAdminFestivalDiscountsPageContent() {
+  return (
+    <div className="mx-auto max-w-[1448px] space-y-5">
+      <PageHeader
+        description="A percentage off every resident's rent for one month."
+        icon={PartyPopper}
+        title="Festival discounts"
+      />
+      <MonthDiscounts />
+    </div>
+  );
+});
+
+export const HostelAdminLateFinePageContent = memo(function HostelAdminLateFinePageContent() {
+  return (
+    <div className="mx-auto max-w-[1448px] space-y-5">
+      <PageHeader
+        description="A daily fine once a bill is past its free days."
+        icon={CalendarClock}
+        title="Late fine"
+      />
+      <LateFinePanel />
+    </div>
+  );
+});
+
+export const HostelAdminMoneyRulesPageContent = memo(function HostelAdminMoneyRulesPageContent() {
+  return (
+    <div className="mx-auto max-w-[1448px] space-y-5">
+      <PageHeader
+        description="Opening balances and how bills are cut."
+        icon={Layers}
+        title="Money rules"
+      />
+      <div data-kyc="opening">
+        <MoneyRulesPanel />
+      </div>
+      <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
+        <h3 className="text-sm font-semibold">How bills work</h3>
+        <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+          <li>First bill at registration — to the month end, or a whole month on Same day.</li>
+          <li>Then one bill a month: on the 1st, or on their own day.</li>
+          <li>Due on the bill's last day, or after the late-fine free days.</li>
+          <li>Reminders 7 and 5 days before, then twice a day from 3 days until paid.</li>
+          <li>Leaving: they pick the day, rent stops on it, the warden moves them out.</li>
+        </ul>
+      </div>
+    </div>
+  );
+});

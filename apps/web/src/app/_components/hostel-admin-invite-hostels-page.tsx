@@ -1,11 +1,14 @@
 "use client";
 
-import { Building2, Clock, Copy, Mail, MessageCircle, Share2 } from "@/components/icons";
+import { Building2, Clock, Copy, Gift, Mail, Share2 } from "@/components/icons";
+import { HostelAdminReferralsPageContent } from "@/app/_components/hostel-admin-referrals-page";
+import { StatTile } from "@/app/_components/report-widgets";
+import { WhatsAppMark } from "@/components/whatsapp-mark";
 import { memo, useCallback, useState, type FormEvent } from "react";
 
 import { BusyForm, SubmitButton } from "@/app/_components/busy-form";
 import { RowMark } from "@/app/_components/hostel-admin-page-ui";
-import { MetricCard, PortalPageHeader, RoleButton, SoftBadge } from "@/app/_components/portal-dashboard-ui";
+import { PortalPageHeader, RoleButton, SoftBadge } from "@/app/_components/portal-dashboard-ui";
 import { EmptyState, Input, LoadingRows, Panel } from "@/app/_components/shared-ui";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -110,13 +113,35 @@ export const HostelAdminInviteHostelsPageContent = memo(function HostelAdminInvi
             </>
           ) : undefined
         }
-        description="Other hostels that join with your code earn you both extra plan time."
-        title="Invite hostels"
+        description="Invite other hostels. They get a free month, and you get one added to your plan."
+        title="Referrals"
       />
       {inviting ? null : <Message value={message || resource.message} />}
       {resource.state === "loading" ? <LoadingRows /> : null}
 
       {data ? (
+        <>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <StatTile
+            hint="Registered with your code"
+            icon={Building2}
+            label="Hostels joined"
+            value={data.referrals.length}
+          />
+          <StatTile
+            hint="Registered, not live yet"
+            icon={Clock}
+            label="Waiting to go live"
+            value={data.referrals.filter((referral) => referral.status === "PENDING").length}
+          />
+          <StatTile
+            hint={`${data.youGet.text || "Nothing extra"} per hostel, added to your plan`}
+            icon={Gift}
+            label="Free time earned"
+            tone="good"
+            value={data.referrals.filter((referral) => referral.rewardAdded).length}
+          />
+        </div>
         <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
           <Panel title="Your referral code">
             {!data.enabled ? (
@@ -128,6 +153,13 @@ export const HostelAdminInviteHostelsPageContent = memo(function HostelAdminInvi
               <p className="font-mono text-3xl font-bold tracking-[0.2em] text-foreground">{data.code}</p>
               <p className="mt-2 break-all text-[12px] text-muted-foreground">{data.link}</p>
             </div>
+            <p className="mt-4 text-[13px] text-muted-foreground">
+              Invite a hostel to run on {PLATFORM_NAME}. Once they register with your code and go live, they get{" "}
+              <span className="font-semibold text-foreground">{data.theyGet.text || "extra time"}</span> free on top of
+              whichever plan they choose, and you get{" "}
+              <span className="font-semibold text-foreground">{data.youGet.text || "extra time"}</span> added to your
+              current plan.
+            </p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <div className="rounded-xl bg-muted/60 p-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">They get</p>
@@ -140,7 +172,7 @@ export const HostelAdminInviteHostelsPageContent = memo(function HostelAdminInvi
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <ShareButton
-                icon={MessageCircle}
+                icon={WhatsAppMark}
                 label="WhatsApp"
                 onClick={() =>
                   window.open(`https://wa.me/?text=${encodeURIComponent(shareText(data))}`, "_blank", "noopener")
@@ -152,15 +184,6 @@ export const HostelAdminInviteHostelsPageContent = memo(function HostelAdminInvi
           </Panel>
 
           <div className="space-y-5">
-            <div className="grid grid-cols-2 gap-3">
-              <MetricCard icon={Building2} label="Hostels joined" value={data.referrals.length} />
-              <MetricCard
-                icon={Clock}
-                label="Waiting to go live"
-                tone="slate"
-                value={data.referrals.filter((referral) => referral.status === "PENDING").length}
-              />
-            </div>
             <Panel title="Hostels you invited">
               {data.referrals.length === 0 ? (
                 <EmptyState label="No hostel has registered with your code yet." />
@@ -186,7 +209,14 @@ export const HostelAdminInviteHostelsPageContent = memo(function HostelAdminInvi
             </Panel>
           </div>
         </div>
+        </>
       ) : null}
+
+      {/* Residents who bring in residents — same idea, one level down. */}
+      <h2 className="pt-2 font-heading text-[15px] font-semibold tracking-tight text-foreground">
+        Resident referrals
+      </h2>
+      <HostelAdminReferralsPageContent embedded />
 
       <Dialog onOpenChange={setInviting} open={inviting}>
         <DialogContent className="sm:max-w-md">
@@ -217,7 +247,7 @@ function ShareButton({
   onClick,
   primary = false,
 }: {
-  icon: typeof Copy;
+  icon: typeof Copy | typeof WhatsAppMark;
   label: string;
   onClick: () => void;
   primary?: boolean;

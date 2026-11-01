@@ -69,6 +69,7 @@ const SOURCES: Source[] = [
       MarkSent: null,
       NUMBER_FIELDS: "settings",
       PaymentsTab: null,
+      PlatformBookingsPageContent: null,
       SettingsForm: "settings",
     },
     file: "platform-bookings-page.tsx",
@@ -99,7 +100,8 @@ function extract(source: Source, code: string): Field[] {
   const declAt = (at: number) => decls.filter((decl) => decl.at <= at).at(-1);
 
   const labels: { at: number; label: string }[] = [];
-  for (const match of code.matchAll(/(?<![-\w])label="([^"]+)"/g)) {
+  // An `<EmptyState label>` is a message, not a field.
+  for (const match of code.matchAll(/(?<![-\w])(?<!<EmptyState )label="([^"]+)"/g)) {
     labels.push({ at: match.index, label: match[1] });
   }
   for (const match of code.matchAll(/^const [A-Z][A-Z0-9_]*\b[^=]*= \[([\s\S]*?)^\];/gm)) {
@@ -122,7 +124,7 @@ function extract(source: Source, code: string): Field[] {
       at: m.index,
       title: m[1],
     })),
-    ...[...code.matchAll(/<h[23]\b[^>]*>([^<{]+)<\/h[23]>/g)].map((m) => ({
+    ...[...code.matchAll(/<(?:h[23]|DialogTitle)\b[^>]*>([^<{]+)<\/(?:h[23]|DialogTitle)>/g)].map((m) => ({
       at: m.index,
       title: m[1].trim(),
     })),

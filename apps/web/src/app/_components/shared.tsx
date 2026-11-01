@@ -48,12 +48,14 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { optimizedImage } from "@/lib/image-url";
 import { useParams } from "next/navigation";
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { PublicHeader } from "@/components/public-header";
 import { ListingTierBadge } from "@/app/_components/listing-tier-badge";
 import type { HostelSummary, Tone } from "@/app/_components/public-hostel-types";
 import { cn } from "@/lib/utils";
+import { syncSavedHostels, useSavedHostelsStore } from "@/stores/saved-hostels-store";
+import { useSessionStore } from "@/stores/session-store";
 
 export type PortalKind = "admin" | "guardian" | "platform" | "resident";
 export type AuthMode = "activation" | "login" | "otp" | "reset" | "signup";
@@ -427,6 +429,13 @@ export function PublicShell({
   /** The shared footer; off only for pages that fill the viewport, like the map. */
   footer?: boolean;
 }) {
+  const userId = useSessionStore((state) => state.user?.id);
+
+  // Signing in binds this browser's hearts to the account.
+  useEffect(() => {
+    if (userId) void syncSavedHostels(userId);
+  }, [userId]);
+
   return (
     <AnimatedPage className="min-h-screen overflow-x-clip bg-background text-foreground">
       <PublicHeader active={active} />
@@ -571,6 +580,31 @@ function roomRange(roomTypes: string[]) {
   return low === high ? label(low) : `${label(low)} to ${high}-sharing`;
 }
 
+/** The heart on a card: flips at once, pops, and fills red. Hearts are kept by `useSavedHostelsStore`. */
+function SaveHostelButton({ hostelId }: { hostelId: string }) {
+  const saved = useSavedHostelsStore((state) => state.ids.includes(hostelId));
+  const toggle = useSavedHostelsStore((state) => state.toggle);
+
+  return (
+    <button
+      aria-label={saved ? "Remove from saved hostels" : "Save hostel"}
+      aria-pressed={saved}
+      className="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full bg-surface/85 text-muted-foreground transition-colors hover:bg-surface hover:text-destructive active:scale-90"
+      onClick={(event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        toggle(hostelId);
+      }}
+      type="button"
+    >
+      <Heart
+        className={cn("size-4", saved && "animate-heart-pop fill-destructive text-destructive")}
+        key={String(saved)}
+      />
+    </button>
+  );
+}
+
 // HostelCard Component
 export function HostelCard({ hostel }: { hostel: HostelSummary }) {
   const rooms = roomRange(hostel.roomTypes);
@@ -608,17 +642,7 @@ export function HostelCard({ hostel }: { hostel: HostelSummary }) {
             </StatusPill>
             {hostel.listingTier ? <ListingTierBadge tier={hostel.listingTier} /> : null}
           </div>
-          <button
-            aria-label="Save hostel"
-            className="absolute right-3 top-3 inline-flex size-8 items-center justify-center rounded-full bg-surface/85 text-muted-foreground transition hover:bg-surface hover:text-danger"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-            }}
-            type="button"
-          >
-            <Heart className="size-4" />
-          </button>
+          <SaveHostelButton hostelId={hostel.id} />
         </div>
         <div className="flex flex-1 flex-col gap-3 p-4">
           <div>

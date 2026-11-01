@@ -11,6 +11,7 @@ export const PLATFORM_FIELDS: ReadonlyArray<{
   { href: "/platform/config/site", label: "Support email", section: "Site Identity", tab: "" },
   { href: "/platform/config/site", label: "Support phone", section: "Site Identity", tab: "" },
   { href: "/platform/config/site", label: "Address", section: "Site Identity", tab: "" },
+  { href: "/platform/config/site", label: "Note", section: "Site Identity", tab: "" },
   { href: "/platform/config/site", label: "Sender name", section: "Email Sending", tab: "" },
   { href: "/platform/config/site", label: "Reply-to address", section: "Email Sending", tab: "" },
   { href: "/platform/config/site", label: "Sending domain", section: "Email Sending", tab: "" },

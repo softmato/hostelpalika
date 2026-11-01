@@ -13,6 +13,7 @@ type Summary = {
   hostels: Array<{
     beds: number;
     collected: number;
+    coverUrl: string | null;
     due: number;
     id: string;
     isBranch: boolean;
@@ -72,8 +73,13 @@ export function HostelBranchesCard() {
               className="group grid grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-2 px-4 py-3 transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-brand-teal md:grid-cols-[auto_minmax(0,1.6fr)_repeat(4,minmax(0,1fr))_auto]"
               href={`/${encodeURIComponent(row.slug)}/admin/dashboard`}
             >
-              <span className="flex size-9 items-center justify-center rounded-lg bg-brand-teal/10 text-brand-teal">
-                <Glyph className="size-[18px]" name={row.isBranch ? "branch" : "hostel"} />
+              <span className="flex size-11 items-center justify-center overflow-hidden rounded-lg bg-brand-teal/10 text-brand-teal">
+                {row.coverUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element -- a small thumbnail of a stored photo
+                  <img alt="" className="size-full object-cover" loading="lazy" src={row.coverUrl} />
+                ) : (
+                  <Glyph className="size-[18px]" name={row.isBranch ? "branch" : "hostel"} />
+                )}
               </span>
               <span className="min-w-0">
                 <span className="block truncate text-sm font-semibold text-foreground">{row.name}</span>

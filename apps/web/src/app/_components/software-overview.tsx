@@ -180,9 +180,9 @@ export function RolesSection() {
       <Heading lead="One platform, a separate screen for every person in a hostel. Nobody sees more than their job needs.">
         Seven kinds of people, each with their own screen
       </Heading>
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mt-8 gap-4 sm:columns-2 lg:columns-3">
         {ROLES.map((role) => (
-          <article className="hp-card flex flex-col rounded-2xl border border-border bg-surface p-5" key={role.name}>
+          <article className="hp-card mb-4 flex break-inside-avoid flex-col rounded-2xl border border-border bg-surface p-5" key={role.name}>
             <div className="flex items-center gap-3">
               <IconTile Icon={role.Icon} />
               <div className="min-w-0">
@@ -399,10 +399,10 @@ export function ModuleAtlas({ modules }: { modules: ResolvedModulePage[] }) {
       >
         Everything a hostel runs on
       </Heading>
-      <div className="mt-8 grid gap-4 lg:grid-cols-2">
+      <div className="mt-8 gap-4 lg:columns-2">
         {modules.map((entry) => (
           <article
-            className="hp-card flex flex-col rounded-2xl border border-border bg-surface p-5"
+            className="hp-card mb-4 flex break-inside-avoid flex-col rounded-2xl border border-border bg-surface p-5"
             id={entry.slug}
             key={entry.slug}
           >

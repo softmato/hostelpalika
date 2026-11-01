@@ -496,7 +496,7 @@ export function formatBsPeriodYear(period: string | null | undefined): string {
 }
 
 /**
- * **The platform's one date format: `Baisakh · 2083-01-15`.**
+ * **The platform's one date format: `Baisakh 15, 2083 BS`.**
  *
  * Every screen on the web and in the app, every CSV and every PDF prints a day
  * this way — the month by name so it reads at a glance, then the full BS date
@@ -516,7 +516,7 @@ export function formatBsDate(instant: Date | null | undefined): string {
     const bs = toBs(instant);
     const name = bsMonthName(bs.month);
 
-    return name ? `${name} ${DATE_SEPARATOR} ${formatBsNumeric(bs)}` : "";
+    return name ? `${name} ${bs.day}, ${bs.year} ${BS_ERA}` : "";
   } catch {
     return "";
   }
@@ -525,9 +525,26 @@ export function formatBsDate(instant: Date | null | undefined): string {
 /** The dot between the month name and the numbers, for a caller that splits the two. */
 export const DATE_SEPARATOR = "·";
 
-/** `2083-01-15` — the numeric half of the one format. */
-function formatBsNumeric(bs: BsDate): string {
-  return `${bs.year}-${String(bs.month).padStart(2, "0")}-${String(bs.day).padStart(2, "0")}`;
+/**
+ * `Aswin 14 – Kartik 13, 2083 BS` — two days, the year and era said once.
+ * Spells the year on both ends when they differ.
+ */
+export function formatHostelDateRange(from: DateInput, to: DateInput, empty = "—"): string {
+  const a = toInstant(from);
+  const b = toInstant(to);
+
+  if (!a || !b) return empty;
+
+  const start = toBs(a);
+  const end = toBs(b);
+  const startName = bsMonthName(start.month);
+  const endName = bsMonthName(end.month);
+
+  if (!startName || !endName) return empty;
+
+  const head = `${startName} ${start.day}${start.year === end.year ? "" : `, ${start.year}`}`;
+
+  return `${head} – ${endName} ${end.day}, ${end.year} ${BS_ERA}`;
 }
 
 /** Kept for its callers; the AD half is gone — there is one date format. */
@@ -565,7 +582,7 @@ export function formatHostelTime(value: DateInput, empty = "—"): string {
   return `${hour % 12 === 0 ? 12 : hour % 12}:${String(minute).padStart(2, "0")} ${hour < 12 ? "am" : "pm"}`;
 }
 
-/** `Baisakh · 2083-01-15, 2:45 pm` — the one format with Nepal's clock after it. */
+/** `Baisakh 15, 2083 BS, 2:45 pm` — the one format with Nepal's clock after it. */
 export function formatHostelDateTime(value: DateInput, empty = "—"): string {
   const date = formatHostelDate(value, "");
 

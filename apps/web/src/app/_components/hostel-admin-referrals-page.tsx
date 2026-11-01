@@ -69,7 +69,7 @@ function shortDate(value?: string) {
 }
 
 export const HostelAdminReferralsPageContent = React.memo(
-  function HostelAdminReferralsPageContent() {
+  function HostelAdminReferralsPageContent({ embedded = false }: { embedded?: boolean }) {
     const [actionMessage, setActionMessage] = useState("");
     const [filter, setFilter] = useState("");
     const [search, setSearch] = useState("");
@@ -146,11 +146,13 @@ export const HostelAdminReferralsPageContent = React.memo(
 
     return (
       <div className="mx-auto max-w-[1448px] space-y-5">
-        <PageHeader
-          description="Who your residents brought in, and their rewards."
-          icon={Gift}
-          title="Referrals"
-        />
+        {embedded ? null : (
+          <PageHeader
+            description="Who your residents brought in, and their rewards."
+            icon={Gift}
+            title="Referrals"
+          />
+        )}
         <Message value={message} />
 
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">

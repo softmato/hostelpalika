@@ -10,6 +10,9 @@ import {
   CreditCard,
   Plus,
   ReceiptText,
+  Banknote,
+  Landmark,
+  Smartphone,
   WalletCards,
 } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
@@ -75,9 +78,11 @@ import {
   TableHeader,
   TableRow,
 } from "./portal-dashboard-ui";
-import { BillExtraTags, type BillLine } from "./khata-pages";
+import { BillExtraTags, fineGrowth, type BillLine } from "./khata-pages";
 import { ShareBar } from "./hostel-admin-page-ui";
 import { WalletMark } from "@/components/wallet-mark";
+import { BusyForm, SubmitButton } from "./busy-form";
+import { useSessionStore } from "@/stores/session-store";
 
 /** "No fee set" only when nothing prices the room; a priceable row is just not billed yet. */
 function notBilledLabel(reason: string | undefined) {
@@ -98,13 +103,49 @@ type MatrixRow = {
     | "NOT_BILLED";
   /** Server's projection for a row with no invoice: what it would cost and why it isn't billed. */
   notBilled?: { amount: number | null; reason: string } | null;
-  payment: (Payment & { lines?: BillLine[] }) | null;
+  payment: (Payment & { fineWaived?: boolean; lines?: BillLine[] }) | null;
   resident: Resident & {
     fullName: string;
     moveInDate: string;
     /** Bed type — the attribute the hostel identifies a resident by (§11.4). */
     roomType?: string | null;
   };
+};
+
+/** The three header actions share one shape and one glass fill on the green block. */
+const HEADER_BUTTON =
+  "h-10 gap-2 rounded-xl !border !border-white/40 !bg-white/15 px-4 !text-white hover:!bg-white/25 [&_svg]:!text-white";
+
+type PayMethod = "CASH" | "ESEWA" | "KHALTI" | "BANK";
+
+const ONLINE_METHODS: { label: string; logo: string; value: Exclude<PayMethod, "CASH"> }[] = [
+  { label: "eSewa", logo: "ESEWA", value: "ESEWA" },
+  { label: "Khalti", logo: "KHALTI", value: "KHALTI" },
+  { label: "Bank", logo: "BANK_TRANSFER", value: "BANK" },
+];
+
+/** A provider's logo tile; Bank has no brand, so it is a white tile with a bold bank glyph. */
+function MethodMark({ logo, size }: { logo: string; size: number }) {
+  if (logo !== "BANK_TRANSFER") {
+    return <WalletMark name={logo} size={size} />;
+  }
+
+  return (
+    <span
+      className="inline-flex shrink-0 items-center justify-center bg-white text-neutral-900"
+      style={{ borderRadius: Math.round(size * 0.28), height: size, width: size }}
+    >
+      <Landmark size={Math.round(size * 0.6)} strokeWidth={2.75} />
+    </span>
+  );
+}
+
+type LedgerMonth = {
+  dueAmount: number;
+  invoiceId: string | null;
+  lines: { amount: number; basis?: string; description: string }[];
+  paidAmount: number;
+  period: string;
 };
 
 type PeriodSummary = {
@@ -184,6 +225,10 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
   const [search, setSearch] = useState("");
   const [actionMessage, setActionMessage] = useState("");
   const [showCreate, setShowCreate] = useState(false);
+  const [payResidentId, setPayResidentId] = useState("");
+  // null = untouched, so the oldest unpaid month is the default pick.
+  const [payMethod, setPayMethod] = useState<PayMethod>("CASH");
+  const [payMonths, setPayMonths] = useState<string[] | null>(null);
   const [showFeeRun, setShowFeeRun] = useState(false);
   /**
    * The month the billing dialog will bill, tracked here rather than left to the
@@ -192,11 +237,17 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
    */
   const [billMonth, setBillMonth] = useState(defaultMonth);
   const [approvingAll, setApprovingAll] = useState(false);
+  const [processing, setProcessing] = useState<{ action: "approve" | "reject"; id: string } | null>(null);
+  /** The review section is shown for pending claims, or when the Pending Proofs card opens it. */
+  const [queueForced, setQueueForced] = useState(false);
+  /** The collected-of-billed bar opens under the cards while the Collected card is hovered. */
+  const [showShare, setShowShare] = useState(false);
   /** Whose month-by-month history is open in the side sheet. "" means none. */
   const [trackResidentId, setTrackResidentId] = useState("");
   /** Which claim is open in the full review modal (item 3, target §11.4). */
   const [reviewingId, setReviewingId] = useState("");
   const invalidate = useInvalidateResources();
+  const sessionName = useSessionStore((state) => state.user?.name ?? "");
 
   const errorMessage = "Could not load payments.";
   const residentsResource = usePortalResource<{ residents: Resident[] }>(
@@ -229,8 +280,48 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
     () => residentsResource.data?.residents ?? [],
     [residentsResource.data],
   );
+  // Recording cash is for people living here now, not everyone who ever stayed.
+  const livingResidents = useMemo(
+    () => residents.filter((resident) => resident.status === "ACTIVE"),
+    [residents],
+  );
   const rows = useMemo(() => matrixResource.data?.rows ?? [], [matrixResource.data]);
   const totals = matrixResource.data?.totals ?? null;
+  // The chosen resident's bill for the chosen month, from their own ledger —
+  // the same invoice the cash endpoint settles against.
+  const payLedger = usePortalResource<{ months: LedgerMonth[] }>(
+    payResidentId ? hostelAdminEndpoints.residentLedger(payResidentId) : null,
+    { errorMessage },
+  );
+  // Only months with a bill that still has a balance can be paid.
+  const unpaidMonths = useMemo(
+    () =>
+      (payLedger.data?.months ?? [])
+        .filter((entry) => entry.invoiceId && entry.dueAmount - entry.paidAmount > 0)
+        .sort((x, y) => x.period.localeCompare(y.period)),
+    [payLedger.data],
+  );
+  const chosenPeriods = payMonths ?? unpaidMonths.slice(0, 1).map((entry) => entry.period);
+  const chosenBills = unpaidMonths.filter((entry) => chosenPeriods.includes(entry.period));
+  const payBalance = chosenBills.reduce(
+    (sum, entry) => sum + (entry.dueAmount - entry.paidAmount),
+    0,
+  );
+  // The typed amount belongs to one selection; a new selection starts at the full balance.
+  const amountKey = `${chosenPeriods.join(",")}-${payBalance}`;
+  const [amountEdit, setAmountEdit] = useState<{ key: string; value: string } | null>(null);
+  const payAmount = amountEdit?.key === amountKey ? amountEdit.value : String(payBalance);
+  // What stays due per month: ticked months after the typed amount is spread
+  // oldest first, plus every unticked unpaid month in full.
+  const remainingLines = unpaidMonths
+    .reduce<{ amount: number; left: number; period: string }[]>((lines, entry) => {
+      const owed = entry.dueAmount - entry.paidAmount;
+      const left = lines.length > 0 ? lines[lines.length - 1].left : Number(payAmount) || 0;
+      const paying = chosenPeriods.includes(entry.period) ? Math.min(left, owed) : 0;
+
+      return [...lines, { amount: owed - paying, left: left - paying, period: entry.period }];
+    }, [])
+    .filter((line) => line.amount > 0);
   const proofs = useMemo(
     () => paymentsResource.data?.events ?? [],
     [paymentsResource.data],
@@ -281,6 +372,7 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
       hostelAdminEndpoints.paymentsMatrixAll,
       hostelAdminEndpoints.transactions,
       hostelAdminEndpoints.residents,
+      "/api/v1/hostel-admin/finance/residents*",
     );
   }, [invalidate]);
 
@@ -291,27 +383,48 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
       const form = new FormData(formElement);
 
       try {
-        await browserApi(hostelAdminEndpoints.transactions, {
-          body: JSON.stringify({
-            dueAmount: Number(field(form, "dueAmount")),
-            dueDate: field(form, "dueDate"),
-            month: field(form, "month"),
-            residentId: field(form, "residentId"),
-            remarks: optionalField(form, "remarks"),
-          }),
-          method: "POST",
-        });
+        // One cash call per invoice, oldest first; a part payment clears the
+        // oldest months and leaves the rest due.
+        let remaining = Number(field(form, "amount"));
+        const receipt =
+          optionalField(form, "cashReceiptNumber") ??
+          `${payMethod}-${Date.now()}`;
+
+        for (const bill of chosenBills) {
+          const owed = bill.dueAmount - bill.paidAmount;
+          const amount = Math.min(remaining, owed);
+
+          if (amount <= 0) {
+            break;
+          }
+
+          await browserApi(`/api/v1/hostel-admin/finance/invoices/${bill.invoiceId}/cash`, {
+            body: JSON.stringify({
+              amount,
+              cashReceiptNumber: chosenBills.length > 1 ? `${receipt}-${bill.period}` : receipt,
+              collectedBy: field(form, "collectedBy"),
+              method: payMethod,
+              note: optionalField(form, "remarks"),
+            }),
+            method: "POST",
+          });
+          remaining -= amount;
+        }
+
         formElement.reset();
+        setPayResidentId("");
+        setPayMonths(null);
+        setPayMethod("CASH");
         setShowCreate(false);
-        setActionMessage("Payment record created.");
+        setActionMessage("Payment recorded — the resident has been notified with their receipt.");
         refreshPayments();
       } catch (error) {
         setActionMessage(
-          error instanceof Error ? error.message : "Could not create payment.",
+          error instanceof Error ? error.message : "Could not record the payment.",
         );
       }
     },
-    [refreshPayments],
+    [chosenBills, payMethod, refreshPayments],
   );
 
   const handleFeeRun = useCallback(
@@ -390,6 +503,8 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
         return;
       }
 
+      setProcessing({ action, id: proofId });
+
       try {
         await browserApi(
           `${hostelAdminEndpoints.paymentClaims}/${proofId}/${action}`,
@@ -405,6 +520,8 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
         setActionMessage(
           error instanceof Error ? error.message : "Could not review proof.",
         );
+      } finally {
+        setProcessing(null);
       }
     },
     [refreshPayments],
@@ -525,6 +642,7 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
         actions={
           <>
             <ExportMenu
+              className={HEADER_BUTTON}
               disabled={filteredRows.length === 0}
               onExport={({ format }) =>
                 void downloadTable(
@@ -552,7 +670,7 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
               }
             />
             <Button
-              className="h-10 gap-2 rounded-xl"
+              className={HEADER_BUTTON}
               onClick={() => {
                 // Opens on the month the owner is looking at, every time. Left
                 // holding its last value, the dialog would offer to bill a month
@@ -567,7 +685,11 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
               Generate Invoices
             </Button>
             <RoleButton
-              onClick={() => setShowCreate((value) => !value)}
+              className={HEADER_BUTTON}
+              onClick={() => {
+                setPayMonths(null);
+                setShowCreate(true);
+              }}
               tone="admin"
               type="button"
             >
@@ -590,15 +712,31 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
           "how are we doing" is not a question about August. Each card filters
           the table below to the rows it counts. */}
       <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <MetricCard
-          active={filter === "PAID"}
-          icon={WalletCards}
-          label="Collected (all time)"
-          onClick={() => filterBy("PAID")}
-          tone="teal"
-          trend={`${overall?.paid ?? 0} month(s) settled`}
-          value={currency(overall?.collected ?? 0)}
-        />
+        <div
+          className="relative"
+          onBlur={() => setShowShare(false)}
+          onFocus={() => setShowShare(true)}
+          onMouseEnter={() => setShowShare(true)}
+          onMouseLeave={() => setShowShare(false)}
+        >
+          <MetricCard
+            active={filter === "PAID"}
+            icon={WalletCards}
+            label="Collected (all time)"
+            onClick={() => filterBy("PAID")}
+            tone="teal"
+            trend={`${overall?.paid ?? 0} bills fully paid`}
+            value={currency(overall?.collected ?? 0)}
+          />
+          {overall && overall.collected + overall.outstanding > 0 ? (
+            <span className="pointer-events-none absolute bottom-2.5 left-[65px] right-5 h-1 overflow-hidden rounded-full bg-foreground/15">
+              <span
+                className="block h-full rounded-full bg-emerald-500 transition-[width] duration-500 ease-out"
+                style={{ width: `${Math.round((overall.collected / (overall.collected + overall.outstanding)) * 100)}%` }}
+              />
+            </span>
+          ) : null}
+        </div>
         <MetricCard
           active={filter === "UNPAID"}
           icon={ReceiptText}
@@ -612,7 +750,10 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
           active={filter === "PENDING_PROOF"}
           icon={Clock3}
           label="Pending Proofs"
-          onClick={() => filterBy("PENDING_PROOF")}
+          onClick={() => {
+            setQueueForced((open) => !open);
+            filterBy("PENDING_PROOF");
+          }}
           tone="amber"
           trend="Awaiting approval"
           value={String(overall?.pendingProofs ?? stats.pendingProofs)}
@@ -630,43 +771,226 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
       </div>
 
       {overall && overall.collected + overall.outstanding > 0 ? (
-        <div className="rounded-2xl border border-border/70 bg-card px-4 py-3">
-          <ShareBar
-            label="rupees collected of everything billed"
-            total={overall.collected + overall.outstanding}
-            value={overall.collected}
-          />
+        <div
+          className={`grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out ${
+            showShare ? "grid-rows-[1fr] opacity-100" : "mb-0 grid-rows-[0fr] opacity-0"
+          }`}
+        >
+          <div className="min-h-0 overflow-hidden">
+            <div className="rounded-2xl border border-border/70 bg-card px-4 py-3">
+              <ShareBar
+                label="rupees collected of everything billed"
+                total={overall.collected + overall.outstanding}
+                value={overall.collected}
+              />
+            </div>
+          </div>
         </div>
       ) : null}
 
       <Dialog onOpenChange={setShowCreate} open={showCreate}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent
+          className={`transition-[max-width] duration-300 ease-out ${payResidentId ? "sm:max-w-2xl" : "sm:max-w-lg"}`}
+        >
           <DialogHeader>
             <DialogTitle>Record a payment</DialogTitle>
-            <DialogDescription>A one-off record for one resident and month.</DialogDescription>
+            <DialogDescription>Cash a resident handed over — pick one or more unpaid months.</DialogDescription>
           </DialogHeader>
-          <form className="grid gap-3 md:grid-cols-2" onSubmit={handleCreatePayment}>
-            <FormSelect label="Resident" name="residentId" required>
+          <BusyForm className="grid gap-3 md:grid-cols-2" onSubmit={handleCreatePayment}>
+            <FormSelect
+              label="Resident"
+              name="residentId"
+              onChange={(event) => {
+                setPayResidentId(event.target.value);
+                setPayMonths(null);
+              }}
+              required
+              value={payResidentId}
+            >
               <option value="">Select resident</option>
-              {residents.map((resident) => (
+              {livingResidents.map((resident) => (
                 <option key={resident.id} value={resident.id}>
                   {resident.firstName} {resident.lastName}
                 </option>
               ))}
             </FormSelect>
-            <MonthField label="Month" name="month" />
-            <FormInput label="Due amount" name="dueAmount" required type="number" />
-            <FormInput label="Due date" name="dueDate" required type="date" />
-            <div className="md:col-span-2">
-              <TextArea label="Remarks" name="remarks" />
+
+            <div
+              className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out md:col-span-2 ${
+                payResidentId ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+              }`}
+            >
+              <div className="grid min-h-0 gap-3 overflow-hidden md:grid-cols-2">
+            {payResidentId ? (
+              <div className="rounded-2xl border border-border/70 bg-muted/30 p-4 md:col-span-2">
+                {payLedger.state === "loading" ? <LoadingRows /> : null}
+                {payLedger.state !== "loading" && unpaidMonths.length === 0 ? (
+                  <p className="text-[13px] text-muted-foreground">
+                    Nothing is due for this resident — every billed month is paid.
+                  </p>
+                ) : null}
+                {unpaidMonths.length > 0 ? (
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-[13px] font-semibold text-foreground">Months to pay</p>
+                      <span className="flex items-center gap-1.5 text-[12px] font-medium text-muted-foreground">
+                        {payMethod === "CASH" ? (
+                          <Banknote className="size-4" />
+                        ) : (
+                          <MethodMark logo={ONLINE_METHODS.find((m) => m.value === payMethod)?.logo ?? "ESEWA"} size={20} />
+                        )}
+                        Paying by {payMethod === "CASH" ? "cash" : ONLINE_METHODS.find((m) => m.value === payMethod)?.label}
+                      </span>
+                    </div>
+                    <div className="divide-y divide-border/60 text-[13px]">
+                      {unpaidMonths.map((entry) => {
+                        const owed = entry.dueAmount - entry.paidAmount;
+
+                        return (
+                          <label className="flex cursor-pointer items-center justify-between gap-3 py-1.5" key={entry.period}>
+                            <span className="flex items-center gap-2">
+                              <input
+                                checked={chosenPeriods.includes(entry.period)}
+                                className="size-4 accent-[var(--brand)]"
+                                onChange={(event) =>
+                                  setPayMonths(
+                                    event.target.checked
+                                      ? [...chosenPeriods, entry.period]
+                                      : chosenPeriods.filter((period) => period !== entry.period),
+                                  )
+                                }
+                                type="checkbox"
+                              />
+                              {monthLabel(entry.period)}
+                              {entry.paidAmount > 0 ? <SoftBadge tone="amber">PARTIAL</SoftBadge> : null}
+                              {entry.lines
+                                .filter((line) => line.basis === "FINE")
+                                .map((line) => (
+                                  <SoftBadge key={line.description} tone="amber">
+                                    incl. {currency(line.amount)} late fine{fineGrowth(line) ? ` · +${currency(fineGrowth(line)!.perDay)}/day` : ""}
+                                  </SoftBadge>
+                                ))}
+                            </span>
+                            <span className="font-medium text-foreground">{currency(owed)}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <div className="flex justify-between border-t border-border/60 pt-2 text-[14px] font-bold text-foreground">
+                      <span>Balance due ({chosenBills.length} month{chosenBills.length === 1 ? "" : "s"})</span>
+                      <span>{currency(payBalance)}</span>
+                    </div>
+                    {remainingLines.length === 0 ? (
+                      <div className="flex justify-between text-[13px] font-medium text-success">
+                        <span>Remaining</span>
+                        <span>{currency(0)}</span>
+                      </div>
+                    ) : (
+                      remainingLines.map((line) => (
+                        <div className="flex justify-between text-[13px] font-medium text-warning" key={line.period}>
+                          <span>Remaining of {monthLabel(line.period)}</span>
+                          <span>{currency(line.amount)}</span>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+
+            {payBalance > 0 ? (
+              <>
+                <div className="grid grid-cols-2 gap-2 md:col-span-2" role="radiogroup" aria-label="Paid by">
+                  <button
+                    aria-checked={payMethod === "CASH"}
+                    className={`flex h-11 items-center justify-center gap-2 rounded-xl border text-[13.5px] font-semibold transition-colors ${
+                      payMethod === "CASH"
+                        ? "border-brand bg-brand/10 text-brand"
+                        : "border-border/70 text-muted-foreground hover:bg-muted/50"
+                    }`}
+                    onClick={() => setPayMethod("CASH")}
+                    role="radio"
+                    type="button"
+                  >
+                    <Banknote className="size-4" />
+                    Cash
+                  </button>
+                  {/* Rests as "Online"; on hover or focus the label gives way to
+                      the three providers, so the choice is one click on a logo. */}
+                  <div
+                    className={`group relative h-11 overflow-hidden rounded-xl border transition-colors ${
+                      payMethod !== "CASH" ? "border-brand bg-brand/10" : "border-border/70 hover:bg-muted/50"
+                    }`}
+                    role="group"
+                  >
+                    <span className="absolute inset-0 flex items-center justify-center gap-2 text-[13.5px] font-semibold transition-all duration-300 ease-out group-focus-within:scale-95 group-focus-within:opacity-0 group-hover:scale-95 group-hover:opacity-0">
+                      {payMethod === "CASH" ? (
+                        <Smartphone className="size-4 text-muted-foreground" />
+                      ) : (
+                        <MethodMark logo={ONLINE_METHODS.find((m) => m.value === payMethod)?.logo ?? "ESEWA"} size={24} />
+                      )}
+                      <span className={payMethod === "CASH" ? "text-muted-foreground" : "text-brand"}>
+                        {payMethod === "CASH" ? "Online" : ONLINE_METHODS.find((m) => m.value === payMethod)?.label}
+                      </span>
+                    </span>
+                    <span className="absolute inset-0 flex items-center justify-evenly px-2 opacity-0 transition-all duration-300 ease-out group-focus-within:opacity-100 group-hover:opacity-100">
+                      {ONLINE_METHODS.map((method, index) => (
+                        <button
+                          aria-checked={payMethod === method.value}
+                          aria-label={method.label}
+                          className={`rounded-lg transition-all duration-300 ease-out hover:scale-110 focus-visible:scale-110 ${
+                            payMethod === method.value ? "ring-2 ring-brand" : "opacity-80 hover:opacity-100"
+                          } translate-y-1 group-focus-within:translate-y-0 group-hover:translate-y-0`}
+                          key={method.value}
+                          onClick={() => setPayMethod(method.value)}
+                          role="radio"
+                          style={{ transitionDelay: `${index * 40}ms` }}
+                          title={method.label}
+                          type="button"
+                        >
+                          <MethodMark logo={method.logo} size={30} />
+                        </button>
+                      ))}
+                    </span>
+                  </div>
+                </div>
+                <FormInput
+                  label="Amount received"
+                  onChange={(event) => setAmountEdit({ key: amountKey, value: event.target.value })}
+                  value={payAmount}
+                  max={String(payBalance)}
+                  min="1"
+                  name="amount"
+                  required
+                  type="number"
+                />
+                <FormInput label="Note" name="remarks" />
+                <FormInput
+                  defaultValue={sessionName}
+                  label="Received by"
+                  name="collectedBy"
+                  placeholder="Who took the money"
+                  required
+                />
+                <FormInput
+                  label={payMethod !== "CASH" ? "Transaction ID (optional)" : "Receipt no. (optional)"}
+                  name="cashReceiptNumber"
+                />
+              </>
+            ) : null}
+              </div>
             </div>
             <DialogFooter className="md:col-span-2">
-              <RoleButton tone="admin" type="submit">
+              <SubmitButton
+                busyLabel="Processing…"
+                className="h-10 gap-2 rounded-xl bg-brand-teal px-5 text-white hover:bg-brand-teal/90"
+                disabled={payBalance === 0}
+              >
                 <CreditCard className="size-4" />
-                Create record
-              </RoleButton>
+                Record payment
+              </SubmitButton>
             </DialogFooter>
-          </form>
+          </BusyForm>
         </DialogContent>
       </Dialog>
 
@@ -756,10 +1080,17 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
       {/* The queue comes before the matrix (§11.4). The matrix answers "who has
           not paid", which is a question that keeps; the queue is money waiting on
           a decision, and it is what the owner opened this screen for. */}
+      <div
+        className={`grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out ${
+          pendingProofs.length > 0 || queueForced
+            ? "grid-rows-[1fr] opacity-100"
+            : "mb-0 grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="min-h-0 overflow-hidden">
       <HostelAdminReviewQueue
         approvingAll={approvingAll}
         bedLabelByResidentId={bedLabelByResidentId}
-        busy={approvingAll}
         claims={pendingProofs}
         nameFor={(proof) => {
           const resident = residentById.get(proof.residentId);
@@ -772,7 +1103,10 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
         onApproveAll={() => void approveAll()}
         onOpen={setReviewingId}
         onReject={(eventId, reason) => void reviewProof(eventId, "reject", reason)}
+        processing={processing}
       />
+        </div>
+      </div>
 
       <div className="grid gap-5">
         <SectionCard>
@@ -903,6 +1237,7 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
                             )}
                             {row.payment ? (
                               <BillExtraTags
+                                fineWaived={row.payment.fineWaived}
                                 lines={row.payment.lines}
                                 onWaive={
                                   row.displayStatus === "PAID"
@@ -972,6 +1307,7 @@ export const HostelAdminPaymentsPage = memo(function HostelAdminPaymentsPage() {
           onReject={(reason) =>
             void reviewProof(reviewingProof.eventId, "reject", reason)
           }
+          processing={processing?.id === reviewingProof.eventId ? processing.action : null}
           proof={reviewingProof}
           residentName={
             residentById.get(reviewingProof.residentId)

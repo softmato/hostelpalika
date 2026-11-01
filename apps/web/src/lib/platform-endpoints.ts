@@ -35,6 +35,7 @@ export const platformEndpoints = {
   currentUser: "/api/v1/auth/me",
   dashboardReport: "/api/v1/platform/reports/dashboard",
   hostel: (hostelId: string) => `/api/v1/platform/hostels/${hostelId}`,
+  hostelBilling: (hostelId: string) => `/api/v1/platform/hostels/${hostelId}/billing`,
   /** Prefix form for `useInvalidateResources` — drops every hostel detail. */
   hostelDetails: "/api/v1/platform/hostels/*",
   hostels: withFullPage("/api/v1/platform/hostels"),

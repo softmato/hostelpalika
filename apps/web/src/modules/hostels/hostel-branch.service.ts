@@ -467,6 +467,10 @@ export async function getBranchesSummary(principal: ApiPrincipal) {
       }>
     >();
 
+  const exterior = new Map(
+    hostels.map((hostel) => [hostel._id.toString(), resolveHostelPhotos(hostel.photos, "EXTERIOR")[0]?.url ?? null]),
+  );
+
   const rows = await Promise.all(
     hostels.map(async (hostel) => {
       const [residents, openComplaints, money] = await Promise.all([
@@ -490,7 +494,10 @@ export async function getBranchesSummary(principal: ApiPrincipal) {
         beds,
         collected: money.paidAmount,
         /** First exterior photo — the branch's face in the app's switcher. */
-        coverUrl: resolveHostelPhotos(hostel.photos, "EXTERIOR")[0]?.url ?? null,
+        // A branch with no exterior photo of its own wears its main hostel's.
+        coverUrl:
+          exterior.get(hostel._id.toString()) ??
+          (hostel.parentHostelId ? (exterior.get(hostel.parentHostelId.toString()) ?? null) : null),
         due: Math.max(0, money.dueAmount - money.paidAmount),
         id: hostel._id.toString(),
         isBranch: Boolean(hostel.parentHostelId),

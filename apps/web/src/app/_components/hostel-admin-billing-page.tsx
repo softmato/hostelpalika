@@ -17,9 +17,8 @@ import { billingCycles, cycleTotal, planRank, type BillingCycle } from "@hostel/
 
 import { CheckoutHandoffButton } from "@/app/_components/checkout-handoff";
 import { HostelFreeMonthCard } from "@/app/_components/hostel-free-month-card";
-import { PayPlanPanel } from "@/app/_components/hostel-admin-pay-plan";
+import { PayPlanButton, PayPlanPanel } from "@/app/_components/hostel-admin-pay-plan";
 import { PlanMark } from "@/app/_components/plan-mark";
-import { LeavePromise } from "@/app/_components/leave-promise";
 import { PortalPageHeader } from "@/app/_components/portal-dashboard-ui";
 import { useSiteConfig } from "@/components/site-config-provider";
 import {
@@ -163,7 +162,6 @@ export function HostelAdminBillingPageContent() {
         title="Plan billing"
       />
 
-      <LeavePromise href="leave" />
 
       {error ? (
         <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive">
@@ -191,10 +189,8 @@ export function HostelAdminBillingPageContent() {
       ) : null}
 
       {/*
-        Above the paperwork, below the plan. An owner who opens this page while
-        owing money opens it *to pay*; the invoices underneath are what they
-        read afterwards to check it landed. It renders nothing at all when
-        nothing is outstanding, which is most of the time.
+        Only speaks when a payment proof is already in review; the Pay button
+        itself sits in the plan card above, with the plan's other actions.
       */}
       {running ? null : <PayPlanPanel />}
 
@@ -491,7 +487,8 @@ function PlanCard({ onRaised, plan }: { onRaised: () => void; plan: BillingPlan 
           </span>
         ) : null}
 
-        <div className="ml-auto flex flex-wrap gap-2">
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          {isRunning(plan) ? null : <PayPlanButton />}
           {/* A new tab: the owner compares plans and comes back to this bill. */}
           <a
             className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-border px-3 text-xs font-bold text-foreground transition hover:border-brand-teal/40"

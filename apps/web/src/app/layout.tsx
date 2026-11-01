@@ -131,6 +131,12 @@ export default async function RootLayout({
             __html: `(function(){var n=performance.getEntriesByType("navigation")[0];if(n&&location.pathname==="/"&&new URL(n.name).pathname==="/"&&n.type!=="back_forward")document.documentElement.setAttribute("data-home-entrance","")})()`,
           }}
         />
+        {/* Re-applies the saved theme before first paint, so a refresh does not flash light. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem("theme")==="dark")document.documentElement.classList.add("dark")}catch(e){}`,
+          }}
+        />
         <ThemeProvider>
           <QueryProvider>
             <SiteConfigProvider config={siteConfig}>

@@ -1,6 +1,6 @@
 "use client";
 
-import { formatHostelDate } from "@hostel/shared/calendar/bs";
+import { formatHostelDate, formatHostelDateRange } from "@hostel/shared/calendar/bs";
 
 import {
   Building2,
@@ -62,18 +62,20 @@ type PlatformDashboardReport = {
   windowDays: number;
 };
 
-type PlatformPayment = {
-  paidAt: string | null;
-  provider: string;
+/** A hostel paying us for its plan — not a resident paying a hostel. */
+type PlanPayment = {
+  amount: number;
   hostelName: string;
-  id: string;
-  paidAmount: number;
+  method: string;
+  paidAt: string | null;
+  provider: string | null;
+  receiptNumber: string | null;
   status: string;
 };
 
-type PlatformPaymentsResponse = {
-  pagination: { total: number };
-  recent: PlatformPayment[];
+type PlanLedger = {
+  payments: PlanPayment[];
+  totals: { billed: number; collected: number; outstanding: number };
 };
 
 type AuditLog = {
@@ -145,11 +147,8 @@ function humanizeAction(action: string) {
 
 function windowRangeLabel(windowDays: number) {
   const end = new Date();
-  const start = new Date(end.getTime() - windowDays * 24 * 60 * 60 * 1000);
-  const format = (date: Date) =>
-    formatHostelDate(date);
 
-  return `${format(start)} – ${format(end)}, ${end.getFullYear()}`;
+  return formatHostelDateRange(new Date(end.getTime() - windowDays * 24 * 60 * 60 * 1000), end);
 }
 
 export const PlatformDashboardPageContent = memo(function PlatformDashboardPageContent() {
@@ -163,9 +162,9 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
     `/api/v1/platform/hostels?page=${hostelPage}&pageSize=${RECENT_ROW_LIMIT}`,
     { errorMessage: "Could not load dashboard." },
   );
-  const paymentsResource = usePortalResource<PlatformPaymentsResponse>(
-    `${platformEndpoints.payments}?view=recent&page=${paymentPage}&pageSize=${RECENT_ROW_LIMIT}`,
-    { errorMessage: "Could not load payments." },
+  const ledgerResource = usePortalResource<PlanLedger>(
+    `${platformEndpoints.subscriptions}?limit=50`,
+    { errorMessage: "Could not load plan payments." },
   );
   const auditResource = usePortalResource<{ logs: AuditLog[] }>(
     `${platformEndpoints.auditLogs}?limit=${AUDIT_ROW_LIMIT}`,
@@ -175,15 +174,19 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
   const { message, state } = combineResources(
     reportResource,
     hostelsResource,
-    paymentsResource,
+    ledgerResource,
     auditResource,
   );
   const report = reportResource.data?.report ?? null;
   const allHostels = hostelsResource.data?.hostels ?? [];
   const totalHostelCount = hostelsResource.data?.pagination.total ?? 0;
   const hostels = allHostels.slice(0, RECENT_ROW_LIMIT);
-  const allPayments = paymentsResource.data?.recent ?? [];
-  const payments = allPayments.slice(0, RECENT_ROW_LIMIT);
+  const allPayments = ledgerResource.data?.payments ?? [];
+  const planTotals = ledgerResource.data?.totals;
+  const payments = allPayments.slice(
+    (paymentPage - 1) * RECENT_ROW_LIMIT,
+    paymentPage * RECENT_ROW_LIMIT,
+  );
   const auditLogs = (auditResource.data?.logs ?? []).slice(0, AUDIT_ROW_LIMIT);
 
   const windowDays = report?.windowDays ?? 30;
@@ -216,7 +219,7 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
     },
     {
       icon: WalletCards,
-      label: "Collected",
+      label: "Hostel collections",
       trend: trendLabel(trends.platformPayments, windowDays),
       trendDown: trendIsDown(trends.platformPayments),
       value: npr(report?.platformPayments ?? 0),
@@ -272,8 +275,18 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
               <MetricCard key={metric.label} {...metric} />
             ))}
             <Panel className="flex flex-col justify-center">
-              <ShareBar label="NPR in" part={collected} total={collected + outstanding} />
-              <p className="mt-1.5 text-[11.5px] text-muted-foreground">{npr(outstanding)} still owed</p>
+              <ShareBar label="Residents → hostels" part={collected} total={collected + outstanding} />
+              <p className="mt-1.5 text-[11.5px] text-muted-foreground">{npr(outstanding)} still owed to hostels</p>
+            </Panel>
+            <Panel className="flex flex-col justify-center">
+              <ShareBar
+                label="Hostels → us (plans)"
+                part={planTotals?.collected ?? 0}
+                total={(planTotals?.collected ?? 0) + (planTotals?.outstanding ?? 0)}
+              />
+              <p className="mt-1.5 text-[11.5px] text-muted-foreground">
+                {npr(planTotals?.collected ?? 0)} received · {npr(planTotals?.outstanding ?? 0)} still owed to us
+              </p>
             </Panel>
           </div>
 
@@ -306,29 +319,29 @@ export const PlatformDashboardPageContent = memo(function PlatformDashboardPageC
               )}
             </Panel>
 
-            <Panel action={<ViewAllLink href="/platform/payments" tone="team" />} title="Recent payments">
+            <Panel action={<ViewAllLink href="/platform/subscriptions" tone="team" />} title="Recent plan payments">
               {payments.length === 0 ? (
-                <EmptyInline label="No payments recorded yet." />
+                <EmptyInline label="No plan payments from hostels yet." />
               ) : (
                 <>
                   <div className="space-y-1">
-                    {payments.map((payment) => (
-                      <div className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-muted" key={payment.id}>
-                        <WalletMark name={payment.provider} size={36} />
+                    {payments.map((payment, index) => (
+                      <div className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-muted" key={`${payment.receiptNumber ?? payment.paidAt}-${index}`}>
+                        <WalletMark name={payment.provider ?? payment.method} size={36} />
                         <div className="min-w-0 flex-1">
                           <p className="truncate text-[13.5px] font-semibold text-foreground">{payment.hostelName}</p>
                           <p className="truncate text-[12px] text-muted-foreground">
-                            {payment.provider.replaceAll("_", " ")} · {shortDate(payment.paidAt)}
+                            {(payment.provider ?? payment.method).replaceAll("_", " ")} · {shortDate(payment.paidAt)}
                           </p>
                         </div>
                         <div className="shrink-0 text-right">
-                          <p className="text-[13.5px] font-semibold tabular-nums text-foreground">{npr(payment.paidAmount)}</p>
+                          <p className="text-[13.5px] font-semibold tabular-nums text-foreground">{npr(payment.amount)}</p>
                           <SoftBadge tone={statusToneFromLabel(payment.status)}>{payment.status.replaceAll("_", " ")}</SoftBadge>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <ListPager page={paymentPage} onPageChange={setPaymentPage} pageSize={RECENT_ROW_LIMIT} total={paymentsResource.data?.pagination.total ?? 0} />
+                  <ListPager page={paymentPage} onPageChange={setPaymentPage} pageSize={RECENT_ROW_LIMIT} total={allPayments.length} />
                 </>
               )}
             </Panel>

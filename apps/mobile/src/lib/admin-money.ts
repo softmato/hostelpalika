@@ -7,8 +7,28 @@
  */
 
 import type { AdminInvoiceRow } from "@/lib/admin-api";
+import { formatMoney } from "@/lib/format";
 
 type BillLine = { amount: number; basis: string; description: string };
+
+/**
+ * What a late-fine line grows by. The line is written as "… × 3 days" with
+ * amount = perDay × days, so both figures come back out of it.
+ */
+export function fineGrowth(line: { amount: number; description: string }) {
+  const days = Number(/×\s*(\d+)\s*day/.exec(line.description)?.[1]);
+
+  return days > 0 ? { days, perDay: Math.round(line.amount / days) } : null;
+}
+
+/** "Rs 140 a day · 3 days late — grows every day until paid". */
+export function fineDetail(line: { amount: number; description: string }) {
+  const growth = fineGrowth(line);
+
+  return growth
+    ? `${formatMoney(growth.perDay)} a day · ${growth.days} day${growth.days === 1 ? "" : "s"} late — grows every day until paid`
+    : line.description.replace(/^Late fine — /, "") || null;
+}
 
 /** One row of a bill as the cash sheet prints it. */
 export type BillRow = {
@@ -33,7 +53,9 @@ export function billRows(lines: readonly BillLine[] | null | undefined): BillRow
 
       return {
         amount: line.amount,
-        detail: line.description.replace(/^(Late fine|Khata) — /, "") || null,
+        detail: fine
+          ? fineDetail(line)
+          : line.description.replace(/^(Late fine|Khata) — /, "") || null,
         kind: fine ? "fine" : "khata",
         label: fine ? "Late fine" : "Khata",
       };

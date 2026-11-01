@@ -54,16 +54,19 @@ export function BusyForm({ children, onSubmit, ...props }: BusyFormProps) {
 
 /** Submit button that spins while the surrounding `BusyForm` is submitting. */
 export function SubmitButton({
+  busyLabel,
   children,
   ...props
 }: Omit<ComponentProps<typeof Button>, "loading" | "type"> & {
+  /** Shown in place of the label while the submit runs, e.g. "Processing…". */
+  busyLabel?: string;
   children: ReactNode;
 }) {
   const busy = useContext(BusyContext);
 
   return (
     <Button {...props} loading={busy} type="submit">
-      {children}
+      {busy && busyLabel ? busyLabel : children}
     </Button>
   );
 }

@@ -120,7 +120,7 @@ export const HostelAdminFoodAnalyticsPanel = React.memo(
 
             <div className="mt-4 overflow-x-auto">
               {data.summary.totalAnnouncements === 0 ? (
-                <EmptyState label="No food-ready announcements in this window yet." />
+                <EmptyState glyph="restaurant" label="No food-ready announcements in this window yet." />
               ) : (
                 <table className="w-full min-w-[560px] text-sm">
                   <caption className="sr-only">

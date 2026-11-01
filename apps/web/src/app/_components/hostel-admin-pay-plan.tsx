@@ -7,8 +7,9 @@ import { usePortalResource } from "@/lib/portal-query";
 import type { PlanPaymentInstructions } from "@/modules/billing/subscription-claim.service";
 
 /**
- * Paying the platform from the portal: one button that hands the owner to
- * Softmato checkout and brings them back to the return page.
+ * Paying the platform from the portal: `PayPlanButton` hands the owner to
+ * Softmato checkout and brings them back to the return page; `PayPlanPanel`
+ * only speaks when a proof is already in review.
  *
  * ## It renders nothing unless something is owed
  *
@@ -73,24 +74,30 @@ export function PayPlanPanel() {
     );
   }
 
-  return (
-    <section className="flex flex-wrap items-start justify-between gap-5 rounded-xl border border-border bg-card p-5">
-      <div>
-        <h2 className="text-sm font-bold text-foreground">Pay your plan</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {rupees(data.amountDue)} outstanding on {data.invoice.planName}
-          {data.dueBy && data.overdue ? " — the deadline has passed." : "."}
-        </p>
-        {data.reference ? (
-          <p className="mt-1 font-mono text-xs text-muted-foreground">Invoice {data.reference}</p>
-        ) : null}
-      </div>
+  // The Pay button itself lives with the plan's other actions (`PayPlanButton`).
+  return null;
+}
 
+/** The pay action for the plan card: the outstanding amount, nothing when settled or under review. */
+export function PayPlanButton() {
+  const resource = usePortalResource<{ instructions: PlanPaymentInstructions }>(
+    "/api/v1/hostel-admin/billing/pay-instructions",
+  );
+  const data = resource.data?.instructions ?? null;
+
+  if (!data || !data.invoice || data.amountDue <= 0 || data.claim) {
+    return null;
+  }
+
+  return (
+    <div title="You will be taken to Softmato, our secure checkout, and brought back here when it is done.">
       <CheckoutHandoffButton
+        className="h-9 px-3.5 text-xs"
         endpoint="/api/v1/hostel-admin/billing/checkout"
+        hint={false}
         label={`Pay ${rupees(data.amountDue)}`}
         preparing="Setting up your plan payment"
       />
-    </section>
+    </div>
   );
 }

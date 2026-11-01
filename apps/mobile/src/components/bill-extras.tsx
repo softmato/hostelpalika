@@ -4,7 +4,7 @@ import { Glyph } from "@/components/ui/glyph";
 import { Money as Amount } from "@/components/ui/money";
 import { Text } from "@/components/ui/text";
 import { useAppTheme } from "@/hooks/use-app-theme";
-import { billRows } from "@/lib/admin-money";
+import { billRows, fineDetail } from "@/lib/admin-money";
 import { formatMoney } from "@/lib/format";
 
 type BillLine = { amount: number; basis: string; description: string };
@@ -44,7 +44,7 @@ export function BillExtras({ lines }: { lines?: BillLine[] | null }) {
             <View className="flex-1">
               <Text variant="subtitle">{fine ? "Late fine" : "Khata"}</Text>
               <Text numberOfLines={2} variant="caption">
-                {line.description.replace(/^(Late fine|Khata) — /, "")}
+                {fine ? fineDetail(line) : line.description.replace(/^Khata — /, "")}
               </Text>
             </View>
             <Text variant="subtitle">{formatMoney(line.amount)}</Text>

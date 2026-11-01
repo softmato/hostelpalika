@@ -226,7 +226,7 @@ export const NotificationsPageContent = memo(function NotificationsPageContent()
   }
 
   return (
-    <div className="mx-auto max-w-[900px] space-y-5">
+    <div className="mx-auto max-w-[1448px] space-y-5">
       <PageHeader
         description="Everything the bell has told you."
         icon={Bell}

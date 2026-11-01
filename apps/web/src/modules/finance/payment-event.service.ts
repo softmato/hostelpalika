@@ -9,8 +9,8 @@ import { FinanceServiceError } from "@/modules/finance/finance.errors";
 import { assertWholeRupees, sumAmounts } from "@/modules/finance/money";
 import {
   notifyAdminsOfStaffSettlement,
+  notifyClaimReviewed,
   notifyPaymentReversed,
-  notifyResident,
 } from "@/modules/finance/finance-notify";
 import { Role } from "@/lib/roles";
 import { issueReceiptForEvent, voidReceipt } from "@/modules/finance/receipt.service";
@@ -324,18 +324,27 @@ export async function settleEvent(
   }
 
   // Cash at the desk has no claim behind it, so nothing else tells the resident
-  // their money landed. (A proof or gateway payment hears via `notifyClaimReviewed`.)
+  // their money landed. Same verified notice as a proof or gateway payment:
+  // bell, and an email with the receipt PDF, saying what is still owed.
   if (event.source === "CASH_ENTRY" && event.direction === "CREDIT" && event.residentId) {
-    await notifyResident({
-      body: `NPR ${event.amount.toLocaleString("en-US")} received in cash. Your receipt is in Payments.`,
-      data: {
-        eventId: event._id.toString(),
-        ...(event.invoiceId ? { invoiceId: event.invoiceId.toString() } : {}),
-        type: "CASH_PAYMENT_RECEIVED",
-      },
+    const invoice = event.invoiceId
+      ? await InvoiceModel.findById(event.invoiceId).select("period").lean<{ period?: string | null } | null>()
+      : null;
+
+    await notifyClaimReviewed({
       hostelId: event.hostelId,
+      invoiceId: event.invoiceId?.toString() ?? null,
+      outcome: {
+        certificationCode: receipt?.certificationCode ?? null,
+        kind: "verified",
+        method: "CASH",
+        receiptId: receipt?._id ?? null,
+        receiptNumber: receipt?.receiptNumber ?? null,
+        remainingAmount: Math.max(balance?.outstanding ?? 0, 0),
+        verifiedAmount: event.amount,
+      },
+      period: invoice?.period ?? null,
       residentId: event.residentId,
-      title: "Payment received",
     });
   }
 

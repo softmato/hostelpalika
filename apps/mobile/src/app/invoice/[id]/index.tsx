@@ -22,6 +22,7 @@ import { Text } from "@/components/ui/text";
 import { WalletMark, walletLabel } from "@/components/ui/wallet-mark";
 import { useDates } from "@/hooks/use-dates";
 import { useResource } from "@/hooks/use-resource";
+import { fineDetail } from "@/lib/admin-money";
 import { readApiError } from "@/lib/api-contract";
 import { downloadToDevice } from "@/lib/documents";
 import {
@@ -391,7 +392,10 @@ function DetailsCard({ invoice }: { invoice: ResidentInvoice }) {
     ...(invoice.lines.length > 0
       ? invoice.lines.map((line) => ({
           amount: line.amount,
-          caption: line.prorationBasis?.split("·").pop()?.trim() ?? null,
+          caption:
+            line.basis === "FINE"
+              ? fineDetail(line)
+              : (line.prorationBasis?.split("·").pop()?.trim() ?? null),
           label: line.description.replace(/\s[—–-]\s.*$/, ""),
         }))
       : ledger

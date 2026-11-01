@@ -5,9 +5,12 @@ import { useSyncExternalStore } from "react";
 
 import { cn } from "@/lib/utils";
 
+const THEME_KEY = "theme";
+
 type ThemeToggleProps = {
   className?: string;
   menu?: boolean;
+  onToggle?: () => void;
 };
 
 function subscribeTheme(onChange: () => void) {
@@ -21,12 +24,19 @@ function subscribeTheme(onChange: () => void) {
 const currentTheme = () => document.documentElement.classList.contains("dark");
 const serverTheme = () => false;
 
-export function ThemeToggle({ className, menu = false }: ThemeToggleProps) {
+export function ThemeToggle({ className, menu = false, onToggle }: ThemeToggleProps) {
   const isDark = useSyncExternalStore(subscribeTheme, currentTheme, serverTheme);
 
   const toggleTheme = () => {
     const next = !isDark;
     document.documentElement.classList.toggle("dark", next);
+
+    try {
+      localStorage.setItem(THEME_KEY, next ? "dark" : "light");
+    } catch {
+      // Private mode: the choice lasts until the page is closed.
+    }
+    onToggle?.();
   };
 
   const label = isDark ? "Switch to light theme" : "Switch to dark theme";

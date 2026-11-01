@@ -3,6 +3,7 @@ import type { z } from "zod";
 
 import type { ApiPrincipal } from "@/lib/api-auth";
 import { connectToDatabase } from "@/lib/db";
+import { resolveHostelPhotos, type HostelPhoto } from "@/lib/hostel-photos";
 import {
   commissionFor,
   describeBonus,
@@ -276,8 +277,16 @@ export async function resolveHostelReferralCode(raw: string): Promise<ResolvedRe
 export async function previewHostelReferralCode(raw: string) {
   const resolved = await resolveHostelReferralCode(raw);
 
+  // A hostel's code shows the hostel itself: its first exterior photo.
+  const referrer = resolved.referrerHostelId
+    ? await HostelModel.findById(resolved.referrerHostelId)
+        .select("photos")
+        .lean<{ photos?: HostelPhoto[] } | null>()
+    : null;
+
   return {
     code: resolved.code,
+    coverUrl: resolveHostelPhotos(referrer?.photos, "EXTERIOR")[0]?.url ?? null,
     from: resolved.from,
     kind: resolved.kind,
     reward: resolved.refereeReward,

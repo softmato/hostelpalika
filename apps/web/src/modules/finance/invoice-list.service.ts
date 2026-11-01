@@ -576,6 +576,7 @@ export async function getInvoiceMatrix(
       {
         _id: Types.ObjectId;
         dueDate?: Date;
+        fineWaived?: boolean;
         lines?: { amount: number; basis: string; description: string }[];
         period: string;
         residentId: Types.ObjectId;
@@ -609,6 +610,10 @@ export async function getInvoiceMatrix(
       invoice._id.toString(),
       (invoice.lines ?? []).map(({ amount, basis, description }) => ({ amount, basis, description })),
     ]),
+  );
+
+  const waivedInvoiceIds = new Set(
+    invoices.filter((invoice) => invoice.fineWaived).map((invoice) => invoice._id.toString()),
   );
 
   const invoiceByResident = new Map(
@@ -651,7 +656,11 @@ export async function getInvoiceMatrix(
         ? null
         : priceUnbilled(resident, schedule, listed, period, concession.percentOff),
       payment: invoice
-        ? { ...toPortalInvoice(invoice), lines: linesByInvoiceId.get(invoice.id) ?? [] }
+        ? {
+            ...toPortalInvoice(invoice),
+            fineWaived: waivedInvoiceIds.has(invoice.id),
+            lines: linesByInvoiceId.get(invoice.id) ?? [],
+          }
         : null,
       resident: {
         fullName: `${resident.firstName ?? ""} ${resident.lastName ?? ""}`.trim(),

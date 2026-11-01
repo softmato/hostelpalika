@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 
 import { connectToDatabase } from "@/lib/db";
 import { raiseRenewalInvoice } from "@/modules/billing/subscription.service";
+import { overdueSuspension } from "@/modules/hostels/hostel-suspension";
 import { onInvoiceIssued } from "@/modules/hostels/hostel-registration.events";
 import { getSiteConfigSection } from "@/modules/platform-config/site-config.service";
 import { HostelModel } from "@hostel/db/models/Hostel";
@@ -27,7 +28,8 @@ import type { BillingCycle } from "@hostel/shared/plans/catalog";
  *
  * A plan whose period has ended with that bill still open becomes `PAST_DUE`,
  * which is what the due banners, the after-due reminders and a superadmin's
- * Suspend already read.
+ * Suspend already read. It also schedules the suspension: 7 days to pay, then
+ * 3 of pre-suspension, then the portal stops (`overdueSuspension`).
  *
  * Runs on the 07:45 `payment-reminders` cron, ahead of the 08:00 plan
  * reminders that then pick the bill up (7 and 5 days out, then daily).
@@ -148,6 +150,18 @@ export async function raiseDueRenewals(now = new Date()) {
         await HostelSubscriptionModel.updateOne(
           { _id: subscription._id, status: "ACTIVE" },
           { $set: { dueBy: open.dueAt ?? subscription.currentPeriodEnd, status: "PAST_DUE" } },
+        );
+        // The automatic path: 7 days to pay, then 3 of pre-suspension, then the
+        // portal stops. Only where nothing is scheduled or running already.
+        const schedule = overdueSuspension(open.dueAt ?? subscription.currentPeriodEnd);
+
+        await HostelModel.updateOne(
+          { _id: subscription.hostelId, "suspension.startedAt": null },
+          { $set: { suspension: schedule } },
+        );
+        await HostelModel.updateMany(
+          { parentHostelId: subscription.hostelId, "suspension.startedAt": null },
+          { $set: { suspension: schedule } },
         );
         totals.lapsed += 1;
       }

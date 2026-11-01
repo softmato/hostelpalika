@@ -44,6 +44,7 @@ export type RecordCashInput = {
   /** Who physically took the money — not necessarily who is typing. */
   collectedBy: string;
   invoiceId: Types.ObjectId | string;
+  method?: "CASH" | "ESEWA" | "KHALTI" | "BANK";
   note?: string;
   receivedAt?: Date;
 };
@@ -123,7 +124,7 @@ export async function recordCashPayment(
     idempotencyKey: `cash:${invoice.hostelId.toString()}:${input.cashReceiptNumber.trim()}`,
     invoiceId: invoice._id,
     occurredAt: input.receivedAt ?? new Date(),
-    provider: "CASH",
+    provider: input.method ?? "CASH",
     rawPayload: {
       cashReceiptNumber: input.cashReceiptNumber.trim(),
       collectedBy: input.collectedBy.trim(),

@@ -64,6 +64,9 @@ export function isKycFrozenPortalPath(path: string) {
 const OPEN_AFTER_TRIAL = [
   "/hostel-admin/billing",
   "/hostel-admin/fee-schedule",
+  "/hostel-admin/festival-discounts",
+  "/hostel-admin/late-fine",
+  "/hostel-admin/money-rules",
   "/hostel-admin/food",
   "/hostel-admin/kyc",
   "/hostel-admin/payment-gateways",

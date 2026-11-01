@@ -571,6 +571,8 @@ export type AdminInvoiceRow = {
     /** ISO — `PortalInvoice` types it as a `Date`, but this crossed JSON. */
     dueDate?: string;
     id: string;
+    /** True once the owner waived this bill's late fine. */
+    fineWaived?: boolean;
     /** The bill's lines — a `FINE` or `KHATA` one explains a bigger total. */
     lines?: { amount: number; basis: string; description: string }[];
     method?: string;

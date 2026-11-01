@@ -19,11 +19,11 @@ export async function GET(request: NextRequest) {
   try {
     await requirePlatformPrincipal(request);
 
-    const limit = Number(
-      new URL(request.url).searchParams.get("limit") ?? "200",
-    );
+    const params = new URL(request.url).searchParams;
+    const limit = Number(params.get("limit") ?? "200");
 
     const ledger = await getPlatformSubscriptionLedger({
+      hostelId: params.get("hostelId") ?? undefined,
       limit: Number.isFinite(limit) ? limit : 200,
     });
 

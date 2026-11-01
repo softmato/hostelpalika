@@ -19,6 +19,7 @@
   --muted: oklch(0.97 0.001 106.424);
   /* Loading placeholders. `--muted` is 3% off white — under a pulse it vanished. */
   --skeleton: oklch(0.9 0.004 106.424);
+  --skeleton-sheen: color-mix(in oklch, white 70%, transparent);
   /*
    * Darkened from `oklch(0.553 …)`, which was failing WCAG AA.
    *
@@ -251,6 +252,17 @@ body {
   border-radius: 9999px;
 }
 
+/*
+ * On the dark page the bright hero green glares and leaves small white text at
+ * weak contrast, so the block deepens there. It wears `.dark` itself, so this
+ * keys off the page's own `html.dark`.
+ */
+html.dark {
+  --hero: #067a41;
+  --hero-to: #035232;
+  --hero-glow: rgba(255, 255, 255, 0.07);
+}
+
 .dark {
   --background: oklch(0.195 0.004 49.25);
   --foreground: oklch(0.985 0.001 106.423);
@@ -264,6 +276,7 @@ body {
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.295 0.007 34.298);
   --skeleton: oklch(0.36 0.008 34.298);
+  --skeleton-sheen: color-mix(in oklch, white 10%, transparent);
   --muted-foreground: oklch(0.709 0.01 56.259);
   --accent: oklch(0.295 0.007 34.298);
   --accent-foreground: oklch(0.985 0.001 106.423);
@@ -810,7 +823,7 @@ body {
   background-image: linear-gradient(
     90deg,
     transparent 30%,
-    color-mix(in oklch, var(--background) 55%, transparent) 50%,
+    var(--skeleton-sheen) 50%,
     transparent 70%
   );
   background-size: 200% 100%;
@@ -959,4 +972,62 @@ body {
 .empty-twinkle { transform-box: fill-box; transform-origin: center; animation: empty-twinkle 2.4s ease-in-out infinite; animation-delay: var(--twinkle-delay, 0s); }
 @media (prefers-reduced-motion: reduce) {
   .empty-ring, .empty-float, .empty-twinkle { animation: none; }
+}
+
+@keyframes heart-pop {
+  0% { transform: scale(0.6); }
+  55% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+
+.animate-heart-pop {
+  animation: heart-pop 0.28s ease-out;
+}
+
+/*
+ * Status text written for a white page (rose/red/amber/emerald 600) is too dark
+ * on the dark theme. Lightened here once, for every screen, unless a component
+ * already picks its own dark colour with a `dark:text-*` class.
+ */
+.dark .text-rose-600:not([class*="dark:text-"]),
+.dark .text-red-600:not([class*="dark:text-"]) {
+  color: #fb7185;
+}
+.dark .text-amber-600:not([class*="dark:text-"]),
+.dark .text-orange-600:not([class*="dark:text-"]) {
+  color: #fbbf24;
+}
+.dark .text-emerald-600:not([class*="dark:text-"]),
+.dark .text-green-600:not([class*="dark:text-"]) {
+  color: #34d399;
+}
+
+/* A room tile that has just been added: fades in green, holds, then settles to the normal tile. */
+@keyframes room-fresh {
+  0% {
+    background-color: rgb(18 169 93 / 0);
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  12% {
+    background-color: rgb(18 169 93 / 0.28);
+    border-color: #12a95d;
+    opacity: 1;
+    transform: scale(1);
+  }
+  85% {
+    background-color: rgb(18 169 93 / 0.28);
+    border-color: #12a95d;
+  }
+  100% {
+    background-color: rgb(18 169 93 / 0);
+  }
+}
+.room-fresh {
+  animation: room-fresh 3.4s ease-out backwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .room-fresh {
+    animation-duration: 0.01s;
+  }
 }

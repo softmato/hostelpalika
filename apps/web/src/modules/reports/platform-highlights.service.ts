@@ -1,5 +1,6 @@
 import { connectToDatabase } from "@/lib/db";
 import { HostelModel } from "@hostel/db/models/Hostel";
+import { HostelRoomModel } from "@hostel/db/models/HostelRoom";
 import { InquiryModel } from "@hostel/db/models/Inquiry";
 import { ResidentModel } from "@hostel/db/models/Resident";
 
@@ -38,15 +39,22 @@ export async function getPublicPlatformStats(): Promise<PlatformStat[]> {
 
   await connectToDatabase();
 
-  const [hostels, residents, enquiries] = await Promise.all([
+  const [hostels, liveIds, residents, enquiries] = await Promise.all([
     HostelModel.countDocuments(LIVE_HOSTEL_FILTER),
+    HostelModel.distinct("_id", LIVE_HOSTEL_FILTER),
     ResidentModel.countDocuments({ isDeleted: false, status: "ACTIVE" }),
     InquiryModel.countDocuments({ isDeleted: false }),
+  ]);
+
+  const [bedTotal] = await HostelRoomModel.aggregate<{ beds: number }>([
+    { $match: { hostelId: { $in: liveIds }, isDeleted: false } },
+    { $group: { _id: null, beds: { $sum: "$beds" } } },
   ]);
 
   const stats = [
     { label: "Hostels on the platform", value: hostels },
     { label: "Residents living in them", value: residents },
+    { label: "Beds managed on the platform", value: bedTotal?.beds ?? 0 },
     { label: "Enquiries sent to hostels", value: enquiries },
   ].filter((stat) => stat.value >= MIN_PUBLIC_COUNT);
 

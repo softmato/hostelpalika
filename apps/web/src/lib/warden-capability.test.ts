@@ -168,11 +168,17 @@ describe("warden capability enforcement", () => {
   });
 
   it("rejects an unauthenticated request", async () => {
-    mocks.verifyAccessToken.mockRejectedValue(new Error("bad token"));
+    mocks.verifyAccessToken.mockRejectedValue(new Error("Invalid authentication token."));
 
     await expect(requireHostelCapability(request(), "manageFood")).rejects.toMatchObject({
       status: 401,
     });
+  });
+
+  it("does not read a database fault as signed out", async () => {
+    mocks.verifyAccessToken.mockRejectedValue(new Error("mongo down"));
+
+    await expect(requireHostelCapability(request(), "manageFood")).rejects.toThrow("mongo down");
   });
 });
 

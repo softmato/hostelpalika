@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 import { connectToDatabase } from "@/lib/db";
 import { Role } from "@/lib/roles";
 import { hostelDayEnd } from "@hostel/shared/calendar/bs";
+import { PLAN_OVERDUE_DAYS } from "@hostel/shared/constants/plan-grace";
 import { AuditLogModel } from "@hostel/db/models/AuditLog";
 import { HostelModel } from "@hostel/db/models/Hostel";
 import { revalidatePublicPages } from "@/lib/revalidate-public";
@@ -39,7 +40,7 @@ export const SUSPENSION_GRACE_DAYS = 3;
  * nothing until then, a countdown for those days, and a block once the trial is
  * over. Paying lifts either.
  */
-export const SUSPENSION_REASONS = ["PLAN_PAYMENT", "TRIAL_ENDED"] as const;
+export const SUSPENSION_REASONS = ["PLAN_PAYMENT", "PLAN_OVERDUE", "TRIAL_ENDED"] as const;
 export type SuspensionReason = (typeof SUSPENSION_REASONS)[number];
 
 export type SuspensionStage = "PRE_SUSPENSION" | "SUSPENDED";
@@ -95,6 +96,23 @@ export function trialEndSuspension(trialEndsAt: Date, now = new Date()) {
   );
 
   return { graceEndsAt, reason: "TRIAL_ENDED" as const, startedAt, startedBy: null };
+}
+
+/**
+ * An unpaid plan's automatic path, set the day it lapses: {@link PLAN_OVERDUE_DAYS}
+ * to pay after the due date, then {@link SUSPENSION_GRACE_DAYS} of pre-suspension,
+ * then the portal stops. Dated ahead like a trial's end, so it is nothing until
+ * the overdue days run out. **Pure.**
+ */
+export function overdueSuspension(dueAt: Date) {
+  const startedAt = hostelDayEnd(dueAt, PLAN_OVERDUE_DAYS);
+
+  return {
+    graceEndsAt: hostelDayEnd(startedAt, SUSPENSION_GRACE_DAYS),
+    reason: "PLAN_OVERDUE" as const,
+    startedAt,
+    startedBy: null,
+  };
 }
 
 /** The suspension as the portals read it. `null` when there is none. */

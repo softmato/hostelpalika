@@ -163,14 +163,10 @@ export async function listReviewQueue(
   }
 
   const [residents, invoices, assets] = await Promise.all([
-    // Soft-deleted residents are excluded here, and their claims are dropped
-    // below. Costs no extra query — this lookup already existed for the names —
-    // and keeps the queue agreeing with the count above it: the card counted
-    // countable residents while the list showed everyone, so a deleted
-    // resident's pending claim made the two disagree on the same screen.
+    // Deleted residents are included on purpose: their pending claims are
+    // still counted by the reports, so hiding them left a count with no rows.
     ResidentModel.find({
       _id: { $in: events.map((event) => event.residentId).filter(Boolean) },
-      isDeleted: { $ne: true },
     })
       .select("firstName lastName")
       .lean<{ _id: Types.ObjectId; firstName?: string; lastName?: string }[]>(),
@@ -217,10 +213,6 @@ export async function listReviewQueue(
   );
 
   return events
-    // A claim from a resident who no longer exists is not a decision anyone
-    // should be offered: approving it would move money for somebody removed
-    // from the product.
-    .filter((event) => !event.residentId || nameById.has(event.residentId.toString()))
     .map((event) => {
     const invoice = event.invoiceId
       ? (invoiceById.get(event.invoiceId.toString()) ?? null)
@@ -249,7 +241,7 @@ export async function listReviewQueue(
     rejectionReason: event.rejectionReason ?? null,
     residentId: event.residentId?.toString() ?? "",
     residentName: event.residentId
-      ? (nameById.get(event.residentId.toString()) ?? "")
+      ? (nameById.get(event.residentId.toString()) ?? "Removed resident")
       : "",
     reviewFlags: event.reviewFlags ?? [],
     status: event.status,

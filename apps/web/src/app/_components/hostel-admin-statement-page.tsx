@@ -3,7 +3,8 @@
 import { formatBsPeriod, formatHostelDate } from "@hostel/shared/calendar/bs";
 import { useMemo } from "react";
 
-import { StatementExportButton, StatementView } from "@/components/statement/statement-view";
+import { StatementExportMenu } from "@/components/statement/statement-export-menu";
+import { StatementView } from "@/components/statement/statement-view";
 import { useWorkspaceHref } from "@/hooks/use-workspace-href";
 import { downloadFile, downloadTable } from "@/lib/downloads/downloader";
 import { hostelPeriodOf } from "@/lib/hostel-day";
@@ -150,14 +151,7 @@ function toRows(ledger: Ledger | undefined, residentsHref: string, expensesHref:
  * Dr, Cr, running balance, opening and closing — `modules/reports/statement-pdf`),
  * over the BS months the rows on screen span, the same as the app's Statement.
  */
-function downloadStatementPdf(visible: readonly StatementRow[]) {
-  const months = visible
-    .flatMap((row) => (row.at ? [hostelPeriodOf(new Date(row.at))] : []))
-    .sort();
-  const thisMonth = hostelPeriodOf(new Date());
-  const from = months[0] ?? thisMonth;
-  const to = months.at(-1) ?? thisMonth;
-
+function downloadStatementPdf(from: string, to: string) {
   return downloadFile({
     fileName: from === to ? `statement-${from}.pdf` : `statement-${from}-to-${to}.pdf`,
     label: "Statement",
@@ -181,13 +175,20 @@ export function HostelAdminStatementPageContent() {
     <StatementView
       balanceLabel={mixed ? "Balance" : "Total received"}
       error={!resource.data ? resource.message : null}
-      exportAction={(visible) => (
-        <StatementExportButton
-          disabled={visible.length === 0}
-          onExport={(format) =>
-            format === "pdf"
-              ? void downloadStatementPdf(visible)
-              : void downloadTable(
+      exportAction={() => (
+        <StatementExportMenu
+          disabled={rows.length === 0}
+          onExport={async ({ format, from, to }) => {
+            const periods = rows.flatMap((row) => (row.at ? [hostelPeriodOf(new Date(row.at))] : [])).sort();
+            const start = from ?? periods[0] ?? to;
+
+            if (format === "pdf") {
+              await downloadStatementPdf(start, to);
+
+              return;
+            }
+
+            await downloadTable(
               format,
               "statement",
               [
@@ -198,17 +199,19 @@ export function HostelAdminStatementPageContent() {
                 { key: "amount", label: "Amount (NPR)" },
                 { key: "balance", label: "Balance (NPR)" },
               ],
-              visible.map((row) => ({
-                amount: row.amount,
-                balance: row.balance ?? "",
-                date: row.at ? formatHostelDate(row.at) : "",
-                direction: row.kind === "in" ? "In" : row.kind === "out" ? "Out" : "To staff cash",
-                method: humanize(row.method),
-                title: row.title,
-              })),
+              rows
+                .filter((row) => row.at && hostelPeriodOf(new Date(row.at)) >= start)
+                .map((row) => ({
+                  amount: row.amount,
+                  balance: row.balance ?? "",
+                  date: row.at ? formatHostelDate(row.at) : "",
+                  direction: row.kind === "in" ? "In" : row.kind === "out" ? "Out" : "To staff cash",
+                  method: humanize(row.method),
+                  title: row.title,
+                })),
               { title: "Statement" },
-            )
-          }
+            );
+          }}
         />
       )}
       loading={resource.state === "loading" && !resource.data}
@@ -216,6 +219,7 @@ export function HostelAdminStatementPageContent() {
       overviewHref={workspaceHref("/hostel-admin/payments")}
       rows={rows}
       subtitle={mixed ? "Money in and out" : "Money received"}
+      wide
     />
   );
 }

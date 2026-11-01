@@ -384,3 +384,29 @@ So: never edit anything under `android/` or `ios/`. A change made there survives
 until the next prebuild and then vanishes, most likely in a cloud build where
 nobody is watching. Put it in a config plugin instead — `app.config.js` is
 already one.
+
+---
+
+## 7. Queued for the next native build
+
+Play Console recommendations on release 31 (2026-10-30), held back so build 33
+could ship its crash/ANR/lag fixes without spending another build. Do these in
+the next build, each tested on a phone before publishing.
+
+- [ ] **Edge-to-edge deprecated APIs** — remove `RNStatusBar.setTranslucent` /
+  `setBackgroundColor("transparent")` in `apps/mobile/src/app/_layout.tsx`
+  (an Expo Go workaround, a no-op in real builds; it is our one caller of
+  `setStatusBarColor`). The rest of the warning is React Native's
+  `WindowUtilKt` / `StatusBarModule` and material's bottom sheet — clears with
+  an RN/Expo upgrade. JS-only, so it can also ship as an OTA.
+- [ ] **R8 optimization** — `withReleaseMinify.js` should switch the release
+  build to `proguard-android-optimize.txt` and set
+  `android.r8.optimizedResourceShrinking=true`. Before that, add keep rules for
+  everything found by name: `com.facebook.react.fabric.mounting.MountingManager`
+  (`getViewExists`, `updatePropsSynchronously` — read by reflection in the
+  Reanimated patch, `scripts/patch-native-deps.mjs`) and the existing MapLibre
+  rule. Test every map screen, animations, sign-in and push on the APK.
+- Not planned: the portrait lock (Android 16 ignores it only on ≥600 dp
+  screens; tablet layouts are their own project), the `BitmapFactory`
+  downsampling note (a library, `N7.b.c` in the R8 mapping), and AGP 9 (Expo/RN
+  own the Gradle plugin version).

@@ -273,38 +273,35 @@ export const HostelAdminReportsPageContent = React.memo(
               </p>
               <CollectionChart points={payments.monthly} />
             </div>
-            <div className="grid content-start gap-4">
-              <div className="grid gap-3 sm:grid-cols-2">
-                <StatTile
-                  hint={selected.month}
-                  label="Billed this month"
-                  value={money(selected.totalDue)}
-                />
-                <StatTile
-                  hint={`${selected.collectionRate}% collected`}
-                  label="Collected this month"
-                  tone={rateTone(selected.collectionRate)}
-                  value={money(selected.totalPaid)}
-                />
-              </div>
+            <div className="grid content-start gap-5">
+              <p className="text-sm text-muted-foreground">
+                <span className="font-semibold text-foreground">{selected.month}</span>
+                {" · "}
+                {money(selected.totalDue)} billed, {money(selected.totalPaid)} collected ({selected.collectionRate}%)
+              </p>
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Payment status
                 </p>
-                <Breakdown emptyLabel="No payment records yet." map={payments.byStatus} />
+                <Breakdown emptyLabel="No payment records yet."
+                glyph="receipt" map={payments.byStatus} />
               </div>
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Payment method
                 </p>
-                <Breakdown emptyLabel="No method recorded yet." map={payments.byMethod} />
+                <Breakdown emptyLabel="No method recorded yet."
+                glyph="card" map={payments.byMethod} />
               </div>
             </div>
           </div>
-          <div className="mt-5 border-t border-border pt-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <details className="group mt-5 border-t border-border pt-4">
+            <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted-foreground hover:text-foreground">
               Latest ledger entries
-            </p>
+              <span className="text-[11px] normal-case group-open:hidden">Show</span>
+              <span className="hidden text-[11px] normal-case group-open:inline">Hide</span>
+            </summary>
+            <div className="mt-3">
             <DataTable
               columns={["Resident", "Month", "Billed", "Paid", "Method", "Due", "Status"]}
               emptyLabel="No payments recorded yet."
@@ -323,7 +320,8 @@ export const HostelAdminReportsPageContent = React.memo(
                 <StatusBadge key="status">{row.status}</StatusBadge>,
               ])}
             />
-          </div>
+            </div>
+          </details>
         </Panel>
 
         {/* ---- Service-by-service reports ---- */}
@@ -355,13 +353,13 @@ export const HostelAdminReportsPageContent = React.memo(
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   By status
                 </p>
-                <Breakdown emptyLabel="No complaints yet." map={complaints.byStatus} />
+                <Breakdown emptyLabel="No complaints yet." map={complaints.byStatus} glyph="chatbox-alert" />
               </div>
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   By category
                 </p>
-                <Breakdown emptyLabel="No complaints yet." map={complaints.byCategory} />
+                <Breakdown emptyLabel="No complaints yet." map={complaints.byCategory} glyph="flag" />
               </div>
             </div>
           </Panel>
@@ -381,13 +379,13 @@ export const HostelAdminReportsPageContent = React.memo(
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   By status
                 </p>
-                <Breakdown emptyLabel="No requests yet." map={maintenance.byStatus} />
+                <Breakdown emptyLabel="No requests yet." map={maintenance.byStatus} glyph="build" />
               </div>
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   By trade
                 </p>
-                <Breakdown emptyLabel="No requests yet." map={maintenance.byCategory} />
+                <Breakdown emptyLabel="No requests yet." map={maintenance.byCategory} glyph="hammer" />
               </div>
             </div>
           </Panel>
@@ -416,7 +414,8 @@ export const HostelAdminReportsPageContent = React.memo(
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Resident status
                 </p>
-                <Breakdown emptyLabel="No residents yet." map={occupancy.byStatus} />
+                <Breakdown emptyLabel="No residents yet."
+                glyph="people" map={occupancy.byStatus} />
               </div>
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -424,6 +423,7 @@ export const HostelAdminReportsPageContent = React.memo(
                 </p>
                 <Breakdown
                   emptyLabel="No attendance recorded yet."
+                  glyph="moon"
                   map={data.nightStatus}
                 />
               </div>
@@ -444,7 +444,8 @@ export const HostelAdminReportsPageContent = React.memo(
               />
             </div>
             <div className="mt-4">
-              <Breakdown emptyLabel="No inquiries yet." map={inquiries.byStatus} />
+              <Breakdown emptyLabel="No inquiries yet."
+                glyph="chatbubbles" map={inquiries.byStatus} />
             </div>
           </Panel>
 
@@ -459,7 +460,8 @@ export const HostelAdminReportsPageContent = React.memo(
               />
             </div>
             <div className="mt-4">
-              <Breakdown emptyLabel="No referrals yet." map={referrals.byStatus} />
+              <Breakdown emptyLabel="No referrals yet."
+                glyph="gift" map={referrals.byStatus} />
             </div>
           </Panel>
 

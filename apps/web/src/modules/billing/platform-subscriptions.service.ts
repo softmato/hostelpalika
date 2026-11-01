@@ -133,18 +133,24 @@ function documentUrl(kind: "invoice" | "receipt", number: string): string {
 }
 
 export async function getPlatformSubscriptionLedger(options: {
+  /** Narrows the lists (not `totals`, which stay platform-wide) to one hostel. */
+  hostelId?: string;
   limit?: number;
 } = {}): Promise<PlatformSubscriptionLedger> {
   await connectToDatabase();
 
   const limit = Math.min(Math.max(options.limit ?? 200, 1), 500);
+  const scope =
+    options.hostelId && Types.ObjectId.isValid(options.hostelId)
+      ? { hostelId: new Types.ObjectId(options.hostelId) }
+      : {};
 
   const [invoices, payments] = await Promise.all([
-    SubscriptionInvoiceModel.find({})
+    SubscriptionInvoiceModel.find(scope)
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean<InvoiceLean[]>(),
-    SubscriptionPaymentModel.find(EXCLUDE_CHECKOUT_ATTEMPTS)
+    SubscriptionPaymentModel.find({ ...scope, ...EXCLUDE_CHECKOUT_ATTEMPTS })
       .sort({ createdAt: -1 })
       .limit(limit)
       .lean<PaymentLean[]>(),

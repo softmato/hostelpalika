@@ -86,6 +86,43 @@ function listingQuality(hostel: Hostel) {
   return Math.round((checks.filter(Boolean).length / checks.length) * 100);
 }
 
+type PlanInvoice = {
+  dueAt: string | null;
+  hostelId: string;
+  outstanding: number;
+  planName: string;
+  status: string;
+};
+
+/** The hostel's latest plan invoice: its plan, and paid / part-paid / due / overdue. */
+function PlanCell({ invoice }: { invoice?: PlanInvoice }) {
+  if (!invoice) return <span className="text-[12px] text-muted-foreground">No plan billed</span>;
+
+  const overdue = invoice.outstanding > 0 && invoice.dueAt && Date.parse(invoice.dueAt) < Date.now();
+  const badge =
+    invoice.status === "VOID" ? (
+      <SoftBadge tone="slate">VOID</SoftBadge>
+    ) : invoice.outstanding <= 0 ? (
+      <SoftBadge tone="green">PAID</SoftBadge>
+    ) : (
+      <SoftBadge tone={overdue ? "rose" : "amber"}>
+        {overdue ? "OVERDUE" : invoice.status === "PARTIAL" ? "PART PAID" : "DUE"}
+      </SoftBadge>
+    );
+
+  return (
+    <div className="space-y-0.5">
+      <p className="truncate text-[12.5px] font-semibold text-foreground">{invoice.planName}</p>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {badge}
+        {invoice.outstanding > 0 && invoice.status !== "VOID" ? (
+          <span className="text-[11px] font-semibold text-muted-foreground">{currency(invoice.outstanding)}</span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
 export const PlatformListingsPageContent = memo(function PlatformListingsPageContent() {
   const invalidate = useInvalidateResources();
   const [actionMessage, setActionMessage] = useState("");
@@ -109,6 +146,22 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
     { errorMessage: "Could not load archived listings." },
   );
   const hostelsResource = showingArchived ? archivedResource : liveResource;
+
+  // Each hostel's newest plan invoice (the ledger is newest-first), so a row can
+  // say what plan it is on and whether that is paid or still owed to us.
+  const ledgerResource = usePortalResource<{ invoices: PlanInvoice[] }>(
+    `${platformEndpoints.subscriptions}?limit=500`,
+    { errorMessage: "Could not load plan billing." },
+  );
+  const planByHostel = useMemo(() => {
+    const map = new Map<string, PlanInvoice>();
+
+    for (const invoice of ledgerResource.data?.invoices ?? []) {
+      if (!map.has(invoice.hostelId)) map.set(invoice.hostelId, invoice);
+    }
+
+    return map;
+  }, [ledgerResource.data]);
 
   const hostels = useMemo(
     () => hostelsResource.data?.hostels ?? [],
@@ -526,7 +579,7 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
 
         {state === "ready" && filtered.length > 0 ? (
           <>
-            <DataTable className="min-w-[820px]">
+            <DataTable className="min-w-[960px]">
               <TableHeader>
                 <TableRow className="hover:bg-transparent">
                   <Th>Listing</Th>
@@ -534,6 +587,7 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
                   <Th align="right">From</Th>
                   <Th align="center">Photos</Th>
                   <Th>Complete</Th>
+                  <Th>Plan</Th>
                   <Th>Status</Th>
                   <Th align="right" />
                 </TableRow>
@@ -594,6 +648,9 @@ export const PlatformListingsPageContent = memo(function PlatformListingsPageCon
                             {quality}%
                           </span>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <PlanCell invoice={planByHostel.get(hostel.id)} />
                       </TableCell>
                       <TableCell>
                         {hostel.isArchived ? (

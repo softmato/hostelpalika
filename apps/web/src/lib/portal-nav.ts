@@ -623,6 +623,13 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
         label: "Wardens",
       },
       {
+        description: "Kitchen cooks: who may post meals ready, enter stock used and add expenses.",
+        href: "/hostel-admin/cooks",
+        icon: "food",
+        keywords: ["cook", "cooks", "kitchen", "chef", "meal", "fingerprint"],
+        label: "Cooks",
+      },
+      {
         description: "Beds booked through the platform: confirm or decline, held beds, and your share.",
         href: "/hostel-admin/bookings",
         icon: "calendar",
@@ -646,60 +653,58 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
       },
     ],
     icon: "users",
-    label: "Residents",
+    label: "Users",
   },
   {
     // Named as the app names them: the Finance tab, and Finance settings for
     // everything that sets how money is charged and collected.
     items: [
       {
-        children: [
-          {
-            description: "Record payments, approve proofs, and track dues per resident.",
-            href: "/hostel-admin/payments",
-            keywords: ["payment", "collection", "proof", "receipt", "due"],
-            label: "Payments",
-          },
-          {
-            description:
-              "Eggs, extra meals, laundry taken on account — open khatas, asks to give, and the price list.",
-            href: "/hostel-admin/khata",
-            keywords: ["khata", "account", "egg", "laundry", "extra", "credit", "tab", "items"],
-            label: "Resident khata",
-          },
-          {
-            description:
-              "Money spent for the hostel — add it, and see Money In, Money Out and what is left.",
-            href: "/hostel-admin/expenses",
-            keywords: [
-              "expense",
-              "expenses",
-              "spending",
-              "money out",
-              "groceries",
-              "salary",
-              "petty cash",
-              "bill",
-            ],
-            label: "Expenses",
-          },
-          {
-            description: "Money in and out, newest first, grouped by day, with the net.",
-            href: "/hostel-admin/statement",
-            keywords: ["statement", "money in", "money out", "net", "cash", "bank", "expense"],
-            label: "Statement",
-          },
-          {
-            description:
-              "Full payment ledger with method, reference, and reconciliation status.",
-            href: "/hostel-admin/transactions",
-            keywords: ["ledger", "transaction", "history", "reconcile", "refund"],
-            label: "Transactions",
-          },
-        ],
+        description: "Record payments, approve proofs, and track dues per resident.",
         href: "/hostel-admin/payments",
+        keywords: ["payment", "collection", "proof", "receipt", "due"],
         icon: "card",
-        label: "Finance",
+        label: "Payments",
+      },
+      {
+        description:
+          "Eggs, extra meals, laundry taken on account — open khatas, asks to give, and the price list.",
+        href: "/hostel-admin/khata",
+        keywords: ["khata", "account", "egg", "laundry", "extra", "credit", "tab", "items"],
+        icon: "clipboard",
+        label: "Resident khata",
+      },
+      {
+        description:
+          "Money spent for the hostel — add it, and see Money In, Money Out and what is left.",
+        href: "/hostel-admin/expenses",
+        keywords: [
+          "expense",
+          "expenses",
+          "spending",
+          "money out",
+          "groceries",
+          "salary",
+          "petty cash",
+          "bill",
+        ],
+        icon: "receipt",
+        label: "Expenses",
+      },
+      {
+        description: "Money in and out, newest first, grouped by day, with the net.",
+        href: "/hostel-admin/statement",
+        keywords: ["statement", "money in", "money out", "net", "cash", "bank", "expense"],
+        icon: "scroll",
+        label: "Statement",
+      },
+      {
+        description:
+          "Full payment ledger with method, reference, and reconciliation status.",
+        href: "/hostel-admin/transactions",
+        keywords: ["ledger", "transaction", "history", "reconcile", "refund"],
+        icon: "file",
+        label: "Transactions",
       },
       {
         children: [
@@ -717,6 +722,24 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
               "pricing",
             ],
             label: "Room rates",
+          },
+          {
+            description: "A percentage off every resident's rent for one month — Dashain, an anniversary.",
+            href: "/hostel-admin/festival-discounts",
+            keywords: ["festival", "discount", "dashain", "tihar", "offer", "percent"],
+            label: "Festival discounts",
+          },
+          {
+            description: "The daily fine on a bill that stays unpaid past its free days.",
+            href: "/hostel-admin/late-fine",
+            keywords: ["late", "fine", "penalty", "overdue", "free days"],
+            label: "Late fine",
+          },
+          {
+            description: "Opening balances and how bills are cut, due and reminded.",
+            href: "/hostel-admin/money-rules",
+            keywords: ["opening balance", "billing day", "due", "reminder", "rules", "same day"],
+            label: "Money rules",
           },
           {
             description:
@@ -856,19 +879,12 @@ export const HOSTEL_ADMIN_NAV: PortalNavGroup[] = [
   {
     items: [
       {
-        description: "Referral codes, joined referrals, and reward payouts.",
+        description:
+          "Resident referrals and rewards, plus your hostel's code to invite other hostels for extra plan time.",
         href: "/hostel-admin/referrals",
         icon: "gift",
-        keywords: ["referral", "reward", "invite", "code"],
+        keywords: ["referral", "reward", "invite", "code", "hostel", "refer", "friend", "whatsapp", "share", "free month"],
         label: "Referrals",
-      },
-      {
-        description:
-          "Your hostel's referral code and link. Another hostel that registers with it gets extra plan time, and so do you.",
-        href: "/hostel-admin/invite-hostels",
-        icon: "megaphone",
-        keywords: ["invite", "hostel", "refer", "referral", "friend", "whatsapp", "share", "free month"],
-        label: "Invite hostels",
       },
       {
         description:

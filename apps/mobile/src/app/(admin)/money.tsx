@@ -47,6 +47,7 @@ import {
 import { recordCashPayment, voidInvoice } from "@/lib/admin-manage-api";
 import {
   amountOwed,
+  fineGrowth,
   type InvoiceSegment,
   invoiceSegment,
   isFirstMonth,
@@ -844,6 +845,18 @@ function BranchAdminMoneyScreen() {
                          * outstanding total, and a projection sitting there
                          * would read as a debt the resident does not yet have.
                          */
+                        (() => {
+                          const fine = row.payment?.lines?.find((line) => line.basis === "FINE");
+                          const growth = fine ? fineGrowth(fine) : null;
+
+                          if (!fine && row.payment?.fineWaived) {
+                            return "Fine waived";
+                          }
+
+                          return fine
+                            ? `Fine ${formatMoney(fine.amount)}${growth ? ` · +${formatMoney(growth.perDay)}/day` : ""}`
+                            : null;
+                        })(),
                         projectedAmount(row)
                           ? `Would be ${formatMoney(projectedAmount(row)!)}`
                           : null,

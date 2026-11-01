@@ -35,11 +35,14 @@ export type ExportPick = { choice: string; format: TableFormat; months: number; 
 export function ExportMenu({
   choices,
   disabled,
+  className = "h-9 gap-2 rounded-xl",
   label = "Export",
   onExport,
   ranges = false,
 }: {
   choices?: Array<{ id: string; label: string }>;
+  /** The trigger's classes, for a header that restyles its buttons together. */
+  className?: string;
   disabled?: boolean;
   label?: string;
   onExport: (pick: ExportPick) => void;
@@ -54,7 +57,7 @@ export function ExportMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="h-9 gap-2 rounded-xl" disabled={disabled} type="button" variant="outline">
+        <Button className={className} disabled={disabled} type="button" variant="outline">
           <Download className="size-4" />
           {label}
         </Button>

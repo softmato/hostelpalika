@@ -38,7 +38,10 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     description: home.description,
     display: "standalone",
     icons: [
-      { sizes: "512x512", src: "/icon.png", type: "image/png" },
+      // Opaque white, so the installed shortcut is not a dark logo on a dark desktop.
+      { purpose: "any", sizes: "192x192", src: "/pwa-icon-192.png", type: "image/png" },
+      { purpose: "any", sizes: "512x512", src: "/pwa-icon-512.png", type: "image/png" },
+      { purpose: "maskable", sizes: "512x512", src: "/pwa-icon-maskable-512.png", type: "image/png" },
       { sizes: "180x180", src: "/apple-icon.png", type: "image/png" },
     ],
     lang: "en-NP",
