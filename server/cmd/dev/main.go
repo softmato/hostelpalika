@@ -17,6 +17,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -44,28 +45,58 @@ func main() {
 	baseline := fs.String("baseline", "", "git SHA of the TS code being recorded (PARITY.md baseline)")
 	withFixture := fs.Bool("fixture", false, "reset the contract database (fixture.URI) before each file; the TS server must be reading it")
 	_ = fs.Parse(os.Args[2:]) // ExitOnError: never returns an error
+	release := func() {}
+	if *withFixture {
+		var err error
+		if release, err = lockRecorder(); err != nil {
+			fmt.Fprintln(os.Stderr, "record:", err)
+			os.Exit(1)
+		}
+	}
+	defer release()
 	for _, path := range fs.Args() {
 		if *withFixture {
-			if err := resetFixture(); err != nil {
+			if err := resetFixture(filepath.Base(filepath.Dir(path))); err != nil {
 				fmt.Fprintln(os.Stderr, "fixture:", err)
+				release()
 				os.Exit(1)
 			}
 		}
 		if err := record(*base, *baseline, path); err != nil {
 			fmt.Fprintln(os.Stderr, "record:", err)
+			release()
 			os.Exit(1)
 		}
 	}
 }
 
-func resetFixture() error {
+// lockRecorder lets one recording run at a time: the one TS server reads one
+// fixture database, and each file drops it. A lock older than recorderStale is
+// from a run that died.
+func lockRecorder() (func(), error) {
+	const recorderStale = 15 * time.Minute
+	path := filepath.Join(os.TempDir(), "hostelpalika-contract-record.lock")
+	for deadline := time.Now().Add(30 * time.Minute); time.Now().Before(deadline); time.Sleep(2 * time.Second) {
+		f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL, 0o600)
+		if err == nil {
+			_ = f.Close() // empty: only its existence matters
+			return func() { _ = os.Remove(path) }, nil
+		}
+		if st, err := os.Stat(path); err == nil && time.Since(st.ModTime()) > recorderStale {
+			_ = os.Remove(path)
+		}
+	}
+	return nil, fmt.Errorf("another recording still holds %s", path)
+}
+
+func resetFixture(group string) error {
 	ctx := context.Background()
-	client, db, err := appmongo.Connect(ctx, fixture.URI)
+	client, db, err := appmongo.Connect(ctx, fixture.RecordURI)
 	if err != nil {
 		return err
 	}
 	defer func() { _ = client.Disconnect(ctx) }()
-	return fixture.Reset(ctx, db)
+	return fixture.ResetGroup(ctx, db, group)
 }
 
 func record(base, baseline, path string) error {

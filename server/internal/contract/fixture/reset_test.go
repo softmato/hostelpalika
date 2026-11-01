@@ -24,3 +24,9 @@ func TestReset(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func TestGroupIDsAreValid(t *testing.T) {
+	if gid(1, 0).IsZero() || gid(5, 255).IsZero() || gid(1, 1) == gid(2, 1) {
+		t.Fatal("gid does not make a valid, group-distinct id")
+	}
+}

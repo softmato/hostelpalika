@@ -10,6 +10,8 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -22,8 +24,49 @@ import (
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 )
 
-// URI is where both servers read the fixture database.
-const URI = "mongodb://127.0.0.1:27018/hostelpalika_contract?directConnection=true"
+// RecordURI is the database the TS recording server reads (record-ts.sh).
+const RecordURI = "mongodb://127.0.0.1:27018/hostelpalika_contract?directConnection=true"
+
+// URI is where the Go replay reads the fixture database. CONTRACT_DB gives a
+// parallel run its own database, since every file drops and reseeds it.
+var URI = func() string {
+	if db := os.Getenv("CONTRACT_DB"); db != "" {
+		return "mongodb://127.0.0.1:27018/" + db + "?directConnection=true"
+	}
+	return RecordURI
+}()
+
+// groupSeeds adds rows for one testdata/contract/<group> only, on top of Reset,
+// so a new group's rows cannot change what another group recorded.
+var groupSeeds = map[string]func(ctx context.Context, db *mongo.Database, now time.Time) error{}
+
+// ResetGroup is Reset plus the group's own rows, if it has any.
+func ResetGroup(ctx context.Context, db *mongo.Database, group string) error {
+	if err := Reset(ctx, db); err != nil {
+		return err
+	}
+	if seed := groupSeeds[group]; seed != nil {
+		return seed(ctx, db, time.Now().UTC().Truncate(time.Millisecond))
+	}
+	return nil
+}
+
+// insertAll writes a group's rows: collection name to documents.
+func insertAll(ctx context.Context, db *mongo.Database, docs map[string][]any) error {
+	for coll, rows := range docs {
+		if _, err := db.Collection(coll).InsertMany(ctx, rows); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// gid is an id in a group's own range: group 1-5, n 0-255. Base fixture ids start
+// 6c, so these can never collide with them.
+func gid(group, n int) bson.ObjectID {
+	id, _ := bson.ObjectIDFromHex(fmt.Sprintf("6d%02x00000000000000000%03x", group, n))
+	return id
+}
 
 // Test-only values, shared by the TS recording and the Go replay.
 const (

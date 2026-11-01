@@ -187,6 +187,9 @@ func mountAPI(v1 *gin.RouterGroup, cfg *config.Config, d Deps) {
 	(&complaints.Service{DB: d.DB, Guards: guards, Notify: notify, Mail: sender, Audit: log, Config: siteConfig, RT: rt, Cache: cache.New(d.Redis), AppURL: appURL}).Register(v1)
 	(&attendance.Handler{DB: d.DB, Guards: guards, Audit: log}).Register(v1)
 	notifications.NewHandler(d.DB, guards, sender, pushSender, rt, cfg.Pusher).Register(v1)
+	mountHostelAdmin(v1, &shared{Cfg: cfg, D: d, BG: bg, Tokens: tokens, Cookies: cookies, Guards: guards, Limiter: limiter, Mail: sender, Audit: log, RT: rt, Push: pushSender, Notify: notify,
+		Cache: cache.New(d.Redis), R2: storage.New(cfg.R2), Config: siteConfig, Claims: claims, Personal: personal, Refs: refs, Bookings: bookingsSvc, Safety: safetySvc, Issuer: issuer, Auth: authSvc,
+		Evidence: &finance.Reader{DB: d.DB, Cfg: cfg.Evidence, GeminiKeys: cfg.LLM.Keys["gemini"]}, LLM: llm.New(cfg.LLM.Keys, cfg.LLM.ProviderOrder), AppURL: appURL, Outbound: cfg.OutboundURL()})
 	(&bookings.Signed{Service: bookingsSvc, Guards: guards, Limiter: limiter, Notify: notify, Mail: sender, Audit: log, RT: rt, Bump: cache.New(d.Redis), Outbound: cfg.OutboundURL(),
 		FinanceKeys: func() ([]crypto.MasterKey, error) {
 			return crypto.MasterKeys(cfg.Crypto.FinanceMasterKey, cfg.Crypto.FinanceMasterKeyPrev)

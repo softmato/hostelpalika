@@ -64,7 +64,7 @@ func TestContract(t *testing.T) {
 				if deps.DB == nil {
 					t.Skip("contract Mongo not running")
 				}
-				if err := fixture.Reset(ctx, deps.DB); err != nil {
+				if err := fixture.ResetGroup(ctx, deps.DB, filepath.Base(filepath.Dir(f))); err != nil {
 					t.Fatal(err)
 				}
 			}
