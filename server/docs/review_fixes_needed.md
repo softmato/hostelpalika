@@ -99,7 +99,7 @@ the outside work. No repo item waits for the owner. In the order to do them:
 
 | | Item | What Claude does | When |
 |---|---|---|---|
-| ☐ | R31 | Read `git status` and `git diff HEAD -- apps/web packages`, not only commits. Port the backend changes to Go with tests: `account/saved-hostels`, `platform/hostels/[id]/billing`, `platform/subscriptions`, `plan-grace` + `PLAN_OVERDUE`, finance, branches, `User` model, `bs.ts`. Leave the owner's in-flight TS and UI uncommitted unless they ask | First thing in Phase 6, and again before each Phase 6 module that touches those files |
+| ☐ | R31 | The owner's TS landed in `dfb807f1`. Run the normal intake (`PARITY.md` §2): `git diff 6281d03d dfb807f1 -- apps/web packages`. Port the backend changes to Go with tests: `account/saved-hostels`, `platform/hostels/[id]/billing`, `platform/subscriptions`, `plan-grace` + `PLAN_OVERDUE` in the renewal sweep, finance, branches, `User.savedHostelIds`. `bs.ts` already matches Go | First thing in Phase 6, and again before each Phase 6 module that touches those files |
 | ☐ | R17 | Push `main`, read the first run of `server.yml`, fix it until green, then tick R17 | First thing in Phase 6, right after R31's read |
 | ☐ | Phase 4 | Outside work. Set `COOKIE_DOMAIN=.hostelpalika.com` on Vercel project `question-call/hostelpalika` (Production) and deploy: Claude if the Vercel CLI is signed in, otherwise hand the owner this exact step. Claude then confirms `Set-Cookie` on the live site carries the domain and login still works, and ticks `PHASES.md` Phase 4 once sessions have refreshed | After R17 is green, so the release is known good |
 | ☐ | R28 | Transactions where a partial write loses money | Phase 6 finance, Phase 8 settlement |

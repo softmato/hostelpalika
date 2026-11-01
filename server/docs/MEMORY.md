@@ -9,7 +9,7 @@ Read this after README.md. Update it at the end of every session.
 - **Roadmap:** Phase 6 is next. New Phase 10 = production grade (measured), Phase 11 = cut-over. Phase 7 carries the superadmin log viewer.
 - Measured: 613 TS method+path pairs, 179 on Go, 0 mismatched, 434 to port (`hostel-admin` 223, `platform` 123, cron 19, `users` 18, `team` 16, `store` 16). `ROUTES_LIST=<file> go test -run TestRoutesMatchWeb ./internal/router` writes the list.
 - **All repo work is Claude's; outside work Claude does what it can reach and the owner mostly helps or does the rest (`MISSION.md` addition 4).** Phase 6 starts with the "Open items" table in `review_fixes_needed.md`.
-- Uncommitted TS work (`saved-hostels`, `PLAN_OVERDUE`, finance, branches, `bs.ts`) is not in the intake: Claude runs it from the working tree at the start of Phase 6. Go's `bs.FormatDate` already follows the uncommitted `bs.ts`, so TS at HEAD still prints the old date format until the owner's change lands.
+- The owner's TS work landed in `dfb807f1` (`saved-hostels`, `PLAN_OVERDUE`, finance, branches, `bs.ts`) and is not in the intake yet: run it at the start of Phase 6 (R31). `bs.ts` and Go's `bs.FormatDate` now match.
 - `C:` was 99 % full with a 17 GB Go build cache, which made the linker fail with "cannot open file". If that error comes back, it is the disk: `go clean -cache`.
 - A contract answer changed for a fixed bug carries a `corrected` field naming the finding. Correct by hand, or re-record from a TS server that has the fix.
 - Python rewriting a file here: write to `<file>.tmp`, then `os.replace`. A direct open failed once with Errno 22.
