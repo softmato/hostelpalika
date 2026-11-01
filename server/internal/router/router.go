@@ -72,7 +72,7 @@ func New(cfg *config.Config, d Deps) (*gin.Engine, error) {
 	// A *gin.Context handed on as a context.Context (slog, Mongo, Redis) must
 	// reach the request's own values: request id, timings.
 	r.ContextWithFallback = true
-	r.Use(httpx.Recover(), obs.Middleware())
+	r.Use(httpx.Recover(), obs.Middleware(), httpx.CORS(cfg.CORSOrigins))
 	if d.Background != nil {
 		r.Use(d.Background.Middleware())
 	}

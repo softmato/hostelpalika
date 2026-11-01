@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
 
 import { AlertTriangle, CheckCircle2, Clock, Inbox, MessageSquareWarning, Pencil, Wrench } from "@/components/icons";
@@ -255,7 +256,7 @@ export const HostelAdminComplaintsPage = memo(function HostelAdminComplaintsPage
                   className="w-full"
                   controls
                   preload="none"
-                  src={`/api/v1/files/${complaint.voiceNoteAssetId}/url`}
+                  src={apiUrl(`/api/v1/files/${complaint.voiceNoteAssetId}/url`)}
                 >
                   Your browser cannot play this recording.
                 </audio>
@@ -281,7 +282,7 @@ export const HostelAdminComplaintsPage = memo(function HostelAdminComplaintsPage
                      */
                     <a
                       className="inline-block"
-                      href={`/api/v1/files/${item.fileAssetId}/url`}
+                      href={apiUrl(`/api/v1/files/${item.fileAssetId}/url`)}
                       key={item.id}
                       rel="noreferrer"
                       target="_blank"
@@ -290,7 +291,7 @@ export const HostelAdminComplaintsPage = memo(function HostelAdminComplaintsPage
                       <img
                         alt="Complaint photo"
                         className="size-14 rounded-xl border border-border object-cover"
-                        src={`/api/v1/files/${item.fileAssetId}/url?variant=THUMBNAIL`}
+                        src={apiUrl(`/api/v1/files/${item.fileAssetId}/url?variant=THUMBNAIL`)}
                       />
                     </a>
                   ))}

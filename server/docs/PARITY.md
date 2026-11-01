@@ -10,7 +10,7 @@ next item. Never tick in batches.
 
 | | |
 |---|---|
-| Baseline commit | `8bea0625` (`main`, 2026-10-30) |
+| Baseline commit | `8e965ad8` (`main`, 2026-11-01) |
 | Source of truth for behaviour | the TypeScript server at the baseline commit |
 | Inventory taken from | `apps/web/src/app/**/route.ts`, `apps/web/src/modules/*`, `apps/web/src/lib/*`, `packages/db/src/models/*`, `packages/shared/src/*`, `docs/CRON.md` |
 
@@ -28,7 +28,7 @@ anyone remembering to log a change; git already knows.
 **Before starting any port session, run:**
 
 ```bash
-git diff --name-status 8bea0625..HEAD -- apps/web/src/app apps/web/src/modules apps/web/src/lib packages/db/src packages/shared/src docs/CRON.md
+git diff --name-status 8e965ad8..HEAD -- apps/web/src/app apps/web/src/modules apps/web/src/lib packages/db/src packages/shared/src docs/CRON.md
 ```
 
 For every line it prints:
@@ -39,7 +39,7 @@ For every line it prints:
 3. `D` (deleted) → strike the row (`~~path~~`) and delete the Go code for it.
 4. `R` (renamed) → update the row in place.
 
-Once every printed line is handled, **move the baseline**: replace `8bea0625` in
+Once every printed line is handled, **move the baseline**: replace `8e965ad8` in
 §1 and in the command above with the new `HEAD` SHA, and add a line to the log.
 
 ### Intake log
@@ -51,7 +51,7 @@ Once every printed line is handled, **move the baseline**: replace `8bea0625` in
 | 2026-10-29 | `541e46cf` → `41b0ef10` | — (no TS changes; only `server/` commits) | — | — |
 | 2026-10-29 | `41b0ef10` → `2be44935` | — (no TS changes; only `server/` commits) | — | — |
 | 2026-10-29 | `2be44935` → working tree (uncommitted) | `Hostel.photos[].mediumUrl` (640px WebP card copy); `npm --prefix apps/web run backfill:photo-variants` | `GET /public/hostels`, `/public/hostels/:slug`, `/public/hostels/compare` — every photo now carries `mediumUrl` (`""` until made); `POST /hostel-admin/profile/photos` (☐) must run `attachPhotoVariant` after responding: `lib/image-optimizer` MEDIUM variant → `photos.$[p].mediumUrl` | — |
-| 2026-10-30 | `2be44935` → `8bea0625` | `PUT /hostel-admin/rooms/order` (new, ☐, hostels); `Hostel.photos[].mediumUrl` is committed now (`8bea0625`), so the working-tree entry above is closed | `GET /public/hostels`, `/:slug`, `/compare` — `mediumUrl` is in the Go serializers and the three fixtures were re-recorded; `hostel-profile.service.ts`, `hostel-rooms.service.ts` and `notifications/web-routing.ts` changed (all ☐, to read when their module is ported) | — |
+| 2026-10-30 | `2be44935` → `8e965ad8` | `PUT /hostel-admin/rooms/order` (new, ☐, hostels); `Hostel.photos[].mediumUrl` is committed now (`8e965ad8`), so the working-tree entry above is closed | `GET /public/hostels`, `/:slug`, `/compare` — `mediumUrl` is in the Go serializers and the three fixtures were re-recorded; `hostel-profile.service.ts`, `hostel-rooms.service.ts` and `notifications/web-routing.ts` changed (all ☐, to read when their module is ported) | — |
 
 ---
 

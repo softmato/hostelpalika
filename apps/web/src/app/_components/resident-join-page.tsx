@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import {
   AlertTriangle,
@@ -358,7 +359,7 @@ function CardStrip({
         <img
           alt=""
           className="size-14 shrink-0 rounded-xl object-cover"
-          src={`/api/v1/users/resident-identity/photo?v=${encodeURIComponent(viewer.photoUpdatedAt ?? "")}`}
+          src={apiUrl(`/api/v1/users/resident-identity/photo?v=${encodeURIComponent(viewer.photoUpdatedAt ?? "")}`)}
         />
       ) : (
         <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-brand-teal-soft text-xl font-bold text-brand-teal">

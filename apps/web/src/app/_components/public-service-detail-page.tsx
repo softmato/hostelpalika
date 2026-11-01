@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { ArrowLeft, ArrowRight, ArrowUpRight, Check, PlayCircle } from "@/components/icons";
 import Link from "next/link";
 
@@ -170,7 +171,7 @@ function DemoSlot({ assetId, serviceName }: { assetId: string; serviceName: stri
           controls
           playsInline
           preload="metadata"
-          src={`/api/v1/files/${assetId}/url`}
+          src={apiUrl(`/api/v1/files/${assetId}/url`)}
         />
       </figure>
     );

@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import {
   Check,
@@ -448,7 +449,7 @@ function RequestCard({
             alt={`Photo on ${request.fullName}'s ID card`}
             className="size-24 shrink-0 rounded-xl border border-border bg-muted object-cover"
             onError={() => setPhotoFailed(true)}
-            src={`/api/v1/hostel-admin/resident-scan/photo?residentId=${encodeURIComponent(request.cardId)}`}
+            src={apiUrl(`/api/v1/hostel-admin/resident-scan/photo?residentId=${encodeURIComponent(request.cardId)}`)}
           />
         )}
 

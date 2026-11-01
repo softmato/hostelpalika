@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
 
@@ -259,9 +260,9 @@ function ImportedProfileSummary({
             <img
               alt={`Photo on ${photo.residentId}'s ID card`}
               className="size-28 shrink-0 rounded-xl border border-role-admin/25 bg-background object-cover"
-              src={`/api/v1/hostel-admin/resident-scan/photo?residentId=${encodeURIComponent(
+              src={apiUrl(`/api/v1/hostel-admin/resident-scan/photo?residentId=${encodeURIComponent(
                 photo.residentId,
-              )}&v=${encodeURIComponent(photo.updatedAt ?? "1")}`}
+              )}&v=${encodeURIComponent(photo.updatedAt ?? "1")}`)}
             />
           ) : null}
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import {
   AlertTriangle,
   Check,
@@ -414,7 +415,7 @@ function EvidencePreview({
   mimeType?: string;
 }) {
   const { open: openViewer } = useMediaViewer();
-  const src = `/api/v1/files/${assetId}/url`;
+  const src = apiUrl(`/api/v1/files/${assetId}/url`);
   // The endpoint's path carries no extension for the lightbox to infer from, so a
   // PDF receipt would be rendered as an image — the broken-image icon this
   // codebase has already been bitten by once, in the reviewer's own modal.

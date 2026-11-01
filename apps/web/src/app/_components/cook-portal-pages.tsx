@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { formatHostelDate } from "@hostel/shared/calendar/bs";
 
 import { Camera, Clock, Upload, Users, UtensilsCrossed } from "@/components/icons";
@@ -526,7 +527,7 @@ export function CookPhotosPage() {
                         alt={`${humanize(photo.mealType)} photo`}
                         className="aspect-square w-full object-cover"
                         loading="lazy"
-                        src={`/api/v1/files/${photo.photoAssetId}/url?variant=THUMBNAIL`}
+                        src={apiUrl(`/api/v1/files/${photo.photoAssetId}/url?variant=THUMBNAIL`)}
                       />
                       <figcaption className="px-3 py-2 text-[12px] text-muted-foreground">
                         <span className="font-semibold text-foreground">{humanize(photo.mealType)}</span>

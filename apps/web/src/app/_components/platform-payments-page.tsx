@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { formatHostelDate } from "@hostel/shared/calendar/bs";
 import { ExportMenu } from "@/components/export-menu";
 import { downloadTable } from "@/lib/downloads/downloader";
@@ -395,7 +396,7 @@ export const PlatformPaymentsPageContent = memo(function PlatformPaymentsPageCon
                       </div>
                       <a
                         className="shrink-0 rounded p-1 text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                        href={`/api/v1/files/${proof.proofImageAssetId}/url`}
+                        href={apiUrl(`/api/v1/files/${proof.proofImageAssetId}/url`)}
                         rel="noreferrer noopener"
                         target="_blank"
                         title="Open proof"

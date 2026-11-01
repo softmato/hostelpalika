@@ -23,7 +23,7 @@ const OPTIMIZED_IMAGE_HOSTS = [
   "lh3.googleusercontent.com",
   "commons.wikimedia.org",
   "upload.wikimedia.org",
-  ...[process.env.R2_PUBLIC_URL, process.env.NEXT_PUBLIC_APP_URL]
+  ...[process.env.R2_PUBLIC_URL, process.env.NEXT_PUBLIC_APP_URL, process.env.NEXT_PUBLIC_API_URL]
     .filter((url): url is string => Boolean(url?.startsWith("https://")))
     .map((url) => new URL(url).hostname),
 ];
@@ -331,6 +331,15 @@ const nextConfig: NextConfig = {
         },
       ],
       beforeFiles: [
+        /*
+         * At cut-over, what cannot read the API setting lands on the API host too:
+         * stale tabs, cached PWAs, old app builds, `sw.js`, and `/api/v1/files/…`
+         * paths saved in the data. `/api/v1` only: `/api/receipt-share` and the
+         * AASA handler stay on the web. Off until `API_REWRITE_ENABLED=true`.
+         */
+        ...(process.env.API_REWRITE_ENABLED === "true" && process.env.API_URL
+          ? [{ destination: `${process.env.API_URL.replace(/\/+$/, "")}/api/v1/:path*`, source: "/api/v1/:path*" }]
+          : []),
         // Cold/uncontrolled share navigations must not fall through to the Expo
         // shell: rendering index.html loses the multipart receipt body.
         { source: "/app/share-payment", has: [{ type: "header", key: "content-type", value: "multipart/form-data.*" }], destination: "/api/receipt-share" },

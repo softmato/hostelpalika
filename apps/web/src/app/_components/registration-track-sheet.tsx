@@ -1,5 +1,6 @@
 "use client";
 
+import { pusherChannelAuth } from "@/lib/api-url";
 import { Loader2 } from "@/components/icons";
 import type { PresenceChannel } from "pusher-js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -196,7 +197,7 @@ export function RegistrationTrackSheet() {
 
       if (cancelled) return;
 
-      const client = new Pusher(config.key, { authEndpoint: "/api/v1/realtime/auth", cluster: config.cluster });
+      const client = new Pusher(config.key, { channelAuthorization: pusherChannelAuth, cluster: config.cluster });
       const channel = client.subscribe(TRACK_SHEET_CHANNEL) as PresenceChannel;
       const readMembers = () => {
         const list: Member[] = [];

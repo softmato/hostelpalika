@@ -1,3 +1,4 @@
+import { apiUrl } from "@/lib/api-url";
 import { refreshSession } from "@/lib/auth-refresh";
 import { browserApi } from "@/lib/browser-api";
 import type { FileAssetKind } from "@/lib/file-asset-kinds";
@@ -74,8 +75,8 @@ export function sendWithProgress(options: XhrOptions) {
     }
 
     const xhr = new XMLHttpRequest();
-    xhr.open(options.method, options.url, true);
-    xhr.withCredentials = options.withCredentials ?? false;
+    xhr.open(options.method, apiUrl(options.url), true);
+    xhr.withCredentials = options.withCredentials ?? options.url.startsWith("/api/");
 
     for (const [name, value] of Object.entries(options.headers ?? {})) {
       xhr.setRequestHeader(name, value);

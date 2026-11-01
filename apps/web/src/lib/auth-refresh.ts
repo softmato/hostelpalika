@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/api-url";
 /**
  * Single-flight session refresh.
  *
@@ -26,8 +27,7 @@ export function refreshSession(): Promise<boolean> {
 
   inFlight = (async () => {
     try {
-      const response = await fetch("/api/v1/auth/refresh", {
-        credentials: "include",
+      const response = await apiFetch("/api/v1/auth/refresh", {
         method: "POST",
       });
 

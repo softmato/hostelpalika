@@ -1,3 +1,4 @@
+import { apiUrl } from "@/lib/api-url";
 import { refreshSession } from "@/lib/auth-refresh";
 
 type ApiPayload<T> =
@@ -149,8 +150,8 @@ async function sendRequest(input: RequestInfo | URL, init?: RequestInit): Promis
 
   if (remembered && !headers.has("if-none-match")) headers.set("if-none-match", remembered.etag);
 
-  const response = await fetch(input, {
-    credentials: "same-origin",
+  const response = await fetch(typeof input === "string" ? apiUrl(input) : input, {
+    credentials: "include",
     ...init,
     headers,
   });

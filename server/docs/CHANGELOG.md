@@ -5,6 +5,12 @@ these docs.
 
 ## [Unreleased]
 
+### 2026-11-01 — Phase 4 code: cookie domain, one API setting, CORS
+
+Phase 3 gate re-checked with Mongo + Redis up. `COOKIE_DOMAIN` (TS + Go), `NEXT_PUBLIC_API_URL`
+through `apps/web/src/lib/api-url.ts`, flagged `/api/v1` rewrite, `httpx.CORS`. Everything is off
+until its env value is set, so behaviour today is unchanged. Open: `COOKIE_DOMAIN` on Vercel + deploy.
+
 ### 2026-10-29 — Host is Kathmandu; clients switch at cut-over
 
 - API + Redis (one compose) on a Kathmandu VPS, not Mumbai. Web stays on Vercel

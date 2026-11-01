@@ -1,3 +1,4 @@
+import { apiFetch } from "@/lib/api-url";
 import { refreshSession } from "@/lib/auth-refresh";
 
 /**
@@ -21,7 +22,7 @@ import { refreshSession } from "@/lib/auth-refresh";
  * paint the public header over an account that is now a resident.
  */
 export async function checkAuthWithRefresh(): Promise<Response> {
-  let res = await fetch("/api/v1/auth/me", { credentials: "include" });
+  let res = await apiFetch("/api/v1/auth/me");
 
   if (res.status === 401) {
     // Shared single-flight refresh: if a data request already kicked off a
@@ -30,7 +31,7 @@ export async function checkAuthWithRefresh(): Promise<Response> {
     const refreshed = await refreshSession();
 
     if (refreshed) {
-      res = await fetch("/api/v1/auth/me", { credentials: "include" });
+      res = await apiFetch("/api/v1/auth/me");
     }
 
     return res;
@@ -43,7 +44,7 @@ export async function checkAuthWithRefresh(): Promise<Response> {
   const refreshed = await refreshSession();
 
   return refreshed
-    ? await fetch("/api/v1/auth/me", { credentials: "include" })
+    ? await apiFetch("/api/v1/auth/me")
     : res;
 }
 

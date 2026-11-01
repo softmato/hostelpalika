@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -599,7 +600,7 @@ export const HostelAdminExpensesPageContent = memo(function HostelAdminExpensesP
                             <a
                               aria-label="Open the bill photo"
                               className="text-muted-foreground hover:text-foreground"
-                              href={`/api/v1/files/${row.photoAssetId}/url`}
+                              href={apiUrl(`/api/v1/files/${row.photoAssetId}/url`)}
                               rel="noreferrer"
                               target="_blank"
                             >

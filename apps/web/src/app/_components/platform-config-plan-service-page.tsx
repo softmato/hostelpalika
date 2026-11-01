@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { ArrowLeft, Monitor, Plus, Smartphone, Trash2, Upload } from "@/components/icons";
 import Link from "next/link";
 import { memo, useCallback, useId } from "react";
@@ -360,7 +361,7 @@ function VideoSlot({
             className="aspect-video w-full"
             controls
             preload="metadata"
-            src={`/api/v1/files/${assetId}/url`}
+            src={apiUrl(`/api/v1/files/${assetId}/url`)}
           />
         ) : (
           <label

@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { Camera, Send, Sparkles, Star, Upload } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
@@ -248,7 +249,7 @@ export const ResidentFoodPageContent = memo(function ResidentFoodPageContent() {
                     onError={(event) => {
                       (event.currentTarget as HTMLImageElement).style.display = "none";
                     }}
-                    src={`/api/v1/files/${photo.photoAssetId}/url?variant=THUMBNAIL`}
+                    src={apiUrl(`/api/v1/files/${photo.photoAssetId}/url?variant=THUMBNAIL`)}
                   />
                 ) : null}
                 <div className="p-3">

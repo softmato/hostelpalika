@@ -1,3 +1,4 @@
+import { apiUrl } from "@/lib/api-url";
 import { CircleCheck, MailX, TriangleAlert } from "@/components/icons";
 import type { Metadata } from "next";
 
@@ -99,7 +100,7 @@ export default async function EmailPreferencesPage({ searchParams }: PageProps) 
 
         {topic && !muted.includes(topic) ? (
           <form
-            action="/api/v1/email-preferences"
+            action={apiUrl("/api/v1/email-preferences")}
             className="mt-6 flex flex-col gap-4 rounded-lg border border-border p-4 sm:flex-row sm:items-center"
             method="post"
           >
@@ -123,7 +124,7 @@ export default async function EmailPreferencesPage({ searchParams }: PageProps) 
           </form>
         ) : null}
 
-        <form action="/api/v1/email-preferences" className="mt-8" method="post">
+        <form action={apiUrl("/api/v1/email-preferences")} className="mt-8" method="post">
           {hidden}
           {groups.map(({ group, topics }) => (
             <fieldset className="mt-6 first:mt-0" key={group}>

@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch, apiUrl } from "@/lib/api-url";
 import Link from "next/link";
 
 import { useStickyBottom } from "@/hooks/use-sticky-bottom";
@@ -26,7 +27,7 @@ export type PopularHostel = {
 
 /** Fire-and-forget: a click-through must not wait on our own analytics. */
 function recordClick(sponsorId: string) {
-  void fetch(`/api/v1/community/sponsors/${sponsorId}/click`, {
+  void apiFetch(`/api/v1/community/sponsors/${sponsorId}/click`, {
     keepalive: true,
     method: "POST",
   }).catch(() => {});
@@ -38,7 +39,7 @@ function sponsorImage(sponsor: CommunitySponsor) {
   }
 
   return sponsor.imageAssetId
-    ? `/api/v1/files/${sponsor.imageAssetId}/url?variant=MEDIUM`
+    ? apiUrl(`/api/v1/files/${sponsor.imageAssetId}/url?variant=MEDIUM`)
     : null;
 }
 

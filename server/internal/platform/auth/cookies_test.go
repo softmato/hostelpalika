@@ -69,8 +69,21 @@ func TestSessionCookiesMatchNext(t *testing.T) {
 
 	h := http.Header{}
 	testCookies(true, ".hostelpalika.com").ApplySession(h, "a", "")
-	if l := h.Values("Set-Cookie")[0]; !strings.Contains(l, "; Max-Age=900; Domain=.hostelpalika.com; Secure;") {
+	lines := h.Values("Set-Cookie")
+	// The host-only copy is expired before the widened cookie is written.
+	if l := lines[0]; !strings.HasPrefix(l, AccessCookie+"=; Path=/; Max-Age=0") || strings.Contains(l, "Domain=") {
+		t.Errorf("host-only expiry: %s", l)
+	}
+	if l := lines[1]; !strings.Contains(l, "; Max-Age=900; Domain=.hostelpalika.com; Secure;") {
 		t.Errorf("domain: %s", l)
+	}
+	for _, l := range lines {
+		if strings.HasPrefix(l, RefreshCookie+"=") {
+			t.Errorf("reuse-window refresh touched the refresh cookie: %s", l)
+		}
+		if strings.HasPrefix(l, "hostelhub_") && strings.Contains(l, "Domain=") {
+			t.Errorf("legacy cookies are host-only: %s", l)
+		}
 	}
 }
 

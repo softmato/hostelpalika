@@ -2,7 +2,13 @@
 
 Read this after README.md. Update it at the end of every session.
 
-## State (2026-10-29)
+## State (2026-11-01)
+
+- **Phase 3 done; Phase 4 code done (2026-11-01).** Contract suite replayed green with Mongo + Redis up
+  (start Docker first: without it Mongo tests skip and "ok" proves little). PARITY baseline moved to `8e965ad8`, intake empty.
+  Phase 4's one open item needs the user: `COOKIE_DOMAIN=.hostelpalika.com` on Vercel + a deploy. Web calls go through
+  `apps/web/src/lib/api-url.ts`; a new browser call uses `browserApi`/`apiFetch`/`apiUrl`. Never wrap a URL that gets saved.
+  Next: Phase 5, which PHASES.md lists as needing Phase 4.
 
 - **Phases 0 and 1 done (2026-10-29).** Gate passed: the 20 `/api/v1/auth/*`
   routes are contract-green (`testdata/contract/auth/`, 113 cases recorded from
@@ -109,4 +115,4 @@ Read this after README.md. Update it at the end of every session.
   Messages must be zod v4's (`valid.Type`, `OneOf`, …); add a builder when a
   route needs a new one, checked against real zod output.
 - The Softmato client (later phase) must give its error a `SoftmatoRejection()` method.
-- No CORS or body limits yet (ARCHITECTURE.md §2 steps 5–6); per-route deadlines (`maxNs`) come with the routes.
+- No body limits yet (ARCHITECTURE.md §2 step 6); per-route deadlines (`maxNs`) come with the routes.

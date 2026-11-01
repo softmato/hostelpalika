@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { AlarmClock, CheckCircle2, MessageSquareWarning, Plus, Send } from "@/components/icons";
 import { memo, useCallback, useMemo, useState, type FormEvent } from "react";
 
@@ -230,7 +231,7 @@ export const ResidentComplaintsPageContent = memo(
                       className="mt-2 w-full"
                       controls
                       preload="none"
-                      src={`/api/v1/files/${complaint.voiceNoteAssetId}/url`}
+                      src={apiUrl(`/api/v1/files/${complaint.voiceNoteAssetId}/url`)}
                     >
                       Your browser cannot play this recording.
                     </audio>

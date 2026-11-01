@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { AlertTriangle, Check, FileText, Maximize2, X } from "@/components/icons";
 import { memo, useState } from "react";
 
@@ -70,7 +71,7 @@ function EvidenceThumb({
     <img
       alt={`Payment proof from ${name}`}
       className="h-32 w-24 shrink-0 rounded-lg object-cover ring-1 ring-border"
-      src={`/api/v1/files/${proof.evidenceAssetId}/url?variant=THUMBNAIL`}
+      src={apiUrl(`/api/v1/files/${proof.evidenceAssetId}/url?variant=THUMBNAIL`)}
     />
   );
 }

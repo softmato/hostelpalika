@@ -1,6 +1,7 @@
 import type { NextResponse } from "next/server";
 
 import { signPurposeToken, verifyPurposeToken } from "@/lib/auth";
+import { domainCookieOption, expireHostOnlyCopies } from "@/lib/session-cookies";
 
 /**
  * Proof that this browser typed the account's app-lock PIN for this session.
@@ -46,11 +47,13 @@ export async function applyPinUnlockCookie(
   });
 
   response.cookies.set(LOCK_PIN_UNLOCK_COOKIE, token, {
+    ...domainCookieOption(),
     httpOnly: true,
     path: "/",
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
   });
+  expireHostOnlyCopies(response, [LOCK_PIN_UNLOCK_COOKIE]);
 
   return response;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import { Check, FileText, Loader2, Plus, Trash2 } from "@/components/icons";
 import { useEffect, useRef, useState, type ReactNode } from "react";
@@ -565,14 +566,14 @@ function DocumentsStep({ kyc, onChange }: { kyc: Kyc; onChange: () => void }) {
                   <div className="group relative overflow-hidden rounded-xl border border-border" key={row.id}>
                     <a
                       className="block aspect-[4/3] bg-muted"
-                      href={row.fileAssetId ? fileUrl(row.fileAssetId) : undefined}
+                      href={row.fileAssetId ? apiUrl(fileUrl(row.fileAssetId)) : undefined}
                       rel="noreferrer"
                       target="_blank"
                       title="Open"
                     >
                       {image ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img alt={row.fileName ?? doc.label} className="size-full object-cover" src={fileUrl(row.fileAssetId!)} />
+                        <img alt={row.fileName ?? doc.label} className="size-full object-cover" src={apiUrl(fileUrl(row.fileAssetId!))} />
                       ) : (
                         <span className="flex size-full flex-col items-center justify-center gap-1 text-muted-foreground">
                           <FileText className="size-7" />

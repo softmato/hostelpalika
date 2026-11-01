@@ -111,32 +111,53 @@ func SetCookie(h http.Header, name, value string, maxAge int, path, domain strin
 // CookieValue is the named cookie's value from the request, or "".
 func CookieValue(r *http.Request, name string) string { return cookieValue(r, name) }
 
+// clearHostOnly expires a cookie that was only ever host-only; a Domain would miss it.
+func (c *Cookies) clearHostOnly(h http.Header, name, path string) {
+	SetCookie(h, name, "", 0, path, "", c.Secure, c.Tokens.now())
+}
+
+// expireHostOnlyCopies is the TS function of that name: with a Domain set, a
+// browser keeps the host-only cookie beside the widened one, so it is expired
+// first (older cookie rules treat the two as one, and a later expiry would
+// delete the cookie just written). TS writes "SameSite=Lax" here; same meaning.
+func (c *Cookies) expireHostOnlyCopies(h http.Header, names ...string) {
+	if c.Domain == "" {
+		return
+	}
+	for _, n := range names {
+		c.clearHostOnly(h, n, "/")
+	}
+}
+
 // ApplySession is applySessionCookies. refresh "" is a reuse-window refresh:
 // only the access cookie is renewed.
 func (c *Cookies) ApplySession(h http.Header, access, refresh string) {
+	if refresh != "" {
+		c.expireHostOnlyCopies(h, AccessCookie, RefreshCookie)
+	} else {
+		c.expireHostOnlyCopies(h, AccessCookie)
+	}
 	c.set(h, AccessCookie, access, int(c.Tokens.AccessTTL/time.Second), "/")
 	if refresh != "" {
 		c.set(h, RefreshCookie, refresh, int(c.Tokens.RefreshTTL/time.Second), "/")
-		c.set(h, legacyRefreshPathCookie, "", 0, "/api")
+		c.clearHostOnly(h, legacyRefreshPathCookie, "/api")
 	}
 	for _, n := range renamedRootCookies {
-		c.set(h, n, "", 0, "/")
+		c.clearHostOnly(h, n, "/")
 	}
 }
 
 // ClearSession is clearSessionCookies: every spelling, every path.
 func (c *Cookies) ClearSession(h http.Header) {
+	c.expireHostOnlyCopies(h, AccessCookie, RefreshCookie)
 	c.set(h, AccessCookie, "", 0, "/")
 	c.set(h, RefreshCookie, "", 0, "/")
 	for _, n := range renamedRootCookies {
-		c.set(h, n, "", 0, "/")
+		c.clearHostOnly(h, n, "/")
 	}
-	c.set(h, legacyRefreshPathCookie, "", 0, "/api")
+	c.clearHostOnly(h, legacyRefreshPathCookie, "/api")
 	// TS appends this one raw, so its attribute order differs.
 	raw := legacyRefreshPathCookie + "=; Path=/api/v1/auth; Max-Age=0"
-	if c.Domain != "" {
-		raw += "; Domain=" + c.Domain
-	}
 	raw += "; HttpOnly; SameSite=Lax"
 	if c.Secure {
 		raw += "; Secure"
@@ -154,6 +175,7 @@ func (c *Cookies) ApplyPinUnlock(h http.Header, userID, sessionID string) error 
 	if err != nil {
 		return err
 	}
+	c.expireHostOnlyCopies(h, UnlockCookie)
 	c.set(h, UnlockCookie, tok, -1, "/")
 	return nil
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-url";
 import { useEffect, useRef, useState } from "react";
 import { ShieldCheck } from "@/components/icons";
 
@@ -88,9 +89,8 @@ export function GoogleAuthButton({
       setIsSubmitting(true);
 
       try {
-        const googleResponse = await fetch("/api/v1/auth/google", {
+        const googleResponse = await apiFetch("/api/v1/auth/google", {
           body: JSON.stringify({ idToken: response.credential }),
-          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },

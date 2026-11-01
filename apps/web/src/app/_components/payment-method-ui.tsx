@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { AlertTriangle, Check, Copy, QrCode } from "@/components/icons";
 import { useCallback, useState } from "react";
 
@@ -170,7 +171,7 @@ export function ManualMethodPanel({ method }: { method: PayMethod }) {
           <img
             alt="Scan to pay"
             className="size-52 max-w-full object-contain"
-            src={`/api/v1/files/${method.assetId}/url`}
+            src={apiUrl(`/api/v1/files/${method.assetId}/url`)}
           />
           <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
             <QrCode aria-hidden className="size-3.5" />

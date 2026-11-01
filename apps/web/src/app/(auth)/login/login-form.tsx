@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-url";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useState, type FormEvent } from "react";
@@ -78,9 +79,8 @@ function LoginFormContent({ googleClientId }: { googleClientId: string }) {
     setIsSubmitting(true);
 
     try {
-      const res = await fetch("/api/v1/auth/login", {
+      const res = await apiFetch("/api/v1/auth/login", {
         method: "POST",
-        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           identifier: identifier.trim().toLowerCase(),

@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-url";
 import { Delete, KeyRound, Loader2, LockKeyhole, Mail } from "@/components/icons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState, type FormEvent } from "react";
@@ -23,9 +24,8 @@ class RequestError extends Error {
 }
 
 async function call<T>(path: string, method: string, body?: unknown) {
-  const response = await fetch(path, {
+  const response = await apiFetch(path, {
     body: body === undefined ? undefined : JSON.stringify(body),
-    credentials: "include",
     headers: { "Content-Type": "application/json" },
     method,
   });

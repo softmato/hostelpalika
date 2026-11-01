@@ -23,7 +23,16 @@ const RENAMED_ROOT_PATH_COOKIES = [
   "hostelhub_refresh",
 ] as const;
 
-function cookieOptions(maxAge: number, path = "/") {
+/**
+ * `COOKIE_DOMAIN` (`.hostelpalika.com`) lets the session reach the API host.
+ * Unset, every cookie stays host-only.
+ */
+function cookieDomain() {
+  return process.env.COOKIE_DOMAIN || undefined;
+}
+
+/** The pre-rename cookies were only ever host-only, so that is how they are cleared. */
+function hostOnlyOptions(maxAge: number, path = "/") {
   return {
     httpOnly: true,
     maxAge,
@@ -31,6 +40,36 @@ function cookieOptions(maxAge: number, path = "/") {
     sameSite: "lax" as const,
     secure: process.env.NODE_ENV === "production",
   };
+}
+
+function cookieOptions(maxAge: number) {
+  return { ...hostOnlyOptions(maxAge), ...domainCookieOption() };
+}
+
+/**
+ * A browser keeps a host-only cookie and a domain cookie of the same name side
+ * by side, so a widened write has to expire the host-only copy or it stays behind
+ * to be read after sign-out. These go first: the older cookie rules treat the two
+ * as one cookie, and a later expiry would delete the one just written.
+ */
+export function expireHostOnlyCopies(response: NextResponse, names: readonly string[]) {
+  if (!cookieDomain()) return;
+
+  const written = response.headers.getSetCookie();
+  const secure = process.env.NODE_ENV === "production" ? "; Secure" : "";
+
+  response.headers.delete("Set-Cookie");
+  for (const name of names) {
+    response.headers.append("Set-Cookie", `${name}=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax${secure}`);
+  }
+  for (const line of written) response.headers.append("Set-Cookie", line);
+}
+
+/** {@link cookieDomain} for the unlock cookie, which is written elsewhere. */
+export function domainCookieOption() {
+  const domain = cookieDomain();
+
+  return domain ? { domain } : {};
 }
 
 export function readRefreshTokenCookie(request: NextRequest) {
@@ -61,7 +100,7 @@ export function applySessionCookies(
     response.cookies.set(
       LEGACY_REFRESH_TOKEN_COOKIE,
       "",
-      cookieOptions(0, LEGACY_REFRESH_COOKIE_PATH),
+      hostOnlyOptions(0, LEGACY_REFRESH_COOKIE_PATH),
     );
   }
 
@@ -70,8 +109,14 @@ export function applySessionCookies(
   // belong to and keep being offered to `readAccessTokenCookie` as a fallback
   // long after they stopped being valid.
   for (const name of RENAMED_ROOT_PATH_COOKIES) {
-    response.cookies.set(name, "", cookieOptions(0));
+    response.cookies.set(name, "", hostOnlyOptions(0));
   }
+
+  // A reuse-window refresh writes no refresh cookie, so its host-only copy stays.
+  expireHostOnlyCopies(
+    response,
+    tokens.refreshToken ? [ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE] : [ACCESS_TOKEN_COOKIE],
+  );
 
   return response;
 }
@@ -83,14 +128,16 @@ export function clearSessionCookies(response: NextResponse) {
   // Signing out has to reach every spelling, or the next request reads a
   // pre-rename cookie through the fallback and the person is still signed in.
   for (const name of RENAMED_ROOT_PATH_COOKIES) {
-    response.cookies.set(name, "", cookieOptions(0));
+    response.cookies.set(name, "", hostOnlyOptions(0));
   }
 
   response.cookies.set(
     LEGACY_REFRESH_TOKEN_COOKIE,
     "",
-    cookieOptions(0, LEGACY_REFRESH_COOKIE_PATH),
+    hostOnlyOptions(0, LEGACY_REFRESH_COOKIE_PATH),
   );
+
+  expireHostOnlyCopies(response, [ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE]);
 
   // `response.cookies` keeps one entry per name, so the older "/api/v1/auth"
   // copy of the legacy cookie is appended raw, after every `cookies.set`.

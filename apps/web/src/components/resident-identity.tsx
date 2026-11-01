@@ -1,3 +1,4 @@
+import { apiFetch, apiUrl } from "@/lib/api-url";
 import { formatHostelDate } from "@hostel/shared/calendar/bs";
 import {
   AlertCircle,
@@ -2254,9 +2255,9 @@ function buildIdCardData(
 /** Same-origin URL of the stored photo, cache-busted by its last write. */
 function identityPhotoUrl(identity: ResidentIdentity) {
   return identity.hasPhoto
-    ? `/api/v1/users/resident-identity/photo?v=${encodeURIComponent(
+    ? apiUrl(`/api/v1/users/resident-identity/photo?v=${encodeURIComponent(
         identity.photoUpdatedAt ?? "1",
-      )}`
+      )}`)
     : null;
 }
 
@@ -2849,14 +2850,12 @@ export function ResidentIdentityCenter({
     setLoading(true);
 
     try {
-      let response = await fetch("/api/v1/users/resident-identity", {
-        credentials: "same-origin",
+      let response = await apiFetch("/api/v1/users/resident-identity", {
       });
 
       // An expired access token is recoverable; a missing session is not.
       if (response.status === 401 && (await refreshSession())) {
-        response = await fetch("/api/v1/users/resident-identity", {
-          credentials: "same-origin",
+        response = await apiFetch("/api/v1/users/resident-identity", {
         });
       }
 

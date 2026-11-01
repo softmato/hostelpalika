@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { roomTypeLabel } from "@hostel/shared/constants/room-types";
 import {
   Clock3,
@@ -97,7 +98,7 @@ function PaymentsTab() {
               <>
                 <a
                   className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-border px-3 text-[12.5px] font-semibold"
-                  href={`/api/v1/files/${payment.proofAssetId}/url`}
+                  href={apiUrl(`/api/v1/files/${payment.proofAssetId}/url`)}
                   rel="noopener"
                   target="_blank"
                 >

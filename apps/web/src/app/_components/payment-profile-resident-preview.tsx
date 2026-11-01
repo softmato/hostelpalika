@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { AlertTriangle, Building2, Copy, QrCode, Smartphone } from "@/components/icons";
 import { memo, type ReactNode } from "react";
 
@@ -210,7 +211,7 @@ export const PaymentProfileResidentPreview = memo(
                     <img
                       alt="Scan to pay"
                       className="size-28 object-contain"
-                      src={`/api/v1/files/${staticQrAssetId}/url`}
+                      src={apiUrl(`/api/v1/files/${staticQrAssetId}/url`)}
                     />
                     <span className="flex items-center gap-1 text-[10px] font-semibold text-muted-foreground">
                       <QrCode aria-hidden="true" className="size-3" />

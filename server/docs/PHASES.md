@@ -78,12 +78,13 @@ holds the phase-level gates.
 
 **Needs:** Phase 1 (auth on Go). Can run alongside Phase 3.
 
-- ☐ TS server widens auth cookies to `Domain=.hostelpalika.com` (ARCHITECTURE.md §4); release stays live until active sessions have refreshed
-- ☐ Web: one `API_URL` / `NEXT_PUBLIC_API_URL`; every client call uses it — value stays `https://hostelpalika.com` until cut-over
-- ☐ App + PWA: same base-URL setting, value unchanged until cut-over (the switch ships by OTA if the runtime fingerprint allows, else in the next native build)
-- ☐ Web `/api/*` → `api.hostelpalika.com` rewrite (`beforeFiles`) behind an env flag, off until cut-over
+- ☐ TS server widens auth cookies to `Domain=.hostelpalika.com` (ARCHITECTURE.md §4); release stays live until active sessions have refreshed — **code done 2026-11-01:** `COOKIE_DOMAIN` in `lib/session-cookies.ts` + `lib/lock-pin-cookie.ts`, host-only copy expired first, old `hostelhub_*` cleared host-only, Go `auth.Cookies` the same. **Left:** set `COOKIE_DOMAIN=.hostelpalika.com` on Vercel and deploy; this stays ☐ until that release has been live long enough for sessions to refresh
+- ☑ Web: one `API_URL` / `NEXT_PUBLIC_API_URL`; every client call uses it — `lib/api-url.ts` (`apiUrl`, `apiFetch`, `pusherChannelAuth`); `browserApi`, the downloader, upload XHR, raw fetches, Pusher auth, and JSX `src`/`href`/form actions. Empty = this origin rather than the literal `https://hostelpalika.com`, so local and preview builds keep calling themselves. Paths saved in data stay relative on purpose and reach the API host through the rewrite below
+- ☑ App + PWA: same base-URL setting, value unchanged until cut-over (the switch ships by OTA if the runtime fingerprint allows, else in the next native build) — already `API_BASE_URL` / `EXPO_PUBLIC_API_URL` in `apps/mobile/src/lib/api.ts`; the receipt-sheet native module is handed that URL for its refresh, and its own `https://hostelpalika.com` is only a fallback
+- ☑ Web `/api/*` → `api.hostelpalika.com` rewrite (`beforeFiles`) behind an env flag, off until cut-over — `API_REWRITE_ENABLED=true` + `API_URL` in `next.config.ts`; `/api/v1/*` only, because `/api/receipt-share` and the AASA handler stay on the web
+- ☑ Added for the cross-origin web calls: Go CORS (`httpx.CORS`, `CORS_ORIGINS`, API.md §8) with `ETag`/`Content-Disposition` exposed, since `browserApi` and the downloader read them
 
-**Gate:** every client reads its API host from one setting; nothing calls `api.hostelpalika.com` yet.
+**Gate:** every client reads its API host from one setting; nothing calls `api.hostelpalika.com` yet. **Met in code 2026-11-01;** Phase 4 closes when the cookie release is live.
 
 ---
 

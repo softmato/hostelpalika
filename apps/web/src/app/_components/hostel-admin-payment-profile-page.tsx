@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import {
   Banknote,
   Check,
@@ -660,7 +661,7 @@ export const HostelAdminPaymentProfilePageContent = memo(
                       <img
                         alt="Payment QR"
                         className="size-40 rounded-lg border border-border object-contain"
-                        src={`/api/v1/files/${profile.staticQrAssetId}/url`}
+                        src={apiUrl(`/api/v1/files/${profile.staticQrAssetId}/url`)}
                       />
                     ) : (
                       <div className="flex size-40 flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border text-muted-foreground">

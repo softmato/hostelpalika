@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-url";
 import { clearPersistedQueryCache } from "@/components/query-provider";
 import { clearHeaderSnapshot } from "@/stores/session-store";
 
@@ -17,7 +18,7 @@ import { clearHeaderSnapshot } from "@/stores/session-store";
  */
 export async function signOutRequest() {
   try {
-    await fetch("/api/v1/auth/logout", { credentials: "include", method: "POST" });
+    await apiFetch("/api/v1/auth/logout", { method: "POST" });
   } finally {
     clearPersistedQueryCache();
     clearHeaderSnapshot();

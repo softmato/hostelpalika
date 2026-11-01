@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-url";
 import { CheckCircle2 } from "@/components/icons";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -20,9 +21,8 @@ type AuthResponse =
   | { success: false; message: string; errorCode: string };
 
 async function authRequest(path: string, body: unknown) {
-  const response = await fetch(path, {
+  const response = await apiFetch(path, {
     body: JSON.stringify(body),
-    credentials: "include",
     headers: { "Content-Type": "application/json" },
     method: "POST",
   });

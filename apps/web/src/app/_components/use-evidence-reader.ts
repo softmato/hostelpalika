@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-url";
 import { useCallback, useRef, useState } from "react";
 
 import { residentEndpoints } from "@/lib/resident-endpoints";
@@ -154,8 +155,7 @@ export function useEvidenceReader() {
     setStage("decoding");
 
     try {
-      const response = await fetch(residentEndpoints.readEvidence(assetId, invoiceId), {
-        credentials: "same-origin",
+      const response = await apiFetch(residentEndpoints.readEvidence(assetId, invoiceId), {
         method: "POST",
       });
 

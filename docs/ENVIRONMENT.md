@@ -238,9 +238,14 @@ QuestionCall), not env.
 `packages/shared/src/utils/file-assets.ts`; setting one **replaces** the default
 rather than extending it, so a partial MIME list narrows what may be uploaded.
 
-There is no `COOKIE_DOMAIN` or `COOKIE_SECURE`. Both were listed here and read by
-nothing. Session cookies are host-only and set `secure` from
-`NODE_ENV === "production"` directly, which needs no configuration.
+`COOKIE_DOMAIN` (`.hostelpalika.com` in production) widens the session and unlock
+cookies so they reach the API host; each write also expires the old host-only copy.
+Empty keeps them host-only. There is no `COOKIE_SECURE`: `secure` comes from
+`NODE_ENV === "production"` directly.
+
+`NEXT_PUBLIC_API_URL` is where the browser calls the API; empty means this origin.
+`API_REWRITE_ENABLED=true` with `API_URL` sends `/api/v1/*` to that host. Both change
+only at the Go cut-over (`server/docs/ARCHITECTURE.md` §11).
 
 ### Push notifications (Phase 6)
 

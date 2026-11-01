@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-url";
 import { Mail, Phone } from "@/components/icons";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -59,9 +60,8 @@ type SignupFormProps = {
 };
 
 async function authRequest<T>(path: string, body: unknown) {
-  const response = await fetch(path, {
+  const response = await apiFetch(path, {
     body: JSON.stringify(body),
-    credentials: "include",
     headers: {
       "Content-Type": "application/json",
     },

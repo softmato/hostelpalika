@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-url";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
 
@@ -40,9 +41,8 @@ function flush(keepalive = false) {
   queue = queue.slice(200);
 
   // Never awaited by a page; a failed batch is dropped rather than retried in a loop.
-  void fetch(ENDPOINT, {
+  void apiFetch(ENDPOINT, {
     body: JSON.stringify({ client: "web", events }),
-    credentials: "same-origin",
     headers: { "content-type": "application/json" },
     keepalive,
     method: "POST",

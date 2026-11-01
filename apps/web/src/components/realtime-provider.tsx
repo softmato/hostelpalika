@@ -1,5 +1,6 @@
 "use client";
 
+import { pusherChannelAuth } from "@/lib/api-url";
 import type { Channel } from "pusher-js";
 import {
   createContext,
@@ -124,7 +125,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
       }
 
       const client = new Pusher(config.key, {
-        authEndpoint: "/api/v1/realtime/auth",
+        channelAuthorization: pusherChannelAuth,
         cluster: config.cluster,
       });
 

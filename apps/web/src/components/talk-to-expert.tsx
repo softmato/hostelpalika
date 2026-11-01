@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-url";
 import { CheckCircle2, Loader2, X } from "@/components/icons";
 import Link from "next/link";
 import { useState, type FormEvent, type ReactNode } from "react";
@@ -43,10 +44,10 @@ const ENVIRONMENT_OPTIONS = [
  * chance to show that in the modal.
  */
 export async function checkOnly<T>(url: string): Promise<{ data: T | null; status: number }> {
-  let response = await fetch(url, { credentials: "same-origin" });
+  let response = await apiFetch(url);
 
   if (response.status === 401 && (await refreshSession())) {
-    response = await fetch(url, { credentials: "same-origin" });
+    response = await apiFetch(url);
   }
 
   if (!response.ok) {

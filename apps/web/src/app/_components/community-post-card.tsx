@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { formatHostelDate, formatHostelDateTime } from "@hostel/shared/calendar/bs";
 
 import { ExternalLink, Flag, Megaphone, MoreHorizontal, Play, Trash2 } from "@/components/icons";
@@ -154,7 +155,7 @@ function Avatar({
 }
 
 export function mediaUrl(assetId: string, variant = "ORIGINAL") {
-  return `/api/v1/files/${assetId}/url?variant=${variant}`;
+  return apiUrl(`/api/v1/files/${assetId}/url?variant=${variant}`);
 }
 
 /**

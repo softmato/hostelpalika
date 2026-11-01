@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { useState } from "react";
 
 import { formatHostelDateTime } from "@hostel/shared/calendar/bs";
@@ -167,18 +168,18 @@ export function PlatformFeedbackPageContent() {
                           controls
                           key={shot.id}
                           preload="metadata"
-                          src={`/api/v1/files/${shot.id}/url`}
+                          src={apiUrl(`/api/v1/files/${shot.id}/url`)}
                         />
                       ) : (
                         <a
                           className="block overflow-hidden rounded-lg border border-border"
-                          href={`/api/v1/files/${shot.id}/url`}
+                          href={apiUrl(`/api/v1/files/${shot.id}/url`)}
                           key={shot.id}
                           rel="noopener"
                           target="_blank"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element -- a signed, private file URL */}
-                          <img alt="Screenshot" className="h-28 w-auto object-cover" src={`/api/v1/files/${shot.id}/url`} />
+                          <img alt="Screenshot" className="h-28 w-auto object-cover" src={apiUrl(`/api/v1/files/${shot.id}/url`)} />
                         </a>
                       ),
                     )}

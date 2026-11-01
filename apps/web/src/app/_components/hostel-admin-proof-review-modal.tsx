@@ -1,5 +1,6 @@
 "use client";
 
+import { apiUrl } from "@/lib/api-url";
 import { AlertTriangle, Check, ExternalLink, FileText, X } from "@/components/icons";
 import { memo, useState } from "react";
 
@@ -102,7 +103,7 @@ export const ProofReviewModal = memo(function ProofReviewModal({
   }
 
   const evidenceUrl = proof.evidenceAssetId
-    ? `/api/v1/files/${proof.evidenceAssetId}/url`
+    ? apiUrl(`/api/v1/files/${proof.evidenceAssetId}/url`)
     : "";
   const isPdf = (proof.evidenceMimeType ?? "").includes("pdf");
   const decided = proof.status !== "PENDING";

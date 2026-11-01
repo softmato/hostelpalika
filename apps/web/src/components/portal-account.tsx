@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-url";
 import { BadgePlus, ChevronDown, LockKeyhole, LogOut, QrCode, Smartphone, Users } from "@/components/icons";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -95,7 +96,7 @@ function usePinIdleLock(active: boolean) {
       if (now - lastTouch < PIN_TOUCH_EVERY_MS) return;
       lastTouch = now;
 
-      void fetch("/api/v1/auth/lock-pin/touch", { credentials: "include", method: "POST" })
+      void apiFetch("/api/v1/auth/lock-pin/touch", { method: "POST" })
         .then((response) => {
           if (response.status === 423) toUnlock();
         })

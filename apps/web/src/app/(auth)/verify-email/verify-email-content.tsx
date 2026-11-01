@@ -1,5 +1,6 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-url";
 import { CheckCircle2, Loader2, MailWarning } from "@/components/icons";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -22,7 +23,7 @@ export function VerifyEmailContent() {
 
     (async () => {
       try {
-        const response = await fetch("/api/v1/auth/verify-email", {
+        const response = await apiFetch("/api/v1/auth/verify-email", {
           body: JSON.stringify({ token }),
           headers: { "Content-Type": "application/json" },
           method: "POST",
