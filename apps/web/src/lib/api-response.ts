@@ -62,6 +62,15 @@ export function errorResponse(
   );
 }
 
+/** What `verifyAccessToken` throws for a token that does not verify. A database fault is not one. */
+export function isInvalidTokenError(error: unknown) {
+  return (
+    error instanceof Error &&
+    (error.message === "Invalid authentication token." ||
+      ("code" in error && typeof error.code === "string" && /^ERR_(JWT|JWS|JOSE)_/.test(error.code)))
+  );
+}
+
 export function handleRouteError(error: unknown) {
   if (error instanceof ZodError) {
     // `flatten()` only buckets by *top-level* key, so a failure inside a nested
@@ -136,6 +145,30 @@ export function handleRouteError(error: unknown) {
       "DUPLICATE_VALUE",
       409,
     );
+  }
+
+  /*
+   * The caller's mistake, not ours: these reached clients as a 500, and a garbage
+   * token as "the server is down" instead of "sign in again".
+   */
+  if (error instanceof SyntaxError) {
+    return errorResponse("The request body is not valid JSON.", "INVALID_JSON", 400);
+  }
+
+  if (error instanceof TypeError && /multipart\/form-data|formData/.test(error.message)) {
+    return errorResponse("The request body is not a valid form.", "INVALID_FORM", 400);
+  }
+
+  if (error instanceof Error && /^R2_.*must be set/.test(error.message)) {
+    return errorResponse("Document storage is not configured on this deployment.", "STORAGE_NOT_CONFIGURED", 503);
+  }
+
+  if (error instanceof Error && error.name === "CastError") {
+    return errorResponse("Not found", "NOT_FOUND", 404);
+  }
+
+  if (isInvalidTokenError(error)) {
+    return errorResponse("Your session has expired.", "UNAUTHENTICATED", 401);
   }
 
   logger.error("Unhandled API route error", { error });

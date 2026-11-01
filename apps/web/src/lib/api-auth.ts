@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import type { NextRequest } from "next/server";
 
+import { isInvalidTokenError } from "@/lib/api-response";
 import { getBearerToken, readAccessTokenCookie, verifyAccessToken } from "@/lib/auth";
 import { connectToDatabase } from "@/lib/db";
 import { isPinUnlocked } from "@/lib/lock-pin-cookie";
@@ -128,7 +129,12 @@ export async function loadApiPrincipal(request: NextRequest) {
       temporaryCredentialId,
       userId: payload.sub,
     } satisfies ApiPrincipal;
-  } catch {
+  } catch (error) {
+    // A database fault must not read as "signed out": that logged the whole app out on a blip.
+    if (!isInvalidTokenError(error)) {
+      throw error;
+    }
+
     /*
      * A bearer token the app sent but that no longer verifies (usually just
      * expired) is a session to refresh, not a signed-out reader. Answering null

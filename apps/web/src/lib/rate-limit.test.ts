@@ -26,6 +26,22 @@ describe("public form rate limit", () => {
     delete process.env.PUBLIC_FORM_RATE_LIMIT_WINDOW_SECONDS;
   });
 
+  it("does not let a client escape by changing its user-agent", () => {
+    const allowed = Array.from({ length: 13 }, (_, i) =>
+      rateLimitPublicForm(
+        new NextRequest("https://hostelpalika.local/api/v1/public/test", {
+          headers: { "user-agent": `rotating-${i}`, "x-forwarded-for": "203.0.113.20" },
+          method: "POST",
+        }),
+        { namespace: "test-rotation" },
+      ),
+    );
+
+    // Limit 2, so the IP's total is 12: every new user-agent passes until then.
+    expect(allowed.slice(0, 12).every((answer) => answer === null)).toBe(true);
+    expect(allowed[12]?.status).toBe(429);
+  });
+
   it("blocks repeated submissions after the configured limit", async () => {
     expect(rateLimitPublicForm(request(), { namespace: "test-form" })).toBeNull();
     expect(rateLimitPublicForm(request(), { namespace: "test-form" })).toBeNull();

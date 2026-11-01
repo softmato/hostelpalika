@@ -32,24 +32,23 @@ function publicFormWindowMs() {
   return positiveInteger(process.env.PUBLIC_FORM_RATE_LIMIT_WINDOW_SECONDS, 60) * 1000;
 }
 
-function clientKey(request: NextRequest) {
+/** A client chooses its user-agent, so one IP also gets a total across all of them. */
+const IP_BUDGET_FACTOR = 6;
+
+function clientIp(request: NextRequest) {
   const forwardedFor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
   const realIp = request.headers.get("x-real-ip")?.trim();
-  const userAgent = request.headers.get("user-agent")?.trim() ?? "unknown-agent";
 
-  return `${forwardedFor || realIp || "unknown-ip"}:${userAgent}`;
+  return forwardedFor || realIp || "unknown-ip";
 }
 
-export function rateLimitPublicForm(
-  request: NextRequest,
-  {
-    limit = publicFormLimit(),
-    namespace,
-    windowMs = publicFormWindowMs(),
-  }: PublicFormRateLimitOptions,
-) {
-  const now = Date.now();
-  const key = `${namespace}:${clientKey(request)}`;
+function clientKey(request: NextRequest) {
+  const userAgent = request.headers.get("user-agent")?.trim() ?? "unknown-agent";
+
+  return `${clientIp(request)}:${userAgent}`;
+}
+
+function hitBucket(key: string, limit: number, windowMs: number, now: number) {
   const existing = buckets.get(key);
 
   if (!existing || existing.resetAt <= now) {
@@ -66,11 +65,32 @@ export function rateLimitPublicForm(
 
   existing.count += 1;
 
-  if (existing.count <= limit) {
+  return existing.count <= limit ? null : existing.resetAt;
+}
+
+export function rateLimitPublicForm(
+  request: NextRequest,
+  {
+    limit = publicFormLimit(),
+    namespace,
+    windowMs = publicFormWindowMs(),
+  }: PublicFormRateLimitOptions,
+) {
+  const now = Date.now();
+  const clientResetAt = hitBucket(`${namespace}:${clientKey(request)}`, limit, windowMs, now);
+  const ipResetAt = hitBucket(
+    `${namespace}:ip:${clientIp(request)}`,
+    limit * IP_BUDGET_FACTOR,
+    windowMs,
+    now,
+  );
+  const resetAt = ipResetAt ?? clientResetAt;
+
+  if (resetAt === null) {
     return null;
   }
 
-  const retryAfterSeconds = Math.max(1, Math.ceil((existing.resetAt - now) / 1000));
+  const retryAfterSeconds = Math.max(1, Math.ceil((resetAt - now) / 1000));
 
   return errorResponse(
     "Too many requests. Please wait before submitting again.",

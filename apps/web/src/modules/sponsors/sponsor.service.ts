@@ -116,7 +116,7 @@ export async function listLiveSponsors(limit = 4) {
   // Counted here rather than from the client: a render is an impression, and a
   // client-reported one is a number anybody can inflate. Never blocks the read.
   if (sponsors.length > 0) {
-    void SponsorModel.updateOne(
+    void SponsorModel.updateMany(
       { _id: { $in: sponsors.map((sponsor) => sponsor._id) } },
       { $inc: { impressionCount: 1 } },
     ).catch(() => {});

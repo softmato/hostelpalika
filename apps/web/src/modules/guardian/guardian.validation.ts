@@ -24,7 +24,18 @@ export const guardianInviteSchema = z.object({
   relation: z.string().trim().min(2).max(40),
 });
 
-export const guardianPermissionsUpdateSchema = guardianPermissionsSchema.partial();
+/**
+ * Not `guardianPermissionsSchema.partial()`: zod keeps `.default(false)` through
+ * `.partial()`, so ticking one box wrote false to every other one.
+ */
+export const guardianPermissionsUpdateSchema = z.object({
+  canViewComplaintStatus: z.boolean().optional(),
+  canViewFood: z.boolean().optional(),
+  canViewNotices: z.boolean().optional(),
+  canViewPayments: z.boolean().optional(),
+  canViewReceipts: z.boolean().optional(),
+  canViewSafety: z.boolean().optional(),
+});
 
 export const guardianInvitationAcceptSchema = z.object({
   name: z.string().trim().min(1).max(120).optional(),
