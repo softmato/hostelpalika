@@ -1,0 +1,516 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/leave"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000003:WARDEN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "resident",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "overview",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Leave status loaded",
+        "data": {
+          "blockers": [],
+          "branches": [],
+          "canLeave": true,
+          "hold": {
+            "max": 15,
+            "min": 5
+          },
+          "hostel": {
+            "id": "6d0400000000000000000001",
+            "isBranch": false,
+            "name": "Setup Hostel"
+          },
+          "request": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "other hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/leave?hostelId=6d0400000000000000000006",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "holdDays": "x",
+        "reason": "a",
+        "hostelId": "bad"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "confirm": [
+              "Please confirm you understand."
+            ],
+            "holdDays": [
+              "Invalid input: expected number, received NaN"
+            ],
+            "hostelId": [
+              "Invalid id."
+            ],
+            "reason": [
+              "Tell us why you are leaving."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Please confirm you understand.",
+              "path": "confirm"
+            },
+            {
+              "message": "Invalid input: expected number, received NaN",
+              "path": "holdDays"
+            },
+            {
+              "message": "Invalid id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Tell us why you are leaving.",
+              "path": "reason"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "out of range",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "confirm": true,
+        "holdDays": 1,
+        "reason": "Moving away"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Choose between 5 and 15 days.",
+        "errorCode": "LEAVE_HOLD_OUT_OF_RANGE"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "cancel none",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "There is no waiting request to cancel.",
+        "errorCode": "LEAVE_NOT_PENDING"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "sent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "confirm": true,
+        "holdDays": "15",
+        "reason": "  Moving away  "
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request to leave sent",
+        "data": {
+          "request": {
+            "branchCount": 0,
+            "exportSections": [],
+            "exportSentAt": null,
+            "exportSentTo": null,
+            "holdDays": 15,
+            "holdUntil": null,
+            "hostelId": "6d0400000000000000000001",
+            "hostelName": "Setup Hostel",
+            "id": "6ae823915e205a5564095da0",
+            "ownerEmail": "setup.owner@contract.test",
+            "ownerName": "Setup HOSTEL_ADMIN",
+            "reason": "Moving away",
+            "reclaimedAt": null,
+            "requestedAt": "2026-11-02T05:45:53.378Z",
+            "reviewNote": null,
+            "reviewedAt": null,
+            "status": "PENDING"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "confirm": true,
+        "holdDays": 15,
+        "reason": "Moving away"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request to leave sent",
+        "data": {
+          "request": {
+            "branchCount": 0,
+            "exportSections": [],
+            "exportSentAt": null,
+            "exportSentTo": null,
+            "holdDays": 15,
+            "holdUntil": null,
+            "hostelId": "6d0400000000000000000001",
+            "hostelName": "Setup Hostel",
+            "id": "6ae823915e205a5564095da2",
+            "ownerEmail": "setup.owner@contract.test",
+            "ownerName": "Setup HOSTEL_ADMIN",
+            "reason": "Moving away",
+            "reclaimedAt": null,
+            "requestedAt": "2026-11-02T05:45:53.617Z",
+            "reviewNote": null,
+            "reviewedAt": null,
+            "status": "PENDING"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "pending overview",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Leave status loaded",
+        "data": {
+          "blockers": [],
+          "branches": [],
+          "canLeave": false,
+          "hold": {
+            "max": 15,
+            "min": 5
+          },
+          "hostel": {
+            "id": "6d0400000000000000000001",
+            "isBranch": false,
+            "name": "Setup Hostel"
+          },
+          "request": {
+            "branchCount": 0,
+            "exportSections": [],
+            "exportSentAt": null,
+            "exportSentTo": null,
+            "holdDays": 15,
+            "holdUntil": null,
+            "hostelId": "6d0400000000000000000001",
+            "hostelName": "Setup Hostel",
+            "id": "6ae823915e205a5564095da0",
+            "ownerEmail": "setup.owner@contract.test",
+            "ownerName": "Setup HOSTEL_ADMIN",
+            "reason": "Moving away",
+            "reclaimedAt": null,
+            "requestedAt": "2026-11-02T05:45:53.378Z",
+            "reviewNote": null,
+            "reviewedAt": null,
+            "status": "PENDING"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "cancel",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request cancelled",
+        "data": {
+          "request": {
+            "branchCount": 0,
+            "exportSections": [],
+            "exportSentAt": null,
+            "exportSentTo": null,
+            "holdDays": 15,
+            "holdUntil": null,
+            "hostelId": "6d0400000000000000000001",
+            "hostelName": "Setup Hostel",
+            "id": "6ae823915e205a5564095da0",
+            "ownerEmail": "setup.owner@contract.test",
+            "ownerName": "Setup HOSTEL_ADMIN",
+            "reason": "Moving away",
+            "reclaimedAt": null,
+            "requestedAt": "2026-11-02T05:45:53.378Z",
+            "reviewNote": null,
+            "reviewedAt": null,
+            "status": "CANCELLED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "cancel twice",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Request cancelled",
+        "data": {
+          "request": {
+            "branchCount": 0,
+            "exportSections": [],
+            "exportSentAt": null,
+            "exportSentTo": null,
+            "holdDays": 15,
+            "holdUntil": null,
+            "hostelId": "6d0400000000000000000001",
+            "hostelName": "Setup Hostel",
+            "id": "6ae823915e205a5564095da2",
+            "ownerEmail": "setup.owner@contract.test",
+            "ownerName": "Setup HOSTEL_ADMIN",
+            "reason": "Moving away",
+            "reclaimedAt": null,
+            "requestedAt": "2026-11-02T05:45:53.617Z",
+            "reviewNote": null,
+            "reviewedAt": null,
+            "status": "CANCELLED"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "branch-less owner overview",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000028:HOSTEL_ADMIN:6d0400000000000000000029}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Leave status loaded",
+        "data": {
+          "blockers": [],
+          "branches": [],
+          "canLeave": true,
+          "hold": {
+            "max": 15,
+            "min": 5
+          },
+          "hostel": {
+            "id": "6d0400000000000000000029",
+            "isBranch": false,
+            "name": "Kyc Empty"
+          },
+          "request": null
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  }
+]

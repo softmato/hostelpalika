@@ -1,6 +1,9 @@
 package email
 
-import "strings"
+import (
+	"strconv"
+	"strings"
+)
 
 // PayoutAccountFacts is the account block of the payout emails.
 type PayoutAccountFacts struct {
@@ -24,5 +27,31 @@ func PayoutAccountChanged(a PayoutAccountFacts, changedAt, hostelName, name, set
 		}, ""),
 		Eyebrow: "Security", Heading: "Payout account changed",
 		Preheader: "After we check it, money for " + hostelName + " will go to " + a.MethodLabel + " " + a.MaskedNumber + ".",
+	})}
+}
+
+// HostelLeaveRequested is hostelLeaveRequestedEmail: to the owner, we got it.
+func HostelLeaveRequested(holdDays int, hostelName, ownerName, pageURL string) Content {
+	return Content{Category: Info, Subject: "We got your request to leave — " + hostelName, HTML: EmailLayout(Layout{
+		Heading: "Request to leave received",
+		BodyHTML: strings.Join([]string{
+			Greeting(ownerName),
+			Paragraph("We got your request to take <strong>" + EscapeHTML(hostelName) + "</strong> off HostelPalika. Our team will check it and write to you."),
+			DetailsTable([]DetailRow{{Label: "Hostel", Value: hostelName}, {Label: "We hold your data for", Value: strconv.Itoa(holdDays) + " days after approval"}}),
+			Paragraph("Nothing changes until we approve it. You can cancel it until then."),
+			CTAButton(pageURL, "Open request"),
+		}, "\n"),
+	})}
+}
+
+// HostelLeavePending is hostelLeavePendingEmail: to platform staff.
+func HostelLeavePending(holdDays int, hostelName, ownerEmail, ownerName, queueURL, reason string) Content {
+	return Content{Category: Info, Subject: "Hostel wants to leave — " + hostelName, HTML: EmailLayout(Layout{
+		Heading: "Hostel wants to leave",
+		BodyHTML: strings.Join([]string{
+			Paragraph("A hostel owner asked to take their hostel off HostelPalika. Their plan bills are cleared."),
+			DetailsTable([]DetailRow{{Label: "Hostel", Value: hostelName}, {Label: "Owner", Value: ownerName}, {Label: "Email", Value: ownerEmail}, {Label: "Hold data for", Value: strconv.Itoa(holdDays) + " days"}, {Label: "Reason", Value: reason}}),
+			CTAButton(queueURL, "Review request"),
+		}, "\n"),
 	})}
 }

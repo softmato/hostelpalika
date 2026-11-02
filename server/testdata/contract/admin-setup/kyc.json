@@ -1,0 +1,1212 @@
+[
+  {
+    "name": "anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/kyc"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "resident refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/kyc",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/kyc",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000003:WARDEN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "owner, no review",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/kyc",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel KYC",
+        "data": {
+          "kyc": {
+            "details": {
+              "address": "",
+              "area": "",
+              "city": "",
+              "hostelType": "CO_LIVING"
+            },
+            "documents": [],
+            "facilities": [],
+            "minPhotos": 3,
+            "percent": 8,
+            "photoCount": 0,
+            "review": null,
+            "rules": [],
+            "steps": [
+              {
+                "done": false,
+                "key": "details",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "photos",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "rates",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "rooms",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "documents",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "payout",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "payments",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "opening",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "food",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "rules",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "facilities",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "location",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "agreement",
+                "required": false
+              }
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "other hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/kyc?hostelId=6d0400000000000000000006",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "bad hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/kyc?hostelId=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "no documents",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/kyc",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "documents": [
+              "Invalid input: expected array, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected array, received undefined",
+              "path": "documents"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "empty documents",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/kyc",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "documents": []
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "documents": [
+              "Upload at least one document."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Upload at least one document.",
+              "path": "documents"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "bad claim",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/kyc",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {
+        "documents": [
+          {
+            "claimToken": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+            "documentType": "PAN",
+            "fileAssetId": "6d0400000000000000000099"
+          }
+        ]
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "\"PAN\" could not be verified. Upload it again.",
+        "errorCode": "REGISTRATION_DOCUMENT_INVALID"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "remove bad id",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/kyc?documentId=nope",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Document was not found.",
+        "errorCode": "DOCUMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "remove unknown",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/kyc?documentId=6d0400000000000000000099",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Only your own document can be removed, and only before it is approved.",
+        "errorCode": "DOCUMENT_NOT_REMOVABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "submit, not required",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/kyc/submit",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000002:HOSTEL_ADMIN:6d0400000000000000000001}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is already verified.",
+        "errorCode": "KYC_NOT_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "draft empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/kyc",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000028:HOSTEL_ADMIN:6d0400000000000000000029}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel KYC",
+        "data": {
+          "kyc": {
+            "details": {
+              "address": "",
+              "area": "",
+              "city": "",
+              "hostelType": "CO_LIVING"
+            },
+            "documents": [],
+            "facilities": [],
+            "minPhotos": 3,
+            "percent": 8,
+            "photoCount": 0,
+            "review": {
+              "canSubmit": false,
+              "missing": [
+                "details",
+                "photos",
+                "rates",
+                "documents",
+                "location",
+                "agreement"
+              ],
+              "note": null,
+              "status": "DRAFT",
+              "submittedAt": null
+            },
+            "rules": [],
+            "steps": [
+              {
+                "done": false,
+                "key": "details",
+                "required": true
+              },
+              {
+                "done": false,
+                "key": "photos",
+                "required": true
+              },
+              {
+                "done": false,
+                "key": "rates",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "rooms",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "documents",
+                "required": true
+              },
+              {
+                "done": false,
+                "key": "payout",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "payments",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "opening",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "food",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "rules",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "facilities",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "location",
+                "required": true
+              },
+              {
+                "done": false,
+                "key": "agreement",
+                "required": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "submit incomplete",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/kyc/submit",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000028:HOSTEL_ADMIN:6d0400000000000000000029}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Finish every required section before you submit.",
+        "errorCode": "KYC_INCOMPLETE"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "draft complete",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/kyc",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000002a:HOSTEL_ADMIN:6d040000000000000000002b}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel KYC",
+        "data": {
+          "kyc": {
+            "details": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "hostelType": "CO_LIVING"
+            },
+            "documents": [
+              {
+                "canRemove": false,
+                "fileAssetId": null,
+                "fileName": null,
+                "id": "6d040000000000000000002f",
+                "mimeType": null,
+                "rejectionReason": null,
+                "status": "APPROVED",
+                "type": "LICENCE"
+              },
+              {
+                "canRemove": true,
+                "fileAssetId": null,
+                "fileName": null,
+                "id": "6d040000000000000000002e",
+                "mimeType": null,
+                "rejectionReason": null,
+                "status": "PENDING",
+                "type": "PAN"
+              }
+            ],
+            "facilities": [
+              "WiFi"
+            ],
+            "minPhotos": 3,
+            "percent": 69,
+            "photoCount": 3,
+            "review": {
+              "canSubmit": true,
+              "missing": [],
+              "note": null,
+              "status": "DRAFT",
+              "submittedAt": null
+            },
+            "rules": [
+              "Quiet after ten"
+            ],
+            "steps": [
+              {
+                "done": true,
+                "key": "details",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "photos",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "rates",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "rooms",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "documents",
+                "required": true
+              },
+              {
+                "done": false,
+                "key": "payout",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "payments",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "opening",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "food",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "rules",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "facilities",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "location",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "agreement",
+                "required": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "remove approved refused",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/kyc?documentId=6d040000000000000000002f",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000002a:HOSTEL_ADMIN:6d040000000000000000002b}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Only your own document can be removed, and only before it is approved.",
+        "errorCode": "DOCUMENT_NOT_REMOVABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "remove own",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/kyc?documentId=6d040000000000000000002e",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000002a:HOSTEL_ADMIN:6d040000000000000000002b}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Document removed",
+        "data": {
+          "kyc": {
+            "details": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "hostelType": "CO_LIVING"
+            },
+            "documents": [
+              {
+                "canRemove": false,
+                "fileAssetId": null,
+                "fileName": null,
+                "id": "6d040000000000000000002f",
+                "mimeType": null,
+                "rejectionReason": null,
+                "status": "APPROVED",
+                "type": "LICENCE"
+              }
+            ],
+            "facilities": [
+              "WiFi"
+            ],
+            "minPhotos": 3,
+            "percent": 69,
+            "photoCount": 3,
+            "review": {
+              "canSubmit": true,
+              "missing": [],
+              "note": null,
+              "status": "DRAFT",
+              "submittedAt": null
+            },
+            "rules": [
+              "Quiet after ten"
+            ],
+            "steps": [
+              {
+                "done": true,
+                "key": "details",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "photos",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "rates",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "rooms",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "documents",
+                "required": true
+              },
+              {
+                "done": false,
+                "key": "payout",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "payments",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "opening",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "food",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "rules",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "facilities",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "location",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "agreement",
+                "required": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "after remove, submit incomplete? one doc left",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/kyc/submit",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000002a:HOSTEL_ADMIN:6d040000000000000000002b}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "KYC submitted",
+        "data": {
+          "kyc": {
+            "details": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "hostelType": "CO_LIVING"
+            },
+            "documents": [
+              {
+                "canRemove": false,
+                "fileAssetId": null,
+                "fileName": null,
+                "id": "6d040000000000000000002f",
+                "mimeType": null,
+                "rejectionReason": null,
+                "status": "APPROVED",
+                "type": "LICENCE"
+              }
+            ],
+            "facilities": [
+              "WiFi"
+            ],
+            "minPhotos": 3,
+            "percent": 69,
+            "photoCount": 3,
+            "review": {
+              "canSubmit": false,
+              "missing": [],
+              "note": null,
+              "status": "SUBMITTED",
+              "submittedAt": "2026-11-02T05:45:40.701Z"
+            },
+            "rules": [
+              "Quiet after ten"
+            ],
+            "steps": [
+              {
+                "done": true,
+                "key": "details",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "photos",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "rates",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "rooms",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "documents",
+                "required": true
+              },
+              {
+                "done": false,
+                "key": "payout",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "payments",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "opening",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "food",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "rules",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "facilities",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "location",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "agreement",
+                "required": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "submit twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/kyc/submit",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000002a:HOSTEL_ADMIN:6d040000000000000000002b}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "KYC submitted",
+        "data": {
+          "kyc": {
+            "details": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "hostelType": "CO_LIVING"
+            },
+            "documents": [
+              {
+                "canRemove": false,
+                "fileAssetId": null,
+                "fileName": null,
+                "id": "6d040000000000000000002f",
+                "mimeType": null,
+                "rejectionReason": null,
+                "status": "APPROVED",
+                "type": "LICENCE"
+              }
+            ],
+            "facilities": [
+              "WiFi"
+            ],
+            "minPhotos": 3,
+            "percent": 69,
+            "photoCount": 3,
+            "review": {
+              "canSubmit": false,
+              "missing": [],
+              "note": null,
+              "status": "SUBMITTED",
+              "submittedAt": "2026-11-02T05:45:40.701Z"
+            },
+            "rules": [
+              "Quiet after ten"
+            ],
+            "steps": [
+              {
+                "done": true,
+                "key": "details",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "photos",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "rates",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "rooms",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "documents",
+                "required": true
+              },
+              {
+                "done": false,
+                "key": "payout",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "payments",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "opening",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "food",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "rules",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "facilities",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "location",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "agreement",
+                "required": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  },
+  {
+    "name": "read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/kyc",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000002a:HOSTEL_ADMIN:6d040000000000000000002b}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel KYC",
+        "data": {
+          "kyc": {
+            "details": {
+              "address": "Ward 4",
+              "area": "Baneshwor",
+              "city": "Kathmandu",
+              "hostelType": "CO_LIVING"
+            },
+            "documents": [
+              {
+                "canRemove": false,
+                "fileAssetId": null,
+                "fileName": null,
+                "id": "6d040000000000000000002f",
+                "mimeType": null,
+                "rejectionReason": null,
+                "status": "APPROVED",
+                "type": "LICENCE"
+              }
+            ],
+            "facilities": [
+              "WiFi"
+            ],
+            "minPhotos": 3,
+            "percent": 69,
+            "photoCount": 3,
+            "review": {
+              "canSubmit": false,
+              "missing": [],
+              "note": null,
+              "status": "SUBMITTED",
+              "submittedAt": "2026-11-02T05:45:40.701Z"
+            },
+            "rules": [
+              "Quiet after ten"
+            ],
+            "steps": [
+              {
+                "done": true,
+                "key": "details",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "photos",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "rates",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "rooms",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "documents",
+                "required": true
+              },
+              {
+                "done": false,
+                "key": "payout",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "payments",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "opening",
+                "required": false
+              },
+              {
+                "done": false,
+                "key": "food",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "rules",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "facilities",
+                "required": false
+              },
+              {
+                "done": true,
+                "key": "location",
+                "required": true
+              },
+              {
+                "done": true,
+                "key": "agreement",
+                "required": true
+              }
+            ]
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d3d8b3e5"
+  }
+]
