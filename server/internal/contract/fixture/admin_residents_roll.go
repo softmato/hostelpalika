@@ -85,3 +85,40 @@ func rollBookings(now time.Time) map[string][]any {
 		},
 	}
 }
+
+// Group admin-residents-intake (testdata/contract/admin-residents-intake): the roll
+// group plus the people the status and intake cases act on. Kept apart because the
+// roll cases read whole rolls.
+func init() {
+	groupSeeds["admin-residents-intake"] = func(ctx context.Context, db *mongo.Database, now time.Time) error {
+		if err := groupSeeds["admin-residents-roll"](ctx, db, now); err != nil {
+			return err
+		}
+		return insertAll(ctx, db, rollStatus(now))
+	}
+}
+
+// rollStatus seeds the status cases: 48 Hari (pending, a public account on their
+// address, moves in today), 49 Indu (pending, no address), 51 Jay (moved out, still
+// linked to his login), 57 Clash (shares the phone of moved-out Gita, 47).
+func rollStatus(now time.Time) map[string][]any {
+	row := func(n int, first, status, phone, addr string, moveIn time.Time, extra ...bson.E) bson.D {
+		d := bson.D{{Key: "_id", Value: gid(1, n)}, {Key: "hostelId", Value: HostelKyc}, {Key: "firstName", Value: first}, {Key: "lastName", Value: "Status"}, {Key: "phone", Value: phone},
+			{Key: "roomType", Value: "Single"}, {Key: "moveInDate", Value: moveIn}, {Key: "status", Value: status}, {Key: "isDeleted", Value: false}, {Key: "depositAmount", Value: 0}}
+		if addr != "" {
+			d = append(d, bson.E{Key: "email", Value: addr})
+		}
+		d = append(d, extra...)
+		return append(d, bson.E{Key: "createdAt", Value: now}, bson.E{Key: "updatedAt", Value: now}, bson.E{Key: "__v", Value: 0})
+	}
+	old := now.Add(-20 * 24 * time.Hour)
+	return map[string][]any{
+		"users": {cardUser(gid(1, 60), "hari@contract.test", "Hari Status", "", now), cardUser(gid(1, 61), "jay@contract.test", "Jay Status", "", now)},
+		"residents": {
+			row(48, "Hari", "PENDING", "9800000080", "hari@contract.test", now),
+			row(49, "Indu", "PENDING", "9800000090", "", old),
+			row(51, "Jay", "MOVED_OUT", "9800099991", "jay@contract.test", old, bson.E{Key: "userId", Value: gid(1, 61)}),
+			row(57, "Clash", "ACTIVE", "9800000070", "", old),
+		},
+	}
+}

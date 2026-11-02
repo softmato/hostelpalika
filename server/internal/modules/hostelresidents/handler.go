@@ -35,6 +35,7 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	a.GET("", staff, h.list)
 	a.GET("/:id", staff, httpx.ETag(), h.get)
 	a.PATCH("/:id", reg, h.update)
+	a.PATCH("/:id/status", reg, h.status)
 	a.DELETE("/:id", reg, h.remove)
 	a.GET("/:id/contacts", reg, httpx.ETag(), h.contactsOf)
 	a.GET("/:id/photo", staff, h.photo)
@@ -695,4 +696,22 @@ func (h *Handler) activation(status int, msg string) gin.HandlerFunc {
 		}
 		httpx.Write(c, status, out, msg)
 	}
+}
+
+func (h *Handler) status(c *gin.Context) {
+	body, err := valid.Body(c)
+	if fail(c, err) {
+		return
+	}
+	f := valid.NewForm(body)
+	hid := hostelrooms.OptionalID(f, "hostelId", "Invalid object id.")
+	status, _ := f.Enum("status", false, nil, statuses...)
+	if fail(c, f.Err()) {
+		return
+	}
+	out, err := h.UpdateStatus(c, c.Param("id"), hid, status, authz.From(c))
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, out, "Resident status updated")
 }
