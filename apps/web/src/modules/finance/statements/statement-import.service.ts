@@ -159,15 +159,29 @@ export async function importStatement(input: {
       for (const row of fresh) {
         const classification = classifyCredit(row, context);
 
-        await ingest({
-          classification,
-          context,
-          hostelId: input.hostelId,
-          principal: input.principal,
-          provider: input.provider,
-          row,
-          statementImportId: statementImport._id,
-        });
+        // One bad row is a finding, not the end of the file: an event already written
+        // stays PENDING for "Approve all" to finish (FIN-11).
+        try {
+          await ingest({
+            classification,
+            context,
+            hostelId: input.hostelId,
+            principal: input.principal,
+            provider: input.provider,
+            row,
+            statementImportId: statementImport._id,
+          });
+        } catch (error) {
+          recorder.count("failed");
+          recorder.finding({
+            code: "ROW_FAILED",
+            detail: `row ${row.rowNumber} (${row.providerTxnId}): ${
+              error instanceof Error ? error.message : "failed"
+            }`,
+            severity: "ERROR",
+          });
+          continue;
+        }
 
         if (classification.tier === "B") {
           counts.matched += 1;

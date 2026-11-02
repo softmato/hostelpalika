@@ -1,0 +1,1226 @@
+[
+  {
+    "name": "list resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/statements",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/statements",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Statement imports",
+        "data": {
+          "imports": [
+            {
+              "errorDetail": null,
+              "fileName": "statement.csv",
+              "matchedCount": 0,
+              "orphanCount": 0,
+              "provider": "ESEWA",
+              "rowCount": 0,
+              "statementImportId": "6d09000000000000000000c2",
+              "status": "PARSING",
+              "suggestedCount": 0,
+              "uploadedAt": "2026-09-09T08:00:00.000Z"
+            },
+            {
+              "errorDetail": "No recognisable column header was found in this file. The statement format may have changed.",
+              "fileName": "statement.csv",
+              "matchedCount": 0,
+              "orphanCount": 0,
+              "provider": "ESEWA",
+              "rowCount": 0,
+              "statementImportId": "6d09000000000000000000c1",
+              "status": "FAILED",
+              "suggestedCount": 0,
+              "uploadedAt": "2026-09-09T07:00:00.000Z"
+            },
+            {
+              "errorDetail": null,
+              "fileName": "statement.csv",
+              "matchedCount": 2,
+              "orphanCount": 1,
+              "provider": "ESEWA",
+              "rowCount": 5,
+              "statementImportId": "6d09000000000000000000c0",
+              "status": "READY",
+              "suggestedCount": 1,
+              "uploadedAt": "2026-09-09T06:00:00.000Z"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "list limit 1",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/statements?limit=1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Statement imports",
+        "data": {
+          "imports": [
+            {
+              "errorDetail": null,
+              "fileName": "statement.csv",
+              "matchedCount": 0,
+              "orphanCount": 0,
+              "provider": "ESEWA",
+              "rowCount": 0,
+              "statementImportId": "6d09000000000000000000c2",
+              "status": "PARSING",
+              "suggestedCount": 0,
+              "uploadedAt": "2026-09-09T08:00:00.000Z"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "list limit 0",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/statements?limit=0",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "limit": [
+              "Too small: expected number to be \u003e=1"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too small: expected number to be \u003e=1",
+              "path": "limit"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "list limit abc",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/statements?limit=abc",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "limit": [
+              "Invalid input: expected number, received NaN"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected number, received NaN",
+              "path": "limit"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "get resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/statements/6d09000000000000000000c0",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "get nope",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/statements/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That statement import was not found.",
+        "errorCode": "STATEMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "get unknown",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/statements/6d09000000000000000000ff",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That statement import was not found.",
+        "errorCode": "STATEMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "get failed",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/statements/6d09000000000000000000c1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That statement could not be read, so it has nothing to reconcile.",
+        "errorCode": "STATEMENT_NOT_READY"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "get parsing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/statements/6d09000000000000000000c2",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That statement is still being read.",
+        "errorCode": "STATEMENT_NOT_READY"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "get ready",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/statements/6d09000000000000000000c0",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reconciliation",
+        "data": {
+          "buckets": {
+            "approvedNotInStatement": [],
+            "claimedNoTransaction": [
+              {
+                "amount": 500,
+                "bedLabel": "Single",
+                "claimEventId": "6d090000000000000000002a",
+                "period": "2083-05",
+                "residentId": "6d090000000000000000000a",
+                "residentName": "Asha Report",
+                "transactionCode": null,
+                "why": "claims 500 — closest real credit is 500 on 1 Sept"
+              },
+              {
+                "amount": 410,
+                "bedLabel": null,
+                "claimEventId": "6d09000000000000000000c7",
+                "period": null,
+                "residentId": "6d09000000000000000000b4",
+                "residentName": "Account Holder",
+                "transactionCode": "CLAIM-77",
+                "why": "claims 410 — closest real credit is 500 on 1 Sept"
+              }
+            ],
+            "matched": [
+              {
+                "amount": 500,
+                "claimEventId": null,
+                "confirmsClaim": false,
+                "eventId": "6d09000000000000000000c3",
+                "occurredAt": "2026-09-01T09:15:00.000Z",
+                "period": "2083-05",
+                "providerTxnId": "TXN-B1",
+                "referenceCode": "HP-TEST",
+                "residentName": "Bina Report",
+                "status": "PENDING",
+                "why": "reference HP-TEST — Bina Report, 2083-05"
+              },
+              {
+                "amount": 500,
+                "claimEventId": "6d090000000000000000002a",
+                "confirmsClaim": false,
+                "eventId": "6d09000000000000000000c6",
+                "occurredAt": "2026-09-01T09:18:00.000Z",
+                "period": "2083-05",
+                "providerTxnId": "TXN-M1",
+                "referenceCode": null,
+                "residentName": "Asha Report",
+                "status": "PENDING",
+                "why": "Asha Report claimed this exact transaction"
+              }
+            ],
+            "orphans": [
+              {
+                "amount": 777,
+                "counterpartyName": "Payer TXN-D1",
+                "eventId": "6d09000000000000000000c4",
+                "occurredAt": "2026-09-01T09:16:00.000Z",
+                "providerTxnId": "TXN-D1",
+                "remarks": "rent TXN-D1",
+                "suggestions": []
+              },
+              {
+                "amount": 300,
+                "counterpartyName": "Payer TXN-C1",
+                "eventId": "6d09000000000000000000c5",
+                "occurredAt": "2026-09-01T09:17:00.000Z",
+                "providerTxnId": "TXN-C1",
+                "remarks": "rent TXN-C1",
+                "suggestions": [
+                  {
+                    "confidence": "HIGH",
+                    "invoiceId": "6d0900000000000000000014",
+                    "residentId": "6d090000000000000000000a",
+                    "residentName": "Asha Report",
+                    "score": 64,
+                    "why": "matches Asha Report — name matches"
+                  }
+                ]
+              }
+            ]
+          },
+          "fileName": "statement.csv",
+          "matchedTotal": 1000,
+          "parserVersion": "esewa@2",
+          "periodEnd": "2026-11-03T10:01:24.606Z",
+          "periodStart": "2026-09-01T06:00:00.000Z",
+          "provider": "ESEWA",
+          "rowCount": 5,
+          "statementImportId": "6d09000000000000000000c0",
+          "status": "READY",
+          "uploadedAt": "2026-09-09T06:00:00.000Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "import resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/statements",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      },
+      "body": {
+        "assetId": "x",
+        "provider": "ESEWA"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "import empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/statements",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "assetId": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "provider": [
+              "Invalid option: expected one of \"ESEWA\"|\"KHALTI\"|\"BANK\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "assetId"
+            },
+            {
+              "message": "Invalid option: expected one of \"ESEWA\"|\"KHALTI\"|\"BANK\"",
+              "path": "provider"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "import bad provider",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/statements",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "assetId": "x",
+        "provider": "PAYPAL"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "provider": [
+              "Invalid option: expected one of \"ESEWA\"|\"KHALTI\"|\"BANK\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"ESEWA\"|\"KHALTI\"|\"BANK\"",
+              "path": "provider"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "import asset nope",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/statements",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "assetId": "nope",
+        "provider": "ESEWA"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That file does not belong to this hostel. Upload the statement again.",
+        "errorCode": "ASSET_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "import asset unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/statements",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "assetId": "6d09000000000000000000ff",
+        "provider": "KHALTI"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That file does not belong to this hostel. Upload the statement again.",
+        "errorCode": "ASSET_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "ask resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d09000000000000000000c7/ask-resident",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "ask nope",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/nope/ask-resident",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Payment claim was not found.",
+        "errorCode": "CLAIM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "ask unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d09000000000000000000ff/ask-resident",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Payment claim was not found.",
+        "errorCode": "CLAIM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "ask not a claim",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d09000000000000000000c3/ask-resident",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Payment claim was not found.",
+        "errorCode": "CLAIM_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "ask no account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d090000000000000000002a/ask-resident",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident asked",
+        "data": {
+          "notified": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "ask with account",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d09000000000000000000c7/ask-resident",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Resident asked",
+        "data": {
+          "notified": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "assign resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d09000000000000000000c4/assign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      },
+      "body": {
+        "invoiceId": "6d0900000000000000000014"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "assign empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d09000000000000000000c4/assign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "invoiceId": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "invoiceId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "assign unknown event",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d09000000000000000000ff/assign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "invoiceId": "6d0900000000000000000014"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That payment was not found.",
+        "errorCode": "EVENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "assign claim event",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d090000000000000000002a/assign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "invoiceId": "6d0900000000000000000014"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That payment was not found.",
+        "errorCode": "EVENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "assign unknown invoice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d09000000000000000000c4/assign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "invoiceId": "6d09000000000000000000fe"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That invoice was not found.",
+        "errorCode": "INVOICE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "assign orphan",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d09000000000000000000c4/assign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "invoiceId": "6d0900000000000000000014"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment assigned",
+        "data": {
+          "eventId": "6d09000000000000000000c4",
+          "settledAmount": 1027
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "assign again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/events/6d09000000000000000000c4/assign",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "invoiceId": "6d0900000000000000000014"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That payment has already been assigned.",
+        "errorCode": "EVENT_ALREADY_ASSIGNED"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "approve resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/statements/6d09000000000000000000c0/approve-matched",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "approve failed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/statements/6d09000000000000000000c1/approve-matched",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That statement could not be read, so it has nothing to reconcile.",
+        "errorCode": "STATEMENT_NOT_READY"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "approve unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/statements/6d09000000000000000000ff/approve-matched",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That statement import was not found.",
+        "errorCode": "STATEMENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "approve matched",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/statements/6d09000000000000000000c0/approve-matched",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payments approved",
+        "data": {
+          "approved": 2,
+          "skipped": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "approve again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/statements/6d09000000000000000000c0/approve-matched",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payments approved",
+        "data": {
+          "approved": 0,
+          "skipped": 0
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "get after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/statements/6d09000000000000000000c0",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reconciliation",
+        "data": {
+          "buckets": {
+            "approvedNotInStatement": [],
+            "claimedNoTransaction": [
+              {
+                "amount": 500,
+                "bedLabel": "Single",
+                "claimEventId": "6d090000000000000000002a",
+                "period": null,
+                "residentId": "6d090000000000000000000a",
+                "residentName": "Asha Report",
+                "transactionCode": null,
+                "why": "claims 500 — closest real credit is 500 on 1 Sept"
+              },
+              {
+                "amount": 410,
+                "bedLabel": null,
+                "claimEventId": "6d09000000000000000000c7",
+                "period": null,
+                "residentId": "6d09000000000000000000b4",
+                "residentName": "Account Holder",
+                "transactionCode": "CLAIM-77",
+                "why": "claims 410 — closest real credit is 500 on 1 Sept"
+              }
+            ],
+            "matched": [
+              {
+                "amount": 500,
+                "claimEventId": null,
+                "confirmsClaim": false,
+                "eventId": "6d09000000000000000000c3",
+                "occurredAt": "2026-09-01T09:15:00.000Z",
+                "period": "2083-05",
+                "providerTxnId": "TXN-B1",
+                "referenceCode": "HP-TEST",
+                "residentName": "Bina Report",
+                "status": "SETTLED",
+                "why": "reference HP-TEST — Bina Report, 2083-05"
+              },
+              {
+                "amount": 500,
+                "claimEventId": "6d090000000000000000002a",
+                "confirmsClaim": false,
+                "eventId": "6d09000000000000000000c6",
+                "occurredAt": "2026-09-01T09:18:00.000Z",
+                "period": "2083-05",
+                "providerTxnId": "TXN-M1",
+                "referenceCode": null,
+                "residentName": "Asha Report",
+                "status": "SETTLED",
+                "why": "Asha Report claimed this exact transaction"
+              }
+            ],
+            "orphans": [
+              {
+                "amount": 300,
+                "counterpartyName": "Payer TXN-C1",
+                "eventId": "6d09000000000000000000c5",
+                "occurredAt": "2026-09-01T09:17:00.000Z",
+                "providerTxnId": "TXN-C1",
+                "remarks": "rent TXN-C1",
+                "suggestions": [
+                  {
+                    "confidence": "HIGH",
+                    "invoiceId": "6d0900000000000000000014",
+                    "residentId": "6d090000000000000000000a",
+                    "residentName": "Asha Report",
+                    "score": 64,
+                    "why": "matches Asha Report — name matches"
+                  }
+                ]
+              }
+            ]
+          },
+          "fileName": "statement.csv",
+          "matchedTotal": 1000,
+          "parserVersion": "esewa@2",
+          "periodEnd": "2026-11-03T10:01:24.606Z",
+          "periodStart": "2026-09-01T06:00:00.000Z",
+          "provider": "ESEWA",
+          "rowCount": 5,
+          "statementImportId": "6d09000000000000000000c0",
+          "status": "READY",
+          "uploadedAt": "2026-09-09T06:00:00.000Z"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  },
+  {
+    "name": "list after",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/statements",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Statement imports",
+        "data": {
+          "imports": [
+            {
+              "errorDetail": null,
+              "fileName": "statement.csv",
+              "matchedCount": 0,
+              "orphanCount": 0,
+              "provider": "ESEWA",
+              "rowCount": 0,
+              "statementImportId": "6d09000000000000000000c2",
+              "status": "PARSING",
+              "suggestedCount": 0,
+              "uploadedAt": "2026-09-09T08:00:00.000Z"
+            },
+            {
+              "errorDetail": "No recognisable column header was found in this file. The statement format may have changed.",
+              "fileName": "statement.csv",
+              "matchedCount": 0,
+              "orphanCount": 0,
+              "provider": "ESEWA",
+              "rowCount": 0,
+              "statementImportId": "6d09000000000000000000c1",
+              "status": "FAILED",
+              "suggestedCount": 0,
+              "uploadedAt": "2026-09-09T07:00:00.000Z"
+            },
+            {
+              "errorDetail": null,
+              "fileName": "statement.csv",
+              "matchedCount": 2,
+              "orphanCount": 1,
+              "provider": "ESEWA",
+              "rowCount": 5,
+              "statementImportId": "6d09000000000000000000c0",
+              "status": "READY",
+              "suggestedCount": 1,
+              "uploadedAt": "2026-09-09T06:00:00.000Z"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 d1fb7611"
+  }
+]

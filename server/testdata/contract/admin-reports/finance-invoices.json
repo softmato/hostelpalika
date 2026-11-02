@@ -20,7 +20,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 3a52eecf"
+    "recorded": "http://localhost:3100 d1fb7611"
   },
   {
     "name": "invoices bad period",
@@ -57,7 +57,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 3a52eecf"
+    "recorded": "http://localhost:3100 d1fb7611"
   },
   {
     "name": "invoices 2083-05",
@@ -206,7 +206,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 3a52eecf"
+    "recorded": "http://localhost:3100 d1fb7611"
   },
   {
     "name": "invoices 2083-06",
@@ -336,7 +336,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 3a52eecf"
+    "recorded": "http://localhost:3100 d1fb7611"
   },
   {
     "name": "invoices 2083-08",
@@ -466,7 +466,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 3a52eecf"
+    "recorded": "http://localhost:3100 d1fb7611"
   },
   {
     "name": "invoices current",
@@ -590,7 +590,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 3a52eecf"
+    "recorded": "http://localhost:3100 d1fb7611"
   },
   {
     "name": "ledger resident",
@@ -613,7 +613,7 @@
         "errorCode": "FORBIDDEN"
       }
     },
-    "recorded": "http://localhost:3100 3a52eecf"
+    "recorded": "http://localhost:3100 d1fb7611"
   },
   {
     "name": "ledger",
@@ -725,7 +725,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 3a52eecf"
+    "recorded": "http://localhost:3100 d1fb7611"
   },
   {
     "name": "periods",
@@ -796,13 +796,13 @@
             "overdueResidents": 0,
             "paid": 2,
             "partial": 1,
-            "pendingProofs": 1,
+            "pendingProofs": 2,
             "unpaid": 4
           }
         }
       }
     },
-    "recorded": "http://localhost:3100 3a52eecf"
+    "recorded": "http://localhost:3100 d1fb7611"
   },
   {
     "name": "resident ledger",
@@ -886,7 +886,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 3a52eecf"
+    "recorded": "http://localhost:3100 d1fb7611"
   },
   {
     "name": "resident ledger own fee",
@@ -955,7 +955,7 @@
         }
       }
     },
-    "recorded": "http://localhost:3100 3a52eecf"
+    "recorded": "http://localhost:3100 d1fb7611"
   },
   {
     "name": "resident ledger bad id",
@@ -978,7 +978,7 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 3a52eecf"
+    "recorded": "http://localhost:3100 d1fb7611"
   },
   {
     "name": "resident ledger erased",
@@ -1001,6 +1001,6 @@
         "errorCode": "RESIDENT_NOT_FOUND"
       }
     },
-    "recorded": "http://localhost:3100 3a52eecf"
+    "recorded": "http://localhost:3100 d1fb7611"
   }
 ]

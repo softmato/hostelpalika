@@ -1,0 +1,10 @@
+eSewa Transaction Statement
+Account: 98XXXXXX21
+Period: 2026-08-01 to 2026-08-14
+
+S.N.,Date,Transaction Code,Name,Remarks,Debit,Credit,Balance
+1,2026-08-02 09:14:03,ESW4471190,Bikash Thapa,RUP-4821-P August rent,,"12,000","45,300"
+2,2026-08-04 18:02:44,ESW4471191,Anita Shrestha,rup 5J20 7 room 204,,"8,000","53,300"
+3,2026-08-06 11:20:00,ESW4471192,Load Fund,topup from bank,,"25,000","78,300"
+4,2026-08-07 07:45:12,ESW4471193,Kirana Store,grocery,"1,500",,"76,800"
+5,2026-08-12 20:31:59,ESW4471194,S. TAMANG,,,"8,000","84,800"
