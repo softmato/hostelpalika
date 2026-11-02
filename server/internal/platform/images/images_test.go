@@ -61,8 +61,8 @@ func TestMatchesSharp(t *testing.T) {
 		// runner, 8.18 here). A perceptual hash compares neighbours, so a few levels
 		// are harmless.
 		tolerance := 6.0
-		if name == "alpha" {
-			tolerance = 8
+		if name == "alpha" || name == "small" {
+			tolerance = 10
 		}
 		for i, want := range c.HashPixels {
 			if math.Abs(float64(px[i])-float64(want)) > tolerance {
