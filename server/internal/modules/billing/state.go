@@ -12,8 +12,11 @@ import (
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
+	"github.com/softmato/hostelpalika/server/internal/modules/platformconfig"
+	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/bs"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
+	"github.com/softmato/hostelpalika/server/internal/platform/softmato"
 )
 
 // Service reads a hostel's own plan billing: modules/billing/subscription.service
@@ -23,6 +26,12 @@ type Service struct {
 	SiteURL string // siteUrl(): the app's own origin, no trailing slash
 	// SoftmatoBase is SOFTMATO_BASE_URL; empty keeps the docs link null.
 	SoftmatoBase string
+	// Softmato is nil when the deployment has no credentials.
+	Softmato *softmato.Client
+	Config   *platformconfig.Service
+	Audit    *audit.Log
+	// Outbound is outboundUrl(): where a checkout returns to.
+	Outbound string
 }
 
 // HostelCode is hostelCode: the id an owner types at the plan checkout.

@@ -4,8 +4,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/v2/bson"
 
+	"github.com/softmato/hostelpalika/server/internal/platform/audit"
 	"github.com/softmato/hostelpalika/server/internal/platform/authz"
 	"github.com/softmato/hostelpalika/server/internal/platform/cache"
+	"github.com/softmato/hostelpalika/server/internal/platform/email"
 	"github.com/softmato/hostelpalika/server/internal/platform/httpx"
 )
 
@@ -15,6 +17,8 @@ type Admin struct {
 	Service *Service
 	Guards  *authz.Guards
 	Cache   *cache.Cache
+	Audit   *audit.Log
+	Mail    *email.Sender
 }
 
 func (a *Admin) Register(v1 *gin.RouterGroup) {
@@ -22,6 +26,12 @@ func (a *Admin) Register(v1 *gin.RouterGroup) {
 	staff := authz.Use(a.Guards.RequireHostelStaff)
 	g.GET("/subscription", staff, a.subscription)
 	g.GET("/billing", staff, httpx.ETag(), a.history)
+	admin := authz.Use(a.Guards.RequireHostelAdmin)
+	g.POST("/billing/checkout", admin, a.checkout)
+	g.POST("/billing/claim", admin, a.claim)
+	g.POST("/billing/renew", admin, a.renew)
+	g.GET("/billing/pay-instructions", admin, httpx.ETag(), a.payInstructions)
+	g.GET("/billing/documents/:kind/:number", staff, a.document)
 }
 
 // firstHostel is `principal.hostelIds?.[0]`.

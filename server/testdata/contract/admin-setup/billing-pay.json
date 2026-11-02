@@ -1,0 +1,1417 @@
+[
+  {
+    "name": "instructions anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/pay-instructions"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "instructions warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/pay-instructions",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000003:WARDEN:6d0400000000000000000001}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "instructions open",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/pay-instructions",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment instructions loaded",
+        "data": {
+          "instructions": {
+            "amountDue": 3900,
+            "claim": null,
+            "dueBy": null,
+            "invoice": {
+              "id": "6d0400000000000000000049",
+              "invoiceNumber": "SUB-0002-0046",
+              "planName": "Pro"
+            },
+            "overdue": false,
+            "qr": {
+              "label": "Scan to pay",
+              "url": "https://cdn.contract.test/qr.png"
+            },
+            "reference": "SUB-0002-0046"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "instructions clear",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/pay-instructions",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000051:HOSTEL_ADMIN:6d0400000000000000000050}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment instructions loaded",
+        "data": {
+          "instructions": {
+            "amountDue": 0,
+            "claim": null,
+            "dueBy": null,
+            "invoice": null,
+            "overdue": false,
+            "qr": {
+              "label": "Scan to pay",
+              "url": "https://cdn.contract.test/qr.png"
+            },
+            "reference": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "checkout anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/checkout"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "checkout resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/checkout",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "checkout nothing open",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/checkout",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000051:HOSTEL_ADMIN:6d0400000000000000000050}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "There is no outstanding invoice to pay.",
+        "errorCode": "NO_OPEN_INVOICE"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "checkout not configured",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/checkout",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 503,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Online payment is not set up on this deployment yet.",
+        "errorCode": "ONLINE_PAYMENT_UNAVAILABLE"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "claim anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/claim",
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "claim warden",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/claim",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000003:WARDEN:6d0400000000000000000001}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "claim no proof",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/claim",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Attach a screenshot of your payment before submitting.",
+        "errorCode": "PROOF_REQUIRED"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "claim nothing open",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/claim",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000051:HOSTEL_ADMIN:6d0400000000000000000050}}"
+      },
+      "body": {
+        "proofAssetId": "6d040000000000000000006f"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "There is no outstanding invoice to pay.",
+        "errorCode": "NO_OPEN_INVOICE"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "claim bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/claim",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      },
+      "body": {
+        "proofAssetId": "nope"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That file is not yours to submit. Please attach the screenshot again.",
+        "errorCode": "PROOF_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "claim unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/claim",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      },
+      "body": {
+        "proofAssetId": "6d04000000000000000003e7"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That file is not yours to submit. Please attach the screenshot again.",
+        "errorCode": "PROOF_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "claim another owner",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/claim",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      },
+      "body": {
+        "proofAssetId": "6d040000000000000000006f"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That file is not yours to submit. Please attach the screenshot again.",
+        "errorCode": "PROOF_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "claim another hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/claim",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      },
+      "body": {
+        "proofAssetId": "6d0400000000000000000073"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That file is not yours to submit. Please attach the screenshot again.",
+        "errorCode": "PROOF_NOT_OWNED"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "claim unfinished",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/claim",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      },
+      "body": {
+        "proofAssetId": "6d0400000000000000000070"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That file did not finish uploading. Please attach the screenshot again.",
+        "errorCode": "PROOF_UPLOAD_INCOMPLETE"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "claim expired",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/claim",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      },
+      "body": {
+        "proofAssetId": "6d0400000000000000000071"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That upload has expired. Please attach the screenshot again.",
+        "errorCode": "PROOF_UPLOAD_INCOMPLETE"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "claim our document",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/claim",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      },
+      "body": {
+        "proofAssetId": "6d0400000000000000000072"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That is a document we issued, not proof of a payment you made. Attach the screenshot from your banking app.",
+        "errorCode": "PROOF_IS_OUR_DOCUMENT"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "claim sent",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/claim",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      },
+      "body": {
+        "proofAssetId": "6d040000000000000000006e",
+        "note": "  Paid by eSewa ",
+        "reference": " REF-1 "
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment proof submitted",
+        "data": {
+          "claim": {
+            "amount": 3900,
+            "claimedAt": "2026-11-02T06:39:51.063Z",
+            "id": "6ae830375e205a5564095dec",
+            "invoiceNumber": "SUB-0002-0046"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "claim twice",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/claim",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      },
+      "body": {
+        "proofAssetId": "6d040000000000000000006e"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "You have already sent us proof for this invoice and our team is checking it. We will email you as soon as it is verified.",
+        "errorCode": "CLAIM_ALREADY_IN_REVIEW"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "instructions with claim",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/pay-instructions",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment instructions loaded",
+        "data": {
+          "instructions": {
+            "amountDue": 3900,
+            "claim": {
+              "amount": 3900,
+              "claimedAt": "2026-11-02T06:39:51.010Z",
+              "reference": "REF-1"
+            },
+            "dueBy": null,
+            "invoice": {
+              "id": "6d0400000000000000000049",
+              "invoiceNumber": "SUB-0002-0046",
+              "planName": "Pro"
+            },
+            "overdue": false,
+            "qr": {
+              "label": "Scan to pay",
+              "url": "https://cdn.contract.test/qr.png"
+            },
+            "reference": "SUB-0002-0046"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "history shows claim",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Billing loaded",
+        "data": {
+          "history": {
+            "docsUrl": null,
+            "invoices": [
+              {
+                "amount": 4900,
+                "currency": "NPR",
+                "cycleLabel": "Monthly",
+                "documentUrl": "http://localhost:3000/api/v1/hostel-admin/billing/documents/invoice/SUB-0002-0046",
+                "dueAt": null,
+                "invoiceNumber": "SUB-0002-0046",
+                "issuedAt": "2026-09-01T06:00:00.000Z",
+                "issuedBy": "platform",
+                "outstanding": 3900,
+                "paid": 1000,
+                "planId": "pro",
+                "planName": "Pro",
+                "printedNumber": "HH-INV-2083-84-000007",
+                "softmatoInvoiceNo": null,
+                "status": "PARTIAL"
+              },
+              {
+                "amount": 4900,
+                "currency": "NPR",
+                "cycleLabel": "Monthly",
+                "documentUrl": "http://localhost:3000/api/v1/hostel-admin/billing/documents/invoice/SUB-0001-0046",
+                "dueAt": null,
+                "invoiceNumber": "SUB-0001-0046",
+                "issuedAt": "2026-09-01T06:00:00.000Z",
+                "issuedBy": "platform",
+                "outstanding": 0,
+                "paid": 4900,
+                "planId": "pro",
+                "planName": "Pro",
+                "printedNumber": "SUB-0001-0046",
+                "softmatoInvoiceNo": null,
+                "status": "PAID"
+              }
+            ],
+            "payments": [
+              {
+                "amount": 3900,
+                "documentUrl": null,
+                "method": "MANUAL",
+                "paidAt": null,
+                "printedNumber": null,
+                "provider": null,
+                "providerRef": "REF-1",
+                "receiptNumber": null,
+                "softmatoTransactionNo": null,
+                "status": "IN_REVIEW"
+              },
+              {
+                "amount": 1000,
+                "documentUrl": "http://localhost:3000/api/v1/hostel-admin/billing/documents/receipt/HH-TXN-2083-84-00000009",
+                "method": "MANUAL",
+                "paidAt": "2026-09-01T06:00:00.000Z",
+                "printedNumber": "HH-TXN-2083-84-00000009",
+                "provider": null,
+                "providerRef": null,
+                "receiptNumber": null,
+                "softmatoTransactionNo": null,
+                "status": "SETTLED"
+              },
+              {
+                "amount": 4900,
+                "documentUrl": "http://localhost:3000/api/v1/hostel-admin/billing/documents/receipt/SRC-0001-0046",
+                "method": "CASH",
+                "paidAt": "2026-09-01T06:00:00.000Z",
+                "printedNumber": "SRC-0001-0046",
+                "provider": null,
+                "providerRef": null,
+                "receiptNumber": "SRC-0001-0046",
+                "softmatoTransactionNo": null,
+                "status": "SETTLED"
+              },
+              {
+                "amount": 500,
+                "documentUrl": null,
+                "method": "MANUAL",
+                "paidAt": null,
+                "printedNumber": "SRC-NOPE",
+                "provider": null,
+                "providerRef": null,
+                "receiptNumber": "SRC-NOPE",
+                "softmatoTransactionNo": null,
+                "status": "FAILED"
+              }
+            ],
+            "plan": {
+              "activatedAt": null,
+              "amountDue": 3900,
+              "amountPaid": 1000,
+              "cycle": "monthly",
+              "cycleMonths": 1,
+              "cycleLabel": "Monthly",
+              "currentPeriodEnd": "2030-01-01T00:00:00.000Z",
+              "daysRemaining": 1157,
+              "daysToDue": null,
+              "dueBy": null,
+              "dueFrom": null,
+              "lifetime": false,
+              "periodDays": null,
+              "planId": "pro",
+              "planName": "Pro",
+              "price": null,
+              "status": "ACTIVE",
+              "trialEndsAt": null
+            }
+          },
+          "hostelCode": "HH-00000046",
+          "state": {
+            "canPayNow": false,
+            "hostelName": "Pay pay-open",
+            "hostelStatus": "ACTIVE",
+            "invoice": {
+              "amount": 4900,
+              "cycle": "monthly",
+              "documentUrl": null,
+              "dueAt": null,
+              "id": "6d0400000000000000000049",
+              "invoiceNumber": "SUB-0002-0046",
+              "issuedAt": "2026-09-01T06:00:00.000Z",
+              "planName": "Pro",
+              "status": "PARTIAL"
+            },
+            "outstanding": 3900,
+            "paid": 1000,
+            "payments": [
+              {
+                "amount": 3900,
+                "id": "6ae830375e205a5564095dec",
+                "isMocked": false,
+                "method": "MANUAL",
+                "receiptNumber": null,
+                "settledAt": null,
+                "status": "IN_REVIEW"
+              },
+              {
+                "amount": 1000,
+                "id": "6d040000000000000000004b",
+                "isMocked": false,
+                "method": "MANUAL",
+                "receiptNumber": null,
+                "settledAt": "2026-09-01T06:00:00.000Z",
+                "status": "SETTLED"
+              },
+              {
+                "amount": 4900,
+                "id": "6d040000000000000000004c",
+                "isMocked": false,
+                "method": "CASH",
+                "receiptNumber": "SRC-0001-0046",
+                "settledAt": "2026-09-01T06:00:00.000Z",
+                "status": "SETTLED"
+              },
+              {
+                "amount": 500,
+                "id": "6d040000000000000000004d",
+                "isMocked": false,
+                "method": "MANUAL",
+                "receiptNumber": "SRC-NOPE",
+                "settledAt": null,
+                "status": "FAILED"
+              }
+            ],
+            "planChosen": true,
+            "subscription": {
+              "activatedAt": null,
+              "currentPeriodEnd": "2030-01-01T00:00:00.000Z",
+              "cycle": "monthly",
+              "cycleTotal": null,
+              "dueBy": null,
+              "freeMonths": null,
+              "freeUntil": null,
+              "freeMonthNow": null,
+              "id": "6d0400000000000000000048",
+              "lifetime": false,
+              "lifetimeSince": null,
+              "planId": "pro",
+              "planName": "Pro",
+              "source": "PUBLIC",
+              "status": "ACTIVE",
+              "trialDays": null,
+              "trialEndsAt": null
+            },
+            "verified": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "renew anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/renew",
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "renew warden",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/renew",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000003:WARDEN:6d0400000000000000000001}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "renew invalid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/renew",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000051:HOSTEL_ADMIN:6d0400000000000000000050}}"
+      },
+      "body": {
+        "cycle": "daily",
+        "planId": " "
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "cycle": [
+              "Invalid option: expected one of \"monthly\"|\"halfYearly\"|\"annual\""
+            ],
+            "planId": [
+              "Too small: expected string to have \u003e=1 characters"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"monthly\"|\"halfYearly\"|\"annual\"",
+              "path": "cycle"
+            },
+            {
+              "message": "Too small: expected string to have \u003e=1 characters",
+              "path": "planId"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "renew lifetime",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/renew",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000060:HOSTEL_ADMIN:6d040000000000000000005f}}"
+      },
+      "body": {
+        "cycle": "monthly",
+        "planId": "pro"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is on a lifetime plan. There is nothing to renew or change.",
+        "errorCode": "LIFETIME_PLAN"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "renew reuses open",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/renew",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      },
+      "body": {
+        "cycle": "annual",
+        "planId": "pro"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invoice already open",
+        "data": {
+          "reused": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "renew unverified",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/renew",
+      "headers": {
+        "authorization": "Bearer {{access:6d040000000000000000005b:HOSTEL_ADMIN:6d040000000000000000005a}}"
+      },
+      "body": {
+        "cycle": "monthly",
+        "planId": "pro"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This hostel is still being verified, so it cannot buy a plan yet. You will be emailed the moment it is.",
+        "errorCode": "NOT_VERIFIED"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "renew unknown plan",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/renew",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000051:HOSTEL_ADMIN:6d0400000000000000000050}}"
+      },
+      "body": {
+        "cycle": "monthly",
+        "planId": "nope"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That plan is no longer available. Choose another one.",
+        "errorCode": "PLAN_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "renew raises",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/renew",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000051:HOSTEL_ADMIN:6d0400000000000000000050}}"
+      },
+      "body": {
+        "cycle": "halfYearly",
+        "planId": "pro"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invoice raised",
+        "data": {
+          "reused": false
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "renew again",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/billing/renew",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000051:HOSTEL_ADMIN:6d0400000000000000000050}}"
+      },
+      "body": {
+        "cycle": "monthly",
+        "planId": "pro"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Invoice already open",
+        "data": {
+          "reused": true
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "renew read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/pay-instructions",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000051:HOSTEL_ADMIN:6d0400000000000000000050}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment instructions loaded",
+        "data": {
+          "instructions": {
+            "amountDue": 9480,
+            "claim": null,
+            "dueBy": null,
+            "invoice": {
+              "id": "6ae830375e205a5564095dee",
+              "invoiceNumber": "SUB-0001-0050",
+              "planName": "Pro"
+            },
+            "overdue": false,
+            "qr": {
+              "label": "Scan to pay",
+              "url": "https://cdn.contract.test/qr.png"
+            },
+            "reference": "SUB-0001-0050"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "renew state",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000051:HOSTEL_ADMIN:6d0400000000000000000050}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Billing loaded",
+        "data": {
+          "history": {
+            "docsUrl": null,
+            "invoices": [
+              {
+                "amount": 9480,
+                "currency": "NPR",
+                "cycleLabel": "6 months",
+                "documentUrl": "http://localhost:3000/api/v1/hostel-admin/billing/documents/invoice/SUB-0001-0050",
+                "dueAt": "2026-11-05T18:14:59.999Z",
+                "invoiceNumber": "SUB-0001-0050",
+                "issuedAt": "2026-11-02T06:39:51.547Z",
+                "issuedBy": "platform",
+                "outstanding": 9480,
+                "paid": 0,
+                "planId": "pro",
+                "planName": "Pro",
+                "printedNumber": "SUB-0001-0050",
+                "softmatoInvoiceNo": null,
+                "status": "OPEN"
+              }
+            ],
+            "payments": [],
+            "plan": {
+              "activatedAt": null,
+              "amountDue": 9480,
+              "amountPaid": 0,
+              "cycle": "monthly",
+              "cycleMonths": 1,
+              "cycleLabel": "Monthly",
+              "currentPeriodEnd": "2030-01-01T00:00:00.000Z",
+              "daysRemaining": 1157,
+              "daysToDue": 3,
+              "dueBy": "2026-11-05T18:14:59.999Z",
+              "dueFrom": "2026-11-02T06:39:51.547Z",
+              "lifetime": false,
+              "periodDays": null,
+              "planId": "pro",
+              "planName": "Pro",
+              "price": null,
+              "status": "ACTIVE",
+              "trialEndsAt": null
+            }
+          },
+          "hostelCode": "HH-00000050",
+          "state": {
+            "canPayNow": false,
+            "hostelName": "Pay pay-clear",
+            "hostelStatus": "ACTIVE",
+            "invoice": {
+              "amount": 9480,
+              "cycle": "halfYearly",
+              "documentUrl": null,
+              "dueAt": "2026-11-05T18:14:59.999Z",
+              "id": "6ae830375e205a5564095dee",
+              "invoiceNumber": "SUB-0001-0050",
+              "issuedAt": "2026-11-02T06:39:51.547Z",
+              "planName": "Pro",
+              "status": "OPEN"
+            },
+            "outstanding": 9480,
+            "paid": 0,
+            "payments": [],
+            "planChosen": true,
+            "subscription": {
+              "activatedAt": null,
+              "currentPeriodEnd": "2030-01-01T00:00:00.000Z",
+              "cycle": "monthly",
+              "cycleTotal": null,
+              "dueBy": null,
+              "freeMonths": null,
+              "freeUntil": null,
+              "freeMonthNow": null,
+              "id": "6d0400000000000000000052",
+              "lifetime": false,
+              "lifetimeSince": null,
+              "planId": "pro",
+              "planName": "Pro",
+              "source": "PUBLIC",
+              "status": "ACTIVE",
+              "trialDays": null,
+              "trialEndsAt": null
+            },
+            "verified": true
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "doc anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/documents/invoice/x"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "doc bad kind",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/documents/memo/x",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "doc resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/documents/invoice/x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "doc missing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/documents/invoice/none",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "doc other hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/documents/invoice/SUB-0002-0046",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000051:HOSTEL_ADMIN:6d0400000000000000000050}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "doc no local number",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/documents/invoice/SUB-0001-0046",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "doc failed receipt",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/documents/receipt/SRC-NOPE",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "doc other receipt",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/documents/receipt/SRC-0001-0046",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000051:HOSTEL_ADMIN:6d0400000000000000000050}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "text/plain;charset=UTF-8"
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "doc local invoice",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/documents/invoice/SUB-0002-0046",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "doc local receipt",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/documents/receipt/HH-TXN-2083-84-00000009",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  },
+  {
+    "name": "doc numbers a receipt",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/billing/documents/receipt/SRC-0001-0046",
+      "headers": {
+        "authorization": "Bearer {{access:6d0400000000000000000047:HOSTEL_ADMIN:6d0400000000000000000046}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 1b0d8117"
+  }
+]

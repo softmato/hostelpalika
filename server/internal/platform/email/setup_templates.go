@@ -3,6 +3,8 @@ package email
 import (
 	"strconv"
 	"strings"
+
+	"github.com/softmato/hostelpalika/server/internal/platform/money"
 )
 
 // PayoutAccountFacts is the account block of the payout emails.
@@ -75,6 +77,24 @@ func HostelChangeRequest(change, hostelName, hostelSlug, newValue, reason string
 		BodyHTML: strings.Join([]string{
 			DetailsTable([]DetailRow{{Label: "Hostel", Value: hostelName + " (" + hostelSlug + ")"}, {Label: "Change", Value: change}, {Label: "New value", Value: newValue}, {Label: "Reason", Value: reason}}),
 			Paragraph("Check it, then make the change in the platform portal. The owner gets an email when it is done."),
+		}, "\n"),
+	})}
+}
+
+// SubscriptionClaimReceived is subscriptionClaimReceivedEmail.
+func SubscriptionClaimReceived(amount int64, hostelName, invoiceNumber, ownerName, planName, reference, worksUntil string) Content {
+	small := "Your plan keeps working while we check."
+	if worksUntil != "" {
+		small = "Your plan keeps working until " + EscapeHTML(worksUntil) + "."
+	}
+	shown := "Rs " + money.GroupIN(amount)
+	return Content{Category: Billing, Subject: "We got your payment photo — " + shown, HTML: EmailLayout(Layout{
+		Heading: "We got your payment photo",
+		BodyHTML: strings.Join([]string{
+			Greeting(ownerName),
+			Paragraph("Thank you. We will check it in 1–2 working days and email you."),
+			DetailsTable([]DetailRow{{Emphasis: true, Label: "Amount", Value: shown}, {Label: "Plan", Value: planName}, {Label: "Hostel", Value: hostelName}, {Label: "Bill number", Value: invoiceNumber}, {Label: "Your reference", Value: reference}}),
+			SmallPrint(small),
 		}, "\n"),
 	})}
 }
