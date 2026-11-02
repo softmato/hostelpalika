@@ -4,16 +4,13 @@ Read this after README.md. Update it at the end of every session.
 
 ## HANDOFF: Phase 6 in progress (2026-11-02). Start here.
 
-The owner stopped the parallel sessions as too token-hungry: **one session, no subagents or
-side sessions.** The work is in this checkout. The stopped sessions' code and my `financeadmin`
-work are **uncommitted**. Commit with `git add <paths>` then a plain `git commit`, and no Claude co-author line.
+One session, no subagents. Everything below is committed on `main`; push with `git push origin main` (no Claude co-author line).
 
-**Committed and pushed (`add99ffe`):** `modules/ledger` (settle, reverse, receipts, credit, each sequence one transaction, R28); `platform/mongo.InTx`; `email.PaymentVerified/Rejected/Reversed`; the TS fix for FIN-1; test seams (`CONTRACT_DB`, `groupSeeds`, `gid`, recorder lock, `router/admin_*.go` mount files). `server/docs/phase6-notes/README.md` is the port recipe and the slice table. Delete that folder when Phase 6 closes.
+**Tools for porting:** `CONTRACT_ACCEPT="<finding>|<case regexp>"` on a `go test -run TestContract/<group>` replaces those recordings with Go's answer (proven TS bugs only). Mask `**dates` hides every timestamp and minted id. `fixture.extendGroup` adds rows to a group from a later-sorted file. CI is green except what the last push shows; read it with `gh run list --workflow "Go server"`.
 
-**Do first, in order:**
-1. Kill any leftover `devrec.exe` (mine, recording `admin-residents` + `admin-ops` from `/tmp/devrec.exe`), delete `$TEMP/hostelpalika-contract-record.lock`, check `curl localhost:3100/api/v1/health` (else `bash server/testdata/contract/record-ts.sh` in the background).
-2. `go build ./...`. Last build result unseen. `finance.Err` needs `EVENT_NOT_PENDING` and `EVENT_NOT_SETTLED` (both 409) in `errorStatus` (`finance/review.go`), or they answer status 0. Check `valid.N`'s field names against `financeadmin/handler.go` (`Int`, `Positive` are guesses), `SECOND_APPROVER_REQUIRED`, `TXN_ID_ALREADY_USED` and `AMOUNT_OUT_OF_BOUNDS` too. Also `residentfinance/claims.go`'s event insert lacks `currency`, `confirmedAt` and the pointer fields, and writes an `int64` amount: switch it to `ledger.AppendEvent`.
-3. Commit, including `.github/workflows/server.yml` (now `mongo:7.0`, because every Mongo 8.x refuses the runner's kernel, SERVER-121912). Push and read CI (R17). The push hook runs `tsc`. Never run CI or tests against production.
+**Done and contract-green:** ops slice entire (notices, pushes, complaints, sos, night status, community moderation, campaigns, maintenance, attendance, food routine + photo, cooks, cook portal); rooms, room types, inquiries, move-events; wardens, referrals, hostel-referrals, service-providers; billing + settings reads.
+**Order left, by dependency:** expenses admin (`expenses` needs role-aware actor) → stock (needs expenses; `admin-stock/stock.json.pending` must be re-recorded, rename back to `.json`) → reports → setup (kyc, leave, backup, profile, branches, subscription, payout, billing writes) → finance (billing run, fee schedules, invoices, khata, late fine, money rules, gateways, payment profile, concessions, statements) → residents (createResident needs the billing run) + bookings + lookup/scan.
+TS fixes done: RES-1 rooms bad ids, RES-2 room `position` not in the schema, RES-3 move-events crash, OPS-1 campaign read counts, OPS-2 attendance settings `_id` in answer (Go only), OPS-3 enabling the cook portal after the last cook left answered 500.
 
 **Findings to log in `review_fixes_needed.md` (Critical FIN-1):**
 - FIN-1 Critical: reverse and cash looked rows up by id alone, across hostels. Fixed in TS and Go. Tell the owner: real exposure, check `auditlogs` for cross-hostel reversals.
