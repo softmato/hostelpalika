@@ -3,6 +3,7 @@ package hostelresidents
 import (
 	"io"
 	"net/http"
+	"regexp"
 	"strconv"
 	"time"
 
@@ -43,6 +44,9 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	a.GET("/admission-forms/:formId", reg, httpx.ETag(), h.form)
 	a.DELETE("/admission-forms/:formId", reg, h.declineForm)
 	a.GET("/admission-forms/:formId/photo", reg, h.formPhoto)
+	a.GET("/:id/leave", hostelrooms.Cap(h.Guards, "viewPayments"), httpx.ETag(), h.leaves)
+	a.POST("/:id/leave", hostelrooms.Cap(h.Guards, "recordCash"), h.addLeave)
+	a.DELETE("/:id/leave/:leaveId", hostelrooms.Cap(h.Guards, "recordCash"), h.cancelLeave)
 	a.GET("/leaving-today", reg, h.leavingToday)
 	a.PATCH("/fees", hostelrooms.Cap(h.Guards, "manageFeeSchedule"), h.fees)
 	a.GET("/intake-quote", reg, httpx.ETag(), h.intakeQuote)
@@ -457,4 +461,54 @@ func sendPhoto(c *gin.Context, rd photoStream, mime string) {
 	c.Header("Content-Type", mime)
 	c.Status(http.StatusOK)
 	_, _ = io.Copy(c.Writer, rd)
+}
+
+func (h *Handler) leaves(c *gin.Context) {
+	hostel, _, ok := scope(c)
+	if !ok {
+		return
+	}
+	out, err := h.Leaves(c, hostel, c.Param("id"))
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, out, "Days away")
+}
+
+var dayRe = regexp.MustCompile(`^\d{4}-\d{2}-\d{2}$`)
+
+func (h *Handler) addLeave(c *gin.Context) {
+	body, err := valid.Body(c)
+	if fail(c, err) {
+		return
+	}
+	f := valid.NewForm(body)
+	from, _ := f.Str("from", valid.S{Re: dayRe, ReSrc: `/^\d{4}-\d{2}-\d{2}$/`})
+	hid, _ := f.Str("hostelId", valid.S{Opt: true})
+	note, _ := f.Str("note", valid.S{Opt: true, Trim: true, Max: 200})
+	to, _ := f.Str("to", valid.S{Re: dayRe, ReSrc: `/^\d{4}-\d{2}-\d{2}$/`})
+	if fail(c, f.Err()) {
+		return
+	}
+	hostel, ok := hostelrooms.HostelOf(c, hid)
+	if !ok {
+		return
+	}
+	out, err := h.AddLeave(c, hostel, c.Param("id"), from, to, note, authz.From(c))
+	if fail(c, err) {
+		return
+	}
+	httpx.Write(c, http.StatusCreated, out, "Saved")
+}
+
+func (h *Handler) cancelLeave(c *gin.Context) {
+	hostel, p, ok := scope(c)
+	if !ok {
+		return
+	}
+	out, err := h.CancelLeave(c, hostel, c.Param("id"), c.Param("leaveId"), p)
+	if fail(c, err) {
+		return
+	}
+	httpx.OK(c, out, "Removed")
 }

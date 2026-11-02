@@ -1,0 +1,1098 @@
+[
+  {
+    "name": "list signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list warden no grant",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000a:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list bad id",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/nope/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list unknown",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d01000000000000000000ee/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list outsiders",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d010000000000000000002b/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list outsider hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave?hostelId=6d0100000000000000000001",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list empty",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Days away",
+        "data": {
+          "leaves": [],
+          "rule": {
+            "enabled": false,
+            "foodPerDay": 0,
+            "minDays": 3,
+            "mode": "FOOD"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add while off",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "2026-10-25",
+        "to": "2026-10-30"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Turn on Days away in Money rules first.",
+        "errorCode": "LEAVE_OFF"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "rules on food",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/money-rules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "leave": {
+          "enabled": true,
+          "foodPerDay": 100,
+          "minDays": 3,
+          "mode": "FOOD"
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "rules": {
+            "leave": {
+              "enabled": true,
+              "foodPerDay": 100,
+              "minDays": 3,
+              "mode": "FOOD"
+            },
+            "moveOutCharge": "TILL_DAY",
+            "moveOutNoticeDays": 0,
+            "openingBalance": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add signed out",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "body": {
+        "from": "2026-10-25",
+        "to": "2026-10-30"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add warden no grant",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "2026-10-25",
+        "to": "2026-10-30"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add empty",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "from": [
+              "Invalid input: expected string, received undefined"
+            ],
+            "to": [
+              "Invalid input: expected string, received undefined"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "from"
+            },
+            {
+              "message": "Invalid input: expected string, received undefined",
+              "path": "to"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add bad dates",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "25/10",
+        "to": "x",
+        "note": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "from": [
+              "Invalid string: must match pattern /^\\d{4}-\\d{2}-\\d{2}$/"
+            ],
+            "note": [
+              "Too big: expected string to have \u003c=200 characters"
+            ],
+            "to": [
+              "Invalid string: must match pattern /^\\d{4}-\\d{2}-\\d{2}$/"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid string: must match pattern /^\\d{4}-\\d{2}-\\d{2}$/",
+              "path": "from"
+            },
+            {
+              "message": "Too big: expected string to have \u003c=200 characters",
+              "path": "note"
+            },
+            {
+              "message": "Invalid string: must match pattern /^\\d{4}-\\d{2}-\\d{2}$/",
+              "path": "to"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add reversed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "2026-10-30",
+        "to": "2026-10-25"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "The last day is before the first.",
+        "errorCode": "LEAVE_DATES"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add crosses month",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "2026-11-10",
+        "to": "2026-11-20"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Keep one entry inside Kartik 2083 BS. Add the days in the next month as a second entry.",
+        "errorCode": "LEAVE_CROSSES_MONTH"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add too short",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "2026-10-25",
+        "to": "2026-10-26"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Fewer than 3 days away earn nothing in this hostel.",
+        "errorCode": "LEAVE_TOO_SHORT"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add unknown",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d01000000000000000000ee/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "2026-10-25",
+        "to": "2026-10-30"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/nope/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "2026-10-25",
+        "to": "2026-10-30"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add outsider hostel",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "2026-10-25",
+        "to": "2026-10-30",
+        "hostelId": "6d0100000000000000000001"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "2026-10-25",
+        "to": "2026-10-30",
+        "note": " Home for Tihar "
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "leaves": [
+            {
+              "amount": 600,
+              "days": 6,
+              "from": "2026-10-25",
+              "id": "6ae8a8c95e205a5564095f0c",
+              "label": "Kartik 8–13",
+              "mode": "FOOD",
+              "note": "Home for Tihar",
+              "period": "2083-07",
+              "periodLabel": "Kartik 2083 BS",
+              "status": "ACTIVE",
+              "to": "2026-10-30"
+            }
+          ],
+          "rule": {
+            "enabled": true,
+            "foodPerDay": 100,
+            "minDays": 3,
+            "mode": "FOOD"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add overlap",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "2026-10-28",
+        "to": "2026-11-02"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Those days overlap days already entered.",
+        "errorCode": "LEAVE_OVERLAP"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "add second",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "2026-11-01",
+        "to": "2026-11-05"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 201,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "leaves": [
+            {
+              "amount": 500,
+              "days": 5,
+              "from": "2026-11-01",
+              "id": "6ae8a8c95e205a5564095f0d",
+              "label": "Kartik 15–19",
+              "mode": "FOOD",
+              "note": null,
+              "period": "2083-07",
+              "periodLabel": "Kartik 2083 BS",
+              "status": "ACTIVE",
+              "to": "2026-11-05"
+            },
+            {
+              "amount": 600,
+              "days": 6,
+              "from": "2026-10-25",
+              "id": "6ae8a8c95e205a5564095f0c",
+              "label": "Kartik 8–13",
+              "mode": "FOOD",
+              "note": "Home for Tihar",
+              "period": "2083-07",
+              "periodLabel": "Kartik 2083 BS",
+              "status": "ACTIVE",
+              "to": "2026-10-30"
+            }
+          ],
+          "rule": {
+            "enabled": true,
+            "foodPerDay": 100,
+            "minDays": 3,
+            "mode": "FOOD"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "rules full day",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/money-rules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "leave": {
+          "enabled": true,
+          "foodPerDay": 100,
+          "minDays": 1,
+          "mode": "FULL_DAY"
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "rules": {
+            "leave": {
+              "enabled": true,
+              "foodPerDay": 100,
+              "minDays": 1,
+              "mode": "FULL_DAY"
+            },
+            "moveOutCharge": "TILL_DAY",
+            "moveOutNoticeDays": 0,
+            "openingBalance": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "full day not billed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000029/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "2026-10-25",
+        "to": "2026-10-27"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Kartik 2083 BS is not billed yet. Add these days once its bill is out.",
+        "errorCode": "LEAVE_MONTH_NOT_BILLED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "full day billed",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      },
+      "body": {
+        "from": "2026-10-21",
+        "to": "2026-10-22"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Kartik 2083 BS is not billed yet. Add these days once its bill is out.",
+        "errorCode": "LEAVE_MONTH_NOT_BILLED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "capture": {
+      "leaveId": "data.leaves.0.id"
+    },
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Days away",
+        "data": {
+          "leaves": [
+            {
+              "amount": 500,
+              "days": 5,
+              "from": "2026-11-01",
+              "id": "6ae8a8c95e205a5564095f0d",
+              "label": "Kartik 15–19",
+              "mode": "FOOD",
+              "note": null,
+              "period": "2083-07",
+              "periodLabel": "Kartik 2083 BS",
+              "status": "ACTIVE",
+              "to": "2026-11-05"
+            },
+            {
+              "amount": 600,
+              "days": 6,
+              "from": "2026-10-25",
+              "id": "6ae8a8c95e205a5564095f0c",
+              "label": "Kartik 8–13",
+              "mode": "FOOD",
+              "note": "Home for Tihar",
+              "period": "2083-07",
+              "periodLabel": "Kartik 2083 BS",
+              "status": "ACTIVE",
+              "to": "2026-10-30"
+            }
+          ],
+          "rule": {
+            "enabled": true,
+            "foodPerDay": 100,
+            "minDays": 1,
+            "mode": "FULL_DAY"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "cancel",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave/{{leaveId}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Removed",
+        "data": {
+          "leaves": [
+            {
+              "amount": 600,
+              "days": 6,
+              "from": "2026-10-25",
+              "id": "6ae8a8c95e205a5564095f0c",
+              "label": "Kartik 8–13",
+              "mode": "FOOD",
+              "note": "Home for Tihar",
+              "period": "2083-07",
+              "periodLabel": "Kartik 2083 BS",
+              "status": "ACTIVE",
+              "to": "2026-10-30"
+            }
+          ],
+          "rule": {
+            "enabled": true,
+            "foodPerDay": 100,
+            "minDays": 1,
+            "mode": "FULL_DAY"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "cancel again",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave/{{leaveId}}",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That entry is already gone.",
+        "errorCode": "LEAVE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "list after cancel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Days away",
+        "data": {
+          "leaves": [
+            {
+              "amount": 600,
+              "days": 6,
+              "from": "2026-10-25",
+              "id": "6ae8a8c95e205a5564095f0c",
+              "label": "Kartik 8–13",
+              "mode": "FOOD",
+              "note": "Home for Tihar",
+              "period": "2083-07",
+              "periodLabel": "Kartik 2083 BS",
+              "status": "ACTIVE",
+              "to": "2026-10-30"
+            }
+          ],
+          "rule": {
+            "enabled": true,
+            "foodPerDay": 100,
+            "minDays": 1,
+            "mode": "FULL_DAY"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "cancel signed out",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave/6d0100000000000000000999"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "cancel warden no grant",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave/6d0100000000000000000999",
+      "headers": {
+        "authorization": "Bearer {{access:6d010000000000000000000b:WARDEN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "cancel bad leave",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave/nope",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That entry is already gone.",
+        "errorCode": "LEAVE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "cancel unknown leave",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/residents/6d0100000000000000000028/leave/6d0100000000000000000999",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "That entry is already gone.",
+        "errorCode": "LEAVE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  },
+  {
+    "name": "cancel unknown resident",
+    "request": {
+      "method": "DELETE",
+      "path": "/api/v1/hostel-admin/residents/6d01000000000000000000ee/leave/6d0100000000000000000999",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6c00000000000000000000a1}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Resident was not found.",
+        "errorCode": "RESIDENT_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 x"
+  }
+]

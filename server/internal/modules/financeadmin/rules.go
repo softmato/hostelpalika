@@ -444,3 +444,15 @@ func jsNumber(f float64) any {
 	}
 	return f
 }
+
+// MoneyRules is getMoneyRules's answer, for the modules that read the rules.
+type MoneyRules = moneyRules
+
+// MoneyRulesOf is getMoneyRules: the hostel's stored rules over their defaults.
+func MoneyRulesOf(ctx context.Context, db *mongo.Database, hostel bson.ObjectID) (MoneyRules, error) {
+	s, err := (&Handler{DB: db}).settings(ctx, hostel)
+	if err != nil {
+		return MoneyRules{}, err
+	}
+	return readMoneyRules(s), nil
+}

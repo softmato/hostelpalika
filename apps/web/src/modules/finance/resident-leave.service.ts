@@ -72,6 +72,8 @@ function serialize(row: LeaveRow) {
 }
 
 async function loadResident(hostelId: Types.ObjectId, residentId: string) {
+  if (!/^[a-f\d]{24}$/i.test(residentId)) throw new FinanceServiceError("Resident was not found.", "RESIDENT_NOT_FOUND");
+
   const resident = await ResidentModel.findOne({ _id: oid(residentId), hostelId, isDeleted: { $ne: true } })
     .select("billingCycle hostelId moveInDate status")
     .lean<{
@@ -261,6 +263,7 @@ export async function cancelLeave(
 
   const id = oid(hostelId);
   const resident = await loadResident(id, residentId);
+  if (!/^[a-f\d]{24}$/i.test(leaveId)) throw new FinanceServiceError("That entry is already gone.", "LEAVE_NOT_FOUND");
   const leave = await ResidentLeaveModel.findOneAndUpdate(
     { _id: oid(leaveId), residentId: resident._id, status: "ACTIVE" },
     { $set: { cancelledAt: new Date(), cancelledBy: principal.userId, status: "CANCELLED" } },

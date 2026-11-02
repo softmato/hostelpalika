@@ -300,8 +300,13 @@ func Collect(c Case, setCookie []string, body []byte, vars map[string]string) {
 		}
 		node := doc
 		for _, k := range strings.Split(path, ".") {
-			if m, ok := node.(map[string]any); ok {
-				node = m[k]
+			switch n := node.(type) {
+			case map[string]any:
+				node = n[k]
+			case []any:
+				if i, err := strconv.Atoi(k); err == nil && i >= 0 && i < len(n) {
+					node = n[i]
+				}
 			}
 		}
 		if s, ok := node.(string); ok {
