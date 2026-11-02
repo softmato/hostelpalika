@@ -47,6 +47,7 @@ func (h *Handler) Register(v1 *gin.RouterGroup) {
 	v1.POST("/hostel-admin/finance/invoices/:id/cash", h.cash)
 	v1.POST("/hostel-admin/finance/invoices/:id/void", h.voidInvoice)
 	v1.GET("/hostel-admin/finance/receipts/:id/pdf", h.receiptPDF)
+	h.registerRules(v1)
 }
 
 func scopeOf(p *authz.Principal) bson.A {

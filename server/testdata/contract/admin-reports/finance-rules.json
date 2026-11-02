@@ -1,0 +1,831 @@
+[
+  {
+    "name": "late fine anon",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/late-fine"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "late fine resident",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/late-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "late fine read",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/late-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Late fine",
+        "data": {
+          "lateFine": {
+            "enabled": false,
+            "enabledAt": null,
+            "graceDays": 5,
+            "mode": "PER_DAY_AMOUNT",
+            "rate": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "late fine other hostel",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/late-fine?hostelId=6c00000000000000000000ff",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "late fine bad",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/late-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "enabled": true,
+        "graceDays": 40,
+        "mode": "X",
+        "rate": -1
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "graceDays": [
+              "Too big: expected number to be <=28"
+            ],
+            "mode": [
+              "Invalid option: expected one of \"PER_DAY_AMOUNT\"|\"PER_DAY_PERCENT\""
+            ],
+            "rate": [
+              "Too small: expected number to be >=0"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Too big: expected number to be <=28",
+              "path": "graceDays"
+            },
+            {
+              "message": "Invalid option: expected one of \"PER_DAY_AMOUNT\"|\"PER_DAY_PERCENT\"",
+              "path": "mode"
+            },
+            {
+              "message": "Too small: expected number to be >=0",
+              "path": "rate"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "late fine bad rate",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/late-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "enabled": true,
+        "graceDays": 5,
+        "mode": "PER_DAY_AMOUNT",
+        "rate": 2.5
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "rate": [
+              "Fine a day must be whole rupees, 1 to 5,000."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Fine a day must be whole rupees, 1 to 5,000.",
+              "path": "rate"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "late fine bad percent",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/late-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "enabled": true,
+        "graceDays": 5,
+        "mode": "PER_DAY_PERCENT",
+        "rate": 0.123
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "rate": [
+              "Percent a day must be 0.1 to 10."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Percent a day must be 0.1 to 10.",
+              "path": "rate"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "late fine save",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/late-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "enabled": true,
+        "graceDays": 7,
+        "mode": "PER_DAY_PERCENT",
+        "rate": 1.5
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Late fine saved",
+        "data": {
+          "lateFine": {
+            "enabled": true,
+            "graceDays": 7,
+            "mode": "PER_DAY_PERCENT",
+            "rate": 1.5,
+            "enabledAt": "2026-11-02T08:42:44.901Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "late fine read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/late-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Late fine",
+        "data": {
+          "lateFine": {
+            "enabled": true,
+            "enabledAt": "2026-11-02T08:42:44.901Z",
+            "graceDays": 7,
+            "mode": "PER_DAY_PERCENT",
+            "rate": 1.5
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "late fine off",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/late-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "enabled": false,
+        "graceDays": 7,
+        "mode": "PER_DAY_AMOUNT",
+        "rate": 0
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Late fine saved",
+        "data": {
+          "lateFine": {
+            "enabled": false,
+            "graceDays": 7,
+            "mode": "PER_DAY_AMOUNT",
+            "rate": 0,
+            "enabledAt": "2026-11-02T08:42:44.901Z"
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "late fine read off",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/late-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Late fine",
+        "data": {
+          "lateFine": {
+            "enabled": false,
+            "enabledAt": "2026-11-02T08:42:44.901Z",
+            "graceDays": 7,
+            "mode": "PER_DAY_AMOUNT",
+            "rate": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "rules read",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/money-rules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Money rules",
+        "data": {
+          "rules": {
+            "leave": {
+              "enabled": false,
+              "foodPerDay": 0,
+              "minDays": 3,
+              "mode": "FOOD"
+            },
+            "moveOutCharge": "TILL_DAY",
+            "moveOutNoticeDays": 0,
+            "openingBalance": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "rules resident",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/money-rules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "rules bad",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/money-rules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "leave": {
+          "enabled": "yes",
+          "foodPerDay": -1,
+          "minDays": 0,
+          "mode": "NONE"
+        },
+        "moveOutCharge": "X",
+        "moveOutNoticeDays": 100,
+        "openingBalance": {
+          "amount": "x",
+          "asOf": "2026/01/01"
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "leave": [
+              "Invalid input: expected boolean, received string",
+              "Too small: expected number to be >=0",
+              "Too small: expected number to be >=1",
+              "Invalid option: expected one of \"FOOD\"|\"FULL_DAY\""
+            ],
+            "moveOutCharge": [
+              "Invalid option: expected one of \"FULL_MONTH\"|\"TILL_DAY\""
+            ],
+            "moveOutNoticeDays": [
+              "Too big: expected number to be <=90"
+            ],
+            "openingBalance": [
+              "Invalid input: expected number, received NaN",
+              "Invalid string: must match pattern /^\\d{4}-\\d{2}-\\d{2}$/"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected boolean, received string",
+              "path": "leave.enabled"
+            },
+            {
+              "message": "Too small: expected number to be >=0",
+              "path": "leave.foodPerDay"
+            },
+            {
+              "message": "Too small: expected number to be >=1",
+              "path": "leave.minDays"
+            },
+            {
+              "message": "Invalid option: expected one of \"FOOD\"|\"FULL_DAY\"",
+              "path": "leave.mode"
+            },
+            {
+              "message": "Invalid option: expected one of \"FULL_MONTH\"|\"TILL_DAY\"",
+              "path": "moveOutCharge"
+            },
+            {
+              "message": "Too big: expected number to be <=90",
+              "path": "moveOutNoticeDays"
+            },
+            {
+              "message": "Invalid input: expected number, received NaN",
+              "path": "openingBalance.amount"
+            },
+            {
+              "message": "Invalid string: must match pattern /^\\d{4}-\\d{2}-\\d{2}$/",
+              "path": "openingBalance.asOf"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "rules save",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/money-rules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "leave": {
+          "enabled": true,
+          "foodPerDay": "150",
+          "minDays": 4,
+          "mode": "FULL_DAY"
+        },
+        "moveOutCharge": "FULL_MONTH",
+        "moveOutNoticeDays": "7",
+        "openingBalance": {
+          "amount": -2500,
+          "asOf": "2026-04-14"
+        }
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "rules": {
+            "leave": {
+              "enabled": true,
+              "foodPerDay": 150,
+              "minDays": 4,
+              "mode": "FULL_DAY"
+            },
+            "moveOutCharge": "FULL_MONTH",
+            "moveOutNoticeDays": 7,
+            "openingBalance": {
+              "amount": -2500,
+              "asOf": "2026-04-14"
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "rules read back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/finance/money-rules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Money rules",
+        "data": {
+          "rules": {
+            "leave": {
+              "enabled": true,
+              "foodPerDay": 150,
+              "minDays": 4,
+              "mode": "FULL_DAY"
+            },
+            "moveOutCharge": "FULL_MONTH",
+            "moveOutNoticeDays": 7,
+            "openingBalance": {
+              "amount": -2500,
+              "asOf": "2026-04-14"
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "rules clear opening",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/money-rules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {
+        "openingBalance": null
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "rules": {
+            "leave": {
+              "enabled": true,
+              "foodPerDay": 150,
+              "minDays": 4,
+              "mode": "FULL_DAY"
+            },
+            "moveOutCharge": "FULL_MONTH",
+            "moveOutNoticeDays": 7,
+            "openingBalance": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "rules empty",
+    "request": {
+      "method": "PUT",
+      "path": "/api/v1/hostel-admin/finance/money-rules",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      },
+      "body": {}
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Saved",
+        "data": {
+          "rules": {
+            "leave": {
+              "enabled": true,
+              "foodPerDay": 150,
+              "minDays": 4,
+              "mode": "FULL_DAY"
+            },
+            "moveOutCharge": "FULL_MONTH",
+            "moveOutNoticeDays": 7,
+            "openingBalance": null
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "waive anon",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d0900000000000000000014/waive-fine"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "waive resident",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d0900000000000000000014/waive-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "waive bad id",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/nope/waive-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "waive missing",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6c00000000000000000000ff/waive-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Invoice was not found.",
+        "errorCode": "INVOICE_NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "waive paid",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d0900000000000000000016/waive-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 409,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This bill is already paid, fine included.",
+        "errorCode": "INVOICE_ALREADY_PAID"
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9"
+  },
+  {
+    "name": "waive",
+    "request": {
+      "method": "POST",
+      "path": "/api/v1/hostel-admin/finance/invoices/6d0900000000000000000014/waive-fine",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Fine waived",
+        "data": {
+          "invoiceId": "6d0900000000000000000014"
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a78a42e9",
+    "corrected": "FIN-6"
+  }
+]

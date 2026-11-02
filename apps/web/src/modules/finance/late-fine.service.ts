@@ -334,7 +334,7 @@ export async function waiveLateFine(
     );
   }
 
-  const others = invoice.lines.filter((line) => line.basis !== "FINE");
+  const others = (invoice.lines ?? []).filter((line) => line.basis !== "FINE");
 
   await InvoiceModel.updateOne(
     { _id: invoice._id },
