@@ -180,3 +180,10 @@ Port order inside finance: the billing run needs `fee-schedule.service`, `refere
 Done and contract-green: expenses, stock, 10 of 12 hostel report routes. Left in reports: `statement/pdf` and `overall/pdf`, both need the finance ledger (`getHostelLedger`).
 CI green from 82064ea0: Go 1.27.3, patched modules, `staticcheck.conf` exempts ST1005 because error strings are the web's own answers.
 Findings to log at closeout: REP-1 payments report filtered claims on `submittedAt`, a field PaymentEvent lacks (now `occurredAt`). REP-2 food and attendance `days=abc` made an invalid date. REP-3 overview crashed on an unreadable month such as 2083-13. REP-4 `$group` order shuffled invoice counts and tied attendance rows.
+
+## Phase 6 progress note 2 (2026-11-02)
+Done and contract-green in `admin-setup`: KYC + submit, leave form (`hostelleave/owner.go`), KYC agreement + letterhead PDF, profile + photos + change request + geocode.
+Left, in order: billing writes (`checkout`, `claim`, `renew`, `pay-instructions`, `documents/:kind/:number`, all from `subscription.service`), backup (9), then finance + the two report PDFs, then residents, bookings, scan, lookup. `TestRoutesMatchWeb`: 298 of 613 TS routes not ported, most outside Phase 6.
+Gotchas: `agreement-letterhead.pdf` was re-saved by pdf-lib with `useObjectStreams:false` because gofpdi cannot parse its xref stream. Very long Bash commands fail: write big files with the tool. pypdfium2 in a temp folder renders a PDF to PNG for looking at it.
+Verified: the agreement fingerprint equals TS's on two signed rows; pages 1 and 3 of the PDF looked at. Not verified: contract fixture has no unique indexes, so `LEAVE_ALREADY_PENDING` and the agreement duplicate-key path never ran; founders' seals never drawn (R2 off in contract env); `Maps.Nearby`, `attachPhotoVariant` have no test.
+Findings to log at closeout, with REP-1 to 4: PROF-1 a room-type edit rewrote `photos` from an earlier read and could lose a photo added meanwhile; fixed with `$pull` in Go and TS. Leave facts asked once per invoice in TS; one aggregate in Go.

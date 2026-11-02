@@ -146,10 +146,6 @@ export async function updateHostelAdminProfile(
     // the hostel no longer offers.
     const keptTypes = new Set(input.roomConfigurations.map((config) => config.roomType));
 
-    profileUpdate.photos = (hostel.photos ?? []).filter(
-      (photo) => photo.kind !== "ROOM" || keptTypes.has(photo.roomType ?? ""),
-    );
-
     // A room type somebody lives in cannot go — they would hold a bed in a type
     // the hostel no longer has. An empty one takes its numbered rooms with it.
     droppedRoomTypes = (hostel.roomConfigurations ?? [])
@@ -221,6 +217,10 @@ export async function updateHostelAdminProfile(
       },
       ...(Object.keys(locationUnset).length > 0 ? { $unset: locationUnset } : {}),
       ...(isRename && renameIsLocked ? { $inc: { nameChangeCount: 1 } } : {}),
+      // A $pull, not a rewrite from the read above: a photo added meanwhile survives.
+      ...(input.roomConfigurations
+        ? { $pull: { photos: { kind: "ROOM", roomType: { $nin: input.roomConfigurations.map((config) => config.roomType) } } } }
+        : {}),
     },
     { new: true },
   ).lean<HostelRecord | null>();
