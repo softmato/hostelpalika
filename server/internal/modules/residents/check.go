@@ -104,9 +104,9 @@ type CheckResult struct {
 }
 
 var (
-	emailShape  = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
-	bsSuffix    = regexp.MustCompile(`\s*BS$`)
-	nonDigit    = regexp.MustCompile(`\D`)
+	emailShape = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
+	bsSuffix   = regexp.MustCompile(`\s*BS$`)
+	nonDigit   = regexp.MustCompile(`\D`)
 )
 
 // RoomTypeLabel is roomTypeLabel; the table lives with the templates that print it.

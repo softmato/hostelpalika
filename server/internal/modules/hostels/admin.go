@@ -204,4 +204,3 @@ func (a *Admin) communityPatch(c *gin.Context) {
 }
 
 var errHostelMissing = httpx.NewError(404, "HOSTEL_NOT_FOUND", "Hostel not found.", nil)
-

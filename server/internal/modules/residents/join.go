@@ -137,7 +137,6 @@ type checked struct {
 	Rent     *int64
 }
 
-
 func (r joinRequest) view(c checked, current string) ordered.Map {
 	var bills any
 	if c.Bills != nil {

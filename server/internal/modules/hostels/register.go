@@ -211,7 +211,6 @@ func (r *Registration) shortStays(ctx context.Context, in Reg) (bson.D, error) {
 	return bson.D{{Key: "enabled", Value: in.ShortStays.Enabled}, {Key: "minNights", Value: in.ShortStays.MinNights}, {Key: "rates", Value: rates}}, nil
 }
 
-
 func (r *Registration) submit(ctx context.Context, in Reg, authUserID string) (ordered.Map, error) {
 	shortStays, err := r.shortStays(ctx, in)
 	if err != nil {

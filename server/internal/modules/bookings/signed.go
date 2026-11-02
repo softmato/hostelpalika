@@ -765,7 +765,7 @@ func (s *Signed) createBooking(ctx *gin.Context, body any, p *authz.Principal, s
 	} else if planned != "" {
 		date := parseDay(planned)
 		today := bs.Today(now)
-		if date == nil || date.Before(today) || date.After(today.Add(60*dayMs)) {
+		if date == nil || date.Before(today) || date.After(today.Add(60*oneDay)) {
 			return nil, httpx.NewError(422, "VALIDATION_ERROR", "Pick a move-in date between today and 60 days from now.", nil)
 		}
 		plannedMoveIn = date
@@ -811,7 +811,7 @@ func (s *Signed) createBooking(ctx *gin.Context, body any, p *authz.Principal, s
 			{Key: "policy", Value: bson.D{{Key: "acceptedAt", Value: now}, {Key: "source", Value: source}, {Key: "version", Value: version}}},
 			{Key: "refundAccount", Value: bson.D{{Key: "bankName", Value: account.BankName}, {Key: "branch", Value: account.Branch}, {Key: "holderName", Value: account.HolderName}, {Key: "method", Value: account.Method}, {Key: "number", Value: sealed}, {Key: "numberLast4", Value: last4}}},
 			{Key: "plannedMoveIn", Value: plannedMoveIn}, {Key: "invoiceNumber", Value: invoice}, {Key: "receiptNumber", Value: nil}, {Key: "softmatoInvoiceNo", Value: nil}, {Key: "status", Value: "AWAITING_PAYMENT"}, {Key: "isOpen", Value: true},
-			{Key: "paymentDueBy", Value: now.Add(millis(cfg.UnpaidWindowHours * float64(hourMs.Milliseconds())))}, {Key: "paymentSubmittedAt", Value: nullAt},
+			{Key: "paymentDueBy", Value: now.Add(millis(cfg.UnpaidWindowHours * float64(oneHour.Milliseconds())))}, {Key: "paymentSubmittedAt", Value: nullAt},
 			{Key: "paymentRejection", Value: bson.D{{Key: "at", Value: nil}, {Key: "reason", Value: nil}}}, {Key: "paymentVerifiedAt", Value: nullAt}, {Key: "paymentVerifiedBy", Value: nil},
 			{Key: "hostelAnswerBy", Value: nullAt}, {Key: "confirmedAt", Value: nullAt}, {Key: "confirmedBy", Value: nil}, {Key: "holdEndsAt", Value: nullAt},
 			{Key: "bedHeld", Value: false}, {Key: "checkedInAt", Value: nullAt}, {Key: "checkedInBy", Value: nil}, {Key: "residentId", Value: nil}, {Key: "endedAt", Value: nullAt}, {Key: "endedBy", Value: nil}, {Key: "endReason", Value: nil}, {Key: "hostelStrike", Value: false},

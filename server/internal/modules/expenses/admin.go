@@ -30,7 +30,7 @@ import (
 const (
 	categoryNameMax = 32
 	categoryLimit   = 20
-	oneDay           = 24 * time.Hour
+	oneDay          = 24 * time.Hour
 )
 
 // Admin is the hostel's side of the money-out book.
