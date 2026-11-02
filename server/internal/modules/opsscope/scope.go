@@ -28,6 +28,14 @@ func HostelID(p *authz.Principal, requested string) (bson.ObjectID, error) {
 	return bson.ObjectID{}, httpx.NewError(http.StatusUnprocessableEntity, "HOSTEL_SCOPE_REQUIRED", "A hostelId is required for this hostel admin action.", nil)
 }
 
+// HostelIDFor is HostelID with the report's own wording when no hostel can be picked.
+func HostelIDFor(p *authz.Principal, requested, message string) (bson.ObjectID, error) {
+	if requested == "" && len(p.HostelIDs) != 1 {
+		return bson.ObjectID{}, httpx.NewError(http.StatusUnprocessableEntity, "HOSTEL_SCOPE_REQUIRED", message, nil)
+	}
+	return HostelID(p, requested)
+}
+
 // IDs is every hostel the caller may open, as object ids.
 func IDs(p *authz.Principal) []bson.ObjectID {
 	out := make([]bson.ObjectID, 0, len(p.HostelIDs))

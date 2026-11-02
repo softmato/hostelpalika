@@ -28,7 +28,7 @@ import { ReferralRewardModel } from "@hostel/db/models/ReferralReward";
 import { ResidentModel } from "@hostel/db/models/Resident";
 import { ServiceProviderModel } from "@hostel/db/models/ServiceProvider";
 import { HostelPageViewModel } from "@hostel/db/models/HostelPageView";
-import { formatBsPeriodMonth } from "@hostel/shared/calendar/bs";
+import { formatBsPeriodMonth, periodParts } from "@hostel/shared/calendar/bs";
 import { getHostelViewStats } from "@/modules/hostels/hostel-view.service";
 import { periodOf } from "@/modules/finance/billing.service";
 import { countableResidentIds } from "@/modules/finance/resident-scope";
@@ -703,7 +703,7 @@ export async function getHostelAdminPaymentsReport(
     // `$lte` against `end`, which is the month's last millisecond. `lastDay` is
     // the other half of `bsPeriodBounds` and belongs to due dates, not to
     // ranges — using it here would drop everything claimed on the final day.
-    proofFilter.submittedAt = { $gte: window.start, $lte: window.end };
+    proofFilter.occurredAt = { $gte: window.start, $lte: window.end };
   }
 
   const [totals, byStatus, pendingProofs] = await Promise.all([
@@ -868,8 +868,10 @@ export async function getHostelAdminReportsOverview(
   const notDeleted = { ...scoped, isDeleted: false };
   const scopedHostelIds =
     scoped.hostelId instanceof Types.ObjectId ? [scoped.hostelId] : scoped.hostelId.$in;
-  const months = recentMonthKeys(query.month);
-  const selectedMonth = query.month ?? months[months.length - 1];
+  // A month the calendar cannot read reports this one, as the performance report does.
+  const requestedMonth = query.month && periodParts(query.month) ? query.month : undefined;
+  const months = recentMonthKeys(requestedMonth);
+  const selectedMonth = requestedMonth ?? months[months.length - 1];
   const monthPaymentFilter = ledgerScopeFrom(scoped, { period: selectedMonth });
 
   const [

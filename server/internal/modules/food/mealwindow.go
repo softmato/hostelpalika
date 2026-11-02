@@ -68,6 +68,12 @@ func (r reading) minutes() int {
 	return base*60 + r.minute
 }
 
+// MealStart is parseMealWindow(timing)?.startMinute.
+func MealStart(timing string) (int, bool) {
+	start, _, ok := window(timing)
+	return start, ok
+}
+
 // window is parseMealWindow; ok is false when the text holds no clock time.
 func window(timing string) (start int, end *int, ok bool) {
 	found := readings(timing)

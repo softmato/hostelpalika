@@ -60,6 +60,10 @@ function resolveHostelId(principal: ApiPrincipal, requestedHostelId?: string) {
  * `parseMealWindow` is the same parse the cook portal's button gate uses, so
  * "when was this meal supposed to be served" has one answer across the product.
  */
+function windowDays(days?: number) {
+  return Math.min(Math.max(Number.isNaN(days) ? 30 : (days ?? 30), 1), 365);
+}
+
 function scheduledMinutes(timing?: string) {
   return parseMealWindow(timing)?.startMinute ?? null;
 }
@@ -79,7 +83,7 @@ export async function getFoodAnalytics(
   await connectToDatabase();
 
   const hostelId = resolveHostelId(principal, options.hostelId);
-  const days = Math.min(Math.max(options.days ?? 30, 1), 365);
+  const days = windowDays(options.days);
   const since = new Date(Date.now() - days * 86_400_000);
 
   const [logs, routine] = await Promise.all([
@@ -190,7 +194,7 @@ export async function getAttendanceAnalytics(
   await connectToDatabase();
 
   const hostelId = resolveHostelId(principal, options.hostelId);
-  const days = Math.min(Math.max(options.days ?? 30, 1), 365);
+  const days = windowDays(options.days);
   const since = new Date(Date.now() - days * 86_400_000);
 
   const rows = await AttendanceLogModel.aggregate<{
@@ -206,6 +210,8 @@ export async function getAttendanceAnalytics(
         count: { $sum: 1 },
       },
     },
+    // $group answers in any order, which shuffled residents with the same rate on reload.
+    { $sort: { "_id.residentId": 1, "_id.zone": 1 } },
   ]);
 
   const perResident = new Map<

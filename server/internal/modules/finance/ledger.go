@@ -44,6 +44,9 @@ var (
 	legacyMethod = map[string]string{"BANK": "BANK_TRANSFER", "CASH": "CASH", "ESEWA": "ESEWA", "FONEPAY": "FONEPAY", "KHALTI": "KHALTI"}
 )
 
+// LegacyMethodFor is the word the screens show for a provider, "" when it has none.
+func LegacyMethodFor(provider string) string { return legacyMethod[provider] }
+
 // LegacyStatusFor is legacyStatusFor: a claim awaiting review reads PENDING_PROOF.
 func LegacyStatusFor(status string, pendingClaim bool) string {
 	mapped, ok := legacyStatus[status]
@@ -63,6 +66,11 @@ func ledgerStages(s LedgerScope) bson.A {
 	} else {
 		match = append(match, bson.E{Key: "status", Value: bson.D{{Key: "$ne", Value: "VOID"}}})
 	}
+	return LedgerStages(match)
+}
+
+// LedgerStages is ledgerPipeline: invoices joined to their balance, last settlement and pending claim.
+func LedgerStages(match bson.D) bson.A {
 	eventFor := func(status string) bson.D {
 		return bson.D{{Key: "$match", Value: bson.D{{Key: "$expr", Value: bson.D{{Key: "$eq", Value: bson.A{"$invoiceId", "$$invoiceId"}}}}, {Key: "direction", Value: "CREDIT"}, {Key: "status", Value: status}}}}
 	}

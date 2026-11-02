@@ -435,6 +435,8 @@ export async function countInvoicesByField(
         count: { $sum: 1 },
       },
     },
+    // A fixed key order, so the same figures always serialize the same way.
+    { $sort: { _id: 1 } },
   ]);
 
   const counts: Record<string, number> = {};

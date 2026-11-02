@@ -1,0 +1,3944 @@
+[
+  {
+    "name": "overview signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overview"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "overview wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overview",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "overview foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overview?hostelId=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "overview bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overview?hostelId=z\u0026month=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ],
+            "month": [
+              "Invalid string: must match pattern /^\\d{4}-\\d{2}$/"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Invalid string: must match pattern /^\\d{4}-\\d{2}$/",
+              "path": "month"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "dashboard signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/dashboard"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "dashboard wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/dashboard",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "dashboard foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/dashboard?hostelId=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "dashboard bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/dashboard?hostelId=z\u0026month=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ],
+            "month": [
+              "Invalid string: must match pattern /^\\d{4}-\\d{2}$/"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Invalid string: must match pattern /^\\d{4}-\\d{2}$/",
+              "path": "month"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "payments signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/payments"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "payments wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/payments",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "payments foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/payments?hostelId=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "payments bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/payments?hostelId=z\u0026month=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ],
+            "month": [
+              "Invalid string: must match pattern /^\\d{4}-\\d{2}$/"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Invalid string: must match pattern /^\\d{4}-\\d{2}$/",
+              "path": "month"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "complaints signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/complaints"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "complaints wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "complaints foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/complaints?hostelId=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "complaints bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/complaints?hostelId=z\u0026month=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ],
+            "month": [
+              "Invalid string: must match pattern /^\\d{4}-\\d{2}$/"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Invalid string: must match pattern /^\\d{4}-\\d{2}$/",
+              "path": "month"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "maintenance signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/maintenance"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "maintenance wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/maintenance",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "maintenance foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/maintenance?hostelId=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "maintenance bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/maintenance?hostelId=z\u0026month=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ],
+            "month": [
+              "Invalid string: must match pattern /^\\d{4}-\\d{2}$/"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Invalid string: must match pattern /^\\d{4}-\\d{2}$/",
+              "path": "month"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "performance signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/performance"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "performance wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/performance",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "performance foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/performance?hostelId=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "performance bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/performance?hostelId=z\u0026month=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ],
+            "month": [
+              "Invalid string: must match pattern /^\\d{4}-\\d{2}$/"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Invalid string: must match pattern /^\\d{4}-\\d{2}$/",
+              "path": "month"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "food signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/food"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "food wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/food",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "food foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/food?hostelId=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "food bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/food?hostelId=z\u0026month=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "attendance signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/attendance"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "attendance wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/attendance",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "attendance foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/attendance?hostelId=6c00000000000000000000a1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "attendance bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/attendance?hostelId=z\u0026month=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export signed out",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export"
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 401,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Authentication is required.",
+        "errorCode": "UNAUTHENTICATED"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export wrong role",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000007:RESIDENT:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "This role is not allowed to perform this action.",
+        "errorCode": "FORBIDDEN"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export foreign",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?hostelId=6c00000000000000000000a1\u0026report=occupancy",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 404,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Not found.",
+        "errorCode": "NOT_FOUND"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?hostelId=z\u0026month=x",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "hostelId": [
+              "Invalid object id."
+            ],
+            "report": [
+              "Invalid option: expected one of \"residents\"|\"payments\"|\"complaints\"|\"occupancy\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid object id.",
+              "path": "hostelId"
+            },
+            {
+              "message": "Invalid option: expected one of \"residents\"|\"payments\"|\"complaints\"|\"occupancy\"",
+              "path": "report"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "overview month",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overview?month=2083-05",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reports overview loaded",
+        "data": {
+          "overview": {
+            "complaints": {
+              "byCategory": {
+                "FOOD": 1,
+                "ROOM": 1
+              },
+              "byStatus": {
+                "PENDING": 1,
+                "RESOLVED": 1
+              },
+              "averageResolutionDays": 1.5,
+              "open": 1,
+              "resolved": 1,
+              "slaBreached": 1,
+              "total": 2
+            },
+            "food": {
+              "averageRating": 3.5,
+              "feedbackCount": 2
+            },
+            "generatedAt": "2026-11-02T04:48:58.668Z",
+            "inquiries": {
+              "byStatus": {
+                "CONVERTED": 1,
+                "NEW": 1
+              },
+              "conversionRate": 50,
+              "converted": 1,
+              "total": 2
+            },
+            "maintenance": {
+              "byCategory": {
+                "ELECTRIC": 1,
+                "PLUMBING": 1
+              },
+              "byStatus": {
+                "COMPLETED": 1,
+                "OPEN": 1
+              },
+              "completed": 1,
+              "open": 1,
+              "total": 2
+            },
+            "months": [
+              "2082-12",
+              "2083-01",
+              "2083-02",
+              "2083-03",
+              "2083-04",
+              "2083-05"
+            ],
+            "nightStatus": {
+              "INSIDE_HOSTEL": 1
+            },
+            "occupancy": {
+              "byStatus": {
+                "ACTIVE": 1,
+                "MOVED_OUT": 1,
+                "PENDING": 1
+              },
+              "occupancyRate": 72.7,
+              "occupiedBeds": 8,
+              "residents": 3,
+              "totalBeds": 11,
+              "vacantBeds": 3
+            },
+            "payments": {
+              "byMethod": {
+                "UNKNOWN": 4,
+                "ESEWA": 2
+              },
+              "byStatus": {
+                "UNPAID": 3,
+                "PAID": 1,
+                "PARTIAL": 1,
+                "PENDING_PROOF": 1
+              },
+              "collectionRate": 30,
+              "monthly": [
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2082-12",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2083-01",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2083-02",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2083-03",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 100,
+                  "due": 800,
+                  "month": "2083-04",
+                  "outstanding": 0,
+                  "paid": 800,
+                  "residents": 1
+                },
+                {
+                  "collectionRate": 13.9,
+                  "due": 1800,
+                  "month": "2083-05",
+                  "outstanding": 1550,
+                  "paid": 250,
+                  "residents": 3
+                }
+              ],
+              "outstanding": 2450,
+              "pendingProofs": 1,
+              "recent": [
+                {
+                  "dueAmount": 1000,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000014",
+                  "method": "ESEWA",
+                  "month": "2083-05",
+                  "paidAmount": 250,
+                  "paidDate": "2026-09-02T18:00:00.000Z",
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "PARTIAL"
+                },
+                {
+                  "dueAmount": 500,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000015",
+                  "method": "",
+                  "month": "2083-05",
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Bina Report",
+                  "roomType": "Single",
+                  "status": "PENDING_PROOF"
+                },
+                {
+                  "dueAmount": 800,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000016",
+                  "method": "ESEWA",
+                  "month": "2083-04",
+                  "paidAmount": 800,
+                  "paidDate": "2026-09-02T18:00:00.000Z",
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "PAID"
+                },
+                {
+                  "dueAmount": 300,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000017",
+                  "method": "",
+                  "month": "2083-05",
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Erased Report",
+                  "roomType": "Single",
+                  "status": "UNPAID"
+                },
+                {
+                  "dueAmount": 200,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000018",
+                  "method": "",
+                  "month": null,
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "UNPAID"
+                },
+                {
+                  "dueAmount": 700,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000019",
+                  "method": "",
+                  "month": "2083-07",
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "UNPAID"
+                }
+              ],
+              "selectedMonth": {
+                "collectionRate": 13.9,
+                "month": "2083-05",
+                "outstanding": 1550,
+                "totalDue": 1800,
+                "totalPaid": 250
+              },
+              "totalDue": 3500,
+              "totalPaid": 1050
+            },
+            "referrals": {
+              "byStatus": {
+                "JOINED": 1
+              },
+              "joined": 1,
+              "rewardApprovedAmount": 150,
+              "rewardPaidAmount": 50,
+              "rewardTotalAmount": 200,
+              "total": 1
+            },
+            "visibility": {
+              "publicViewsLast30Days": 0,
+              "totalPublicViews": 9,
+              "uniquePublicVisitors": 2
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "overview unreadable month",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overview?month=2083-13",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "data.overview.months",
+      "data.overview.payments.monthly",
+      "data.overview.payments.selectedMonth",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reports overview loaded",
+        "data": {
+          "overview": {
+            "complaints": {
+              "byCategory": {
+                "FOOD": 1,
+                "ROOM": 1
+              },
+              "byStatus": {
+                "PENDING": 1,
+                "RESOLVED": 1
+              },
+              "averageResolutionDays": 1.5,
+              "open": 1,
+              "resolved": 1,
+              "slaBreached": 1,
+              "total": 2
+            },
+            "food": {
+              "averageRating": 3.5,
+              "feedbackCount": 2
+            },
+            "generatedAt": "2026-11-02T04:48:58.827Z",
+            "inquiries": {
+              "byStatus": {
+                "CONVERTED": 1,
+                "NEW": 1
+              },
+              "conversionRate": 50,
+              "converted": 1,
+              "total": 2
+            },
+            "maintenance": {
+              "byCategory": {
+                "ELECTRIC": 1,
+                "PLUMBING": 1
+              },
+              "byStatus": {
+                "COMPLETED": 1,
+                "OPEN": 1
+              },
+              "completed": 1,
+              "open": 1,
+              "total": 2
+            },
+            "months": [
+              "2083-02",
+              "2083-03",
+              "2083-04",
+              "2083-05",
+              "2083-06",
+              "2083-07"
+            ],
+            "nightStatus": {
+              "INSIDE_HOSTEL": 1
+            },
+            "occupancy": {
+              "byStatus": {
+                "ACTIVE": 1,
+                "MOVED_OUT": 1,
+                "PENDING": 1
+              },
+              "occupancyRate": 72.7,
+              "occupiedBeds": 8,
+              "residents": 3,
+              "totalBeds": 11,
+              "vacantBeds": 3
+            },
+            "payments": {
+              "byMethod": {
+                "UNKNOWN": 4,
+                "ESEWA": 2
+              },
+              "byStatus": {
+                "UNPAID": 3,
+                "PAID": 1,
+                "PARTIAL": 1,
+                "PENDING_PROOF": 1
+              },
+              "collectionRate": 30,
+              "monthly": [
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2083-02",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2083-03",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 100,
+                  "due": 800,
+                  "month": "2083-04",
+                  "outstanding": 0,
+                  "paid": 800,
+                  "residents": 1
+                },
+                {
+                  "collectionRate": 13.9,
+                  "due": 1800,
+                  "month": "2083-05",
+                  "outstanding": 1550,
+                  "paid": 250,
+                  "residents": 3
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2083-06",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 700,
+                  "month": "2083-07",
+                  "outstanding": 700,
+                  "paid": 0,
+                  "residents": 1
+                }
+              ],
+              "outstanding": 2450,
+              "pendingProofs": 1,
+              "recent": [
+                {
+                  "dueAmount": 1000,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000014",
+                  "method": "ESEWA",
+                  "month": "2083-05",
+                  "paidAmount": 250,
+                  "paidDate": "2026-09-02T18:00:00.000Z",
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "PARTIAL"
+                },
+                {
+                  "dueAmount": 500,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000015",
+                  "method": "",
+                  "month": "2083-05",
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Bina Report",
+                  "roomType": "Single",
+                  "status": "PENDING_PROOF"
+                },
+                {
+                  "dueAmount": 800,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000016",
+                  "method": "ESEWA",
+                  "month": "2083-04",
+                  "paidAmount": 800,
+                  "paidDate": "2026-09-02T18:00:00.000Z",
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "PAID"
+                },
+                {
+                  "dueAmount": 300,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000017",
+                  "method": "",
+                  "month": "2083-05",
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Erased Report",
+                  "roomType": "Single",
+                  "status": "UNPAID"
+                },
+                {
+                  "dueAmount": 200,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000018",
+                  "method": "",
+                  "month": null,
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "UNPAID"
+                },
+                {
+                  "dueAmount": 700,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000019",
+                  "method": "",
+                  "month": "2083-07",
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "UNPAID"
+                }
+              ],
+              "selectedMonth": {
+                "collectionRate": 0,
+                "month": "2083-07",
+                "outstanding": 700,
+                "totalDue": 700,
+                "totalPaid": 0
+              },
+              "totalDue": 3500,
+              "totalPaid": 1050
+            },
+            "referrals": {
+              "byStatus": {
+                "JOINED": 1
+              },
+              "joined": 1,
+              "rewardApprovedAmount": 150,
+              "rewardPaidAmount": 50,
+              "rewardTotalAmount": 200,
+              "total": 1
+            },
+            "visibility": {
+              "publicViewsLast30Days": 0,
+              "totalPublicViews": 9,
+              "uniquePublicVisitors": 2
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "overview gregorian",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overview?month=2026-09",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reports overview loaded",
+        "data": {
+          "overview": {
+            "complaints": {
+              "byCategory": {
+                "FOOD": 1,
+                "ROOM": 1
+              },
+              "byStatus": {
+                "PENDING": 1,
+                "RESOLVED": 1
+              },
+              "averageResolutionDays": 1.5,
+              "open": 1,
+              "resolved": 1,
+              "slaBreached": 1,
+              "total": 2
+            },
+            "food": {
+              "averageRating": 3.5,
+              "feedbackCount": 2
+            },
+            "generatedAt": "2026-11-02T04:48:58.922Z",
+            "inquiries": {
+              "byStatus": {
+                "CONVERTED": 1,
+                "NEW": 1
+              },
+              "conversionRate": 50,
+              "converted": 1,
+              "total": 2
+            },
+            "maintenance": {
+              "byCategory": {
+                "ELECTRIC": 1,
+                "PLUMBING": 1
+              },
+              "byStatus": {
+                "COMPLETED": 1,
+                "OPEN": 1
+              },
+              "completed": 1,
+              "open": 1,
+              "total": 2
+            },
+            "months": [
+              "2026-04",
+              "2026-05",
+              "2026-06",
+              "2026-07",
+              "2026-08",
+              "2026-09"
+            ],
+            "nightStatus": {
+              "INSIDE_HOSTEL": 1
+            },
+            "occupancy": {
+              "byStatus": {
+                "ACTIVE": 1,
+                "MOVED_OUT": 1,
+                "PENDING": 1
+              },
+              "occupancyRate": 72.7,
+              "occupiedBeds": 8,
+              "residents": 3,
+              "totalBeds": 11,
+              "vacantBeds": 3
+            },
+            "payments": {
+              "byMethod": {
+                "UNKNOWN": 4,
+                "ESEWA": 2
+              },
+              "byStatus": {
+                "UNPAID": 3,
+                "PAID": 1,
+                "PARTIAL": 1,
+                "PENDING_PROOF": 1
+              },
+              "collectionRate": 30,
+              "monthly": [
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2026-04",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2026-05",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2026-06",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2026-07",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2026-08",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2026-09",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                }
+              ],
+              "outstanding": 2450,
+              "pendingProofs": 1,
+              "recent": [
+                {
+                  "dueAmount": 1000,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000014",
+                  "method": "ESEWA",
+                  "month": "2083-05",
+                  "paidAmount": 250,
+                  "paidDate": "2026-09-02T18:00:00.000Z",
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "PARTIAL"
+                },
+                {
+                  "dueAmount": 500,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000015",
+                  "method": "",
+                  "month": "2083-05",
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Bina Report",
+                  "roomType": "Single",
+                  "status": "PENDING_PROOF"
+                },
+                {
+                  "dueAmount": 800,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000016",
+                  "method": "ESEWA",
+                  "month": "2083-04",
+                  "paidAmount": 800,
+                  "paidDate": "2026-09-02T18:00:00.000Z",
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "PAID"
+                },
+                {
+                  "dueAmount": 300,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000017",
+                  "method": "",
+                  "month": "2083-05",
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Erased Report",
+                  "roomType": "Single",
+                  "status": "UNPAID"
+                },
+                {
+                  "dueAmount": 200,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000018",
+                  "method": "",
+                  "month": null,
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "UNPAID"
+                },
+                {
+                  "dueAmount": 700,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000019",
+                  "method": "",
+                  "month": "2083-07",
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "UNPAID"
+                }
+              ],
+              "selectedMonth": {
+                "collectionRate": 0,
+                "month": "2026-09",
+                "outstanding": 0,
+                "totalDue": 0,
+                "totalPaid": 0
+              },
+              "totalDue": 3500,
+              "totalPaid": 1050
+            },
+            "referrals": {
+              "byStatus": {
+                "JOINED": 1
+              },
+              "joined": 1,
+              "rewardApprovedAmount": 150,
+              "rewardPaidAmount": 50,
+              "rewardTotalAmount": 200,
+              "total": 1
+            },
+            "visibility": {
+              "publicViewsLast30Days": 0,
+              "totalPublicViews": 9,
+              "uniquePublicVisitors": 2
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "overview warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/overview?month=2083-05\u0026hostelId=6d0900000000000000000002",
+      "headers": {
+        "authorization": "Bearer {{access:6d0900000000000000000005:WARDEN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Reports overview loaded",
+        "data": {
+          "overview": {
+            "complaints": {
+              "byCategory": {
+                "FOOD": 1,
+                "ROOM": 1
+              },
+              "byStatus": {
+                "PENDING": 1,
+                "RESOLVED": 1
+              },
+              "averageResolutionDays": 1.5,
+              "open": 1,
+              "resolved": 1,
+              "slaBreached": 1,
+              "total": 2
+            },
+            "food": {
+              "averageRating": 3.5,
+              "feedbackCount": 2
+            },
+            "generatedAt": "2026-11-02T04:48:59.026Z",
+            "inquiries": {
+              "byStatus": {
+                "CONVERTED": 1,
+                "NEW": 1
+              },
+              "conversionRate": 50,
+              "converted": 1,
+              "total": 2
+            },
+            "maintenance": {
+              "byCategory": {
+                "ELECTRIC": 1,
+                "PLUMBING": 1
+              },
+              "byStatus": {
+                "COMPLETED": 1,
+                "OPEN": 1
+              },
+              "completed": 1,
+              "open": 1,
+              "total": 2
+            },
+            "months": [
+              "2082-12",
+              "2083-01",
+              "2083-02",
+              "2083-03",
+              "2083-04",
+              "2083-05"
+            ],
+            "nightStatus": {
+              "INSIDE_HOSTEL": 1
+            },
+            "occupancy": {
+              "byStatus": {
+                "ACTIVE": 1,
+                "MOVED_OUT": 1,
+                "PENDING": 1
+              },
+              "occupancyRate": 72.7,
+              "occupiedBeds": 8,
+              "residents": 3,
+              "totalBeds": 11,
+              "vacantBeds": 3
+            },
+            "payments": {
+              "byMethod": {
+                "UNKNOWN": 4,
+                "ESEWA": 2
+              },
+              "byStatus": {
+                "UNPAID": 3,
+                "PAID": 1,
+                "PARTIAL": 1,
+                "PENDING_PROOF": 1
+              },
+              "collectionRate": 30,
+              "monthly": [
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2082-12",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2083-01",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2083-02",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 0,
+                  "due": 0,
+                  "month": "2083-03",
+                  "outstanding": 0,
+                  "paid": 0,
+                  "residents": 0
+                },
+                {
+                  "collectionRate": 100,
+                  "due": 800,
+                  "month": "2083-04",
+                  "outstanding": 0,
+                  "paid": 800,
+                  "residents": 1
+                },
+                {
+                  "collectionRate": 13.9,
+                  "due": 1800,
+                  "month": "2083-05",
+                  "outstanding": 1550,
+                  "paid": 250,
+                  "residents": 3
+                }
+              ],
+              "outstanding": 2450,
+              "pendingProofs": 1,
+              "recent": [
+                {
+                  "dueAmount": 1000,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000014",
+                  "method": "ESEWA",
+                  "month": "2083-05",
+                  "paidAmount": 250,
+                  "paidDate": "2026-09-02T18:00:00.000Z",
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "PARTIAL"
+                },
+                {
+                  "dueAmount": 500,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000015",
+                  "method": "",
+                  "month": "2083-05",
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Bina Report",
+                  "roomType": "Single",
+                  "status": "PENDING_PROOF"
+                },
+                {
+                  "dueAmount": 800,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000016",
+                  "method": "ESEWA",
+                  "month": "2083-04",
+                  "paidAmount": 800,
+                  "paidDate": "2026-09-02T18:00:00.000Z",
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "PAID"
+                },
+                {
+                  "dueAmount": 300,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000017",
+                  "method": "",
+                  "month": "2083-05",
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Erased Report",
+                  "roomType": "Single",
+                  "status": "UNPAID"
+                },
+                {
+                  "dueAmount": 200,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000018",
+                  "method": "",
+                  "month": null,
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "UNPAID"
+                },
+                {
+                  "dueAmount": 700,
+                  "dueDate": "2026-09-02T18:00:00.000Z",
+                  "id": "6d0900000000000000000019",
+                  "method": "",
+                  "month": "2083-07",
+                  "paidAmount": 0,
+                  "paidDate": null,
+                  "residentName": "Asha Report",
+                  "roomType": "Single",
+                  "status": "UNPAID"
+                }
+              ],
+              "selectedMonth": {
+                "collectionRate": 13.9,
+                "month": "2083-05",
+                "outstanding": 1550,
+                "totalDue": 1800,
+                "totalPaid": 250
+              },
+              "totalDue": 3500,
+              "totalPaid": 1050
+            },
+            "referrals": {
+              "byStatus": {
+                "JOINED": 1
+              },
+              "joined": 1,
+              "rewardApprovedAmount": 150,
+              "rewardPaidAmount": 50,
+              "rewardTotalAmount": 200,
+              "total": 1
+            },
+            "visibility": {
+              "publicViewsLast30Days": 0,
+              "totalPublicViews": 9,
+              "uniquePublicVisitors": 2
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "payments all",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/payments",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment report loaded",
+        "data": {
+          "report": {
+            "byStatus": {
+              "UNPAID": 3,
+              "PAID": 1,
+              "PARTIAL": 1,
+              "PENDING_PROOF": 1
+            },
+            "pendingProofs": 1,
+            "totalDue": 3500,
+            "totalPaid": 1050
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "payments month",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/payments?month=2083-05",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment report loaded",
+        "data": {
+          "report": {
+            "byStatus": {
+              "UNPAID": 1,
+              "PARTIAL": 1,
+              "PENDING_PROOF": 1
+            },
+            "pendingProofs": 1,
+            "totalDue": 1800,
+            "totalPaid": 250
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "payments other month",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/payments?month=2083-01",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Payment report loaded",
+        "data": {
+          "report": {
+            "byStatus": {},
+            "pendingProofs": 0,
+            "totalDue": 0,
+            "totalPaid": 0
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "complaints",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Complaint report loaded",
+        "data": {
+          "report": {
+            "byCategory": {
+              "FOOD": 1,
+              "ROOM": 1
+            },
+            "byStatus": {
+              "PENDING": 1,
+              "RESOLVED": 1
+            },
+            "total": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "maintenance",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/maintenance",
+      "headers": {
+        "authorization": "Bearer {{access:6d0900000000000000000005:WARDEN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Maintenance report loaded",
+        "data": {
+          "report": {
+            "byCategory": {
+              "ELECTRIC": 1,
+              "PLUMBING": 1
+            },
+            "byStatus": {
+              "COMPLETED": 1,
+              "OPEN": 1
+            },
+            "completed": 1,
+            "open": 1,
+            "total": 2
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "dashboard",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/dashboard",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "data.report.trend.*.label",
+      "data.report.publicViewsLast30Days",
+      "data.report.trend.*.views",
+      "data.statementNudge",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Hostel report loaded",
+        "data": {
+          "statementNudge": {
+            "cadenceDays": 7,
+            "daysSinceUpload": null,
+            "due": true,
+            "message": "Upload your first eSewa, Khalti or bank statement to check what has actually arrived."
+          },
+          "report": {
+            "complaints": 2,
+            "foodFeedback": 2,
+            "maintenanceRequests": 2,
+            "monthlyDues": 700,
+            "trend": [
+              {
+                "collected": 0,
+                "label": "Jestha",
+                "raised": 0,
+                "views": 0
+              },
+              {
+                "collected": 0,
+                "label": "Asar",
+                "raised": 0,
+                "views": 0
+              },
+              {
+                "collected": 800,
+                "label": "Shrawan",
+                "raised": 800,
+                "views": 0
+              },
+              {
+                "collected": 250,
+                "label": "Bhadra",
+                "raised": 1500,
+                "views": 3
+              },
+              {
+                "collected": 0,
+                "label": "Aswin",
+                "raised": 0,
+                "views": 0
+              },
+              {
+                "collected": 0,
+                "label": "Kartik",
+                "raised": 700,
+                "views": 0
+              }
+            ],
+            "paidAmount": 0,
+            "pendingPaymentProofs": 1,
+            "publicViewsLast30Days": 0,
+            "residents": 3,
+            "totalPublicViews": 9,
+            "uniquePublicVisitors": 2,
+            "vacantBeds": 3,
+            "nightStatusSummary": {
+              "INSIDE_HOSTEL": 1
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "performance month owner",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/performance?month=2083-05",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "data.report.period.months",
+      "data.report.moneyOut.staff",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Performance report loaded",
+        "data": {
+          "report": {
+            "moneyOut": {
+              "byCategory": [],
+              "out": 0,
+              "rows": [],
+              "staff": []
+            },
+            "generatedAt": "2026-11-02T04:48:59.439Z",
+            "hostelName": "Report Hostel",
+            "period": {
+              "end": "2026-09-16T23:59:59.999Z",
+              "isCurrent": false,
+              "month": "2083-05",
+              "months": [
+                "2083-07",
+                "2083-06",
+                "2083-05",
+                "2083-04",
+                "2083-03",
+                "2083-02",
+                "2083-01",
+                "2082-12",
+                "2082-11",
+                "2082-10",
+                "2082-09",
+                "2082-08"
+              ],
+              "previousMonth": "2083-04",
+              "start": "2026-08-17T00:00:00.000Z"
+            },
+            "finance": {
+              "billed": 1800,
+              "collected": 250,
+              "collectionRate": 13.9,
+              "outstanding": 1550,
+              "outstandingAllTime": 2450,
+              "pendingProofs": 1,
+              "previous": {
+                "billed": 800,
+                "collected": 800,
+                "collectionRate": 100
+              },
+              "methods": [
+                {
+                  "count": 1,
+                  "method": "ESEWA"
+                }
+              ],
+              "trend": [
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2082-12"
+                },
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2083-01"
+                },
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2083-02"
+                },
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2083-03"
+                },
+                {
+                  "billed": 800,
+                  "collected": 800,
+                  "collectionRate": 100,
+                  "month": "2083-04"
+                },
+                {
+                  "billed": 1800,
+                  "collected": 250,
+                  "collectionRate": 13.9,
+                  "month": "2083-05"
+                }
+              ]
+            },
+            "residents": {
+              "movedIn": 3,
+              "movedOut": 2,
+              "now": {
+                "active": 1,
+                "pending": 1,
+                "suspended": 0,
+                "total": 2
+              },
+              "tonight": {
+                "inside": 1,
+                "night": "2026-11-01",
+                "notAnswered": 1,
+                "outside": 0
+              }
+            },
+            "beds": {
+              "occupancyRate": 72.7,
+              "occupied": 8,
+              "total": 11,
+              "vacant": 3
+            },
+            "listing": {
+              "appearances": {
+                "change": null,
+                "current": 12,
+                "previous": 0
+              },
+              "inquiries": {
+                "change": null,
+                "current": 2,
+                "previous": 0
+              },
+              "inquiriesConverted": 1,
+              "rating": {
+                "average": 4.3,
+                "newThisMonth": 1,
+                "total": 1
+              },
+              "views": {
+                "change": null,
+                "current": 3,
+                "previous": 0
+              },
+              "visitors": {
+                "change": null,
+                "current": 2,
+                "previous": 0
+              }
+            },
+            "operations": {
+              "complaints": {
+                "open": 1,
+                "pastSla": 1,
+                "raised": 2,
+                "resolved": 1
+              },
+              "repairs": {
+                "completed": 1,
+                "open": 1,
+                "raised": 2
+              }
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "performance month warden",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/performance?month=2083-05",
+      "headers": {
+        "authorization": "Bearer {{access:6d0900000000000000000005:WARDEN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "data.report.period.months",
+      "data.report.moneyOut.staff",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Performance report loaded",
+        "data": {
+          "report": {
+            "moneyOut": null,
+            "generatedAt": "2026-11-02T04:48:59.578Z",
+            "hostelName": "Report Hostel",
+            "period": {
+              "end": "2026-09-16T23:59:59.999Z",
+              "isCurrent": false,
+              "month": "2083-05",
+              "months": [
+                "2083-07",
+                "2083-06",
+                "2083-05",
+                "2083-04",
+                "2083-03",
+                "2083-02",
+                "2083-01",
+                "2082-12",
+                "2082-11",
+                "2082-10",
+                "2082-09",
+                "2082-08"
+              ],
+              "previousMonth": "2083-04",
+              "start": "2026-08-17T00:00:00.000Z"
+            },
+            "finance": {
+              "billed": 1800,
+              "collected": 250,
+              "collectionRate": 13.9,
+              "outstanding": 1550,
+              "outstandingAllTime": 2450,
+              "pendingProofs": 1,
+              "previous": {
+                "billed": 800,
+                "collected": 800,
+                "collectionRate": 100
+              },
+              "methods": [
+                {
+                  "count": 1,
+                  "method": "ESEWA"
+                }
+              ],
+              "trend": [
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2082-12"
+                },
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2083-01"
+                },
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2083-02"
+                },
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2083-03"
+                },
+                {
+                  "billed": 800,
+                  "collected": 800,
+                  "collectionRate": 100,
+                  "month": "2083-04"
+                },
+                {
+                  "billed": 1800,
+                  "collected": 250,
+                  "collectionRate": 13.9,
+                  "month": "2083-05"
+                }
+              ]
+            },
+            "residents": {
+              "movedIn": 3,
+              "movedOut": 2,
+              "now": {
+                "active": 1,
+                "pending": 1,
+                "suspended": 0,
+                "total": 2
+              },
+              "tonight": {
+                "inside": 1,
+                "night": "2026-11-01",
+                "notAnswered": 1,
+                "outside": 0
+              }
+            },
+            "beds": {
+              "occupancyRate": 72.7,
+              "occupied": 8,
+              "total": 11,
+              "vacant": 3
+            },
+            "listing": {
+              "appearances": {
+                "change": null,
+                "current": 12,
+                "previous": 0
+              },
+              "inquiries": {
+                "change": null,
+                "current": 2,
+                "previous": 0
+              },
+              "inquiriesConverted": 1,
+              "rating": {
+                "average": 4.3,
+                "newThisMonth": 1,
+                "total": 1
+              },
+              "views": {
+                "change": null,
+                "current": 3,
+                "previous": 0
+              },
+              "visitors": {
+                "change": null,
+                "current": 2,
+                "previous": 0
+              }
+            },
+            "operations": {
+              "complaints": {
+                "open": 1,
+                "pastSla": 1,
+                "raised": 2,
+                "resolved": 1
+              },
+              "repairs": {
+                "completed": 1,
+                "open": 1,
+                "raised": 2
+              }
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "performance future falls back",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/performance?month=2099-01",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "data.report.period.months",
+      "data.report.moneyOut.staff",
+      "data.report.period",
+      "data.report.finance",
+      "data.report.residents.movedIn",
+      "data.report.residents.movedOut",
+      "data.report.residents.tonight.night",
+      "data.report.listing",
+      "data.report.operations",
+      "data.report.moneyOut",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Performance report loaded",
+        "data": {
+          "report": {
+            "moneyOut": {
+              "byCategory": [],
+              "out": 0,
+              "rows": [],
+              "staff": []
+            },
+            "generatedAt": "2026-11-02T04:48:59.661Z",
+            "hostelName": "Report Hostel",
+            "period": {
+              "end": "2026-11-02T04:48:59.661Z",
+              "isCurrent": true,
+              "month": "2083-07",
+              "months": [
+                "2083-07",
+                "2083-06",
+                "2083-05",
+                "2083-04",
+                "2083-03",
+                "2083-02",
+                "2083-01",
+                "2082-12",
+                "2082-11",
+                "2082-10",
+                "2082-09",
+                "2082-08"
+              ],
+              "previousMonth": "2083-06",
+              "start": "2026-10-18T00:00:00.000Z"
+            },
+            "finance": {
+              "billed": 700,
+              "collected": 0,
+              "collectionRate": 0,
+              "outstanding": 700,
+              "outstandingAllTime": 2450,
+              "pendingProofs": 1,
+              "previous": {
+                "billed": 0,
+                "collected": 0,
+                "collectionRate": null
+              },
+              "methods": [],
+              "trend": [
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2083-02"
+                },
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2083-03"
+                },
+                {
+                  "billed": 800,
+                  "collected": 800,
+                  "collectionRate": 100,
+                  "month": "2083-04"
+                },
+                {
+                  "billed": 1800,
+                  "collected": 250,
+                  "collectionRate": 13.9,
+                  "month": "2083-05"
+                },
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2083-06"
+                },
+                {
+                  "billed": 700,
+                  "collected": 0,
+                  "collectionRate": 0,
+                  "month": "2083-07"
+                }
+              ]
+            },
+            "residents": {
+              "movedIn": 0,
+              "movedOut": 0,
+              "now": {
+                "active": 1,
+                "pending": 1,
+                "suspended": 0,
+                "total": 2
+              },
+              "tonight": {
+                "inside": 1,
+                "night": "2026-11-01",
+                "notAnswered": 1,
+                "outside": 0
+              }
+            },
+            "beds": {
+              "occupancyRate": 72.7,
+              "occupied": 8,
+              "total": 11,
+              "vacant": 3
+            },
+            "listing": {
+              "appearances": {
+                "change": null,
+                "current": 0,
+                "previous": 0
+              },
+              "inquiries": {
+                "change": null,
+                "current": 0,
+                "previous": 0
+              },
+              "inquiriesConverted": 0,
+              "rating": {
+                "average": 4.3,
+                "newThisMonth": 0,
+                "total": 1
+              },
+              "views": {
+                "change": null,
+                "current": 0,
+                "previous": 0
+              },
+              "visitors": {
+                "change": null,
+                "current": 0,
+                "previous": 0
+              }
+            },
+            "operations": {
+              "complaints": {
+                "open": 1,
+                "pastSla": 1,
+                "raised": 0,
+                "resolved": 0
+              },
+              "repairs": {
+                "completed": 0,
+                "open": 1,
+                "raised": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "performance default",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/performance",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "data.report.period.months",
+      "data.report.moneyOut.staff",
+      "data.report.period",
+      "data.report.finance",
+      "data.report.residents.movedIn",
+      "data.report.residents.movedOut",
+      "data.report.residents.tonight.night",
+      "data.report.listing",
+      "data.report.operations",
+      "data.report.moneyOut",
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Performance report loaded",
+        "data": {
+          "report": {
+            "moneyOut": {
+              "byCategory": [],
+              "out": 0,
+              "rows": [],
+              "staff": []
+            },
+            "generatedAt": "2026-11-02T04:48:59.761Z",
+            "hostelName": "Report Hostel",
+            "period": {
+              "end": "2026-11-02T04:48:59.761Z",
+              "isCurrent": true,
+              "month": "2083-07",
+              "months": [
+                "2083-07",
+                "2083-06",
+                "2083-05",
+                "2083-04",
+                "2083-03",
+                "2083-02",
+                "2083-01",
+                "2082-12",
+                "2082-11",
+                "2082-10",
+                "2082-09",
+                "2082-08"
+              ],
+              "previousMonth": "2083-06",
+              "start": "2026-10-18T00:00:00.000Z"
+            },
+            "finance": {
+              "billed": 700,
+              "collected": 0,
+              "collectionRate": 0,
+              "outstanding": 700,
+              "outstandingAllTime": 2450,
+              "pendingProofs": 1,
+              "previous": {
+                "billed": 0,
+                "collected": 0,
+                "collectionRate": null
+              },
+              "methods": [],
+              "trend": [
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2083-02"
+                },
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2083-03"
+                },
+                {
+                  "billed": 800,
+                  "collected": 800,
+                  "collectionRate": 100,
+                  "month": "2083-04"
+                },
+                {
+                  "billed": 1800,
+                  "collected": 250,
+                  "collectionRate": 13.9,
+                  "month": "2083-05"
+                },
+                {
+                  "billed": 0,
+                  "collected": 0,
+                  "collectionRate": null,
+                  "month": "2083-06"
+                },
+                {
+                  "billed": 700,
+                  "collected": 0,
+                  "collectionRate": 0,
+                  "month": "2083-07"
+                }
+              ]
+            },
+            "residents": {
+              "movedIn": 0,
+              "movedOut": 0,
+              "now": {
+                "active": 1,
+                "pending": 1,
+                "suspended": 0,
+                "total": 2
+              },
+              "tonight": {
+                "inside": 1,
+                "night": "2026-11-01",
+                "notAnswered": 1,
+                "outside": 0
+              }
+            },
+            "beds": {
+              "occupancyRate": 72.7,
+              "occupied": 8,
+              "total": 11,
+              "vacant": 3
+            },
+            "listing": {
+              "appearances": {
+                "change": null,
+                "current": 0,
+                "previous": 0
+              },
+              "inquiries": {
+                "change": null,
+                "current": 0,
+                "previous": 0
+              },
+              "inquiriesConverted": 0,
+              "rating": {
+                "average": 4.3,
+                "newThisMonth": 0,
+                "total": 1
+              },
+              "views": {
+                "change": null,
+                "current": 0,
+                "previous": 0
+              },
+              "visitors": {
+                "change": null,
+                "current": 0,
+                "previous": 0
+              }
+            },
+            "operations": {
+              "complaints": {
+                "open": 1,
+                "pastSla": 1,
+                "raised": 0,
+                "resolved": 0
+              },
+              "repairs": {
+                "completed": 0,
+                "open": 1,
+                "raised": 0
+              }
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "food",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/food",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food analytics loaded",
+        "data": {
+          "byDevice": [
+            {
+              "announcements": 2,
+              "device": "phone-a",
+              "lastAnnouncedAt": "2026-10-31T13:20:00.000Z"
+            },
+            {
+              "announcements": 1,
+              "device": "unidentified device",
+              "lastAnnouncedAt": "2026-10-31T01:00:00.000Z"
+            }
+          ],
+          "byMeal": [
+            {
+              "announcements": 2,
+              "averageDelayMinutes": 23,
+              "averageReadyMinutes": 383,
+              "lateCount": 1,
+              "mealType": "BREAKFAST",
+              "notified": 6,
+              "onTimeCount": 1,
+              "scheduledTiming": "6:00 AM - 7:00 AM"
+            },
+            {
+              "announcements": 0,
+              "averageDelayMinutes": null,
+              "averageReadyMinutes": null,
+              "lateCount": 0,
+              "mealType": "LUNCH",
+              "notified": 0,
+              "onTimeCount": 0,
+              "scheduledTiming": null
+            },
+            {
+              "announcements": 0,
+              "averageDelayMinutes": null,
+              "averageReadyMinutes": null,
+              "lateCount": 0,
+              "mealType": "SNACKS",
+              "notified": 0,
+              "onTimeCount": 0,
+              "scheduledTiming": null
+            },
+            {
+              "announcements": 1,
+              "averageDelayMinutes": null,
+              "averageReadyMinutes": 1145,
+              "lateCount": 0,
+              "mealType": "DINNER",
+              "notified": 3,
+              "onTimeCount": 0,
+              "scheduledTiming": "whenever"
+            }
+          ],
+          "summary": {
+            "averageDelayMinutes": 23,
+            "lateAnnouncements": 1,
+            "onTimeAnnouncements": 1,
+            "totalAnnouncements": 3,
+            "windowDays": 30
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "food days",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/food?days=7\u0026hostelId=6d0900000000000000000002",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food analytics loaded",
+        "data": {
+          "byDevice": [
+            {
+              "announcements": 2,
+              "device": "phone-a",
+              "lastAnnouncedAt": "2026-10-31T13:20:00.000Z"
+            },
+            {
+              "announcements": 1,
+              "device": "unidentified device",
+              "lastAnnouncedAt": "2026-10-31T01:00:00.000Z"
+            }
+          ],
+          "byMeal": [
+            {
+              "announcements": 2,
+              "averageDelayMinutes": 23,
+              "averageReadyMinutes": 383,
+              "lateCount": 1,
+              "mealType": "BREAKFAST",
+              "notified": 6,
+              "onTimeCount": 1,
+              "scheduledTiming": "6:00 AM - 7:00 AM"
+            },
+            {
+              "announcements": 0,
+              "averageDelayMinutes": null,
+              "averageReadyMinutes": null,
+              "lateCount": 0,
+              "mealType": "LUNCH",
+              "notified": 0,
+              "onTimeCount": 0,
+              "scheduledTiming": null
+            },
+            {
+              "announcements": 0,
+              "averageDelayMinutes": null,
+              "averageReadyMinutes": null,
+              "lateCount": 0,
+              "mealType": "SNACKS",
+              "notified": 0,
+              "onTimeCount": 0,
+              "scheduledTiming": null
+            },
+            {
+              "announcements": 1,
+              "averageDelayMinutes": null,
+              "averageReadyMinutes": 1145,
+              "lateCount": 0,
+              "mealType": "DINNER",
+              "notified": 3,
+              "onTimeCount": 0,
+              "scheduledTiming": "whenever"
+            }
+          ],
+          "summary": {
+            "averageDelayMinutes": 23,
+            "lateAnnouncements": 1,
+            "onTimeAnnouncements": 1,
+            "totalAnnouncements": 3,
+            "windowDays": 7
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "food days clamp",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/food?days=0",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food analytics loaded",
+        "data": {
+          "byDevice": [],
+          "byMeal": [
+            {
+              "announcements": 0,
+              "averageDelayMinutes": null,
+              "averageReadyMinutes": null,
+              "lateCount": 0,
+              "mealType": "BREAKFAST",
+              "notified": 0,
+              "onTimeCount": 0,
+              "scheduledTiming": "6:00 AM - 7:00 AM"
+            },
+            {
+              "announcements": 0,
+              "averageDelayMinutes": null,
+              "averageReadyMinutes": null,
+              "lateCount": 0,
+              "mealType": "LUNCH",
+              "notified": 0,
+              "onTimeCount": 0,
+              "scheduledTiming": null
+            },
+            {
+              "announcements": 0,
+              "averageDelayMinutes": null,
+              "averageReadyMinutes": null,
+              "lateCount": 0,
+              "mealType": "SNACKS",
+              "notified": 0,
+              "onTimeCount": 0,
+              "scheduledTiming": null
+            },
+            {
+              "announcements": 0,
+              "averageDelayMinutes": null,
+              "averageReadyMinutes": null,
+              "lateCount": 0,
+              "mealType": "DINNER",
+              "notified": 0,
+              "onTimeCount": 0,
+              "scheduledTiming": "whenever"
+            }
+          ],
+          "summary": {
+            "averageDelayMinutes": null,
+            "lateAnnouncements": 0,
+            "onTimeAnnouncements": 0,
+            "totalAnnouncements": 0,
+            "windowDays": 1
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "food refused",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/food",
+      "headers": {
+        "authorization": "Bearer {{access:6d0900000000000000000005:WARDEN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 403,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Your warden account does not have permission for this action.",
+        "errorCode": "CAPABILITY_DENIED"
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "food days nan",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/food?days=abc",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Food analytics loaded",
+        "data": {
+          "byDevice": [
+            {
+              "announcements": 2,
+              "device": "phone-a",
+              "lastAnnouncedAt": "2026-10-31T13:20:00.000Z"
+            },
+            {
+              "announcements": 1,
+              "device": "unidentified device",
+              "lastAnnouncedAt": "2026-10-31T01:00:00.000Z"
+            }
+          ],
+          "byMeal": [
+            {
+              "announcements": 2,
+              "averageDelayMinutes": 23,
+              "averageReadyMinutes": 383,
+              "lateCount": 1,
+              "mealType": "BREAKFAST",
+              "notified": 6,
+              "onTimeCount": 1,
+              "scheduledTiming": "6:00 AM - 7:00 AM"
+            },
+            {
+              "announcements": 0,
+              "averageDelayMinutes": null,
+              "averageReadyMinutes": null,
+              "lateCount": 0,
+              "mealType": "LUNCH",
+              "notified": 0,
+              "onTimeCount": 0,
+              "scheduledTiming": null
+            },
+            {
+              "announcements": 0,
+              "averageDelayMinutes": null,
+              "averageReadyMinutes": null,
+              "lateCount": 0,
+              "mealType": "SNACKS",
+              "notified": 0,
+              "onTimeCount": 0,
+              "scheduledTiming": null
+            },
+            {
+              "announcements": 1,
+              "averageDelayMinutes": null,
+              "averageReadyMinutes": 1145,
+              "lateCount": 0,
+              "mealType": "DINNER",
+              "notified": 3,
+              "onTimeCount": 0,
+              "scheduledTiming": "whenever"
+            }
+          ],
+          "summary": {
+            "averageDelayMinutes": 23,
+            "lateAnnouncements": 1,
+            "onTimeAnnouncements": 1,
+            "totalAnnouncements": 3,
+            "windowDays": 30
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "attendance",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/attendance",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Attendance analytics loaded",
+        "data": {
+          "byResident": [
+            {
+              "attendanceRate": 0,
+              "inside": 0,
+              "name": "Bina Report",
+              "nearby": 0,
+              "outside": 4,
+              "residentId": "6d090000000000000000000b",
+              "roomType": "Single",
+              "total": 5,
+              "unknown": 1
+            },
+            {
+              "attendanceRate": 1,
+              "inside": 1,
+              "name": "Asha Report",
+              "nearby": 1,
+              "outside": 0,
+              "residentId": "6d090000000000000000000a",
+              "roomType": "Single",
+              "total": 2,
+              "unknown": 0
+            },
+            {
+              "attendanceRate": 1,
+              "inside": 1,
+              "name": "Gone Report",
+              "nearby": 0,
+              "outside": 0,
+              "residentId": "6d090000000000000000000c",
+              "roomType": "Single",
+              "total": 1,
+              "unknown": 0
+            }
+          ],
+          "frequentlyAbsent": [
+            {
+              "attendanceRate": 0,
+              "inside": 0,
+              "name": "Bina Report",
+              "nearby": 0,
+              "outside": 4,
+              "residentId": "6d090000000000000000000b",
+              "roomType": "Single",
+              "total": 5,
+              "unknown": 1
+            }
+          ],
+          "summary": {
+            "averageAttendanceRate": 0.375,
+            "pings": 8,
+            "residentsTracked": 3,
+            "windowDays": 30,
+            "zones": {
+              "inside": 2,
+              "nearby": 1,
+              "outside": 4,
+              "unknown": 1
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "attendance warden days",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/attendance?days=2",
+      "headers": {
+        "authorization": "Bearer {{access:6d0900000000000000000005:WARDEN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Attendance analytics loaded",
+        "data": {
+          "byResident": [
+            {
+              "attendanceRate": 0,
+              "inside": 0,
+              "name": "Bina Report",
+              "nearby": 0,
+              "outside": 1,
+              "residentId": "6d090000000000000000000b",
+              "roomType": "Single",
+              "total": 1,
+              "unknown": 0
+            },
+            {
+              "attendanceRate": 1,
+              "inside": 1,
+              "name": "Asha Report",
+              "nearby": 0,
+              "outside": 0,
+              "residentId": "6d090000000000000000000a",
+              "roomType": "Single",
+              "total": 1,
+              "unknown": 0
+            },
+            {
+              "attendanceRate": 1,
+              "inside": 1,
+              "name": "Gone Report",
+              "nearby": 0,
+              "outside": 0,
+              "residentId": "6d090000000000000000000c",
+              "roomType": "Single",
+              "total": 1,
+              "unknown": 0
+            }
+          ],
+          "frequentlyAbsent": [],
+          "summary": {
+            "averageAttendanceRate": 0.6666666666666666,
+            "pings": 3,
+            "residentsTracked": 3,
+            "windowDays": 2,
+            "zones": {
+              "inside": 2,
+              "nearby": 0,
+              "outside": 1,
+              "unknown": 0
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "attendance nan",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/attendance?days=abc",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/json",
+      "body": {
+        "success": true,
+        "message": "Attendance analytics loaded",
+        "data": {
+          "byResident": [
+            {
+              "attendanceRate": 0,
+              "inside": 0,
+              "name": "Bina Report",
+              "nearby": 0,
+              "outside": 4,
+              "residentId": "6d090000000000000000000b",
+              "roomType": "Single",
+              "total": 5,
+              "unknown": 1
+            },
+            {
+              "attendanceRate": 1,
+              "inside": 1,
+              "name": "Asha Report",
+              "nearby": 1,
+              "outside": 0,
+              "residentId": "6d090000000000000000000a",
+              "roomType": "Single",
+              "total": 2,
+              "unknown": 0
+            },
+            {
+              "attendanceRate": 1,
+              "inside": 1,
+              "name": "Gone Report",
+              "nearby": 0,
+              "outside": 0,
+              "residentId": "6d090000000000000000000c",
+              "roomType": "Single",
+              "total": 1,
+              "unknown": 0
+            }
+          ],
+          "frequentlyAbsent": [
+            {
+              "attendanceRate": 0,
+              "inside": 0,
+              "name": "Bina Report",
+              "nearby": 0,
+              "outside": 4,
+              "residentId": "6d090000000000000000000b",
+              "roomType": "Single",
+              "total": 5,
+              "unknown": 1
+            }
+          ],
+          "summary": {
+            "averageAttendanceRate": 0.375,
+            "pings": 8,
+            "residentsTracked": 3,
+            "windowDays": 30,
+            "zones": {
+              "inside": 2,
+              "nearby": 1,
+              "outside": 4,
+              "unknown": 1
+            }
+          }
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export missing",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "report": [
+              "Invalid option: expected one of \"residents\"|\"payments\"|\"complaints\"|\"occupancy\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"residents\"|\"payments\"|\"complaints\"|\"occupancy\"",
+              "path": "report"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export bad",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=x\u0026format=doc\u0026months=1.5",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "format": [
+              "Invalid option: expected one of \"csv\"|\"pdf\""
+            ],
+            "months": [
+              "Invalid input: expected int, received number"
+            ],
+            "report": [
+              "Invalid option: expected one of \"residents\"|\"payments\"|\"complaints\"|\"occupancy\""
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid option: expected one of \"csv\"|\"pdf\"",
+              "path": "format"
+            },
+            {
+              "message": "Invalid input: expected int, received number",
+              "path": "months"
+            },
+            {
+              "message": "Invalid option: expected one of \"residents\"|\"payments\"|\"complaints\"|\"occupancy\"",
+              "path": "report"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export too far",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=payments\u0026months=99",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "months": [
+              "Up to 24 months, or everything."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Up to 24 months, or everything.",
+              "path": "months"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export negative",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=payments\u0026months=-1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "months": [
+              "Choose how many months, or everything."
+            ]
+          },
+          "issues": [
+            {
+              "message": "Choose how many months, or everything.",
+              "path": "months"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export nan",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=payments\u0026months=abc",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 422,
+      "contentType": "application/json",
+      "body": {
+        "success": false,
+        "message": "Validation failed",
+        "errorCode": "VALIDATION_ERROR",
+        "details": {
+          "formErrors": [],
+          "fieldErrors": {
+            "months": [
+              "Invalid input: expected number, received NaN"
+            ]
+          },
+          "issues": [
+            {
+              "message": "Invalid input: expected number, received NaN",
+              "path": "months"
+            }
+          ]
+        }
+      }
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export residents csv",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=residents",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8"
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export residents window",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=residents\u0026months=12",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8"
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export residents pdf",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=residents\u0026format=pdf\u0026months=1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export payments csv",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=payments",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8"
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export payments window",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=payments\u0026months=12",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8"
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export payments pdf",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=payments\u0026format=pdf\u0026months=1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export complaints csv",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=complaints",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8"
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export complaints window",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=complaints\u0026months=12",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8"
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export complaints pdf",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=complaints\u0026format=pdf\u0026months=1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export occupancy csv",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=occupancy",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8"
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export occupancy window",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=occupancy\u0026months=12",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "text/csv; charset=utf-8"
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  },
+  {
+    "name": "export occupancy pdf",
+    "request": {
+      "method": "GET",
+      "path": "/api/v1/hostel-admin/reports/export?report=occupancy\u0026format=pdf\u0026months=1",
+      "headers": {
+        "authorization": "Bearer {{access:6c0000000000000000000005:HOSTEL_ADMIN:6d0900000000000000000002}}"
+      }
+    },
+    "masks": [
+      "**dates"
+    ],
+    "response": {
+      "status": 200,
+      "contentType": "application/pdf"
+    },
+    "recorded": "http://localhost:3100 a951a56e"
+  }
+]
